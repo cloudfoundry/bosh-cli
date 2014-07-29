@@ -1,7 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+
+	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
+)
 
 func main() {
-	fmt.Println("BOSH Micro CLI")
+	cmdFactory := bmcmd.NewFactory()
+	cmdRunner := bmcmd.NewRunner(cmdFactory)
+
+	err := cmdRunner.Run(os.Args)
+	if err != nil {
+		fmt.Println("Error running bosh-micro-cli - %s", err.Error())
+
+		os.Exit(1)
+	}
 }
