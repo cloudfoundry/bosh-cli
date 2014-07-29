@@ -5,7 +5,7 @@ import (
 )
 
 type Factory interface {
-	Create(name string) (Cmd, error)
+	CreateCommand(name string) (Cmd, error)
 }
 
 type factory struct {
@@ -20,7 +20,7 @@ func NewFactory() Factory {
 	}
 }
 
-func (f *factory) Create(name string) (Cmd, error) {
+func (f *factory) CreateCommand(name string) (Cmd, error) {
 	if f.commands[name] == nil {
 		return nil, errors.New("Invalid command name")
 	}

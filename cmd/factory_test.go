@@ -18,7 +18,7 @@ var _ = Describe("cmd.Factory", func() {
 
 	Context("passing correct command name", func() {
 		It("has deployment command", func() {
-			cmd, err := factory.Create("deployment")
+			cmd, err := factory.CreateCommand("deployment")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cmd).ToNot(BeNil())
 		})
@@ -26,7 +26,7 @@ var _ = Describe("cmd.Factory", func() {
 
 	Context("invalid command name", func() {
 		It("returns error on invalid command name", func() {
-			_, err := factory.Create("bogus-cmd-name")
+			_, err := factory.CreateCommand("bogus-cmd-name")
 			Expect(err).To(HaveOccurred())
 		})
 	})

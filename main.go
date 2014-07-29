@@ -11,7 +11,7 @@ func main() {
 	cmdFactory := bmcmd.NewFactory()
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
 
-	err := cmdRunner.Run(os.Args)
+	err := cmdRunner.Run(os.Args[1:])
 	if err != nil {
 		fmt.Println("Error running bosh-micro-cli - %s", err.Error())
 
