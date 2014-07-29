@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,8 +11,12 @@ import (
 )
 
 const (
-	BOSH_MICRO_FILENAME = ".bosh_micro"
+	BOSH_MICRO_FILENAME = ".bosh_micro.json"
 )
+
+type deploymentFileJson struct {
+	Deployment string `json:"deployment"`
+}
 
 type deploymentCmd struct {
 	args []string
@@ -43,7 +48,14 @@ func (f *deploymentCmd) Run(args []string) error {
 	}
 
 	boshMicroPath := path.Join(usr.HomeDir, BOSH_MICRO_FILENAME)
-	err = ioutil.WriteFile(boshMicroPath, []byte(manifestFilePath), os.ModePerm)
+
+	jsonContentStruct := &deploymentFileJson{Deployment: manifestFilePath}
+	jsonContent, err := json.MarshalIndent(jsonContentStruct, "", "  ")
+	if err != nil {
+		return errors.New("Could not marshal JSON content %s")
+	}
+
+	err = ioutil.WriteFile(boshMicroPath, jsonContent, os.ModePerm)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Could not write to file %s", boshMicroPath))
 	}

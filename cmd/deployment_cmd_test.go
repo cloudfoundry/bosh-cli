@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -37,16 +38,40 @@ var _ = Describe("DeploymentCmd", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			It("stores the manifest file path to a hidden file at the home dir", func() {
-				err := command.Run(args)
-				Expect(err).ToNot(HaveOccurred())
-				usr, err := user.Current()
-				Expect(err).ToNot(HaveOccurred())
+			Context("storing the file", func() {
+				var expectedFilePath string
+				var expectedJsonContent string
 
-				expectedFilePath := path.Join(usr.HomeDir, ".bosh_micro")
-				expectedFileContent, err := ioutil.ReadFile(expectedFilePath)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(string(expectedFileContent)).To(ContainSubstring(manifestPath))
+				BeforeEach(func() {
+					usr, err := user.Current()
+					Expect(err).ToNot(HaveOccurred())
+
+					expectedFilePath = path.Join(usr.HomeDir, ".bosh_micro.json")
+					expectedJsonContent = fmt.Sprintf(`
+					{
+						"deployment" : "%s"
+					}
+					`, manifestPath)
+				})
+
+				It("stores the manifest file path to a hidden file at the home dir", func() {
+					err := command.Run(args)
+					Expect(err).ToNot(HaveOccurred())
+
+					actualFileContent, err := ioutil.ReadFile(expectedFilePath)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(actualFileContent)).To(ContainSubstring(manifestPath))
+				})
+
+				It("store the file in json format", func() {
+					err := command.Run(args)
+					Expect(err).ToNot(HaveOccurred())
+
+					actualFileContent, err := ioutil.ReadFile(expectedFilePath)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(actualFileContent)).To(MatchJSON(expectedJsonContent))
+				})
+
 			})
 		})
 
