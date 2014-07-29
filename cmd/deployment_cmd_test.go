@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path"
 
 	cmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
@@ -17,10 +16,20 @@ var _ = Describe("DeploymentCmd", func() {
 	var command cmd.Cmd
 	var manifestPath string
 	var args []string
+	var boshMicroPath string
 
 	BeforeEach(func() {
-		command = cmd.NewDeploymentCmd()
+		var err error
+		boshMicroPath, err = ioutil.TempDir("", "bosh-micro-cli")
+		Expect(err).NotTo(HaveOccurred())
+
+		command = cmd.NewDeploymentCmd(boshMicroPath)
 		Expect(command).ToNot(BeNil())
+	})
+
+	AfterEach(func() {
+		err := os.RemoveAll(boshMicroPath)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Context("#Run", func() {
@@ -43,10 +52,7 @@ var _ = Describe("DeploymentCmd", func() {
 				var expectedJsonContent string
 
 				BeforeEach(func() {
-					usr, err := user.Current()
-					Expect(err).ToNot(HaveOccurred())
-
-					expectedFilePath = path.Join(usr.HomeDir, ".bosh_micro.json")
+					expectedFilePath = path.Join(boshMicroPath, ".bosh_micro.json")
 					expectedJsonContent = fmt.Sprintf(`
 					{
 						"deployment" : "%s"

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"os/user"
 )
 
 type Factory interface {
@@ -13,9 +14,11 @@ type factory struct {
 }
 
 func NewFactory() Factory {
+	usr, _ := user.Current()
+
 	return &factory{
 		commands: map[string]Cmd{
-			"deployment": NewDeploymentCmd(),
+			"deployment": NewDeploymentCmd(usr.HomeDir),
 		},
 	}
 }

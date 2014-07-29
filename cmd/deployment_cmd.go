@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path"
 )
 
@@ -19,35 +18,28 @@ type deploymentFileJson struct {
 }
 
 type deploymentCmd struct {
-	args []string
+	boshMicroPath string
 }
 
-func NewDeploymentCmd() *deploymentCmd {
-	return &deploymentCmd{}
+func NewDeploymentCmd(boshMicroPath string) *deploymentCmd {
+	return &deploymentCmd{boshMicroPath: boshMicroPath}
 }
 
-func (f *deploymentCmd) Run(args []string) error {
-	f.args = args
-
-	if f.args == nil {
+func (c *deploymentCmd) Run(args []string) error {
+	if args == nil {
 		return errors.New("Deployment command argument cannot be nil")
 	}
 
-	if len(f.args) < 1 {
+	if len(args) < 1 {
 		return errors.New("Deployment command arguments must have at least one arg")
 	}
 
-	manifestFilePath := f.args[0]
+	manifestFilePath := args[0]
 	if _, err := os.Stat(manifestFilePath); os.IsNotExist(err) {
 		return errors.New(fmt.Sprintf("Deployment command manifest path %s does not exist", manifestFilePath))
 	}
 
-	usr, err := user.Current()
-	if err != nil {
-		return errors.New("Could not access current user")
-	}
-
-	boshMicroPath := path.Join(usr.HomeDir, BOSH_MICRO_FILENAME)
+	boshMicroPath := path.Join(c.boshMicroPath, BOSH_MICRO_FILENAME)
 
 	jsonContentStruct := &deploymentFileJson{Deployment: manifestFilePath}
 	jsonContent, err := json.MarshalIndent(jsonContentStruct, "", "  ")
