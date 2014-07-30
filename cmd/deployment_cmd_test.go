@@ -52,29 +52,26 @@ var _ = Describe("DeploymentCmd", func() {
 
 			Context("storing the file", func() {
 				var expectedFilePath string
-				var expectedJsonContent string
 
 				BeforeEach(func() {
 					expectedFilePath = path.Join(boshMicroPath, ".bosh_micro.json")
-					expectedJsonContent = fmt.Sprintf(`
-					{
-						"deployment" : "%s"
-					}
-					`, manifestPath)
+					err := command.Run(args)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("stores the manifest file path to a hidden file at the home dir", func() {
-					err := command.Run(args)
-					Expect(err).ToNot(HaveOccurred())
-
 					actualFileContent, err := ioutil.ReadFile(expectedFilePath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(actualFileContent)).To(ContainSubstring(manifestPath))
 				})
 
 				It("store the file in json format", func() {
-					err := command.Run(args)
-					Expect(err).ToNot(HaveOccurred())
+					var expectedJsonContent string
+					expectedJsonContent = fmt.Sprintf(`
+						{
+							"deployment" : "%s"
+						}
+						`, manifestPath)
 
 					actualFileContent, err := ioutil.ReadFile(expectedFilePath)
 					Expect(err).NotTo(HaveOccurred())
@@ -82,31 +79,74 @@ var _ = Describe("DeploymentCmd", func() {
 				})
 
 				It("says 'deployment set..' to the UI", func() {
-					err := command.Run(args)
-					Expect(err).ToNot(HaveOccurred())
+					Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Deployment set to '%s'", manifestPath))))
+				})
 
-					Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Deployment set to `%s'", manifestPath))))
+				Context("when the bosh file does exist", func() {
+					It("prints out the current manifest path", func() {
+						err := command.Run(nil)
+						Expect(err).ToNot(HaveOccurred())
+						Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Current deployment is '%s'", manifestPath))))
+					})
 				})
 			})
 		})
 
-		Context("ran with invalid args", func() {
-			It("fails when manifest file path is nil", func() {
-				err := command.Run(nil)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Deployment command argument cannot be nil"))
+		Context("ran without args", func() {
+			Context("when the bosh file does not exist", func() {
+				It("says `Deployment not set' to UI stderr when called with nil", func() {
+					err := command.Run(nil)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Deployment not set"))
+					Expect(fakeUI.Errors).To(ContainElement("Deployment not set"))
+				})
+
+				It("says `Deployment not set' to UI stderr when called with empty string slice", func() {
+					err := command.Run([]string{})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Deployment not set"))
+					Expect(fakeUI.Errors).To(ContainElement("Deployment not set"))
+				})
+
+				It("fails when manifest file path does not exist", func() {
+					err := command.Run([]string{"fake/manifest/path"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Deployment command manifest path fake/manifest/path does not exist"))
+				})
 			})
 
-			It("fails when manifest file path is empty", func() {
-				err := command.Run([]string{})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Deployment command arguments must have at least one arg"))
-			})
+			Context("when the bosh file exists", func() {
+				var boshMicroFile string
 
-			It("fails when manifest file path does not exist", func() {
-				err := command.Run([]string{"fake/manifest/path"})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Deployment command manifest path fake/manifest/path does not exist"))
+				BeforeEach(func() {
+					file, err := ioutil.TempFile("", "bosh-micro-cli-manifest")
+					Expect(err).ToNot(HaveOccurred())
+					manifestPath = file.Name()
+
+					expectedJsonContent := fmt.Sprintf(`
+						{
+							"deployment" : "%s"
+						}
+						`, manifestPath)
+					boshMicroFile = path.Join(boshMicroPath, ".bosh_micro.json")
+
+					err = ioutil.WriteFile(boshMicroFile, []byte(expectedJsonContent), os.ModePerm)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				AfterEach(func() {
+					err := os.RemoveAll(manifestPath)
+					Expect(err).ToNot(HaveOccurred())
+
+					err = os.Remove(boshMicroFile)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("says `Deployment set to '<manifest_path>'`", func() {
+					err := command.Run(nil)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(fakeUI.Said).To(ContainElement(fmt.Sprintf("Current deployment is '%s'", manifestPath)))
+				})
 			})
 		})
 	})

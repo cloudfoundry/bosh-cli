@@ -32,12 +32,15 @@ func NewDeploymentCmd(ui bmui.UI, boshMicroPath string) *deploymentCmd {
 }
 
 func (c *deploymentCmd) Run(args []string) error {
-	if args == nil {
-		return errors.New("Deployment command argument cannot be nil")
-	}
-
-	if len(args) < 1 {
-		return errors.New("Deployment command arguments must have at least one arg")
+	if args == nil || len(args) < 1 {
+		deploymentJson, err := c.readBoshMicroFile()
+		if err != nil || deploymentJson.Deployment == "" {
+			c.ui.Error("Deployment not set")
+			return errors.New("Deployment not set")
+		} else {
+			c.ui.Say(fmt.Sprintf("Current deployment is '%s'", deploymentJson.Deployment))
+			return nil
+		}
 	}
 
 	manifestFilePath := args[0]
@@ -58,6 +61,22 @@ func (c *deploymentCmd) Run(args []string) error {
 		return errors.New(fmt.Sprintf("Could not write to file %s", boshMicroPath))
 	}
 
-	c.ui.Say(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
+	c.ui.Say(fmt.Sprintf("Deployment set to '%s'", manifestFilePath))
 	return nil
+}
+
+func (c *deploymentCmd) readBoshMicroFile() (*deploymentFileJson, error) {
+	boshMicroPath := path.Join(c.boshMicroPath, BOSH_MICRO_FILENAME)
+	content, err := ioutil.ReadFile(boshMicroPath)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Could not read BOSH micro file %s", boshMicroPath))
+	}
+
+	jsonContentStruct := &deploymentFileJson{}
+	err = json.Unmarshal(content, jsonContentStruct)
+	if err != nil {
+		return nil, errors.New("Could not marshal JSON content %s")
+	}
+
+	return jsonContentStruct, nil
 }
