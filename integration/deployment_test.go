@@ -34,7 +34,7 @@ var _ = Describe("bosh-micro deployment <manifest-filepath>", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		XIt("is successfully accepts a valid manifest file", func() {
+		It("is successfully accepts a valid manifest file", func() {
 			Expect(session.Out.Contents()).To(ContainSubstring(deploymentManifestFilePath))
 		})
 	})

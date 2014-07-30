@@ -1,0 +1,14 @@
+package fakes
+
+type FakeUI struct {
+	Said   []string
+	Errors []string
+}
+
+func (ui *FakeUI) Say(message string) {
+	ui.Said = append(ui.Said, message)
+}
+
+func (ui *FakeUI) Error(message string) {
+	ui.Errors = append(ui.Errors, message)
+}

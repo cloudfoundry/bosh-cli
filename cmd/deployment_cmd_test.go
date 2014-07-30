@@ -7,6 +7,7 @@ import (
 	"path"
 
 	cmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	uifakes "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,13 +18,15 @@ var _ = Describe("DeploymentCmd", func() {
 	var manifestPath string
 	var args []string
 	var boshMicroPath string
+	var fakeUI *uifakes.FakeUI
 
 	BeforeEach(func() {
 		var err error
 		boshMicroPath, err = ioutil.TempDir("", "bosh-micro-cli")
 		Expect(err).NotTo(HaveOccurred())
 
-		command = cmd.NewDeploymentCmd(boshMicroPath)
+		fakeUI = &uifakes.FakeUI{}
+		command = cmd.NewDeploymentCmd(fakeUI, boshMicroPath)
 		Expect(command).ToNot(BeNil())
 	})
 
@@ -78,6 +81,12 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(string(actualFileContent)).To(MatchJSON(expectedJsonContent))
 				})
 
+				It("says 'deployment set..' to the UI", func() {
+					err := command.Run(args)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Deployment set to `%s'", manifestPath))))
+				})
 			})
 		})
 

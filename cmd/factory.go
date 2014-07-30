@@ -2,7 +2,10 @@ package cmd
 
 import (
 	"errors"
+	"os"
 	"os/user"
+
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Factory interface {
@@ -15,10 +18,12 @@ type factory struct {
 
 func NewFactory() Factory {
 	usr, _ := user.Current()
+	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)
 
 	return &factory{
+
 		commands: map[string]Cmd{
-			"deployment": NewDeploymentCmd(usr.HomeDir),
+			"deployment": NewDeploymentCmd(ui, usr.HomeDir),
 		},
 	}
 }

@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 const (
@@ -18,11 +20,15 @@ type deploymentFileJson struct {
 }
 
 type deploymentCmd struct {
+	ui            bmui.UI
 	boshMicroPath string
 }
 
-func NewDeploymentCmd(boshMicroPath string) *deploymentCmd {
-	return &deploymentCmd{boshMicroPath: boshMicroPath}
+func NewDeploymentCmd(ui bmui.UI, boshMicroPath string) *deploymentCmd {
+	return &deploymentCmd{
+		ui:            ui,
+		boshMicroPath: boshMicroPath,
+	}
 }
 
 func (c *deploymentCmd) Run(args []string) error {
@@ -52,5 +58,6 @@ func (c *deploymentCmd) Run(args []string) error {
 		return errors.New(fmt.Sprintf("Could not write to file %s", boshMicroPath))
 	}
 
+	c.ui.Say(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
 	return nil
 }
