@@ -1,10 +1,14 @@
 package main
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	"os"
+	"os/user"
+
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 const mainLogTag = "main"
@@ -13,7 +17,12 @@ func main() {
 	logger := boshlog.NewLogger(boshlog.LevelError)
 	defer logger.HandlePanic("Main")
 
-	cmdFactory := bmcmd.NewFactory(logger)
+	fileSystem := boshsys.NewOsFileSystem(logger)
+	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)
+	usr, _ := user.Current()
+	boshMicroPath := usr.HomeDir
+	cmdFactory := bmcmd.NewFactory(fileSystem, ui, boshMicroPath)
+
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
 
 	err := cmdRunner.Run(os.Args[1:])

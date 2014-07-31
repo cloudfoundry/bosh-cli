@@ -33,10 +33,6 @@ func NewDeploymentCmd(ui bmui.UI, boshMicroPath string, fs boshsys.FileSystem) *
 	}
 }
 
-func (c *deploymentCmd) FileSystem() boshsys.FileSystem {
-	return c.fs
-}
-
 func (c *deploymentCmd) Run(args []string) error {
 	if args == nil || len(args) < 1 {
 		return c.showDeploymentStatus()

@@ -39,12 +39,6 @@ var _ = Describe("DeploymentCmd", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	Context("#FileSystem", func() {
-		It("returns the filesystem", func() {
-			Expect(command.FileSystem()).To(Equal(fakeFs))
-		})
-	})
-
 	Context("#Run", func() {
 		Context("ran with valid args", func() {
 			BeforeEach(func() {

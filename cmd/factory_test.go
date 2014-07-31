@@ -1,33 +1,28 @@
 package cmd_test
 
 import (
-	"os"
-	"os/user"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {
 	var (
 		factory    Factory
-		logger     boshlog.Logger
 		filesystem boshsys.FileSystem
 		ui         bmui.UI
-		usr        *user.User
 	)
 
 	BeforeEach(func() {
-		logger = boshlog.NewLogger(boshlog.LevelDebug)
-		factory = NewFactory(logger)
-		filesystem = boshsys.NewOsFileSystem(logger)
-		ui = bmui.NewDefaultUI(os.Stdout, os.Stderr)
-		usr, _ = user.Current()
+		filesystem = fakesys.NewFakeFileSystem()
+		ui = &fakeui.FakeUI{}
+
+		factory = NewFactory(filesystem, ui, "/somepath")
 	})
 
 	It("creates a new factory", func() {
@@ -38,7 +33,7 @@ var _ = Describe("cmd.Factory", func() {
 		It("has deployment command", func() {
 			cmd, err := factory.CreateCommand("deployment")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cmd).To(Equal(NewDeploymentCmd(ui, usr.HomeDir, filesystem)))
+			Expect(cmd).To(Equal(NewDeploymentCmd(ui, "/somepath", filesystem)))
 		})
 	})
 
