@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"io"
 )
 
@@ -15,11 +16,11 @@ type defaultUI struct {
 }
 
 func (dui *defaultUI) Say(message string) {
-	dui.stdOut.Write([]byte(message))
+	dui.stdOut.Write([]byte(fmt.Sprintln(message)))
 }
 
 func (dui *defaultUI) Error(message string) {
-	dui.stdErr.Write([]byte(message))
+	dui.stdErr.Write([]byte(fmt.Sprintln(message)))
 }
 
 func NewDefaultUI(stdOut, stdErr io.Writer) UI {

@@ -20,16 +20,16 @@ var _ = Describe("UI", func() {
 	})
 
 	Context("#Say", func() {
-		It("prints what is said to std out", func() {
+		It("prints what is said to std out with a trailing newline", func() {
 			ui.Say("hey")
-			Expect(stdOut.String()).To(ContainSubstring("hey"))
+			Expect(stdOut.String()).To(ContainSubstring("hey\n"))
 		})
 	})
 
 	Context("#Error", func() {
-		It("prints what is errored to std err", func() {
+		It("prints what is errored to std err with a trailing newline", func() {
 			ui.Error("fake error")
-			Expect(stdErr.String()).To(ContainSubstring("fake error"))
+			Expect(stdErr.String()).To(ContainSubstring("fake error\n"))
 		})
 	})
 })
