@@ -6,6 +6,22 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/errors",
+			"Rev": "c02ad04a42ed40882a50a09c9255bdfd3844738c"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/logger",
+			"Rev": "c02ad04a42ed40882a50a09c9255bdfd3844738c"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/system",
+			"Rev": "c02ad04a42ed40882a50a09c9255bdfd3844738c"
+		},
+		{
+			"ImportPath": "github.com/nu7hatch/gouuid",
+			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+		},
+		{
 			"ImportPath": "github.com/onsi/ginkgo",
 			"Comment": "v1.0.0-28-g6481765",
 			"Rev": "6481765dda39cbaae281109e6945449642329197"
