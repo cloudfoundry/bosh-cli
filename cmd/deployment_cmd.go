@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path"
 
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
@@ -22,14 +21,20 @@ type deploymentFileJson struct {
 type deploymentCmd struct {
 	ui            bmui.UI
 	boshMicroPath string
+	fs            boshsys.FileSystem
 }
 
-func NewDeploymentCmd(ui bmui.UI, boshMicroPath string) *deploymentCmd {
+func NewDeploymentCmd(ui bmui.UI, boshMicroPath string, fs boshsys.FileSystem) *deploymentCmd {
 	fullBoshMicroPath := path.Join(boshMicroPath, BOSH_MICRO_FILENAME)
 	return &deploymentCmd{
 		ui:            ui,
 		boshMicroPath: fullBoshMicroPath,
+		fs:            fs,
 	}
+}
+
+func (c *deploymentCmd) FileSystem() boshsys.FileSystem {
+	return c.fs
 }
 
 func (c *deploymentCmd) Run(args []string) error {
@@ -54,12 +59,13 @@ func (c *deploymentCmd) showDeploymentStatus() error {
 }
 
 func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
-	if _, err := os.Stat(manifestFilePath); os.IsNotExist(err) {
+	if !c.fs.FileExists(manifestFilePath) {
 		return errors.New(fmt.Sprintf("Deployment command manifest path %s does not exist", manifestFilePath))
 	}
 
+	var err error
 	var deploymentJson *deploymentFileJson
-	if _, err := os.Stat(c.boshMicroPath); os.IsNotExist(err) {
+	if !c.fs.FileExists(c.boshMicroPath) {
 		deploymentJson = &deploymentFileJson{}
 	} else {
 		deploymentJson, err = c.readBoshMicroFile()
@@ -70,7 +76,7 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 
 	deploymentJson.Deployment = manifestFilePath
 
-	err := c.saveBoshMicroFile(manifestFilePath, deploymentJson)
+	err = c.saveBoshMicroFile(manifestFilePath, deploymentJson)
 	if err != nil {
 		return err
 	}
@@ -85,7 +91,7 @@ func (c *deploymentCmd) saveBoshMicroFile(manifestFilePath string, deploymentJso
 		return errors.New(fmt.Sprintf("Could not marshal JSON content '%s'", manifestFilePath))
 	}
 
-	err = ioutil.WriteFile(c.boshMicroPath, jsonContent, os.ModePerm)
+	err = c.fs.WriteFile(c.boshMicroPath, jsonContent)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Could not write to BOSH micro file %s", c.boshMicroPath))
 	}
@@ -94,7 +100,7 @@ func (c *deploymentCmd) saveBoshMicroFile(manifestFilePath string, deploymentJso
 }
 
 func (c *deploymentCmd) readBoshMicroFile() (*deploymentFileJson, error) {
-	content, err := ioutil.ReadFile(c.boshMicroPath)
+	content, err := c.fs.ReadFile(c.boshMicroPath)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Could not read BOSH micro file %s", c.boshMicroPath))
 	}

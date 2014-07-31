@@ -2,9 +2,9 @@ package cmd_test
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path"
+
+	boshsysfakes "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	cmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	uifakes "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -20,34 +20,43 @@ var _ = Describe("DeploymentCmd", func() {
 	var boshMicroPath string
 	var boshMicroFile string
 	var fakeUI *uifakes.FakeUI
+	var fakeFs *boshsysfakes.FakeFileSystem
 
 	BeforeEach(func() {
-		var err error
-		boshMicroPath, err = ioutil.TempDir("", "bosh-micro-cli")
-		Expect(err).NotTo(HaveOccurred())
-
 		fakeUI = &uifakes.FakeUI{}
-		command = cmd.NewDeploymentCmd(fakeUI, boshMicroPath)
+		fakeFs = boshsysfakes.NewFakeFileSystem()
+		boshMicroPath = "/tmp/"
+
+		command = cmd.NewDeploymentCmd(fakeUI, boshMicroPath, fakeFs)
 		Expect(command).ToNot(BeNil())
+
+		var err error
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
-		err := os.RemoveAll(boshMicroPath)
+		err := fakeFs.RemoveAll(boshMicroPath)
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	Context("#FileSystem", func() {
+		It("returns the filesystem", func() {
+			Expect(command.FileSystem()).To(Equal(fakeFs))
+		})
 	})
 
 	Context("#Run", func() {
 		Context("ran with valid args", func() {
 			BeforeEach(func() {
-				file, err := ioutil.TempFile("", "bosh-micro-cli-manifest")
+				manifestPath = "/tmp/bosh-micro-cli-manifest.yml"
+				err := fakeFs.WriteFileString(manifestPath, "")
 				Expect(err).ToNot(HaveOccurred())
 
-				manifestPath = file.Name()
 				args = []string{manifestPath}
 			})
 
 			AfterEach(func() {
-				err := os.RemoveAll(manifestPath)
+				err := fakeFs.RemoveAll(manifestPath)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -57,14 +66,15 @@ var _ = Describe("DeploymentCmd", func() {
 
 					BeforeEach(func() {
 						expectedFilePath = path.Join(boshMicroPath, ".bosh_micro.json")
-						err := ioutil.WriteFile(expectedFilePath, []byte("{}"), os.ModePerm)
+						err := fakeFs.WriteFileString(expectedFilePath, "{}")
+						Expect(err).ToNot(HaveOccurred())
 
 						err = command.Run(args)
 						Expect(err).ToNot(HaveOccurred())
 					})
 
 					It("stores the manifest file path to a hidden file at the home dir", func() {
-						actualFileContent, err := ioutil.ReadFile(expectedFilePath)
+						actualFileContent, err := fakeFs.ReadFile(expectedFilePath)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(string(actualFileContent)).To(ContainSubstring(manifestPath))
 					})
@@ -77,7 +87,7 @@ var _ = Describe("DeploymentCmd", func() {
 						}
 						`, manifestPath)
 
-						actualFileContent, err := ioutil.ReadFile(expectedFilePath)
+						actualFileContent, err := fakeFs.ReadFile(expectedFilePath)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(string(actualFileContent)).To(MatchJSON(expectedJsonContent))
 					})
@@ -89,20 +99,20 @@ var _ = Describe("DeploymentCmd", func() {
 
 				Context("and invalid", func() {
 					BeforeEach(func() {
-						file, err := ioutil.TempFile("", "bosh-micro-cli-manifest")
+						file, err := fakeFs.TempFile("bosh-micro-cli-manifest")
 						Expect(err).ToNot(HaveOccurred())
 						manifestPath = file.Name()
 
 						boshMicroFile = path.Join(boshMicroPath, ".bosh_micro.json")
-						err = ioutil.WriteFile(boshMicroFile, []byte("---invalid JSON---"), os.ModePerm)
+						err = fakeFs.WriteFileString(boshMicroFile, "---invalid JSON---")
 						Expect(err).ToNot(HaveOccurred())
 					})
 
 					AfterEach(func() {
-						err := os.RemoveAll(manifestPath)
+						err := fakeFs.RemoveAll(manifestPath)
 						Expect(err).ToNot(HaveOccurred())
 
-						err = os.Remove(boshMicroFile)
+						err = fakeFs.RemoveAll(boshMicroFile)
 						Expect(err).ToNot(HaveOccurred())
 					})
 
@@ -119,7 +129,7 @@ var _ = Describe("DeploymentCmd", func() {
 		Context("ran without args", func() {
 			Context("when the bosh file exists", func() {
 				BeforeEach(func() {
-					file, err := ioutil.TempFile("", "bosh-micro-cli-manifest")
+					file, err := fakeFs.TempFile("bosh-micro-cli-manifest")
 					Expect(err).ToNot(HaveOccurred())
 					manifestPath = file.Name()
 
@@ -130,15 +140,15 @@ var _ = Describe("DeploymentCmd", func() {
 						`, manifestPath)
 					boshMicroFile = path.Join(boshMicroPath, ".bosh_micro.json")
 
-					err = ioutil.WriteFile(boshMicroFile, []byte(expectedJsonContent), os.ModePerm)
+					err = fakeFs.WriteFileString(boshMicroFile, expectedJsonContent)
 					Expect(err).ToNot(HaveOccurred())
 				})
 
 				AfterEach(func() {
-					err := os.RemoveAll(manifestPath)
+					err := fakeFs.RemoveAll(manifestPath)
 					Expect(err).ToNot(HaveOccurred())
 
-					err = os.Remove(boshMicroFile)
+					err = fakeFs.RemoveAll(boshMicroFile)
 					Expect(err).ToNot(HaveOccurred())
 				})
 
