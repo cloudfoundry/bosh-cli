@@ -4,4 +4,6 @@ go:
   - 1.2
   - tip
 
+install: true
+
 script: bin/ci
