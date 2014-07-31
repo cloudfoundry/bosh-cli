@@ -11,5 +11,8 @@ import (
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
 	BeforeSuite(test_helpers.BuildExecutable)
+
+	test_helpers.StubBoshMicroPath()
+
 	RunSpecs(t, "bosh-micro-cli Integration Suite")
 }

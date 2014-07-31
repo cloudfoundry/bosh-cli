@@ -1,6 +1,7 @@
 package test_helpers
 
 import (
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -8,7 +9,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/onsi/gomega/gexec"
 )
 
 var BoshMicroExec string
@@ -19,25 +19,39 @@ func GetFilePath(input_dir string, fileName string) string {
 
 func RemoveAllFiles(args ...string) {
 	for _, arg := range args {
-		os.Remove(arg)
+		err := os.Remove(arg)
+		Expect(err).NotTo(HaveOccurred())
 	}
 }
 
 func BuildExecutable() {
 	var err error
 	BoshMicroExec, err = gexec.Build("./../../bosh-micro-cli")
-	Ω(err).ShouldNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 }
 
-func RunBoshMicro(args ...string) *Session {
+func RunBoshMicro(args ...string) *gexec.Session {
 	session := RunCommand(BoshMicroExec, args...)
 	return session
 }
 
-func RunCommand(cmd string, args ...string) *Session {
+func RunCommand(cmd string, args ...string) *gexec.Session {
 	command := exec.Command(cmd, args...)
-	session, err := Start(command, GinkgoWriter, GinkgoWriter)
-	Ω(err).ShouldNot(HaveOccurred())
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
 	session.Wait()
 	return session
+}
+
+func StubBoshMicroPath() {
+	oldHome := os.Getenv("HOME")
+	boshMicroPath, err := ioutil.TempDir("", "micro-bosh-cli-integration")
+	Expect(err).NotTo(HaveOccurred())
+	BeforeEach(func() {
+		os.Setenv("HOME", boshMicroPath)
+	})
+	AfterEach(func() {
+		os.Setenv("HOME", oldHome)
+		os.RemoveAll(boshMicroPath)
+	})
 }

@@ -2,22 +2,20 @@ package integration_test
 
 import (
 	"fmt"
-	. "github.com/cloudfoundry/bosh-micro-cli/integration/test_helpers"
+	"io/ioutil"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"os/user"
-	"path"
 
-	"io/ioutil"
-	"os"
+	. "github.com/cloudfoundry/bosh-micro-cli/integration/test_helpers"
 )
 
 var _ = Describe("bosh-micro deployment <manifest-filepath>", func() {
 	var (
 		deploymentManifestFilePath string
 		session                    *gexec.Session
-		boshMicroPath              string
 	)
 
 	Context("with a manifest file", func() {
@@ -38,13 +36,6 @@ var _ = Describe("bosh-micro deployment <manifest-filepath>", func() {
 
 			AfterEach(func() {
 				err := os.RemoveAll(deploymentManifestFilePath)
-				Expect(err).NotTo(HaveOccurred())
-
-				usr, err := user.Current()
-				Expect(err).NotTo(HaveOccurred())
-				boshMicroPath = path.Join(usr.HomeDir, ".bosh_micro.json")
-
-				err = os.Remove(boshMicroPath)
 				Expect(err).NotTo(HaveOccurred())
 			})
 

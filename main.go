@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"os/user"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -19,8 +18,7 @@ func main() {
 
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)
-	usr, _ := user.Current()
-	boshMicroPath := usr.HomeDir
+	boshMicroPath := os.Getenv("HOME")
 	cmdFactory := bmcmd.NewFactory(fileSystem, ui, boshMicroPath)
 
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
