@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/integration/test_helpers"
+	. "github.com/cloudfoundry/bosh-micro-cli/integration"
 )
 
 var _ = Describe("bosh-micro deployment <manifest-filepath>", func() {

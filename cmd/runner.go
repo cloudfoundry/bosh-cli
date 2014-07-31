@@ -28,7 +28,7 @@ func (runner *Runner) Run(args []string) error {
 	commandName := args[0]
 	cmd, err := runner.factory.CreateCommand(commandName)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed creating command with name: ", commandName))
+		return fmt.Errorf("Failed creating command with name: %s", commandName)
 	}
 
 	return cmd.Run(args[1:])

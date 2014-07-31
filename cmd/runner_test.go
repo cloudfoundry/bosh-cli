@@ -1,7 +1,6 @@
 package cmd_test
 
 import (
-	"errors"
 	"fmt"
 
 	cmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
@@ -66,14 +65,14 @@ var _ = Describe("Runner", func() {
 
 				BeforeEach(func() {
 					fakeCommandName = "fake-command-name"
-					factory.PresetError = errors.New(fmt.Sprintf("Failed creating command with name: ", fakeCommandName))
+					factory.PresetError = fmt.Errorf("Failed creating command with name: %s", fakeCommandName)
 					runner = cmd.NewRunner(factory)
 				})
 
 				It("fails with error with unknown command name", func() {
 					err := runner.Run([]string{"fake-command-name", "/fake/manifest_path"})
 					Expect(err).ToNot(BeNil())
-					Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Failed creating command with name: ", fakeCommandName)))
+					Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Failed creating command with name: %s", fakeCommandName)))
 					Expect(factory.CommandName).To(Equal("fake-command-name"))
 				})
 			})

@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	BOSH_MICRO_FILENAME = ".bosh_micro.json"
+	BoshMicroFilename = ".bosh_micro.json"
 )
 
-type deploymentFileJson struct {
+type deploymentFileJSON struct {
 	Deployment string `json:"deployment"`
 }
 
@@ -25,7 +25,7 @@ type deploymentCmd struct {
 }
 
 func NewDeploymentCmd(ui bmui.UI, boshMicroPath string, fs boshsys.FileSystem) *deploymentCmd {
-	fullBoshMicroPath := path.Join(boshMicroPath, BOSH_MICRO_FILENAME)
+	fullBoshMicroPath := path.Join(boshMicroPath, BoshMicroFilename)
 	return &deploymentCmd{
 		ui:            ui,
 		boshMicroPath: fullBoshMicroPath,
@@ -43,36 +43,36 @@ func (c *deploymentCmd) Run(args []string) error {
 }
 
 func (c *deploymentCmd) showDeploymentStatus() error {
-	deploymentJson, err := c.readBoshMicroFile()
+	deploymentJSON, err := c.readBoshMicroFile()
 
-	if err != nil || deploymentJson.Deployment == "" {
+	if err != nil || deploymentJSON.Deployment == "" {
 		c.ui.Error("Deployment not set")
 		return errors.New("Deployment not set")
-	} else {
-		c.ui.Say(fmt.Sprintf("Current deployment is '%s'", deploymentJson.Deployment))
-		return nil
 	}
+
+	c.ui.Say(fmt.Sprintf("Current deployment is '%s'", deploymentJSON.Deployment))
+	return nil
 }
 
 func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	if !c.fs.FileExists(manifestFilePath) {
-		return errors.New(fmt.Sprintf("Deployment command manifest path %s does not exist", manifestFilePath))
+		return fmt.Errorf("Deployment command manifest path %s does not exist", manifestFilePath)
 	}
 
 	var err error
-	var deploymentJson *deploymentFileJson
+	var deploymentJSON *deploymentFileJSON
 	if !c.fs.FileExists(c.boshMicroPath) {
-		deploymentJson = &deploymentFileJson{}
+		deploymentJSON = &deploymentFileJSON{}
 	} else {
-		deploymentJson, err = c.readBoshMicroFile()
+		deploymentJSON, err = c.readBoshMicroFile()
 		if err != nil {
 			return err
 		}
 	}
 
-	deploymentJson.Deployment = manifestFilePath
+	deploymentJSON.Deployment = manifestFilePath
 
-	err = c.saveBoshMicroFile(manifestFilePath, deploymentJson)
+	err = c.saveBoshMicroFile(manifestFilePath, deploymentJSON)
 	if err != nil {
 		return err
 	}
@@ -81,30 +81,30 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	return nil
 }
 
-func (c *deploymentCmd) saveBoshMicroFile(manifestFilePath string, deploymentJson *deploymentFileJson) error {
-	jsonContent, err := json.MarshalIndent(deploymentJson, "", "  ")
+func (c *deploymentCmd) saveBoshMicroFile(manifestFilePath string, deploymentJSON *deploymentFileJSON) error {
+	jsonContent, err := json.MarshalIndent(deploymentJSON, "", "  ")
 	if err != nil {
-		return errors.New(fmt.Sprintf("Could not marshal JSON content '%s'", manifestFilePath))
+		return fmt.Errorf("Could not marshal JSON content '%s'", manifestFilePath)
 	}
 
 	err = c.fs.WriteFile(c.boshMicroPath, jsonContent)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Could not write to BOSH micro file %s", c.boshMicroPath))
+		return fmt.Errorf("Could not write to BOSH micro file %s", c.boshMicroPath)
 	}
 
 	return nil
 }
 
-func (c *deploymentCmd) readBoshMicroFile() (*deploymentFileJson, error) {
+func (c *deploymentCmd) readBoshMicroFile() (*deploymentFileJSON, error) {
 	content, err := c.fs.ReadFile(c.boshMicroPath)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Could not read BOSH micro file %s", c.boshMicroPath))
+		return nil, fmt.Errorf("Could not read BOSH micro file %s", c.boshMicroPath)
 	}
 
-	jsonContentStruct := &deploymentFileJson{}
+	jsonContentStruct := &deploymentFileJSON{}
 	err = json.Unmarshal(content, jsonContentStruct)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Could not unmarshal JSON content '%s'", c.boshMicroPath))
+		return nil, fmt.Errorf("Could not unmarshal JSON content '%s'", c.boshMicroPath)
 	}
 
 	return jsonContentStruct, nil

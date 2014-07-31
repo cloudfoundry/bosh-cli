@@ -74,8 +74,8 @@ var _ = Describe("DeploymentCmd", func() {
 					})
 
 					It("stores the manifiest file in JSON format", func() {
-						var expectedJsonContent string
-						expectedJsonContent = fmt.Sprintf(`
+						var expectedJSONContent string
+						expectedJSONContent = fmt.Sprintf(`
 						{
 							"deployment" : "%s"
 						}
@@ -83,7 +83,7 @@ var _ = Describe("DeploymentCmd", func() {
 
 						actualFileContent, err := fakeFs.ReadFile(expectedFilePath)
 						Expect(err).NotTo(HaveOccurred())
-						Expect(string(actualFileContent)).To(MatchJSON(expectedJsonContent))
+						Expect(string(actualFileContent)).To(MatchJSON(expectedJSONContent))
 					})
 
 					It("says 'deployment set..' to the UI", func() {
@@ -127,14 +127,14 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(err).ToNot(HaveOccurred())
 					manifestPath = file.Name()
 
-					expectedJsonContent := fmt.Sprintf(`
+					expectedJSONContent := fmt.Sprintf(`
 						{
 							"deployment" : "%s"
 						}
 						`, manifestPath)
 					boshMicroFile = path.Join(boshMicroPath, ".bosh_micro.json")
 
-					err = fakeFs.WriteFileString(boshMicroFile, expectedJsonContent)
+					err = fakeFs.WriteFileString(boshMicroFile, expectedJSONContent)
 					Expect(err).ToNot(HaveOccurred())
 				})
 

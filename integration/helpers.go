@@ -1,4 +1,4 @@
-package test_helpers
+package integration
 
 import (
 	"io/ioutil"
@@ -13,8 +13,8 @@ import (
 
 var BoshMicroExec string
 
-func GetFilePath(input_dir string, fileName string) string {
-	return filepath.Join(os.Getenv("PWD"), input_dir, fileName)
+func GetFilePath(inputDir string, fileName string) string {
+	return filepath.Join(os.Getenv("PWD"), inputDir, fileName)
 }
 
 func RemoveAllFiles(args ...string) {
