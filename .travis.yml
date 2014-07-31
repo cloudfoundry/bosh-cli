@@ -3,4 +3,5 @@ language: go
 go:
   - 1.2
   - tip
-script: bin/test
+
+script: bin/ci

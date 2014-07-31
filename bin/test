@@ -2,6 +2,9 @@
 
 bin=$(dirname $0)
 
+# Travis randomly kills go builds when using -race
+race=$([ "$TRAVIS" != "true" ] && echo "-race")
+
 echo -e "\n Formatting packages..."
 $bin/go fmt github.com/cloudfoundry/bosh-micro-cli/...
 let "result+=$?"
@@ -14,8 +17,12 @@ echo -e "\n Checking with golint..."
 $bin/golint
 let "result+=$?"
 
+echo -e "\n Installing ginkgo..."
+$bin/go install github.com/onsi/ginkgo/ginkgo
+let "result+=$?"
+
 echo -e "\n Testing packages..."
-$bin/env ginkgo -r -race $@
+$bin/env ginkgo -r $race $@
 let "result+=$?"
 
 if [ $result -eq 0 ]; then
