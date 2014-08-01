@@ -78,11 +78,11 @@ var _ = Describe("DeploymentCmd", func() {
 			})
 
 			Context("no deployment manifest is present in the config", func() {
-				It("says `Deployment not set`", func() {
+				It("says `No deployment set`", func() {
 					err := command.Run([]string{})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Deployment not set"))
-					Expect(fakeUI.Errors).To(ContainElement("Deployment not set"))
+					Expect(err.Error()).To(ContainSubstring("No deployment set"))
+					Expect(fakeUI.Errors).To(ContainElement("No deployment set"))
 				})
 			})
 		})

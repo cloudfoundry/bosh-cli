@@ -41,8 +41,8 @@ func (c *deploymentCmd) Run(args []string) error {
 
 func (c *deploymentCmd) showDeploymentStatus() error {
 	if c.config.Deployment == "" {
-		c.ui.Error("Deployment not set")
-		return errors.New("Deployment not set")
+		c.ui.Error("No deployment set")
+		return errors.New("No deployment set")
 	}
 
 	c.ui.Say(fmt.Sprintf("Current deployment is '%s'", c.config.Deployment))

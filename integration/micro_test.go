@@ -38,7 +38,7 @@ var _ = Describe("bosh-micro", func() {
 	Context("when no manifest has been set", func() {
 		It("says deployment is not set", func() {
 			session := RunBoshMicro("deployment")
-			Expect(session.Err.Contents()).To(ContainSubstring("Deployment not set"))
+			Expect(session.Err.Contents()).To(ContainSubstring("No deployment set"))
 			Expect(session.ExitCode()).To(Equal(1))
 		})
 	})
