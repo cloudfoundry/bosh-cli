@@ -58,6 +58,7 @@ var _ = Describe("DeploymentCmd", func() {
 					err := command.Run([]string{"fake/manifest/path"})
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Deployment command manifest path fake/manifest/path does not exist"))
+					Expect(fakeUI.Errors).To(ContainElement("Deployment command manifest path fake/manifest/path does not exist"))
 				})
 			})
 		})
