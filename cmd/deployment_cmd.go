@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
 
 const (
@@ -50,9 +52,11 @@ func (c *deploymentCmd) showDeploymentStatus() error {
 }
 
 func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
-	if !c.fs.FileExists(manifestFilePath) {
+	fileValidator := bmvalidation.NewFileValidator(c.fs)
+	err := fileValidator.Exists(manifestFilePath)
+	if err != nil {
 		c.ui.Error(fmt.Sprintf("Deployment '%s' does not exist", manifestFilePath))
-		return fmt.Errorf("Deployment '%s' does not exist", manifestFilePath)
+		return bosherr.WrapError(err, "Setting deployment manifest")
 	}
 
 	c.config.Deployment = manifestFilePath
