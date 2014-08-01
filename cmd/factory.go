@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
@@ -16,13 +18,14 @@ type factory struct {
 }
 
 func NewFactory(
+	config bmconfig.Config,
+	Service bmconfig.Service,
 	filesystem boshsys.FileSystem,
 	ui bmui.UI,
-	boshMicroFilePath string,
 ) Factory {
 	return &factory{
 		commands: map[string]Cmd{
-			"deployment": NewDeploymentCmd(ui, boshMicroFilePath, filesystem),
+			"deployment": NewDeploymentCmd(ui, config, Service, filesystem),
 		},
 	}
 }

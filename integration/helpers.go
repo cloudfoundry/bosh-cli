@@ -55,3 +55,14 @@ func StubBoshMicroPath() {
 		os.RemoveAll(boshMicroPath)
 	})
 }
+
+func GenerateDeploymentManifest() string {
+	tmpFile, err := ioutil.TempFile("", "bosh-micro-cli-deployment-manifest")
+	Expect(err).NotTo(HaveOccurred())
+	deploymentManifestFilePath := tmpFile.Name()
+
+	err = ioutil.WriteFile(deploymentManifestFilePath, []byte(""), os.ModePerm)
+	Expect(err).NotTo(HaveOccurred())
+
+	return deploymentManifestFilePath
+}

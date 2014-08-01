@@ -7,22 +7,28 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {
 	var (
-		factory    Factory
-		filesystem boshsys.FileSystem
-		ui         bmui.UI
+		factory       Factory
+		config        bmconfig.Config
+		configService *fakeconfig.FakeService
+		filesystem    boshsys.FileSystem
+		ui            bmui.UI
 	)
 
 	BeforeEach(func() {
+		config = bmconfig.Config{}
+		configService = &fakeconfig.FakeService{}
 		filesystem = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
 
-		factory = NewFactory(filesystem, ui, "/somepath")
+		factory = NewFactory(config, configService, filesystem, ui)
 	})
 
 	It("creates a new factory", func() {
@@ -33,7 +39,7 @@ var _ = Describe("cmd.Factory", func() {
 		It("has deployment command", func() {
 			cmd, err := factory.CreateCommand("deployment")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cmd).To(Equal(NewDeploymentCmd(ui, "/somepath", filesystem)))
+			Expect(cmd).To(Equal(NewDeploymentCmd(ui, config, configService, filesystem)))
 		})
 	})
 
