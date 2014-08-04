@@ -19,13 +19,13 @@ type factory struct {
 
 func NewFactory(
 	config bmconfig.Config,
-	Service bmconfig.Service,
+	configService bmconfig.Service,
 	filesystem boshsys.FileSystem,
 	ui bmui.UI,
 ) Factory {
 	return &factory{
 		commands: map[string]Cmd{
-			"deployment": NewDeploymentCmd(ui, config, Service, filesystem),
+			"deployment": NewDeploymentCmd(ui, config, configService, filesystem),
 			"deploy":     NewDeployCmd(ui, config, filesystem),
 		},
 	}
