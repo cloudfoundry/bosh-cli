@@ -1,8 +1,8 @@
-BOSH Micro CLI [![Build Status](https://travis-ci.org/cloudfoundry/bosh-micro-cli.svg?branch=master)](https://travis-ci.org/cloudfoundry/bosh-micro-cli)
+## BOSH Micro CLI [![Build Status](https://travis-ci.org/cloudfoundry/bosh-micro-cli.svg?branch=master)](https://travis-ci.org/cloudfoundry/bosh-micro-cli)
 
 This is the BOSH Micro command line interface in Golang.
 
-# Set up a workstation for development
+### Set up a workstation for development
 
 Note: This guide assumes a few things:
 
@@ -28,7 +28,7 @@ Install tools used by the BOSH Micro CLI test suite:
 - `bin/go get code.google.com/p/go.tools/cmd/vet`
 - `bin/go get github.com/golang/lint/golint`
 
-## Running tests
+### Running tests
 
 Each package in the agent has its own unit tests and there are integration tests in the `integration` package.
 You can also run all tests with `bin/test`.
