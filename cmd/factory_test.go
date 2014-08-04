@@ -41,6 +41,12 @@ var _ = Describe("cmd.Factory", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cmd).To(Equal(NewDeploymentCmd(ui, config, configService, filesystem)))
 		})
+
+		It("has deploy command", func() {
+			cmd, err := factory.CreateCommand("deploy")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(cmd).To(Equal(NewDeployCmd(ui, config, filesystem)))
+		})
 	})
 
 	Context("invalid command name", func() {

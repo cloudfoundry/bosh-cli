@@ -66,3 +66,14 @@ func GenerateDeploymentManifest() string {
 
 	return deploymentManifestFilePath
 }
+
+func GenerateCPIRelease() string {
+	tmpFile, err := ioutil.TempFile("", "bosh-micro-cli-cpi-release")
+	Expect(err).NotTo(HaveOccurred())
+	cpiFilePath := tmpFile.Name()
+
+	err = ioutil.WriteFile(cpiFilePath, []byte(""), os.ModePerm)
+	Expect(err).NotTo(HaveOccurred())
+
+	return cpiFilePath
+}

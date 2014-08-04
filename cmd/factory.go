@@ -26,6 +26,7 @@ func NewFactory(
 	return &factory{
 		commands: map[string]Cmd{
 			"deployment": NewDeploymentCmd(ui, config, Service, filesystem),
+			"deploy":     NewDeployCmd(ui, config, filesystem),
 		},
 	}
 }
