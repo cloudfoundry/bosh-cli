@@ -51,8 +51,8 @@ func (c *deploymentCmd) showDeploymentStatus() error {
 
 func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	if !c.fs.FileExists(manifestFilePath) {
-		c.ui.Error(fmt.Sprintf("Deployment command manifest path %s does not exist", manifestFilePath))
-		return fmt.Errorf("Deployment command manifest path %s does not exist", manifestFilePath)
+		c.ui.Error(fmt.Sprintf("Deployment '%s' does not exist", manifestFilePath))
+		return fmt.Errorf("Deployment '%s' does not exist", manifestFilePath)
 	}
 
 	c.config.Deployment = manifestFilePath
