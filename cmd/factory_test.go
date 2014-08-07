@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -9,6 +10,7 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
+	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -20,6 +22,7 @@ var _ = Describe("cmd.Factory", func() {
 		configService *fakeconfig.FakeService
 		filesystem    boshsys.FileSystem
 		ui            bmui.UI
+		extractor     bmtar.Extractor
 	)
 
 	BeforeEach(func() {
@@ -27,8 +30,11 @@ var _ = Describe("cmd.Factory", func() {
 		configService = &fakeconfig.FakeService{}
 		filesystem = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
+		runner := fakesys.NewFakeCmdRunner()
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		extractor = bmtar.NewCmdExtractor(runner, logger)
 
-		factory = NewFactory(config, configService, filesystem, ui)
+		factory = NewFactory(config, configService, filesystem, ui, extractor)
 	})
 
 	It("creates a new factory", func() {
@@ -45,7 +51,7 @@ var _ = Describe("cmd.Factory", func() {
 		It("has deploy command", func() {
 			cmd, err := factory.CreateCommand("deploy")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cmd).To(Equal(NewDeployCmd(ui, config, filesystem)))
+			Expect(cmd).To(Equal(NewDeployCmd(ui, config, filesystem, extractor)))
 		})
 	})
 

@@ -2,60 +2,85 @@ package integration_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/integration"
+	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 var _ = Describe("bosh-micro", func() {
 	var (
+		deploymentManifestDir      string
 		deploymentManifestFilePath string
+		cpiReleaseDir              string
 		cpiReleaseFilename         string
 	)
 
 	Context("when a CPI release exists", func() {
 		BeforeEach(func() {
-			cpiReleaseFilename = GenerateCPIRelease()
+			var err error
+			cpiReleaseDir, err = ioutil.TempDir("", "integration-cpiRelease")
+			Expect(err).NotTo(HaveOccurred())
+
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			fs := boshsys.NewOsFileSystem(logger)
+			cpiReleaseFilename = path.Join(cpiReleaseDir, "cpi-release.tar")
+			err = bmtestutils.GenerateCPIRelease(fs, cpiReleaseFilename)
+			Expect(err).NotTo(HaveOccurred())
 		})
 		AfterEach(func() {
-			err := os.RemoveAll(cpiReleaseFilename)
+			err := os.RemoveAll(cpiReleaseDir)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when a manifest exists", func() {
 			BeforeEach(func() {
-				deploymentManifestFilePath = GenerateDeploymentManifest()
+				var err error
+				deploymentManifestDir, err = ioutil.TempDir("", "integration-deploymentManifest")
+				Expect(err).NotTo(HaveOccurred())
+
+				deploymentManifestFilePath = path.Join(deploymentManifestDir, "micro_deployment.yml")
+				err = bmtestutils.GenerateDeploymentManifest(deploymentManifestFilePath)
+				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {
-				err := os.RemoveAll(deploymentManifestFilePath)
+				err := os.RemoveAll(deploymentManifestDir)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("says the current deployment is set", func() {
-				session := RunBoshMicro("deployment", deploymentManifestFilePath)
+				session, err := bmtestutils.RunBoshMicro("deployment", deploymentManifestFilePath)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 
-				session = RunBoshMicro("deployment")
+				session, err = bmtestutils.RunBoshMicro("deployment")
+				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 				Expect(session.Out.Contents()).To(ContainSubstring(
 					fmt.Sprintf("Current deployment is '%s'", deploymentManifestFilePath)))
 			})
 
 			It("can deploy with a given CPI", func() {
-				session := RunBoshMicro("deployment", deploymentManifestFilePath)
+				session, err := bmtestutils.RunBoshMicro("deployment", deploymentManifestFilePath)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 
-				session = RunBoshMicro("deploy", cpiReleaseFilename)
+				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleaseFilename)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 			})
 		})
 
 		Context("when no manifest has been set", func() {
 			It("refuses to deploy", func() {
-				session := RunBoshMicro("deploy", cpiReleaseFilename)
+				session, err := bmtestutils.RunBoshMicro("deploy", cpiReleaseFilename)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(session.Err.Contents()).To(ContainSubstring("No deployment set"))
 				Expect(session.ExitCode()).To(Equal(1))
 			})
@@ -64,7 +89,8 @@ var _ = Describe("bosh-micro", func() {
 
 	Context("when no manifest has been set", func() {
 		It("says deployment is not set", func() {
-			session := RunBoshMicro("deployment")
+			session, err := bmtestutils.RunBoshMicro("deployment")
+			Expect(err).NotTo(HaveOccurred())
 			Expect(session.Err.Contents()).To(ContainSubstring("No deployment set"))
 			Expect(session.ExitCode()).To(Equal(1))
 		})

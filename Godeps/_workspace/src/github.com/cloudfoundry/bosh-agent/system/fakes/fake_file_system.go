@@ -393,13 +393,13 @@ func (fs *FakeFileSystem) TempFile(prefix string) (file *os.File, err error) {
 	}
 
 	if fs.ReturnTempFile != nil {
-		return fs.ReturnTempFile, nil
-	}
-
-	file, err = os.Open("/dev/null")
-	if err != nil {
-		err = bosherr.WrapError(err, "Opening /dev/null")
-		return
+		file = fs.ReturnTempFile
+	} else {
+		file, err = os.Open("/dev/null")
+		if err != nil {
+			err = bosherr.WrapError(err, "Opening /dev/null")
+			return
+		}
 	}
 
 	// Make sure to record a reference for FileExist, etc. to work
