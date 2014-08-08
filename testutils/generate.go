@@ -25,6 +25,10 @@ packages:
 `,
 		},
 		{
+			Name: "monit",
+			Body: "",
+		},
+		{
 			Name: "templates/fake-template",
 			Body: "",
 		},

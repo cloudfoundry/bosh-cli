@@ -17,6 +17,7 @@ var _ = Describe("Validator", func() {
 	})
 
 	It("validates a valid release without error", func() {
+		fakeFs.WriteFileString("/some/job/path/monit", "")
 		fakeFs.WriteFileString("/some/job/path/templates/fake-job-1-template", "")
 		release := Release{
 			Name:               "fake-release-name",
@@ -123,6 +124,36 @@ var _ = Describe("Validator", func() {
 
 			Expect(err.Error()).To(ContainSubstring("Job `fake-job' is missing template `fake-template'"))
 			Expect(err.Error()).To(ContainSubstring("Job `fake-job-2' is missing template `fake-template-2'"))
+		})
+	})
+
+	Context("when jobs are missing monit", func() {
+		It("returns erros with each job that is missing monit", func() {
+			release := Release{
+				Name:    "fake-release",
+				Version: "fake-version",
+				Jobs: []bmreljob.Job{
+					{
+						Name:        "fake-job-1",
+						Version:     "fake-version-1",
+						Fingerprint: "fake-finger-print-1",
+						Sha1:        "fake-sha-1",
+					},
+					{
+						Name:        "fake-job-2",
+						Version:     "fake-version-2",
+						Fingerprint: "fake-finger-print-2",
+						Sha1:        "fake-sha-2",
+					},
+				},
+			}
+			validator := NewValidator(fakeFs, release)
+
+			err := validator.Validate()
+			Expect(err).To(HaveOccurred())
+
+			Expect(err.Error()).To(ContainSubstring("Job `fake-job-1' is missing monit file"))
+			Expect(err.Error()).To(ContainSubstring("Job `fake-job-2' is missing monit file"))
 		})
 	})
 

@@ -88,6 +88,11 @@ func (v Validator) validateReleaseJobs() error {
 			errs = append(errs, fmt.Errorf("Job '%s' sha1 is missing", job.Name))
 		}
 
+		monitPath := path.Join(job.ExtractedPath, "monit")
+		if !v.fs.FileExists(monitPath) {
+			errs = append(errs, fmt.Errorf("Job `%s' is missing monit file", job.Name))
+		}
+
 		for template := range job.Templates {
 			templatePath := path.Join(job.ExtractedPath, "templates", template)
 			if !v.fs.FileExists(templatePath) {
