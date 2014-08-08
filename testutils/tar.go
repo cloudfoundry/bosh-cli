@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"archive/tar"
+	"io"
 	"os"
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -17,7 +18,21 @@ func GenerateTarfile(fs boshsys.FileSystem, tarFileContents []TarFileContent, ta
 		return err
 	}
 
-	tarWriter := tar.NewWriter(tarFile)
+	err = GenerateTar(tarFile, tarFileContents)
+	if err != nil {
+		return err
+	}
+
+	err = tarFile.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GenerateTar(writer io.Writer, tarFileContents []TarFileContent) error {
+	tarWriter := tar.NewWriter(writer)
 
 	for _, tarFileContent := range tarFileContents {
 		hdr := &tar.Header{
@@ -26,7 +41,7 @@ func GenerateTarfile(fs boshsys.FileSystem, tarFileContents []TarFileContent, ta
 			Mode: 0644,
 		}
 
-		err = tarWriter.WriteHeader(hdr)
+		err := tarWriter.WriteHeader(hdr)
 		if err != nil {
 			return err
 		}
@@ -37,12 +52,7 @@ func GenerateTarfile(fs boshsys.FileSystem, tarFileContents []TarFileContent, ta
 		}
 	}
 
-	err = tarWriter.Close()
-	if err != nil {
-		return err
-	}
-
-	err = tarFile.Close()
+	err := tarWriter.Close()
 	if err != nil {
 		return err
 	}

@@ -17,6 +17,7 @@ var _ = Describe("Validator", func() {
 	})
 
 	It("validates a valid release without error", func() {
+		fakeFs.WriteFileString("/some/job/path/templates/fake-job-1-template", "")
 		release := Release{
 			Name:               "fake-release-name",
 			Version:            "fake-release-version",
@@ -25,10 +26,12 @@ var _ = Describe("Validator", func() {
 
 			Jobs: []bmreljob.Job{
 				{
-					Name:        "fake-job-1-name",
-					Version:     "fake-job-1-version",
-					Fingerprint: "fake-job-1-fingerprint",
-					Sha1:        "fake-job-1-sha",
+					Name:          "fake-job-1-name",
+					Version:       "fake-job-1-version",
+					Fingerprint:   "fake-job-1-fingerprint",
+					Sha1:          "fake-job-1-sha",
+					Templates:     map[string]string{"fake-job-1-template": "fake-job-1-file"},
+					ExtractedPath: "/some/job/path",
 				},
 			},
 

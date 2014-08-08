@@ -3,6 +3,7 @@ package release
 import (
 	"errors"
 	"fmt"
+	"path"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -87,8 +88,9 @@ func (v Validator) validateReleaseJobs() error {
 			errs = append(errs, fmt.Errorf("Job '%s' sha1 is missing", job.Name))
 		}
 
-		for template, templateFile := range job.Templates {
-			if !v.fs.FileExists(templateFile) {
+		for template := range job.Templates {
+			templatePath := path.Join(job.ExtractedPath, "templates", template)
+			if !v.fs.FileExists(templatePath) {
 				errs = append(errs, fmt.Errorf("Job `%s' is missing template `%s'", job.Name, template))
 			}
 		}

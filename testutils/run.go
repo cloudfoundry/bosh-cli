@@ -1,22 +1,23 @@
 package testutils
 
 import (
+	"fmt"
 	"os/exec"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega/gexec"
 )
 
-var BoshMicroExec string
-
 func BuildExecutable() error {
-	var err error
-	BoshMicroExec, err = gexec.Build("./../../bosh-micro-cli")
+	session, err := RunCommand("./../bin/build")
+	if session.ExitCode() != 0 {
+		return fmt.Errorf("Failed to build bosh-micro:\nstdout:\n%s\nstderr:\n%s", session.Out.Contents(), session.Err.Contents())
+	}
 	return err
 }
 
 func RunBoshMicro(args ...string) (*gexec.Session, error) {
-	return RunCommand(BoshMicroExec, args...)
+	return RunCommand("./../out/bosh-micro", args...)
 }
 
 func RunCommand(cmd string, args ...string) (*gexec.Session, error) {

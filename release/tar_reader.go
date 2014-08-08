@@ -41,13 +41,13 @@ func (r *tarReader) Read() (Release, error) {
 		return Release{}, bosherr.WrapError(err, "Extracting release")
 	}
 
-	var releaseManifest bmrelman.Release
 	releaseManifestPath := path.Join(r.extractedReleasePath, "release.MF")
 	releaseManifestBytes, err := r.fs.ReadFile(releaseManifestPath)
 	if err != nil {
 		return Release{}, bosherr.WrapError(err, "Reading release manifest")
 	}
 
+	var releaseManifest bmrelman.Release
 	err = candiedyaml.Unmarshal(releaseManifestBytes, &releaseManifest)
 	if err != nil {
 		return Release{}, bosherr.WrapError(err, "Parsing release manifest")
@@ -96,7 +96,7 @@ func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]bmre
 	errors := []error{}
 	for _, manifestJob := range manifestJobs {
 		extractedJobPath := path.Join(r.extractedReleasePath, "extracted_jobs", manifestJob.Name)
-		err := r.fs.MkdirAll(extractedJobPath, os.ModeDir)
+		err := r.fs.MkdirAll(extractedJobPath, os.ModeDir|0700)
 		if err != nil {
 			errors = append(errors, bosherr.WrapError(err, "Creating extracted job path"))
 			continue
@@ -129,7 +129,7 @@ func (r *tarReader) newPackagesFromManifestPackages(manifestPackages []bmrelman.
 	errors := []error{}
 	for _, manifestPackage := range manifestPackages {
 		extractedPackagePath := path.Join(r.extractedReleasePath, "extracted_packages", manifestPackage.Name)
-		err := r.fs.MkdirAll(extractedPackagePath, os.ModeDir)
+		err := r.fs.MkdirAll(extractedPackagePath, os.ModeDir|0700)
 		if err != nil {
 			errors = append(errors, bosherr.WrapError(err, "Creating extracted package path"))
 			continue
