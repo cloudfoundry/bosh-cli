@@ -32,117 +32,132 @@ var _ = Describe("DeploymentCmd", func() {
 	})
 
 	Describe("Run", func() {
-		Context("when there is a deployment set", func() {
-			BeforeEach(func() {
-				config.Deployment = "/some/deployment/file"
-				command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor)
+		Context("when no arguments are given", func() {
+			It("returns err", func() {
+				err := command.Run([]string{})
+				Expect(err).To(HaveOccurred())
+				Expect(fakeUI.Errors).To(ContainElement("No CPI release provided"))
 			})
+		})
 
-			Context("when the deployment manifest exists", func() {
+		Context("when a CPI release is given", func() {
+			Context("When the CPI release file exists", func() {
 				BeforeEach(func() {
-					fakeFs.WriteFileString(config.Deployment, "")
+					fakeFs.WriteFileString("/somepath", "")
 				})
 
-				Context("when no arguments are given", func() {
-					It("returns err", func() {
-						err := command.Run([]string{})
-						Expect(err).To(HaveOccurred())
-						Expect(fakeUI.Errors).To(ContainElement("No CPI release provided"))
+				Context("when there is a deployment set", func() {
+					BeforeEach(func() {
+						config.Deployment = "/some/deployment/file"
+						command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor)
 					})
-				})
 
-				Context("when a CPI release is given", func() {
-					Context("when a extracted release directory can be created", func() {
+					Context("when the deployment manifest exists", func() {
 						BeforeEach(func() {
-							fakeFs.TempDirDir = "/some/release/path"
+							fakeFs.WriteFileString(config.Deployment, "")
 						})
 
-						Context("and the CPI release is valid", func() {
+						Context("when a extracted release directory can be created", func() {
 							BeforeEach(func() {
-								fakeExtractor.AddExpectedArchive("/somepath")
-								fakeFs.WriteFileString("/some/release/path/release.MF", `---
+								fakeFs.TempDirDir = "/some/release/path"
+							})
+
+							Context("and the CPI release is valid", func() {
+								BeforeEach(func() {
+									fakeExtractor.AddExpectedArchive("/somepath")
+									fakeFs.WriteFileString("/some/release/path/release.MF", `---
 name: fake-release
 version: fake-version
 `)
+								})
+
+								It("does not return an error", func() {
+									err := command.Run([]string{"/somepath"})
+									Expect(err).NotTo(HaveOccurred())
+								})
+
+								It("cleans up the extracted release directory", func() {
+									err := command.Run([]string{"/somepath"})
+									Expect(err).NotTo(HaveOccurred())
+									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
+								})
 							})
 
-							It("does not return an error", func() {
-								err := command.Run([]string{"/somepath"})
-								Expect(err).NotTo(HaveOccurred())
+							Context("and the CPI release is invalid", func() {
+								BeforeEach(func() {
+									fakeExtractor.AddExpectedArchive("/somepath")
+									fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
+								})
+
+								It("returns err", func() {
+									err := command.Run([]string{"/somepath"})
+									Expect(err).To(HaveOccurred())
+									Expect(err.Error()).To(ContainSubstring("Validating CPI release"))
+									Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' is not a valid BOSH release"))
+								})
+
+								It("cleans up the extracted release directory", func() {
+									err := command.Run([]string{"/somepath"})
+									Expect(err).To(HaveOccurred())
+									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
+								})
 							})
 
-							It("cleans up the extracted release directory", func() {
-								err := command.Run([]string{"/somepath"})
-								Expect(err).NotTo(HaveOccurred())
-								Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
+							Context("and the CPI release cannot be read", func() {
+								It("returns err", func() {
+									err := command.Run([]string{"/somepath"})
+									Expect(err).To(HaveOccurred())
+									Expect(err.Error()).To(ContainSubstring("Reading CPI release from '/somepath'"))
+									Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' is not a BOSH release"))
+								})
 							})
 						})
 
-						Context("and the CPI release is invalid", func() {
+						Context("when a extracted release path cannot be created", func() {
 							BeforeEach(func() {
-								fakeExtractor.AddExpectedArchive("/somepath")
-								fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
+								fakeFs.TempDirError = errors.New("")
 							})
 
 							It("returns err", func() {
 								err := command.Run([]string{"/somepath"})
 								Expect(err).To(HaveOccurred())
-								Expect(err.Error()).To(ContainSubstring("Validating CPI release"))
-								Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' is not a valid BOSH release"))
-							})
-
-							It("cleans up the extracted release directory", func() {
-								err := command.Run([]string{"/somepath"})
-								Expect(err).To(HaveOccurred())
-								Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
-							})
-						})
-
-						Context("and the CPI release does not exist", func() {
-							It("returns err", func() {
-								err := command.Run([]string{"/somepath"})
-								Expect(err).To(HaveOccurred())
-								Expect(err.Error()).To(ContainSubstring("Reading CPI release from '/somepath'"))
-								Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' is not a BOSH release"))
+								Expect(err.Error()).To(ContainSubstring("Creating extracted release path"))
+								Expect(fakeUI.Errors).To(ContainElement("Could not create a temporary directory"))
 							})
 						})
 					})
 
-					Context("when a extracted release path cannot be created", func() {
+					Context("when the deployment manifest is missing", func() {
 						BeforeEach(func() {
-							fakeFs.TempDirError = errors.New("")
+							config.Deployment = "/some/deployment/file"
+							command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor)
 						})
 
 						It("returns err", func() {
 							err := command.Run([]string{"/somepath"})
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Creating extracted release path"))
-							Expect(fakeUI.Errors).To(ContainElement("Could not create a temporary directory"))
+							Expect(err.Error()).To(ContainSubstring("Reading deployment manifest for deploy"))
+							Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path '/some/deployment/file' does not exist"))
 						})
+					})
+				})
+
+				Context("when there is no deployment set", func() {
+					It("returns err", func() {
+						err := command.Run([]string{"/somepath"})
+						Expect(err).To(HaveOccurred())
+						Expect(fakeUI.Errors).To(ContainElement("No deployment set"))
 					})
 				})
 			})
 
-			Context("when the deployment manifest is missing", func() {
-				BeforeEach(func() {
-					config.Deployment = "/some/deployment/file"
-					command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor)
-				})
-
-				It("returns err", func() {
+			Context("When the CPI release file does not exist", func() {
+				It("returns err when the CPI release file does not exist", func() {
 					err := command.Run([]string{"/somepath"})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Reading deployment manifest for deploy"))
-					Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path '/some/deployment/file' does not exist"))
+					Expect(err.Error()).To(ContainSubstring("Checking CPI release '/somepath' existence"))
+					Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' does not exist"))
 				})
-			})
-		})
-
-		Context("when there is no deployment set", func() {
-			It("returns err", func() {
-				err := command.Run([]string{"/somepath"})
-				Expect(err).To(HaveOccurred())
-				Expect(fakeUI.Errors).To(ContainElement("No deployment set"))
 			})
 		})
 	})

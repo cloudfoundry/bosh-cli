@@ -41,13 +41,20 @@ func (c *deployCmd) Run(args []string) error {
 		return errors.New("No CPI release provided")
 	}
 
+	cpiPath := args[0]
+	fileValidator := bmvalidation.NewFileValidator(c.fs)
+	err := fileValidator.Exists(cpiPath)
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("CPI release '%s' does not exist", cpiPath))
+		return bosherr.WrapError(err, "Checking CPI release '%s' existence", cpiPath)
+	}
+
 	if len(c.config.Deployment) == 0 {
 		c.ui.Error("No deployment set")
 		return errors.New("No deployment set")
 	}
 
-	fileValidator := bmvalidation.NewFileValidator(c.fs)
-	err := fileValidator.Exists(c.config.Deployment)
+	err = fileValidator.Exists(c.config.Deployment)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Deployment manifest path '%s' does not exist", c.config.Deployment))
 		return bosherr.WrapError(err, "Reading deployment manifest for deploy")
@@ -60,7 +67,6 @@ func (c *deployCmd) Run(args []string) error {
 	}
 	defer c.fs.RemoveAll(extractedReleasePath)
 
-	cpiPath := args[0]
 	releaseReader := bmrelease.NewTarReader(cpiPath, extractedReleasePath, c.fs, c.extractor)
 	release, err := releaseReader.Read()
 	if err != nil {
