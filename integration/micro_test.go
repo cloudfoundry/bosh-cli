@@ -6,8 +6,6 @@ import (
 	"os"
 	"path"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -18,24 +16,13 @@ var _ = Describe("bosh-micro", func() {
 	var (
 		deploymentManifestDir      string
 		deploymentManifestFilePath string
-		cpiReleaseDir              string
-		cpiReleaseFilename         string
+		cpiReleasePath             string
 	)
 
 	Context("when a CPI release exists", func() {
 		BeforeEach(func() {
 			var err error
-			cpiReleaseDir, err = ioutil.TempDir("", "integration-cpiRelease")
-			Expect(err).NotTo(HaveOccurred())
-
-			logger := boshlog.NewLogger(boshlog.LevelNone)
-			fs := boshsys.NewOsFileSystem(logger)
-			cpiReleaseFilename = path.Join(cpiReleaseDir, "cpi-release.tar")
-			err = bmtestutils.GenerateCPIRelease(fs, cpiReleaseFilename)
-			Expect(err).NotTo(HaveOccurred())
-		})
-		AfterEach(func() {
-			err := os.RemoveAll(cpiReleaseDir)
+			cpiReleasePath = testCpiFilePath
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -49,6 +36,7 @@ var _ = Describe("bosh-micro", func() {
 				err = bmtestutils.GenerateDeploymentManifest(deploymentManifestFilePath)
 				Expect(err).NotTo(HaveOccurred())
 			})
+
 			AfterEach(func() {
 				err := os.RemoveAll(deploymentManifestDir)
 				Expect(err).NotTo(HaveOccurred())
@@ -71,15 +59,43 @@ var _ = Describe("bosh-micro", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 
-				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleaseFilename)
+				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
+			})
+
+			Context("when the CPI release is invalid", func() {
+				var invalidCpiReleasePath string
+
+				BeforeEach(func() {
+					var err error
+					invalidCpiReleasePath, err = bmtestutils.DownloadTestCpiRelease(
+						"https://s3.amazonaws.com/bosh-dependencies/invalid_cpi_release.tgz")
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				AfterEach(func() {
+					os.Remove(invalidCpiReleasePath)
+				})
+
+				It("says CPI release is invalid", func() {
+					session, err := bmtestutils.RunBoshMicro("deployment", deploymentManifestFilePath)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(session.ExitCode()).To(Equal(0))
+
+					Expect(err).NotTo(HaveOccurred())
+
+					session, err = bmtestutils.RunBoshMicro("deploy", invalidCpiReleasePath)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(session.Err.Contents()).To(ContainSubstring("is not a valid CPI release"))
+					Expect(session.ExitCode()).To(Equal(1))
+				})
 			})
 		})
 
 		Context("when no manifest has been set", func() {
 			It("refuses to deploy", func() {
-				session, err := bmtestutils.RunBoshMicro("deploy", cpiReleaseFilename)
+				session, err := bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.Err.Contents()).To(ContainSubstring("No deployment set"))
 				Expect(session.ExitCode()).To(Equal(1))

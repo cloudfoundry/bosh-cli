@@ -15,10 +15,12 @@ import (
 )
 
 type deployCmd struct {
-	ui        bmui.UI
-	config    bmconfig.Config
-	fs        boshsys.FileSystem
-	extractor bmtar.Extractor
+	ui                  bmui.UI
+	config              bmconfig.Config
+	fs                  boshsys.FileSystem
+	extractor           bmtar.Extractor
+	releaseValidator    bmrelease.Validator
+	cpiReleaseValidator bmrelease.Validator
 }
 
 func NewDeployCmd(
@@ -26,12 +28,16 @@ func NewDeployCmd(
 	config bmconfig.Config,
 	fs boshsys.FileSystem,
 	extractor bmtar.Extractor,
+	releaseValidator bmrelease.Validator,
+	cpiReleaseValidator bmrelease.Validator,
 ) *deployCmd {
 	return &deployCmd{
-		ui:        ui,
-		config:    config,
-		fs:        fs,
-		extractor: extractor,
+		ui:                  ui,
+		config:              config,
+		fs:                  fs,
+		extractor:           extractor,
+		releaseValidator:    releaseValidator,
+		cpiReleaseValidator: cpiReleaseValidator,
 	}
 }
 
@@ -74,10 +80,15 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from '%s'", cpiPath))
 	}
 
-	validator := bmrelease.NewValidator(c.fs, release)
-	err = validator.Validate()
+	err = c.releaseValidator.Validate(release)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release '%s' is not a valid BOSH release", cpiPath))
+		return bosherr.WrapError(err, "Validating CPI release")
+	}
+
+	err = c.cpiReleaseValidator.Validate(release)
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("CPI release '%s' is not a valid CPI release", cpiPath))
 		return bosherr.WrapError(err, "Validating CPI release")
 	}
 

@@ -3,26 +3,31 @@ package cmd_test
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	fakebmrelease "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {
 	var (
-		factory       Factory
-		config        bmconfig.Config
-		configService *fakeconfig.FakeService
-		filesystem    boshsys.FileSystem
-		ui            bmui.UI
-		extractor     bmtar.Extractor
+		factory             Factory
+		config              bmconfig.Config
+		configService       *fakeconfig.FakeService
+		filesystem          boshsys.FileSystem
+		ui                  bmui.UI
+		extractor           bmtar.Extractor
+		releaseValidator    *fakebmrelease.FakeValidator
+		cpiReleaseValidator *fakebmrelease.FakeValidator
 	)
 
 	BeforeEach(func() {
@@ -33,8 +38,10 @@ var _ = Describe("cmd.Factory", func() {
 		runner := fakesys.NewFakeCmdRunner()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		extractor = bmtar.NewCmdExtractor(runner, logger)
+		releaseValidator = fakebmrelease.NewFakeValidator()
+		cpiReleaseValidator = fakebmrelease.NewFakeValidator()
 
-		factory = NewFactory(config, configService, filesystem, ui, extractor)
+		factory = NewFactory(config, configService, filesystem, ui, extractor, releaseValidator, cpiReleaseValidator)
 	})
 
 	It("creates a new factory", func() {
@@ -51,7 +58,7 @@ var _ = Describe("cmd.Factory", func() {
 		It("has deploy command", func() {
 			cmd, err := factory.CreateCommand("deploy")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cmd).To(Equal(NewDeployCmd(ui, config, filesystem, extractor)))
+			Expect(cmd).To(Equal(NewDeployCmd(ui, config, filesystem, extractor, releaseValidator, cpiReleaseValidator)))
 		})
 	})
 

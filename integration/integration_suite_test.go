@@ -11,10 +11,15 @@ import (
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
+var testCpiFilePath string
+
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
 	BeforeSuite(func() {
 		err := bmtestutils.BuildExecutable()
+		Expect(err).NotTo(HaveOccurred())
+
+		testCpiFilePath, err = bmtestutils.DownloadTestCpiRelease(os.Getenv("CPI_RELEASE_URL"))
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -30,9 +35,14 @@ func TestIntegration(t *testing.T) {
 		Expect(err).NotTo(HaveOccurred())
 		os.Setenv("HOME", boshMicroPath)
 	})
+
 	AfterEach(func() {
 		os.Setenv("HOME", oldHome)
 		os.RemoveAll(boshMicroPath)
+	})
+
+	AfterSuite(func() {
+		os.Remove(testCpiFilePath)
 	})
 
 	RunSpecs(t, "bosh-micro-cli Integration Suite")

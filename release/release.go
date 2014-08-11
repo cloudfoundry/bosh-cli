@@ -24,3 +24,13 @@ type Package struct {
 	Dependencies  []string
 	ExtractedPath string
 }
+
+func (r Release) FindJobByName(jobName string) (bmreljob.Job, bool) {
+	for _, job := range r.Jobs {
+		if job.Name == jobName {
+			return job, true
+		}
+	}
+
+	return bmreljob.Job{}, false
+}

@@ -49,15 +49,15 @@ var _ = Describe("Validator", func() {
 				},
 			},
 		}
-		validator := NewValidator(fakeFs, release)
+		validator := NewValidator(fakeFs)
 
-		err := validator.Validate()
+		err := validator.Validate(release)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("returns all errors with an empty release", func() {
-		validator := NewValidator(fakeFs, Release{})
-		err := validator.Validate()
+		validator := NewValidator(fakeFs)
+		err := validator.Validate(Release{})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("Release name is missing"))
 		Expect(err.Error()).To(ContainSubstring("Release version is missing"))
@@ -70,9 +70,9 @@ var _ = Describe("Validator", func() {
 			Jobs:     []bmreljob.Job{{}, {Name: "fake-job"}},
 			Packages: []Package{{}, {Name: "fake-package"}},
 		}
-		validator := NewValidator(fakeFs, release)
+		validator := NewValidator(fakeFs)
 
-		err := validator.Validate()
+		err := validator.Validate(release)
 		Expect(err).To(HaveOccurred())
 
 		Expect(err.Error()).To(ContainSubstring("Job name is missing"))
@@ -117,9 +117,9 @@ var _ = Describe("Validator", func() {
 				},
 				Packages: []Package{},
 			}
-			validator := NewValidator(fakeFs, release)
+			validator := NewValidator(fakeFs)
 
-			err := validator.Validate()
+			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
 
 			Expect(err.Error()).To(ContainSubstring("Job `fake-job' is missing template `fake-template'"))
@@ -147,9 +147,9 @@ var _ = Describe("Validator", func() {
 					},
 				},
 			}
-			validator := NewValidator(fakeFs, release)
+			validator := NewValidator(fakeFs)
 
-			err := validator.Validate()
+			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
 
 			Expect(err.Error()).To(ContainSubstring("Job `fake-job-1' is missing monit file"))
@@ -182,9 +182,9 @@ var _ = Describe("Validator", func() {
 				},
 				Packages: []Package{},
 			}
-			validator := NewValidator(fakeFs, release)
+			validator := NewValidator(fakeFs)
 
-			err := validator.Validate()
+			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
 
 			Expect(err.Error()).To(ContainSubstring("Job `fake-job' requires `fake-package' which is not in the release"))

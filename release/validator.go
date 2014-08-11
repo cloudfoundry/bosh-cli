@@ -11,37 +11,37 @@ import (
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
 )
 
-type Validator struct {
-	fs      boshsys.FileSystem
-	release Release
+type validator struct {
+	fs boshsys.FileSystem
 }
 
-func NewValidator(fs boshsys.FileSystem, release Release) Validator {
-	return Validator{
-		fs:      fs,
-		release: release,
-	}
+type Validator interface {
+	Validate(release Release) error
 }
 
-func (v Validator) Validate() error {
+func NewValidator(fs boshsys.FileSystem) Validator {
+	return &validator{fs: fs}
+}
+
+func (v *validator) Validate(release Release) error {
 	errs := []error{}
 
-	err := v.validateReleaseName()
+	err := v.validateReleaseName(release)
 	if err != nil {
 		errs = append(errs, bosherr.WrapError(err, "Validating release name"))
 	}
 
-	err = v.validateReleaseVersion()
+	err = v.validateReleaseVersion(release)
 	if err != nil {
 		errs = append(errs, bosherr.WrapError(err, "Validating release version"))
 	}
 
-	err = v.validateReleaseJobs()
+	err = v.validateReleaseJobs(release)
 	if err != nil {
 		errs = append(errs, bosherr.WrapError(err, "Validating release jobs"))
 	}
 
-	err = v.validateReleasePackages()
+	err = v.validateReleasePackages(release)
 	if err != nil {
 		errs = append(errs, bosherr.WrapError(err, "Validating release packages"))
 	}
@@ -53,25 +53,25 @@ func (v Validator) Validate() error {
 	return nil
 }
 
-func (v Validator) validateReleaseName() error {
-	if v.release.Name == "" {
+func (v *validator) validateReleaseName(release Release) error {
+	if release.Name == "" {
 		return errors.New("Release name is missing")
 	}
 
 	return nil
 }
 
-func (v Validator) validateReleaseVersion() error {
-	if v.release.Version == "" {
+func (v *validator) validateReleaseVersion(release Release) error {
+	if release.Version == "" {
 		return errors.New("Release version is missing")
 	}
 
 	return nil
 }
 
-func (v Validator) validateReleaseJobs() error {
+func (v *validator) validateReleaseJobs(release Release) error {
 	errs := []error{}
-	for _, job := range v.release.Jobs {
+	for _, job := range release.Jobs {
 		if job.Name == "" {
 			errs = append(errs, errors.New("Job name is missing"))
 		}
@@ -102,7 +102,7 @@ func (v Validator) validateReleaseJobs() error {
 
 		for _, pkg := range job.Packages {
 			found := false
-			for _, releasePackage := range v.release.Packages {
+			for _, releasePackage := range release.Packages {
 				if releasePackage.Name == pkg {
 					found = true
 					break
@@ -121,9 +121,9 @@ func (v Validator) validateReleaseJobs() error {
 	return nil
 }
 
-func (v Validator) validateReleasePackages() error {
+func (v *validator) validateReleasePackages(release Release) error {
 	errs := []error{}
-	for _, pkg := range v.release.Packages {
+	for _, pkg := range release.Packages {
 		if pkg.Name == "" {
 			errs = append(errs, errors.New("Package name is missing"))
 		}

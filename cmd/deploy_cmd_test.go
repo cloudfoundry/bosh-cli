@@ -9,17 +9,20 @@ import (
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	fakebmrelease "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	faketar "github.com/cloudfoundry/bosh-micro-cli/tar/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("DeploymentCmd", func() {
 	var (
-		command       bmcmd.Cmd
-		config        bmconfig.Config
-		fakeFs        *fakesys.FakeFileSystem
-		fakeUI        *fakeui.FakeUI
-		fakeExtractor *faketar.FakeExtractor
+		command                 bmcmd.Cmd
+		config                  bmconfig.Config
+		fakeFs                  *fakesys.FakeFileSystem
+		fakeUI                  *fakeui.FakeUI
+		fakeExtractor           *faketar.FakeExtractor
+		fakeReleaseValidator    *fakebmrelease.FakeValidator
+		fakeCpiReleaseValidator *fakebmrelease.FakeValidator
 	)
 
 	BeforeEach(func() {
@@ -27,8 +30,17 @@ var _ = Describe("DeploymentCmd", func() {
 		fakeFs = fakesys.NewFakeFileSystem()
 		config = bmconfig.Config{}
 		fakeExtractor = faketar.NewFakeExtractor()
+		fakeReleaseValidator = fakebmrelease.NewFakeValidator()
+		fakeCpiReleaseValidator = fakebmrelease.NewFakeValidator()
 
-		command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor)
+		command = bmcmd.NewDeployCmd(
+			fakeUI,
+			config,
+			fakeFs,
+			fakeExtractor,
+			fakeReleaseValidator,
+			fakeCpiReleaseValidator,
+		)
 	})
 
 	Describe("Run", func() {
@@ -49,7 +61,7 @@ var _ = Describe("DeploymentCmd", func() {
 				Context("when there is a deployment set", func() {
 					BeforeEach(func() {
 						config.Deployment = "/some/deployment/file"
-						command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor)
+						command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor, fakeReleaseValidator, fakeCpiReleaseValidator)
 					})
 
 					Context("when the deployment manifest exists", func() {
@@ -62,7 +74,7 @@ var _ = Describe("DeploymentCmd", func() {
 								fakeFs.TempDirDir = "/some/release/path"
 							})
 
-							Context("and the CPI release is valid", func() {
+							Context("and the tarball is a valid BOSH release", func() {
 								BeforeEach(func() {
 									fakeExtractor.AddExpectedArchive("/somepath")
 									fakeFs.WriteFileString("/some/release/path/release.MF", `---
@@ -81,12 +93,32 @@ version: fake-version
 									Expect(err).NotTo(HaveOccurred())
 									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
 								})
+
+								Context("and the tarball is not a valid CPI release", func() {
+									BeforeEach(func() {
+										fakeCpiReleaseValidator.ValidateError = errors.New("fake-error")
+									})
+
+									It("returns err", func() {
+										err := command.Run([]string{"/somepath"})
+										Expect(err).To(HaveOccurred())
+										Expect(err.Error()).To(ContainSubstring("Validating CPI release"))
+										Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' is not a valid CPI release"))
+									})
+
+									It("cleans up the extracted release directory", func() {
+										err := command.Run([]string{"/somepath"})
+										Expect(err).To(HaveOccurred())
+										Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
+									})
+								})
 							})
 
-							Context("and the CPI release is invalid", func() {
+							Context("and the tarball is not a valid BOSH release", func() {
 								BeforeEach(func() {
 									fakeExtractor.AddExpectedArchive("/somepath")
 									fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
+									fakeReleaseValidator.ValidateError = errors.New("fake-error")
 								})
 
 								It("returns err", func() {
@@ -103,7 +135,7 @@ version: fake-version
 								})
 							})
 
-							Context("and the CPI release cannot be read", func() {
+							Context("and the tarball cannot be read", func() {
 								It("returns err", func() {
 									err := command.Run([]string{"/somepath"})
 									Expect(err).To(HaveOccurred())
@@ -130,7 +162,7 @@ version: fake-version
 					Context("when the deployment manifest is missing", func() {
 						BeforeEach(func() {
 							config.Deployment = "/some/deployment/file"
-							command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor)
+							command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor, fakeReleaseValidator, fakeCpiReleaseValidator)
 						})
 
 						It("returns err", func() {

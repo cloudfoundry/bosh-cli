@@ -9,3 +9,13 @@ type Job struct {
 	Templates     map[string]string
 	Packages      []string
 }
+
+func (j Job) FindTemplateByValue(value string) (string, bool) {
+	for template, templateTarget := range j.Templates {
+		if templateTarget == value {
+			return template, true
+		}
+	}
+
+	return "", false
+}

@@ -9,6 +9,7 @@ import (
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
@@ -23,7 +24,10 @@ func main() {
 	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)
 	runner := boshsys.NewExecCmdRunner(logger)
 	extractor := bmtar.NewCmdExtractor(runner, logger)
-	cmdFactory := bmcmd.NewFactory(config, configService, fileSystem, ui, extractor)
+	releaseValidator := bmrelease.NewValidator(fileSystem)
+	cpiReleaseValidator := bmrelease.NewCpiValidator()
+
+	cmdFactory := bmcmd.NewFactory(config, configService, fileSystem, ui, extractor, releaseValidator, cpiReleaseValidator)
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
 
 	err := cmdRunner.Run(os.Args[1:])
