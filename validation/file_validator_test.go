@@ -34,7 +34,7 @@ var _ = Describe("fileValidator", func() {
 			It("returns err", func() {
 				err := fileValidator.Exists("/some/path")
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Path '/some/path' does not exist"))
+				Expect(err.Error()).To(ContainSubstring("Path `/some/path' does not exist"))
 			})
 		})
 	})

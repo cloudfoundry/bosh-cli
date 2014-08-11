@@ -32,7 +32,7 @@ func (s fileSystemConfigService) Load() (Config, error) {
 	config := Config{}
 	err = json.Unmarshal(content, &config)
 	if err != nil {
-		return Config{}, bosherr.WrapError(err, "Unmarshalling JSON config file '%s'", s.configPath)
+		return Config{}, bosherr.WrapError(err, "Unmarshalling JSON config file `%s'", s.configPath)
 	}
 
 	return config, nil
@@ -46,7 +46,7 @@ func (s fileSystemConfigService) Save(config Config) error {
 
 	err = s.fs.WriteFile(s.configPath, jsonContent)
 	if err != nil {
-		return bosherr.WrapError(err, "Writing config file '%s'", s.configPath)
+		return bosherr.WrapError(err, "Writing config file `%s'", s.configPath)
 	}
 
 	return nil

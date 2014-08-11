@@ -51,8 +51,8 @@ func (c *deployCmd) Run(args []string) error {
 	fileValidator := bmvalidation.NewFileValidator(c.fs)
 	err := fileValidator.Exists(cpiPath)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release '%s' does not exist", cpiPath))
-		return bosherr.WrapError(err, "Checking CPI release '%s' existence", cpiPath)
+		c.ui.Error(fmt.Sprintf("CPI release `%s' does not exist", cpiPath))
+		return bosherr.WrapError(err, "Checking CPI release `%s' existence", cpiPath)
 	}
 
 	if len(c.config.Deployment) == 0 {
@@ -62,7 +62,7 @@ func (c *deployCmd) Run(args []string) error {
 
 	err = fileValidator.Exists(c.config.Deployment)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("Deployment manifest path '%s' does not exist", c.config.Deployment))
+		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.config.Deployment))
 		return bosherr.WrapError(err, "Reading deployment manifest for deploy")
 	}
 
@@ -76,19 +76,19 @@ func (c *deployCmd) Run(args []string) error {
 	releaseReader := bmrelease.NewTarReader(cpiPath, extractedReleasePath, c.fs, c.extractor)
 	release, err := releaseReader.Read()
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release '%s' is not a BOSH release", cpiPath))
-		return bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from '%s'", cpiPath))
+		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a BOSH release", cpiPath))
+		return bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", cpiPath))
 	}
 
 	err = c.releaseValidator.Validate(release)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release '%s' is not a valid BOSH release", cpiPath))
+		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid BOSH release", cpiPath))
 		return bosherr.WrapError(err, "Validating CPI release")
 	}
 
 	err = c.cpiReleaseValidator.Validate(release)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release '%s' is not a valid CPI release", cpiPath))
+		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid CPI release", cpiPath))
 		return bosherr.WrapError(err, "Validating CPI release")
 	}
 

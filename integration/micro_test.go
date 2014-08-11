@@ -51,7 +51,7 @@ var _ = Describe("bosh-micro", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 				Expect(session.Out.Contents()).To(ContainSubstring(
-					fmt.Sprintf("Current deployment is '%s'", deploymentManifestFilePath)))
+					fmt.Sprintf("Current deployment is `%s'", deploymentManifestFilePath)))
 			})
 
 			It("can deploy with a given CPI", func() {

@@ -77,15 +77,15 @@ func (v *validator) validateReleaseJobs(release Release) error {
 		}
 
 		if job.Version == "" {
-			errs = append(errs, fmt.Errorf("Job '%s' version is missing", job.Name))
+			errs = append(errs, fmt.Errorf("Job `%s' version is missing", job.Name))
 		}
 
 		if job.Fingerprint == "" {
-			errs = append(errs, fmt.Errorf("Job '%s' fingerprint is missing", job.Name))
+			errs = append(errs, fmt.Errorf("Job `%s' fingerprint is missing", job.Name))
 		}
 
 		if job.Sha1 == "" {
-			errs = append(errs, fmt.Errorf("Job '%s' sha1 is missing", job.Name))
+			errs = append(errs, fmt.Errorf("Job `%s' sha1 is missing", job.Name))
 		}
 
 		monitPath := path.Join(job.ExtractedPath, "monit")
@@ -129,15 +129,15 @@ func (v *validator) validateReleasePackages(release Release) error {
 		}
 
 		if pkg.Version == "" {
-			errs = append(errs, fmt.Errorf("Package '%s' version is missing", pkg.Name))
+			errs = append(errs, fmt.Errorf("Package `%s' version is missing", pkg.Name))
 		}
 
 		if pkg.Fingerprint == "" {
-			errs = append(errs, fmt.Errorf("Package '%s' fingerprint is missing", pkg.Name))
+			errs = append(errs, fmt.Errorf("Package `%s' fingerprint is missing", pkg.Name))
 		}
 
 		if pkg.Sha1 == "" {
-			errs = append(errs, fmt.Errorf("Package '%s' sha1 is missing", pkg.Name))
+			errs = append(errs, fmt.Errorf("Package `%s' sha1 is missing", pkg.Name))
 		}
 	}
 

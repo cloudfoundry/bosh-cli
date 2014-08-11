@@ -47,7 +47,7 @@ func (c *deploymentCmd) showDeploymentStatus() error {
 		return errors.New("No deployment set")
 	}
 
-	c.ui.Say(fmt.Sprintf("Current deployment is '%s'", c.config.Deployment))
+	c.ui.Say(fmt.Sprintf("Current deployment is `%s'", c.config.Deployment))
 	return nil
 }
 
@@ -55,12 +55,12 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	fileValidator := bmvalidation.NewFileValidator(c.fs)
 	err := fileValidator.Exists(manifestFilePath)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("Deployment '%s' does not exist", manifestFilePath))
+		c.ui.Error(fmt.Sprintf("Deployment `%s' does not exist", manifestFilePath))
 		return bosherr.WrapError(err, "Setting deployment manifest")
 	}
 
 	c.config.Deployment = manifestFilePath
 	c.configService.Save(c.config)
-	c.ui.Say(fmt.Sprintf("Deployment set to '%s'", manifestFilePath))
+	c.ui.Say(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
 	return nil
 }

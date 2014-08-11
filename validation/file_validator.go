@@ -20,7 +20,7 @@ func NewFileValidator(fs boshsys.FileSystem) fileValidator {
 
 func (v fileValidator) Exists(path string) error {
 	if !v.fs.FileExists(path) {
-		return fmt.Errorf("Path '%s' does not exist", path)
+		return fmt.Errorf("Path `%s' does not exist", path)
 	}
 	return nil
 }

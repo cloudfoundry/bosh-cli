@@ -103,7 +103,7 @@ version: fake-version
 										err := command.Run([]string{"/somepath"})
 										Expect(err).To(HaveOccurred())
 										Expect(err.Error()).To(ContainSubstring("Validating CPI release"))
-										Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' is not a valid CPI release"))
+										Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a valid CPI release"))
 									})
 
 									It("cleans up the extracted release directory", func() {
@@ -125,7 +125,7 @@ version: fake-version
 									err := command.Run([]string{"/somepath"})
 									Expect(err).To(HaveOccurred())
 									Expect(err.Error()).To(ContainSubstring("Validating CPI release"))
-									Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' is not a valid BOSH release"))
+									Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a valid BOSH release"))
 								})
 
 								It("cleans up the extracted release directory", func() {
@@ -139,8 +139,8 @@ version: fake-version
 								It("returns err", func() {
 									err := command.Run([]string{"/somepath"})
 									Expect(err).To(HaveOccurred())
-									Expect(err.Error()).To(ContainSubstring("Reading CPI release from '/somepath'"))
-									Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' is not a BOSH release"))
+									Expect(err.Error()).To(ContainSubstring("Reading CPI release from `/somepath'"))
+									Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a BOSH release"))
 								})
 							})
 						})
@@ -169,7 +169,7 @@ version: fake-version
 							err := command.Run([]string{"/somepath"})
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("Reading deployment manifest for deploy"))
-							Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path '/some/deployment/file' does not exist"))
+							Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path `/some/deployment/file' does not exist"))
 						})
 					})
 				})
@@ -187,8 +187,8 @@ version: fake-version
 				It("returns err when the CPI release file does not exist", func() {
 					err := command.Run([]string{"/somepath"})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Checking CPI release '/somepath' existence"))
-					Expect(fakeUI.Errors).To(ContainElement("CPI release '/somepath' does not exist"))
+					Expect(err.Error()).To(ContainSubstring("Checking CPI release `/somepath' existence"))
+					Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' does not exist"))
 				})
 			})
 		})
