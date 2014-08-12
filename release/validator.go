@@ -1,148 +1,43 @@
 package release
 
 import (
-	"errors"
 	"fmt"
-	"path"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type validator struct {
-	fs boshsys.FileSystem
+	ui            bmui.UI
+	cpiPath       string
+	boshValidator Validator
+	cpiValidator  Validator
 }
 
 type Validator interface {
 	Validate(release Release) error
 }
 
-func NewValidator(fs boshsys.FileSystem) Validator {
-	return &validator{fs: fs}
+func NewValidator(boshValidator, cpiValidator Validator, ui bmui.UI) Validator {
+	return &validator{
+		ui:            ui,
+		boshValidator: boshValidator,
+		cpiValidator:  cpiValidator,
+	}
 }
 
 func (v *validator) Validate(release Release) error {
-	errs := []error{}
-
-	err := v.validateReleaseName(release)
+	err := v.boshValidator.Validate(release)
 	if err != nil {
-		errs = append(errs, bosherr.WrapError(err, "Validating release name"))
+		v.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid BOSH release", release.TarballPath))
+		return bosherr.WrapError(err, "Validating CPI release")
 	}
 
-	err = v.validateReleaseVersion(release)
+	err = v.cpiValidator.Validate(release)
 	if err != nil {
-		errs = append(errs, bosherr.WrapError(err, "Validating release version"))
-	}
-
-	err = v.validateReleaseJobs(release)
-	if err != nil {
-		errs = append(errs, bosherr.WrapError(err, "Validating release jobs"))
-	}
-
-	err = v.validateReleasePackages(release)
-	if err != nil {
-		errs = append(errs, bosherr.WrapError(err, "Validating release packages"))
-	}
-
-	if len(errs) > 0 {
-		return bmerr.NewExplainableError(errs)
-	}
-
-	return nil
-}
-
-func (v *validator) validateReleaseName(release Release) error {
-	if release.Name == "" {
-		return errors.New("Release name is missing")
-	}
-
-	return nil
-}
-
-func (v *validator) validateReleaseVersion(release Release) error {
-	if release.Version == "" {
-		return errors.New("Release version is missing")
-	}
-
-	return nil
-}
-
-func (v *validator) validateReleaseJobs(release Release) error {
-	errs := []error{}
-	for _, job := range release.Jobs {
-		if job.Name == "" {
-			errs = append(errs, errors.New("Job name is missing"))
-		}
-
-		if job.Version == "" {
-			errs = append(errs, fmt.Errorf("Job `%s' version is missing", job.Name))
-		}
-
-		if job.Fingerprint == "" {
-			errs = append(errs, fmt.Errorf("Job `%s' fingerprint is missing", job.Name))
-		}
-
-		if job.Sha1 == "" {
-			errs = append(errs, fmt.Errorf("Job `%s' sha1 is missing", job.Name))
-		}
-
-		monitPath := path.Join(job.ExtractedPath, "monit")
-		if !v.fs.FileExists(monitPath) {
-			errs = append(errs, fmt.Errorf("Job `%s' is missing monit file", job.Name))
-		}
-
-		for template := range job.Templates {
-			templatePath := path.Join(job.ExtractedPath, "templates", template)
-			if !v.fs.FileExists(templatePath) {
-				errs = append(errs, fmt.Errorf("Job `%s' is missing template `%s'", job.Name, template))
-			}
-		}
-
-		for _, pkg := range job.Packages {
-			found := false
-			for _, releasePackage := range release.Packages {
-				if releasePackage.Name == pkg {
-					found = true
-					break
-				}
-			}
-			if !found {
-				errs = append(errs, fmt.Errorf("Job `%s' requires `%s' which is not in the release", job.Name, pkg))
-			}
-		}
-	}
-
-	if len(errs) > 0 {
-		return bmerr.NewExplainableError(errs)
-	}
-
-	return nil
-}
-
-func (v *validator) validateReleasePackages(release Release) error {
-	errs := []error{}
-	for _, pkg := range release.Packages {
-		if pkg.Name == "" {
-			errs = append(errs, errors.New("Package name is missing"))
-		}
-
-		if pkg.Version == "" {
-			errs = append(errs, fmt.Errorf("Package `%s' version is missing", pkg.Name))
-		}
-
-		if pkg.Fingerprint == "" {
-			errs = append(errs, fmt.Errorf("Package `%s' fingerprint is missing", pkg.Name))
-		}
-
-		if pkg.Sha1 == "" {
-			errs = append(errs, fmt.Errorf("Package `%s' sha1 is missing", pkg.Name))
-		}
-	}
-
-	if len(errs) > 0 {
-		return bmerr.NewExplainableError(errs)
+		v.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid CPI release", release.TarballPath))
+		return bosherr.WrapError(err, "Validating CPI release")
 	}
 
 	return nil

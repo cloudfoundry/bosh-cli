@@ -14,6 +14,7 @@ type Release struct {
 	Jobs          []bmreljob.Job
 	Packages      []Package
 	ExtractedPath string
+	TarballPath   string
 }
 
 type Package struct {

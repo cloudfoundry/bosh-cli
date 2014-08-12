@@ -20,14 +20,13 @@ import (
 
 var _ = Describe("cmd.Factory", func() {
 	var (
-		factory             Factory
-		config              bmconfig.Config
-		configService       *fakeconfig.FakeService
-		filesystem          boshsys.FileSystem
-		ui                  bmui.UI
-		extractor           bmtar.Extractor
-		releaseValidator    *fakebmrelease.FakeValidator
-		cpiReleaseValidator *fakebmrelease.FakeValidator
+		factory          Factory
+		config           bmconfig.Config
+		configService    *fakeconfig.FakeService
+		filesystem       boshsys.FileSystem
+		ui               bmui.UI
+		extractor        bmtar.Extractor
+		releaseValidator *fakebmrelease.FakeValidator
 	)
 
 	BeforeEach(func() {
@@ -39,9 +38,8 @@ var _ = Describe("cmd.Factory", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		extractor = bmtar.NewCmdExtractor(runner, logger)
 		releaseValidator = fakebmrelease.NewFakeValidator()
-		cpiReleaseValidator = fakebmrelease.NewFakeValidator()
 
-		factory = NewFactory(config, configService, filesystem, ui, extractor, releaseValidator, cpiReleaseValidator)
+		factory = NewFactory(config, configService, filesystem, ui, extractor, releaseValidator)
 	})
 
 	It("creates a new factory", func() {
@@ -58,7 +56,7 @@ var _ = Describe("cmd.Factory", func() {
 		It("has deploy command", func() {
 			cmd, err := factory.CreateCommand("deploy")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cmd).To(Equal(NewDeployCmd(ui, config, filesystem, extractor, releaseValidator, cpiReleaseValidator)))
+			Expect(cmd).To(Equal(NewDeployCmd(ui, config, filesystem, extractor, releaseValidator)))
 		})
 	})
 

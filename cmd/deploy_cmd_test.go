@@ -16,13 +16,12 @@ import (
 
 var _ = Describe("DeploymentCmd", func() {
 	var (
-		command                 bmcmd.Cmd
-		config                  bmconfig.Config
-		fakeFs                  *fakesys.FakeFileSystem
-		fakeUI                  *fakeui.FakeUI
-		fakeExtractor           *faketar.FakeExtractor
-		fakeReleaseValidator    *fakebmrelease.FakeValidator
-		fakeCpiReleaseValidator *fakebmrelease.FakeValidator
+		command              bmcmd.Cmd
+		config               bmconfig.Config
+		fakeFs               *fakesys.FakeFileSystem
+		fakeUI               *fakeui.FakeUI
+		fakeExtractor        *faketar.FakeExtractor
+		fakeReleaseValidator *fakebmrelease.FakeValidator
 	)
 
 	BeforeEach(func() {
@@ -31,7 +30,6 @@ var _ = Describe("DeploymentCmd", func() {
 		config = bmconfig.Config{}
 		fakeExtractor = faketar.NewFakeExtractor()
 		fakeReleaseValidator = fakebmrelease.NewFakeValidator()
-		fakeCpiReleaseValidator = fakebmrelease.NewFakeValidator()
 
 		command = bmcmd.NewDeployCmd(
 			fakeUI,
@@ -39,7 +37,6 @@ var _ = Describe("DeploymentCmd", func() {
 			fakeFs,
 			fakeExtractor,
 			fakeReleaseValidator,
-			fakeCpiReleaseValidator,
 		)
 	})
 
@@ -61,7 +58,7 @@ var _ = Describe("DeploymentCmd", func() {
 				Context("when there is a deployment set", func() {
 					BeforeEach(func() {
 						config.Deployment = "/some/deployment/file"
-						command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor, fakeReleaseValidator, fakeCpiReleaseValidator)
+						command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor, fakeReleaseValidator)
 					})
 
 					Context("when the deployment manifest exists", func() {
@@ -94,24 +91,6 @@ version: fake-version
 									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
 								})
 
-								Context("and the tarball is not a valid CPI release", func() {
-									BeforeEach(func() {
-										fakeCpiReleaseValidator.ValidateError = errors.New("fake-error")
-									})
-
-									It("returns err", func() {
-										err := command.Run([]string{"/somepath"})
-										Expect(err).To(HaveOccurred())
-										Expect(err.Error()).To(ContainSubstring("Validating CPI release"))
-										Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a valid CPI release"))
-									})
-
-									It("cleans up the extracted release directory", func() {
-										err := command.Run([]string{"/somepath"})
-										Expect(err).To(HaveOccurred())
-										Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
-									})
-								})
 							})
 
 							Context("and the tarball is not a valid BOSH release", func() {
@@ -124,8 +103,7 @@ version: fake-version
 								It("returns err", func() {
 									err := command.Run([]string{"/somepath"})
 									Expect(err).To(HaveOccurred())
-									Expect(err.Error()).To(ContainSubstring("Validating CPI release"))
-									Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a valid BOSH release"))
+									Expect(err.Error()).To(ContainSubstring("fake-error"))
 								})
 
 								It("cleans up the extracted release directory", func() {
@@ -162,7 +140,7 @@ version: fake-version
 					Context("when the deployment manifest is missing", func() {
 						BeforeEach(func() {
 							config.Deployment = "/some/deployment/file"
-							command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor, fakeReleaseValidator, fakeCpiReleaseValidator)
+							command = bmcmd.NewDeployCmd(fakeUI, config, fakeFs, fakeExtractor, fakeReleaseValidator)
 						})
 
 						It("returns err", func() {

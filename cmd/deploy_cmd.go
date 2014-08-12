@@ -15,12 +15,11 @@ import (
 )
 
 type deployCmd struct {
-	ui                  bmui.UI
-	config              bmconfig.Config
-	fs                  boshsys.FileSystem
-	extractor           bmtar.Extractor
-	releaseValidator    bmrelease.Validator
-	cpiReleaseValidator bmrelease.Validator
+	ui        bmui.UI
+	config    bmconfig.Config
+	fs        boshsys.FileSystem
+	extractor bmtar.Extractor
+	validator bmrelease.Validator
 }
 
 func NewDeployCmd(
@@ -28,16 +27,14 @@ func NewDeployCmd(
 	config bmconfig.Config,
 	fs boshsys.FileSystem,
 	extractor bmtar.Extractor,
-	releaseValidator bmrelease.Validator,
-	cpiReleaseValidator bmrelease.Validator,
+	validator bmrelease.Validator,
 ) *deployCmd {
 	return &deployCmd{
-		ui:                  ui,
-		config:              config,
-		fs:                  fs,
-		extractor:           extractor,
-		releaseValidator:    releaseValidator,
-		cpiReleaseValidator: cpiReleaseValidator,
+		ui:        ui,
+		config:    config,
+		fs:        fs,
+		extractor: extractor,
+		validator: validator,
 	}
 }
 
@@ -47,12 +44,38 @@ func (c *deployCmd) Run(args []string) error {
 		return errors.New("No CPI release provided")
 	}
 
-	cpiPath := args[0]
-	fileValidator := bmvalidation.NewFileValidator(c.fs)
-	err := fileValidator.Exists(cpiPath)
+	releaseTarballPath := args[0]
+	err := c.validateDeployment(releaseTarballPath)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release `%s' does not exist", cpiPath))
-		return bosherr.WrapError(err, "Checking CPI release `%s' existence", cpiPath)
+		return err
+	}
+
+	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
+	if err != nil {
+		c.ui.Error("Could not create a temporary directory")
+		return bosherr.WrapError(err, "Creating extracted release path")
+	}
+	defer c.fs.RemoveAll(extractedReleasePath)
+
+	release, err := c.extractRelease(releaseTarballPath, extractedReleasePath)
+	if err != nil {
+		return err
+	}
+
+	err = c.validator.Validate(release)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *deployCmd) validateDeployment(releaseTarballPath string) error {
+	fileValidator := bmvalidation.NewFileValidator(c.fs)
+	err := fileValidator.Exists(releaseTarballPath)
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("CPI release `%s' does not exist", releaseTarballPath))
+		return bosherr.WrapError(err, "Checking CPI release `%s' existence", releaseTarballPath)
 	}
 
 	if len(c.config.Deployment) == 0 {
@@ -66,31 +89,18 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Reading deployment manifest for deploy")
 	}
 
-	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
-	if err != nil {
-		c.ui.Error("Could not create a temporary directory")
-		return bosherr.WrapError(err, "Creating extracted release path")
-	}
-	defer c.fs.RemoveAll(extractedReleasePath)
-
-	releaseReader := bmrelease.NewTarReader(cpiPath, extractedReleasePath, c.fs, c.extractor)
-	release, err := releaseReader.Read()
-	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a BOSH release", cpiPath))
-		return bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", cpiPath))
-	}
-
-	err = c.releaseValidator.Validate(release)
-	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid BOSH release", cpiPath))
-		return bosherr.WrapError(err, "Validating CPI release")
-	}
-
-	err = c.cpiReleaseValidator.Validate(release)
-	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid CPI release", cpiPath))
-		return bosherr.WrapError(err, "Validating CPI release")
-	}
-
 	return nil
+}
+
+func (c *deployCmd) extractRelease(releaseTarballPath, extractedReleasePath string) (bmrelease.Release, error) {
+	releaseReader := bmrelease.NewTarReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
+	release, err := releaseReader.Read()
+
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a BOSH release", releaseTarballPath))
+		return bmrelease.Release{}, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
+	}
+	release.TarballPath = releaseTarballPath
+
+	return release, nil
 }

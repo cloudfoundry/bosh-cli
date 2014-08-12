@@ -24,10 +24,11 @@ func main() {
 	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)
 	runner := boshsys.NewExecCmdRunner(logger)
 	extractor := bmtar.NewCmdExtractor(runner, logger)
-	releaseValidator := bmrelease.NewValidator(fileSystem)
+	boshValidator := bmrelease.NewBoshValidator(fileSystem)
 	cpiReleaseValidator := bmrelease.NewCpiValidator()
+	releaseValidator := bmrelease.NewValidator(boshValidator, cpiReleaseValidator, ui)
 
-	cmdFactory := bmcmd.NewFactory(config, configService, fileSystem, ui, extractor, releaseValidator, cpiReleaseValidator)
+	cmdFactory := bmcmd.NewFactory(config, configService, fileSystem, ui, extractor, releaseValidator)
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
 
 	err := cmdRunner.Run(os.Args[1:])

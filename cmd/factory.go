@@ -26,12 +26,11 @@ func NewFactory(
 	ui bmui.UI,
 	extractor bmtar.Extractor,
 	releaseValidator bmrelease.Validator,
-	cpiReleaseValidator bmrelease.Validator,
 ) Factory {
 	return &factory{
 		commands: map[string]Cmd{
 			"deployment": NewDeploymentCmd(ui, config, configService, filesystem),
-			"deploy":     NewDeployCmd(ui, config, filesystem, extractor, releaseValidator, cpiReleaseValidator),
+			"deploy":     NewDeployCmd(ui, config, filesystem, extractor, releaseValidator),
 		},
 	}
 }
