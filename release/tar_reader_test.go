@@ -106,12 +106,12 @@ packages:
 							Expect(len(release.Packages)).To(Equal(1))
 							Expect(release.Packages).To(
 								ContainElement(
-									Package{
+									&Package{
 										Name:          "fake-package",
 										Version:       "fake-package-version",
 										Fingerprint:   "fake-package-fingerprint",
 										Sha1:          "fake-package-sha",
-										Dependencies:  []string{"fake-package-1"},
+										Dependencies:  []*Package{&Package{Name: "fake-package-1"}},
 										ExtractedPath: "/extracted/release/extracted_packages/fake-package",
 									},
 								),

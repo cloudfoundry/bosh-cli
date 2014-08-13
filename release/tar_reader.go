@@ -124,10 +124,13 @@ func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]bmre
 	return jobs, nil
 }
 
-func (r *tarReader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Package) ([]Package, error) {
-	packages := []Package{}
+func (r *tarReader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Package) ([]*Package, error) {
+	packages := []*Package{}
 	errors := []error{}
+	packageRepo := NewPackageRepo()
 	for _, manifestPackage := range manifestPackages {
+		pkg := packageRepo.FindOrCreatePackage(manifestPackage.Name)
+
 		extractedPackagePath := path.Join(r.extractedReleasePath, "extracted_packages", manifestPackage.Name)
 		err := r.fs.MkdirAll(extractedPackagePath, os.ModeDir|0700)
 		if err != nil {
@@ -141,21 +144,21 @@ func (r *tarReader) newPackagesFromManifestPackages(manifestPackages []bmrelman.
 			continue
 		}
 
-		pkg := Package{
-			Name:        manifestPackage.Name,
-			Version:     manifestPackage.Version,
-			Fingerprint: manifestPackage.Fingerprint,
-			Sha1:        manifestPackage.Sha1,
+		pkg.Version = manifestPackage.Version
+		pkg.Fingerprint = manifestPackage.Fingerprint
+		pkg.Sha1 = manifestPackage.Sha1
+		pkg.ExtractedPath = extractedPackagePath
 
-			Dependencies: manifestPackage.Dependencies,
-
-			ExtractedPath: extractedPackagePath,
+		pkg.Dependencies = []*Package{}
+		for _, manifestPackageName := range manifestPackage.Dependencies {
+			pkg.Dependencies = append(pkg.Dependencies, packageRepo.FindOrCreatePackage(manifestPackageName))
 		}
+
 		packages = append(packages, pkg)
 	}
 
 	if len(errors) > 0 {
-		return []Package{}, bmerr.NewExplainableError(errors)
+		return []*Package{}, bmerr.NewExplainableError(errors)
 	}
 
 	return packages, nil

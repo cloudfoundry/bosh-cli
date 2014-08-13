@@ -12,7 +12,7 @@ type Release struct {
 	UncommittedChanges bool
 
 	Jobs          []bmreljob.Job
-	Packages      []Package
+	Packages      []*Package
 	ExtractedPath string
 	TarballPath   string
 }
@@ -22,7 +22,7 @@ type Package struct {
 	Version       string
 	Fingerprint   string
 	Sha1          string
-	Dependencies  []string
+	Dependencies  []*Package
 	ExtractedPath string
 }
 

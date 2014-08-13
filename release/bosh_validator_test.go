@@ -36,15 +36,15 @@ var _ = Describe("Validator", func() {
 				},
 			},
 
-			Packages: []Package{
+			Packages: []*Package{
 				{
 					Name:        "fake-package-1-name",
 					Version:     "fake-package-1-version",
 					Fingerprint: "fake-package-1-fingerprint",
 					Sha1:        "fake-package-1-sha",
-					Dependencies: []string{
-						"fake-package-1-dependency-1",
-						"fake-package-1-dependency-2",
+					Dependencies: []*Package{
+						&Package{Name: "fake-package-1-dependency-1"},
+						&Package{Name: "fake-package-1-dependency-2"},
 					},
 				},
 			},
@@ -68,7 +68,7 @@ var _ = Describe("Validator", func() {
 			Name:     "fake-release-name",
 			Version:  "fake-release-version",
 			Jobs:     []bmreljob.Job{{}, {Name: "fake-job"}},
-			Packages: []Package{{}, {Name: "fake-package"}},
+			Packages: []*Package{{}, {Name: "fake-package"}},
 		}
 		validator := NewBoshValidator(fakeFs)
 
@@ -104,7 +104,7 @@ var _ = Describe("Validator", func() {
 						Fingerprint: "fake-fingerprint",
 						Sha1:        "fake-sha",
 						Templates:   map[string]string{"fake-template": "fake-file"},
-						Packages:    []string{},
+						// Packages:    []*Package{},
 					},
 					{
 						Name:        "fake-job-2",
@@ -112,10 +112,10 @@ var _ = Describe("Validator", func() {
 						Fingerprint: "fake-fingerprint-2",
 						Sha1:        "fake-sha-2",
 						Templates:   map[string]string{"fake-template-2": "fake-file-2"},
-						Packages:    []string{},
+						// Packages:    []*Package{},
 					},
 				},
-				Packages: []Package{},
+				Packages: []*Package{},
 			}
 			validator := NewBoshValidator(fakeFs)
 
@@ -180,7 +180,7 @@ var _ = Describe("Validator", func() {
 						Packages:    []string{"fake-package-2"},
 					},
 				},
-				Packages: []Package{},
+				Packages: []*Package{},
 			}
 			validator := NewBoshValidator(fakeFs)
 
