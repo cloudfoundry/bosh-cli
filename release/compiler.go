@@ -23,31 +23,58 @@ func (c compiler) Compile(release Release) error {
 
 // Implementation of the topological sort alg outlined here http://en.wikipedia.org/wiki/Topological_sort
 func (c compiler) DeterminePackageCompilationOrder(release Release) ([]*Package, error) {
-	results := []*Package{}
-
-	markedPkgs := map[*Package]bool{}
-	visitedPkgs := map[*Package]bool{}
+	dependencyAnalysis := newDependencyAnalylis()
 
 	for _, pkg := range release.Packages {
-		c.visit(pkg, &results, &markedPkgs, &visitedPkgs)
+		c.visit(pkg, dependencyAnalysis)
 	}
 
-	return results, nil
+	return dependencyAnalysis.results, nil
 }
 
-func (c compiler) visit(pkg *Package, results *[]*Package, markedPkgs, visitedPkgs *map[*Package]bool) {
-	if (*markedPkgs)[pkg] {
+func (c compiler) visit(pkg *Package, da *dependencyAnalysis) {
+	if da.isMarked(pkg) {
 		return
 	}
 
-	if !(*visitedPkgs)[pkg] {
-		(*markedPkgs)[pkg] = true
+	if !da.isVisited(pkg) {
+		da.mark(pkg, true)
 		for _, dependency := range pkg.Dependencies {
-			c.visit(dependency, results, markedPkgs, visitedPkgs)
+			c.visit(dependency, da)
 		}
 
-		(*visitedPkgs)[pkg] = true
-		(*markedPkgs)[pkg] = false
-		*results = append(*results, pkg)
+		da.visit(pkg)
+		da.mark(pkg, false)
+		da.results = append(da.results, pkg)
 	}
+}
+
+type dependencyAnalysis struct {
+	results     []*Package
+	markedPkgs  map[*Package]bool
+	visitedPkgs map[*Package]bool
+}
+
+func newDependencyAnalylis() *dependencyAnalysis {
+	return &dependencyAnalysis{
+		results:     []*Package{},
+		markedPkgs:  map[*Package]bool{},
+		visitedPkgs: map[*Package]bool{},
+	}
+}
+
+func (da *dependencyAnalysis) isMarked(pkg *Package) bool {
+	return da.markedPkgs[pkg]
+}
+
+func (da *dependencyAnalysis) isVisited(pkg *Package) bool {
+	return da.visitedPkgs[pkg]
+}
+
+func (da *dependencyAnalysis) mark(pkg *Package, marked bool) {
+	da.markedPkgs[pkg] = marked
+}
+
+func (da *dependencyAnalysis) visit(pkg *Package) {
+	da.visitedPkgs[pkg] = true
 }
