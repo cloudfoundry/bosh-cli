@@ -98,7 +98,7 @@ packages:
 										Sha1:          "fake-job-sha",
 										ExtractedPath: "/extracted/release/extracted_jobs/fake-job",
 										Templates:     map[string]string{"some_template": "some_file"},
-										Packages:      []string{"fake-package"},
+										PackageNames:  []string{"fake-package"},
 									},
 								),
 							)

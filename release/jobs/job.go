@@ -7,7 +7,7 @@ type Job struct {
 	Sha1          string
 	ExtractedPath string
 	Templates     map[string]string
-	Packages      []string
+	PackageNames  []string
 }
 
 func (j Job) FindTemplateByValue(value string) (string, bool) {

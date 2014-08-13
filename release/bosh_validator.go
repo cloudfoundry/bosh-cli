@@ -96,16 +96,16 @@ func (v *boshValidator) validateReleaseJobs(release Release) error {
 			}
 		}
 
-		for _, pkg := range job.Packages {
+		for _, pkgName := range job.PackageNames {
 			found := false
 			for _, releasePackage := range release.Packages {
-				if releasePackage.Name == pkg {
+				if releasePackage.Name == pkgName {
 					found = true
 					break
 				}
 			}
 			if !found {
-				errs = append(errs, fmt.Errorf("Job `%s' requires `%s' which is not in the release", job.Name, pkg))
+				errs = append(errs, fmt.Errorf("Job `%s' requires `%s' which is not in the release", job.Name, pkgName))
 			}
 		}
 	}

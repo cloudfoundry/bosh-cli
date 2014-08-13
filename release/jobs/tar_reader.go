@@ -53,7 +53,7 @@ func (r *tarReader) Read() (Job, error) {
 	return Job{
 		Name:          jobManifest.Name,
 		Templates:     jobManifest.Templates,
-		Packages:      jobManifest.Packages,
+		PackageNames:  jobManifest.Packages,
 		ExtractedPath: r.extractedJobPath,
 	}, nil
 }

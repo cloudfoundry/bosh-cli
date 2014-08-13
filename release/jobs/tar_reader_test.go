@@ -47,7 +47,7 @@ packages:
 					Job{
 						Name:          "fake-job",
 						Templates:     map[string]string{"some_template": "some_file"},
-						Packages:      []string{"fake-package"},
+						PackageNames:  []string{"fake-package"},
 						ExtractedPath: "/extracted/job",
 					},
 				))
