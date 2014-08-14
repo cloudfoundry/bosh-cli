@@ -24,21 +24,21 @@ func TestIntegration(t *testing.T) {
 	})
 
 	var (
-		boshMicroPath string
-		oldHome       string
+		homePath string
+		oldHome  string
 	)
 	BeforeEach(func() {
 		oldHome = os.Getenv("HOME")
 
 		var err error
-		boshMicroPath, err = ioutil.TempDir("", "micro-bosh-cli-integration")
+		homePath, err = ioutil.TempDir("", "micro-bosh-cli-integration")
 		Expect(err).NotTo(HaveOccurred())
-		os.Setenv("HOME", boshMicroPath)
+		os.Setenv("HOME", homePath)
 	})
 
 	AfterEach(func() {
 		os.Setenv("HOME", oldHome)
-		os.RemoveAll(boshMicroPath)
+		os.RemoveAll(homePath)
 	})
 
 	AfterSuite(func() {

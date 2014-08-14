@@ -5,9 +5,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
@@ -17,6 +21,7 @@ var _ = Describe("bosh-micro", func() {
 		deploymentManifestDir      string
 		deploymentManifestFilePath string
 		cpiReleasePath             string
+		fileSystem                 boshsys.FileSystem
 	)
 
 	Context("when a CPI release exists", func() {
@@ -24,6 +29,8 @@ var _ = Describe("bosh-micro", func() {
 			var err error
 			cpiReleasePath = testCpiFilePath
 			Expect(err).NotTo(HaveOccurred())
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			fileSystem = boshsys.NewOsFileSystem(logger)
 		})
 
 		Context("when a manifest exists", func() {
@@ -62,6 +69,8 @@ var _ = Describe("bosh-micro", func() {
 				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
+				boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro")
+				Expect(fileSystem.FileExists(boshMicroHiddenPath)).To(BeTrue())
 			})
 
 			Context("when the CPI release is invalid", func() {
