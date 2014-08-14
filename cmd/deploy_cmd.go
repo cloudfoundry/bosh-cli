@@ -9,6 +9,7 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
@@ -19,7 +20,7 @@ type deployCmd struct {
 	config    bmconfig.Config
 	fs        boshsys.FileSystem
 	extractor bmtar.Extractor
-	validator bmrelease.Validator
+	validator bmrelvalidation.Validator
 }
 
 func NewDeployCmd(
@@ -27,7 +28,7 @@ func NewDeployCmd(
 	config bmconfig.Config,
 	fs boshsys.FileSystem,
 	extractor bmtar.Extractor,
-	validator bmrelease.Validator,
+	validator bmrelvalidation.Validator,
 ) *deployCmd {
 	return &deployCmd{
 		ui:        ui,

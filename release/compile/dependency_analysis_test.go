@@ -1,4 +1,4 @@
-package release_test
+package compile_test
 
 import (
 	"fmt"

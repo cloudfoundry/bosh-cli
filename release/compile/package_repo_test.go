@@ -1,17 +1,19 @@
-package release_test
+package compile_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/compile"
+
+	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 var _ = Describe("PackageRepo", func() {
 	It("creates an new Package when package is not in repo", func() {
 		packageRepo := NewPackageRepo()
 		pkg := packageRepo.FindOrCreatePackage("fake-package-1")
-		Expect(*pkg).To(Equal(Package{Name: "fake-package-1"}))
+		Expect(*pkg).To(Equal(bmrelease.Package{Name: "fake-package-1"}))
 	})
 
 	It("finds existing Package when package is in repo", func() {

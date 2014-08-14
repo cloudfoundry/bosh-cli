@@ -1,20 +1,22 @@
-package release_test
+package validation_test
 
 import (
 	"errors"
 
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+
 	fakebmrelease "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 )
 
 var _ = Describe("Validator", func() {
 	var (
-		validator         bmrelease.Validator
+		validator         Validator
 		fakeBoshValidator *fakebmrelease.FakeValidator
 		fakeCpiValidator  *fakebmrelease.FakeValidator
 		fakeUI            *fakeui.FakeUI
@@ -25,7 +27,7 @@ var _ = Describe("Validator", func() {
 		fakeCpiValidator = fakebmrelease.NewFakeValidator()
 		fakeUI = &fakeui.FakeUI{}
 		release = bmrelease.Release{TarballPath: "/somepath"}
-		validator = bmrelease.NewValidator(fakeBoshValidator, fakeCpiValidator, fakeUI)
+		validator = NewValidator(fakeBoshValidator, fakeCpiValidator, fakeUI)
 	})
 
 	Context("when the release is a valid BOSH CPI release", func() {

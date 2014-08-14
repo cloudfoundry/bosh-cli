@@ -1,10 +1,11 @@
-package release
+package validation
 
 import (
 	"errors"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
+	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type CpiValidator struct {
@@ -14,7 +15,7 @@ func NewCpiValidator() CpiValidator {
 	return CpiValidator{}
 }
 
-func (v CpiValidator) Validate(release Release) error {
+func (v CpiValidator) Validate(release bmrelease.Release) error {
 	errs := v.validateCpiJob(release)
 	if len(errs) > 0 {
 		wrappedErrs := []error{}
@@ -27,7 +28,7 @@ func (v CpiValidator) Validate(release Release) error {
 	return nil
 }
 
-func (v CpiValidator) validateCpiJob(release Release) []error {
+func (v CpiValidator) validateCpiJob(release bmrelease.Release) []error {
 	errs := []error{}
 
 	job, ok := release.FindJobByName("cpi")

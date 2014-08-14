@@ -1,12 +1,15 @@
-package release_test
+package validation_test
 
 import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 )
 
 var _ = Describe("CpiValidator", func() {
@@ -17,7 +20,7 @@ var _ = Describe("CpiValidator", func() {
 	})
 
 	It("validates a valid release without error", func() {
-		release := Release{
+		release := bmrelease.Release{
 			Jobs: []bmreljob.Job{
 				{
 					Name:        "cpi",
@@ -39,10 +42,10 @@ var _ = Describe("CpiValidator", func() {
 
 	Context("when the cpi job is not present", func() {
 		var validator CpiValidator
-		var release Release
+		var release bmrelease.Release
 
 		BeforeEach(func() {
-			release = Release{
+			release = bmrelease.Release{
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "non-cpi-job",
@@ -67,10 +70,10 @@ var _ = Describe("CpiValidator", func() {
 
 	Context("when the templates are missing a bin/cpi target", func() {
 		var validator CpiValidator
-		var release Release
+		var release bmrelease.Release
 
 		BeforeEach(func() {
-			release = Release{
+			release = bmrelease.Release{
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "cpi",
@@ -96,10 +99,10 @@ var _ = Describe("CpiValidator", func() {
 
 	Context("when the templates are missing a bin/micro_discover_ip target", func() {
 		var validator CpiValidator
-		var release Release
+		var release bmrelease.Release
 
 		BeforeEach(func() {
-			release = Release{
+			release = bmrelease.Release{
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "cpi",

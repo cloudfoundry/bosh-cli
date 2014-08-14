@@ -1,10 +1,11 @@
-package release
+package validation
 
 import (
 	"fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
+	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
@@ -16,7 +17,7 @@ type validator struct {
 }
 
 type Validator interface {
-	Validate(release Release) error
+	Validate(release bmrelease.Release) error
 }
 
 func NewValidator(boshValidator, cpiValidator Validator, ui bmui.UI) Validator {
@@ -27,7 +28,7 @@ func NewValidator(boshValidator, cpiValidator Validator, ui bmui.UI) Validator {
 	}
 }
 
-func (v *validator) Validate(release Release) error {
+func (v *validator) Validate(release bmrelease.Release) error {
 	err := v.boshValidator.Validate(release)
 	if err != nil {
 		v.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid BOSH release", release.TarballPath))

@@ -1,12 +1,15 @@
-package release_test
+package validation_test
 
 import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+
+	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 )
 
 var _ = Describe("Validator", func() {
@@ -19,7 +22,7 @@ var _ = Describe("Validator", func() {
 	It("validates a valid release without error", func() {
 		fakeFs.WriteFileString("/some/job/path/monit", "")
 		fakeFs.WriteFileString("/some/job/path/templates/fake-job-1-template", "")
-		release := Release{
+		release := bmrelease.Release{
 			Name:               "fake-release-name",
 			Version:            "fake-release-version",
 			CommitHash:         "fake-release-commit-hash",
@@ -36,15 +39,15 @@ var _ = Describe("Validator", func() {
 				},
 			},
 
-			Packages: []*Package{
+			Packages: []*bmrelease.Package{
 				{
 					Name:        "fake-package-1-name",
 					Version:     "fake-package-1-version",
 					Fingerprint: "fake-package-1-fingerprint",
 					Sha1:        "fake-package-1-sha",
-					Dependencies: []*Package{
-						&Package{Name: "fake-package-1-dependency-1"},
-						&Package{Name: "fake-package-1-dependency-2"},
+					Dependencies: []*bmrelease.Package{
+						&bmrelease.Package{Name: "fake-package-1-dependency-1"},
+						&bmrelease.Package{Name: "fake-package-1-dependency-2"},
 					},
 				},
 			},
@@ -57,18 +60,18 @@ var _ = Describe("Validator", func() {
 
 	It("returns all errors with an empty release", func() {
 		validator := NewBoshValidator(fakeFs)
-		err := validator.Validate(Release{})
+		err := validator.Validate(bmrelease.Release{})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("Release name is missing"))
 		Expect(err.Error()).To(ContainSubstring("Release version is missing"))
 	})
 
 	It("returns all errors with jobs and packages in a release", func() {
-		release := Release{
+		release := bmrelease.Release{
 			Name:     "fake-release-name",
 			Version:  "fake-release-version",
 			Jobs:     []bmreljob.Job{{}, {Name: "fake-job"}},
-			Packages: []*Package{{}, {Name: "fake-package"}},
+			Packages: []*bmrelease.Package{{}, {Name: "fake-package"}},
 		}
 		validator := NewBoshValidator(fakeFs)
 
@@ -94,7 +97,7 @@ var _ = Describe("Validator", func() {
 
 	Context("when jobs are missing templates", func() {
 		It("returns errors with each job that is missing templates", func() {
-			release := Release{
+			release := bmrelease.Release{
 				Name:    "fake-release",
 				Version: "fake-version",
 				Jobs: []bmreljob.Job{
@@ -113,7 +116,7 @@ var _ = Describe("Validator", func() {
 						Templates:   map[string]string{"fake-template-2": "fake-file-2"},
 					},
 				},
-				Packages: []*Package{},
+				Packages: []*bmrelease.Package{},
 			}
 			validator := NewBoshValidator(fakeFs)
 
@@ -127,7 +130,7 @@ var _ = Describe("Validator", func() {
 
 	Context("when jobs are missing monit", func() {
 		It("returns erros with each job that is missing monit", func() {
-			release := Release{
+			release := bmrelease.Release{
 				Name:    "fake-release",
 				Version: "fake-version",
 				Jobs: []bmreljob.Job{
@@ -157,7 +160,7 @@ var _ = Describe("Validator", func() {
 
 	Context("when jobs have package dependencies that are not in the release", func() {
 		It("returns errors with each job that is missing packages", func() {
-			release := Release{
+			release := bmrelease.Release{
 				Name:    "fake-release",
 				Version: "fake-version",
 				Jobs: []bmreljob.Job{
@@ -178,7 +181,7 @@ var _ = Describe("Validator", func() {
 						PackageNames: []string{"fake-package-2"},
 					},
 				},
-				Packages: []*Package{},
+				Packages: []*bmrelease.Package{},
 			}
 			validator := NewBoshValidator(fakeFs)
 
