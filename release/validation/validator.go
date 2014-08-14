@@ -12,15 +12,15 @@ import (
 type validator struct {
 	ui            bmui.UI
 	cpiPath       string
-	boshValidator Validator
-	cpiValidator  Validator
+	boshValidator ReleaseValidator
+	cpiValidator  ReleaseValidator
 }
 
-type Validator interface {
+type ReleaseValidator interface {
 	Validate(release bmrelease.Release) error
 }
 
-func NewValidator(boshValidator, cpiValidator Validator, ui bmui.UI) Validator {
+func NewValidator(boshValidator, cpiValidator ReleaseValidator, ui bmui.UI) ReleaseValidator {
 	return &validator{
 		ui:            ui,
 		boshValidator: boshValidator,

@@ -16,7 +16,7 @@ import (
 
 var _ = Describe("Validator", func() {
 	var (
-		validator         Validator
+		validator         ReleaseValidator
 		fakeBoshValidator *fakebmrelease.FakeValidator
 		fakeCpiValidator  *fakebmrelease.FakeValidator
 		fakeUI            *fakeui.FakeUI

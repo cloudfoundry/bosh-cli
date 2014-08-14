@@ -16,7 +16,7 @@ type boshValidator struct {
 	fs boshsys.FileSystem
 }
 
-func NewBoshValidator(fs boshsys.FileSystem) Validator {
+func NewBoshValidator(fs boshsys.FileSystem) ReleaseValidator {
 	return &boshValidator{fs: fs}
 }
 

@@ -25,8 +25,7 @@ func NewFactory(
 	filesystem boshsys.FileSystem,
 	ui bmui.UI,
 	extractor bmtar.Extractor,
-	releaseValidator bmrelvalidation.Validator,
-) Factory {
+	releaseValidator bmrelvalidation.ReleaseValidator) Factory {
 	return &factory{
 		commands: map[string]Cmd{
 			"deployment": NewDeploymentCmd(ui, config, configService, filesystem),

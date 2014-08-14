@@ -20,7 +20,7 @@ type deployCmd struct {
 	config    bmconfig.Config
 	fs        boshsys.FileSystem
 	extractor bmtar.Extractor
-	validator bmrelvalidation.Validator
+	validator bmrelvalidation.ReleaseValidator
 }
 
 func NewDeployCmd(
@@ -28,8 +28,7 @@ func NewDeployCmd(
 	config bmconfig.Config,
 	fs boshsys.FileSystem,
 	extractor bmtar.Extractor,
-	validator bmrelvalidation.Validator,
-) *deployCmd {
+	validator bmrelvalidation.ReleaseValidator) *deployCmd {
 	return &deployCmd{
 		ui:        ui,
 		config:    config,
