@@ -1,20 +1,24 @@
 package release
 
-type DependencyAnalysis struct {
+type DependencyAnalysis interface {
+	DeterminePackageCompilationOrder(release Release) ([]*Package, error)
+}
+
+type dependencyAnalysis struct {
 	results     []*Package
 	markedPkgs  map[*Package]bool
 	visitedPkgs map[*Package]bool
 }
 
-func NewDependencyAnalylis() *DependencyAnalysis {
-	return &DependencyAnalysis{
+func NewDependencyAnalylis() DependencyAnalysis {
+	return &dependencyAnalysis{
 		results:     []*Package{},
 		markedPkgs:  map[*Package]bool{},
 		visitedPkgs: map[*Package]bool{},
 	}
 }
 
-func (da *DependencyAnalysis) DeterminePackageCompilationOrder(release Release) ([]*Package, error) {
+func (da *dependencyAnalysis) DeterminePackageCompilationOrder(release Release) ([]*Package, error) {
 	// Implementation of the topological sort alg outlined here http://en.wikipedia.org/wiki/Topological_sort
 	for _, pkg := range release.Packages {
 		da.markedPkgs[pkg] = false
@@ -29,7 +33,7 @@ func (da *DependencyAnalysis) DeterminePackageCompilationOrder(release Release) 
 	return da.results, nil
 }
 
-func (da *DependencyAnalysis) visit(pkg *Package) {
+func (da *dependencyAnalysis) visit(pkg *Package) {
 	if da.isMarked(pkg) {
 		return
 	}
@@ -47,7 +51,7 @@ func (da *DependencyAnalysis) visit(pkg *Package) {
 	}
 }
 
-func (da *DependencyAnalysis) selectUnmarked() *Package {
+func (da *dependencyAnalysis) selectUnmarked() *Package {
 	for pkg, marked := range da.markedPkgs {
 		if marked == false && !da.isVisited(pkg) {
 			return pkg
@@ -56,18 +60,18 @@ func (da *DependencyAnalysis) selectUnmarked() *Package {
 	return nil
 }
 
-func (da *DependencyAnalysis) isMarked(pkg *Package) bool {
+func (da *dependencyAnalysis) isMarked(pkg *Package) bool {
 	return da.markedPkgs[pkg]
 }
 
-func (da *DependencyAnalysis) isVisited(pkg *Package) bool {
+func (da *dependencyAnalysis) isVisited(pkg *Package) bool {
 	return da.visitedPkgs[pkg]
 }
 
-func (da *DependencyAnalysis) setMark(pkg *Package, marked bool) {
+func (da *dependencyAnalysis) setMark(pkg *Package, marked bool) {
 	da.markedPkgs[pkg] = marked
 }
 
-func (da *DependencyAnalysis) setVisit(pkg *Package) {
+func (da *dependencyAnalysis) setVisit(pkg *Package) {
 	da.visitedPkgs[pkg] = true
 }

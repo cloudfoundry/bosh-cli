@@ -14,7 +14,7 @@ import (
 var _ = Describe("NewDependencyAnalylis", func() {
 	var (
 		release Release
-		da      *DependencyAnalysis
+		da      DependencyAnalysis
 	)
 
 	gomegafmt.UseStringerRepresentation = true

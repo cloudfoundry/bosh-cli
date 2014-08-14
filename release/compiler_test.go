@@ -4,16 +4,31 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	fakeboshcomp "github.com/cloudfoundry/bosh-agent/agent/compiler/fakes"
+
+	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
-var _ = XDescribe("Compiler", func() {
+var _ = Describe("Compiler", func() {
 	var (
-		release  bmrelease.Release
-		compiler bmrelease.Compiler
+		release             Release
+		compiler            Compiler
+		fakeDA              *fakebmreal.FakeDependencyAnalysis
+		fakePackageCompiler *fakeboshcomp.FakeCompiler
 	)
 
 	Context("Compile", func() {
+		BeforeEach(func() {
+			fakeDA = fakebmreal.NewFakeDependencyAnalysis()
+
+			fakePackageCompiler = fakeboshcomp.NewFakeCompiler()
+
+			compiler = NewCompiler(fakeDA, fakePackageCompiler)
+			release = Release{}
+		})
+
 		Context("when the release is a valid", func() {
 			It("compiles release without an error", func() {
 				err := compiler.Compile(release)
@@ -21,24 +36,16 @@ var _ = XDescribe("Compiler", func() {
 			})
 
 			It("determines the order to compile packages", func() {
-
-			})
-
-			It("gets required package sources for each package in release", func() {
-
-			})
-
-			It("gets the dependencies for each package to compile", func() {
-
+				err := compiler.Compile(release)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeDA.DeterminePackageCompilationOrderRelease).To(Equal(release))
 			})
 
 			It("compiles each package", func() {
-
 			})
 
-			It("setup BOSH micro blobstore with entries for each compiled package", func() {
-
-			})
+			//It("setup BOSH micro blobstore with entries for each compiled package", func() {
+			//})
 		})
 
 		Context("when the release has a bad package", func() {
