@@ -35,3 +35,7 @@ func (r Release) FindJobByName(jobName string) (bmreljob.Job, bool) {
 
 	return bmreljob.Job{}, false
 }
+
+func (p Package) String() string {
+	return p.Name
+}
