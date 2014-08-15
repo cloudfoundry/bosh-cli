@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakeboshcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile/fakes"
 	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
@@ -16,7 +16,7 @@ import (
 
 var _ = Describe("ReleaseCompiler", func() {
 	var (
-		release             bmrelease.Release
+		release             bmrel.Release
 		releaseCompiler     ReleaseCompiler
 		fakeDA              *fakebmreal.FakeDependencyAnalysis
 		fakePackageCompiler *fakeboshcomp.FakePackageCompiler
@@ -27,20 +27,20 @@ var _ = Describe("ReleaseCompiler", func() {
 		fakePackageCompiler = fakeboshcomp.NewFakePackageCompiler()
 
 		releaseCompiler = NewReleaseCompiler(fakeDA, fakePackageCompiler)
-		release = bmrelease.Release{}
+		release = bmrel.Release{}
 	})
 
 	Context("Compile", func() {
 		Context("when the release", func() {
-			var expectedPackages []*bmrelease.Package
+			var expectedPackages []*bmrel.Package
 
 			BeforeEach(func() {
-				package1 := bmrelease.Package{Name: "fake-package-1"}
-				package2 := bmrelease.Package{Name: "fake-package-2"}
+				package1 := bmrel.Package{Name: "fake-package-1"}
+				package2 := bmrel.Package{Name: "fake-package-2"}
 
-				expectedPackages = []*bmrelease.Package{&package1, &package2}
+				expectedPackages = []*bmrel.Package{&package1, &package2}
 
-				fakeDA.DeterminePackageCompilationOrderResult = []*bmrelease.Package{
+				fakeDA.DeterminePackageCompilationOrderResult = []*bmrel.Package{
 					&package1,
 					&package2,
 				}

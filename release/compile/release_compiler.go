@@ -5,11 +5,11 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type ReleaseCompiler interface {
-	Compile(bmrelease.Release) error
+	Compile(bmrel.Release) error
 }
 
 type releaseCompiler struct {
@@ -24,7 +24,7 @@ func NewReleaseCompiler(da DependencyAnalysis, packageCompiler PackageCompiler) 
 	}
 }
 
-func (c releaseCompiler) Compile(release bmrelease.Release) error {
+func (c releaseCompiler) Compile(release bmrel.Release) error {
 	packages, err := c.dependencyAnalysis.DeterminePackageCompilationOrder(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release")

@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmrelease "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -20,13 +20,13 @@ var _ = Describe("Validator", func() {
 		fakeBoshValidator *fakebmrelease.FakeValidator
 		fakeCpiValidator  *fakebmrelease.FakeValidator
 		fakeUI            *fakeui.FakeUI
-		release           bmrelease.Release
+		release           bmrel.Release
 	)
 	BeforeEach(func() {
 		fakeBoshValidator = fakebmrelease.NewFakeValidator()
 		fakeCpiValidator = fakebmrelease.NewFakeValidator()
 		fakeUI = &fakeui.FakeUI{}
-		release = bmrelease.Release{TarballPath: "/somepath"}
+		release = bmrel.Release{TarballPath: "/somepath"}
 		validator = NewValidator(fakeBoshValidator, fakeCpiValidator, fakeUI)
 	})
 

@@ -1,28 +1,28 @@
 package compile
 
 import (
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type DependencyAnalysis interface {
-	DeterminePackageCompilationOrder(release bmrelease.Release) ([]*bmrelease.Package, error)
+	DeterminePackageCompilationOrder(release bmrel.Release) ([]*bmrel.Package, error)
 }
 
 type dependencyAnalysis struct {
-	results     []*bmrelease.Package
-	markedPkgs  map[*bmrelease.Package]bool
-	visitedPkgs map[*bmrelease.Package]bool
+	results     []*bmrel.Package
+	markedPkgs  map[*bmrel.Package]bool
+	visitedPkgs map[*bmrel.Package]bool
 }
 
 func NewDependencyAnalylis() DependencyAnalysis {
 	return &dependencyAnalysis{
-		results:     []*bmrelease.Package{},
-		markedPkgs:  map[*bmrelease.Package]bool{},
-		visitedPkgs: map[*bmrelease.Package]bool{},
+		results:     []*bmrel.Package{},
+		markedPkgs:  map[*bmrel.Package]bool{},
+		visitedPkgs: map[*bmrel.Package]bool{},
 	}
 }
 
-func (da *dependencyAnalysis) DeterminePackageCompilationOrder(release bmrelease.Release) ([]*bmrelease.Package, error) {
+func (da *dependencyAnalysis) DeterminePackageCompilationOrder(release bmrel.Release) ([]*bmrel.Package, error) {
 	// Implementation of the topological sort alg outlined here http://en.wikipedia.org/wiki/Topological_sort
 	for _, pkg := range release.Packages {
 		da.markedPkgs[pkg] = false
@@ -37,7 +37,7 @@ func (da *dependencyAnalysis) DeterminePackageCompilationOrder(release bmrelease
 	return da.results, nil
 }
 
-func (da *dependencyAnalysis) visit(pkg *bmrelease.Package) {
+func (da *dependencyAnalysis) visit(pkg *bmrel.Package) {
 	if da.isMarked(pkg) {
 		return
 	}
@@ -55,7 +55,7 @@ func (da *dependencyAnalysis) visit(pkg *bmrelease.Package) {
 	}
 }
 
-func (da *dependencyAnalysis) selectUnmarked() *bmrelease.Package {
+func (da *dependencyAnalysis) selectUnmarked() *bmrel.Package {
 	for pkg, marked := range da.markedPkgs {
 		if marked == false && !da.isVisited(pkg) {
 			return pkg
@@ -64,18 +64,18 @@ func (da *dependencyAnalysis) selectUnmarked() *bmrelease.Package {
 	return nil
 }
 
-func (da *dependencyAnalysis) isMarked(pkg *bmrelease.Package) bool {
+func (da *dependencyAnalysis) isMarked(pkg *bmrel.Package) bool {
 	return da.markedPkgs[pkg]
 }
 
-func (da *dependencyAnalysis) isVisited(pkg *bmrelease.Package) bool {
+func (da *dependencyAnalysis) isVisited(pkg *bmrel.Package) bool {
 	return da.visitedPkgs[pkg]
 }
 
-func (da *dependencyAnalysis) setMark(pkg *bmrelease.Package, marked bool) {
+func (da *dependencyAnalysis) setMark(pkg *bmrel.Package, marked bool) {
 	da.markedPkgs[pkg] = marked
 }
 
-func (da *dependencyAnalysis) setVisit(pkg *bmrelease.Package) {
+func (da *dependencyAnalysis) setVisit(pkg *bmrel.Package) {
 	da.visitedPkgs[pkg] = true
 }

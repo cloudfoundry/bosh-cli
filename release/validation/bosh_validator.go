@@ -9,7 +9,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type boshValidator struct {
@@ -20,7 +20,7 @@ func NewBoshValidator(fs boshsys.FileSystem) ReleaseValidator {
 	return &boshValidator{fs: fs}
 }
 
-func (v *boshValidator) Validate(release bmrelease.Release) error {
+func (v *boshValidator) Validate(release bmrel.Release) error {
 	errs := []error{}
 
 	err := v.validateReleaseName(release)
@@ -50,7 +50,7 @@ func (v *boshValidator) Validate(release bmrelease.Release) error {
 	return nil
 }
 
-func (v *boshValidator) validateReleaseName(release bmrelease.Release) error {
+func (v *boshValidator) validateReleaseName(release bmrel.Release) error {
 	if release.Name == "" {
 		return errors.New("Release name is missing")
 	}
@@ -58,7 +58,7 @@ func (v *boshValidator) validateReleaseName(release bmrelease.Release) error {
 	return nil
 }
 
-func (v *boshValidator) validateReleaseVersion(release bmrelease.Release) error {
+func (v *boshValidator) validateReleaseVersion(release bmrel.Release) error {
 	if release.Version == "" {
 		return errors.New("Release version is missing")
 	}
@@ -66,7 +66,7 @@ func (v *boshValidator) validateReleaseVersion(release bmrelease.Release) error 
 	return nil
 }
 
-func (v *boshValidator) validateReleaseJobs(release bmrelease.Release) error {
+func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 	errs := []error{}
 	for _, job := range release.Jobs {
 		if job.Name == "" {
@@ -118,7 +118,7 @@ func (v *boshValidator) validateReleaseJobs(release bmrelease.Release) error {
 	return nil
 }
 
-func (v *boshValidator) validateReleasePackages(release bmrelease.Release) error {
+func (v *boshValidator) validateReleasePackages(release bmrel.Release) error {
 	errs := []error{}
 	for _, pkg := range release.Packages {
 		if pkg.Name == "" {

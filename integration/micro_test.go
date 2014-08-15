@@ -68,6 +68,7 @@ var _ = Describe("bosh-micro", func() {
 				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
+
 				//boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro")
 				//Expect(fileSystem.FileExists(boshMicroHiddenPath)).To(BeTrue())
 			})

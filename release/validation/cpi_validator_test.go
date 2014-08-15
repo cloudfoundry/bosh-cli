@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
@@ -20,7 +20,7 @@ var _ = Describe("CpiValidator", func() {
 	})
 
 	It("validates a valid release without error", func() {
-		release := bmrelease.Release{
+		release := bmrel.Release{
 			Jobs: []bmreljob.Job{
 				{
 					Name:        "cpi",
@@ -42,10 +42,10 @@ var _ = Describe("CpiValidator", func() {
 
 	Context("when the cpi job is not present", func() {
 		var validator CpiValidator
-		var release bmrelease.Release
+		var release bmrel.Release
 
 		BeforeEach(func() {
-			release = bmrelease.Release{
+			release = bmrel.Release{
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "non-cpi-job",
@@ -70,10 +70,10 @@ var _ = Describe("CpiValidator", func() {
 
 	Context("when the templates are missing a bin/cpi target", func() {
 		var validator CpiValidator
-		var release bmrelease.Release
+		var release bmrel.Release
 
 		BeforeEach(func() {
-			release = bmrelease.Release{
+			release = bmrel.Release{
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "cpi",
@@ -99,10 +99,10 @@ var _ = Describe("CpiValidator", func() {
 
 	Context("when the templates are missing a bin/micro_discover_ip target", func() {
 		var validator CpiValidator
-		var release bmrelease.Release
+		var release bmrel.Release
 
 		BeforeEach(func() {
-			release = bmrelease.Release{
+			release = bmrel.Release{
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "cpi",

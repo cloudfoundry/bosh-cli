@@ -14,7 +14,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmrelease "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
@@ -26,7 +26,7 @@ var _ = Describe("cmd.Factory", func() {
 		filesystem       boshsys.FileSystem
 		ui               bmui.UI
 		extractor        bmtar.Extractor
-		releaseValidator *fakebmrelease.FakeValidator
+		releaseValidator *fakebmrel.FakeValidator
 	)
 
 	BeforeEach(func() {
@@ -37,7 +37,7 @@ var _ = Describe("cmd.Factory", func() {
 		runner := fakesys.NewFakeCmdRunner()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		extractor = bmtar.NewCmdExtractor(runner, logger)
-		releaseValidator = fakebmrelease.NewFakeValidator()
+		releaseValidator = fakebmrel.NewFakeValidator()
 
 		factory = NewFactory(config, configService, filesystem, ui, extractor, releaseValidator)
 	})

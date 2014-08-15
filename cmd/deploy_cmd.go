@@ -8,7 +8,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmrelease "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -67,6 +67,8 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
+	//releaseCompiler.Compile(release)
+
 	return nil
 }
 
@@ -92,13 +94,13 @@ func (c *deployCmd) validateDeployment(releaseTarballPath string) error {
 	return nil
 }
 
-func (c *deployCmd) extractRelease(releaseTarballPath, extractedReleasePath string) (bmrelease.Release, error) {
-	releaseReader := bmrelease.NewTarReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
+func (c *deployCmd) extractRelease(releaseTarballPath, extractedReleasePath string) (bmrel.Release, error) {
+	releaseReader := bmrel.NewTarReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
 	release, err := releaseReader.Read()
 
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a BOSH release", releaseTarballPath))
-		return bmrelease.Release{}, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
+		return bmrel.Release{}, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
 	}
 	release.TarballPath = releaseTarballPath
 
