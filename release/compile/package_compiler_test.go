@@ -1,28 +1,40 @@
 package compile_test
 
 import (
+	"errors"
+	"path"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	fakeblobstore "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
+	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	fakecmdrunner "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	. "github.com/cloudfoundry/bosh-micro-cli/release/compile"
 )
 
 var _ = Describe("PackageCompiler", func() {
 	var (
-		pc     PackageCompiler
-		runner *fakecmdrunner.FakeCmdRunner
-		pkg    *bmrel.Package
+		pc          PackageCompiler
+		runner      *fakesys.FakeCmdRunner
+		pkg         *bmrel.Package
+		fs          *fakesys.FakeFileSystem
+		compressor  *fakecmd.FakeCompressor
+		packagesDir string
+		blobstore   *fakeblobstore.FakeBlobstore
 	)
 
 	BeforeEach(func() {
+		packagesDir = "fake-packages-dir"
+		runner = fakesys.NewFakeCmdRunner()
+		blobstore = fakeblobstore.NewFakeBlobstore()
+		fs = fakesys.NewFakeFileSystem()
+		compressor = fakecmd.NewFakeCompressor()
 
-		runner = fakecmdrunner.NewFakeCmdRunner()
-		pc = NewPackageCompiler(runner)
+		pc = NewPackageCompiler(runner, packagesDir, fs, compressor, blobstore)
 		pkg = &bmrel.Package{
 			Name:          "fake-package-1",
 			Version:       "fake-package-version",
@@ -31,36 +43,96 @@ var _ = Describe("PackageCompiler", func() {
 	})
 
 	Describe("compiling a package", func() {
-		BeforeEach(func() {
-			err := pc.Compile(pkg)
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		Context("when compilcation succeeds", func() {
-			It("runs the packaging script in package extractedPath dir", func() {
-				expectedCmd := boshsys.Command{
-					Name: "bash",
-					Args: []string{"-x", "packaging"},
-					Env: map[string]string{
-						"BOSH_COMPILE_TARGET":  pkg.ExtractedPath,
-						"BOSH_INSTALL_TARGET":  "/fake-dir/packages/pkg_name",
-						"BOSH_PACKAGE_NAME":    pkg.Name,
-						"BOSH_PACKAGE_VERSION": pkg.Version,
-						"BOSH_PACKAGES_DIR":    "/fake-packages-dir/",
-					},
-					WorkingDir: pkg.ExtractedPath,
-				}
-
-				Expect(runner.RunComplexCommands).To(HaveLen(1))
-				Expect(runner.RunComplexCommands[0]).To(Equal(expectedCmd))
+		var newTarballPath string
+		var installPath string
+		Context("when the packing script exists", func() {
+			BeforeEach(func() {
+				installPath = path.Join(packagesDir, pkg.Name)
+				fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+				newTarballPath = path.Join(packagesDir, "new-tarball")
+				compressor.CompressFilesInDirTarballPath = newTarballPath
+				err := pc.Compile(pkg)
+				Expect(err).ToNot(HaveOccurred())
 			})
-			XIt("store the compiled package to a storage", func() {})
-			XIt("cleans up the working dir")
+
+			Context("when compilation succeeds", func() {
+				It("runs the packaging script in package extractedPath dir", func() {
+					expectedCmd := boshsys.Command{
+						Name: "bash",
+						Args: []string{"-x", "packaging"},
+						Env: map[string]string{
+							"BOSH_COMPILE_TARGET":  pkg.ExtractedPath,
+							"BOSH_INSTALL_TARGET":  installPath,
+							"BOSH_PACKAGE_NAME":    pkg.Name,
+							"BOSH_PACKAGE_VERSION": pkg.Version,
+							"BOSH_PACKAGES_DIR":    packagesDir,
+						},
+						WorkingDir: pkg.ExtractedPath,
+					}
+
+					Expect(runner.RunComplexCommands).To(HaveLen(1))
+					Expect(runner.RunComplexCommands[0]).To(Equal(expectedCmd))
+				})
+
+				It("compresses the compiled package", func() {
+					Expect(compressor.CompressFilesInDirDir).To(Equal(installPath))
+					Expect(compressor.CleanUpTarballPath).To(Equal(newTarballPath))
+				})
+
+				It("moves the compressed package to a blobstore", func() {
+					Expect(blobstore.CreateFileName).To(Equal(newTarballPath))
+				})
+
+				It("cleans up the packages dir", func() {
+					Expect(fs.FileExists(packagesDir)).To(BeFalse())
+				})
+			})
 		})
 
-		Context("when compilcation fails", func() {
-			XIt("returns error to the caller")
-			XIt("cleans up the working dir even when the compilation fails")
+		Describe("compilation failures", func() {
+			Context("when the packaging script does not exist", func() {
+				It("returns error when packaging script does not exist", func() {
+					err := pc.Compile(pkg)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Packaging script for package `fake-package-1' not found"))
+				})
+			})
+
+			Context("when compression fails", func() {
+				It("returns error", func() {
+					compressor.CompressFilesInDirErr = errors.New("fake-compression-error")
+					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+					err := pc.Compile(pkg)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Compressing compiled package"))
+				})
+			})
+
+			Context("when adding to blobstore fails", func() {
+				It("returns error", func() {
+					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+					blobstore.CreateErr = errors.New("fake-create-err")
+					err := pc.Compile(pkg)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Creating blob"))
+				})
+			})
+
+			Context("when creating packages dir fails", func() {
+				It("returns error", func() {
+					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+					fs.RegisterMkdirAllError(installPath, errors.New("fake-mkdir-error"))
+					err := pc.Compile(pkg)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Creating package install dir"))
+				})
+			})
+
+			It("cleans up the working dir", func() {
+				err := pc.Compile(pkg)
+				Expect(err).To(HaveOccurred())
+				Expect(fs.FileExists(packagesDir)).To(BeFalse())
+			})
 		})
 	})
 })
