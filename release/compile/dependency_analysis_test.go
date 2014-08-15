@@ -8,28 +8,30 @@ import (
 
 	gomegafmt "github.com/onsi/gomega/format"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/compile"
+
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 var _ = Describe("NewDependencyAnalylis", func() {
 	var (
-		release Release
+		release bmrel.Release
 		da      DependencyAnalysis
 	)
 
 	gomegafmt.UseStringerRepresentation = true
 
 	Context("DeterminePackageCompilationOrder", func() {
-		var package1, package2 Package
+		var package1, package2 bmrel.Package
 		BeforeEach(func() {
-			package1 = Package{
+			package1 = bmrel.Package{
 				Name: "fake-package-name-1",
 			}
-			package2 = Package{
+			package2 = bmrel.Package{
 				Name: "fake-package-name-2",
 			}
-			release = Release{
-				Packages: []*Package{&package1, &package2},
+			release = bmrel.Release{
+				Packages: []*bmrel.Package{&package1, &package2},
 			}
 			da = NewDependencyAnalylis()
 		})
@@ -37,32 +39,32 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			It("returns an ordered set of package compilation", func() {
 				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(compilationOrder).To(Equal([]*Package{&package1, &package2}))
+				Expect(compilationOrder).To(Equal([]*bmrel.Package{&package1, &package2}))
 			})
 		})
 
 		Context("dependent packages", func() {
 			BeforeEach(func() {
-				package1.Dependencies = []*Package{&package2}
+				package1.Dependencies = []*bmrel.Package{&package2}
 			})
 
 			It("returns an ordered set of package compilation", func() {
 				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(compilationOrder).To(Equal([]*Package{&package2, &package1}))
+				Expect(compilationOrder).To(Equal([]*bmrel.Package{&package2, &package1}))
 			})
 		})
 
 		Context("complex graph of dependent packages", func() {
-			var package3, package4 Package
+			var package3, package4 bmrel.Package
 			BeforeEach(func() {
-				package1.Dependencies = []*Package{&package2, &package3}
-				package3 = Package{
+				package1.Dependencies = []*bmrel.Package{&package2, &package3}
+				package3 = bmrel.Package{
 					Name: "fake-package-name-3",
 				}
-				package4 = Package{
+				package4 = bmrel.Package{
 					Name:         "fake-package-name-4",
-					Dependencies: []*Package{&package3, &package2},
+					Dependencies: []*bmrel.Package{&package3, &package2},
 				}
 				release.Packages = append(release.Packages, &package3, &package4)
 			})
@@ -70,50 +72,50 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			It("returns an ordered set of package compilation", func() {
 				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(compilationOrder).To(Equal([]*Package{&package2, &package3, &package1, &package4}))
+				Expect(compilationOrder).To(Equal([]*bmrel.Package{&package2, &package3, &package1, &package4}))
 			})
 		})
 
 		Context("graph from a BOSH release", func() {
 			It("compiles BOSH release packages (example)", func() {
-				nginx := Package{Name: "nginx"}
-				genisoimage := Package{Name: "genisoimage"}
-				powerdns := Package{Name: "powerdns"}
-				ruby := Package{Name: "ruby"}
+				nginx := bmrel.Package{Name: "nginx"}
+				genisoimage := bmrel.Package{Name: "genisoimage"}
+				powerdns := bmrel.Package{Name: "powerdns"}
+				ruby := bmrel.Package{Name: "ruby"}
 
-				blobstore := Package{
+				blobstore := bmrel.Package{
 					Name:         "blobstore",
-					Dependencies: []*Package{&ruby},
+					Dependencies: []*bmrel.Package{&ruby},
 				}
 
-				mysql := Package{Name: "mysql"}
+				mysql := bmrel.Package{Name: "mysql"}
 
-				nats := Package{
+				nats := bmrel.Package{
 					Name:         "nats",
-					Dependencies: []*Package{&ruby},
+					Dependencies: []*bmrel.Package{&ruby},
 				}
 
-				common := Package{Name: "common"}
-				redis := Package{Name: "redis"}
-				libpq := Package{Name: "libpq"}
-				postgres := Package{Name: "postgres"}
+				common := bmrel.Package{Name: "common"}
+				redis := bmrel.Package{Name: "redis"}
+				libpq := bmrel.Package{Name: "libpq"}
+				postgres := bmrel.Package{Name: "postgres"}
 
-				registry := Package{
+				registry := bmrel.Package{
 					Name:         "registry",
-					Dependencies: []*Package{&libpq, &mysql, &ruby},
+					Dependencies: []*bmrel.Package{&libpq, &mysql, &ruby},
 				}
 
-				director := Package{
+				director := bmrel.Package{
 					Name:         "director",
-					Dependencies: []*Package{&libpq, &mysql, &ruby},
+					Dependencies: []*bmrel.Package{&libpq, &mysql, &ruby},
 				}
 
-				healthMonitor := Package{
+				healthMonitor := bmrel.Package{
 					Name:         "health_monitor",
-					Dependencies: []*Package{&ruby},
+					Dependencies: []*bmrel.Package{&ruby},
 				}
 
-				release.Packages = []*Package{
+				release.Packages = []*bmrel.Package{
 					&nginx,
 					&genisoimage,
 					&powerdns,
@@ -167,7 +169,7 @@ var _ = Describe("NewDependencyAnalylis", func() {
 	})
 })
 
-func indexOf(packages []*Package, pkg *Package) int {
+func indexOf(packages []*bmrel.Package, pkg *bmrel.Package) int {
 	for index, currentPkg := range packages {
 		if currentPkg == pkg {
 			return index

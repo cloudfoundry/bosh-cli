@@ -128,6 +128,7 @@ func (r *tarReader) newPackagesFromManifestPackages(manifestPackages []bmrelman.
 	packages := []*Package{}
 	errors := []error{}
 	packageRepo := NewPackageRepo()
+
 	for _, manifestPackage := range manifestPackages {
 		pkg := packageRepo.FindOrCreatePackage(manifestPackage.Name)
 

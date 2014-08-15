@@ -17,11 +17,14 @@ echo -e "\n Checking with golint..."
 $bin/golint
 let "result+=$?"
 
+
+
 echo -e "\n Installing ginkgo..."
 $bin/go install github.com/onsi/ginkgo/ginkgo
 let "result+=$?"
 
 echo -e "\n Testing packages..."
+$bin/env go clean -r github.com/cloudfoundry/bosh-micro-cli/
 $bin/env ginkgo -r $race $@
 let "result+=$?"
 
