@@ -16,11 +16,12 @@ type PackageCompiler interface {
 }
 
 type packageCompiler struct {
-	runner      boshsys.CmdRunner
-	packagesDir string
-	fileSystem  boshsys.FileSystem
-	compressor  boshcmd.Compressor
-	blobstore   boshblob.Blobstore
+	runner              boshsys.CmdRunner
+	packagesDir         string
+	fileSystem          boshsys.FileSystem
+	compressor          boshcmd.Compressor
+	blobstore           boshblob.Blobstore
+	compiledPackageRepo CompiledPackageRepo
 }
 
 func NewPackageCompiler(
@@ -29,13 +30,15 @@ func NewPackageCompiler(
 	fileSystem boshsys.FileSystem,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
+	compiledPackageRepo CompiledPackageRepo,
 ) PackageCompiler {
 	return &packageCompiler{
-		runner:      runner,
-		packagesDir: packagesDir,
-		fileSystem:  fileSystem,
-		compressor:  compressor,
-		blobstore:   blobstore,
+		runner:              runner,
+		packagesDir:         packagesDir,
+		fileSystem:          fileSystem,
+		compressor:          compressor,
+		blobstore:           blobstore,
+		compiledPackageRepo: compiledPackageRepo,
 	}
 }
 
@@ -75,9 +78,18 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		return bosherr.WrapError(err, "Compressing compiled package")
 	}
 
-	_, _, err = pc.blobstore.Create(tarball)
+	blobID, fingerprint, err := pc.blobstore.Create(tarball)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blob")
+	}
+
+	err = pc.compiledPackageRepo.Save(*pkg, CompiledPackageRecord{
+		BlobID: blobID,
+		SHA1:   fingerprint,
+	})
+
+	if err != nil {
+		return bosherr.WrapError(err, "Saving compiled package")
 	}
 
 	return nil

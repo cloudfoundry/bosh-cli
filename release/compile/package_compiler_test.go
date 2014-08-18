@@ -10,6 +10,7 @@ import (
 	fakeblobstore "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeboshcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile/fakes"
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -18,23 +19,29 @@ import (
 
 var _ = Describe("PackageCompiler", func() {
 	var (
-		pc          PackageCompiler
-		runner      *fakesys.FakeCmdRunner
-		pkg         *bmrel.Package
-		fs          *fakesys.FakeFileSystem
-		compressor  *fakecmd.FakeCompressor
-		packagesDir string
-		blobstore   *fakeblobstore.FakeBlobstore
+		pc                  PackageCompiler
+		runner              *fakesys.FakeCmdRunner
+		pkg                 *bmrel.Package
+		fs                  *fakesys.FakeFileSystem
+		compressor          *fakecmd.FakeCompressor
+		packagesDir         string
+		blobstore           *fakeblobstore.FakeBlobstore
+		compiledPackageRepo *fakeboshcomp.FakeCompiledPackageRepo
 	)
 
 	BeforeEach(func() {
 		packagesDir = "fake-packages-dir"
 		runner = fakesys.NewFakeCmdRunner()
-		blobstore = fakeblobstore.NewFakeBlobstore()
 		fs = fakesys.NewFakeFileSystem()
 		compressor = fakecmd.NewFakeCompressor()
 
-		pc = NewPackageCompiler(runner, packagesDir, fs, compressor, blobstore)
+		blobstore = fakeblobstore.NewFakeBlobstore()
+		blobstore.CreateFingerprint = "fake-fingerprint"
+		blobstore.CreateBlobID = "fake-blob-id"
+
+		compiledPackageRepo = fakeboshcomp.NewFakeCompiledPackageRepo()
+
+		pc = NewPackageCompiler(runner, packagesDir, fs, compressor, blobstore, compiledPackageRepo)
 		pkg = &bmrel.Package{
 			Name:          "fake-package-1",
 			Version:       "fake-package-version",
@@ -83,6 +90,14 @@ var _ = Describe("PackageCompiler", func() {
 					Expect(blobstore.CreateFileName).To(Equal(newTarballPath))
 				})
 
+				It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
+					Expect(compiledPackageRepo.SavePackage).To(Equal(*pkg))
+					Expect(compiledPackageRepo.SaveRecord).To(Equal(CompiledPackageRecord{
+						"fake-blob-id",
+						"fake-fingerprint",
+					}))
+				})
+
 				It("cleans up the packages dir", func() {
 					Expect(fs.FileExists(packagesDir)).To(BeFalse())
 				})
@@ -115,6 +130,16 @@ var _ = Describe("PackageCompiler", func() {
 					err := pc.Compile(pkg)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Creating blob"))
+				})
+			})
+
+			Context("when saving to the compiled package repo fails", func() {
+				It("returns error", func() {
+					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+					compiledPackageRepo.SaveError = errors.New("fake-save-compiled-package-error")
+					err := pc.Compile(pkg)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Saving compiled package"))
 				})
 			})
 
