@@ -9,6 +9,7 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -21,6 +22,7 @@ type deployCmd struct {
 	fs        boshsys.FileSystem
 	extractor bmtar.Extractor
 	validator bmrelvalidation.ReleaseValidator
+	compiler  bmrelcomp.ReleaseCompiler
 }
 
 func NewDeployCmd(
@@ -28,13 +30,16 @@ func NewDeployCmd(
 	config bmconfig.Config,
 	fs boshsys.FileSystem,
 	extractor bmtar.Extractor,
-	validator bmrelvalidation.ReleaseValidator) *deployCmd {
+	validator bmrelvalidation.ReleaseValidator,
+	compiler bmrelcomp.ReleaseCompiler,
+) *deployCmd {
 	return &deployCmd{
 		ui:        ui,
 		config:    config,
 		fs:        fs,
 		extractor: extractor,
 		validator: validator,
+		compiler:  compiler,
 	}
 }
 
@@ -67,7 +72,12 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
-	//releaseCompiler.Compile(release)
+	err = c.compiler.Compile(release)
+	if err != nil {
+		c.ui.Error("Could not compile release")
+		return bosherr.WrapError(err, "Compiling release")
+
+	}
 
 	return nil
 }

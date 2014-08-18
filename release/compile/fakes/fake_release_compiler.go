@@ -5,8 +5,8 @@ import (
 )
 
 type FakeReleaseCompiler struct {
-	CompileError    error
-	CompilePackages []*bmrel.Package
+	CompileError   error
+	CompileRelease bmrel.Release
 }
 
 func NewFakeReleaseCompiler() *FakeReleaseCompiler {
@@ -14,5 +14,7 @@ func NewFakeReleaseCompiler() *FakeReleaseCompiler {
 }
 
 func (c *FakeReleaseCompiler) Compile(release bmrel.Release) error {
+	c.CompileRelease = release
+
 	return c.CompileError
 }

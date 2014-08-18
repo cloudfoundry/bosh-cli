@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -69,8 +70,9 @@ var _ = Describe("bosh-micro", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 
-				//boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro")
-				//Expect(fileSystem.FileExists(boshMicroHiddenPath)).To(BeTrue())
+				boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro")
+				Expect(fileSystem.FileExists(boshMicroHiddenPath)).To(BeTrue())
+				Expect(fileSystem.FileExists(path.Join(boshMicroHiddenPath, "index.json"))).To(BeTrue())
 			})
 
 			Context("when the CPI release is invalid", func() {
