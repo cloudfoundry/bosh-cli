@@ -33,7 +33,7 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			release = bmrel.Release{
 				Packages: []*bmrel.Package{&package1, &package2},
 			}
-			da = NewDependencyAnalylis()
+			da = NewDependencyAnalysis()
 		})
 		Context("disjoint packages have a valid compilation sequence", func() {
 			It("returns an ordered set of package compilation", func() {

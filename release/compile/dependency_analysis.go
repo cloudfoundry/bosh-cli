@@ -14,7 +14,7 @@ type dependencyAnalysis struct {
 	visitedPkgs map[*bmrel.Package]bool
 }
 
-func NewDependencyAnalylis() DependencyAnalysis {
+func NewDependencyAnalysis() DependencyAnalysis {
 	return &dependencyAnalysis{
 		results:     []*bmrel.Package{},
 		markedPkgs:  map[*bmrel.Package]bool{},
