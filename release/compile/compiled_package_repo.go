@@ -8,8 +8,8 @@ import (
 )
 
 type CompiledPackageRecord struct {
-	BlobID string
-	SHA1   string
+	BlobID      string
+	Fingerprint string
 }
 
 type CompiledPackageRepo interface {

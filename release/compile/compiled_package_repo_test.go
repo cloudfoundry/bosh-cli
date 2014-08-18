@@ -31,8 +31,8 @@ var _ = Describe("CompiledPackageRepo", func() {
 	Context("Save and Find", func() {
 		It("saves the compiled package to the index", func() {
 			record := bmrelcomp.CompiledPackageRecord{
-				BlobID: "fake-blob-id",
-				SHA1:   "fake-sha1",
+				BlobID:      "fake-blob-id",
+				Fingerprint: "fake-sha1",
 			}
 
 			pkg := bmrel.Package{
@@ -66,8 +66,8 @@ var _ = Describe("CompiledPackageRepo", func() {
 
 			BeforeEach(func() {
 				record = bmrelcomp.CompiledPackageRecord{
-					BlobID: "fake-blob-id",
-					SHA1:   "fake-sha1",
+					BlobID:      "fake-blob-id",
+					Fingerprint: "fake-sha1",
 				}
 				pkg = bmrel.Package{
 					Name:        "fake-package-name",
@@ -104,8 +104,8 @@ var _ = Describe("CompiledPackageRepo", func() {
 			It("returns error", func() {
 				fs.WriteToFileError = errors.New("Could not save")
 				record := bmrelcomp.CompiledPackageRecord{
-					BlobID: "fake-blob-id",
-					SHA1:   "fake-sha1",
+					BlobID:      "fake-blob-id",
+					Fingerprint: "fake-sha1",
 				}
 
 				pkg := bmrel.Package{
@@ -121,8 +121,8 @@ var _ = Describe("CompiledPackageRepo", func() {
 		Context("when reading from index fails", func() {
 			It("returns error", func() {
 				record := bmrelcomp.CompiledPackageRecord{
-					BlobID: "fake-blob-id",
-					SHA1:   "fake-sha1",
+					BlobID:      "fake-blob-id",
+					Fingerprint: "fake-sha1",
 				}
 				pkg := bmrel.Package{
 					Name: "fake-package-name",

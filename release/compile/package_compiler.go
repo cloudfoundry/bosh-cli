@@ -84,8 +84,8 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 	}
 
 	err = pc.compiledPackageRepo.Save(*pkg, CompiledPackageRecord{
-		BlobID: blobID,
-		SHA1:   fingerprint,
+		BlobID:      blobID,
+		Fingerprint: fingerprint,
 	})
 
 	if err != nil {
