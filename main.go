@@ -11,9 +11,9 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmrelcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -51,8 +51,8 @@ func main() {
 
 	indexFilePath := path.Join(boshMicroDir, "index.json")
 	index := bmindex.NewFileIndex(indexFilePath, fileSystem)
-	compiledPackageRepo := bmrelcomp.NewCompiledPackageRepo(index)
-	packageCompiler := bmrelcomp.NewPackageCompiler(
+	compiledPackageRepo := bmcomp.NewCompiledPackageRepo(index)
+	packageCompiler := bmcomp.NewPackageCompiler(
 		runner,
 		path.Join(boshMicroDir, "packages"),
 		fileSystem,
@@ -60,8 +60,8 @@ func main() {
 		blobstore,
 		compiledPackageRepo,
 	)
-	da := bmrelcomp.NewDependencyAnalysis()
-	releaseCompiler := bmrelcomp.NewReleaseCompiler(da, packageCompiler)
+	da := bmcomp.NewDependencyAnalysis()
+	releaseCompiler := bmcomp.NewReleaseCompiler(da, packageCompiler)
 
 	cmdFactory := bmcmd.NewFactory(
 		config,

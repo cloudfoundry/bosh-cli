@@ -1,13 +1,13 @@
 package fakes
 
 import (
+	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmrelcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile"
 )
 
 type FakeCompiledPackageRepo struct {
 	SavePackage bmrel.Package
-	SaveRecord  bmrelcomp.CompiledPackageRecord
+	SaveRecord  bmcomp.CompiledPackageRecord
 	SaveError   error
 }
 
@@ -17,13 +17,13 @@ func NewFakeCompiledPackageRepo() *FakeCompiledPackageRepo {
 
 func (cpr *FakeCompiledPackageRepo) Save(
 	pkg bmrel.Package,
-	record bmrelcomp.CompiledPackageRecord,
+	record bmcomp.CompiledPackageRecord,
 ) error {
 	cpr.SavePackage = pkg
 	cpr.SaveRecord = record
 	return cpr.SaveError
 }
 
-func (cpr *FakeCompiledPackageRepo) Find(pkg bmrel.Package) (bmrelcomp.CompiledPackageRecord, bool, error) {
-	return bmrelcomp.CompiledPackageRecord{}, false, nil
+func (cpr *FakeCompiledPackageRepo) Find(pkg bmrel.Package) (bmcomp.CompiledPackageRecord, bool, error) {
+	return bmcomp.CompiledPackageRecord{}, false, nil
 }

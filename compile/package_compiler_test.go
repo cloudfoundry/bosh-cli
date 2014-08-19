@@ -10,11 +10,11 @@ import (
 	fakeblobstore "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeboshcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile/fakes"
+	fakeboshcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	. "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	. "github.com/cloudfoundry/bosh-micro-cli/release/compile"
 )
 
 var _ = Describe("PackageCompiler", func() {

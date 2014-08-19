@@ -5,8 +5,8 @@ import (
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmrelcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -27,7 +27,7 @@ func NewFactory(
 	ui bmui.UI,
 	extractor bmtar.Extractor,
 	releaseValidator bmrelvalidation.ReleaseValidator,
-	releaseCompiler bmrelcomp.ReleaseCompiler,
+	releaseCompiler bmcomp.ReleaseCompiler,
 ) Factory {
 	return &factory{
 		commands: map[string]Cmd{

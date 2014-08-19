@@ -8,10 +8,10 @@ import (
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	fakeboshcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile/fakes"
+	fakeboshcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/compile"
+	. "github.com/cloudfoundry/bosh-micro-cli/compile"
 )
 
 var _ = Describe("ReleaseCompiler", func() {

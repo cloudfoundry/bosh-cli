@@ -13,8 +13,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmrelcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -28,7 +28,7 @@ var _ = Describe("cmd.Factory", func() {
 		ui               bmui.UI
 		extractor        bmtar.Extractor
 		releaseValidator *fakebmrel.FakeValidator
-		releaseCompiler  *fakebmrelcomp.FakeReleaseCompiler
+		releaseCompiler  *fakebmcomp.FakeReleaseCompiler
 	)
 
 	BeforeEach(func() {
@@ -40,7 +40,7 @@ var _ = Describe("cmd.Factory", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		extractor = bmtar.NewCmdExtractor(runner, logger)
 		releaseValidator = fakebmrel.NewFakeValidator()
-		releaseCompiler = fakebmrelcomp.NewFakeReleaseCompiler()
+		releaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
 
 		factory = NewFactory(
 			config,

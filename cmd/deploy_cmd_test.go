@@ -10,7 +10,7 @@ import (
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 
-	fakebmrelcomp "github.com/cloudfoundry/bosh-micro-cli/release/compile/fakes"
+	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	faketar "github.com/cloudfoundry/bosh-micro-cli/tar/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -24,7 +24,7 @@ var _ = Describe("DeploymentCmd", func() {
 		fakeUI               *fakeui.FakeUI
 		fakeExtractor        *faketar.FakeExtractor
 		fakeReleaseValidator *fakebmrel.FakeValidator
-		fakeReleaseCompiler  *fakebmrelcomp.FakeReleaseCompiler
+		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
 	)
 
 	BeforeEach(func() {
@@ -33,7 +33,7 @@ var _ = Describe("DeploymentCmd", func() {
 		config = bmconfig.Config{}
 		fakeExtractor = faketar.NewFakeExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
-		fakeReleaseCompiler = fakebmrelcomp.NewFakeReleaseCompiler()
+		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
 
 		command = bmcmd.NewDeployCmd(
 			fakeUI,
