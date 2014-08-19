@@ -33,7 +33,9 @@ type FakeFileSystem struct {
 	openFiles   map[string]*FakeFile
 	OpenFileErr error
 
-	ReadFileError    error
+	ReadFileError       error
+	readFileErrorByPath map[string]error
+
 	WriteToFileError error
 	SymlinkError     error
 
@@ -145,6 +147,7 @@ func NewFakeFileSystem() *FakeFileSystem {
 		files:                map[string]*FakeFileStats{},
 		openFiles:            map[string]*FakeFile{},
 		globsMap:             map[string][][]string{},
+		readFileErrorByPath:  map[string]error{},
 		removeAllErrorByPath: map[string]error{},
 		mkdirAllErrorByPath:  map[string]error{},
 	}
@@ -298,12 +301,24 @@ func (fs *FakeFileSystem) ReadFileString(path string) (string, error) {
 	return string(bytes), nil
 }
 
+func (fs *FakeFileSystem) RegisterReadFileError(path string, err error) {
+	if _, ok := fs.readFileErrorByPath[path]; ok {
+		panic(fmt.Sprintf("ReadFile error is already set for path: %s", path))
+	}
+	fs.readFileErrorByPath[path] = err
+}
+
 func (fs *FakeFileSystem) ReadFile(path string) ([]byte, error) {
 	stats := fs.GetFileTestStat(path)
 	if stats != nil {
 		if fs.ReadFileError != nil {
 			return nil, fs.ReadFileError
 		}
+
+		if fs.readFileErrorByPath[path] != nil {
+			return nil, fs.readFileErrorByPath[path]
+		}
+
 		return stats.Content, nil
 	}
 	return nil, errors.New("File not found")

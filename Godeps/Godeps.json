@@ -10,16 +10,45 @@
 			"Rev": "3615398bbf366a1e84f57861906a56dfaf66ceb9"
 		},
 		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/blobstore",
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/errors",
-			"Rev": "be1b7d406bce97e9d305cf435d0ae3454ceeec99"
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver",
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/logger",
-			"Rev": "be1b7d406bce97e9d305cf435d0ae3454ceeec99"
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/platform",
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/settings",
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/system",
-			"Rev": "be1b7d406bce97e9d305cf435d0ae3454ceeec99"
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/uuid",
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/gofileutils/glob",
+			"Rev": "a4a0cae5ff8a342ba01fce700b9e41c6942c0e5e"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/gosigar",
+			"Comment": "scotty_09012012-20-ga4cb008",
+			"Rev": "a4cb00834887e549c46e58cb5d5f4e53bd492f32"
 		},
 		{
 			"ImportPath": "github.com/nu7hatch/gouuid",
@@ -32,7 +61,8 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "4699d5a664396173c7d9fcef9e88be297c7bae13"
+			"Comment": "v1.0",
+			"Rev": "a78ae492d53aad5a7a232d0d0462c14c400e3ee7"
 		}
 	]
 }
