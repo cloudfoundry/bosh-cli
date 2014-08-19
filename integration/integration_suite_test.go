@@ -19,7 +19,7 @@ func TestIntegration(t *testing.T) {
 		err := bmtestutils.BuildExecutable()
 		Expect(err).NotTo(HaveOccurred())
 
-		testCpiFilePath, err = bmtestutils.DownloadTestCpiRelease(os.Getenv("CPI_RELEASE_URL"))
+		testCpiFilePath, err = bmtestutils.DownloadTestCpiRelease("")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
