@@ -33,16 +33,22 @@ func TestIntegration(t *testing.T) {
 		var err error
 		homePath, err = ioutil.TempDir("", "micro-bosh-cli-integration")
 		Expect(err).NotTo(HaveOccurred())
-		os.Setenv("HOME", homePath)
+
+		err = os.Setenv("HOME", homePath)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
-		os.Setenv("HOME", oldHome)
-		os.RemoveAll(homePath)
+		err := os.Setenv("HOME", oldHome)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = os.RemoveAll(homePath)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterSuite(func() {
-		os.Remove(testCpiFilePath)
+		err := os.Remove(testCpiFilePath)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	RunSpecs(t, "bosh-micro-cli Integration Suite")
