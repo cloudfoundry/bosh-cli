@@ -72,7 +72,13 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			It("returns an ordered set of package compilation", func() {
 				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(compilationOrder).To(Equal([]*bmrel.Package{&package2, &package3, &package1, &package4}))
+				for _, pkg := range release.Packages {
+					compileOrder := indexOf(compilationOrder, pkg)
+					for _, dependencyPkg := range pkg.Dependencies {
+						errorMessage := fmt.Sprintf("Package '%s' should be compiled later than package '%s'", pkg.Name, dependencyPkg.Name)
+						Expect(compileOrder).To(BeNumerically(">", indexOf(compilationOrder, dependencyPkg)), errorMessage)
+					}
+				}
 			})
 		})
 
@@ -138,11 +144,10 @@ var _ = Describe("NewDependencyAnalylis", func() {
 				for _, pkg := range release.Packages {
 					compileOrder := indexOf(compilationOrder, pkg)
 					for _, dependencyPkg := range pkg.Dependencies {
-						errorMessage := fmt.Sprintf("Package '%s' should be compiled earlier than package '%s'", pkg.Name, dependencyPkg.Name)
+						errorMessage := fmt.Sprintf("Package '%s' should be compiled later than package '%s'", pkg.Name, dependencyPkg.Name)
 						Expect(compileOrder).To(BeNumerically(">", indexOf(compilationOrder, dependencyPkg)), errorMessage)
 					}
 				}
-
 			})
 		})
 
