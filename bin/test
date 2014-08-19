@@ -25,7 +25,7 @@ let "result+=$?"
 
 echo -e "\n Testing packages..."
 $bin/env go clean -r github.com/cloudfoundry/bosh-micro-cli/
-$bin/env ginkgo -r $race $@
+$bin/env ginkgo -r $race -trace $@
 let "result+=$?"
 
 if [ $result -eq 0 ]; then

@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"fmt"
+	"time"
 
 	"os/exec"
 
@@ -28,6 +29,6 @@ func RunCommand(cmd string, args ...string) (*gexec.Session, error) {
 		return nil, err
 	}
 
-	session.Wait()
+	session.Wait(10 * time.Second)
 	return session, nil
 }
