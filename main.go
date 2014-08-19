@@ -44,7 +44,11 @@ func main() {
 	blobDir := path.Join(boshMicroDir, "blobs")
 	fileSystem.MkdirAll(blobDir, os.ModePerm)
 	options := map[string]interface{}{"blobstore_path": blobDir}
-	blobstore := boshblob.NewLocalBlobstore(fileSystem, uuidGenerator, options)
+
+	blobstore := boshblob.NewSHA1VerifiableBlobstore(
+		boshblob.NewLocalBlobstore(fileSystem, uuidGenerator, options),
+	)
+
 	indexFilePath := path.Join(boshMicroDir, "index.json")
 	index := bmindex.NewFileIndex(indexFilePath, fileSystem)
 	compiledPackageRepo := bmrelcomp.NewCompiledPackageRepo(index)

@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -15,6 +16,24 @@ import (
 
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
+
+type Key struct {
+	PackageName        string
+	PackageVersion     string
+	PackageFingerprint string
+}
+
+type Value struct {
+	BlobID      string
+	Fingerprint string
+}
+
+type Item struct {
+	Key   Key
+	Value Value
+}
+
+type IndexFile []Item
 
 var _ = Describe("bosh-micro", func() {
 	var (
@@ -73,6 +92,17 @@ var _ = Describe("bosh-micro", func() {
 				boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro")
 				Expect(fileSystem.FileExists(boshMicroHiddenPath)).To(BeTrue())
 				Expect(fileSystem.FileExists(path.Join(boshMicroHiddenPath, "index.json"))).To(BeTrue())
+
+				index, err := fileSystem.ReadFile(path.Join(boshMicroHiddenPath, "index.json"))
+				Expect(err).NotTo(HaveOccurred())
+
+				indexContent := IndexFile{}
+				err = json.Unmarshal(index, &indexContent)
+
+				Expect(err).NotTo(HaveOccurred())
+				for _, item := range indexContent {
+					Expect(item.Value.Fingerprint).ToNot(BeEmpty())
+				}
 			})
 
 			Context("when the CPI release is invalid", func() {
