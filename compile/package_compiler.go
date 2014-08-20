@@ -69,14 +69,17 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		},
 		WorkingDir: packageSrcDir,
 	}
-	pc.runner.RunComplexCommand(cmd)
+
+	_, _, _, err = pc.runner.RunComplexCommand(cmd)
+	if err != nil {
+		return bosherr.WrapError(err, "Compiling package")
+	}
 
 	tarball, err := pc.compressor.CompressFilesInDir(installDir)
-	defer pc.compressor.CleanUp(tarball)
-
 	if err != nil {
 		return bosherr.WrapError(err, "Compressing compiled package")
 	}
+	defer pc.compressor.CleanUp(tarball)
 
 	blobID, fingerprint, err := pc.blobstore.Create(tarball)
 	if err != nil {
@@ -87,7 +90,6 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		BlobID:      blobID,
 		Fingerprint: fingerprint,
 	})
-
 	if err != nil {
 		return bosherr.WrapError(err, "Saving compiled package")
 	}

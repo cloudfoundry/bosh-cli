@@ -106,10 +106,24 @@ var _ = Describe("PackageCompiler", func() {
 
 		Describe("compilation failures", func() {
 			Context("when the packaging script does not exist", func() {
-				It("returns error when packaging script does not exist", func() {
+				It("returns error", func() {
 					err := pc.Compile(pkg)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Packaging script for package `fake-package-1' not found"))
+				})
+			})
+
+			Context("when the packaging script fails", func() {
+				It("returns error", func() {
+					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+					fakeResult := fakesys.FakeCmdResult{
+						ExitStatus: 1,
+						Error:      errors.New("fake-error"),
+					}
+					runner.AddCmdResult("bash -x packaging", fakeResult)
+					err := pc.Compile(pkg)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Compiling package"))
 				})
 			})
 
