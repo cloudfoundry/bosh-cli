@@ -1,6 +1,7 @@
 package compile
 
 import (
+	"fmt"
 	"os"
 	"path"
 
@@ -8,7 +9,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type PackageCompiler interface {
@@ -22,6 +25,7 @@ type packageCompiler struct {
 	compressor          boshcmd.Compressor
 	blobstore           boshblob.Blobstore
 	compiledPackageRepo CompiledPackageRepo
+	ui                  bmui.UI
 }
 
 func NewPackageCompiler(
@@ -31,6 +35,7 @@ func NewPackageCompiler(
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
 	compiledPackageRepo CompiledPackageRepo,
+	ui bmui.UI,
 ) PackageCompiler {
 	return &packageCompiler{
 		runner:              runner,
@@ -39,14 +44,24 @@ func NewPackageCompiler(
 		compressor:          compressor,
 		blobstore:           blobstore,
 		compiledPackageRepo: compiledPackageRepo,
+		ui:                  ui,
 	}
 }
 
 func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
+	_, found, err := pc.compiledPackageRepo.Find(*pkg)
+	if err != nil {
+		return bosherr.WrapError(err, fmt.Sprintf("Attempting to find compiled package `%s'", pkg.Name))
+	}
+	if found {
+		pc.ui.Say(fmt.Sprintf("Skipping compilation of package `%s'", pkg.Name))
+		return nil
+	}
+
 	packageSrcDir := pkg.ExtractedPath
 
 	installDir := path.Join(pc.packagesDir, pkg.Name)
-	err := pc.fileSystem.MkdirAll(installDir, os.ModePerm)
+	err = pc.fileSystem.MkdirAll(installDir, os.ModePerm)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating package install dir")
 	}
@@ -69,6 +84,8 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		},
 		WorkingDir: packageSrcDir,
 	}
+
+	pc.ui.Say(fmt.Sprintf("Compiling package `%s'", pkg.Name))
 
 	_, _, _, err = pc.runner.RunComplexCommand(cmd)
 	if err != nil {

@@ -32,7 +32,8 @@ func NewFactory(
 	return &factory{
 		commands: map[string]Cmd{
 			"deployment": NewDeploymentCmd(ui, config, configService, filesystem),
-			"deploy": NewDeployCmd(ui,
+			"deploy": NewDeployCmd(
+				ui,
 				config,
 				filesystem,
 				extractor,

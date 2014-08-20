@@ -9,6 +9,9 @@ type FakeCompiledPackageRepo struct {
 	SavePackage bmrel.Package
 	SaveRecord  bmcomp.CompiledPackageRecord
 	SaveError   error
+
+	FindCompiledPackageRecord bmcomp.CompiledPackageRecord
+	FindCompiledPackageError  error
 }
 
 func NewFakeCompiledPackageRepo() *FakeCompiledPackageRepo {
@@ -25,5 +28,6 @@ func (cpr *FakeCompiledPackageRepo) Save(
 }
 
 func (cpr *FakeCompiledPackageRepo) Find(pkg bmrel.Package) (bmcomp.CompiledPackageRecord, bool, error) {
-	return bmcomp.CompiledPackageRecord{}, false, nil
+	return cpr.FindCompiledPackageRecord, cpr.FindCompiledPackageRecord != bmcomp.CompiledPackageRecord{}, cpr.FindCompiledPackageError
+
 }

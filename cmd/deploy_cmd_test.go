@@ -16,7 +16,7 @@ import (
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
-var _ = Describe("DeploymentCmd", func() {
+var _ = Describe("DeployCmd", func() {
 	var (
 		command              bmcmd.Cmd
 		config               bmconfig.Config
@@ -63,6 +63,7 @@ var _ = Describe("DeploymentCmd", func() {
 				Context("when there is a deployment set", func() {
 					BeforeEach(func() {
 						config.Deployment = "/some/deployment/file"
+
 						command = bmcmd.NewDeployCmd(
 							fakeUI,
 							config,

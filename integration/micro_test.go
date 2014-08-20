@@ -35,6 +35,10 @@ type Item struct {
 
 type IndexFile []Item
 
+type DeploymentFile struct {
+	UUID string
+}
+
 var _ = Describe("bosh-micro", func() {
 	var (
 		deploymentManifestDir      string
@@ -45,9 +49,8 @@ var _ = Describe("bosh-micro", func() {
 
 	Context("when a CPI release exists", func() {
 		BeforeEach(func() {
-			var err error
 			cpiReleasePath = testCpiFilePath
-			Expect(err).NotTo(HaveOccurred())
+
 			logger := boshlog.NewLogger(boshlog.LevelNone)
 			fileSystem = boshsys.NewOsFileSystem(logger)
 		})
@@ -66,6 +69,63 @@ var _ = Describe("bosh-micro", func() {
 			AfterEach(func() {
 				err := os.RemoveAll(deploymentManifestDir)
 				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("sets up the workspace if there has been a deployment without a uuid", func() {
+				session, err := bmtestutils.RunBoshMicro("deployment", deploymentManifestFilePath)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(session.ExitCode()).To(Equal(0))
+
+				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(session.ExitCode()).To(Equal(0))
+
+				deploymentFilePath := path.Join(deploymentManifestDir, "deployment.json")
+				Expect(fileSystem.FileExists(deploymentFilePath)).To(BeTrue())
+
+				deploymentRawContent, err := fileSystem.ReadFile(deploymentFilePath)
+				Expect(err).NotTo(HaveOccurred())
+
+				deploymentFile := DeploymentFile{}
+				err = json.Unmarshal(deploymentRawContent, &deploymentFile)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(deploymentFile.UUID).ToNot(BeEmpty())
+
+				blobstoreDir := path.Join(deploymentManifestFilePath, ".bosh_micro", deploymentFile.UUID, "blobs")
+				Expect(fileSystem.FileExists(blobstoreDir)).To(BeTrue())
+			})
+
+			It("does not set up the workspace if there has not been a deployment", func() {
+				session, err := bmtestutils.RunBoshMicro("deploy")
+				Expect(session.ExitCode()).ToNot(Equal(0))
+
+				boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro")
+				filesInBoshMicro, err := fileSystem.Glob(path.Join(boshMicroHiddenPath, "*"))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(len(filesInBoshMicro)).To(Equal(0))
+			})
+
+			It("does not recompile same packages within the same deployment", func() {
+				session, err := bmtestutils.RunBoshMicro("deployment", deploymentManifestFilePath)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(session.ExitCode()).To(Equal(0))
+
+				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(session.ExitCode()).To(Equal(0))
+
+				output := string(session.Out.Contents())
+				Expect(output).To(ContainSubstring("Compiling package `a'"))
+				Expect(output).To(ContainSubstring("Compiling package `b'"))
+
+				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
+				Expect(err).NotTo(HaveOccurred())
+				output = string(session.Out.Contents())
+				Expect(session.ExitCode()).To(Equal(0))
+				Expect(output).To(ContainSubstring("Skipping compilation of package `a'"))
+				Expect(output).To(ContainSubstring("Skipping compilation of package `b'"))
 			})
 
 			It("says the current deployment is set", func() {
@@ -89,7 +149,20 @@ var _ = Describe("bosh-micro", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 
-				boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro")
+				// Expect a new deployments.json next to manifest file
+				deploymentFilePath := path.Join(deploymentManifestDir, "deployment.json")
+				Expect(fileSystem.FileExists(deploymentFilePath)).To(BeTrue())
+
+				deploymentRawContent, err := fileSystem.ReadFile(deploymentFilePath)
+				Expect(err).NotTo(HaveOccurred())
+
+				deploymentFile := DeploymentFile{}
+				err = json.Unmarshal(deploymentRawContent, &deploymentFile)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(deploymentFile.UUID).ToNot(BeEmpty())
+
+				boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro", deploymentFile.UUID)
 				Expect(fileSystem.FileExists(boshMicroHiddenPath)).To(BeTrue())
 				Expect(fileSystem.FileExists(path.Join(boshMicroHiddenPath, "index.json"))).To(BeTrue())
 

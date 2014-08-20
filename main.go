@@ -17,6 +17,7 @@ import (
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmworkspace "github.com/cloudfoundry/bosh-micro-cli/workspace"
 )
 
 const mainLogTag = "main"
@@ -25,14 +26,18 @@ func main() {
 	logger := boshlog.NewLogger(boshlog.LevelError)
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
-
-	boshMicroDir := path.Join(os.Getenv("HOME"), ".bosh_micro")
-	fileSystem.MkdirAll(boshMicroDir, os.ModePerm)
-
 	config, configService := loadConfig(logger, fileSystem)
 
 	runner := boshsys.NewExecCmdRunner(logger)
 	extractor := bmtar.NewCmdExtractor(runner, logger)
+	uuidGenerator := boshuuid.NewGenerator()
+
+	workspace, err := bmworkspace.NewWorkspace(
+		fileSystem,
+		config,
+		uuidGenerator,
+		path.Join(os.Getenv("HOME")),
+	)
 
 	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)
 	boshValidator := bmrelvalidation.NewBoshValidator(fileSystem)
@@ -40,25 +45,24 @@ func main() {
 	releaseValidator := bmrelvalidation.NewValidator(boshValidator, cpiReleaseValidator, ui)
 
 	compressor := boshcmd.NewTarballCompressor(runner, fileSystem)
-	uuidGenerator := boshuuid.NewGenerator()
-	blobDir := path.Join(boshMicroDir, "blobs")
-	fileSystem.MkdirAll(blobDir, os.ModePerm)
-	options := map[string]interface{}{"blobstore_path": blobDir}
+
+	options := map[string]interface{}{"blobstore_path": workspace.BlobstorePath()}
 
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
 		boshblob.NewLocalBlobstore(fileSystem, uuidGenerator, options),
 	)
 
-	indexFilePath := path.Join(boshMicroDir, "index.json")
+	indexFilePath := path.Join(workspace.MicroBoshPath(), "index.json")
 	index := bmindex.NewFileIndex(indexFilePath, fileSystem)
 	compiledPackageRepo := bmcomp.NewCompiledPackageRepo(index)
 	packageCompiler := bmcomp.NewPackageCompiler(
 		runner,
-		path.Join(boshMicroDir, "packages"),
+		workspace.PackagesPath(),
 		fileSystem,
 		compressor,
 		blobstore,
 		compiledPackageRepo,
+		ui,
 	)
 	da := bmcomp.NewDependencyAnalysis()
 	releaseCompiler := bmcomp.NewReleaseCompiler(da, packageCompiler)
@@ -72,9 +76,10 @@ func main() {
 		releaseValidator,
 		releaseCompiler,
 	)
+
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
 
-	err := cmdRunner.Run(os.Args[1:])
+	err = cmdRunner.Run(os.Args[1:])
 	if err != nil {
 		fail(err, logger)
 	}
