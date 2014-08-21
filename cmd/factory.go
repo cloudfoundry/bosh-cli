@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
@@ -28,6 +29,7 @@ func NewFactory(
 	extractor bmtar.Extractor,
 	releaseValidator bmrelvalidation.ReleaseValidator,
 	releaseCompiler bmcomp.ReleaseCompiler,
+	logger boshlog.Logger,
 ) Factory {
 	return &factory{
 		commands: map[string]Cmd{
@@ -39,6 +41,7 @@ func NewFactory(
 				extractor,
 				releaseValidator,
 				releaseCompiler,
+				logger,
 			),
 		},
 	}

@@ -29,6 +29,7 @@ var _ = Describe("cmd.Factory", func() {
 		extractor        bmtar.Extractor
 		releaseValidator *fakebmrel.FakeValidator
 		releaseCompiler  *fakebmcomp.FakeReleaseCompiler
+		logger           boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -37,7 +38,7 @@ var _ = Describe("cmd.Factory", func() {
 		filesystem = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
 		runner := fakesys.NewFakeCmdRunner()
-		logger := boshlog.NewLogger(boshlog.LevelNone)
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 		extractor = bmtar.NewCmdExtractor(runner, logger)
 		releaseValidator = fakebmrel.NewFakeValidator()
 		releaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
@@ -50,6 +51,7 @@ var _ = Describe("cmd.Factory", func() {
 			extractor,
 			releaseValidator,
 			releaseCompiler,
+			logger,
 		)
 	})
 
@@ -74,6 +76,7 @@ var _ = Describe("cmd.Factory", func() {
 				extractor,
 				releaseValidator,
 				releaseCompiler,
+				logger,
 			)))
 		})
 	})

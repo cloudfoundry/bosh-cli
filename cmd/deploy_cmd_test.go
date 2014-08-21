@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 
@@ -25,6 +26,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeExtractor        *faketar.FakeExtractor
 		fakeReleaseValidator *fakebmrel.FakeValidator
 		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
+		logger               boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -34,6 +36,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeExtractor = faketar.NewFakeExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
 		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		command = bmcmd.NewDeployCmd(
 			fakeUI,
@@ -42,6 +45,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeExtractor,
 			fakeReleaseValidator,
 			fakeReleaseCompiler,
+			logger,
 		)
 	})
 
@@ -71,6 +75,7 @@ var _ = Describe("DeployCmd", func() {
 							fakeExtractor,
 							fakeReleaseValidator,
 							fakeReleaseCompiler,
+							logger,
 						)
 					})
 
@@ -177,6 +182,7 @@ version: fake-version
 								fakeExtractor,
 								fakeReleaseValidator,
 								fakeReleaseCompiler,
+								logger,
 							)
 						})
 

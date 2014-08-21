@@ -75,6 +75,7 @@ func main() {
 		extractor,
 		releaseValidator,
 		releaseCompiler,
+		logger,
 	)
 
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
