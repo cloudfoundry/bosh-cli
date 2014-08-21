@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"path"
 
 	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -69,10 +71,22 @@ func (f *factory) CreateCommand(name string) (Cmd, error) {
 }
 
 func (f *factory) createDeploymentCmd() (Cmd, error) {
-	return NewDeploymentCmd(f.ui, f.config, f.configService, f.fileSystem), nil
+	return NewDeploymentCmd(
+		f.ui,
+		f.config,
+		f.configService,
+		f.fileSystem,
+		f.workspace,
+		f.logger,
+	), nil
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
+	manifestFilePath := f.config.Deployment
+	err := f.workspace.Load(manifestFilePath)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Loading workspace")
+	}
 
 	runner := boshsys.NewExecCmdRunner(f.logger)
 	extractor := bmtar.NewCmdExtractor(runner, f.logger)
@@ -89,6 +103,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	indexFilePath := path.Join(f.workspace.MicroBoshPath(), "index.json")
 	index := bmindex.NewFileIndex(indexFilePath, f.fileSystem)
 	compiledPackageRepo := bmcomp.NewCompiledPackageRepo(index)
+
+	f.logger.Debug(
+		logTag,
+		fmt.Sprintf("Creating new blobstore with path `%s'", f.workspace.BlobstorePath()),
+	)
 	options := map[string]interface{}{"blobstore_path": f.workspace.BlobstorePath()}
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
 		boshblob.NewLocalBlobstore(f.fileSystem, f.uuidGenerator, options),

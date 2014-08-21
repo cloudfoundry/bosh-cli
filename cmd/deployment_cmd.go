@@ -5,15 +5,18 @@ import (
 	"fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
+	bmworkspace "github.com/cloudfoundry/bosh-micro-cli/workspace"
 )
 
 const (
 	BoshMicroFilename = ".bosh_micro.json"
+	tagString         = "DeploymentCmd"
 )
 
 type deploymentCmd struct {
@@ -21,14 +24,25 @@ type deploymentCmd struct {
 	config        bmconfig.Config
 	configService bmconfig.Service
 	fs            boshsys.FileSystem
+	ws            bmworkspace.Workspace
+	logger        boshlog.Logger
 }
 
-func NewDeploymentCmd(ui bmui.UI, config bmconfig.Config, configService bmconfig.Service, fs boshsys.FileSystem) *deploymentCmd {
+func NewDeploymentCmd(
+	ui bmui.UI,
+	config bmconfig.Config,
+	configService bmconfig.Service,
+	fs boshsys.FileSystem,
+	ws bmworkspace.Workspace,
+	logger boshlog.Logger,
+) *deploymentCmd {
 	return &deploymentCmd{
 		ui:            ui,
 		config:        config,
 		configService: configService,
 		fs:            fs,
+		ws:            ws,
+		logger:        logger,
 	}
 }
 
@@ -61,6 +75,8 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 
 	c.config.Deployment = manifestFilePath
 	c.configService.Save(c.config)
+	c.logger.Debug(tagString, "Config %#v", c.config)
+	c.ws.Initialize(manifestFilePath)
 	c.ui.Say(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
 	return nil
 }

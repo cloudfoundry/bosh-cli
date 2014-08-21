@@ -27,9 +27,9 @@ func main() {
 
 	workspace, err := bmworkspace.NewWorkspace(
 		fileSystem,
-		config,
 		uuidGenerator,
 		path.Join(os.Getenv("HOME")),
+		logger,
 	)
 
 	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)

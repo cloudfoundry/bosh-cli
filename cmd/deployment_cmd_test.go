@@ -8,10 +8,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakews "github.com/cloudfoundry/bosh-micro-cli/workspace/fakes"
 )
 
 var _ = Describe("DeploymentCmd", func() {
@@ -21,14 +24,18 @@ var _ = Describe("DeploymentCmd", func() {
 		manifestPath string
 		fakeUI       *fakeui.FakeUI
 		fakeFs       *fakesys.FakeFileSystem
+		fakeWs       *fakews.FakeWorkspace
+		logger       boshlog.Logger
 	)
 
 	BeforeEach(func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
 		fakeService = &fakeconfig.FakeService{}
+		fakeWs = fakews.NewFakeWorkspace()
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		command = NewDeploymentCmd(fakeUI, bmconfig.Config{}, fakeService, fakeFs)
+		command = NewDeploymentCmd(fakeUI, bmconfig.Config{}, fakeService, fakeFs, fakeWs, logger)
 	})
 
 	Context("#Run", func() {
@@ -51,6 +58,13 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeService.Saved).To(Equal(bmconfig.Config{Deployment: manifestPath}))
 				})
+
+				It("initializes the workspace", func() {
+					err := command.Run([]string{manifestPath})
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(fakeWs.InitializeCalled).To(BeTrue())
+				})
 			})
 
 			Context("when the deployment manifest does not exist", func() {
@@ -60,6 +74,13 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(err.Error()).To(ContainSubstring("Setting deployment manifest"))
 					Expect(fakeUI.Errors).To(ContainElement("Deployment `fake/manifest/path' does not exist"))
 				})
+
+				It("does not initializes the workspace", func() {
+					err := command.Run([]string{"fake/manifest/path"})
+					Expect(err).To(HaveOccurred())
+
+					Expect(fakeWs.InitializeCalled).To(BeFalse())
+				})
 			})
 		})
 
@@ -67,13 +88,20 @@ var _ = Describe("DeploymentCmd", func() {
 			Context("a deployment manifest is present in the config", func() {
 				BeforeEach(func() {
 					config := bmconfig.Config{Deployment: "/somepath"}
-					command = NewDeploymentCmd(fakeUI, config, fakeService, fakeFs)
+					command = NewDeploymentCmd(fakeUI, config, fakeService, fakeFs, fakeWs, logger)
 				})
 
 				It("says `Deployment set to '<manifest_path>'`", func() {
 					err := command.Run([]string{})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeUI.Said).To(ContainElement("Current deployment is `/somepath'"))
+				})
+
+				It("does not initializes the workspace", func() {
+					err := command.Run([]string{})
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(fakeWs.InitializeCalled).To(BeFalse())
 				})
 			})
 

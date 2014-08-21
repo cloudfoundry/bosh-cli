@@ -1,6 +1,8 @@
 package cmd_test
 
 import (
+	"errors"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
@@ -30,6 +32,7 @@ var _ = Describe("cmd.Factory", func() {
 		ui            bmui.UI
 		extractor     bmtar.Extractor
 		logger        boshlog.Logger
+		workspace     *fakews.FakeWorkspace
 	)
 
 	BeforeEach(func() {
@@ -38,7 +41,7 @@ var _ = Describe("cmd.Factory", func() {
 		filesystem = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		workspace := fakews.NewFakeWorkspace()
+		workspace = fakews.NewFakeWorkspace()
 		uuidGenerator := &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(
@@ -57,26 +60,52 @@ var _ = Describe("cmd.Factory", func() {
 	})
 
 	Context("passing correct command name", func() {
-		It("has deployment command", func() {
-			cmd, err := factory.CreateCommand("deployment")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmd).To(Equal(NewDeploymentCmd(ui, config, configService, filesystem)))
+		Describe("deployment command", func() {
+			It("returns a deployment command", func() {
+				cmd, err := factory.CreateCommand("deployment")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cmd).To(Equal(NewDeploymentCmd(
+					ui,
+					config,
+					configService,
+					filesystem,
+					workspace,
+					logger,
+				)))
+			})
 		})
 
-		It("has deploy command", func() {
-			releaseValidator := fakebmrel.NewFakeValidator()
-			releaseCompiler := fakebmcomp.NewFakeReleaseCompiler()
-			cmd, err := factory.CreateCommand("deploy")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmd).To(BeAssignableToTypeOf(NewDeployCmd(
-				ui,
-				config,
-				filesystem,
-				extractor,
-				releaseValidator,
-				releaseCompiler,
-				logger,
-			)))
+		Describe("deploy command", func() {
+			It("returns a  deploy command", func() {
+				releaseValidator := fakebmrel.NewFakeValidator()
+				releaseCompiler := fakebmcomp.NewFakeReleaseCompiler()
+				cmd, err := factory.CreateCommand("deploy")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cmd).To(BeAssignableToTypeOf(NewDeployCmd(
+					ui,
+					config,
+					filesystem,
+					extractor,
+					releaseValidator,
+					releaseCompiler,
+					logger,
+				)))
+				Expect(workspace.LoadCalled).To(BeTrue())
+			})
+
+			It("loads a workspace", func() {
+				_, err := factory.CreateCommand("deploy")
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(workspace.LoadCalled).To(BeTrue())
+			})
+
+			It("errors when a workspace cannot be loaded", func() {
+				workspace.LoadError = errors.New("fake-load-workspace-error")
+				_, err := factory.CreateCommand("deploy")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Loading workspace"))
+			})
 		})
 	})
 
