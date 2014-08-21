@@ -39,7 +39,8 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			It("returns an ordered set of package compilation", func() {
 				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(compilationOrder).To(Equal([]*bmrel.Package{&package1, &package2}))
+				Expect(compilationOrder).To(ContainElement(&package1))
+				Expect(compilationOrder).To(ContainElement(&package2))
 			})
 		})
 
@@ -51,7 +52,8 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			It("returns an ordered set of package compilation", func() {
 				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(compilationOrder).To(Equal([]*bmrel.Package{&package2, &package1}))
+				Expect(compilationOrder).To(ContainElement(&package1))
+				Expect(compilationOrder).To(ContainElement(&package2))
 			})
 		})
 
