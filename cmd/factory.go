@@ -18,33 +18,42 @@ type Factory interface {
 }
 
 type factory struct {
-	commands map[string]Cmd
+	commands         map[string](func() (Cmd, error))
+	config           bmconfig.Config
+	configService    bmconfig.Service
+	fileSystem       boshsys.FileSystem
+	ui               bmui.UI
+	extractor        bmtar.Extractor
+	releaseValidator bmrelvalidation.ReleaseValidator
+	releaseCompiler  bmcomp.ReleaseCompiler
+	logger           boshlog.Logger
 }
 
 func NewFactory(
 	config bmconfig.Config,
 	configService bmconfig.Service,
-	filesystem boshsys.FileSystem,
+	fileSystem boshsys.FileSystem,
 	ui bmui.UI,
 	extractor bmtar.Extractor,
 	releaseValidator bmrelvalidation.ReleaseValidator,
 	releaseCompiler bmcomp.ReleaseCompiler,
 	logger boshlog.Logger,
 ) Factory {
-	return &factory{
-		commands: map[string]Cmd{
-			"deployment": NewDeploymentCmd(ui, config, configService, filesystem),
-			"deploy": NewDeployCmd(
-				ui,
-				config,
-				filesystem,
-				extractor,
-				releaseValidator,
-				releaseCompiler,
-				logger,
-			),
-		},
+	f := &factory{
+		config:           config,
+		configService:    configService,
+		fileSystem:       fileSystem,
+		ui:               ui,
+		extractor:        extractor,
+		releaseValidator: releaseValidator,
+		releaseCompiler:  releaseCompiler,
+		logger:           logger,
 	}
+	f.commands = map[string](func() (Cmd, error)){
+		"deployment": f.createDeploymentCmd,
+		"deploy":     f.createDeployCmd,
+	}
+	return f
 }
 
 func (f *factory) CreateCommand(name string) (Cmd, error) {
@@ -52,5 +61,21 @@ func (f *factory) CreateCommand(name string) (Cmd, error) {
 		return nil, errors.New("Invalid command name")
 	}
 
-	return f.commands[name], nil
+	return f.commands[name]()
+}
+
+func (f *factory) createDeploymentCmd() (Cmd, error) {
+	return NewDeploymentCmd(f.ui, f.config, f.configService, f.fileSystem), nil
+}
+
+func (f *factory) createDeployCmd() (Cmd, error) {
+	return NewDeployCmd(
+		f.ui,
+		f.config,
+		f.fileSystem,
+		f.extractor,
+		f.releaseValidator,
+		f.releaseCompiler,
+		f.logger,
+	), nil
 }
