@@ -13,23 +13,23 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakews "github.com/cloudfoundry/bosh-micro-cli/workspace/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {
 	var (
-		factory          Factory
-		config           bmconfig.Config
-		configService    *fakeconfig.FakeService
-		filesystem       boshsys.FileSystem
-		ui               bmui.UI
-		extractor        bmtar.Extractor
-		releaseValidator *fakebmrel.FakeValidator
-		releaseCompiler  *fakebmcomp.FakeReleaseCompiler
-		logger           boshlog.Logger
+		factory       Factory
+		config        bmconfig.Config
+		configService *fakeconfig.FakeService
+		filesystem    boshsys.FileSystem
+		ui            bmui.UI
+		extractor     bmtar.Extractor
+		logger        boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -37,21 +37,18 @@ var _ = Describe("cmd.Factory", func() {
 		configService = &fakeconfig.FakeService{}
 		filesystem = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
-		runner := fakesys.NewFakeCmdRunner()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		extractor = bmtar.NewCmdExtractor(runner, logger)
-		releaseValidator = fakebmrel.NewFakeValidator()
-		releaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
+		workspace := fakews.NewFakeWorkspace()
+		uuidGenerator := &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(
 			config,
 			configService,
 			filesystem,
 			ui,
-			extractor,
-			releaseValidator,
-			releaseCompiler,
 			logger,
+			workspace,
+			uuidGenerator,
 		)
 	})
 
@@ -67,9 +64,11 @@ var _ = Describe("cmd.Factory", func() {
 		})
 
 		It("has deploy command", func() {
+			releaseValidator := fakebmrel.NewFakeValidator()
+			releaseCompiler := fakebmcomp.NewFakeReleaseCompiler()
 			cmd, err := factory.CreateCommand("deploy")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cmd).To(Equal(NewDeployCmd(
+			Expect(cmd).To(BeAssignableToTypeOf(NewDeployCmd(
 				ui,
 				config,
 				filesystem,

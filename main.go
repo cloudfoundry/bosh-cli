@@ -4,18 +4,13 @@ import (
 	"os"
 	"path"
 
-	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
-	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
-	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
+
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmworkspace "github.com/cloudfoundry/bosh-micro-cli/workspace"
 )
@@ -28,8 +23,6 @@ func main() {
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	config, configService := loadConfig(logger, fileSystem)
 
-	runner := boshsys.NewExecCmdRunner(logger)
-	extractor := bmtar.NewCmdExtractor(runner, logger)
 	uuidGenerator := boshuuid.NewGenerator()
 
 	workspace, err := bmworkspace.NewWorkspace(
@@ -40,42 +33,15 @@ func main() {
 	)
 
 	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)
-	boshValidator := bmrelvalidation.NewBoshValidator(fileSystem)
-	cpiReleaseValidator := bmrelvalidation.NewCpiValidator()
-	releaseValidator := bmrelvalidation.NewValidator(boshValidator, cpiReleaseValidator, ui)
-
-	compressor := boshcmd.NewTarballCompressor(runner, fileSystem)
-
-	options := map[string]interface{}{"blobstore_path": workspace.BlobstorePath()}
-
-	blobstore := boshblob.NewSHA1VerifiableBlobstore(
-		boshblob.NewLocalBlobstore(fileSystem, uuidGenerator, options),
-	)
-
-	indexFilePath := path.Join(workspace.MicroBoshPath(), "index.json")
-	index := bmindex.NewFileIndex(indexFilePath, fileSystem)
-	compiledPackageRepo := bmcomp.NewCompiledPackageRepo(index)
-	packageCompiler := bmcomp.NewPackageCompiler(
-		runner,
-		workspace.PackagesPath(),
-		fileSystem,
-		compressor,
-		blobstore,
-		compiledPackageRepo,
-		ui,
-	)
-	da := bmcomp.NewDependencyAnalysis()
-	releaseCompiler := bmcomp.NewReleaseCompiler(da, packageCompiler)
 
 	cmdFactory := bmcmd.NewFactory(
 		config,
 		configService,
 		fileSystem,
 		ui,
-		extractor,
-		releaseValidator,
-		releaseCompiler,
 		logger,
+		workspace,
+		uuidGenerator,
 	)
 
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
