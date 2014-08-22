@@ -16,17 +16,17 @@ import (
 
 var _ = Describe("ReleaseCompiler", func() {
 	var (
-		release             bmrel.Release
-		releaseCompiler     ReleaseCompiler
-		fakeDA              *fakebmreal.FakeDependencyAnalysis
-		fakePackageCompiler *fakeboshcomp.FakePackageCompiler
+		release         bmrel.Release
+		releaseCompiler ReleaseCompiler
+		da              *fakebmreal.FakeDependencyAnalysis
+		packageCompiler *fakeboshcomp.FakePackageCompiler
 	)
 
 	BeforeEach(func() {
-		fakeDA = fakebmreal.NewFakeDependencyAnalysis()
-		fakePackageCompiler = fakeboshcomp.NewFakePackageCompiler()
+		da = fakebmreal.NewFakeDependencyAnalysis()
+		packageCompiler = fakeboshcomp.NewFakePackageCompiler()
 
-		releaseCompiler = NewReleaseCompiler(fakeDA, fakePackageCompiler)
+		releaseCompiler = NewReleaseCompiler(da, packageCompiler)
 		release = bmrel.Release{}
 	})
 
@@ -40,7 +40,7 @@ var _ = Describe("ReleaseCompiler", func() {
 
 				expectedPackages = []*bmrel.Package{&package1, &package2}
 
-				fakeDA.DeterminePackageCompilationOrderResult = []*bmrel.Package{
+				da.DeterminePackageCompilationOrderResult = []*bmrel.Package{
 					&package1,
 					&package2,
 				}
@@ -49,27 +49,27 @@ var _ = Describe("ReleaseCompiler", func() {
 			It("determines the order to compile packages", func() {
 				err := releaseCompiler.Compile(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeDA.DeterminePackageCompilationOrderRelease).To(Equal(release))
+				Expect(da.DeterminePackageCompilationOrderRelease).To(Equal(release))
 			})
 
 			It("compiles each package", func() {
 				err := releaseCompiler.Compile(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakePackageCompiler.CompilePackages).To(Equal(expectedPackages))
+				Expect(packageCompiler.CompilePackages).To(Equal(expectedPackages))
 			})
 
 			It("compiles each package and returns error for first package", func() {
-				fakePackageCompiler.CompileError = errors.New("Compilation failed")
+				packageCompiler.CompileError = errors.New("Compilation failed")
 				err := releaseCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Package `fake-package-1' compilation failed"))
 			})
 
 			It("stops compiling after the first failures", func() {
-				fakePackageCompiler.CompileError = errors.New("Compilation failed")
+				packageCompiler.CompileError = errors.New("Compilation failed")
 				err := releaseCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
-				Expect(len(fakePackageCompiler.CompilePackages)).To(Equal(1))
+				Expect(len(packageCompiler.CompilePackages)).To(Equal(1))
 			})
 		})
 	})
