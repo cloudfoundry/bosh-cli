@@ -17,7 +17,7 @@ import (
 const mainLogTag = "main"
 
 func main() {
-	logger := boshlog.NewLogger(boshlog.LevelDebug)
+	logger := boshlog.NewLogger(boshlog.LevelError)
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	config, configService := loadConfig(logger, fileSystem)
