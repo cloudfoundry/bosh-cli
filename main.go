@@ -18,16 +18,16 @@ import (
 const mainLogTag = "main"
 
 func main() {
-	logger := boshlog.NewLogger(boshlog.LevelError)
+	logger := boshlog.NewLogger(boshlog.LevelDebug)
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	config, configService := loadConfig(logger, fileSystem)
+	config.ContainingDir = os.Getenv("HOME")
 
 	uuidGenerator := boshuuid.NewGenerator()
 
 	workspace, err := bmworkspace.NewWorkspace(
 		fileSystem,
-		uuidGenerator,
 		path.Join(os.Getenv("HOME")),
 		logger,
 	)

@@ -1,8 +1,6 @@
 package cmd_test
 
 import (
-	"errors"
-
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
@@ -33,16 +31,17 @@ var _ = Describe("cmd.Factory", func() {
 		extractor     bmtar.Extractor
 		logger        boshlog.Logger
 		workspace     *fakews.FakeWorkspace
+		uuidGenerator *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
-		config = bmconfig.Config{}
+		config = bmconfig.Config{Deployment: "/fake-path/manifest.yml"}
 		configService = &fakeconfig.FakeService{}
 		filesystem = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		workspace = fakews.NewFakeWorkspace()
-		uuidGenerator := &fakeuuid.FakeGenerator{}
+		uuidGenerator = &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(
 			config,
@@ -70,6 +69,7 @@ var _ = Describe("cmd.Factory", func() {
 					configService,
 					filesystem,
 					workspace,
+					uuidGenerator,
 					logger,
 				)))
 			})
@@ -90,21 +90,6 @@ var _ = Describe("cmd.Factory", func() {
 					releaseCompiler,
 					logger,
 				)))
-				Expect(workspace.LoadCalled).To(BeTrue())
-			})
-
-			It("loads a workspace", func() {
-				_, err := factory.CreateCommand("deploy")
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(workspace.LoadCalled).To(BeTrue())
-			})
-
-			It("errors when a workspace cannot be loaded", func() {
-				workspace.LoadError = errors.New("fake-load-workspace-error")
-				_, err := factory.CreateCommand("deploy")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Loading workspace"))
 			})
 		})
 	})

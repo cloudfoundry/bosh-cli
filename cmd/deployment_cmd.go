@@ -7,6 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -25,6 +26,7 @@ type deploymentCmd struct {
 	configService bmconfig.Service
 	fs            boshsys.FileSystem
 	ws            bmworkspace.Workspace
+	uuidGenerator boshuuid.Generator
 	logger        boshlog.Logger
 }
 
@@ -34,6 +36,7 @@ func NewDeploymentCmd(
 	configService bmconfig.Service,
 	fs boshsys.FileSystem,
 	ws bmworkspace.Workspace,
+	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
 ) *deploymentCmd {
 	return &deploymentCmd{
@@ -42,6 +45,7 @@ func NewDeploymentCmd(
 		configService: configService,
 		fs:            fs,
 		ws:            ws,
+		uuidGenerator: uuidGenerator,
 		logger:        logger,
 	}
 }
@@ -74,9 +78,13 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	}
 
 	c.config.Deployment = manifestFilePath
+	uuid, _ := c.uuidGenerator.Generate()
+
+	c.config.DeploymentUUID = uuid
 	c.configService.Save(c.config)
 	c.logger.Debug(tagString, "Config %#v", c.config)
-	c.ws.Initialize(manifestFilePath)
+
+	c.ws.Initialize(c.config.DeploymentUUID)
 	c.ui.Say(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
 	return nil
 }

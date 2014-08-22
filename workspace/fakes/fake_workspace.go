@@ -3,35 +3,16 @@ package fakes
 type FakeWorkspace struct {
 	InitializeCalled bool
 	InitializeError  error
-
-	LoadCalled bool
-	LoadError  error
+	InitializeUUID   string
 }
 
 func NewFakeWorkspace() *FakeWorkspace {
 	return &FakeWorkspace{}
 }
 
-func (f *FakeWorkspace) Initialize(manifestFile string) error {
+func (f *FakeWorkspace) Initialize(uuid string) error {
 	f.InitializeCalled = true
+	f.InitializeUUID = uuid
 
 	return f.InitializeError
-}
-
-func (f *FakeWorkspace) Load(manifestFile string) error {
-	f.LoadCalled = true
-
-	return f.LoadError
-}
-
-func (f *FakeWorkspace) BlobstorePath() string {
-	return ""
-}
-
-func (f *FakeWorkspace) PackagesPath() string {
-	return ""
-}
-
-func (f *FakeWorkspace) MicroBoshPath() string {
-	return ""
 }

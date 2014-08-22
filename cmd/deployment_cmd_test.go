@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"fmt"
+	"path"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
@@ -9,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
@@ -25,26 +27,42 @@ var _ = Describe("DeploymentCmd", func() {
 		fakeUI       *fakeui.FakeUI
 		fakeFs       *fakesys.FakeFileSystem
 		fakeWs       *fakews.FakeWorkspace
+		fakeUUID     *fakeuuid.FakeGenerator
 		logger       boshlog.Logger
+		config       bmconfig.Config
 	)
 
 	BeforeEach(func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
 		fakeService = &fakeconfig.FakeService{}
+		fakeUUID = &fakeuuid.FakeGenerator{}
 		fakeWs = fakews.NewFakeWorkspace()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
+		config = bmconfig.Config{}
 
-		command = NewDeploymentCmd(fakeUI, bmconfig.Config{}, fakeService, fakeFs, fakeWs, logger)
+		command = NewDeploymentCmd(
+			fakeUI,
+			config,
+			fakeService,
+			fakeFs,
+			fakeWs,
+			fakeUUID,
+			logger,
+		)
 	})
 
 	Context("#Run", func() {
 		Context("ran with valid args", func() {
 			Context("when the deployment manifest exists", func() {
 				BeforeEach(func() {
-					file, err := fakeFs.TempFile("bosh-micro-cli-manifest")
+					fakeUUID.GeneratedUuid = "abc123"
+					manifestDir, err := fakeFs.TempDir("deployment-cmd")
 					Expect(err).ToNot(HaveOccurred())
-					manifestPath = file.Name()
+
+					manifestPath = path.Join(manifestDir, "manifestFile.yml")
+					err = fakeFs.WriteFileString(manifestPath, "")
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("says 'deployment set..' to the UI", func() {
@@ -56,14 +74,18 @@ var _ = Describe("DeploymentCmd", func() {
 				It("saves the deployment manifest in the config", func() {
 					err := command.Run([]string{manifestPath})
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeService.Saved).To(Equal(bmconfig.Config{Deployment: manifestPath}))
+					Expect(fakeService.Saved).To(Equal(bmconfig.Config{
+						Deployment:     manifestPath,
+						DeploymentUUID: "abc123",
+					}))
 				})
 
-				It("initializes the workspace", func() {
+				It("initializes the workspace with the correct uuid", func() {
 					err := command.Run([]string{manifestPath})
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(fakeWs.InitializeCalled).To(BeTrue())
+					Expect(fakeWs.InitializeUUID).To(Equal("abc123"))
 				})
 			})
 
@@ -88,7 +110,7 @@ var _ = Describe("DeploymentCmd", func() {
 			Context("a deployment manifest is present in the config", func() {
 				BeforeEach(func() {
 					config := bmconfig.Config{Deployment: "/somepath"}
-					command = NewDeploymentCmd(fakeUI, config, fakeService, fakeFs, fakeWs, logger)
+					command = NewDeploymentCmd(fakeUI, config, fakeService, fakeFs, fakeWs, fakeUUID, logger)
 				})
 
 				It("says `Deployment set to '<manifest_path>'`", func() {
