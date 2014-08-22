@@ -19,9 +19,9 @@ var _ = Describe("UI", func() {
 		ui = bmui.NewDefaultUI(stdOut, stdErr)
 	})
 
-	Context("#Say", func() {
+	Context("#Sayln", func() {
 		It("prints what is said to std out with a trailing newline", func() {
-			ui.Say("hey")
+			ui.Sayln("hey")
 			Expect(stdOut.String()).To(ContainSubstring("hey\n"))
 		})
 	})

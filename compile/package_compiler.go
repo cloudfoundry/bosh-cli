@@ -54,7 +54,7 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		return bosherr.WrapError(err, fmt.Sprintf("Attempting to find compiled package `%s'", pkg.Name))
 	}
 	if found {
-		pc.ui.Say(fmt.Sprintf("Skipping compilation of package `%s'", pkg.Name))
+		pc.ui.Sayln(fmt.Sprintf("Skipping compilation of package `%s'", pkg.Name))
 		return nil
 	}
 
@@ -85,7 +85,7 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		WorkingDir: packageSrcDir,
 	}
 
-	pc.ui.Say(fmt.Sprintf("Compiling package `%s'", pkg.Name))
+	pc.ui.Sayln(fmt.Sprintf("Compiling package `%s'", pkg.Name))
 
 	_, _, _, err = pc.runner.RunComplexCommand(cmd)
 	if err != nil {

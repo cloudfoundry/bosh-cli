@@ -31,7 +31,7 @@ func (e eventLogger) TrackAndLog(event string, f func() error) error {
 		return bosherr.New("TrackAndLog given an empty string as event")
 	}
 
-	e.ui.Say(fmt.Sprintf("Started %s.", event))
+	e.ui.Sayln(fmt.Sprintf("Started %s.", event))
 	startedTime := e.timeService.Now()
 
 	err := f()
@@ -40,7 +40,7 @@ func (e eventLogger) TrackAndLog(event string, f func() error) error {
 	}
 
 	endTime := e.timeService.Now()
-	e.ui.Say(fmt.Sprintf(" Done (%s)", bmdfmt.Format(endTime.Sub(startedTime))))
+	e.ui.Sayln(fmt.Sprintf(" Done (%s)", bmdfmt.Format(endTime.Sub(startedTime))))
 
 	return nil
 }

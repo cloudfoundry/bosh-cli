@@ -5,7 +5,7 @@ type FakeUI struct {
 	Errors []string
 }
 
-func (ui *FakeUI) Say(message string) {
+func (ui *FakeUI) Sayln(message string) {
 	ui.Said = append(ui.Said, message)
 }
 

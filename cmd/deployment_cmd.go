@@ -62,7 +62,7 @@ func (c *deploymentCmd) showDeploymentStatus() error {
 		return errors.New("No deployment set")
 	}
 
-	c.ui.Say(fmt.Sprintf("Current deployment is `%s'", c.config.Deployment))
+	c.ui.Sayln(fmt.Sprintf("Current deployment is `%s'", c.config.Deployment))
 	return nil
 }
 
@@ -88,6 +88,6 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		return bosherr.WrapError(err, "Creating blobs dir")
 	}
 
-	c.ui.Say(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
+	c.ui.Sayln(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
 	return nil
 }
