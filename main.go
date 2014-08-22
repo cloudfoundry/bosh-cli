@@ -12,7 +12,6 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
-	bmworkspace "github.com/cloudfoundry/bosh-micro-cli/workspace"
 )
 
 const mainLogTag = "main"
@@ -26,12 +25,6 @@ func main() {
 
 	uuidGenerator := boshuuid.NewGenerator()
 
-	workspace, err := bmworkspace.NewWorkspace(
-		fileSystem,
-		path.Join(os.Getenv("HOME")),
-		logger,
-	)
-
 	ui := bmui.NewDefaultUI(os.Stdout, os.Stderr)
 
 	cmdFactory := bmcmd.NewFactory(
@@ -40,13 +33,12 @@ func main() {
 		fileSystem,
 		ui,
 		logger,
-		workspace,
 		uuidGenerator,
 	)
 
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
 
-	err = cmdRunner.Run(os.Args[1:])
+	err := cmdRunner.Run(os.Args[1:])
 	if err != nil {
 		fail(err, logger)
 	}

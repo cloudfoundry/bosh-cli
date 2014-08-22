@@ -15,7 +15,6 @@ import (
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
-	bmworkspace "github.com/cloudfoundry/bosh-micro-cli/workspace"
 )
 
 type Factory interface {
@@ -29,7 +28,6 @@ type factory struct {
 	fileSystem    boshsys.FileSystem
 	ui            bmui.UI
 	logger        boshlog.Logger
-	workspace     bmworkspace.Workspace
 	uuidGenerator boshuuid.Generator
 }
 
@@ -39,7 +37,6 @@ func NewFactory(
 	fileSystem boshsys.FileSystem,
 	ui bmui.UI,
 	logger boshlog.Logger,
-	workspace bmworkspace.Workspace,
 	uuidGenerator boshuuid.Generator,
 
 ) Factory {
@@ -49,7 +46,6 @@ func NewFactory(
 		fileSystem:    fileSystem,
 		ui:            ui,
 		logger:        logger,
-		workspace:     workspace,
 		uuidGenerator: uuidGenerator,
 	}
 	f.commands = map[string](func() (Cmd, error)){
@@ -73,7 +69,6 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 		f.config,
 		f.configService,
 		f.fileSystem,
-		f.workspace,
 		f.uuidGenerator,
 		f.logger,
 	), nil

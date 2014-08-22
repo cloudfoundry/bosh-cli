@@ -18,7 +18,6 @@ import (
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
-	fakews "github.com/cloudfoundry/bosh-micro-cli/workspace/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {
@@ -30,7 +29,6 @@ var _ = Describe("cmd.Factory", func() {
 		ui            bmui.UI
 		extractor     bmtar.Extractor
 		logger        boshlog.Logger
-		workspace     *fakews.FakeWorkspace
 		uuidGenerator *fakeuuid.FakeGenerator
 	)
 
@@ -40,7 +38,6 @@ var _ = Describe("cmd.Factory", func() {
 		filesystem = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		workspace = fakews.NewFakeWorkspace()
 		uuidGenerator = &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(
@@ -49,7 +46,6 @@ var _ = Describe("cmd.Factory", func() {
 			filesystem,
 			ui,
 			logger,
-			workspace,
 			uuidGenerator,
 		)
 	})
@@ -68,7 +64,6 @@ var _ = Describe("cmd.Factory", func() {
 					config,
 					configService,
 					filesystem,
-					workspace,
 					uuidGenerator,
 					logger,
 				)))
