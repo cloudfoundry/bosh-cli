@@ -11,25 +11,25 @@ type UI interface {
 	Error(string)
 }
 
-type defaultUI struct {
+type ui struct {
 	stdOut io.Writer
 	stdErr io.Writer
 }
 
-func (dui *defaultUI) Say(message string) {
-	dui.stdOut.Write([]byte(fmt.Sprint(message)))
+func (u *ui) Say(message string) {
+	u.stdOut.Write([]byte(fmt.Sprint(message)))
 }
 
-func (dui *defaultUI) Sayln(message string) {
-	dui.stdOut.Write([]byte(fmt.Sprintln(message)))
+func (u *ui) Sayln(message string) {
+	u.stdOut.Write([]byte(fmt.Sprintln(message)))
 }
 
-func (dui *defaultUI) Error(message string) {
-	dui.stdErr.Write([]byte(fmt.Sprintln(message)))
+func (u *ui) Error(message string) {
+	u.stdErr.Write([]byte(fmt.Sprintln(message)))
 }
 
-func NewDefaultUI(stdOut, stdErr io.Writer) UI {
-	return &defaultUI{
+func NewUI(stdOut, stdErr io.Writer) UI {
+	return &ui{
 		stdOut: stdOut,
 		stdErr: stdErr,
 	}

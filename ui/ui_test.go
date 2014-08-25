@@ -17,7 +17,7 @@ var _ = Describe("UI", func() {
 		stdOut = bytes.NewBufferString("")
 		stdErr = bytes.NewBufferString("")
 
-		ui = bmui.NewDefaultUI(stdOut, stdErr)
+		ui = bmui.NewUI(stdOut, stdErr)
 	})
 
 	Context("#Sayln", func() {

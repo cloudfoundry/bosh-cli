@@ -27,7 +27,7 @@ var _ = Describe("EventLogger", func() {
 	BeforeEach(func() {
 		stdout = bytes.NewBufferString("")
 		stderr = bytes.NewBufferString("")
-		ui = bmui.NewDefaultUI(stdout, stderr)
+		ui = bmui.NewUI(stdout, stderr)
 		timeService = &faketime.FakeService{}
 		eventLogger = NewEventLogger(ui, timeService)
 	})
