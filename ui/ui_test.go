@@ -2,6 +2,7 @@ package ui_test
 
 import (
 	"bytes"
+
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
 	. "github.com/onsi/ginkgo"
@@ -30,6 +31,14 @@ var _ = Describe("UI", func() {
 		It("prints what is errored to std err with a trailing newline", func() {
 			ui.Error("fake error")
 			Expect(stdErr.String()).To(ContainSubstring("fake error\n"))
+		})
+	})
+
+	Context("#Say", func() {
+		It("prints what is said to std out without a trailing newline", func() {
+			ui.Say("hey")
+			Expect(stdOut.String()).To(ContainSubstring("hey"))
+			Expect(stdOut.String()).NotTo(ContainSubstring("\n"))
 		})
 	})
 })

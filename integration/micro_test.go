@@ -107,27 +107,6 @@ var _ = Describe("bosh-micro", func() {
 				Expect(len(filesInBoshMicro)).To(Equal(0))
 			})
 
-			It("does not recompile same packages within the same deployment", func() {
-				session, err := bmtestutils.RunBoshMicro("deployment", deploymentManifestFilePath)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(session.ExitCode()).To(Equal(0))
-
-				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(session.ExitCode()).To(Equal(0))
-
-				output := string(session.Out.Contents())
-				Expect(output).To(ContainSubstring("Compiling package `a'"))
-				Expect(output).To(ContainSubstring("Compiling package `b'"))
-
-				session, err = bmtestutils.RunBoshMicro("deploy", cpiReleasePath)
-				Expect(err).NotTo(HaveOccurred())
-				output = string(session.Out.Contents())
-				Expect(session.ExitCode()).To(Equal(0))
-				Expect(output).To(ContainSubstring("Skipping compilation of package `a'"))
-				Expect(output).To(ContainSubstring("Skipping compilation of package `b'"))
-			})
-
 			It("says the current deployment is set", func() {
 				session, err := bmtestutils.RunBoshMicro("deployment", deploymentManifestFilePath)
 				Expect(err).NotTo(HaveOccurred())
@@ -149,7 +128,10 @@ var _ = Describe("bosh-micro", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 
-				// Expect a new deployments.json next to manifest file
+				output := string(session.Out.Contents())
+				Expect(output).To(ContainSubstring("Started compiling packages"))
+				Expect(output).To(ContainSubstring("Done compiling packages"))
+
 				deploymentFilePath := path.Join(deploymentManifestDir, "deployment.json")
 				Expect(fileSystem.FileExists(deploymentFilePath)).To(BeTrue())
 

@@ -15,7 +15,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	fakeboshcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
-	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
@@ -32,7 +31,6 @@ var _ = Describe("PackageCompiler", func() {
 		packagesDir         string
 		blobstore           *fakeblobstore.FakeBlobstore
 		compiledPackageRepo *fakeboshcomp.FakeCompiledPackageRepo
-		ui                  *fakeui.FakeUI
 	)
 
 	BeforeEach(func() {
@@ -40,7 +38,6 @@ var _ = Describe("PackageCompiler", func() {
 		runner = fakesys.NewFakeCmdRunner()
 		fs = fakesys.NewFakeFileSystem()
 		compressor = fakecmd.NewFakeCompressor()
-		ui = &fakeui.FakeUI{}
 
 		blobstore = fakeblobstore.NewFakeBlobstore()
 		blobstore.CreateFingerprint = "fake-fingerprint"
@@ -48,7 +45,7 @@ var _ = Describe("PackageCompiler", func() {
 
 		compiledPackageRepo = fakeboshcomp.NewFakeCompiledPackageRepo()
 
-		pc = NewPackageCompiler(runner, packagesDir, fs, compressor, blobstore, compiledPackageRepo, ui)
+		pc = NewPackageCompiler(runner, packagesDir, fs, compressor, blobstore, compiledPackageRepo)
 		pkg = &bmrel.Package{
 			Name:          "fake-package-1",
 			Version:       "fake-package-version",
@@ -86,10 +83,6 @@ var _ = Describe("PackageCompiler", func() {
 
 				Expect(runner.RunComplexCommands).To(HaveLen(1))
 				Expect(runner.RunComplexCommands[0]).To(Equal(expectedCmd))
-			})
-
-			It("tell UI that it is compiling a package", func() {
-				Expect(ui.Said).To(ContainElement("Compiling package `fake-package-1'"))
 			})
 
 			It("compresses the compiled package", func() {
@@ -197,10 +190,6 @@ var _ = Describe("PackageCompiler", func() {
 
 			It("skips the compilation", func() {
 				Expect(len(runner.RunComplexCommands)).To(Equal(0))
-			})
-
-			It("says it skips the compilation", func() {
-				Expect(ui.Said).To(ContainElement("Skipping compilation of package `fake-package-1'"))
 			})
 		})
 

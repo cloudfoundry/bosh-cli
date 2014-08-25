@@ -6,6 +6,7 @@ import (
 )
 
 type UI interface {
+	Say(string)
 	Sayln(string)
 	Error(string)
 }
@@ -13,6 +14,10 @@ type UI interface {
 type defaultUI struct {
 	stdOut io.Writer
 	stdErr io.Writer
+}
+
+func (dui *defaultUI) Say(message string) {
+	dui.stdOut.Write([]byte(fmt.Sprint(message)))
 }
 
 func (dui *defaultUI) Sayln(message string) {

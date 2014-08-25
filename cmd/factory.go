@@ -7,11 +7,13 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshtime "github.com/cloudfoundry/bosh-agent/time"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
+	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -102,11 +104,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		compressor,
 		blobstore,
 		compiledPackageRepo,
-		f.ui,
 	)
+	eventLogger := bmlog.NewEventLogger(f.ui, boshtime.NewConcreteService())
 
 	da := bmcomp.NewDependencyAnalysis()
-	releaseCompiler := bmcomp.NewReleaseCompiler(da, packageCompiler)
+	releaseCompiler := bmcomp.NewReleaseCompiler(da, packageCompiler, eventLogger)
 
 	return NewDeployCmd(
 		f.ui,
