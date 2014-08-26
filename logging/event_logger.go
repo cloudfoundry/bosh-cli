@@ -2,14 +2,23 @@ package logging
 
 import (
 	"fmt"
-	durationfmt "github.com/cloudfoundry/bosh-micro-cli/durationfmt"
 	"time"
+
+	durationfmt "github.com/cloudfoundry/bosh-micro-cli/durationfmt"
 
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
+type Event struct {
+	Time  time.Time
+	Stage string
+	Total int
+	Task  string
+	State string
+	Index int
+}
+
 type EventLogger interface {
-	// NEW
 	AddEvent(event Event)
 }
 
