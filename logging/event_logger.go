@@ -2,67 +2,43 @@ package logging
 
 import (
 	"fmt"
+	durationfmt "github.com/cloudfoundry/bosh-micro-cli/durationfmt"
+	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
-
-	bmdfmt "github.com/cloudfoundry/bosh-micro-cli/durationfmt"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type EventLogger interface {
-	TrackAndLog(event string, f func() error) error
-	StartGroup(event string) error
-	FinishGroup() error
+	// NEW
+	AddEvent(event Event)
 }
 
-func NewEventLogger(ui bmui.UI, timeService boshtime.Service) EventLogger {
+func NewEventLogger(ui bmui.UI) EventLogger {
 	return &eventLogger{
-		ui:          ui,
-		timeService: timeService,
+		ui:           ui,
+		startedTasks: make(map[string]time.Time),
 	}
 }
 
 type eventLogger struct {
 	ui           bmui.UI
-	timeService  boshtime.Service
-	startedGroup string
+	startedTasks map[string]time.Time
 }
 
-func (e eventLogger) TrackAndLog(event string, f func() error) error {
-	if event == "" {
-		return bosherr.New("TrackAndLog given an empty string as event")
+func (e *eventLogger) AddEvent(event Event) {
+	key := fmt.Sprintf("%s > %s.", event.Stage, event.Task)
+
+	if event.State == "started" {
+		if event.Index == 1 {
+			e.ui.Sayln(fmt.Sprintf("Started %s", event.Stage))
+		}
+		e.ui.Say(fmt.Sprintf("Started %s", key))
+		e.startedTasks[key] = event.Time
+	} else if event.State == "finished" {
+		duration := event.Time.Sub(e.startedTasks[key])
+		e.ui.Sayln(fmt.Sprintf(" Done (%s)", durationfmt.Format(duration)))
+		if event.Index == event.Total {
+			e.ui.Sayln(fmt.Sprintf("Done %s", event.Stage))
+		}
 	}
-
-	e.ui.Say(fmt.Sprintf("Started %s > %s", e.startedGroup, event))
-	startedTime := e.timeService.Now()
-
-	err := f()
-	if err != nil {
-		return bosherr.WrapError(err, "Event returned error")
-	}
-
-	endTime := e.timeService.Now()
-	e.ui.Sayln(fmt.Sprintf(" Done (%s)", bmdfmt.Format(endTime.Sub(startedTime))))
-
-	return nil
-}
-
-func (e *eventLogger) StartGroup(group string) error {
-	if group == "" {
-		return bosherr.New("StartGroup given an empty string as group")
-	}
-	e.ui.Sayln(fmt.Sprintf("Started %s", group))
-	e.startedGroup = group
-	return nil
-}
-
-func (e *eventLogger) FinishGroup() error {
-	if e.startedGroup == "" {
-		return bosherr.New("FinishGroup called without a group started")
-	}
-
-	e.ui.Sayln(fmt.Sprintf("Done %s", e.startedGroup))
-	e.startedGroup = ""
-	return nil
 }

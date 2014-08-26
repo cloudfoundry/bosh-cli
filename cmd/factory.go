@@ -105,10 +105,15 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		blobstore,
 		compiledPackageRepo,
 	)
-	eventLogger := bmlog.NewEventLogger(f.ui, boshtime.NewConcreteService())
+	eventLogger := bmlog.NewEventLogger(f.ui)
 
 	da := bmcomp.NewDependencyAnalysis()
-	releaseCompiler := bmcomp.NewReleaseCompiler(da, packageCompiler, eventLogger)
+	releaseCompiler := bmcomp.NewReleaseCompiler(
+		da,
+		packageCompiler,
+		eventLogger,
+		boshtime.NewConcreteService(),
+	)
 
 	return NewDeployCmd(
 		f.ui,
