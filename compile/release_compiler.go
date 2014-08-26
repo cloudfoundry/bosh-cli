@@ -35,56 +35,59 @@ func NewReleaseCompiler(
 	}
 }
 
-const (
-	startedState  = "started"
-	finishedState = "finished"
-	failedState   = "failed"
-)
-
 func (c releaseCompiler) Compile(release bmrel.Release) error {
 	packages, err := c.dependencyAnalysis.DeterminePackageCompilationOrder(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release")
 	}
 
-	stage := "compiling packages"
 	totalCount := len(packages)
-
 	for index, pkg := range packages {
-		task := fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint)
-		startEvent := bmlog.Event{
-			Time:  c.timeService.Now(),
-			Stage: stage,
-			Total: totalCount,
-			State: startedState,
-			Index: index + 1,
-			Task:  task,
+		logErr := c.compilationEvent(totalCount, index+1, pkg, bmlog.Started, "")
+		if logErr != nil {
+			return logErr
 		}
-		c.eventLogger.AddEvent(startEvent)
+
 		err = c.packageCompiler.Compile(pkg)
 
 		if err != nil {
-			failEvent := bmlog.Event{
-				Time:  c.timeService.Now(),
-				Stage: stage,
-				Total: totalCount,
-				State: failedState,
-				Index: index + 1,
-				Task:  task,
+			logErr := c.compilationEvent(totalCount, index+1, pkg, bmlog.Failed, err.Error())
+			if logErr != nil {
+				return logErr
 			}
-			c.eventLogger.AddEvent(failEvent)
+
 			return bosherr.WrapError(err, fmt.Sprintf("Package `%s' compilation failed", pkg.Name))
 		}
-		stopEvent := bmlog.Event{
-			Time:  c.timeService.Now(),
-			Stage: stage,
-			Total: totalCount,
-			State: finishedState,
-			Index: index + 1,
-			Task:  task,
+		logErr = c.compilationEvent(totalCount, index+1, pkg, bmlog.Finished, "")
+		if logErr != nil {
+			return logErr
 		}
-		c.eventLogger.AddEvent(stopEvent)
 	}
 
+	return nil
+}
+
+func (c releaseCompiler) compilationEvent(
+	totalCount,
+	index int,
+	pkg *bmrel.Package,
+	state bmlog.EventState,
+	message string,
+) error {
+	stage := "compiling packages"
+	task := fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint)
+	event := bmlog.Event{
+		Time:    c.timeService.Now(),
+		Stage:   stage,
+		Total:   totalCount,
+		State:   state,
+		Index:   index,
+		Task:    task,
+		Message: message,
+	}
+	logErr := c.eventLogger.AddEvent(event)
+	if logErr != nil {
+		return bosherr.WrapError(logErr, "Logging event: %#v", event)
+	}
 	return nil
 }

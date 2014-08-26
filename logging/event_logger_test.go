@@ -93,5 +93,41 @@ var _ = Describe("EventLogger", func() {
 				Expect(output).To(ContainSubstring("Done fake-stage\n"))
 			})
 		})
+
+		Context("when task failed", func() {
+			It("tells UI to print out an error message", func() {
+				now := time.Now()
+				eventLogger.AddEvent(Event{
+					Time:  now,
+					Stage: "fake-stage",
+					Total: 2,
+					Task:  "fake-task-1",
+					State: "started",
+					Index: 1,
+				})
+
+				eventLogger.AddEvent(Event{
+					Time:    now.Add(1 * time.Second),
+					Stage:   "fake-stage",
+					Total:   2,
+					Task:    "fake-task-1",
+					State:   "failed",
+					Index:   1,
+					Message: "fake-fail-message",
+				})
+				output := uiOut.String()
+				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1. Failed 'fake-fail-message' (00:00:01)\n"))
+			})
+		})
+
+		Context("when a unsupported event state was received", func() {
+			It("returns error", func() {
+				error := eventLogger.AddEvent(Event{
+					State: "fake-state",
+				})
+				Expect(error).To(HaveOccurred())
+				Expect(error.Error()).To(ContainSubstring("Unsupported event state `fake-state'"))
+			})
+		})
 	})
 })

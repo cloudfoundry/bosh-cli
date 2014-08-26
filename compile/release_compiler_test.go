@@ -38,7 +38,7 @@ var _ = Describe("ReleaseCompiler", func() {
 	})
 
 	Context("Compile", func() {
-		Context("when the release", func() {
+		Context("when there is a release", func() {
 			var expectedPackages []*bmrel.Package
 			var package1, package2 bmrel.Package
 
@@ -119,12 +119,13 @@ var _ = Describe("ReleaseCompiler", func() {
 				Expect(err).To(HaveOccurred())
 
 				expectedFailEvent := bmlog.Event{
-					Time:  pkg1Fail,
-					Stage: "compiling packages",
-					Total: 2,
-					Task:  "fake-package-1/fake-fingerprint-1",
-					Index: 1,
-					State: "failed",
+					Time:    pkg1Fail,
+					Stage:   "compiling packages",
+					Total:   2,
+					Task:    "fake-package-1/fake-fingerprint-1",
+					Index:   1,
+					State:   "failed",
+					Message: "Compilation failed",
 				}
 
 				Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailEvent))
@@ -135,6 +136,43 @@ var _ = Describe("ReleaseCompiler", func() {
 				err := releaseCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
 				Expect(len(packageCompiler.CompilePackages)).To(Equal(1))
+			})
+
+			Context("when adding a started event fails", func() {
+				BeforeEach(func() {
+					eventLogger.AddEventErrors[bmlog.Started] = errors.New("fake-add-event-error")
+				})
+
+				It("returns error", func() {
+					err := releaseCompiler.Compile(release)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Logging event"))
+				})
+			})
+
+			Context("when adding a failed event fails", func() {
+				BeforeEach(func() {
+					packageCompiler.CompileError = errors.New("Compilation failed")
+					eventLogger.AddEventErrors[bmlog.Failed] = errors.New("fake-add-event-error")
+				})
+
+				It("returns error", func() {
+					err := releaseCompiler.Compile(release)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Logging event"))
+				})
+			})
+
+			Context("when adding a finished event fails", func() {
+				BeforeEach(func() {
+					eventLogger.AddEventErrors[bmlog.Finished] = errors.New("fake-add-event-error")
+				})
+
+				It("returns error", func() {
+					err := releaseCompiler.Compile(release)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Logging event"))
+				})
 			})
 		})
 	})
