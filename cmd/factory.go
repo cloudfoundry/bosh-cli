@@ -13,7 +13,9 @@ import (
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -91,12 +93,13 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	compressor := boshcmd.NewTarballCompressor(runner, f.fileSystem)
 	indexFilePath := f.config.IndexPath()
 	index := bmindex.NewFileIndex(indexFilePath, f.fileSystem)
-	compiledPackageRepo := bmcomp.NewCompiledPackageRepo(index)
+	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(index)
 
 	options := map[string]interface{}{"blobstore_path": f.config.BlobstorePath()}
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
 		boshblob.NewLocalBlobstore(f.fileSystem, f.uuidGenerator, options),
 	)
+	packageInstaller := bminstall.NewPackageInstaller(compiledPackageRepo, blobstore, extractor, f.fileSystem, f.logger)
 	packageCompiler := bmcomp.NewPackageCompiler(
 		runner,
 		f.config.PackagesPath(),
@@ -104,6 +107,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		compressor,
 		blobstore,
 		compiledPackageRepo,
+		packageInstaller,
 	)
 	eventLogger := bmlog.NewEventLogger(f.ui)
 

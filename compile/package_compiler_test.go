@@ -8,14 +8,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
 	fakeblobstore "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
+	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages/fakes"
 
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	fakeboshcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
-
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/compile"
@@ -30,7 +31,10 @@ var _ = Describe("PackageCompiler", func() {
 		compressor          *fakecmd.FakeCompressor
 		packagesDir         string
 		blobstore           *fakeblobstore.FakeBlobstore
-		compiledPackageRepo *fakeboshcomp.FakeCompiledPackageRepo
+		compiledPackageRepo *fakebmpkgs.FakeCompiledPackageRepo
+		packageInstaller    *fakebminstall.FakePackageInstaller
+		dependency1         *bmrel.Package
+		dependency2         *bmrel.Package
 	)
 
 	BeforeEach(func() {
@@ -38,18 +42,35 @@ var _ = Describe("PackageCompiler", func() {
 		runner = fakesys.NewFakeCmdRunner()
 		fs = fakesys.NewFakeFileSystem()
 		compressor = fakecmd.NewFakeCompressor()
+		packageInstaller = &fakebminstall.FakePackageInstaller{}
 
 		blobstore = fakeblobstore.NewFakeBlobstore()
 		blobstore.CreateFingerprint = "fake-fingerprint"
 		blobstore.CreateBlobID = "fake-blob-id"
 
-		compiledPackageRepo = fakeboshcomp.NewFakeCompiledPackageRepo()
+		compiledPackageRepo = fakebmpkgs.NewFakeCompiledPackageRepo()
 
-		pc = NewPackageCompiler(runner, packagesDir, fs, compressor, blobstore, compiledPackageRepo)
+		dependency1 = &bmrel.Package{
+			Name: "fake-dependency-1",
+		}
+		dependency2 = &bmrel.Package{
+			Name: "fake-dependency-1",
+		}
+
+		pc = NewPackageCompiler(
+			runner,
+			packagesDir,
+			fs,
+			compressor,
+			blobstore,
+			compiledPackageRepo,
+			packageInstaller,
+		)
 		pkg = &bmrel.Package{
 			Name:          "fake-package-1",
 			Version:       "fake-package-version",
 			ExtractedPath: "/fake/path",
+			Dependencies:  []*bmrel.Package{dependency1, dependency2},
 		}
 	})
 
@@ -65,6 +86,21 @@ var _ = Describe("PackageCompiler", func() {
 				compressor.CompressFilesInDirTarballPath = newTarballPath
 				err := pc.Compile(pkg)
 				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("installs all the dependencies for the package", func() {
+				Expect(packageInstaller.Installed).To(ContainElement(
+					fakebminstall.InstalledPackage{
+						Package: dependency1,
+						Target:  path.Join(packagesDir, dependency1.Name),
+					},
+				))
+				Expect(packageInstaller.Installed).To(ContainElement(
+					fakebminstall.InstalledPackage{
+						Package: dependency2,
+						Target:  path.Join(packagesDir, dependency2.Name),
+					},
+				))
 			})
 
 			It("runs the packaging script in package extractedPath dir", func() {
@@ -96,10 +132,12 @@ var _ = Describe("PackageCompiler", func() {
 
 			It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
 				Expect(compiledPackageRepo.SavePackage).To(Equal(*pkg))
-				Expect(compiledPackageRepo.SaveRecord).To(Equal(CompiledPackageRecord{
-					"fake-blob-id",
-					"fake-fingerprint",
-				}))
+				Expect(compiledPackageRepo.SaveRecord).To(Equal(
+					bmpkgs.CompiledPackageRecord{
+						BlobID:      "fake-blob-id",
+						Fingerprint: "fake-fingerprint",
+					},
+				))
 			})
 
 			It("cleans up the packages dir", func() {
@@ -179,7 +217,7 @@ var _ = Describe("PackageCompiler", func() {
 
 		Context("when the compiled package repo already has the package", func() {
 			BeforeEach(func() {
-				compiledPackageRepo.FindCompiledPackageRecord = CompiledPackageRecord{
+				compiledPackageRepo.FindCompiledPackageRecord = bmpkgs.CompiledPackageRecord{
 					Fingerprint: "fake-fingerprint",
 				}
 				fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")

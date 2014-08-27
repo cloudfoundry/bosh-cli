@@ -1,4 +1,4 @@
-package compile
+package packages
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"

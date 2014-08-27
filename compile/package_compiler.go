@@ -10,6 +10,8 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
@@ -23,7 +25,8 @@ type packageCompiler struct {
 	fileSystem          boshsys.FileSystem
 	compressor          boshcmd.Compressor
 	blobstore           boshblob.Blobstore
-	compiledPackageRepo CompiledPackageRepo
+	compiledPackageRepo bmpkgs.CompiledPackageRepo
+	packageInstaller    bminstall.PackageInstaller
 }
 
 func NewPackageCompiler(
@@ -32,7 +35,8 @@ func NewPackageCompiler(
 	fileSystem boshsys.FileSystem,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
-	compiledPackageRepo CompiledPackageRepo,
+	compiledPackageRepo bmpkgs.CompiledPackageRepo,
+	packageInstaller bminstall.PackageInstaller,
 ) PackageCompiler {
 	return &packageCompiler{
 		runner:              runner,
@@ -41,6 +45,7 @@ func NewPackageCompiler(
 		compressor:          compressor,
 		blobstore:           blobstore,
 		compiledPackageRepo: compiledPackageRepo,
+		packageInstaller:    packageInstaller,
 	}
 }
 
@@ -51,6 +56,12 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 	}
 	if found {
 		return nil
+	}
+
+	for _, pkg := range pkg.Dependencies {
+		installDir := path.Join(pc.packagesDir, pkg.Name)
+		pc.fileSystem.MkdirAll(installDir, os.ModePerm)
+		pc.packageInstaller.Install(pkg, installDir)
 	}
 
 	packageSrcDir := pkg.ExtractedPath
@@ -96,7 +107,7 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		return bosherr.WrapError(err, "Creating blob")
 	}
 
-	err = pc.compiledPackageRepo.Save(*pkg, CompiledPackageRecord{
+	err = pc.compiledPackageRepo.Save(*pkg, bmpkgs.CompiledPackageRecord{
 		BlobID:      blobID,
 		Fingerprint: fingerprint,
 	})

@@ -1,4 +1,4 @@
-package compile_test
+package packages_test
 
 import (
 	"errors"
@@ -6,13 +6,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/compile"
+	. "github.com/cloudfoundry/bosh-micro-cli/packages"
 )
 
 var _ = Describe("CompiledPackageRepo", func() {
@@ -30,7 +29,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 
 	Context("Save and Find", func() {
 		It("saves the compiled package to the index", func() {
-			record := bmcomp.CompiledPackageRecord{
+			record := CompiledPackageRecord{
 				BlobID:      "fake-blob-id",
 				Fingerprint: "fake-sha1",
 			}
@@ -60,12 +59,12 @@ var _ = Describe("CompiledPackageRepo", func() {
 
 		Context("when storing the packages", func() {
 			var (
-				record bmcomp.CompiledPackageRecord
+				record CompiledPackageRecord
 				pkg    bmrel.Package
 			)
 
 			BeforeEach(func() {
-				record = bmcomp.CompiledPackageRecord{
+				record = CompiledPackageRecord{
 					BlobID:      "fake-blob-id",
 					Fingerprint: "fake-sha1",
 				}
@@ -103,7 +102,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 		Context("when saving to index fails", func() {
 			It("returns error", func() {
 				fs.WriteToFileError = errors.New("Could not save")
-				record := bmcomp.CompiledPackageRecord{
+				record := CompiledPackageRecord{
 					BlobID:      "fake-blob-id",
 					Fingerprint: "fake-sha1",
 				}
@@ -120,7 +119,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 
 		Context("when reading from index fails", func() {
 			It("returns error", func() {
-				record := bmcomp.CompiledPackageRecord{
+				record := CompiledPackageRecord{
 					BlobID:      "fake-blob-id",
 					Fingerprint: "fake-sha1",
 				}
