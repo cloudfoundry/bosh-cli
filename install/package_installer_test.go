@@ -133,7 +133,12 @@ var _ = Describe("Install", func() {
 				Expect(err.Error()).To(ContainSubstring("fake-error"))
 			})
 
-			It("cleans up the target dir if it was created by this installer", func() {})
+			It("cleans up the target dir if it was created by this installer", func() {
+				Expect(fs.FileExists(targetDir)).To(BeFalse())
+				err := installer.Install(pkg, targetDir)
+				Expect(err).To(HaveOccurred())
+				Expect(fs.FileExists(targetDir)).To(BeFalse())
+			})
 		})
 
 		Context("when cleaning up the downloaded blob errors", func() {

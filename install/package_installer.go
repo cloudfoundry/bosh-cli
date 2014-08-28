@@ -58,13 +58,19 @@ func (pi *packageInstaller) Install(pkg *bmrel.Package, targetDir string) error 
 	}
 	defer pi.cleanUpBlob(filePath)
 
-	err = pi.fs.MkdirAll(targetDir, os.ModePerm)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating target dir: %s", targetDir)
+	existed := pi.fs.FileExists(targetDir)
+	if !existed {
+		err = pi.fs.MkdirAll(targetDir, os.ModePerm)
+		if err != nil {
+			return bosherr.WrapError(err, "Creating target dir: %s", targetDir)
+		}
 	}
 
 	err = pi.extractor.DecompressFileToDir(filePath, targetDir)
 	if err != nil {
+		if !existed {
+			pi.cleanUpFile(targetDir)
+		}
 		return bosherr.WrapError(err, "Extracting compiled package: %#v", pgkRecord)
 	}
 	return nil
@@ -76,6 +82,16 @@ func (pi *packageInstaller) cleanUpBlob(filePath string) {
 		pi.logger.Error(
 			logTag,
 			bosherr.WrapError(err, "Removing compiled package tarball: %s", filePath).Error(),
+		)
+	}
+}
+
+func (pi *packageInstaller) cleanUpFile(filePath string) {
+	err := pi.fs.RemoveAll(filePath)
+	if err != nil {
+		pi.logger.Error(
+			logTag,
+			bosherr.WrapError(err, "Removing: %s", filePath).Error(),
 		)
 	}
 }
