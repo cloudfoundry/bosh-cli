@@ -4,11 +4,11 @@ import (
 	"time"
 )
 
-type FakeService struct {
+type FakeTimeService struct {
 	NowTimes []time.Time
 }
 
-func (f *FakeService) Now() time.Time {
+func (f *FakeTimeService) Now() time.Time {
 	if len(f.NowTimes) < 1 {
 		return time.Now()
 	}

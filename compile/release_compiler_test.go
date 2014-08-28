@@ -13,7 +13,7 @@ import (
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/logging/fakes"
 	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
-	fakebmtime "github.com/cloudfoundry/bosh-micro-cli/time/fakes"
+	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/compile"
 )
@@ -25,14 +25,14 @@ var _ = Describe("ReleaseCompiler", func() {
 		da              *fakebmreal.FakeDependencyAnalysis
 		packageCompiler *fakebmcomp.FakePackageCompiler
 		eventLogger     *fakebmlog.FakeEventLogger
-		timeService     *fakebmtime.FakeService
+		timeService     *testfakes.FakeTimeService
 	)
 
 	BeforeEach(func() {
 		da = fakebmreal.NewFakeDependencyAnalysis()
 		packageCompiler = fakebmcomp.NewFakePackageCompiler()
 		eventLogger = fakebmlog.NewFakeEventLogger()
-		timeService = &fakebmtime.FakeService{}
+		timeService = &testfakes.FakeTimeService{}
 		releaseCompiler = NewReleaseCompiler(da, packageCompiler, eventLogger, timeService)
 		release = bmrel.Release{}
 	})
