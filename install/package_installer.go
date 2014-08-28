@@ -8,9 +8,9 @@ import (
 
 	"os"
 
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 )
 
 const logTag = "packageInstaller"
@@ -22,7 +22,7 @@ type PackageInstaller interface {
 type packageInstaller struct {
 	repo      bmpkgs.CompiledPackageRepo
 	blobstore boshblob.Blobstore
-	extractor bmtar.Extractor
+	extractor boshcmd.Compressor
 	fs        boshsys.FileSystem
 	logger    boshlog.Logger
 }
@@ -30,7 +30,7 @@ type packageInstaller struct {
 func NewPackageInstaller(
 	repo bmpkgs.CompiledPackageRepo,
 	blobstore boshblob.Blobstore,
-	extractor bmtar.Extractor,
+	extractor boshcmd.Compressor,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) PackageInstaller {
@@ -63,7 +63,7 @@ func (pi *packageInstaller) Install(pkg *bmrel.Package, targetDir string) error 
 		return bosherr.WrapError(err, "Creating target dir: %s", targetDir)
 	}
 
-	err = pi.extractor.Extract(filePath, targetDir)
+	err = pi.extractor.DecompressFileToDir(filePath, targetDir)
 	if err != nil {
 		return bosherr.WrapError(err, "Extracting compiled package: %#v", pgkRecord)
 	}

@@ -6,24 +6,24 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
-	faketar "github.com/cloudfoundry/bosh-micro-cli/tar/fakes"
+	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 )
 
 var _ = Describe("TarReader", func() {
 	var (
-		fakeExtractor *faketar.FakeExtractor
+		fakeExtractor *testfakes.FakeMultiResponseExtractor
 		fakeFs        *fakesys.FakeFileSystem
 		reader        Reader
 	)
 	BeforeEach(func() {
-		fakeExtractor = faketar.NewFakeExtractor()
+		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeFs = fakesys.NewFakeFileSystem()
 		reader = NewTarReader("/some/job/archive", "/extracted/job", fakeExtractor, fakeFs)
 	})
 
 	Context("when the job archive is a valid tar", func() {
 		BeforeEach(func() {
-			fakeExtractor.AddExpectedArchive("/some/job/archive")
+			fakeExtractor.SetDecompressBehavior("/some/job/archive", "/extracted/job", nil)
 		})
 
 		Context("when the job manifest is valid", func() {

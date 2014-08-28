@@ -13,7 +13,7 @@ import (
 
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
-	faketar "github.com/cloudfoundry/bosh-micro-cli/tar/fakes"
+	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
@@ -23,7 +23,7 @@ var _ = Describe("DeployCmd", func() {
 		config               bmconfig.Config
 		fakeFs               *fakesys.FakeFileSystem
 		fakeUI               *fakeui.FakeUI
-		fakeExtractor        *faketar.FakeExtractor
+		fakeExtractor        *testfakes.FakeMultiResponseExtractor
 		fakeReleaseValidator *fakebmrel.FakeValidator
 		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
 		logger               boshlog.Logger
@@ -33,7 +33,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
 		config = bmconfig.Config{}
-		fakeExtractor = faketar.NewFakeExtractor()
+		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
 		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
@@ -91,7 +91,7 @@ var _ = Describe("DeployCmd", func() {
 
 							Context("and the tarball is a valid BOSH release", func() {
 								BeforeEach(func() {
-									fakeExtractor.AddExpectedArchive("/somepath")
+									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
 									fakeFs.WriteFileString("/some/release/path/release.MF", `---
 name: fake-release
 version: fake-version
@@ -118,7 +118,7 @@ version: fake-version
 
 							Context("and the tarball is not a valid BOSH release", func() {
 								BeforeEach(func() {
-									fakeExtractor.AddExpectedArchive("/somepath")
+									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
 									fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
 									fakeReleaseValidator.ValidateError = errors.New("fake-error")
 								})
@@ -147,7 +147,7 @@ version: fake-version
 
 							Context("when compilation fails", func() {
 								It("returns error", func() {
-									fakeExtractor.AddExpectedArchive("/somepath")
+									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
 									fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
 									fakeReleaseCompiler.CompileError = errors.New("fake-error-compile")
 									err := command.Run([]string{"/somepath"})

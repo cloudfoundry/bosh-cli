@@ -8,11 +8,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
+
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
-	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
@@ -25,7 +26,7 @@ type deployCmd struct {
 	ui        bmui.UI
 	config    bmconfig.Config
 	fs        boshsys.FileSystem
-	extractor bmtar.Extractor
+	extractor boshcmd.Compressor
 	validator bmrelvalidation.ReleaseValidator
 	compiler  bmcomp.ReleaseCompiler
 	logger    boshlog.Logger
@@ -35,7 +36,7 @@ func NewDeployCmd(
 	ui bmui.UI,
 	config bmconfig.Config,
 	fs boshsys.FileSystem,
-	extractor bmtar.Extractor,
+	extractor boshcmd.Compressor,
 	validator bmrelvalidation.ReleaseValidator,
 	compiler bmcomp.ReleaseCompiler,
 	logger boshlog.Logger,

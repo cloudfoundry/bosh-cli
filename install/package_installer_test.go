@@ -14,31 +14,31 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages/fakes"
-	fakebmtar "github.com/cloudfoundry/bosh-micro-cli/tar/fakes"
+	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/install"
 )
 
 var _ = Describe("Install", func() {
 	var (
-		installer PackageInstaller
-		repo      *fakebmpkgs.FakeCompiledPackageRepo
-		blobstore *fakeblobstore.FakeBlobstore
-		targetDir string
-		extractor *fakebmtar.FakeExtractor
-		pkg       *bmrel.Package
-		logger    boshlog.Logger
-		fs        *fakesys.FakeFileSystem
+		installer     PackageInstaller
+		repo          *fakebmpkgs.FakeCompiledPackageRepo
+		blobstore     *fakeblobstore.FakeBlobstore
+		targetDir     string
+		fakeExtractor *testfakes.FakeMultiResponseExtractor
+		pkg           *bmrel.Package
+		logger        boshlog.Logger
+		fs            *fakesys.FakeFileSystem
 	)
 	BeforeEach(func() {
 		repo = fakebmpkgs.NewFakeCompiledPackageRepo()
 		blobstore = fakeblobstore.NewFakeBlobstore()
 		targetDir = "fake-target-dir"
-		extractor = fakebmtar.NewFakeExtractor()
+		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 
-		installer = NewPackageInstaller(repo, blobstore, extractor, fs, logger)
+		installer = NewPackageInstaller(repo, blobstore, fakeExtractor, fs, logger)
 
 		pkg = &bmrel.Package{
 			Name:         "fake-package-name",
@@ -56,7 +56,7 @@ var _ = Describe("Install", func() {
 				Fingerprint: "fake-package-fingerprint",
 			}
 			blobstore.GetFileName = "/tmp/fake-blob-file"
-			extractor.AddExpectedArchive("/tmp/fake-blob-file")
+			fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir", nil)
 		})
 
 		It("gets the package record from the repo", func() {
@@ -121,10 +121,9 @@ var _ = Describe("Install", func() {
 			})
 		})
 
-		//TODO: test extraction failure
-		XContext("when extracting the blob fails", func() {
+		Context("when extracting the blob fails", func() {
 			BeforeEach(func() {
-				//				extractor.ExtractError = errors.New("fake-error")
+				fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir", errors.New("fake-error"))
 			})
 
 			It("returns an error", func() {

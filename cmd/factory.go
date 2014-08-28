@@ -17,7 +17,6 @@ import (
 	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
-	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
@@ -80,7 +79,7 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 
 func (f *factory) createDeployCmd() (Cmd, error) {
 	runner := boshsys.NewExecCmdRunner(f.logger)
-	extractor := bmtar.NewCmdExtractor(runner, f.logger)
+	tgz := boshcmd.NewTarballCompressor(runner, f.fileSystem)
 
 	boshValidator := bmrelvalidation.NewBoshValidator(f.fileSystem)
 	cpiReleaseValidator := bmrelvalidation.NewCpiValidator()
@@ -99,7 +98,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
 		boshblob.NewLocalBlobstore(f.fileSystem, f.uuidGenerator, options),
 	)
-	packageInstaller := bminstall.NewPackageInstaller(compiledPackageRepo, blobstore, extractor, f.fileSystem, f.logger)
+	packageInstaller := bminstall.NewPackageInstaller(compiledPackageRepo, blobstore, tgz, f.fileSystem, f.logger)
 	packageCompiler := bmcomp.NewPackageCompiler(
 		runner,
 		f.config.PackagesPath(),
@@ -123,7 +122,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.ui,
 		f.config,
 		f.fileSystem,
-		extractor,
+		tgz,
 		releaseValidator,
 		releaseCompiler,
 		f.logger,

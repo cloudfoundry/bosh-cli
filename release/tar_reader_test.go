@@ -9,26 +9,26 @@ import (
 
 	. "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
-	faketar "github.com/cloudfoundry/bosh-micro-cli/tar/fakes"
+	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 )
 
 var _ = Describe("tarReader", func() {
 	var (
 		reader        Reader
 		fakeFs        *fakesys.FakeFileSystem
-		fakeExtractor *faketar.FakeExtractor
+		fakeExtractor *testfakes.FakeMultiResponseExtractor
 	)
 
 	BeforeEach(func() {
 		fakeFs = fakesys.NewFakeFileSystem()
-		fakeExtractor = faketar.NewFakeExtractor()
+		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		reader = NewTarReader("/some/release.tgz", "/extracted/release", fakeFs, fakeExtractor)
 	})
 
 	Describe("Read", func() {
 		Context("when the given release archive is a valid tar", func() {
 			BeforeEach(func() {
-				fakeExtractor.AddExpectedArchive("/some/release.tgz")
+				fakeExtractor.SetDecompressBehavior("/some/release.tgz", "/extracted/release", nil)
 			})
 
 			Context("when the release manifest is valid", func() {
@@ -61,7 +61,7 @@ packages:
 
 				Context("when the jobs and packages in the release are valid", func() {
 					BeforeEach(func() {
-						fakeExtractor.AddExpectedArchive("/extracted/release/jobs/fake-job.tgz")
+						fakeExtractor.SetDecompressBehavior("/extracted/release/jobs/fake-job.tgz", "/extracted/release/extracted_jobs/fake-job", nil)
 						fakeFs.WriteFileString(
 							"/extracted/release/extracted_jobs/fake-job/job.MF",
 							`---
@@ -76,7 +76,11 @@ packages:
 
 					Context("when the packages in the release are valid", func() {
 						BeforeEach(func() {
-							fakeExtractor.AddExpectedArchive("/extracted/release/packages/fake-package.tgz")
+							fakeExtractor.SetDecompressBehavior(
+								"/extracted/release/packages/fake-package.tgz",
+								"/extracted/release/extracted_packages/fake-package",
+								nil,
+							)
 						})
 
 						It("returns a release from the given tar file", func() {
@@ -120,6 +124,10 @@ packages:
 					})
 
 					Context("when the package cannot be extracted", func() {
+						BeforeEach(func() {
+							fakeExtractor.SetDecompressBehavior("/some/release.tgz", "/extracted/release", errors.New("Extracting package `fake-package'"))
+						})
+
 						It("returns errors for each invalid package", func() {
 							_, err := reader.Read()
 							Expect(err).To(HaveOccurred())

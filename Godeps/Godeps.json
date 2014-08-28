@@ -38,6 +38,10 @@
 			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
 		},
 		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/time",
+			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/uuid",
 			"Rev": "3f6e4ff12c48bbe5d805020e3f9e97f8324e89ba"
 		},

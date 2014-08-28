@@ -4,8 +4,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
@@ -27,7 +27,7 @@ var _ = Describe("cmd.Factory", func() {
 		configService *fakeconfig.FakeService
 		filesystem    boshsys.FileSystem
 		ui            bmui.UI
-		extractor     bmtar.Extractor
+		extractor     boshcmd.Compressor
 		logger        boshlog.Logger
 		uuidGenerator *fakeuuid.FakeGenerator
 	)

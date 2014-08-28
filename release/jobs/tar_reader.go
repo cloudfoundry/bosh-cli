@@ -7,20 +7,20 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 )
 
 type tarReader struct {
 	archivePath      string
 	extractedJobPath string
-	extractor        bmtar.Extractor
+	extractor        boshcmd.Compressor
 	fs               boshsys.FileSystem
 }
 
 func NewTarReader(
 	archivePath string,
 	extractedJobPath string,
-	extractor bmtar.Extractor,
+	extractor boshcmd.Compressor,
 	fs boshsys.FileSystem,
 ) *tarReader {
 	return &tarReader{
@@ -32,7 +32,7 @@ func NewTarReader(
 }
 
 func (r *tarReader) Read() (Job, error) {
-	err := r.extractor.Extract(r.archivePath, r.extractedJobPath)
+	err := r.extractor.DecompressFileToDir(r.archivePath, r.extractedJobPath)
 	if err != nil {
 		return Job{}, bosherr.WrapError(err,
 			"Extracting job archive `%s'",

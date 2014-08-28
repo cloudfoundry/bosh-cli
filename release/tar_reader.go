@@ -8,24 +8,24 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 	bmrelman "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
-	bmtar "github.com/cloudfoundry/bosh-micro-cli/tar"
 )
 
 type tarReader struct {
 	tarFilePath          string
 	extractedReleasePath string
 	fs                   boshsys.FileSystem
-	extractor            bmtar.Extractor
+	extractor            boshcmd.Compressor
 }
 
 func NewTarReader(
 	tarFilePath string,
 	extractedReleasePath string,
 	fs boshsys.FileSystem,
-	extractor bmtar.Extractor,
+	extractor boshcmd.Compressor,
 ) *tarReader {
 	return &tarReader{
 		tarFilePath:          tarFilePath,
@@ -36,7 +36,7 @@ func NewTarReader(
 }
 
 func (r *tarReader) Read() (Release, error) {
-	err := r.extractor.Extract(r.tarFilePath, r.extractedReleasePath)
+	err := r.extractor.DecompressFileToDir(r.tarFilePath, r.extractedReleasePath)
 	if err != nil {
 		return Release{}, bosherr.WrapError(err, "Extracting release")
 	}
@@ -139,7 +139,7 @@ func (r *tarReader) newPackagesFromManifestPackages(manifestPackages []bmrelman.
 			continue
 		}
 		packageArchivePath := path.Join(r.extractedReleasePath, "packages", manifestPackage.Name+".tgz")
-		err = r.extractor.Extract(packageArchivePath, extractedPackagePath)
+		err = r.extractor.DecompressFileToDir(packageArchivePath, extractedPackagePath)
 		if err != nil {
 			errors = append(errors, bosherr.WrapError(err, "Extracting package `%s'", manifestPackage.Name))
 			continue
