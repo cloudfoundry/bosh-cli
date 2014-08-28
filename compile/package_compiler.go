@@ -59,9 +59,12 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 	}
 
 	for _, pkg := range pkg.Dependencies {
-		installDir := path.Join(pc.packagesDir, pkg.Name)
-		pc.fileSystem.MkdirAll(installDir, os.ModePerm)
-		pc.packageInstaller.Install(pkg, installDir)
+		dependencyInstallDir := path.Join(pc.packagesDir, pkg.Name)
+
+		err = pc.packageInstaller.Install(pkg, dependencyInstallDir)
+		if err != nil {
+			return bosherr.WrapError(err, "Installing package `%s' into `%s'", pkg.Name, dependencyInstallDir)
+		}
 	}
 
 	packageSrcDir := pkg.ExtractedPath

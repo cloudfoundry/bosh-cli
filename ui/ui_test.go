@@ -3,21 +3,24 @@ package ui_test
 import (
 	"bytes"
 
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 var _ = Describe("UI", func() {
-	var ui bmui.UI
+	var ui UI
 	var stdOut, stdErr *bytes.Buffer
 
 	BeforeEach(func() {
 		stdOut = bytes.NewBufferString("")
 		stdErr = bytes.NewBufferString("")
 
-		ui = bmui.NewUI(stdOut, stdErr)
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		ui = NewUI(stdOut, stdErr, logger)
 	})
 
 	Context("#Sayln", func() {

@@ -75,11 +75,17 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	}
 
 	c.config.Deployment = manifestFilePath
-	uuid, _ := c.uuidGenerator.Generate()
+	uuid, err := c.uuidGenerator.Generate()
+	if err != nil {
+		return bosherr.WrapError(err, "UUID Generation failed")
+	}
 
 	c.config.DeploymentUUID = uuid
-	c.configService.Save(c.config)
 	c.logger.Debug(tagString, "Config %#v", c.config)
+	err = c.configService.Save(c.config)
+	if err != nil {
+		return bosherr.WrapError(err, "Saving config")
+	}
 
 	blobstoreDir := c.config.BlobstorePath()
 	c.logger.Debug(tagString, "Making new blobstore directory `%s'", blobstoreDir)

@@ -3,6 +3,9 @@ package ui
 import (
 	"fmt"
 	"io"
+
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 type UI interface {
@@ -14,23 +17,36 @@ type UI interface {
 type ui struct {
 	stdOut io.Writer
 	stdErr io.Writer
+	logger boshlog.Logger
 }
 
-func (u *ui) Say(message string) {
-	u.stdOut.Write([]byte(fmt.Sprint(message)))
-}
+const logTag = "ui"
 
-func (u *ui) Sayln(message string) {
-	u.stdOut.Write([]byte(fmt.Sprintln(message)))
-}
-
-func (u *ui) Error(message string) {
-	u.stdErr.Write([]byte(fmt.Sprintln(message)))
-}
-
-func NewUI(stdOut, stdErr io.Writer) UI {
+func NewUI(stdOut, stdErr io.Writer, logger boshlog.Logger) UI {
 	return &ui{
 		stdOut: stdOut,
 		stdErr: stdErr,
+		logger: logger,
+	}
+}
+
+func (u *ui) Say(message string) {
+	_, err := fmt.Fprint(u.stdOut, message)
+	if err != nil {
+		u.logger.Error(logTag, bosherr.WrapError(err, "Writing to STDOUT: %s", message).Error())
+	}
+}
+
+func (u *ui) Sayln(message string) {
+	_, err := fmt.Fprintln(u.stdOut, message)
+	if err != nil {
+		u.logger.Error(logTag, bosherr.WrapError(err, "Writing to STDOUT (with newline): %s", message).Error())
+	}
+}
+
+func (u *ui) Error(message string) {
+	_, err := fmt.Fprintln(u.stdErr, message)
+	if err != nil {
+		u.logger.Error(logTag, bosherr.WrapError(err, "Writing to STDERR: %s", message).Error())
 	}
 }

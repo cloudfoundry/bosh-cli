@@ -25,7 +25,7 @@ func main() {
 
 	uuidGenerator := boshuuid.NewGenerator()
 
-	ui := bmui.NewUI(os.Stdout, os.Stderr)
+	ui := bmui.NewUI(os.Stdout, os.Stderr, logger)
 
 	cmdFactory := bmcmd.NewFactory(
 		config,

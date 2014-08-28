@@ -1,8 +1,6 @@
 package validation_test
 
 import (
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -13,12 +11,6 @@ import (
 )
 
 var _ = Describe("CpiValidator", func() {
-	var fakeFs *fakesys.FakeFileSystem
-
-	BeforeEach(func() {
-		fakeFs = fakesys.NewFakeFileSystem()
-	})
-
 	It("validates a valid release without error", func() {
 		release := bmrel.Release{
 			Jobs: []bmreljob.Job{

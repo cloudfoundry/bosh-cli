@@ -7,6 +7,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/logging"
@@ -24,7 +26,8 @@ var _ = Describe("EventLogger", func() {
 	BeforeEach(func() {
 		uiOut = bytes.NewBufferString("")
 		uiErr = bytes.NewBufferString("")
-		ui = bmui.NewUI(uiOut, uiErr)
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		ui = bmui.NewUI(uiOut, uiErr, logger)
 		eventLogger = NewEventLogger(ui)
 	})
 

@@ -42,7 +42,7 @@ var _ = Describe("PackageCompiler", func() {
 		runner = fakesys.NewFakeCmdRunner()
 		fs = fakesys.NewFakeFileSystem()
 		compressor = fakecmd.NewFakeCompressor()
-		packageInstaller = &fakebminstall.FakePackageInstaller{}
+		packageInstaller = fakebminstall.NewFakePackageInstaller()
 
 		blobstore = fakeblobstore.NewFakeBlobstore()
 		blobstore.CreateFingerprint = "fake-fingerprint"
@@ -78,6 +78,27 @@ var _ = Describe("PackageCompiler", func() {
 		var newTarballPath string
 		var installPath string
 
+		BeforeEach(func() {
+			packageInstaller.SetInstallBehavior(dependency1, path.Join(packagesDir, dependency1.Name), nil)
+			packageInstaller.SetInstallBehavior(dependency2, path.Join(packagesDir, dependency2.Name), nil)
+		})
+
+		Context("when the compiled package repo already has the package", func() {
+			BeforeEach(func() {
+				compiledPackageRepo.FindCompiledPackageRecord = bmpkgs.CompiledPackageRecord{
+					Fingerprint: "fake-fingerprint",
+				}
+				fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+
+				err := pc.Compile(pkg)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("skips the compilation", func() {
+				Expect(len(runner.RunComplexCommands)).To(Equal(0))
+			})
+		})
+
 		Context("when compilation succeeds", func() {
 			BeforeEach(func() {
 				installPath = path.Join(packagesDir, pkg.Name)
@@ -89,14 +110,14 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("installs all the dependencies for the package", func() {
-				Expect(packageInstaller.Installed).To(ContainElement(
-					fakebminstall.InstalledPackage{
+				Expect(packageInstaller.InstallInputs).To(ContainElement(
+					fakebminstall.InstallInput{
 						Package: dependency1,
 						Target:  path.Join(packagesDir, dependency1.Name),
 					},
 				))
-				Expect(packageInstaller.Installed).To(ContainElement(
-					fakebminstall.InstalledPackage{
+				Expect(packageInstaller.InstallInputs).To(ContainElement(
+					fakebminstall.InstallInput{
 						Package: dependency2,
 						Target:  path.Join(packagesDir, dependency2.Name),
 					},
@@ -145,7 +166,24 @@ var _ = Describe("PackageCompiler", func() {
 			})
 		})
 
-		Describe("compilation failures", func() {
+		Context("when compilation fails", func() {
+			Context("when depedency installation fails", func() {
+				BeforeEach(func() {
+					packageInstaller.SetInstallBehavior(
+						dependency1,
+						path.Join(packagesDir, dependency1.Name),
+						errors.New("fake-error"),
+					)
+				})
+
+				It("returns an error", func() {
+					err := pc.Compile(pkg)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Installing package"))
+					Expect(err.Error()).To(ContainSubstring("fake-error"))
+				})
+			})
+
 			Context("when the packaging script does not exist", func() {
 				It("returns error", func() {
 					err := pc.Compile(pkg)
@@ -212,22 +250,6 @@ var _ = Describe("PackageCompiler", func() {
 				err := pc.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(fs.FileExists(packagesDir)).To(BeFalse())
-			})
-		})
-
-		Context("when the compiled package repo already has the package", func() {
-			BeforeEach(func() {
-				compiledPackageRepo.FindCompiledPackageRecord = bmpkgs.CompiledPackageRecord{
-					Fingerprint: "fake-fingerprint",
-				}
-				fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
-
-				err := pc.Compile(pkg)
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("skips the compilation", func() {
-				Expect(len(runner.RunComplexCommands)).To(Equal(0))
 			})
 		})
 
