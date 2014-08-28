@@ -166,7 +166,7 @@ version: fake-version
 							It("returns err", func() {
 								err := command.Run([]string{"/somepath"})
 								Expect(err).To(HaveOccurred())
-								Expect(err.Error()).To(ContainSubstring("Creating extracted release path"))
+								Expect(err.Error()).To(ContainSubstring("Creating temp directory"))
 								Expect(fakeUI.Errors).To(ContainElement("Could not create a temporary directory"))
 							})
 						})

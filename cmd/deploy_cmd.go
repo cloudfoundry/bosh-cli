@@ -70,8 +70,7 @@ func (c *deployCmd) Run(args []string) error {
 	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
 	if err != nil {
 		c.ui.Error("Could not create a temporary directory")
-		c.logger.Error(logTag, fmt.Sprintf("Could not create a temporary directory: `%s'", err.Error()))
-		return bosherr.WrapError(err, "Creating extracted release path")
+		return bosherr.WrapError(err, "Creating temp directory")
 	}
 	defer c.fs.RemoveAll(extractedReleasePath)
 
@@ -88,10 +87,10 @@ func (c *deployCmd) Run(args []string) error {
 	}
 
 	c.logger.Info(logTag, fmt.Sprintf("Compiling release `%s'", release.Name))
+	c.logger.Debug(logTag, fmt.Sprintf("Compiling release: %#v", release))
 	err = c.compiler.Compile(release)
 	if err != nil {
 		c.ui.Error("Could not compile release")
-		c.logger.Error(logTag, fmt.Sprintf("Could not compile release `%s': `%s'", release.Name, err.Error()))
 		return bosherr.WrapError(err, "Compiling release")
 	}
 
@@ -103,20 +102,18 @@ func (c *deployCmd) validateDeployment(releaseTarballPath string) error {
 	err := fileValidator.Exists(releaseTarballPath)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release `%s' does not exist", releaseTarballPath))
-		c.logger.Error(logTag, "CPI release `%s' does not exist", releaseTarballPath)
 		return bosherr.WrapError(err, "Checking CPI release `%s' existence", releaseTarballPath)
 	}
 
 	if len(c.config.Deployment) == 0 {
 		c.ui.Error("No deployment set")
-		c.logger.Error(logTag, "No deployment set")
 		return errors.New("No deployment set")
 	}
 
+	c.logger.Info(logTag, fmt.Sprintf("Checking for deployment `%s'", c.config.Deployment))
 	err = fileValidator.Exists(c.config.Deployment)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.config.Deployment))
-		c.logger.Error(logTag, fmt.Sprintf("Deployment manifest path `%s' does not exist", c.config.Deployment))
 		return bosherr.WrapError(err, "Reading deployment manifest for deploy")
 	}
 
@@ -129,7 +126,6 @@ func (c *deployCmd) extractRelease(releaseTarballPath, extractedReleasePath stri
 	release, err := releaseReader.Read()
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a BOSH release", releaseTarballPath))
-		c.logger.Error(logTag, fmt.Sprintf("CPI release `%s' is not a BOSH release", releaseTarballPath))
 		return bmrel.Release{}, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
 	}
 	release.TarballPath = releaseTarballPath
