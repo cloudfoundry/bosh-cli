@@ -8,8 +8,8 @@ import (
 )
 
 type CompiledPackageRecord struct {
-	BlobID      string
-	Fingerprint string
+	BlobID      string `yaml:"blob_id"`
+	Fingerprint string `yaml:"fingerprint"`
 }
 
 type CompiledPackageRepo interface {

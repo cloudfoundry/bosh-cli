@@ -110,10 +110,11 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		return bosherr.WrapError(err, "Creating blob")
 	}
 
-	err = pc.compiledPackageRepo.Save(*pkg, bmpkgs.CompiledPackageRecord{
+	record := bmpkgs.CompiledPackageRecord{
 		BlobID:      blobID,
 		Fingerprint: fingerprint,
-	})
+	}
+	err = pc.compiledPackageRepo.Save(*pkg, record)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving compiled package")
 	}

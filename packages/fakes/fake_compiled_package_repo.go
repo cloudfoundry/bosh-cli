@@ -1,33 +1,106 @@
 package fakes
 
 import (
+	"fmt"
+
+	"github.com/cloudfoundry-incubator/candiedyaml"
+
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
-type FakeCompiledPackageRepo struct {
-	SavePackage bmrel.Package
-	SaveRecord  bmpkgs.CompiledPackageRecord
-	SaveError   error
+type SaveInput struct {
+	Package bmrel.Package                `yaml:"package"`
+	Record  bmpkgs.CompiledPackageRecord `yaml:"record"`
+}
+type saveOutput struct {
+	err error
+}
+type FindInput struct {
+	Package bmrel.Package `yaml:"package"`
+}
+type findOutput struct {
+	record bmpkgs.CompiledPackageRecord
+	found  bool
+	err    error
+}
 
-	FindCompiledPackageRecord bmpkgs.CompiledPackageRecord
-	FindCompiledPackageError  error
+type FakeCompiledPackageRepo struct {
+	SaveInputs []SaveInput
+	FindInputs []FindInput
+
+	saveBehavior map[string]saveOutput
+	findBehavior map[string]findOutput
 }
 
 func NewFakeCompiledPackageRepo() *FakeCompiledPackageRepo {
-	return &FakeCompiledPackageRepo{}
+	return &FakeCompiledPackageRepo{
+		SaveInputs:   []SaveInput{},
+		FindInputs:   []FindInput{},
+		saveBehavior: map[string]saveOutput{},
+		findBehavior: map[string]findOutput{},
+	}
 }
 
-func (cpr *FakeCompiledPackageRepo) Save(
-	pkg bmrel.Package,
-	record bmpkgs.CompiledPackageRecord,
-) error {
-	cpr.SavePackage = pkg
-	cpr.SaveRecord = record
-	return cpr.SaveError
+func (cpr *FakeCompiledPackageRepo) Save(pkg bmrel.Package, record bmpkgs.CompiledPackageRecord) error {
+	input := SaveInput{Package: pkg, Record: record}
+	cpr.SaveInputs = append(cpr.SaveInputs, input)
+
+	inputString, err := marshalToString(input)
+	if err != nil {
+		return bosherr.WrapError(err, "Marshaling Save input")
+	}
+	output, found := cpr.saveBehavior[inputString]
+
+	if found {
+		return output.err
+	}
+	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v')", pkg, record)
+}
+
+func (cpr *FakeCompiledPackageRepo) SetSaveBehavior(pkg bmrel.Package, record bmpkgs.CompiledPackageRecord, err error) error {
+	input := SaveInput{Package: pkg, Record: record}
+	inputString, marshalErr := marshalToString(input)
+	if marshalErr != nil {
+		return bosherr.WrapError(marshalErr, "Marshaling Save input")
+	}
+	cpr.saveBehavior[inputString] = saveOutput{err: err}
+	return nil
 }
 
 func (cpr *FakeCompiledPackageRepo) Find(pkg bmrel.Package) (bmpkgs.CompiledPackageRecord, bool, error) {
-	return cpr.FindCompiledPackageRecord, cpr.FindCompiledPackageRecord != bmpkgs.CompiledPackageRecord{}, cpr.FindCompiledPackageError
+	input := FindInput{Package: pkg}
+	cpr.FindInputs = append(cpr.FindInputs, input)
 
+	inputString, err := marshalToString(input)
+	if err != nil {
+		return bmpkgs.CompiledPackageRecord{}, false, bosherr.WrapError(err, "Marshaling Find input")
+	}
+	output, found := cpr.findBehavior[inputString]
+
+	if found {
+		return output.record, output.found, output.err
+	}
+	return bmpkgs.CompiledPackageRecord{}, false, fmt.Errorf("Unsupported input: Find('%#v')", pkg)
+}
+
+func (cpr *FakeCompiledPackageRepo) SetFindBehavior(pkg bmrel.Package, record bmpkgs.CompiledPackageRecord, found bool, err error) error {
+	input := FindInput{Package: pkg}
+	inputString, marshalErr := marshalToString(input)
+	if marshalErr != nil {
+		return bosherr.WrapError(marshalErr, "Marshaling Find input")
+	}
+	cpr.findBehavior[inputString] = findOutput{record: record, found: found, err: err}
+	return nil
+}
+
+func marshalToString(input interface{}) (string, error) {
+	bytes, err := candiedyaml.Marshal(input)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Marshaling to string: %#v", input)
+	}
+	//fmt.Printf("Input: %s", string(bytes))
+	return string(bytes), nil
 }

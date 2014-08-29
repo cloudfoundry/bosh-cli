@@ -13,6 +13,7 @@ import (
 	fakeblobstore "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
 	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
 	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages/fakes"
 
@@ -79,15 +80,20 @@ var _ = Describe("PackageCompiler", func() {
 		var installPath string
 
 		BeforeEach(func() {
+			compiledPackageRepo.SetFindBehavior(*pkg, bmpkgs.CompiledPackageRecord{}, false, nil)
+			compiledPackageRepo.SetFindBehavior(*dependency1, bmpkgs.CompiledPackageRecord{}, false, nil)
+			compiledPackageRepo.SetFindBehavior(*dependency2, bmpkgs.CompiledPackageRecord{}, false, nil)
+
 			packageInstaller.SetInstallBehavior(dependency1, path.Join(packagesDir, dependency1.Name), nil)
 			packageInstaller.SetInstallBehavior(dependency2, path.Join(packagesDir, dependency2.Name), nil)
 		})
 
 		Context("when the compiled package repo already has the package", func() {
 			BeforeEach(func() {
-				compiledPackageRepo.FindCompiledPackageRecord = bmpkgs.CompiledPackageRecord{
+				compiledPkgRecord := bmpkgs.CompiledPackageRecord{
 					Fingerprint: "fake-fingerprint",
 				}
+				compiledPackageRepo.SetFindBehavior(*pkg, compiledPkgRecord, true, nil)
 				fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
 
 				err := pc.Compile(pkg)
@@ -105,6 +111,13 @@ var _ = Describe("PackageCompiler", func() {
 				fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
 				newTarballPath = path.Join(packagesDir, "new-tarball")
 				compressor.CompressFilesInDirTarballPath = newTarballPath
+
+				record := bmpkgs.CompiledPackageRecord{
+					BlobID:      "fake-blob-id",
+					Fingerprint: "fake-fingerprint",
+				}
+				compiledPackageRepo.SetSaveBehavior(*pkg, record, nil)
+
 				err := pc.Compile(pkg)
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -152,12 +165,12 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
-				Expect(compiledPackageRepo.SavePackage).To(Equal(*pkg))
-				Expect(compiledPackageRepo.SaveRecord).To(Equal(
-					bmpkgs.CompiledPackageRecord{
-						BlobID:      "fake-blob-id",
-						Fingerprint: "fake-fingerprint",
-					},
+				record := bmpkgs.CompiledPackageRecord{
+					BlobID:      "fake-blob-id",
+					Fingerprint: "fake-fingerprint",
+				}
+				Expect(compiledPackageRepo.SaveInputs).To(ContainElement(
+					fakebmpkgs.SaveInput{Package: *pkg, Record: record},
 				))
 			})
 
@@ -200,9 +213,11 @@ var _ = Describe("PackageCompiler", func() {
 						Error:      errors.New("fake-error"),
 					}
 					runner.AddCmdResult("bash -x packaging", fakeResult)
+
 					err := pc.Compile(pkg)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Compiling package"))
+					Expect(err.Error()).To(ContainSubstring("fake-error"))
 				})
 			})
 
@@ -210,6 +225,7 @@ var _ = Describe("PackageCompiler", func() {
 				It("returns error", func() {
 					compressor.CompressFilesInDirErr = errors.New("fake-compression-error")
 					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+
 					err := pc.Compile(pkg)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Compressing compiled package"))
@@ -219,30 +235,40 @@ var _ = Describe("PackageCompiler", func() {
 			Context("when adding to blobstore fails", func() {
 				It("returns error", func() {
 					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
-					blobstore.CreateErr = errors.New("fake-create-err")
+					blobstore.CreateErr = errors.New("fake-error")
+
 					err := pc.Compile(pkg)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Creating blob"))
+					Expect(err.Error()).To(ContainSubstring("fake-error"))
 				})
 			})
 
 			Context("when saving to the compiled package repo fails", func() {
 				It("returns error", func() {
 					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
-					compiledPackageRepo.SaveError = errors.New("fake-save-compiled-package-error")
+					record := bmpkgs.CompiledPackageRecord{
+						BlobID:      "fake-blob-id",
+						Fingerprint: "fake-fingerprint",
+					}
+					compiledPackageRepo.SetSaveBehavior(*pkg, record, errors.New("fake-error"))
+
 					err := pc.Compile(pkg)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Saving compiled package"))
+					Expect(err.Error()).To(ContainSubstring("fake-error"))
 				})
 			})
 
 			Context("when creating packages dir fails", func() {
 				It("returns error", func() {
 					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
-					fs.RegisterMkdirAllError(installPath, errors.New("fake-mkdir-error"))
+					fs.RegisterMkdirAllError(installPath, errors.New("fake-error"))
+
 					err := pc.Compile(pkg)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Creating package install dir"))
+					Expect(err.Error()).To(ContainSubstring("fake-error"))
 				})
 			})
 
@@ -254,11 +280,12 @@ var _ = Describe("PackageCompiler", func() {
 		})
 
 		It("errors when finding package from compiled package repo fails", func() {
-			compiledPackageRepo.FindCompiledPackageError = errors.New("fake-find-error")
+			compiledPackageRepo.SetFindBehavior(*pkg, bmpkgs.CompiledPackageRecord{}, false, errors.New("fake-error"))
 
 			err := pc.Compile(pkg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Attempting to find compiled package `%s'", pkg.Name)))
+			Expect(err.Error()).To(ContainSubstring("fake-error"))
 		})
 	})
 })

@@ -51,10 +51,11 @@ var _ = Describe("Install", func() {
 
 	Context("when the package exists in the repo", func() {
 		BeforeEach(func() {
-			repo.FindCompiledPackageRecord = bmpkgs.CompiledPackageRecord{
+			record := bmpkgs.CompiledPackageRecord{
 				BlobID:      "fake-blob-id",
 				Fingerprint: "fake-package-fingerprint",
 			}
+			repo.SetFindBehavior(*pkg, record, true, nil)
 			blobstore.GetFileName = "/tmp/fake-blob-file"
 			fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir", nil)
 		})
@@ -87,7 +88,7 @@ var _ = Describe("Install", func() {
 
 		Context("when finding the package in the repo errors", func() {
 			BeforeEach(func() {
-				repo.FindCompiledPackageError = errors.New("fake-error")
+				repo.SetFindBehavior(*pkg, bmpkgs.CompiledPackageRecord{}, false, errors.New("fake-error"))
 			})
 
 			It("returns an error", func() {
@@ -154,6 +155,10 @@ var _ = Describe("Install", func() {
 	})
 
 	Context("when the package does not exist in the repo", func() {
+		BeforeEach(func() {
+			repo.SetFindBehavior(*pkg, bmpkgs.CompiledPackageRecord{}, false, nil)
+		})
+
 		It("returns an error", func() {
 			err := installer.Install(pkg, targetDir)
 			Expect(err).To(HaveOccurred())
