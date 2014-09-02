@@ -12,14 +12,14 @@ import (
 )
 
 type SaveInput struct {
-	Package bmrel.Package                `yaml:"package"`
-	Record  bmpkgs.CompiledPackageRecord `yaml:"record"`
+	Package bmrel.Package
+	Record  bmpkgs.CompiledPackageRecord
 }
 type saveOutput struct {
 	err error
 }
 type FindInput struct {
-	Package bmrel.Package `yaml:"package"`
+	Package bmrel.Package
 }
 type findOutput struct {
 	record bmpkgs.CompiledPackageRecord

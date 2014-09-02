@@ -28,17 +28,26 @@ var _ = Describe("CompiledPackageRepo", func() {
 	})
 
 	Context("Save and Find", func() {
-		It("saves the compiled package to the index", func() {
-			record := CompiledPackageRecord{
-				BlobID:      "fake-blob-id",
-				Fingerprint: "fake-sha1",
-			}
+		var (
+			record     CompiledPackageRecord
+			dependency bmrel.Package
+			pkg        bmrel.Package
+		)
 
-			pkg := bmrel.Package{
-				Name:        "fake-package-name",
-				Version:     "fake-version",
-				Fingerprint: "fake-finger-print",
+		BeforeEach(func() {
+			record = CompiledPackageRecord{}
+			dependency = bmrel.Package{
+				Name:        "fake-dependency-package",
+				Fingerprint: "fake-dependency-fingerprint",
 			}
+			pkg = bmrel.Package{
+				Name:         "fake-package-name",
+				Fingerprint:  "fake-package-fingerprint",
+				Dependencies: []*bmrel.Package{&dependency},
+			}
+		})
+
+		It("saves the compiled package to the index", func() {
 			err := compiledPackageRepo.Save(pkg, record)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -48,7 +57,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 			Expect(result).To(Equal(record))
 		})
 
-		It("returns false when it finding before saving", func() {
+		It("returns false when finding before saving", func() {
 			pkg := bmrel.Package{
 				Name: "fake-package-name",
 			}
@@ -57,54 +66,71 @@ var _ = Describe("CompiledPackageRepo", func() {
 			Expect(found).To(BeFalse())
 		})
 
-		Context("when storing the packages", func() {
-			var (
-				record CompiledPackageRecord
-				pkg    bmrel.Package
-			)
+		It("returns false if package dependencies have changed after saving", func() {
+			err := compiledPackageRepo.Save(pkg, record)
+			Expect(err).ToNot(HaveOccurred())
 
-			BeforeEach(func() {
-				record = CompiledPackageRecord{
-					BlobID:      "fake-blob-id",
-					Fingerprint: "fake-sha1",
-				}
-				pkg = bmrel.Package{
-					Name:        "fake-package-name",
-					Version:     "fake-version",
-					Fingerprint: "fake-finger-print",
-				}
-				err := compiledPackageRepo.Save(pkg, record)
-				Expect(err).ToNot(HaveOccurred())
-			})
+			_, found, err := compiledPackageRepo.Find(pkg)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
 
-			It("considers package name in the key", func() {
-				pkg.Name = "new-fake-name"
-				_, found, err := compiledPackageRepo.Find(pkg)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
-			})
+			dependency.Fingerprint = "new-fake-dependency-fingerprint"
 
-			It("considers package version in the key", func() {
-				pkg.Version = "new-fake-version"
-				_, found, err := compiledPackageRepo.Find(pkg)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
-			})
+			_, found, err = compiledPackageRepo.Find(pkg)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
+		})
 
-			It("considers package fingerprint in the key", func() {
-				pkg.Fingerprint = "new-fake-fingerprint"
-				_, found, err := compiledPackageRepo.Find(pkg)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
-			})
+		It("returns true if dependency order changed", func() {
+			dependency1 := bmrel.Package{
+				Name:        "fake-package-1",
+				Fingerprint: "fake-dependency-fingerprint-1",
+			}
+			dependency2 := bmrel.Package{
+				Name:        "fake-package-2",
+				Fingerprint: "fake-dependency-fingerprint-2",
+			}
+
+			pkg.Dependencies = []*bmrel.Package{&dependency1, &dependency2}
+
+			err := compiledPackageRepo.Save(pkg, record)
+			Expect(err).ToNot(HaveOccurred())
+
+			pkg.Dependencies = []*bmrel.Package{&dependency2, &dependency1}
+
+			result, found, err := compiledPackageRepo.Find(pkg)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
+			Expect(result).To(Equal(record))
+		})
+
+		It("returns false if a transitive dependency has changed after saving", func() {
+			transitive := bmrel.Package{
+				Name:        "fake-transitive-package",
+				Fingerprint: "fake-transitive-fingerprint",
+			}
+			dependency.Dependencies = []*bmrel.Package{&transitive}
+
+			err := compiledPackageRepo.Save(pkg, record)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, found, err := compiledPackageRepo.Find(pkg)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
+
+			transitive.Fingerprint = "new-fake-dependency-fingerprint"
+
+			_, found, err = compiledPackageRepo.Find(pkg)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
 		})
 
 		Context("when saving to index fails", func() {
 			It("returns error", func() {
 				fs.WriteToFileError = errors.New("Could not save")
 				record := CompiledPackageRecord{
-					BlobID:      "fake-blob-id",
-					Fingerprint: "fake-sha1",
+					BlobID:   "fake-blob-id",
+					BlobSha1: "fake-sha1",
 				}
 
 				pkg := bmrel.Package{
@@ -119,13 +145,6 @@ var _ = Describe("CompiledPackageRepo", func() {
 
 		Context("when reading from index fails", func() {
 			It("returns error", func() {
-				record := CompiledPackageRecord{
-					BlobID:      "fake-blob-id",
-					Fingerprint: "fake-sha1",
-				}
-				pkg := bmrel.Package{
-					Name: "fake-package-name",
-				}
 				err := compiledPackageRepo.Save(pkg, record)
 				fs.ReadFileError = errors.New("fake-error")
 

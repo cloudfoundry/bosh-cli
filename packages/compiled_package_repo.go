@@ -3,8 +3,11 @@ package packages
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
+	"fmt"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	"sort"
+	"strings"
 )
 
 type CompiledPackageRecord struct {
@@ -51,17 +54,26 @@ func (cpr *compiledPackageRepo) Find(pkg bmrel.Package) (CompiledPackageRecord, 
 }
 
 type packageToCompiledPackageKey struct {
-	PackageName    string
-	PackageVersion string
-
-	// Fingerprint of a package captures its dependenices
+	PackageName string
+	// Fingerprint of a package captures the sorted names of its dependencies
+	// (but not the dependencies' fingerprints)
 	PackageFingerprint string
+	DependencyKey      string
 }
 
 func (cpr compiledPackageRepo) pkgKey(pkg bmrel.Package) packageToCompiledPackageKey {
 	return packageToCompiledPackageKey{
 		PackageName:        pkg.Name,
-		PackageVersion:     pkg.Version,
 		PackageFingerprint: pkg.Fingerprint,
+		DependencyKey:      cpr.convertToDependencyKey(ResolveDependencies(&pkg)),
 	}
+}
+
+func (cpr compiledPackageRepo) convertToDependencyKey(packages []*bmrel.Package) string {
+	dependencyKeys := []string{}
+	for _, pkg := range packages {
+		dependencyKeys = append(dependencyKeys, fmt.Sprintf("%s:%s", pkg.Name, pkg.Fingerprint))
+	}
+	sort.Strings(dependencyKeys)
+	return strings.Join(dependencyKeys, ",")
 }
