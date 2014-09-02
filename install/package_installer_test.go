@@ -42,7 +42,6 @@ var _ = Describe("Install", func() {
 
 		pkg = &bmrel.Package{
 			Name:         "fake-package-name",
-			Version:      "fake-package-version",
 			Fingerprint:  "fake-package-fingerprint",
 			Sha1:         "fake-package-sha1",
 			Dependencies: []*bmrel.Package{},

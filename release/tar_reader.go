@@ -110,7 +110,6 @@ func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]bmre
 			continue
 		}
 
-		job.Version = manifestJob.Version
 		job.Fingerprint = manifestJob.Fingerprint
 		job.Sha1 = manifestJob.Sha1
 
@@ -145,7 +144,6 @@ func (r *tarReader) newPackagesFromManifestPackages(manifestPackages []bmrelman.
 			continue
 		}
 
-		pkg.Version = manifestPackage.Version
 		pkg.Fingerprint = manifestPackage.Fingerprint
 		pkg.Sha1 = manifestPackage.Sha1
 		pkg.ExtractedPath = extractedPackagePath

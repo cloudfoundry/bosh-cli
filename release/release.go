@@ -17,15 +17,6 @@ type Release struct {
 	TarballPath   string
 }
 
-type Package struct {
-	Name          string
-	Version       string
-	Fingerprint   string
-	Sha1          string
-	Dependencies  []*Package
-	ExtractedPath string
-}
-
 func (r Release) FindJobByName(jobName string) (bmreljob.Job, bool) {
 	for _, job := range r.Jobs {
 		if job.Name == jobName {
@@ -34,6 +25,14 @@ func (r Release) FindJobByName(jobName string) (bmreljob.Job, bool) {
 	}
 
 	return bmreljob.Job{}, false
+}
+
+type Package struct {
+	Name          string
+	Fingerprint   string
+	Sha1          string
+	Dependencies  []*Package
+	ExtractedPath string
 }
 
 func (p Package) String() string {

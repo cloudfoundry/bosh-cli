@@ -19,7 +19,6 @@ import (
 
 type Key struct {
 	PackageName        string
-	PackageVersion     string
 	PackageFingerprint string
 }
 

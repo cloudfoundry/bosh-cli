@@ -31,7 +31,6 @@ var _ = Describe("Validator", func() {
 			Jobs: []bmreljob.Job{
 				{
 					Name:          "fake-job-1-name",
-					Version:       "fake-job-1-version",
 					Fingerprint:   "fake-job-1-fingerprint",
 					Sha1:          "fake-job-1-sha",
 					Templates:     map[string]string{"fake-job-1-template": "fake-job-1-file"},
@@ -42,7 +41,6 @@ var _ = Describe("Validator", func() {
 			Packages: []*bmrel.Package{
 				{
 					Name:        "fake-package-1-name",
-					Version:     "fake-package-1-version",
 					Fingerprint: "fake-package-1-fingerprint",
 					Sha1:        "fake-package-1-sha",
 					Dependencies: []*bmrel.Package{
@@ -79,18 +77,14 @@ var _ = Describe("Validator", func() {
 		Expect(err).To(HaveOccurred())
 
 		Expect(err.Error()).To(ContainSubstring("Job name is missing"))
-		Expect(err.Error()).To(ContainSubstring("Job `' version is missing"))
 		Expect(err.Error()).To(ContainSubstring("Job `' fingerprint is missing"))
 		Expect(err.Error()).To(ContainSubstring("Job `' sha1 is missing"))
-		Expect(err.Error()).To(ContainSubstring("Job `fake-job' version is missing"))
 		Expect(err.Error()).To(ContainSubstring("Job `fake-job' fingerprint is missing"))
 		Expect(err.Error()).To(ContainSubstring("Job `fake-job' sha1 is missing"))
 
 		Expect(err.Error()).To(ContainSubstring("Package name is missing"))
-		Expect(err.Error()).To(ContainSubstring("Package `' version is missing"))
 		Expect(err.Error()).To(ContainSubstring("Package `' fingerprint is missing"))
 		Expect(err.Error()).To(ContainSubstring("Package `' sha1 is missing"))
-		Expect(err.Error()).To(ContainSubstring("Package `fake-package' version is missing"))
 		Expect(err.Error()).To(ContainSubstring("Package `fake-package' fingerprint is missing"))
 		Expect(err.Error()).To(ContainSubstring("Package `fake-package' sha1 is missing"))
 	})
@@ -103,14 +97,12 @@ var _ = Describe("Validator", func() {
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "fake-job",
-						Version:     "fake-version",
 						Fingerprint: "fake-fingerprint",
 						Sha1:        "fake-sha",
 						Templates:   map[string]string{"fake-template": "fake-file"},
 					},
 					{
 						Name:        "fake-job-2",
-						Version:     "fake-version-2",
 						Fingerprint: "fake-fingerprint-2",
 						Sha1:        "fake-sha-2",
 						Templates:   map[string]string{"fake-template-2": "fake-file-2"},
@@ -136,13 +128,11 @@ var _ = Describe("Validator", func() {
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "fake-job-1",
-						Version:     "fake-version-1",
 						Fingerprint: "fake-finger-print-1",
 						Sha1:        "fake-sha-1",
 					},
 					{
 						Name:        "fake-job-2",
-						Version:     "fake-version-2",
 						Fingerprint: "fake-finger-print-2",
 						Sha1:        "fake-sha-2",
 					},
@@ -166,7 +156,6 @@ var _ = Describe("Validator", func() {
 				Jobs: []bmreljob.Job{
 					{
 						Name:         "fake-job",
-						Version:      "fake-version",
 						Fingerprint:  "fake-fingerprint",
 						Sha1:         "fake-sha",
 						Templates:    map[string]string{},
@@ -174,7 +163,6 @@ var _ = Describe("Validator", func() {
 					},
 					{
 						Name:         "fake-job-2",
-						Version:      "fake-version-2",
 						Fingerprint:  "fake-fingerprint-2",
 						Sha1:         "fake-sha-2",
 						Templates:    map[string]string{},

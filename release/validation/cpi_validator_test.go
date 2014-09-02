@@ -16,7 +16,6 @@ var _ = Describe("CpiValidator", func() {
 			Jobs: []bmreljob.Job{
 				{
 					Name:        "cpi",
-					Version:     "fake-job-1-version",
 					Fingerprint: "fake-job-1-fingerprint",
 					Sha1:        "fake-job-1-sha",
 					Templates: map[string]string{
@@ -41,7 +40,6 @@ var _ = Describe("CpiValidator", func() {
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "non-cpi-job",
-						Version:     "fake-job-1-version",
 						Fingerprint: "fake-job-1-fingerprint",
 						Sha1:        "fake-job-1-sha",
 						Templates: map[string]string{
@@ -69,7 +67,6 @@ var _ = Describe("CpiValidator", func() {
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "cpi",
-						Version:     "fake-job-1-version",
 						Fingerprint: "fake-job-1-fingerprint",
 						Sha1:        "fake-job-1-sha",
 						Templates: map[string]string{
@@ -98,7 +95,6 @@ var _ = Describe("CpiValidator", func() {
 				Jobs: []bmreljob.Job{
 					{
 						Name:        "cpi",
-						Version:     "fake-job-1-version",
 						Fingerprint: "fake-job-1-fingerprint",
 						Sha1:        "fake-job-1-sha",
 						Templates: map[string]string{

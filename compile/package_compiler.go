@@ -85,11 +85,10 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 		Name: "bash",
 		Args: []string{"-x", "packaging"},
 		Env: map[string]string{
-			"BOSH_COMPILE_TARGET":  packageSrcDir,
-			"BOSH_INSTALL_TARGET":  installDir,
-			"BOSH_PACKAGE_NAME":    pkg.Name,
-			"BOSH_PACKAGE_VERSION": pkg.Version,
-			"BOSH_PACKAGES_DIR":    pc.packagesDir,
+			"BOSH_COMPILE_TARGET": packageSrcDir,
+			"BOSH_INSTALL_TARGET": installDir,
+			"BOSH_PACKAGE_NAME":   pkg.Name,
+			"BOSH_PACKAGES_DIR":   pc.packagesDir,
 		},
 		WorkingDir: packageSrcDir,
 	}

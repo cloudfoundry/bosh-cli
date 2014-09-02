@@ -69,7 +69,6 @@ var _ = Describe("PackageCompiler", func() {
 		)
 		pkg = &bmrel.Package{
 			Name:          "fake-package-1",
-			Version:       "fake-package-version",
 			ExtractedPath: "/fake/path",
 			Dependencies:  []*bmrel.Package{dependency1, dependency2},
 		}
@@ -142,11 +141,10 @@ var _ = Describe("PackageCompiler", func() {
 					Name: "bash",
 					Args: []string{"-x", "packaging"},
 					Env: map[string]string{
-						"BOSH_COMPILE_TARGET":  pkg.ExtractedPath,
-						"BOSH_INSTALL_TARGET":  installPath,
-						"BOSH_PACKAGE_NAME":    pkg.Name,
-						"BOSH_PACKAGE_VERSION": pkg.Version,
-						"BOSH_PACKAGES_DIR":    packagesDir,
+						"BOSH_COMPILE_TARGET": pkg.ExtractedPath,
+						"BOSH_INSTALL_TARGET": installPath,
+						"BOSH_PACKAGE_NAME":   pkg.Name,
+						"BOSH_PACKAGES_DIR":   packagesDir,
 					},
 					WorkingDir: pkg.ExtractedPath,
 				}

@@ -97,7 +97,6 @@ packages:
 								ContainElement(
 									bmreljob.Job{
 										Name:          "fake-job",
-										Version:       "fake-job-version",
 										Fingerprint:   "fake-job-fingerprint",
 										Sha1:          "fake-job-sha",
 										ExtractedPath: "/extracted/release/extracted_jobs/fake-job",
@@ -112,7 +111,6 @@ packages:
 								ContainElement(
 									&Package{
 										Name:          "fake-package",
-										Version:       "fake-package-version",
 										Fingerprint:   "fake-package-fingerprint",
 										Sha1:          "fake-package-sha",
 										Dependencies:  []*Package{&Package{Name: "fake-package-1"}},

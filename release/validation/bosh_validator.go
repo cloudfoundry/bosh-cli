@@ -73,10 +73,6 @@ func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 			errs = append(errs, errors.New("Job name is missing"))
 		}
 
-		if job.Version == "" {
-			errs = append(errs, fmt.Errorf("Job `%s' version is missing", job.Name))
-		}
-
 		if job.Fingerprint == "" {
 			errs = append(errs, fmt.Errorf("Job `%s' fingerprint is missing", job.Name))
 		}
@@ -123,10 +119,6 @@ func (v *boshValidator) validateReleasePackages(release bmrel.Release) error {
 	for _, pkg := range release.Packages {
 		if pkg.Name == "" {
 			errs = append(errs, errors.New("Package name is missing"))
-		}
-
-		if pkg.Version == "" {
-			errs = append(errs, fmt.Errorf("Package `%s' version is missing", pkg.Name))
 		}
 
 		if pkg.Fingerprint == "" {
