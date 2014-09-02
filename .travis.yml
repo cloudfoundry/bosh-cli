@@ -4,6 +4,8 @@ go:
   - 1.2
   - tip
 
+before_install:
+  - gem install bosh_cli
 install: true
 
 script: bin/ci
