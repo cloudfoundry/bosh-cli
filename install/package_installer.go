@@ -52,7 +52,7 @@ func (pi *packageInstaller) Install(pkg *bmrel.Package, targetDir string) error 
 		return bosherr.New("Compiled package record not found: %#v", pkg)
 	}
 
-	filePath, err := pi.blobstore.Get(pgkRecord.BlobID, pgkRecord.Fingerprint)
+	filePath, err := pi.blobstore.Get(pgkRecord.BlobID, pgkRecord.BlobSha1)
 	if err != nil {
 		return bosherr.WrapError(err, "Getting compiled package from blobstore: %#v", pgkRecord)
 	}

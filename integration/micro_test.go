@@ -24,8 +24,8 @@ type Key struct {
 }
 
 type Value struct {
-	BlobID      string
-	Fingerprint string
+	BlobID   string
+	BlobSha1 string
 }
 
 type Item struct {
@@ -156,7 +156,7 @@ var _ = Describe("bosh-micro", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 				for _, item := range indexContent {
-					Expect(item.Value.Fingerprint).ToNot(BeEmpty())
+					Expect(item.Value.BlobSha1).ToNot(BeEmpty())
 				}
 			})
 

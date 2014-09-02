@@ -52,8 +52,8 @@ var _ = Describe("Install", func() {
 	Context("when the package exists in the repo", func() {
 		BeforeEach(func() {
 			record := bmpkgs.CompiledPackageRecord{
-				BlobID:      "fake-blob-id",
-				Fingerprint: "fake-package-fingerprint",
+				BlobID:   "fake-blob-id",
+				BlobSha1: "fake-package-fingerprint",
 			}
 			repo.SetFindBehavior(*pkg, record, true, nil)
 			blobstore.GetFileName = "/tmp/fake-blob-file"
