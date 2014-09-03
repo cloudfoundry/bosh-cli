@@ -1,0 +1,10 @@
+---
+name: cpi
+templates:
+  cpi.erb: bin/cpi
+  micro_discover_ip.erb: bin/micro_discover_ip
+
+packages:
+  - compiled_package
+
+properties: {}

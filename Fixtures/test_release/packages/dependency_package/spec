@@ -1,0 +1,4 @@
+---
+name: dependency_package
+files:
+- dependency_package/*

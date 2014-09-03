@@ -18,9 +18,6 @@ func TestIntegration(t *testing.T) {
 	BeforeSuite(func() {
 		err := bmtestutils.BuildExecutable()
 		Expect(err).NotTo(HaveOccurred())
-
-		testCpiFilePath, err = bmtestutils.DownloadTestCpiRelease("")
-		Expect(err).NotTo(HaveOccurred())
 	})
 
 	var (
@@ -43,11 +40,6 @@ func TestIntegration(t *testing.T) {
 		Expect(err).NotTo(HaveOccurred())
 
 		err = os.RemoveAll(homePath)
-		Expect(err).NotTo(HaveOccurred())
-	})
-
-	AfterSuite(func() {
-		err := os.Remove(testCpiFilePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

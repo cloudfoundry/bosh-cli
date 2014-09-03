@@ -1,0 +1,6 @@
+---
+name: compiled_package
+dependencies:
+- dependency_package
+files:
+- dependency_package/*

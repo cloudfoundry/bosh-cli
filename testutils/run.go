@@ -2,9 +2,8 @@ package testutils
 
 import (
 	"fmt"
-	"time"
-
 	"os/exec"
+	"time"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega/gexec"
@@ -24,7 +23,11 @@ func RunBoshMicro(args ...string) (*gexec.Session, error) {
 
 func RunCommand(cmd string, args ...string) (*gexec.Session, error) {
 	command := exec.Command(cmd, args...)
-	session, err := gexec.Start(command, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
+	return RunComplexCommand(command)
+}
+
+func RunComplexCommand(cmd *exec.Cmd) (*gexec.Session, error) {
+	session, err := gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 	if err != nil {
 		return nil, err
 	}
