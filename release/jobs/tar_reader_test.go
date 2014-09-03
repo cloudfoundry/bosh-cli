@@ -1,12 +1,13 @@
 package jobs_test
 
 import (
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 )
 
 var _ = Describe("TarReader", func() {
@@ -36,6 +37,10 @@ templates:
   some_template: some_file
 packages:
 - fake-package
+properties:
+  fake-property:
+    description: "Fake description"
+    default: "fake-default"
 `,
 				)
 			})
@@ -49,6 +54,12 @@ packages:
 						Templates:     map[string]string{"some_template": "some_file"},
 						PackageNames:  []string{"fake-package"},
 						ExtractedPath: "/extracted/job",
+						Properties: map[string]PropertyDefinition{
+							"fake-property": PropertyDefinition{
+								Description: "Fake description",
+								Default:     "fake-default",
+							},
+						},
 					},
 				))
 			})

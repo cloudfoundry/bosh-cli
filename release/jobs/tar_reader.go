@@ -55,5 +55,6 @@ func (r *tarReader) Read() (Job, error) {
 		Templates:     jobManifest.Templates,
 		PackageNames:  jobManifest.Packages,
 		ExtractedPath: r.extractedJobPath,
+		Properties:    jobManifest.Properties,
 	}, nil
 }
