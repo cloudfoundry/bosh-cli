@@ -18,22 +18,22 @@ import (
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
-type Key struct {
+type PackageKey struct {
 	PackageName        string
 	PackageFingerprint string
 }
 
-type Value struct {
+type PackageValue struct {
 	BlobID   string
 	BlobSha1 string
 }
 
-type Item struct {
-	Key   Key
-	Value Value
+type PackageItem struct {
+	Key   PackageKey
+	Value PackageValue
 }
 
-type IndexFile []Item
+type CompiledPackagesIndexFile []PackageItem
 
 type DeploymentFile struct {
 	UUID string
@@ -49,30 +49,30 @@ type compilePackages struct {
 	fs                      boshsys.FileSystem
 }
 
-func NewCompilePackages(deploymentWorkspacePath string, fs boshsys.FileSystem) compilePackages{
+func NewCompilePackages(deploymentWorkspacePath string, fs boshsys.FileSystem) compilePackages {
 	return compilePackages{deploymentWorkspacePath: deploymentWorkspacePath, fs: fs}
 }
 
 func (c compilePackages) GetPackageBlobByName(packageName string) (blobReader, bool) {
-	indexFile := path.Join(c.deploymentWorkspacePath, "index.json")
+	indexFile := path.Join(c.deploymentWorkspacePath, "compiled_packages.json")
 	Expect(c.fs.FileExists(indexFile)).To(BeTrue(), fmt.Sprintf("Expect index file to exist at %s", indexFile))
 
 	index, err := c.fs.ReadFile(indexFile)
 	Expect(err).NotTo(HaveOccurred())
 
-	indexContent := IndexFile{}
+	indexContent := CompiledPackagesIndexFile{}
 	err = json.Unmarshal(index, &indexContent)
 	Expect(err).NotTo(HaveOccurred())
 
- 	blobId, found := c.getPackageBlobId(indexContent, packageName)
+	blobID, found := c.getPackageBlobID(indexContent, packageName)
 	if !found {
 		return blobReader{}, false
 	}
 
-	return blobReader{path.Join(c.deploymentWorkspacePath, "blobs", blobId)}, true
+	return blobReader{path.Join(c.deploymentWorkspacePath, "blobs", blobID)}, true
 }
 
-func (c compilePackages) getPackageBlobId(indexContent IndexFile, packageName string) (string, bool) {
+func (c compilePackages) getPackageBlobID(indexContent CompiledPackagesIndexFile, packageName string) (string, bool) {
 	for _, item := range indexContent {
 		if item.Key.PackageName == packageName {
 			return item.Value.BlobID, true
@@ -80,6 +80,25 @@ func (c compilePackages) getPackageBlobId(indexContent IndexFile, packageName st
 	}
 
 	return "", false
+}
+
+type deploymentWorkspace struct {
+	workspaceDir string
+	fs           boshsys.FileSystem
+}
+
+func (d deploymentWorkspace) Path() string {
+	deploymentFilePath := path.Join(d.workspaceDir, "deployment.json")
+	Expect(d.fs.FileExists(deploymentFilePath)).To(BeTrue())
+
+	deploymentRawContent, err := d.fs.ReadFile(deploymentFilePath)
+	Expect(err).NotTo(HaveOccurred())
+
+	deploymentFile := DeploymentFile{}
+	err = json.Unmarshal(deploymentRawContent, &deploymentFile)
+	Expect(err).NotTo(HaveOccurred())
+
+	return filepath.Join(os.Getenv("HOME"), ".bosh_micro", deploymentFile.UUID)
 }
 
 type blobReader struct {
@@ -93,7 +112,7 @@ func (b blobReader) FileExists(fileName string) bool {
 }
 
 func (b blobReader) FileContents(fileName string) []byte {
-	session, err := bmtestutils.RunCommand("tar", "--to-stdout", "-xf", b.blobPath,  fileName)
+	session, err := bmtestutils.RunCommand("tar", "--to-stdout", "-xf", b.blobPath, fileName)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(session.ExitCode()).To(Equal(0))
 	return session.Out.Contents()
@@ -122,7 +141,7 @@ var _ = Describe("bosh-micro", func() {
 		releaseTarball             string
 		fs                         boshsys.FileSystem
 		deploymentManifestFilePath string
-		cpiRel                 cpiRelease
+		cpiRel                     cpiRelease
 	)
 
 	BeforeEach(func() {
@@ -178,18 +197,8 @@ var _ = Describe("bosh-micro", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
 
-			deploymentFilePath := path.Join(workspaceDir, "deployment.json")
-			Expect(fs.FileExists(deploymentFilePath)).To(BeTrue())
-
-			deploymentRawContent, err := fs.ReadFile(deploymentFilePath)
-			Expect(err).NotTo(HaveOccurred())
-
-			deploymentFile := DeploymentFile{}
-			err = json.Unmarshal(deploymentRawContent, &deploymentFile)
-			Expect(err).NotTo(HaveOccurred())
-
-			deploymentWorkspacePath := filepath.Join(os.Getenv("HOME"), ".bosh_micro", deploymentFile.UUID)
-			compilePackages := NewCompilePackages(deploymentWorkspacePath, fs)
+			workspace := deploymentWorkspace{workspaceDir, fs}
+			compilePackages := NewCompilePackages(workspace.Path(), fs)
 			blob, found := compilePackages.GetPackageBlobByName("compiled_package")
 			Expect(found).To(BeTrue())
 			Expect(blob.FileExists("compiled_file")).To(BeTrue())

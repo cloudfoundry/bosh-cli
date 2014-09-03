@@ -90,7 +90,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	)
 
 	compressor := boshcmd.NewTarballCompressor(runner, f.fileSystem)
-	indexFilePath := f.config.IndexPath()
+	indexFilePath := f.config.CompiledPackagedIndexPath()
 	index := bmindex.NewFileIndex(indexFilePath, f.fileSystem)
 	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(index)
 

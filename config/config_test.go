@@ -27,7 +27,7 @@ var _ = Describe("Config", func() {
 		})
 
 		It("returns the index path", func() {
-			Expect(c.IndexPath()).To(Equal("/home/fake/.bosh_micro/madcow/index.json"))
+			Expect(c.CompiledPackagedIndexPath()).To(Equal("/home/fake/.bosh_micro/madcow/compiled_packages.json"))
 		})
 
 		It("returns the packages path", func() {

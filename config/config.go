@@ -16,8 +16,8 @@ func (c Config) BlobstorePath() string {
 	return path.Join(c.ContainingDir, ".bosh_micro", c.DeploymentUUID, "blobs")
 }
 
-func (c Config) IndexPath() string {
-	return path.Join(c.ContainingDir, ".bosh_micro", c.DeploymentUUID, "index.json")
+func (c Config) CompiledPackagedIndexPath() string {
+	return path.Join(c.ContainingDir, ".bosh_micro", c.DeploymentUUID, "compiled_packages.json")
 }
 
 func (c Config) PackagesPath() string {
