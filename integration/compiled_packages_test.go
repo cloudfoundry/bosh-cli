@@ -39,12 +39,67 @@ type DeploymentFile struct {
 	UUID string
 }
 
-type CpiRelease struct {
+type cpiRelease struct {
 	releaseDir string
 	fs         boshsys.FileSystem
 }
 
-func (c CpiRelease) createRelease() string {
+type compilePackages struct {
+	deploymentWorkspacePath string
+	fs                      boshsys.FileSystem
+}
+
+func NewCompilePackages(deploymentWorkspacePath string, fs boshsys.FileSystem) compilePackages{
+	return compilePackages{deploymentWorkspacePath: deploymentWorkspacePath, fs: fs}
+}
+
+func (c compilePackages) GetPackageBlobByName(packageName string) (blobReader, bool) {
+	indexFile := path.Join(c.deploymentWorkspacePath, "index.json")
+	Expect(c.fs.FileExists(indexFile)).To(BeTrue(), fmt.Sprintf("Expect index file to exist at %s", indexFile))
+
+	index, err := c.fs.ReadFile(indexFile)
+	Expect(err).NotTo(HaveOccurred())
+
+	indexContent := IndexFile{}
+	err = json.Unmarshal(index, &indexContent)
+	Expect(err).NotTo(HaveOccurred())
+
+ 	blobId, found := c.getPackageBlobId(indexContent, packageName)
+	if !found {
+		return blobReader{}, false
+	}
+
+	return blobReader{path.Join(c.deploymentWorkspacePath, "blobs", blobId)}, true
+}
+
+func (c compilePackages) getPackageBlobId(indexContent IndexFile, packageName string) (string, bool) {
+	for _, item := range indexContent {
+		if item.Key.PackageName == packageName {
+			return item.Value.BlobID, true
+		}
+	}
+
+	return "", false
+}
+
+type blobReader struct {
+	blobPath string
+}
+
+func (b blobReader) FileExists(fileName string) bool {
+	session, err := bmtestutils.RunCommand("tar", "-tf", b.blobPath, fileName)
+	Expect(err).ToNot(HaveOccurred())
+	return session.ExitCode() == 0
+}
+
+func (b blobReader) FileContents(fileName string) []byte {
+	session, err := bmtestutils.RunCommand("tar", "--to-stdout", "-xf", b.blobPath,  fileName)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(session.ExitCode()).To(Equal(0))
+	return session.Out.Contents()
+}
+
+func (c cpiRelease) createRelease() string {
 	cmd := exec.Command("bosh", "create", "release", "--with-tarball")
 	cmd.Dir = c.releaseDir
 
@@ -57,7 +112,7 @@ func (c CpiRelease) createRelease() string {
 	return matches[1]
 }
 
-func (c CpiRelease) removeJob(jobName string) {
+func (c cpiRelease) removeJob(jobName string) {
 	c.fs.RemoveAll(path.Join(c.releaseDir, "jobs", jobName))
 }
 
@@ -67,7 +122,7 @@ var _ = Describe("bosh-micro", func() {
 		releaseTarball             string
 		fs                         boshsys.FileSystem
 		deploymentManifestFilePath string
-		cpiRelease                 CpiRelease
+		cpiRel                 cpiRelease
 	)
 
 	BeforeEach(func() {
@@ -95,7 +150,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(session.ExitCode()).To(Equal(0))
 
 		releaseDir := filepath.Join(workspaceDir, "test_release")
-		cpiRelease = CpiRelease{releaseDir, fs}
+		cpiRel = cpiRelease{releaseDir, fs}
 	})
 
 	AfterEach(func() {
@@ -105,7 +160,7 @@ var _ = Describe("bosh-micro", func() {
 
 	Context("when the CPI release is valid", func() {
 		BeforeEach(func() {
-			releaseTarball = cpiRelease.createRelease()
+			releaseTarball = cpiRel.createRelease()
 		})
 
 		It("compiles packages", func() {
@@ -118,7 +173,7 @@ var _ = Describe("bosh-micro", func() {
 			Expect(output).To(ContainSubstring("Started compiling packages > compiled_package"))
 		})
 
-		It("creates blobs", func() {
+		It("creates blobs with result of the compilation", func() {
 			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
@@ -133,21 +188,11 @@ var _ = Describe("bosh-micro", func() {
 			err = json.Unmarshal(deploymentRawContent, &deploymentFile)
 			Expect(err).NotTo(HaveOccurred())
 
-			boshMicroHiddenPath := filepath.Join(os.Getenv("HOME"), ".bosh_micro", deploymentFile.UUID)
-			Expect(fs.FileExists(boshMicroHiddenPath)).To(BeTrue())
-			indexFile := path.Join(boshMicroHiddenPath, "index.json")
-			Expect(fs.FileExists(indexFile)).To(BeTrue(), fmt.Sprintf("Expect index file to exist at %s", indexFile))
-
-			index, err := fs.ReadFile(path.Join(boshMicroHiddenPath, "index.json"))
-			Expect(err).NotTo(HaveOccurred())
-
-			indexContent := IndexFile{}
-			err = json.Unmarshal(index, &indexContent)
-
-			Expect(err).NotTo(HaveOccurred())
-			for _, item := range indexContent {
-				Expect(item.Value.BlobSha1).ToNot(BeEmpty())
-			}
+			deploymentWorkspacePath := filepath.Join(os.Getenv("HOME"), ".bosh_micro", deploymentFile.UUID)
+			compilePackages := NewCompilePackages(deploymentWorkspacePath, fs)
+			blob, found := compilePackages.GetPackageBlobByName("compiled_package")
+			Expect(found).To(BeTrue())
+			Expect(blob.FileExists("compiled_file")).To(BeTrue())
 		})
 	})
 
@@ -155,8 +200,8 @@ var _ = Describe("bosh-micro", func() {
 		var invalidCpiReleasePath string
 
 		BeforeEach(func() {
-			cpiRelease.removeJob("cpi")
-			invalidCpiReleasePath = cpiRelease.createRelease()
+			cpiRel.removeJob("cpi")
+			invalidCpiReleasePath = cpiRel.createRelease()
 		})
 
 		It("says CPI release is invalid", func() {
