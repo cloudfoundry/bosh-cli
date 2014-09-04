@@ -12,6 +12,7 @@ import (
 
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
@@ -118,6 +119,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		boshtime.NewConcreteService(),
 	)
 
+	manifestParser := bmdepl.NewManifestParser(f.fileSystem)
+
 	return NewDeployCmd(
 		f.ui,
 		f.config,
@@ -125,6 +128,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		tgz,
 		releaseValidator,
 		releaseCompiler,
+		manifestParser,
 		f.logger,
 	), nil
 }

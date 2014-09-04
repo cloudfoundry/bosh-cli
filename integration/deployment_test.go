@@ -36,7 +36,7 @@ var _ = Describe("bosh-micro", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				deploymentManifestFilePath = path.Join(deploymentManifestDir, "micro_deployment.yml")
-				err = bmtestutils.GenerateDeploymentManifest(deploymentManifestFilePath)
+				err = bmtestutils.GenerateDeploymentManifest(deploymentManifestFilePath, fileSystem)
 				Expect(err).NotTo(HaveOccurred())
 			})
 

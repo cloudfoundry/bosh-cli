@@ -1,10 +1,15 @@
 package testutils
 
 import (
-	"io/ioutil"
-	"os"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
-func GenerateDeploymentManifest(deploymentManifestFilePath string) error {
-	return ioutil.WriteFile(deploymentManifestFilePath, []byte(""), os.ModePerm)
+func GenerateDeploymentManifest(deploymentManifestFilePath string, fs boshsys.FileSystem) error {
+	manifestContents := `
+---
+name: fake-deployment
+cloud_provider:
+  properties: {}
+`
+	return fs.WriteFileString(deploymentManifestFilePath, manifestContents)
 }

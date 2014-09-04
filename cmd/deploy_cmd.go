@@ -12,6 +12,7 @@ import (
 
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -23,13 +24,14 @@ const (
 )
 
 type deployCmd struct {
-	ui        bmui.UI
-	config    bmconfig.Config
-	fs        boshsys.FileSystem
-	extractor boshcmd.Compressor
-	validator bmrelvalidation.ReleaseValidator
-	compiler  bmcomp.ReleaseCompiler
-	logger    boshlog.Logger
+	ui             bmui.UI
+	config         bmconfig.Config
+	fs             boshsys.FileSystem
+	extractor      boshcmd.Compressor
+	validator      bmrelvalidation.ReleaseValidator
+	compiler       bmcomp.ReleaseCompiler
+	manifestParser bmdepl.ManifestParser
+	logger         boshlog.Logger
 }
 
 func NewDeployCmd(
@@ -39,16 +41,18 @@ func NewDeployCmd(
 	extractor boshcmd.Compressor,
 	validator bmrelvalidation.ReleaseValidator,
 	compiler bmcomp.ReleaseCompiler,
+	manifestParser bmdepl.ManifestParser,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
-		ui:        ui,
-		config:    config,
-		fs:        fs,
-		extractor: extractor,
-		validator: validator,
-		compiler:  compiler,
-		logger:    logger,
+		ui:             ui,
+		config:         config,
+		fs:             fs,
+		extractor:      extractor,
+		validator:      validator,
+		compiler:       compiler,
+		manifestParser: manifestParser,
+		logger:         logger,
 	}
 }
 
@@ -88,10 +92,17 @@ func (c *deployCmd) Run(args []string) error {
 
 	c.logger.Info(logTag, fmt.Sprintf("Compiling release `%s'", release.Name))
 	c.logger.Debug(logTag, fmt.Sprintf("Compiling release: %#v", release))
+
 	err = c.compiler.Compile(release)
 	if err != nil {
 		c.ui.Error("Could not compile release")
 		return bosherr.WrapError(err, "Compiling release")
+	}
+
+	_, err = c.manifestParser.Parse(c.config.Deployment)
+	if err != nil {
+		c.ui.Error("Could not parse deployment manifest")
+		return bosherr.WrapError(err, "Parsing deployment manifest")
 	}
 
 	return nil

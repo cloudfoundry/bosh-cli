@@ -16,6 +16,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
+	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -74,6 +75,8 @@ var _ = Describe("cmd.Factory", func() {
 			It("returns a  deploy command", func() {
 				releaseValidator := fakebmrel.NewFakeValidator()
 				releaseCompiler := fakebmcomp.NewFakeReleaseCompiler()
+				manifestParser := fakebmdepl.NewFakeManifestParser()
+
 				cmd, err := factory.CreateCommand("deploy")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(cmd).To(BeAssignableToTypeOf(NewDeployCmd(
@@ -83,6 +86,7 @@ var _ = Describe("cmd.Factory", func() {
 					extractor,
 					releaseValidator,
 					releaseCompiler,
+					manifestParser,
 					logger,
 				)))
 			})

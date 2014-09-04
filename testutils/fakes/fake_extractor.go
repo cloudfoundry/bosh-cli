@@ -47,6 +47,10 @@ func (e *FakeMultiResponseExtractor) SetDecompressBehavior(srcFile, destDir stri
 	e.decompressBehavior[decompressInput{srcFile: srcFile, destDir: destDir}] = decompressOutput{err: err}
 }
 
+func (e *FakeMultiResponseExtractor) Behaviors() map[decompressInput]decompressOutput {
+	return e.decompressBehavior
+}
+
 func (e *FakeMultiResponseExtractor) CompressFilesInDir(srcDir string) (string, error) {
 	input := compressInput{srcDir: srcDir}
 	output, found := e.compressBehavior[input]

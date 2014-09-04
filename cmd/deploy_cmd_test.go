@@ -10,8 +10,10 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
+	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -26,6 +28,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeExtractor        *testfakes.FakeMultiResponseExtractor
 		fakeReleaseValidator *fakebmrel.FakeValidator
 		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
+		fakeManifestParser   *fakebmdepl.FakeManifestParser
 		logger               boshlog.Logger
 	)
 
@@ -36,6 +39,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
 		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
+		fakeManifestParser = fakebmdepl.NewFakeManifestParser()
+
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		command = bmcmd.NewDeployCmd(
@@ -45,6 +50,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeExtractor,
 			fakeReleaseValidator,
 			fakeReleaseCompiler,
+			fakeManifestParser,
 			logger,
 		)
 	})
@@ -75,6 +81,7 @@ var _ = Describe("DeployCmd", func() {
 							fakeExtractor,
 							fakeReleaseValidator,
 							fakeReleaseCompiler,
+							fakeManifestParser,
 							logger,
 						)
 					})
@@ -92,10 +99,14 @@ var _ = Describe("DeployCmd", func() {
 							Context("and the tarball is a valid BOSH release", func() {
 								BeforeEach(func() {
 									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-									fakeFs.WriteFileString("/some/release/path/release.MF", `---
+									releaseContents :=
+										`---
 name: fake-release
 version: fake-version
-`)
+`
+									fakeFs.WriteFileString("/some/release/path/release.MF", releaseContents)
+									deployment := bmdepl.LocalDeployment{Name: "fake-deployment-name"}
+									fakeManifestParser.SetParseBehavior("/some/deployment/file", deployment, nil)
 								})
 
 								It("does not return an error", func() {
@@ -113,6 +124,12 @@ version: fake-version
 									err := command.Run([]string{"/somepath"})
 									Expect(err).NotTo(HaveOccurred())
 									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
+								})
+
+								It("parses deployment manifest", func() {
+									err := command.Run([]string{"/somepath"})
+									Expect(err).NotTo(HaveOccurred())
+									Expect(fakeManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
 								})
 							})
 
@@ -170,6 +187,22 @@ version: fake-version
 								Expect(fakeUI.Errors).To(ContainElement("Could not create a temporary directory"))
 							})
 						})
+
+						Context("when parsing deployment manifest fails", func() {
+							BeforeEach(func() {
+								fakeFs.TempDirDir = "/some/release/path"
+								fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
+								fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
+								parserErr := errors.New("fake-manifest-parser-error")
+								fakeManifestParser.SetParseBehavior("/some/deployment/file", bmdepl.LocalDeployment{}, parserErr)
+							})
+
+							It("returns an error", func() {
+								err := command.Run([]string{"/somepath"})
+								Expect(err).To(HaveOccurred())
+								Expect(err.Error()).To(ContainSubstring("fake-manifest-parser-error"))
+							})
+						})
 					})
 
 					Context("when the deployment manifest is missing", func() {
@@ -182,6 +215,7 @@ version: fake-version
 								fakeExtractor,
 								fakeReleaseValidator,
 								fakeReleaseCompiler,
+								fakeManifestParser,
 								logger,
 							)
 						})
