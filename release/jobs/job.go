@@ -10,6 +10,7 @@ type Job struct {
 	Properties    map[string]PropertyDefinition
 }
 
+// Manifest - for reading job.MF
 type Manifest struct {
 	Name       string                        `yaml:"name"`
 	Templates  map[string]string             `yaml:"templates"`
