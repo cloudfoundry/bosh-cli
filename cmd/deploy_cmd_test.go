@@ -105,7 +105,7 @@ name: fake-release
 version: fake-version
 `
 									fakeFs.WriteFileString("/some/release/path/release.MF", releaseContents)
-									deployment := bmdepl.LocalDeployment{Name: "fake-deployment-name"}
+									deployment := bmdepl.NewLocalDeployment("fake-deployment-name", map[string]interface{}{})
 									fakeManifestParser.SetParseBehavior("/some/deployment/file", deployment, nil)
 								})
 

@@ -11,8 +11,18 @@ type parseInput struct {
 }
 
 type parseOutput struct {
-	localDeployment bmdepl.LocalDeployment
-	err             error
+	deployment bmdepl.Deployment
+	err        error
+}
+
+type fakeDeployment struct{}
+
+func (f fakeDeployment) Name() string {
+	return "fake-deployment-name"
+}
+
+func (f fakeDeployment) Properties() map[string]interface{} {
+	return map[string]interface{}{}
 }
 
 type FakeManifestParser struct {
@@ -27,18 +37,18 @@ func NewFakeManifestParser() *FakeManifestParser {
 	}
 }
 
-func (f *FakeManifestParser) Parse(deploymentPath string) (bmdepl.LocalDeployment, error) {
+func (f *FakeManifestParser) Parse(deploymentPath string) (bmdepl.Deployment, error) {
 	input := parseInput{DeploymentPath: deploymentPath}
 	f.ParseInputs = append(f.ParseInputs, input)
 	output, found := f.parseBehavior[input]
 
 	if found {
-		return output.localDeployment, output.err
+		return output.deployment, output.err
 	}
 
-	return bmdepl.LocalDeployment{}, fmt.Errorf("Unsupported Input: Parse('%s')", deploymentPath)
+	return fakeDeployment{}, fmt.Errorf("Unsupported Input: Parse('%s')", deploymentPath)
 }
 
-func (f *FakeManifestParser) SetParseBehavior(deploymentPath string, deployment bmdepl.LocalDeployment, err error) {
-	f.parseBehavior[parseInput{DeploymentPath: deploymentPath}] = parseOutput{localDeployment: deployment, err: err}
+func (f *FakeManifestParser) SetParseBehavior(deploymentPath string, deployment bmdepl.Deployment, err error) {
+	f.parseBehavior[parseInput{DeploymentPath: deploymentPath}] = parseOutput{deployment: deployment, err: err}
 }

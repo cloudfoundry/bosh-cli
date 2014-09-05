@@ -21,7 +21,7 @@ var _ = Describe("DeploymentRenderer", func() {
 	BeforeEach(func() {
 		deploymentPath = "fake-deployment-path"
 		fakeFs = fakesys.NewFakeFileSystem()
-		manifestParser = NewManifestParser(fakeFs)
+		manifestParser = NewMicroDeploymentParser(fakeFs)
 	})
 
 	Context("when deployment path does not exist", func() {
@@ -59,8 +59,8 @@ cloud_provider:
 				deployment, err := manifestParser.Parse(deploymentPath)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deployment.Name).To(Equal("fake-deployment-name"))
-				Expect(deployment.Properties["fake-name"]).To(Equal("fake-value"))
+				Expect(deployment.Name()).To(Equal("fake-deployment-name"))
+				Expect(deployment.Properties()).To(Equal(map[string]interface{}{"fake-name": "fake-value"}))
 			})
 		})
 	})

@@ -119,7 +119,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		boshtime.NewConcreteService(),
 	)
 
-	manifestParser := bmdepl.NewManifestParser(f.fileSystem)
+	manifestParser := bmdepl.NewMicroDeploymentParser(f.fileSystem)
 
 	return NewDeployCmd(
 		f.ui,

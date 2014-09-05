@@ -8,12 +8,13 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 )
 
 type TemplatesCompiler interface {
-	Compile(jobs []bmreljob.Job) error
+	Compile(jobs []bmreljob.Job, deployment bmdepl.Deployment) error
 }
 
 type templatesCompiler struct {
@@ -40,9 +41,9 @@ func NewTemplatesCompiler(
 	}
 }
 
-func (tc templatesCompiler) Compile(jobs []bmreljob.Job) error {
+func (tc templatesCompiler) Compile(jobs []bmreljob.Job, deployment bmdepl.Deployment) error {
 	for _, job := range jobs {
-		err := tc.compileJob(job)
+		err := tc.compileJob(job, deployment)
 		if err != nil {
 			return err
 		}
@@ -50,7 +51,7 @@ func (tc templatesCompiler) Compile(jobs []bmreljob.Job) error {
 	return nil
 }
 
-func (tc templatesCompiler) compileJob(job bmreljob.Job) error {
+func (tc templatesCompiler) compileJob(job bmreljob.Job, deployment bmdepl.Deployment) error {
 	jobSrcDir := job.ExtractedPath
 	jobCompileDir, err := tc.fs.TempDir("templates-compiler")
 	if err != nil {
@@ -58,9 +59,9 @@ func (tc templatesCompiler) compileJob(job bmreljob.Job) error {
 	}
 	defer tc.fs.RemoveAll(jobCompileDir)
 
-  context := NewJobEvaluationContext(job, map[string]interface{}{}, "deploymentname")
+	context := NewJobEvaluationContext(job, deployment.Properties(), deployment.Name())
 
-  for src, dst := range job.Templates {
+	for src, dst := range job.Templates {
 		renderSrcPath := filepath.Join(jobSrcDir, src)
 		renderDstPath := filepath.Join(jobCompileDir, dst)
 		err = tc.erbrenderer.Render(renderSrcPath, renderDstPath, context)

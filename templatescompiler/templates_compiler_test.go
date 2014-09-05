@@ -18,6 +18,18 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
+type testDeployment struct{}
+
+func (t testDeployment) Name() string {
+	return "fake-deployment-name"
+}
+
+func (t testDeployment) Properties() map[string]interface{} {
+	return map[string]interface{}{
+		"fake-property-key": "fake-property-value",
+	}
+}
+
 var _ = Describe("TemplatesCompiler", func() {
 	var (
 		templatesCompiler TemplatesCompiler
@@ -29,6 +41,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		compileDir        string
 		jobs              []bmreljob.Job
 		context           bmrender.TemplateEvaluationContext
+		deployment        testDeployment
 	)
 
 	BeforeEach(func() {
@@ -41,7 +54,15 @@ var _ = Describe("TemplatesCompiler", func() {
 
 		templatesRepo = fakebmtemp.NewFakeTemplatesRepo()
 
-		templatesCompiler = NewTemplatesCompiler(renderer, compressor, blobstore, templatesRepo, fs)
+		deployment = testDeployment{}
+
+		templatesCompiler = NewTemplatesCompiler(
+			renderer,
+			compressor,
+			blobstore,
+			templatesRepo,
+			fs,
+		)
 
 		var err error
 		compileDir, err = fs.TempDir("bosh-micro-cli-tests")
@@ -61,7 +82,11 @@ var _ = Describe("TemplatesCompiler", func() {
 				},
 			}
 
-			context = NewJobEvaluationContext(jobs[0], map[string]interface{}{}, "deploymentname")
+			manifestProperties := map[string]interface{}{
+				"fake-property-key": "fake-property-value",
+			}
+
+			context = NewJobEvaluationContext(jobs[0], manifestProperties, "fake-deployment-name")
 			renderer.SetRenderBehavior(
 				"fake-extracted-path/cpi.erb",
 				filepath.Join(compileDir, "bin/cpi"),
@@ -79,7 +104,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		})
 
 		It("renders job templates", func() {
-			err := templatesCompiler.Compile(jobs)
+			err := templatesCompiler.Compile(jobs, deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(renderer.RenderInputs).To(ContainElement(
 				fakebmrender.RenderInput{
@@ -91,26 +116,26 @@ var _ = Describe("TemplatesCompiler", func() {
 		})
 
 		It("cleans the temp folder to hold the compile result for job", func() {
-			err := templatesCompiler.Compile(jobs)
+			err := templatesCompiler.Compile(jobs, deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.FileExists(compileDir)).To(BeFalse())
 		})
 
 		It("generates templates archive", func() {
-			err := templatesCompiler.Compile(jobs)
+			err := templatesCompiler.Compile(jobs, deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(compressor.CompressFilesInDirDir).To(Equal(compileDir))
 			Expect(compressor.CleanUpTarballPath).To(Equal("fake-tarball-path"))
 		})
 
 		It("saves archive in blobstore", func() {
-			err := templatesCompiler.Compile(jobs)
+			err := templatesCompiler.Compile(jobs, deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobstore.CreateFileName).To(Equal("fake-tarball-path"))
 		})
 
 		It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
-			err := templatesCompiler.Compile(jobs)
+			err := templatesCompiler.Compile(jobs, deployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			record := TemplateRecord{
@@ -129,7 +154,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs)
+				err := templatesCompiler.Compile(jobs, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-tempdir-error"))
 			})
@@ -146,7 +171,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs)
+				err := templatesCompiler.Compile(jobs, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
 			})
@@ -158,7 +183,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs)
+				err := templatesCompiler.Compile(jobs, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compress-error"))
 			})
@@ -170,7 +195,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs)
+				err := templatesCompiler.Compile(jobs, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-blobstore-error"))
 			})
@@ -188,7 +213,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs)
+				err := templatesCompiler.Compile(jobs, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-error"))
 			})
@@ -243,7 +268,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs)
+				err := templatesCompiler.Compile(jobs, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-2-error"))
 			})
