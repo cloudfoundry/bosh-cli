@@ -11,6 +11,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 )
@@ -28,7 +29,7 @@ var _ = Describe("ErbRenderer", func() {
 		runner = fakesys.NewFakeCmdRunner()
 		job := bmreljob.Job{}
 		manifestProperties := map[string]interface{}{}
-		context := NewTemplateEvaluationContext(job, manifestProperties, "fake-deployment-name")
+		context := bmtempcomp.NewJobEvaluationContext(job, manifestProperties, "fake-deployment-name")
 
 		erbRenderer = NewERBRenderer(fs, runner, context, logger)
 		fs.TempDirDir = "fake-temp-dir"

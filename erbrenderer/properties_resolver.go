@@ -2,8 +2,6 @@ package erbrenderer
 
 import (
 	"strings"
-
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 )
 
 type PropertiesResolver interface {
@@ -11,12 +9,12 @@ type PropertiesResolver interface {
 }
 
 type propertiesResolver struct {
-	defaultProperties    map[string]bmreljob.PropertyDefinition
+	defaultProperties    map[string]interface{}
 	propertiesWithValues map[string]interface{}
 }
 
 func NewPropertiesResolver(
-	defaultProperties map[string]bmreljob.PropertyDefinition,
+	defaultProperties map[string]interface{},
 	propertiesWithValues map[string]interface{},
 ) PropertiesResolver {
 	return propertiesResolver{
@@ -27,9 +25,9 @@ func NewPropertiesResolver(
 
 func (p propertiesResolver) Resolve() map[string]interface{} {
 	result := p.propertiesWithValues
-	for propertyKey, defaultProperty := range p.defaultProperties {
+	for propertyKey, defaultPropertyValue := range p.defaultProperties {
 		propertyKeyParts := strings.Split(propertyKey, ".")
-		p.copyDefault(result, propertyKeyParts, defaultProperty.Default)
+		p.copyDefault(result, propertyKeyParts, defaultPropertyValue)
 	}
 
 	return result

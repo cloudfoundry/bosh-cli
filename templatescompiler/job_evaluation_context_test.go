@@ -1,4 +1,4 @@
-package erbrenderer_test
+package templatescompiler_test
 
 import (
 	"encoding/json"
@@ -6,13 +6,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
+	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
-var _ = Describe("TemplateEvaluationContext", func() {
-	var templateEvaluationContext TemplateEvaluationContext
+var _ = Describe("JobEvaluationContext", func() {
+	var jobEvaluationContext bmerbrenderer.TemplateEvaluationContext
 	BeforeEach(func() {
 		job := bmreljob.Job{
 			Name: "fake-job-name",
@@ -25,7 +26,7 @@ var _ = Describe("TemplateEvaluationContext", func() {
 
 		manifestProperties := map[string]interface{}{}
 
-		templateEvaluationContext = NewTemplateEvaluationContext(
+		jobEvaluationContext = NewJobEvaluationContext(
 			job,
 			manifestProperties,
 			"fake-deployment-name",
@@ -33,7 +34,7 @@ var _ = Describe("TemplateEvaluationContext", func() {
 	})
 
 	It("generates correct json", func() {
-		generatedJSON, err := templateEvaluationContext.MarshalJSON()
+		generatedJSON, err := jobEvaluationContext.MarshalJSON()
 		Expect(err).ToNot(HaveOccurred())
 
 		var generatedContext RootContext
