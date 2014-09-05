@@ -13,3 +13,7 @@ func NewConcreteService() concreteService {
 func (s concreteService) Now() time.Time {
 	return time.Now()
 }
+
+func (s concreteService) Sleep(duration time.Duration) {
+	time.Sleep(duration)
+}

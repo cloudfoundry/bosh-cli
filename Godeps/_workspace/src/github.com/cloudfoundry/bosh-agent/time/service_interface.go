@@ -6,4 +6,5 @@ import (
 
 type Service interface {
 	Now() time.Time
+	Sleep(time.Duration)
 }
