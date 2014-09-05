@@ -12,14 +12,13 @@ import (
 const erbRendererLogTag = "ERBRenderer"
 
 type ERBRenderer interface {
-	Render(srcPath, dstPath string) error
+	Render(srcPath, dstPath string, context TemplateEvaluationContext) error
 }
 
 type erbRenderer struct {
-	fs      boshsys.FileSystem
-	runner  boshsys.CmdRunner
-	context TemplateEvaluationContext
-	logger  boshlog.Logger
+	fs     boshsys.FileSystem
+	runner boshsys.CmdRunner
+	logger boshlog.Logger
 
 	rendererScript string
 }
@@ -27,20 +26,18 @@ type erbRenderer struct {
 func NewERBRenderer(
 	fs boshsys.FileSystem,
 	runner boshsys.CmdRunner,
-	context TemplateEvaluationContext,
 	logger boshlog.Logger,
 ) erbRenderer {
 	return erbRenderer{
-		fs:      fs,
-		runner:  runner,
-		context: context,
-		logger:  logger,
+		fs:     fs,
+		runner: runner,
+		logger: logger,
 
 		rendererScript: templateEvaluationContextRb,
 	}
 }
 
-func (r erbRenderer) Render(srcPath, dstPath string) error {
+func (r erbRenderer) Render(srcPath, dstPath string, context TemplateEvaluationContext) error {
 	r.logger.Debug(erbRendererLogTag, "Rendering template %s", dstPath)
 
 	tmpDir, err := r.fs.TempDir("erb-renderer")
@@ -56,7 +53,7 @@ func (r erbRenderer) Render(srcPath, dstPath string) error {
 	}
 
 	contextPath := filepath.Join(tmpDir, "erb-context.json")
-	err = r.writeContext(contextPath)
+	err = r.writeContext(contextPath, context)
 	if err != nil {
 		return err
 	}
@@ -83,8 +80,8 @@ func (r erbRenderer) writeRendererScript(scriptPath string) error {
 	return nil
 }
 
-func (r erbRenderer) writeContext(contextPath string) error {
-	contextBytes, err := json.Marshal(r.context)
+func (r erbRenderer) writeContext(contextPath string, context TemplateEvaluationContext) error {
+	contextBytes, err := json.Marshal(context)
 	if err != nil {
 		return bosherr.WrapError(err, "Marshalling context")
 	}

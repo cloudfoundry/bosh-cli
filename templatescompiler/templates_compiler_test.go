@@ -10,9 +10,10 @@ import (
 	fakeblobs "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
-	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
+	bmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
@@ -27,6 +28,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		fs                *fakesys.FakeFileSystem
 		compileDir        string
 		jobs              []bmreljob.Job
+		context           bmrender.TemplateEvaluationContext
 	)
 
 	BeforeEach(func() {
@@ -45,11 +47,6 @@ var _ = Describe("TemplatesCompiler", func() {
 		compileDir, err = fs.TempDir("bosh-micro-cli-tests")
 		Expect(err).ToNot(HaveOccurred())
 		fs.TempDirDir = compileDir
-		renderer.SetRenderBehavior(
-			"fake-extracted-path/cpi.erb",
-			filepath.Join(compileDir, "bin/cpi"),
-			nil,
-		)
 	})
 
 	Context("with a job", func() {
@@ -63,6 +60,14 @@ var _ = Describe("TemplatesCompiler", func() {
 					},
 				},
 			}
+
+			context = NewJobEvaluationContext(jobs[0], map[string]interface{}{}, "deploymentname")
+			renderer.SetRenderBehavior(
+				"fake-extracted-path/cpi.erb",
+				filepath.Join(compileDir, "bin/cpi"),
+				context,
+				nil,
+			)
 
 			blobstore.CreateBlobID = "fake-blob-id"
 			blobstore.CreateFingerprint = "fake-sha1"
@@ -80,6 +85,7 @@ var _ = Describe("TemplatesCompiler", func() {
 				fakebmrender.RenderInput{
 					SrcPath: "fake-extracted-path/cpi.erb",
 					DstPath: filepath.Join(compileDir, "bin/cpi"),
+					Context: context,
 				}),
 			)
 		})
@@ -134,6 +140,7 @@ var _ = Describe("TemplatesCompiler", func() {
 				renderer.SetRenderBehavior(
 					"fake-extracted-path/cpi.erb",
 					filepath.Join(compileDir, "bin/cpi"),
+					context,
 					errors.New("fake-render-error"),
 				)
 			})
@@ -216,12 +223,14 @@ var _ = Describe("TemplatesCompiler", func() {
 				renderer.SetRenderBehavior(
 					"fake-extracted-path-1/cpi.erb",
 					filepath.Join(compileDir, "bin/cpi"),
+					context,
 					nil,
 				)
 
 				renderer.SetRenderBehavior(
 					"fake-extracted-path-2/cpi.erb",
 					filepath.Join(compileDir, "bin/cpi"),
+					context,
 					errors.New("fake-render-2-error"),
 				)
 

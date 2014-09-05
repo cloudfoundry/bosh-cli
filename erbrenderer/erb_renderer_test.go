@@ -7,11 +7,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
-	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 )
@@ -21,22 +20,21 @@ var _ = Describe("ErbRenderer", func() {
 		fs          *fakesys.FakeFileSystem
 		runner      *fakesys.FakeCmdRunner
 		erbRenderer ERBRenderer
+		context     *fakebmerbrenderer.FakeTemplateEvaluationContext
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		runner = fakesys.NewFakeCmdRunner()
-		job := bmreljob.Job{}
-		manifestProperties := map[string]interface{}{}
-		context := bmtempcomp.NewJobEvaluationContext(job, manifestProperties, "fake-deployment-name")
+		context = &fakebmerbrenderer.FakeTemplateEvaluationContext{}
 
-		erbRenderer = NewERBRenderer(fs, runner, context, logger)
+		erbRenderer = NewERBRenderer(fs, runner, logger)
 		fs.TempDirDir = "fake-temp-dir"
 	})
 
 	It("constructs ruby erb rendering command", func() {
-		err := erbRenderer.Render("fake-src-path", "fake-dst-path")
+		err := erbRenderer.Render("fake-src-path", "fake-dst-path", context)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(runner.RunComplexCommands).To(Equal([]boshsys.Command{
 			boshsys.Command{
@@ -52,7 +50,7 @@ var _ = Describe("ErbRenderer", func() {
 	})
 
 	It("cleans up temporary directory", func() {
-		err := erbRenderer.Render("fake-src-path", "fake-dst-path")
+		err := erbRenderer.Render("fake-src-path", "fake-dst-path", context)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(fs.FileExists("fake-temp-dir")).To(BeFalse())
 	})
@@ -60,7 +58,7 @@ var _ = Describe("ErbRenderer", func() {
 	Context("when creating temporary directory fails", func() {
 		It("returns an error", func() {
 			fs.TempDirError = errors.New("fake-temp-dir-error")
-			err := erbRenderer.Render("fake-src-path", "fake-dst-path")
+			err := erbRenderer.Render("fake-src-path", "fake-dst-path", context)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-temp-dir-error"))
 		})
@@ -69,7 +67,7 @@ var _ = Describe("ErbRenderer", func() {
 	Context("when writing renderer script fails", func() {
 		It("returns an error", func() {
 			fs.WriteToFileError = errors.New("fake-write-error")
-			err := erbRenderer.Render("src-path", "dst-path")
+			err := erbRenderer.Render("src-path", "dst-path", context)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-write-error"))
 		})
@@ -85,7 +83,7 @@ var _ = Describe("ErbRenderer", func() {
 		})
 
 		It("returns an error", func() {
-			err := erbRenderer.Render("fake-src-path", "fake-dst-path")
+			err := erbRenderer.Render("fake-src-path", "fake-dst-path", context)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-cmd-error"))
 		})

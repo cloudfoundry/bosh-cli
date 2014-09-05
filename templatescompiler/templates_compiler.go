@@ -58,10 +58,12 @@ func (tc templatesCompiler) compileJob(job bmreljob.Job) error {
 	}
 	defer tc.fs.RemoveAll(jobCompileDir)
 
-	for src, dst := range job.Templates {
+  context := NewJobEvaluationContext(job, map[string]interface{}{}, "deploymentname")
+
+  for src, dst := range job.Templates {
 		renderSrcPath := filepath.Join(jobSrcDir, src)
 		renderDstPath := filepath.Join(jobCompileDir, dst)
-		err = tc.erbrenderer.Render(renderSrcPath, renderDstPath)
+		err = tc.erbrenderer.Render(renderSrcPath, renderDstPath, context)
 		if err != nil {
 			return bosherr.WrapError(err, "Rendering template src: %s, dst: %s", renderSrcPath, renderDstPath)
 		}
