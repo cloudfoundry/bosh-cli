@@ -112,7 +112,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	eventLogger := bmlog.NewEventLogger(f.ui)
 
 	da := bmcomp.NewDependencyAnalysis()
-	releaseCompiler := bmcomp.NewReleaseCompiler(
+	releasePackagesCompiler := bmcomp.NewReleasePackagesCompiler(
 		da,
 		packageCompiler,
 		eventLogger,
@@ -127,7 +127,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fileSystem,
 		tgz,
 		releaseValidator,
-		releaseCompiler,
+		releasePackagesCompiler,
 		manifestParser,
 		f.logger,
 	), nil

@@ -21,15 +21,15 @@ import (
 
 var _ = Describe("DeployCmd", func() {
 	var (
-		command              bmcmd.Cmd
-		config               bmconfig.Config
-		fakeFs               *fakesys.FakeFileSystem
-		fakeUI               *fakeui.FakeUI
-		fakeExtractor        *testfakes.FakeMultiResponseExtractor
-		fakeReleaseValidator *fakebmrel.FakeValidator
-		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
-		fakeManifestParser   *fakebmdepl.FakeManifestParser
-		logger               boshlog.Logger
+		command                     bmcmd.Cmd
+		config                      bmconfig.Config
+		fakeFs                      *fakesys.FakeFileSystem
+		fakeUI                      *fakeui.FakeUI
+		fakeExtractor               *testfakes.FakeMultiResponseExtractor
+		fakeReleaseValidator        *fakebmrel.FakeValidator
+		fakeReleasePackagesCompiler *fakebmcomp.FakeReleasePackagesCompiler
+		fakeManifestParser          *fakebmdepl.FakeManifestParser
+		logger                      boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -38,7 +38,7 @@ var _ = Describe("DeployCmd", func() {
 		config = bmconfig.Config{}
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
-		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
+		fakeReleasePackagesCompiler = fakebmcomp.NewFakeReleasePackagesCompiler()
 		fakeManifestParser = fakebmdepl.NewFakeManifestParser()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
@@ -49,7 +49,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeFs,
 			fakeExtractor,
 			fakeReleaseValidator,
-			fakeReleaseCompiler,
+			fakeReleasePackagesCompiler,
 			fakeManifestParser,
 			logger,
 		)
@@ -80,7 +80,7 @@ var _ = Describe("DeployCmd", func() {
 							fakeFs,
 							fakeExtractor,
 							fakeReleaseValidator,
-							fakeReleaseCompiler,
+							fakeReleasePackagesCompiler,
 							fakeManifestParser,
 							logger,
 						)
@@ -117,7 +117,7 @@ version: fake-version
 								It("compiles the release", func() {
 									err := command.Run([]string{"/somepath"})
 									Expect(err).NotTo(HaveOccurred())
-									Expect(fakeReleaseCompiler.CompileRelease.Name).To(Equal("fake-release"))
+									Expect(fakeReleasePackagesCompiler.CompileRelease.Name).To(Equal("fake-release"))
 								})
 
 								It("cleans up the extracted release directory", func() {
@@ -166,7 +166,7 @@ version: fake-version
 								It("returns error", func() {
 									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
 									fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
-									fakeReleaseCompiler.CompileError = errors.New("fake-error-compile")
+									fakeReleasePackagesCompiler.CompileError = errors.New("fake-error-compile")
 									err := command.Run([]string{"/somepath"})
 									Expect(err).To(HaveOccurred())
 									Expect(err.Error()).To(ContainSubstring("Compiling release"))
@@ -214,7 +214,7 @@ version: fake-version
 								fakeFs,
 								fakeExtractor,
 								fakeReleaseValidator,
-								fakeReleaseCompiler,
+								fakeReleasePackagesCompiler,
 								fakeManifestParser,
 								logger,
 							)

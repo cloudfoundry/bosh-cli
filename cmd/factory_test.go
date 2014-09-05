@@ -74,7 +74,7 @@ var _ = Describe("cmd.Factory", func() {
 		Describe("deploy command", func() {
 			It("returns a  deploy command", func() {
 				releaseValidator := fakebmrel.NewFakeValidator()
-				releaseCompiler := fakebmcomp.NewFakeReleaseCompiler()
+				releasePackagesCompiler := fakebmcomp.NewFakeReleasePackagesCompiler()
 				manifestParser := fakebmdepl.NewFakeManifestParser()
 
 				cmd, err := factory.CreateCommand("deploy")
@@ -85,7 +85,7 @@ var _ = Describe("cmd.Factory", func() {
 					filesystem,
 					extractor,
 					releaseValidator,
-					releaseCompiler,
+					releasePackagesCompiler,
 					manifestParser,
 					logger,
 				)))

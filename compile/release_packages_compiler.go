@@ -10,24 +10,24 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
-type ReleaseCompiler interface {
+type ReleasePackagesCompiler interface {
 	Compile(bmrel.Release) error
 }
 
-type releaseCompiler struct {
+type releasePackagesCompiler struct {
 	dependencyAnalysis DependencyAnalysis
 	packageCompiler    PackageCompiler
 	eventLogger        bmlog.EventLogger
 	timeService        boshtime.Service
 }
 
-func NewReleaseCompiler(
+func NewReleasePackagesCompiler(
 	da DependencyAnalysis,
 	packageCompiler PackageCompiler,
 	eventLogger bmlog.EventLogger,
 	timeService boshtime.Service,
-) ReleaseCompiler {
-	return &releaseCompiler{
+) ReleasePackagesCompiler {
+	return &releasePackagesCompiler{
 		dependencyAnalysis: da,
 		packageCompiler:    packageCompiler,
 		eventLogger:        eventLogger,
@@ -35,7 +35,7 @@ func NewReleaseCompiler(
 	}
 }
 
-func (c releaseCompiler) Compile(release bmrel.Release) error {
+func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
 	packages, err := c.dependencyAnalysis.DeterminePackageCompilationOrder(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release")
@@ -67,7 +67,7 @@ func (c releaseCompiler) Compile(release bmrel.Release) error {
 	return nil
 }
 
-func (c releaseCompiler) compilationEvent(
+func (c releasePackagesCompiler) compilationEvent(
 	totalCount,
 	index int,
 	pkg *bmrel.Package,

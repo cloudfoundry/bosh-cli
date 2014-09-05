@@ -21,7 +21,7 @@ import (
 var _ = Describe("ReleaseCompiler", func() {
 	var (
 		release         bmrel.Release
-		releaseCompiler ReleaseCompiler
+		releaseCompiler ReleasePackagesCompiler
 		da              *fakebmreal.FakeDependencyAnalysis
 		packageCompiler *fakebmcomp.FakePackageCompiler
 		eventLogger     *fakebmlog.FakeEventLogger
@@ -33,7 +33,7 @@ var _ = Describe("ReleaseCompiler", func() {
 		packageCompiler = fakebmcomp.NewFakePackageCompiler()
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		timeService = &faketime.FakeService{}
-		releaseCompiler = NewReleaseCompiler(da, packageCompiler, eventLogger, timeService)
+		releaseCompiler = NewReleasePackagesCompiler(da, packageCompiler, eventLogger, timeService)
 		release = bmrel.Release{}
 	})
 

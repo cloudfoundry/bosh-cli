@@ -24,14 +24,14 @@ const (
 )
 
 type deployCmd struct {
-	ui             bmui.UI
-	config         bmconfig.Config
-	fs             boshsys.FileSystem
-	extractor      boshcmd.Compressor
-	validator      bmrelvalidation.ReleaseValidator
-	compiler       bmcomp.ReleaseCompiler
-	manifestParser bmdepl.ManifestParser
-	logger         boshlog.Logger
+	ui                      bmui.UI
+	config                  bmconfig.Config
+	fs                      boshsys.FileSystem
+	extractor               boshcmd.Compressor
+	validator               bmrelvalidation.ReleaseValidator
+	releasePackagesCompiler bmcomp.ReleasePackagesCompiler
+	manifestParser          bmdepl.ManifestParser
+	logger                  boshlog.Logger
 }
 
 func NewDeployCmd(
@@ -40,19 +40,19 @@ func NewDeployCmd(
 	fs boshsys.FileSystem,
 	extractor boshcmd.Compressor,
 	validator bmrelvalidation.ReleaseValidator,
-	compiler bmcomp.ReleaseCompiler,
+	releasePackagesCompiler bmcomp.ReleasePackagesCompiler,
 	manifestParser bmdepl.ManifestParser,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
-		ui:             ui,
-		config:         config,
-		fs:             fs,
-		extractor:      extractor,
-		validator:      validator,
-		compiler:       compiler,
-		manifestParser: manifestParser,
-		logger:         logger,
+		ui:                      ui,
+		config:                  config,
+		fs:                      fs,
+		extractor:               extractor,
+		validator:               validator,
+		releasePackagesCompiler: releasePackagesCompiler,
+		manifestParser:          manifestParser,
+		logger:                  logger,
 	}
 }
 
@@ -93,7 +93,7 @@ func (c *deployCmd) Run(args []string) error {
 	c.logger.Info(logTag, fmt.Sprintf("Compiling release `%s'", release.Name))
 	c.logger.Debug(logTag, fmt.Sprintf("Compiling release: %#v", release))
 
-	err = c.compiler.Compile(release)
+	err = c.releasePackagesCompiler.Compile(release)
 	if err != nil {
 		c.ui.Error("Could not compile release")
 		return bosherr.WrapError(err, "Compiling release")
