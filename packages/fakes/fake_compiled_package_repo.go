@@ -3,12 +3,11 @@ package fakes
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/candiedyaml"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type SaveInput struct {
@@ -48,7 +47,7 @@ func (cpr *FakeCompiledPackageRepo) Save(pkg bmrel.Package, record bmpkgs.Compil
 	input := SaveInput{Package: pkg, Record: record}
 	cpr.SaveInputs = append(cpr.SaveInputs, input)
 
-	inputString, err := marshalToString(input)
+	inputString, err := bmtestutils.MarshalToString(input)
 	if err != nil {
 		return bosherr.WrapError(err, "Marshaling Save input")
 	}
@@ -62,7 +61,7 @@ func (cpr *FakeCompiledPackageRepo) Save(pkg bmrel.Package, record bmpkgs.Compil
 
 func (cpr *FakeCompiledPackageRepo) SetSaveBehavior(pkg bmrel.Package, record bmpkgs.CompiledPackageRecord, err error) error {
 	input := SaveInput{Package: pkg, Record: record}
-	inputString, marshalErr := marshalToString(input)
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Save input")
 	}
@@ -74,7 +73,7 @@ func (cpr *FakeCompiledPackageRepo) Find(pkg bmrel.Package) (bmpkgs.CompiledPack
 	input := FindInput{Package: pkg}
 	cpr.FindInputs = append(cpr.FindInputs, input)
 
-	inputString, err := marshalToString(input)
+	inputString, err := bmtestutils.MarshalToString(input)
 	if err != nil {
 		return bmpkgs.CompiledPackageRecord{}, false, bosherr.WrapError(err, "Marshaling Find input")
 	}
@@ -88,19 +87,10 @@ func (cpr *FakeCompiledPackageRepo) Find(pkg bmrel.Package) (bmpkgs.CompiledPack
 
 func (cpr *FakeCompiledPackageRepo) SetFindBehavior(pkg bmrel.Package, record bmpkgs.CompiledPackageRecord, found bool, err error) error {
 	input := FindInput{Package: pkg}
-	inputString, marshalErr := marshalToString(input)
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
 	cpr.findBehavior[inputString] = findOutput{record: record, found: found, err: err}
 	return nil
-}
-
-func marshalToString(input interface{}) (string, error) {
-	bytes, err := candiedyaml.Marshal(input)
-	if err != nil {
-		return "", bosherr.WrapError(err, "Marshaling to string: %#v", input)
-	}
-	//fmt.Printf("Input: %s", string(bytes))
-	return string(bytes), nil
 }

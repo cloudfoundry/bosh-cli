@@ -3,12 +3,11 @@ package fakes
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/candiedyaml"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type SaveInput struct {
@@ -51,7 +50,7 @@ func (f *FakeTemplatesRepo) Save(job bmreljob.Job, record bmtempcomp.TemplateRec
 	input := SaveInput{Job: job, Record: record}
 	f.SaveInputs = append(f.SaveInputs, input)
 
-	inputString, err := marshalToString(input)
+	inputString, err := bmtestutils.MarshalToString(input)
 	if err != nil {
 		return bosherr.WrapError(err, "Marshaling Save input")
 	}
@@ -65,7 +64,7 @@ func (f *FakeTemplatesRepo) Save(job bmreljob.Job, record bmtempcomp.TemplateRec
 
 func (f *FakeTemplatesRepo) SetSaveBehavior(job bmreljob.Job, record bmtempcomp.TemplateRecord, err error) error {
 	input := SaveInput{Job: job, Record: record}
-	inputString, marshalErr := marshalToString(input)
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Save input")
 	}
@@ -77,7 +76,7 @@ func (f *FakeTemplatesRepo) Find(job bmreljob.Job) (bmtempcomp.TemplateRecord, b
 	input := FindInput{Job: job}
 	f.FindInputs = append(f.FindInputs, input)
 
-	inputString, err := marshalToString(input)
+	inputString, err := bmtestutils.MarshalToString(input)
 	if err != nil {
 		return bmtempcomp.TemplateRecord{}, false, bosherr.WrapError(err, "Marshaling Find input")
 	}
@@ -91,18 +90,10 @@ func (f *FakeTemplatesRepo) Find(job bmreljob.Job) (bmtempcomp.TemplateRecord, b
 
 func (f *FakeTemplatesRepo) SetFindBehavior(job bmreljob.Job, record bmtempcomp.TemplateRecord, found bool, err error) error {
 	input := FindInput{Job: job}
-	inputString, marshalErr := marshalToString(input)
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
 	f.findBehavior[inputString] = findOutput{record: record, found: found, err: err}
 	return nil
-}
-
-func marshalToString(input interface{}) (string, error) {
-	bytes, err := candiedyaml.Marshal(input)
-	if err != nil {
-		return "", bosherr.WrapError(err, "Marshaling to string: %#v", input)
-	}
-	return string(bytes), nil
 }

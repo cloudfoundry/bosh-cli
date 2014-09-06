@@ -3,10 +3,9 @@ package fakes
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/candiedyaml"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
+	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type FakeERBRenderer struct {
@@ -38,7 +37,7 @@ func (f *FakeERBRenderer) Render(srcPath, dstPath string, context bmerbrenderer.
 		Context: context,
 	}
 	f.RenderInputs = append(f.RenderInputs, input)
-	inputString, marshalErr := marshalToString(input)
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
@@ -59,20 +58,11 @@ func (f *FakeERBRenderer) SetRenderBehavior(srcPath, dstPath string, context bme
 		Context: context,
 	}
 
-	inputString, marshalErr := marshalToString(input)
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
 
 	f.renderBehavior[inputString] = renderOutput{err: err}
 	return nil
-}
-
-func marshalToString(input interface{}) (string, error) {
-	bytes, err := candiedyaml.Marshal(input)
-	if err != nil {
-		return "", bosherr.WrapError(err, "Marshaling to string: %#v", input)
-	}
-
-	return string(bytes), nil
 }
