@@ -11,9 +11,9 @@ import (
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
-	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -21,15 +21,16 @@ import (
 
 var _ = Describe("DeployCmd", func() {
 	var (
-		command                     bmcmd.Cmd
-		config                      bmconfig.Config
-		fakeFs                      *fakesys.FakeFileSystem
-		fakeUI                      *fakeui.FakeUI
-		fakeExtractor               *testfakes.FakeMultiResponseExtractor
-		fakeReleaseValidator        *fakebmrel.FakeValidator
-		fakeReleasePackagesCompiler *fakebmcomp.FakeReleasePackagesCompiler
-		fakeManifestParser          *fakebmdepl.FakeManifestParser
-		logger                      boshlog.Logger
+		command              bmcmd.Cmd
+		config               bmconfig.Config
+		fakeFs               *fakesys.FakeFileSystem
+		fakeUI               *fakeui.FakeUI
+		fakeExtractor        *testfakes.FakeMultiResponseExtractor
+		fakeReleaseValidator *fakebmrel.FakeValidator
+		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
+		logger               boshlog.Logger
+		deployment           bmdepl.Deployment
+		release              bmrel.Release
 	)
 
 	BeforeEach(func() {
@@ -38,8 +39,7 @@ var _ = Describe("DeployCmd", func() {
 		config = bmconfig.Config{}
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
-		fakeReleasePackagesCompiler = fakebmcomp.NewFakeReleasePackagesCompiler()
-		fakeManifestParser = fakebmdepl.NewFakeManifestParser()
+		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -49,8 +49,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeFs,
 			fakeExtractor,
 			fakeReleaseValidator,
-			fakeReleasePackagesCompiler,
-			fakeManifestParser,
+			fakeReleaseCompiler,
 			logger,
 		)
 	})
@@ -80,10 +79,23 @@ var _ = Describe("DeployCmd", func() {
 							fakeFs,
 							fakeExtractor,
 							fakeReleaseValidator,
-							fakeReleasePackagesCompiler,
-							fakeManifestParser,
+							fakeReleaseCompiler,
 							logger,
 						)
+
+						release = bmrel.Release{
+							Name:          "fake-release",
+							Version:       "fake-version",
+							ExtractedPath: "/some/release/path",
+							TarballPath:   "/somepath",
+						}
+
+						releaseContents :=
+							`---
+name: fake-release
+version: fake-version
+`
+						fakeFs.WriteFileString("/some/release/path/release.MF", releaseContents)
 					})
 
 					Context("when the deployment manifest exists", func() {
@@ -99,14 +111,10 @@ var _ = Describe("DeployCmd", func() {
 							Context("and the tarball is a valid BOSH release", func() {
 								BeforeEach(func() {
 									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-									releaseContents :=
-										`---
-name: fake-release
-version: fake-version
-`
-									fakeFs.WriteFileString("/some/release/path/release.MF", releaseContents)
-									deployment := bmdepl.NewLocalDeployment("fake-deployment-name", map[string]interface{}{})
-									fakeManifestParser.SetParseBehavior("/some/deployment/file", deployment, nil)
+
+									deployment = bmdepl.NewLocalDeployment("fake-deployment-name", map[string]interface{}{})
+
+									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", nil)
 								})
 
 								It("does not return an error", func() {
@@ -117,19 +125,13 @@ version: fake-version
 								It("compiles the release", func() {
 									err := command.Run([]string{"/somepath"})
 									Expect(err).NotTo(HaveOccurred())
-									Expect(fakeReleasePackagesCompiler.CompileRelease.Name).To(Equal("fake-release"))
+									Expect(fakeReleaseCompiler.CompileInputs[0].ManifestPath).To(Equal("/some/deployment/file"))
 								})
 
 								It("cleans up the extracted release directory", func() {
 									err := command.Run([]string{"/somepath"})
 									Expect(err).NotTo(HaveOccurred())
 									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
-								})
-
-								It("parses deployment manifest", func() {
-									err := command.Run([]string{"/somepath"})
-									Expect(err).NotTo(HaveOccurred())
-									Expect(fakeManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
 								})
 							})
 
@@ -165,11 +167,12 @@ version: fake-version
 							Context("when compilation fails", func() {
 								It("returns error", func() {
 									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-									fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
-									fakeReleasePackagesCompiler.CompileError = errors.New("fake-error-compile")
+									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", errors.New("fake-compile-error"))
+
 									err := command.Run([]string{"/somepath"})
 									Expect(err).To(HaveOccurred())
 									Expect(err.Error()).To(ContainSubstring("Compiling release"))
+									Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
 									Expect(fakeUI.Errors).To(ContainElement("Could not compile release"))
 								})
 							})
@@ -187,22 +190,6 @@ version: fake-version
 								Expect(fakeUI.Errors).To(ContainElement("Could not create a temporary directory"))
 							})
 						})
-
-						Context("when parsing deployment manifest fails", func() {
-							BeforeEach(func() {
-								fakeFs.TempDirDir = "/some/release/path"
-								fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-								fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
-								parserErr := errors.New("fake-manifest-parser-error")
-								fakeManifestParser.SetParseBehavior("/some/deployment/file", bmdepl.LocalDeployment{}, parserErr)
-							})
-
-							It("returns an error", func() {
-								err := command.Run([]string{"/somepath"})
-								Expect(err).To(HaveOccurred())
-								Expect(err.Error()).To(ContainSubstring("fake-manifest-parser-error"))
-							})
-						})
 					})
 
 					Context("when the deployment manifest is missing", func() {
@@ -214,8 +201,7 @@ version: fake-version
 								fakeFs,
 								fakeExtractor,
 								fakeReleaseValidator,
-								fakeReleasePackagesCompiler,
-								fakeManifestParser,
+								fakeReleaseCompiler,
 								logger,
 							)
 						})

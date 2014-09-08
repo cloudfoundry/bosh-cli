@@ -13,11 +13,13 @@ import (
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
+	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
@@ -92,8 +94,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	compressor := boshcmd.NewTarballCompressor(runner, f.fileSystem)
 	indexFilePath := f.config.CompiledPackagedIndexPath()
-	index := bmindex.NewFileIndex(indexFilePath, f.fileSystem)
-	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(index)
+	compiledPackageIndex := bmindex.NewFileIndex(indexFilePath, f.fileSystem)
+	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(compiledPackageIndex)
 
 	options := map[string]interface{}{"blobstore_path": f.config.BlobstorePath()}
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
@@ -120,6 +122,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	)
 
 	manifestParser := bmdepl.NewMicroDeploymentParser(f.fileSystem)
+	erbrenderer := bmerbrenderer.NewERBRenderer(f.fileSystem, runner, f.logger)
+	templatesIndex := bmindex.NewFileIndex(f.config.TemplatesIndexPath(), f.fileSystem)
+	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
+	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem)
+	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, manifestParser, templatesCompiler)
 
 	return NewDeployCmd(
 		f.ui,
@@ -127,8 +134,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fileSystem,
 		tgz,
 		releaseValidator,
-		releasePackagesCompiler,
-		manifestParser,
+		releaseCompiler,
 		f.logger,
 	), nil
 }

@@ -13,13 +13,21 @@ func (c Config) DeploymentFile() string {
 }
 
 func (c Config) BlobstorePath() string {
-	return path.Join(c.ContainingDir, ".bosh_micro", c.DeploymentUUID, "blobs")
+	return path.Join(c.deploymentDir(), "blobs")
 }
 
 func (c Config) CompiledPackagedIndexPath() string {
-	return path.Join(c.ContainingDir, ".bosh_micro", c.DeploymentUUID, "compiled_packages.json")
+	return path.Join(c.deploymentDir(), "compiled_packages.json")
+}
+
+func (c Config) TemplatesIndexPath() string {
+	return path.Join(c.deploymentDir(), "templates.json")
 }
 
 func (c Config) PackagesPath() string {
-	return path.Join(c.ContainingDir, ".bosh_micro", c.DeploymentUUID, "packages")
+	return path.Join(c.deploymentDir(), "packages")
+}
+
+func (c Config) deploymentDir() string {
+	return path.Join(c.ContainingDir, ".bosh_micro", c.DeploymentUUID)
 }

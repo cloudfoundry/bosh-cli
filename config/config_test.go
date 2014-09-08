@@ -26,8 +26,12 @@ var _ = Describe("Config", func() {
 			Expect(c.BlobstorePath()).To(Equal("/home/fake/.bosh_micro/madcow/blobs"))
 		})
 
-		It("returns the index path", func() {
+		It("returns the compiled packages index path", func() {
 			Expect(c.CompiledPackagedIndexPath()).To(Equal("/home/fake/.bosh_micro/madcow/compiled_packages.json"))
+		})
+
+		It("returns the templates index path", func() {
+			Expect(c.TemplatesIndexPath()).To(Equal("/home/fake/.bosh_micro/madcow/templates.json"))
 		})
 
 		It("returns the packages path", func() {
