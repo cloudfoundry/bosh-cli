@@ -210,7 +210,17 @@ var _ = Describe("bosh-micro", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		deploymentManifestFilePath = path.Join(workspaceDir, "micro_deployment.yml")
-		err = bmtestutils.GenerateDeploymentManifest(deploymentManifestFilePath, fs)
+
+		manifestContents := `
+---
+name: fake-deployment
+cloud_provider:
+  properties:
+    fake_cpi_specified_property:
+      second_level: fake_specified_property_value
+`
+
+		err = bmtestutils.GenerateDeploymentManifest(deploymentManifestFilePath, fs, manifestContents)
 		Expect(err).NotTo(HaveOccurred())
 
 		session, err := bmtestutils.RunBoshMicro("deployment", deploymentManifestFilePath)
