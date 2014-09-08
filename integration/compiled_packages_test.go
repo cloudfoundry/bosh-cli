@@ -271,7 +271,7 @@ cloud_provider:
 			Expect(blob.FileExists("compiled_file")).To(BeTrue())
 		})
 
-		It("renders job templates", func() {
+		It("renders job templates including network config", func() {
 			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
@@ -283,6 +283,7 @@ cloud_provider:
 			Expect(blob.FileExists("bin/cpi")).To(BeTrue())
 			Expect(blob.FileContents("bin/cpi")).To(ContainSubstring("fake_cpi_default_cmd fake_cpi_default_value"))
 			Expect(blob.FileContents("bin/cpi")).To(ContainSubstring("fake_cpi_specified_cmd fake_specified_property_value"))
+			Expect(blob.FileContents("bin/cpi")).To(ContainSubstring(`ip: ""`))
 		})
 	})
 

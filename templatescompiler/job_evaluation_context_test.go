@@ -7,15 +7,15 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
 var _ = Describe("JobEvaluationContext", func() {
-	var jobEvaluationContext bmerbrenderer.TemplateEvaluationContext
+	var (
+		generatedContext RootContext
+	)
 	BeforeEach(func() {
 		job := bmreljob.Job{
 			Name: "fake-job-name",
@@ -33,22 +33,21 @@ var _ = Describe("JobEvaluationContext", func() {
 		}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		jobEvaluationContext = NewJobEvaluationContext(
+		jobEvaluationContext := NewJobEvaluationContext(
 			job,
 			manifestProperties,
 			"fake-deployment-name",
 			logger,
 		)
-	})
 
-	It("generates correct json", func() {
 		generatedJSON, err := jobEvaluationContext.MarshalJSON()
 		Expect(err).ToNot(HaveOccurred())
 
-		var generatedContext RootContext
 		err = json.Unmarshal(generatedJSON, &generatedContext)
 		Expect(err).ToNot(HaveOccurred())
+	})
 
+	It("generates correct json", func() {
 		Expect(generatedContext.Index).To(Equal(0))
 		Expect(generatedContext.JobContext.Name).To(Equal("fake-job-name"))
 		Expect(generatedContext.Deployment).To(Equal("fake-deployment-name"))
@@ -63,5 +62,9 @@ var _ = Describe("JobEvaluationContext", func() {
 				"second-level-manifest-property": "manifest-property-value",
 			},
 		))
+	})
+
+	It("it has a network context section with empty IP", func() {
+		Expect(generatedContext.NetworkContexts["default"].IP).To(Equal(""))
 	})
 })
