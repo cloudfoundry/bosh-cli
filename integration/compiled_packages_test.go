@@ -8,7 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -162,14 +161,13 @@ type blobReader struct {
 }
 
 func (b blobReader) FileExists(fileName string) bool {
-	session, err := bmtestutils.RunCommand("tar", "-tf", b.blobPath)
+	session, err := bmtestutils.RunCommand("tar", "-tf", b.blobPath, fmt.Sprintf("./%s", fileName))
 	Expect(err).ToNot(HaveOccurred())
-	Expect(session.ExitCode()).To(Equal(0))
-	return strings.Contains(string(session.Out.Contents()), fileName)
+	return session.ExitCode() == 0
 }
 
 func (b blobReader) FileContents(fileName string) []byte {
-	session, err := bmtestutils.RunCommand("tar", "--to-stdout", "-xf", b.blobPath, path.Join(".", fileName))
+	session, err := bmtestutils.RunCommand("tar", "--to-stdout", "-xf", b.blobPath, fmt.Sprintf("./%s", fileName))
 	Expect(err).ToNot(HaveOccurred())
 	Expect(session.ExitCode()).To(Equal(0))
 	return session.Out.Contents()
