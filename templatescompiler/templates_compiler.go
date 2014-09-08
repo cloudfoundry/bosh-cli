@@ -67,6 +67,8 @@ func (tc templatesCompiler) compileJob(job bmreljob.Job, deployment bmdepl.Deplo
 	context := NewJobEvaluationContext(job, deployment.Properties(), deployment.Name(), tc.logger)
 
 	for src, dst := range job.Templates {
+		// We only render templates and not monit file
+		// Since monit file is not going to be required in CPI release
 		renderSrcPath := filepath.Join(jobSrcDir, "templates", src)
 		renderDstPath := filepath.Join(jobCompileDir, dst)
 
