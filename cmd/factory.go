@@ -125,7 +125,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	erbrenderer := bmerbrenderer.NewERBRenderer(f.fileSystem, runner, f.logger)
 	templatesIndex := bmindex.NewFileIndex(f.config.TemplatesIndexPath(), f.fileSystem)
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
-	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem)
+	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, manifestParser, templatesCompiler)
 
 	return NewDeployCmd(

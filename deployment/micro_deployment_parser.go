@@ -5,6 +5,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
+	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
 )
 
 type microDeploymentParser struct {
@@ -21,7 +23,7 @@ type microDeploymentManifest struct {
 }
 
 type cloudProviderProperties struct {
-	Properties map[string]interface{}
+	Properties map[interface{}]interface{}
 }
 
 func (m microDeploymentParser) Parse(path string) (Deployment, error) {
@@ -36,9 +38,14 @@ func (m microDeploymentParser) Parse(path string) (Deployment, error) {
 		return LocalDeployment{}, bosherr.WrapError(err, "Parsing job manifest")
 	}
 
+	properties, err := bmkeystr.NewKeyStringifier().ConvertMap(depManifest.CloudProvider.Properties)
+	if err != nil {
+		return LocalDeployment{}, bosherr.WrapError(err, "Converting manifest cloud properties")
+	}
+
 	localDeployment := NewLocalDeployment(
 		depManifest.Name,
-		depManifest.CloudProvider.Properties,
+		properties,
 	)
 
 	return localDeployment, nil

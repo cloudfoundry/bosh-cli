@@ -32,17 +32,6 @@ var _ = Describe("DeploymentRenderer", func() {
 	})
 
 	Context("when deployment path exists", func() {
-		BeforeEach(func() {
-			contents := `
----
-name: fake-deployment-name
-cloud_provider:
-  properties:
-    fake-name: fake-value
-`
-			fakeFs.WriteFileString(deploymentPath, contents)
-		})
-
 		Context("when parser fails to read the deployment file", func() {
 			BeforeEach(func() {
 				fakeFs.ReadFileError = errors.New("fake-read-file-error")
@@ -55,12 +44,47 @@ cloud_provider:
 		})
 
 		Context("when parser successfully reads the deployment file", func() {
-			It("parses deployment manifest", func() {
-				deployment, err := manifestParser.Parse(deploymentPath)
-				Expect(err).ToNot(HaveOccurred())
+			Context("when converting properties succeeds", func() {
+				BeforeEach(func() {
+					contents := `
+---
+name: fake-deployment-name
+cloud_provider:
+  properties:
+    fake-property-name:
+      nested-property: fake-property-value
+`
+					fakeFs.WriteFileString(deploymentPath, contents)
+				})
 
-				Expect(deployment.Name()).To(Equal("fake-deployment-name"))
-				Expect(deployment.Properties()).To(Equal(map[string]interface{}{"fake-name": "fake-value"}))
+				It("parses deployment manifest", func() {
+					deployment, err := manifestParser.Parse(deploymentPath)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(deployment.Name()).To(Equal("fake-deployment-name"))
+					Expect(deployment.Properties()["fake-property-name"]).To(Equal(map[string]interface{}{
+						"nested-property": "fake-property-value",
+					}))
+				})
+			})
+
+			Context("when parsing properties fails", func() {
+				BeforeEach(func() {
+					contents := `
+---
+name: fake-deployment-name
+cloud_provider:
+  properties:
+    123: fake-property-value
+`
+					fakeFs.WriteFileString(deploymentPath, contents)
+				})
+
+				It("returns an error", func() {
+					_, err := manifestParser.Parse(deploymentPath)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Converting manifest cloud properties"))
+				})
 			})
 		})
 	})

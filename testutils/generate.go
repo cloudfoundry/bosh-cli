@@ -9,7 +9,9 @@ func GenerateDeploymentManifest(deploymentManifestFilePath string, fs boshsys.Fi
 ---
 name: fake-deployment
 cloud_provider:
-  properties: {}
+  properties:
+    fake_cpi_specified_property:
+      second_level: fake_specified_property_value
 `
 	return fs.WriteFileString(deploymentManifestFilePath, manifestContents)
 }

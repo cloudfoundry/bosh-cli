@@ -7,6 +7,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	fakeblobs "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -42,6 +44,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		jobs              []bmreljob.Job
 		context           bmrender.TemplateEvaluationContext
 		deployment        testDeployment
+		logger            boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -55,6 +58,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		templatesRepo = fakebmtemp.NewFakeTemplatesRepo()
 
 		deployment = testDeployment{}
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		templatesCompiler = NewTemplatesCompiler(
 			renderer,
@@ -62,6 +66,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			blobstore,
 			templatesRepo,
 			fs,
+			logger,
 		)
 
 		var err error
@@ -86,9 +91,9 @@ var _ = Describe("TemplatesCompiler", func() {
 				"fake-property-key": "fake-property-value",
 			}
 
-			context = NewJobEvaluationContext(jobs[0], manifestProperties, "fake-deployment-name")
+			context = NewJobEvaluationContext(jobs[0], manifestProperties, "fake-deployment-name", logger)
 			renderer.SetRenderBehavior(
-				"fake-extracted-path/cpi.erb",
+				"fake-extracted-path/templates/cpi.erb",
 				filepath.Join(compileDir, "bin/cpi"),
 				context,
 				nil,
@@ -108,7 +113,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(renderer.RenderInputs).To(ContainElement(
 				fakebmrender.RenderInput{
-					SrcPath: "fake-extracted-path/cpi.erb",
+					SrcPath: "fake-extracted-path/templates/cpi.erb",
 					DstPath: filepath.Join(compileDir, "bin/cpi"),
 					Context: context,
 				}),
@@ -160,10 +165,22 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 		})
 
+		Context("when creating parent directory for templates fails", func() {
+			BeforeEach(func() {
+				fs.MkdirAllError = errors.New("fake-mkdirall-error")
+			})
+
+			It("returns an error", func() {
+				err := templatesCompiler.Compile(jobs, deployment)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-mkdirall-error"))
+			})
+		})
+
 		Context("when rendering fails", func() {
 			BeforeEach(func() {
 				renderer.SetRenderBehavior(
-					"fake-extracted-path/cpi.erb",
+					"fake-extracted-path/templates/cpi.erb",
 					filepath.Join(compileDir, "bin/cpi"),
 					context,
 					errors.New("fake-render-error"),
@@ -246,14 +263,14 @@ var _ = Describe("TemplatesCompiler", func() {
 				}
 
 				renderer.SetRenderBehavior(
-					"fake-extracted-path-1/cpi.erb",
+					"fake-extracted-path-1/templates/cpi.erb",
 					filepath.Join(compileDir, "bin/cpi"),
 					context,
 					nil,
 				)
 
 				renderer.SetRenderBehavior(
-					"fake-extracted-path-2/cpi.erb",
+					"fake-extracted-path-2/templates/cpi.erb",
 					filepath.Join(compileDir, "bin/cpi"),
 					context,
 					errors.New("fake-render-2-error"),

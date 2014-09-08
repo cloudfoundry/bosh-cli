@@ -3,6 +3,8 @@ package templatescompiler
 import (
 	"encoding/json"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 )
@@ -11,6 +13,7 @@ type jobEvaluationContext struct {
 	relJob             bmreljob.Job
 	manifestProperties map[string]interface{}
 	deploymentName     string
+	logger             boshlog.Logger
 }
 
 // RootContext is exposed as an open struct in ERB templates.
@@ -26,15 +29,19 @@ type jobContext struct {
 	Name string `json:"name"`
 }
 
+const logTag = "JobEvaluationContext"
+
 func NewJobEvaluationContext(
 	job bmreljob.Job,
 	manifestProperties map[string]interface{},
 	deploymentName string,
+	logger boshlog.Logger,
 ) bmerbrenderer.TemplateEvaluationContext {
 	return jobEvaluationContext{
 		relJob:             job,
 		manifestProperties: manifestProperties,
 		deploymentName:     deploymentName,
+		logger:             logger,
 	}
 }
 
@@ -48,6 +55,8 @@ func (t jobEvaluationContext) MarshalJSON() ([]byte, error) {
 		Deployment: t.deploymentName,
 		Properties: properties,
 	}
+
+	t.logger.Debug(logTag, "Marshalling context %#v", context)
 
 	return json.Marshal(context)
 }

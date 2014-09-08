@@ -68,6 +68,16 @@ var _ = Describe("ReleaseCompiler", func() {
 			Expect(fakeManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
 		})
 
+		It("compiles templates", func() {
+			err := releaseCompiler.Compile(release, "/some/deployment/file")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeTemplatesCompiler.CompileInputs).To(HaveLen(1))
+			Expect(fakeTemplatesCompiler.CompileInputs[0]).To(Equal(fakebmtemp.CompileInput{
+				Jobs:       release.Jobs,
+				Deployment: deployment,
+			}))
+		})
+
 		Context("when packages compilation fails", func() {
 			It("returns error", func() {
 				fakeReleasePackagesCompiler.CompileError = errors.New("fake-compile-error")
@@ -87,6 +97,19 @@ var _ = Describe("ReleaseCompiler", func() {
 				err := releaseCompiler.Compile(release, "/some/deployment/file")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-manifest-parser-error"))
+			})
+		})
+
+		Context("when compiling templates fails", func() {
+			BeforeEach(func() {
+				err := errors.New("fake-compiling-templates-error")
+				fakeTemplatesCompiler.SetCompileBehavior(release.Jobs, deployment, err)
+			})
+
+			It("returns an error", func() {
+				err := releaseCompiler.Compile(release, "/some/deployment/file")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-compiling-templates-error"))
 			})
 		})
 	})

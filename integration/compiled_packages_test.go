@@ -83,6 +83,61 @@ func (c compilePackages) getPackageBlobID(indexContent CompiledPackagesIndexFile
 	return "", false
 }
 
+type RenderedTemplateKey struct {
+	JobName        string
+	JobFingerprint string
+}
+
+type RenderedTemplateValue struct {
+	BlobID   string
+	BlobSha1 string
+}
+
+type RenderedTemplateItem struct {
+	Key   RenderedTemplateKey
+	Value RenderedTemplateValue
+}
+
+type RenderedTemplatesIndexFile []RenderedTemplateItem
+
+type renderedTemplates struct {
+	deploymentWorkspacePath string
+	fs                      boshsys.FileSystem
+}
+
+func NewRenderedTemplates(deploymentWorkspacePath string, fs boshsys.FileSystem) renderedTemplates {
+	return renderedTemplates{deploymentWorkspacePath: deploymentWorkspacePath, fs: fs}
+}
+
+func (c renderedTemplates) GetRenderedTemplateBlobByName(templateName string) (blobReader, bool) {
+	indexFile := path.Join(c.deploymentWorkspacePath, "templates.json")
+	Expect(c.fs.FileExists(indexFile)).To(BeTrue(), fmt.Sprintf("Expect index file to exist at %s", indexFile))
+
+	index, err := c.fs.ReadFile(indexFile)
+	Expect(err).NotTo(HaveOccurred())
+
+	indexContent := RenderedTemplatesIndexFile{}
+	err = json.Unmarshal(index, &indexContent)
+	Expect(err).NotTo(HaveOccurred())
+
+	blobID, found := c.getTemplateBlobID(indexContent, templateName)
+	if !found {
+		return blobReader{}, false
+	}
+
+	return blobReader{path.Join(c.deploymentWorkspacePath, "blobs", blobID)}, true
+}
+
+func (c renderedTemplates) getTemplateBlobID(indexContent RenderedTemplatesIndexFile, jobName string) (string, bool) {
+	for _, item := range indexContent {
+		if item.Key.JobName == jobName {
+			return item.Value.BlobID, true
+		}
+	}
+
+	return "", false
+}
+
 type deploymentWorkspace struct {
 	workspaceDir string
 	fs           boshsys.FileSystem
@@ -204,6 +259,20 @@ var _ = Describe("bosh-micro", func() {
 			blob, found := compilePackages.GetPackageBlobByName("compiled_package")
 			Expect(found).To(BeTrue())
 			Expect(blob.FileExists("compiled_file")).To(BeTrue())
+		})
+
+		It("renders job templates", func() {
+			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(session.ExitCode()).To(Equal(0))
+
+			workspace := deploymentWorkspace{workspaceDir, fs}
+			renderedTemplates := NewRenderedTemplates(workspace.Path(), fs)
+			blob, found := renderedTemplates.GetRenderedTemplateBlobByName("cpi")
+			Expect(found).To(BeTrue())
+			Expect(blob.FileExists("bin/cpi")).To(BeTrue())
+			Expect(blob.FileContents("bin/cpi")).To(ContainSubstring("fake_cpi_default_cmd fake_cpi_default_value"))
+			Expect(blob.FileContents("bin/cpi")).To(ContainSubstring("fake_cpi_specified_cmd fake_specified_property_value"))
 		})
 	})
 

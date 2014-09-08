@@ -36,10 +36,14 @@ func (c releaseCompiler) Compile(release bmrel.Release, manifestPath string) err
 		return bosherr.WrapError(err, "Compiling release packages")
 	}
 
-	_, err = c.manifestParser.Parse(manifestPath)
+	deployment, err := c.manifestParser.Parse(manifestPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Parsing the deployment manifest")
 	}
 
+	err = c.templatesCompiler.Compile(release.Jobs, deployment)
+	if err != nil {
+		return bosherr.WrapError(err, "Compiling job templates")
+	}
 	return nil
 }
