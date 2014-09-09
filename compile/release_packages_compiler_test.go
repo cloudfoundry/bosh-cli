@@ -20,12 +20,12 @@ import (
 
 var _ = Describe("ReleaseCompiler", func() {
 	var (
-		release         bmrel.Release
-		releaseCompiler ReleasePackagesCompiler
-		da              *fakebmreal.FakeDependencyAnalysis
-		packageCompiler *fakebmcomp.FakePackageCompiler
-		eventLogger     *fakebmlog.FakeEventLogger
-		timeService     *faketime.FakeService
+		release                 bmrel.Release
+		releasePackagesCompiler ReleasePackagesCompiler
+		da                      *fakebmreal.FakeDependencyAnalysis
+		packageCompiler         *fakebmcomp.FakePackageCompiler
+		eventLogger             *fakebmlog.FakeEventLogger
+		timeService             *faketime.FakeService
 	)
 
 	BeforeEach(func() {
@@ -33,7 +33,7 @@ var _ = Describe("ReleaseCompiler", func() {
 		packageCompiler = fakebmcomp.NewFakePackageCompiler()
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		timeService = &faketime.FakeService{}
-		releaseCompiler = NewReleasePackagesCompiler(da, packageCompiler, eventLogger, timeService)
+		releasePackagesCompiler = NewReleasePackagesCompiler(da, packageCompiler, eventLogger, timeService)
 		release = bmrel.Release{}
 	})
 
@@ -55,20 +55,20 @@ var _ = Describe("ReleaseCompiler", func() {
 			})
 
 			It("determines the order to compile packages", func() {
-				err := releaseCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(da.DeterminePackageCompilationOrderRelease).To(Equal(release))
 			})
 
 			It("compiles each package", func() {
-				err := releaseCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(packageCompiler.CompilePackages).To(Equal(expectedPackages))
 			})
 
 			It("compiles each package and returns error for first package", func() {
 				packageCompiler.CompileError = errors.New("Compilation failed")
-				err := releaseCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Package `fake-package-1' compilation failed"))
 			})
@@ -78,7 +78,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				pkg1Finish := pkg1Start.Add(1 * time.Second)
 				timeService.NowTimes = []time.Time{pkg1Start, pkg1Finish}
 
-				err := releaseCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release)
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedStartEvent := bmlog.Event{
@@ -104,7 +104,7 @@ var _ = Describe("ReleaseCompiler", func() {
 			})
 
 			It("logs events for each of the packages", func() {
-				err := releaseCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(eventLogger.LoggedEvents).To(HaveLen(4))
 			})
@@ -115,7 +115,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				timeService.NowTimes = []time.Time{pkg1Start, pkg1Fail}
 
 				packageCompiler.CompileError = errors.New("Compilation failed")
-				err := releaseCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
 
 				expectedFailEvent := bmlog.Event{
@@ -133,7 +133,7 @@ var _ = Describe("ReleaseCompiler", func() {
 
 			It("stops compiling after the first failure", func() {
 				packageCompiler.CompileError = errors.New("Compilation failed")
-				err := releaseCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
 				Expect(len(packageCompiler.CompilePackages)).To(Equal(1))
 			})
@@ -144,7 +144,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				})
 
 				It("returns error", func() {
-					err := releaseCompiler.Compile(release)
+					err := releasePackagesCompiler.Compile(release)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Logging event"))
 				})
@@ -157,7 +157,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				})
 
 				It("returns error", func() {
-					err := releaseCompiler.Compile(release)
+					err := releasePackagesCompiler.Compile(release)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Logging event"))
 				})
@@ -169,7 +169,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				})
 
 				It("returns error", func() {
-					err := releaseCompiler.Compile(release)
+					err := releasePackagesCompiler.Compile(release)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Logging event"))
 				})
