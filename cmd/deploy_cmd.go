@@ -14,6 +14,7 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
@@ -29,6 +30,7 @@ type deployCmd struct {
 	extractor       boshcmd.Compressor
 	validator       bmrelvalidation.ReleaseValidator
 	releaseCompiler bmcomp.ReleaseCompiler
+	stemcellReader  bmstemcell.Reader
 	logger          boshlog.Logger
 }
 
@@ -39,6 +41,7 @@ func NewDeployCmd(
 	extractor boshcmd.Compressor,
 	validator bmrelvalidation.ReleaseValidator,
 	releaseCompiler bmcomp.ReleaseCompiler,
+	stemcellReader bmstemcell.Reader,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
@@ -48,6 +51,7 @@ func NewDeployCmd(
 		extractor:       extractor,
 		validator:       validator,
 		releaseCompiler: releaseCompiler,
+		stemcellReader:  stemcellReader,
 		logger:          logger,
 	}
 }
@@ -94,6 +98,25 @@ func (c *deployCmd) Run(args []string) error {
 		c.ui.Error("Could not compile release")
 		return bosherr.WrapError(err, "Compiling release")
 	}
+
+	stemcellPath := args[1]
+
+	// parse the stemcell
+	stemcellExtractedPath, err := c.fs.TempDir("extracted-stemcell")
+	if err != nil {
+		return bosherr.WrapError(err, "Creating tempDir")
+	}
+	_, err = c.stemcellReader.Read(stemcellPath, stemcellExtractedPath)
+	if err != nil {
+		c.ui.Error("Could not read stemcell")
+		return bosherr.WrapError(err, "Reading stemcell")
+	}
+	//clean the tempdir
+	//
+
+	// lay out cpi job locally
+	// validate stemcells
+	// register the stemcell
 	return nil
 }
 

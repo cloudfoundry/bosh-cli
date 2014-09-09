@@ -31,6 +31,7 @@ func (s reader) Read(stemcellPath string, extractedPath string) (Stemcell, error
 
 	var stemcell Stemcell
 	stemcellManifestPath := filepath.Join(extractedPath, "stemcell.MF")
+
 	stemcellContents, err := s.fs.ReadFile(stemcellManifestPath)
 	if err != nil {
 		return Stemcell{}, bosherr.WrapError(err, "Reading stemcell manifest %s", stemcellManifestPath)

@@ -19,6 +19,7 @@ import (
 	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
@@ -127,6 +128,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, manifestParser, templatesCompiler)
+	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)
 
 	return NewDeployCmd(
 		f.ui,
@@ -135,6 +137,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		tgz,
 		releaseValidator,
 		releaseCompiler,
+		stemcellReader,
 		f.logger,
 	), nil
 }

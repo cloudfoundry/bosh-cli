@@ -17,19 +17,21 @@ import (
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {
 	var (
-		factory       Factory
-		config        bmconfig.Config
-		configService *fakeconfig.FakeService
-		filesystem    boshsys.FileSystem
-		ui            bmui.UI
-		extractor     boshcmd.Compressor
-		logger        boshlog.Logger
-		uuidGenerator *fakeuuid.FakeGenerator
+		factory        Factory
+		config         bmconfig.Config
+		configService  *fakeconfig.FakeService
+		filesystem     boshsys.FileSystem
+		ui             bmui.UI
+		extractor      boshcmd.Compressor
+		logger         boshlog.Logger
+		uuidGenerator  *fakeuuid.FakeGenerator
+		stemcellReader *fakebmstemcell.FakeStemcellReader
 	)
 
 	BeforeEach(func() {
@@ -39,6 +41,7 @@ var _ = Describe("cmd.Factory", func() {
 		ui = &fakeui.FakeUI{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		uuidGenerator = &fakeuuid.FakeGenerator{}
+		stemcellReader = fakebmstemcell.NewFakeReader()
 
 		factory = NewFactory(
 			config,
@@ -84,6 +87,7 @@ var _ = Describe("cmd.Factory", func() {
 					extractor,
 					releaseValidator,
 					releaseCompiler,
+					stemcellReader,
 					logger,
 				)))
 			})

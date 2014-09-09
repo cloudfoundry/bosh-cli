@@ -24,3 +24,12 @@ func (b TarVerifier) FileContents(fileName string) ([]byte, error) {
 
 	return session.Out.Contents(), nil
 }
+
+func (b TarVerifier) Listing() (string, error) {
+	session, err := RunCommand("tar", "-tf", b.BlobPath)
+	if err != nil {
+		return "", err
+	}
+
+	return string(session.Out.Contents()), nil
+}

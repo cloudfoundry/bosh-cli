@@ -12,9 +12,11 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -31,6 +33,7 @@ var _ = Describe("DeployCmd", func() {
 		logger               boshlog.Logger
 		deployment           bmdepl.Deployment
 		release              bmrel.Release
+		fakeStemcellReader   *fakebmstemcell.FakeStemcellReader
 	)
 
 	BeforeEach(func() {
@@ -40,6 +43,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
 		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
+		fakeStemcellReader = fakebmstemcell.NewFakeReader()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -50,6 +54,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeExtractor,
 			fakeReleaseValidator,
 			fakeReleaseCompiler,
+			fakeStemcellReader,
 			logger,
 		)
 	})
@@ -80,6 +85,7 @@ var _ = Describe("DeployCmd", func() {
 							fakeExtractor,
 							fakeReleaseValidator,
 							fakeReleaseCompiler,
+							fakeStemcellReader,
 							logger,
 						)
 
@@ -111,25 +117,30 @@ version: fake-version
 							Context("and the tarball is a valid BOSH release", func() {
 								BeforeEach(func() {
 									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-
 									deployment = bmdepl.NewLocalDeployment("fake-deployment-name", map[string]interface{}{})
-
 									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", nil)
+									fakeStemcellReader.SetReadBehavior("/somestemcellpath", "/some/release/path", bmstemcell.Stemcell{}, nil)
 								})
 
 								It("does not return an error", func() {
-									err := command.Run([]string{"/somepath"})
+									err := runDeployCmd(command)
 									Expect(err).NotTo(HaveOccurred())
 								})
 
 								It("compiles the release", func() {
-									err := command.Run([]string{"/somepath"})
+									err := runDeployCmd(command)
+									Expect(err).NotTo(HaveOccurred())
+									Expect(fakeReleaseCompiler.CompileInputs[0].ManifestPath).To(Equal("/some/deployment/file"))
+								})
+
+								It("reads the stemcell", func() {
+									err := runDeployCmd(command)
 									Expect(err).NotTo(HaveOccurred())
 									Expect(fakeReleaseCompiler.CompileInputs[0].ManifestPath).To(Equal("/some/deployment/file"))
 								})
 
 								It("cleans up the extracted release directory", func() {
-									err := command.Run([]string{"/somepath"})
+									err := runDeployCmd(command)
 									Expect(err).NotTo(HaveOccurred())
 									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
 								})
@@ -143,13 +154,13 @@ version: fake-version
 								})
 
 								It("returns err", func() {
-									err := command.Run([]string{"/somepath"})
+									err := runDeployCmd(command)
 									Expect(err).To(HaveOccurred())
 									Expect(err.Error()).To(ContainSubstring("fake-error"))
 								})
 
 								It("cleans up the extracted release directory", func() {
-									err := command.Run([]string{"/somepath"})
+									err := runDeployCmd(command)
 									Expect(err).To(HaveOccurred())
 									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
 								})
@@ -157,7 +168,7 @@ version: fake-version
 
 							Context("and the tarball cannot be read", func() {
 								It("returns err", func() {
-									err := command.Run([]string{"/somepath"})
+									err := runDeployCmd(command)
 									Expect(err).To(HaveOccurred())
 									Expect(err.Error()).To(ContainSubstring("Reading CPI release from `/somepath'"))
 									Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a BOSH release"))
@@ -169,11 +180,25 @@ version: fake-version
 									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
 									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", errors.New("fake-compile-error"))
 
-									err := command.Run([]string{"/somepath"})
+									err := runDeployCmd(command)
 									Expect(err).To(HaveOccurred())
 									Expect(err.Error()).To(ContainSubstring("Compiling release"))
 									Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
 									Expect(fakeUI.Errors).To(ContainElement("Could not compile release"))
+								})
+							})
+
+							Context("when reading stemcell fails", func() {
+								It("returns error", func() {
+									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
+									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", nil)
+									fakeStemcellReader.SetReadBehavior("/somestemcellpath", "/some/release/path", bmstemcell.Stemcell{}, errors.New("fake-reading-error"))
+
+									err := runDeployCmd(command)
+									Expect(err).To(HaveOccurred())
+									Expect(err.Error()).To(ContainSubstring("Reading stemcell"))
+									Expect(err.Error()).To(ContainSubstring("fake-reading-error"))
+									Expect(fakeUI.Errors).To(ContainElement("Could not read stemcell"))
 								})
 							})
 						})
@@ -184,7 +209,7 @@ version: fake-version
 							})
 
 							It("returns err", func() {
-								err := command.Run([]string{"/somepath"})
+								err := runDeployCmd(command)
 								Expect(err).To(HaveOccurred())
 								Expect(err.Error()).To(ContainSubstring("Creating temp directory"))
 								Expect(fakeUI.Errors).To(ContainElement("Could not create a temporary directory"))
@@ -202,12 +227,13 @@ version: fake-version
 								fakeExtractor,
 								fakeReleaseValidator,
 								fakeReleaseCompiler,
+								fakeStemcellReader,
 								logger,
 							)
 						})
 
 						It("returns err", func() {
-							err := command.Run([]string{"/somepath"})
+							err := runDeployCmd(command)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("Reading deployment manifest for deploy"))
 							Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path `/some/deployment/file' does not exist"))
@@ -217,7 +243,7 @@ version: fake-version
 
 				Context("when there is no deployment set", func() {
 					It("returns err", func() {
-						err := command.Run([]string{"/somepath"})
+						err := runDeployCmd(command)
 						Expect(err).To(HaveOccurred())
 						Expect(fakeUI.Errors).To(ContainElement("No deployment set"))
 					})
@@ -226,7 +252,7 @@ version: fake-version
 
 			Context("When the CPI release file does not exist", func() {
 				It("returns err when the CPI release file does not exist", func() {
-					err := command.Run([]string{"/somepath"})
+					err := runDeployCmd(command)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Checking CPI release `/somepath' existence"))
 					Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' does not exist"))
@@ -235,3 +261,7 @@ version: fake-version
 		})
 	})
 })
+
+func runDeployCmd(command bmcmd.Cmd) error {
+	return command.Run([]string{"/somepath", "/somestemcellpath"})
+}

@@ -1,0 +1,6 @@
+---
+name: fake-stemcell
+version: 'fake-version'
+sha1: 6ea3108b426051e8b1121fe2215d6e0cb70e99c4
+cloud_properties:
+  name: fake-stemcell

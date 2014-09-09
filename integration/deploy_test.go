@@ -25,6 +25,8 @@ var _ = Describe("bosh-micro", func() {
 		fs                         boshsys.FileSystem
 		deploymentManifestFilePath string
 		cpiRel                     cpiRelease
+		stemcellTarball            string
+		cpiOutputDir               string
 	)
 
 	BeforeEach(func() {
@@ -35,17 +37,21 @@ var _ = Describe("bosh-micro", func() {
 		workspaceDir, err = fs.TempDir("bosh-micro-intergration")
 		Expect(err).NotTo(HaveOccurred())
 
+		cpiOutputDir = filepath.Join(workspaceDir, "cpi_output")
+
 		deploymentManifestFilePath = path.Join(workspaceDir, "micro_deployment.yml")
 
-		manifestContents := `
+		manifestTemplate := `
 ---
 name: fake-deployment
 cloud_provider:
   properties:
     fake_cpi_specified_property:
       second_level: fake_specified_property_value
+    output_dir: %s
 `
 
+		manifestContents := fmt.Sprintf(manifestTemplate, cpiOutputDir)
 		err = bmtestutils.GenerateDeploymentManifest(deploymentManifestFilePath, fs, manifestContents)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -63,6 +69,16 @@ cloud_provider:
 
 		releaseDir := filepath.Join(workspaceDir, "test_release")
 		cpiRel = cpiRelease{releaseDir, fs}
+
+		stemcellAssetPath := filepath.Join(pwd, "../Fixtures", "stemcell")
+		stemcellTarball = filepath.Join(workspaceDir, "stemcell.tgz")
+		err = bmtestutils.CreateStemcell(stemcellAssetPath, stemcellTarball)
+
+		Expect(err).ToNot(HaveOccurred())
+		tarVerifier := bmtestutils.TarVerifier{BlobPath: stemcellTarball}
+		content, err := tarVerifier.Listing()
+		Expect(err).ToNot(HaveOccurred())
+		Expect(content).To(ContainSubstring("stemcell.MF"))
 	})
 
 	AfterEach(func() {
@@ -76,7 +92,7 @@ cloud_provider:
 		})
 
 		It("compiles packages", func() {
-			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball)
+			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
 
@@ -86,7 +102,7 @@ cloud_provider:
 		})
 
 		It("creates blobs with result of the compilation", func() {
-			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball)
+			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
 
@@ -100,7 +116,7 @@ cloud_provider:
 		})
 
 		It("renders job templates including network config", func() {
-			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball)
+			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
 
@@ -113,9 +129,17 @@ cloud_provider:
 			Expect(blobExists).To(BeTrue())
 			blobContents, err := blob.FileContents("bin/cpi")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobContents).To(ContainSubstring("fake_cpi_default_cmd fake_cpi_default_value"))
-			Expect(blobContents).To(ContainSubstring("fake_cpi_specified_cmd fake_specified_property_value"))
-			Expect(blobContents).To(ContainSubstring(`ip: ""`))
+			Expect(blobContents).To(ContainSubstring("fake_cpi_default_cmd=fake_cpi_default_value"))
+			Expect(blobContents).To(ContainSubstring("fake_cpi_specified_cmd=fake_specified_property_value"))
+			Expect(blobContents).To(ContainSubstring(`ip=""`))
+		})
+
+		It("creates stemcell", func() {
+			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(session.ExitCode()).To(Equal(0))
+
+			//Expect(fs.FileExists(filepath.Join(cpiOutputDir, "test.file"))).To(BeTrue())
 		})
 	})
 
@@ -134,7 +158,7 @@ cloud_provider:
 
 			Expect(err).NotTo(HaveOccurred())
 
-			session, err = bmtestutils.RunBoshMicro("deploy", invalidCpiReleasePath)
+			session, err = bmtestutils.RunBoshMicro("deploy", invalidCpiReleasePath, stemcellTarball)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(session.Err.Contents()).To(ContainSubstring("is not a valid CPI release"))
 			Expect(session.ExitCode()).To(Equal(1))
