@@ -30,7 +30,7 @@ type deployCmd struct {
 	extractor       boshcmd.Compressor
 	validator       bmrelvalidation.ReleaseValidator
 	releaseCompiler bmcomp.ReleaseCompiler
-	stemcellReader  bmstemcell.Reader
+	repo            bmstemcell.Repo
 	logger          boshlog.Logger
 }
 
@@ -41,7 +41,7 @@ func NewDeployCmd(
 	extractor boshcmd.Compressor,
 	validator bmrelvalidation.ReleaseValidator,
 	releaseCompiler bmcomp.ReleaseCompiler,
-	stemcellReader bmstemcell.Reader,
+	repo bmstemcell.Repo,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
@@ -51,7 +51,7 @@ func NewDeployCmd(
 		extractor:       extractor,
 		validator:       validator,
 		releaseCompiler: releaseCompiler,
-		stemcellReader:  stemcellReader,
+		repo:            repo,
 		logger:          logger,
 	}
 }
@@ -100,19 +100,12 @@ func (c *deployCmd) Run(args []string) error {
 	}
 
 	stemcellPath := args[1]
-
-	// parse the stemcell
-	stemcellExtractedPath, err := c.fs.TempDir("extracted-stemcell")
-	if err != nil {
-		return bosherr.WrapError(err, "Creating tempDir")
-	}
-	_, err = c.stemcellReader.Read(stemcellPath, stemcellExtractedPath)
+	_, extractedPath, err := c.repo.Save(stemcellPath)
 	if err != nil {
 		c.ui.Error("Could not read stemcell")
-		return bosherr.WrapError(err, "Reading stemcell")
+		return bosherr.WrapError(err, "Saving stemcell")
 	}
-	//clean the tempdir
-	//
+	defer c.fs.RemoveAll(extractedPath)
 
 	// lay out cpi job locally
 	// validate stemcells

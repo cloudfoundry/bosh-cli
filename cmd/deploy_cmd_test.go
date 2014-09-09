@@ -33,7 +33,7 @@ var _ = Describe("DeployCmd", func() {
 		logger               boshlog.Logger
 		deployment           bmdepl.Deployment
 		release              bmrel.Release
-		fakeStemcellReader   *fakebmstemcell.FakeStemcellReader
+		fakeRepo             *fakebmstemcell.FakeRepo
 	)
 
 	BeforeEach(func() {
@@ -43,7 +43,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
 		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
-		fakeStemcellReader = fakebmstemcell.NewFakeReader()
+		fakeRepo = fakebmstemcell.NewFakeRepo()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -54,7 +54,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeExtractor,
 			fakeReleaseValidator,
 			fakeReleaseCompiler,
-			fakeStemcellReader,
+			fakeRepo,
 			logger,
 		)
 	})
@@ -85,7 +85,7 @@ var _ = Describe("DeployCmd", func() {
 							fakeExtractor,
 							fakeReleaseValidator,
 							fakeReleaseCompiler,
-							fakeStemcellReader,
+							fakeRepo,
 							logger,
 						)
 
@@ -119,7 +119,7 @@ version: fake-version
 									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
 									deployment = bmdepl.NewLocalDeployment("fake-deployment-name", map[string]interface{}{})
 									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", nil)
-									fakeStemcellReader.SetReadBehavior("/somestemcellpath", "/some/release/path", bmstemcell.Stemcell{}, nil)
+									fakeRepo.SetSaveBehavior("/somestemcellpath", "/some/stemcell/path", bmstemcell.Stemcell{}, nil)
 								})
 
 								It("does not return an error", func() {
@@ -133,10 +133,12 @@ version: fake-version
 									Expect(fakeReleaseCompiler.CompileInputs[0].ManifestPath).To(Equal("/some/deployment/file"))
 								})
 
-								It("reads the stemcell", func() {
+								It("saves the stemcell", func() {
+									fakeFs.WriteFile("/some/stemcell/path", []byte{})
 									err := runDeployCmd(command)
 									Expect(err).NotTo(HaveOccurred())
 									Expect(fakeReleaseCompiler.CompileInputs[0].ManifestPath).To(Equal("/some/deployment/file"))
+									Expect(fakeFs.FileExists("/some/stemcell/path")).To(BeFalse())
 								})
 
 								It("cleans up the extracted release directory", func() {
@@ -192,11 +194,11 @@ version: fake-version
 								It("returns error", func() {
 									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
 									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", nil)
-									fakeStemcellReader.SetReadBehavior("/somestemcellpath", "/some/release/path", bmstemcell.Stemcell{}, errors.New("fake-reading-error"))
+									fakeRepo.SetSaveBehavior("/somestemcellpath", "/some/release/path", bmstemcell.Stemcell{}, errors.New("fake-reading-error"))
 
 									err := runDeployCmd(command)
 									Expect(err).To(HaveOccurred())
-									Expect(err.Error()).To(ContainSubstring("Reading stemcell"))
+									Expect(err.Error()).To(ContainSubstring("Saving stemcell"))
 									Expect(err.Error()).To(ContainSubstring("fake-reading-error"))
 									Expect(fakeUI.Errors).To(ContainElement("Could not read stemcell"))
 								})
@@ -227,7 +229,7 @@ version: fake-version
 								fakeExtractor,
 								fakeReleaseValidator,
 								fakeReleaseCompiler,
-								fakeStemcellReader,
+								fakeRepo,
 								logger,
 							)
 						})

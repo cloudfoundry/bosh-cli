@@ -23,15 +23,15 @@ import (
 
 var _ = Describe("cmd.Factory", func() {
 	var (
-		factory        Factory
-		config         bmconfig.Config
-		configService  *fakeconfig.FakeService
-		filesystem     boshsys.FileSystem
-		ui             bmui.UI
-		extractor      boshcmd.Compressor
-		logger         boshlog.Logger
-		uuidGenerator  *fakeuuid.FakeGenerator
-		stemcellReader *fakebmstemcell.FakeStemcellReader
+		factory       Factory
+		config        bmconfig.Config
+		configService *fakeconfig.FakeService
+		filesystem    boshsys.FileSystem
+		ui            bmui.UI
+		extractor     boshcmd.Compressor
+		logger        boshlog.Logger
+		uuidGenerator *fakeuuid.FakeGenerator
+		stemcellRepo  *fakebmstemcell.FakeRepo
 	)
 
 	BeforeEach(func() {
@@ -41,7 +41,7 @@ var _ = Describe("cmd.Factory", func() {
 		ui = &fakeui.FakeUI{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		uuidGenerator = &fakeuuid.FakeGenerator{}
-		stemcellReader = fakebmstemcell.NewFakeReader()
+		stemcellRepo = fakebmstemcell.NewFakeRepo()
 
 		factory = NewFactory(
 			config,
@@ -87,7 +87,7 @@ var _ = Describe("cmd.Factory", func() {
 					extractor,
 					releaseValidator,
 					releaseCompiler,
-					stemcellReader,
+					stemcellRepo,
 					logger,
 				)))
 			})

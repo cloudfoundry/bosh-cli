@@ -129,6 +129,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, manifestParser, templatesCompiler)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)
+	repo := bmstemcell.NewRepo(f.fileSystem, stemcellReader)
 
 	return NewDeployCmd(
 		f.ui,
@@ -137,7 +138,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		tgz,
 		releaseValidator,
 		releaseCompiler,
-		stemcellReader,
+		repo,
 		f.logger,
 	), nil
 }
