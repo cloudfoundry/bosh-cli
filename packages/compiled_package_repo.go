@@ -1,13 +1,14 @@
 package packages
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	"fmt"
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	"sort"
 	"strings"
+
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+
+	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type CompiledPackageRecord struct {
