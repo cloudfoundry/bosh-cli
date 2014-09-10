@@ -2,6 +2,7 @@ package install_test
 
 import (
 	"errors"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -56,7 +57,7 @@ var _ = Describe("Install", func() {
 			}
 			repo.SetFindBehavior(*pkg, record, true, nil)
 			blobstore.GetFileName = "/tmp/fake-blob-file"
-			fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir", nil)
+			fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir/fake-package-name", nil)
 		})
 
 		It("gets the package record from the repo", func() {
@@ -66,11 +67,12 @@ var _ = Describe("Install", func() {
 			Expect(blobstore.GetFingerprints).To(Equal([]string{"fake-package-fingerprint"}))
 		})
 
-		It("creates the target dir if it does not exist", func() {
-			Expect(fs.FileExists(targetDir)).To(BeFalse())
+		It("creates the installed package dir if it does not exist", func() {
+			installedDir := filepath.Join(targetDir, "fake-package-name")
+			Expect(fs.FileExists(installedDir)).To(BeFalse())
 			err := installer.Install(pkg, targetDir)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fs.FileExists(targetDir)).To(BeTrue())
+			Expect(fs.FileExists(installedDir)).To(BeTrue())
 		})
 
 		It("extracts the blob into the target dir", func() {
@@ -123,7 +125,7 @@ var _ = Describe("Install", func() {
 
 		Context("when extracting the blob fails", func() {
 			BeforeEach(func() {
-				fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir", errors.New("fake-error"))
+				fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir/fake-package-name", errors.New("fake-error"))
 			})
 
 			It("returns an error", func() {

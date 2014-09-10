@@ -1,12 +1,13 @@
 package install
 
 import (
+	"os"
+	"path/filepath"
+
 	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	"os"
 
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
@@ -43,7 +44,7 @@ func NewPackageInstaller(
 	}
 }
 
-func (pi *packageInstaller) Install(pkg *bmrel.Package, targetDir string) error {
+func (pi *packageInstaller) Install(pkg *bmrel.Package, parentDir string) error {
 	pgkRecord, found, err := pi.repo.Find(*pkg)
 	if err != nil {
 		return bosherr.WrapError(err, "Finding compiled package record: %#v", pkg)
@@ -58,6 +59,7 @@ func (pi *packageInstaller) Install(pkg *bmrel.Package, targetDir string) error 
 	}
 	defer pi.cleanUpBlob(filePath)
 
+	targetDir := filepath.Join(parentDir, pkg.Name)
 	existed := pi.fs.FileExists(targetDir)
 	if !existed {
 		err = pi.fs.MkdirAll(targetDir, os.ModePerm)

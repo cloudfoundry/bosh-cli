@@ -59,11 +59,9 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 	}
 
 	for _, pkg := range pkg.Dependencies {
-		dependencyInstallDir := path.Join(pc.packagesDir, pkg.Name)
-
-		err = pc.packageInstaller.Install(pkg, dependencyInstallDir)
+		err = pc.packageInstaller.Install(pkg, pc.packagesDir)
 		if err != nil {
-			return bosherr.WrapError(err, "Installing package `%s' into `%s'", pkg.Name, dependencyInstallDir)
+			return bosherr.WrapError(err, "Installing package `%s' into `%s'", pkg.Name, pc.packagesDir)
 		}
 	}
 

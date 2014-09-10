@@ -83,8 +83,8 @@ var _ = Describe("PackageCompiler", func() {
 			compiledPackageRepo.SetFindBehavior(*dependency1, bmpkgs.CompiledPackageRecord{}, false, nil)
 			compiledPackageRepo.SetFindBehavior(*dependency2, bmpkgs.CompiledPackageRecord{}, false, nil)
 
-			packageInstaller.SetInstallBehavior(dependency1, path.Join(packagesDir, dependency1.Name), nil)
-			packageInstaller.SetInstallBehavior(dependency2, path.Join(packagesDir, dependency2.Name), nil)
+			packageInstaller.SetInstallBehavior(dependency1, packagesDir, nil)
+			packageInstaller.SetInstallBehavior(dependency2, packagesDir, nil)
 		})
 
 		Context("when the compiled package repo already has the package", func() {
@@ -125,13 +125,13 @@ var _ = Describe("PackageCompiler", func() {
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
 					fakebminstall.InstallInput{
 						Package: dependency1,
-						Target:  path.Join(packagesDir, dependency1.Name),
+						Target:  path.Join(packagesDir),
 					},
 				))
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
 					fakebminstall.InstallInput{
 						Package: dependency2,
-						Target:  path.Join(packagesDir, dependency2.Name),
+						Target:  path.Join(packagesDir),
 					},
 				))
 			})
@@ -182,7 +182,7 @@ var _ = Describe("PackageCompiler", func() {
 				BeforeEach(func() {
 					packageInstaller.SetInstallBehavior(
 						dependency1,
-						path.Join(packagesDir, dependency1.Name),
+						path.Join(packagesDir),
 						errors.New("fake-error"),
 					)
 				})
