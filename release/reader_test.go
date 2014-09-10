@@ -3,13 +3,13 @@ package release_test
 import (
 	"errors"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
-
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 var _ = Describe("tarReader", func() {
@@ -91,6 +91,13 @@ packages:
 							Expect(release.CommitHash).To(Equal("abc123"))
 							Expect(release.UncommittedChanges).To(BeTrue())
 							Expect(release.ExtractedPath).To(Equal("/extracted/release"))
+							expectedPackage := &Package{
+								Name:          "fake-package",
+								Fingerprint:   "fake-package-fingerprint",
+								Sha1:          "fake-package-sha",
+								Dependencies:  []*Package{&Package{Name: "fake-package-1"}},
+								ExtractedPath: "/extracted/release/extracted_packages/fake-package",
+							}
 
 							Expect(len(release.Jobs)).To(Equal(1))
 							Expect(release.Jobs).To(
@@ -102,22 +109,13 @@ packages:
 										ExtractedPath: "/extracted/release/extracted_jobs/fake-job",
 										Templates:     map[string]string{"some_template": "some_file"},
 										PackageNames:  []string{"fake-package"},
+										Packages:      []*Package{expectedPackage},
 									},
 								),
 							)
 
 							Expect(len(release.Packages)).To(Equal(1))
-							Expect(release.Packages).To(
-								ContainElement(
-									&Package{
-										Name:          "fake-package",
-										Fingerprint:   "fake-package-fingerprint",
-										Sha1:          "fake-package-sha",
-										Dependencies:  []*Package{&Package{Name: "fake-package-1"}},
-										ExtractedPath: "/extracted/release/extracted_packages/fake-package",
-									},
-								),
-							)
+							Expect(release.Packages).To(ContainElement(expectedPackage))
 						})
 					})
 
@@ -200,6 +198,39 @@ packages:
 					_, err := reader.Read()
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Reading release manifest"))
+				})
+			})
+
+			Context("when the job refers to a package that does not exist", func() {
+				It("returns error", func() {
+					releaseMFContents :=
+						`---
+name: fake-release
+version: fake-version
+
+commit_hash: abc123
+uncommitted_changes: true
+
+jobs:
+- name: fake-job
+version: fake-job-version
+fingerprint: fake-job-fingerprint
+sha1: fake-job-sha
+`
+					fakeFs.WriteFileString("/extracted/release/release.MF", releaseMFContents)
+					fakeExtractor.SetDecompressBehavior("/extracted/release/jobs/fake-job.tgz", "/extracted/release/extracted_jobs/fake-job", nil)
+					jobMFContents :=
+						`---
+name: fake-job
+templates:
+  some_template: some_file
+packages:
+- not_there
+`
+					fakeFs.WriteFileString("/extracted/release/extracted_jobs/fake-job/job.MF", jobMFContents)
+					_, err := reader.Read()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Package not found"))
 				})
 			})
 		})

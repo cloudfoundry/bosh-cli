@@ -66,14 +66,14 @@ func (r *reader) Read() (Release, error) {
 
 func (r *reader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Release, error) {
 	errors := []error{}
-	jobs, err := r.newJobsFromManifestJobs(releaseManifest.Jobs)
-	if err != nil {
-		errors = append(errors, bosherr.WrapError(err, "Constructing jobs from manifest"))
-	}
-
 	packages, err := r.newPackagesFromManifestPackages(releaseManifest.Packages)
 	if err != nil {
 		errors = append(errors, bosherr.WrapError(err, "Constructing packages from manifest"))
+	}
+
+	jobs, err := r.newJobsFromManifestJobs(packages, releaseManifest.Jobs)
+	if err != nil {
+		errors = append(errors, bosherr.WrapError(err, "Constructing jobs from manifest"))
 	}
 
 	if len(errors) > 0 {
@@ -94,7 +94,7 @@ func (r *reader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Relea
 	}, nil
 }
 
-func (r *reader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]Job, error) {
+func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmrelman.Job) ([]Job, error) {
 	jobs := []Job{}
 	errors := []error{}
 	for _, manifestJob := range manifestJobs {
@@ -115,6 +115,13 @@ func (r *reader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]Job, er
 
 		job.Fingerprint = manifestJob.Fingerprint
 		job.Sha1 = manifestJob.Sha1
+		for _, pkgName := range job.PackageNames {
+			pkg, found := r.findPackageByName(packages, pkgName)
+			if !found {
+				return []Job{}, bosherr.New("Package not found: `%s'", pkgName)
+			}
+			job.Packages = append(job.Packages, pkg)
+		}
 
 		jobs = append(jobs, job)
 	}
@@ -124,6 +131,15 @@ func (r *reader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]Job, er
 	}
 
 	return jobs, nil
+}
+
+func (r *reader) findPackageByName(packages []*Package, pkgName string) (*Package, bool) {
+	for _, pkg := range packages {
+		if pkg.Name == pkgName {
+			return pkg, true
+		}
+	}
+	return nil, false
 }
 
 func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Package) ([]*Package, error) {

@@ -7,6 +7,7 @@ type Job struct {
 	ExtractedPath string
 	Templates     map[string]string
 	PackageNames  []string
+	Packages      []*Package
 	Properties    map[string]PropertyDefinition
 }
 
