@@ -9,9 +9,11 @@ import (
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
+	fakebmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/install"
 )
@@ -23,17 +25,26 @@ var _ = Describe("JobInstaller", func() {
 		job              bmrel.Job
 		path             string
 		packageInstaller *fakebminstall.FakePackageInstaller
+		blobExtractor    *fakebminstall.FakeBlobExtractor
+		templateRepo     *fakebmtemcomp.FakeTemplatesRepo
+		packagesDir      string
 	)
 
 	Context("Installing the job", func() {
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			packageInstaller = fakebminstall.NewFakePackageInstaller()
-			jobInstaller = NewJobInstaller(fs, packageInstaller)
+			blobExtractor = fakebminstall.NewFakeBlobExtractor()
+			templateRepo = fakebmtemcomp.NewFakeTemplatesRepo()
+
+			jobInstaller = NewJobInstaller(fs, packageInstaller, blobExtractor, templateRepo)
 			path = "fake/path"
 			job = bmrel.Job{
 				Name: "cpi",
 			}
+			packagesDir = filepath.Join(path, "packages")
+			templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSha1: "fake-sha1"}, true, nil)
+			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-sha1", "fake/path/jobs/cpi", nil)
 		})
 
 		It("creates basic job layout", func() {
@@ -44,24 +55,38 @@ var _ = Describe("JobInstaller", func() {
 			Expect(fs.FileExists(filepath.Join(path, "packages"))).To(BeTrue())
 		})
 
+		It("finds the rendered templates for the job from the repo", func() {
+			err := jobInstaller.Install(job, path)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(templateRepo.FindInputs).To(ContainElement(fakebmtemcomp.FindInput{Job: job}))
+		})
+
+		It("tells the blobExtractor to extract the templates into the installed job dir", func() {
+			err := jobInstaller.Install(job, path)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstall.ExtractInput{
+				BlobID:    "fake-blob-id",
+				BlobSha1:  "fake-sha1",
+				TargetDir: filepath.Join(path, "jobs", job.Name),
+			}))
+		})
+
 		Context("when the job has packages", func() {
 			var pkg1 bmrel.Package
 
 			BeforeEach(func() {
 				pkg1 = bmrel.Package{Name: "fake-pkg-name"}
 				job.Packages = []*bmrel.Package{&pkg1}
+				packageInstaller.SetInstallBehavior(&pkg1, packagesDir, nil)
+				templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSha1: "fake-sha1"}, true, nil)
 			})
 
 			It("install packages correctly", func() {
-				packageInstaller.SetInstallBehavior(
-					&pkg1,
-					filepath.Join(path, "packages"),
-					nil,
-				)
+
 				err := jobInstaller.Install(job, path)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
-					fakebminstall.InstallInput{Package: &pkg1, Target: filepath.Join(path, "packages")},
+					fakebminstall.InstallInput{Package: &pkg1, Target: packagesDir},
 				))
 			})
 
@@ -76,9 +101,5 @@ var _ = Describe("JobInstaller", func() {
 				Expect(err.Error()).To(ContainSubstring("Installation failed"))
 			})
 		})
-
-		XIt("It cleans thing before running")
-
-		XIt("overwrite the jobs and packages in the given path")
 	})
 })
