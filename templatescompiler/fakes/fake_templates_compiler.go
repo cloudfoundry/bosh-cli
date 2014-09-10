@@ -8,11 +8,11 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type CompileInput struct {
-	Jobs       []bmreljob.Job
+	Jobs       []bmrel.Job
 	Deployment bmdepl.Deployment
 }
 
@@ -33,7 +33,7 @@ func NewFakeTemplatesCompiler() *FakeTemplatesCompiler {
 	}
 }
 
-func (f *FakeTemplatesCompiler) Compile(jobs []bmreljob.Job, deployment bmdepl.Deployment) error {
+func (f *FakeTemplatesCompiler) Compile(jobs []bmrel.Job, deployment bmdepl.Deployment) error {
 	input := CompileInput{Jobs: jobs, Deployment: deployment}
 	f.CompileInputs = append(f.CompileInputs, input)
 
@@ -49,7 +49,7 @@ func (f *FakeTemplatesCompiler) Compile(jobs []bmreljob.Job, deployment bmdepl.D
 	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v')", jobs, deployment)
 }
 
-func (f *FakeTemplatesCompiler) SetCompileBehavior(jobs []bmreljob.Job, deployment bmdepl.Deployment, err error) error {
+func (f *FakeTemplatesCompiler) SetCompileBehavior(jobs []bmrel.Job, deployment bmdepl.Deployment, err error) error {
 	input := CompileInput{Jobs: jobs, Deployment: deployment}
 	inputString, marshalErr := marshalToString(input)
 	if marshalErr != nil {

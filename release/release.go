@@ -1,9 +1,5 @@
 package release
 
-import (
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
-)
-
 type Release struct {
 	Name    string
 	Version string
@@ -11,20 +7,20 @@ type Release struct {
 	CommitHash         string
 	UncommittedChanges bool
 
-	Jobs          []bmreljob.Job
+	Jobs          []Job
 	Packages      []*Package
 	ExtractedPath string
 	TarballPath   string
 }
 
-func (r Release) FindJobByName(jobName string) (bmreljob.Job, bool) {
+func (r Release) FindJobByName(jobName string) (Job, bool) {
 	for _, job := range r.Jobs {
 		if job.Name == jobName {
 			return job, true
 		}
 	}
 
-	return bmreljob.Job{}, false
+	return Job{}, false
 }
 
 type Package struct {

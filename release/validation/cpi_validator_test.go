@@ -5,7 +5,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 )
@@ -13,7 +12,7 @@ import (
 var _ = Describe("CpiValidator", func() {
 	It("validates a valid release without error", func() {
 		release := bmrel.Release{
-			Jobs: []bmreljob.Job{
+			Jobs: []bmrel.Job{
 				{
 					Name:        "cpi",
 					Fingerprint: "fake-job-1-fingerprint",
@@ -37,7 +36,7 @@ var _ = Describe("CpiValidator", func() {
 
 		BeforeEach(func() {
 			release = bmrel.Release{
-				Jobs: []bmreljob.Job{
+				Jobs: []bmrel.Job{
 					{
 						Name:        "non-cpi-job",
 						Fingerprint: "fake-job-1-fingerprint",
@@ -64,7 +63,7 @@ var _ = Describe("CpiValidator", func() {
 
 		BeforeEach(func() {
 			release = bmrel.Release{
-				Jobs: []bmreljob.Job{
+				Jobs: []bmrel.Job{
 					{
 						Name:        "cpi",
 						Fingerprint: "fake-job-1-fingerprint",
@@ -92,7 +91,7 @@ var _ = Describe("CpiValidator", func() {
 
 		BeforeEach(func() {
 			release = bmrel.Release{
-				Jobs: []bmreljob.Job{
+				Jobs: []bmrel.Job{
 					{
 						Name:        "cpi",
 						Fingerprint: "fake-job-1-fingerprint",

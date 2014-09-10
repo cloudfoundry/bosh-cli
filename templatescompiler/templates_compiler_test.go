@@ -16,7 +16,7 @@ import (
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	bmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -41,7 +41,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		templatesRepo     *fakebmtemp.FakeTemplatesRepo
 		fs                *fakesys.FakeFileSystem
 		compileDir        string
-		jobs              []bmreljob.Job
+		jobs              []bmrel.Job
 		context           bmrender.TemplateEvaluationContext
 		deployment        testDeployment
 		logger            boshlog.Logger
@@ -77,8 +77,8 @@ var _ = Describe("TemplatesCompiler", func() {
 
 	Context("with a job", func() {
 		BeforeEach(func() {
-			jobs = []bmreljob.Job{
-				bmreljob.Job{
+			jobs = []bmrel.Job{
+				bmrel.Job{
 					Name:          "fake-job-1",
 					ExtractedPath: "fake-extracted-path",
 					Templates: map[string]string{
@@ -238,22 +238,22 @@ var _ = Describe("TemplatesCompiler", func() {
 
 		Context("when one of the job fails to compile", func() {
 			BeforeEach(func() {
-				jobs = []bmreljob.Job{
-					bmreljob.Job{
+				jobs = []bmrel.Job{
+					bmrel.Job{
 						Name:          "fake-job-1",
 						ExtractedPath: "fake-extracted-path-1",
 						Templates: map[string]string{
 							"cpi.erb": "/bin/cpi",
 						},
 					},
-					bmreljob.Job{
+					bmrel.Job{
 						Name:          "fake-job-2",
 						ExtractedPath: "fake-extracted-path-2",
 						Templates: map[string]string{
 							"cpi.erb": "/bin/cpi",
 						},
 					},
-					bmreljob.Job{
+					bmrel.Job{
 						Name:          "fake-job-3",
 						ExtractedPath: "fake-extracted-path-3",
 						Templates: map[string]string{

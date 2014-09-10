@@ -1,4 +1,4 @@
-package jobs_test
+package release_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,19 +7,19 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	. "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
-var _ = Describe("TarReader", func() {
+var _ = Describe("JobReader", func() {
 	var (
 		fakeExtractor *testfakes.FakeMultiResponseExtractor
 		fakeFs        *fakesys.FakeFileSystem
-		reader        Reader
+		reader        JobReader
 	)
 	BeforeEach(func() {
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeFs = fakesys.NewFakeFileSystem()
-		reader = NewTarReader("/some/job/archive", "/extracted/job", fakeExtractor, fakeFs)
+		reader = NewJobReader("/some/job/archive", "/extracted/job", fakeExtractor, fakeFs)
 	})
 
 	Context("when the job archive is a valid tar", func() {

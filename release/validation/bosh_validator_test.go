@@ -6,8 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
-
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 )
@@ -28,7 +26,7 @@ var _ = Describe("Validator", func() {
 			CommitHash:         "fake-release-commit-hash",
 			UncommittedChanges: true,
 
-			Jobs: []bmreljob.Job{
+			Jobs: []bmrel.Job{
 				{
 					Name:          "fake-job-1-name",
 					Fingerprint:   "fake-job-1-fingerprint",
@@ -68,7 +66,7 @@ var _ = Describe("Validator", func() {
 		release := bmrel.Release{
 			Name:     "fake-release-name",
 			Version:  "fake-release-version",
-			Jobs:     []bmreljob.Job{{}, {Name: "fake-job"}},
+			Jobs:     []bmrel.Job{{}, {Name: "fake-job"}},
 			Packages: []*bmrel.Package{{}, {Name: "fake-package"}},
 		}
 		validator := NewBoshValidator(fakeFs)
@@ -94,7 +92,7 @@ var _ = Describe("Validator", func() {
 			release := bmrel.Release{
 				Name:    "fake-release",
 				Version: "fake-version",
-				Jobs: []bmreljob.Job{
+				Jobs: []bmrel.Job{
 					{
 						Name:        "fake-job",
 						Fingerprint: "fake-fingerprint",
@@ -125,7 +123,7 @@ var _ = Describe("Validator", func() {
 			release := bmrel.Release{
 				Name:    "fake-release",
 				Version: "fake-version",
-				Jobs: []bmreljob.Job{
+				Jobs: []bmrel.Job{
 					{
 						Name:        "fake-job-1",
 						Fingerprint: "fake-finger-print-1",
@@ -153,7 +151,7 @@ var _ = Describe("Validator", func() {
 			release := bmrel.Release{
 				Name:    "fake-release",
 				Version: "fake-version",
-				Jobs: []bmreljob.Job{
+				Jobs: []bmrel.Job{
 					{
 						Name:         "fake-job",
 						Fingerprint:  "fake-fingerprint",

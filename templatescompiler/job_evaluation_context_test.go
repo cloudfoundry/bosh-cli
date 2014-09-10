@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
@@ -17,10 +17,10 @@ var _ = Describe("JobEvaluationContext", func() {
 		generatedContext RootContext
 	)
 	BeforeEach(func() {
-		job := bmreljob.Job{
+		job := bmrel.Job{
 			Name: "fake-job-name",
-			Properties: map[string]bmreljob.PropertyDefinition{
-				"first-level-prop.second-level-prop": bmreljob.PropertyDefinition{
+			Properties: map[string]bmrel.PropertyDefinition{
+				"first-level-prop.second-level-prop": bmrel.PropertyDefinition{
 					Default: "fake-default",
 				},
 			},

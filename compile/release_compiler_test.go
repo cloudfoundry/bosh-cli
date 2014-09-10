@@ -12,7 +12,6 @@ import (
 
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/compile"
 )
@@ -41,8 +40,8 @@ var _ = Describe("ReleaseCompiler", func() {
 		release = bmrel.Release{
 			Name:     "fake-release-name",
 			Packages: []*bmrel.Package{},
-			Jobs: []bmreljob.Job{
-				bmreljob.Job{
+			Jobs: []bmrel.Job{
+				bmrel.Job{
 					Name: "fake-job-name",
 				},
 			},

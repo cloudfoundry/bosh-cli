@@ -1,4 +1,4 @@
-package jobs
+package release
 
 type Job struct {
 	Name          string

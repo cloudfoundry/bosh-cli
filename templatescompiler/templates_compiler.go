@@ -12,11 +12,11 @@ import (
 
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type TemplatesCompiler interface {
-	Compile(jobs []bmreljob.Job, deployment bmdepl.Deployment) error
+	Compile(jobs []bmrel.Job, deployment bmdepl.Deployment) error
 }
 
 type templatesCompiler struct {
@@ -46,7 +46,7 @@ func NewTemplatesCompiler(
 	}
 }
 
-func (tc templatesCompiler) Compile(jobs []bmreljob.Job, deployment bmdepl.Deployment) error {
+func (tc templatesCompiler) Compile(jobs []bmrel.Job, deployment bmdepl.Deployment) error {
 	for _, job := range jobs {
 		err := tc.compileJob(job, deployment)
 		if err != nil {
@@ -56,7 +56,7 @@ func (tc templatesCompiler) Compile(jobs []bmreljob.Job, deployment bmdepl.Deplo
 	return nil
 }
 
-func (tc templatesCompiler) compileJob(job bmreljob.Job, deployment bmdepl.Deployment) error {
+func (tc templatesCompiler) compileJob(job bmrel.Job, deployment bmdepl.Deployment) error {
 	jobSrcDir := job.ExtractedPath
 	jobCompileDir, err := tc.fs.TempDir("templates-compiler")
 	if err != nil {

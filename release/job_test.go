@@ -1,14 +1,14 @@
-package jobs_test
+package release_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 var _ = Describe("Job", func() {
-	var job bmreljob.Job
+	var job bmrel.Job
 
 	Describe("FindTemplateByValue", func() {
 		Context("when a template with the value exists", func() {
@@ -18,7 +18,7 @@ var _ = Describe("Job", func() {
 				expectedTemplate = map[string]string{
 					"fake-template-name": "fake-template-value",
 				}
-				job = bmreljob.Job{
+				job = bmrel.Job{
 					Templates: expectedTemplate,
 				}
 			})

@@ -10,7 +10,6 @@ import (
 
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
 	bmrelman "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
@@ -19,6 +18,10 @@ type tarReader struct {
 	extractedReleasePath string
 	fs                   boshsys.FileSystem
 	extractor            boshcmd.Compressor
+}
+
+type Reader interface {
+	Read() (Release, error)
 }
 
 func NewTarReader(
@@ -91,8 +94,8 @@ func (r *tarReader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Re
 	}, nil
 }
 
-func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]bmreljob.Job, error) {
-	jobs := []bmreljob.Job{}
+func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]Job, error) {
+	jobs := []Job{}
 	errors := []error{}
 	for _, manifestJob := range manifestJobs {
 		extractedJobPath := path.Join(r.extractedReleasePath, "extracted_jobs", manifestJob.Name)
@@ -103,7 +106,7 @@ func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]bmre
 		}
 
 		jobArchivePath := path.Join(r.extractedReleasePath, "jobs", manifestJob.Name+".tgz")
-		jobReader := bmreljob.NewTarReader(jobArchivePath, extractedJobPath, r.extractor, r.fs)
+		jobReader := NewJobReader(jobArchivePath, extractedJobPath, r.extractor, r.fs)
 		job, err := jobReader.Read()
 		if err != nil {
 			errors = append(errors, bosherr.WrapError(err, "Reading job `%s' from archive", manifestJob.Name))
@@ -117,7 +120,7 @@ func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]bmre
 	}
 
 	if len(errors) > 0 {
-		return []bmreljob.Job{}, bmerr.NewExplainableError(errors)
+		return []Job{}, bmerr.NewExplainableError(errors)
 	}
 
 	return jobs, nil

@@ -5,20 +5,20 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 var _ = Describe("FindJobByName", func() {
 	Context("when the job exists", func() {
 		var release Release
-		var expectedJob bmreljob.Job
+		var expectedJob bmrel.Job
 
 		BeforeEach(func() {
-			expectedJob = bmreljob.Job{
+			expectedJob = bmrel.Job{
 				Name: "fake-job-name",
 			}
 			release = Release{
-				Jobs: []bmreljob.Job{expectedJob},
+				Jobs: []bmrel.Job{expectedJob},
 			}
 		})
 

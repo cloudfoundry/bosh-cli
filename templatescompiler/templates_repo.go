@@ -4,7 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type TemplateRecord struct {
@@ -13,8 +13,8 @@ type TemplateRecord struct {
 }
 
 type TemplatesRepo interface {
-	Save(bmreljob.Job, TemplateRecord) error
-	Find(bmreljob.Job) (TemplateRecord, bool, error)
+	Save(bmrel.Job, TemplateRecord) error
+	Find(bmrel.Job) (TemplateRecord, bool, error)
 }
 
 type templatesRepo struct {
@@ -25,7 +25,7 @@ func NewTemplatesRepo(index bmindex.Index) TemplatesRepo {
 	return templatesRepo{index: index}
 }
 
-func (tr templatesRepo) Save(job bmreljob.Job, record TemplateRecord) error {
+func (tr templatesRepo) Save(job bmrel.Job, record TemplateRecord) error {
 	err := tr.index.Save(tr.jobKey(job), record)
 
 	if err != nil {
@@ -35,7 +35,7 @@ func (tr templatesRepo) Save(job bmreljob.Job, record TemplateRecord) error {
 	return nil
 }
 
-func (tr templatesRepo) Find(job bmreljob.Job) (TemplateRecord, bool, error) {
+func (tr templatesRepo) Find(job bmrel.Job) (TemplateRecord, bool, error) {
 	var record TemplateRecord
 
 	err := tr.index.Find(tr.jobKey(job), &record)
@@ -55,7 +55,7 @@ type jobTemplateKey struct {
 	JobFingerprint string
 }
 
-func (tr templatesRepo) jobKey(job bmreljob.Job) jobTemplateKey {
+func (tr templatesRepo) jobKey(job bmrel.Job) jobTemplateKey {
 	return jobTemplateKey{
 		JobName:        job.Name,
 		JobFingerprint: job.Fingerprint,

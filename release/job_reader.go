@@ -1,4 +1,4 @@
-package jobs
+package release
 
 import (
 	"path"
@@ -10,20 +10,20 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 )
 
-type tarReader struct {
+type jobReader struct {
 	archivePath      string
 	extractedJobPath string
 	extractor        boshcmd.Compressor
 	fs               boshsys.FileSystem
 }
 
-func NewTarReader(
+func NewJobReader(
 	archivePath string,
 	extractedJobPath string,
 	extractor boshcmd.Compressor,
 	fs boshsys.FileSystem,
-) *tarReader {
-	return &tarReader{
+) *jobReader {
+	return &jobReader{
 		archivePath:      archivePath,
 		extractedJobPath: extractedJobPath,
 		extractor:        extractor,
@@ -31,7 +31,7 @@ func NewTarReader(
 	}
 }
 
-func (r *tarReader) Read() (Job, error) {
+func (r *jobReader) Read() (Job, error) {
 	err := r.extractor.DecompressFileToDir(r.archivePath, r.extractedJobPath)
 	if err != nil {
 		return Job{}, bosherr.WrapError(err,

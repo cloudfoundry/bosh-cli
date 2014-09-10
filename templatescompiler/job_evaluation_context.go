@@ -6,11 +6,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type jobEvaluationContext struct {
-	relJob             bmreljob.Job
+	relJob             bmrel.Job
 	manifestProperties map[string]interface{}
 	deploymentName     string
 	logger             boshlog.Logger
@@ -42,7 +42,7 @@ type networkContext struct {
 const logTag = "JobEvaluationContext"
 
 func NewJobEvaluationContext(
-	job bmreljob.Job,
+	job bmrel.Job,
 	manifestProperties map[string]interface{},
 	deploymentName string,
 	logger boshlog.Logger,
@@ -72,7 +72,7 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 	return json.Marshal(context)
 }
 
-func (ec jobEvaluationContext) convertForPropertyResolver(properties map[string]bmreljob.PropertyDefinition) map[string]interface{} {
+func (ec jobEvaluationContext) convertForPropertyResolver(properties map[string]bmrel.PropertyDefinition) map[string]interface{} {
 	result := map[string]interface{}{}
 	for propertyKey, property := range properties {
 		result[propertyKey] = property.Default

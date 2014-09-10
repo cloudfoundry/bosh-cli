@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/jobs"
+
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 )
 
@@ -95,7 +95,7 @@ packages:
 							Expect(len(release.Jobs)).To(Equal(1))
 							Expect(release.Jobs).To(
 								ContainElement(
-									bmreljob.Job{
+									Job{
 										Name:          "fake-job",
 										Fingerprint:   "fake-job-fingerprint",
 										Sha1:          "fake-job-sha",
