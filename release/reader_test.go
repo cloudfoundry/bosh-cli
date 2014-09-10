@@ -22,7 +22,7 @@ var _ = Describe("tarReader", func() {
 	BeforeEach(func() {
 		fakeFs = fakesys.NewFakeFileSystem()
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
-		reader = NewTarReader("/some/release.tgz", "/extracted/release", fakeFs, fakeExtractor)
+		reader = NewReader("/some/release.tgz", "/extracted/release", fakeFs, fakeExtractor)
 	})
 
 	Describe("Read", func() {

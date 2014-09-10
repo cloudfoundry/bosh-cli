@@ -13,7 +13,7 @@ import (
 	bmrelman "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
-type tarReader struct {
+type reader struct {
 	tarFilePath          string
 	extractedReleasePath string
 	fs                   boshsys.FileSystem
@@ -24,13 +24,13 @@ type Reader interface {
 	Read() (Release, error)
 }
 
-func NewTarReader(
+func NewReader(
 	tarFilePath string,
 	extractedReleasePath string,
 	fs boshsys.FileSystem,
 	extractor boshcmd.Compressor,
-) *tarReader {
-	return &tarReader{
+) *reader {
+	return &reader{
 		tarFilePath:          tarFilePath,
 		extractedReleasePath: extractedReleasePath,
 		fs:                   fs,
@@ -38,7 +38,7 @@ func NewTarReader(
 	}
 }
 
-func (r *tarReader) Read() (Release, error) {
+func (r *reader) Read() (Release, error) {
 	err := r.extractor.DecompressFileToDir(r.tarFilePath, r.extractedReleasePath)
 	if err != nil {
 		return Release{}, bosherr.WrapError(err, "Extracting release")
@@ -64,7 +64,7 @@ func (r *tarReader) Read() (Release, error) {
 	return release, nil
 }
 
-func (r *tarReader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Release, error) {
+func (r *reader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Release, error) {
 	errors := []error{}
 	jobs, err := r.newJobsFromManifestJobs(releaseManifest.Jobs)
 	if err != nil {
@@ -94,7 +94,7 @@ func (r *tarReader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Re
 	}, nil
 }
 
-func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]Job, error) {
+func (r *reader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]Job, error) {
 	jobs := []Job{}
 	errors := []error{}
 	for _, manifestJob := range manifestJobs {
@@ -126,7 +126,7 @@ func (r *tarReader) newJobsFromManifestJobs(manifestJobs []bmrelman.Job) ([]Job,
 	return jobs, nil
 }
 
-func (r *tarReader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Package) ([]*Package, error) {
+func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Package) ([]*Package, error) {
 	packages := []*Package{}
 	errors := []error{}
 	packageRepo := NewPackageRepo()

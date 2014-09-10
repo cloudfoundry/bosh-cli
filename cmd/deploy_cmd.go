@@ -137,7 +137,7 @@ func (c *deployCmd) validateDeployment(releaseTarballPath string) error {
 }
 
 func (c *deployCmd) extractRelease(releaseTarballPath, extractedReleasePath string) (bmrel.Release, error) {
-	releaseReader := bmrel.NewTarReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
+	releaseReader := bmrel.NewReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
 
 	release, err := releaseReader.Read()
 	if err != nil {
