@@ -102,7 +102,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
 		boshblob.NewLocalBlobstore(f.fileSystem, f.uuidGenerator, options),
 	)
-	packageInstaller := bminstall.NewPackageInstaller(compiledPackageRepo, blobstore, tgz, f.fileSystem, f.logger)
+	blobExtractor := bminstall.NewBlobExtractor(f.fileSystem, compressor, blobstore, f.logger)
+	packageInstaller := bminstall.NewPackageInstaller(compiledPackageRepo, blobExtractor)
 	packageCompiler := bmcomp.NewPackageCompiler(
 		runner,
 		f.config.PackagesPath(),

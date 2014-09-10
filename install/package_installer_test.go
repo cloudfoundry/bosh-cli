@@ -2,20 +2,15 @@ package install_test
 
 import (
 	"errors"
-	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	fakeblobstore "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
+	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
 	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages/fakes"
-	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/install"
 )
@@ -23,23 +18,16 @@ import (
 var _ = Describe("Install", func() {
 	var (
 		installer     PackageInstaller
+		blobExtractor *fakebminstall.FakeBlobExtractor
 		repo          *fakebmpkgs.FakeCompiledPackageRepo
-		blobstore     *fakeblobstore.FakeBlobstore
 		targetDir     string
-		fakeExtractor *testfakes.FakeMultiResponseExtractor
 		pkg           *bmrel.Package
-		logger        boshlog.Logger
-		fs            *fakesys.FakeFileSystem
 	)
 	BeforeEach(func() {
 		repo = fakebmpkgs.NewFakeCompiledPackageRepo()
-		blobstore = fakeblobstore.NewFakeBlobstore()
+		blobExtractor = fakebminstall.NewFakeBlobExtractor()
 		targetDir = "fake-target-dir"
-		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
-		logger = boshlog.NewLogger(boshlog.LevelNone)
-		fs = fakesys.NewFakeFileSystem()
-
-		installer = NewPackageInstaller(repo, blobstore, fakeExtractor, fs, logger)
+		installer = NewPackageInstaller(repo, blobExtractor)
 
 		pkg = &bmrel.Package{
 			Name:         "fake-package-name",
@@ -56,35 +44,24 @@ var _ = Describe("Install", func() {
 				BlobSha1: "fake-package-fingerprint",
 			}
 			repo.SetFindBehavior(*pkg, record, true, nil)
-			blobstore.GetFileName = "/tmp/fake-blob-file"
-			fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir/fake-package-name", nil)
+			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-package-fingerprint", "fake-target-dir/fake-package-name", nil)
 		})
 
 		It("gets the package record from the repo", func() {
 			err := installer.Install(pkg, targetDir)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobstore.GetBlobIDs).To(Equal([]string{"fake-blob-id"}))
-			Expect(blobstore.GetFingerprints).To(Equal([]string{"fake-package-fingerprint"}))
-		})
-
-		It("creates the installed package dir if it does not exist", func() {
-			installedDir := filepath.Join(targetDir, "fake-package-name")
-			Expect(fs.FileExists(installedDir)).To(BeFalse())
-			err := installer.Install(pkg, targetDir)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fs.FileExists(installedDir)).To(BeTrue())
 		})
 
 		It("extracts the blob into the target dir", func() {
 			err := installer.Install(pkg, targetDir)
 			Expect(err).ToNot(HaveOccurred())
-			//TODO: expect that file is extracted to the targetDir
-		})
-
-		It("cleans up the blob file", func() {
-			err := installer.Install(pkg, targetDir)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(blobstore.CleanUpFileName).To(Equal("/tmp/fake-blob-file"))
+			Expect(blobExtractor.ExtractInputs).To(ContainElement(
+				fakebminstall.ExtractInput{
+					BlobID:    "fake-blob-id",
+					BlobSha1:  "fake-package-fingerprint",
+					TargetDir: "fake-target-dir/fake-package-name",
+				},
+			))
 		})
 
 		Context("when finding the package in the repo errors", func() {
@@ -97,60 +74,6 @@ var _ = Describe("Install", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Finding compiled package record"))
 				Expect(err.Error()).To(ContainSubstring("fake-error"))
-			})
-		})
-
-		Context("when getting the blob from the blobstore errors", func() {
-			BeforeEach(func() {
-				blobstore.GetError = errors.New("fake-error")
-			})
-
-			It("returns an error", func() {
-				err := installer.Install(pkg, targetDir)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Getting compiled package from blobstore"))
-				Expect(err.Error()).To(ContainSubstring("fake-error"))
-			})
-		})
-
-		Context("when creating the target dir fails", func() {
-			It("return an error", func() {
-				fs.MkdirAllError = errors.New("fake-error")
-				err := installer.Install(pkg, targetDir)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Creating target dir"))
-				Expect(err.Error()).To(ContainSubstring("fake-error"))
-			})
-		})
-
-		Context("when extracting the blob fails", func() {
-			BeforeEach(func() {
-				fakeExtractor.SetDecompressBehavior("/tmp/fake-blob-file", "fake-target-dir/fake-package-name", errors.New("fake-error"))
-			})
-
-			It("returns an error", func() {
-				err := installer.Install(pkg, targetDir)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Extracting compiled package"))
-				Expect(err.Error()).To(ContainSubstring("fake-error"))
-			})
-
-			It("cleans up the target dir if it was created by this installer", func() {
-				Expect(fs.FileExists(targetDir)).To(BeFalse())
-				err := installer.Install(pkg, targetDir)
-				Expect(err).To(HaveOccurred())
-				Expect(fs.FileExists(targetDir)).To(BeFalse())
-			})
-		})
-
-		Context("when cleaning up the downloaded blob errors", func() {
-			BeforeEach(func() {
-				blobstore.CleanUpErr = errors.New("fake-error")
-			})
-
-			It("does not return the error", func() {
-				err := installer.Install(pkg, targetDir)
-				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 	})

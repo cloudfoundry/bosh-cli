@@ -4,10 +4,10 @@ import (
 	"path"
 
 	"github.com/cloudfoundry-incubator/candiedyaml"
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
 type jobReader struct {
