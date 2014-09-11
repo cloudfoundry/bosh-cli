@@ -184,9 +184,8 @@ version: fake-version
 
 									err := runDeployCmd(command)
 									Expect(err).To(HaveOccurred())
-									Expect(err.Error()).To(ContainSubstring("Compiling release"))
 									Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
-									Expect(fakeUI.Errors).To(ContainElement("Could not compile release"))
+									Expect(fakeUI.Errors).To(ContainElement("Could not compile CPI release"))
 								})
 							})
 

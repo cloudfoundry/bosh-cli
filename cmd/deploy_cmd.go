@@ -57,94 +57,163 @@ func NewDeployCmd(
 }
 
 func (c *deployCmd) Run(args []string) error {
-	if len(args) == 0 {
-		c.ui.Error("No CPI release provided")
-		c.logger.Debug(logTag, "No CPI release provided")
-		return errors.New("No CPI release provided")
-	}
-
-	releaseTarballPath := args[0]
-	c.logger.Info(logTag, fmt.Sprintf("Validating deployment `%s'", releaseTarballPath))
-	err := c.validateDeployment(releaseTarballPath)
+	releaseTarballPath, stemcellTarballPath, err := c.validateDeployInputs(args)
 	if err != nil {
 		return err
 	}
 
-	c.logger.Info(logTag, "Extracting release")
-	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
-	if err != nil {
-		c.ui.Error("Could not create a temporary directory")
-		return bosherr.WrapError(err, "Creating temp directory")
-	}
-	defer c.fs.RemoveAll(extractedReleasePath)
+	//TODO: extract deployment parsing from ReleaseCompiler.Compile
+	c.parseCPIDeploymentManifest()
 
-	release, err := c.extractRelease(releaseTarballPath, extractedReleasePath)
+	cloud, err := c.deployCPIDeployment(c.config.Deployment, releaseTarballPath)
 	if err != nil {
 		return err
 	}
-	c.logger.Info(logTag, "Extracted release to `%s'", extractedReleasePath)
 
-	c.logger.Info(logTag, "Validating release")
-	err = c.validator.Validate(release)
+	stemcell, err := c.uploadStemcell(cloud, stemcellTarballPath)
 	if err != nil {
-		return bosherr.WrapError(err, "Validating release")
+		return err
 	}
 
-	c.logger.Info(logTag, fmt.Sprintf("Compiling release `%s'", release.Name))
-	c.logger.Debug(logTag, fmt.Sprintf("Compiling release: %#v", release))
-
-	err = c.releaseCompiler.Compile(release, c.config.Deployment)
+	microboshDeployment, err := c.parseMicroboshManifest()
 	if err != nil {
-		c.ui.Error("Could not compile release")
-		return bosherr.WrapError(err, "Compiling release")
+		return err
 	}
 
-	stemcellPath := args[1]
-	_, extractedPath, err := c.repo.Save(stemcellPath)
+	err = c.deployMicrobosh(cloud, microboshDeployment, stemcell)
 	if err != nil {
-		c.ui.Error("Could not read stemcell")
-		return bosherr.WrapError(err, "Saving stemcell")
+		return err
 	}
-	defer c.fs.RemoveAll(extractedPath)
 
-	// lay out cpi job locally
-	// validate stemcells
 	// register the stemcell
 	return nil
 }
 
-func (c *deployCmd) validateDeployment(releaseTarballPath string) error {
+type CPIDeployment struct{}
+type Cloud struct{}
+type Deployment struct{}
+
+//func (c *deployCmd) Run(args []string) error {
+//  releaseTarballPath, stemcellTarballPath := c.validateDeployInputs(args)
+//
+//  cpiDeployment := c.parseCPIDeploymentManifest()
+//  cloud := c.deployLocalDeployment(cpiDeployment, releaseTarballPath)
+//
+//  stemcell := c.uploadStemcell(cloud, stemcellTarballPath)
+//  microboshDeployment := c.parseMicroboshManifest()
+//  c.deployMicrobosh(cloud, microboshDeployment, stemcell)
+//}
+
+// validateDeployInputs validates the presence of inputs (stemcell tarball, cpi release tarball)
+func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) {
+
+	if len(args) == 0 {
+		c.ui.Error("No CPI release provided")
+		c.logger.Debug(logTag, "No CPI release provided")
+		return "", "", errors.New("No CPI release provided")
+	}
+
+	releaseTarballPath := args[0]
+	c.logger.Info(logTag, fmt.Sprintf("Validating deployment `%s'", releaseTarballPath))
+
 	fileValidator := bmvalidation.NewFileValidator(c.fs)
 	err := fileValidator.Exists(releaseTarballPath)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release `%s' does not exist", releaseTarballPath))
-		return bosherr.WrapError(err, "Checking CPI release `%s' existence", releaseTarballPath)
+		return "", "", bosherr.WrapError(err, "Checking CPI release `%s' existence", releaseTarballPath)
 	}
 
+	// validate current state: 'microbosh' deployment set
 	if len(c.config.Deployment) == 0 {
 		c.ui.Error("No deployment set")
-		return errors.New("No deployment set")
+		return "", "", bosherr.New("No deployment set")
 	}
 
 	c.logger.Info(logTag, fmt.Sprintf("Checking for deployment `%s'", c.config.Deployment))
 	err = fileValidator.Exists(c.config.Deployment)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.config.Deployment))
-		return bosherr.WrapError(err, "Reading deployment manifest for deploy")
+		return "", "", bosherr.WrapError(err, "Reading deployment manifest for deploy")
 	}
 
-	return nil
+	stemcellTarballPath := args[1]
+	//TODO Validate existence of stemcellTarballPath
+
+	return releaseTarballPath, stemcellTarballPath, nil
+
 }
 
-func (c *deployCmd) extractRelease(releaseTarballPath, extractedReleasePath string) (bmrel.Release, error) {
-	releaseReader := bmrel.NewReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
+func (c *deployCmd) parseCPIDeploymentManifest() (deployment CPIDeployment) {
+	//c.config.Deployment
+	return CPIDeployment{}
+}
 
+func (c *deployCmd) deployCPIDeployment(deploymentPath string, releaseTarballPath string) (Cloud, error) {
+	// unpack cpi release source
+	c.logger.Info(logTag, "Extracting CPI release")
+	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
+	if err != nil {
+		c.ui.Error("Could not create a temporary directory")
+		return Cloud{}, bosherr.WrapError(err, "Creating temp directory")
+	}
+	defer c.fs.RemoveAll(extractedReleasePath)
+
+	releaseReader := bmrel.NewReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
 	release, err := releaseReader.Read()
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a BOSH release", releaseTarballPath))
-		return bmrel.Release{}, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
+		return Cloud{}, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
 	}
 	release.TarballPath = releaseTarballPath
+	c.logger.Info(logTag, "Extracted CPI release to `%s'", extractedReleasePath)
 
-	return release, nil
+	// validate cpi release source
+	c.logger.Info(logTag, "Validating CPI release")
+	err = c.validator.Validate(release)
+	if err != nil {
+		return Cloud{}, bosherr.WrapError(err, "Validating CPI release")
+	}
+
+	c.logger.Info(logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name))
+	c.logger.Debug(logTag, fmt.Sprintf("Compiling CPI release: %#v", release))
+
+	// compile cpi release packages & store in compiled package repo
+	err = c.releaseCompiler.Compile(release, deploymentPath)
+	if err != nil {
+		c.ui.Error("Could not compile CPI release")
+		return Cloud{}, bosherr.WrapError(err, "Compiling CPI release")
+	}
+
+	// create local deployment 'cells'
+	//   tell 'local agent' to apply state
+	//   install compiled packages
+	//   install compiled job templates
+	// delete cpi source
+	return Cloud{}, nil
+}
+
+func (c *deployCmd) uploadStemcell(_ Cloud, stemcellTarballPath string) (bmstemcell.Stemcell, error) {
+	//   unpack stemcell tarball & cloud.create_stemcell(image_path)
+	stemcell, extractedPath, err := c.repo.Save(stemcellTarballPath)
+	if err != nil {
+		c.ui.Error("Could not read stemcell")
+		return bmstemcell.Stemcell{}, bosherr.WrapError(err, "Saving stemcell")
+	}
+
+	c.fs.RemoveAll(extractedPath)
+	return stemcell, nil
+}
+
+func (c *deployCmd) parseMicroboshManifest() (Deployment, error) {
+	//c.config.Deployment
+	return Deployment{}, nil
+}
+
+func (c *deployCmd) deployMicrobosh(cpi Cloud, deployment Deployment, stemcell bmstemcell.Stemcell) error {
+	// create (or discover & update) remote deployment 'cells'
+	//   cloud.create_vm & store agent_id
+	//   wait for agent to bootstrap
+	//   tell remote agent to apply state
+	//   poll agent task get_state until finished
+	return nil
 }
