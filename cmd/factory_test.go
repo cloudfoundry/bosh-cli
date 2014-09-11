@@ -4,7 +4,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
@@ -14,9 +13,8 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -28,7 +26,6 @@ var _ = Describe("cmd.Factory", func() {
 		configService *fakeconfig.FakeService
 		filesystem    boshsys.FileSystem
 		ui            bmui.UI
-		extractor     boshcmd.Compressor
 		logger        boshlog.Logger
 		uuidGenerator *fakeuuid.FakeGenerator
 		stemcellRepo  *fakebmstemcell.FakeRepo
@@ -75,8 +72,7 @@ var _ = Describe("cmd.Factory", func() {
 
 		Describe("deploy command", func() {
 			It("returns a  deploy command", func() {
-				releaseValidator := fakebmrel.NewFakeValidator()
-				releaseCompiler := fakebmcomp.NewFakeReleaseCompiler()
+				cpiDeployer := fakebmdeploy.NewFakeCpiDeployer()
 
 				cmd, err := factory.CreateCommand("deploy")
 				Expect(err).ToNot(HaveOccurred())
@@ -84,9 +80,7 @@ var _ = Describe("cmd.Factory", func() {
 					ui,
 					config,
 					filesystem,
-					extractor,
-					releaseValidator,
-					releaseCompiler,
+					cpiDeployer,
 					stemcellRepo,
 					logger,
 				)))

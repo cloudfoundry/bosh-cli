@@ -8,12 +8,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-
-	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
+	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
@@ -24,35 +20,29 @@ const (
 )
 
 type deployCmd struct {
-	ui              bmui.UI
-	config          bmconfig.Config
-	fs              boshsys.FileSystem
-	extractor       boshcmd.Compressor
-	validator       bmrelvalidation.ReleaseValidator
-	releaseCompiler bmcomp.ReleaseCompiler
-	repo            bmstemcell.Repo
-	logger          boshlog.Logger
+	ui          bmui.UI
+	config      bmconfig.Config
+	fs          boshsys.FileSystem
+	cpiDeployer bmdeploy.CpiDeployer
+	repo        bmstemcell.Repo
+	logger      boshlog.Logger
 }
 
 func NewDeployCmd(
 	ui bmui.UI,
 	config bmconfig.Config,
 	fs boshsys.FileSystem,
-	extractor boshcmd.Compressor,
-	validator bmrelvalidation.ReleaseValidator,
-	releaseCompiler bmcomp.ReleaseCompiler,
+	cpiDeployer bmdeploy.CpiDeployer,
 	repo bmstemcell.Repo,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
-		ui:              ui,
-		config:          config,
-		fs:              fs,
-		extractor:       extractor,
-		validator:       validator,
-		releaseCompiler: releaseCompiler,
-		repo:            repo,
-		logger:          logger,
+		ui:          ui,
+		config:      config,
+		fs:          fs,
+		cpiDeployer: cpiDeployer,
+		repo:        repo,
+		logger:      logger,
 	}
 }
 
@@ -63,9 +53,9 @@ func (c *deployCmd) Run(args []string) error {
 	}
 
 	//TODO: extract deployment parsing from ReleaseCompiler.Compile
-	c.parseCPIDeploymentManifest()
+	c.cpiDeployer.ParseManifest()
 
-	cloud, err := c.deployCPIDeployment(c.config.Deployment, releaseTarballPath)
+	cloud, err := c.cpiDeployer.Deploy(c.config.Deployment, releaseTarballPath)
 	if err != nil {
 		return err
 	}
@@ -89,8 +79,6 @@ func (c *deployCmd) Run(args []string) error {
 	return nil
 }
 
-type CPIDeployment struct{}
-type Cloud struct{}
 type Deployment struct{}
 
 //func (c *deployCmd) Run(args []string) error {
@@ -143,56 +131,7 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 
 }
 
-func (c *deployCmd) parseCPIDeploymentManifest() (deployment CPIDeployment) {
-	//c.config.Deployment
-	return CPIDeployment{}
-}
-
-func (c *deployCmd) deployCPIDeployment(deploymentPath string, releaseTarballPath string) (Cloud, error) {
-	// unpack cpi release source
-	c.logger.Info(logTag, "Extracting CPI release")
-	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
-	if err != nil {
-		c.ui.Error("Could not create a temporary directory")
-		return Cloud{}, bosherr.WrapError(err, "Creating temp directory")
-	}
-	defer c.fs.RemoveAll(extractedReleasePath)
-
-	releaseReader := bmrel.NewReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
-	release, err := releaseReader.Read()
-	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release `%s' is not a BOSH release", releaseTarballPath))
-		return Cloud{}, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
-	}
-	release.TarballPath = releaseTarballPath
-	c.logger.Info(logTag, "Extracted CPI release to `%s'", extractedReleasePath)
-
-	// validate cpi release source
-	c.logger.Info(logTag, "Validating CPI release")
-	err = c.validator.Validate(release)
-	if err != nil {
-		return Cloud{}, bosherr.WrapError(err, "Validating CPI release")
-	}
-
-	c.logger.Info(logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name))
-	c.logger.Debug(logTag, fmt.Sprintf("Compiling CPI release: %#v", release))
-
-	// compile cpi release packages & store in compiled package repo
-	err = c.releaseCompiler.Compile(release, deploymentPath)
-	if err != nil {
-		c.ui.Error("Could not compile CPI release")
-		return Cloud{}, bosherr.WrapError(err, "Compiling CPI release")
-	}
-
-	// create local deployment 'cells'
-	//   tell 'local agent' to apply state
-	//   install compiled packages
-	//   install compiled job templates
-	// delete cpi source
-	return Cloud{}, nil
-}
-
-func (c *deployCmd) uploadStemcell(_ Cloud, stemcellTarballPath string) (bmstemcell.Stemcell, error) {
+func (c *deployCmd) uploadStemcell(_ bmdeploy.Cloud, stemcellTarballPath string) (bmstemcell.Stemcell, error) {
 	//   unpack stemcell tarball & cloud.create_stemcell(image_path)
 	stemcell, extractedPath, err := c.repo.Save(stemcellTarballPath)
 	if err != nil {
@@ -209,7 +148,7 @@ func (c *deployCmd) parseMicroboshManifest() (Deployment, error) {
 	return Deployment{}, nil
 }
 
-func (c *deployCmd) deployMicrobosh(cpi Cloud, deployment Deployment, stemcell bmstemcell.Stemcell) error {
+func (c *deployCmd) deployMicrobosh(cpi bmdeploy.Cloud, deployment Deployment, stemcell bmstemcell.Stemcell) error {
 	// create (or discover & update) remote deployment 'cells'
 	//   cloud.create_vm & store agent_id
 	//   wait for agent to bootstrap

@@ -3,46 +3,39 @@ package cmd_test
 import (
 	"errors"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
-	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
-	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakedeploy "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
-	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("DeployCmd", func() {
 	var (
-		command              bmcmd.Cmd
-		config               bmconfig.Config
-		fakeFs               *fakesys.FakeFileSystem
-		fakeUI               *fakeui.FakeUI
-		fakeExtractor        *testfakes.FakeMultiResponseExtractor
-		fakeReleaseValidator *fakebmrel.FakeValidator
-		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
-		logger               boshlog.Logger
-		deployment           bmdepl.Deployment
-		release              bmrel.Release
-		fakeRepo             *fakebmstemcell.FakeRepo
+		command         bmcmd.Cmd
+		config          bmconfig.Config
+		fakeFs          *fakesys.FakeFileSystem
+		fakeUI          *fakeui.FakeUI
+		fakeCpiDeployer *fakedeploy.FakeCpiDeployer
+		logger          boshlog.Logger
+		release         bmrel.Release
+		fakeRepo        *fakebmstemcell.FakeRepo
 	)
 
 	BeforeEach(func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
 		config = bmconfig.Config{}
-		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
-		fakeReleaseValidator = fakebmrel.NewFakeValidator()
-		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
+		fakeCpiDeployer = fakedeploy.NewFakeCpiDeployer()
 		fakeRepo = fakebmstemcell.NewFakeRepo()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
@@ -51,9 +44,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeUI,
 			config,
 			fakeFs,
-			fakeExtractor,
-			fakeReleaseValidator,
-			fakeReleaseCompiler,
+			fakeCpiDeployer,
 			fakeRepo,
 			logger,
 		)
@@ -82,9 +73,7 @@ var _ = Describe("DeployCmd", func() {
 							fakeUI,
 							config,
 							fakeFs,
-							fakeExtractor,
-							fakeReleaseValidator,
-							fakeReleaseCompiler,
+							fakeCpiDeployer,
 							fakeRepo,
 							logger,
 						)
@@ -107,113 +96,27 @@ version: fake-version
 					Context("when the deployment manifest exists", func() {
 						BeforeEach(func() {
 							fakeFs.WriteFileString(config.Deployment, "")
+							fakeCpiDeployer.SetDeployBehavior("/some/deployment/file", "/somepath", bmdeploy.Cloud{}, nil)
+							fakeRepo.SetSaveBehavior("/somestemcellpath", "/some/stemcell/path", bmstemcell.Stemcell{}, nil)
 						})
 
-						Context("when a extracted release directory can be created", func() {
-							BeforeEach(func() {
-								fakeFs.TempDirDir = "/some/release/path"
-							})
-
-							Context("and the tarball is a valid BOSH release", func() {
-								BeforeEach(func() {
-									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-									deployment = bmdepl.NewLocalDeployment("fake-deployment-name", map[string]interface{}{})
-									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", nil)
-									fakeRepo.SetSaveBehavior("/somestemcellpath", "/some/stemcell/path", bmstemcell.Stemcell{}, nil)
-								})
-
-								It("does not return an error", func() {
-									err := runDeployCmd(command)
-									Expect(err).NotTo(HaveOccurred())
-								})
-
-								It("compiles the release", func() {
-									err := runDeployCmd(command)
-									Expect(err).NotTo(HaveOccurred())
-									Expect(fakeReleaseCompiler.CompileInputs[0].ManifestPath).To(Equal("/some/deployment/file"))
-								})
-
-								It("saves the stemcell", func() {
-									fakeFs.WriteFile("/some/stemcell/path", []byte{})
-									err := runDeployCmd(command)
-									Expect(err).NotTo(HaveOccurred())
-									Expect(fakeReleaseCompiler.CompileInputs[0].ManifestPath).To(Equal("/some/deployment/file"))
-									Expect(fakeFs.FileExists("/some/stemcell/path")).To(BeFalse())
-								})
-
-								It("cleans up the extracted release directory", func() {
-									err := runDeployCmd(command)
-									Expect(err).NotTo(HaveOccurred())
-									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
-								})
-							})
-
-							Context("and the tarball is not a valid BOSH release", func() {
-								BeforeEach(func() {
-									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-									fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
-									fakeReleaseValidator.ValidateError = errors.New("fake-error")
-								})
-
-								It("returns err", func() {
-									err := runDeployCmd(command)
-									Expect(err).To(HaveOccurred())
-									Expect(err.Error()).To(ContainSubstring("fake-error"))
-								})
-
-								It("cleans up the extracted release directory", func() {
-									err := runDeployCmd(command)
-									Expect(err).To(HaveOccurred())
-									Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
-								})
-							})
-
-							Context("and the tarball cannot be read", func() {
-								It("returns err", func() {
-									err := runDeployCmd(command)
-									Expect(err).To(HaveOccurred())
-									Expect(err.Error()).To(ContainSubstring("Reading CPI release from `/somepath'"))
-									Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a BOSH release"))
-								})
-							})
-
-							Context("when compilation fails", func() {
-								It("returns error", func() {
-									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", errors.New("fake-compile-error"))
-
-									err := runDeployCmd(command)
-									Expect(err).To(HaveOccurred())
-									Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
-									Expect(fakeUI.Errors).To(ContainElement("Could not compile CPI release"))
-								})
-							})
-
-							Context("when reading stemcell fails", func() {
-								It("returns error", func() {
-									fakeExtractor.SetDecompressBehavior("/somepath", "/some/release/path", nil)
-									fakeReleaseCompiler.SetCompileBehavior(release, "/some/deployment/file", nil)
-									fakeRepo.SetSaveBehavior("/somestemcellpath", "/some/release/path", bmstemcell.Stemcell{}, errors.New("fake-reading-error"))
-
-									err := runDeployCmd(command)
-									Expect(err).To(HaveOccurred())
-									Expect(err.Error()).To(ContainSubstring("Saving stemcell"))
-									Expect(err.Error()).To(ContainSubstring("fake-reading-error"))
-									Expect(fakeUI.Errors).To(ContainElement("Could not read stemcell"))
-								})
-							})
+						It("saves the stemcell and cleans up the temp path", func() {
+							fakeFs.WriteFile("/some/stemcell/path", []byte{})
+							err := runDeployCmd(command)
+							Expect(err).NotTo(HaveOccurred())
+							Expect(fakeCpiDeployer.DeployInputs[0].DeploymentManifestPath).To(Equal("/some/deployment/file"))
+							Expect(fakeFs.FileExists("/some/stemcell/path")).To(BeFalse())
 						})
 
-						Context("when a extracted release path cannot be created", func() {
-							BeforeEach(func() {
-								fakeFs.TempDirError = errors.New("")
-							})
+						Context("when reading stemcell fails", func() {
+							It("returns error", func() {
+								fakeRepo.SetSaveBehavior("/somestemcellpath", "", bmstemcell.Stemcell{}, errors.New("fake-reading-error"))
 
-							It("returns err", func() {
 								err := runDeployCmd(command)
 								Expect(err).To(HaveOccurred())
-								Expect(err.Error()).To(ContainSubstring("Creating temp directory"))
-								Expect(fakeUI.Errors).To(ContainElement("Could not create a temporary directory"))
+								Expect(err.Error()).To(ContainSubstring("Saving stemcell"))
+								Expect(err.Error()).To(ContainSubstring("fake-reading-error"))
+								Expect(fakeUI.Errors).To(ContainElement("Could not read stemcell"))
 							})
 						})
 					})
@@ -225,9 +128,7 @@ version: fake-version
 								fakeUI,
 								config,
 								fakeFs,
-								fakeExtractor,
-								fakeReleaseValidator,
-								fakeReleaseCompiler,
+								fakeCpiDeployer,
 								fakeRepo,
 								logger,
 							)

@@ -12,6 +12,7 @@ import (
 
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
@@ -83,7 +84,7 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 
 func (f *factory) createDeployCmd() (Cmd, error) {
 	runner := boshsys.NewExecCmdRunner(f.logger)
-	tgz := boshcmd.NewTarballCompressor(runner, f.fileSystem)
+	extractor := boshcmd.NewTarballCompressor(runner, f.fileSystem)
 
 	boshValidator := bmrelvalidation.NewBoshValidator(f.fileSystem)
 	cpiReleaseValidator := bmrelvalidation.NewCpiValidator()
@@ -129,6 +130,14 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, manifestParser, templatesCompiler)
+	cpiDeployer := bmdeploy.NewCpiDeployer(
+		f.ui,
+		f.fileSystem,
+		extractor,
+		releaseValidator,
+		releaseCompiler,
+		f.logger,
+	)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)
 	repo := bmstemcell.NewRepo(f.fileSystem, stemcellReader)
 
@@ -136,9 +145,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.ui,
 		f.config,
 		f.fileSystem,
-		tgz,
-		releaseValidator,
-		releaseCompiler,
+		cpiDeployer,
 		repo,
 		f.logger,
 	), nil
