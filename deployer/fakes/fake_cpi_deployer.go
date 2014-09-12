@@ -4,11 +4,13 @@ import (
 	"fmt"
 
 	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type DeployInput struct {
-	DeploymentManifestPath string
-	ReleaseTarballPath     string
+	Deployment         bmdepl.Deployment
+	ReleaseTarballPath string
 }
 
 type deployOutput struct {
@@ -18,44 +20,50 @@ type deployOutput struct {
 
 type FakeCpiDeployer struct {
 	DeployInputs   []DeployInput
-	deployBehavior map[DeployInput]deployOutput
+	deployBehavior map[string]deployOutput
 }
 
 func NewFakeCpiDeployer() *FakeCpiDeployer {
 	return &FakeCpiDeployer{
 		DeployInputs:   []DeployInput{},
-		deployBehavior: map[DeployInput]deployOutput{},
+		deployBehavior: map[string]deployOutput{},
 	}
 }
 
-func (f *FakeCpiDeployer) ParseManifest() string {
-	deploymentManifestPath := ""
-	return deploymentManifestPath
-}
-
-func (f *FakeCpiDeployer) Deploy(deploymentManifestPath string, releaseTarballPath string) (bmdeploy.Cloud, error) {
+func (f *FakeCpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmdeploy.Cloud, error) {
 	input := DeployInput{
-		DeploymentManifestPath: deploymentManifestPath,
-		ReleaseTarballPath:     releaseTarballPath,
+		Deployment:         deployment,
+		ReleaseTarballPath: releaseTarballPath,
 	}
 	f.DeployInputs = append(f.DeployInputs, input)
-	output, found := f.deployBehavior[input]
 
+	value, err := bmtestutils.MarshalToString(input)
+	if err != nil {
+		return bmdeploy.Cloud{}, fmt.Errorf("Could not serialize input %#v", input)
+	}
+
+	output, found := f.deployBehavior[value]
 	if found {
 		return output.cloud, output.err
 	}
-	return bmdeploy.Cloud{}, fmt.Errorf("Unsupported Input: Deploy('%s', '%s')", deploymentManifestPath, releaseTarballPath)
+	return bmdeploy.Cloud{}, fmt.Errorf("Unsupported Input: Deploy('%s', '%s')", deployment, releaseTarballPath)
 }
 
 func (f *FakeCpiDeployer) SetDeployBehavior(
-	deploymentManifestPath string,
+	deployment bmdepl.Deployment,
 	releaseTarballPath string,
 	cloud bmdeploy.Cloud,
 	err error,
-) {
+) error {
 	input := DeployInput{
-		DeploymentManifestPath: deploymentManifestPath,
-		ReleaseTarballPath:     releaseTarballPath,
+		Deployment:         deployment,
+		ReleaseTarballPath: releaseTarballPath,
 	}
-	f.deployBehavior[input] = deployOutput{cloud: cloud, err: err}
+
+	value, err := bmtestutils.MarshalToString(input)
+	if err != nil {
+		return fmt.Errorf("Could not serialize input %#v", input)
+	}
+	f.deployBehavior[value] = deployOutput{cloud: cloud, err: err}
+	return nil
 }

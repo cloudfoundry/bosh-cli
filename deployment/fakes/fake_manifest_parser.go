@@ -46,7 +46,7 @@ func (f *FakeManifestParser) Parse(deploymentPath string) (bmdepl.Deployment, er
 		return output.deployment, output.err
 	}
 
-	return fakeDeployment{}, fmt.Errorf("Unsupported Input: Parse('%s')", deploymentPath)
+	return fakeDeployment{}, fmt.Errorf("Unsupported Input: Parse('%s'), available behaviors '%#v'", deploymentPath, f.parseBehavior)
 }
 
 func (f *FakeManifestParser) SetParseBehavior(deploymentPath string, deployment bmdepl.Deployment, err error) {

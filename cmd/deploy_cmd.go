@@ -10,6 +10,7 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
@@ -20,29 +21,32 @@ const (
 )
 
 type deployCmd struct {
-	ui          bmui.UI
-	config      bmconfig.Config
-	fs          boshsys.FileSystem
-	cpiDeployer bmdeploy.CpiDeployer
-	repo        bmstemcell.Repo
-	logger      boshlog.Logger
+	ui                bmui.UI
+	config            bmconfig.Config
+	fs                boshsys.FileSystem
+	cpiManifestParser bmdepl.ManifestParser
+	cpiDeployer       bmdeploy.CpiDeployer
+	repo              bmstemcell.Repo
+	logger            boshlog.Logger
 }
 
 func NewDeployCmd(
 	ui bmui.UI,
 	config bmconfig.Config,
 	fs boshsys.FileSystem,
+	cpiManifestParser bmdepl.ManifestParser,
 	cpiDeployer bmdeploy.CpiDeployer,
 	repo bmstemcell.Repo,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
-		ui:          ui,
-		config:      config,
-		fs:          fs,
-		cpiDeployer: cpiDeployer,
-		repo:        repo,
-		logger:      logger,
+		ui:                ui,
+		config:            config,
+		fs:                fs,
+		cpiManifestParser: cpiManifestParser,
+		cpiDeployer:       cpiDeployer,
+		repo:              repo,
+		logger:            logger,
 	}
 }
 
@@ -52,27 +56,29 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
-	//TODO: extract deployment parsing from ReleaseCompiler.Compile
-	c.cpiDeployer.ParseManifest()
-
-	cloud, err := c.cpiDeployer.Deploy(c.config.Deployment, releaseTarballPath)
+	deployment, err := c.cpiManifestParser.Parse(c.config.Deployment)
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Parsing CPI deployment manifest `%s'", c.config.Deployment)
+	}
+
+	cloud, err := c.cpiDeployer.Deploy(deployment, releaseTarballPath)
+	if err != nil {
+		return bosherr.WrapError(err, "Deploying CPI `%s'", releaseTarballPath)
 	}
 
 	stemcell, err := c.uploadStemcell(cloud, stemcellTarballPath)
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Uploading stemcell `%s'", stemcellTarballPath)
 	}
 
 	microboshDeployment, err := c.parseMicroboshManifest()
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Parsing Microbosh deployment manifest `%s'", c.config.Deployment)
 	}
 
 	err = c.deployMicrobosh(cloud, microboshDeployment, stemcell)
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Deploying Microbosh")
 	}
 
 	// register the stemcell
@@ -80,17 +86,6 @@ func (c *deployCmd) Run(args []string) error {
 }
 
 type Deployment struct{}
-
-//func (c *deployCmd) Run(args []string) error {
-//  releaseTarballPath, stemcellTarballPath := c.validateDeployInputs(args)
-//
-//  cpiDeployment := c.parseCPIDeploymentManifest()
-//  cloud := c.deployLocalDeployment(cpiDeployment, releaseTarballPath)
-//
-//  stemcell := c.uploadStemcell(cloud, stemcellTarballPath)
-//  microboshDeployment := c.parseMicroboshManifest()
-//  c.deployMicrobosh(cloud, microboshDeployment, stemcell)
-//}
 
 // validateDeployInputs validates the presence of inputs (stemcell tarball, cpi release tarball)
 func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) {

@@ -9,14 +9,14 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type CpiDeployer interface {
-	ParseManifest() (deploymentManifestPath string)
-	Deploy(deploymentManifestPath string, releaseTarballPath string) (Cloud, error)
+	Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (Cloud, error)
 }
 
 type cpiDeployer struct {
@@ -48,13 +48,7 @@ func NewCpiDeployer(
 	}
 }
 
-func (c *cpiDeployer) ParseManifest() string {
-	//c.config.Deployment
-	deploymentManifestPath := ""
-	return deploymentManifestPath
-}
-
-func (c *cpiDeployer) Deploy(deploymentManifestPath string, releaseTarballPath string) (Cloud, error) {
+func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (Cloud, error) {
 	// unpack cpi release source
 	c.logger.Info(c.logTag, "Extracting CPI release")
 	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
@@ -84,7 +78,7 @@ func (c *cpiDeployer) Deploy(deploymentManifestPath string, releaseTarballPath s
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release: %#v", release))
 
 	// compile cpi release packages & store in compiled package repo
-	err = c.releaseCompiler.Compile(release, deploymentManifestPath)
+	err = c.releaseCompiler.Compile(release, deployment)
 	if err != nil {
 		c.ui.Error("Could not compile CPI release")
 		return Cloud{}, bosherr.WrapError(err, "Compiling CPI release")

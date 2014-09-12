@@ -10,25 +10,28 @@ import (
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakedeploy "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
+	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("DeployCmd", func() {
 	var (
-		command         bmcmd.Cmd
-		config          bmconfig.Config
-		fakeFs          *fakesys.FakeFileSystem
-		fakeUI          *fakeui.FakeUI
-		fakeCpiDeployer *fakedeploy.FakeCpiDeployer
-		logger          boshlog.Logger
-		release         bmrel.Release
-		fakeRepo        *fakebmstemcell.FakeRepo
+		command               bmcmd.Cmd
+		config                bmconfig.Config
+		fakeFs                *fakesys.FakeFileSystem
+		fakeUI                *fakeui.FakeUI
+		fakeCpiDeployer       *fakedeploy.FakeCpiDeployer
+		logger                boshlog.Logger
+		release               bmrel.Release
+		fakeRepo              *fakebmstemcell.FakeRepo
+		fakeCpiManifestParser *fakebmdepl.FakeManifestParser
 	)
 
 	BeforeEach(func() {
@@ -37,13 +40,14 @@ var _ = Describe("DeployCmd", func() {
 		config = bmconfig.Config{}
 		fakeCpiDeployer = fakedeploy.NewFakeCpiDeployer()
 		fakeRepo = fakebmstemcell.NewFakeRepo()
+		fakeCpiManifestParser = fakebmdepl.NewFakeManifestParser()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-
 		command = bmcmd.NewDeployCmd(
 			fakeUI,
 			config,
 			fakeFs,
+			fakeCpiManifestParser,
 			fakeCpiDeployer,
 			fakeRepo,
 			logger,
@@ -73,6 +77,7 @@ var _ = Describe("DeployCmd", func() {
 							fakeUI,
 							config,
 							fakeFs,
+							fakeCpiManifestParser,
 							fakeCpiDeployer,
 							fakeRepo,
 							logger,
@@ -94,18 +99,46 @@ version: fake-version
 					})
 
 					Context("when the deployment manifest exists", func() {
+						var (
+							deployment bmdepl.Deployment
+						)
 						BeforeEach(func() {
 							fakeFs.WriteFileString(config.Deployment, "")
-							fakeCpiDeployer.SetDeployBehavior("/some/deployment/file", "/somepath", bmdeploy.Cloud{}, nil)
+							deployment = bmdepl.LocalDeployment{}
+							fakeCpiManifestParser.SetParseBehavior(config.Deployment, deployment, nil)
+							fakeCpiDeployer.SetDeployBehavior(deployment, "/somepath", bmdeploy.Cloud{}, nil)
 							fakeRepo.SetSaveBehavior("/somestemcellpath", "/some/stemcell/path", bmstemcell.Stemcell{}, nil)
+						})
+
+						It("parses the CPI manifest", func() {
+							err := runDeployCmd(command)
+							Expect(err).NotTo(HaveOccurred())
+							Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
+						})
+
+						It("deploys the CPI locally", func() {
+							err := runDeployCmd(command)
+							Expect(err).NotTo(HaveOccurred())
+							Expect(fakeCpiDeployer.DeployInputs[0].Deployment).To(Equal(deployment))
 						})
 
 						It("saves the stemcell and cleans up the temp path", func() {
 							fakeFs.WriteFile("/some/stemcell/path", []byte{})
 							err := runDeployCmd(command)
 							Expect(err).NotTo(HaveOccurred())
-							Expect(fakeCpiDeployer.DeployInputs[0].DeploymentManifestPath).To(Equal("/some/deployment/file"))
 							Expect(fakeFs.FileExists("/some/stemcell/path")).To(BeFalse())
+						})
+
+						Context("when parsing the cpi deployment manifest fails", func() {
+							It("returns error", func() {
+								fakeCpiManifestParser.SetParseBehavior(config.Deployment, bmdepl.LocalDeployment{}, errors.New("fake-parse-error"))
+
+								err := runDeployCmd(command)
+								Expect(err).To(HaveOccurred())
+								Expect(err.Error()).To(ContainSubstring("Parsing CPI deployment manifest"))
+								Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
+								Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
+							})
 						})
 
 						Context("when reading stemcell fails", func() {
@@ -128,6 +161,7 @@ version: fake-version
 								fakeUI,
 								config,
 								fakeFs,
+								fakeCpiManifestParser,
 								fakeCpiDeployer,
 								fakeRepo,
 								logger,
@@ -141,6 +175,7 @@ version: fake-version
 							Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path `/some/deployment/file' does not exist"))
 						})
 					})
+
 				})
 
 				Context("when there is no deployment set", func() {

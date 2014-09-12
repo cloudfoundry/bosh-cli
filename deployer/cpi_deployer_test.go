@@ -21,7 +21,7 @@ import (
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
-var _ = FDescribe("CpiDeployer", func() {
+var _ = Describe("CpiDeployer", func() {
 
 	var (
 		fakeFs               *fakesys.FakeFileSystem
@@ -45,10 +45,6 @@ var _ = FDescribe("CpiDeployer", func() {
 
 		deploymentManifestPath = "/fake/manifest.yml"
 		cpiDeployer = NewCpiDeployer(fakeUI, fakeFs, fakeExtractor, fakeReleaseValidator, fakeReleaseCompiler, logger)
-	})
-
-	Describe("ParseManifest", func() {
-
 	})
 
 	Describe("Deploy", func() {
@@ -91,23 +87,23 @@ version: fake-version
 			Context("and the tarball is a valid BOSH release", func() {
 				BeforeEach(func() {
 					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/some/release/path", nil)
-					fakeReleaseCompiler.SetCompileBehavior(release, deploymentManifestPath, nil)
 					deployment = bmdepl.NewLocalDeployment("fake-deployment-name", map[string]interface{}{})
+					fakeReleaseCompiler.SetCompileBehavior(release, deployment, nil)
 				})
 
 				It("does not return an error", func() {
-					_, err := cpiDeployer.Deploy(deploymentManifestPath, releaseTarballPath)
+					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("compiles the release", func() {
-					_, err := cpiDeployer.Deploy(deploymentManifestPath, releaseTarballPath)
+					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeReleaseCompiler.CompileInputs[0].ManifestPath).To(Equal(deploymentManifestPath))
+					Expect(fakeReleaseCompiler.CompileInputs[0].Deployment).To(Equal(deployment))
 				})
 
 				It("cleans up the extracted release directory", func() {
-					_, err := cpiDeployer.Deploy(deploymentManifestPath, releaseTarballPath)
+					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
 				})
@@ -121,13 +117,13 @@ version: fake-version
 				})
 
 				It("returns an error", func() {
-					_, err := cpiDeployer.Deploy(deploymentManifestPath, releaseTarballPath)
+					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-error"))
 				})
 
 				It("cleans up the extracted release directory", func() {
-					_, err := cpiDeployer.Deploy(deploymentManifestPath, releaseTarballPath)
+					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).To(HaveOccurred())
 					Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
 				})
@@ -135,7 +131,7 @@ version: fake-version
 
 			Context("and the tarball cannot be read", func() {
 				It("returns an error", func() {
-					_, err := cpiDeployer.Deploy(deploymentManifestPath, releaseTarballPath)
+					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Reading CPI release from `/fake/release.tgz'"))
 					Expect(fakeUI.Errors).To(ContainElement("CPI release `/fake/release.tgz' is not a BOSH release"))
@@ -145,9 +141,9 @@ version: fake-version
 			Context("when compilation fails", func() {
 				It("returns an error", func() {
 					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/some/release/path", nil)
-					fakeReleaseCompiler.SetCompileBehavior(release, deploymentManifestPath, errors.New("fake-compile-error"))
+					fakeReleaseCompiler.SetCompileBehavior(release, deployment, errors.New("fake-compile-error"))
 
-					_, err := cpiDeployer.Deploy(deploymentManifestPath, releaseTarballPath)
+					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
 					Expect(fakeUI.Errors).To(ContainElement("Could not compile CPI release"))
@@ -161,7 +157,7 @@ version: fake-version
 			})
 
 			It("returns an error", func() {
-				_, err := cpiDeployer.Deploy(deploymentManifestPath, releaseTarballPath)
+				_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-tmp-dir-error"))
 				Expect(err.Error()).To(ContainSubstring("Creating temp directory"))

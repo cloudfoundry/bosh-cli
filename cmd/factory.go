@@ -129,7 +129,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	templatesIndex := bmindex.NewFileIndex(f.config.TemplatesIndexPath(), f.fileSystem)
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
-	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, manifestParser, templatesCompiler)
+	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
 	cpiDeployer := bmdeploy.NewCpiDeployer(
 		f.ui,
 		f.fileSystem,
@@ -145,6 +145,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.ui,
 		f.config,
 		f.fileSystem,
+		manifestParser,
 		cpiDeployer,
 		repo,
 		f.logger,

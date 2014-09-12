@@ -15,6 +15,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
+	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -72,6 +73,7 @@ var _ = Describe("cmd.Factory", func() {
 
 		Describe("deploy command", func() {
 			It("returns a  deploy command", func() {
+				cpiManifestParser := fakebmdepl.NewFakeManifestParser()
 				cpiDeployer := fakebmdeploy.NewFakeCpiDeployer()
 
 				cmd, err := factory.CreateCommand("deploy")
@@ -80,6 +82,7 @@ var _ = Describe("cmd.Factory", func() {
 					ui,
 					config,
 					filesystem,
+					cpiManifestParser,
 					cpiDeployer,
 					stemcellRepo,
 					logger,
