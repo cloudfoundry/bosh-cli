@@ -6,7 +6,7 @@ import (
 )
 
 type Repo interface {
-	Save(stemcellPath string) (stemcel Stemcell, extractedPath string, err error)
+	Save(stemcellPath string) (stemcell Stemcell, extractedPath string, err error)
 }
 
 type repo struct {
@@ -32,6 +32,9 @@ func (s repo) Save(stemcellPath string) (Stemcell, string, error) {
 		s.fs.RemoveAll(stemcellExtractedPath)
 		return Stemcell{}, "", bosherr.WrapError(err, "Reading stemcell")
 	}
+
+	//TODO: call the CPI to store info
+	// save info locally
 
 	return stemcell, stemcellExtractedPath, nil
 }
