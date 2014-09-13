@@ -104,7 +104,7 @@ version: fake-version
 						)
 						BeforeEach(func() {
 							fakeFs.WriteFileString(config.Deployment, "")
-							deployment = bmdepl.LocalDeployment{}
+							deployment = bmdepl.Deployment{}
 							fakeCpiManifestParser.SetParseBehavior(config.Deployment, deployment, nil)
 							fakeCpiDeployer.SetDeployBehavior(deployment, "/somepath", bmdeploy.Cloud{}, nil)
 							fakeRepo.SetSaveBehavior("/somestemcellpath", "/some/stemcell/path", bmstemcell.Stemcell{}, nil)
@@ -131,7 +131,7 @@ version: fake-version
 
 						Context("when parsing the cpi deployment manifest fails", func() {
 							It("returns error", func() {
-								fakeCpiManifestParser.SetParseBehavior(config.Deployment, bmdepl.LocalDeployment{}, errors.New("fake-parse-error"))
+								fakeCpiManifestParser.SetParseBehavior(config.Deployment, bmdepl.Deployment{}, errors.New("fake-parse-error"))
 
 								err := runDeployCmd(command)
 								Expect(err).To(HaveOccurred())

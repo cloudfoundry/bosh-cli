@@ -21,7 +21,7 @@ var _ = Describe("DeploymentRenderer", func() {
 	BeforeEach(func() {
 		deploymentPath = "fake-deployment-path"
 		fakeFs = fakesys.NewFakeFileSystem()
-		manifestParser = NewMicroDeploymentParser(fakeFs)
+		manifestParser = NewCpiDeploymentParser(fakeFs)
 	})
 
 	Context("when deployment path does not exist", func() {
@@ -61,10 +61,28 @@ cloud_provider:
 					deployment, err := manifestParser.Parse(deploymentPath)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(deployment.Name()).To(Equal("fake-deployment-name"))
-					Expect(deployment.Properties()["fake-property-name"]).To(Equal(map[string]interface{}{
+					Expect(deployment.Name).To(Equal("fake-deployment-name"))
+					Expect(deployment.Properties["fake-property-name"]).To(Equal(map[string]interface{}{
 						"nested-property": "fake-property-value",
 					}))
+				})
+
+				It("sets a CPI job into the deployment", func() {
+					deployment, err := manifestParser.Parse(deploymentPath)
+					Expect(err).ToNot(HaveOccurred())
+					expectedJobs := []Job{
+						Job{
+							Name:      "cpi",
+							Instances: 1,
+							Templates: []ReleaseJobRef{
+								ReleaseJobRef{
+									Name:    "cpi",
+									Release: "unknown-cpi-release-name",
+								},
+							},
+						},
+					}
+					Expect(deployment.Jobs).To(Equal(expectedJobs))
 				})
 			})
 

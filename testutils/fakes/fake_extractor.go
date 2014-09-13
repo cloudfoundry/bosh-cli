@@ -40,7 +40,7 @@ func (e *FakeMultiResponseExtractor) DecompressFileToDir(srcFile, destDir string
 	if found {
 		return output.err
 	}
-	return fmt.Errorf("Unsupported Input: DecompressFileToDir('%s', '%s')", srcFile, destDir)
+	return fmt.Errorf("Unsupported Input: DecompressFileToDir('%s', '%s')\nAvailable inputs: %#v", srcFile, destDir, e.decompressBehavior)
 }
 
 func (e *FakeMultiResponseExtractor) SetDecompressBehavior(srcFile, destDir string, err error) {
@@ -58,7 +58,7 @@ func (e *FakeMultiResponseExtractor) CompressFilesInDir(srcDir string) (string, 
 	if found {
 		return output.destFile, output.err
 	}
-	return "", fmt.Errorf("Unsupported Input: CompressFilesInDir('%s')", srcDir)
+	return "", fmt.Errorf("Unsupported Input: CompressFilesInDir('%s')\nAvailable inputs: %#v", srcDir, e.compressBehavior)
 }
 
 func (e *FakeMultiResponseExtractor) SetCompressBehavior(srcDir, destFile string, err error) {

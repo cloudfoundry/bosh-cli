@@ -45,7 +45,7 @@ func (f *FakeReleaseCompiler) Compile(release bmrel.Release, deployment bmdepl.D
 		return output.err
 	}
 
-	return fmt.Errorf("Unsupported Input: Compile('%#v', '%#v'). Available inputs are '%#v'", release, deployment, f.compileBehavior)
+	return fmt.Errorf("Unsupported Compile Input: %s\nAvailable inputs: %s", inputString, f.compileBehavior)
 }
 
 func (f *FakeReleaseCompiler) SetCompileBehavior(release bmrel.Release, deployment bmdepl.Deployment, err error) error {

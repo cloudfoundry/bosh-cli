@@ -28,6 +28,10 @@ func (c Config) PackagesPath() string {
 	return path.Join(c.deploymentDir(), "packages")
 }
 
+func (c Config) JobsPath() string {
+	return path.Join(c.deploymentDir(), "jobs")
+}
+
 func (c Config) deploymentDir() string {
 	return path.Join(c.ContainingDir, ".bosh_micro", c.DeploymentUUID)
 }

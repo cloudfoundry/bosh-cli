@@ -46,7 +46,7 @@ func (f *FakeCpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPat
 	if found {
 		return output.cloud, output.err
 	}
-	return bmdeploy.Cloud{}, fmt.Errorf("Unsupported Input: Deploy('%s', '%s')", deployment, releaseTarballPath)
+	return bmdeploy.Cloud{}, fmt.Errorf("Unsupported Input: %s", value)
 }
 
 func (f *FakeCpiDeployer) SetDeployBehavior(

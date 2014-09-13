@@ -23,11 +23,11 @@ var _ = Describe("JobInstaller", func() {
 		fs               boshsys.FileSystem
 		jobInstaller     JobInstaller
 		job              bmrel.Job
-		path             string
 		packageInstaller *fakebminstall.FakePackageInstaller
 		blobExtractor    *fakebminstall.FakeBlobExtractor
 		templateRepo     *fakebmtemcomp.FakeTemplatesRepo
-		packagesDir      string
+		jobsPath         string
+		packagesPath     string
 	)
 
 	Context("Installing the job", func() {
@@ -37,37 +37,37 @@ var _ = Describe("JobInstaller", func() {
 			blobExtractor = fakebminstall.NewFakeBlobExtractor()
 			templateRepo = fakebmtemcomp.NewFakeTemplatesRepo()
 
-			jobInstaller = NewJobInstaller(fs, packageInstaller, blobExtractor, templateRepo)
-			path = "fake/path"
+			jobsPath = "/fake/jobs"
+			packagesPath = "/fake/packages"
+			jobInstaller = NewJobInstaller(fs, packageInstaller, blobExtractor, templateRepo, jobsPath, packagesPath)
 			job = bmrel.Job{
 				Name: "cpi",
 			}
-			packagesDir = filepath.Join(path, "packages")
+
 			templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSha1: "fake-sha1"}, true, nil)
-			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-sha1", "fake/path/jobs/cpi", nil)
+			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-sha1", "/fake/jobs/cpi", nil)
 		})
 
 		It("creates basic job layout", func() {
-			err := jobInstaller.Install(job, path)
+			err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
-			installedJobDir := filepath.Join(path, "jobs", job.Name)
-			Expect(fs.FileExists(installedJobDir)).To(BeTrue())
-			Expect(fs.FileExists(filepath.Join(path, "packages"))).To(BeTrue())
+			Expect(fs.FileExists(filepath.Join(jobsPath, job.Name))).To(BeTrue())
+			Expect(fs.FileExists(packagesPath)).To(BeTrue())
 		})
 
 		It("finds the rendered templates for the job from the repo", func() {
-			err := jobInstaller.Install(job, path)
+			err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templateRepo.FindInputs).To(ContainElement(fakebmtemcomp.FindInput{Job: job}))
 		})
 
 		It("tells the blobExtractor to extract the templates into the installed job dir", func() {
-			err := jobInstaller.Install(job, path)
+			err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstall.ExtractInput{
 				BlobID:    "fake-blob-id",
 				BlobSha1:  "fake-sha1",
-				TargetDir: filepath.Join(path, "jobs", job.Name),
+				TargetDir: filepath.Join(jobsPath, job.Name),
 			}))
 		})
 
@@ -77,26 +77,26 @@ var _ = Describe("JobInstaller", func() {
 			BeforeEach(func() {
 				pkg1 = bmrel.Package{Name: "fake-pkg-name"}
 				job.Packages = []*bmrel.Package{&pkg1}
-				packageInstaller.SetInstallBehavior(&pkg1, packagesDir, nil)
+				packageInstaller.SetInstallBehavior(&pkg1, packagesPath, nil)
 				templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSha1: "fake-sha1"}, true, nil)
 			})
 
 			It("install packages correctly", func() {
 
-				err := jobInstaller.Install(job, path)
+				err := jobInstaller.Install(job)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
-					fakebminstall.InstallInput{Package: &pkg1, Target: packagesDir},
+					fakebminstall.InstallInput{Package: &pkg1, Target: packagesPath},
 				))
 			})
 
 			It("return err when package installation fails", func() {
 				packageInstaller.SetInstallBehavior(
 					&pkg1,
-					filepath.Join(path, "packages"),
+					packagesPath,
 					errors.New("Installation failed, yo"),
 				)
-				err := jobInstaller.Install(job, path)
+				err := jobInstaller.Install(job)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Installation failed"))
 			})

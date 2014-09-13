@@ -13,7 +13,7 @@ type microDeploymentParser struct {
 	fs boshsys.FileSystem
 }
 
-func NewMicroDeploymentParser(fs boshsys.FileSystem) ManifestParser {
+func NewCpiDeploymentParser(fs boshsys.FileSystem) ManifestParser {
 	return microDeploymentParser{fs: fs}
 }
 
@@ -29,24 +29,40 @@ type cloudProviderProperties struct {
 func (m microDeploymentParser) Parse(path string) (Deployment, error) {
 	contents, err := m.fs.ReadFile(path)
 	if err != nil {
-		return LocalDeployment{}, bosherr.WrapError(err, "Reading file %s", path)
+		return Deployment{}, bosherr.WrapError(err, "Reading file %s", path)
 	}
 
 	depManifest := microDeploymentManifest{}
 	err = candiedyaml.Unmarshal(contents, &depManifest)
 	if err != nil {
-		return LocalDeployment{}, bosherr.WrapError(err, "Parsing job manifest")
+		return Deployment{}, bosherr.WrapError(err, "Parsing job manifest")
 	}
 
 	properties, err := bmkeystr.NewKeyStringifier().ConvertMap(depManifest.CloudProvider.Properties)
 	if err != nil {
-		return LocalDeployment{}, bosherr.WrapError(err, "Converting manifest cloud properties")
+		return Deployment{}, bosherr.WrapError(err, "Converting manifest cloud properties")
 	}
 
-	localDeployment := NewLocalDeployment(
-		depManifest.Name,
-		properties,
-	)
+	deployment := Deployment{
+		Name:       depManifest.Name,
+		Properties: properties,
+		Jobs:       m.defaultCPIJobs(),
+	}
 
-	return localDeployment, nil
+	return deployment, nil
+}
+
+func (m microDeploymentParser) defaultCPIJobs() []Job {
+	return []Job{
+		Job{
+			Name:      "cpi",
+			Instances: 1,
+			Templates: []ReleaseJobRef{
+				ReleaseJobRef{
+					Name:    "cpi",
+					Release: "unknown-cpi-release-name",
+				},
+			},
+		},
+	}
 }

@@ -15,16 +15,6 @@ type parseOutput struct {
 	err        error
 }
 
-type fakeDeployment struct{}
-
-func (f fakeDeployment) Name() string {
-	return "fake-deployment-name"
-}
-
-func (f fakeDeployment) Properties() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
 type FakeManifestParser struct {
 	ParseInputs   []parseInput
 	parseBehavior map[parseInput]parseOutput
@@ -46,7 +36,7 @@ func (f *FakeManifestParser) Parse(deploymentPath string) (bmdepl.Deployment, er
 		return output.deployment, output.err
 	}
 
-	return fakeDeployment{}, fmt.Errorf("Unsupported Input: Parse('%s'), available behaviors '%#v'", deploymentPath, f.parseBehavior)
+	return NewFakeDeployment(), fmt.Errorf("Unsupported Input: Parse('%s'), available behaviors '%#v'", deploymentPath, f.parseBehavior)
 }
 
 func (f *FakeManifestParser) SetParseBehavior(deploymentPath string, deployment bmdepl.Deployment, err error) {

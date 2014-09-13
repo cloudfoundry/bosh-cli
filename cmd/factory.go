@@ -124,18 +124,27 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		boshtime.NewConcreteService(),
 	)
 
-	manifestParser := bmdepl.NewMicroDeploymentParser(f.fileSystem)
+	manifestParser := bmdepl.NewCpiDeploymentParser(f.fileSystem)
 	erbrenderer := bmerbrenderer.NewERBRenderer(f.fileSystem, runner, f.logger)
 	templatesIndex := bmindex.NewFileIndex(f.config.TemplatesIndexPath(), f.fileSystem)
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
+	jobInstaller := bminstall.NewJobInstaller(
+		f.fileSystem,
+		packageInstaller,
+		blobExtractor,
+		templatesRepo,
+		f.config.PackagesPath(),
+		f.config.JobsPath(),
+	)
 	cpiDeployer := bmdeploy.NewCpiDeployer(
 		f.ui,
 		f.fileSystem,
 		extractor,
 		releaseValidator,
 		releaseCompiler,
+		jobInstaller,
 		f.logger,
 	)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)

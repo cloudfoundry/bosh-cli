@@ -15,6 +15,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
+	fakebmjobi "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
@@ -28,6 +29,7 @@ var _ = Describe("CpiDeployer", func() {
 		fakeExtractor        *testfakes.FakeMultiResponseExtractor
 		fakeReleaseValidator *fakebmrel.FakeValidator
 		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
+		fakeJobInstaller     *fakebmjobi.FakeJobInstaller
 		fakeRepo             *fakebmstemcell.FakeRepo
 		fakeUI               *fakebmui.FakeUI
 
@@ -39,18 +41,19 @@ var _ = Describe("CpiDeployer", func() {
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
 		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
+		fakeJobInstaller = fakebmjobi.NewFakeJobInstaller()
 		fakeRepo = fakebmstemcell.NewFakeRepo()
 		fakeUI = &fakebmui.FakeUI{}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
 		deploymentManifestPath = "/fake/manifest.yml"
-		cpiDeployer = NewCpiDeployer(fakeUI, fakeFs, fakeExtractor, fakeReleaseValidator, fakeReleaseCompiler, logger)
+		cpiDeployer = NewCpiDeployer(fakeUI, fakeFs, fakeExtractor, fakeReleaseValidator, fakeReleaseCompiler, fakeJobInstaller, logger)
 	})
 
 	Describe("Deploy", func() {
 		var (
 			releaseTarballPath string
-			deployment         bmdepl.LocalDeployment
+			deployment         bmdepl.Deployment
 		)
 		BeforeEach(func() {
 			fakeFs.WriteFileString(deploymentManifestPath, "")
@@ -58,37 +61,111 @@ var _ = Describe("CpiDeployer", func() {
 			releaseTarballPath = "/fake/release.tgz"
 
 			fakeFs.WriteFileString(releaseTarballPath, "")
-			deployment = bmdepl.LocalDeployment{}
+			deployment = bmdepl.Deployment{}
 		})
 
 		Context("when a extracted release directory can be created", func() {
 			var (
-				release bmrel.Release
+				release    bmrel.Release
+				releaseJob bmrel.Job
 			)
 
 			BeforeEach(func() {
-				fakeFs.TempDirDir = "/some/release/path"
+				fakeFs.TempDirDir = "/release"
+
+				releasePackage := &bmrel.Package{
+					Name:          "fake-release-package-name",
+					Fingerprint:   "fake-release-package-fingerprint",
+					Sha1:          "fake-release-package-sha1",
+					Dependencies:  []*bmrel.Package{},
+					ExtractedPath: "/release/extracted_packages/fake-release-package-name",
+				}
+
+				releaseJob = bmrel.Job{
+					Name:          "fake-release-job-name",
+					Fingerprint:   "fake-release-job-fingerprint",
+					Sha1:          "fake-release-job-sha1",
+					ExtractedPath: "/release/extracted_jobs/fake-release-job-name",
+					Templates: map[string]string{
+						"cpi.erb":               "bin/cpi",
+						"micro_discover_ip.erb": "bin/micro_discover_ip",
+					},
+					PackageNames: []string{releasePackage.Name},
+					Packages:     []*bmrel.Package{releasePackage},
+					Properties:   map[string]bmrel.PropertyDefinition{},
+				}
 
 				release = bmrel.Release{
-					Name:          "fake-release",
-					Version:       "fake-version",
-					ExtractedPath: "/some/release/path",
+					Name:          "fake-release-name",
+					Version:       "fake-release-version",
+					Jobs:          []bmrel.Job{releaseJob},
+					Packages:      []*bmrel.Package{releasePackage},
+					ExtractedPath: "/release",
 					TarballPath:   releaseTarballPath,
 				}
 
-				releaseContents :=
-					`---
-name: fake-release
-version: fake-version
+				releaseContents := `---
+name: fake-release-name
+version: fake-release-version
+
+packages:
+- name: fake-release-package-name
+  version: fake-release-package-version
+  fingerprint: fake-release-package-fingerprint
+  sha1: fake-release-package-sha1
+  dependencies: []
+jobs:
+- name: fake-release-job-name
+  version: fake-release-job-version
+  fingerprint: fake-release-job-fingerprint
+  sha1: fake-release-job-sha1
 `
-				fakeFs.WriteFileString("/some/release/path/release.MF", releaseContents)
+				fakeFs.WriteFileString("/release/release.MF", releaseContents)
+				fakeExtractor.SetDecompressBehavior("/release/packages/fake-release-package-name.tgz", "/release/extracted_packages/fake-release-package-name", nil)
+				fakeExtractor.SetDecompressBehavior("/release/jobs/fake-release-job-name.tgz", "/release/extracted_jobs/fake-release-job-name", nil)
+				jobManifestContents := `---
+name: fake-release-job-name
+templates:
+ cpi.erb: bin/cpi
+ micro_discover_ip.erb: bin/micro_discover_ip
+
+packages:
+ - fake-release-package-name
+
+properties: {}
+`
+				fakeFs.WriteFileString("/release/extracted_jobs/fake-release-job-name/job.MF", jobManifestContents)
 			})
 
 			Context("and the tarball is a valid BOSH release", func() {
+				var (
+					installPath string
+				)
 				BeforeEach(func() {
-					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/some/release/path", nil)
-					deployment = bmdepl.NewLocalDeployment("fake-deployment-name", map[string]interface{}{})
+					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/release", nil)
+
+					//TODO: parse deployment from yml?
+					deployment = bmdepl.Deployment{
+						Name:       "fake-deployment-name",
+						Properties: map[string]interface{}{},
+						Jobs: []bmdepl.Job{
+							bmdepl.Job{
+								Name:      "fake-deployment-job-name",
+								Instances: 1,
+								Templates: []bmdepl.ReleaseJobRef{
+									bmdepl.ReleaseJobRef{
+										Name:    "fake-release-job-name",
+										Release: "fake-release-name",
+									},
+								},
+							},
+						},
+					}
+
 					fakeReleaseCompiler.SetCompileBehavior(release, deployment, nil)
+
+					installPath = "/install"
+					fakeJobInstaller.SetInstallBehavior(releaseJob, installPath, nil)
 				})
 
 				It("does not return an error", func() {
@@ -105,14 +182,27 @@ version: fake-version
 				It("cleans up the extracted release directory", func() {
 					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
+					Expect(fakeFs.FileExists("/release")).To(BeFalse())
+				})
+
+				It("installs the deployment jobs", func() {
+					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(fakeJobInstaller.JobInstallInputs).To(Equal(
+						[]fakebmjobi.JobInstallInput{
+							fakebmjobi.JobInstallInput{
+								Job: releaseJob,
+							},
+						},
+					))
 				})
 			})
 
 			Context("and the tarball is not a valid BOSH release", func() {
 				BeforeEach(func() {
-					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/some/release/path", nil)
-					fakeFs.WriteFileString("/some/release/path/release.MF", `{}`)
+					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/release", nil)
+					fakeFs.WriteFileString("/release/release.MF", `{}`)
 					fakeReleaseValidator.ValidateError = errors.New("fake-error")
 				})
 
@@ -125,7 +215,7 @@ version: fake-version
 				It("cleans up the extracted release directory", func() {
 					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).To(HaveOccurred())
-					Expect(fakeFs.FileExists("/some/release/path")).To(BeFalse())
+					Expect(fakeFs.FileExists("/release")).To(BeFalse())
 				})
 			})
 
@@ -134,13 +224,13 @@ version: fake-version
 					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Reading CPI release from `/fake/release.tgz'"))
-					Expect(fakeUI.Errors).To(ContainElement("CPI release `/fake/release.tgz' is not a BOSH release"))
+					Expect(fakeUI.Errors).To(ContainElement("CPI release at `/fake/release.tgz' is not a BOSH release"))
 				})
 			})
 
 			Context("when compilation fails", func() {
 				It("returns an error", func() {
-					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/some/release/path", nil)
+					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/release", nil)
 					fakeReleaseCompiler.SetCompileBehavior(release, deployment, errors.New("fake-compile-error"))
 
 					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)

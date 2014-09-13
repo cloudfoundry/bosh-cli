@@ -12,25 +12,15 @@ import (
 	fakeblobs "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
-
-type testDeployment struct{}
-
-func (t testDeployment) Name() string {
-	return "fake-deployment-name"
-}
-
-func (t testDeployment) Properties() map[string]interface{} {
-	return map[string]interface{}{
-		"fake-property-key": "fake-property-value",
-	}
-}
 
 var _ = Describe("TemplatesCompiler", func() {
 	var (
@@ -43,7 +33,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		compileDir        string
 		jobs              []bmrel.Job
 		context           bmrender.TemplateEvaluationContext
-		deployment        testDeployment
+		deployment        bmdepl.Deployment
 		logger            boshlog.Logger
 	)
 
@@ -57,7 +47,9 @@ var _ = Describe("TemplatesCompiler", func() {
 
 		templatesRepo = fakebmtemp.NewFakeTemplatesRepo()
 
-		deployment = testDeployment{}
+		deployment = fakebmdepl.NewFakeDeployment()
+		deployment.Properties["fake-property-key"] = "fake-property-value"
+
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		templatesCompiler = NewTemplatesCompiler(

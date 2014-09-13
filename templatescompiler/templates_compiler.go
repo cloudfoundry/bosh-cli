@@ -64,7 +64,7 @@ func (tc templatesCompiler) compileJob(job bmrel.Job, deployment bmdepl.Deployme
 	}
 	defer tc.fs.RemoveAll(jobCompileDir)
 
-	context := NewJobEvaluationContext(job, deployment.Properties(), deployment.Name(), tc.logger)
+	context := NewJobEvaluationContext(job, deployment.Properties, deployment.Name, tc.logger)
 
 	for src, dst := range job.Templates {
 		// We only render templates and not monit file

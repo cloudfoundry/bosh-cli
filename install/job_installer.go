@@ -12,7 +12,7 @@ import (
 )
 
 type JobInstaller interface {
-	Install(bmrel.Job, string) error
+	Install(bmrel.Job) error
 }
 
 type jobInstaller struct {
@@ -20,23 +20,24 @@ type jobInstaller struct {
 	packageInstaller  PackageInstaller
 	templateExtractor BlobExtractor
 	templateRepo      bmtemcomp.TemplatesRepo
+	jobsPath          string
+	packagesPath      string
 }
 
-func (i jobInstaller) Install(job bmrel.Job, path string) error {
-	jobDir := filepath.Join(path, "jobs", job.Name)
+func (i jobInstaller) Install(job bmrel.Job) error {
+	jobDir := filepath.Join(i.jobsPath, job.Name)
 	err := i.fs.MkdirAll(jobDir, os.ModePerm)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating jobs directory `%s'", jobDir)
 	}
 
-	packagesDir := filepath.Join(path, "packages")
-	err = i.fs.MkdirAll(packagesDir, os.ModePerm)
+	err = i.fs.MkdirAll(i.packagesPath, os.ModePerm)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating packages directory `%s'", packagesDir)
+		return bosherr.WrapError(err, "Creating packages directory `%s'", i.packagesPath)
 	}
 
 	for _, pkg := range job.Packages {
-		err = i.packageInstaller.Install(pkg, packagesDir)
+		err = i.packageInstaller.Install(pkg, i.packagesPath)
 		if err != nil {
 			return bosherr.WrapError(err, "Installing package `%s'", pkg.Name)
 		}
@@ -62,11 +63,15 @@ func NewJobInstaller(
 	packageInstaller PackageInstaller,
 	blobExtractor BlobExtractor,
 	templateRepo bmtemcomp.TemplatesRepo,
+	jobsPath,
+	packagesPath string,
 ) JobInstaller {
 	return jobInstaller{
 		fs:                fs,
 		packageInstaller:  packageInstaller,
 		templateExtractor: blobExtractor,
 		templateRepo:      templateRepo,
+		jobsPath:          jobsPath,
+		packagesPath:      packagesPath,
 	}
 }
