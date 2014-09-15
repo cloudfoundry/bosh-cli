@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	BoshMicroFilename = ".bosh_micro.json"
-	tagString         = "DeploymentCmd"
+	tagString = "DeploymentCmd"
 )
 
 type deploymentCmd struct {
