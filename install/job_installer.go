@@ -6,7 +6,9 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
+	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
@@ -22,9 +24,58 @@ type jobInstaller struct {
 	templateRepo      bmtemcomp.TemplatesRepo
 	jobsPath          string
 	packagesPath      string
+	eventLogger       bmlog.EventLogger
+	timeService       boshtime.Service
 }
 
 func (i jobInstaller) Install(job bmrel.Job) error {
+	event := bmlog.Event{
+		Time:  i.timeService.Now(),
+		Stage: "installing CPI jobs",
+		Total: 1,
+		State: bmlog.Started,
+		Index: 1,
+		Task:  "cpi",
+	}
+	logErr := i.eventLogger.AddEvent(event)
+	if logErr != nil {
+		return bosherr.WrapError(logErr, "Logging event: %#v", event)
+	}
+
+	err := i.install(job)
+	if err != nil {
+		event = bmlog.Event{
+			Time:    i.timeService.Now(),
+			Stage:   "installing CPI jobs",
+			Total:   1,
+			State:   bmlog.Failed,
+			Index:   1,
+			Task:    "cpi",
+			Message: err.Error(),
+		}
+		logErr = i.eventLogger.AddEvent(event)
+		if logErr != nil {
+			return bosherr.WrapError(logErr, "Logging event: %#v", event)
+		}
+		return err
+	}
+
+	event = bmlog.Event{
+		Time:  i.timeService.Now(),
+		Stage: "installing CPI jobs",
+		Total: 1,
+		State: bmlog.Finished,
+		Index: 1,
+		Task:  "cpi",
+	}
+	logErr = i.eventLogger.AddEvent(event)
+	if logErr != nil {
+		return bosherr.WrapError(logErr, "Logging event: %#v", event)
+	}
+	return nil
+}
+
+func (i jobInstaller) install(job bmrel.Job) error {
 	jobDir := filepath.Join(i.jobsPath, job.Name)
 	err := i.fs.MkdirAll(jobDir, os.ModePerm)
 	if err != nil {
@@ -55,6 +106,7 @@ func (i jobInstaller) Install(job bmrel.Job) error {
 	if err != nil {
 		return bosherr.WrapError(err, "Extracting blob with ID `%s'", template.BlobID)
 	}
+
 	return nil
 }
 
@@ -65,6 +117,8 @@ func NewJobInstaller(
 	templateRepo bmtemcomp.TemplatesRepo,
 	jobsPath,
 	packagesPath string,
+	eventLogger bmlog.EventLogger,
+	timeService boshtime.Service,
 ) JobInstaller {
 	return jobInstaller{
 		fs:                fs,
@@ -73,5 +127,7 @@ func NewJobInstaller(
 		templateRepo:      templateRepo,
 		jobsPath:          jobsPath,
 		packagesPath:      packagesPath,
+		eventLogger:       eventLogger,
+		timeService:       timeService,
 	}
 }

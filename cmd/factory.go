@@ -117,11 +117,12 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	eventLogger := bmlog.NewEventLogger(f.ui)
 
 	da := bmcomp.NewDependencyAnalysis()
+	timeService := boshtime.NewConcreteService()
 	releasePackagesCompiler := bmcomp.NewReleasePackagesCompiler(
 		da,
 		packageCompiler,
 		eventLogger,
-		boshtime.NewConcreteService(),
+		timeService,
 	)
 
 	manifestParser := bmdepl.NewCpiDeploymentParser(f.fileSystem)
@@ -137,6 +138,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		templatesRepo,
 		f.config.PackagesPath(),
 		f.config.JobsPath(),
+		eventLogger,
+		timeService,
 	)
 	cpiDeployer := bmdeploy.NewCpiDeployer(
 		f.ui,

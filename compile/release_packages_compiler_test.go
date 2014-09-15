@@ -11,6 +11,7 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
+
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/logging/fakes"
 	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
