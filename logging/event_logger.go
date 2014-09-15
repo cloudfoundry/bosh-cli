@@ -58,6 +58,7 @@ func (e *eventLogger) AddEvent(event Event) error {
 		e.ui.Sayln(fmt.Sprintf(" Done (%s)", durationfmt.Format(duration)))
 		if event.Index == event.Total {
 			e.ui.Sayln(fmt.Sprintf("Done %s", event.Stage))
+			e.ui.Sayln("")
 		}
 	case Failed:
 		duration := event.Time.Sub(e.startedTasks[key])

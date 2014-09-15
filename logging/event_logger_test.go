@@ -91,9 +91,9 @@ var _ = Describe("EventLogger", func() {
 				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-2. Done (00:00:01)\n"))
 			})
 
-			It("tells the UI to finish the stage", func() {
+			It("tells the UI to finish the stage with an extra linebreak", func() {
 				output := uiOut.String()
-				Expect(output).To(ContainSubstring("Done fake-stage\n"))
+				Expect(output).To(ContainSubstring("Done fake-stage\n\n"))
 			})
 		})
 
