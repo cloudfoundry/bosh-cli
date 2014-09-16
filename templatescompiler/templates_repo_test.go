@@ -77,7 +77,7 @@ var _ = Describe("TemplatesRepo", func() {
 				fs.WriteToFileError = errors.New("fake-write-error")
 				record := TemplateRecord{
 					BlobID:   "fake-blob-id",
-					BlobSha1: "fake-sha1",
+					BlobSHA1: "fake-sha1",
 				}
 
 				err := templatesRepo.Save(job, record)

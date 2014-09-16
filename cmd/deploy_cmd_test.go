@@ -65,7 +65,7 @@ var _ = Describe("DeployCmd", func() {
 			ImagePath:       "/stemcell/image/path",
 			Name:            "fake-stemcell-name",
 			Version:         "fake-stemcell-version",
-			Sha1:            "fake-stemcell-sha1",
+			SHA1:            "fake-stemcell-sha1",
 			CloudProperties: map[string]interface{}{},
 		}
 	})

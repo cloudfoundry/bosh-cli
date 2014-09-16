@@ -173,7 +173,7 @@ type PackageKey struct {
 
 type PackageValue struct {
 	BlobID   string
-	BlobSha1 string
+	BlobSHA1 string
 }
 
 type PackageItem struct {
@@ -239,7 +239,7 @@ type RenderedTemplateKey struct {
 
 type RenderedTemplateValue struct {
 	BlobID   string
-	BlobSha1 string
+	BlobSHA1 string
 }
 
 type RenderedTemplateItem struct {

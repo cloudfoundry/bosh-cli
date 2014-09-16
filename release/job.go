@@ -3,7 +3,7 @@ package release
 type Job struct {
 	Name          string
 	Fingerprint   string
-	Sha1          string
+	SHA1          string
 	ExtractedPath string
 	Templates     map[string]string
 	PackageNames  []string

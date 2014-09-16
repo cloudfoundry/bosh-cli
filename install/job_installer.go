@@ -102,7 +102,7 @@ func (i jobInstaller) install(job bmrel.Job) error {
 		return bosherr.New("Could not find template for job `%s'", job.Name)
 	}
 
-	err = i.templateExtractor.Extract(template.BlobID, template.BlobSha1, jobDir)
+	err = i.templateExtractor.Extract(template.BlobID, template.BlobSHA1, jobDir)
 	if err != nil {
 		return bosherr.WrapError(err, "Extracting blob with ID `%s'", template.BlobID)
 	}

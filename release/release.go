@@ -26,7 +26,7 @@ func (r Release) FindJobByName(jobName string) (Job, bool) {
 type Package struct {
 	Name          string
 	Fingerprint   string
-	Sha1          string
+	SHA1          string
 	Dependencies  []*Package
 	ExtractedPath string
 }

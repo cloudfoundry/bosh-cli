@@ -76,7 +76,7 @@ var _ = Describe("CpiDeployer", func() {
 				releasePackage := &bmrel.Package{
 					Name:          "fake-release-package-name",
 					Fingerprint:   "fake-release-package-fingerprint",
-					Sha1:          "fake-release-package-sha1",
+					SHA1:          "fake-release-package-sha1",
 					Dependencies:  []*bmrel.Package{},
 					ExtractedPath: "/release/extracted_packages/fake-release-package-name",
 				}
@@ -84,7 +84,7 @@ var _ = Describe("CpiDeployer", func() {
 				releaseJob = bmrel.Job{
 					Name:          "fake-release-job-name",
 					Fingerprint:   "fake-release-job-fingerprint",
-					Sha1:          "fake-release-job-sha1",
+					SHA1:          "fake-release-job-sha1",
 					ExtractedPath: "/release/extracted_jobs/fake-release-job-name",
 					Templates: map[string]string{
 						"cpi.erb":               "bin/cpi",

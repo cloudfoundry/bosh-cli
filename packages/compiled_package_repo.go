@@ -13,7 +13,7 @@ import (
 
 type CompiledPackageRecord struct {
 	BlobID   string
-	BlobSha1 string
+	BlobSHA1 string
 }
 
 type CompiledPackageRepo interface {

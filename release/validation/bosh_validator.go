@@ -77,7 +77,7 @@ func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 			errs = append(errs, fmt.Errorf("Job `%s' fingerprint is missing", job.Name))
 		}
 
-		if job.Sha1 == "" {
+		if job.SHA1 == "" {
 			errs = append(errs, fmt.Errorf("Job `%s' sha1 is missing", job.Name))
 		}
 
@@ -125,7 +125,7 @@ func (v *boshValidator) validateReleasePackages(release bmrel.Release) error {
 			errs = append(errs, fmt.Errorf("Package `%s' fingerprint is missing", pkg.Name))
 		}
 
-		if pkg.Sha1 == "" {
+		if pkg.SHA1 == "" {
 			errs = append(errs, fmt.Errorf("Package `%s' sha1 is missing", pkg.Name))
 		}
 	}

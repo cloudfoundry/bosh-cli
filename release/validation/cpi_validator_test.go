@@ -16,7 +16,7 @@ var _ = Describe("CpiValidator", func() {
 				{
 					Name:        "cpi",
 					Fingerprint: "fake-job-1-fingerprint",
-					Sha1:        "fake-job-1-sha",
+					SHA1:        "fake-job-1-sha",
 					Templates: map[string]string{
 						"cpi.erb":               "bin/cpi",
 						"micro_discover_ip.erb": "bin/micro_discover_ip",
@@ -40,7 +40,7 @@ var _ = Describe("CpiValidator", func() {
 					{
 						Name:        "non-cpi-job",
 						Fingerprint: "fake-job-1-fingerprint",
-						Sha1:        "fake-job-1-sha",
+						SHA1:        "fake-job-1-sha",
 						Templates: map[string]string{
 							"cpi.erb": "bin/cpi",
 						},
@@ -67,7 +67,7 @@ var _ = Describe("CpiValidator", func() {
 					{
 						Name:        "cpi",
 						Fingerprint: "fake-job-1-fingerprint",
-						Sha1:        "fake-job-1-sha",
+						SHA1:        "fake-job-1-sha",
 						Templates: map[string]string{
 							"cpi.erb":               "nonsense",
 							"micro_discover_ip.erb": "bin/micro_discover_ip",
@@ -95,7 +95,7 @@ var _ = Describe("CpiValidator", func() {
 					{
 						Name:        "cpi",
 						Fingerprint: "fake-job-1-fingerprint",
-						Sha1:        "fake-job-1-sha",
+						SHA1:        "fake-job-1-sha",
 						Templates: map[string]string{
 							"cpi.erb": "nonsense",
 						},

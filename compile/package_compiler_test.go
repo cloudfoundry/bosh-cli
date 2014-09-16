@@ -90,7 +90,7 @@ var _ = Describe("PackageCompiler", func() {
 		Context("when the compiled package repo already has the package", func() {
 			BeforeEach(func() {
 				compiledPkgRecord := bmpkgs.CompiledPackageRecord{
-					BlobSha1: "fake-fingerprint",
+					BlobSHA1: "fake-fingerprint",
 				}
 				compiledPackageRepo.SetFindBehavior(*pkg, compiledPkgRecord, true, nil)
 				fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
@@ -113,7 +113,7 @@ var _ = Describe("PackageCompiler", func() {
 
 				record := bmpkgs.CompiledPackageRecord{
 					BlobID:   "fake-blob-id",
-					BlobSha1: "fake-fingerprint",
+					BlobSHA1: "fake-fingerprint",
 				}
 				compiledPackageRepo.SetSaveBehavior(*pkg, record, nil)
 
@@ -165,7 +165,7 @@ var _ = Describe("PackageCompiler", func() {
 			It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
 				record := bmpkgs.CompiledPackageRecord{
 					BlobID:   "fake-blob-id",
-					BlobSha1: "fake-fingerprint",
+					BlobSHA1: "fake-fingerprint",
 				}
 				Expect(compiledPackageRepo.SaveInputs).To(ContainElement(
 					fakebmpkgs.SaveInput{Package: *pkg, Record: record},
@@ -247,7 +247,7 @@ var _ = Describe("PackageCompiler", func() {
 					fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
 					record := bmpkgs.CompiledPackageRecord{
 						BlobID:   "fake-blob-id",
-						BlobSha1: "fake-fingerprint",
+						BlobSHA1: "fake-fingerprint",
 					}
 					compiledPackageRepo.SetSaveBehavior(*pkg, record, errors.New("fake-error"))
 

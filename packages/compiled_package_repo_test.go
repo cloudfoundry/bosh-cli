@@ -130,7 +130,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 				fs.WriteToFileError = errors.New("Could not save")
 				record := CompiledPackageRecord{
 					BlobID:   "fake-blob-id",
-					BlobSha1: "fake-sha1",
+					BlobSHA1: "fake-sha1",
 				}
 
 				pkg := bmrel.Package{

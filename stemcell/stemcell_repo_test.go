@@ -27,7 +27,7 @@ var _ = Describe("Repo", func() {
 			stemcell := Stemcell{
 				Name:    "fake-name",
 				Version: "fake-version",
-				Sha1:    "fake-sha1",
+				SHA1:    "fake-sha1",
 			}
 			cid := CID("fake-cid")
 			repo.Save(stemcell, cid)

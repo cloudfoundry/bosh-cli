@@ -89,14 +89,14 @@ func (tc templatesCompiler) compileJob(job bmrel.Job, deployment bmdepl.Deployme
 	}
 	defer tc.compressor.CleanUp(tarball)
 
-	blobID, blobSha1, err := tc.blobstore.Create(tarball)
+	blobID, blobSHA1, err := tc.blobstore.Create(tarball)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blob")
 	}
 
 	record := TemplateRecord{
 		BlobID:   blobID,
-		BlobSha1: blobSha1,
+		BlobSHA1: blobSHA1,
 	}
 	err = tc.templatesRepo.Save(job, record)
 	if err != nil {

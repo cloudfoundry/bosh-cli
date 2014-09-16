@@ -94,7 +94,7 @@ packages:
 							expectedPackage := &Package{
 								Name:          "fake-package",
 								Fingerprint:   "fake-package-fingerprint",
-								Sha1:          "fake-package-sha",
+								SHA1:          "fake-package-sha",
 								Dependencies:  []*Package{&Package{Name: "fake-package-1"}},
 								ExtractedPath: "/extracted/release/extracted_packages/fake-package",
 							}
@@ -105,7 +105,7 @@ packages:
 									Job{
 										Name:          "fake-job",
 										Fingerprint:   "fake-job-fingerprint",
-										Sha1:          "fake-job-sha",
+										SHA1:          "fake-job-sha",
 										ExtractedPath: "/extracted/release/extracted_jobs/fake-job",
 										Templates:     map[string]string{"some_template": "some_file"},
 										PackageNames:  []string{"fake-package"},

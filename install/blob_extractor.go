@@ -13,7 +13,7 @@ import (
 const logTag = "blobExtractor"
 
 type BlobExtractor interface {
-	Extract(blobID string, blobSha1 string, targetDir string) error
+	Extract(blobID string, blobSHA1 string, targetDir string) error
 }
 
 type blobExtractor struct {
@@ -37,8 +37,8 @@ func NewBlobExtractor(
 	}
 }
 
-func (e blobExtractor) Extract(blobID string, blobSha1 string, targetDir string) error {
-	filePath, err := e.blobstore.Get(blobID, blobSha1)
+func (e blobExtractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
+	filePath, err := e.blobstore.Get(blobID, blobSHA1)
 	if err != nil {
 		return bosherr.WrapError(err, "Getting object from blobstore: %s", blobID)
 	}
@@ -57,7 +57,7 @@ func (e blobExtractor) Extract(blobID string, blobSha1 string, targetDir string)
 		if !existed {
 			e.cleanUpFile(targetDir)
 		}
-		return bosherr.WrapError(err, "Extracting compiled package: BlobID:`%s', BlobSha1: `%s'", blobID, blobSha1)
+		return bosherr.WrapError(err, "Extracting compiled package: BlobID:`%s', BlobSHA1: `%s'", blobID, blobSHA1)
 	}
 	return nil
 }

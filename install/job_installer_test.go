@@ -52,7 +52,7 @@ var _ = Describe("JobInstaller", func() {
 				Name: "cpi",
 			}
 
-			templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSha1: "fake-sha1"}, true, nil)
+			templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSHA1: "fake-sha1"}, true, nil)
 			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-sha1", "/fake/jobs/cpi", nil)
 		})
 
@@ -74,7 +74,7 @@ var _ = Describe("JobInstaller", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstall.ExtractInput{
 				BlobID:    "fake-blob-id",
-				BlobSha1:  "fake-sha1",
+				BlobSHA1:  "fake-sha1",
 				TargetDir: filepath.Join(jobsPath, job.Name),
 			}))
 		})
@@ -149,7 +149,7 @@ var _ = Describe("JobInstaller", func() {
 				pkg1 = bmrel.Package{Name: "fake-pkg-name"}
 				job.Packages = []*bmrel.Package{&pkg1}
 				packageInstaller.SetInstallBehavior(&pkg1, packagesPath, nil)
-				templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSha1: "fake-sha1"}, true, nil)
+				templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSHA1: "fake-sha1"}, true, nil)
 			})
 
 			It("install packages correctly", func() {

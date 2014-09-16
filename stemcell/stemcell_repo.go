@@ -34,7 +34,7 @@ func (s repo) Save(stemcell Stemcell, cid CID) error {
 	newRecord := bmconfig.StemcellRecord{
 		Name:    stemcell.Name,
 		Version: stemcell.Version,
-		SHA1:    stemcell.Sha1,
+		SHA1:    stemcell.SHA1,
 		CID:     cid.String(),
 	}
 

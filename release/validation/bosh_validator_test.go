@@ -30,7 +30,7 @@ var _ = Describe("Validator", func() {
 				{
 					Name:          "fake-job-1-name",
 					Fingerprint:   "fake-job-1-fingerprint",
-					Sha1:          "fake-job-1-sha",
+					SHA1:          "fake-job-1-sha",
 					Templates:     map[string]string{"fake-job-1-template": "fake-job-1-file"},
 					ExtractedPath: "/some/job/path",
 				},
@@ -40,7 +40,7 @@ var _ = Describe("Validator", func() {
 				{
 					Name:        "fake-package-1-name",
 					Fingerprint: "fake-package-1-fingerprint",
-					Sha1:        "fake-package-1-sha",
+					SHA1:        "fake-package-1-sha",
 					Dependencies: []*bmrel.Package{
 						&bmrel.Package{Name: "fake-package-1-dependency-1"},
 						&bmrel.Package{Name: "fake-package-1-dependency-2"},
@@ -96,13 +96,13 @@ var _ = Describe("Validator", func() {
 					{
 						Name:        "fake-job",
 						Fingerprint: "fake-fingerprint",
-						Sha1:        "fake-sha",
+						SHA1:        "fake-sha",
 						Templates:   map[string]string{"fake-template": "fake-file"},
 					},
 					{
 						Name:        "fake-job-2",
 						Fingerprint: "fake-fingerprint-2",
-						Sha1:        "fake-sha-2",
+						SHA1:        "fake-sha-2",
 						Templates:   map[string]string{"fake-template-2": "fake-file-2"},
 					},
 				},
@@ -127,12 +127,12 @@ var _ = Describe("Validator", func() {
 					{
 						Name:        "fake-job-1",
 						Fingerprint: "fake-finger-print-1",
-						Sha1:        "fake-sha-1",
+						SHA1:        "fake-sha-1",
 					},
 					{
 						Name:        "fake-job-2",
 						Fingerprint: "fake-finger-print-2",
-						Sha1:        "fake-sha-2",
+						SHA1:        "fake-sha-2",
 					},
 				},
 			}
@@ -155,14 +155,14 @@ var _ = Describe("Validator", func() {
 					{
 						Name:         "fake-job",
 						Fingerprint:  "fake-fingerprint",
-						Sha1:         "fake-sha",
+						SHA1:         "fake-sha",
 						Templates:    map[string]string{},
 						PackageNames: []string{"fake-package"},
 					},
 					{
 						Name:         "fake-job-2",
 						Fingerprint:  "fake-fingerprint-2",
-						Sha1:         "fake-sha-2",
+						SHA1:         "fake-sha-2",
 						Templates:    map[string]string{},
 						PackageNames: []string{"fake-package-2"},
 					},

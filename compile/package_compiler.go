@@ -102,14 +102,14 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 	}
 	defer pc.compressor.CleanUp(tarball)
 
-	blobID, blobSha1, err := pc.blobstore.Create(tarball)
+	blobID, blobSHA1, err := pc.blobstore.Create(tarball)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blob")
 	}
 
 	record := bmpkgs.CompiledPackageRecord{
 		BlobID:   blobID,
-		BlobSha1: blobSha1,
+		BlobSHA1: blobSHA1,
 	}
 	err = pc.compiledPackageRepo.Save(*pkg, record)
 	if err != nil {

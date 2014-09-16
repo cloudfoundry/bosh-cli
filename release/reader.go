@@ -114,7 +114,7 @@ func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmr
 		}
 
 		job.Fingerprint = manifestJob.Fingerprint
-		job.Sha1 = manifestJob.Sha1
+		job.SHA1 = manifestJob.SHA1
 		for _, pkgName := range job.PackageNames {
 			pkg, found := r.findPackageByName(packages, pkgName)
 			if !found {
@@ -164,7 +164,7 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Pac
 		}
 
 		pkg.Fingerprint = manifestPackage.Fingerprint
-		pkg.Sha1 = manifestPackage.Sha1
+		pkg.SHA1 = manifestPackage.SHA1
 		pkg.ExtractedPath = extractedPackagePath
 
 		pkg.Dependencies = []*Package{}

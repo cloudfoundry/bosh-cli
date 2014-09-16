@@ -32,7 +32,7 @@ var _ = Describe("Install", func() {
 		pkg = &bmrel.Package{
 			Name:         "fake-package-name",
 			Fingerprint:  "fake-package-fingerprint",
-			Sha1:         "fake-package-sha1",
+			SHA1:         "fake-package-sha1",
 			Dependencies: []*bmrel.Package{},
 		}
 	})
@@ -41,7 +41,7 @@ var _ = Describe("Install", func() {
 		BeforeEach(func() {
 			record := bmpkgs.CompiledPackageRecord{
 				BlobID:   "fake-blob-id",
-				BlobSha1: "fake-package-fingerprint",
+				BlobSHA1: "fake-package-fingerprint",
 			}
 			repo.SetFindBehavior(*pkg, record, true, nil)
 			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-package-fingerprint", "fake-target-dir/fake-package-name", nil)
@@ -58,7 +58,7 @@ var _ = Describe("Install", func() {
 			Expect(blobExtractor.ExtractInputs).To(ContainElement(
 				fakebminstall.ExtractInput{
 					BlobID:    "fake-blob-id",
-					BlobSha1:  "fake-package-fingerprint",
+					BlobSHA1:  "fake-package-fingerprint",
 					TargetDir: "fake-target-dir/fake-package-name",
 				},
 			))

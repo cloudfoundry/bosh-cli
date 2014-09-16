@@ -95,7 +95,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			blobstore.CreateFingerprint = "fake-sha1"
 			record := TemplateRecord{
 				BlobID:   "fake-blob-id",
-				BlobSha1: "fake-sha1",
+				BlobSHA1: "fake-sha1",
 			}
 			templatesRepo.SetSaveBehavior(jobs[0], record, nil)
 		})
@@ -137,7 +137,7 @@ var _ = Describe("TemplatesCompiler", func() {
 
 			record := TemplateRecord{
 				BlobID:   "fake-blob-id",
-				BlobSha1: "fake-sha1",
+				BlobSHA1: "fake-sha1",
 			}
 
 			Expect(templatesRepo.SaveInputs).To(ContainElement(
@@ -214,7 +214,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			BeforeEach(func() {
 				record := TemplateRecord{
 					BlobID:   "fake-blob-id",
-					BlobSha1: "fake-sha1",
+					BlobSHA1: "fake-sha1",
 				}
 
 				err := errors.New("fake-template-error")
@@ -270,7 +270,7 @@ var _ = Describe("TemplatesCompiler", func() {
 
 				record := TemplateRecord{
 					BlobID:   "fake-blob-id",
-					BlobSha1: "fake-sha1",
+					BlobSHA1: "fake-sha1",
 				}
 				templatesRepo.SetSaveBehavior(jobs[0], record, nil)
 				templatesRepo.SetSaveBehavior(jobs[1], record, nil)

@@ -33,5 +33,5 @@ func (pi *packageInstaller) Install(pkg *bmrel.Package, parentDir string) error 
 		return bosherr.New("Compiled package record not found: %#v", pkg)
 	}
 
-	return pi.blobExtractor.Extract(pkgRecord.BlobID, pkgRecord.BlobSha1, filepath.Join(parentDir, pkg.Name))
+	return pi.blobExtractor.Extract(pkgRecord.BlobID, pkgRecord.BlobSHA1, filepath.Join(parentDir, pkg.Name))
 }
