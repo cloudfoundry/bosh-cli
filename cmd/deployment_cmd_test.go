@@ -4,26 +4,28 @@ import (
 	"fmt"
 	"path"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+
 	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	fakeconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("DeploymentCmd", func() {
 	var (
 		command      Cmd
-		fakeService  *fakeconfig.FakeService
+		fakeService  *fakebmconfig.FakeService
 		manifestPath string
-		fakeUI       *fakeui.FakeUI
+		fakeUI       *fakebmui.FakeUI
 		fakeFs       *fakesys.FakeFileSystem
 		fakeUUID     *fakeuuid.FakeGenerator
 		logger       boshlog.Logger
@@ -31,12 +33,14 @@ var _ = Describe("DeploymentCmd", func() {
 	)
 
 	BeforeEach(func() {
-		fakeUI = &fakeui.FakeUI{}
+		fakeUI = &fakebmui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
-		fakeService = &fakeconfig.FakeService{}
+		fakeService = fakebmconfig.NewFakeService()
 		fakeUUID = &fakeuuid.FakeGenerator{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		config = bmconfig.Config{ContainingDir: "/fake-path"}
+		config = bmconfig.Config{
+			ContainingDir: "/fake-path",
+		}
 
 		command = NewDeploymentCmd(
 			fakeUI,
@@ -51,6 +55,9 @@ var _ = Describe("DeploymentCmd", func() {
 	Context("#Run", func() {
 		Context("ran with valid args", func() {
 			Context("when the deployment manifest exists", func() {
+				var (
+					expectedConfig bmconfig.Config
+				)
 				BeforeEach(func() {
 					fakeUUID.GeneratedUuid = "abc123"
 					manifestDir, err := fakeFs.TempDir("deployment-cmd")
@@ -59,6 +66,13 @@ var _ = Describe("DeploymentCmd", func() {
 					manifestPath = path.Join(manifestDir, "manifestFile.yml")
 					err = fakeFs.WriteFileString(manifestPath, "")
 					Expect(err).ToNot(HaveOccurred())
+
+					expectedConfig = bmconfig.Config{
+						Deployment:     manifestPath,
+						DeploymentUUID: "abc123",
+						ContainingDir:  "/fake-path",
+					}
+					fakeService.SetSaveBehavior(expectedConfig, nil)
 				})
 
 				It("says 'deployment set..' to the UI", func() {
@@ -70,11 +84,13 @@ var _ = Describe("DeploymentCmd", func() {
 				It("saves the deployment manifest in the config", func() {
 					err := command.Run([]string{manifestPath})
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeService.Saved).To(Equal(bmconfig.Config{
-						Deployment:     manifestPath,
-						DeploymentUUID: "abc123",
-						ContainingDir:  "/fake-path",
-					}))
+					Expect(fakeService.SaveInputs).To(Equal(
+						[]fakebmconfig.SaveInput{
+							fakebmconfig.SaveInput{
+								Config: expectedConfig,
+							},
+						},
+					))
 				})
 
 				It("creates the blobstore folder", func() {

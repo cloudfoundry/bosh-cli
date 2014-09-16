@@ -9,12 +9,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakedeploy "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
@@ -23,15 +23,20 @@ import (
 
 var _ = Describe("DeployCmd", func() {
 	var (
-		command               bmcmd.Cmd
-		config                bmconfig.Config
-		fakeFs                *fakesys.FakeFileSystem
-		fakeUI                *fakeui.FakeUI
-		fakeCpiDeployer       *fakedeploy.FakeCpiDeployer
-		logger                boshlog.Logger
-		release               bmrel.Release
-		fakeRepo              *fakebmstemcell.FakeRepo
-		fakeCpiManifestParser *fakebmdepl.FakeManifestParser
+		command                    bmcmd.Cmd
+		config                     bmconfig.Config
+		fakeFs                     *fakesys.FakeFileSystem
+		fakeUI                     *fakeui.FakeUI
+		fakeCpiDeployer            *fakedeploy.FakeCpiDeployer
+		logger                     boshlog.Logger
+		release                    bmrel.Release
+		fakeStemcellManager        *fakebmstemcell.FakeManager
+		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
+		fakeCpiManifestParser      *fakebmdepl.FakeManifestParser
+
+		stemcellTarballPath string
+		expectedStemcellCID bmstemcell.CID
+		expectedStemcell    bmstemcell.Stemcell
 	)
 
 	BeforeEach(func() {
@@ -39,7 +44,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs = fakesys.NewFakeFileSystem()
 		config = bmconfig.Config{}
 		fakeCpiDeployer = fakedeploy.NewFakeCpiDeployer()
-		fakeRepo = fakebmstemcell.NewFakeRepo()
+		fakeStemcellManager = fakebmstemcell.NewFakeManager()
+		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
 		fakeCpiManifestParser = fakebmdepl.NewFakeManifestParser()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
@@ -49,9 +55,19 @@ var _ = Describe("DeployCmd", func() {
 			fakeFs,
 			fakeCpiManifestParser,
 			fakeCpiDeployer,
-			fakeRepo,
+			fakeStemcellManagerFactory,
 			logger,
 		)
+
+		stemcellTarballPath = "/stemcell/tarball/path"
+		expectedStemcellCID = bmstemcell.CID("fake-stemcell-cid")
+		expectedStemcell = bmstemcell.Stemcell{
+			ImagePath:       "/stemcell/image/path",
+			Name:            "fake-stemcell-name",
+			Version:         "fake-stemcell-version",
+			Sha1:            "fake-stemcell-sha1",
+			CloudProperties: map[string]interface{}{},
+		}
 	})
 
 	Describe("Run", func() {
@@ -73,13 +89,14 @@ var _ = Describe("DeployCmd", func() {
 					BeforeEach(func() {
 						config.Deployment = "/some/deployment/file"
 
+						// re-create command to update config.Deployment
 						command = bmcmd.NewDeployCmd(
 							fakeUI,
 							config,
 							fakeFs,
 							fakeCpiManifestParser,
 							fakeCpiDeployer,
-							fakeRepo,
+							fakeStemcellManagerFactory,
 							logger,
 						)
 
@@ -101,39 +118,48 @@ version: fake-version
 					Context("when the deployment manifest exists", func() {
 						var (
 							deployment bmdepl.Deployment
+							cloud      *fakebmcloud.FakeCloud
 						)
 						BeforeEach(func() {
 							fakeFs.WriteFileString(config.Deployment, "")
 							deployment = bmdepl.Deployment{}
 							fakeCpiManifestParser.SetParseBehavior(config.Deployment, deployment, nil)
-							fakeCpiDeployer.SetDeployBehavior(deployment, "/somepath", bmdeploy.Cloud{}, nil)
-							fakeRepo.SetSaveBehavior("/somestemcellpath", "/some/stemcell/path", bmstemcell.Stemcell{}, nil)
+							cloud = fakebmcloud.NewFakeCloud()
+							fakeCpiDeployer.SetDeployBehavior(deployment, release.TarballPath, cloud, nil)
+							fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
+							fakeStemcellManager.SetUploadBehavior(stemcellTarballPath, expectedStemcell, expectedStemcellCID, nil)
 						})
 
 						It("parses the CPI manifest", func() {
-							err := runDeployCmd(command)
+							err := command.Run([]string{release.TarballPath, stemcellTarballPath})
 							Expect(err).NotTo(HaveOccurred())
 							Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
 						})
 
 						It("deploys the CPI locally", func() {
-							err := runDeployCmd(command)
+							err := command.Run([]string{release.TarballPath, stemcellTarballPath})
 							Expect(err).NotTo(HaveOccurred())
 							Expect(fakeCpiDeployer.DeployInputs[0].Deployment).To(Equal(deployment))
 						})
 
-						It("saves the stemcell and cleans up the temp path", func() {
-							fakeFs.WriteFile("/some/stemcell/path", []byte{})
-							err := runDeployCmd(command)
+						It("uploads the stemcell", func() {
+							fakeFs.WriteFile(stemcellTarballPath, []byte{})
+							err := command.Run([]string{release.TarballPath, stemcellTarballPath})
 							Expect(err).NotTo(HaveOccurred())
-							Expect(fakeFs.FileExists("/some/stemcell/path")).To(BeFalse())
+							Expect(fakeStemcellManager.UploadInputs).To(Equal(
+								[]fakebmstemcell.UploadInput{
+									fakebmstemcell.UploadInput{
+										TarballPath: stemcellTarballPath,
+									},
+								},
+							))
 						})
 
 						Context("when parsing the cpi deployment manifest fails", func() {
 							It("returns error", func() {
 								fakeCpiManifestParser.SetParseBehavior(config.Deployment, bmdepl.Deployment{}, errors.New("fake-parse-error"))
 
-								err := runDeployCmd(command)
+								err := command.Run([]string{release.TarballPath, stemcellTarballPath})
 								Expect(err).To(HaveOccurred())
 								Expect(err.Error()).To(ContainSubstring("Parsing CPI deployment manifest"))
 								Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
@@ -143,13 +169,12 @@ version: fake-version
 
 						Context("when reading stemcell fails", func() {
 							It("returns error", func() {
-								fakeRepo.SetSaveBehavior("/somestemcellpath", "", bmstemcell.Stemcell{}, errors.New("fake-reading-error"))
+								fakeStemcellManager.SetUploadBehavior(stemcellTarballPath, bmstemcell.Stemcell{}, bmstemcell.CID(""), errors.New("fake-reading-error"))
 
-								err := runDeployCmd(command)
+								err := command.Run([]string{release.TarballPath, stemcellTarballPath})
 								Expect(err).To(HaveOccurred())
-								Expect(err.Error()).To(ContainSubstring("Saving stemcell"))
+								Expect(err.Error()).To(ContainSubstring("Uploading stemcell"))
 								Expect(err.Error()).To(ContainSubstring("fake-reading-error"))
-								Expect(fakeUI.Errors).To(ContainElement("Could not read stemcell"))
 							})
 						})
 					})
@@ -157,19 +182,21 @@ version: fake-version
 					Context("when the deployment manifest is missing", func() {
 						BeforeEach(func() {
 							config.Deployment = "/some/deployment/file"
+
+							// re-create command to update config.Deployment
 							command = bmcmd.NewDeployCmd(
 								fakeUI,
 								config,
 								fakeFs,
 								fakeCpiManifestParser,
 								fakeCpiDeployer,
-								fakeRepo,
+								fakeStemcellManagerFactory,
 								logger,
 							)
 						})
 
 						It("returns err", func() {
-							err := runDeployCmd(command)
+							err := command.Run([]string{release.TarballPath, stemcellTarballPath})
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("Reading deployment manifest for deploy"))
 							Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path `/some/deployment/file' does not exist"))
@@ -180,7 +207,7 @@ version: fake-version
 
 				Context("when there is no deployment set", func() {
 					It("returns err", func() {
-						err := runDeployCmd(command)
+						err := command.Run([]string{release.TarballPath, stemcellTarballPath})
 						Expect(err).To(HaveOccurred())
 						Expect(fakeUI.Errors).To(ContainElement("No deployment set"))
 					})
@@ -189,7 +216,7 @@ version: fake-version
 
 			Context("When the CPI release file does not exist", func() {
 				It("returns err when the CPI release file does not exist", func() {
-					err := runDeployCmd(command)
+					err := command.Run([]string{release.TarballPath, stemcellTarballPath})
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Checking CPI release `/somepath' existence"))
 					Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' does not exist"))
@@ -198,7 +225,3 @@ version: fake-version
 		})
 	})
 })
-
-func runDeployCmd(command bmcmd.Cmd) error {
-	return command.Run([]string{"/somepath", "/somestemcellpath"})
-}

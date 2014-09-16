@@ -18,6 +18,7 @@ var _ = Describe("fileSystemConfigService", func() {
 		configFilePath     string
 		deploymentFilePath string
 		fakeFs             *fakesys.FakeFileSystem
+		stemcells          []StemcellRecord
 	)
 
 	BeforeEach(func() {
@@ -30,11 +31,27 @@ var _ = Describe("fileSystemConfigService", func() {
 
 	Describe("Load", func() {
 		It("reads the given config file", func() {
+			stemcells = []StemcellRecord{
+				StemcellRecord{
+					Name:    "fake-stemcell-name-1",
+					Version: "fake-stemcell-version-1",
+					SHA1:    "fake-stemcell-sha1-1",
+					CID:     "fake-stemcell-cid-1",
+				},
+				StemcellRecord{
+					Name:    "fake-stemcell-name-2",
+					Version: "fake-stemcell-version-2",
+					SHA1:    "fake-stemcell-sha1-2",
+					CID:     "fake-stemcell-cid-2",
+				},
+			}
 			configFileContents, err := json.Marshal(Config{
 				Deployment: "/some/manifest.yml",
+				Stemcells:  stemcells,
 			})
-			deploymentFileContents, err := json.Marshal(map[string]string{
-				"UUID": "deadbeef",
+			deploymentFileContents, err := json.Marshal(map[string]interface{}{
+				"uuid":      "deadbeef",
+				"stemcells": stemcells,
 			})
 			fakeFs.WriteFile(configFilePath, configFileContents)
 			fakeFs.WriteFile(deploymentFilePath, deploymentFileContents)
@@ -43,6 +60,7 @@ var _ = Describe("fileSystemConfigService", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(config.Deployment).To(Equal("/some/manifest.yml"))
 			Expect(config.DeploymentUUID).To(Equal("deadbeef"))
+			Expect(config.Stemcells).To(Equal(stemcells))
 		})
 
 		Context("when the config and deployment file do not exist", func() {
@@ -57,6 +75,7 @@ var _ = Describe("fileSystemConfigService", func() {
 			It("returns the content of the config ", func() {
 				configFileContents, err := json.Marshal(Config{
 					Deployment: "/some/manifest.yml",
+					Stemcells:  stemcells,
 				})
 				fakeFs.WriteFile(configFilePath, configFileContents)
 
@@ -81,6 +100,7 @@ var _ = Describe("fileSystemConfigService", func() {
 			It("returns an empty Config and an error", func() {
 				configFileContents, err := json.Marshal(Config{
 					Deployment: "/some/manifest.yml",
+					Stemcells:  stemcells,
 				})
 				fakeFs.WriteFile(configFilePath, configFileContents)
 				fakeFs.WriteFileString(deploymentFilePath, "some invalid content")
@@ -94,26 +114,40 @@ var _ = Describe("fileSystemConfigService", func() {
 
 	Describe("Save", func() {
 		It("writes the given config to the config file", func() {
-			config := Config{Deployment: "/some/path", DeploymentUUID: "deadbeef"}
+			config := Config{
+				Deployment:     "/some/path",
+				DeploymentUUID: "deadbeef",
+				Stemcells:      stemcells,
+			}
 
 			err := service.Save(config)
 			Expect(err).NotTo(HaveOccurred())
 
 			configFileContents, err := fakeFs.ReadFileString(configFilePath)
 
-			expectedConfig := Config{Deployment: "/some/path"}
+			expectedConfig := Config{
+				Deployment: "/some/path",
+				Stemcells:  stemcells,
+			}
 			expectedConfigFileContents, err := json.MarshalIndent(expectedConfig, "", "    ")
 			Expect(configFileContents).To(Equal(string(expectedConfigFileContents)))
 		})
 
 		It("writes the deployment uuid to the deployment file", func() {
-			config := Config{Deployment: "/some/manifest.yml", DeploymentUUID: "deadbeef"}
+			config := Config{
+				Deployment:     "/some/manifest.yml",
+				DeploymentUUID: "deadbeef",
+				Stemcells:      stemcells,
+			}
 
 			err := service.Save(config)
 			Expect(err).NotTo(HaveOccurred())
 
 			deploymentFileContents, err := fakeFs.ReadFileString(deploymentFilePath)
-			deploymentFile := DeploymentFile{UUID: "deadbeef"}
+			deploymentFile := DeploymentFile{
+				UUID:      "deadbeef",
+				Stemcells: stemcells,
+			}
 			expectedDeploymentFileContents, err := json.MarshalIndent(deploymentFile, "", "    ")
 			Expect(deploymentFileContents).To(Equal(string(expectedDeploymentFileContents)))
 		})
@@ -124,7 +158,10 @@ var _ = Describe("fileSystemConfigService", func() {
 			})
 
 			It("returns an error when it cannot write the config file", func() {
-				config := Config{Deployment: "/some/path"}
+				config := Config{
+					Deployment: "/some/path",
+					Stemcells:  stemcells,
+				}
 				err := service.Save(config)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Writing config file"))
@@ -136,7 +173,10 @@ var _ = Describe("fileSystemConfigService", func() {
 			})
 
 			It("returns an error when it cannot write the config file", func() {
-				config := Config{Deployment: "/some/path"}
+				config := Config{
+					Deployment: "/some/path",
+					Stemcells:  stemcells,
+				}
 				err := service.Save(config)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Writing deployment file"))

@@ -26,8 +26,16 @@ func NewFileSystemConfigService(logger boshlog.Logger, fs boshsys.FileSystem, co
 	}
 }
 
+type StemcellRecord struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	SHA1    string `json:"sha1"`
+	CID     string `json:"cid"`
+}
+
 type DeploymentFile struct {
-	UUID string
+	UUID      string           `json:"uuid"`
+	Stemcells []StemcellRecord `json:"stemcells"`
 }
 
 func (s fileSystemConfigService) Load() (Config, error) {
@@ -57,6 +65,7 @@ func (s fileSystemConfigService) Load() (Config, error) {
 		return Config{}, bosherr.WrapError(err, "Unmarshalling deployment file `%s'", config.DeploymentFile())
 	}
 	config.DeploymentUUID = deploymentFile.UUID
+	config.Stemcells = deploymentFile.Stemcells
 	return config, nil
 }
 
@@ -71,7 +80,11 @@ func (s fileSystemConfigService) Save(config Config) error {
 		return bosherr.WrapError(err, "Writing config file `%s'", s.configPath)
 	}
 
-	jsonContent, err = json.MarshalIndent(DeploymentFile{UUID: config.DeploymentUUID}, "", "    ")
+	deploymentFile := DeploymentFile{
+		UUID:      config.DeploymentUUID,
+		Stemcells: config.Stemcells,
+	}
+	jsonContent, err = json.MarshalIndent(deploymentFile, "", "    ")
 	if err != nil {
 		return bosherr.WrapError(err, "Marshalling config into JSON")
 	}

@@ -151,7 +151,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.logger,
 	)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)
-	repo := bmstemcell.NewRepo(f.fileSystem, stemcellReader)
+	repo := bmstemcell.NewRepo(f.configService)
+	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fileSystem, stemcellReader, repo)
 
 	return NewDeployCmd(
 		f.ui,
@@ -159,7 +160,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fileSystem,
 		manifestParser,
 		cpiDeployer,
-		repo,
+		stemcellManagerFactory,
 		f.logger,
 	), nil
 }

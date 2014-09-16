@@ -3,7 +3,7 @@ package fakes
 import (
 	"fmt"
 
-	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
@@ -14,7 +14,7 @@ type DeployInput struct {
 }
 
 type deployOutput struct {
-	cloud bmdeploy.Cloud
+	cloud bmcloud.Cloud
 	err   error
 }
 
@@ -30,7 +30,7 @@ func NewFakeCpiDeployer() *FakeCpiDeployer {
 	}
 }
 
-func (f *FakeCpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmdeploy.Cloud, error) {
+func (f *FakeCpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
 	input := DeployInput{
 		Deployment:         deployment,
 		ReleaseTarballPath: releaseTarballPath,
@@ -39,20 +39,20 @@ func (f *FakeCpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPat
 
 	value, err := bmtestutils.MarshalToString(input)
 	if err != nil {
-		return bmdeploy.Cloud{}, fmt.Errorf("Could not serialize input %#v", input)
+		return nil, fmt.Errorf("Could not serialize input %#v", input)
 	}
 
 	output, found := f.deployBehavior[value]
 	if found {
 		return output.cloud, output.err
 	}
-	return bmdeploy.Cloud{}, fmt.Errorf("Unsupported Input: %s", value)
+	return nil, fmt.Errorf("Unsupported Input: %s", value)
 }
 
 func (f *FakeCpiDeployer) SetDeployBehavior(
 	deployment bmdepl.Deployment,
 	releaseTarballPath string,
-	cloud bmdeploy.Cloud,
+	cloud bmcloud.Cloud,
 	err error,
 ) error {
 	input := DeployInput{

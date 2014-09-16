@@ -2,39 +2,66 @@ package stemcell
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
 type Repo interface {
-	Save(stemcellPath string) (stemcell Stemcell, extractedPath string, err error)
+	Save(stemcell Stemcell, cid CID) error
+	Find(stemcell Stemcell) (CID, bool, error)
 }
 
 type repo struct {
-	fs     boshsys.FileSystem
-	reader Reader
+	configService bmconfig.Service
 }
 
-func NewRepo(fs boshsys.FileSystem, reader Reader) repo {
+func NewRepo(configService bmconfig.Service) repo {
 	return repo{
-		fs:     fs,
-		reader: reader,
+		configService: configService,
 	}
 }
 
-func (s repo) Save(stemcellPath string) (Stemcell, string, error) {
-	stemcellExtractedPath, err := s.fs.TempDir("extracted-stemcell")
-	if err != nil {
-		return Stemcell{}, "", bosherr.WrapError(err, "Creating tempDir")
+// Save extracts the stemcell archive, parses the stemcell manifest, and stores the stemcell archive in the repo.
+// The repo stemcell record is indexed by name & sha1 (as specified by the manifest).
+func (s repo) Save(stemcell Stemcell, cid CID) error {
+	config, _ := s.configService.Load()
+
+	records := config.Stemcells
+	if records == nil {
+		records = []bmconfig.StemcellRecord{}
 	}
 
-	stemcell, err := s.reader.Read(stemcellPath, stemcellExtractedPath)
-	if err != nil {
-		s.fs.RemoveAll(stemcellExtractedPath)
-		return Stemcell{}, "", bosherr.WrapError(err, "Reading stemcell")
+	newRecord := bmconfig.StemcellRecord{
+		Name:    stemcell.Name,
+		Version: stemcell.Version,
+		SHA1:    stemcell.Sha1,
+		CID:     cid.String(),
 	}
 
-	//TODO: call the CPI to store info
-	// save info locally
+	oldRecord, found := s.find(records, newRecord)
+	if found {
+		return bosherr.New("Failed to save stemcell record `%s', existing record found `%s'", newRecord, oldRecord)
+	}
 
-	return stemcell, stemcellExtractedPath, nil
+	records = append(records, newRecord)
+	config.Stemcells = records
+
+	_ = s.configService.Save(config)
+	return nil
+}
+
+func (s repo) Find(stemcell Stemcell) (CID, bool, error) {
+	return "", false, nil
+}
+
+func (s repo) find(records []bmconfig.StemcellRecord, record bmconfig.StemcellRecord) (bmconfig.StemcellRecord, bool) {
+	for _, existingRecord := range records {
+		// "key" excludes CID
+		if record.Name == existingRecord.Name &&
+			record.Version == existingRecord.Version &&
+			record.SHA1 == existingRecord.SHA1 {
+			return existingRecord, true
+		}
+	}
+	return bmconfig.StemcellRecord{}, false
 }

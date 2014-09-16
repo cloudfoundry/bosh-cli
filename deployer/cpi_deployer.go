@@ -8,6 +8,7 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
@@ -17,7 +18,7 @@ import (
 )
 
 type CpiDeployer interface {
-	Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (Cloud, error)
+	Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error)
 }
 
 type cpiDeployer struct {
@@ -52,13 +53,13 @@ func NewCpiDeployer(
 	}
 }
 
-func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (Cloud, error) {
+func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
 	// unpack cpi release source
 	c.logger.Info(c.logTag, "Extracting CPI release")
 	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
 	if err != nil {
 		c.ui.Error("Could not create a temporary directory")
-		return Cloud{}, bosherr.WrapError(err, "Creating temp directory")
+		return nil, bosherr.WrapError(err, "Creating temp directory")
 	}
 	defer c.fs.RemoveAll(extractedReleasePath)
 
@@ -68,7 +69,7 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	release, err := releaseReader.Read()
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release at `%s' is not a BOSH release", releaseTarballPath))
-		return Cloud{}, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
+		return nil, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
 	}
 
 	release.TarballPath = releaseTarballPath
@@ -78,7 +79,7 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	c.logger.Info(c.logTag, "Validating CPI release `%s'", release.Name)
 	err = c.validator.Validate(release)
 	if err != nil {
-		return Cloud{}, bosherr.WrapError(err, "Validating CPI release `%s'", release.Name)
+		return nil, bosherr.WrapError(err, "Validating CPI release `%s'", release.Name)
 	}
 
 	//TODO: inject release name into deployment job templates
@@ -94,14 +95,14 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	err = c.releaseCompiler.Compile(release, deployment)
 	if err != nil {
 		c.ui.Error("Could not compile CPI release")
-		return Cloud{}, bosherr.WrapError(err, "Compiling CPI release")
+		return nil, bosherr.WrapError(err, "Compiling CPI release")
 	}
 
 	// cpi deployment should only have one job (because it's a local deployment)
 	jobs := deployment.Jobs
 	if len(jobs) != 1 {
 		c.ui.Error("Invalid CPI deployment: exactly one job required")
-		return Cloud{}, bosherr.New("Invalid CPI deployment: exactly one job required, %d jobs found", len(jobs))
+		return nil, bosherr.New("Invalid CPI deployment: exactly one job required, %d jobs found", len(jobs))
 	}
 	cpiJob := jobs[0]
 
@@ -109,7 +110,7 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	instances := cpiJob.Instances
 	if instances != 1 {
 		c.ui.Error("Invalid CPI deployment: exactly one job instance required")
-		return Cloud{}, bosherr.New(
+		return nil, bosherr.New(
 			"Invalid CPI deployment: exactly one instance required, found %d instances in job `%s'",
 			instances,
 			cpiJob.Name,
@@ -119,11 +120,10 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	err = c.installJob(cpiJob, release)
 	if err != nil {
 		c.ui.Error("Could not compile CPI release")
-		return Cloud{}, bosherr.WrapError(err, "Compiling CPI release")
+		return nil, bosherr.WrapError(err, "Compiling CPI release")
 	}
 
-	//TODO: delete cpi source?
-	return Cloud{}, nil
+	return bmcloud.NewCloud(), nil
 }
 
 // installJob installs the deployment job's rendered job templates & required compiled packages

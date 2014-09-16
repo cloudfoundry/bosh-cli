@@ -3,9 +3,10 @@ package config
 import "path"
 
 type Config struct {
-	Deployment     string `json:"deployment"`
-	ContainingDir  string `json:"-"`
-	DeploymentUUID string `json:"-"`
+	Deployment     string           `json:"deployment"`
+	ContainingDir  string           `json:"-"`
+	DeploymentUUID string           `json:"-"`
+	Stemcells      []StemcellRecord `json:"-"`
 }
 
 func (c Config) DeploymentFile() string {

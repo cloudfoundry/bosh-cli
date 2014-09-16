@@ -1,55 +1,53 @@
 package stemcell_test
 
 import (
-	"errors"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 var _ = Describe("Repo", func() {
-	var (
-		stemcellRepo   Repo
-		fs             *fakesys.FakeFileSystem
-		stemcellReader *fakebmstemcell.FakeStemcellReader
-	)
+	Describe("Save", func() {
+		var (
+			repo          Repo
+			configService *fakebmconfig.FakeService
+		)
 
-	BeforeEach(func() {
-		stemcellReader = fakebmstemcell.NewFakeReader()
-		fs = fakesys.NewFakeFileSystem()
-		stemcellRepo = NewRepo(fs, stemcellReader)
-		fs.TempDirDir = "/path/to/dest"
-	})
+		BeforeEach(func() {
+			configService = fakebmconfig.NewFakeService()
+			repo = NewRepo(configService)
+		})
 
-	It("Returns the extracted stemcell", func() {
-		expectedStemcell := Stemcell{}
-		stemcellReader.SetReadBehavior("/somepath", "/path/to/dest", expectedStemcell, nil)
-		stemcell, extractedPath, err := stemcellRepo.Save("/somepath")
+		It("saves the stemcell using config service", func() {
+			stemcell := Stemcell{
+				Name:    "fake-name",
+				Version: "fake-version",
+				Sha1:    "fake-sha1",
+			}
+			cid := CID("fake-cid")
+			repo.Save(stemcell, cid)
+			expectedStemcell := bmconfig.StemcellRecord{
+				Name:    "fake-name",
+				Version: "fake-version",
+				SHA1:    "fake-sha1",
+				CID:     cid.String(),
+			}
 
-		Expect(err).ToNot(HaveOccurred())
-		Expect(stemcell).To(Equal(expectedStemcell))
-		Expect(extractedPath).To(Equal("/path/to/dest"))
-	})
-
-	It("return err when failed to create a tmpdir", func() {
-		fs.TempDirError = errors.New("fake-fs-new-tempdir-error")
-		_, _, err := stemcellRepo.Save("/somepath")
-
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("fake-fs-new-tempdir-error"))
-	})
-
-	It("return err and cleans up tmpdir when failed to read a stemcell tarball", func() {
-		stemcellReader.SetReadBehavior("/somepath", "/path/to/dest", Stemcell{}, errors.New("fake-read-error"))
-		_, _, err := stemcellRepo.Save("/somepath")
-
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("fake-read-error"))
-		Expect(fs.FileExists("/path/to/dest")).To(BeFalse())
+			expectedConfig := bmconfig.Config{
+				Stemcells: []bmconfig.StemcellRecord{expectedStemcell},
+			}
+			Expect(configService.SaveInputs).To(Equal(
+				[]fakebmconfig.SaveInput{
+					fakebmconfig.SaveInput{
+						Config: expectedConfig,
+					},
+				},
+			))
+		})
 	})
 })

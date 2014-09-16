@@ -11,7 +11,7 @@ import (
 )
 
 type Reader interface {
-	Read(stemcellPath string, extractedPath string) (Stemcell, error)
+	Read(stemcellTarballPath string, extractedPath string) (Stemcell, error)
 }
 
 type reader struct {
@@ -23,10 +23,10 @@ func NewReader(compressor boshcmd.Compressor, fs boshsys.FileSystem) Reader {
 	return reader{compressor: compressor, fs: fs}
 }
 
-func (s reader) Read(stemcellPath string, extractedPath string) (Stemcell, error) {
-	err := s.compressor.DecompressFileToDir(stemcellPath, extractedPath)
+func (s reader) Read(stemcellTarballPath string, extractedPath string) (Stemcell, error) {
+	err := s.compressor.DecompressFileToDir(stemcellTarballPath, extractedPath)
 	if err != nil {
-		return Stemcell{}, bosherr.WrapError(err, "Extracting stemcell from %s to %s", stemcellPath, extractedPath)
+		return Stemcell{}, bosherr.WrapError(err, "Extracting stemcell from %s to %s", stemcellTarballPath, extractedPath)
 	}
 
 	var stemcell Stemcell

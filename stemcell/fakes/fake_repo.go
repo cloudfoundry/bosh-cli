@@ -3,46 +3,117 @@ package fakes
 import (
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type SaveInput struct {
-	stemcellPath string
+	Stemcell bmstemcell.Stemcell
+	CID      bmstemcell.CID
 }
 
 type SaveOutput struct {
-	stemcell bmstemcell.Stemcell
-	destPath string
-	err      error
+	err error
+}
+
+type FindInput struct {
+	Stemcell bmstemcell.Stemcell
+}
+
+type FindOutput struct {
+	cid   bmstemcell.CID
+	found bool
+	err   error
 }
 
 type FakeRepo struct {
-	SaveBehavior map[SaveInput]SaveOutput
+	SaveBehavior map[string]SaveOutput
+	SaveInputs   []SaveInput
+	FindBehavior map[string]FindOutput
+	FindInputs   []FindInput
 }
 
 func NewFakeRepo() *FakeRepo {
-	return &FakeRepo{SaveBehavior: map[SaveInput]SaveOutput{}}
+	return &FakeRepo{
+		SaveBehavior: map[string]SaveOutput{},
+		SaveInputs:   []SaveInput{},
+	}
 }
 
-func (fr *FakeRepo) Save(stemcellPath string) (bmstemcell.Stemcell, string, error) {
+func (fr *FakeRepo) Save(stemcell bmstemcell.Stemcell, cid bmstemcell.CID) error {
 	input := SaveInput{
-		stemcellPath: stemcellPath,
+		Stemcell: stemcell,
+		CID:      cid,
 	}
-	output, found := fr.SaveBehavior[input]
+	fr.SaveInputs = append(fr.SaveInputs, input)
+
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	if marshalErr != nil {
+		return bosherr.WrapError(marshalErr, "Marshaling Save input")
+	}
+
+	output, found := fr.SaveBehavior[inputString]
 	if !found {
-		return bmstemcell.Stemcell{}, "", fmt.Errorf("Unsupported Input: Save('%#v')", stemcellPath)
+		return fmt.Errorf("Unsupported Save Input: %s", inputString)
 	}
 
-	return output.stemcell, output.destPath, output.err
+	return output.err
 }
 
-func (fr *FakeRepo) SetSaveBehavior(stemcellPath, destPath string, stemcell bmstemcell.Stemcell, err error) {
+func (fr *FakeRepo) SetSaveBehavior(stemcell bmstemcell.Stemcell, cid bmstemcell.CID, err error) error {
 	input := SaveInput{
-		stemcellPath: stemcellPath,
+		Stemcell: stemcell,
+		CID:      cid,
 	}
-	fr.SaveBehavior[input] = SaveOutput{
-		stemcell: stemcell,
-		destPath: destPath,
-		err:      err,
+
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	if marshalErr != nil {
+		return bosherr.WrapError(marshalErr, "Marshaling Save input")
 	}
+
+	fr.SaveBehavior[inputString] = SaveOutput{
+		err: err,
+	}
+
+	return nil
+}
+
+func (fr *FakeRepo) Find(stemcell bmstemcell.Stemcell) (bmstemcell.CID, bool, error) {
+	input := FindInput{
+		Stemcell: stemcell,
+	}
+	fr.FindInputs = append(fr.FindInputs, input)
+
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	if marshalErr != nil {
+		return "", false, bosherr.WrapError(marshalErr, "Marshaling Find input")
+	}
+
+	output, found := fr.FindBehavior[inputString]
+	if !found {
+		return "", false, fmt.Errorf("Unsupported Find Input: %s", inputString)
+	}
+
+	return output.cid, output.found, output.err
+}
+
+func (fr *FakeRepo) SetFindBehavior(stemcell bmstemcell.Stemcell, cid bmstemcell.CID, found bool, err error) error {
+	input := FindInput{
+		Stemcell: stemcell,
+	}
+
+	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	if marshalErr != nil {
+		return bosherr.WrapError(marshalErr, "Marshaling Find input")
+	}
+
+	fr.FindBehavior[inputString] = FindOutput{
+		cid:   cid,
+		found: found,
+		err:   err,
+	}
+
+	return nil
 }
