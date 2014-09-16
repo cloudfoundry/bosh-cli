@@ -62,7 +62,7 @@ cloud_provider:
 		pwd, err := os.Getwd()
 		Expect(err).ToNot(HaveOccurred())
 
-		assetDir := filepath.Join(pwd, "../Fixtures", "test_release")
+		assetDir := filepath.Join(pwd, "Fixtures", "test_release")
 		session, err = bmtestutils.RunCommand("cp", "-r", assetDir, workspaceDir)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(session.ExitCode()).To(Equal(0))
@@ -70,7 +70,7 @@ cloud_provider:
 		releaseDir := filepath.Join(workspaceDir, "test_release")
 		cpiRel = cpiRelease{releaseDir, fs}
 
-		stemcellAssetPath := filepath.Join(pwd, "../Fixtures", "stemcell")
+		stemcellAssetPath := filepath.Join(pwd, "Fixtures", "stemcell")
 		stemcellTarball = filepath.Join(workspaceDir, "stemcell.tgz")
 		err = bmtestutils.CreateStemcell(stemcellAssetPath, stemcellTarball)
 
