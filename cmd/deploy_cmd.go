@@ -50,6 +50,10 @@ func NewDeployCmd(
 	}
 }
 
+func (c *deployCmd) Name() string {
+	return "deploy"
+}
+
 func (c *deployCmd) Run(args []string) error {
 	releaseTarballPath, stemcellTarballPath, err := c.validateDeployInputs(args)
 	if err != nil {

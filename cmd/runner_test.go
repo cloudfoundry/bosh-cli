@@ -16,7 +16,7 @@ var _ = Describe("Runner", func() {
 	var fakeCommand *fakes.FakeCommand
 
 	BeforeEach(func() {
-		fakeCommand = &fakes.FakeCommand{Name: "deployment"}
+		fakeCommand = fakes.NewFakeCommand("deployment")
 		factory = &fakes.FakeFactory{PresetCommand: fakeCommand}
 	})
 

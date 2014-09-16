@@ -46,6 +46,10 @@ func NewDeploymentCmd(
 	}
 }
 
+func (c *deploymentCmd) Name() string {
+	return "deployment"
+}
+
 func (c *deploymentCmd) Run(args []string) error {
 	if args == nil || len(args) < 1 {
 		return c.showDeploymentStatus()
