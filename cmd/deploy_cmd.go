@@ -97,14 +97,15 @@ type Deployment struct{}
 // validateDeployInputs validates the presence of inputs (stemcell tarball, cpi release tarball)
 func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) {
 
-	if len(args) == 0 {
-		c.ui.Error("No CPI release provided")
-		c.logger.Debug(logTag, "No CPI release provided")
-		return "", "", errors.New("No CPI release provided")
+	if len(args) != 2 {
+		c.ui.Error("Invalid usage - deploy command requires exactly 2 arguments")
+		c.ui.Sayln("Expected usage: bosh-micro deploy <cpi-release-tarball> <stemcell-tarball>")
+		c.logger.Error(logTag, "Invalid arguments: ")
+		return "", "", errors.New("Invalid usage - deploy command requires exactly 2 arguments")
 	}
 
 	releaseTarballPath := args[0]
-	c.logger.Info(logTag, fmt.Sprintf("Validating deployment `%s'", releaseTarballPath))
+	c.logger.Info(logTag, "Validating release tarball `%s'", releaseTarballPath)
 
 	fileValidator := bmvalidation.NewFileValidator(c.fs)
 	err := fileValidator.Exists(releaseTarballPath)
@@ -113,24 +114,28 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 		return "", "", bosherr.WrapError(err, "Checking CPI release `%s' existence", releaseTarballPath)
 	}
 
+	stemcellTarballPath := args[1]
+	c.logger.Info(logTag, "Validating stemcell tarball `%s'", stemcellTarballPath)
+	err = fileValidator.Exists(stemcellTarballPath)
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("Stemcell `%s' does not exist", stemcellTarballPath))
+		return "", "", bosherr.WrapError(err, "Checking stemcell `%s' existence", stemcellTarballPath)
+	}
+
 	// validate current state: 'microbosh' deployment set
 	if len(c.config.Deployment) == 0 {
 		c.ui.Error("No deployment set")
 		return "", "", bosherr.New("No deployment set")
 	}
 
-	c.logger.Info(logTag, fmt.Sprintf("Checking for deployment `%s'", c.config.Deployment))
+	c.logger.Info(logTag, "Checking for deployment `%s'", c.config.Deployment)
 	err = fileValidator.Exists(c.config.Deployment)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.config.Deployment))
 		return "", "", bosherr.WrapError(err, "Reading deployment manifest for deploy")
 	}
 
-	stemcellTarballPath := args[1]
-	//TODO Validate existence of stemcellTarballPath
-
 	return releaseTarballPath, stemcellTarballPath, nil
-
 }
 
 func (c *deployCmd) parseMicroboshManifest() (Deployment, error) {

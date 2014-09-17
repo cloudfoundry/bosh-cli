@@ -76,7 +76,7 @@ var _ = Describe("bosh-micro", func() {
 				Expect(err).NotTo(HaveOccurred())
 				defer fileSystem.RemoveAll(tmpFile.Name())
 
-				session, err := bmtestutils.RunBoshMicro("deploy", tmpFile.Name())
+				session, err := bmtestutils.RunBoshMicro("deploy", tmpFile.Name(), tmpFile.Name())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.Err.Contents()).To(ContainSubstring("No deployment set"))
 				Expect(session.ExitCode()).To(Equal(1))
