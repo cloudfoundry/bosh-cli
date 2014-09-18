@@ -10,6 +10,11 @@ import (
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
+type loadOutput struct {
+	config bmconfig.Config
+	err    error
+}
+
 type SaveInput struct {
 	Config bmconfig.Config
 }
@@ -19,6 +24,7 @@ type SaveOutput struct {
 }
 
 type FakeService struct {
+	loadBehavior loadOutput
 	SaveInputs   []SaveInput
 	saveBehavior map[string]SaveOutput
 }
@@ -31,7 +37,11 @@ func NewFakeService() *FakeService {
 }
 
 func (s *FakeService) Load() (bmconfig.Config, error) {
-	return bmconfig.Config{}, nil
+	return s.loadBehavior.config, s.loadBehavior.err
+}
+
+func (s *FakeService) SetLoadBehavior(config bmconfig.Config, err error) {
+	s.loadBehavior = loadOutput{config: config, err: err}
 }
 
 func (s *FakeService) Save(config bmconfig.Config) error {

@@ -135,8 +135,8 @@ func (c cloud) execCPICmd(method string, args ...interface{}) (cmdOutput CmdOutp
 	stdout, stderr, exitCode, err := c.cmdRunner.RunCommandWithInput(inputString, cmdPath)
 	if err != nil {
 		//TODO: parse STDOUT Result.Error when exit_status != 0?
-		c.logger.Error(c.logTag, "Executed external CPI command '%s' with exit_code %d\nSTDOUT: '%s'\nSTDERR: '%s'", cmdPath, exitCode, stdout, stderr)
-		return cmdOutput, bosherr.WrapError(err, "Executing external CPI command: '%s' with stdin: %s", cmdPath, inputString)
+		c.logger.Error(c.logTag, "Exit Code %d when executing external CPI command '%s'\nSTDIN: '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", exitCode, cmdPath, inputString, stdout, stderr)
+		return cmdOutput, bosherr.WrapError(err, "Executing external CPI command: '%s'", cmdPath)
 	}
 	c.logger.Debug(c.logTag, "Executed external CPI command '%s' with STDOUT: '%s'", cmdPath, stdout)
 

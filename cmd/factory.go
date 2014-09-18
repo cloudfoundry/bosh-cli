@@ -115,10 +115,13 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		compiledPackageRepo,
 		packageInstaller,
 	)
-	eventLogger := bmlog.NewEventLogger(f.ui)
+	timeService := boshtime.NewConcreteService()
+	eventFilters := []bmlog.EventFilter{
+		bmlog.NewTimeFilter(timeService),
+	}
+	eventLogger := bmlog.NewEventLoggerWithFilters(f.ui, eventFilters)
 
 	da := bmcomp.NewDependencyAnalysis()
-	timeService := boshtime.NewConcreteService()
 	releasePackagesCompiler := bmcomp.NewReleasePackagesCompiler(
 		da,
 		packageCompiler,
@@ -137,8 +140,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		packageInstaller,
 		blobExtractor,
 		templatesRepo,
-		f.config.PackagesPath(),
 		f.config.JobsPath(),
+		f.config.PackagesPath(),
 		eventLogger,
 		timeService,
 	)
@@ -155,7 +158,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)
 	repo := bmstemcell.NewRepo(f.configService)
-	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fileSystem, stemcellReader, repo)
+	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fileSystem, stemcellReader, repo, eventLogger)
 
 	return NewDeployCmd(
 		f.ui,

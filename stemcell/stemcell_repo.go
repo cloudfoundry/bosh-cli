@@ -24,7 +24,10 @@ func NewRepo(configService bmconfig.Service) repo {
 // Save extracts the stemcell archive, parses the stemcell manifest, and stores the stemcell archive in the repo.
 // The repo stemcell record is indexed by name & sha1 (as specified by the manifest).
 func (s repo) Save(stemcell Stemcell, cid CID) error {
-	config, _ := s.configService.Load()
+	config, err := s.configService.Load()
+	if err != nil {
+		return bosherr.WrapError(err, "Loading existing config")
+	}
 
 	records := config.Stemcells
 	if records == nil {
@@ -35,7 +38,6 @@ func (s repo) Save(stemcell Stemcell, cid CID) error {
 		Name:    stemcell.Name,
 		Version: stemcell.Version,
 		SHA1:    stemcell.SHA1,
-		CID:     cid.String(),
 	}
 
 	oldRecord, found := s.find(records, newRecord)
@@ -43,15 +45,37 @@ func (s repo) Save(stemcell Stemcell, cid CID) error {
 		return bosherr.New("Failed to save stemcell record `%s', existing record found `%s'", newRecord, oldRecord)
 	}
 
+	newRecord.CID = cid.String()
 	records = append(records, newRecord)
 	config.Stemcells = records
 
-	_ = s.configService.Save(config)
+	err = s.configService.Save(config)
+	if err != nil {
+		//		s.logger.Error("Failed saving updated config: %s", config)
+		return bosherr.WrapError(err, "Saving new config")
+	}
 	return nil
 }
 
-func (s repo) Find(stemcell Stemcell) (CID, bool, error) {
-	return "", false, nil
+func (s repo) Find(stemcell Stemcell) (cid CID, found bool, err error) {
+	config, err := s.configService.Load()
+	if err != nil {
+		return cid, false, bosherr.WrapError(err, "Loading existing config")
+	}
+
+	records := config.Stemcells
+	if records == nil {
+		records = []bmconfig.StemcellRecord{}
+	}
+
+	newRecord := bmconfig.StemcellRecord{
+		Name:    stemcell.Name,
+		Version: stemcell.Version,
+		SHA1:    stemcell.SHA1,
+	}
+
+	oldRecord, found := s.find(records, newRecord)
+	return CID(oldRecord.CID), found, nil
 }
 
 func (s repo) find(records []bmconfig.StemcellRecord, record bmconfig.StemcellRecord) (bmconfig.StemcellRecord, bool) {

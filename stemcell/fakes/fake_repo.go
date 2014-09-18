@@ -37,6 +37,8 @@ type FakeRepo struct {
 
 func NewFakeRepo() *FakeRepo {
 	return &FakeRepo{
+		FindBehavior: map[string]FindOutput{},
+		FindInputs:   []FindInput{},
 		SaveBehavior: map[string]SaveOutput{},
 		SaveInputs:   []SaveInput{},
 	}
