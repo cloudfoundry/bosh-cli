@@ -11,6 +11,8 @@ import (
 
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
+	fakelog "github.com/cloudfoundry/bosh-micro-cli/logging/fakes"
+
 	. "github.com/cloudfoundry/bosh-micro-cli/logging"
 )
 
@@ -37,7 +39,7 @@ var _ = Describe("EventLogger", func() {
 			event := Event{
 				Stage: "fake-stage",
 				Total: 2,
-				State: "started",
+				State: Started,
 				Task:  "fake-task-1",
 				Index: 1,
 			}
@@ -45,6 +47,37 @@ var _ = Describe("EventLogger", func() {
 			output := uiOut.String()
 			Expect(output).To(ContainSubstring("Started fake-stage\n"))
 			Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1."))
+		})
+
+		Context("when filters are configured", func() {
+			var (
+				filter *fakelog.FakeEventFilter
+			)
+			BeforeEach(func() {
+				filter = fakelog.NewFakeEventFilter()
+				filters := []EventFilter{filter}
+				eventLogger = NewEventLoggerWithFilters(ui, filters)
+			})
+
+			It("modifies the event using the filters", func() {
+				filter.SetFilterBehavior(func(event *Event) error {
+					event.Stage = "filtered-fake-stage"
+					return nil
+				})
+
+				event := Event{
+					Stage: "fake-stage",
+					Total: 2,
+					State: Started,
+					Task:  "fake-task-1",
+					Index: 1,
+				}
+				eventLogger.AddEvent(event)
+
+				output := uiOut.String()
+				Expect(output).To(ContainSubstring("Started filtered-fake-stage\n"))
+				Expect(output).To(ContainSubstring("Started filtered-fake-stage > fake-task-1."))
+			})
 		})
 
 		Context("When all the tasks are finished", func() {
@@ -55,7 +88,7 @@ var _ = Describe("EventLogger", func() {
 					Stage: "fake-stage",
 					Total: 2,
 					Task:  "fake-task-1",
-					State: "started",
+					State: Started,
 					Index: 1,
 				})
 
@@ -64,7 +97,7 @@ var _ = Describe("EventLogger", func() {
 					Stage: "fake-stage",
 					Total: 2,
 					Task:  "fake-task-1",
-					State: "finished",
+					State: Finished,
 					Index: 1,
 				})
 
@@ -73,7 +106,7 @@ var _ = Describe("EventLogger", func() {
 					Stage: "fake-stage",
 					Total: 2,
 					Task:  "fake-task-2",
-					State: "started",
+					State: Started,
 					Index: 2,
 				})
 				eventLogger.AddEvent(Event{
@@ -81,7 +114,7 @@ var _ = Describe("EventLogger", func() {
 					Stage: "fake-stage",
 					Total: 2,
 					Task:  "fake-task-2",
-					State: "finished",
+					State: Finished,
 					Index: 2,
 				})
 			})
@@ -105,7 +138,7 @@ var _ = Describe("EventLogger", func() {
 					Stage: "fake-stage",
 					Total: 2,
 					Task:  "fake-task-1",
-					State: "started",
+					State: Started,
 					Index: 1,
 				})
 
@@ -114,7 +147,7 @@ var _ = Describe("EventLogger", func() {
 					Stage:   "fake-stage",
 					Total:   2,
 					Task:    "fake-task-1",
-					State:   "failed",
+					State:   Failed,
 					Index:   1,
 					Message: "fake-fail-message",
 				})

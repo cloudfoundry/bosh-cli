@@ -10,6 +10,10 @@ import (
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
+type EventFilter interface {
+	Filter(*Event) error
+}
+
 type Event struct {
 	Time    time.Time
 	Stage   string
@@ -32,19 +36,35 @@ type EventLogger interface {
 	AddEvent(event Event) error
 }
 
+type eventLogger struct {
+	ui           bmui.UI
+	startedTasks map[string]time.Time
+	filters      []EventFilter
+}
+
 func NewEventLogger(ui bmui.UI) EventLogger {
 	return &eventLogger{
 		ui:           ui,
 		startedTasks: make(map[string]time.Time),
+		filters:      []EventFilter{},
 	}
 }
 
-type eventLogger struct {
-	ui           bmui.UI
-	startedTasks map[string]time.Time
+func NewEventLoggerWithFilters(ui bmui.UI, filters []EventFilter) EventLogger {
+	return &eventLogger{
+		ui:           ui,
+		startedTasks: make(map[string]time.Time),
+		filters:      filters,
+	}
 }
 
 func (e *eventLogger) AddEvent(event Event) error {
+	if e.filters != nil && len(e.filters) > 0 {
+		for _, filter := range e.filters {
+			filter.Filter(&event)
+		}
+	}
+
 	key := fmt.Sprintf("%s > %s.", event.Stage, event.Task)
 	switch event.State {
 	case Started:
