@@ -1,7 +1,29 @@
 #!/bin/bash
 
-fake_cpi_default_cmd=<%= p('fake_cpi_default_property.second_level') %>
-fake_cpi_specified_cmd=<%= p('fake_cpi_specified_property.second_level') %>
-ip="<%= spec.networks.default.ip %>"
+# requires mkdir, cat, echo, grep & cp to be availible on the PATH
 
-echo "ok" > <%= p('output_dir') %>/test.file
+set -e
+
+GLOBAL_PROPERTY=<%= p('fake_cpi_default_property.second_level') %>
+JOB_PROPERTY=<%= p('fake_cpi_specified_property.second_level') %>
+IP="<%= spec.networks.default.ip %>"
+
+OUTPUT_DIR=<%= p('output_dir') %>
+mkdir -p $OUTPUT_DIR
+
+# write STDIN to file
+cat /dev/stdin > $OUTPUT_DIR/test.file
+
+# parsing json with grep, woohoo!
+# example STDIN: {"method":"create_stemcell","arguments":["/var/folders/4n/qs1rjbmd1c5gfb78m3_06j6r0000gn/T/stemcell-manager490693145/image",{"architecture":"x86_64","infrastructure":"vfakestack","name":"fake-stemcell","root_device_name":"/dev/sda1","version":"fake-version"}],"context":{"director_uuid":""}}
+IMAGE_FILE_PATH=$(grep -Eo '"arguments":\[".*?[^\\]"' $OUTPUT_DIR/test.file | cut -d':' -f2 | cut -d'"' -f2)
+if [ ! -f "$IMAGE_FILE_PATH" ]; then
+  echo "Stemcell image file not found!"
+  exit 1
+fi
+
+# copy stemcell image file to prove it was availible to upload
+cp $IMAGE_FILE_PATH $OUTPUT_DIR/image
+
+# write CmdOutput to STDOUT
+echo '{"result":{"cid":"fake-stemcell-cid"},"log":"OMG A log!\nAnother log line..."}'

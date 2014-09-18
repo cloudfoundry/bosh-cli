@@ -28,6 +28,7 @@ type cpiDeployer struct {
 	validator       bmrelvalidation.ReleaseValidator
 	releaseCompiler bmcomp.ReleaseCompiler
 	jobInstaller    bminstall.JobInstaller
+	cloudFactory    bmcloud.Factory
 	logger          boshlog.Logger
 	logTag          string
 }
@@ -39,6 +40,7 @@ func NewCpiDeployer(
 	validator bmrelvalidation.ReleaseValidator,
 	releaseCompiler bmcomp.ReleaseCompiler,
 	jobInstaller bminstall.JobInstaller,
+	cloudFactory bmcloud.Factory,
 	logger boshlog.Logger,
 ) CpiDeployer {
 	return &cpiDeployer{
@@ -48,6 +50,7 @@ func NewCpiDeployer(
 		validator:       validator,
 		releaseCompiler: releaseCompiler,
 		jobInstaller:    jobInstaller,
+		cloudFactory:    cloudFactory,
 		logger:          logger,
 		logTag:          "cpiDeployer",
 	}
@@ -117,20 +120,27 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 		)
 	}
 
-	err = c.installJob(cpiJob, release)
+	installedJobs, err := c.installJob(cpiJob, release)
 	if err != nil {
-		c.ui.Error("Could not compile CPI release")
-		return nil, bosherr.WrapError(err, "Compiling CPI release")
+		c.ui.Error("Could not install CPI deployment job")
+		return nil, bosherr.WrapError(err, "Installing CPI deployment job")
 	}
 
-	return bmcloud.NewCloud(), nil
+	cloud, err := c.cloudFactory.NewCloud(installedJobs)
+	if err != nil {
+		c.ui.Error("Invalid CPI deployment")
+		return nil, bosherr.WrapError(err, "Validating CPI deployment job installation")
+	}
+
+	return cloud, nil
 }
 
 // installJob installs the deployment job's rendered job templates & required compiled packages
 // all job templates must be in the specified release
-func (c *cpiDeployer) installJob(deploymentJob bmdepl.Job, release bmrel.Release) error {
+func (c *cpiDeployer) installJob(deploymentJob bmdepl.Job, release bmrel.Release) ([]bminstall.InstalledJob, error) {
 	//	deploymentJobName := deploymentJob.Name()
 
+	installedJobs := make([]bminstall.InstalledJob, 0, len(deploymentJob.Templates))
 	for _, releaseJobRef := range deploymentJob.Templates {
 		// Microbosh manifests do not know the name of the cpi release...
 		//TODO: uncomment after release name injection is added
@@ -145,14 +155,15 @@ func (c *cpiDeployer) installJob(deploymentJob bmdepl.Job, release bmrel.Release
 
 		if !found {
 			c.ui.Error(fmt.Sprintf("Could not find CPI job `%s' in release `%s'", releaseJobName, release.Name))
-			return bosherr.New("Invalid CPI deployment manifest: job `%s' not found in release `%s'", releaseJobName, release.Name)
+			return installedJobs, bosherr.New("Invalid CPI deployment manifest: job `%s' not found in release `%s'", releaseJobName, release.Name)
 		}
 
-		err := c.jobInstaller.Install(releaseJob)
+		installedJob, err := c.jobInstaller.Install(releaseJob)
 		if err != nil {
 			c.ui.Error(fmt.Sprintf("Could not install `%s' job", releaseJobName))
-			return bosherr.WrapError(err, "Installing `%s' job for CPI release", releaseJobName)
+			return installedJobs, bosherr.WrapError(err, "Installing `%s' job for CPI release", releaseJobName)
 		}
+		installedJobs = append(installedJobs, installedJob)
 	}
-	return nil
+	return installedJobs, nil
 }

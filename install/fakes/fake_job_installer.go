@@ -3,6 +3,7 @@ package fakes
 import (
 	"fmt"
 
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
@@ -12,7 +13,8 @@ type JobInstallInput struct {
 }
 
 type jobInstallOutput struct {
-	err error
+	installedJob bminstall.InstalledJob
+	err          error
 }
 
 type FakeJobInstaller struct {
@@ -27,27 +29,29 @@ func NewFakeJobInstaller() *FakeJobInstaller {
 	}
 }
 
-func (f *FakeJobInstaller) Install(job bmrel.Job) error {
+func (f *FakeJobInstaller) Install(job bmrel.Job) (bminstall.InstalledJob, error) {
 	input := JobInstallInput{Job: job}
 	f.JobInstallInputs = append(f.JobInstallInputs, input)
 	value, err := bmtestutils.MarshalToString(input)
 	if err != nil {
-		return fmt.Errorf("Could not serialize input %#v", input)
+		return bminstall.InstalledJob{}, fmt.Errorf("Could not serialize input %#v", input)
 	}
 	output, found := f.installBehavior[value]
 
 	if found {
-		return output.err
+		return output.installedJob, output.err
 	}
-	return fmt.Errorf("Unsupported Input: %s\nAvailible Behaviors: %s", value, f.installBehavior)
+	return bminstall.InstalledJob{}, fmt.Errorf("Unsupported Input: %s\nAvailible Behaviors: %s", value, f.installBehavior)
 }
 
-func (f *FakeJobInstaller) SetInstallBehavior(pkg bmrel.Job, targetDir string, err error) error {
-	input := JobInstallInput{Job: pkg}
+func (f *FakeJobInstaller) SetInstallBehavior(job bmrel.Job, installedJob bminstall.InstalledJob, err error) error {
+	input := JobInstallInput{
+		Job: job,
+	}
 	value, err := bmtestutils.MarshalToString(input)
 	if err != nil {
 		return fmt.Errorf("Could not serialize input %#v", input)
 	}
-	f.installBehavior[value] = jobInstallOutput{err: err}
+	f.installBehavior[value] = jobInstallOutput{installedJob: installedJob, err: err}
 	return nil
 }

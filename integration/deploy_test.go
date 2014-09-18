@@ -15,12 +15,15 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
+
+	//	gouuid "github.com/nu7hatch/gouuid"
 )
 
 var _ = Describe("bosh-micro", func() {
 	var (
-		workspaceDir               string
+		micro                      installation
 		releaseTarball             string
 		fs                         boshsys.FileSystem
 		deploymentManifestFilePath string
@@ -34,12 +37,12 @@ var _ = Describe("bosh-micro", func() {
 		fs = boshsys.NewOsFileSystem(logger)
 
 		var err error
-		workspaceDir, err = fs.TempDir("bosh-micro-intergration")
+		micro, err = NewInstallation(fs)
 		Expect(err).NotTo(HaveOccurred())
 
-		cpiOutputDir = filepath.Join(workspaceDir, "cpi_output")
+		cpiOutputDir = filepath.Join(micro.Root(), "cpi_output")
 
-		deploymentManifestFilePath = path.Join(workspaceDir, "micro_deployment.yml")
+		deploymentManifestFilePath = path.Join(micro.Root(), "micro_deployment.yml")
 
 		manifestTemplate := `
 ---
@@ -63,15 +66,15 @@ cloud_provider:
 		Expect(err).ToNot(HaveOccurred())
 
 		assetDir := filepath.Join(pwd, "Fixtures", "test_release")
-		session, err = bmtestutils.RunCommand("cp", "-r", assetDir, workspaceDir)
+		session, err = bmtestutils.RunCommand("cp", "-r", assetDir, micro.Root())
 		Expect(err).ToNot(HaveOccurred())
 		Expect(session.ExitCode()).To(Equal(0))
 
-		releaseDir := filepath.Join(workspaceDir, "test_release")
+		releaseDir := filepath.Join(micro.Root(), "test_release")
 		cpiRel = cpiRelease{releaseDir, fs}
 
 		stemcellAssetPath := filepath.Join(pwd, "Fixtures", "stemcell")
-		stemcellTarball = filepath.Join(workspaceDir, "stemcell.tgz")
+		stemcellTarball = filepath.Join(micro.Root(), "stemcell.tgz")
 		err = bmtestutils.CreateStemcell(stemcellAssetPath, stemcellTarball)
 
 		Expect(err).ToNot(HaveOccurred())
@@ -82,7 +85,7 @@ cloud_provider:
 	})
 
 	AfterEach(func() {
-		err := os.RemoveAll(workspaceDir)
+		err := micro.Clean()
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -91,7 +94,7 @@ cloud_provider:
 			releaseTarball = cpiRel.createRelease()
 		})
 
-		It("compiles packages", func() {
+		It("compiles the CPI packages", func() {
 			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
@@ -106,8 +109,7 @@ cloud_provider:
 			Expect(err).ToNot(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
 
-			workspace := deploymentWorkspace{workspaceDir, fs}
-			compilePackages := NewCompilePackages(workspace.Path(), fs)
+			compilePackages := NewCompilePackages(micro.CurrentWorkspace(), fs)
 			blob, found := compilePackages.GetPackageBlobByName("compiled_package")
 			Expect(found).To(BeTrue())
 			blobExists, err := blob.FileExists("compiled_file")
@@ -115,13 +117,12 @@ cloud_provider:
 			Expect(blobExists).To(BeTrue())
 		})
 
-		It("renders job templates including network config", func() {
+		It("renders CPI job templates, including network config", func() {
 			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(session.ExitCode()).To(Equal(0))
 
-			workspace := deploymentWorkspace{workspaceDir, fs}
-			renderedTemplates := NewRenderedTemplates(workspace.Path(), fs)
+			renderedTemplates := NewRenderedTemplates(micro.CurrentWorkspace(), fs)
 			blob, found := renderedTemplates.GetRenderedTemplateBlobByName("cpi")
 			Expect(found).To(BeTrue())
 			blobExists, err := blob.FileExists("bin/cpi")
@@ -129,17 +130,62 @@ cloud_provider:
 			Expect(blobExists).To(BeTrue())
 			blobContents, err := blob.FileContents("bin/cpi")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobContents).To(ContainSubstring("fake_cpi_default_cmd=fake_cpi_default_value"))
-			Expect(blobContents).To(ContainSubstring("fake_cpi_specified_cmd=fake_specified_property_value"))
-			Expect(blobContents).To(ContainSubstring(`ip=""`))
+			Expect(blobContents).To(ContainSubstring("GLOBAL_PROPERTY=fake_cpi_default_value"))
+			Expect(blobContents).To(ContainSubstring("JOB_PROPERTY=fake_specified_property_value"))
+			Expect(blobContents).To(ContainSubstring(`IP=""`))
 		})
 
-		It("creates stemcell", func() {
-			session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(session.ExitCode()).To(Equal(0))
+		Context("when bin/cpi is executed with valid json STDIN", func() {
+			var (
+				cmdInput bmcloud.CmdInput
+			)
 
-			//Expect(fs.FileExists(filepath.Join(cpiOutputDir, "test.file"))).To(BeTrue())
+			BeforeEach(func() {
+				session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(session.ExitCode()).To(Equal(0))
+
+				// cpi script writes STDIN to cpi_output/test.file
+				testFilePath := filepath.Join(cpiOutputDir, "test.file")
+				Expect(fs.FileExists(testFilePath)).To(BeTrue())
+
+				bytes, err := fs.ReadFile(testFilePath)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = json.Unmarshal(bytes, &cmdInput)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("calls the create_stemcell method", func() {
+				Expect(cmdInput.Method).To(Equal("create_stemcell"))
+				Expect(cmdInput.Arguments).To(HaveLen(2))
+			})
+
+			It("passes the mico deployment uuid", func() {
+				Expect(cmdInput.Context.DirectorUUID).To(Equal(micro.CurrentUUID()))
+			})
+
+			It("makes the extracted stemcell image available", func() {
+				// stemcell tarball is extracted into a temp file
+				// make sure the image source file is named "image", matching the stemcell tarball content
+				extractedStemcellImageFilePath := cmdInput.Arguments[0]
+				Expect(extractedStemcellImageFilePath).To(MatchRegexp("^.*[\\/]image$"))
+
+				// cpi script copies the stemcell image file to cpi_output/image
+				copiedStemcellImageFilePath := filepath.Join(cpiOutputDir, "image")
+				Expect(fs.FileExists(copiedStemcellImageFilePath)).To(BeTrue())
+				Expect(fs.ReadFileString(copiedStemcellImageFilePath)).To(Equal("fake-stemcell-image"))
+			})
+
+			It("passes in the cloud properties", func() {
+				Expect(cmdInput.Arguments[1]).To(Equal(map[string]interface{}{
+					"name":             "fake-stemcell",
+					"version":          "fake-version",
+					"infrastructure":   "vfakestack",
+					"architecture":     "x86_64",
+					"root_device_name": "/dev/sda1",
+				}))
+			})
 		})
 	})
 
@@ -289,23 +335,43 @@ func (c renderedTemplates) getTemplateBlobID(indexContent RenderedTemplatesIndex
 	return "", false
 }
 
-type deploymentWorkspace struct {
-	workspaceDir string
-	fs           boshsys.FileSystem
+type installation struct {
+	fs   boshsys.FileSystem
+	root string
 }
 
-func (d deploymentWorkspace) Path() string {
-	deploymentFilePath := path.Join(d.workspaceDir, "deployment.json")
-	Expect(d.fs.FileExists(deploymentFilePath)).To(BeTrue())
+func NewInstallation(fs boshsys.FileSystem) (installation, error) {
+	root, err := fs.TempDir("bosh-micro-intergration")
+	if err != nil {
+		return installation{}, err
+	}
+	return installation{fs: fs, root: root}, nil
+}
 
-	deploymentRawContent, err := d.fs.ReadFile(deploymentFilePath)
+func (i installation) Root() string {
+	return i.root
+}
+
+func (i installation) Clean() error {
+	return i.fs.RemoveAll(i.root)
+}
+
+func (i installation) CurrentUUID() string {
+	deploymentFilePath := path.Join(i.root, "deployment.json")
+	Expect(i.fs.FileExists(deploymentFilePath)).To(BeTrue())
+
+	deploymentRawContent, err := i.fs.ReadFile(deploymentFilePath)
 	Expect(err).NotTo(HaveOccurred())
 
 	deploymentFile := DeploymentFile{}
 	err = json.Unmarshal(deploymentRawContent, &deploymentFile)
 	Expect(err).NotTo(HaveOccurred())
 
-	return filepath.Join(os.Getenv("HOME"), ".bosh_micro", deploymentFile.UUID)
+	return deploymentFile.UUID
+}
+
+func (i installation) CurrentWorkspace() string {
+	return filepath.Join(os.Getenv("HOME"), ".bosh_micro", i.CurrentUUID())
 }
 
 func (c cpiRelease) createRelease() string {

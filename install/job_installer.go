@@ -13,8 +13,13 @@ import (
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
+type InstalledJob struct {
+	Name string
+	Path string
+}
+
 type JobInstaller interface {
-	Install(bmrel.Job) error
+	Install(bmrel.Job) (InstalledJob, error)
 }
 
 type jobInstaller struct {
@@ -28,7 +33,7 @@ type jobInstaller struct {
 	timeService       boshtime.Service
 }
 
-func (i jobInstaller) Install(job bmrel.Job) error {
+func (i jobInstaller) Install(job bmrel.Job) (InstalledJob, error) {
 	event := bmlog.Event{
 		Time:  i.timeService.Now(),
 		Stage: "installing CPI jobs",
@@ -39,10 +44,10 @@ func (i jobInstaller) Install(job bmrel.Job) error {
 	}
 	logErr := i.eventLogger.AddEvent(event)
 	if logErr != nil {
-		return bosherr.WrapError(logErr, "Logging event: %#v", event)
+		return InstalledJob{}, bosherr.WrapError(logErr, "Logging event: %#v", event)
 	}
 
-	err := i.install(job)
+	installedJob, err := i.install(job)
 	if err != nil {
 		event = bmlog.Event{
 			Time:    i.timeService.Now(),
@@ -55,9 +60,9 @@ func (i jobInstaller) Install(job bmrel.Job) error {
 		}
 		logErr = i.eventLogger.AddEvent(event)
 		if logErr != nil {
-			return bosherr.WrapError(logErr, "Logging event: %#v", event)
+			return InstalledJob{}, bosherr.WrapError(logErr, "Logging event: %#v", event)
 		}
-		return err
+		return InstalledJob{}, err
 	}
 
 	event = bmlog.Event{
@@ -70,44 +75,44 @@ func (i jobInstaller) Install(job bmrel.Job) error {
 	}
 	logErr = i.eventLogger.AddEvent(event)
 	if logErr != nil {
-		return bosherr.WrapError(logErr, "Logging event: %#v", event)
+		return InstalledJob{}, bosherr.WrapError(logErr, "Logging event: %#v", event)
 	}
-	return nil
+	return installedJob, nil
 }
 
-func (i jobInstaller) install(job bmrel.Job) error {
+func (i jobInstaller) install(job bmrel.Job) (InstalledJob, error) {
 	jobDir := filepath.Join(i.jobsPath, job.Name)
 	err := i.fs.MkdirAll(jobDir, os.ModePerm)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating jobs directory `%s'", jobDir)
+		return InstalledJob{}, bosherr.WrapError(err, "Creating jobs directory `%s'", jobDir)
 	}
 
 	err = i.fs.MkdirAll(i.packagesPath, os.ModePerm)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating packages directory `%s'", i.packagesPath)
+		return InstalledJob{}, bosherr.WrapError(err, "Creating packages directory `%s'", i.packagesPath)
 	}
 
 	for _, pkg := range job.Packages {
 		err = i.packageInstaller.Install(pkg, i.packagesPath)
 		if err != nil {
-			return bosherr.WrapError(err, "Installing package `%s'", pkg.Name)
+			return InstalledJob{}, bosherr.WrapError(err, "Installing package `%s'", pkg.Name)
 		}
 	}
 
 	template, found, err := i.templateRepo.Find(job)
 	if err != nil {
-		return bosherr.WrapError(err, "Finding template for job `%s'", job.Name)
+		return InstalledJob{}, bosherr.WrapError(err, "Finding template for job `%s'", job.Name)
 	}
 	if !found {
-		return bosherr.New("Could not find template for job `%s'", job.Name)
+		return InstalledJob{}, bosherr.New("Could not find template for job `%s'", job.Name)
 	}
 
 	err = i.templateExtractor.Extract(template.BlobID, template.BlobSHA1, jobDir)
 	if err != nil {
-		return bosherr.WrapError(err, "Extracting blob with ID `%s'", template.BlobID)
+		return InstalledJob{}, bosherr.WrapError(err, "Extracting blob with ID `%s'", template.BlobID)
 	}
 
-	return nil
+	return InstalledJob{Name: job.Name, Path: jobDir}, nil
 }
 
 func NewJobInstaller(

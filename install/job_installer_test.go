@@ -56,21 +56,32 @@ var _ = Describe("JobInstaller", func() {
 			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-sha1", "/fake/jobs/cpi", nil)
 		})
 
+		It("returns a record of the installed job", func() {
+			installedJob, err := jobInstaller.Install(job)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(installedJob).To(Equal(
+				InstalledJob{
+					Name: "cpi",
+					Path: "/fake/jobs/cpi",
+				},
+			))
+		})
+
 		It("creates basic job layout", func() {
-			err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.FileExists(filepath.Join(jobsPath, job.Name))).To(BeTrue())
 			Expect(fs.FileExists(packagesPath)).To(BeTrue())
 		})
 
 		It("finds the rendered templates for the job from the repo", func() {
-			err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templateRepo.FindInputs).To(ContainElement(fakebmtemcomp.FindInput{Job: job}))
 		})
 
 		It("tells the blobExtractor to extract the templates into the installed job dir", func() {
-			err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstall.ExtractInput{
 				BlobID:    "fake-blob-id",
@@ -84,7 +95,7 @@ var _ = Describe("JobInstaller", func() {
 			installFinish := installStart.Add(1 * time.Second)
 			timeService.NowTimes = []time.Time{installStart, installFinish}
 
-			err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedStartEvent := bmlog.Event{
@@ -116,7 +127,7 @@ var _ = Describe("JobInstaller", func() {
 			installFail := installStart.Add(1 * time.Second)
 			timeService.NowTimes = []time.Time{installStart, installFail}
 
-			err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job)
 			Expect(err).To(HaveOccurred())
 
 			expectedStartEvent := bmlog.Event{
@@ -153,7 +164,7 @@ var _ = Describe("JobInstaller", func() {
 			})
 
 			It("install packages correctly", func() {
-				err := jobInstaller.Install(job)
+				_, err := jobInstaller.Install(job)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
 					fakebminstall.InstallInput{Package: &pkg1, Target: packagesPath},
@@ -166,7 +177,7 @@ var _ = Describe("JobInstaller", func() {
 					packagesPath,
 					errors.New("Installation failed, yo"),
 				)
-				err := jobInstaller.Install(job)
+				_, err := jobInstaller.Install(job)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Installation failed"))
 			})

@@ -11,13 +11,14 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
 	fakebmjobi "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -30,7 +31,7 @@ var _ = Describe("CpiDeployer", func() {
 		fakeReleaseValidator *fakebmrel.FakeValidator
 		fakeReleaseCompiler  *fakebmcomp.FakeReleaseCompiler
 		fakeJobInstaller     *fakebmjobi.FakeJobInstaller
-		fakeRepo             *fakebmstemcell.FakeRepo
+		fakeCloudFactory     *fakebmcloud.FakeFactory
 		fakeUI               *fakebmui.FakeUI
 
 		deploymentManifestPath string
@@ -42,12 +43,12 @@ var _ = Describe("CpiDeployer", func() {
 		fakeReleaseValidator = fakebmrel.NewFakeValidator()
 		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
 		fakeJobInstaller = fakebmjobi.NewFakeJobInstaller()
-		fakeRepo = fakebmstemcell.NewFakeRepo()
+		fakeCloudFactory = fakebmcloud.NewFakeFactory()
 		fakeUI = &fakebmui.FakeUI{}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
 		deploymentManifestPath = "/fake/manifest.yml"
-		cpiDeployer = NewCpiDeployer(fakeUI, fakeFs, fakeExtractor, fakeReleaseValidator, fakeReleaseCompiler, fakeJobInstaller, logger)
+		cpiDeployer = NewCpiDeployer(fakeUI, fakeFs, fakeExtractor, fakeReleaseValidator, fakeReleaseCompiler, fakeJobInstaller, fakeCloudFactory, logger)
 	})
 
 	Describe("Deploy", func() {
@@ -139,8 +140,11 @@ properties: {}
 
 			Context("and the tarball is a valid BOSH release", func() {
 				var (
-					installPath string
+					installedJob  bminstall.InstalledJob
+					installedJobs []bminstall.InstalledJob
+					cloud         *fakebmcloud.FakeCloud
 				)
+
 				BeforeEach(func() {
 					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/release", nil)
 
@@ -164,8 +168,15 @@ properties: {}
 
 					fakeReleaseCompiler.SetCompileBehavior(release, deployment, nil)
 
-					installPath = "/install"
-					fakeJobInstaller.SetInstallBehavior(releaseJob, installPath, nil)
+					installedJob = bminstall.InstalledJob{
+						Name: "fake-release-job-name",
+						Path: "/release/fake-release-job-name",
+					}
+					fakeJobInstaller.SetInstallBehavior(releaseJob, installedJob, nil)
+
+					installedJobs = []bminstall.InstalledJob{installedJob}
+					cloud = fakebmcloud.NewFakeCloud()
+					fakeCloudFactory.SetNewCloudBehavior(installedJobs, cloud, nil)
 				})
 
 				It("does not return an error", func() {

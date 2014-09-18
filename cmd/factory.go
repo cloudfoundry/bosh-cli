@@ -10,6 +10,7 @@ import (
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
@@ -141,6 +142,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		eventLogger,
 		timeService,
 	)
+	cloudFactory := bmcloud.NewFactory(f.fileSystem, runner, f.config.DeploymentUUID, f.logger)
 	cpiDeployer := bmdeploy.NewCpiDeployer(
 		f.ui,
 		f.fileSystem,
@@ -148,6 +150,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		releaseValidator,
 		releaseCompiler,
 		jobInstaller,
+		cloudFactory,
 		f.logger,
 	)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)

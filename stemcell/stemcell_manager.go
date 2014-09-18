@@ -56,7 +56,7 @@ func (m *manager) Upload(tarballPath string) (Stemcell, CID, error) {
 	if err != nil {
 		return Stemcell{}, "", bosherr.WrapError(
 			err,
-			"creating stemcell with infrastructure (infrastructure=%s, stemcell=%s)",
+			"creating stemcell (infrastructure=%s, stemcell=%s)",
 			m.infrastructure,
 			stemcell,
 		)
