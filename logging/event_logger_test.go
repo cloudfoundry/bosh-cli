@@ -156,6 +156,32 @@ var _ = Describe("EventLogger", func() {
 			})
 		})
 
+		Context("when task is skipped", func() {
+			It("tells UI to print out a skipped message", func() {
+				now := time.Now()
+				eventLogger.AddEvent(Event{
+					Time:  now,
+					Stage: "fake-stage",
+					Total: 2,
+					Task:  "fake-task-1",
+					State: Started,
+					Index: 1,
+				})
+
+				eventLogger.AddEvent(Event{
+					Time:    now.Add(1 * time.Second),
+					Stage:   "fake-stage",
+					Total:   2,
+					Task:    "fake-task-1",
+					State:   Skipped,
+					Index:   1,
+					Message: "fake-skipped-message",
+				})
+				output := uiOut.String()
+				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1. Skipped 'fake-skipped-message'\n"))
+			})
+		})
+
 		Context("when a unsupported event state was received", func() {
 			It("returns error", func() {
 				error := eventLogger.AddEvent(Event{

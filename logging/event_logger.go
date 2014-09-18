@@ -30,6 +30,7 @@ const (
 	Started  EventState = "started"
 	Finished EventState = "finished"
 	Failed   EventState = "failed"
+	Skipped  EventState = "skipped"
 )
 
 type EventLogger interface {
@@ -83,6 +84,12 @@ func (e *eventLogger) AddEvent(event Event) error {
 	case Failed:
 		duration := event.Time.Sub(e.startedTasks[key])
 		e.ui.Sayln(fmt.Sprintf(" Failed '%s' (%s)", event.Message, durationfmt.Format(duration)))
+	case Skipped:
+		e.ui.Sayln(fmt.Sprintf("Started %s Skipped '%s'", key, event.Message))
+		if event.Index == event.Total {
+			e.ui.Sayln(fmt.Sprintf("Done %s", event.Stage))
+			e.ui.Sayln("")
+		}
 	default:
 		return bosherr.New("Unsupported event state `%s'", event.State)
 	}
