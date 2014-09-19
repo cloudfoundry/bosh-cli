@@ -72,7 +72,7 @@ var _ = Describe("Cloud", func() {
 			cmdInputString = string(cmdInputBytes)
 
 			cmdOutput := CmdOutput{
-				Result: map[string]string{"cid": "fake-cid"},
+				Result: "fake-cid",
 				Log:    "",
 			}
 			outputBytes, err := json.Marshal(cmdOutput)
@@ -143,7 +143,7 @@ var _ = Describe("Cloud", func() {
 				cmdInputString = string(cmdInputBytes)
 
 				cmdOutput := CmdOutput{
-					Result: map[string]string{"cid": "fake-cid"},
+					Result: "fake-cid",
 					Log:    "",
 				}
 				outputBytes, err := json.Marshal(cmdOutput)

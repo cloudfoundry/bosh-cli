@@ -95,14 +95,8 @@ func (c cloud) CreateStemcell(stemcell bmstemcell.Stemcell) (cid bmstemcell.CID,
 		return cid, bosherr.New("External CPI command for method `%s' returned an error: %s", method, cmdOutput.Error)
 	}
 
-	// for create_stemcell, the result is expected to be a map
-	resultMap, ok := cmdOutput.Result.(map[string]interface{})
-	if !ok {
-		return cid, bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
-	}
-
-	// for create_stemcell, the result map should contain a 'cid' key and value
-	cidString, ok := resultMap["cid"].(string)
+	// for create_stemcell, the result is a string of the stemcell cid
+	cidString, ok := cmdOutput.Result.(string)
 	if !ok {
 		return cid, bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
