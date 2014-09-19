@@ -1,6 +1,7 @@
 package cloud
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -43,6 +44,21 @@ type CmdOutput struct {
 	Log    string      `json:"log"`
 }
 
+type CPIJob struct {
+	JobPath      string
+	JobsPath     string
+	PackagesPath string
+}
+
+func (j CPIJob) String() string {
+	return fmt.Sprintf(
+		"CPIJob{JobPath:'%s', JobsPath:'%s', PackagesPath:'%s'}",
+		j.JobPath,
+		j.JobsPath,
+		j.PackagesPath,
+	)
+}
+
 type Cloud interface {
 	bmstemcell.Infrastructure
 }
@@ -50,17 +66,23 @@ type Cloud interface {
 type cloud struct {
 	fs             boshsys.FileSystem
 	cmdRunner      boshsys.CmdRunner
-	cpiJobPath     string
+	cpiJob         CPIJob
 	deploymentUUID string
 	logger         boshlog.Logger
 	logTag         string
 }
 
-func NewCloud(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, cpiJobPath string, deploymentUUID string, logger boshlog.Logger) Cloud {
+func NewCloud(
+	fs boshsys.FileSystem,
+	cmdRunner boshsys.CmdRunner,
+	cpiJob CPIJob,
+	deploymentUUID string,
+	logger boshlog.Logger,
+) Cloud {
 	return cloud{
 		fs:             fs,
 		cmdRunner:      cmdRunner,
-		cpiJobPath:     cpiJobPath,
+		cpiJob:         cpiJob,
 		deploymentUUID: deploymentUUID,
 		logger:         logger,
 		logTag:         "cloud",
@@ -69,8 +91,8 @@ func NewCloud(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, cpiJobPath str
 
 func (c cloud) String() string {
 	return fmt.Sprintf(
-		"Cloud{cpiJobPath:'%s', deploymentUUID:'%s', logTag:'%s'}",
-		c.cpiJobPath,
+		"Cloud{cpiJob:%s, deploymentUUID:'%s', logTag:'%s'}",
+		c.cpiJob,
 		c.deploymentUUID,
 		c.logTag,
 	)
@@ -107,7 +129,7 @@ func (c cloud) CreateStemcell(stemcell bmstemcell.Stemcell) (cid bmstemcell.CID,
 }
 
 func (c cloud) cpiExecutablePath() string {
-	return filepath.Join(c.cpiJobPath, "bin", "cpi")
+	return filepath.Join(c.cpiJob.JobPath, "bin", "cpi")
 }
 
 func (c cloud) execCPICmd(method string, args ...interface{}) (cmdOutput CmdOutput, err error) {
@@ -120,13 +142,21 @@ func (c cloud) execCPICmd(method string, args ...interface{}) (cmdOutput CmdOutp
 	}
 	inputBytes, err := json.Marshal(cmdInput)
 	if err != nil {
-		return cmdOutput, bosherr.WrapError(err, "Unmarshalling external CPI command input %#v", cmdInput)
+		return cmdOutput, bosherr.WrapError(err, "Marshalling external CPI command input %#v", cmdInput)
 	}
 
 	inputString := string(inputBytes)
 	cmdPath := c.cpiExecutablePath()
 	c.logger.Debug(c.logTag, "Executing external CPI command '%s' with STDIN: '%s'", cmdPath, inputString)
-	stdout, stderr, exitCode, err := c.cmdRunner.RunCommandWithInput(inputString, cmdPath)
+	cmd := boshsys.Command{
+		Name: cmdPath,
+		Env: map[string]string{
+			"BOSH_PACKAGES_DIR": c.cpiJob.PackagesPath,
+			"BOSH_JOBS_DIR":     c.cpiJob.JobsPath,
+		},
+		Stdin: bytes.NewReader(inputBytes),
+	}
+	stdout, stderr, exitCode, err := c.cmdRunner.RunComplexCommand(cmd)
 	if err != nil {
 		//TODO: parse STDOUT Result.Error when exit_status != 0?
 		c.logger.Error(c.logTag, "Exit Code %d when executing external CPI command '%s'\nSTDIN: '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", exitCode, cmdPath, inputString, stdout, stderr)

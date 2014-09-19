@@ -2,6 +2,7 @@ package cloud_test
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -22,20 +23,24 @@ var _ = Describe("Cloud", func() {
 		cloud             Cloud
 		fs                *fakesys.FakeFileSystem
 		cmdRunner         *fakesys.FakeCmdRunner
-		cpiJobPath        string
 		stemcell          bmstemcell.Stemcell
 		stemcellImagePath string
 		deploymentUUID    string
+		cpiJob            CPIJob
 		cloudProperties   map[string]interface{}
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		cmdRunner = fakesys.NewFakeCmdRunner()
-		cpiJobPath = "/jobs/cpi"
 		deploymentUUID = "fake-uuid"
+		cpiJob = CPIJob{
+			JobPath:      "/jobs/cpi",
+			JobsPath:     "/jobs",
+			PackagesPath: "/packages",
+		}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		cloud = NewCloud(fs, cmdRunner, cpiJobPath, deploymentUUID, logger)
+		cloud = NewCloud(fs, cmdRunner, cpiJob, deploymentUUID, logger)
 		stemcellImagePath = "/stemcell/path"
 		cloudProperties = map[string]interface{}{
 			"fake-key": "fake-value",
@@ -50,6 +55,7 @@ var _ = Describe("Cloud", func() {
 	Describe("CreateStemcell", func() {
 		var (
 			cmdInputString string
+			cmdInputBytes  []byte
 		)
 
 		BeforeEach(func() {
@@ -66,7 +72,7 @@ var _ = Describe("Cloud", func() {
 					DirectorUUID: deploymentUUID,
 				},
 			}
-			cmdInputBytes, err := json.Marshal(cmdInput)
+			cmdInputBytes, err = json.Marshal(cmdInput)
 			Expect(err).NotTo(HaveOccurred())
 
 			cmdInputString = string(cmdInputBytes)
@@ -82,8 +88,7 @@ var _ = Describe("Cloud", func() {
 				Stdout:     string(outputBytes),
 				ExitStatus: 0,
 			}
-			cmdString := strings.Join([]string{cmdInputString, "/jobs/cpi/bin/cpi"}, " ")
-			cmdRunner.AddCmdResult(cmdString, result)
+			cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 		})
 
 		It("makes the the cpi job script executable", func() {
@@ -96,13 +101,19 @@ var _ = Describe("Cloud", func() {
 		It("executes the cpi job script with stemcell image path & cloud_properties", func() {
 			_, err := cloud.CreateStemcell(stemcell)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cmdRunner.RunCommandsWithInput).To(HaveLen(1))
-			Expect(cmdRunner.RunCommandsWithInput[0]).To(Equal(
-				[]string{
-					cmdInputString,
-					"/jobs/cpi/bin/cpi",
-				},
-			))
+			Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
+
+			actualCmd := cmdRunner.RunComplexCommands[0]
+			Expect(actualCmd.Name).To(Equal("/jobs/cpi/bin/cpi"))
+			Expect(actualCmd.Args).To(BeNil())
+			Expect(actualCmd.Env).To(Equal(map[string]string{
+				"BOSH_PACKAGES_DIR": cpiJob.PackagesPath,
+				"BOSH_JOBS_DIR":     cpiJob.JobsPath,
+			}))
+
+			bytes, err := ioutil.ReadAll(actualCmd.Stdin)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(bytes).To(Equal(cmdInputBytes))
 		})
 
 		It("returns the cid returned from executing the cpi script", func() {
@@ -137,7 +148,8 @@ var _ = Describe("Cloud", func() {
 						DirectorUUID: deploymentUUID,
 					},
 				}
-				cmdInputBytes, err := json.Marshal(cmdInput)
+				var err error
+				cmdInputBytes, err = json.Marshal(cmdInput)
 				Expect(err).NotTo(HaveOccurred())
 
 				cmdInputString = string(cmdInputBytes)
@@ -160,13 +172,20 @@ var _ = Describe("Cloud", func() {
 			It("marshalls complex cloud_properties correctly", func() {
 				_, err := cloud.CreateStemcell(stemcell)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(cmdRunner.RunCommandsWithInput).To(HaveLen(1))
-				Expect(cmdRunner.RunCommandsWithInput[0]).To(Equal(
-					[]string{
-						cmdInputString,
-						"/jobs/cpi/bin/cpi",
-					},
-				))
+
+				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
+
+				actualCmd := cmdRunner.RunComplexCommands[0]
+				Expect(actualCmd.Name).To(Equal("/jobs/cpi/bin/cpi"))
+				Expect(actualCmd.Args).To(BeNil())
+				Expect(actualCmd.Env).To(Equal(map[string]string{
+					"BOSH_PACKAGES_DIR": cpiJob.PackagesPath,
+					"BOSH_JOBS_DIR":     cpiJob.JobsPath,
+				}))
+
+				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(bytes).To(Equal(cmdInputBytes))
 			})
 		})
 	})

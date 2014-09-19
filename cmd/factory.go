@@ -145,7 +145,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		eventLogger,
 		timeService,
 	)
-	cloudFactory := bmcloud.NewFactory(f.fileSystem, runner, f.config.DeploymentUUID, f.logger)
+	cloudFactory := bmcloud.NewFactory(f.fileSystem, runner, f.config, f.logger)
 	cpiDeployer := bmdeploy.NewCpiDeployer(
 		f.ui,
 		f.fileSystem,

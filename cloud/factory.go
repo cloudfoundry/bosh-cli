@@ -5,6 +5,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 )
 
@@ -17,18 +18,18 @@ type Factory interface {
 }
 
 type factory struct {
-	fs             boshsys.FileSystem
-	cmdRunner      boshsys.CmdRunner
-	deploymentUUID string
-	logger         boshlog.Logger
+	fs        boshsys.FileSystem
+	cmdRunner boshsys.CmdRunner
+	config    bmconfig.Config
+	logger    boshlog.Logger
 }
 
-func NewFactory(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, deploymentUUID string, logger boshlog.Logger) Factory {
+func NewFactory(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, config bmconfig.Config, logger boshlog.Logger) Factory {
 	return &factory{
-		fs:             fs,
-		cmdRunner:      cmdRunner,
-		deploymentUUID: deploymentUUID,
-		logger:         logger,
+		fs:        fs,
+		cmdRunner: cmdRunner,
+		config:    config,
+		logger:    logger,
 	}
 }
 
@@ -39,7 +40,13 @@ func (f *factory) NewCloud(jobs []bminstall.InstalledJob) (Cloud, error) {
 		return nil, bosherr.New("No `%s' release job found in the CPI deployment", cpiJobName)
 	}
 
-	return NewCloud(f.fs, f.cmdRunner, cpiJob.Path, f.deploymentUUID, f.logger), nil
+	cpi := CPIJob{
+		JobPath:      cpiJob.Path,
+		JobsPath:     f.config.JobsPath(),
+		PackagesPath: f.config.PackagesPath(),
+	}
+
+	return NewCloud(f.fs, f.cmdRunner, cpi, f.config.DeploymentUUID, f.logger), nil
 }
 
 func (f *factory) findCPIJob(jobs []bminstall.InstalledJob) (cpiJob bminstall.InstalledJob, found bool) {
@@ -48,5 +55,5 @@ func (f *factory) findCPIJob(jobs []bminstall.InstalledJob) (cpiJob bminstall.In
 			return job, true
 		}
 	}
-	return bminstall.InstalledJob{}, false
+	return cpiJob, false
 }
