@@ -8,9 +8,11 @@ import (
 )
 
 type linuxDiskManager struct {
-	partitioner Partitioner
-	formatter   Formatter
-	mounter     Mounter
+	partitioner           Partitioner
+	rootDevicePartitioner Partitioner
+	formatter             Formatter
+	mounter               Mounter
+	mountsSearcher        MountsSearcher
 }
 
 func NewLinuxDiskManager(
@@ -41,12 +43,20 @@ func NewLinuxDiskManager(
 	}
 
 	return linuxDiskManager{
-		partitioner: NewSfdiskPartitioner(logger, runner),
-		formatter:   NewLinuxFormatter(runner, fs),
-		mounter:     mounter,
+		partitioner:           NewSfdiskPartitioner(logger, runner),
+		rootDevicePartitioner: NewRootDevicePartitioner(logger, runner, uint64(20*1024*1024)),
+		formatter:             NewLinuxFormatter(runner, fs),
+		mounter:               mounter,
+		mountsSearcher:        mountsSearcher,
 	}
 }
 
 func (m linuxDiskManager) GetPartitioner() Partitioner { return m.partitioner }
-func (m linuxDiskManager) GetFormatter() Formatter     { return m.formatter }
-func (m linuxDiskManager) GetMounter() Mounter         { return m.mounter }
+
+func (m linuxDiskManager) GetRootDevicePartitioner() Partitioner {
+	return m.rootDevicePartitioner
+}
+
+func (m linuxDiskManager) GetFormatter() Formatter           { return m.formatter }
+func (m linuxDiskManager) GetMounter() Mounter               { return m.mounter }
+func (m linuxDiskManager) GetMountsSearcher() MountsSearcher { return m.mountsSearcher }

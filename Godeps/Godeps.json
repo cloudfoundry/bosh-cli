@@ -11,39 +11,39 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/blobstore",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/errors",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/logger",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/platform",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/settings",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/system",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/time",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/uuid",
-			"Rev": "d86ab3c18924a3f0550dbed363fcc643082b50ad"
+			"Rev": "b44d51e046bc4628ebd543f51ba4355b73890b88"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gofileutils/glob",

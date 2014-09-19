@@ -43,8 +43,9 @@ var _ = Describe("VSphere Path Resolver", func() {
 		})
 
 		It("detects device", func() {
-			devicePath, err := resolver.GetRealDevicePath("fake-disk-id")
+			devicePath, timedOut, err := resolver.GetRealDevicePath("fake-disk-id")
 			Expect(err).NotTo(HaveOccurred())
+			Expect(timedOut).To(BeFalse())
 			Expect(devicePath).To(Equal("/dev/sdf"))
 		})
 
@@ -60,9 +61,10 @@ var _ = Describe("VSphere Path Resolver", func() {
 				)
 
 				startTime := time.Now()
-				devicePath, err := resolver.GetRealDevicePath("fake-disk-id")
+				devicePath, timedOut, err := resolver.GetRealDevicePath("fake-disk-id")
 				runningTime := time.Since(startTime)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(timedOut).To(BeFalse())
 				Expect(runningTime >= sleepInterval).To(BeTrue())
 				Expect(devicePath).To(Equal("/dev/sdf"))
 			})
@@ -79,8 +81,9 @@ var _ = Describe("VSphere Path Resolver", func() {
 					[]string{"/sys/bus/scsi/devices/fake-host-id:0:fake-disk-id:0/block/bla"},
 				)
 
-				devicePath, err := resolver.GetRealDevicePath("fake-disk-id")
+				devicePath, timedOut, err := resolver.GetRealDevicePath("fake-disk-id")
 				Expect(err).NotTo(HaveOccurred())
+				Expect(timedOut).To(BeFalse())
 				Expect(devicePath).To(Equal("/dev/sdf"))
 			})
 		})
@@ -88,7 +91,7 @@ var _ = Describe("VSphere Path Resolver", func() {
 		Context("when device never appears", func() {
 			It("returns not err", func() {
 				fs.SetGlob("/sys/bus/scsi/devices/fake-host-id:0:fake-disk-id:0/block/*", []string{})
-				_, err := resolver.GetRealDevicePath("fake-disk-id")
+				_, _, err := resolver.GetRealDevicePath("fake-disk-id")
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})

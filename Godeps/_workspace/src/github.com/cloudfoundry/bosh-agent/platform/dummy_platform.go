@@ -143,8 +143,8 @@ func (p dummyPlatform) UnmountPersistentDisk(devicePath string) (didUnmount bool
 	return
 }
 
-func (p dummyPlatform) NormalizeDiskPath(attachment string) (devicePath string, found bool) {
-	return "/dev/sdb", true
+func (p dummyPlatform) NormalizeDiskPath(attachment string) string {
+	return "/dev/sdb"
 }
 
 func (p dummyPlatform) GetFileContentsFromCDROM(filePath string) (contents []byte, err error) {

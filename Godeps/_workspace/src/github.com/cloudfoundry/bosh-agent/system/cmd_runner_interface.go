@@ -12,6 +12,8 @@ type Command struct {
 
 	WorkingDir string
 
+	Stdin io.Reader
+
 	// Full stdout and stderr will be captured to memory
 	// and returned in the Result unless custom Stdout/Stderr are specified.
 	Stdout io.Writer

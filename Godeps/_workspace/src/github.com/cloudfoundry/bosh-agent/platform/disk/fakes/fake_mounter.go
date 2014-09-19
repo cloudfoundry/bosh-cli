@@ -1,6 +1,7 @@
 package fakes
 
 type FakeMounter struct {
+	MountCalled         bool
 	MountPartitionPaths []string
 	MountMountPoints    []string
 	MountMountOptions   [][]string
@@ -32,6 +33,7 @@ type FakeMounter struct {
 }
 
 func (m *FakeMounter) Mount(partitionPath, mountPoint string, mountOptions ...string) error {
+	m.MountCalled = true
 	m.MountPartitionPaths = append(m.MountPartitionPaths, partitionPath)
 	m.MountMountPoints = append(m.MountMountPoints, mountPoint)
 	m.MountMountOptions = append(m.MountMountOptions, mountOptions)

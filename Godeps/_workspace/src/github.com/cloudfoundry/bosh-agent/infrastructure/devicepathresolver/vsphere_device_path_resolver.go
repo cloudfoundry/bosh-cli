@@ -25,7 +25,7 @@ func NewVsphereDevicePathResolver(
 	return
 }
 
-func (devicePathResolver vsphereDevicePathResolver) GetRealDevicePath(volumeID string) (realPath string, err error) {
+func (devicePathResolver vsphereDevicePathResolver) GetRealDevicePath(volumeID string) (realPath string, timedOut bool, err error) {
 	devicePaths, err := devicePathResolver.fs.Glob("/sys/bus/scsi/devices/*:0:0:0/block/*")
 	if err != nil {
 		return

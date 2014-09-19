@@ -71,7 +71,6 @@ type FakePlatform struct {
 
 	NormalizeDiskPathCalled   bool
 	NormalizeDiskPathPath     string
-	NormalizeDiskPathFound    bool
 	NormalizeDiskPathRealPath string
 
 	ScsiDiskMap map[string]string
@@ -233,12 +232,10 @@ func (p *FakePlatform) UnmountPersistentDisk(devicePath string) (didUnmount bool
 	return
 }
 
-func (p *FakePlatform) NormalizeDiskPath(devicePath string) (realPath string, found bool) {
+func (p *FakePlatform) NormalizeDiskPath(devicePath string) string {
 	p.NormalizeDiskPathCalled = true
 	p.NormalizeDiskPathPath = devicePath
-	realPath = p.NormalizeDiskPathRealPath
-	found = p.NormalizeDiskPathFound
-	return
+	return p.NormalizeDiskPathRealPath
 }
 
 func (p *FakePlatform) GetFileContentsFromCDROM(path string) (contents []byte, err error) {

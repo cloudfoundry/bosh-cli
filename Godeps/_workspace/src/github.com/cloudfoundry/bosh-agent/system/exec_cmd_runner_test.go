@@ -57,6 +57,20 @@ func init() {
 				Expect(status).To(Equal(0))
 			})
 
+			It("run complex command with stdin", func() {
+				input := "This is STDIN\nWith another line."
+				cmd := Command{
+					Name:  "cat",
+					Args:  []string{"/dev/stdin"},
+					Stdin: strings.NewReader(input),
+				}
+				stdout, stderr, status, err := runner.RunComplexCommand(cmd)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stdout).To(Equal(input))
+				Expect(stderr).To(BeEmpty())
+				Expect(status).To(Equal(0))
+			})
+
 			It("prints stdout/stderr to provided I/O object", func() {
 				fs := fakesys.NewFakeFileSystem()
 				stdoutFile, err := fs.OpenFile("/fake-stdout-path", os.O_RDWR, os.FileMode(0644))

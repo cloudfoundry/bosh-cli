@@ -30,8 +30,9 @@ var _ = Describe("mappedDevicePathResolver", func() {
 		})
 
 		It("returns the match", func() {
-			realPath, err := resolver.GetRealDevicePath("/dev/sda")
+			realPath, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
 			Expect(err).NotTo(HaveOccurred())
+			Expect(timedOut).To(BeFalse())
 			Expect(realPath).To(Equal("/dev/xvda"))
 		})
 	})
@@ -43,8 +44,9 @@ var _ = Describe("mappedDevicePathResolver", func() {
 		})
 
 		It("returns the match", func() {
-			realPath, err := resolver.GetRealDevicePath("/dev/sda")
+			realPath, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
 			Expect(err).NotTo(HaveOccurred())
+			Expect(timedOut).To(BeFalse())
 			Expect(realPath).To(Equal("/dev/vda"))
 		})
 	})
@@ -55,8 +57,9 @@ var _ = Describe("mappedDevicePathResolver", func() {
 		})
 
 		It("returns the match", func() {
-			realPath, err := resolver.GetRealDevicePath("/dev/sda")
+			realPath, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
 			Expect(err).NotTo(HaveOccurred())
+			Expect(timedOut).To(BeFalse())
 			Expect(realPath).To(Equal("/dev/sda"))
 		})
 	})
@@ -70,17 +73,19 @@ var _ = Describe("mappedDevicePathResolver", func() {
 			})
 
 			It("returns the match", func() {
-				realPath, err := resolver.GetRealDevicePath("/dev/sda")
+				realPath, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
 				Expect(err).NotTo(HaveOccurred())
+				Expect(timedOut).To(BeFalse())
 				Expect(realPath).To(Equal("/dev/xvda"))
 			})
 		})
 
 		Context("when the timeout has expired", func() {
 			It("errs", func() {
-				_, err := resolver.GetRealDevicePath("/dev/sda")
+				_, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Timed out getting real device path for /dev/sda"))
+				Expect(timedOut).To(BeTrue())
 			})
 		})
 	})

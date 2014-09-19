@@ -13,7 +13,9 @@ type FakeCollector struct {
 	CPULoad  boshstats.CPULoad
 	cpuStats boshstats.CPUStats
 
-	MemStats  boshstats.Usage
+	MemStats    boshstats.Usage
+	MemStatsErr error
+
 	SwapStats boshstats.Usage
 	DiskStats map[string]boshstats.DiskStats
 }
@@ -32,9 +34,8 @@ func (c *FakeCollector) GetCPUStats() (stats boshstats.CPUStats, err error) {
 	return
 }
 
-func (c *FakeCollector) GetMemStats() (usage boshstats.Usage, err error) {
-	usage = c.MemStats
-	return
+func (c *FakeCollector) GetMemStats() (boshstats.Usage, error) {
+	return c.MemStats, c.MemStatsErr
 }
 
 func (c *FakeCollector) GetSwapStats() (usage boshstats.Usage, err error) {

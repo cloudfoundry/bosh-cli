@@ -7,6 +7,7 @@ import (
 type FakeService struct {
 	NowTimes      []time.Time
 	SleepDuration time.Duration
+	SleepInputs   []time.Duration
 }
 
 func (f *FakeService) Now() time.Time {
@@ -23,4 +24,5 @@ func (f *FakeService) Now() time.Time {
 
 func (f *FakeService) Sleep(duration time.Duration) {
 	f.SleepDuration = duration
+	f.SleepInputs = append(f.SleepInputs, duration)
 }
