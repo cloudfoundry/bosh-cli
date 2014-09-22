@@ -23,7 +23,7 @@ const (
 
 type deployCmd struct {
 	ui                     bmui.UI
-	config                 bmconfig.Config
+	userConfig             bmconfig.UserConfig
 	fs                     boshsys.FileSystem
 	cpiManifestParser      bmdepl.ManifestParser
 	cpiDeployer            bmdeploy.CpiDeployer
@@ -33,7 +33,7 @@ type deployCmd struct {
 
 func NewDeployCmd(
 	ui bmui.UI,
-	config bmconfig.Config,
+	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
 	cpiManifestParser bmdepl.ManifestParser,
 	cpiDeployer bmdeploy.CpiDeployer,
@@ -42,7 +42,7 @@ func NewDeployCmd(
 ) *deployCmd {
 	return &deployCmd{
 		ui:                     ui,
-		config:                 config,
+		userConfig:             userConfig,
 		fs:                     fs,
 		cpiManifestParser:      cpiManifestParser,
 		cpiDeployer:            cpiDeployer,
@@ -61,9 +61,9 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
-	deployment, err := c.cpiManifestParser.Parse(c.config.Deployment)
+	deployment, err := c.cpiManifestParser.Parse(c.userConfig.DeploymentFile)
 	if err != nil {
-		return bosherr.WrapError(err, "Parsing CPI deployment manifest `%s'", c.config.Deployment)
+		return bosherr.WrapError(err, "Parsing CPI deployment manifest `%s'", c.userConfig.DeploymentFile)
 	}
 
 	cloud, err := c.cpiDeployer.Deploy(deployment, releaseTarballPath)
@@ -79,7 +79,7 @@ func (c *deployCmd) Run(args []string) error {
 
 	microboshDeployment, err := c.parseMicroboshManifest()
 	if err != nil {
-		return bosherr.WrapError(err, "Parsing Microbosh deployment manifest `%s'", c.config.Deployment)
+		return bosherr.WrapError(err, "Parsing Microbosh deployment manifest `%s'", c.userConfig.DeploymentFile)
 	}
 
 	//TODO: factory to create microbosh deployer with cloud
@@ -123,15 +123,15 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 	}
 
 	// validate current state: 'microbosh' deployment set
-	if len(c.config.Deployment) == 0 {
+	if len(c.userConfig.DeploymentFile) == 0 {
 		c.ui.Error("No deployment set")
 		return "", "", bosherr.New("No deployment set")
 	}
 
-	c.logger.Info(logTag, "Checking for deployment `%s'", c.config.Deployment)
-	err = fileValidator.Exists(c.config.Deployment)
+	c.logger.Info(logTag, "Checking for deployment `%s'", c.userConfig.DeploymentFile)
+	err = fileValidator.Exists(c.userConfig.DeploymentFile)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.config.Deployment))
+		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.userConfig.DeploymentFile))
 		return "", "", bosherr.WrapError(err, "Reading deployment manifest for deploy")
 	}
 
@@ -139,7 +139,7 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 }
 
 func (c *deployCmd) parseMicroboshManifest() (Deployment, error) {
-	//c.config.Deployment
+	//c.userConfig.DeploymentFile
 	return Deployment{}, nil
 }
 

@@ -20,8 +20,9 @@ func main() {
 	logger := boshlog.NewLogger(boshlog.LevelError)
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
-	config, configService := loadConfig(logger, fileSystem)
-	config.ContainingDir = os.Getenv("HOME")
+	workspace := path.Join(os.Getenv("HOME"), ".bosh_micro")
+	userConfigPath := path.Join(os.Getenv("HOME"), ".bosh_micro.json")
+	config, configService := loadUserConfig(userConfigPath, fileSystem, logger)
 
 	uuidGenerator := boshuuid.NewGenerator()
 
@@ -34,6 +35,7 @@ func main() {
 		ui,
 		logger,
 		uuidGenerator,
+		workspace,
 	)
 
 	cmdRunner := bmcmd.NewRunner(cmdFactory)
@@ -44,14 +46,17 @@ func main() {
 	}
 }
 
-func loadConfig(logger boshlog.Logger, fileSystem boshsys.FileSystem) (bmconfig.Config, bmconfig.Service) {
-	configPath := os.Getenv("HOME")
-	configService := bmconfig.NewFileSystemConfigService(logger, fileSystem, path.Join(configPath, ".bosh_micro.json"))
-	config, err := configService.Load()
+func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, logger boshlog.Logger) (
+	bmconfig.UserConfig,
+	bmconfig.UserConfigService,
+) {
+	userConfigService := bmconfig.NewFileSystemUserConfigService(userConfigPath, fileSystem, logger)
+	userConfig, err := userConfigService.Load()
 	if err != nil {
 		fail(err, logger)
 	}
-	return config, configService
+
+	return userConfig, userConfigService
 }
 
 func fail(err error, logger boshlog.Logger) {

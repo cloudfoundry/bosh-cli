@@ -24,7 +24,7 @@ import (
 var _ = Describe("DeployCmd", func() {
 	var (
 		command                    bmcmd.Cmd
-		config                     bmconfig.Config
+		userConfig                 bmconfig.UserConfig
 		fakeFs                     *fakesys.FakeFileSystem
 		fakeUI                     *fakeui.FakeUI
 		fakeCpiDeployer            *fakedeploy.FakeCpiDeployer
@@ -43,7 +43,7 @@ var _ = Describe("DeployCmd", func() {
 	BeforeEach(func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
-		config = bmconfig.Config{}
+		userConfig = bmconfig.UserConfig{}
 		fakeCpiDeployer = fakedeploy.NewFakeCpiDeployer()
 		fakeStemcellManager = fakebmstemcell.NewFakeManager()
 		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
@@ -52,7 +52,7 @@ var _ = Describe("DeployCmd", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		command = bmcmd.NewDeployCmd(
 			fakeUI,
-			config,
+			userConfig,
 			fakeFs,
 			fakeCpiManifestParser,
 			fakeCpiDeployer,
@@ -100,12 +100,12 @@ var _ = Describe("DeployCmd", func() {
 
 			Context("when there is a deployment set", func() {
 				BeforeEach(func() {
-					config.Deployment = "/some/deployment/file"
+					userConfig.DeploymentFile = "/some/deployment/file"
 
-					// re-create command to update config.Deployment
+					// re-create command to update userConfig.DeploymentFile
 					command = bmcmd.NewDeployCmd(
 						fakeUI,
-						config,
+						userConfig,
 						fakeFs,
 						fakeCpiManifestParser,
 						fakeCpiDeployer,
@@ -134,9 +134,9 @@ version: fake-version
 						cloud      *fakebmcloud.FakeCloud
 					)
 					BeforeEach(func() {
-						fakeFs.WriteFileString(config.Deployment, "")
+						fakeFs.WriteFileString(userConfig.DeploymentFile, "")
 						deployment = bmdepl.Deployment{}
-						fakeCpiManifestParser.SetParseBehavior(config.Deployment, deployment, nil)
+						fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, deployment, nil)
 						cloud = fakebmcloud.NewFakeCloud()
 						fakeCpiDeployer.SetDeployBehavior(deployment, cpiReleaseTarballPath, cloud, nil)
 						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
@@ -170,7 +170,7 @@ version: fake-version
 
 					Context("when parsing the cpi deployment manifest fails", func() {
 						It("returns error", func() {
-							fakeCpiManifestParser.SetParseBehavior(config.Deployment, bmdepl.Deployment{}, errors.New("fake-parse-error"))
+							fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, bmdepl.Deployment{}, errors.New("fake-parse-error"))
 
 							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 							Expect(err).To(HaveOccurred())
@@ -194,12 +194,12 @@ version: fake-version
 
 				Context("when the deployment manifest is missing", func() {
 					BeforeEach(func() {
-						config.Deployment = "/some/deployment/file"
+						userConfig.DeploymentFile = "/some/deployment/file"
 
-						// re-create command to update config.Deployment
+						// re-create command to update userConfig.DeploymentFile
 						command = bmcmd.NewDeployCmd(
 							fakeUI,
-							config,
+							userConfig,
 							fakeFs,
 							fakeCpiManifestParser,
 							fakeCpiDeployer,

@@ -12,10 +12,10 @@ type Repo interface {
 }
 
 type repo struct {
-	configService bmconfig.Service
+	configService bmconfig.DeploymentConfigService
 }
 
-func NewRepo(configService bmconfig.Service) repo {
+func NewRepo(configService bmconfig.DeploymentConfigService) repo {
 	return repo{
 		configService: configService,
 	}

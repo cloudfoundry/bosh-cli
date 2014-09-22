@@ -20,11 +20,11 @@ type Factory interface {
 type factory struct {
 	fs        boshsys.FileSystem
 	cmdRunner boshsys.CmdRunner
-	config    bmconfig.Config
+	config    bmconfig.DeploymentConfig
 	logger    boshlog.Logger
 }
 
-func NewFactory(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, config bmconfig.Config, logger boshlog.Logger) Factory {
+func NewFactory(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, config bmconfig.DeploymentConfig, logger boshlog.Logger) Factory {
 	return &factory{
 		fs:        fs,
 		cmdRunner: cmdRunner,

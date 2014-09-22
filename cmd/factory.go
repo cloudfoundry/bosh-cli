@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -31,32 +32,37 @@ type Factory interface {
 }
 
 type factory struct {
-	commands      map[string](func() (Cmd, error))
-	config        bmconfig.Config
-	configService bmconfig.Service
-	fileSystem    boshsys.FileSystem
-	ui            bmui.UI
-	logger        boshlog.Logger
-	uuidGenerator boshuuid.Generator
+	commands                map[string](func() (Cmd, error))
+	userConfig              bmconfig.UserConfig
+	userConfigService       bmconfig.UserConfigService
+	deploymentConfig        bmconfig.DeploymentConfig
+	deploymentConfigService bmconfig.DeploymentConfigService
+	fileSystem              boshsys.FileSystem
+	ui                      bmui.UI
+	logger                  boshlog.Logger
+	uuidGenerator           boshuuid.Generator
+	workspace               string
 }
 
 func NewFactory(
-	config bmconfig.Config,
-	configService bmconfig.Service,
+	userConfig bmconfig.UserConfig,
+	userConfigService bmconfig.UserConfigService,
 	fileSystem boshsys.FileSystem,
 	ui bmui.UI,
 	logger boshlog.Logger,
 	uuidGenerator boshuuid.Generator,
-
+	workspace string,
 ) Factory {
 	f := &factory{
-		config:        config,
-		configService: configService,
-		fileSystem:    fileSystem,
-		ui:            ui,
-		logger:        logger,
-		uuidGenerator: uuidGenerator,
+		userConfig:        userConfig,
+		userConfigService: userConfigService,
+		fileSystem:        fileSystem,
+		ui:                ui,
+		logger:            logger,
+		uuidGenerator:     uuidGenerator,
+		workspace:         workspace,
 	}
+	f.loadDeploymentConfig()
 	f.commands = map[string](func() (Cmd, error)){
 		"deployment": f.createDeploymentCmd,
 		"deploy":     f.createDeployCmd,
@@ -75,8 +81,9 @@ func (f *factory) CreateCommand(name string) (Cmd, error) {
 func (f *factory) createDeploymentCmd() (Cmd, error) {
 	return NewDeploymentCmd(
 		f.ui,
-		f.config,
-		f.configService,
+		f.userConfig,
+		f.userConfigService,
+		f.deploymentConfig,
 		f.fileSystem,
 		f.uuidGenerator,
 		f.logger,
@@ -96,11 +103,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	)
 
 	compressor := boshcmd.NewTarballCompressor(runner, f.fileSystem)
-	indexFilePath := f.config.CompiledPackagedIndexPath()
+	indexFilePath := f.deploymentConfig.CompiledPackagedIndexPath()
 	compiledPackageIndex := bmindex.NewFileIndex(indexFilePath, f.fileSystem)
 	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(compiledPackageIndex)
 
-	options := map[string]interface{}{"blobstore_path": f.config.BlobstorePath()}
+	options := map[string]interface{}{"blobstore_path": f.deploymentConfig.BlobstorePath()}
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
 		boshblob.NewLocalBlobstore(f.fileSystem, f.uuidGenerator, options),
 	)
@@ -108,7 +115,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	packageInstaller := bminstall.NewPackageInstaller(compiledPackageRepo, blobExtractor)
 	packageCompiler := bmcomp.NewPackageCompiler(
 		runner,
-		f.config.PackagesPath(),
+		f.deploymentConfig.PackagesPath(),
 		f.fileSystem,
 		compressor,
 		blobstore,
@@ -131,7 +138,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	manifestParser := bmdepl.NewCpiDeploymentParser(f.fileSystem)
 	erbrenderer := bmerbrenderer.NewERBRenderer(f.fileSystem, runner, f.logger)
-	templatesIndex := bmindex.NewFileIndex(f.config.TemplatesIndexPath(), f.fileSystem)
+	templatesIndex := bmindex.NewFileIndex(f.deploymentConfig.TemplatesIndexPath(), f.fileSystem)
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
@@ -140,12 +147,12 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		packageInstaller,
 		blobExtractor,
 		templatesRepo,
-		f.config.JobsPath(),
-		f.config.PackagesPath(),
+		f.deploymentConfig.JobsPath(),
+		f.deploymentConfig.PackagesPath(),
 		eventLogger,
 		timeService,
 	)
-	cloudFactory := bmcloud.NewFactory(f.fileSystem, runner, f.config, f.logger)
+	cloudFactory := bmcloud.NewFactory(f.fileSystem, runner, f.deploymentConfig, f.logger)
 	cpiDeployer := bmdeploy.NewCpiDeployer(
 		f.ui,
 		f.fileSystem,
@@ -157,16 +164,31 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.logger,
 	)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)
-	repo := bmstemcell.NewRepo(f.configService)
+	repo := bmstemcell.NewRepo(f.deploymentConfigService)
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fileSystem, stemcellReader, repo, eventLogger)
 
 	return NewDeployCmd(
 		f.ui,
-		f.config,
+		f.userConfig,
 		f.fileSystem,
 		manifestParser,
 		cpiDeployer,
 		stemcellManagerFactory,
 		f.logger,
 	), nil
+}
+
+func (f *factory) loadDeploymentConfig() error {
+	f.deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(
+		f.userConfig.DeploymentConfigFilePath(),
+		f.fileSystem,
+		f.logger,
+	)
+	var err error
+	f.deploymentConfig, err = f.deploymentConfigService.Load()
+	if err != nil {
+		return bosherr.WrapError(err, "Loading deployment config")
+	}
+	f.deploymentConfig.ContainingDir = f.workspace
+	return nil
 }

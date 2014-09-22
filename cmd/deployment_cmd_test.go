@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 
@@ -14,7 +15,6 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
@@ -22,42 +22,41 @@ import (
 
 var _ = Describe("DeploymentCmd", func() {
 	var (
-		command      Cmd
-		fakeService  *fakebmconfig.FakeService
-		manifestPath string
-		fakeUI       *fakebmui.FakeUI
-		fakeFs       *fakesys.FakeFileSystem
-		fakeUUID     *fakeuuid.FakeGenerator
-		logger       boshlog.Logger
-		config       bmconfig.Config
+		command           Cmd
+		deploymentConfig  bmconfig.DeploymentConfig
+		userConfig        bmconfig.UserConfig
+		userConfigService bmconfig.UserConfigService
+		manifestPath      string
+		fakeUI            *fakebmui.FakeUI
+		fakeFs            *fakesys.FakeFileSystem
+		fakeUUID          *fakeuuid.FakeGenerator
+		logger            boshlog.Logger
 	)
 
 	BeforeEach(func() {
 		fakeUI = &fakebmui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
-		fakeService = fakebmconfig.NewFakeService()
-		fakeUUID = &fakeuuid.FakeGenerator{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		config = bmconfig.Config{
+		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fakeFs, logger)
+		fakeUUID = &fakeuuid.FakeGenerator{}
+		deploymentConfig = bmconfig.DeploymentConfig{
 			ContainingDir: "/fake-path",
 		}
 
 		command = NewDeploymentCmd(
 			fakeUI,
-			config,
-			fakeService,
+			userConfig,
+			userConfigService,
+			deploymentConfig,
 			fakeFs,
 			fakeUUID,
 			logger,
 		)
 	})
 
-	Context("#Run", func() {
+	Context("Run", func() {
 		Context("ran with valid args", func() {
 			Context("when the deployment manifest exists", func() {
-				var (
-					expectedConfig bmconfig.Config
-				)
 				BeforeEach(func() {
 					fakeUUID.GeneratedUuid = "abc123"
 					manifestDir, err := fakeFs.TempDir("deployment-cmd")
@@ -66,13 +65,6 @@ var _ = Describe("DeploymentCmd", func() {
 					manifestPath = path.Join(manifestDir, "manifestFile.yml")
 					err = fakeFs.WriteFileString(manifestPath, "")
 					Expect(err).ToNot(HaveOccurred())
-
-					expectedConfig = bmconfig.Config{
-						Deployment:     manifestPath,
-						DeploymentUUID: "abc123",
-						ContainingDir:  "/fake-path",
-					}
-					fakeService.SetSaveBehavior(expectedConfig, nil)
 				})
 
 				It("says 'deployment set..' to the UI", func() {
@@ -81,22 +73,35 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Deployment set to `%s'", manifestPath))))
 				})
 
-				It("saves the deployment manifest in the config", func() {
+				It("saves the deployment manifest to the user config", func() {
 					err := command.Run([]string{manifestPath})
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeService.SaveInputs).To(Equal(
-						[]fakebmconfig.SaveInput{
-							fakebmconfig.SaveInput{
-								Config: expectedConfig,
-							},
-						},
-					))
+
+					userConfigContents, err := fakeFs.ReadFile("/fake-user-config")
+					Expect(err).NotTo(HaveOccurred())
+					userConfig := bmconfig.UserConfig{}
+					err = json.Unmarshal(userConfigContents, &userConfig)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentFile: manifestPath}))
+				})
+
+				It("creates a deployment config", func() {
+					err := command.Run([]string{manifestPath})
+					Expect(err).NotTo(HaveOccurred())
+
+					userConfig := bmconfig.UserConfig{DeploymentFile: manifestPath}
+					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(userConfig.DeploymentConfigFilePath(), fakeFs, logger)
+					deploymentConfig, err := deploymentConfigService.Load()
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentConfig{DeploymentUUID: "abc123"}))
 				})
 
 				It("creates the blobstore folder", func() {
 					err := command.Run([]string{manifestPath})
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeFs.FileExists("/fake-path/.bosh_micro/abc123/blobs")).To(BeTrue())
+					Expect(fakeFs.FileExists("/fake-path/abc123/blobs")).To(BeTrue())
 				})
 			})
 
@@ -113,8 +118,15 @@ var _ = Describe("DeploymentCmd", func() {
 		Context("ran without args", func() {
 			Context("a deployment manifest is present in the config", func() {
 				BeforeEach(func() {
-					config := bmconfig.Config{Deployment: "/somepath"}
-					command = NewDeploymentCmd(fakeUI, config, fakeService, fakeFs, fakeUUID, logger)
+					userConfig := bmconfig.UserConfig{DeploymentFile: "/somepath"}
+					command = NewDeploymentCmd(fakeUI,
+						userConfig,
+						userConfigService,
+						deploymentConfig,
+						fakeFs,
+						fakeUUID,
+						logger,
+					)
 				})
 
 				It("says `Deployment set to '<manifest_path>'`", func() {
