@@ -1,6 +1,8 @@
 package fakes
 
 import (
+	boshdevutil "github.com/cloudfoundry/bosh-agent/platform/deviceutil"
+	fakedevutil "github.com/cloudfoundry/bosh-agent/platform/deviceutil/fakes"
 	boshdisk "github.com/cloudfoundry/bosh-agent/platform/disk"
 )
 
@@ -10,34 +12,42 @@ type FakeDiskManager struct {
 	FakeMounter               *FakeMounter
 	FakeMountsSearcher        *FakeMountsSearcher
 	FakeRootDevicePartitioner *FakePartitioner
+	FakeDiskUtil              *fakedevutil.FakeDeviceUtil
+	DiskUtilDiskPath          string
 }
 
-func NewFakeDiskManager() (manager *FakeDiskManager) {
-	manager = &FakeDiskManager{}
-	manager.FakePartitioner = NewFakePartitioner()
-	manager.FakeFormatter = &FakeFormatter{}
-	manager.FakeMounter = &FakeMounter{}
-	manager.FakeMountsSearcher = &FakeMountsSearcher{}
-	manager.FakeRootDevicePartitioner = NewFakePartitioner()
-	return
+func NewFakeDiskManager() *FakeDiskManager {
+	return &FakeDiskManager{
+		FakePartitioner:           NewFakePartitioner(),
+		FakeFormatter:             &FakeFormatter{},
+		FakeMounter:               &FakeMounter{},
+		FakeMountsSearcher:        &FakeMountsSearcher{},
+		FakeRootDevicePartitioner: NewFakePartitioner(),
+		FakeDiskUtil:              fakedevutil.NewFakeDeviceUtil(),
+	}
 }
 
-func (m FakeDiskManager) GetPartitioner() boshdisk.Partitioner {
+func (m *FakeDiskManager) GetPartitioner() boshdisk.Partitioner {
 	return m.FakePartitioner
 }
 
-func (m FakeDiskManager) GetRootDevicePartitioner() boshdisk.Partitioner {
+func (m *FakeDiskManager) GetRootDevicePartitioner() boshdisk.Partitioner {
 	return m.FakeRootDevicePartitioner
 }
 
-func (m FakeDiskManager) GetFormatter() boshdisk.Formatter {
+func (m *FakeDiskManager) GetFormatter() boshdisk.Formatter {
 	return m.FakeFormatter
 }
 
-func (m FakeDiskManager) GetMounter() boshdisk.Mounter {
+func (m *FakeDiskManager) GetMounter() boshdisk.Mounter {
 	return m.FakeMounter
 }
 
-func (m FakeDiskManager) GetMountsSearcher() boshdisk.MountsSearcher {
+func (m *FakeDiskManager) GetMountsSearcher() boshdisk.MountsSearcher {
 	return m.FakeMountsSearcher
+}
+
+func (m *FakeDiskManager) GetDiskUtil(diskPath string) boshdevutil.DeviceUtil {
+	m.DiskUtilDiskPath = diskPath
+	return m.FakeDiskUtil
 }

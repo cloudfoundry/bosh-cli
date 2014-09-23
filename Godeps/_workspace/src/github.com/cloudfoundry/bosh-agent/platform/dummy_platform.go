@@ -151,6 +151,10 @@ func (p dummyPlatform) GetFileContentsFromCDROM(filePath string) (contents []byt
 	return
 }
 
+func (p dummyPlatform) GetFilesContentsFromDisk(diskPath string, fileNames []string) (contents [][]byte, err error) {
+	return
+}
+
 func (p dummyPlatform) MigratePersistentDisk(fromMountPoint, toMountPoint string) (err error) {
 	return
 }

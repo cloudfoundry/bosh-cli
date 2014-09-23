@@ -13,8 +13,8 @@ import (
 	fakedpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/cloudfoundry/bosh-agent/platform"
-	fakecd "github.com/cloudfoundry/bosh-agent/platform/cdutil/fakes"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
+	fakedevutil "github.com/cloudfoundry/bosh-agent/platform/deviceutil/fakes"
 	boshdisk "github.com/cloudfoundry/bosh-agent/platform/disk"
 	fakedisk "github.com/cloudfoundry/bosh-agent/platform/disk/fakes"
 	fakenet "github.com/cloudfoundry/bosh-agent/platform/net/fakes"
@@ -34,7 +34,7 @@ var _ = Describe("LinuxPlatform", func() {
 		dirProvider        boshdirs.Provider
 		devicePathResolver *fakedpresolv.FakeDevicePathResolver
 		platform           Platform
-		cdutil             *fakecd.FakeCdUtil
+		cdutil             *fakedevutil.FakeDeviceUtil
 		compressor         boshcmd.Compressor
 		copier             boshcmd.Copier
 		vitalsService      boshvitals.Service
@@ -51,7 +51,7 @@ var _ = Describe("LinuxPlatform", func() {
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		diskManager = fakedisk.NewFakeDiskManager()
 		dirProvider = boshdirs.NewProvider("/fake-dir")
-		cdutil = fakecd.NewFakeCdUtil()
+		cdutil = fakedevutil.NewFakeDeviceUtil()
 		compressor = boshcmd.NewTarballCompressor(cmdRunner, fs)
 		copier = boshcmd.NewCpCopier(cmdRunner, fs, logger)
 		vitalsService = boshvitals.NewService(collector, dirProvider)
@@ -1078,12 +1078,35 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 
 	Describe("GetFileContentsFromCDROM", func() {
 		It("delegates to cdutil", func() {
-			cdutil.GetFileContentsContents = []byte("fake-contents")
+			cdutil.GetFilesContentsContents = [][]byte{[]byte("fake-contents")}
 			filename := "fake-env"
 			contents, err := platform.GetFileContentsFromCDROM(filename)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cdutil.GetFileContentsFilename).To(Equal(filename))
-			Expect(contents).To(Equal(cdutil.GetFileContentsContents))
+			Expect(cdutil.GetFilesContentsFileNames[0]).To(Equal(filename))
+			Expect(contents).To(Equal([]byte("fake-contents")))
+		})
+	})
+
+	Describe("GetFilesContentsFromDisk", func() {
+		It("delegates to diskutil", func() {
+			diskManager.FakeDiskUtil.GetFilesContentsContents = [][]byte{
+				[]byte("fake-contents-1"),
+				[]byte("fake-contents-2"),
+			}
+			contents, err := platform.GetFilesContentsFromDisk(
+				"fake-disk-path",
+				[]string{"fake-file-path-1", "fake-file-path-2"},
+			)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(diskManager.DiskUtilDiskPath).To(Equal("fake-disk-path"))
+			Expect(diskManager.FakeDiskUtil.GetFilesContentsFileNames).To(Equal(
+				[]string{"fake-file-path-1", "fake-file-path-2"},
+			))
+			Expect(contents).To(Equal([][]byte{
+				[]byte("fake-contents-1"),
+				[]byte("fake-contents-2"),
+			}))
 		})
 	})
 

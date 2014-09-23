@@ -3,7 +3,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -90,7 +89,6 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	if err != nil {
 		return bosherr.WrapError(err, "UUID Generation failed")
 	}
-
 	c.deploymentConfig.DeploymentUUID = uuid
 	c.logger.Debug(tagString, "Config %#v", c.deploymentConfig)
 
@@ -102,13 +100,6 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	err = deploymentConfigService.Save(c.deploymentConfig)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving deployment config")
-	}
-
-	blobstoreDir := c.deploymentConfig.BlobstorePath()
-	c.logger.Debug(tagString, "Making new blobstore directory `%s'", blobstoreDir)
-	err = c.fs.MkdirAll(blobstoreDir, os.ModePerm)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating blobs dir")
 	}
 
 	c.ui.Sayln(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))

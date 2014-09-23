@@ -1,11 +1,16 @@
 package blobstore
 
 import (
+	"os"
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+)
+
+const (
+	blobstorePathPermissions = os.FileMode(0770)
 )
 
 type localBlobstore struct {
@@ -52,6 +57,13 @@ func (b localBlobstore) Create(fileName string) (blobID string, fingerprint stri
 	blobID, err = b.uuidGen.Generate()
 	if err != nil {
 		err = bosherr.WrapError(err, "Generating blobID")
+		return
+	}
+
+	err = b.fs.MkdirAll(b.path(), blobstorePathPermissions)
+	if err != nil {
+		err = bosherr.WrapError(err, "Making blobstore path")
+		blobID = ""
 		return
 	}
 

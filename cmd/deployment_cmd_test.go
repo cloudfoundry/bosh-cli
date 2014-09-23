@@ -97,12 +97,6 @@ var _ = Describe("DeploymentCmd", func() {
 
 					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentConfig{DeploymentUUID: "abc123"}))
 				})
-
-				It("creates the blobstore folder", func() {
-					err := command.Run([]string{manifestPath})
-					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeFs.FileExists("/fake-path/abc123/blobs")).To(BeTrue())
-				})
 			})
 
 			Context("when the deployment manifest does not exist", func() {

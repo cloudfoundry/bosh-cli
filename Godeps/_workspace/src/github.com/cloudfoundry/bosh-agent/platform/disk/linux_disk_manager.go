@@ -4,6 +4,7 @@ import (
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshdevutil "github.com/cloudfoundry/bosh-agent/platform/deviceutil"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
@@ -13,6 +14,8 @@ type linuxDiskManager struct {
 	formatter             Formatter
 	mounter               Mounter
 	mountsSearcher        MountsSearcher
+	fs                    boshsys.FileSystem
+	logger                boshlog.Logger
 }
 
 func NewLinuxDiskManager(
@@ -48,6 +51,8 @@ func NewLinuxDiskManager(
 		formatter:             NewLinuxFormatter(runner, fs),
 		mounter:               mounter,
 		mountsSearcher:        mountsSearcher,
+		fs:                    fs,
+		logger:                logger,
 	}
 }
 
@@ -60,3 +65,7 @@ func (m linuxDiskManager) GetRootDevicePartitioner() Partitioner {
 func (m linuxDiskManager) GetFormatter() Formatter           { return m.formatter }
 func (m linuxDiskManager) GetMounter() Mounter               { return m.mounter }
 func (m linuxDiskManager) GetMountsSearcher() MountsSearcher { return m.mountsSearcher }
+
+func (m linuxDiskManager) GetDiskUtil(diskPath string) boshdevutil.DeviceUtil {
+	return NewDiskUtil(diskPath, m.mounter, m.fs, m.logger)
+}

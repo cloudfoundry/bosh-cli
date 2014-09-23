@@ -1,18 +1,20 @@
-package cdutil_test
+package cdrom_test
 
 import (
-	fakecdrom "github.com/cloudfoundry/bosh-agent/platform/cdrom/fakes"
-	. "github.com/cloudfoundry/bosh-agent/platform/cdutil"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	boshcdrom "github.com/cloudfoundry/bosh-agent/platform/cdrom"
+	fakecdrom "github.com/cloudfoundry/bosh-agent/platform/cdrom/fakes"
+	boshdevutil "github.com/cloudfoundry/bosh-agent/platform/deviceutil"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
 var _ = Describe("Cdutil", func() {
 	var (
 		fs     *fakesys.FakeFileSystem
 		cdrom  *fakecdrom.FakeCdrom
-		cdutil CdUtil
+		cdutil boshdevutil.DeviceUtil
 	)
 
 	BeforeEach(func() {
@@ -21,11 +23,11 @@ var _ = Describe("Cdutil", func() {
 	})
 
 	JustBeforeEach(func() {
-		cdutil = NewCdUtil("/fake/settings/dir", fs, cdrom)
+		cdutil = boshcdrom.NewCdUtil("/fake/settings/dir", fs, cdrom)
 	})
 
 	It("gets file contents from CDROM", func() {
-		contents, err := cdutil.GetFileContents("env")
+		contents, err := cdutil.GetFilesContents([]string{"env"})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(cdrom.Mounted).To(Equal(false))
@@ -33,7 +35,8 @@ var _ = Describe("Cdutil", func() {
 		Expect(fs.FileExists("/fake/settings/dir")).To(Equal(true))
 		Expect(cdrom.MountMountPath).To(Equal("/fake/settings/dir"))
 
-		Expect(contents).To(Equal([]byte("fake env contents")))
+		Expect(len(contents)).To(Equal(1))
+		Expect(contents[0]).To(Equal([]byte("fake env contents")))
 	})
 
 })

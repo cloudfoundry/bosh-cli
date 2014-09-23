@@ -1,4 +1,4 @@
-package cdutil_test
+package deviceutil_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestCdutil(t *testing.T) {
+func TestDeviceutil(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cdutil Suite")
+	RunSpecs(t, "Deviceutil Suite")
 }
