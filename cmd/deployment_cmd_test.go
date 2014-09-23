@@ -97,6 +97,24 @@ var _ = Describe("DeploymentCmd", func() {
 
 					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentConfig{DeploymentUUID: "abc123"}))
 				})
+
+				It("reuses the existing deployment config if it exists", func() {
+					userConfig := bmconfig.UserConfig{DeploymentFile: manifestPath}
+					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(
+						userConfig.DeploymentConfigFilePath(),
+						fakeFs,
+						logger,
+					)
+					deploymentConfigService.Save(bmconfig.DeploymentConfig{DeploymentUUID: "def456"})
+
+					err := command.Run([]string{manifestPath})
+					Expect(err).NotTo(HaveOccurred())
+
+					deploymentConfig, err := deploymentConfigService.Load()
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentConfig{DeploymentUUID: "def456"}))
+				})
 			})
 
 			Context("when the deployment manifest does not exist", func() {

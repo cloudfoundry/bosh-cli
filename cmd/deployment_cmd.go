@@ -85,21 +85,28 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		return bosherr.WrapError(err, "Saving user config")
 	}
 
-	uuid, err := c.uuidGenerator.Generate()
-	if err != nil {
-		return bosherr.WrapError(err, "UUID Generation failed")
-	}
-	c.deploymentConfig.DeploymentUUID = uuid
-	c.logger.Debug(tagString, "Config %#v", c.deploymentConfig)
-
 	deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(
 		c.userConfig.DeploymentConfigFilePath(),
 		c.fs,
 		c.logger,
 	)
-	err = deploymentConfigService.Save(c.deploymentConfig)
+	c.deploymentConfig, err = deploymentConfigService.Load()
 	if err != nil {
-		return bosherr.WrapError(err, "Saving deployment config")
+		return bosherr.WrapError(err, "Reading existing deployment config")
+	}
+
+	if c.deploymentConfig.DeploymentUUID == "" {
+		uuid, err := c.uuidGenerator.Generate()
+		if err != nil {
+			return bosherr.WrapError(err, "UUID Generation failed")
+		}
+		c.deploymentConfig.DeploymentUUID = uuid
+
+		c.logger.Debug(tagString, "Config %#v", c.deploymentConfig)
+		err = deploymentConfigService.Save(c.deploymentConfig)
+		if err != nil {
+			return bosherr.WrapError(err, "Saving deployment config")
+		}
 	}
 
 	c.ui.Sayln(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
