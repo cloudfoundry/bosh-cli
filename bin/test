@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 bin=$(dirname $0)
 
 # Travis randomly kills go builds when using -race
@@ -7,31 +9,16 @@ race=$([ "$TRAVIS" != "true" ] && echo "-race")
 
 echo -e "\n Formatting packages..."
 $bin/go fmt github.com/cloudfoundry/bosh-micro-cli/...
-let "result+=$?"
 
 echo -e "\n Vetting packages for potential issues..."
 $bin/go vet github.com/cloudfoundry/bosh-micro-cli/...
-let "result+=$?"
 
 echo -e "\n Checking with golint..."
 $bin/golint
-let "result+=$?"
-
-
 
 echo -e "\n Installing ginkgo..."
 $bin/go install github.com/onsi/ginkgo/ginkgo
-let "result+=$?"
 
 echo -e "\n Testing packages..."
 $bin/env go clean -r github.com/cloudfoundry/bosh-micro-cli/
 $bin/env ginkgo -r $race -trace $@
-let "result+=$?"
-
-if [ $result -eq 0 ]; then
-  echo -e "\n\033[0;32mSUITE SUCCESS\033[0m"
-else
-  echo -e "\n\033[0;31mSUITE FAILURE\033[0m"
-fi
-
-exit $result
