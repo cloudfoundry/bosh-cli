@@ -10,7 +10,16 @@ import (
 )
 
 func BuildExecutable() error {
-	session, err := RunCommand("./../bin/build")
+	return BuildExecutableForArch("")
+}
+
+func BuildExecutableForArch(arch string) error {
+	buildArg := "./../bin/build"
+	if arch != "" {
+		buildArg = buildArg + "-" + arch
+	}
+
+	session, err := RunCommand(buildArg)
 	if session.ExitCode() != 0 {
 		return fmt.Errorf("Failed to build bosh-micro:\nstdout:\n%s\nstderr:\n%s", session.Out.Contents(), session.Err.Contents())
 	}
