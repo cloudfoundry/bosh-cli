@@ -21,7 +21,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			Name: "fake-job-name",
 			Properties: map[string]bmrel.PropertyDefinition{
 				"first-level-prop.second-level-prop": bmrel.PropertyDefinition{
-					Default: "fake-default",
+					RawDefault: "fake-default",
 				},
 			},
 		}

@@ -3,6 +3,7 @@ package templatescompiler
 import (
 	"encoding/json"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
@@ -56,7 +57,11 @@ func NewJobEvaluationContext(
 }
 
 func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
-	convertedProperties := ec.convertForPropertyResolver(ec.relJob.Properties)
+	convertedProperties, err := ec.convertForPropertyResolver(ec.relJob.Properties)
+	if err != nil {
+		return []byte{}, bosherr.WrapError(err, "Converting job properties for resolver")
+	}
+
 	properties := bmerbrenderer.NewPropertiesResolver(convertedProperties, ec.manifestProperties).Resolve()
 
 	context := RootContext{
@@ -72,13 +77,17 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 	return json.Marshal(context)
 }
 
-func (ec jobEvaluationContext) convertForPropertyResolver(properties map[string]bmrel.PropertyDefinition) map[string]interface{} {
+func (ec jobEvaluationContext) convertForPropertyResolver(properties map[string]bmrel.PropertyDefinition) (map[string]interface{}, error) {
 	result := map[string]interface{}{}
 	for propertyKey, property := range properties {
-		result[propertyKey] = property.Default
+		defaultValue, err := property.Default()
+		if err != nil {
+			return result, bosherr.WrapError(err, "Retrieving default for property `%s'", propertyKey)
+		}
+		result[propertyKey] = defaultValue
 	}
 
-	return result
+	return result, nil
 }
 
 func (ec jobEvaluationContext) buildNetworkContexts() map[string]networkContext {

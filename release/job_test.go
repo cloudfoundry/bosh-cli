@@ -4,11 +4,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	. "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 var _ = Describe("Job", func() {
-	var job bmrel.Job
+	var job Job
 
 	Describe("FindTemplateByValue", func() {
 		Context("when a template with the value exists", func() {
@@ -18,7 +18,7 @@ var _ = Describe("Job", func() {
 				expectedTemplate = map[string]string{
 					"fake-template-name": "fake-template-value",
 				}
-				job = bmrel.Job{
+				job = Job{
 					Templates: expectedTemplate,
 				}
 			})
@@ -35,6 +35,30 @@ var _ = Describe("Job", func() {
 				_, ok := job.FindTemplateByValue("nonsense")
 				Expect(ok).To(BeFalse())
 			})
+		})
+	})
+
+	Describe("property definition", func() {
+		It("return correct primitive default value", func() {
+			pd := PropertyDefinition{
+				RawDefault: "a value",
+			}
+			Expect(pd.Default()).To(Equal("a value"))
+		})
+
+		It("returns correct values for nested default values", func() {
+			pd := PropertyDefinition{
+				RawDefault: map[interface{}]interface{}{
+					"key": map[interface{}]interface{}{
+						"nested-key": "value",
+					},
+				},
+			}
+			Expect(pd.Default()).To(Equal(map[string]interface{}{
+				"key": map[string]interface{}{
+					"nested-key": "value",
+				},
+			}))
 		})
 	})
 })

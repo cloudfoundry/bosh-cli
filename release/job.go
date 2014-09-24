@@ -1,5 +1,11 @@
 package release
 
+import (
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+
+	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+)
+
 type Job struct {
 	Name          string
 	Fingerprint   string
@@ -21,7 +27,19 @@ type Manifest struct {
 
 type PropertyDefinition struct {
 	Description string      `yaml:"description"`
-	Default     interface{} `yaml:"default"`
+	RawDefault  interface{} `yaml:"default"`
+}
+
+func (d PropertyDefinition) Default() (interface{}, error) {
+	defaultMap, ok := d.RawDefault.(map[interface{}]interface{})
+	if ok {
+		stringifiedMap, err := bmkeystr.NewKeyStringifier().ConvertMap(defaultMap)
+		if err != nil {
+			return nil, bosherr.WrapError(err, "Converting job manifest properties")
+		}
+		return stringifiedMap, nil
+	}
+	return d.RawDefault, nil
 }
 
 func (j Job) FindTemplateByValue(value string) (string, bool) {

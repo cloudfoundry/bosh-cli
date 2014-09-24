@@ -57,7 +57,7 @@ properties:
 						Properties: map[string]PropertyDefinition{
 							"fake-property": PropertyDefinition{
 								Description: "Fake description",
-								Default:     "fake-default",
+								RawDefault:  "fake-default",
 							},
 						},
 					},
