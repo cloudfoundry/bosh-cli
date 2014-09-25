@@ -8,4 +8,4 @@ before_install:
   - gem install bosh_cli --no-ri --no-rdoc
 install: true
 
-script: bin/ci
+script: ci/test.sh

@@ -1,4 +1,4 @@
 .vagrant/
 /out/*
-/tmp/
+tmp/
 **/*.test
