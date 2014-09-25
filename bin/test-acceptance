@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+bin=$(dirname $0)
+
+echo -e "\n Installing ginkgo..."
+$bin/go install github.com/onsi/ginkgo/ginkgo
+
+echo -e "\n Testing packages..."
+$bin/env go clean -r github.com/cloudfoundry/bosh-micro-cli/
+$bin/env ginkgo -race -trace acceptance
