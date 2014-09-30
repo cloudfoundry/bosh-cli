@@ -23,32 +23,37 @@ var _ = Describe("bosh-micro", func() {
 	)
 
 	BeforeSuite(func() {
+		localEnv, err := parseEnv()
+		Expect(err).NotTo(HaveOccurred())
+
 		logger := boshlog.NewLogger(boshlog.LevelDebug)
 		fileSystem := boshsys.NewOsFileSystem(logger)
-		testEnv = newVagrantTestEnvironment(fileSystem)
+		testEnv = newRemoteTestEnvironment(
+			localEnv.vmUsername,
+			localEnv.vmIP,
+			localEnv.privateKeyPath,
+			fileSystem,
+			logger,
+		)
 
-		cmdRunner = NewVagrantSSHCmdRunner(logger)
-		err := cmdRunner.StartSession()
-		Expect(err).ToNot(HaveOccurred())
+		cmdRunner = NewSSHCmdRunner(
+			localEnv.vmUsername,
+			localEnv.vmIP,
+			localEnv.privateKeyPath,
+			logger,
+		)
 
 		err = bmtestutils.BuildExecutableForArch("linux-amd64")
 		Expect(err).NotTo(HaveOccurred())
 
-		err = testEnv.Copy("bosh-micro", "./../out/bosh-micro")
+		boshMicroPath := "./../out/bosh-micro"
+		Expect(fileSystem.FileExists(boshMicroPath)).To(BeTrue())
+		err = testEnv.Copy("bosh-micro", boshMicroPath)
 		Expect(err).NotTo(HaveOccurred())
-		err = testEnv.Copy("stemcell", os.Getenv("BOSH_STEMCELL"))
+		err = testEnv.DownloadOrCopy("stemcell", localEnv.stemcellURL)
 		Expect(err).NotTo(HaveOccurred())
-		err = testEnv.Copy("cpiRelease", os.Getenv("BOSH_CPI_RELEASE"))
+		err = testEnv.DownloadOrCopy("cpiRelease", localEnv.cpiReleaseURL)
 		Expect(err).NotTo(HaveOccurred())
-	})
-
-	AfterSuite(func() {
-		testEnv.Cleanup()
-		if suiteFailed {
-			println("\n\nUse `vagrant ssh' to get into vagrant VM to debug the failed tests")
-		} else {
-			cmdRunner.EndSession()
-		}
 	})
 
 	It("is able to deploy a CPI release with a stemcell", func() {
@@ -81,84 +86,173 @@ type acceptanceEnvironment interface {
 	Path(string) string
 	Copy(string, string) error
 	WriteContentString(string, string) error
-	Cleanup() error
+	RemoteDownload(string, string) error
+	DownloadOrCopy(string, string) error
 }
 
-type vagrantTestEnvironment struct {
-	testRoot   string
-	fileSystem boshsys.FileSystem
+type remoteTestEnvironment struct {
+	vmUsername     string
+	vmIP           string
+	privateKeyPath string
+	cmdRunner      boshsys.CmdRunner
+	fileSystem     boshsys.FileSystem
 }
 
-func newVagrantTestEnvironment(fileSystem boshsys.FileSystem) *vagrantTestEnvironment {
-	fileSystem.MkdirAll("./../tmp", os.FileMode(0775))
-	return &vagrantTestEnvironment{
-		testRoot:   "./../tmp",
-		fileSystem: fileSystem,
+func newRemoteTestEnvironment(
+	vmUsername string,
+	vmIP string,
+	privateKeyPath string,
+	fileSystem boshsys.FileSystem,
+	logger boshlog.Logger,
+) remoteTestEnvironment {
+	return remoteTestEnvironment{
+		vmUsername:     vmUsername,
+		vmIP:           vmIP,
+		privateKeyPath: privateKeyPath,
+		cmdRunner:      boshsys.NewExecCmdRunner(logger),
+		fileSystem:     fileSystem,
 	}
 }
 
-func (e *vagrantTestEnvironment) Path(name string) string {
-	return path.Join("/", "vagrant", name)
+func (e remoteTestEnvironment) Path(name string) string {
+	return path.Join("/", "home", e.vmUsername, name)
 }
 
-func (e *vagrantTestEnvironment) Copy(destName, srcPath string) error {
+func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 	if srcPath == "" {
 		return fmt.Errorf("Cannot use an empty file for `%s'", destName)
 	}
-	// the testRoot dir will be synced or mounted inside the vagrant box
-	// by Vagrant itself (see Vagrantfile).
-	return e.fileSystem.CopyFile(srcPath, path.Join(e.testRoot, destName))
-}
 
-func (e *vagrantTestEnvironment) WriteContentString(destName, contents string) error {
-	return e.fileSystem.WriteFileString(path.Join(e.testRoot, destName), contents)
-}
-
-func (e *vagrantTestEnvironment) Cleanup() error {
-	return e.fileSystem.RemoveAll(e.testRoot)
-}
-
-type acceptanceCmdRunner interface {
-	StartSession() error
-	EndSession()
-	RunCommand(...string) (string, string, int, error)
-}
-
-type vagrantSSHCmdRunner struct {
-	runner boshsys.CmdRunner
-	logger boshlog.Logger
-}
-
-func NewVagrantSSHCmdRunner(logger boshlog.Logger) vagrantSSHCmdRunner {
-	return vagrantSSHCmdRunner{
-		runner: boshsys.NewExecCmdRunner(logger),
-		logger: logger,
+	_, _, exitCode, err := e.cmdRunner.RunCommand(
+		"scp",
+		"-o", "StrictHostKeyChecking=no",
+		"-i", e.privateKeyPath,
+		srcPath,
+		fmt.Sprintf("%s@%s:%s", e.vmUsername, e.vmIP, e.Path(destName)),
+	)
+	if exitCode != 0 {
+		return fmt.Errorf("scp of `%s' to `%s' failed", srcPath, destName)
 	}
+	return err
 }
 
-func (r vagrantSSHCmdRunner) StartSession() error {
-	r.runner.RunCommand("vagrant", "destroy", "-f")
+func (e remoteTestEnvironment) DownloadOrCopy(destName, src string) error {
+	if strings.HasPrefix(src, "http") {
+		return e.RemoteDownload(destName, src)
+	}
+	return e.Copy(destName, src)
+}
 
-	_, _, exitCode, err := r.runner.RunCommand("vagrant", "up")
+func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {
+	if srcURL == "" {
+		return fmt.Errorf("Cannot use an empty file for `%s'", destName)
+	}
+
+	_, _, exitCode, err := e.cmdRunner.RunCommand(
+		"ssh",
+		"-o", "StrictHostKeyChecking=no",
+		"-i", e.privateKeyPath,
+		fmt.Sprintf("%s@%s", e.vmUsername, e.vmIP),
+		fmt.Sprintf("wget -q -O %s %s", destName, srcURL),
+	)
+	if exitCode != 0 {
+		return fmt.Errorf("download of `%s' to `%s' failed", srcURL, destName)
+	}
+	return err
+}
+
+func (e remoteTestEnvironment) WriteContentString(destName, contents string) error {
+	tmpFile, err := e.fileSystem.TempFile("bosh-micro-cli-acceptance")
 	if err != nil {
 		return err
 	}
-	if exitCode != 0 {
-		return errors.New("Failed to bring up vagrant VM")
+	defer e.fileSystem.RemoveAll(tmpFile.Name())
+	_, err = tmpFile.WriteString(contents)
+	if err != nil {
+		return err
+	}
+	err = tmpFile.Close()
+	if err != nil {
+		return err
 	}
 
-	return nil
+	return e.Copy(destName, tmpFile.Name())
 }
 
-func (r vagrantSSHCmdRunner) EndSession() {
-	r.runner.RunCommand("vagrant", "destroy", "-f")
+type acceptanceCmdRunner interface {
+	RunCommand(...string) (string, string, int, error)
 }
 
-func (r vagrantSSHCmdRunner) RunCommand(args ...string) (string, string, int, error) {
-	argsWithEnv := append([]string{"TMPDIR=/home/vcap"}, args...)
-	vcapArgs := []string{
-		"sudo", "su", "vcap", "-c",
-		fmt.Sprintf("'%s'", strings.Join(argsWithEnv, " ")),
+type sshCmdRunner struct {
+	vmUsername     string
+	vmIP           string
+	privateKeyPath string
+	runner         boshsys.CmdRunner
+}
+
+func NewSSHCmdRunner(
+	vmUsername string,
+	vmIP string,
+	privateKeyPath string,
+	logger boshlog.Logger,
+) sshCmdRunner {
+	return sshCmdRunner{
+		vmUsername:     vmUsername,
+		vmIP:           vmIP,
+		privateKeyPath: privateKeyPath,
+		runner:         boshsys.NewExecCmdRunner(logger),
 	}
-	return r.runner.RunCommand("vagrant", "ssh", "-c", strings.Join(vcapArgs, " "))
+}
+
+func (r sshCmdRunner) RunCommand(args ...string) (string, string, int, error) {
+	argsWithEnv := append([]string{fmt.Sprintf("TMPDIR=/home/%s", r.vmUsername)}, args...)
+	return r.runner.RunCommand(
+		"ssh",
+		"-o", "StrictHostKeyChecking=no",
+		"-i", r.privateKeyPath,
+		fmt.Sprintf("%s@%s", r.vmUsername, r.vmIP),
+		strings.Join(argsWithEnv, " "),
+	)
+}
+
+type localEnvironment struct {
+	vmUsername     string
+	vmIP           string
+	privateKeyPath string
+	stemcellURL    string
+	cpiReleaseURL  string
+}
+
+func parseEnv() (localEnvironment, error) {
+	env := localEnvironment{
+		vmUsername:     os.Getenv("BOSH_MICRO_VM_USERNAME"),
+		vmIP:           os.Getenv("BOSH_MICRO_VM_IP"),
+		privateKeyPath: os.Getenv("BOSH_MICRO_PRIVATE_KEY"),
+		stemcellURL:    os.Getenv("BOSH_MICRO_STEMCELL"),
+		cpiReleaseURL:  os.Getenv("BOSH_MICRO_CPI_RELEASE"),
+	}
+
+	var err error
+	if env.vmUsername == "" {
+		fmt.Println("BOSH_MICRO_VM_USERNAME must be set")
+		err = errors.New("")
+	}
+	if env.vmIP == "" {
+		fmt.Println("BOSH_MICRO_VM_IP must be set")
+		err = errors.New("")
+	}
+	if env.privateKeyPath == "" {
+		fmt.Println("BOSH_MICRO_PRIVATE_KEY must be set")
+		err = errors.New("")
+	}
+	if env.stemcellURL == "" {
+		fmt.Println("BOSH_MICRO_STEMCELL must be set")
+		err = errors.New("")
+	}
+	if env.cpiReleaseURL == "" {
+		fmt.Println("BOSH_MICRO_CPI_RELEASE must be set")
+		err = errors.New("")
+	}
+
+	return env, err
 }

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -xe
+
+base=$( cd "$( dirname "$( dirname "$0" )")" && pwd )
+acceptance_assets_dir=$base/acceptance/tmp
+
+cpi_release_file=bosh-warden-cpi-9.tgz
+stemcell_file=bosh-stemcell-348-warden-boshlite-ubuntu-trusty-go_agent.tgz
+
+cleanup() {
+  ( cd $base && vagrant destroy -f )
+}
+trap cleanup EXIT
+
+export BOSH_MICRO_CPI_RELEASE=${BOSH_MICRO_CPI_RELEASE:-https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-warden-cpi-release/$cpi_release_file}
+export BOSH_MICRO_STEMCELL=${BOSH_MICRO_STEMCELL:-https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-stemcell/warden/$stemcell_file}
+
+echo "ENV"
+echo `env`
+
+# Vagrant needs ubuntu to own the private key
+sudo chown `whoami` $BOSH_MICRO_PRIVATE_KEY
+cd $base
+vagrant up $@
+
+export BOSH_MICRO_VM_USERNAME=`vagrant ssh-config | grep "User " | awk '{print $2}'`
+export BOSH_MICRO_VM_IP=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{print $2}'`
+export BOSH_MICRO_PRIVATE_KEY=${BOSH_MICRO_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
+
+./bin/test-acceptance
+result=$?
+exit $result
