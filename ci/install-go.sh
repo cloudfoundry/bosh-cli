@@ -8,7 +8,7 @@ GO_ARCHIVE=$(basename $GO_ARCHIVE_URL)
 
 echo "Downloading go..."
 mkdir -p $(dirname $GOROOT)
-wget $GO_ARCHIVE_URL
+wget -q $GO_ARCHIVE_URL
 tar xf $GO_ARCHIVE -C $(dirname $GOROOT)
 chmod -R a+w $GOROOT
 

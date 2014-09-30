@@ -8,7 +8,7 @@ RUBY_ARCHIVE=$(basename $RUBY_ARCHIVE_URL)
 RUBY_NAME=$(basename -s .tar.gz $RUBY_ARCHIVE_URL)
 
 echo "Downloading ruby..."
-wget $RUBY_ARCHIVE_URL
+wget -q $RUBY_ARCHIVE_URL
 tar xf $RUBY_ARCHIVE
 
 echo "Installing ruby..."
