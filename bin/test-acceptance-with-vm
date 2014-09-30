@@ -28,7 +28,7 @@ echo `env`
 
 # Vagrant needs ubuntu to own the private key if aws provider
 if [ ! -z "$BOSH_MICRO_PRIVATE_KEY" ]; then
-  tmpfile=`mktemp bosh-micro-tests-XXXXXXXX`
+  tmpfile=`mktemp -t bosh-micro-tests-XXXXXXXX`
   cat $BOSH_MICRO_PRIVATE_KEY > $tmpfile
   export OLD_BOSH_MICRO_PRIVATE_KEY=$BOSH_MICRO_PRIVATE_KEY
   export BOSH_MICRO_PRIVATE_KEY=$tmpfile
