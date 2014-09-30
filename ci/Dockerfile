@@ -19,26 +19,22 @@ RUN apt-get install -y wget; apt-get clean
 RUN apt-get install -y tar; apt-get clean
 
 # bosh_cli dependencies
-RUN apt-get install -y libssl-dev; apt-get clean
-RUN apt-get install -y libreadline-dev; apt-get clean
+RUN apt-get install -y ruby-dev; apt-get clean
 RUN apt-get install -y libxml2-dev; apt-get clean
 RUN apt-get install -y libxslt-dev; apt-get clean
-
-# for go dependencies
-RUN apt-get install -y mercurial; apt-get clean
+RUN gem install bosh_cli --no-rdoc --no-ri
 
 # bosh-micro dependencies
+RUN apt-get install -y mercurial; apt-get clean
 ADD install-go.sh /tmp/install-go.sh
 RUN chmod a+x /tmp/install-go.sh
 RUN cd tmp; ./install-go.sh; rm install-go.sh
 
-ADD install-ruby.sh /tmp/install-ruby.sh
-RUN chmod a+x /tmp/install-ruby.sh
-RUN cd /tmp; ./install-ruby.sh; rm install-ruby.sh
-
-RUN gem install bosh_cli --no-rdoc --no-ri
+# package manager provides 1.4.3, which is too old for vagrant-aws
+RUN cd /tmp && wget -q https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.5_x86_64.deb && dpkg -i vagrant_1.6.5_x86_64.deb
 
 USER ubuntu
 ENV HOME /home/ubuntu
 ENV PATH /usr/local/ruby/bin:/usr/local/go/bin:$PATH
 RUN mkdir -p /home/ubuntu/go/src/github.com/cloudfoundry
+RUN vagrant plugin install vagrant-aws
