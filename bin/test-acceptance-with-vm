@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -xe
+set -ex
 
 base=$( cd "$( dirname "$( dirname "$0" )")" && pwd )
 acceptance_assets_dir=$base/acceptance/tmp
