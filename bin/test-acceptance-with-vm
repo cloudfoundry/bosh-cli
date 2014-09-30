@@ -42,5 +42,3 @@ export BOSH_MICRO_VM_IP=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{
 export BOSH_MICRO_PRIVATE_KEY=${BOSH_MICRO_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
 
 ./bin/test-acceptance
-result=$?
-exit $result
