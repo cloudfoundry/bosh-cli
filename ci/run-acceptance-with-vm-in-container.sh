@@ -17,8 +17,6 @@ BOSH_MICRO_CLI_DIR=/home/ubuntu/go/src/github.com/cloudfoundry/bosh-micro-cli
 BOSH_MICRO_PRIVATE_KEY_DIR=/home/ubuntu/private_keys
 BOSH_LITE_PRIVATE_KEY=$BOSH_MICRO_PRIVATE_KEY_DIR/$PRIVATE_KEY_BASENAME
 
-export BOSH_MICRO_PRIVATE_KEY=$BOSH_LITE_PRIVATE_KEY
-
 echo "ENV:"
 echo `env`
 
@@ -42,7 +40,6 @@ docker run \
   -e BOSH_LITE_PRIVATE_KEY \
   -e BOSH_MICRO_VM_USERNAME \
   -e BOSH_MICRO_VM_IP \
-  -e BOSH_MICRO_PRIVATE_KEY \
   -e BOSH_MICRO_STEMCELL \
   -e BOSH_MICRO_CPI_RELEASE \
   -v $SRC_DIR:$BOSH_MICRO_CLI_DIR \

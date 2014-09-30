@@ -14,8 +14,8 @@ cleanup() {
     rm -rf $tmpfile
   fi
 
-  if [ ! -z "$OLD_BOSH_MICRO_PRIVATE_KEY" ]; then
-    export BOSH_MICRO_PRIVATE_KEY=$OLD_BOSH_MICRO_PRIVATE_KEY
+  if [ ! -z "$OLD_BOSH_LITE_PRIVATE_KEY" ]; then
+    export BOSH_LITE_PRIVATE_KEY=$OLD_BOSH_LITE_PRIVATE_KEY
   fi
 }
 trap cleanup EXIT
@@ -27,11 +27,11 @@ echo "ENV"
 echo `env`
 
 # Vagrant needs ubuntu to own the private key if aws provider
-if [ ! -z "$BOSH_MICRO_PRIVATE_KEY" ]; then
+if [ ! -z "$BOSH_LITE_PRIVATE_KEY" ]; then
   tmpfile=`mktemp -t bosh-micro-tests-XXXXXXXX`
-  cat $BOSH_MICRO_PRIVATE_KEY > $tmpfile
-  export OLD_BOSH_MICRO_PRIVATE_KEY=$BOSH_MICRO_PRIVATE_KEY
-  export BOSH_MICRO_PRIVATE_KEY=$tmpfile
+  cat $BOSH_LITE_PRIVATE_KEY > $tmpfile
+  export OLD_BOSH_LITE_PRIVATE_KEY=$BOSH_LITE_PRIVATE_KEY
+  export BOSH_LITE_PRIVATE_KEY=$tmpfile
 fi
 
 cd $base
@@ -39,6 +39,6 @@ vagrant up $@
 
 export BOSH_MICRO_VM_USERNAME=`vagrant ssh-config | grep "User " | awk '{print $2}'`
 export BOSH_MICRO_VM_IP=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{print $2}'`
-export BOSH_MICRO_PRIVATE_KEY=${BOSH_MICRO_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
+export BOSH_MICRO_PRIVATE_KEY=${BOSH_LITE_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
 
 ./bin/test-acceptance
