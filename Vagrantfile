@@ -16,5 +16,7 @@ Vagrant.configure('2') do |config|
     override.vm.box_url = 'https://d3a4sadvqj176z.cloudfront.net/bosh-lite-aws-ubuntu-trusty-174.box'
   end
 
-  config.vm.synced_folder File.expand_path('../tmp', __FILE__), '/vagrant'
+  config.vm.synced_folder Dir.pwd, '/vagrant', disabled: true
+  config.vm.provision :shell, inline: "mkdir -p /vagrant && chmod 777 /vagrant"
+  config.vm.provision :shell, inline: "chmod 777 /var/vcap/sys/log/cpi"
 end
