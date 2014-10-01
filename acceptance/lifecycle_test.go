@@ -79,6 +79,7 @@ cloud_provider:
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		Expect(stdout).To(ContainSubstring("uploading stemcell"))
+		Expect(stdout).To(ContainSubstring("creating VM from"))
 	})
 })
 

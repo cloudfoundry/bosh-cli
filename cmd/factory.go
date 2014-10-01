@@ -25,6 +25,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )
 
 type Factory interface {
@@ -166,6 +167,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)
 	repo := bmstemcell.NewRepo(f.deploymentConfigService)
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fileSystem, stemcellReader, repo, eventLogger)
+	vmManagerFactory := bmvm.NewManagerFactory(eventLogger)
 
 	return NewDeployCmd(
 		f.ui,
@@ -174,6 +176,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		manifestParser,
 		cpiDeployer,
 		stemcellManagerFactory,
+		vmManagerFactory,
 		f.logger,
 	), nil
 }

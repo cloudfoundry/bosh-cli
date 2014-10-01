@@ -11,6 +11,3 @@ properties:
   fake_cpi_default_property.second_level:
     description: This is a very important property
     default: fake_cpi_default_value
-  output_dir:
-    description: Destination of CPI call output
-    default: /tmp/cpi

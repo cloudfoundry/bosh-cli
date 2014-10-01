@@ -11,6 +11,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )
 
 type CmdContext struct {
@@ -60,6 +61,7 @@ func (j CPIJob) String() string {
 
 type Cloud interface {
 	bmstemcell.Infrastructure
+	bmvm.Infrastructure
 }
 
 type cloud struct {
@@ -110,6 +112,21 @@ func (c cloud) CreateStemcell(stemcell bmstemcell.Stemcell) (cid bmstemcell.CID,
 		return cid, bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
 	return bmstemcell.CID(cidString), nil
+}
+
+func (c cloud) CreateVM(stemcellCID bmstemcell.CID) (bmvm.CID, error) {
+	method := "create_vm"
+	cmdOutput, err := c.execCPICmd(method, stemcellCID)
+	if err != nil {
+		return "", err
+	}
+
+	// for create_vm, the result is a string of the vm cid
+	cidString, ok := cmdOutput.Result.(string)
+	if !ok {
+		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
+	}
+	return bmvm.CID(cidString), nil
 }
 
 func (c cloud) cpiExecutablePath() string {

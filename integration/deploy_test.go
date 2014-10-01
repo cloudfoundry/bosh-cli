@@ -15,10 +15,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
-
-	//	gouuid "github.com/nu7hatch/gouuid"
 )
 
 var _ = Describe("bosh-micro", func() {
@@ -44,17 +41,15 @@ var _ = Describe("bosh-micro", func() {
 
 		deploymentManifestFilePath = path.Join(micro.Root(), "micro_deployment.yml")
 
-		manifestTemplate := `
+		manifestContents := `
 ---
 name: fake-deployment
 cloud_provider:
   properties:
     fake_cpi_specified_property:
       second_level: fake_specified_property_value
-    output_dir: %s
 `
 
-		manifestContents := fmt.Sprintf(manifestTemplate, cpiOutputDir)
 		err = bmtestutils.GenerateDeploymentManifest(deploymentManifestFilePath, fs, manifestContents)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -130,62 +125,9 @@ cloud_provider:
 			Expect(blobExists).To(BeTrue())
 			blobContents, err := blob.FileContents("bin/cpi")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobContents).To(ContainSubstring("GLOBAL_PROPERTY=fake_cpi_default_value"))
-			Expect(blobContents).To(ContainSubstring("JOB_PROPERTY=fake_specified_property_value"))
+			Expect(blobContents).To(ContainSubstring("GLOBAL_PROPERTY=\"fake_cpi_default_value\""))
+			Expect(blobContents).To(ContainSubstring("JOB_PROPERTY=\"fake_specified_property_value\""))
 			Expect(blobContents).To(ContainSubstring(`IP=""`))
-		})
-
-		Context("when bin/cpi is executed with valid json STDIN", func() {
-			var (
-				cmdInput bmcloud.CmdInput
-			)
-
-			BeforeEach(func() {
-				session, err := bmtestutils.RunBoshMicro("deploy", releaseTarball, stemcellTarball)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(session.ExitCode()).To(Equal(0))
-
-				// cpi script writes STDIN to cpi_output/test.file
-				testFilePath := filepath.Join(cpiOutputDir, "test.file")
-				Expect(fs.FileExists(testFilePath)).To(BeTrue())
-
-				bytes, err := fs.ReadFile(testFilePath)
-				Expect(err).NotTo(HaveOccurred())
-
-				err = json.Unmarshal(bytes, &cmdInput)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("calls the create_stemcell method", func() {
-				Expect(cmdInput.Method).To(Equal("create_stemcell"))
-				Expect(cmdInput.Arguments).To(HaveLen(2))
-			})
-
-			It("passes the mico deployment uuid", func() {
-				Expect(cmdInput.Context.DirectorUUID).To(Equal(micro.CurrentUUID()))
-			})
-
-			It("makes the extracted stemcell image available", func() {
-				// stemcell tarball is extracted into a temp file
-				// make sure the image source file is named "image", matching the stemcell tarball content
-				extractedStemcellImageFilePath := cmdInput.Arguments[0]
-				Expect(extractedStemcellImageFilePath).To(MatchRegexp("^.*[\\/]image$"))
-
-				// cpi script copies the stemcell image file to cpi_output/image
-				copiedStemcellImageFilePath := filepath.Join(cpiOutputDir, "image")
-				Expect(fs.FileExists(copiedStemcellImageFilePath)).To(BeTrue())
-				Expect(fs.ReadFileString(copiedStemcellImageFilePath)).To(Equal("fake-stemcell-image"))
-			})
-
-			It("passes in the cloud properties", func() {
-				Expect(cmdInput.Arguments[1]).To(Equal(map[string]interface{}{
-					"name":             "fake-stemcell",
-					"version":          "fake-version",
-					"infrastructure":   "vfakestack",
-					"architecture":     "x86_64",
-					"root_device_name": "/dev/sda1",
-				}))
-			})
 		})
 	})
 
