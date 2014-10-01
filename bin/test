@@ -5,7 +5,10 @@ set -ex
 bin=$(dirname $0)
 
 # Travis randomly kills go builds when using -race
-race=$([ "$TRAVIS" != "true" ] && echo "-race")
+race=""
+if [ -z "$TRAVIS" ]; then
+  race="-race"
+fi
 
 echo -e "\n Formatting packages..."
 $bin/go fmt github.com/cloudfoundry/bosh-micro-cli/...
