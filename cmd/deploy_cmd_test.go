@@ -161,7 +161,7 @@ version: fake-version
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeStemcellManager.UploadInputs).To(Equal(
 							[]fakebmstemcell.UploadInput{
-								fakebmstemcell.UploadInput{
+								{
 									TarballPath: stemcellTarballPath,
 								},
 							},

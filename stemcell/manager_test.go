@@ -101,7 +101,7 @@ var _ = Describe("Manager", func() {
 
 		Expect(infrastructure.CreateInputs).To(Equal(
 			[]fakebmstemcell.CreateInput{
-				fakebmstemcell.CreateInput{
+				{
 					Stemcell: expectedStemcell,
 				},
 			},
