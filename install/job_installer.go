@@ -2,6 +2,7 @@ package install
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -110,6 +111,19 @@ func (i jobInstaller) install(job bmrel.Job) (InstalledJob, error) {
 	err = i.templateExtractor.Extract(template.BlobID, template.BlobSHA1, jobDir)
 	if err != nil {
 		return InstalledJob{}, bosherr.WrapError(err, "Extracting blob with ID `%s'", template.BlobID)
+	}
+
+	binFiles := path.Join(jobDir, "bin", "*")
+	files, err := i.fs.Glob(binFiles)
+	if err != nil {
+		return InstalledJob{}, bosherr.WrapError(err, "Globbing %s", binFiles)
+	}
+
+	for _, file := range files {
+		err = i.fs.Chmod(file, os.FileMode(0755))
+		if err != nil {
+			return InstalledJob{}, bosherr.WrapError(err, "Making %s executable", binFiles)
+		}
 	}
 
 	return InstalledJob{Name: job.Name, Path: jobDir}, nil

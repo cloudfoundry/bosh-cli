@@ -3,7 +3,6 @@ package cloud_test
 import (
 	"encoding/json"
 	"io/ioutil"
-	"os"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -89,13 +88,6 @@ var _ = Describe("Cloud", func() {
 				ExitStatus: 0,
 			}
 			cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
-		})
-
-		It("makes the the cpi job script executable", func() {
-			_, err := cloud.CreateStemcell(stemcell)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fs.GetFileTestStat("/jobs/cpi/bin/cpi").FileMode).To(Equal(os.FileMode(0770)))
 		})
 
 		It("executes the cpi job script with stemcell image path & cloud_properties", func() {

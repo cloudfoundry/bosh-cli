@@ -2,6 +2,7 @@ package install_test
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -54,6 +55,15 @@ var _ = Describe("JobInstaller", func() {
 
 			templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSHA1: "fake-sha1"}, true, nil)
 			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-sha1", "/fake/jobs/cpi", nil)
+		})
+
+		It("makes the files in the job's bin directory executable", func() {
+			cpiExecutablePath := "/fake/jobs/cpi/bin/cpi"
+			fs.SetGlob("/fake/jobs/cpi/bin/*", []string{cpiExecutablePath})
+			fs.WriteFileString(cpiExecutablePath, "contents")
+			_, err := jobInstaller.Install(job)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fs.GetFileTestStat(cpiExecutablePath).FileMode).To(Equal(os.FileMode(0755)))
 		})
 
 		It("returns a record of the installed job", func() {

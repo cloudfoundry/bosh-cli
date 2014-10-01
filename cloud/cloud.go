@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -99,12 +98,6 @@ func (c cloud) String() string {
 }
 
 func (c cloud) CreateStemcell(stemcell bmstemcell.Stemcell) (cid bmstemcell.CID, err error) {
-	cmdPath := c.cpiExecutablePath()
-	err = c.fs.Chmod(cmdPath, os.FileMode(0770))
-	if err != nil {
-		return cid, bosherr.WrapError(err, "Making external CPI command `%s' executable", cmdPath)
-	}
-
 	method := "create_stemcell"
 	cmdOutput, err := c.execCPICmd(method, stemcell.ImagePath, stemcell.CloudProperties)
 	if err != nil {
