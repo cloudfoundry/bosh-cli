@@ -3,7 +3,6 @@ package cloud_test
 import (
 	"encoding/json"
 	"io/ioutil"
-	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -53,8 +52,7 @@ var _ = Describe("Cloud", func() {
 
 	Describe("CreateStemcell", func() {
 		var (
-			cmdInputString string
-			cmdInputBytes  []byte
+			cmdInputBytes []byte
 		)
 
 		BeforeEach(func() {
@@ -73,79 +71,10 @@ var _ = Describe("Cloud", func() {
 			}
 			cmdInputBytes, err = json.Marshal(cmdInput)
 			Expect(err).NotTo(HaveOccurred())
-
-			cmdInputString = string(cmdInputBytes)
-
-			cmdOutput := CmdOutput{
-				Result: "fake-cid",
-				Log:    "",
-			}
-			outputBytes, err := json.Marshal(cmdOutput)
-			Expect(err).NotTo(HaveOccurred())
-
-			result := fakesys.FakeCmdResult{
-				Stdout:     string(outputBytes),
-				ExitStatus: 0,
-			}
-			cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 		})
 
-		It("executes the cpi job script with stemcell image path & cloud_properties", func() {
-			_, err := cloud.CreateStemcell(stemcell)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
-
-			actualCmd := cmdRunner.RunComplexCommands[0]
-			Expect(actualCmd.Name).To(Equal("/jobs/cpi/bin/cpi"))
-			Expect(actualCmd.Args).To(BeNil())
-			Expect(actualCmd.Env).To(Equal(map[string]string{
-				"BOSH_PACKAGES_DIR": cpiJob.PackagesPath,
-				"BOSH_JOBS_DIR":     cpiJob.JobsPath,
-			}))
-
-			bytes, err := ioutil.ReadAll(actualCmd.Stdin)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(bytes).To(Equal(cmdInputBytes))
-		})
-
-		It("returns the cid returned from executing the cpi script", func() {
-			cid, err := cloud.CreateStemcell(stemcell)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cid).To(Equal(bmstemcell.CID("fake-cid")))
-		})
-
-		Context("when cloud_propeties are complex", func() {
+		Context("when the cpi successfully creates the stemcell", func() {
 			BeforeEach(func() {
-				cloudProperties = map[string]interface{}{
-					"fake-map-key": map[string]string{
-						"fake-inner-key": "fake-inner-value",
-					},
-					"fake-array-key": []string{
-						"fake-array-element",
-					},
-				}
-
-				stemcell = bmstemcell.Stemcell{
-					ImagePath:       stemcellImagePath,
-					CloudProperties: cloudProperties,
-				}
-
-				cmdInput := CmdInput{
-					Method: "create_stemcell",
-					Arguments: []interface{}{
-						stemcellImagePath,
-						cloudProperties,
-					},
-					Context: CmdContext{
-						DirectorUUID: deploymentUUID,
-					},
-				}
-				var err error
-				cmdInputBytes, err = json.Marshal(cmdInput)
-				Expect(err).NotTo(HaveOccurred())
-
-				cmdInputString = string(cmdInputBytes)
-
 				cmdOutput := CmdOutput{
 					Result: "fake-cid",
 					Log:    "",
@@ -157,14 +86,12 @@ var _ = Describe("Cloud", func() {
 					Stdout:     string(outputBytes),
 					ExitStatus: 0,
 				}
-				cmdString := strings.Join([]string{cmdInputString, "/jobs/cpi/bin/cpi"}, " ")
-				cmdRunner.AddCmdResult(cmdString, result)
+				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 			})
 
-			It("marshalls complex cloud_properties correctly", func() {
+			It("executes the cpi job script with stemcell image path & cloud_properties", func() {
 				_, err := cloud.CreateStemcell(stemcell)
 				Expect(err).NotTo(HaveOccurred())
-
 				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
 
 				actualCmd := cmdRunner.RunComplexCommands[0]
@@ -177,7 +104,39 @@ var _ = Describe("Cloud", func() {
 
 				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(bytes).To(Equal(cmdInputBytes))
+				Expect(string(bytes)).To(Equal(string(cmdInputBytes)))
+			})
+
+			It("returns the cid returned from executing the cpi script", func() {
+				cid, err := cloud.CreateStemcell(stemcell)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cid).To(Equal(bmstemcell.CID("fake-cid")))
+			})
+		})
+
+		Context("when the cpi returns an error", func() {
+			BeforeEach(func() {
+				cmdOutput := CmdOutput{
+					Error: &CmdError{
+						Message: "fake-error",
+					},
+					Result: "fake-cid",
+					Log:    "",
+				}
+				outputBytes, err := json.Marshal(cmdOutput)
+				Expect(err).NotTo(HaveOccurred())
+
+				result := fakesys.FakeCmdResult{
+					Stdout:     string(outputBytes),
+					ExitStatus: 0,
+				}
+				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
+			})
+
+			It("returns an error", func() {
+				_, err := cloud.CreateStemcell(stemcell)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("External CPI command for method `create_stemcell' returned an error"))
 			})
 		})
 	})
