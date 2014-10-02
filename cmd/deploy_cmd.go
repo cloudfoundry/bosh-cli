@@ -27,6 +27,7 @@ type deployCmd struct {
 	userConfig             bmconfig.UserConfig
 	fs                     boshsys.FileSystem
 	cpiManifestParser      bmdepl.ManifestParser
+	boshManifestParser     bmdepl.ManifestParser
 	cpiDeployer            bmdeploy.CpiDeployer
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	vmManagerFactory       bmvm.ManagerFactory
@@ -38,6 +39,7 @@ func NewDeployCmd(
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
 	cpiManifestParser bmdepl.ManifestParser,
+	boshManifestParser bmdepl.ManifestParser,
 	cpiDeployer bmdeploy.CpiDeployer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	vmManagerFactory bmvm.ManagerFactory,
@@ -48,6 +50,7 @@ func NewDeployCmd(
 		userConfig:             userConfig,
 		fs:                     fs,
 		cpiManifestParser:      cpiManifestParser,
+		boshManifestParser:     boshManifestParser,
 		cpiDeployer:            cpiDeployer,
 		stemcellManagerFactory: stemcellManagerFactory,
 		vmManagerFactory:       vmManagerFactory,
@@ -70,6 +73,11 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Parsing CPI deployment manifest `%s'", c.userConfig.DeploymentFile)
 	}
 
+	boshDeployment, err := c.boshManifestParser.Parse(c.userConfig.DeploymentFile)
+	if err != nil {
+		return bosherr.WrapError(err, "Parsing Bosh deployment manifest `%s'", c.userConfig.DeploymentFile)
+	}
+
 	cloud, err := c.cpiDeployer.Deploy(cpiDeployment, releaseTarballPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying CPI `%s'", releaseTarballPath)
@@ -81,12 +89,7 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
 	}
 
-	microboshDeployment, err := c.parseMicroboshManifest()
-	if err != nil {
-		return bosherr.WrapError(err, "Parsing Microbosh deployment manifest `%s'", c.userConfig.DeploymentFile)
-	}
-
-	err = c.deployMicrobosh(cloud, microboshDeployment, stemcell, stemcellCID)
+	err = c.deployMicrobosh(cloud, boshDeployment, stemcell, stemcellCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")
 	}
@@ -141,12 +144,7 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 	return releaseTarballPath, stemcellTarballPath, nil
 }
 
-func (c *deployCmd) parseMicroboshManifest() (Deployment, error) {
-	//c.userConfig.DeploymentFile
-	return Deployment{}, nil
-}
-
-func (c *deployCmd) deployMicrobosh(cpi bmcloud.Cloud, deployment Deployment, stemcell bmstemcell.Stemcell, stemcellCID bmstemcell.CID) error {
+func (c *deployCmd) deployMicrobosh(cpi bmcloud.Cloud, deployment bmdepl.Deployment, stemcell bmstemcell.Stemcell, stemcellCID bmstemcell.CID) error {
 	vmManager := c.vmManagerFactory.NewManager(cpi)
 	_, err := vmManager.CreateVM(stemcellCID)
 	// create (or discover & update) remote deployment 'vms'

@@ -116,7 +116,7 @@ func (c cloud) CreateStemcell(stemcell bmstemcell.Stemcell) (cid bmstemcell.CID,
 
 func (c cloud) CreateVM(stemcellCID bmstemcell.CID) (bmvm.CID, error) {
 	method := "create_vm"
-	cmdOutput, err := c.execCPICmd(method, stemcellCID)
+	cmdOutput, err := c.execCPICmd(method, c.deploymentUUID, stemcellCID)
 	if err != nil {
 		return "", err
 	}

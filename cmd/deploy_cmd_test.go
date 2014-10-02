@@ -37,7 +37,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeVMManager        *fakebmvm.FakeManager
 		fakeVMManagerFactory *fakebmvm.FakeManagerFactory
 
-		fakeCpiManifestParser *fakebmdepl.FakeManifestParser
+		fakeCpiManifestParser  *fakebmdepl.FakeManifestParser
+		fakeBoshManifestParser *fakebmdepl.FakeManifestParser
 
 		cpiReleaseTarballPath string
 		stemcellTarballPath   string
@@ -56,6 +57,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
 
 		fakeCpiManifestParser = fakebmdepl.NewFakeManifestParser()
+		fakeBoshManifestParser = fakebmdepl.NewFakeManifestParser()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		command = bmcmd.NewDeployCmd(
@@ -63,6 +65,7 @@ var _ = Describe("DeployCmd", func() {
 			userConfig,
 			fakeFs,
 			fakeCpiManifestParser,
+			fakeBoshManifestParser,
 			fakeCpiDeployer,
 			fakeStemcellManagerFactory,
 			fakeVMManagerFactory,
@@ -117,6 +120,7 @@ var _ = Describe("DeployCmd", func() {
 						userConfig,
 						fakeFs,
 						fakeCpiManifestParser,
+						fakeBoshManifestParser,
 						fakeCpiDeployer,
 						fakeStemcellManagerFactory,
 						fakeVMManagerFactory,
@@ -147,6 +151,7 @@ version: fake-version
 						fakeFs.WriteFileString(userConfig.DeploymentFile, "")
 						deployment = bmdepl.Deployment{}
 						fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, deployment, nil)
+						fakeBoshManifestParser.SetParseBehavior(userConfig.DeploymentFile, deployment, nil)
 						cloud = fakebmcloud.NewFakeCloud()
 						fakeCpiDeployer.SetDeployBehavior(deployment, cpiReleaseTarballPath, cloud, nil)
 						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
@@ -156,10 +161,16 @@ version: fake-version
 						fakeVMManager.SetCreateVMBehavior(expectedStemcellCID, nil)
 					})
 
-					It("parses the CPI manifest", func() {
+					It("parses the CPI portion of the manifest", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
+					})
+
+					It("parses the Bosh portion of the manifest", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+						Expect(fakeBoshManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
 					})
 
 					It("deploys the CPI locally", func() {
@@ -228,6 +239,7 @@ version: fake-version
 							userConfig,
 							fakeFs,
 							fakeCpiManifestParser,
+							fakeBoshManifestParser,
 							fakeCpiDeployer,
 							fakeStemcellManagerFactory,
 							fakeVMManagerFactory,

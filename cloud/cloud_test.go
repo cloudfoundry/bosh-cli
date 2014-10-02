@@ -152,6 +152,7 @@ var _ = Describe("Cloud", func() {
 			cmdInput := CmdInput{
 				Method: "create_vm",
 				Arguments: []interface{}{
+					deploymentUUID,
 					stemcellCID,
 				},
 				Context: CmdContext{
@@ -177,7 +178,7 @@ var _ = Describe("Cloud", func() {
 				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 			})
 
-			It("executes the cpi job script with the stemcell CID", func() {
+			It("executes the cpi job script with the director UUID and stemcell CID", func() {
 				_, err := cloud.CreateVM(stemcellCID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))

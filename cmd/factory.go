@@ -137,7 +137,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		timeService,
 	)
 
-	manifestParser := bmdepl.NewCpiDeploymentParser(f.fileSystem)
+	cpiManifestParser := bmdepl.NewCpiDeploymentParser(f.fileSystem)
+	boshManifestParser := bmdepl.NewBoshDeploymentParser(f.fileSystem)
 	erbrenderer := bmerbrenderer.NewERBRenderer(f.fileSystem, runner, f.logger)
 	templatesIndex := bmindex.NewFileIndex(f.deploymentConfig.TemplatesIndexPath(), f.fileSystem)
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
@@ -173,7 +174,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.ui,
 		f.userConfig,
 		f.fileSystem,
-		manifestParser,
+		cpiManifestParser,
+		boshManifestParser,
 		cpiDeployer,
 		stemcellManagerFactory,
 		vmManagerFactory,
