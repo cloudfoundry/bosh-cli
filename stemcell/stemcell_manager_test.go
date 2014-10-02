@@ -32,13 +32,13 @@ var _ = Describe("Manager", func() {
 	)
 
 	BeforeEach(func() {
-		reader = fakebmstemcell.NewFakeReader()
 		fs = fakesys.NewFakeFileSystem()
+		reader = fakebmstemcell.NewFakeReader()
 		repo = fakebmstemcell.NewFakeRepo()
-		infrastructure = fakebmstemcell.NewFakeInfrastructure()
 		eventLogger = fakebmlog.NewFakeEventLogger()
-		manager = NewManager(fs, reader, repo, eventLogger, infrastructure)
-
+		infrastructure = fakebmstemcell.NewFakeInfrastructure()
+		managerFactory := NewManagerFactory(fs, reader, repo, eventLogger)
+		manager = managerFactory.NewManager(infrastructure)
 		stemcellTarballPath = "/stemcell/tarball/path"
 		tempExtractionDir = "/path/to/dest"
 		fs.TempDirDir = tempExtractionDir

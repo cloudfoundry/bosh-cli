@@ -25,16 +25,6 @@ type manager struct {
 	infrastructure Infrastructure
 }
 
-func NewManager(fs boshsys.FileSystem, reader Reader, repo Repo, eventLogger bmlog.EventLogger, infrastructure Infrastructure) Manager {
-	return &manager{
-		fs:             fs,
-		reader:         reader,
-		repo:           repo,
-		eventLogger:    eventLogger,
-		infrastructure: infrastructure,
-	}
-}
-
 // Upload
 // 1) extracts the tarball & parses its manifest,
 // 2) uploads the stemcell to the infrastructure (if needed),

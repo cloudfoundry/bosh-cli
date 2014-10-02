@@ -27,5 +27,11 @@ func NewManagerFactory(fs boshsys.FileSystem, reader Reader, repo Repo, eventLog
 }
 
 func (f *managerFactory) NewManager(infrastructure Infrastructure) Manager {
-	return NewManager(f.fs, f.reader, f.repo, f.eventLogger, infrastructure)
+	return &manager{
+		fs:             f.fs,
+		reader:         f.reader,
+		repo:           f.repo,
+		eventLogger:    f.eventLogger,
+		infrastructure: infrastructure,
+	}
 }
