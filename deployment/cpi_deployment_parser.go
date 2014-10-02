@@ -17,7 +17,7 @@ func NewCpiDeploymentParser(fs boshsys.FileSystem) ManifestParser {
 	return microDeploymentParser{fs: fs}
 }
 
-type microDeploymentManifest struct {
+type cpiDeploymentManifest struct {
 	Name          string
 	CloudProvider cloudProviderProperties `yaml:"cloud_provider"`
 }
@@ -32,7 +32,7 @@ func (m microDeploymentParser) Parse(path string) (Deployment, error) {
 		return Deployment{}, bosherr.WrapError(err, "Reading file %s", path)
 	}
 
-	depManifest := microDeploymentManifest{}
+	depManifest := cpiDeploymentManifest{}
 	err = candiedyaml.Unmarshal(contents, &depManifest)
 	if err != nil {
 		return Deployment{}, bosherr.WrapError(err, "Parsing job manifest")

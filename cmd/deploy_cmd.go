@@ -65,12 +65,12 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
-	deployment, err := c.cpiManifestParser.Parse(c.userConfig.DeploymentFile)
+	cpiDeployment, err := c.cpiManifestParser.Parse(c.userConfig.DeploymentFile)
 	if err != nil {
 		return bosherr.WrapError(err, "Parsing CPI deployment manifest `%s'", c.userConfig.DeploymentFile)
 	}
 
-	cloud, err := c.cpiDeployer.Deploy(deployment, releaseTarballPath)
+	cloud, err := c.cpiDeployer.Deploy(cpiDeployment, releaseTarballPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying CPI `%s'", releaseTarballPath)
 	}
