@@ -114,9 +114,9 @@ func (c cloud) CreateStemcell(stemcell bmstemcell.Stemcell) (cid bmstemcell.CID,
 	return bmstemcell.CID(cidString), nil
 }
 
-func (c cloud) CreateVM(stemcellCID bmstemcell.CID) (bmvm.CID, error) {
+func (c cloud) CreateVM(stemcellCID bmstemcell.CID, networksSpec map[string]interface{}) (bmvm.CID, error) {
 	method := "create_vm"
-	cmdOutput, err := c.execCPICmd(method, c.deploymentUUID, stemcellCID)
+	cmdOutput, err := c.execCPICmd(method, c.deploymentUUID, stemcellCID, networksSpec)
 	if err != nil {
 		return "", err
 	}

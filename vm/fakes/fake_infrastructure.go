@@ -1,17 +1,13 @@
 package fakes
 
 import (
-	"fmt"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )
 
 type CreateInput struct {
-	StemcellCID bmstemcell.CID
+	StemcellCID  bmstemcell.CID
+	NetworksSpec map[string]interface{}
 }
 
 type createOutput struct {
@@ -20,40 +16,32 @@ type createOutput struct {
 }
 
 type FakeInfrastructure struct {
-	createBehavior map[string]createOutput
-	CreateInputs   []CreateInput
+	createOutput createOutput
+	CreateInput  CreateInput
 }
 
 func NewFakeInfrastructure() *FakeInfrastructure {
 	return &FakeInfrastructure{
-		createBehavior: map[string]createOutput{},
-		CreateInputs:   []CreateInput{},
+		createOutput: createOutput{},
+		CreateInput:  CreateInput{},
 	}
 }
 
-func (i *FakeInfrastructure) CreateVM(stemcellCID bmstemcell.CID) (bmvm.CID, error) {
-	input := CreateInput{StemcellCID: stemcellCID}
-	i.CreateInputs = append(i.CreateInputs, input)
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
-	if marshalErr != nil {
-		return "", bosherr.WrapError(marshalErr, "Marshaling CreateVM input")
+func (i *FakeInfrastructure) CreateVM(stemcellCID bmstemcell.CID, networksSpec map[string]interface{}) (bmvm.CID, error) {
+	input := CreateInput{
+		StemcellCID:  stemcellCID,
+		NetworksSpec: networksSpec,
+	}
+	i.CreateInput = input
+
+	if (i.createOutput != createOutput{}) {
+		return i.createOutput.cid, i.createOutput.err
 	}
 
-	output, found := i.createBehavior[inputString]
-	if found {
-		return output.cid, output.err
-	}
-
-	return "", fmt.Errorf("Unsupported CreateVM Input: %s\nAvailable inputs: %s", inputString, i.createBehavior)
+	return "", nil
 }
 
-func (i *FakeInfrastructure) SetCreateVMBehavior(stemcellCID bmstemcell.CID, vmCID bmvm.CID, err error) error {
-	input := CreateInput{StemcellCID: stemcellCID}
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
-	if marshalErr != nil {
-		return bosherr.WrapError(marshalErr, "Marshaling CreateVM input")
-	}
-
-	i.createBehavior[inputString] = createOutput{cid: vmCID, err: err}
+func (i *FakeInfrastructure) SetCreateVMBehavior(vmCID bmvm.CID, err error) error {
+	i.createOutput = createOutput{cid: vmCID, err: err}
 	return nil
 }

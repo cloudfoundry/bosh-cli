@@ -1,48 +1,46 @@
 package fakes
 
 import (
-	"fmt"
-
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )
 
 type CreateVMInput struct {
 	StemcellCID bmstemcell.CID
+	Deployment  bmdepl.Deployment
 }
 
 type createVMOutput struct {
+	cid bmvm.CID
 	err error
 }
 
 type FakeManager struct {
-	CreateVMInputs   []CreateVMInput
-	createVMBehavior map[CreateVMInput]createVMOutput
+	CreateVMInput  CreateVMInput
+	CreateVMOutput createVMOutput
 }
 
 func NewFakeManager() *FakeManager {
 	return &FakeManager{
-		CreateVMInputs:   []CreateVMInput{},
-		createVMBehavior: map[CreateVMInput]createVMOutput{},
+		CreateVMInput: CreateVMInput{},
 	}
 }
 
-func (m *FakeManager) CreateVM(stemcellCID bmstemcell.CID) (bmvm.CID, error) {
+func (m *FakeManager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (bmvm.CID, error) {
 	input := CreateVMInput{
 		StemcellCID: stemcellCID,
+		Deployment:  deployment,
 	}
-	m.CreateVMInputs = append(m.CreateVMInputs, input)
-	output, found := m.createVMBehavior[input]
-	if !found {
-		return "", fmt.Errorf("Unsupported CreateVM Input: %s", stemcellCID)
+	m.CreateVMInput = input
+
+	if (m.CreateVMOutput != createVMOutput{}) {
+		return m.CreateVMOutput.cid, m.CreateVMOutput.err
 	}
 
-	return "", output.err
+	return "", nil
 }
 
-func (m *FakeManager) SetCreateVMBehavior(cid bmstemcell.CID, err error) {
-	input := CreateVMInput{
-		StemcellCID: cid,
-	}
-	m.createVMBehavior[input] = createVMOutput{err: err}
+func (m *FakeManager) SetCreateVMBehavior(cid bmvm.CID, err error) {
+	m.CreateVMOutput = createVMOutput{cid: cid, err: err}
 }

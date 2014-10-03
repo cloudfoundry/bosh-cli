@@ -146,7 +146,7 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 
 func (c *deployCmd) deployMicrobosh(cpi bmcloud.Cloud, deployment bmdepl.Deployment, stemcell bmstemcell.Stemcell, stemcellCID bmstemcell.CID) error {
 	vmManager := c.vmManagerFactory.NewManager(cpi)
-	_, err := vmManager.CreateVM(stemcellCID)
+	_, err := vmManager.CreateVM(stemcellCID, deployment)
 	// create (or discover & update) remote deployment 'vms'
 	//   cloud.create_vm & store agent_id
 	//   wait for agent to bootstrap

@@ -2,6 +2,7 @@ package vm
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
@@ -9,7 +10,7 @@ import (
 type CID string
 
 type Manager interface {
-	CreateVM(stemcellCID bmstemcell.CID) (CID, error)
+	CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error)
 }
 
 type manager struct {
@@ -17,7 +18,7 @@ type manager struct {
 	eventLogger    bmlog.EventLogger
 }
 
-func (m *manager) CreateVM(stemcellCID bmstemcell.CID) (CID, error) {
+func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error) {
 	event := bmlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 1,
@@ -27,7 +28,12 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID) (CID, error) {
 	}
 	m.eventLogger.AddEvent(event)
 
-	cid, err := m.infrastructure.CreateVM(stemcellCID)
+	networksSpec, err := deployment.NetworksSpec()
+	if err != nil {
+		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+	}
+
+	cid, err := m.infrastructure.CreateVM(stemcellCID, networksSpec)
 	if err != nil {
 		event = bmlog.Event{
 			Stage:   "Deploy Micro BOSH",

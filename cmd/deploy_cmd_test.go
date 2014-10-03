@@ -158,7 +158,6 @@ version: fake-version
 
 						fakeVMManagerFactory.SetNewManagerBehavior(cloud, fakeVMManager)
 						fakeStemcellManager.SetUploadBehavior(stemcellTarballPath, expectedStemcell, expectedStemcellCID, nil)
-						fakeVMManager.SetCreateVMBehavior(expectedStemcellCID, nil)
 					})
 
 					It("parses the CPI portion of the manifest", func() {
@@ -196,11 +195,9 @@ version: fake-version
 						fakeFs.WriteFile(stemcellTarballPath, []byte{})
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeVMManager.CreateVMInputs).To(Equal(
-							[]fakebmvm.CreateVMInput{
-								{
-									StemcellCID: expectedStemcellCID,
-								},
+						Expect(fakeVMManager.CreateVMInput).To(Equal(
+							fakebmvm.CreateVMInput{
+								StemcellCID: expectedStemcellCID,
 							},
 						))
 					})

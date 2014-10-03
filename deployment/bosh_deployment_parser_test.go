@@ -51,6 +51,10 @@ name: fake-deployment-name
 networks:
 - name: fake-network-name
   type: dynamic
+  cloud_properties:
+    subnet: fake-subnet
+    a:
+      b: value
 cloud_provider:
   properties:
     nested-property: fake-property-value
@@ -63,10 +67,17 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.Name).To(Equal("fake-deployment-name"))
-				Expect(deployment.Networks).To(Equal([]Network{
+				networks := deployment.Networks
+				Expect(networks).To(Equal([]Network{
 					{
 						Name: "fake-network-name",
 						Type: Dynamic,
+						RawCloudProperties: map[interface{}]interface{}{
+							"subnet": "fake-subnet",
+							"a": map[interface{}]interface{}{
+								"b": "value",
+							},
+						},
 					},
 				}))
 			})

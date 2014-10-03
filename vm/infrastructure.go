@@ -5,5 +5,5 @@ import (
 )
 
 type Infrastructure interface {
-	CreateVM(bmstemcell.CID) (CID, error)
+	CreateVM(bmstemcell.CID, map[string]interface{}) (CID, error)
 }

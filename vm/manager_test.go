@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
@@ -17,12 +18,14 @@ import (
 var _ = Describe("Manager", func() {
 	Describe("CreateVM", func() {
 		var (
-			infrastructure      *fakebmvm.FakeInfrastructure
-			eventLogger         *fakebmlog.FakeEventLogger
-			manager             Manager
-			expectedStemcellCID bmstemcell.CID
-			expectedVMCID       CID
-			stemcellCID         bmstemcell.CID
+			infrastructure       *fakebmvm.FakeInfrastructure
+			eventLogger          *fakebmlog.FakeEventLogger
+			manager              Manager
+			expectedStemcellCID  bmstemcell.CID
+			expectedVMCID        CID
+			expectedNetworksSpec map[string]interface{}
+			stemcellCID          bmstemcell.CID
+			deployment           bmdepl.Deployment
 		)
 
 		BeforeEach(func() {
@@ -31,25 +34,39 @@ var _ = Describe("Manager", func() {
 			manager = NewManagerFactory(eventLogger).NewManager(infrastructure)
 			expectedStemcellCID = bmstemcell.CID("fake-stemcell-cid")
 			expectedVMCID = CID("fake-vm-cid")
-			infrastructure.SetCreateVMBehavior(expectedStemcellCID, expectedVMCID, nil)
+			expectedNetworksSpec = map[string]interface{}{
+				"fake-network-name": map[string]interface{}{
+					"type":             "dynamic",
+					"cloud_properties": map[string]interface{}{},
+				},
+			}
+			infrastructure.SetCreateVMBehavior(expectedVMCID, nil)
 			stemcellCID = bmstemcell.CID("fake-stemcell-cid")
+			deployment = bmdepl.Deployment{
+				Name: "fake-deployment",
+				Networks: []bmdepl.Network{
+					{
+						Name: "fake-network-name",
+						Type: "dynamic",
+					},
+				},
+			}
 		})
 
 		It("creates a VM", func() {
-			vmCID, err := manager.CreateVM(expectedStemcellCID)
+			vmCID, err := manager.CreateVM(expectedStemcellCID, deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(vmCID).To(Equal(expectedVMCID))
-			Expect(infrastructure.CreateInputs).To(Equal(
-				[]fakebmvm.CreateInput{
-					{
-						StemcellCID: expectedStemcellCID,
-					},
+			Expect(infrastructure.CreateInput).To(Equal(
+				fakebmvm.CreateInput{
+					StemcellCID:  expectedStemcellCID,
+					NetworksSpec: expectedNetworksSpec,
 				},
 			))
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := manager.CreateVM(stemcellCID)
+			_, err := manager.CreateVM(stemcellCID, deployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedStartEvent := bmlog.Event{
@@ -75,9 +92,9 @@ var _ = Describe("Manager", func() {
 
 		Context("when creating the vm fails", func() {
 			It("logs start and failure events to the eventLogger", func() {
-				infrastructure.SetCreateVMBehavior(expectedStemcellCID, expectedVMCID, bosherr.New("fake-create-error"))
+				infrastructure.SetCreateVMBehavior(expectedVMCID, bosherr.New("fake-create-error"))
 
-				_, err := manager.CreateVM(stemcellCID)
+				_, err := manager.CreateVM(stemcellCID, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 
