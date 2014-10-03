@@ -41,5 +41,5 @@ func TestIntegration(t *testing.T) {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	RunSpecs(t, "bosh-micro-cli Integration Suite")
+	RunSpecs(t, "Integration Suite")
 }
