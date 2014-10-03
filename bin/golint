@@ -7,7 +7,8 @@ $bin/go install github.com/golang/lint/golint
 errors=$(
   $bin/env golint $bin/..                                           \
     | grep -v 'Godeps/_workspace'                                   \
-    | grep -v 'should have comment.* or be unexported'
+    | grep -v 'should have comment.* or be unexported'              \
+    | grep -v 'should not be capitalized'
 )
 
 if [ "$(echo -n "$errors")" != "" ]; then
