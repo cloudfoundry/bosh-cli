@@ -557,6 +557,15 @@ rbi: *ss
 					"rbi": map[interface{}]interface{}{"MG": "SS"},
 				}))
 			})
+
+			It("supports binary", func() {
+				d := NewDecoder(strings.NewReader("!binary YWJjZGVmZw=="))
+				var v interface{}
+
+				err := d.Decode(&v)
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(v).Should(Equal([]byte("abcdefg")))
+			})
 		})
 	})
 

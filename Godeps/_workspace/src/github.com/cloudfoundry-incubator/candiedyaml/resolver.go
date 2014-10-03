@@ -29,7 +29,6 @@ import (
 var byteSliceType = reflect.TypeOf([]byte(nil))
 
 var binary_tags = [][]byte{[]byte("!binary"), []byte("tag:yaml.org,2002:binary")}
-
 var bool_values map[string]bool
 var null_values map[string]bool
 
@@ -76,24 +75,11 @@ func resolve(event yaml_event_t, v reflect.Value, useNumber bool) (string, error
 			if n, ok := i.(Number); ok {
 				v.Set(reflect.ValueOf(n))
 				return tag, nil
-			} else {
-				return "", errors.New("Not a Number: " + reflect.TypeOf(i).String())
 			}
-		} else {
-			if len(event.tag) > 0 {
-				for _, tag := range binary_tags {
-					if bytes.Equal(event.tag, tag) {
-						b, err := resolve_binary(event.value)
-						if err != nil {
-							return "", err
-						}
-						val = string(b)
-						break
-					}
-				}
-			}
-			v.SetString(val)
+			return "", errors.New("Not a Number: " + reflect.TypeOf(i).String())
 		}
+
+		return resolve_string(val, v, event)
 	case reflect.Bool:
 		return resolve_bool(val, v)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -111,7 +97,7 @@ func resolve(event yaml_event_t, v reflect.Value, useNumber bool) (string, error
 		if v.Type() != byteSliceType {
 			return "", errors.New("Cannot resolve into " + v.Type().String())
 		}
-		b, err := resolve_binary(event.value)
+		b, err := decode_binary(event.value)
 		if err != nil {
 			return "", err
 		}
@@ -124,10 +110,33 @@ func resolve(event yaml_event_t, v reflect.Value, useNumber bool) (string, error
 	return "!!str", nil
 }
 
-func resolve_binary(value []byte) ([]byte, error) {
+func hasBinaryTag(event yaml_event_t) bool {
+	for _, tag := range binary_tags {
+		if bytes.Equal(event.tag, tag) {
+			return true
+		}
+	}
+	return false
+}
+
+func decode_binary(value []byte) ([]byte, error) {
 	b := make([]byte, base64.StdEncoding.DecodedLen(len(value)))
 	n, err := base64.StdEncoding.Decode(b, value)
 	return b[:n], err
+}
+
+func resolve_string(val string, v reflect.Value, event yaml_event_t) (string, error) {
+	if len(event.tag) > 0 {
+		if hasBinaryTag(event) {
+			b, err := decode_binary(event.value)
+			if err != nil {
+				return "", err
+			}
+			val = string(b)
+		}
+	}
+	v.SetString(val)
+	return "!!str", nil
 }
 
 func resolve_bool(val string, v reflect.Value) (string, error) {
@@ -489,5 +498,12 @@ func resolveInterface(event yaml_event_t, useNumber bool) (string, interface{}) 
 		}
 	}
 
-	return "!!str", string(event.value)
+	if hasBinaryTag(event) {
+		bytes, err := decode_binary(event.value)
+		if err == nil {
+			return "!!binary", bytes
+		}
+	}
+
+	return "!!str", val
 }

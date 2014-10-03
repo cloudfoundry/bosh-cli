@@ -7,7 +7,7 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/candiedyaml",
-			"Rev": "3615398bbf366a1e84f57861906a56dfaf66ceb9"
+			"Rev": "42b748ad054a21a2867b5fcd557a82a06cbdc782"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/blobstore",
