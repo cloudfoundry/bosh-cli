@@ -82,7 +82,6 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Parsing Microbosh deployment manifest `%s'", c.userConfig.DeploymentFile)
 	}
 
-	//TODO: factory to create microbosh deployer with cloud
 	err = c.deployMicrobosh(cloud, microboshDeployment, stemcell)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")

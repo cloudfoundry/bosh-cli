@@ -42,7 +42,6 @@ var _ = Describe("BlobExtractor", func() {
 	Context("when the specified blobID exists in the blobstore", func() {
 		BeforeEach(func() {
 			blobstore.GetFileName = "fake-blob-file"
-			fakeExtractor.SetDecompressBehavior("fake-blob-file", "fake-target-dir", nil)
 		})
 
 		It("creates the installed package dir if it does not exist", func() {
@@ -55,7 +54,7 @@ var _ = Describe("BlobExtractor", func() {
 		It("extracts the blob into the target dir", func() {
 			err := blobExtractor.Extract(blobID, blobSHA1, targetDir)
 			Expect(err).ToNot(HaveOccurred())
-			//TODO: expect that file is extracted to the targetDir
+			Expect(fakeExtractor.DecompressedFiles()).To(ContainElement("fake-target-dir/fake-blob-file"))
 		})
 
 		It("cleans up the blob file", func() {

@@ -27,10 +27,6 @@ var _ = Describe("tarReader", func() {
 
 	Describe("Read", func() {
 		Context("when the given release archive is a valid tar", func() {
-			BeforeEach(func() {
-				fakeExtractor.SetDecompressBehavior("/some/release.tgz", "/extracted/release", nil)
-			})
-
 			Context("when the release manifest is valid", func() {
 				BeforeEach(func() {
 					fakeFs.WriteFileString(
@@ -61,7 +57,6 @@ packages:
 
 				Context("when the jobs and packages in the release are valid", func() {
 					BeforeEach(func() {
-						fakeExtractor.SetDecompressBehavior("/extracted/release/jobs/fake-job.tgz", "/extracted/release/extracted_jobs/fake-job", nil)
 						fakeFs.WriteFileString(
 							"/extracted/release/extracted_jobs/fake-job/job.MF",
 							`---
@@ -75,14 +70,6 @@ packages:
 					})
 
 					Context("when the packages in the release are valid", func() {
-						BeforeEach(func() {
-							fakeExtractor.SetDecompressBehavior(
-								"/extracted/release/packages/fake-package.tgz",
-								"/extracted/release/extracted_packages/fake-package",
-								nil,
-							)
-						})
-
 						It("returns a release from the given tar file", func() {
 							release, err := reader.Read()
 							Expect(err).NotTo(HaveOccurred())
@@ -218,7 +205,6 @@ fingerprint: fake-job-fingerprint
 sha1: fake-job-sha
 `
 					fakeFs.WriteFileString("/extracted/release/release.MF", releaseMFContents)
-					fakeExtractor.SetDecompressBehavior("/extracted/release/jobs/fake-job.tgz", "/extracted/release/extracted_jobs/fake-job", nil)
 					jobMFContents :=
 						`---
 name: fake-job
@@ -236,6 +222,10 @@ packages:
 		})
 
 		Context("when the CPI release is not a valid tar", func() {
+			BeforeEach(func() {
+				fakeExtractor.SetDecompressBehavior("/some/release.tgz", "/extracted/release", errors.New("fake-error"))
+			})
+
 			It("returns err", func() {
 				_, err := reader.Read()
 				Expect(err).To(HaveOccurred())

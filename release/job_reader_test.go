@@ -1,6 +1,8 @@
 package release_test
 
 import (
+	"errors"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -23,10 +25,6 @@ var _ = Describe("JobReader", func() {
 	})
 
 	Context("when the job archive is a valid tar", func() {
-		BeforeEach(func() {
-			fakeExtractor.SetDecompressBehavior("/some/job/archive", "/extracted/job", nil)
-		})
-
 		Context("when the job manifest is valid", func() {
 			BeforeEach(func() {
 				fakeFs.WriteFileString(
@@ -82,6 +80,10 @@ properties:
 	})
 
 	Context("when the job archive is not a valid tar", func() {
+		BeforeEach(func() {
+			fakeExtractor.SetDecompressBehavior("/some/job/archive", "/extracted/job", errors.New("fake-error"))
+		})
+
 		It("returns error", func() {
 			_, err := reader.Read()
 			Expect(err).To(HaveOccurred())

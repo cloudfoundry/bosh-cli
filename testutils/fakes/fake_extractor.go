@@ -23,32 +23,43 @@ type cleanUpOutput struct {
 	err error
 }
 
+type decompressError error
+
 type FakeMultiResponseExtractor struct {
-	decompressBehavior map[decompressInput]decompressOutput
+	decompressBehavior map[decompressInput]decompressError
 	compressBehavior   map[compressInput]compressOutput
 	cleanUpBehavior    map[cleanUpInput]cleanUpOutput
+	decompressedInputs []decompressInput
 }
 
 func NewFakeMultiResponseExtractor() *FakeMultiResponseExtractor {
-	return &FakeMultiResponseExtractor{decompressBehavior: map[decompressInput]decompressOutput{}}
+	return &FakeMultiResponseExtractor{decompressBehavior: map[decompressInput]decompressError{}}
 }
 
 func (e *FakeMultiResponseExtractor) DecompressFileToDir(srcFile, destDir string) error {
-	input := decompressInput{srcFile: srcFile, destDir: destDir}
-	output, found := e.decompressBehavior[input]
+	decompressInput := decompressInput{srcFile: srcFile, destDir: destDir}
+	decompressError := e.decompressBehavior[decompressInput]
 
-	if found {
-		return output.err
+	if decompressError != nil {
+		return decompressError
 	}
-	return fmt.Errorf("Unsupported Input: DecompressFileToDir('%s', '%s')\nAvailable inputs: %#v", srcFile, destDir, e.decompressBehavior)
+
+	e.decompressedInputs = append(e.decompressedInputs, decompressInput)
+
+	return nil
 }
 
-func (e *FakeMultiResponseExtractor) SetDecompressBehavior(srcFile, destDir string, err error) {
-	e.decompressBehavior[decompressInput{srcFile: srcFile, destDir: destDir}] = decompressOutput{err: err}
+func (e *FakeMultiResponseExtractor) SetDecompressBehavior(srcFile, destDir string, err decompressError) {
+	e.decompressBehavior[decompressInput{srcFile: srcFile, destDir: destDir}] = err
 }
 
-func (e *FakeMultiResponseExtractor) Behaviors() map[decompressInput]decompressOutput {
-	return e.decompressBehavior
+func (e *FakeMultiResponseExtractor) DecompressedFiles() []string {
+	files := make([]string, 0, len(e.decompressedInputs))
+	for _, decompressedInput := range e.decompressedInputs {
+		file := fmt.Sprintf("%s/%s", decompressedInput.destDir, decompressedInput.srcFile)
+		files = append(files, file)
+	}
+	return files
 }
 
 func (e *FakeMultiResponseExtractor) CompressFilesInDir(srcDir string) (string, error) {

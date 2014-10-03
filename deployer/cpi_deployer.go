@@ -66,9 +66,7 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	}
 	defer c.fs.RemoveAll(extractedReleasePath)
 
-	//TODO: Inject reader with fs & extractor pre-configured
 	releaseReader := bmrel.NewReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
-	//TODO: refactor Read to take releaseTarballPath & extractedReleasePath
 	release, err := releaseReader.Read()
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release at `%s' is not a BOSH release", releaseTarballPath))
@@ -84,13 +82,6 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Validating CPI release `%s'", release.Name)
 	}
-
-	//TODO: inject release name into deployment job templates
-	//	for _, deploymentJob := range deployment.Jobs() {
-	//		for _, jobRef := range deploymentJob.Templates() {
-	//			//TODO: jobRef.SetRelease(release.Name())
-	//		}
-	//	}
 
 	// compile packages & render job templates
 	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name))
@@ -142,14 +133,6 @@ func (c *cpiDeployer) installJob(deploymentJob bmdepl.Job, release bmrel.Release
 
 	installedJobs := make([]bminstall.InstalledJob, 0, len(deploymentJob.Templates))
 	for _, releaseJobRef := range deploymentJob.Templates {
-		// Microbosh manifests do not know the name of the cpi release...
-		//TODO: uncomment after release name injection is added
-		//    releaseName := releaseJobRef.Release()
-		//		if releaseName != release.Name {
-		//			c.ui.Error(fmt.Sprintf("Could not find release `%s', specified by job `%s', expected `%s'", releaseName, deploymentJobName, release.Name))
-		//			return bosherr.New("Invalid CPI deployment manifest: release `%s' not found, specified by job `%s', expected `%s'", releaseName, deploymentJobName, release.Name)
-		//		}
-
 		releaseJobName := releaseJobRef.Name
 		releaseJob, found := release.FindJobByName(releaseJobName)
 

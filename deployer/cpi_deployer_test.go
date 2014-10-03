@@ -122,8 +122,6 @@ jobs:
   sha1: fake-release-job-sha1
 `
 				fakeFs.WriteFileString("/release/release.MF", releaseContents)
-				fakeExtractor.SetDecompressBehavior("/release/packages/fake-release-package-name.tgz", "/release/extracted_packages/fake-release-package-name", nil)
-				fakeExtractor.SetDecompressBehavior("/release/jobs/fake-release-job-name.tgz", "/release/extracted_jobs/fake-release-job-name", nil)
 				jobManifestContents := `---
 name: fake-release-job-name
 templates:
@@ -146,9 +144,6 @@ properties: {}
 				)
 
 				BeforeEach(func() {
-					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/release", nil)
-
-					//TODO: parse deployment from yml?
 					deployment = bmdepl.Deployment{
 						Name:       "fake-deployment-name",
 						Properties: map[string]interface{}{},
@@ -212,7 +207,6 @@ properties: {}
 
 			Context("and the tarball is not a valid BOSH release", func() {
 				BeforeEach(func() {
-					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/release", nil)
 					fakeFs.WriteFileString("/release/release.MF", `{}`)
 					fakeReleaseValidator.ValidateError = errors.New("fake-error")
 				})
@@ -232,6 +226,7 @@ properties: {}
 
 			Context("and the tarball cannot be read", func() {
 				It("returns an error", func() {
+					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/release", errors.New("fake-error"))
 					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Reading CPI release from `/fake/release.tgz'"))
@@ -241,7 +236,6 @@ properties: {}
 
 			Context("when compilation fails", func() {
 				It("returns an error", func() {
-					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/release", nil)
 					fakeReleaseCompiler.SetCompileBehavior(release, deployment, errors.New("fake-compile-error"))
 
 					_, err := cpiDeployer.Deploy(deployment, releaseTarballPath)
