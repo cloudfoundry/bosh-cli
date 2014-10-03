@@ -20,17 +20,13 @@ func resolveInner(pkg *bmrel.Package, noFollow []*bmrel.Package) []*bmrel.Packag
 			}
 		}
 	}
-	all = remove(all, pkg)
-	return all
-}
 
-func remove(list []*bmrel.Package, element *bmrel.Package) []*bmrel.Package {
-	for i, pkg := range list {
-		if element == pkg {
-			return append(list[:i], list[i+1:]...)
+	for i, el := range all {
+		if el == pkg {
+			all = append(all[:i], all[i+1:]...)
 		}
 	}
-	return list
+	return all
 }
 
 func contains(list []*bmrel.Package, element *bmrel.Package) bool {
