@@ -4,12 +4,10 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
-// ResolveDependencies resolves transitives package dependencies to an flattened slice
 func ResolveDependencies(pkg *bmrel.Package) []*bmrel.Package {
 	return resolveInner(pkg, []*bmrel.Package{})
 }
 
-// Resolves transitives package dependencies to an flattened slice
 func resolveInner(pkg *bmrel.Package, noFollow []*bmrel.Package) []*bmrel.Package {
 	all := []*bmrel.Package{}
 	for _, depPkg := range pkg.Dependencies {
@@ -22,7 +20,6 @@ func resolveInner(pkg *bmrel.Package, noFollow []*bmrel.Package) []*bmrel.Packag
 			}
 		}
 	}
-	// remove pkg if a cycle was found
 	all = remove(all, pkg)
 	return all
 }

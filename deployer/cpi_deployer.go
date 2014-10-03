@@ -57,7 +57,6 @@ func NewCpiDeployer(
 }
 
 func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
-	// unpack cpi release source
 	c.logger.Info(c.logTag, "Extracting CPI release")
 	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
 	if err != nil {
@@ -76,14 +75,12 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	release.TarballPath = releaseTarballPath
 	c.logger.Info(c.logTag, "Extracted CPI release `%s' to `%s'", release.Name, extractedReleasePath)
 
-	// validate cpi release source
 	c.logger.Info(c.logTag, "Validating CPI release `%s'", release.Name)
 	err = c.validator.Validate(release)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Validating CPI release `%s'", release.Name)
 	}
 
-	// compile packages & render job templates
 	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name))
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release `%s': %#v", release.Name, release))
 	err = c.releaseCompiler.Compile(release, deployment)
@@ -92,7 +89,6 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 		return nil, bosherr.WrapError(err, "Compiling CPI release")
 	}
 
-	// cpi deployment should only have one job (because it's a local deployment)
 	jobs := deployment.Jobs
 	if len(jobs) != 1 {
 		c.ui.Error("Invalid CPI deployment: exactly one job required")
@@ -100,7 +96,6 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	}
 	cpiJob := jobs[0]
 
-	// local deployment job should only ever have 1 instance
 	instances := cpiJob.Instances
 	if instances != 1 {
 		c.ui.Error("Invalid CPI deployment: exactly one job instance required")
@@ -126,11 +121,7 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	return cloud, nil
 }
 
-// installJob installs the deployment job's rendered job templates & required compiled packages
-// all job templates must be in the specified release
 func (c *cpiDeployer) installJob(deploymentJob bmdepl.Job, release bmrel.Release) ([]bminstall.InstalledJob, error) {
-	//	deploymentJobName := deploymentJob.Name()
-
 	installedJobs := make([]bminstall.InstalledJob, 0, len(deploymentJob.Templates))
 	for _, releaseJobRef := range deploymentJob.Templates {
 		releaseJobName := releaseJobRef.Name

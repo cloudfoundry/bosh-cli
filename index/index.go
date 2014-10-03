@@ -131,7 +131,6 @@ func (ri FileIndex) writeRawEntries(entries []indexEntry) error {
 	return nil
 }
 
-// structToMap extracts fields from a struct and populates a map
 func (ri FileIndex) structToMap(s interface{}) (map[string]interface{}, error) {
 	res := map[string]interface{}{}
 	st := reflect.TypeOf(s)
@@ -149,12 +148,10 @@ func (ri FileIndex) structToMap(s interface{}) (map[string]interface{}, error) {
 	return res, nil
 }
 
-// mapToStruct returns new struct value with data from a map
 func (ri FileIndex) mapToStruct(m map[string]interface{}, t interface{}) (reflect.Value, error) {
 	return ri.mapToNewStruct(m, reflect.ValueOf(t).Elem().Type())
 }
 
-// mapToStructFromSlice returns new struct value with data from a map
 func (ri FileIndex) mapToStructFromSlice(m map[string]interface{}, t interface{}) (reflect.Value, error) {
 	slice := reflect.ValueOf(t).Elem()
 
@@ -168,7 +165,6 @@ func (ri FileIndex) mapToStructFromSlice(m map[string]interface{}, t interface{}
 	return ri.mapToNewStruct(m, slice.Type().Elem())
 }
 
-// mapToNewStruct returns new struct of type t with data from a map
 func (ri FileIndex) mapToNewStruct(m map[string]interface{}, t reflect.Type) (reflect.Value, error) {
 	if t.Kind() != reflect.Struct {
 		return reflect.Value{}, bosherr.New(
