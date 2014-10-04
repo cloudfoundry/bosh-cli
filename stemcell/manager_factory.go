@@ -3,7 +3,7 @@ package stemcell
 import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
 type ManagerFactory interface {
@@ -14,10 +14,10 @@ type managerFactory struct {
 	fs          boshsys.FileSystem
 	reader      Reader
 	repo        Repo
-	eventLogger bmlog.EventLogger
+	eventLogger bmeventlog.EventLogger
 }
 
-func NewManagerFactory(fs boshsys.FileSystem, reader Reader, repo Repo, eventLogger bmlog.EventLogger) ManagerFactory {
+func NewManagerFactory(fs boshsys.FileSystem, reader Reader, repo Repo, eventLogger bmeventlog.EventLogger) ManagerFactory {
 	return &managerFactory{
 		fs:          fs,
 		reader:      reader,

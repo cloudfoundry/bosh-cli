@@ -5,7 +5,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
@@ -17,16 +17,16 @@ type Manager interface {
 
 type manager struct {
 	infrastructure Infrastructure
-	eventLogger    bmlog.EventLogger
+	eventLogger    bmeventlog.EventLogger
 }
 
 func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error) {
-	event := bmlog.Event{
+	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 1,
 		Task:  fmt.Sprintf("Creating VM from %s", stemcellCID),
 		Index: 1,
-		State: bmlog.Started,
+		State: bmeventlog.Started,
 	}
 	m.eventLogger.AddEvent(event)
 
@@ -48,24 +48,24 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 
 	cid, err := m.infrastructure.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 	if err != nil {
-		event = bmlog.Event{
+		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
 			Total:   1,
 			Task:    fmt.Sprintf("Creating VM from %s", stemcellCID),
 			Index:   1,
-			State:   bmlog.Failed,
+			State:   bmeventlog.Failed,
 			Message: err.Error(),
 		}
 		m.eventLogger.AddEvent(event)
 		return "", bosherr.WrapError(err, "creating vm with stemcell cid `%s'", stemcellCID)
 	}
 
-	event = bmlog.Event{
+	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 1,
 		Task:  fmt.Sprintf("Creating VM from %s", stemcellCID),
 		Index: 1,
-		State: bmlog.Finished,
+		State: bmeventlog.Finished,
 	}
 	m.eventLogger.AddEvent(event)
 

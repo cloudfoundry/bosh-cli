@@ -1,4 +1,4 @@
-package logging_test
+package eventlogging_test
 
 import (
 	"bytes"
@@ -11,9 +11,9 @@ import (
 
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
-	fakelog "github.com/cloudfoundry/bosh-micro-cli/logging/fakes"
+	fakelog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/logging"
+	. "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
 var _ = Describe("EventLogger", func() {

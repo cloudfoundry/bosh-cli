@@ -17,9 +17,9 @@ import (
 	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
@@ -124,10 +124,10 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		packageInstaller,
 	)
 	timeService := boshtime.NewConcreteService()
-	eventFilters := []bmlog.EventFilter{
-		bmlog.NewTimeFilter(timeService),
+	eventFilters := []bmeventlog.EventFilter{
+		bmeventlog.NewTimeFilter(timeService),
 	}
-	eventLogger := bmlog.NewEventLoggerWithFilters(f.ui, eventFilters)
+	eventLogger := bmeventlog.NewEventLoggerWithFilters(f.ui, eventFilters)
 
 	da := bmcomp.NewDependencyAnalysis()
 	releasePackagesCompiler := bmcomp.NewReleasePackagesCompiler(

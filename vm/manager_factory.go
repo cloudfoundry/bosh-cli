@@ -1,7 +1,7 @@
 package vm
 
 import (
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
 type ManagerFactory interface {
@@ -9,10 +9,10 @@ type ManagerFactory interface {
 }
 
 type managerFactory struct {
-	eventLogger bmlog.EventLogger
+	eventLogger bmeventlog.EventLogger
 }
 
-func NewManagerFactory(eventLogger bmlog.EventLogger) ManagerFactory {
+func NewManagerFactory(eventLogger bmeventlog.EventLogger) ManagerFactory {
 	return &managerFactory{
 		eventLogger: eventLogger,
 	}

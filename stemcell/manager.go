@@ -4,7 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
 type CID string
@@ -21,7 +21,7 @@ type manager struct {
 	fs             boshsys.FileSystem
 	reader         Reader
 	repo           Repo
-	eventLogger    bmlog.EventLogger
+	eventLogger    bmeventlog.EventLogger
 	infrastructure Infrastructure
 }
 
@@ -37,36 +37,36 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 	}
 	defer m.fs.RemoveAll(tmpDir)
 
-	event := bmlog.Event{
+	event := bmeventlog.Event{
 		Stage: "uploading stemcell",
 		Total: 2,
 		Task:  "Unpacking",
 		Index: 1,
-		State: bmlog.Started,
+		State: bmeventlog.Started,
 	}
 	m.eventLogger.AddEvent(event)
 
 	// parse/reads stemcell manifest into Stemcell object
 	stemcell, err = m.reader.Read(tarballPath, tmpDir)
 	if err != nil {
-		event = bmlog.Event{
+		event = bmeventlog.Event{
 			Stage: "uploading stemcell",
 			Total: 2,
 			Task:  "Unpacking",
 			Index: 1,
-			State: bmlog.Failed,
+			State: bmeventlog.Failed,
 		}
 		m.eventLogger.AddEvent(event)
 
 		return stemcell, cid, bosherr.WrapError(err, "reading extracted stemcell manifest in `%s'", tmpDir)
 	}
 
-	event = bmlog.Event{
+	event = bmeventlog.Event{
 		Stage: "uploading stemcell",
 		Total: 2,
 		Task:  "Unpacking",
 		Index: 1,
-		State: bmlog.Finished,
+		State: bmeventlog.Finished,
 	}
 	m.eventLogger.AddEvent(event)
 
@@ -75,12 +75,12 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 		return stemcell, cid, bosherr.WrapError(err, "finding existing stemcell record in repo")
 	}
 	if found {
-		event = bmlog.Event{
+		event = bmeventlog.Event{
 			Stage:   "uploading stemcell",
 			Total:   2,
 			Task:    "Uploading",
 			Index:   2,
-			State:   bmlog.Skipped,
+			State:   bmeventlog.Skipped,
 			Message: "stemcell already uploaded",
 		}
 		m.eventLogger.AddEvent(event)
@@ -88,23 +88,23 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 		return stemcell, cid, nil
 	}
 
-	event = bmlog.Event{
+	event = bmeventlog.Event{
 		Stage: "uploading stemcell",
 		Total: 2,
 		Task:  "Uploading",
 		Index: 2,
-		State: bmlog.Started,
+		State: bmeventlog.Started,
 	}
 	m.eventLogger.AddEvent(event)
 
 	cid, err = m.infrastructure.CreateStemcell(stemcell)
 	if err != nil {
-		event = bmlog.Event{
+		event = bmeventlog.Event{
 			Stage: "uploading stemcell",
 			Total: 2,
 			Task:  "Uploading",
 			Index: 2,
-			State: bmlog.Failed,
+			State: bmeventlog.Failed,
 		}
 		m.eventLogger.AddEvent(event)
 
@@ -120,12 +120,12 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 	if err != nil {
 		//TODO: delete stemcell from infrastructure
 
-		event = bmlog.Event{
+		event = bmeventlog.Event{
 			Stage: "uploading stemcell",
 			Total: 2,
 			Task:  "Uploading",
 			Index: 2,
-			State: bmlog.Failed,
+			State: bmeventlog.Failed,
 		}
 		m.eventLogger.AddEvent(event)
 
@@ -137,12 +137,12 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 		)
 	}
 
-	event = bmlog.Event{
+	event = bmeventlog.Event{
 		Stage: "uploading stemcell",
 		Total: 2,
 		Task:  "Uploading",
 		Index: 2,
-		State: bmlog.Finished,
+		State: bmeventlog.Finished,
 	}
 	m.eventLogger.AddEvent(event)
 

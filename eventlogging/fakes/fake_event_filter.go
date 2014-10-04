@@ -1,10 +1,10 @@
 package fakes
 
 import (
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
-type FilterDelegate func(*bmlog.Event) error
+type FilterDelegate func(*bmeventlog.Event) error
 
 type FakeEventFilter struct {
 	filterDelegate FilterDelegate
@@ -14,7 +14,7 @@ func NewFakeEventFilter() *FakeEventFilter {
 	return &FakeEventFilter{}
 }
 
-func (f *FakeEventFilter) Filter(event *bmlog.Event) error {
+func (f *FakeEventFilter) Filter(event *bmeventlog.Event) error {
 	return f.filterDelegate(event)
 }
 

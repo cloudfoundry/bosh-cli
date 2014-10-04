@@ -9,14 +9,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
 	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/logging/fakes"
 	fakebmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/install"
@@ -108,22 +108,22 @@ var _ = Describe("JobInstaller", func() {
 			_, err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedStartEvent := bmlog.Event{
+			expectedStartEvent := bmeventlog.Event{
 				Time:  installStart,
 				Stage: "installing CPI jobs",
 				Total: 1,
 				Task:  "cpi",
 				Index: 1,
-				State: bmlog.Started,
+				State: bmeventlog.Started,
 			}
 
-			expectedFinishEvent := bmlog.Event{
+			expectedFinishEvent := bmeventlog.Event{
 				Time:  installFinish,
 				Stage: "installing CPI jobs",
 				Total: 1,
 				Task:  "cpi",
 				Index: 1,
-				State: bmlog.Finished,
+				State: bmeventlog.Finished,
 			}
 
 			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
@@ -140,22 +140,22 @@ var _ = Describe("JobInstaller", func() {
 			_, err := jobInstaller.Install(job)
 			Expect(err).To(HaveOccurred())
 
-			expectedStartEvent := bmlog.Event{
+			expectedStartEvent := bmeventlog.Event{
 				Time:  installStart,
 				Stage: "installing CPI jobs",
 				Total: 1,
 				Task:  "cpi",
 				Index: 1,
-				State: bmlog.Started,
+				State: bmeventlog.Started,
 			}
 
-			expectedFailEvent := bmlog.Event{
+			expectedFailEvent := bmeventlog.Event{
 				Time:    installFail,
 				Stage:   "installing CPI jobs",
 				Total:   1,
 				Task:    "cpi",
 				Index:   1,
-				State:   bmlog.Failed,
+				State:   bmeventlog.Failed,
 				Message: "Creating jobs directory `/fake/jobs/cpi': fake-mkdir-error",
 			}
 

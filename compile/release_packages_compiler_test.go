@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
 
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/logging/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
 	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/compile"
@@ -82,7 +82,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				err := releasePackagesCompiler.Compile(release)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectedStartEvent := bmlog.Event{
+				expectedStartEvent := bmeventlog.Event{
 					Time:  pkg1Start,
 					Stage: "compiling packages",
 					Total: 2,
@@ -91,7 +91,7 @@ var _ = Describe("ReleaseCompiler", func() {
 					State: "started",
 				}
 
-				expectedFinishEvent := bmlog.Event{
+				expectedFinishEvent := bmeventlog.Event{
 					Time:  pkg1Finish,
 					Stage: "compiling packages",
 					Total: 2,
@@ -119,7 +119,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				err := releasePackagesCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
 
-				expectedFailEvent := bmlog.Event{
+				expectedFailEvent := bmeventlog.Event{
 					Time:    pkg1Fail,
 					Stage:   "compiling packages",
 					Total:   2,
@@ -141,7 +141,7 @@ var _ = Describe("ReleaseCompiler", func() {
 
 			Context("when adding a started event fails", func() {
 				BeforeEach(func() {
-					eventLogger.AddEventErrors[bmlog.Started] = errors.New("fake-add-event-error")
+					eventLogger.AddEventErrors[bmeventlog.Started] = errors.New("fake-add-event-error")
 				})
 
 				It("returns error", func() {
@@ -154,7 +154,7 @@ var _ = Describe("ReleaseCompiler", func() {
 			Context("when adding a failed event fails", func() {
 				BeforeEach(func() {
 					packageCompiler.CompileError = errors.New("Compilation failed")
-					eventLogger.AddEventErrors[bmlog.Failed] = errors.New("fake-add-event-error")
+					eventLogger.AddEventErrors[bmeventlog.Failed] = errors.New("fake-add-event-error")
 				})
 
 				It("returns error", func() {
@@ -166,7 +166,7 @@ var _ = Describe("ReleaseCompiler", func() {
 
 			Context("when adding a finished event fails", func() {
 				BeforeEach(func() {
-					eventLogger.AddEventErrors[bmlog.Finished] = errors.New("fake-add-event-error")
+					eventLogger.AddEventErrors[bmeventlog.Finished] = errors.New("fake-add-event-error")
 				})
 
 				It("returns error", func() {

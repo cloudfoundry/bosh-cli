@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
@@ -17,14 +17,14 @@ type ReleasePackagesCompiler interface {
 type releasePackagesCompiler struct {
 	dependencyAnalysis DependencyAnalysis
 	packageCompiler    PackageCompiler
-	eventLogger        bmlog.EventLogger
+	eventLogger        bmeventlog.EventLogger
 	timeService        boshtime.Service
 }
 
 func NewReleasePackagesCompiler(
 	da DependencyAnalysis,
 	packageCompiler PackageCompiler,
-	eventLogger bmlog.EventLogger,
+	eventLogger bmeventlog.EventLogger,
 	timeService boshtime.Service,
 ) ReleasePackagesCompiler {
 	return &releasePackagesCompiler{
@@ -43,7 +43,7 @@ func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
 
 	totalCount := len(packages)
 	for index, pkg := range packages {
-		logErr := c.compilationEvent(totalCount, index+1, pkg, bmlog.Started, "")
+		logErr := c.compilationEvent(totalCount, index+1, pkg, bmeventlog.Started, "")
 		if logErr != nil {
 			return logErr
 		}
@@ -51,14 +51,14 @@ func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
 		err = c.packageCompiler.Compile(pkg)
 
 		if err != nil {
-			logErr := c.compilationEvent(totalCount, index+1, pkg, bmlog.Failed, err.Error())
+			logErr := c.compilationEvent(totalCount, index+1, pkg, bmeventlog.Failed, err.Error())
 			if logErr != nil {
 				return logErr
 			}
 
 			return bosherr.WrapError(err, fmt.Sprintf("Package `%s' compilation failed", pkg.Name))
 		}
-		logErr = c.compilationEvent(totalCount, index+1, pkg, bmlog.Finished, "")
+		logErr = c.compilationEvent(totalCount, index+1, pkg, bmeventlog.Finished, "")
 		if logErr != nil {
 			return logErr
 		}
@@ -71,12 +71,12 @@ func (c releasePackagesCompiler) compilationEvent(
 	totalCount,
 	index int,
 	pkg *bmrel.Package,
-	state bmlog.EventState,
+	state bmeventlog.EventState,
 	message string,
 ) error {
 	stage := "compiling packages"
 	task := fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint)
-	event := bmlog.Event{
+	event := bmeventlog.Event{
 		Time:    c.timeService.Now(),
 		Stage:   stage,
 		Total:   totalCount,

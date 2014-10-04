@@ -9,7 +9,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
@@ -30,16 +30,16 @@ type jobInstaller struct {
 	templateRepo      bmtemcomp.TemplatesRepo
 	jobsPath          string
 	packagesPath      string
-	eventLogger       bmlog.EventLogger
+	eventLogger       bmeventlog.EventLogger
 	timeService       boshtime.Service
 }
 
 func (i jobInstaller) Install(job bmrel.Job) (InstalledJob, error) {
-	event := bmlog.Event{
+	event := bmeventlog.Event{
 		Time:  i.timeService.Now(),
 		Stage: "installing CPI jobs",
 		Total: 1,
-		State: bmlog.Started,
+		State: bmeventlog.Started,
 		Index: 1,
 		Task:  "cpi",
 	}
@@ -50,11 +50,11 @@ func (i jobInstaller) Install(job bmrel.Job) (InstalledJob, error) {
 
 	installedJob, err := i.install(job)
 	if err != nil {
-		event = bmlog.Event{
+		event = bmeventlog.Event{
 			Time:    i.timeService.Now(),
 			Stage:   "installing CPI jobs",
 			Total:   1,
-			State:   bmlog.Failed,
+			State:   bmeventlog.Failed,
 			Index:   1,
 			Task:    "cpi",
 			Message: err.Error(),
@@ -66,11 +66,11 @@ func (i jobInstaller) Install(job bmrel.Job) (InstalledJob, error) {
 		return InstalledJob{}, err
 	}
 
-	event = bmlog.Event{
+	event = bmeventlog.Event{
 		Time:  i.timeService.Now(),
 		Stage: "installing CPI jobs",
 		Total: 1,
-		State: bmlog.Finished,
+		State: bmeventlog.Finished,
 		Index: 1,
 		Task:  "cpi",
 	}
@@ -136,7 +136,7 @@ func NewJobInstaller(
 	templateRepo bmtemcomp.TemplatesRepo,
 	jobsPath,
 	packagesPath string,
-	eventLogger bmlog.EventLogger,
+	eventLogger bmeventlog.EventLogger,
 	timeService boshtime.Service,
 ) JobInstaller {
 	return jobInstaller{

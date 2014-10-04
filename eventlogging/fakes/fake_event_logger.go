@@ -1,21 +1,21 @@
 package fakes
 
 import (
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
 type FakeEventLogger struct {
-	LoggedEvents   []bmlog.Event
-	AddEventErrors map[bmlog.EventState]error
+	LoggedEvents   []bmeventlog.Event
+	AddEventErrors map[bmeventlog.EventState]error
 }
 
 func NewFakeEventLogger() *FakeEventLogger {
 	return &FakeEventLogger{
-		AddEventErrors: map[bmlog.EventState]error{},
+		AddEventErrors: map[bmeventlog.EventState]error{},
 	}
 }
 
-func (fl *FakeEventLogger) AddEvent(event bmlog.Event) error {
+func (fl *FakeEventLogger) AddEvent(event bmeventlog.Event) error {
 	fl.LoggedEvents = append(fl.LoggedEvents, event)
 	err, found := fl.AddEventErrors[event.State]
 	if found {

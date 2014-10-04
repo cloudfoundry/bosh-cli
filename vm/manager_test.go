@@ -8,10 +8,10 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/logging/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/vm/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/vm"
@@ -92,20 +92,20 @@ var _ = Describe("Manager", func() {
 			_, err := manager.CreateVM(stemcellCID, deployment)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedStartEvent := bmlog.Event{
+			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
 				Total: 1,
 				Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 				Index: 1,
-				State: bmlog.Started,
+				State: bmeventlog.Started,
 			}
 
-			expectedFinishEvent := bmlog.Event{
+			expectedFinishEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
 				Total: 1,
 				Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 				Index: 1,
-				State: bmlog.Finished,
+				State: bmeventlog.Finished,
 			}
 
 			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
@@ -121,20 +121,20 @@ var _ = Describe("Manager", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 
-				expectedStartEvent := bmlog.Event{
+				expectedStartEvent := bmeventlog.Event{
 					Stage: "Deploy Micro BOSH",
 					Total: 1,
 					Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 					Index: 1,
-					State: bmlog.Started,
+					State: bmeventlog.Started,
 				}
 
-				expectedFailedEvent := bmlog.Event{
+				expectedFailedEvent := bmeventlog.Event{
 					Stage:   "Deploy Micro BOSH",
 					Total:   1,
 					Task:    fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 					Index:   1,
-					State:   bmlog.Failed,
+					State:   bmeventlog.Failed,
 					Message: "fake-create-error",
 				}
 
