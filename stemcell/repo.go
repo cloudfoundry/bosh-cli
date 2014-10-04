@@ -6,6 +6,7 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
+// Repo persists stemcells metadata
 type Repo interface {
 	Save(stemcell Stemcell, cid CID) error
 	Find(stemcell Stemcell) (CID, bool, error)

@@ -10,6 +10,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
+// Reader reads a stemcell tarball and returns a stemcell object containing
+// parsed information (e.g. version, name)
+//
 type Reader interface {
 	Read(stemcellTarballPath string, extractedPath string) (Stemcell, error)
 }

@@ -25,12 +25,11 @@ type manager struct {
 	infrastructure Infrastructure
 }
 
-// Upload
+// Upload stemcell to an IAAS. It does the following steps:
 // 1) extracts the tarball & parses its manifest,
 // 2) uploads the stemcell to the infrastructure (if needed),
 // 3) saves a record of the uploaded stemcell in the repo
 func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err error) {
-	// unpack stemcell tarball
 	tmpDir, err := m.fs.TempDir("stemcell-manager")
 	if err != nil {
 		return stemcell, cid, bosherr.WrapError(err, "creating temp dir for stemcell extraction")
@@ -46,7 +45,6 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 	}
 	m.eventLogger.AddEvent(event)
 
-	// parse/reads stemcell manifest into Stemcell object
 	stemcell, err = m.reader.Read(tarballPath, tmpDir)
 	if err != nil {
 		event = bmeventlog.Event{
@@ -118,8 +116,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 
 	err = m.repo.Save(stemcell, cid)
 	if err != nil {
-		//TODO: delete stemcell from infrastructure
-
+		//TODO: delete stemcell from infrastructure when saving fails
 		event = bmeventlog.Event{
 			Stage: "uploading stemcell",
 			Total: 2,
