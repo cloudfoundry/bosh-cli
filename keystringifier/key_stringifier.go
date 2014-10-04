@@ -14,7 +14,8 @@ type keyStringifier struct{}
 
 func NewKeyStringifier() keyStringifier { return keyStringifier{} }
 
-// convertMapToStringKeyMap converts map to string keyed map.
+// ConvertMap converts a interface{}-keyed map to a string-keyed
+// map recursively.
 func (sk keyStringifier) ConvertMap(m map[interface{}]interface{}) (map[string]interface{}, error) {
 	result := map[string]interface{}{}
 
