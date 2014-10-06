@@ -9,6 +9,7 @@ type CreateInput struct {
 	StemcellCID     bmstemcell.CID
 	NetworksSpec    map[string]interface{}
 	CloudProperties map[string]interface{}
+	Env             map[string]interface{}
 }
 
 type createOutput struct {
@@ -32,11 +33,13 @@ func (i *FakeInfrastructure) CreateVM(
 	stemcellCID bmstemcell.CID,
 	cloudProperties map[string]interface{},
 	networksSpec map[string]interface{},
+	env map[string]interface{},
 ) (bmvm.CID, error) {
 	input := CreateInput{
 		StemcellCID:     stemcellCID,
 		CloudProperties: cloudProperties,
 		NetworksSpec:    networksSpec,
+		Env:             env,
 	}
 	i.CreateInput = input
 

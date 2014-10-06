@@ -1,6 +1,8 @@
 package vm
 
 import (
+	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmlog "github.com/cloudfoundry/bosh-micro-cli/logging"
@@ -22,7 +24,7 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 	event := bmlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 1,
-		Task:  "creating vm",
+		Task:  fmt.Sprintf("Creating VM from %s", stemcellCID),
 		Index: 1,
 		State: bmlog.Started,
 	}
@@ -39,12 +41,17 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
 	}
 
-	cid, err := m.infrastructure.CreateVM(stemcellCID, cloudProperties, networksSpec)
+	env, err := resourcePool.Env()
+	if err != nil {
+		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+	}
+
+	cid, err := m.infrastructure.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 	if err != nil {
 		event = bmlog.Event{
 			Stage:   "Deploy Micro BOSH",
 			Total:   1,
-			Task:    "creating vm",
+			Task:    fmt.Sprintf("Creating VM from %s", stemcellCID),
 			Index:   1,
 			State:   bmlog.Failed,
 			Message: err.Error(),
@@ -56,7 +63,7 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 	event = bmlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 1,
-		Task:  "creating vm",
+		Task:  fmt.Sprintf("Creating VM from %s", stemcellCID),
 		Index: 1,
 		State: bmlog.Finished,
 	}

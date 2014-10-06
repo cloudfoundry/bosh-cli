@@ -144,6 +144,7 @@ var _ = Describe("Cloud", func() {
 			stemcellCID     bmstemcell.CID
 			cloudProperties map[string]interface{}
 			networksSpec    map[string]interface{}
+			env             map[string]interface{}
 		)
 
 		BeforeEach(func() {
@@ -159,6 +160,10 @@ var _ = Describe("Cloud", func() {
 			cloudProperties = map[string]interface{}{
 				"fake-cloud-property-key": "fake-cloud-property-value",
 			}
+			env = map[string]interface{}{
+				"fake-env-key": "fake-env-value",
+			}
+
 			err := fs.WriteFile("/jobs/cpi/bin/cpi", []byte{})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -169,6 +174,8 @@ var _ = Describe("Cloud", func() {
 					stemcellCID,
 					cloudProperties,
 					networksSpec,
+					[]interface{}{},
+					env,
 				},
 				Context: CmdContext{
 					DirectorUUID: deploymentUUID,
@@ -194,7 +201,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("executes the cpi job script with the director UUID and stemcell CID", func() {
-				_, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec)
+				_, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
 
@@ -212,7 +219,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
-				cid, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec)
+				cid, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cid).To(Equal(bmvm.CID("fake-vm-cid")))
 			})
@@ -236,7 +243,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec)
+				_, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("External CPI command for method `create_vm' returned an error"))
 			})

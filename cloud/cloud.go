@@ -118,9 +118,18 @@ func (c cloud) CreateVM(
 	stemcellCID bmstemcell.CID,
 	cloudProperties map[string]interface{},
 	networksSpec map[string]interface{},
+	env map[string]interface{},
 ) (bmvm.CID, error) {
-	method := "create_vm"
-	cmdOutput, err := c.execCPICmd(method, c.deploymentUUID, stemcellCID, cloudProperties, networksSpec)
+	diskLocality := []interface{}{} // not used with bosh-micro-cli
+	cmdOutput, err := c.execCPICmd(
+		"create_vm",
+		c.deploymentUUID,
+		stemcellCID,
+		cloudProperties,
+		networksSpec,
+		diskLocality,
+		env,
+	)
 	if err != nil {
 		return "", err
 	}

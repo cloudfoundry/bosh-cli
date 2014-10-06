@@ -59,12 +59,25 @@ var _ = Describe("bosh-micro", func() {
 	It("is able to deploy a CPI release with a stemcell", func() {
 		contents := `---
 name: test-release
+resource_pools:
+- name: fake-resource-pool-name
+  env:
+    bosh:
+      password: secret
+networks:
+- name: fake-network-name
+  type: dynamic
+  cloud_properties:
+    subnet: fake-subnet
+    a:
+      b: value
 cloud_provider:
   properties:
     cpi:
       warden:
-        connect_network: unix
-        connect_address: /var/vcap/data/warden/warden.sock
+        connect_network: tcp
+        connect_address: 0.0.0.0:7777
+        network_pool: 10.244.0.0/16
         host_ip: 192.168.54.4
       agent:
         mbus: 192.168.54.4
@@ -79,7 +92,7 @@ cloud_provider:
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		Expect(stdout).To(ContainSubstring("uploading stemcell"))
-		Expect(stdout).To(ContainSubstring("creating VM from"))
+		Expect(stdout).To(ContainSubstring("Creating VM from"))
 	})
 })
 

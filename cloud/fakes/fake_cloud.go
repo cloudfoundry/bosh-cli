@@ -25,6 +25,7 @@ func (c *FakeCloud) CreateVM(
 	cid bmstemcell.CID,
 	resourcePoolsSpec map[string]interface{},
 	networksSpec map[string]interface{},
+	env map[string]interface{},
 ) (bmvm.CID, error) {
 	return "", nil
 }

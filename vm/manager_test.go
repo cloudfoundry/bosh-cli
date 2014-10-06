@@ -1,6 +1,8 @@
 package vm_test
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -25,6 +27,7 @@ var _ = Describe("Manager", func() {
 			expectedVMCID           CID
 			expectedNetworksSpec    map[string]interface{}
 			expectedCloudProperties map[string]interface{}
+			expectedEnv             map[string]interface{}
 			stemcellCID             bmstemcell.CID
 			deployment              bmdepl.Deployment
 		)
@@ -44,6 +47,9 @@ var _ = Describe("Manager", func() {
 			expectedCloudProperties = map[string]interface{}{
 				"fake-cloud-property-key": "fake-cloud-property-value",
 			}
+			expectedEnv = map[string]interface{}{
+				"fake-env-key": "fake-env-value",
+			}
 			infrastructure.SetCreateVMBehavior(expectedVMCID, nil)
 			stemcellCID = bmstemcell.CID("fake-stemcell-cid")
 			deployment = bmdepl.Deployment{
@@ -61,7 +67,7 @@ var _ = Describe("Manager", func() {
 							"fake-cloud-property-key": "fake-cloud-property-value",
 						},
 						RawEnv: map[interface{}]interface{}{
-							"key": "value",
+							"fake-env-key": "fake-env-value",
 						},
 					},
 				},
@@ -77,6 +83,7 @@ var _ = Describe("Manager", func() {
 					StemcellCID:     expectedStemcellCID,
 					CloudProperties: expectedCloudProperties,
 					NetworksSpec:    expectedNetworksSpec,
+					Env:             expectedEnv,
 				},
 			))
 		})
@@ -88,7 +95,7 @@ var _ = Describe("Manager", func() {
 			expectedStartEvent := bmlog.Event{
 				Stage: "Deploy Micro BOSH",
 				Total: 1,
-				Task:  "creating vm",
+				Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 				Index: 1,
 				State: bmlog.Started,
 			}
@@ -96,7 +103,7 @@ var _ = Describe("Manager", func() {
 			expectedFinishEvent := bmlog.Event{
 				Stage: "Deploy Micro BOSH",
 				Total: 1,
-				Task:  "creating vm",
+				Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 				Index: 1,
 				State: bmlog.Finished,
 			}
@@ -117,7 +124,7 @@ var _ = Describe("Manager", func() {
 				expectedStartEvent := bmlog.Event{
 					Stage: "Deploy Micro BOSH",
 					Total: 1,
-					Task:  "creating vm",
+					Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 					Index: 1,
 					State: bmlog.Started,
 				}
@@ -125,7 +132,7 @@ var _ = Describe("Manager", func() {
 				expectedFailedEvent := bmlog.Event{
 					Stage:   "Deploy Micro BOSH",
 					Total:   1,
-					Task:    "creating vm",
+					Task:    fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 					Index:   1,
 					State:   bmlog.Failed,
 					Message: "fake-create-error",
