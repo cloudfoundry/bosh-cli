@@ -45,6 +45,7 @@ var _ = Describe("fileSystemConfigService", func() {
 			deploymentFileContents, err := json.Marshal(map[string]interface{}{
 				"uuid":      "deadbeef",
 				"stemcells": stemcells,
+				"vm_cid":    "fake-vm-cid",
 			})
 			fakeFs.WriteFile(deploymentFilePath, deploymentFileContents)
 
@@ -52,6 +53,7 @@ var _ = Describe("fileSystemConfigService", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(config.DeploymentUUID).To(Equal("deadbeef"))
 			Expect(config.Stemcells).To(Equal(stemcells))
+			Expect(config.VMCID).To(Equal("fake-vm-cid"))
 		})
 
 		Context("when the config does not exist", func() {
@@ -74,10 +76,18 @@ var _ = Describe("fileSystemConfigService", func() {
 	})
 
 	Describe("Save", func() {
-		It("writes the deployment uuid to the deployment file", func() {
+		It("writes the deployment config to the deployment file", func() {
 			config := DeploymentConfig{
 				DeploymentUUID: "deadbeef",
-				Stemcells:      []StemcellRecord{},
+				Stemcells: []StemcellRecord{
+					{
+						Name:    "fake-stemcell-name",
+						Version: "fake-stemcell-version",
+						SHA1:    "fake-stemcell-sha1",
+						CID:     "fake-stemcell-cid",
+					},
+				},
+				VMCID: "fake-vm-cid",
 			}
 
 			err := service.Save(config)
@@ -85,8 +95,16 @@ var _ = Describe("fileSystemConfigService", func() {
 
 			deploymentFileContents, err := fakeFs.ReadFileString(deploymentFilePath)
 			deploymentFile := DeploymentFile{
-				UUID:      "deadbeef",
-				Stemcells: []StemcellRecord{},
+				UUID: "deadbeef",
+				Stemcells: []StemcellRecord{
+					{
+						Name:    "fake-stemcell-name",
+						Version: "fake-stemcell-version",
+						SHA1:    "fake-stemcell-sha1",
+						CID:     "fake-stemcell-cid",
+					},
+				},
+				VMCID: "fake-vm-cid",
 			}
 			expectedDeploymentFileContents, err := json.MarshalIndent(deploymentFile, "", "    ")
 			Expect(deploymentFileContents).To(Equal(string(expectedDeploymentFileContents)))

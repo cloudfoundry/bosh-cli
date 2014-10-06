@@ -36,6 +36,7 @@ type StemcellRecord struct {
 type DeploymentFile struct {
 	UUID      string           `json:"uuid"`
 	Stemcells []StemcellRecord `json:"stemcells"`
+	VMCID     string           `json:"vm_cid"`
 }
 
 func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
@@ -53,8 +54,11 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
 	if err != nil {
 		return config, bosherr.WrapError(err, "Unmarshalling deployment config file `%s'", s.configPath)
 	}
+
 	config.DeploymentUUID = deploymentFile.UUID
 	config.Stemcells = deploymentFile.Stemcells
+	config.VMCID = deploymentFile.VMCID
+
 	return config, nil
 }
 
@@ -62,6 +66,7 @@ func (s fileSystemDeploymentConfigService) Save(config DeploymentConfig) error {
 	deploymentFile := DeploymentFile{
 		UUID:      config.DeploymentUUID,
 		Stemcells: config.Stemcells,
+		VMCID:     config.VMCID,
 	}
 	jsonContent, err := json.MarshalIndent(deploymentFile, "", "    ")
 	if err != nil {

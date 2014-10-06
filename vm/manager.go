@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
@@ -11,13 +12,18 @@ import (
 
 type CID string
 
+func (c CID) String() string {
+	return string(c)
+}
+
 type Manager interface {
 	CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error)
 }
 
 type manager struct {
-	infrastructure Infrastructure
-	eventLogger    bmeventlog.EventLogger
+	infrastructure          Infrastructure
+	eventLogger             bmeventlog.EventLogger
+	deploymentConfigService bmconfig.DeploymentConfigService
 }
 
 func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error) {
@@ -58,6 +64,17 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 		}
 		m.eventLogger.AddEvent(event)
 		return "", bosherr.WrapError(err, "creating vm with stemcell cid `%s'", stemcellCID)
+	}
+
+	deploymentConfig, err := m.deploymentConfigService.Load()
+	if err != nil {
+		return "", bosherr.WrapError(err, "Reading existing deployment config")
+	}
+	deploymentConfig.VMCID = cid.String()
+
+	err = m.deploymentConfigService.Save(deploymentConfig)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Saving deployment config")
 	}
 
 	event = bmeventlog.Event{

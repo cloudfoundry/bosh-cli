@@ -7,10 +7,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/vm/fakes"
 
@@ -30,12 +33,17 @@ var _ = Describe("Manager", func() {
 			expectedEnv             map[string]interface{}
 			stemcellCID             bmstemcell.CID
 			deployment              bmdepl.Deployment
+			configService           bmconfig.DeploymentConfigService
+			fs                      *fakesys.FakeFileSystem
 		)
 
 		BeforeEach(func() {
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			fs = fakesys.NewFakeFileSystem()
+			configService = bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
 			infrastructure = fakebmvm.NewFakeInfrastructure()
 			eventLogger = fakebmlog.NewFakeEventLogger()
-			manager = NewManagerFactory(eventLogger).NewManager(infrastructure)
+			manager = NewManagerFactory(eventLogger, configService).NewManager(infrastructure)
 			expectedStemcellCID = bmstemcell.CID("fake-stemcell-cid")
 			expectedVMCID = CID("fake-vm-cid")
 			expectedNetworksSpec = map[string]interface{}{
@@ -111,6 +119,19 @@ var _ = Describe("Manager", func() {
 			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
 			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFinishEvent))
 			Expect(eventLogger.LoggedEvents).To(HaveLen(2))
+		})
+
+		It("saves the vm record using the config service", func() {
+			_, err := manager.CreateVM(stemcellCID, deployment)
+			Expect(err).ToNot(HaveOccurred())
+
+			deploymentConfig, err := configService.Load()
+			Expect(err).ToNot(HaveOccurred())
+
+			expectedConfig := bmconfig.DeploymentConfig{
+				VMCID: expectedVMCID.String(),
+			}
+			Expect(deploymentConfig).To(Equal(expectedConfig))
 		})
 
 		Context("when creating the vm fails", func() {

@@ -5,6 +5,7 @@ import "path"
 type DeploymentConfig struct {
 	ContainingDir  string           `json:"-"`
 	DeploymentUUID string           `json:"-"`
+	VMCID          string           `json:"-"`
 	Stemcells      []StemcellRecord `json:"-"`
 }
 
