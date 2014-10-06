@@ -48,6 +48,11 @@ var _ = Describe("DeploymentRenderer", func() {
 				contents := `
 ---
 name: fake-deployment-name
+resource_pools:
+- name: fake-resource-pool-name
+  env:
+    bosh:
+      password: secret
 networks:
 - name: fake-network-name
   type: dynamic
@@ -76,6 +81,17 @@ cloud_provider:
 							"subnet": "fake-subnet",
 							"a": map[interface{}]interface{}{
 								"b": "value",
+							},
+						},
+					},
+				}))
+				resourcePools := deployment.ResourcePools
+				Expect(resourcePools).To(Equal([]ResourcePool{
+					{
+						Name: "fake-resource-pool-name",
+						RawEnv: map[interface{}]interface{}{
+							"bosh": map[interface{}]interface{}{
+								"password": "secret",
 							},
 						},
 					},

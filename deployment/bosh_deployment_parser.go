@@ -16,8 +16,9 @@ func NewBoshDeploymentParser(fs boshsys.FileSystem) ManifestParser {
 }
 
 type boshDeploymentManifest struct {
-	Name     string
-	Networks []Network
+	Name          string
+	Networks      []Network
+	ResourcePools []ResourcePool `yaml:"resource_pools"`
 }
 
 func (p boshDeploymentParser) Parse(path string) (Deployment, error) {
@@ -33,8 +34,9 @@ func (p boshDeploymentParser) Parse(path string) (Deployment, error) {
 	}
 
 	deployment := Deployment{
-		Name:     depManifest.Name,
-		Networks: depManifest.Networks,
+		Name:          depManifest.Name,
+		Networks:      depManifest.Networks,
+		ResourcePools: depManifest.ResourcePools,
 	}
 
 	return deployment, nil

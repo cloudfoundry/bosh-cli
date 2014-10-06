@@ -33,7 +33,13 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
 	}
 
-	cid, err := m.infrastructure.CreateVM(stemcellCID, networksSpec)
+	resourcePool := deployment.ResourcePools[0]
+	cloudProperties, err := resourcePool.CloudProperties()
+	if err != nil {
+		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+	}
+
+	cid, err := m.infrastructure.CreateVM(stemcellCID, cloudProperties, networksSpec)
 	if err != nil {
 		event = bmlog.Event{
 			Stage:   "Deploy Micro BOSH",

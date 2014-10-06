@@ -44,6 +44,10 @@ var _ = Describe("bosh-micro", func() {
 		manifestContents := `
 ---
 name: fake-deployment
+resource_pools:
+- name: default
+  cloud_properties:
+    fake-cloud-property-key: fake-cloud-property-value
 cloud_provider:
   properties:
     fake_cpi_specified_property:

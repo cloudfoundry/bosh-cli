@@ -16,10 +16,11 @@ type Job struct {
 }
 
 type Deployment struct {
-	Name       string
-	Properties map[string]interface{}
-	Jobs       []Job
-	Networks   []Network
+	Name          string
+	Properties    map[string]interface{}
+	Jobs          []Job
+	Networks      []Network
+	ResourcePools []ResourcePool
 }
 
 func (d Deployment) NetworksSpec() (map[string]interface{}, error) {

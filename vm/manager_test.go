@@ -18,14 +18,15 @@ import (
 var _ = Describe("Manager", func() {
 	Describe("CreateVM", func() {
 		var (
-			infrastructure       *fakebmvm.FakeInfrastructure
-			eventLogger          *fakebmlog.FakeEventLogger
-			manager              Manager
-			expectedStemcellCID  bmstemcell.CID
-			expectedVMCID        CID
-			expectedNetworksSpec map[string]interface{}
-			stemcellCID          bmstemcell.CID
-			deployment           bmdepl.Deployment
+			infrastructure          *fakebmvm.FakeInfrastructure
+			eventLogger             *fakebmlog.FakeEventLogger
+			manager                 Manager
+			expectedStemcellCID     bmstemcell.CID
+			expectedVMCID           CID
+			expectedNetworksSpec    map[string]interface{}
+			expectedCloudProperties map[string]interface{}
+			stemcellCID             bmstemcell.CID
+			deployment              bmdepl.Deployment
 		)
 
 		BeforeEach(func() {
@@ -40,6 +41,9 @@ var _ = Describe("Manager", func() {
 					"cloud_properties": map[string]interface{}{},
 				},
 			}
+			expectedCloudProperties = map[string]interface{}{
+				"fake-cloud-property-key": "fake-cloud-property-value",
+			}
 			infrastructure.SetCreateVMBehavior(expectedVMCID, nil)
 			stemcellCID = bmstemcell.CID("fake-stemcell-cid")
 			deployment = bmdepl.Deployment{
@@ -48,6 +52,17 @@ var _ = Describe("Manager", func() {
 					{
 						Name: "fake-network-name",
 						Type: "dynamic",
+					},
+				},
+				ResourcePools: []bmdepl.ResourcePool{
+					{
+						Name: "fake-resource-pool-name",
+						RawCloudProperties: map[interface{}]interface{}{
+							"fake-cloud-property-key": "fake-cloud-property-value",
+						},
+						RawEnv: map[interface{}]interface{}{
+							"key": "value",
+						},
 					},
 				},
 			}
@@ -59,8 +74,9 @@ var _ = Describe("Manager", func() {
 			Expect(vmCID).To(Equal(expectedVMCID))
 			Expect(infrastructure.CreateInput).To(Equal(
 				fakebmvm.CreateInput{
-					StemcellCID:  expectedStemcellCID,
-					NetworksSpec: expectedNetworksSpec,
+					StemcellCID:     expectedStemcellCID,
+					CloudProperties: expectedCloudProperties,
+					NetworksSpec:    expectedNetworksSpec,
 				},
 			))
 		})

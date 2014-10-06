@@ -21,6 +21,10 @@ func (c *FakeCloud) CreateStemcell(stemcell bmstemcell.Stemcell) (bmstemcell.CID
 	return c.Infrastructure.CreateStemcell(stemcell)
 }
 
-func (c *FakeCloud) CreateVM(cid bmstemcell.CID, networksSpec map[string]interface{}) (bmvm.CID, error) {
+func (c *FakeCloud) CreateVM(
+	cid bmstemcell.CID,
+	resourcePoolsSpec map[string]interface{},
+	networksSpec map[string]interface{},
+) (bmvm.CID, error) {
 	return "", nil
 }
