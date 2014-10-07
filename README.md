@@ -23,6 +23,10 @@ Clone and set up the BOSH Micro CLI repository:
 
 From here on out we assume you're working in `$GOPATH/src/github.com/cloudfoundry/bosh-micro-cli`
 
+To build the micro cli:
+
+- `bin/build` # The `bosh-micro` binary will be located in `out/`
+
 Install tools used by the BOSH Micro CLI test suite:
 
 - `bin/go get code.google.com/p/go.tools/cmd/vet`
