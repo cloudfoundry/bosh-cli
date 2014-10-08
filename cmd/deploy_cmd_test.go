@@ -17,9 +17,9 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakecpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
+	fakemicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/vm/fakes"
 )
 
 var _ = Describe("DeployCmd", func() {
@@ -34,8 +34,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeStemcellManager        *fakebmstemcell.FakeManager
 		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
 
-		fakeVMManager        *fakebmvm.FakeManager
-		fakeVMManagerFactory *fakebmvm.FakeManagerFactory
+		fakeMicroDeployer *fakemicrodeploy.FakeMicroDeployer
 
 		fakeCpiManifestParser  *fakebmdepl.FakeManifestParser
 		fakeBoshManifestParser *fakebmdepl.FakeManifestParser
@@ -53,8 +52,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeCpiDeployer = fakecpideploy.NewFakeCpiDeployer()
 		fakeStemcellManager = fakebmstemcell.NewFakeManager()
 		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
-		fakeVMManager = fakebmvm.NewFakeManager()
-		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
+
+		fakeMicroDeployer = fakemicrodeploy.NewFakeMicroDeployer()
 
 		fakeCpiManifestParser = fakebmdepl.NewFakeManifestParser()
 		fakeBoshManifestParser = fakebmdepl.NewFakeManifestParser()
@@ -68,7 +67,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeBoshManifestParser,
 			fakeCpiDeployer,
 			fakeStemcellManagerFactory,
-			fakeVMManagerFactory,
+			fakeMicroDeployer,
 			logger,
 		)
 
@@ -123,7 +122,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeBoshManifestParser,
 						fakeCpiDeployer,
 						fakeStemcellManagerFactory,
-						fakeVMManagerFactory,
+						fakeMicroDeployer,
 						logger,
 					)
 
@@ -156,8 +155,10 @@ version: fake-version
 						fakeCpiDeployer.SetDeployBehavior(deployment, cpiReleaseTarballPath, cloud, nil)
 						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
-						fakeVMManagerFactory.SetNewManagerBehavior(cloud, fakeVMManager)
+						fakeMicroDeployer.SetDeployBehavior(nil)
 						fakeStemcellManager.SetUploadBehavior(stemcellTarballPath, expectedStemcell, expectedStemcellCID, nil)
+
+						fakeFs.WriteFile(stemcellTarballPath, []byte{})
 					})
 
 					It("parses the CPI portion of the manifest", func() {
@@ -179,7 +180,6 @@ version: fake-version
 					})
 
 					It("uploads the stemcell", func() {
-						fakeFs.WriteFile(stemcellTarballPath, []byte{})
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeStemcellManager.UploadInputs).To(Equal(
@@ -192,11 +192,12 @@ version: fake-version
 					})
 
 					It("creates a VM", func() {
-						fakeFs.WriteFile(stemcellTarballPath, []byte{})
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeVMManager.CreateVMInput).To(Equal(
-							fakebmvm.CreateVMInput{
+						Expect(fakeMicroDeployer.DeployInput).To(Equal(
+							fakemicrodeploy.DeployInput{
+								Cloud:       cloud,
+								Deployment:  deployment,
 								StemcellCID: expectedStemcellCID,
 							},
 						))
@@ -239,7 +240,7 @@ version: fake-version
 							fakeBoshManifestParser,
 							fakeCpiDeployer,
 							fakeStemcellManagerFactory,
-							fakeVMManagerFactory,
+							fakeMicroDeployer,
 							logger,
 						)
 					})

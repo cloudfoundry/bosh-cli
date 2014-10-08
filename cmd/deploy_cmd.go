@@ -8,14 +8,13 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )
 
 const (
@@ -30,7 +29,7 @@ type deployCmd struct {
 	boshManifestParser     bmdepl.ManifestParser
 	cpiDeployer            bmcpideploy.CpiDeployer
 	stemcellManagerFactory bmstemcell.ManagerFactory
-	vmManagerFactory       bmvm.ManagerFactory
+	microDeployer          bmmicrodeploy.Deployer
 	logger                 boshlog.Logger
 }
 
@@ -42,7 +41,7 @@ func NewDeployCmd(
 	boshManifestParser bmdepl.ManifestParser,
 	cpiDeployer bmcpideploy.CpiDeployer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
-	vmManagerFactory bmvm.ManagerFactory,
+	microDeployer bmmicrodeploy.Deployer,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
@@ -53,7 +52,7 @@ func NewDeployCmd(
 		boshManifestParser:     boshManifestParser,
 		cpiDeployer:            cpiDeployer,
 		stemcellManagerFactory: stemcellManagerFactory,
-		vmManagerFactory:       vmManagerFactory,
+		microDeployer:          microDeployer,
 		logger:                 logger,
 	}
 }
@@ -84,12 +83,12 @@ func (c *deployCmd) Run(args []string) error {
 	}
 
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-	stemcell, stemcellCID, err := stemcellManager.Upload(stemcellTarballPath)
+	_, stemcellCID, err := stemcellManager.Upload(stemcellTarballPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
 	}
 
-	err = c.deployMicrobosh(cloud, boshDeployment, stemcell, stemcellCID)
+	err = c.microDeployer.Deploy(cloud, boshDeployment, stemcellCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")
 	}
@@ -142,15 +141,4 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 	}
 
 	return releaseTarballPath, stemcellTarballPath, nil
-}
-
-func (c *deployCmd) deployMicrobosh(cpi bmcloud.Cloud, deployment bmdepl.Deployment, stemcell bmstemcell.Stemcell, stemcellCID bmstemcell.CID) error {
-	vmManager := c.vmManagerFactory.NewManager(cpi)
-	_, err := vmManager.CreateVM(stemcellCID, deployment)
-	// create (or discover & update) remote deployment 'vms'
-	//   cloud.create_vm & store agent_id
-	//   wait for agent to bootstrap
-	//   tell remote agent to apply state
-	//   poll agent task get_state until finished
-	return err
 }
