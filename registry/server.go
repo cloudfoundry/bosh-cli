@@ -1,9 +1,9 @@
 package registry
 
 import (
+	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -15,18 +15,23 @@ type Server interface {
 }
 
 type server struct {
-	url      *url.URL
+	username string
+	password string
+	host     string
+	port     int
 	listener net.Listener
 	logger   boshlog.Logger
 	logTag   string
 }
 
-func NewServer(endpoint string, logger boshlog.Logger) Server {
-	url, _ := url.Parse(endpoint)
+func NewServer(username string, password string, host string, port int, logger boshlog.Logger) Server {
 	return &server{
-		url:    url,
-		logger: logger,
-		logTag: "registryServer",
+		username: username,
+		password: password,
+		host:     host,
+		port:     port,
+		logger:   logger,
+		logTag:   "registryServer",
 	}
 }
 
@@ -34,7 +39,7 @@ func (s *server) Start() error {
 	s.logger.Debug(s.logTag, "Starting registry server")
 
 	var err error
-	s.listener, err = net.Listen("tcp", s.url.Host)
+	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", s.host, s.port))
 	if err != nil {
 		return bosherr.WrapError(err, "Starting registry listener")
 	}
@@ -43,10 +48,8 @@ func (s *server) Start() error {
 	mux := http.NewServeMux()
 	httpServer.Handler = mux
 
-	username := s.url.User.Username()
-	password, _ := s.url.User.Password()
 	registry := NewRegistry()
-	instanceHandler := NewInstanceHandler(username, password, registry, s.logger)
+	instanceHandler := NewInstanceHandler(s.username, s.password, registry, s.logger)
 	mux.HandleFunc("/instances/", instanceHandler.HandleFunc)
 
 	return httpServer.Serve(s.listener)

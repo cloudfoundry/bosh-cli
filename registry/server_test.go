@@ -28,7 +28,7 @@ var _ = Describe("Server", func() {
 		registryURL = fmt.Sprintf("http://fake-user:fake-password@%s", registryHost)
 		incorrectAuthRegistryURL = fmt.Sprintf("http://incorrect-user:incorrect-password@%s", registryHost)
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		server = NewServer(registryURL, logger)
+		server = NewServer("fake-user", "fake-password", "localhost", 6901, logger)
 		go server.Start()
 		client.WaitForEndpoint("http://"+registryHost, 1*time.Second)
 		httpClient := http.Client{}
