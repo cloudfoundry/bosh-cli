@@ -14,7 +14,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
@@ -155,7 +155,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		timeService,
 	)
 	cloudFactory := bmcloud.NewFactory(f.fileSystem, runner, f.deploymentConfig, f.logger)
-	cpiDeployer := bmdeploy.NewCpiDeployer(
+	cpiDeployer := bmcpideploy.NewCpiDeployer(
 		f.ui,
 		f.fileSystem,
 		extractor,

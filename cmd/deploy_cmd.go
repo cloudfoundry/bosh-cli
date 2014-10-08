@@ -10,7 +10,7 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdeploy "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -28,7 +28,7 @@ type deployCmd struct {
 	fs                     boshsys.FileSystem
 	cpiManifestParser      bmdepl.ManifestParser
 	boshManifestParser     bmdepl.ManifestParser
-	cpiDeployer            bmdeploy.CpiDeployer
+	cpiDeployer            bmcpideploy.CpiDeployer
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	vmManagerFactory       bmvm.ManagerFactory
 	logger                 boshlog.Logger
@@ -40,7 +40,7 @@ func NewDeployCmd(
 	fs boshsys.FileSystem,
 	cpiManifestParser bmdepl.ManifestParser,
 	boshManifestParser bmdepl.ManifestParser,
-	cpiDeployer bmdeploy.CpiDeployer,
+	cpiDeployer bmcpideploy.CpiDeployer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	logger boshlog.Logger,

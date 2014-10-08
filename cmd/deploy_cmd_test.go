@@ -15,7 +15,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakedeploy "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
+	fakecpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -28,7 +28,7 @@ var _ = Describe("DeployCmd", func() {
 		userConfig                 bmconfig.UserConfig
 		fakeFs                     *fakesys.FakeFileSystem
 		fakeUI                     *fakeui.FakeUI
-		fakeCpiDeployer            *fakedeploy.FakeCpiDeployer
+		fakeCpiDeployer            *fakecpideploy.FakeCpiDeployer
 		logger                     boshlog.Logger
 		release                    bmrel.Release
 		fakeStemcellManager        *fakebmstemcell.FakeManager
@@ -50,7 +50,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
 		userConfig = bmconfig.UserConfig{}
-		fakeCpiDeployer = fakedeploy.NewFakeCpiDeployer()
+		fakeCpiDeployer = fakecpideploy.NewFakeCpiDeployer()
 		fakeStemcellManager = fakebmstemcell.NewFakeManager()
 		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
 		fakeVMManager = fakebmvm.NewFakeManager()

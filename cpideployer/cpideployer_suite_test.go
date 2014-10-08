@@ -1,4 +1,4 @@
-package deployer_test
+package cpideployer_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestDeployer(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Deployer Suite")
+	RunSpecs(t, "Cpideployer Suite")
 }

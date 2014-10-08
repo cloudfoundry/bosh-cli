@@ -1,4 +1,4 @@
-package deployer
+package cpideployer
 
 import (
 	"fmt"

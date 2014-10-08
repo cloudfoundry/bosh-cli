@@ -1,4 +1,4 @@
-package deployer_test
+package cpideployer_test
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
