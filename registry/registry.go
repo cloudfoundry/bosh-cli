@@ -12,19 +12,19 @@ func NewRegistry() registry {
 	return make(registry)
 }
 
-func (i registry) Save(key string, value []byte) bool {
-	_, exists := i[key]
-	i[key] = value
+func (r registry) Save(key string, value []byte) bool {
+	_, exists := r[key]
+	r[key] = value
 
 	return exists
 }
 
-func (i registry) Get(key string) ([]byte, bool) {
-	value, exists := i[key]
+func (r registry) Get(key string) ([]byte, bool) {
+	value, exists := r[key]
 
 	return value, exists
 }
 
-func (i registry) Delete(key string) {
-	delete(i, key)
+func (r registry) Delete(key string) {
+	delete(r, key)
 }

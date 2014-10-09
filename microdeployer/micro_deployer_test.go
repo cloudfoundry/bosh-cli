@@ -64,6 +64,16 @@ var _ = Describe("MicroDeployer", func() {
 		))
 	})
 
+	Context("when running registry fails", func() {
+		It("returns an error", func() {
+			startErr := errors.New("registry-error")
+			fakeRegistryServer.SetStartBehavior(startErr)
+			err := microDeployer.Deploy(cloud, deployment, "fake-stemcell-cid")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("registry-error"))
+		})
+	})
+
 	Context("when creating VM fails", func() {
 		It("returns an error", func() {
 			createVMError := errors.New("fake-create-vm-error")

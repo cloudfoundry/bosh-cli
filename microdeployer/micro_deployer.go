@@ -28,17 +28,47 @@ func NewMicroDeployer(vmManagerFactory bmvm.ManagerFactory, registryServer bmreg
 
 func (m *microDeployer) Deploy(cpi bmcloud.Cloud, deployment bmdepl.Deployment, stemcellCID bmstemcell.CID) error {
 	registry := deployment.Registry
-	readyCh := make(chan struct{})
-	go m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyCh)
+	registryReadyCh := make(chan struct{})
+	registryErrCh := make(chan error)
+	go m.startRegistry(registry, registryReadyCh, registryErrCh)
 	defer m.registryServer.Stop()
 
-	<-readyCh
+	<-registryReadyCh
 
+	deployDoneCh := make(chan struct{})
+	deployErrCh := make(chan error)
+	go m.runDeploy(cpi, deployment, stemcellCID, deployDoneCh, deployErrCh)
+
+	select {
+	case err := <-registryErrCh:
+		return err
+	case err := <-deployErrCh:
+		return err
+	case <-deployDoneCh:
+		return nil
+	}
+}
+
+func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyCh chan struct{}, errCh chan error) {
+	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyCh)
+	if err != nil {
+		errCh <- bosherr.WrapError(err, "Running registry")
+	}
+}
+
+func (m *microDeployer) runDeploy(
+	cpi bmcloud.Cloud,
+	deployment bmdepl.Deployment,
+	stemcellCID bmstemcell.CID,
+	doneCh chan struct{},
+	errCh chan error,
+) {
 	vmManager := m.vmManagerFactory.NewManager(cpi)
 	_, err := vmManager.CreateVM(stemcellCID, deployment)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating VM")
+		errCh <- bosherr.WrapError(err, "Creating VM")
+		return
 	}
 
-	return nil
+	doneCh <- struct{}{}
 }

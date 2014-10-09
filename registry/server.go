@@ -29,7 +29,6 @@ func NewServer(logger boshlog.Logger) Server {
 
 func (s *server) Start(username string, password string, host string, port int, readyCh chan struct{}) error {
 	s.logger.Debug(s.logTag, "Starting registry server")
-
 	var err error
 	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
