@@ -50,6 +50,11 @@ var _ = Describe("DeploymentRenderer", func() {
 ---
 name: fake-deployment-name
 cloud_provider:
+  registry:
+    username: fake-registry-username
+    password: fake-registry-password
+    host: fake-registry-host
+    port: 123
   properties:
     fake-property-name:
       nested-property: fake-property-value
@@ -62,6 +67,12 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(deployment.Name).To(Equal("fake-deployment-name"))
+					Expect(deployment.Registry).To(Equal(Registry{
+						Username: "fake-registry-username",
+						Password: "fake-registry-password",
+						Host:     "fake-registry-host",
+						Port:     123,
+					}))
 					Expect(deployment.Properties["fake-property-name"]).To(Equal(map[string]interface{}{
 						"nested-property": "fake-property-value",
 					}))

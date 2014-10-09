@@ -24,6 +24,7 @@ type cpiDeploymentManifest struct {
 
 type cloudProviderProperties struct {
 	Properties map[interface{}]interface{}
+	Registry   Registry
 }
 
 func (m microDeploymentParser) Parse(path string) (Deployment, error) {
@@ -47,6 +48,7 @@ func (m microDeploymentParser) Parse(path string) (Deployment, error) {
 		Name:       depManifest.Name,
 		Properties: properties,
 		Jobs:       m.defaultCPIJobs(),
+		Registry:   depManifest.CloudProvider.Registry,
 	}
 
 	return deployment, nil

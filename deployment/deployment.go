@@ -15,9 +15,17 @@ type Job struct {
 	Templates []ReleaseJobRef
 }
 
+type Registry struct {
+	Username string
+	Password string
+	Host     string
+	Port     int
+}
+
 type Deployment struct {
 	Name          string
 	Properties    map[string]interface{}
+	Registry      Registry
 	Jobs          []Job
 	Networks      []Network
 	ResourcePools []ResourcePool

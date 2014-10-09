@@ -10,46 +10,40 @@ import (
 )
 
 type Server interface {
-	Start() error
+	Start(string, string, string, int, chan struct{}) error
 	Stop() error
 }
 
 type server struct {
-	username string
-	password string
-	host     string
-	port     int
 	listener net.Listener
 	logger   boshlog.Logger
 	logTag   string
 }
 
-func NewServer(username string, password string, host string, port int, logger boshlog.Logger) Server {
+func NewServer(logger boshlog.Logger) Server {
 	return &server{
-		username: username,
-		password: password,
-		host:     host,
-		port:     port,
-		logger:   logger,
-		logTag:   "registryServer",
+		logger: logger,
+		logTag: "registryServer",
 	}
 }
 
-func (s *server) Start() error {
+func (s *server) Start(username string, password string, host string, port int, readyCh chan struct{}) error {
 	s.logger.Debug(s.logTag, "Starting registry server")
 
 	var err error
-	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", s.host, s.port))
+	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
 		return bosherr.WrapError(err, "Starting registry listener")
 	}
+
+	readyCh <- struct{}{}
 
 	httpServer := http.Server{}
 	mux := http.NewServeMux()
 	httpServer.Handler = mux
 
 	registry := NewRegistry()
-	instanceHandler := NewInstanceHandler(s.username, s.password, registry, s.logger)
+	instanceHandler := NewInstanceHandler(username, password, registry, s.logger)
 	mux.HandleFunc("/instances/", instanceHandler.HandleFunc)
 
 	return httpServer.Serve(s.listener)

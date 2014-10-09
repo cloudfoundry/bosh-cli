@@ -10,6 +10,7 @@ import (
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/registry/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/vm/fakes"
 )
 
@@ -20,15 +21,36 @@ var _ = Describe("MicroDeployer", func() {
 		fakeVMManager        *fakebmvm.FakeManager
 		cloud                *fakebmcloud.FakeCloud
 		deployment           bmdepl.Deployment
+		fakeRegistryServer   *fakeregistry.FakeServer
 	)
 
 	BeforeEach(func() {
-		deployment = bmdepl.Deployment{}
+		deployment = bmdepl.Deployment{
+			Registry: bmdepl.Registry{
+				Username: "fake-username",
+				Password: "fake-password",
+				Host:     "fake-host",
+				Port:     123,
+			},
+		}
 		cloud = fakebmcloud.NewFakeCloud()
+		fakeRegistryServer = fakeregistry.NewFakeServer()
 		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
 		fakeVMManager = fakebmvm.NewFakeManager()
 		fakeVMManagerFactory.SetNewManagerBehavior(cloud, fakeVMManager)
-		microDeployer = NewMicroDeployer(fakeVMManagerFactory)
+		microDeployer = NewMicroDeployer(fakeVMManagerFactory, fakeRegistryServer)
+	})
+
+	It("starts the registry", func() {
+		err := microDeployer.Deploy(cloud, deployment, "fake-stemcell-cid")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fakeRegistryServer.StartInput).To(Equal(fakeregistry.StartInput{
+			Username: "fake-username",
+			Password: "fake-password",
+			Host:     "fake-host",
+			Port:     123,
+		}))
+		Expect(fakeRegistryServer.ReceivedActions).To(Equal([]string{"Start", "Stop"}))
 	})
 
 	It("creates a VM", func() {
@@ -37,6 +59,7 @@ var _ = Describe("MicroDeployer", func() {
 		Expect(fakeVMManager.CreateVMInput).To(Equal(
 			fakebmvm.CreateVMInput{
 				StemcellCID: "fake-stemcell-cid",
+				Deployment:  deployment,
 			},
 		))
 	})

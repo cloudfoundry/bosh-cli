@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,10 +27,14 @@ var _ = Describe("Server", func() {
 		registryURL = fmt.Sprintf("http://fake-user:fake-password@%s", registryHost)
 		incorrectAuthRegistryURL = fmt.Sprintf("http://incorrect-user:incorrect-password@%s", registryHost)
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		server = NewServer("fake-user", "fake-password", "localhost", 6901, logger)
-		go server.Start()
-		client.WaitForEndpoint("http://"+registryHost, 1*time.Second)
-		httpClient := http.Client{}
+		server = NewServer(logger)
+		readyCh := make(chan struct{})
+		go server.Start("fake-user", "fake-password", "localhost", 6901, readyCh)
+		<-readyCh
+
+		transport := &http.Transport{DisableKeepAlives: true}
+		httpClient := http.Client{Transport: transport}
+
 		client = NewHelperClient(httpClient)
 	})
 
@@ -179,17 +182,10 @@ func (c helperClient) DoGet(endpoint string) (string, int) {
 	httpResponse, err := c.httpClient.Get(endpoint)
 	Expect(err).ToNot(HaveOccurred())
 
+	defer httpResponse.Body.Close()
+
 	httpBody, err := ioutil.ReadAll(httpResponse.Body)
 	Expect(err).ToNot(HaveOccurred())
 
 	return string(httpBody), httpResponse.StatusCode
-}
-
-func (c helperClient) WaitForEndpoint(endpoint string, timeout time.Duration) {
-	for deadline := time.Now().Add(timeout); time.Now().Before(deadline); {
-		_, err := c.httpClient.Get(endpoint)
-		if err == nil {
-			return
-		}
-	}
 }

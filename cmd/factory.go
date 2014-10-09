@@ -22,6 +22,7 @@ import (
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
@@ -170,7 +171,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	repo := bmstemcell.NewRepo(f.deploymentConfigService)
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fileSystem, stemcellReader, repo, eventLogger)
 	vmManagerFactory := bmvm.NewManagerFactory(eventLogger, f.deploymentConfigService)
-	microDeployer := bmmicrodeploy.NewMicroDeployer(vmManagerFactory)
+	registryServer := bmregistry.NewServer(f.logger)
+	microDeployer := bmmicrodeploy.NewMicroDeployer(vmManagerFactory, registryServer)
 
 	return NewDeployCmd(
 		f.ui,
