@@ -76,11 +76,11 @@ var _ = Describe("DeployCmd", func() {
 		stemcellTarballPath = "/stemcell/tarball/path"
 		expectedStemcellCID = bmstemcell.CID("fake-stemcell-cid")
 		expectedStemcell = bmstemcell.Stemcell{
-			ImagePath:       "/stemcell/image/path",
-			Name:            "fake-stemcell-name",
-			Version:         "fake-stemcell-version",
-			SHA1:            "fake-stemcell-sha1",
-			CloudProperties: map[string]interface{}{},
+			ImagePath:          "/stemcell/image/path",
+			Name:               "fake-stemcell-name",
+			Version:            "fake-stemcell-version",
+			SHA1:               "fake-stemcell-sha1",
+			RawCloudProperties: map[interface{}]interface{}{},
 		}
 	})
 

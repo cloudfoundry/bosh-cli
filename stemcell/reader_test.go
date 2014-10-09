@@ -30,6 +30,8 @@ name: fake-stemcell-name
 version: '2690'
 cloud_properties:
   infrastructure: aws
+  ami:
+    us-east-1: fake-ami-version
     `
 		fs.WriteFileString("fake-extracted-path/stemcell.MF", manifestContents)
 	})
@@ -44,14 +46,17 @@ cloud_properties:
 	It("generates correct stemcell", func() {
 		stemcell, err := stemcellReader.Read("fake-stemcell-path", "fake-extracted-path")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(stemcell.Name).To(Equal("fake-stemcell-name"))
-		Expect(stemcell.Version).To(Equal("2690"))
-		Expect(stemcell.CloudProperties).To(Equal(map[string]interface{}{
-			"infrastructure": "aws",
-		},
-		))
-
-		Expect(stemcell.ImagePath).To(Equal("fake-extracted-path/image"))
+		Expect(stemcell).To(Equal(Stemcell{
+			Name:      "fake-stemcell-name",
+			Version:   "2690",
+			ImagePath: "fake-extracted-path/image",
+			RawCloudProperties: map[interface{}]interface{}{
+				"infrastructure": "aws",
+				"ami": map[interface{}]interface{}{
+					"us-east-1": "fake-ami-version",
+				},
+			},
+		}))
 	})
 
 	Context("when extracting stemcell fails", func() {

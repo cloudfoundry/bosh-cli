@@ -53,8 +53,10 @@ var _ = Describe("Cloud", func() {
 				"fake-key": "fake-value",
 			}
 			stemcell = bmstemcell.Stemcell{
-				ImagePath:       stemcellImagePath,
-				CloudProperties: cloudProperties,
+				ImagePath: stemcellImagePath,
+				RawCloudProperties: map[interface{}]interface{}{
+					"fake-key": "fake-value",
+				},
 			}
 			err := fs.WriteFile("/jobs/cpi/bin/cpi", []byte{})
 			Expect(err).NotTo(HaveOccurred())
