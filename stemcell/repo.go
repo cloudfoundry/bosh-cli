@@ -22,10 +22,6 @@ func NewRepo(configService bmconfig.DeploymentConfigService) repo {
 	}
 }
 
-// Save extracts the stemcell archive,
-// parses the stemcell manifest,
-// and stores the stemcell archive in the repo.
-// The repo stemcell record is indexed by name & sha1 (as specified by the manifest).
 func (r repo) Save(stemcell Stemcell, cid CID) error {
 	config, err := r.configService.Load()
 	if err != nil {
