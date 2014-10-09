@@ -26,8 +26,8 @@ func NewRepo(configService bmconfig.DeploymentConfigService) repo {
 // parses the stemcell manifest,
 // and stores the stemcell archive in the repo.
 // The repo stemcell record is indexed by name & sha1 (as specified by the manifest).
-func (s repo) Save(stemcell Stemcell, cid CID) error {
-	config, err := s.configService.Load()
+func (r repo) Save(stemcell Stemcell, cid CID) error {
+	config, err := r.configService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
@@ -43,7 +43,7 @@ func (s repo) Save(stemcell Stemcell, cid CID) error {
 		SHA1:    stemcell.SHA1,
 	}
 
-	oldRecord, found := s.find(records, newRecord)
+	oldRecord, found := r.find(records, newRecord)
 	if found {
 		return bosherr.New("Failed to save stemcell record `%s', existing record found `%s'", newRecord, oldRecord)
 	}
@@ -52,16 +52,16 @@ func (s repo) Save(stemcell Stemcell, cid CID) error {
 	records = append(records, newRecord)
 	config.Stemcells = records
 
-	err = s.configService.Save(config)
+	err = r.configService.Save(config)
 	if err != nil {
-		//		s.logger.Error("Failed saving updated config: %s", config)
+		//		r.logger.Error("Failed saving updated config: %s", config)
 		return bosherr.WrapError(err, "Saving new config")
 	}
 	return nil
 }
 
-func (s repo) Find(stemcell Stemcell) (cid CID, found bool, err error) {
-	config, err := s.configService.Load()
+func (r repo) Find(stemcell Stemcell) (cid CID, found bool, err error) {
+	config, err := r.configService.Load()
 	if err != nil {
 		return cid, false, bosherr.WrapError(err, "Loading existing config")
 	}
@@ -77,11 +77,11 @@ func (s repo) Find(stemcell Stemcell) (cid CID, found bool, err error) {
 		SHA1:    stemcell.SHA1,
 	}
 
-	oldRecord, found := s.find(records, newRecord)
+	oldRecord, found := r.find(records, newRecord)
 	return CID(oldRecord.CID), found, nil
 }
 
-func (s repo) find(records []bmconfig.StemcellRecord, record bmconfig.StemcellRecord) (bmconfig.StemcellRecord, bool) {
+func (r repo) find(records []bmconfig.StemcellRecord, record bmconfig.StemcellRecord) (bmconfig.StemcellRecord, bool) {
 	for _, existingRecord := range records {
 		// "key" excludes CID
 		if record.Name == existingRecord.Name &&
