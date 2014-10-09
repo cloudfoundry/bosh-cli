@@ -100,8 +100,7 @@ func (c cloud) String() string {
 }
 
 func (c cloud) CreateStemcell(stemcell bmstemcell.Stemcell) (cid bmstemcell.CID, err error) {
-	method := "create_stemcell"
-	cmdOutput, err := c.execCPICmd(method, stemcell.ImagePath, stemcell.CloudProperties)
+	cmdOutput, err := c.execCPICmd("create_stemcell", stemcell.ImagePath, stemcell.CloudProperties)
 	if err != nil {
 		return cid, err
 	}
