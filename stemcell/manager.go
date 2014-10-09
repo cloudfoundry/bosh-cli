@@ -56,7 +56,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 		}
 		m.eventLogger.AddEvent(event)
 
-		return stemcell, cid, bosherr.WrapError(err, "reading extracted stemcell manifest in `%s'", tmpDir)
+		return Stemcell{}, "", bosherr.WrapError(err, "reading extracted stemcell manifest in `%s'", tmpDir)
 	}
 
 	event = bmeventlog.Event{
@@ -70,7 +70,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 
 	cid, found, err := m.repo.Find(stemcell)
 	if err != nil {
-		return stemcell, cid, bosherr.WrapError(err, "finding existing stemcell record in repo")
+		return Stemcell{}, "", bosherr.WrapError(err, "finding existing stemcell record in repo")
 	}
 	if found {
 		event = bmeventlog.Event{
