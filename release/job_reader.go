@@ -32,7 +32,7 @@ func NewJobReader(
 }
 
 func (r *jobReader) Read() (Job, error) {
-	err := r.extractor.DecompressFileToDir(r.archivePath, r.extractedJobPath)
+	err := r.extractor.DecompressFileToDir(r.archivePath, r.extractedJobPath, boshcmd.CompressorOptions{})
 	if err != nil {
 		return Job{}, bosherr.WrapError(err,
 			"Extracting job archive `%s'",

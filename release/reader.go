@@ -39,7 +39,7 @@ func NewReader(
 }
 
 func (r *reader) Read() (Release, error) {
-	err := r.extractor.DecompressFileToDir(r.tarFilePath, r.extractedReleasePath)
+	err := r.extractor.DecompressFileToDir(r.tarFilePath, r.extractedReleasePath, boshcmd.CompressorOptions{})
 	if err != nil {
 		return Release{}, bosherr.WrapError(err, "Extracting release")
 	}
@@ -157,7 +157,7 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Pac
 			continue
 		}
 		packageArchivePath := path.Join(r.extractedReleasePath, "packages", manifestPackage.Name+".tgz")
-		err = r.extractor.DecompressFileToDir(packageArchivePath, extractedPackagePath)
+		err = r.extractor.DecompressFileToDir(packageArchivePath, extractedPackagePath, boshcmd.CompressorOptions{})
 		if err != nil {
 			errors = append(errors, bosherr.WrapError(err, "Extracting package `%s'", manifestPackage.Name))
 			continue

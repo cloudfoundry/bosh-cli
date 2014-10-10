@@ -27,7 +27,7 @@ func NewReader(compressor boshcmd.Compressor, fs boshsys.FileSystem) Reader {
 }
 
 func (s reader) Read(stemcellTarballPath string, extractedPath string) (Stemcell, error) {
-	err := s.compressor.DecompressFileToDir(stemcellTarballPath, extractedPath)
+	err := s.compressor.DecompressFileToDir(stemcellTarballPath, extractedPath, boshcmd.CompressorOptions{})
 	if err != nil {
 		return Stemcell{}, bosherr.WrapError(err, "Extracting stemcell from %s to %s", stemcellTarballPath, extractedPath)
 	}

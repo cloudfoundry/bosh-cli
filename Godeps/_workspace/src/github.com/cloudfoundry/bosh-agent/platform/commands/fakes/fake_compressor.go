@@ -1,5 +1,9 @@
 package fakes
 
+import (
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
+)
+
 type FakeCompressor struct {
 	CompressFilesInDirDir         string
 	CompressFilesInDirTarballPath string
@@ -7,6 +11,7 @@ type FakeCompressor struct {
 
 	DecompressFileToDirTarballPaths []string
 	DecompressFileToDirDirs         []string
+	DecompressFileToDirOptions      []boshcmd.CompressorOptions
 	DecompressFileToDirErr          error
 	DecompressFileToDirCallBack     func()
 
@@ -23,9 +28,10 @@ func (fc *FakeCompressor) CompressFilesInDir(dir string) (string, error) {
 	return fc.CompressFilesInDirTarballPath, fc.CompressFilesInDirErr
 }
 
-func (fc *FakeCompressor) DecompressFileToDir(tarballPath string, dir string) (err error) {
+func (fc *FakeCompressor) DecompressFileToDir(tarballPath string, dir string, options boshcmd.CompressorOptions) (err error) {
 	fc.DecompressFileToDirTarballPaths = append(fc.DecompressFileToDirTarballPaths, tarballPath)
 	fc.DecompressFileToDirDirs = append(fc.DecompressFileToDirDirs, dir)
+	fc.DecompressFileToDirOptions = append(fc.DecompressFileToDirOptions, options)
 
 	if fc.DecompressFileToDirCallBack != nil {
 		fc.DecompressFileToDirCallBack()

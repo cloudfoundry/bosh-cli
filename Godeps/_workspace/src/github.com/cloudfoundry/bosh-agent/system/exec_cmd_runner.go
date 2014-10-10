@@ -301,7 +301,12 @@ func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 
 	execCmd.Dir = cmd.WorkingDir
 
-	env := os.Environ()
+	env := []string{}
+
+	if !cmd.UseIsolatedEnv {
+		env = os.Environ()
+	}
+
 	for name, value := range cmd.Env {
 		env = append(env, fmt.Sprintf("%s=%s", name, value))
 	}

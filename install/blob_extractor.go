@@ -52,7 +52,7 @@ func (e blobExtractor) Extract(blobID string, blobSHA1 string, targetDir string)
 		}
 	}
 
-	err = e.compressor.DecompressFileToDir(filePath, targetDir)
+	err = e.compressor.DecompressFileToDir(filePath, targetDir, boshcmd.CompressorOptions{})
 	if err != nil {
 		if !existed {
 			e.cleanUpFile(targetDir)

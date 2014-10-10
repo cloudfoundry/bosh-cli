@@ -57,6 +57,22 @@ func init() {
 				Expect(status).To(Equal(0))
 			})
 
+			It("runs complex command with specific env", func() {
+				cmd := Command{
+					Name: "env",
+					Env: map[string]string{
+						"FOO": "BAR",
+					},
+					UseIsolatedEnv: true,
+				}
+				stdout, stderr, status, err := runner.RunComplexCommand(cmd)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stdout).To(ContainSubstring("FOO=BAR"))
+				Expect(stdout).ToNot(ContainSubstring("PATH="))
+				Expect(stderr).To(BeEmpty())
+				Expect(status).To(Equal(0))
+			})
+
 			It("run complex command with stdin", func() {
 				input := "This is STDIN\nWith another line."
 				cmd := Command{

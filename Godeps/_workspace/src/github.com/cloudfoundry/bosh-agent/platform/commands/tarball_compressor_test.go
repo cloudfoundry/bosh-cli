@@ -2,12 +2,12 @@ package commands_test
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/cloudfoundry/bosh-agent/platform/commands"
@@ -15,150 +15,197 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
-func createdTmpDir(t assert.TestingT, fs boshsys.FileSystem) string {
-	dstDir := filepath.Join(os.TempDir(), "TestCompressor")
-	err := fs.MkdirAll(dstDir, os.ModePerm)
-	assert.NoError(t, err)
-	return dstDir
-}
-
-func fixtureSrcDir(t assert.TestingT) string {
+func fixtureSrcDir() string {
 	pwd, err := os.Getwd()
-	assert.NoError(t, err)
+	Expect(err).NotTo(HaveOccurred())
 	return filepath.Join(pwd, "..", "..", "Fixtures", "test_filtered_copy_to_temp")
 }
 
-func fixtureSrcTgz(t assert.TestingT) string {
+func fixtureSrcTgz() string {
 	pwd, err := os.Getwd()
-	assert.NoError(t, err)
+	Expect(err).NotTo(HaveOccurred())
 	return filepath.Join(pwd, "..", "..", "Fixtures", "compressor-decompress-file-to-dir.tgz")
 }
 
-func getCompressorDependencies() (boshsys.FileSystem, boshsys.CmdRunner) {
-	logger := boshlog.NewLogger(boshlog.LevelNone)
-	cmdRunner := boshsys.NewExecCmdRunner(logger)
-	fs := boshsys.NewOsFileSystem(logger)
-	return fs, cmdRunner
+func BeDir() beDirMatcher {
+	return beDirMatcher{}
 }
 
-func init() {
-	Describe("Testing with Ginkgo", func() {
-		It("compress files in dir", func() {
-			fs, cmdRunner := getCompressorDependencies()
-			dc := NewTarballCompressor(cmdRunner, fs)
+type beDirMatcher struct {
+}
 
-			srcDir := fixtureSrcDir(GinkgoT())
-			tgzName, err := dc.CompressFilesInDir(srcDir)
+//FailureMessage(actual interface{}) (message string)
+//NegatedFailureMessage(actual interface{}) (message string)
+func (m beDirMatcher) Match(actual interface{}) (bool, error) {
+	path, ok := actual.(string)
+	if !ok {
+		return false, fmt.Errorf("`%s' is not a valid path", actual)
+	}
+
+	dir, err := os.Open(path)
+	if err != nil {
+		return false, fmt.Errorf("Could not open `%s'", actual)
+	}
+	defer dir.Close()
+
+	dirInfo, err := dir.Stat()
+	if err != nil {
+		return false, fmt.Errorf("Could not stat `%s'", actual)
+	}
+
+	return dirInfo.IsDir(), nil
+}
+
+func (m beDirMatcher) FailureMessage(actual interface{}) string {
+	return fmt.Sprintf("Expected `%s' to be a directory", actual)
+}
+
+func (m beDirMatcher) NegatedFailureMessage(actual interface{}) string {
+	return fmt.Sprintf("Expected `%s' to not be a directory", actual)
+}
+
+var _ = Describe("tarballCompressor", func() {
+	var (
+		dstDir     string
+		cmdRunner  boshsys.CmdRunner
+		fs         boshsys.FileSystem
+		compressor Compressor
+	)
+
+	BeforeEach(func() {
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		cmdRunner = boshsys.NewExecCmdRunner(logger)
+		fs = boshsys.NewOsFileSystem(logger)
+		tmpDir, err := fs.TempDir("tarballCompressor-test")
+		Expect(err).NotTo(HaveOccurred())
+		dstDir = filepath.Join(tmpDir, "TestCompressor")
+		compressor = NewTarballCompressor(cmdRunner, fs)
+	})
+
+	BeforeEach(func() {
+		fs.MkdirAll(dstDir, os.ModePerm)
+	})
+
+	AfterEach(func() {
+		fs.RemoveAll(dstDir)
+	})
+
+	Describe("CompressFilesInDir", func() {
+		It("compresses the files in the given directory", func() {
+			srcDir := fixtureSrcDir()
+			tgzName, err := compressor.CompressFilesInDir(srcDir)
 			Expect(err).ToNot(HaveOccurred())
-
 			defer os.Remove(tgzName)
 
-			dstDir := createdTmpDir(GinkgoT(), fs)
-			defer os.RemoveAll(dstDir)
-
-			_, _, _, err = cmdRunner.RunCommand("tar", "--no-same-owner", "-xzpf", tgzName, "-C", dstDir)
+			_, _, _, err = cmdRunner.RunCommand("tar", "-xzpf", tgzName, "-C", dstDir)
 			Expect(err).ToNot(HaveOccurred())
 
 			content, err := fs.ReadFileString(dstDir + "/app.stdout.log")
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "this is app stdout")
+			Expect(content).To(ContainSubstring("this is app stdout"))
 
 			content, err = fs.ReadFileString(dstDir + "/app.stderr.log")
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "this is app stderr")
+			Expect(content).To(ContainSubstring("this is app stderr"))
 
 			content, err = fs.ReadFileString(dstDir + "/other_logs/other_app.stdout.log")
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "this is other app stdout")
+			Expect(content).To(ContainSubstring("this is other app stdout"))
 		})
+	})
 
-		It("decompress file to dir", func() {
-			fs, cmdRunner := getCompressorDependencies()
-			dc := NewTarballCompressor(cmdRunner, fs)
-
-			dstDir := createdTmpDir(GinkgoT(), fs)
-			defer os.RemoveAll(dstDir)
-
-			err := dc.DecompressFileToDir(fixtureSrcTgz(GinkgoT()), dstDir)
+	Describe("DecompressFileToDir", func() {
+		It("decompresses the file to the given directory", func() {
+			err := compressor.DecompressFileToDir(fixtureSrcTgz(), dstDir, CompressorOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
 			content, err := fs.ReadFileString(dstDir + "/not-nested-file")
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "not-nested-file")
+			Expect(content).To(ContainSubstring("not-nested-file"))
 
 			content, err = fs.ReadFileString(dstDir + "/dir/nested-file")
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "nested-file")
+			Expect(content).To(ContainSubstring("nested-file"))
 
 			content, err = fs.ReadFileString(dstDir + "/dir/nested-dir/double-nested-file")
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "double-nested-file")
+			Expect(content).To(ContainSubstring("double-nested-file"))
 
-			content, err = fs.ReadFileString(dstDir + "/empty-dir")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("is a directory"))
-
-			content, err = fs.ReadFileString(dstDir + "/dir/empty-nested-dir")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("is a directory"))
+			Expect(dstDir + "/empty-dir").To(BeDir())
+			Expect(dstDir + "/dir/empty-nested-dir").To(BeDir())
 		})
 
-		It("decompress file to dir returns error", func() {
-			nonExistentDstDir := filepath.Join(os.TempDir(), "TestDecompressFileToDirReturnsError")
+		It("returns error if the destination does not exist", func() {
+			fs.RemoveAll(dstDir)
 
-			fs, cmdRunner := getCompressorDependencies()
-			dc := NewTarballCompressor(cmdRunner, fs)
-
-			err := dc.DecompressFileToDir(fixtureSrcTgz(GinkgoT()), nonExistentDstDir)
+			err := compressor.DecompressFileToDir(fixtureSrcTgz(), dstDir, CompressorOptions{})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(nonExistentDstDir))
+			Expect(err.Error()).To(ContainSubstring(dstDir))
 		})
 
-		It("decompress file to dir uses no same owner option", func() {
-			fs, _ := getCompressorDependencies()
+		It("uses no same owner option", func() {
 			cmdRunner := fakesys.NewFakeCmdRunner()
-			dc := NewTarballCompressor(cmdRunner, fs)
+			compressor := NewTarballCompressor(cmdRunner, fs)
 
-			dstDir := createdTmpDir(GinkgoT(), fs)
-			defer os.RemoveAll(dstDir)
-
-			tarballPath := fixtureSrcTgz(GinkgoT())
-			err := dc.DecompressFileToDir(tarballPath, dstDir)
+			tarballPath := fixtureSrcTgz()
+			err := compressor.DecompressFileToDir(tarballPath, dstDir, CompressorOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(1).To(Equal(len(cmdRunner.RunCommands)))
-			assert.Equal(GinkgoT(), []string{
-				"tar", "--no-same-owner",
-				"-xzvf", tarballPath,
-				"-C", dstDir,
-			}, cmdRunner.RunCommands[0])
+			Expect(cmdRunner.RunCommands[0]).To(Equal(
+				[]string{
+					"tar", "--no-same-owner",
+					"-xzvf", tarballPath,
+					"-C", dstDir,
+				},
+			))
 		})
 
-		Describe("CleanUp", func() {
-			It("removes tarball path", func() {
-				_, cmdRunner := getCompressorDependencies()
-				fs := fakesys.NewFakeFileSystem()
-				dc := NewTarballCompressor(cmdRunner, fs)
+		It("uses same owner option", func() {
+			cmdRunner := fakesys.NewFakeCmdRunner()
+			compressor := NewTarballCompressor(cmdRunner, fs)
 
-				err := fs.WriteFileString("/fake-tarball.tar", "")
-				Expect(err).ToNot(HaveOccurred())
+			tarballPath := fixtureSrcTgz()
+			err := compressor.DecompressFileToDir(
+				tarballPath,
+				dstDir,
+				CompressorOptions{SameOwner: true},
+			)
+			Expect(err).ToNot(HaveOccurred())
 
-				err = dc.CleanUp("/fake-tarball.tar")
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(fs.FileExists("/fake-tarball.tar")).To(BeFalse())
-			})
-
-			It("returns error if removing tarball path fails", func() {
-				_, cmdRunner := getCompressorDependencies()
-				fs := fakesys.NewFakeFileSystem()
-				dc := NewTarballCompressor(cmdRunner, fs)
-
-				fs.RemoveAllError = errors.New("fake-remove-all-err")
-
-				err := dc.CleanUp("/fake-tarball.tar")
-				Expect(err).To(MatchError("fake-remove-all-err"))
-			})
+			Expect(1).To(Equal(len(cmdRunner.RunCommands)))
+			Expect(cmdRunner.RunCommands[0]).To(Equal(
+				[]string{
+					"tar", "--same-owner",
+					"-xzvf", tarballPath,
+					"-C", dstDir,
+				},
+			))
 		})
 	})
-}
+
+	Describe("CleanUp", func() {
+		It("removes tarball path", func() {
+			fs := fakesys.NewFakeFileSystem()
+			compressor := NewTarballCompressor(cmdRunner, fs)
+
+			err := fs.WriteFileString("/fake-tarball.tar", "")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = compressor.CleanUp("/fake-tarball.tar")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.FileExists("/fake-tarball.tar")).To(BeFalse())
+		})
+
+		It("returns error if removing tarball path fails", func() {
+			fs := fakesys.NewFakeFileSystem()
+			compressor := NewTarballCompressor(cmdRunner, fs)
+
+			fs.RemoveAllError = errors.New("fake-remove-all-err")
+
+			err := compressor.CleanUp("/fake-tarball.tar")
+			Expect(err).To(MatchError("fake-remove-all-err"))
+		})
+	})
+})

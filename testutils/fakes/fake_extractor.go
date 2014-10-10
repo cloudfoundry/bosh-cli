@@ -1,6 +1,10 @@
 package fakes
 
-import "fmt"
+import (
+	"fmt"
+
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
+)
 
 type decompressInput struct {
 	srcFile string
@@ -36,7 +40,7 @@ func NewFakeMultiResponseExtractor() *FakeMultiResponseExtractor {
 	return &FakeMultiResponseExtractor{decompressBehavior: map[decompressInput]decompressError{}}
 }
 
-func (e *FakeMultiResponseExtractor) DecompressFileToDir(srcFile, destDir string) error {
+func (e *FakeMultiResponseExtractor) DecompressFileToDir(srcFile, destDir string, options boshcmd.CompressorOptions) error {
 	decompressInput := decompressInput{srcFile: srcFile, destDir: destDir}
 	decompressError := e.decompressBehavior[decompressInput]
 
