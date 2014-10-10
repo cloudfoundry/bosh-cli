@@ -145,8 +145,10 @@ var _ = Describe("PackageCompiler", func() {
 						"BOSH_INSTALL_TARGET": installPath,
 						"BOSH_PACKAGE_NAME":   pkg.Name,
 						"BOSH_PACKAGES_DIR":   packagesDir,
+						"PATH":                "/usr/local/bin:/usr/bin:/bin",
 					},
-					WorkingDir: pkg.ExtractedPath,
+					UseIsolatedEnv: true,
+					WorkingDir:     pkg.ExtractedPath,
 				}
 
 				Expect(runner.RunComplexCommands).To(HaveLen(1))

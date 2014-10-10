@@ -169,8 +169,10 @@ func (c cloud) execCPICmd(method string, args ...interface{}) (CmdOutput, error)
 		Env: map[string]string{
 			"BOSH_PACKAGES_DIR": c.cpiJob.PackagesPath,
 			"BOSH_JOBS_DIR":     c.cpiJob.JobsPath,
+			"PATH":              "/usr/local/bin:/usr/bin:/bin",
 		},
-		Stdin: bytes.NewReader(inputBytes),
+		UseIsolatedEnv: true,
+		Stdin:          bytes.NewReader(inputBytes),
 	}
 	stdout, stderr, exitCode, err := c.cmdRunner.RunComplexCommand(cmd)
 	c.logger.Debug(c.logTag, "Exit Code %d when executing external CPI command '%s'\nSTDIN: '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", exitCode, cmdPath, string(inputBytes), stdout, stderr)

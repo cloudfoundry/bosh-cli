@@ -87,8 +87,10 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 			"BOSH_INSTALL_TARGET": installDir,
 			"BOSH_PACKAGE_NAME":   pkg.Name,
 			"BOSH_PACKAGES_DIR":   pc.packagesDir,
+			"PATH":                "/usr/local/bin:/usr/bin:/bin",
 		},
-		WorkingDir: packageSrcDir,
+		UseIsolatedEnv: true,
+		WorkingDir:     packageSrcDir,
 	}
 
 	_, _, _, err = pc.runner.RunComplexCommand(cmd)

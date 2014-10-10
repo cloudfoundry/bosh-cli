@@ -101,7 +101,9 @@ var _ = Describe("Cloud", func() {
 				Expect(actualCmd.Env).To(Equal(map[string]string{
 					"BOSH_PACKAGES_DIR": cpiJob.PackagesPath,
 					"BOSH_JOBS_DIR":     cpiJob.JobsPath,
+					"PATH":              "/usr/local/bin:/usr/bin:/bin",
 				}))
+				Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
 
 				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
 				Expect(err).NotTo(HaveOccurred())
@@ -213,6 +215,7 @@ var _ = Describe("Cloud", func() {
 				Expect(actualCmd.Env).To(Equal(map[string]string{
 					"BOSH_PACKAGES_DIR": cpiJob.PackagesPath,
 					"BOSH_JOBS_DIR":     cpiJob.JobsPath,
+					"PATH":              "/usr/local/bin:/usr/bin:/bin",
 				}))
 
 				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
