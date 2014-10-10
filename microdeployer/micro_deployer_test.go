@@ -23,18 +23,19 @@ var _ = Describe("MicroDeployer", func() {
 		fakeVMManager        *fakebmvm.FakeManager
 		cloud                *fakebmcloud.FakeCloud
 		deployment           bmdepl.Deployment
+		registry             bmdepl.Registry
 		fakeRegistryServer   *fakeregistry.FakeServer
 	)
 
 	BeforeEach(func() {
-		deployment = bmdepl.Deployment{
-			Registry: bmdepl.Registry{
-				Username: "fake-username",
-				Password: "fake-password",
-				Host:     "fake-host",
-				Port:     123,
-			},
+		deployment = bmdepl.Deployment{}
+		registry = bmdepl.Registry{
+			Username: "fake-username",
+			Password: "fake-password",
+			Host:     "fake-host",
+			Port:     123,
 		}
+
 		cloud = fakebmcloud.NewFakeCloud()
 		fakeRegistryServer = fakeregistry.NewFakeServer()
 		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
@@ -45,7 +46,7 @@ var _ = Describe("MicroDeployer", func() {
 	})
 
 	It("starts the registry", func() {
-		err := microDeployer.Deploy(cloud, deployment, "fake-stemcell-cid")
+		err := microDeployer.Deploy(cloud, deployment, registry, "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeRegistryServer.StartInput).To(Equal(fakeregistry.StartInput{
 			Username: "fake-username",
@@ -57,7 +58,7 @@ var _ = Describe("MicroDeployer", func() {
 	})
 
 	It("creates a VM", func() {
-		err := microDeployer.Deploy(cloud, deployment, "fake-stemcell-cid")
+		err := microDeployer.Deploy(cloud, deployment, registry, "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeVMManager.CreateVMInput).To(Equal(
 			fakebmvm.CreateVMInput{
@@ -71,7 +72,7 @@ var _ = Describe("MicroDeployer", func() {
 		It("returns an error", func() {
 			createVMError := errors.New("fake-create-vm-error")
 			fakeVMManager.SetCreateVMBehavior("fake-stemcell-cid", createVMError)
-			err := microDeployer.Deploy(cloud, deployment, "fake-stemcell-cid")
+			err := microDeployer.Deploy(cloud, deployment, registry, "fake-stemcell-cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-vm-error"))
 		})

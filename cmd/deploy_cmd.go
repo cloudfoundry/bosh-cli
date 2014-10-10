@@ -88,7 +88,7 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
 	}
 
-	err = c.microDeployer.Deploy(cloud, boshDeployment, stemcellCID)
+	err = c.microDeployer.Deploy(cloud, boshDeployment, cpiDeployment.Registry, stemcellCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")
 	}

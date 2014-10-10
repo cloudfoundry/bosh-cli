@@ -143,16 +143,23 @@ version: fake-version
 
 				Context("when the deployment manifest exists", func() {
 					var (
-						deployment bmdepl.Deployment
-						cloud      *fakebmcloud.FakeCloud
+						boshDeployment bmdepl.Deployment
+						cpiDeployment  bmdepl.Deployment
+						cloud          *fakebmcloud.FakeCloud
 					)
 					BeforeEach(func() {
 						fakeFs.WriteFileString(userConfig.DeploymentFile, "")
-						deployment = bmdepl.Deployment{}
-						fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, deployment, nil)
-						fakeBoshManifestParser.SetParseBehavior(userConfig.DeploymentFile, deployment, nil)
+						cpiDeployment = bmdepl.Deployment{
+							Registry: bmdepl.Registry{
+								Username: "fake-username",
+							},
+						}
+						fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, cpiDeployment, nil)
+
+						boshDeployment = bmdepl.Deployment{}
+						fakeBoshManifestParser.SetParseBehavior(userConfig.DeploymentFile, boshDeployment, nil)
 						cloud = fakebmcloud.NewFakeCloud()
-						fakeCpiDeployer.SetDeployBehavior(deployment, cpiReleaseTarballPath, cloud, nil)
+						fakeCpiDeployer.SetDeployBehavior(cpiDeployment, cpiReleaseTarballPath, cloud, nil)
 						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
 						fakeMicroDeployer.SetDeployBehavior(nil)
@@ -176,7 +183,7 @@ version: fake-version
 					It("deploys the CPI locally", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCpiDeployer.DeployInputs[0].Deployment).To(Equal(deployment))
+						Expect(fakeCpiDeployer.DeployInputs[0].Deployment).To(Equal(cpiDeployment))
 					})
 
 					It("uploads the stemcell", func() {
@@ -197,8 +204,9 @@ version: fake-version
 						Expect(fakeMicroDeployer.DeployInput).To(Equal(
 							fakemicrodeploy.DeployInput{
 								Cloud:       cloud,
-								Deployment:  deployment,
+								Deployment:  boshDeployment,
 								StemcellCID: expectedStemcellCID,
+								Registry:    cpiDeployment.Registry,
 							},
 						))
 					})

@@ -12,7 +12,7 @@ import (
 )
 
 type Deployer interface {
-	Deploy(bmcloud.Cloud, bmdepl.Deployment, bmstemcell.CID) error
+	Deploy(bmcloud.Cloud, bmdepl.Deployment, bmdepl.Registry, bmstemcell.CID) error
 }
 
 type microDeployer struct {
@@ -31,8 +31,7 @@ func NewMicroDeployer(vmManagerFactory bmvm.ManagerFactory, registryServer bmreg
 	}
 }
 
-func (m *microDeployer) Deploy(cpi bmcloud.Cloud, deployment bmdepl.Deployment, stemcellCID bmstemcell.CID) error {
-	registry := deployment.Registry
+func (m *microDeployer) Deploy(cpi bmcloud.Cloud, deployment bmdepl.Deployment, registry bmdepl.Registry, stemcellCID bmstemcell.CID) error {
 	registryReadyCh := make(chan struct{})
 	go m.startRegistry(registry, registryReadyCh)
 	defer m.registryServer.Stop()
