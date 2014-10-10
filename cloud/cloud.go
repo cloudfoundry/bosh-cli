@@ -183,7 +183,7 @@ func (c cloud) execCPICmd(method string, args ...interface{}) (CmdOutput, error)
 	cmdOutput := CmdOutput{}
 	err = json.Unmarshal([]byte(stdout), &cmdOutput)
 	if err != nil {
-		return CmdOutput{}, bosherr.WrapError(err, "Unmarshalling external CPI command output: '%s'", stdout)
+		return CmdOutput{}, bosherr.WrapError(err, "Unmarshalling external CPI command output: STDOUT: '%s', STDERR: '%s'", stdout, stderr)
 	}
 
 	c.logger.Debug(c.logTag, cmdOutput.Log)
