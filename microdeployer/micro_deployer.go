@@ -2,6 +2,7 @@ package microdeployer
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -17,58 +18,39 @@ type Deployer interface {
 type microDeployer struct {
 	vmManagerFactory bmvm.ManagerFactory
 	registryServer   bmregistry.Server
+	logger           boshlog.Logger
+	logTag           string
 }
 
-func NewMicroDeployer(vmManagerFactory bmvm.ManagerFactory, registryServer bmregistry.Server) *microDeployer {
+func NewMicroDeployer(vmManagerFactory bmvm.ManagerFactory, registryServer bmregistry.Server, logger boshlog.Logger) *microDeployer {
 	return &microDeployer{
 		vmManagerFactory: vmManagerFactory,
 		registryServer:   registryServer,
+		logger:           logger,
+		logTag:           "microDeployer",
 	}
 }
 
 func (m *microDeployer) Deploy(cpi bmcloud.Cloud, deployment bmdepl.Deployment, stemcellCID bmstemcell.CID) error {
 	registry := deployment.Registry
 	registryReadyCh := make(chan struct{})
-	registryErrCh := make(chan error)
-	go m.startRegistry(registry, registryReadyCh, registryErrCh)
+	go m.startRegistry(registry, registryReadyCh)
 	defer m.registryServer.Stop()
 
 	<-registryReadyCh
 
-	deployDoneCh := make(chan struct{})
-	deployErrCh := make(chan error)
-	go m.runDeploy(cpi, deployment, stemcellCID, deployDoneCh, deployErrCh)
-
-	select {
-	case err := <-registryErrCh:
-		return err
-	case err := <-deployErrCh:
-		return err
-	case <-deployDoneCh:
-		return nil
-	}
-}
-
-func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyCh chan struct{}, errCh chan error) {
-	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyCh)
-	if err != nil {
-		errCh <- bosherr.WrapError(err, "Running registry")
-	}
-}
-
-func (m *microDeployer) runDeploy(
-	cpi bmcloud.Cloud,
-	deployment bmdepl.Deployment,
-	stemcellCID bmstemcell.CID,
-	doneCh chan struct{},
-	errCh chan error,
-) {
 	vmManager := m.vmManagerFactory.NewManager(cpi)
 	_, err := vmManager.CreateVM(stemcellCID, deployment)
 	if err != nil {
-		errCh <- bosherr.WrapError(err, "Creating VM")
-		return
+		return bosherr.WrapError(err, "Creating VM")
 	}
 
-	doneCh <- struct{}{}
+	return nil
+}
+
+func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyCh chan struct{}) {
+	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyCh)
+	if err != nil {
+		m.logger.Debug(m.logTag, "Registry error occurred: %s", err)
+	}
 }

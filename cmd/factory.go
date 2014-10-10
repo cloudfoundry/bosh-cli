@@ -172,7 +172,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fileSystem, stemcellReader, repo, eventLogger)
 	vmManagerFactory := bmvm.NewManagerFactory(eventLogger, f.deploymentConfigService)
 	registryServer := bmregistry.NewServer(f.logger)
-	microDeployer := bmmicrodeploy.NewMicroDeployer(vmManagerFactory, registryServer)
+	microDeployer := bmmicrodeploy.NewMicroDeployer(vmManagerFactory, registryServer, f.logger)
 
 	return NewDeployCmd(
 		f.ui,

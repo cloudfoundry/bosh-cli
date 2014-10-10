@@ -8,8 +8,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/registry/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/vm/fakes"
 )
@@ -38,7 +40,8 @@ var _ = Describe("MicroDeployer", func() {
 		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
 		fakeVMManager = fakebmvm.NewFakeManager()
 		fakeVMManagerFactory.SetNewManagerBehavior(cloud, fakeVMManager)
-		microDeployer = NewMicroDeployer(fakeVMManagerFactory, fakeRegistryServer)
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		microDeployer = NewMicroDeployer(fakeVMManagerFactory, fakeRegistryServer, logger)
 	})
 
 	It("starts the registry", func() {
@@ -62,16 +65,6 @@ var _ = Describe("MicroDeployer", func() {
 				Deployment:  deployment,
 			},
 		))
-	})
-
-	Context("when running registry fails", func() {
-		It("returns an error", func() {
-			startErr := errors.New("registry-error")
-			fakeRegistryServer.SetStartBehavior(startErr)
-			err := microDeployer.Deploy(cloud, deployment, "fake-stemcell-cid")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("registry-error"))
-		})
 	})
 
 	Context("when creating VM fails", func() {
