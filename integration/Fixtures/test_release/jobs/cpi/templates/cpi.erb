@@ -1,15 +1,12 @@
 #!/usr/bin/env ruby
 
-require 'json'
-
 GLOBAL_PROPERTY="<%= p('fake_cpi_default_property.second_level') %>"
 JOB_PROPERTY="<%= p('fake_cpi_specified_property.second_level') %>"
 IP="<%= spec.networks.default.ip %>"
 
 input = ARGF.read
-json = JSON.parse(input)
 
-if json["method"] == "create_stemcell"
+if input =~ /create_stemcell/
   puts '{"result":"fake-stemcell-cid","log":"fake-log"}'
 else
   puts '{"result":"fake-vm-cid","log":"fake-log"}'
