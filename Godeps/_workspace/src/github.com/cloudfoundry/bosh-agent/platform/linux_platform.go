@@ -403,7 +403,7 @@ func (p linux) SetupEphemeralDiskWithPath(realPath string) error {
 		if err != nil {
 			_, isInsufficentSpaceError := err.(insufficientSpaceError)
 			if isInsufficentSpaceError {
-				p.logger.Warn(logTag, "No partitions created on root device, using root partition as ephemeral disk", err)
+				p.logger.Warn(logTag, "No partitions created on root device, using root partition as ephemeral disk - %s", err.Error())
 				return nil
 			}
 

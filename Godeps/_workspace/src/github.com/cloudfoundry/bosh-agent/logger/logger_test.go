@@ -1,7 +1,6 @@
 package logger_test
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -69,17 +68,6 @@ var _ = Describe("Logger", func() {
 			Expect(stdout).To(MatchRegexp(expectedContent))
 			Expect(stderr).ToNot(MatchRegexp(expectedContent))
 		})
-
-		It("includes the message from an error", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelDebug)
-				logger.Debug("TAG", "some %s info to log", "awesome", errors.New("some error message"))
-			})
-
-			expectedContent := expectedLogFormat("TAG", "DEBUG - some awesome info to log - some error message")
-			Expect(stdout).To(MatchRegexp(expectedContent))
-			Expect(stderr).ToNot(MatchRegexp(expectedContent))
-		})
 	})
 
 	Describe("DebugWithDetails", func() {
@@ -110,17 +98,6 @@ var _ = Describe("Logger", func() {
 			Expect(stdout).To(MatchRegexp(expectedContent))
 			Expect(stderr).ToNot(MatchRegexp(expectedContent))
 		})
-
-		It("includes the message from an error", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelInfo)
-				logger.Info("TAG", "some %s info to log", "awesome", errors.New("some error message"))
-			})
-
-			expectedContent := expectedLogFormat("TAG", "INFO - some awesome info to log - some error message")
-			Expect(stdout).To(MatchRegexp(expectedContent))
-			Expect(stderr).ToNot(MatchRegexp(expectedContent))
-		})
 	})
 
 	Describe("Warn", func() {
@@ -134,17 +111,6 @@ var _ = Describe("Logger", func() {
 			Expect(stdout).ToNot(MatchRegexp(expectedContent))
 			Expect(stderr).To(MatchRegexp(expectedContent))
 		})
-
-		It("includes the message from an error", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelWarn)
-				logger.Warn("TAG", "some %s info to log", "awesome", errors.New("some error message"))
-			})
-
-			expectedContent := expectedLogFormat("TAG", "WARN - some awesome info to log - some error message")
-			Expect(stdout).ToNot(MatchRegexp(expectedContent))
-			Expect(stderr).To(MatchRegexp(expectedContent))
-		})
 	})
 
 	Describe("Error", func() {
@@ -155,17 +121,6 @@ var _ = Describe("Logger", func() {
 			})
 
 			expectedContent := expectedLogFormat("TAG", "ERROR - some awesome info to log")
-			Expect(stdout).ToNot(MatchRegexp(expectedContent))
-			Expect(stderr).To(MatchRegexp(expectedContent))
-		})
-
-		It("includes the message from an error", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelError)
-				logger.Error("TAG", "some %s info to log", "awesome", errors.New("some error message"))
-			})
-
-			expectedContent := expectedLogFormat("TAG", "ERROR - some awesome info to log - some error message")
 			Expect(stdout).ToNot(MatchRegexp(expectedContent))
 			Expect(stderr).To(MatchRegexp(expectedContent))
 		})

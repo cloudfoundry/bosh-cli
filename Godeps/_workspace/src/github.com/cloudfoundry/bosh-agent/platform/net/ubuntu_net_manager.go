@@ -79,12 +79,12 @@ func (net ubuntuNetManager) SetupDhcp(networks boshsettings.Networks, errCh chan
 
 		_, _, _, err := net.cmdRunner.RunCommand("ifdown", args...)
 		if err != nil {
-			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifdown failure: %s", err)
+			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifdown failure: %s", err.Error())
 		}
 
 		_, _, _, err = net.cmdRunner.RunCommand("ifup", args...)
 		if err != nil {
-			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifup failure: %s", err)
+			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifup failure: %s", err.Error())
 		}
 	}
 
@@ -277,12 +277,12 @@ func (net ubuntuNetManager) restartNetworkingInterfaces(networks []customNetwork
 
 		_, _, _, err := net.cmdRunner.RunCommand("service", "network-interface", "stop", "INTERFACE="+network.Interface)
 		if err != nil {
-			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring network stop failure: %s", err)
+			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring network stop failure: %s", err.Error())
 		}
 
 		_, _, _, err = net.cmdRunner.RunCommand("service", "network-interface", "start", "INTERFACE="+network.Interface)
 		if err != nil {
-			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring network start failure: %s", err)
+			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring network start failure: %s", err.Error())
 		}
 	}
 }
@@ -299,7 +299,7 @@ func (net ubuntuNetManager) dhclientConfigFile() string {
 func (net ubuntuNetManager) restartNetworkArguments() []string {
 	stdout, _, _, err := net.cmdRunner.RunCommand("ifup", "--version")
 	if err != nil {
-		net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifup version failure: %s", err)
+		net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifup version failure: %s", err.Error())
 	}
 
 	// Check if command accepts --no-loopback argument
