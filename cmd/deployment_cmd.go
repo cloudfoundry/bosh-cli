@@ -14,10 +14,6 @@ import (
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
 
-const (
-	tagString = "DeploymentCmd"
-)
-
 type deploymentCmd struct {
 	ui                bmui.UI
 	userConfig        bmconfig.UserConfig
@@ -26,6 +22,7 @@ type deploymentCmd struct {
 	fs                boshsys.FileSystem
 	uuidGenerator     boshuuid.Generator
 	logger            boshlog.Logger
+	logTag            string
 }
 
 func NewDeploymentCmd(
@@ -45,6 +42,7 @@ func NewDeploymentCmd(
 		fs:                fs,
 		uuidGenerator:     uuidGenerator,
 		logger:            logger,
+		logTag:            "deploymentCmd",
 	}
 }
 
@@ -102,7 +100,7 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		}
 		c.deploymentConfig.DeploymentUUID = uuid
 
-		c.logger.Debug(tagString, "Config %#v", c.deploymentConfig)
+		c.logger.Debug(c.logTag, "Config %#v", c.deploymentConfig)
 		err = deploymentConfigService.Save(c.deploymentConfig)
 		if err != nil {
 			return bosherr.WrapError(err, "Saving deployment config")

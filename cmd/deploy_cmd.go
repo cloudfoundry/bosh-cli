@@ -17,10 +17,6 @@ import (
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
 
-const (
-	logTag = "depoyCmd"
-)
-
 type deployCmd struct {
 	ui                     bmui.UI
 	userConfig             bmconfig.UserConfig
@@ -31,6 +27,7 @@ type deployCmd struct {
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	microDeployer          bmmicrodeploy.Deployer
 	logger                 boshlog.Logger
+	logTag                 string
 }
 
 func NewDeployCmd(
@@ -54,6 +51,7 @@ func NewDeployCmd(
 		stemcellManagerFactory: stemcellManagerFactory,
 		microDeployer:          microDeployer,
 		logger:                 logger,
+		logTag:                 "deployCmd",
 	}
 }
 
@@ -105,12 +103,12 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 	if len(args) != 2 {
 		c.ui.Error("Invalid usage - deploy command requires exactly 2 arguments")
 		c.ui.Sayln("Expected usage: bosh-micro deploy <cpi-release-tarball> <stemcell-tarball>")
-		c.logger.Error(logTag, "Invalid arguments: ")
+		c.logger.Error(c.logTag, "Invalid arguments: ")
 		return "", "", errors.New("Invalid usage - deploy command requires exactly 2 arguments")
 	}
 
 	releaseTarballPath := args[0]
-	c.logger.Info(logTag, "Validating release tarball `%s'", releaseTarballPath)
+	c.logger.Info(c.logTag, "Validating release tarball `%s'", releaseTarballPath)
 
 	fileValidator := bmvalidation.NewFileValidator(c.fs)
 	err := fileValidator.Exists(releaseTarballPath)
@@ -120,7 +118,7 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 	}
 
 	stemcellTarballPath := args[1]
-	c.logger.Info(logTag, "Validating stemcell tarball `%s'", stemcellTarballPath)
+	c.logger.Info(c.logTag, "Validating stemcell tarball `%s'", stemcellTarballPath)
 	err = fileValidator.Exists(stemcellTarballPath)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Stemcell `%s' does not exist", stemcellTarballPath))
@@ -133,7 +131,7 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 		return "", "", bosherr.New("No deployment set")
 	}
 
-	c.logger.Info(logTag, "Checking for deployment `%s'", c.userConfig.DeploymentFile)
+	c.logger.Info(c.logTag, "Checking for deployment `%s'", c.userConfig.DeploymentFile)
 	err = fileValidator.Exists(c.userConfig.DeploymentFile)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.userConfig.DeploymentFile))

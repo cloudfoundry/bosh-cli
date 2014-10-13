@@ -8,14 +8,11 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
-const (
-	tagString = "Config"
-)
-
 type fileSystemDeploymentConfigService struct {
 	configPath string
 	fs         boshsys.FileSystem
 	logger     boshlog.Logger
+	logTag     string
 }
 
 func NewFileSystemDeploymentConfigService(configPath string, fs boshsys.FileSystem, logger boshlog.Logger) DeploymentConfigService {
@@ -23,6 +20,7 @@ func NewFileSystemDeploymentConfigService(configPath string, fs boshsys.FileSyst
 		configPath: configPath,
 		fs:         fs,
 		logger:     logger,
+		logTag:     "config",
 	}
 }
 
@@ -46,7 +44,7 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
 	if err != nil {
 		return config, nil
 	}
-	s.logger.Debug(tagString, "Deployment File Contents %#s", deploymentFileContents)
+	s.logger.Debug(s.logTag, "Deployment File Contents %#s", deploymentFileContents)
 
 	deploymentFile := DeploymentFile{}
 

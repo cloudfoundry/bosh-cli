@@ -10,8 +10,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
-const logTag = "blobExtractor"
-
 type BlobExtractor interface {
 	Extract(blobID string, blobSHA1 string, targetDir string) error
 }
@@ -21,6 +19,7 @@ type blobExtractor struct {
 	compressor boshcmd.Compressor
 	blobstore  boshblob.Blobstore
 	logger     boshlog.Logger
+	logTag     string
 }
 
 func NewBlobExtractor(
@@ -34,6 +33,7 @@ func NewBlobExtractor(
 		compressor: compressor,
 		blobstore:  blobstore,
 		logger:     logger,
+		logTag:     "blobExtractor",
 	}
 }
 
@@ -66,7 +66,7 @@ func (e blobExtractor) cleanUpBlob(filePath string) {
 	err := e.blobstore.CleanUp(filePath)
 	if err != nil {
 		e.logger.Error(
-			logTag,
+			e.logTag,
 			bosherr.WrapError(err, "Removing compiled package tarball: %s", filePath).Error(),
 		)
 	}
@@ -76,7 +76,7 @@ func (e blobExtractor) cleanUpFile(filePath string) {
 	err := e.fs.RemoveAll(filePath)
 	if err != nil {
 		e.logger.Error(
-			logTag,
+			e.logTag,
 			bosherr.WrapError(err, "Removing: %s", filePath).Error(),
 		)
 	}

@@ -9,8 +9,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
-const erbRendererLogTag = "ERBRenderer"
-
 type ERBRenderer interface {
 	Render(srcPath, dstPath string, context TemplateEvaluationContext) error
 }
@@ -19,6 +17,7 @@ type erbRenderer struct {
 	fs     boshsys.FileSystem
 	runner boshsys.CmdRunner
 	logger boshlog.Logger
+	logTag string
 
 	rendererScript string
 }
@@ -32,13 +31,14 @@ func NewERBRenderer(
 		fs:     fs,
 		runner: runner,
 		logger: logger,
+		logTag: "ERBRenderer",
 
 		rendererScript: templateEvaluationContextRb,
 	}
 }
 
 func (r erbRenderer) Render(srcPath, dstPath string, context TemplateEvaluationContext) error {
-	r.logger.Debug(erbRendererLogTag, "Rendering template %s", dstPath)
+	r.logger.Debug(r.logTag, "Rendering template %s", dstPath)
 
 	tmpDir, err := r.fs.TempDir("erb-renderer")
 	if err != nil {
