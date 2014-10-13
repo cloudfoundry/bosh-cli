@@ -50,6 +50,6 @@ func (m *microDeployer) Deploy(cpi bmcloud.Cloud, deployment bmdepl.Deployment, 
 func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyCh chan struct{}) {
 	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyCh)
 	if err != nil {
-		m.logger.Debug(m.logTag, "Registry error occurred: %s", err)
+		m.logger.Debug(m.logTag, "Registry error occurred: %s", err.Error())
 	}
 }

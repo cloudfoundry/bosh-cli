@@ -60,6 +60,6 @@ func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, logger
 }
 
 func fail(err error, logger boshlog.Logger) {
-	logger.Error(mainLogTag, "BOSH Micro CLI failed with: %s", err)
+	logger.Error(mainLogTag, "BOSH Micro CLI failed with: %s", err.Error())
 	os.Exit(1)
 }
