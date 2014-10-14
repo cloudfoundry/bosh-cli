@@ -21,6 +21,7 @@ var _ = Describe("Network", func() {
 					"name": "sg-1234",
 				},
 			},
+			IP: "1.2.3.4",
 		}
 	})
 
@@ -29,12 +30,11 @@ var _ = Describe("Network", func() {
 			spec, err := network.Spec()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(spec).To(Equal(map[string]interface{}{
-				"fake-name": map[string]interface{}{
-					"type": "dynamic",
-					"cloud_properties": map[string]interface{}{
-						"subnet": map[string]interface{}{
-							"name": "sg-1234",
-						},
+				"type": "dynamic",
+				"ip":   "1.2.3.4",
+				"cloud_properties": map[string]interface{}{
+					"subnet": map[string]interface{}{
+						"name": "sg-1234",
 					},
 				},
 			}))

@@ -12,12 +12,14 @@ func (n NetworkType) String() string {
 
 const (
 	Dynamic NetworkType = "dynamic"
+	VIP     NetworkType = "vip"
 )
 
 type Network struct {
 	Name               string                      `yaml:"name"`
 	Type               NetworkType                 `yaml:"type"`
 	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
+	IP                 string                      `yaml:"ip"`
 }
 
 func (n Network) CloudProperties() (map[string]interface{}, error) {
@@ -31,10 +33,9 @@ func (n Network) Spec() (map[string]interface{}, error) {
 	}
 
 	spec := map[string]interface{}{
-		n.Name: map[string]interface{}{
-			"type":             n.Type.String(),
-			"cloud_properties": cloudProperties,
-		},
+		"type":             n.Type.String(),
+		"ip":               n.IP,
+		"cloud_properties": cloudProperties,
 	}
 
 	return spec, nil

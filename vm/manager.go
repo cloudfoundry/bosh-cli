@@ -36,7 +36,8 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 	}
 	m.eventLogger.AddEvent(event)
 
-	networksSpec, err := deployment.NetworksSpec()
+	microBoshJobName := deployment.Jobs[0].Name
+	networksSpec, err := deployment.NetworksSpec(microBoshJobName)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
 	}

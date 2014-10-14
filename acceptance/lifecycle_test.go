@@ -71,6 +71,10 @@ networks:
     subnet: fake-subnet
     a:
       b: value
+jobs:
+- name: bosh
+  networks:
+  - name: fake-network-name
 cloud_provider:
   properties:
     cpi:

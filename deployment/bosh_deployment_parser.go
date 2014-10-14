@@ -19,6 +19,7 @@ type boshDeploymentManifest struct {
 	Name          string
 	Networks      []Network
 	ResourcePools []ResourcePool `yaml:"resource_pools"`
+	Jobs          []Job
 }
 
 func (p boshDeploymentParser) Parse(path string) (Deployment, error) {
@@ -37,6 +38,7 @@ func (p boshDeploymentParser) Parse(path string) (Deployment, error) {
 		Name:          depManifest.Name,
 		Networks:      depManifest.Networks,
 		ResourcePools: depManifest.ResourcePools,
+		Jobs:          depManifest.Jobs,
 	}
 
 	return deployment, nil

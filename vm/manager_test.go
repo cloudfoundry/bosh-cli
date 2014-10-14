@@ -49,6 +49,7 @@ var _ = Describe("Manager", func() {
 			expectedNetworksSpec = map[string]interface{}{
 				"fake-network-name": map[string]interface{}{
 					"type":             "dynamic",
+					"ip":               "fake-micro-ip",
 					"cloud_properties": map[string]interface{}{},
 				},
 			}
@@ -76,6 +77,17 @@ var _ = Describe("Manager", func() {
 						},
 						RawEnv: map[interface{}]interface{}{
 							"fake-env-key": "fake-env-value",
+						},
+					},
+				},
+				Jobs: []bmdepl.Job{
+					{
+						Name: "fake-job",
+						Networks: []bmdepl.JobNetwork{
+							{
+								Name:      "fake-network-name",
+								StaticIPs: []string{"fake-micro-ip"},
+							},
 						},
 					},
 				},

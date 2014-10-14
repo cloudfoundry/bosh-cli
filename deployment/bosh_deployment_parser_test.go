@@ -60,6 +60,13 @@ networks:
     subnet: fake-subnet
     a:
       b: value
+- name: vip
+  type: vip
+jobs:
+- name: bosh
+  networks:
+  - name: vip
+    static_ips: [1.2.3.4]
 cloud_provider:
   properties:
     nested-property: fake-property-value
@@ -84,6 +91,10 @@ cloud_provider:
 							},
 						},
 					},
+					{
+						Name: "vip",
+						Type: VIP,
+					},
 				}))
 				resourcePools := deployment.ResourcePools
 				Expect(resourcePools).To(Equal([]ResourcePool{
@@ -92,6 +103,18 @@ cloud_provider:
 						RawEnv: map[interface{}]interface{}{
 							"bosh": map[interface{}]interface{}{
 								"password": "secret",
+							},
+						},
+					},
+				}))
+				jobs := deployment.Jobs
+				Expect(jobs).To(Equal([]Job{
+					{
+						Name: "bosh",
+						Networks: []JobNetwork{
+							{
+								Name:      "vip",
+								StaticIPs: []string{"1.2.3.4"},
 							},
 						},
 					},

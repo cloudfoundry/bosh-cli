@@ -48,6 +48,8 @@ resource_pools:
 - name: default
   cloud_properties:
     fake-cloud-property-key: fake-cloud-property-value
+jobs:
+- name: fake-job-name
 cloud_provider:
   properties:
     fake_cpi_specified_property:
