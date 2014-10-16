@@ -1,1 +1,0 @@
-cp $BOSH_PACKAGES_DIR/dependency_package/dependency_src_file $BOSH_INSTALL_TARGET/compiled_file

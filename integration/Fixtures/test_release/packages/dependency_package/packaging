@@ -1,1 +1,0 @@
-cp dependency_package/dependency_src_file $BOSH_INSTALL_TARGET
