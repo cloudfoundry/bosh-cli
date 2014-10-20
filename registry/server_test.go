@@ -1,6 +1,7 @@
 package registry_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -65,7 +66,11 @@ var _ = Describe("Server", func() {
 
 				httpBody, statusCode := client.DoGet(registryURL + "/instances/1/settings")
 				Expect(statusCode).To(Equal(200))
-				Expect(httpBody).To(Equal("fake-agent-settings"))
+				var response SettingsResponse
+				err := json.Unmarshal(httpBody, &response)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(response.Settings).To(Equal("fake-agent-settings"))
+				Expect(response.Status).To(Equal("ok"))
 			})
 		})
 
@@ -79,7 +84,12 @@ var _ = Describe("Server", func() {
 
 				httpBody, statusCode := client.DoGet(registryURL + "/instances/1/settings")
 				Expect(statusCode).To(Equal(200))
-				Expect(httpBody).To(Equal("fake-agent-settings-updated"))
+
+				var response SettingsResponse
+				err := json.Unmarshal(httpBody, &response)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(response.Settings).To(Equal("fake-agent-settings-updated"))
+				Expect(response.Status).To(Equal("ok"))
 			})
 		})
 	})
@@ -107,7 +117,7 @@ var _ = Describe("Server", func() {
 		})
 
 		Context("when the settings do not exist", func() {
-			It("deletes the settings", func() {
+			It("returns 200", func() {
 				_, statusCode := client.DoDelete(registryURL + "/instances/1/settings")
 				Expect(statusCode).To(Equal(200))
 
@@ -132,10 +142,14 @@ var _ = Describe("Server", func() {
 			})
 
 			Context("when username and password are incorrect", func() {
-				It("returns 200", func() {
+				It("does not return 401, because GETs do not require authentication", func() {
 					httpBody, statusCode := client.DoGet(incorrectAuthRegistryURL + "/instances/1/settings")
 					Expect(statusCode).To(Equal(200))
-					Expect(httpBody).To(Equal("fake-agent-settings"))
+					var response SettingsResponse
+					err := json.Unmarshal(httpBody, &response)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(response.Settings).To(Equal("fake-agent-settings"))
+					Expect(response.Status).To(Equal("ok"))
 				})
 			})
 		})
@@ -178,7 +192,7 @@ func (c helperClient) DoPut(endpoint string, body string) (string, http.Header, 
 	return string(httpBody), httpResponse.Header, httpResponse.StatusCode
 }
 
-func (c helperClient) DoGet(endpoint string) (string, int) {
+func (c helperClient) DoGet(endpoint string) ([]byte, int) {
 	httpResponse, err := c.httpClient.Get(endpoint)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -187,5 +201,5 @@ func (c helperClient) DoGet(endpoint string) (string, int) {
 	httpBody, err := ioutil.ReadAll(httpResponse.Body)
 	Expect(err).ToNot(HaveOccurred())
 
-	return string(httpBody), httpResponse.StatusCode
+	return httpBody, httpResponse.StatusCode
 }

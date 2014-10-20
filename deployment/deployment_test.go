@@ -24,6 +24,10 @@ var _ = Describe("Deployment", func() {
 							Type: "dynamic",
 						},
 						{
+							Name: "fake-manual-network-name",
+							Type: "manual",
+						},
+						{
 							Name: "vip",
 							Type: "vip",
 						},
@@ -44,6 +48,10 @@ var _ = Describe("Deployment", func() {
 									Name:      "fake-network-name",
 									StaticIPs: []string{"5.6.7.8"},
 								},
+								{
+									Name:      "fake-manual-network-name",
+									StaticIPs: []string{"5.6.7.9"},
+								},
 							},
 						},
 					},
@@ -55,6 +63,11 @@ var _ = Describe("Deployment", func() {
 					"fake-network-name": map[string]interface{}{
 						"type":             "dynamic",
 						"ip":               "5.6.7.8",
+						"cloud_properties": map[string]interface{}{},
+					},
+					"fake-manual-network-name": map[string]interface{}{
+						"type":             "manual",
+						"ip":               "5.6.7.9",
 						"cloud_properties": map[string]interface{}{},
 					},
 					"vip": map[string]interface{}{

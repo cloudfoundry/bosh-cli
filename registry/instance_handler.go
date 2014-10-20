@@ -2,6 +2,7 @@ package registry
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -30,6 +31,11 @@ func NewInstanceHandler(
 		logger:   logger,
 		logTag:   "registryInstanceHandler",
 	}
+}
+
+type SettingsResponse struct {
+	Settings string
+	Status   string
 }
 
 func (h *instanceHandler) HandleFunc(w http.ResponseWriter, req *http.Request) {
@@ -68,7 +74,19 @@ func (h *instanceHandler) HandleGet(instanceID string, w http.ResponseWriter, re
 	}
 
 	h.logger.Debug(h.logTag, "Found settings for instance %s: %s", instanceID, string(settingsJSON))
-	w.Write(settingsJSON)
+
+	response := SettingsResponse{
+		Settings: string(settingsJSON),
+		Status:   "ok",
+	}
+
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.Write(responseJSON)
 
 	return
 }

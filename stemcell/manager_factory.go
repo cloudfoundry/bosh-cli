@@ -2,7 +2,6 @@ package stemcell
 
 import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 

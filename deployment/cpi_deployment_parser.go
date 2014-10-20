@@ -23,8 +23,10 @@ type cpiDeploymentManifest struct {
 }
 
 type cloudProviderProperties struct {
-	Properties map[interface{}]interface{}
-	Registry   Registry
+	Properties      map[interface{}]interface{}
+	Registry        Registry
+	AgentEnvService string    `yaml:"agent_env_service"`
+	SSHTunnel       SSHTunnel `yaml:"ssh_tunnel"`
 }
 
 func (m microDeploymentParser) Parse(path string) (Deployment, error) {
@@ -45,10 +47,12 @@ func (m microDeploymentParser) Parse(path string) (Deployment, error) {
 	}
 
 	deployment := Deployment{
-		Name:       depManifest.Name,
-		Properties: properties,
-		Jobs:       m.defaultCPIJobs(),
-		Registry:   depManifest.CloudProvider.Registry,
+		Name:            depManifest.Name,
+		Properties:      properties,
+		Jobs:            m.defaultCPIJobs(),
+		Registry:        depManifest.CloudProvider.Registry,
+		AgentEnvService: depManifest.CloudProvider.AgentEnvService,
+		SSHTunnel:       depManifest.CloudProvider.SSHTunnel,
 	}
 
 	return deployment, nil

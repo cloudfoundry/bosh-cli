@@ -1,10 +1,15 @@
 {
 	"ImportPath": "github.com/cloudfoundry/bosh-micro-cli",
-	"GoVersion": "go1.2.2",
+	"GoVersion": "go1.3.3",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/go.crypto/ssh",
+			"Comment": "null-227",
+			"Rev": "d415780565165acd4cc9d476e485d4603b7c42ec"
+		},
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/candiedyaml",
 			"Rev": "42b748ad054a21a2867b5fcd557a82a06cbdc782"

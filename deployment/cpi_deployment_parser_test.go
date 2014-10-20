@@ -50,6 +50,12 @@ var _ = Describe("DeploymentRenderer", func() {
 ---
 name: fake-deployment-name
 cloud_provider:
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: /tmp/fake-ssh-key.pem
+  agent_env_service: registry
   registry:
     username: fake-registry-username
     password: fake-registry-password
@@ -73,9 +79,18 @@ cloud_provider:
 						Host:     "fake-registry-host",
 						Port:     123,
 					}))
+					Expect(deployment.AgentEnvService).To(Equal("registry"))
 					Expect(deployment.Properties["fake-property-name"]).To(Equal(map[string]interface{}{
 						"nested-property": "fake-property-value",
 					}))
+					Expect(deployment.SSHTunnel).To(Equal(
+						SSHTunnel{
+							Host:       "54.34.56.8",
+							Port:       22,
+							User:       "fake-ssh-user",
+							PrivateKey: "/tmp/fake-ssh-key.pem",
+						},
+					))
 				})
 
 				It("sets a CPI job into the deployment", func() {

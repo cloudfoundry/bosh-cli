@@ -7,10 +7,11 @@ import (
 )
 
 type DeployInput struct {
-	StemcellCID bmstemcell.CID
-	Cloud       bmcloud.Cloud
-	Deployment  bmdepl.Deployment
-	Registry    bmdepl.Registry
+	StemcellCID     bmstemcell.CID
+	Cloud           bmcloud.Cloud
+	Deployment      bmdepl.Deployment
+	Registry        bmdepl.Registry
+	SSHTunnelConfig bmdepl.SSHTunnel
 }
 
 type deployOutput struct {
@@ -28,12 +29,19 @@ func NewFakeMicroDeployer() *FakeMicroDeployer {
 	}
 }
 
-func (m *FakeMicroDeployer) Deploy(cloud bmcloud.Cloud, deployment bmdepl.Deployment, registry bmdepl.Registry, stemcellCID bmstemcell.CID) error {
+func (m *FakeMicroDeployer) Deploy(
+	cloud bmcloud.Cloud,
+	deployment bmdepl.Deployment,
+	registry bmdepl.Registry,
+	sshTunnelConfig bmdepl.SSHTunnel,
+	stemcellCID bmstemcell.CID,
+) error {
 	input := DeployInput{
-		StemcellCID: stemcellCID,
-		Cloud:       cloud,
-		Deployment:  deployment,
-		Registry:    registry,
+		StemcellCID:     stemcellCID,
+		Cloud:           cloud,
+		Deployment:      deployment,
+		Registry:        registry,
+		SSHTunnelConfig: sshTunnelConfig,
 	}
 	m.DeployInput = input
 

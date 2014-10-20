@@ -57,7 +57,7 @@ var _ = Describe("bosh-micro", func() {
 	})
 
 	It("is able to deploy a CPI release with a stemcell", func() {
-		contents := `---
+		manifestContents := `---
 name: test-release
 resource_pools:
 - name: fake-resource-pool-name
@@ -66,16 +66,31 @@ resource_pools:
       password: secret
 networks:
 - name: fake-network-name
-  type: dynamic
+  type: manual
   cloud_properties:
     subnet: fake-subnet
-    a:
-      b: value
+    range: 10.244.0.40/30
+    reserved:
+    - 10.244.0.41
+    static:
+    - 10.244.0.42
 jobs:
 - name: bosh
   networks:
   - name: fake-network-name
+    static_ips:
+    - 10.244.0.42
 cloud_provider:
+  ssh_tunnel:
+    host: 10.244.0.42
+    port: 22
+    user: vcap
+    password: c1oudc0w
+  registry:
+    host: 127.0.0.1
+    port: 6301
+    username: fake-registry-user
+    password: fake-registry-password
   properties:
     cpi:
       warden:
@@ -83,10 +98,16 @@ cloud_provider:
         connect_address: 0.0.0.0:7777
         network_pool: 10.244.0.0/16
         host_ip: 192.168.54.4
+      agent_env_service: registry
+      registry:
+        host: 127.0.0.1
+        port: 6301
+        username: fake-registry-user
+        password: fake-registry-password
       agent:
         mbus: 192.168.54.4
 `
-		testEnv.WriteContentString("manifest", contents)
+		testEnv.WriteContentString("manifest", manifestContents)
 
 		_, _, exitCode, err := cmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deployment", testEnv.Path("manifest"))
 		Expect(err).ToNot(HaveOccurred())
@@ -179,7 +200,7 @@ func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {
 	return err
 }
 
-func (e remoteTestEnvironment) WriteContentString(destName, contents string) error {
+func (e remoteTestEnvironment) WriteContentString(destName string, contents string) error {
 	tmpFile, err := e.fileSystem.TempFile("bosh-micro-cli-acceptance")
 	if err != nil {
 		return err

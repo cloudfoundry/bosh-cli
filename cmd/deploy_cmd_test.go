@@ -153,6 +153,9 @@ version: fake-version
 							Registry: bmdepl.Registry{
 								Username: "fake-username",
 							},
+							SSHTunnel: bmdepl.SSHTunnel{
+								Host: "fake-host",
+							},
 						}
 						fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, cpiDeployment, nil)
 
@@ -203,10 +206,11 @@ version: fake-version
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeMicroDeployer.DeployInput).To(Equal(
 							fakemicrodeploy.DeployInput{
-								Cloud:       cloud,
-								Deployment:  boshDeployment,
-								StemcellCID: expectedStemcellCID,
-								Registry:    cpiDeployment.Registry,
+								Cloud:           cloud,
+								Deployment:      boshDeployment,
+								StemcellCID:     expectedStemcellCID,
+								Registry:        cpiDeployment.Registry,
+								SSHTunnelConfig: cpiDeployment.SSHTunnel,
 							},
 						))
 					})

@@ -12,6 +12,7 @@ func (n NetworkType) String() string {
 
 const (
 	Dynamic NetworkType = "dynamic"
+	Manual  NetworkType = "manual"
 	VIP     NetworkType = "vip"
 )
 

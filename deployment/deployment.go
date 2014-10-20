@@ -28,13 +28,23 @@ type Registry struct {
 	Port     int
 }
 
+type SSHTunnel struct {
+	User       string
+	Host       string
+	Port       int
+	Password   string
+	PrivateKey string `yaml:"private_key"`
+}
+
 type Deployment struct {
-	Name          string
-	Properties    map[string]interface{}
-	Registry      Registry
-	Jobs          []Job
-	Networks      []Network
-	ResourcePools []ResourcePool
+	Name            string
+	Properties      map[string]interface{}
+	Registry        Registry
+	AgentEnvService string
+	SSHTunnel       SSHTunnel
+	Jobs            []Job
+	Networks        []Network
+	ResourcePools   []ResourcePool
 }
 
 func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error) {
