@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
@@ -24,6 +25,8 @@ type manager struct {
 	infrastructure          Infrastructure
 	eventLogger             bmeventlog.EventLogger
 	deploymentConfigService bmconfig.DeploymentConfigService
+	logTag                  string
+	logger                  boshlog.Logger
 }
 
 func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error) {
@@ -38,6 +41,7 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 
 	microBoshJobName := deployment.Jobs[0].Name
 	networksSpec, err := deployment.NetworksSpec(microBoshJobName)
+	m.logger.Debug(m.logTag, "Creating VM with network spec: %#v", networksSpec)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
 	}

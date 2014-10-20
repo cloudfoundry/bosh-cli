@@ -170,7 +170,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	stemcellReader := bmstemcell.NewReader(compressor, f.fileSystem)
 	repo := bmstemcell.NewRepo(f.deploymentConfigService)
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fileSystem, stemcellReader, repo, eventLogger)
-	vmManagerFactory := bmvm.NewManagerFactory(eventLogger, f.deploymentConfigService)
+	vmManagerFactory := bmvm.NewManagerFactory(eventLogger, f.deploymentConfigService, f.logger)
 	registryServer := bmregistry.NewServer(f.logger)
 	microDeployer := bmmicrodeploy.NewMicroDeployer(vmManagerFactory, registryServer, f.logger)
 
