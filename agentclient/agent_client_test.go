@@ -10,6 +10,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 var _ = Describe("AgentClient", func() {
@@ -19,7 +21,8 @@ var _ = Describe("AgentClient", func() {
 	)
 
 	BeforeEach(func() {
-		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid")
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid", logger)
 		agentServer = NewAgentServer("localhost:6305")
 
 		readyCh := make(chan error)

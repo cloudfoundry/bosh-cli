@@ -209,7 +209,7 @@ version: fake-version
 					It("creates a VM", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						agentClient := bmagentclient.NewAgentClient("http://fake-mbus-endpoint", "fake-deployment-uuid")
+						agentClient := bmagentclient.NewAgentClient("http://fake-mbus-endpoint", "fake-deployment-uuid", logger)
 						agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
 						expectedAgentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, agentPingRetryable, logger)
 						Expect(fakeMicroDeployer.DeployInput).To(Equal(

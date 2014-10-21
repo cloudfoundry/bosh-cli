@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 type AgentClient interface {
@@ -18,6 +19,8 @@ type agentClient struct {
 	endpoint   string
 	uuid       string
 	httpClient http.Client
+	logger     boshlog.Logger
+	logTag     string
 }
 
 type agentRequest struct {
@@ -35,11 +38,13 @@ type exceptionResponse struct {
 	Message string
 }
 
-func NewAgentClient(endpoint, uuid string) AgentClient {
+func NewAgentClient(endpoint string, uuid string, logger boshlog.Logger) AgentClient {
 	return &agentClient{
 		endpoint:   fmt.Sprintf("%s/agent", endpoint),
 		uuid:       uuid,
 		httpClient: http.Client{},
+		logger:     logger,
+		logTag:     "agentClient",
 	}
 }
 
@@ -83,6 +88,8 @@ func (c *agentClient) doPost(endpoint string, agentRequest agentRequest) (*http.
 		return &http.Response{}, bosherr.WrapError(err, "Marshaling agent request")
 	}
 	postPayload := strings.NewReader(string(agentRequestJSON))
+
+	c.logger.Debug(c.logTag, "Sending POST request with body %s, endpoint %s", agentRequestJSON, endpoint)
 
 	request, err := http.NewRequest("POST", endpoint, postPayload)
 	if err != nil {
