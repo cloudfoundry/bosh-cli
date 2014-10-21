@@ -1,6 +1,7 @@
 package agentclient
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -39,10 +40,15 @@ type exceptionResponse struct {
 }
 
 func NewAgentClient(endpoint string, uuid string, logger boshlog.Logger) AgentClient {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	httpClient := http.Client{Transport: tr}
+
 	return &agentClient{
 		endpoint:   fmt.Sprintf("%s/agent", endpoint),
 		uuid:       uuid,
-		httpClient: http.Client{},
+		httpClient: httpClient,
 		logger:     logger,
 		logTag:     "agentClient",
 	}
