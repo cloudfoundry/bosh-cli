@@ -4,8 +4,6 @@ go:
   - 1.3
   - tip
 
-before_install:
-  - gem install bosh_cli --no-ri --no-rdoc
 install: true
 
 script: ci/test.sh
