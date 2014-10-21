@@ -2,6 +2,7 @@ package fakes
 
 type FakeServer struct {
 	StartInput StartInput
+	readyChErr error
 	startErr   error
 
 	stopErr error
@@ -23,7 +24,7 @@ func NewFakeServer() *FakeServer {
 	}
 }
 
-func (s *FakeServer) Start(username string, password string, host string, port int, readyCh chan struct{}) error {
+func (s *FakeServer) Start(username string, password string, host string, port int, readyErrCh chan error) error {
 	s.StartInput = StartInput{
 		Username: username,
 		Password: password,
@@ -32,7 +33,7 @@ func (s *FakeServer) Start(username string, password string, host string, port i
 	}
 	s.ReceivedActions = append(s.ReceivedActions, "Start")
 
-	readyCh <- struct{}{}
+	readyErrCh <- s.readyChErr
 	return s.startErr
 }
 
@@ -41,6 +42,7 @@ func (s *FakeServer) Stop() error {
 	return s.stopErr
 }
 
-func (s *FakeServer) SetStartBehavior(err error) {
-	s.startErr = err
+func (s *FakeServer) SetStartBehavior(readyChErr, startErr error) {
+	s.readyChErr = readyChErr
+	s.startErr = startErr
 }

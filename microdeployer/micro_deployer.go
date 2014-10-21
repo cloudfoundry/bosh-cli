@@ -54,14 +54,17 @@ func (m *microDeployer) Deploy(
 	agentPingRetryStrategy bmretrystrategy.RetryStrategy,
 	stemcellCID bmstemcell.CID,
 ) error {
-	registryReadyCh := make(chan struct{})
-	go m.startRegistry(registry, registryReadyCh)
+	registryReadyErrCh := make(chan error)
+	go m.startRegistry(registry, registryReadyErrCh)
 	defer m.registryServer.Stop()
 
-	<-registryReadyCh
+	err := <-registryReadyErrCh
+	if err != nil {
+		return bosherr.WrapError(err, "Starting registry")
+	}
 
 	vmManager := m.vmManagerFactory.NewManager(cpi)
-	_, err := vmManager.CreateVM(stemcellCID, deployment)
+	_, err = vmManager.CreateVM(stemcellCID, deployment)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating VM")
 	}
@@ -94,8 +97,8 @@ func (m *microDeployer) Deploy(
 	return nil
 }
 
-func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyCh chan struct{}) {
-	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyCh)
+func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error) {
+	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyErrCh)
 	if err != nil {
 		m.logger.Debug(m.logTag, "Registry error occurred: %s", err.Error())
 	}

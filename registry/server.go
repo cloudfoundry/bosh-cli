@@ -10,7 +10,7 @@ import (
 )
 
 type Server interface {
-	Start(string, string, string, int, chan struct{}) error
+	Start(string, string, string, int, chan error) error
 	Stop() error
 }
 
@@ -27,15 +27,16 @@ func NewServer(logger boshlog.Logger) Server {
 	}
 }
 
-func (s *server) Start(username string, password string, host string, port int, readyCh chan struct{}) error {
+func (s *server) Start(username string, password string, host string, port int, readyErrCh chan error) error {
 	s.logger.Debug(s.logTag, "Starting registry server at %s:%d", host, port)
 	var err error
 	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
-		return bosherr.WrapError(err, "Starting registry listener")
+		readyErrCh <- bosherr.WrapError(err, "Starting registry listener")
+		return nil
 	}
 
-	readyCh <- struct{}{}
+	readyErrCh <- nil
 
 	httpServer := http.Server{}
 	mux := http.NewServeMux()

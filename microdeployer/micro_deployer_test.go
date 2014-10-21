@@ -151,6 +151,18 @@ var _ = Describe("MicroDeployer", func() {
 		})
 	})
 
+	Context("when starting registry fails", func() {
+		BeforeEach(func() {
+			fakeRegistryServer.SetStartBehavior(errors.New("fake-registry-start-error"), nil)
+		})
+
+		It("returns an error", func() {
+			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-registry-start-error"))
+		})
+	})
+
 	Context("when waiting for the agent fails", func() {
 		BeforeEach(func() {
 			fakeAgentPingRetryStrategy.TryErr = errors.New("fake-ping-error")
