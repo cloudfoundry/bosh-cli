@@ -3,15 +3,17 @@ package fakes
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type DeployInput struct {
-	StemcellCID     bmstemcell.CID
-	Cloud           bmcloud.Cloud
-	Deployment      bmdepl.Deployment
-	Registry        bmdepl.Registry
-	SSHTunnelConfig bmdepl.SSHTunnel
+	StemcellCID            bmstemcell.CID
+	Cloud                  bmcloud.Cloud
+	Deployment             bmdepl.Deployment
+	Registry               bmdepl.Registry
+	SSHTunnelConfig        bmdepl.SSHTunnel
+	AgentPingRetryStrategy bmretrystrategy.RetryStrategy
 }
 
 type deployOutput struct {
@@ -34,14 +36,16 @@ func (m *FakeMicroDeployer) Deploy(
 	deployment bmdepl.Deployment,
 	registry bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
+	agentPingRetryStrategy bmretrystrategy.RetryStrategy,
 	stemcellCID bmstemcell.CID,
 ) error {
 	input := DeployInput{
-		StemcellCID:     stemcellCID,
-		Cloud:           cloud,
-		Deployment:      deployment,
-		Registry:        registry,
-		SSHTunnelConfig: sshTunnelConfig,
+		StemcellCID:            stemcellCID,
+		Cloud:                  cloud,
+		Deployment:             deployment,
+		Registry:               registry,
+		SSHTunnelConfig:        sshTunnelConfig,
+		AgentPingRetryStrategy: agentPingRetryStrategy,
 	}
 	m.DeployInput = input
 

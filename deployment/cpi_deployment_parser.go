@@ -27,6 +27,7 @@ type cloudProviderProperties struct {
 	Registry        Registry
 	AgentEnvService string    `yaml:"agent_env_service"`
 	SSHTunnel       SSHTunnel `yaml:"ssh_tunnel"`
+	Mbus            string
 }
 
 func (m microDeploymentParser) Parse(path string) (Deployment, error) {
@@ -53,6 +54,7 @@ func (m microDeploymentParser) Parse(path string) (Deployment, error) {
 		Registry:        depManifest.CloudProvider.Registry,
 		AgentEnvService: depManifest.CloudProvider.AgentEnvService,
 		SSHTunnel:       depManifest.CloudProvider.SSHTunnel,
+		Mbus:            depManifest.CloudProvider.Mbus,
 	}
 
 	return deployment, nil

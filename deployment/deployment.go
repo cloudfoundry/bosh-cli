@@ -39,6 +39,7 @@ type SSHTunnel struct {
 type Deployment struct {
 	Name            string
 	Properties      map[string]interface{}
+	Mbus            string
 	Registry        Registry
 	AgentEnvService string
 	SSHTunnel       SSHTunnel

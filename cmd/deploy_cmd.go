@@ -8,10 +8,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
+	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
@@ -26,6 +28,7 @@ type deployCmd struct {
 	cpiDeployer            bmcpideploy.CpiDeployer
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	microDeployer          bmmicrodeploy.Deployer
+	deploymentUUID         string
 	logger                 boshlog.Logger
 	logTag                 string
 }
@@ -39,6 +42,7 @@ func NewDeployCmd(
 	cpiDeployer bmcpideploy.CpiDeployer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	microDeployer bmmicrodeploy.Deployer,
+	deploymentUUID string,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
@@ -50,6 +54,7 @@ func NewDeployCmd(
 		cpiDeployer:            cpiDeployer,
 		stemcellManagerFactory: stemcellManagerFactory,
 		microDeployer:          microDeployer,
+		deploymentUUID:         deploymentUUID,
 		logger:                 logger,
 		logTag:                 "deployCmd",
 	}
@@ -86,7 +91,17 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
 	}
 
-	err = c.microDeployer.Deploy(cloud, boshDeployment, cpiDeployment.Registry, cpiDeployment.SSHTunnel, stemcellCID)
+	agentClient := bmagentclient.NewAgentClient(cpiDeployment.Mbus, c.deploymentUUID)
+	agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
+	agentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, agentPingRetryable, c.logger)
+	err = c.microDeployer.Deploy(
+		cloud,
+		boshDeployment,
+		cpiDeployment.Registry,
+		cpiDeployment.SSHTunnel,
+		agentPingRetryStrategy,
+		stemcellCID,
+	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")
 	}

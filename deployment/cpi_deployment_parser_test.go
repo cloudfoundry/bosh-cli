@@ -56,6 +56,7 @@ cloud_provider:
     user: fake-ssh-user
     private_key: /tmp/fake-ssh-key.pem
   agent_env_service: registry
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
   registry:
     username: fake-registry-username
     password: fake-registry-password
@@ -91,6 +92,7 @@ cloud_provider:
 							PrivateKey: "/tmp/fake-ssh-key.pem",
 						},
 					))
+					Expect(deployment.Mbus).To(Equal("http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868"))
 				})
 
 				It("sets a CPI job into the deployment", func() {

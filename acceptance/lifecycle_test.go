@@ -91,6 +91,7 @@ cloud_provider:
     port: 6301
     username: fake-registry-user
     password: fake-registry-password
+  mbus: http://admin:admin@10.244.0.42:6868
   properties:
     cpi:
       warden:
@@ -105,7 +106,7 @@ cloud_provider:
         username: fake-registry-user
         password: fake-registry-password
       agent:
-        mbus: 192.168.54.4
+        mbus: http://admin:admin@0.0.0.0:6868
 `
 		testEnv.WriteContentString("manifest", manifestContents)
 
@@ -118,6 +119,7 @@ cloud_provider:
 		Expect(exitCode).To(Equal(0))
 		Expect(stdout).To(ContainSubstring("uploading stemcell"))
 		Expect(stdout).To(ContainSubstring("Creating VM from"))
+		Expect(stdout).To(ContainSubstring("Waiting for the agent"))
 	})
 })
 

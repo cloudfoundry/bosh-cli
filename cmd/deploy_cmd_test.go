@@ -7,10 +7,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -68,6 +70,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeCpiDeployer,
 			fakeStemcellManagerFactory,
 			fakeMicroDeployer,
+			"fake-deployment-uuid",
 			logger,
 		)
 
@@ -123,6 +126,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeCpiDeployer,
 						fakeStemcellManagerFactory,
 						fakeMicroDeployer,
+						"fake-deployment-uuid",
 						logger,
 					)
 
@@ -156,6 +160,7 @@ version: fake-version
 							SSHTunnel: bmdepl.SSHTunnel{
 								Host: "fake-host",
 							},
+							Mbus: "http://fake-mbus-endpoint",
 						}
 						fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, cpiDeployment, nil)
 
@@ -204,13 +209,17 @@ version: fake-version
 					It("creates a VM", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
+						agentClient := bmagentclient.NewAgentClient("http://fake-mbus-endpoint", "fake-deployment-uuid")
+						agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
+						expectedAgentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, agentPingRetryable, logger)
 						Expect(fakeMicroDeployer.DeployInput).To(Equal(
 							fakemicrodeploy.DeployInput{
-								Cloud:           cloud,
-								Deployment:      boshDeployment,
-								StemcellCID:     expectedStemcellCID,
-								Registry:        cpiDeployment.Registry,
-								SSHTunnelConfig: cpiDeployment.SSHTunnel,
+								Cloud:                  cloud,
+								Deployment:             boshDeployment,
+								StemcellCID:            expectedStemcellCID,
+								Registry:               cpiDeployment.Registry,
+								SSHTunnelConfig:        cpiDeployment.SSHTunnel,
+								AgentPingRetryStrategy: expectedAgentPingRetryStrategy,
 							},
 						))
 					})
@@ -253,6 +262,7 @@ version: fake-version
 							fakeCpiDeployer,
 							fakeStemcellManagerFactory,
 							fakeMicroDeployer,
+							"fake-deployment-uuid",
 							logger,
 						)
 					})
