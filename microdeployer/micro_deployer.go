@@ -76,14 +76,13 @@ func (m *microDeployer) Deploy(
 		RemoteForwardPort: registry.Port,
 	}
 	sshTunnel := m.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
-	sshReadyCh := make(chan struct{})
+	sshReadyErrCh := make(chan error)
 	sshErrCh := make(chan error)
-	go sshTunnel.Start(sshReadyCh, sshErrCh)
+	go sshTunnel.Start(sshReadyErrCh, sshErrCh)
 	defer sshTunnel.Stop()
 
-	select {
-	case <-sshReadyCh:
-	case err := <-sshErrCh:
+	err = <-sshReadyErrCh
+	if err != nil {
 		return bosherr.WrapError(err, "Starting SSH tunnel")
 	}
 

@@ -13,7 +13,7 @@ import (
 )
 
 type SSHTunnel interface {
-	Start(chan<- struct{}, chan<- error)
+	Start(chan<- error, chan<- error)
 	Stop() error
 }
 
@@ -26,21 +26,21 @@ type sshTunnel struct {
 	logTag            string
 }
 
-func (s *sshTunnel) Start(readyCh chan<- struct{}, errCh chan<- error) {
+func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 	authMethods := []ssh.AuthMethod{}
 
 	if s.options.PrivateKey != "" {
 		s.logger.Debug(s.logTag, "Reading private key file")
 		keyContents, err := ioutil.ReadFile(s.options.PrivateKey)
 		if err != nil {
-			errCh <- bosherr.WrapError(err, "Reading private key file")
+			readyErrCh <- bosherr.WrapError(err, "Reading private key file")
 			return
 		}
 
 		s.logger.Debug(s.logTag, "Parsing private key file")
 		signer, err := ssh.ParsePrivateKey(keyContents)
 		if err != nil {
-			errCh <- bosherr.WrapError(err, "Parsing private key file")
+			readyErrCh <- bosherr.WrapError(err, "Parsing private key file")
 			return
 		}
 
@@ -83,7 +83,7 @@ func (s *sshTunnel) Start(readyCh chan<- struct{}, errCh chan<- error) {
 		)
 
 		if err != nil && i == s.startDialMaxTries-1 {
-			errCh <- bosherr.WrapError(err, "Timed out dialing remote server")
+			readyErrCh <- bosherr.WrapError(err, "Timed out dialing remote server")
 			return
 		}
 
@@ -98,11 +98,11 @@ func (s *sshTunnel) Start(readyCh chan<- struct{}, errCh chan<- error) {
 	s.logger.Debug(s.logTag, "Listening on remote server %s", remoteListenAddr)
 	s.remoteListener, err = conn.Listen("tcp", remoteListenAddr)
 	if err != nil {
-		errCh <- bosherr.WrapError(err, "Listening on remote server")
+		readyErrCh <- bosherr.WrapError(err, "Listening on remote server")
 		return
 	}
 
-	readyCh <- struct{}{}
+	readyErrCh <- nil
 	for {
 		remoteConn, err := s.remoteListener.Accept()
 		s.logger.Debug(s.logTag, "Received connection")

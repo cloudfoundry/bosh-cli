@@ -61,7 +61,7 @@ var _ = Describe("MicroDeployer", func() {
 		fakeVMManagerFactory.SetNewManagerBehavior(cloud, fakeVMManager)
 		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
-		fakeSSHTunnel.SetStartBehavior(struct{}{}, nil)
+		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
@@ -137,6 +137,18 @@ var _ = Describe("MicroDeployer", func() {
 		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFinishEvent))
 		Expect(eventLogger.LoggedEvents).To(HaveLen(2))
+	})
+
+	Context("when starting SSH tunnel fails", func() {
+		BeforeEach(func() {
+			fakeSSHTunnel.SetStartBehavior(errors.New("fake-ssh-tunnel-start-error"), nil)
+		})
+
+		It("returns an error", func() {
+			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-ssh-tunnel-start-error"))
+		})
 	})
 
 	Context("when waiting for the agent fails", func() {

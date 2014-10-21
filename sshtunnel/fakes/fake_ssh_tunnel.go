@@ -6,19 +6,19 @@ type FakeTunnel struct {
 }
 
 type startOutput struct {
-	ReadyChOutput struct{}
-	ErrChOutput   error
+	ReadyErrChOutput error
+	ErrChOutput      error
 }
 
 func NewFakeTunnel() *FakeTunnel {
 	return &FakeTunnel{}
 }
 
-func (s *FakeTunnel) Start(readyCh chan<- struct{}, errCh chan<- error) {
+func (s *FakeTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 	s.Started = true
 
 	if s.startOutput != nil {
-		readyCh <- s.startOutput.ReadyChOutput
+		readyErrCh <- s.startOutput.ReadyErrChOutput
 		errCh <- s.startOutput.ErrChOutput
 	}
 }
@@ -27,9 +27,9 @@ func (s *FakeTunnel) Stop() error {
 	return nil
 }
 
-func (s *FakeTunnel) SetStartBehavior(readyChOutput struct{}, errChOutput error) {
+func (s *FakeTunnel) SetStartBehavior(readyErrChOutput error, errChOutput error) {
 	s.startOutput = &startOutput{
-		ReadyChOutput: readyChOutput,
-		ErrChOutput:   errChOutput,
+		ReadyErrChOutput: readyErrChOutput,
+		ErrChOutput:      errChOutput,
 	}
 }
