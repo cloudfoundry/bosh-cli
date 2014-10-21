@@ -43,7 +43,7 @@ func (h *instanceHandler) HandleFunc(w http.ResponseWriter, req *http.Request) {
 	instanceID, ok := h.getInstanceID(req)
 	if !ok {
 		h.logger.Debug(h.logTag, "Instance ID not found in request:", req.Method)
-		http.NotFound(w, req)
+		h.handleNotFound(w)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *instanceHandler) HandleFunc(w http.ResponseWriter, req *http.Request) {
 		h.HandleDelete(instanceID, w, req)
 		return
 	default:
-		http.NotFound(w, req)
+		h.handleNotFound(w)
 		return
 	}
 }
@@ -69,7 +69,7 @@ func (h *instanceHandler) HandleGet(instanceID string, w http.ResponseWriter, re
 	settingsJSON, ok := h.registry.Get(instanceID)
 	if !ok {
 		h.logger.Debug(h.logTag, "No settings for %s found", instanceID)
-		http.NotFound(w, req)
+		h.handleNotFound(w)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *instanceHandler) HandleGet(instanceID string, w http.ResponseWriter, re
 
 	responseJSON, err := json.Marshal(response)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		h.handleBadRequest(w)
 		return
 	}
 
@@ -99,7 +99,7 @@ func (h *instanceHandler) HandlePut(instanceID string, w http.ResponseWriter, re
 
 	reqBody, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		h.handleBadRequest(w)
 		return
 	}
 
@@ -145,4 +145,24 @@ func (h *instanceHandler) isAuthorized(req *http.Request) bool {
 	expectedAuthorizationHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(auth))
 
 	return expectedAuthorizationHeader == req.Header.Get("Authorization")
+}
+
+func (h *instanceHandler) handleNotFound(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+	settingsJSON, err := json.Marshal(SettingsResponse{Status: "not_found"})
+	if err != nil {
+		h.logger.Warn(h.logTag, "Failed to marshal 'not found' settings response %s", err.Error())
+		return
+	}
+	w.Write(settingsJSON)
+}
+
+func (h *instanceHandler) handleBadRequest(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusBadRequest)
+	settingsJSON, err := json.Marshal(SettingsResponse{Status: "error"})
+	if err != nil {
+		h.logger.Warn(h.logTag, "Failed to marshal 'bad request' settings response %s", err.Error())
+		return
+	}
+	w.Write(settingsJSON)
 }

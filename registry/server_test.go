@@ -111,8 +111,12 @@ var _ = Describe("Server", func() {
 				_, statusCode = client.DoDelete(registryURL + "/instances/1/settings")
 				Expect(statusCode).To(Equal(200))
 
-				_, statusCode = client.DoGet(registryURL + "/instances/1/settings")
+				responseJSON, statusCode := client.DoGet(registryURL + "/instances/1/settings")
 				Expect(statusCode).To(Equal(404))
+				var settingsResponse SettingsResponse
+				err := json.Unmarshal(responseJSON, &settingsResponse)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(settingsResponse.Status).To(Equal("not_found"))
 			})
 		})
 
