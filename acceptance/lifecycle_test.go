@@ -61,9 +61,6 @@ var _ = Describe("bosh-micro", func() {
 name: test-release
 resource_pools:
 - name: fake-resource-pool-name
-  env:
-    bosh:
-      password: secret
 networks:
 - name: fake-network-name
   type: manual
@@ -91,7 +88,7 @@ cloud_provider:
     port: 6301
     username: fake-registry-user
     password: fake-registry-password
-  mbus: http://admin:admin@10.244.0.42:6868
+  mbus: https://admin:admin@10.244.0.42:6868
   properties:
     cpi:
       warden:
@@ -106,7 +103,7 @@ cloud_provider:
         username: fake-registry-user
         password: fake-registry-password
       agent:
-        mbus: http://admin:admin@0.0.0.0:6868
+        mbus: https://admin:admin@0.0.0.0:6868
 `
 		testEnv.WriteContentString("manifest", manifestContents)
 
