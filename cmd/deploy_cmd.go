@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -93,7 +94,7 @@ func (c *deployCmd) Run(args []string) error {
 
 	agentClient := bmagentclient.NewAgentClient(cpiDeployment.Mbus, c.deploymentUUID, c.logger)
 	agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
-	agentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, agentPingRetryable, c.logger)
+	agentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, c.logger)
 	err = c.microDeployer.Deploy(
 		cloud,
 		boshDeployment,

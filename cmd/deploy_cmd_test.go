@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -211,7 +212,7 @@ version: fake-version
 						Expect(err).NotTo(HaveOccurred())
 						agentClient := bmagentclient.NewAgentClient("http://fake-mbus-endpoint", "fake-deployment-uuid", logger)
 						agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
-						expectedAgentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, agentPingRetryable, logger)
+						expectedAgentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, logger)
 						Expect(fakeMicroDeployer.DeployInput).To(Equal(
 							fakemicrodeploy.DeployInput{
 								Cloud:                  cloud,

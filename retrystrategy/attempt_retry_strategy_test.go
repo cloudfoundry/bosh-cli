@@ -28,7 +28,7 @@ var _ = Describe("AttemptRetryStrategy", func() {
 					errors.New("second-error"),
 					errors.New("third-error"),
 				})
-				attemptRetryStrategy := NewAttemptRetryStrategy(3, retryable, logger)
+				attemptRetryStrategy := NewAttemptRetryStrategy(3, 0, retryable, logger)
 				err := attemptRetryStrategy.Try()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("third-error"))
@@ -39,7 +39,7 @@ var _ = Describe("AttemptRetryStrategy", func() {
 		Context("when there are no errors", func() {
 			It("does not retry", func() {
 				retryable := NewSimpleRetryable([]error{})
-				attemptRetryStrategy := NewAttemptRetryStrategy(3, retryable, logger)
+				attemptRetryStrategy := NewAttemptRetryStrategy(3, 0, retryable, logger)
 				err := attemptRetryStrategy.Try()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(retryable.Attempts).To(Equal(1))
