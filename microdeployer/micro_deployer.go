@@ -69,6 +69,35 @@ func (m *microDeployer) Deploy(
 		return bosherr.WrapError(err, "Creating VM")
 	}
 
+	err = m.waitUntilAgentIsReady(agentPingRetryStrategy, sshTunnelConfig, registry)
+	if err != nil {
+		return bosherr.WrapError(err, "Waiting for the agent")
+	}
+
+	return nil
+}
+
+func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error) {
+	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyErrCh)
+	if err != nil {
+		m.logger.Debug(m.logTag, "Registry error occurred: %s", err.Error())
+	}
+}
+
+func (m *microDeployer) waitUntilAgentIsReady(
+	agentPingRetryStrategy bmretrystrategy.RetryStrategy,
+	sshTunnelConfig bmdepl.SSHTunnel,
+	registry bmdepl.Registry,
+) error {
+	event := bmeventlog.Event{
+		Stage: "Deploy Micro BOSH",
+		Total: 2,
+		Task:  fmt.Sprintf("Waiting for the agent"),
+		Index: 2,
+		State: bmeventlog.Started,
+	}
+	m.eventLogger.AddEvent(event)
+
 	sshTunnelOptions := bmsshtunnel.Options{
 		Host:              sshTunnelConfig.Host,
 		Port:              sshTunnelConfig.Port,
@@ -84,43 +113,18 @@ func (m *microDeployer) Deploy(
 	go sshTunnel.Start(sshReadyErrCh, sshErrCh)
 	defer sshTunnel.Stop()
 
-	err = <-sshReadyErrCh
+	err := <-sshReadyErrCh
 	if err != nil {
 		return bosherr.WrapError(err, "Starting SSH tunnel")
 	}
 
-	err = m.waitUntilAgentIsReady(agentPingRetryStrategy)
-	if err != nil {
-		return bosherr.WrapError(err, "Waiting for the agent")
-	}
-
-	return nil
-}
-
-func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error) {
-	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyErrCh)
-	if err != nil {
-		m.logger.Debug(m.logTag, "Registry error occurred: %s", err.Error())
-	}
-}
-
-func (m *microDeployer) waitUntilAgentIsReady(agentPingRetryStrategy bmretrystrategy.RetryStrategy) error {
-	event := bmeventlog.Event{
-		Stage: "Deploy Micro BOSH",
-		Total: 1,
-		Task:  fmt.Sprintf("Waiting for the agent"),
-		Index: 1,
-		State: bmeventlog.Started,
-	}
-	m.eventLogger.AddEvent(event)
-
-	err := agentPingRetryStrategy.Try()
+	err = agentPingRetryStrategy.Try()
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   1,
+			Total:   2,
 			Task:    fmt.Sprintf("Waiting for the agent"),
-			Index:   1,
+			Index:   2,
 			State:   bmeventlog.Failed,
 			Message: err.Error(),
 		}
@@ -130,9 +134,9 @@ func (m *microDeployer) waitUntilAgentIsReady(agentPingRetryStrategy bmretrystra
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 1,
+		Total: 2,
 		Task:  fmt.Sprintf("Waiting for the agent"),
-		Index: 1,
+		Index: 2,
 		State: bmeventlog.Finished,
 	}
 	m.eventLogger.AddEvent(event)

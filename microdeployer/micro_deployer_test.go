@@ -120,17 +120,17 @@ var _ = Describe("MicroDeployer", func() {
 
 		expectedStartEvent := bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 1,
+			Total: 2,
 			Task:  fmt.Sprintf("Waiting for the agent"),
-			Index: 1,
+			Index: 2,
 			State: bmeventlog.Started,
 		}
 
 		expectedFinishEvent := bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 1,
+			Total: 2,
 			Task:  fmt.Sprintf("Waiting for the agent"),
-			Index: 1,
+			Index: 2,
 			State: bmeventlog.Finished,
 		}
 
@@ -175,17 +175,17 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 1,
+				Total: 2,
 				Task:  fmt.Sprintf("Waiting for the agent"),
-				Index: 1,
+				Index: 2,
 				State: bmeventlog.Started,
 			}
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   1,
+				Total:   2,
 				Task:    fmt.Sprintf("Waiting for the agent"),
-				Index:   1,
+				Index:   2,
 				State:   bmeventlog.Failed,
 				Message: "fake-ping-error",
 			}
