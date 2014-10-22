@@ -9,6 +9,14 @@ stemcell_file=bosh-stemcell-348-warden-boshlite-ubuntu-trusty-go_agent.tgz
 
 cleanup() {
   ( cd $base && vagrant destroy -f )
+
+  if [ -f "$tmpfile" ]; then
+    rm -rf $tmpfile
+  fi
+
+  if [ ! -z "$OLD_BOSH_LITE_PRIVATE_KEY" ]; then
+    export BOSH_LITE_PRIVATE_KEY=$OLD_BOSH_LITE_PRIVATE_KEY
+  fi
 }
 trap cleanup EXIT
 
@@ -17,6 +25,14 @@ export BOSH_MICRO_STEMCELL=${BOSH_MICRO_STEMCELL:-https://s3.amazonaws.com/bosh-
 
 echo "ENV"
 echo `env`
+
+# Vagrant needs ubuntu to own the private key if aws provider
+if [ ! -z "$BOSH_LITE_PRIVATE_KEY" ]; then
+  tmpfile=`mktemp -t bosh-micro-tests-XXXXXXXX`
+  cat $BOSH_LITE_PRIVATE_KEY > $tmpfile
+  export OLD_BOSH_LITE_PRIVATE_KEY=$BOSH_LITE_PRIVATE_KEY
+  export BOSH_LITE_PRIVATE_KEY=$tmpfile
+fi
 
 cd $base
 vagrant up $@
