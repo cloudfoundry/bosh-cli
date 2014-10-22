@@ -11,6 +11,8 @@ BOSH_MICRO_CLI_DIR=/home/ubuntu/go/src/github.com/cloudfoundry/bosh-micro-cli
 #inside the docker container
 BOSH_MICRO_PRIVATE_KEY_DIR=/home/ubuntu/private_keys
 PRIVATE_KEY_DIR=$(cd $(dirname $BOSH_LITE_PRIVATE_KEY) && pwd)
+BOSH_LITE_PRIVATE_KEY_BASENAME=$(basename $BOSH_LITE_PRIVATE_KEY)
+BOSH_LITE_PRIVATE_KEY=${BOSH_MICRO_PRIVATE_KEY_DIR}/${BOSH_LITE_PRIVATE_KEY_BASENAME}
 
 echo "ENV:"
 echo `env`
