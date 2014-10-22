@@ -6,16 +6,11 @@ echo "Running ci/run-acceptance-with-vm-in-container.sh"
 echo "ENV:"
 echo `env`
 
-if [ -z "$PRIVATE_KEY_BASENAME" -o -z "$PRIVATE_KEY_DIR" ]; then
-  echo "PRIVATE_KEY_DIR and PRIVATE_KEY_BASENAME must be specified for running tests in an AWS VM"
-  exit 1
-fi
-
 BOSH_MICRO_CLI_DIR=/home/ubuntu/go/src/github.com/cloudfoundry/bosh-micro-cli
 
 #inside the docker container
 BOSH_MICRO_PRIVATE_KEY_DIR=/home/ubuntu/private_keys
-BOSH_LITE_PRIVATE_KEY=$BOSH_MICRO_PRIVATE_KEY_DIR/$PRIVATE_KEY_BASENAME
+PRIVATE_KEY_DIR=$(cd $(dirname $BOSH_LITE_PRIVATE_KEY) && pwd)
 
 echo "ENV:"
 echo `env`
