@@ -10,7 +10,7 @@ import (
 )
 
 type CreateInput struct {
-	Stemcell bmstemcell.Stemcell
+	StemcellManifest bmstemcell.Manifest
 }
 
 type createOutput struct {
@@ -30,8 +30,8 @@ func NewFakeInfrastructure() *FakeInfrastructure {
 	}
 }
 
-func (i *FakeInfrastructure) CreateStemcell(stemcell bmstemcell.Stemcell) (bmstemcell.CID, error) {
-	input := CreateInput{Stemcell: stemcell}
+func (i *FakeInfrastructure) CreateStemcell(stemcellManifest bmstemcell.Manifest) (bmstemcell.CID, error) {
+	input := CreateInput{StemcellManifest: stemcellManifest}
 	i.CreateInputs = append(i.CreateInputs, input)
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
@@ -46,8 +46,8 @@ func (i *FakeInfrastructure) CreateStemcell(stemcell bmstemcell.Stemcell) (bmste
 	return "", fmt.Errorf("Unsupported CreateStemcell Input: %s\nAvailable inputs: %s", inputString, i.createBehavior)
 }
 
-func (i *FakeInfrastructure) SetCreateStemcellBehavior(stemcell bmstemcell.Stemcell, cid bmstemcell.CID, err error) error {
-	input := CreateInput{Stemcell: stemcell}
+func (i *FakeInfrastructure) SetCreateStemcellBehavior(stemcellManifest bmstemcell.Manifest, cid bmstemcell.CID, err error) error {
+	input := CreateInput{StemcellManifest: stemcellManifest}
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling CreateStemcell input")

@@ -44,17 +44,19 @@ var _ = Describe("Manager", func() {
 		fs.TempDirDir = tempExtractionDir
 
 		expectedStemcell = Stemcell{
-			Name: "fake-stemcell-name",
+			Manifest: Manifest{
+				Name: "fake-stemcell-name",
+			},
 		}
 		reader.SetReadBehavior(stemcellTarballPath, tempExtractionDir, expectedStemcell, nil)
 
 		// no existing stemcell found
-		repo.SetFindBehavior(expectedStemcell, CID(""), false, nil)
+		repo.SetFindBehavior(expectedStemcell.Manifest, CID(""), false, nil)
 
 		expectedCID = "fake-cid"
-		infrastructure.SetCreateStemcellBehavior(expectedStemcell, expectedCID, nil)
+		infrastructure.SetCreateStemcellBehavior(expectedStemcell.Manifest, expectedCID, nil)
 
-		repo.SetSaveBehavior(expectedStemcell, expectedCID, nil)
+		repo.SetSaveBehavior(expectedStemcell.Manifest, expectedCID, nil)
 	})
 
 	It("cleans up the temp work dir", func() {
@@ -88,7 +90,7 @@ var _ = Describe("Manager", func() {
 		Expect(repo.FindInputs).To(Equal(
 			[]fakebmstemcell.FindInput{
 				fakebmstemcell.FindInput{
-					Stemcell: expectedStemcell,
+					StemcellManifest: expectedStemcell.Manifest,
 				},
 			},
 		))
@@ -102,7 +104,7 @@ var _ = Describe("Manager", func() {
 		Expect(infrastructure.CreateInputs).To(Equal(
 			[]fakebmstemcell.CreateInput{
 				{
-					Stemcell: expectedStemcell,
+					StemcellManifest: expectedStemcell.Manifest,
 				},
 			},
 		))
@@ -116,8 +118,8 @@ var _ = Describe("Manager", func() {
 		Expect(repo.SaveInputs).To(Equal(
 			[]fakebmstemcell.SaveInput{
 				fakebmstemcell.SaveInput{
-					Stemcell: expectedStemcell,
-					CID:      expectedCID,
+					StemcellManifest: expectedStemcell.Manifest,
+					CID:              expectedCID,
 				},
 			},
 		))
@@ -202,7 +204,11 @@ var _ = Describe("Manager", func() {
 	})
 
 	It("when the upload fails, logs uploading start and failure events to the eventLogger", func() {
-		infrastructure.SetCreateStemcellBehavior(expectedStemcell, expectedCID, errors.New("fake-create-error"))
+		infrastructure.SetCreateStemcellBehavior(
+			expectedStemcell.Manifest,
+			expectedCID,
+			errors.New("fake-create-error"),
+		)
 
 		_, _, err := manager.Upload(stemcellTarballPath)
 		Expect(err).To(HaveOccurred())
@@ -230,7 +236,11 @@ var _ = Describe("Manager", func() {
 	})
 
 	It("when the repo save fails, logs uploading start and failure events to the eventLogger", func() {
-		repo.SetSaveBehavior(expectedStemcell, expectedCID, errors.New("fake-save-error"))
+		repo.SetSaveBehavior(
+			expectedStemcell.Manifest,
+			expectedCID,
+			errors.New("fake-save-error"),
+		)
 
 		_, _, err := manager.Upload(stemcellTarballPath)
 		Expect(err).To(HaveOccurred())
@@ -264,7 +274,7 @@ var _ = Describe("Manager", func() {
 
 		BeforeEach(func() {
 			existingCID = CID("fake-cid")
-			repo.SetFindBehavior(expectedStemcell, existingCID, true, nil)
+			repo.SetFindBehavior(expectedStemcell.Manifest, existingCID, true, nil)
 		})
 
 		It("extracts and parses the stemcell manifest", func() {

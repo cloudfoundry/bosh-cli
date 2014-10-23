@@ -10,8 +10,8 @@ import (
 )
 
 type SaveInput struct {
-	Stemcell bmstemcell.Stemcell
-	CID      bmstemcell.CID
+	StemcellManifest bmstemcell.Manifest
+	CID              bmstemcell.CID
 }
 
 type SaveOutput struct {
@@ -19,7 +19,7 @@ type SaveOutput struct {
 }
 
 type FindInput struct {
-	Stemcell bmstemcell.Stemcell
+	StemcellManifest bmstemcell.Manifest
 }
 
 type FindOutput struct {
@@ -44,10 +44,10 @@ func NewFakeRepo() *FakeRepo {
 	}
 }
 
-func (fr *FakeRepo) Save(stemcell bmstemcell.Stemcell, cid bmstemcell.CID) error {
+func (fr *FakeRepo) Save(stemcellManifest bmstemcell.Manifest, cid bmstemcell.CID) error {
 	input := SaveInput{
-		Stemcell: stemcell,
-		CID:      cid,
+		StemcellManifest: stemcellManifest,
+		CID:              cid,
 	}
 	fr.SaveInputs = append(fr.SaveInputs, input)
 
@@ -64,10 +64,10 @@ func (fr *FakeRepo) Save(stemcell bmstemcell.Stemcell, cid bmstemcell.CID) error
 	return output.err
 }
 
-func (fr *FakeRepo) SetSaveBehavior(stemcell bmstemcell.Stemcell, cid bmstemcell.CID, err error) error {
+func (fr *FakeRepo) SetSaveBehavior(stemcellManifest bmstemcell.Manifest, cid bmstemcell.CID, err error) error {
 	input := SaveInput{
-		Stemcell: stemcell,
-		CID:      cid,
+		StemcellManifest: stemcellManifest,
+		CID:              cid,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
@@ -82,9 +82,9 @@ func (fr *FakeRepo) SetSaveBehavior(stemcell bmstemcell.Stemcell, cid bmstemcell
 	return nil
 }
 
-func (fr *FakeRepo) Find(stemcell bmstemcell.Stemcell) (bmstemcell.CID, bool, error) {
+func (fr *FakeRepo) Find(stemcellManifest bmstemcell.Manifest) (bmstemcell.CID, bool, error) {
 	input := FindInput{
-		Stemcell: stemcell,
+		StemcellManifest: stemcellManifest,
 	}
 	fr.FindInputs = append(fr.FindInputs, input)
 
@@ -101,9 +101,9 @@ func (fr *FakeRepo) Find(stemcell bmstemcell.Stemcell) (bmstemcell.CID, bool, er
 	return output.cid, output.found, output.err
 }
 
-func (fr *FakeRepo) SetFindBehavior(stemcell bmstemcell.Stemcell, cid bmstemcell.CID, found bool, err error) error {
+func (fr *FakeRepo) SetFindBehavior(stemcellManifest bmstemcell.Manifest, cid bmstemcell.CID, found bool, err error) error {
 	input := FindInput{
-		Stemcell: stemcell,
+		StemcellManifest: stemcellManifest,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)

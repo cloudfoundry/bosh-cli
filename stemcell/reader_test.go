@@ -47,13 +47,15 @@ cloud_properties:
 		stemcell, err := stemcellReader.Read("fake-stemcell-path", "fake-extracted-path")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(stemcell).To(Equal(Stemcell{
-			Name:      "fake-stemcell-name",
-			Version:   "2690",
-			ImagePath: "fake-extracted-path/image",
-			RawCloudProperties: map[interface{}]interface{}{
-				"infrastructure": "aws",
-				"ami": map[interface{}]interface{}{
-					"us-east-1": "fake-ami-version",
+			Manifest: Manifest{
+				Name:      "fake-stemcell-name",
+				Version:   "2690",
+				ImagePath: "fake-extracted-path/image",
+				RawCloudProperties: map[interface{}]interface{}{
+					"infrastructure": "aws",
+					"ami": map[interface{}]interface{}{
+						"us-east-1": "fake-ami-version",
+					},
 				},
 			},
 		}))

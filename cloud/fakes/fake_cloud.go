@@ -17,8 +17,8 @@ func NewFakeCloud() *FakeCloud {
 	}
 }
 
-func (c *FakeCloud) CreateStemcell(stemcell bmstemcell.Stemcell) (bmstemcell.CID, error) {
-	return c.Infrastructure.CreateStemcell(stemcell)
+func (c *FakeCloud) CreateStemcell(stemcellManifest bmstemcell.Manifest) (bmstemcell.CID, error) {
+	return c.Infrastructure.CreateStemcell(stemcellManifest)
 }
 
 func (c *FakeCloud) CreateVM(

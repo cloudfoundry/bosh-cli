@@ -99,13 +99,13 @@ func (c cloud) String() string {
 	)
 }
 
-func (c cloud) CreateStemcell(stemcell bmstemcell.Stemcell) (cid bmstemcell.CID, err error) {
-	cloudProperties, err := stemcell.CloudProperties()
+func (c cloud) CreateStemcell(stemcellManifest bmstemcell.Manifest) (cid bmstemcell.CID, err error) {
+	cloudProperties, err := stemcellManifest.CloudProperties()
 	if err != nil {
 		return "", bosherr.WrapError(err, "Building stemcell CloudProperties")
 	}
 
-	cmdOutput, err := c.execCPICmd("create_stemcell", stemcell.ImagePath, cloudProperties)
+	cmdOutput, err := c.execCPICmd("create_stemcell", stemcellManifest.ImagePath, cloudProperties)
 	if err != nil {
 		return cid, err
 	}

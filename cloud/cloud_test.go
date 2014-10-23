@@ -42,7 +42,7 @@ var _ = Describe("Cloud", func() {
 
 	Describe("CreateStemcell", func() {
 		var (
-			stemcell          bmstemcell.Stemcell
+			stemcellManifest  bmstemcell.Manifest
 			stemcellImagePath string
 			cloudProperties   map[string]interface{}
 		)
@@ -52,7 +52,7 @@ var _ = Describe("Cloud", func() {
 			cloudProperties = map[string]interface{}{
 				"fake-key": "fake-value",
 			}
-			stemcell = bmstemcell.Stemcell{
+			stemcellManifest = bmstemcell.Manifest{
 				ImagePath: stemcellImagePath,
 				RawCloudProperties: map[interface{}]interface{}{
 					"fake-key": "fake-value",
@@ -91,7 +91,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("executes the cpi job script with stemcell image path & cloud_properties", func() {
-				_, err := cloud.CreateStemcell(stemcell)
+				_, err := cloud.CreateStemcell(stemcellManifest)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
 
@@ -111,7 +111,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
-				cid, err := cloud.CreateStemcell(stemcell)
+				cid, err := cloud.CreateStemcell(stemcellManifest)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cid).To(Equal(bmstemcell.CID("fake-cid")))
 			})
@@ -136,7 +136,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := cloud.CreateStemcell(stemcell)
+				_, err := cloud.CreateStemcell(stemcellManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("External CPI command for method `create_stemcell' returned an error"))
 			})

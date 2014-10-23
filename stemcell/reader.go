@@ -27,25 +27,28 @@ func NewReader(compressor boshcmd.Compressor, fs boshsys.FileSystem) Reader {
 }
 
 func (s reader) Read(stemcellTarballPath string, extractedPath string) (Stemcell, error) {
+	var stemcell Stemcell
+
 	err := s.compressor.DecompressFileToDir(stemcellTarballPath, extractedPath, boshcmd.CompressorOptions{})
 	if err != nil {
 		return Stemcell{}, bosherr.WrapError(err, "Extracting stemcell from %s to %s", stemcellTarballPath, extractedPath)
 	}
 
-	var stemcell Stemcell
+	var stemcellManifest Manifest
 	stemcellManifestPath := filepath.Join(extractedPath, "stemcell.MF")
 
-	stemcellContents, err := s.fs.ReadFile(stemcellManifestPath)
+	stemcellManifestContents, err := s.fs.ReadFile(stemcellManifestPath)
 	if err != nil {
 		return Stemcell{}, bosherr.WrapError(err, "Reading stemcell manifest %s", stemcellManifestPath)
 	}
 
-	err = candiedyaml.Unmarshal(stemcellContents, &stemcell)
+	err = candiedyaml.Unmarshal(stemcellManifestContents, &stemcellManifest)
 	if err != nil {
-		return Stemcell{}, bosherr.WrapError(err, "Parsing stemcell manifest %s", stemcellContents)
+		return Stemcell{}, bosherr.WrapError(err, "Parsing stemcell manifest %s", stemcellManifestContents)
 	}
 
-	stemcell.ImagePath = filepath.Join(extractedPath, "image")
+	stemcellManifest.ImagePath = filepath.Join(extractedPath, "image")
+	stemcell.Manifest = stemcellManifest
 
 	return stemcell, nil
 }

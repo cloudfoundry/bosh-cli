@@ -68,7 +68,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 	}
 	m.eventLogger.AddEvent(event)
 
-	cid, found, err := m.repo.Find(stemcell)
+	cid, found, err := m.repo.Find(stemcell.Manifest)
 	if err != nil {
 		return Stemcell{}, "", bosherr.WrapError(err, "finding existing stemcell record in repo")
 	}
@@ -95,7 +95,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 	}
 	m.eventLogger.AddEvent(event)
 
-	cid, err = m.infrastructure.CreateStemcell(stemcell)
+	cid, err = m.infrastructure.CreateStemcell(stemcell.Manifest)
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage: "uploading stemcell",
@@ -110,11 +110,11 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 			err,
 			"creating stemcell (infrastructure=%s, stemcell=%s)",
 			m.infrastructure,
-			stemcell,
+			stemcell.Manifest,
 		)
 	}
 
-	err = m.repo.Save(stemcell, cid)
+	err = m.repo.Save(stemcell.Manifest, cid)
 	if err != nil {
 		//TODO: delete stemcell from infrastructure when saving fails
 		event = bmeventlog.Event{
@@ -130,7 +130,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 			err,
 			"saving stemcell record in repo (record=%s, stemcell=%s)",
 			cid,
-			stemcell,
+			stemcell.Manifest,
 		)
 	}
 

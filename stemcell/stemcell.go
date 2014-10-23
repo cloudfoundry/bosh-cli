@@ -5,6 +5,10 @@ import (
 )
 
 type Stemcell struct {
+	Manifest Manifest
+}
+
+type Manifest struct {
 	ImagePath          string
 	Name               string
 	Version            string
@@ -12,6 +16,6 @@ type Stemcell struct {
 	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 }
 
-func (s Stemcell) CloudProperties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(s.RawCloudProperties)
+func (m Manifest) CloudProperties() (map[string]interface{}, error) {
+	return bmkeystr.NewKeyStringifier().ConvertMap(m.RawCloudProperties)
 }

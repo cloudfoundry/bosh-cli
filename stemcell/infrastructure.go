@@ -1,7 +1,7 @@
 package stemcell
 
 type Infrastructure interface {
-	CreateStemcell(Stemcell) (CID, error)
+	CreateStemcell(Manifest) (CID, error)
 	//	DeleteStemcell(CID) error
 }
 

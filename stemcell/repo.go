@@ -8,8 +8,8 @@ import (
 
 // Repo persists stemcells metadata
 type Repo interface {
-	Save(stemcell Stemcell, cid CID) error
-	Find(stemcell Stemcell) (CID, bool, error)
+	Save(stemcellManifest Manifest, cid CID) error
+	Find(stemcellManifest Manifest) (CID, bool, error)
 }
 
 type repo struct {
@@ -22,7 +22,7 @@ func NewRepo(configService bmconfig.DeploymentConfigService) repo {
 	}
 }
 
-func (r repo) Save(stemcell Stemcell, cid CID) error {
+func (r repo) Save(stemcellManifest Manifest, cid CID) error {
 	config, err := r.configService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
@@ -34,9 +34,9 @@ func (r repo) Save(stemcell Stemcell, cid CID) error {
 	}
 
 	newRecord := bmconfig.StemcellRecord{
-		Name:    stemcell.Name,
-		Version: stemcell.Version,
-		SHA1:    stemcell.SHA1,
+		Name:    stemcellManifest.Name,
+		Version: stemcellManifest.Version,
+		SHA1:    stemcellManifest.SHA1,
 	}
 
 	oldRecord, found := r.find(records, newRecord)
@@ -56,7 +56,7 @@ func (r repo) Save(stemcell Stemcell, cid CID) error {
 	return nil
 }
 
-func (r repo) Find(stemcell Stemcell) (cid CID, found bool, err error) {
+func (r repo) Find(stemcellManifest Manifest) (cid CID, found bool, err error) {
 	config, err := r.configService.Load()
 	if err != nil {
 		return cid, false, bosherr.WrapError(err, "Loading existing config")
@@ -68,9 +68,9 @@ func (r repo) Find(stemcell Stemcell) (cid CID, found bool, err error) {
 	}
 
 	newRecord := bmconfig.StemcellRecord{
-		Name:    stemcell.Name,
-		Version: stemcell.Version,
-		SHA1:    stemcell.SHA1,
+		Name:    stemcellManifest.Name,
+		Version: stemcellManifest.Version,
+		SHA1:    stemcellManifest.SHA1,
 	}
 
 	oldRecord, found := r.find(records, newRecord)
