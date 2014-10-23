@@ -1,9 +1,10 @@
 package stemcell
 
 import (
-	"github.com/cloudfoundry-incubator/candiedyaml"
-
+	"encoding/json"
 	"path/filepath"
+
+	"github.com/cloudfoundry-incubator/candiedyaml"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
@@ -47,8 +48,22 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Stemcell
 		return Stemcell{}, bosherr.WrapError(err, "Parsing stemcell manifest %s", stemcellManifestContents)
 	}
 
+	var stemcellApplySpec ApplySpec
+	stemcellApplySpecPath := filepath.Join(extractedPath, "apply_spec.yml")
+
+	stemcellApplySpecContents, err := s.fs.ReadFile(stemcellApplySpecPath)
+	if err != nil {
+		return Stemcell{}, bosherr.WrapError(err, "Reading stemcell apply spec %s", stemcellApplySpecPath)
+	}
+
+	err = json.Unmarshal(stemcellApplySpecContents, &stemcellApplySpec)
+	if err != nil {
+		return Stemcell{}, bosherr.WrapError(err, "Parsing stemcell apply spec %s", stemcellApplySpecContents)
+	}
+
 	stemcellManifest.ImagePath = filepath.Join(extractedPath, "image")
 	stemcell.Manifest = stemcellManifest
+	stemcell.ApplySpec = stemcellApplySpec
 
 	return stemcell, nil
 }
