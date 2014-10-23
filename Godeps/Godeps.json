@@ -16,39 +16,51 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/blobstore",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/davcli/client",
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/davcli/config",
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/errors",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/http",
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/logger",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/platform",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/settings",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/system",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/time",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/uuid",
-			"Rev": "7ce8c0fd7e1f64094cf4f9729bbdc7ba84fbb795"
+			"Rev": "f5a8a2d91b3acf75395b75588cd4f77bd7c7ad80"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gofileutils/glob",
