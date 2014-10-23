@@ -3,6 +3,9 @@ package fakes
 type FakeAgentClient struct {
 	PingResponses   []pingResponse
 	PingCalledCount int
+
+	StopCalled bool
+	stopErr    error
 }
 
 type pingResponse struct {
@@ -26,9 +29,18 @@ func (c *FakeAgentClient) Ping() (string, error) {
 	return "", nil
 }
 
+func (c *FakeAgentClient) Stop() error {
+	c.StopCalled = true
+	return c.stopErr
+}
+
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {
 	c.PingResponses = append(c.PingResponses, pingResponse{
 		response: response,
 		err:      err,
 	})
+}
+
+func (c *FakeAgentClient) SetStopBehavior(err error) {
+	c.stopErr = err
 }

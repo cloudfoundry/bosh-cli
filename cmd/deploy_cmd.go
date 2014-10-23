@@ -92,7 +92,7 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
 	}
 
-	agentClient := bmagentclient.NewAgentClient(cpiDeployment.Mbus, c.deploymentUUID, c.logger)
+	agentClient := bmagentclient.NewAgentClient(cpiDeployment.Mbus, c.deploymentUUID, 1*time.Second, c.logger)
 	agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
 	agentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, c.logger)
 	err = c.microDeployer.Deploy(

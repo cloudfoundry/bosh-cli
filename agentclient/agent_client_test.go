@@ -22,7 +22,7 @@ var _ = Describe("AgentClient", func() {
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid", logger)
+		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid", 0, logger)
 		agentServer = NewAgentServer("localhost:6305")
 
 		readyCh := make(chan error)
@@ -56,7 +56,7 @@ var _ = Describe("AgentClient", func() {
 
 				Expect(request).To(Equal(receivedRequestBody{
 					Method:    "ping",
-					Arguments: nil,
+					Arguments: []string{},
 					ReplyTo:   "fake-uuid",
 				}))
 			})
@@ -79,13 +79,96 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 
-		Context("when agent does not respond with response value", func() {
+		Context("when agent responds with exception", func() {
 			BeforeEach(func() {
 				agentServer.SetResponseBody(`{"exception":{"message":"bad request"}}`)
 			})
 
 			It("returns an error", func() {
 				_, err := agentClient.Ping()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("bad request"))
+			})
+		})
+	})
+
+	Describe("Stop", func() {
+		Context("when agent responds with a value", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseBody(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`)
+				agentServer.SetTaskStates([]taskState{
+					{
+						AgentTaskID: "fake-agent-task-id",
+						State:       "running",
+					},
+					{
+						AgentTaskID: "fake-agent-task-id",
+						State:       "running",
+					},
+					{
+						AgentTaskID: "fake-agent-task-id",
+						State:       "finished",
+					},
+				})
+			})
+
+			It("makes a POST request to the endpoint", func() {
+				err := agentClient.Stop()
+				Expect(err).ToNot(HaveOccurred())
+
+				receivedStopRequest := agentServer.ReceivedRequests[0]
+				Expect(receivedStopRequest.Method).To(Equal("POST"))
+
+				var request receivedRequestBody
+				err = json.Unmarshal(receivedStopRequest.Body, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(receivedRequestBody{
+					Method:    "stop",
+					Arguments: []string{},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+
+			It("waits for the task to be finished", func() {
+				err := agentClient.Stop()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(len(agentServer.ReceivedRequests)).To(Equal(4))
+				for _, receivedGetTaskRequest := range agentServer.ReceivedRequests[1:] {
+					Expect(receivedGetTaskRequest.Method).To(Equal("POST"))
+
+					var request receivedRequestBody
+					err = json.Unmarshal(receivedGetTaskRequest.Body, &request)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(request).To(Equal(receivedRequestBody{
+						Method:    "get_task",
+						Arguments: []string{"fake-agent-task-id"},
+						ReplyTo:   "fake-uuid",
+					}))
+				}
+			})
+		})
+
+		Context("when agent does not respond with 200", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseStatus(http.StatusInternalServerError)
+			})
+
+			It("returns an error", func() {
+				err := agentClient.Stop()
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when agent responds with exception", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseBody(`{"exception":{"message":"bad request"}}`)
+			})
+
+			It("returns an error", func() {
+				err := agentClient.Stop()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("bad request"))
 			})
@@ -110,6 +193,7 @@ type agentServer struct {
 	ReceivedRequests []receivedRequest
 	responseBody     string
 	responseStatus   int
+	taskStates       []taskState
 }
 
 func NewAgentServer(endpoint string) *agentServer {
@@ -118,6 +202,15 @@ func NewAgentServer(endpoint string) *agentServer {
 		responseStatus:   http.StatusOK,
 		ReceivedRequests: []receivedRequest{},
 	}
+}
+
+type taskStateResponse struct {
+	Value taskState
+}
+
+type taskState struct {
+	AgentTaskID string
+	State       string
 }
 
 func (s *agentServer) Start(readyErrCh chan error) {
@@ -137,7 +230,7 @@ func (s *agentServer) Start(readyErrCh chan error) {
 
 	mux.HandleFunc("/agent", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(s.responseStatus)
-		w.Write([]byte(s.responseBody))
+
 		requestBody, _ := ioutil.ReadAll(r.Body)
 		defer r.Body.Close()
 
@@ -145,7 +238,23 @@ func (s *agentServer) Start(readyErrCh chan error) {
 			Body:   requestBody,
 			Method: r.Method,
 		}
+
 		s.ReceivedRequests = append(s.ReceivedRequests, receivedRequest)
+
+		var agentRequest AgentRequest
+		json.Unmarshal(requestBody, &agentRequest)
+		if agentRequest.Method == "get_task" {
+			if len(s.taskStates) > 0 {
+				taskState := s.taskStates[0]
+				s.taskStates = s.taskStates[1:]
+				responseBody, _ := json.Marshal(taskStateResponse{
+					Value: taskState,
+				})
+				w.Write([]byte(responseBody))
+			}
+		} else {
+			w.Write([]byte(s.responseBody))
+		}
 	})
 
 	fakeServer.Serve(s.listener)
@@ -161,4 +270,8 @@ func (s *agentServer) SetResponseStatus(code int) {
 
 func (s *agentServer) SetResponseBody(body string) {
 	s.responseBody = body
+}
+
+func (s *agentServer) SetTaskStates(taskStates []taskState) {
+	s.taskStates = taskStates
 }
