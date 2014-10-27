@@ -16,6 +16,7 @@ import (
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
+	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/registry/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/retrystrategy/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/sshtunnel/fakes"
@@ -34,6 +35,7 @@ var _ = Describe("MicroDeployer", func() {
 		eventLogger                *fakebmlog.FakeEventLogger
 		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
 		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
+		fakeInstanceUpdater        *fakebminsup.FakeInstanceUpdater
 		sshTunnelConfig            bmdepl.SSHTunnel
 		fakeAgentPingRetryStrategy *fakebmretry.FakeRetryStrategy
 	)
@@ -63,14 +65,22 @@ var _ = Describe("MicroDeployer", func() {
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
+		fakeInstanceUpdater = fakebminsup.NewFakeInstanceUpdater()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
-		microDeployer = NewMicroDeployer(fakeVMManagerFactory, fakeSSHTunnelFactory, fakeRegistryServer, eventLogger, logger)
+		microDeployer = NewMicroDeployer(
+			fakeVMManagerFactory,
+			fakeSSHTunnelFactory,
+			fakeRegistryServer,
+			eventLogger,
+			logger,
+		)
 		fakeAgentPingRetryStrategy = fakebmretry.NewFakeRetryStrategy()
+		fakeInstanceUpdater = fakebminsup.NewFakeInstanceUpdater()
 	})
 
 	It("starts the registry", func() {
-		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeRegistryServer.StartInput).To(Equal(fakeregistry.StartInput{
 			Username: "fake-username",
@@ -82,7 +92,7 @@ var _ = Describe("MicroDeployer", func() {
 	})
 
 	It("creates a VM", func() {
-		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeVMManager.CreateVMInput).To(Equal(
 			fakebmvm.CreateVMInput{
@@ -93,7 +103,7 @@ var _ = Describe("MicroDeployer", func() {
 	})
 
 	It("starts the SSH tunnel", func() {
-		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeSSHTunnel.Started).To(BeTrue())
 		Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bmsshtunnel.Options{
@@ -108,14 +118,21 @@ var _ = Describe("MicroDeployer", func() {
 	})
 
 	It("waits for the agent", func() {
-		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeAgentPingRetryStrategy.TryCalled).To(BeTrue())
 	})
 
+	It("updates the instance", func() {
+		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(fakeInstanceUpdater.UpdateCalled).To(BeTrue())
+	})
+
 	It("logs start and stop events to the eventLogger", func() {
-		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 		Expect(err).NotTo(HaveOccurred())
 
 		expectedStartEvent := bmeventlog.Event{
@@ -145,7 +162,7 @@ var _ = Describe("MicroDeployer", func() {
 		})
 
 		It("returns an error", func() {
-			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-ssh-tunnel-start-error"))
 		})
@@ -157,7 +174,7 @@ var _ = Describe("MicroDeployer", func() {
 		})
 
 		It("returns an error", func() {
-			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-registry-start-error"))
 		})
@@ -169,7 +186,7 @@ var _ = Describe("MicroDeployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-ping-error"))
 
@@ -199,7 +216,7 @@ var _ = Describe("MicroDeployer", func() {
 		It("returns an error", func() {
 			createVMError := errors.New("fake-create-vm-error")
 			fakeVMManager.SetCreateVMBehavior("fake-stemcell-cid", createVMError)
-			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid")
+			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-vm-error"))
 		})

@@ -174,7 +174,13 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	vmManagerFactory := bmvm.NewManagerFactory(eventLogger, f.deploymentConfigService, f.logger)
 	registryServer := bmregistry.NewServer(f.logger)
 	sshTunnelFactory := bmsshtunnel.NewFactory(f.logger)
-	microDeployer := bmmicrodeploy.NewMicroDeployer(vmManagerFactory, sshTunnelFactory, registryServer, eventLogger, f.logger)
+	microDeployer := bmmicrodeploy.NewMicroDeployer(
+		vmManagerFactory,
+		sshTunnelFactory,
+		registryServer,
+		eventLogger,
+		f.logger,
+	)
 
 	return NewDeployCmd(
 		f.ui,
@@ -185,6 +191,9 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		cpiDeployer,
 		stemcellManagerFactory,
 		microDeployer,
+		compressor,
+		erbrenderer,
+		f.uuidGenerator,
 		f.deploymentConfig.DeploymentUUID,
 		f.logger,
 	), nil

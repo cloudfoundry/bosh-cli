@@ -17,6 +17,7 @@ import (
 type AgentClient interface {
 	Ping() (string, error)
 	Stop() error
+	Apply(ApplySpec) error
 }
 
 type agentClient struct {
@@ -30,39 +31,8 @@ type agentClient struct {
 
 type AgentRequest struct {
 	Method    string
-	Arguments []string
+	Arguments []interface{}
 	ReplyTo   string `json:"reply_to"`
-}
-
-type agentResponse interface {
-	GetException() exceptionResponse
-}
-
-type agentSimpleResponse struct {
-	Value     string
-	Exception exceptionResponse
-}
-
-func (r *agentSimpleResponse) GetException() exceptionResponse {
-	return r.Exception
-}
-
-type agentTaskResponse struct {
-	Value     taskState
-	Exception exceptionResponse
-}
-
-func (r *agentTaskResponse) GetException() exceptionResponse {
-	return r.Exception
-}
-
-type taskState struct {
-	AgentTaskID string `json:"agent_task_id"`
-	State       string
-}
-
-type exceptionResponse struct {
-	Message string
 }
 
 func NewAgentClient(endpoint string, uuid string, getTaskDelay time.Duration, logger boshlog.Logger) AgentClient {
@@ -82,12 +52,12 @@ func NewAgentClient(endpoint string, uuid string, getTaskDelay time.Duration, lo
 }
 
 func (c *agentClient) Ping() (string, error) {
-	responseBody, err := c.sendMessage("ping", []string{})
+	responseBody, err := c.sendMessage("ping", []interface{}{})
 	if err != nil {
 		return "", bosherr.WrapError(err, "Sending ping message to agent")
 	}
 
-	var response agentSimpleResponse
+	var response SimpleResponse
 	err = c.handleResponse(responseBody, &response)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Handling agent response")
@@ -97,37 +67,14 @@ func (c *agentClient) Ping() (string, error) {
 }
 
 func (c *agentClient) Stop() error {
-	responseBody, err := c.sendMessage("stop", []string{})
-	if err != nil {
-		return bosherr.WrapError(err, "Sending stop message to agent")
-	}
-
-	var response agentTaskResponse
-	err = c.handleResponse(responseBody, &response)
-	if err != nil {
-		return bosherr.WrapError(err, "Handling agent response")
-	}
-
-	getTaskRetryable := bmretrystrategy.NewRetryable(func() error {
-		responseBody, err := c.sendMessage("get_task", []string{response.Value.AgentTaskID})
-		var response agentTaskResponse
-		err = c.handleResponse(responseBody, &response)
-		if err != nil {
-			return bosherr.WrapError(err, "Handling agent response")
-		}
-
-		if response.Value.State != "running" {
-			return nil
-		}
-
-		return bosherr.New("Stop task is still running")
-	})
-
-	getTaskRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(600, c.getTaskDelay, getTaskRetryable, c.logger)
-	return getTaskRetryStrategy.Try()
+	return c.sendAsyncMessage("stop", []interface{}{})
 }
 
-func (c *agentClient) sendMessage(method string, arguments []string) ([]byte, error) {
+func (c *agentClient) Apply(spec ApplySpec) error {
+	return c.sendAsyncMessage("apply", []interface{}{spec})
+}
+
+func (c *agentClient) sendMessage(method string, arguments []interface{}) ([]byte, error) {
 	postBody := AgentRequest{
 		Method:    method,
 		Arguments: arguments,
@@ -152,6 +99,47 @@ func (c *agentClient) sendMessage(method string, arguments []string) ([]byte, er
 	return httpBody, nil
 }
 
+func (c *agentClient) sendAsyncMessage(method string, arguments []interface{}) error {
+	responseBody, err := c.sendMessage(method, arguments)
+	if err != nil {
+		return bosherr.WrapError(err, "Sending %s message to agent", method)
+	}
+
+	var response TaskResponse
+	err = c.handleResponse(responseBody, &response)
+	if err != nil {
+		return bosherr.WrapError(err, "Handling agent response")
+	}
+
+	agentTaskID, err := response.TaskID()
+	if err != nil {
+		return bosherr.WrapError(err, "Getting agent task id")
+	}
+
+	getTaskRetryable := bmretrystrategy.NewRetryable(func() (bool, error) {
+		responseBody, err := c.sendMessage("get_task", []interface{}{agentTaskID})
+		var response TaskResponse
+		err = c.handleResponse(responseBody, &response)
+		if err != nil {
+			return false, bosherr.WrapError(err, "Handling agent response")
+		}
+
+		taskState, err := response.TaskState()
+		if err != nil {
+			return false, bosherr.WrapError(err, "Getting task state")
+		}
+
+		if taskState != "running" {
+			return true, nil
+		}
+
+		return true, bosherr.New("Task %s is still running", method)
+	})
+
+	getTaskRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(600, c.getTaskDelay, getTaskRetryable, c.logger)
+	return getTaskRetryStrategy.Try()
+}
+
 func (c *agentClient) doPost(endpoint string, agentRequest AgentRequest) (*http.Response, error) {
 	agentRequestJSON, err := json.Marshal(agentRequest)
 	if err != nil {
@@ -174,7 +162,7 @@ func (c *agentClient) doPost(endpoint string, agentRequest AgentRequest) (*http.
 	return httpResponse, nil
 }
 
-func (c *agentClient) handleResponse(responseBody []byte, response agentResponse) error {
+func (c *agentClient) handleResponse(responseBody []byte, response Response) error {
 	err := json.Unmarshal(responseBody, &response)
 	if err != nil {
 		return bosherr.WrapError(err, "Unmarshaling agent response")

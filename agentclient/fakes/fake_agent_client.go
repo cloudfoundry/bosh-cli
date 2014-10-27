@@ -1,11 +1,18 @@
 package fakes
 
+import (
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
+)
+
 type FakeAgentClient struct {
 	PingResponses   []pingResponse
 	PingCalledCount int
 
 	StopCalled bool
 	stopErr    error
+
+	ApplyApplySpec bmagentclient.ApplySpec
+	ApplyErr       error
 }
 
 type pingResponse struct {
@@ -32,6 +39,12 @@ func (c *FakeAgentClient) Ping() (string, error) {
 func (c *FakeAgentClient) Stop() error {
 	c.StopCalled = true
 	return c.stopErr
+}
+
+func (c *FakeAgentClient) Apply(applySpec bmagentclient.ApplySpec) error {
+	c.ApplyApplySpec = applySpec
+
+	return c.ApplyErr
 }
 
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {

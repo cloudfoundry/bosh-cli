@@ -14,7 +14,7 @@ func NewPingRetryable(agentClient AgentClient) bmretrystrategy.Retryable {
 	}
 }
 
-func (r *pingRetryable) Attempt() error {
+func (r *pingRetryable) Attempt() (bool, error) {
 	_, err := r.agentClient.Ping()
-	return err
+	return true, err
 }

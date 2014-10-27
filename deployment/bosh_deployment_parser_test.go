@@ -67,6 +67,9 @@ jobs:
   networks:
   - name: vip
     static_ips: [1.2.3.4]
+  properties:
+    fake-prop-key: 
+      nested-prop-key: fake-prop-value
 cloud_provider:
   properties:
     nested-property: fake-property-value
@@ -115,6 +118,11 @@ cloud_provider:
 							{
 								Name:      "vip",
 								StaticIPs: []string{"1.2.3.4"},
+							},
+						},
+						RawProperties: map[interface{}]interface{}{
+							"fake-prop-key": map[interface{}]interface{}{
+								"nested-prop-key": "fake-prop-value",
 							},
 						},
 					},

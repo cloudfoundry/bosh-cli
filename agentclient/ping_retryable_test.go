@@ -25,8 +25,9 @@ var _ = Describe("PingRetryable", func() {
 		})
 
 		It("tells the agent client to ping", func() {
-			err := pingRetryable.Attempt()
+			isRetryable, err := pingRetryable.Attempt()
 			Expect(err).ToNot(HaveOccurred())
+			Expect(isRetryable).To(BeTrue())
 			Expect(fakeAgentClient.PingCalledCount).To(Equal(1))
 		})
 
@@ -36,8 +37,9 @@ var _ = Describe("PingRetryable", func() {
 			})
 
 			It("returns an error", func() {
-				err := pingRetryable.Attempt()
+				isRetryable, err := pingRetryable.Attempt()
 				Expect(err).To(HaveOccurred())
+				Expect(isRetryable).To(BeTrue())
 				Expect(err.Error()).To(ContainSubstring("fake-agent-client-ping-error"))
 			})
 		})

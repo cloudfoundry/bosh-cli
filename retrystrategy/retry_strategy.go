@@ -5,18 +5,18 @@ type RetryStrategy interface {
 }
 
 type Retryable interface {
-	Attempt() error
+	Attempt() (bool, error)
 }
 
 type retryable struct {
-	attemptFunc func() error
+	attemptFunc func() (bool, error)
 }
 
-func (r *retryable) Attempt() error {
+func (r *retryable) Attempt() (bool, error) {
 	return r.attemptFunc()
 }
 
-func NewRetryable(attemptFunc func() error) Retryable {
+func NewRetryable(attemptFunc func() (bool, error)) Retryable {
 	return &retryable{
 		attemptFunc: attemptFunc,
 	}

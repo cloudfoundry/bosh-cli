@@ -20,6 +20,7 @@ type Manifest struct {
 type ApplySpec struct {
 	Job      Job
 	Packages map[string]Blob
+	Networks map[string]interface{}
 }
 
 type Job struct {

@@ -3,6 +3,7 @@ package fakes
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
@@ -14,6 +15,7 @@ type DeployInput struct {
 	Registry               bmdepl.Registry
 	SSHTunnelConfig        bmdepl.SSHTunnel
 	AgentPingRetryStrategy bmretrystrategy.RetryStrategy
+	InstanceUpdater        bminsup.InstanceUpdater
 }
 
 type deployOutput struct {
@@ -38,6 +40,7 @@ func (m *FakeMicroDeployer) Deploy(
 	sshTunnelConfig bmdepl.SSHTunnel,
 	agentPingRetryStrategy bmretrystrategy.RetryStrategy,
 	stemcellCID bmstemcell.CID,
+	instanceUpdater bminsup.InstanceUpdater,
 ) error {
 	input := DeployInput{
 		StemcellCID:            stemcellCID,
@@ -46,6 +49,7 @@ func (m *FakeMicroDeployer) Deploy(
 		Registry:               registry,
 		SSHTunnelConfig:        sshTunnelConfig,
 		AgentPingRetryStrategy: agentPingRetryStrategy,
+		InstanceUpdater:        instanceUpdater,
 	}
 	m.DeployInput = input
 

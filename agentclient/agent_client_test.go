@@ -56,7 +56,7 @@ var _ = Describe("AgentClient", func() {
 
 				Expect(request).To(Equal(receivedRequestBody{
 					Method:    "ping",
-					Arguments: []string{},
+					Arguments: []interface{}{},
 					ReplyTo:   "fake-uuid",
 				}))
 			})
@@ -96,20 +96,7 @@ var _ = Describe("AgentClient", func() {
 		Context("when agent responds with a value", func() {
 			BeforeEach(func() {
 				agentServer.SetResponseBody(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`)
-				agentServer.SetTaskStates([]taskState{
-					{
-						AgentTaskID: "fake-agent-task-id",
-						State:       "running",
-					},
-					{
-						AgentTaskID: "fake-agent-task-id",
-						State:       "running",
-					},
-					{
-						AgentTaskID: "fake-agent-task-id",
-						State:       "finished",
-					},
-				})
+				agentServer.SetTaskStates([]string{"running", "running", "stoppped"})
 			})
 
 			It("makes a POST request to the endpoint", func() {
@@ -125,7 +112,7 @@ var _ = Describe("AgentClient", func() {
 
 				Expect(request).To(Equal(receivedRequestBody{
 					Method:    "stop",
-					Arguments: []string{},
+					Arguments: []interface{}{},
 					ReplyTo:   "fake-uuid",
 				}))
 			})
@@ -144,7 +131,7 @@ var _ = Describe("AgentClient", func() {
 
 					Expect(request).To(Equal(receivedRequestBody{
 						Method:    "get_task",
-						Arguments: []string{"fake-agent-task-id"},
+						Arguments: []interface{}{"fake-agent-task-id"},
 						ReplyTo:   "fake-uuid",
 					}))
 				}
@@ -174,11 +161,101 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 	})
+
+	Describe("Apply", func() {
+		var (
+			specJSON []byte
+			spec     ApplySpec
+		)
+
+		BeforeEach(func() {
+			spec = ApplySpec{
+				Deployment: "fake-deployment-name",
+			}
+			var err error
+			specJSON, err = json.Marshal(spec)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		Context("when agent responds with a value", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseBody(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`)
+				agentServer.SetTaskStates([]string{"running", "running", "stopped"})
+			})
+
+			It("makes a POST request to the endpoint", func() {
+				err := agentClient.Apply(spec)
+				Expect(err).ToNot(HaveOccurred())
+
+				receivedApplyRequest := agentServer.ReceivedRequests[0]
+				Expect(receivedApplyRequest.Method).To(Equal("POST"))
+
+				var request receivedRequestBody
+				err = json.Unmarshal(receivedApplyRequest.Body, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				var specArgument interface{}
+				err = json.Unmarshal(specJSON, &specArgument)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(receivedRequestBody{
+					Method:    "apply",
+					Arguments: []interface{}{specArgument},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+
+			It("waits for the task to be finished", func() {
+				err := agentClient.Apply(spec)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(len(agentServer.ReceivedRequests)).To(Equal(4))
+				for _, receivedGetTaskRequest := range agentServer.ReceivedRequests[1:] {
+					Expect(receivedGetTaskRequest.Method).To(Equal("POST"))
+
+					var request receivedRequestBody
+					err = json.Unmarshal(receivedGetTaskRequest.Body, &request)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(request).To(Equal(receivedRequestBody{
+						Method:    "get_task",
+						Arguments: []interface{}{"fake-agent-task-id"},
+						ReplyTo:   "fake-uuid",
+					}))
+				}
+			})
+		})
+
+		Context("when agent does not respond with 200", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseStatus(http.StatusInternalServerError)
+			})
+
+			It("returns an error", func() {
+				err := agentClient.Apply(spec)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when agent responds with exception to get_task", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseBody(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`)
+				agentServer.SetTaskResponseBody(`{"exception":{"message":"bad request"}}`)
+			})
+
+			It("stops polling for task state", func() {
+				err := agentClient.Apply(spec)
+				Expect(err).To(HaveOccurred())
+
+				Expect(agentServer.GetTaskRequests).To(Equal(1))
+			})
+		})
+	})
 })
 
 type receivedRequestBody struct {
 	Method    string
-	Arguments []string
+	Arguments []interface{}
 	ReplyTo   string `json:"reply_to"`
 }
 
@@ -193,7 +270,9 @@ type agentServer struct {
 	ReceivedRequests []receivedRequest
 	responseBody     string
 	responseStatus   int
-	taskStates       []taskState
+	taskResponseBody string
+	taskStates       []string
+	GetTaskRequests  int
 }
 
 func NewAgentServer(endpoint string) *agentServer {
@@ -205,12 +284,16 @@ func NewAgentServer(endpoint string) *agentServer {
 }
 
 type taskStateResponse struct {
-	Value taskState
+	Value string
 }
 
-type taskState struct {
-	AgentTaskID string
-	State       string
+type runningTaskStateResponse struct {
+	Value agentTaskState
+}
+
+type agentTaskState struct {
+	AgentTaskID string `json:"agent_task_id"`
+	State       string `json:"state"`
 }
 
 func (s *agentServer) Start(readyErrCh chan error) {
@@ -244,12 +327,28 @@ func (s *agentServer) Start(readyErrCh chan error) {
 		var agentRequest AgentRequest
 		json.Unmarshal(requestBody, &agentRequest)
 		if agentRequest.Method == "get_task" {
+			s.GetTaskRequests++
+			if s.taskResponseBody != "" {
+				w.Write([]byte(s.taskResponseBody))
+				return
+			}
+
 			if len(s.taskStates) > 0 {
-				taskState := s.taskStates[0]
+				state := s.taskStates[0]
 				s.taskStates = s.taskStates[1:]
-				responseBody, _ := json.Marshal(taskStateResponse{
-					Value: taskState,
-				})
+				var responseBody []byte
+				if state == "running" {
+					responseBody, _ = json.Marshal(runningTaskStateResponse{
+						Value: agentTaskState{
+							State: "running",
+						},
+					})
+				} else {
+					responseBody, _ = json.Marshal(taskStateResponse{
+						Value: state,
+					})
+				}
+
 				w.Write([]byte(responseBody))
 			}
 		} else {
@@ -272,6 +371,10 @@ func (s *agentServer) SetResponseBody(body string) {
 	s.responseBody = body
 }
 
-func (s *agentServer) SetTaskStates(taskStates []taskState) {
+func (s *agentServer) SetTaskStates(taskStates []string) {
 	s.taskStates = taskStates
+}
+
+func (s *agentServer) SetTaskResponseBody(taskResponseBody string) {
+	s.taskResponseBody = taskResponseBody
 }

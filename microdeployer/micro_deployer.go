@@ -9,6 +9,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/sshtunnel"
@@ -17,7 +18,15 @@ import (
 )
 
 type Deployer interface {
-	Deploy(bmcloud.Cloud, bmdepl.Deployment, bmdepl.Registry, bmdepl.SSHTunnel, bmretrystrategy.RetryStrategy, bmstemcell.CID) error
+	Deploy(
+		bmcloud.Cloud,
+		bmdepl.Deployment,
+		bmdepl.Registry,
+		bmdepl.SSHTunnel,
+		bmretrystrategy.RetryStrategy,
+		bmstemcell.CID,
+		bminsup.InstanceUpdater,
+	) error
 }
 
 type microDeployer struct {
@@ -53,6 +62,7 @@ func (m *microDeployer) Deploy(
 	sshTunnelConfig bmdepl.SSHTunnel,
 	agentPingRetryStrategy bmretrystrategy.RetryStrategy,
 	stemcellCID bmstemcell.CID,
+	instanceUpdater bminsup.InstanceUpdater,
 ) error {
 	registryReadyErrCh := make(chan error)
 	go m.startRegistry(registry, registryReadyErrCh)
@@ -72,6 +82,11 @@ func (m *microDeployer) Deploy(
 	err = m.waitUntilAgentIsReady(agentPingRetryStrategy, sshTunnelConfig, registry)
 	if err != nil {
 		return bosherr.WrapError(err, "Waiting for the agent")
+	}
+
+	err = instanceUpdater.Update()
+	if err != nil {
+		return bosherr.WrapError(err, "Updating the instance")
 	}
 
 	return nil

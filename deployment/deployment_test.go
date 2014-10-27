@@ -10,11 +10,11 @@ import (
 )
 
 var _ = Describe("Deployment", func() {
-	Describe("NetworksSpec", func() {
-		var (
-			deployment Deployment
-		)
+	var (
+		deployment Deployment
+	)
 
+	Describe("NetworksSpec", func() {
 		Context("when the deployment has networks", func() {
 			BeforeEach(func() {
 				deployment = Deployment{
@@ -106,6 +106,56 @@ var _ = Describe("Deployment", func() {
 				Expect(networksSpec).To(Equal(map[string]interface{}{}))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Could not find job with name: bosh"))
+			})
+		})
+	})
+
+	Describe("MbusConfig", func() {
+		Context("when username and password are provided", func() {
+			BeforeEach(func() {
+				deployment = Deployment{
+					Mbus: "https://fake-user:fake-password@fake-host:1234",
+				}
+			})
+
+			It("returns the Mbus parts", func() {
+				endpoint, user, password, err := deployment.MbusConfig()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(endpoint).To(Equal("https://fake-host:1234"))
+				Expect(user).To(Equal("fake-user"))
+				Expect(password).To(Equal("fake-password"))
+			})
+		})
+
+		Context("when URL does not have username and password", func() {
+			BeforeEach(func() {
+				deployment = Deployment{
+					Mbus: "https://fake-host:1234",
+				}
+			})
+
+			It("returns the Mbus parts", func() {
+				endpoint, user, password, err := deployment.MbusConfig()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(endpoint).To(Equal("https://fake-host:1234"))
+				Expect(user).To(Equal(""))
+				Expect(password).To(Equal(""))
+			})
+		})
+
+		Context("when password is not set", func() {
+			BeforeEach(func() {
+				deployment = Deployment{
+					Mbus: "https://fake-user@fake-host:1234",
+				}
+			})
+
+			It("returns the Mbus parts", func() {
+				endpoint, user, password, err := deployment.MbusConfig()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(endpoint).To(Equal("https://fake-host:1234"))
+				Expect(user).To(Equal("fake-user"))
+				Expect(password).To(Equal(""))
 			})
 		})
 	})

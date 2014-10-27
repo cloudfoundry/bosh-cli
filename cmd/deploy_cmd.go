@@ -3,16 +3,24 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
+	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
+	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
+	bminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
 	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
@@ -29,6 +37,9 @@ type deployCmd struct {
 	cpiDeployer            bmcpideploy.CpiDeployer
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	microDeployer          bmmicrodeploy.Deployer
+	compressor             boshcmd.Compressor
+	erbrenderer            bmerbrenderer.ERBRenderer
+	uuidGenerator          boshuuid.Generator
 	deploymentUUID         string
 	logger                 boshlog.Logger
 	logTag                 string
@@ -43,6 +54,9 @@ func NewDeployCmd(
 	cpiDeployer bmcpideploy.CpiDeployer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	microDeployer bmmicrodeploy.Deployer,
+	compressor boshcmd.Compressor,
+	erbrenderer bmerbrenderer.ERBRenderer,
+	uuidGenerator boshuuid.Generator,
 	deploymentUUID string,
 	logger boshlog.Logger,
 ) *deployCmd {
@@ -55,6 +69,9 @@ func NewDeployCmd(
 		cpiDeployer:            cpiDeployer,
 		stemcellManagerFactory: stemcellManagerFactory,
 		microDeployer:          microDeployer,
+		compressor:             compressor,
+		erbrenderer:            erbrenderer,
+		uuidGenerator:          uuidGenerator,
 		deploymentUUID:         deploymentUUID,
 		logger:                 logger,
 		logTag:                 "deployCmd",
@@ -87,7 +104,7 @@ func (c *deployCmd) Run(args []string) error {
 	}
 
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-	_, stemcellCID, err := stemcellManager.Upload(stemcellTarballPath)
+	stemcell, stemcellCID, err := stemcellManager.Upload(stemcellTarballPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
 	}
@@ -95,6 +112,33 @@ func (c *deployCmd) Run(args []string) error {
 	agentClient := bmagentclient.NewAgentClient(cpiDeployment.Mbus, c.deploymentUUID, 1*time.Second, c.logger)
 	agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
 	agentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, c.logger)
+	endpoint, username, password, err := boshDeployment.MbusConfig()
+	if err != nil {
+		return bosherr.WrapError(err, "Creating blobstore config")
+	}
+
+	davClient := boshdavcli.NewClient(boshdavcliconf.Config{
+		Endpoint: endpoint,
+		User:     username,
+		Password: password,
+	}, http.DefaultClient)
+
+	blobstore := bmblobstore.NewBlobstore(davClient, c.fs, c.logger)
+	applySpecCreator := bminsup.NewApplySpecCreator(c.fs)
+	instanceUpdater := bminsup.NewInstanceUpdater(
+		agentClient,
+		stemcell.ApplySpec,
+		boshDeployment.Jobs[0],
+		boshDeployment.Name,
+		blobstore,
+		c.compressor,
+		c.erbrenderer,
+		c.uuidGenerator,
+		applySpecCreator,
+		c.fs,
+		c.logger,
+	)
+
 	err = c.microDeployer.Deploy(
 		cloud,
 		boshDeployment,
@@ -102,6 +146,7 @@ func (c *deployCmd) Run(args []string) error {
 		cpiDeployment.SSHTunnel,
 		agentPingRetryStrategy,
 		stemcellCID,
+		instanceUpdater,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")

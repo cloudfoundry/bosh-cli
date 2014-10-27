@@ -31,11 +31,15 @@ func NewAttemptRetryStrategy(
 
 func (s *attemptRetryStrategy) Try() error {
 	var err error
+	var isRetryable bool
 	for i := 0; i < s.maxAttempts; i++ {
 		s.logger.Debug(s.logTag, "Making attempt #%d", i)
-		err = s.retryable.Attempt()
+		isRetryable, err = s.retryable.Attempt()
 		if err == nil {
 			return nil
+		}
+		if !isRetryable {
+			return err
 		}
 		time.Sleep(s.delay)
 	}

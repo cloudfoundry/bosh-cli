@@ -2,24 +2,33 @@ package cmd_test
 
 import (
 	"errors"
+	"net/http"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
+	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
+	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakecpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
+	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 	fakemicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -42,6 +51,10 @@ var _ = Describe("DeployCmd", func() {
 		fakeCpiManifestParser  *fakebmdepl.FakeManifestParser
 		fakeBoshManifestParser *fakebmdepl.FakeManifestParser
 
+		fakeCompressor    *fakecmd.FakeCompressor
+		fakeERBRenderer   *fakebmrender.FakeERBRenderer
+		fakeUUIDGenerator *fakeuuid.FakeGenerator
+
 		cpiReleaseTarballPath string
 		stemcellTarballPath   string
 		expectedStemcellCID   bmstemcell.CID
@@ -61,6 +74,10 @@ var _ = Describe("DeployCmd", func() {
 		fakeCpiManifestParser = fakebmdepl.NewFakeManifestParser()
 		fakeBoshManifestParser = fakebmdepl.NewFakeManifestParser()
 
+		fakeCompressor = fakecmd.NewFakeCompressor()
+		fakeERBRenderer = fakebmrender.NewFakeERBRender()
+		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		command = bmcmd.NewDeployCmd(
 			fakeUI,
@@ -71,6 +88,9 @@ var _ = Describe("DeployCmd", func() {
 			fakeCpiDeployer,
 			fakeStemcellManagerFactory,
 			fakeMicroDeployer,
+			fakeCompressor,
+			fakeERBRenderer,
+			fakeUUIDGenerator,
 			"fake-deployment-uuid",
 			logger,
 		)
@@ -87,6 +107,7 @@ var _ = Describe("DeployCmd", func() {
 				SHA1:               "fake-stemcell-sha1",
 				RawCloudProperties: map[interface{}]interface{}{},
 			},
+			ApplySpec: bmstemcell.ApplySpec{},
 		}
 	})
 
@@ -129,6 +150,9 @@ var _ = Describe("DeployCmd", func() {
 						fakeCpiDeployer,
 						fakeStemcellManagerFactory,
 						fakeMicroDeployer,
+						fakeCompressor,
+						fakeERBRenderer,
+						fakeUUIDGenerator,
 						"fake-deployment-uuid",
 						logger,
 					)
@@ -163,11 +187,19 @@ version: fake-version
 							SSHTunnel: bmdepl.SSHTunnel{
 								Host: "fake-host",
 							},
-							Mbus: "http://fake-mbus-endpoint",
+							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
 						}
 						fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, cpiDeployment, nil)
 
-						boshDeployment = bmdepl.Deployment{}
+						boshDeployment = bmdepl.Deployment{
+							Name: "fake-deployment-name",
+							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
+							Jobs: []bmdepl.Job{
+								{
+									Name: "fake-job-name",
+								},
+							},
+						}
 						fakeBoshManifestParser.SetParseBehavior(userConfig.DeploymentFile, boshDeployment, nil)
 						cloud = fakebmcloud.NewFakeCloud()
 						fakeCpiDeployer.SetDeployBehavior(cpiDeployment, cpiReleaseTarballPath, cloud, nil)
@@ -212,9 +244,37 @@ version: fake-version
 					It("creates a VM", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						agentClient := bmagentclient.NewAgentClient("http://fake-mbus-endpoint", "fake-deployment-uuid", 1*time.Second, logger)
+						agentClient := bmagentclient.NewAgentClient(
+							"http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
+							"fake-deployment-uuid",
+							1*time.Second,
+							logger,
+						)
 						agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
 						expectedAgentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, logger)
+
+						davClient := boshdavcli.NewClient(boshdavcliconf.Config{
+							Endpoint: "http://fake-mbus-endpoint",
+							User:     "fake-mbus-user",
+							Password: "fake-mbus-password",
+						}, http.DefaultClient)
+
+						blobstore := bmblobstore.NewBlobstore(davClient, fakeFs, logger)
+						applySpecCreator := bminsup.NewApplySpecCreator(fakeFs)
+						expectedInstanceUpdater := bminsup.NewInstanceUpdater(
+							agentClient,
+							expectedStemcell.ApplySpec,
+							boshDeployment.Jobs[0],
+							"fake-deployment-name",
+							blobstore,
+							fakeCompressor,
+							fakeERBRenderer,
+							fakeUUIDGenerator,
+							applySpecCreator,
+							fakeFs,
+							logger,
+						)
+
 						Expect(fakeMicroDeployer.DeployInput).To(Equal(
 							fakemicrodeploy.DeployInput{
 								Cloud:                  cloud,
@@ -223,6 +283,7 @@ version: fake-version
 								Registry:               cpiDeployment.Registry,
 								SSHTunnelConfig:        cpiDeployment.SSHTunnel,
 								AgentPingRetryStrategy: expectedAgentPingRetryStrategy,
+								InstanceUpdater:        expectedInstanceUpdater,
 							},
 						))
 					})
@@ -265,6 +326,9 @@ version: fake-version
 							fakeCpiDeployer,
 							fakeStemcellManagerFactory,
 							fakeMicroDeployer,
+							fakeCompressor,
+							fakeERBRenderer,
+							fakeUUIDGenerator,
 							"fake-deployment-uuid",
 							logger,
 						)
