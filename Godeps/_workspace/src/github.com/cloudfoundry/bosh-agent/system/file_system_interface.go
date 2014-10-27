@@ -3,6 +3,7 @@ package system
 import (
 	"io"
 	"os"
+	"path/filepath"
 )
 
 type ReadWriteCloseStater interface {
@@ -48,4 +49,5 @@ type FileSystem interface {
 	TempDir(prefix string) (path string, err error)
 
 	Glob(pattern string) (matches []string, err error)
+	Walk(root string, walkFunc filepath.WalkFunc) error
 }

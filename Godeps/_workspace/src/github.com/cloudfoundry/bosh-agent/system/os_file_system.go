@@ -264,6 +264,10 @@ func (fs osFileSystem) Glob(pattern string) (matches []string, err error) {
 	return filepath.Glob(pattern)
 }
 
+func (fs osFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
+	return filepath.Walk(root, walkFunc)
+}
+
 func (fs osFileSystem) filesAreIdentical(newContent []byte, filePath string) bool {
 	existingStat, err := os.Stat(filePath)
 	if err != nil || int64(len(newContent)) != existingStat.Size() {
