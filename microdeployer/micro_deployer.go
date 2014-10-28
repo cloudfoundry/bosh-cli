@@ -84,9 +84,9 @@ func (m *microDeployer) Deploy(
 		return bosherr.WrapError(err, "Waiting for the agent")
 	}
 
-	err = instanceUpdater.Update()
+	err = m.updateInstance(instanceUpdater)
 	if err != nil {
-		return bosherr.WrapError(err, "Updating the instance")
+		return bosherr.WrapError(err, "Updating instance")
 	}
 
 	return nil
@@ -106,7 +106,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 ) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 2,
+		Total: 3,
 		Task:  fmt.Sprintf("Waiting for the agent"),
 		Index: 2,
 		State: bmeventlog.Started,
@@ -137,7 +137,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   2,
+			Total:   3,
 			Task:    fmt.Sprintf("Waiting for the agent"),
 			Index:   2,
 			State:   bmeventlog.Failed,
@@ -149,9 +149,46 @@ func (m *microDeployer) waitUntilAgentIsReady(
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 2,
+		Total: 3,
 		Task:  fmt.Sprintf("Waiting for the agent"),
 		Index: 2,
+		State: bmeventlog.Finished,
+	}
+	m.eventLogger.AddEvent(event)
+
+	return nil
+}
+
+func (m *microDeployer) updateInstance(instanceUpdater bminsup.InstanceUpdater) error {
+	event := bmeventlog.Event{
+		Stage: "Deploy Micro BOSH",
+		Total: 3,
+		Task:  fmt.Sprintf("Applying micro BOSH spec"),
+		Index: 3,
+		State: bmeventlog.Started,
+	}
+	m.eventLogger.AddEvent(event)
+
+	err := instanceUpdater.Update()
+	if err != nil {
+		event = bmeventlog.Event{
+			Stage:   "Deploy Micro BOSH",
+			Total:   3,
+			Task:    fmt.Sprintf("Applying micro BOSH spec"),
+			Index:   3,
+			State:   bmeventlog.Failed,
+			Message: err.Error(),
+		}
+		m.eventLogger.AddEvent(event)
+
+		return bosherr.WrapError(err, "Updating the instance")
+	}
+
+	event = bmeventlog.Event{
+		Stage: "Deploy Micro BOSH",
+		Total: 3,
+		Task:  fmt.Sprintf("Applying micro BOSH spec"),
+		Index: 3,
 		State: bmeventlog.Finished,
 	}
 	m.eventLogger.AddEvent(event)
