@@ -16,7 +16,7 @@ import (
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
-	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater/fakes"
+	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/registry/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/retrystrategy/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/sshtunnel/fakes"

@@ -18,7 +18,7 @@ import (
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
+	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"

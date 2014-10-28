@@ -9,7 +9,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
+	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/sshtunnel"

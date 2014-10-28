@@ -15,7 +15,7 @@ import (
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient/fakes"
 	fakebmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/fakes"
 	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
-	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater/fakes"
+	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
@@ -25,7 +25,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 )
 
 var _ = Describe("InstanceUpdater", func() {

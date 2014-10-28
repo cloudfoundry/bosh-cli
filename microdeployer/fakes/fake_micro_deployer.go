@@ -3,7 +3,7 @@ package fakes
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
+	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )

@@ -11,7 +11,7 @@ import (
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/instanceupdater"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 )
 
 var _ = Describe("ApplySpecCreator", func() {
