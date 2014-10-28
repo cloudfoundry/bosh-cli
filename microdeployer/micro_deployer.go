@@ -11,8 +11,8 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/microdeployer/registry"
+	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )

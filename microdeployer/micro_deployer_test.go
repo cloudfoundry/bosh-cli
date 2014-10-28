@@ -12,14 +12,14 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/sshtunnel"
+	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
 	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/microdeployer/registry/fakes"
+	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/retrystrategy/fakes"
-	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/sshtunnel/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/vm/fakes"
 )
 

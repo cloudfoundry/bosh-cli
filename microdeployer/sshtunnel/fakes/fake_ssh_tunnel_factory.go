@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/sshtunnel"
+	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel"
 )
 
 type FakeFactory struct {
