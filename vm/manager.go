@@ -32,7 +32,7 @@ type manager struct {
 func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error) {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 2,
+		Total: 3,
 		Task:  fmt.Sprintf("Creating VM from %s", stemcellCID),
 		Index: 1,
 		State: bmeventlog.Started,
@@ -61,7 +61,7 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   2,
+			Total:   3,
 			Task:    fmt.Sprintf("Creating VM from %s", stemcellCID),
 			Index:   1,
 			State:   bmeventlog.Failed,
@@ -84,7 +84,7 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 2,
+		Total: 3,
 		Task:  fmt.Sprintf("Creating VM from %s", stemcellCID),
 		Index: 1,
 		State: bmeventlog.Finished,
