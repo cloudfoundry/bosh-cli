@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"crypto/tls"
 	"errors"
 	"net/http"
 	"time"
@@ -193,7 +194,6 @@ version: fake-version
 
 						boshDeployment = bmdepl.Deployment{
 							Name: "fake-deployment-name",
-							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
 							Jobs: []bmdepl.Job{
 								{
 									Name: "fake-job-name",
@@ -253,11 +253,15 @@ version: fake-version
 						agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
 						expectedAgentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, logger)
 
+						tr := &http.Transport{
+							TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+						}
+						httpClient := http.Client{Transport: tr}
 						davClient := boshdavcli.NewClient(boshdavcliconf.Config{
-							Endpoint: "http://fake-mbus-endpoint",
+							Endpoint: "http://fake-mbus-endpoint/blobs",
 							User:     "fake-mbus-user",
 							Password: "fake-mbus-password",
-						}, http.DefaultClient)
+						}, &httpClient)
 
 						blobstore := bmblobstore.NewBlobstore(davClient, fakeFs, logger)
 						applySpecCreator := bminsup.NewApplySpecCreator(fakeFs)

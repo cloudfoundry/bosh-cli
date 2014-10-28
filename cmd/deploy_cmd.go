@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -112,16 +113,21 @@ func (c *deployCmd) Run(args []string) error {
 	agentClient := bmagentclient.NewAgentClient(cpiDeployment.Mbus, c.deploymentUUID, 1*time.Second, c.logger)
 	agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
 	agentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, c.logger)
-	endpoint, username, password, err := boshDeployment.MbusConfig()
+	endpoint, username, password, err := cpiDeployment.MbusConfig()
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blobstore config")
 	}
 
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	httpClient := http.Client{Transport: tr}
+
 	davClient := boshdavcli.NewClient(boshdavcliconf.Config{
-		Endpoint: endpoint,
+		Endpoint: fmt.Sprintf("%s/blobs", endpoint),
 		User:     username,
 		Password: password,
-	}, http.DefaultClient)
+	}, &httpClient)
 
 	blobstore := bmblobstore.NewBlobstore(davClient, c.fs, c.logger)
 	applySpecCreator := bminsup.NewApplySpecCreator(c.fs)
