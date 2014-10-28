@@ -70,30 +70,16 @@ jobs:
       password: "nats"
       auth_timeout: 3
       address: "127.0.0.1"
-      listen_address: "0.0.0.0"
-      port: 4222
-      no_epoll: false
-      no_kqueue: true
-      ping_interval: 5
-      ping_max_outstanding: 2
-      http:
-        port: 9222
     redis:
       address: "127.0.0.1"
       password: "redis"
       port: 25255
-      loglevel: "info"
     postgres:
       user: "postgres"
       password: "postges"
       host: "127.0.0.1"
-      listen_address: "127.0.0.1"
       database: "bosh"
       port: 5432
-      adapter: "postgres"
-      connection_options:
-        max_connections: 32
-        pool_timeout: 10
     blobstore:
       address: "127.0.0.1"
       director:
@@ -102,13 +88,7 @@ jobs:
       agent:
         user: "agent"
         password: "agent"
-      port: 25250
-      backend_port: 25251
       provider: "dav"
-      s3_port: 443
-      s3_force_path_style: false
-      ssl_verify_peer: true
-      s3_multipart_threshold: 16777216
     director:
       address: "127.0.0.1"
       name: "micro"
@@ -117,32 +97,14 @@ jobs:
         user: "postgres"
         password: "postges"
         host: "127.0.0.1"
-        listen_address: "127.0.0.1"
         database: "bosh"
         port: 5432
         adapter: "postgres"
-        connection_options:
-          max_connections: 32
-          pool_timeout: 10
       backend_port: 25556
-      nginx:
-        workers: 2
-      timeout: 7200
-      proxy_timeout: 900
-      max_upload_size: "5000m"
-      encryption: false
-      max_tasks: 500
-      max_threads: 32
-      enable_snapshots: false
-      snapshot_schedule: "0 0 7 * * * UTC"
-      self_snapshot_schedule: "0 0 6 * * * UTC"
-      auto_fix_stateful_nodes: true
-      max_vm_create_tries: 5
     hm:
       http:
         user: "hm"
         password: "hm"
-        port: 25923
       director_account:
         user: "admin"
         password: "admin"
@@ -150,22 +112,6 @@ jobs:
         log_stats: 300
         agent_timeout: 180
         rogue_agent_alert: 180
-        prune_events: 30
-        poll_director: 60
-        poll_grace_period: 30
-        analyze_agents: 60
-      loglevel: "info"
-      email_notifications: false
-      tsdb_enabled: false
-      pagerduty_enabled: false
-      varz_enabled: false
-      cloud_watch_enabled: false
-      resurrector_enabled: false
-      resurrector:
-        minimum_down_jobs: 5
-        percent_threshold: 0.2
-        time_threshold: 600
-      datadog_enabled: false
     dns:
       address: "127.0.0.1"
       domain_name: "microbosh"
@@ -173,40 +119,7 @@ jobs:
         user: "postgres"
         password: "postges"
         host: "127.0.0.1"
-        listen_address: "127.0.0.1"
         database: "bosh"
         port: 5432
         adapter: "postgres"
-        connection_options:
-          max_connections: 32
-          pool_timeout: 10
-      webserver:
-        port: 8081
-        address: "0.0.0.0"
-    compiled_package_cache:
-      provider: "s3"
-      options:
-        port: 25250
-        ssl_verify_peer: true
-        s3_port: 443
-        s3_force_path_style: false
-        s3_multipart_threshold: 16777216
     ntp: []
-    agent:
-      blobstore:
-        ssl_verify_peer: true
-        s3_force_path_style: false
-        s3_multipart_threshold: 16777216
-    registry:
-      http:
-        port: 25777
-    openstack:
-      endpoint_type: "publicURL"
-      state_timeout: 300
-      stemcell_public_visibility: false
-      wait_resource_poll_interval: 5
-    vcd:
-      entities:
-        vm_metadata_key: "vcd-cf"
-        description: "vcd-cf"
-    event_nats_enabled: false
