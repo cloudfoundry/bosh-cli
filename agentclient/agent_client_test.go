@@ -251,6 +251,62 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 	})
+
+	Describe("Start", func() {
+		Context("when agent responds with a value", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseBody(`{"value":"started"}`)
+			})
+
+			It("makes a POST request to the endpoint", func() {
+				err := agentClient.Start()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(len(agentServer.ReceivedRequests)).To(Equal(1))
+				receivedRequest := agentServer.ReceivedRequests[0]
+
+				Expect(receivedRequest.Method).To(Equal("POST"))
+
+				var request receivedRequestBody
+				err = json.Unmarshal(receivedRequest.Body, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(receivedRequestBody{
+					Method:    "start",
+					Arguments: []interface{}{},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+
+			It("returns the value", func() {
+				err := agentClient.Start()
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when agent does not respond with 200", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseStatus(http.StatusInternalServerError)
+			})
+
+			It("returns an error", func() {
+				err := agentClient.Start()
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when agent responds with exception", func() {
+			BeforeEach(func() {
+				agentServer.SetResponseBody(`{"exception":{"message":"bad request"}}`)
+			})
+
+			It("returns an error", func() {
+				err := agentClient.Start()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("bad request"))
+			})
+		})
+	})
 })
 
 type receivedRequestBody struct {

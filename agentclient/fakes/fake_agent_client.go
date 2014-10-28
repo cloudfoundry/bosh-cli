@@ -13,6 +13,9 @@ type FakeAgentClient struct {
 
 	ApplyApplySpec bmagentclient.ApplySpec
 	ApplyErr       error
+
+	StartCalled bool
+	startErr    error
 }
 
 type pingResponse struct {
@@ -47,6 +50,11 @@ func (c *FakeAgentClient) Apply(applySpec bmagentclient.ApplySpec) error {
 	return c.ApplyErr
 }
 
+func (c *FakeAgentClient) Start() error {
+	c.StartCalled = true
+	return c.startErr
+}
+
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {
 	c.PingResponses = append(c.PingResponses, pingResponse{
 		response: response,
@@ -56,4 +64,8 @@ func (c *FakeAgentClient) SetPingBehavior(response string, err error) {
 
 func (c *FakeAgentClient) SetStopBehavior(err error) {
 	c.stopErr = err
+}
+
+func (c *FakeAgentClient) SetStartBehavior(err error) {
+	c.startErr = err
 }

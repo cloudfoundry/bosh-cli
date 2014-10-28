@@ -18,6 +18,7 @@ type AgentClient interface {
 	Ping() (string, error)
 	Stop() error
 	Apply(ApplySpec) error
+	Start() error
 }
 
 type agentClient struct {
@@ -52,18 +53,7 @@ func NewAgentClient(endpoint string, uuid string, getTaskDelay time.Duration, lo
 }
 
 func (c *agentClient) Ping() (string, error) {
-	responseBody, err := c.sendMessage("ping", []interface{}{})
-	if err != nil {
-		return "", bosherr.WrapError(err, "Sending ping message to agent")
-	}
-
-	var response SimpleResponse
-	err = c.handleResponse(responseBody, &response)
-	if err != nil {
-		return "", bosherr.WrapError(err, "Handling agent response")
-	}
-
-	return response.Value, nil
+	return c.sendSyncMessage("ping", []interface{}{})
 }
 
 func (c *agentClient) Stop() error {
@@ -74,29 +64,32 @@ func (c *agentClient) Apply(spec ApplySpec) error {
 	return c.sendAsyncMessage("apply", []interface{}{spec})
 }
 
-func (c *agentClient) sendMessage(method string, arguments []interface{}) ([]byte, error) {
-	postBody := AgentRequest{
-		Method:    method,
-		Arguments: arguments,
-		ReplyTo:   c.uuid,
-	}
-
-	httpResponse, err := c.doPost(c.endpoint, postBody)
+func (c *agentClient) Start() error {
+	response, err := c.sendSyncMessage("start", []interface{}{})
 	if err != nil {
-		return []byte{}, bosherr.WrapError(err, "Sending %s to agent", method)
-	}
-	defer httpResponse.Body.Close()
-
-	if httpResponse.StatusCode != http.StatusOK {
-		return []byte{}, bosherr.New("Agent responded with non-successful status code: %d", httpResponse.StatusCode)
+		return bosherr.WrapError(err, "Starting agent services")
 	}
 
-	httpBody, err := ioutil.ReadAll(httpResponse.Body)
+	if response != "started" {
+		return bosherr.New("Failed to start agent services with response: '%s'", response)
+	}
+
+	return nil
+}
+
+func (c *agentClient) sendSyncMessage(method string, arguments []interface{}) (string, error) {
+	responseBody, err := c.sendMessage(method, []interface{}{})
 	if err != nil {
-		return []byte{}, bosherr.WrapError(err, "Reading agent response")
+		return "", bosherr.WrapError(err, "Sending '%s' message to agent", method)
 	}
 
-	return httpBody, nil
+	var response SimpleResponse
+	err = c.handleResponse(responseBody, &response)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Handling agent response")
+	}
+
+	return response.Value, nil
 }
 
 func (c *agentClient) sendAsyncMessage(method string, arguments []interface{}) error {
@@ -138,6 +131,31 @@ func (c *agentClient) sendAsyncMessage(method string, arguments []interface{}) e
 
 	getTaskRetryStrategy := bmretrystrategy.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)
 	return getTaskRetryStrategy.Try()
+}
+
+func (c *agentClient) sendMessage(method string, arguments []interface{}) ([]byte, error) {
+	postBody := AgentRequest{
+		Method:    method,
+		Arguments: arguments,
+		ReplyTo:   c.uuid,
+	}
+
+	httpResponse, err := c.doPost(c.endpoint, postBody)
+	if err != nil {
+		return []byte{}, bosherr.WrapError(err, "Sending %s to agent", method)
+	}
+	defer httpResponse.Body.Close()
+
+	if httpResponse.StatusCode != http.StatusOK {
+		return []byte{}, bosherr.New("Agent responded with non-successful status code: %d", httpResponse.StatusCode)
+	}
+
+	httpBody, err := ioutil.ReadAll(httpResponse.Body)
+	if err != nil {
+		return []byte{}, bosherr.WrapError(err, "Reading agent response")
+	}
+
+	return httpBody, nil
 }
 
 func (c *agentClient) doPost(endpoint string, agentRequest AgentRequest) (*http.Response, error) {

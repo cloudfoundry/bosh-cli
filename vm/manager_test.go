@@ -114,7 +114,7 @@ var _ = Describe("Manager", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 3,
+				Total: 4,
 				Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 				Index: 1,
 				State: bmeventlog.Started,
@@ -122,7 +122,7 @@ var _ = Describe("Manager", func() {
 
 			expectedFinishEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 3,
+				Total: 4,
 				Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 				Index: 1,
 				State: bmeventlog.Finished,
@@ -156,7 +156,7 @@ var _ = Describe("Manager", func() {
 
 				expectedStartEvent := bmeventlog.Event{
 					Stage: "Deploy Micro BOSH",
-					Total: 3,
+					Total: 4,
 					Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 					Index: 1,
 					State: bmeventlog.Started,
@@ -164,7 +164,7 @@ var _ = Describe("Manager", func() {
 
 				expectedFailedEvent := bmeventlog.Event{
 					Stage:   "Deploy Micro BOSH",
-					Total:   3,
+					Total:   4,
 					Task:    fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
 					Index:   1,
 					State:   bmeventlog.Failed,

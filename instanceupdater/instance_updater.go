@@ -34,6 +34,7 @@ type instanceUpdater struct {
 
 type InstanceUpdater interface {
 	Update() error
+	Start() error
 }
 
 func NewInstanceUpdater(
@@ -154,6 +155,10 @@ func (u *instanceUpdater) Update() error {
 	}
 
 	return nil
+}
+
+func (u *instanceUpdater) Start() error {
+	return u.agentClient.Start()
 }
 
 func (u *instanceUpdater) renderJob(

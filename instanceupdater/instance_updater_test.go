@@ -367,4 +367,24 @@ var _ = Describe("InstanceUpdater", func() {
 			})
 		})
 	})
+
+	Describe("Start", func() {
+		It("starts agent services", func() {
+			err := instanceUpdater.Start()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.StartCalled).To(BeTrue())
+		})
+
+		Context("when starting an agent fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.SetStartBehavior(errors.New("fake-start-error"))
+			})
+
+			It("returns an error", func() {
+				err := instanceUpdater.Start()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
+			})
+		})
+	})
 })

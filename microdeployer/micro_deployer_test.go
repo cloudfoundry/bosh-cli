@@ -131,40 +131,61 @@ var _ = Describe("MicroDeployer", func() {
 		Expect(fakeInstanceUpdater.UpdateCalled).To(BeTrue())
 	})
 
+	It("starts the agent", func() {
+		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(fakeInstanceUpdater.StartCalled).To(BeTrue())
+	})
+
 	It("logs start and stop events to the eventLogger", func() {
 		err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 3,
+			Total: 4,
 			Task:  fmt.Sprintf("Waiting for the agent"),
 			Index: 2,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 3,
+			Total: 4,
 			Task:  fmt.Sprintf("Waiting for the agent"),
 			Index: 2,
 			State: bmeventlog.Finished,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 3,
+			Total: 4,
 			Task:  fmt.Sprintf("Applying micro BOSH spec"),
 			Index: 3,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 3,
+			Total: 4,
 			Task:  fmt.Sprintf("Applying micro BOSH spec"),
 			Index: 3,
+			State: bmeventlog.Finished,
+		}))
+		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
+			Stage: "Deploy Micro BOSH",
+			Total: 4,
+			Task:  fmt.Sprintf("Starting agent services"),
+			Index: 4,
+			State: bmeventlog.Started,
+		}))
+		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
+			Stage: "Deploy Micro BOSH",
+			Total: 4,
+			Task:  fmt.Sprintf("Starting agent services"),
+			Index: 4,
 			State: bmeventlog.Finished,
 		}))
 
-		Expect(eventLogger.LoggedEvents).To(HaveLen(4))
+		Expect(eventLogger.LoggedEvents).To(HaveLen(6))
 	})
 
 	Context("when starting SSH tunnel fails", func() {
@@ -203,7 +224,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 3,
+				Total: 4,
 				Task:  fmt.Sprintf("Waiting for the agent"),
 				Index: 2,
 				State: bmeventlog.Started,
@@ -211,7 +232,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   3,
+				Total:   4,
 				Task:    fmt.Sprintf("Waiting for the agent"),
 				Index:   2,
 				State:   bmeventlog.Failed,
@@ -235,7 +256,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 3,
+				Total: 4,
 				Task:  fmt.Sprintf("Applying micro BOSH spec"),
 				Index: 3,
 				State: bmeventlog.Started,
@@ -243,7 +264,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   3,
+				Total:   4,
 				Task:    fmt.Sprintf("Applying micro BOSH spec"),
 				Index:   3,
 				State:   bmeventlog.Failed,
@@ -252,6 +273,38 @@ var _ = Describe("MicroDeployer", func() {
 			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
 			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
 			Expect(eventLogger.LoggedEvents).To(HaveLen(4))
+		})
+	})
+
+	Context("when starting agent services fails", func() {
+		BeforeEach(func() {
+			fakeInstanceUpdater.StartErr = errors.New("fake-start-error")
+		})
+
+		It("logs start and stop events to the eventLogger", func() {
+			err := microDeployer.Deploy(cloud, deployment, registry, sshTunnelConfig, fakeAgentPingRetryStrategy, "fake-stemcell-cid", fakeInstanceUpdater)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-start-error"))
+
+			expectedStartEvent := bmeventlog.Event{
+				Stage: "Deploy Micro BOSH",
+				Total: 4,
+				Task:  fmt.Sprintf("Starting agent services"),
+				Index: 4,
+				State: bmeventlog.Started,
+			}
+
+			expectedFailedEvent := bmeventlog.Event{
+				Stage:   "Deploy Micro BOSH",
+				Total:   4,
+				Task:    fmt.Sprintf("Starting agent services"),
+				Index:   4,
+				State:   bmeventlog.Failed,
+				Message: "fake-start-error",
+			}
+			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
+			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
+			Expect(eventLogger.LoggedEvents).To(HaveLen(6))
 		})
 	})
 
