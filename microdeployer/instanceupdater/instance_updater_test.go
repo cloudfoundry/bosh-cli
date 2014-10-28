@@ -13,8 +13,8 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient/fakes"
-	fakebmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/fakes"
 	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
+	fakebmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore/fakes"
 	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"

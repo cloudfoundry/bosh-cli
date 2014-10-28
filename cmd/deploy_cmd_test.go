@@ -14,10 +14,10 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
 	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
