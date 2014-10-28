@@ -136,7 +136,7 @@ func (c *agentClient) sendAsyncMessage(method string, arguments []interface{}) e
 		return true, bosherr.New("Task %s is still running", method)
 	})
 
-	getTaskRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(600, c.getTaskDelay, getTaskRetryable, c.logger)
+	getTaskRetryStrategy := bmretrystrategy.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)
 	return getTaskRetryStrategy.Try()
 }
 
