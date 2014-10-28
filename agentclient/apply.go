@@ -2,7 +2,6 @@ package agentclient
 
 type ApplySpec struct {
 	Deployment               string
-	Properties               map[string]interface{}
 	Index                    int
 	Packages                 map[string]Blob
 	Networks                 map[string]interface{}

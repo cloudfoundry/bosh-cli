@@ -17,7 +17,6 @@ import (
 var _ = Describe("ApplySpecCreator", func() {
 	var (
 		originalApplySpec bmstemcell.ApplySpec
-		jobProperties     map[string]interface{}
 		networksSpec      map[string]interface{}
 		applySpecCreator  ApplySpecCreator
 		fs                *fakesys.FakeFileSystem
@@ -37,9 +36,6 @@ var _ = Describe("ApplySpecCreator", func() {
 					},
 				},
 			},
-		}
-		jobProperties = map[string]interface{}{
-			"fake-prop-key": "fake-prop-value",
 		}
 
 		networksSpec = map[string]interface{}{
@@ -70,7 +66,6 @@ var _ = Describe("ApplySpecCreator", func() {
 				originalApplySpec,
 				"fake-deployment-name",
 				"fake-job-name",
-				jobProperties,
 				networksSpec,
 				"fake-archived-templates-blob-id",
 				"/fake-archived-templates-path",
@@ -79,7 +74,6 @@ var _ = Describe("ApplySpecCreator", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(applySpec).To(Equal(bmagentclient.ApplySpec{
 				Deployment: "fake-deployment-name",
-				Properties: jobProperties,
 				Index:      0,
 				Packages: map[string]bmagentclient.Blob{
 					"fake-first-package-name": bmagentclient.Blob{
@@ -115,7 +109,6 @@ var _ = Describe("ApplySpecCreator", func() {
 					originalApplySpec,
 					"fake-deployment-name",
 					"fake-job-name",
-					jobProperties,
 					networksSpec,
 					"fake-archived-templates-blob-id",
 					"/fake-archived-templates-path",

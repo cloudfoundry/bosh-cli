@@ -141,7 +141,6 @@ func (u *instanceUpdater) Update() error {
 		u.stemcellApplySpec,
 		u.deployment.Name,
 		job.Name,
-		jobProperties,
 		networksSpec,
 		blobID,
 		renderedTarballPath,

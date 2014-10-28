@@ -15,7 +15,6 @@ type CreateInput struct {
 	ApplySpec               bmstemcell.ApplySpec
 	DeploymentName          string
 	JobName                 string
-	JobProperties           map[string]interface{}
 	NetworksSpec            map[string]interface{}
 	ArchivedTemplatesBlobID string
 	ArchivedTemplatesPath   string
@@ -30,7 +29,6 @@ func (c *FakeApplySpecCreator) Create(
 	applySpec bmstemcell.ApplySpec,
 	deploymentName string,
 	jobName string,
-	jobProperties map[string]interface{},
 	networksSpec map[string]interface{},
 	archivedTemplatesBlobID string,
 	archivedTemplatesPath string,
@@ -40,7 +38,6 @@ func (c *FakeApplySpecCreator) Create(
 		ApplySpec:               applySpec,
 		DeploymentName:          deploymentName,
 		JobName:                 jobName,
-		JobProperties:           jobProperties,
 		NetworksSpec:            networksSpec,
 		ArchivedTemplatesBlobID: archivedTemplatesBlobID,
 		ArchivedTemplatesPath:   archivedTemplatesPath,

@@ -23,7 +23,6 @@ type ApplySpecCreator interface {
 		string,
 		string,
 		map[string]interface{},
-		map[string]interface{},
 		string,
 		string,
 		string,
@@ -40,7 +39,6 @@ func (c *applySpecCreator) Create(
 	stemcellApplySpec bmstemcell.ApplySpec,
 	deploymentName string,
 	jobName string,
-	jobProperties map[string]interface{},
 	networksSpec map[string]interface{},
 	archivedTemplatesBlobID string,
 	archivedTemplatesPath string,
@@ -58,7 +56,6 @@ func (c *applySpecCreator) Create(
 
 	applySpec := bmagentclient.ApplySpec{
 		Deployment: deploymentName,
-		Properties: jobProperties,
 		Index:      0,
 		Packages:   c.packagesSpec(stemcellApplySpec.Packages),
 		Job:        c.jobSpec(stemcellApplySpec.Job.Templates, jobName),

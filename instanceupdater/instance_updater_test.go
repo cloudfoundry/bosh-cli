@@ -295,9 +295,6 @@ var _ = Describe("InstanceUpdater", func() {
 					ApplySpec:      applySpec,
 					DeploymentName: "fake-deployment-name",
 					JobName:        "fake-manifest-job-name",
-					JobProperties: map[string]interface{}{
-						"fake-property-key": "fake-property-value",
-					},
 					NetworksSpec: map[string]interface{}{
 						"fake-network-name": map[string]interface{}{
 							"type":             "fake-network-type",
