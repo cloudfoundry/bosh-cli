@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 )
 
 type FakeAgentClient struct {

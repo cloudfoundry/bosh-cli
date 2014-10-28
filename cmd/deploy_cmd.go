@@ -15,12 +15,12 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
 	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"

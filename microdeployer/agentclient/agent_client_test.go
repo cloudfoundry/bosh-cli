@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/agentclient"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

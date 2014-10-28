@@ -6,10 +6,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient/fakes"
+	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient/fakes"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/agentclient"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 )
 
 var _ = Describe("PingRetryable", func() {

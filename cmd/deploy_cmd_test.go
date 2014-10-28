@@ -13,10 +13,10 @@ import (
 	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
 	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"

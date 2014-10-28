@@ -3,7 +3,7 @@ package agentclient_test
 import (
 	"encoding/json"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/agentclient"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

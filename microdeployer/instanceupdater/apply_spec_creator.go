@@ -9,7 +9,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
