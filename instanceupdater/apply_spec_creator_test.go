@@ -18,6 +18,7 @@ var _ = Describe("ApplySpecCreator", func() {
 	var (
 		originalApplySpec bmstemcell.ApplySpec
 		jobProperties     map[string]interface{}
+		networksSpec      map[string]interface{}
 		applySpecCreator  ApplySpecCreator
 		fs                *fakesys.FakeFileSystem
 	)
@@ -36,13 +37,15 @@ var _ = Describe("ApplySpecCreator", func() {
 					},
 				},
 			},
-			Networks: map[string]interface{}{
-				"fake-network-key": "fake-network-value",
-			},
 		}
 		jobProperties = map[string]interface{}{
 			"fake-prop-key": "fake-prop-value",
 		}
+
+		networksSpec = map[string]interface{}{
+			"fake-network-name": "fake-network-value",
+		}
+
 		fs = fakesys.NewFakeFileSystem()
 		applySpecCreator = NewApplySpecCreator(fs)
 
@@ -68,6 +71,7 @@ var _ = Describe("ApplySpecCreator", func() {
 				"fake-deployment-name",
 				"fake-job-name",
 				jobProperties,
+				networksSpec,
 				"fake-archived-templates-blob-id",
 				"/fake-archived-templates-path",
 				"/fake-templates-dir",
@@ -84,7 +88,7 @@ var _ = Describe("ApplySpecCreator", func() {
 				},
 				ConfigurationHash: "bc0646cd41b98cd6c878db7a0573eca345f78200",
 				Networks: map[string]interface{}{
-					"fake-network-key": "fake-network-value",
+					"fake-network-name": "fake-network-value",
 				},
 				Job: bmagentclient.Job{
 					Name: "fake-job-name",
@@ -112,6 +116,7 @@ var _ = Describe("ApplySpecCreator", func() {
 					"fake-deployment-name",
 					"fake-job-name",
 					jobProperties,
+					networksSpec,
 					"fake-archived-templates-blob-id",
 					"/fake-archived-templates-path",
 					"/fake-templates-dir",

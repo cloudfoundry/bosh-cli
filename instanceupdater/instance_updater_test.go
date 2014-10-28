@@ -93,14 +93,31 @@ var _ = Describe("InstanceUpdater", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fakeBlobstore = fakebmblobstore.NewFakeBlobstore()
 		fs = fakesys.NewFakeFileSystem()
-		job := bmdepl.Job{
-			Name: "fake-manifest-job-name",
-			Templates: []bmdepl.ReleaseJobRef{
-				{Name: "first-job-name"},
-				{Name: "third-job-name"},
+		deployment := bmdepl.Deployment{
+			Name: "fake-deployment-name",
+			Jobs: []bmdepl.Job{
+				{
+					Name: "fake-manifest-job-name",
+					Templates: []bmdepl.ReleaseJobRef{
+						{Name: "first-job-name"},
+						{Name: "third-job-name"},
+					},
+					RawProperties: map[interface{}]interface{}{
+						"fake-property-key": "fake-property-value",
+					},
+					Networks: []bmdepl.JobNetwork{
+						{
+							Name:      "fake-network-name",
+							StaticIPs: []string{"fake-network-ip"},
+						},
+					},
+				},
 			},
-			RawProperties: map[interface{}]interface{}{
-				"fake-property-key": "fake-property-value",
+			Networks: []bmdepl.Network{
+				{
+					Name: "fake-network-name",
+					Type: "fake-network-type",
+				},
 			},
 		}
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{
@@ -110,8 +127,7 @@ var _ = Describe("InstanceUpdater", func() {
 		instanceUpdater = NewInstanceUpdater(
 			fakeAgentClient,
 			applySpec,
-			job,
-			"fake-deployment-name",
+			deployment,
 			fakeBlobstore,
 			fakeCompressor,
 			fakeERBRenderer,
@@ -281,6 +297,13 @@ var _ = Describe("InstanceUpdater", func() {
 					JobName:        "fake-manifest-job-name",
 					JobProperties: map[string]interface{}{
 						"fake-property-key": "fake-property-value",
+					},
+					NetworksSpec: map[string]interface{}{
+						"fake-network-name": map[string]interface{}{
+							"type":             "fake-network-type",
+							"ip":               "fake-network-ip",
+							"cloud_properties": map[string]interface{}{},
+						},
 					},
 					ArchivedTemplatesBlobID: "fake-blob-id",
 					ArchivedTemplatesPath:   "fake-tarball-path",

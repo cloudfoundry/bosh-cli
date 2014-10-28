@@ -134,8 +134,7 @@ func (c *deployCmd) Run(args []string) error {
 	instanceUpdater := bminsup.NewInstanceUpdater(
 		agentClient,
 		stemcell.ApplySpec,
-		boshDeployment.Jobs[0],
-		boshDeployment.Name,
+		boshDeployment,
 		blobstore,
 		c.compressor,
 		c.erbrenderer,

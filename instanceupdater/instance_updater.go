@@ -21,8 +21,7 @@ import (
 type instanceUpdater struct {
 	agentClient       bmagentclient.AgentClient
 	stemcellApplySpec bmstemcell.ApplySpec
-	job               bmdepl.Job
-	deploymentName    string
+	deployment        bmdepl.Deployment
 	blobstore         bmblobstore.Blobstore
 	compressor        boshcmd.Compressor
 	erbrenderer       bmerbrenderer.ERBRenderer
@@ -40,8 +39,7 @@ type InstanceUpdater interface {
 func NewInstanceUpdater(
 	agentClient bmagentclient.AgentClient,
 	stemcellApplySpec bmstemcell.ApplySpec,
-	job bmdepl.Job,
-	deploymentName string,
+	deployment bmdepl.Deployment,
 	blobstore bmblobstore.Blobstore,
 	compressor boshcmd.Compressor,
 	erbrenderer bmerbrenderer.ERBRenderer,
@@ -53,8 +51,7 @@ func NewInstanceUpdater(
 	return &instanceUpdater{
 		agentClient:       agentClient,
 		stemcellApplySpec: stemcellApplySpec,
-		job:               job,
-		deploymentName:    deploymentName,
+		deployment:        deployment,
 		blobstore:         blobstore,
 		compressor:        compressor,
 		erbrenderer:       erbrenderer,
@@ -81,12 +78,19 @@ func (u *instanceUpdater) Update() error {
 	}
 	defer u.fs.RemoveAll(renderedJobDir)
 
-	jobProperties, err := u.job.Properties()
+	job := u.deployment.Jobs[0]
+
+	jobProperties, err := job.Properties()
 	if err != nil {
 		return bosherr.WrapError(err, "Stringifying job properties")
 	}
 
-	for _, template := range u.job.Templates {
+	networksSpec, err := u.deployment.NetworksSpec(job.Name)
+	if err != nil {
+		return bosherr.WrapError(err, "Stringifying job properties")
+	}
+
+	for _, template := range job.Templates {
 		for _, applySpecJobTemplate := range u.stemcellApplySpec.Job.Templates {
 			if template.Name == applySpecJobTemplate.Name {
 				tempFile, err := u.fs.TempFile("bosh-micro-job-template-blob")
@@ -135,9 +139,10 @@ func (u *instanceUpdater) Update() error {
 	u.logger.Debug(u.logTag, "Creating apply spec")
 	agentApplySpec, err := u.applySpecCreator.Create(
 		u.stemcellApplySpec,
-		"fake-deployment-name",
-		u.job.Name,
+		u.deployment.Name,
+		job.Name,
 		jobProperties,
+		networksSpec,
 		blobID,
 		renderedTarballPath,
 		renderedJobDir,
@@ -170,7 +175,7 @@ func (u *instanceUpdater) renderJob(
 		return bosherr.WrapError(err, "Reading job from blob path %s", blobPath)
 	}
 
-	context := bmtempcomp.NewJobEvaluationContext(blobJob, jobProperties, u.deploymentName, u.logger)
+	context := bmtempcomp.NewJobEvaluationContext(blobJob, jobProperties, u.deployment.Name, u.logger)
 
 	for src, dst := range blobJob.Templates {
 		err = u.renderFile(

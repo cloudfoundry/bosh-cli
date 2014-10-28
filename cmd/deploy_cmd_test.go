@@ -268,8 +268,7 @@ version: fake-version
 						expectedInstanceUpdater := bminsup.NewInstanceUpdater(
 							agentClient,
 							expectedStemcell.ApplySpec,
-							boshDeployment.Jobs[0],
-							"fake-deployment-name",
+							boshDeployment,
 							blobstore,
 							fakeCompressor,
 							fakeERBRenderer,

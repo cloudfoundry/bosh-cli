@@ -16,6 +16,7 @@ type CreateInput struct {
 	DeploymentName          string
 	JobName                 string
 	JobProperties           map[string]interface{}
+	NetworksSpec            map[string]interface{}
 	ArchivedTemplatesBlobID string
 	ArchivedTemplatesPath   string
 	TemplatesDir            string
@@ -30,6 +31,7 @@ func (c *FakeApplySpecCreator) Create(
 	deploymentName string,
 	jobName string,
 	jobProperties map[string]interface{},
+	networksSpec map[string]interface{},
 	archivedTemplatesBlobID string,
 	archivedTemplatesPath string,
 	templatesDir string,
@@ -39,6 +41,7 @@ func (c *FakeApplySpecCreator) Create(
 		DeploymentName:          deploymentName,
 		JobName:                 jobName,
 		JobProperties:           jobProperties,
+		NetworksSpec:            networksSpec,
 		ArchivedTemplatesBlobID: archivedTemplatesBlobID,
 		ArchivedTemplatesPath:   archivedTemplatesPath,
 		TemplatesDir:            templatesDir,
