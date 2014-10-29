@@ -1,4 +1,4 @@
-package instanceupdater_test
+package applyspec_test
 
 import (
 	"errors"
@@ -10,14 +10,14 @@ import (
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec/fakes"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 )
 
-var _ = Describe("ApplySpecCreator", func() {
+var _ = Describe("Factory", func() {
 	var (
 		originalApplySpec  bmstemcell.ApplySpec
 		networksSpec       map[string]interface{}
-		applySpecCreator   ApplySpecCreator
+		applySpecFactory   Factory
 		fakeSha1Calculator *fakebmas.FakeSha1Calculator
 	)
 
@@ -52,12 +52,12 @@ var _ = Describe("ApplySpecCreator", func() {
 				Err:  nil,
 			},
 		})
-		applySpecCreator = NewApplySpecCreator(fakeSha1Calculator)
+		applySpecFactory = NewFactory(fakeSha1Calculator)
 	})
 
 	Describe("Create", func() {
 		It("creates an apply spec", func() {
-			applySpec, err := applySpecCreator.Create(
+			applySpec, err := applySpecFactory.Create(
 				originalApplySpec,
 				"fake-deployment-name",
 				"fake-job-name",
@@ -110,7 +110,7 @@ var _ = Describe("ApplySpecCreator", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := applySpecCreator.Create(
+				_, err := applySpecFactory.Create(
 					originalApplySpec,
 					"fake-deployment-name",
 					"fake-job-name",

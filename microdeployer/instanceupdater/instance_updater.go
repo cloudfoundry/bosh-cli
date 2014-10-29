@@ -12,6 +12,7 @@ import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
@@ -26,7 +27,7 @@ type instanceUpdater struct {
 	compressor        boshcmd.Compressor
 	erbrenderer       bmerbrenderer.ERBRenderer
 	uuidGenerator     boshuuid.Generator
-	applySpecCreator  ApplySpecCreator
+	applySpecFactory  bmas.Factory
 	fs                boshsys.FileSystem
 	logger            boshlog.Logger
 	logTag            string
@@ -45,7 +46,7 @@ func NewInstanceUpdater(
 	compressor boshcmd.Compressor,
 	erbrenderer bmerbrenderer.ERBRenderer,
 	uuidGenerator boshuuid.Generator,
-	applySpecCreator ApplySpecCreator,
+	applySpecFactory bmas.Factory,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) InstanceUpdater {
@@ -57,7 +58,7 @@ func NewInstanceUpdater(
 		compressor:        compressor,
 		erbrenderer:       erbrenderer,
 		uuidGenerator:     uuidGenerator,
-		applySpecCreator:  applySpecCreator,
+		applySpecFactory:  applySpecFactory,
 		fs:                fs,
 		logger:            logger,
 		logTag:            "instanceUpdater",
@@ -138,7 +139,7 @@ func (u *instanceUpdater) Update() error {
 	}
 
 	u.logger.Debug(u.logTag, "Creating apply spec")
-	agentApplySpec, err := u.applySpecCreator.Create(
+	agentApplySpec, err := u.applySpecFactory.Create(
 		u.stemcellApplySpec,
 		u.deployment.Name,
 		job.Name,

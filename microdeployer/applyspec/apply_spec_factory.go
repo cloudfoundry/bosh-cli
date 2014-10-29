@@ -1,17 +1,16 @@
-package instanceupdater
+package applyspec
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
-	bmapplyspec "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
-type applySpecCreator struct {
-	sha1Calculator bmapplyspec.SHA1Calculator
+type factory struct {
+	sha1Calculator SHA1Calculator
 }
 
-type ApplySpecCreator interface {
+type Factory interface {
 	Create(
 		bmstemcell.ApplySpec,
 		string,
@@ -23,13 +22,13 @@ type ApplySpecCreator interface {
 	) (bmagentclient.ApplySpec, error)
 }
 
-func NewApplySpecCreator(sha1Calculator bmapplyspec.SHA1Calculator) ApplySpecCreator {
-	return &applySpecCreator{
+func NewFactory(sha1Calculator SHA1Calculator) Factory {
+	return &factory{
 		sha1Calculator: sha1Calculator,
 	}
 }
 
-func (c *applySpecCreator) Create(
+func (c *factory) Create(
 	stemcellApplySpec bmstemcell.ApplySpec,
 	deploymentName string,
 	jobName string,
@@ -63,7 +62,7 @@ func (c *applySpecCreator) Create(
 	return applySpec, nil
 }
 
-func (c *applySpecCreator) packagesSpec(stemcellPackages map[string]bmstemcell.Blob) map[string]bmagentclient.Blob {
+func (c *factory) packagesSpec(stemcellPackages map[string]bmstemcell.Blob) map[string]bmagentclient.Blob {
 	result := map[string]bmagentclient.Blob{}
 	for packageName, packageBlob := range stemcellPackages {
 		result[packageName] = bmagentclient.Blob{
@@ -77,7 +76,7 @@ func (c *applySpecCreator) packagesSpec(stemcellPackages map[string]bmstemcell.B
 	return result
 }
 
-func (c *applySpecCreator) jobSpec(stemcellTemplates []bmstemcell.Blob, jobName string) bmagentclient.Job {
+func (c *factory) jobSpec(stemcellTemplates []bmstemcell.Blob, jobName string) bmagentclient.Job {
 	templates := []bmagentclient.Blob{}
 	for _, templateBlob := range stemcellTemplates {
 		templates = append(templates, bmagentclient.Blob{

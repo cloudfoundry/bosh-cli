@@ -5,7 +5,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
-type FakeApplySpecCreator struct {
+type FakeApplySpecFactory struct {
 	CreateInput     CreateInput
 	CreateApplySpec bmagentclient.ApplySpec
 	CreateErr       error
@@ -21,11 +21,11 @@ type CreateInput struct {
 	TemplatesDir            string
 }
 
-func NewFakeApplySpecCreator() *FakeApplySpecCreator {
-	return &FakeApplySpecCreator{}
+func NewFakeApplySpecFactory() *FakeApplySpecFactory {
+	return &FakeApplySpecFactory{}
 }
 
-func (c *FakeApplySpecCreator) Create(
+func (c *FakeApplySpecFactory) Create(
 	applySpec bmstemcell.ApplySpec,
 	deploymentName string,
 	jobName string,

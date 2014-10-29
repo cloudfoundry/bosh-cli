@@ -14,8 +14,8 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient/fakes"
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec/fakes"
 	fakebmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore/fakes"
-	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -37,7 +37,7 @@ var _ = Describe("InstanceUpdater", func() {
 		fakeCompressor       *fakecmd.FakeCompressor
 		fakeBlobstore        *fakebmblobstore.FakeBlobstore
 		fakeUUIDGenerator    *fakeuuid.FakeGenerator
-		fakeApplySpecCreator *fakebminsup.FakeApplySpecCreator
+		fakeApplySpecFactory *fakebmas.FakeApplySpecFactory
 		fs                   *fakesys.FakeFileSystem
 		tempFile             *os.File
 		compileDir           string
@@ -123,7 +123,7 @@ var _ = Describe("InstanceUpdater", func() {
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{
 			GeneratedUuid: "fake-blob-id",
 		}
-		fakeApplySpecCreator = fakebminsup.NewFakeApplySpecCreator()
+		fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
 		instanceUpdater = NewInstanceUpdater(
 			fakeAgentClient,
 			applySpec,
@@ -132,7 +132,7 @@ var _ = Describe("InstanceUpdater", func() {
 			fakeCompressor,
 			fakeERBRenderer,
 			fakeUUIDGenerator,
-			fakeApplySpecCreator,
+			fakeApplySpecFactory,
 			fs,
 			logger,
 		)
@@ -290,8 +290,8 @@ var _ = Describe("InstanceUpdater", func() {
 			err := instanceUpdater.Update()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeApplySpecCreator.CreateInput).To(Equal(
-				fakebminsup.CreateInput{
+			Expect(fakeApplySpecFactory.CreateInput).To(Equal(
+				fakebmas.CreateInput{
 					ApplySpec:      applySpec,
 					DeploymentName: "fake-deployment-name",
 					JobName:        "fake-manifest-job-name",
@@ -313,7 +313,7 @@ var _ = Describe("InstanceUpdater", func() {
 			applySpec := bmagentclient.ApplySpec{
 				Deployment: "fake-deployment-name",
 			}
-			fakeApplySpecCreator.CreateApplySpec = applySpec
+			fakeApplySpecFactory.CreateApplySpec = applySpec
 			err := instanceUpdater.Update()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.ApplyApplySpec).To(Equal(applySpec))

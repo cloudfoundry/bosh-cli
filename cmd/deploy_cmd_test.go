@@ -18,6 +18,7 @@ import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmapplyspec "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
 	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -266,7 +267,7 @@ version: fake-version
 
 						blobstore := bmblobstore.NewBlobstore(davClient, fakeFs, logger)
 						sha1Calculator := bmapplyspec.NewSha1Calculator(fakeFs)
-						applySpecCreator := bminsup.NewApplySpecCreator(sha1Calculator)
+						applySpecFactory := bmas.NewFactory(sha1Calculator)
 						expectedInstanceUpdater := bminsup.NewInstanceUpdater(
 							agentClient,
 							expectedStemcell.ApplySpec,
@@ -275,7 +276,7 @@ version: fake-version
 							fakeCompressor,
 							fakeERBRenderer,
 							fakeUUIDGenerator,
-							applySpecCreator,
+							applySpecFactory,
 							fakeFs,
 							logger,
 						)
