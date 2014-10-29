@@ -2,13 +2,12 @@ package instanceupdater_test
 
 import (
 	"errors"
-	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec/fakes"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
@@ -16,10 +15,10 @@ import (
 
 var _ = Describe("ApplySpecCreator", func() {
 	var (
-		originalApplySpec bmstemcell.ApplySpec
-		networksSpec      map[string]interface{}
-		applySpecCreator  ApplySpecCreator
-		fs                *fakesys.FakeFileSystem
+		originalApplySpec  bmstemcell.ApplySpec
+		networksSpec       map[string]interface{}
+		applySpecCreator   ApplySpecCreator
+		fakeSha1Calculator *fakebmas.FakeSha1Calculator
 	)
 
 	BeforeEach(func() {
@@ -42,22 +41,18 @@ var _ = Describe("ApplySpecCreator", func() {
 			"fake-network-name": "fake-network-value",
 		}
 
-		fs = fakesys.NewFakeFileSystem()
-		applySpecCreator = NewApplySpecCreator(fs)
-
-		fs.RegisterOpenFile("/fake-archived-templates-path", &fakesys.FakeFile{
-			Contents: []byte("fake-archive-contents"),
+		fakeSha1Calculator = fakebmas.NewFakeSha1Calculator()
+		fakeSha1Calculator.SetCalculateBehavior(map[string]fakebmas.CalculateInput{
+			"/fake-archived-templates-path": fakebmas.CalculateInput{
+				Sha1: "fake-archived-templates-sha1",
+				Err:  nil,
+			},
+			"/fake-templates-dir": fakebmas.CalculateInput{
+				Sha1: "fake-templates-dir-sha1",
+				Err:  nil,
+			},
 		})
-		fs.RegisterOpenFile("/fake-templates-dir/file-1", &fakesys.FakeFile{
-			Contents: []byte("fake-file-1-contents"),
-		})
-		fs.WriteFileString("/fake-templates-dir/file-1", "fake-file-1-contents")
-
-		fs.RegisterOpenFile("/fake-templates-dir/config/file-2", &fakesys.FakeFile{
-			Contents: []byte("fake-file-2-contents"),
-		})
-		fs.MkdirAll("/fake-templates-dir/config", os.ModePerm)
-		fs.WriteFileString("/fake-templates-dir/config/file-2", "fake-file-2-contents")
+		applySpecCreator = NewApplySpecCreator(fakeSha1Calculator)
 	})
 
 	Describe("Create", func() {
@@ -80,7 +75,7 @@ var _ = Describe("ApplySpecCreator", func() {
 						Name: "fake-first-package-name",
 					},
 				},
-				ConfigurationHash: "bc0646cd41b98cd6c878db7a0573eca345f78200",
+				ConfigurationHash: "fake-templates-dir-sha1",
 				Networks: map[string]interface{}{
 					"fake-network-name": "fake-network-value",
 				},
@@ -94,14 +89,24 @@ var _ = Describe("ApplySpecCreator", func() {
 				},
 				RenderedTemplatesArchive: bmagentclient.RenderedTemplatesArchiveSpec{
 					BlobstoreID: "fake-archived-templates-blob-id",
-					SHA1:        "4603db250d7b5b78dfe17869649784353177b549",
+					SHA1:        "fake-archived-templates-sha1",
 				},
 			}))
 		})
 
 		Context("when creating the apply spec fails", func() {
 			BeforeEach(func() {
-				fs.OpenFileErr = errors.New("fake-open-file-error")
+				calculateErr := errors.New("fake-calculate-error")
+				fakeSha1Calculator.SetCalculateBehavior(map[string]fakebmas.CalculateInput{
+					"/fake-archived-templates-path": fakebmas.CalculateInput{
+						Sha1: "fake-archived-templates-sha1",
+						Err:  calculateErr,
+					},
+					"/fake-templates-dir": fakebmas.CalculateInput{
+						Sha1: "fake-templates-dir-sha1",
+						Err:  nil,
+					},
+				})
 			})
 
 			It("returns an error", func() {
@@ -115,7 +120,7 @@ var _ = Describe("ApplySpecCreator", func() {
 					"/fake-templates-dir",
 				)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-open-file-error"))
+				Expect(err.Error()).To(ContainSubstring("fake-calculate-error"))
 			})
 		})
 	})

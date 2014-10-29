@@ -21,6 +21,7 @@ import (
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
+	bmapplyspec "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
 	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
@@ -130,7 +131,8 @@ func (c *deployCmd) Run(args []string) error {
 	}, &httpClient)
 
 	blobstore := bmblobstore.NewBlobstore(davClient, c.fs, c.logger)
-	applySpecCreator := bminsup.NewApplySpecCreator(c.fs)
+	sha1Calculator := bmapplyspec.NewSha1Calculator(c.fs)
+	applySpecCreator := bminsup.NewApplySpecCreator(sha1Calculator)
 	instanceUpdater := bminsup.NewInstanceUpdater(
 		agentClient,
 		stemcell.ApplySpec,

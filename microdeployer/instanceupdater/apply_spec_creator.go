@@ -1,20 +1,14 @@
 package instanceupdater
 
 import (
-	"crypto/sha1"
-	"fmt"
-	"hash"
-	"io"
-	"os"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
+	bmapplyspec "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type applySpecCreator struct {
-	fs boshsys.FileSystem
+	sha1Calculator bmapplyspec.SHA1Calculator
 }
 
 type ApplySpecCreator interface {
@@ -29,9 +23,9 @@ type ApplySpecCreator interface {
 	) (bmagentclient.ApplySpec, error)
 }
 
-func NewApplySpecCreator(fs boshsys.FileSystem) ApplySpecCreator {
+func NewApplySpecCreator(sha1Calculator bmapplyspec.SHA1Calculator) ApplySpecCreator {
 	return &applySpecCreator{
-		fs: fs,
+		sha1Calculator: sha1Calculator,
 	}
 }
 
@@ -44,12 +38,12 @@ func (c *applySpecCreator) Create(
 	archivedTemplatesPath string,
 	templatesDir string,
 ) (bmagentclient.ApplySpec, error) {
-	archivedTemplatesSha1, err := c.archivedTemplatesSha1(archivedTemplatesPath)
+	archivedTemplatesSha1, err := c.sha1Calculator.Calculate(archivedTemplatesPath)
 	if err != nil {
 		return bmagentclient.ApplySpec{}, bosherr.WrapError(err, "Calculating archived templates SHA1")
 	}
 
-	templatesDirSha1, err := c.templatesDirSha1(templatesDir)
+	templatesDirSha1, err := c.sha1Calculator.Calculate(templatesDir)
 	if err != nil {
 		return bmagentclient.ApplySpec{}, bosherr.WrapError(err, "Calculating templates dir SHA1")
 	}
@@ -98,45 +92,4 @@ func (c *applySpecCreator) jobSpec(stemcellTemplates []bmstemcell.Blob, jobName 
 		Name:      jobName,
 		Templates: templates,
 	}
-}
-
-func (c *applySpecCreator) templatesDirSha1(templatesDir string) (string, error) {
-	h := sha1.New()
-
-	c.fs.Walk(templatesDir+"/", func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			err := c.populateSha1(path, h)
-			if err != nil {
-				return bosherr.WrapError(err, "Calculating SHA1 for %s", path)
-			}
-		}
-		return nil
-	})
-
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
-}
-
-func (c *applySpecCreator) archivedTemplatesSha1(templatesPath string) (string, error) {
-	h := sha1.New()
-	err := c.populateSha1(templatesPath, h)
-	if err != nil {
-		return "", bosherr.WrapError(err, "Calculating SHA1 for %s", templatesPath)
-	}
-
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
-}
-
-func (c *applySpecCreator) populateSha1(filePath string, hash hash.Hash) error {
-	file, err := c.fs.OpenFile(filePath, os.O_RDONLY, 0)
-	if err != nil {
-		return bosherr.WrapError(err, "Opening file %s for sha1 calculation", filePath)
-	}
-	defer file.Close()
-
-	_, err = io.Copy(hash, file)
-	if err != nil {
-		return bosherr.WrapError(err, "Copying file for sha1 calculation")
-	}
-
-	return nil
 }
