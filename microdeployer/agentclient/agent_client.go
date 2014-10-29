@@ -11,13 +11,14 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 )
 
 type AgentClient interface {
 	Ping() (string, error)
 	Stop() error
-	Apply(ApplySpec) error
+	Apply(bmas.ApplySpec) error
 	Start() error
 }
 
@@ -60,7 +61,7 @@ func (c *agentClient) Stop() error {
 	return c.sendAsyncMessage("stop", []interface{}{})
 }
 
-func (c *agentClient) Apply(spec ApplySpec) error {
+func (c *agentClient) Apply(spec bmas.ApplySpec) error {
 	return c.sendAsyncMessage("apply", []interface{}{spec})
 }
 

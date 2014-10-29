@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 )
 
 var _ = Describe("AgentClient", func() {
@@ -165,11 +166,11 @@ var _ = Describe("AgentClient", func() {
 	Describe("Apply", func() {
 		var (
 			specJSON []byte
-			spec     ApplySpec
+			spec     bmas.ApplySpec
 		)
 
 		BeforeEach(func() {
-			spec = ApplySpec{
+			spec = bmas.ApplySpec{
 				Deployment: "fake-deployment-name",
 			}
 			var err error

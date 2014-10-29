@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec/fakes"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
@@ -67,11 +67,11 @@ var _ = Describe("Factory", func() {
 				"/fake-templates-dir",
 			)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(applySpec).To(Equal(bmagentclient.ApplySpec{
+			Expect(applySpec).To(Equal(bmas.ApplySpec{
 				Deployment: "fake-deployment-name",
 				Index:      0,
-				Packages: map[string]bmagentclient.Blob{
-					"fake-first-package-name": bmagentclient.Blob{
+				Packages: map[string]bmas.Blob{
+					"fake-first-package-name": bmas.Blob{
 						Name: "fake-first-package-name",
 					},
 				},
@@ -79,15 +79,15 @@ var _ = Describe("Factory", func() {
 				Networks: map[string]interface{}{
 					"fake-network-name": "fake-network-value",
 				},
-				Job: bmagentclient.Job{
+				Job: bmas.Job{
 					Name: "fake-job-name",
-					Templates: []bmagentclient.Blob{
+					Templates: []bmas.Blob{
 						{
 							Name: "fake-template-name",
 						},
 					},
 				},
-				RenderedTemplatesArchive: bmagentclient.RenderedTemplatesArchiveSpec{
+				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
 					BlobstoreID: "fake-archived-templates-blob-id",
 					SHA1:        "fake-archived-templates-sha1",
 				},

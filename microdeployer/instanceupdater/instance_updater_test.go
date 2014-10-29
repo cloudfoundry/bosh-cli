@@ -20,7 +20,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
@@ -310,7 +310,7 @@ var _ = Describe("InstanceUpdater", func() {
 		})
 
 		It("sends apply spec to the agent", func() {
-			applySpec := bmagentclient.ApplySpec{
+			applySpec := bmas.ApplySpec{
 				Deployment: "fake-deployment-name",
 			}
 			fakeApplySpecFactory.CreateApplySpec = applySpec

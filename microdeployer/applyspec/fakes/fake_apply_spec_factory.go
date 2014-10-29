@@ -1,13 +1,13 @@
 package fakes
 
 import (
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type FakeApplySpecFactory struct {
 	CreateInput     CreateInput
-	CreateApplySpec bmagentclient.ApplySpec
+	CreateApplySpec bmas.ApplySpec
 	CreateErr       error
 }
 
@@ -33,7 +33,7 @@ func (c *FakeApplySpecFactory) Create(
 	archivedTemplatesBlobID string,
 	archivedTemplatesPath string,
 	templatesDir string,
-) (bmagentclient.ApplySpec, error) {
+) (bmas.ApplySpec, error) {
 	c.CreateInput = CreateInput{
 		ApplySpec:               applySpec,
 		DeploymentName:          deploymentName,

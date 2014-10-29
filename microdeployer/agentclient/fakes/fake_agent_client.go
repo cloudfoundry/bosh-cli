@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 )
 
 type FakeAgentClient struct {
@@ -11,7 +11,7 @@ type FakeAgentClient struct {
 	StopCalled bool
 	stopErr    error
 
-	ApplyApplySpec bmagentclient.ApplySpec
+	ApplyApplySpec bmas.ApplySpec
 	ApplyErr       error
 
 	StartCalled bool
@@ -44,7 +44,7 @@ func (c *FakeAgentClient) Stop() error {
 	return c.stopErr
 }
 
-func (c *FakeAgentClient) Apply(applySpec bmagentclient.ApplySpec) error {
+func (c *FakeAgentClient) Apply(applySpec bmas.ApplySpec) error {
 	c.ApplyApplySpec = applySpec
 
 	return c.ApplyErr
