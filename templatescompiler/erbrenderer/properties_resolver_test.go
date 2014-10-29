@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
+	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 )
 
 var _ = Describe("PropertiesResolver", func() {

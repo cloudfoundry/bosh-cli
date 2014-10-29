@@ -16,7 +16,6 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
@@ -27,6 +26,7 @@ import (
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )

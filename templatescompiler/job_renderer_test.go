@@ -8,9 +8,9 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
-	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
+	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
+	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
