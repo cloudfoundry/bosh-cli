@@ -5,30 +5,30 @@ import (
 )
 
 type ApplySpec struct {
-	Deployment               string
-	Index                    int
-	Packages                 map[string]Blob
-	Networks                 map[string]interface{}
-	Job                      Job
+	Deployment               string                       `json:"deployment"`
+	Index                    int                          `json:"index"`
+	Packages                 map[string]Blob              `json:"packages"`
+	Networks                 map[string]interface{}       `json:"networks"`
+	Job                      Job                          `json:"job"`
 	RenderedTemplatesArchive RenderedTemplatesArchiveSpec `json:"rendered_templates_archive"`
 	ConfigurationHash        string                       `json:"configuration_hash"`
 }
 
 type Blob struct {
-	Name        string
-	Version     string
-	SHA1        string
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	SHA1        string `json:"sha1"`
 	BlobstoreID string `json:"blobstore_id"`
 }
 
 type Job struct {
-	Name      string
-	Templates []Blob
+	Name      string `json:"name"`
+	Templates []Blob `json:"templates"`
 }
 
 type RenderedTemplatesArchiveSpec struct {
 	BlobstoreID string `json:"blobstore_id"`
-	SHA1        string
+	SHA1        string `json:"sha1"`
 }
 
 func NewApplySpec(

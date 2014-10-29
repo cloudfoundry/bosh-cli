@@ -32,9 +32,9 @@ type agentClient struct {
 }
 
 type AgentRequest struct {
-	Method    string
-	Arguments []interface{}
-	ReplyTo   string `json:"reply_to"`
+	Method    string        `json:"method"`
+	Arguments []interface{} `json:"arguments"`
+	ReplyTo   string        `json:"reply_to"`
 }
 
 func NewAgentClient(endpoint string, uuid string, getTaskDelay time.Duration, logger boshlog.Logger) AgentClient {
