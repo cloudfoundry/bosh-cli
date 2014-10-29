@@ -10,7 +10,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
@@ -25,7 +24,7 @@ type instanceUpdater struct {
 	deployment        bmdepl.Deployment
 	blobstore         bmblobstore.Blobstore
 	compressor        boshcmd.Compressor
-	erbrenderer       bmerbrenderer.ERBRenderer
+	jobRenderer       bmtempcomp.JobRenderer
 	uuidGenerator     boshuuid.Generator
 	applySpecFactory  bmas.Factory
 	fs                boshsys.FileSystem
@@ -44,7 +43,7 @@ func NewInstanceUpdater(
 	deployment bmdepl.Deployment,
 	blobstore bmblobstore.Blobstore,
 	compressor boshcmd.Compressor,
-	erbrenderer bmerbrenderer.ERBRenderer,
+	jobRenderer bmtempcomp.JobRenderer,
 	uuidGenerator boshuuid.Generator,
 	applySpecFactory bmas.Factory,
 	fs boshsys.FileSystem,
@@ -56,7 +55,7 @@ func NewInstanceUpdater(
 		deployment:        deployment,
 		blobstore:         blobstore,
 		compressor:        compressor,
-		erbrenderer:       erbrenderer,
+		jobRenderer:       jobRenderer,
 		uuidGenerator:     uuidGenerator,
 		applySpecFactory:  applySpecFactory,
 		fs:                fs,
@@ -135,7 +134,7 @@ func (u *instanceUpdater) Update() error {
 	u.logger.Debug(u.logTag, "Saving job templates archive to blobstore")
 	err = u.blobstore.Save(renderedTarballPath, blobID)
 	if err != nil {
-		return bosherr.WrapError(err, "Uploading blob at %s", renderedTarballPath)
+		return bosherr.WrapError(err, "Uploading blob at '%s'", renderedTarballPath)
 	}
 
 	u.logger.Debug(u.logTag, "Creating apply spec")
@@ -149,7 +148,7 @@ func (u *instanceUpdater) Update() error {
 		renderedJobDir,
 	)
 
-	u.logger.Debug(u.logTag, "Sending apply message to the agent with %#v", agentApplySpec)
+	u.logger.Debug(u.logTag, "Sending apply message to the agent with '%#v'", agentApplySpec)
 	err = u.agentClient.Apply(agentApplySpec)
 	if err != nil {
 		return bosherr.WrapError(err, "Sending apply spec to agent")
@@ -175,46 +174,15 @@ func (u *instanceUpdater) renderJob(
 	defer u.fs.RemoveAll(jobExtractDir)
 
 	jobReader := bmrel.NewJobReader(blobPath, jobExtractDir, u.compressor, u.fs)
-	blobJob, err := jobReader.Read()
+	job, err := jobReader.Read()
 	if err != nil {
-		return bosherr.WrapError(err, "Reading job from blob path %s", blobPath)
+		return bosherr.WrapError(err, "Reading job from blob path '%s'", blobPath)
 	}
 
-	context := bmtempcomp.NewJobEvaluationContext(blobJob, jobProperties, u.deployment.Name, u.logger)
-
-	for src, dst := range blobJob.Templates {
-		err = u.renderFile(
-			filepath.Join(jobExtractDir, "templates", src),
-			filepath.Join(renderedDir, dst),
-			context,
-		)
-
-		if err != nil {
-			return bosherr.WrapError(err, "Rendering template src: %s, dst: %s", src, dst)
-		}
-	}
-
-	err = u.renderFile(
-		filepath.Join(jobExtractDir, "monit"),
-		filepath.Join(renderedDir, "monit"),
-		context,
-	)
+	err = u.jobRenderer.Render(jobExtractDir, renderedDir, job, jobProperties, u.deployment.Name)
 	if err != nil {
-		return bosherr.WrapError(err, "Rendering monit file")
+		return bosherr.WrapError(err, "Rendering job from blob path: '%s'", blobPath)
 	}
 
-	return nil
-}
-
-func (u *instanceUpdater) renderFile(sourcePath, destinationPath string, context bmerbrenderer.TemplateEvaluationContext) error {
-	err := u.fs.MkdirAll(filepath.Dir(destinationPath), os.ModePerm)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating tempdir '%s'", filepath.Dir(destinationPath))
-	}
-
-	err = u.erbrenderer.Render(sourcePath, destinationPath, context)
-	if err != nil {
-		return bosherr.WrapError(err, "Rendering template src: %s, dst: %s", sourcePath, destinationPath)
-	}
 	return nil
 }

@@ -18,7 +18,6 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmapplyspec "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
@@ -27,6 +26,7 @@ import (
 	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
@@ -41,7 +41,7 @@ type deployCmd struct {
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	microDeployer          bmmicrodeploy.Deployer
 	compressor             boshcmd.Compressor
-	erbrenderer            bmerbrenderer.ERBRenderer
+	jobRenderer            bmtempcomp.JobRenderer
 	uuidGenerator          boshuuid.Generator
 	deploymentUUID         string
 	logger                 boshlog.Logger
@@ -58,7 +58,7 @@ func NewDeployCmd(
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	microDeployer bmmicrodeploy.Deployer,
 	compressor boshcmd.Compressor,
-	erbrenderer bmerbrenderer.ERBRenderer,
+	jobRenderer bmtempcomp.JobRenderer,
 	uuidGenerator boshuuid.Generator,
 	deploymentUUID string,
 	logger boshlog.Logger,
@@ -73,7 +73,7 @@ func NewDeployCmd(
 		stemcellManagerFactory: stemcellManagerFactory,
 		microDeployer:          microDeployer,
 		compressor:             compressor,
-		erbrenderer:            erbrenderer,
+		jobRenderer:            jobRenderer,
 		uuidGenerator:          uuidGenerator,
 		deploymentUUID:         deploymentUUID,
 		logger:                 logger,
@@ -140,7 +140,7 @@ func (c *deployCmd) Run(args []string) error {
 		boshDeployment,
 		blobstore,
 		c.compressor,
-		c.erbrenderer,
+		c.jobRenderer,
 		c.uuidGenerator,
 		applySpecFactory,
 		c.fs,

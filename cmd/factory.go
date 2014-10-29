@@ -142,10 +142,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	cpiManifestParser := bmdepl.NewCpiDeploymentParser(f.fileSystem)
 	boshManifestParser := bmdepl.NewBoshDeploymentParser(f.fileSystem)
-	erbrenderer := bmerbrenderer.NewERBRenderer(f.fileSystem, runner, f.logger)
+	erbRenderer := bmerbrenderer.NewERBRenderer(f.fileSystem, runner, f.logger)
+	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fileSystem, f.logger)
 	templatesIndex := bmindex.NewFileIndex(f.deploymentConfig.TemplatesIndexPath(), f.fileSystem)
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
-	templatesCompiler := bmtempcomp.NewTemplatesCompiler(erbrenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
+	templatesCompiler := bmtempcomp.NewTemplatesCompiler(jobRenderer, compressor, blobstore, templatesRepo, f.fileSystem, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
 	jobInstaller := bminstall.NewJobInstaller(
 		f.fileSystem,
@@ -192,7 +193,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		stemcellManagerFactory,
 		microDeployer,
 		compressor,
-		erbrenderer,
+		jobRenderer,
 		f.uuidGenerator,
 		f.deploymentConfig.DeploymentUUID,
 		f.logger,

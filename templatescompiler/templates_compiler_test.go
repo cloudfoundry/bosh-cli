@@ -2,7 +2,6 @@ package templatescompiler_test
 
 import (
 	"errors"
-	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,11 +12,9 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
-	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
@@ -25,20 +22,19 @@ import (
 var _ = Describe("TemplatesCompiler", func() {
 	var (
 		templatesCompiler TemplatesCompiler
-		renderer          *fakebmrender.FakeERBRenderer
+		jobRenderer       *fakebmtemp.FakeJobRenderer
 		compressor        *fakecmd.FakeCompressor
 		blobstore         *fakeblobs.FakeBlobstore
 		templatesRepo     *fakebmtemp.FakeTemplatesRepo
 		fs                *fakesys.FakeFileSystem
 		compileDir        string
 		jobs              []bmrel.Job
-		context           bmrender.TemplateEvaluationContext
 		deployment        bmdepl.Deployment
 		logger            boshlog.Logger
 	)
 
 	BeforeEach(func() {
-		renderer = fakebmrender.NewFakeERBRender()
+		jobRenderer = fakebmtemp.NewFakeJobRenderer()
 		compressor = fakecmd.NewFakeCompressor()
 		compressor.CompressFilesInDirTarballPath = "fake-tarball-path"
 
@@ -53,7 +49,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		templatesCompiler = NewTemplatesCompiler(
-			renderer,
+			jobRenderer,
 			compressor,
 			blobstore,
 			templatesRepo,
@@ -79,18 +75,6 @@ var _ = Describe("TemplatesCompiler", func() {
 				},
 			}
 
-			manifestProperties := map[string]interface{}{
-				"fake-property-key": "fake-property-value",
-			}
-
-			context = NewJobEvaluationContext(jobs[0], manifestProperties, "fake-deployment-name", logger)
-			renderer.SetRenderBehavior(
-				"fake-extracted-path/templates/cpi.erb",
-				filepath.Join(compileDir, "bin/cpi"),
-				context,
-				nil,
-			)
-
 			blobstore.CreateBlobID = "fake-blob-id"
 			blobstore.CreateFingerprint = "fake-sha1"
 			record := TemplateRecord{
@@ -101,13 +85,29 @@ var _ = Describe("TemplatesCompiler", func() {
 		})
 
 		It("renders job templates", func() {
+			fs.TempDirDir = "/fake-temp-dir"
 			err := templatesCompiler.Compile(jobs, deployment)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(renderer.RenderInputs).To(ContainElement(
-				fakebmrender.RenderInput{
-					SrcPath: "fake-extracted-path/templates/cpi.erb",
-					DstPath: filepath.Join(compileDir, "bin/cpi"),
-					Context: context,
+			Expect(jobRenderer.RenderInputs).To(ContainElement(
+				fakebmtemp.RenderInput{
+					SourcePath:      "fake-extracted-path",
+					DestinationPath: "/fake-temp-dir",
+					Job: bmrel.Job{
+						Name:          "fake-job-1",
+						Fingerprint:   "",
+						SHA1:          "",
+						ExtractedPath: "fake-extracted-path",
+						Templates: map[string]string{
+							"cpi.erb": "/bin/cpi",
+						},
+						PackageNames: nil,
+						Packages:     nil,
+						Properties:   nil,
+					},
+					Properties: map[string]interface{}{
+						"fake-property-key": "fake-property-value",
+					},
+					DeploymentName: "fake-deployment-name",
 				}),
 			)
 		})
@@ -157,24 +157,10 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 		})
 
-		Context("when creating parent directory for templates fails", func() {
-			BeforeEach(func() {
-				fs.MkdirAllError = errors.New("fake-mkdirall-error")
-			})
-
-			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, deployment)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-mkdirall-error"))
-			})
-		})
-
 		Context("when rendering fails", func() {
 			BeforeEach(func() {
-				renderer.SetRenderBehavior(
-					"fake-extracted-path/templates/cpi.erb",
-					filepath.Join(compileDir, "bin/cpi"),
-					context,
+				jobRenderer.SetRenderBehavior(
+					"fake-extracted-path",
 					errors.New("fake-render-error"),
 				)
 			})
@@ -254,17 +240,13 @@ var _ = Describe("TemplatesCompiler", func() {
 					},
 				}
 
-				renderer.SetRenderBehavior(
-					"fake-extracted-path-1/templates/cpi.erb",
-					filepath.Join(compileDir, "bin/cpi"),
-					context,
+				jobRenderer.SetRenderBehavior(
+					"fake-extracted-path-1",
 					nil,
 				)
 
-				renderer.SetRenderBehavior(
-					"fake-extracted-path-2/templates/cpi.erb",
-					filepath.Join(compileDir, "bin/cpi"),
-					context,
+				jobRenderer.SetRenderBehavior(
+					"fake-extracted-path-2",
 					errors.New("fake-render-2-error"),
 				)
 

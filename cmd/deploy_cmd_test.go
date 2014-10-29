@@ -31,9 +31,9 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakecpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
-	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 	fakemicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
+	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
@@ -55,7 +55,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeBoshManifestParser *fakebmdepl.FakeManifestParser
 
 		fakeCompressor    *fakecmd.FakeCompressor
-		fakeERBRenderer   *fakebmrender.FakeERBRenderer
+		fakeJobRenderer   *fakebmtemp.FakeJobRenderer
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 
 		cpiReleaseTarballPath string
@@ -78,7 +78,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeBoshManifestParser = fakebmdepl.NewFakeManifestParser()
 
 		fakeCompressor = fakecmd.NewFakeCompressor()
-		fakeERBRenderer = fakebmrender.NewFakeERBRender()
+		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
@@ -92,7 +92,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeStemcellManagerFactory,
 			fakeMicroDeployer,
 			fakeCompressor,
-			fakeERBRenderer,
+			fakeJobRenderer,
 			fakeUUIDGenerator,
 			"fake-deployment-uuid",
 			logger,
@@ -154,7 +154,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeStemcellManagerFactory,
 						fakeMicroDeployer,
 						fakeCompressor,
-						fakeERBRenderer,
+						fakeJobRenderer,
 						fakeUUIDGenerator,
 						"fake-deployment-uuid",
 						logger,
@@ -274,7 +274,7 @@ version: fake-version
 							boshDeployment,
 							blobstore,
 							fakeCompressor,
-							fakeERBRenderer,
+							fakeJobRenderer,
 							fakeUUIDGenerator,
 							applySpecFactory,
 							fakeFs,
@@ -333,7 +333,7 @@ version: fake-version
 							fakeStemcellManagerFactory,
 							fakeMicroDeployer,
 							fakeCompressor,
-							fakeERBRenderer,
+							fakeJobRenderer,
 							fakeUUIDGenerator,
 							"fake-deployment-uuid",
 							logger,

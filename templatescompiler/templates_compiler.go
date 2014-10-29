@@ -1,9 +1,6 @@
 package templatescompiler
 
 import (
-	"os"
-	"path/filepath"
-
 	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -11,7 +8,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
@@ -20,7 +16,7 @@ type TemplatesCompiler interface {
 }
 
 type templatesCompiler struct {
-	erbrenderer   bmerbrenderer.ERBRenderer
+	jobRenderer   JobRenderer
 	compressor    boshcmd.Compressor
 	blobstore     boshblob.Blobstore
 	templatesRepo TemplatesRepo
@@ -29,7 +25,7 @@ type templatesCompiler struct {
 }
 
 func NewTemplatesCompiler(
-	erbrenderer bmerbrenderer.ERBRenderer,
+	jobRenderer JobRenderer,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
 	templatesRepo TemplatesRepo,
@@ -37,7 +33,7 @@ func NewTemplatesCompiler(
 	logger boshlog.Logger,
 ) TemplatesCompiler {
 	return templatesCompiler{
-		erbrenderer:   erbrenderer,
+		jobRenderer:   jobRenderer,
 		compressor:    compressor,
 		blobstore:     blobstore,
 		templatesRepo: templatesRepo,
@@ -64,23 +60,9 @@ func (tc templatesCompiler) compileJob(job bmrel.Job, deployment bmdepl.Deployme
 	}
 	defer tc.fs.RemoveAll(jobCompileDir)
 
-	context := NewJobEvaluationContext(job, deployment.Properties, deployment.Name, tc.logger)
-
-	for src, dst := range job.Templates {
-		// We only render templates and not monit file
-		// Since monit file is not going to be required in CPI release
-		renderSrcPath := filepath.Join(jobSrcDir, "templates", src)
-		renderDstPath := filepath.Join(jobCompileDir, dst)
-
-		err := tc.fs.MkdirAll(filepath.Dir(renderDstPath), os.ModePerm)
-		if err != nil {
-			return bosherr.WrapError(err, "Creating tempdir '%s'", filepath.Dir(renderDstPath))
-		}
-
-		err = tc.erbrenderer.Render(renderSrcPath, renderDstPath, context)
-		if err != nil {
-			return bosherr.WrapError(err, "Rendering template src: %s, dst: %s", renderSrcPath, renderDstPath)
-		}
+	err = tc.jobRenderer.Render(jobSrcDir, jobCompileDir, job, deployment.Properties, deployment.Name)
+	if err != nil {
+		return bosherr.WrapError(err, "Rendering templates")
 	}
 
 	tarball, err := tc.compressor.CompressFilesInDir(jobCompileDir)

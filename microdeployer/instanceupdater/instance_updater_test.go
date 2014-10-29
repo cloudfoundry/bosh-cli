@@ -12,18 +12,16 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/erbrenderer/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec/fakes"
 	fakebmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore/fakes"
+	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/erbrenderer"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 )
@@ -33,21 +31,21 @@ var _ = Describe("InstanceUpdater", func() {
 		fakeAgentClient      *fakebmagentclient.FakeAgentClient
 		instanceUpdater      InstanceUpdater
 		applySpec            bmstemcell.ApplySpec
-		fakeERBRenderer      *fakebmrender.FakeERBRenderer
+		fakeJobRenderer      *fakebmtemp.FakeJobRenderer
 		fakeCompressor       *fakecmd.FakeCompressor
 		fakeBlobstore        *fakebmblobstore.FakeBlobstore
 		fakeUUIDGenerator    *fakeuuid.FakeGenerator
 		fakeApplySpecFactory *fakebmas.FakeApplySpecFactory
+		job                  bmrel.Job
 		fs                   *fakesys.FakeFileSystem
 		tempFile             *os.File
 		compileDir           string
 		extractDir           string
-		context              bmerbrenderer.TemplateEvaluationContext
 		logger               boshlog.Logger
 	)
 
 	BeforeEach(func() {
-		fakeERBRenderer = fakebmrender.NewFakeERBRender()
+		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
 		fakeCompressor = fakecmd.NewFakeCompressor()
 		fakeCompressor.CompressFilesInDirTarballPath = "fake-tarball-path"
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
@@ -130,7 +128,7 @@ var _ = Describe("InstanceUpdater", func() {
 			deployment,
 			fakeBlobstore,
 			fakeCompressor,
-			fakeERBRenderer,
+			fakeJobRenderer,
 			fakeUUIDGenerator,
 			fakeApplySpecFactory,
 			fs,
@@ -147,13 +145,13 @@ var _ = Describe("InstanceUpdater", func() {
 		// fake file system only supports one temp dir
 		compileDir = "/fake-tmp-dir"
 		extractDir = "/fake-tmp-dir"
-		blobJob := bmrel.Job{
+		job = bmrel.Job{
 			Templates: map[string]string{
 				"director.yml.erb": "config/director.yml",
 			},
 			ExtractedPath: extractDir,
 		}
-		blobJobJSON, err := json.Marshal(blobJob)
+		blobJobJSON, err := json.Marshal(job)
 		Expect(err).ToNot(HaveOccurred())
 
 		fakeCompressor.DecompressFileToDirCallBack = func() {
@@ -162,37 +160,6 @@ var _ = Describe("InstanceUpdater", func() {
 		}
 
 		fakeCompressor.CompressFilesInDirTarballPath = "fake-tarball-path"
-
-		jobProperties := map[string]interface{}{
-			"fake-property-key": "fake-property-value",
-		}
-
-		context = bmtempcomp.NewJobEvaluationContext(blobJob, jobProperties, "fake-deployment-name", logger)
-		fakeERBRenderer.SetRenderBehavior(
-			filepath.Join(extractDir, "templates/director.yml.erb"),
-			filepath.Join(compileDir, "first-job-name", "config/director.yml"),
-			context,
-			nil,
-		)
-		fakeERBRenderer.SetRenderBehavior(
-			filepath.Join(extractDir, "templates/director.yml.erb"),
-			filepath.Join(compileDir, "third-job-name", "config/director.yml"),
-			context,
-			nil,
-		)
-
-		fakeERBRenderer.SetRenderBehavior(
-			filepath.Join(extractDir, "monit"),
-			filepath.Join(compileDir, "first-job-name", "monit"),
-			context,
-			nil,
-		)
-		fakeERBRenderer.SetRenderBehavior(
-			filepath.Join(extractDir, "monit"),
-			filepath.Join(compileDir, "third-job-name", "monit"),
-			context,
-			nil,
-		)
 	})
 
 	Describe("Update", func() {
@@ -229,33 +196,36 @@ var _ = Describe("InstanceUpdater", func() {
 			Expect(fs.FileExists(tempFile.Name())).To(BeFalse())
 		})
 
-		It("renders downloaded job templates", func() {
+		It("decompressed job templates", func() {
 			err := instanceUpdater.Update()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeCompressor.DecompressFileToDirTarballPaths[0]).To(Equal(tempFile.Name()))
 			Expect(fakeCompressor.DecompressFileToDirDirs[0]).To(Equal(extractDir))
+		})
 
-			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebmrender.RenderInput{
+		It("renders job templates", func() {
+			err := instanceUpdater.Update()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeJobRenderer.RenderInputs).To(Equal([]fakebmtemp.RenderInput{
 				{
-					SrcPath: filepath.Join(extractDir, "templates/director.yml.erb"),
-					DstPath: filepath.Join(compileDir, "first-job-name", "config/director.yml"),
-					Context: context,
+					SourcePath:      extractDir,
+					DestinationPath: filepath.Join(compileDir, "first-job-name"),
+					Job:             job,
+					Properties: map[string]interface{}{
+						"fake-property-key": "fake-property-value",
+					},
+					DeploymentName: "fake-deployment-name",
 				},
 				{
-					SrcPath: filepath.Join(extractDir, "monit"),
-					DstPath: filepath.Join(compileDir, "first-job-name", "monit"),
-					Context: context,
-				},
-				{
-					SrcPath: filepath.Join(extractDir, "templates/director.yml.erb"),
-					DstPath: filepath.Join(compileDir, "third-job-name", "config/director.yml"),
-					Context: context,
-				},
-				{
-					SrcPath: filepath.Join(extractDir, "monit"),
-					DstPath: filepath.Join(compileDir, "third-job-name", "monit"),
-					Context: context,
+					SourcePath:      extractDir,
+					DestinationPath: filepath.Join(compileDir, "third-job-name"),
+					Job:             job,
+					Properties: map[string]interface{}{
+						"fake-property-key": "fake-property-value",
+					},
+					DeploymentName: "fake-deployment-name",
 				},
 			}))
 		})
@@ -352,6 +322,18 @@ var _ = Describe("InstanceUpdater", func() {
 				err := instanceUpdater.Update()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-blobstore-get-error"))
+			})
+		})
+
+		Context("when rendering jobs fails", func() {
+			BeforeEach(func() {
+				fakeJobRenderer.SetRenderBehavior(extractDir, errors.New("fake-render-error"))
+			})
+
+			It("returns an error", func() {
+				err := instanceUpdater.Update()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
 			})
 		})
 
