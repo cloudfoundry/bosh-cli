@@ -10,7 +10,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
+	bmins "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/microdeployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
@@ -33,7 +33,7 @@ type microDeployer struct {
 	vmManagerFactory bmvm.ManagerFactory
 	sshTunnelFactory bmsshtunnel.Factory
 	registryServer   bmregistry.Server
-	instanceFactory  bminsup.InstanceFactory
+	instanceFactory  bmins.Factory
 	eventLogger      bmeventlog.EventLogger
 	logger           boshlog.Logger
 	logTag           string
@@ -43,7 +43,7 @@ func NewMicroDeployer(
 	vmManagerFactory bmvm.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	registryServer bmregistry.Server,
-	instanceFactory bminsup.InstanceFactory,
+	instanceFactory bmins.Factory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *microDeployer {
@@ -110,7 +110,7 @@ func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyErrCh chan 
 }
 
 func (m *microDeployer) waitUntilAgentIsReady(
-	instance bminsup.Instance,
+	instance bmins.Instance,
 	sshTunnelConfig bmdepl.SSHTunnel,
 	registry bmdepl.Registry,
 ) error {
@@ -169,7 +169,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 	return nil
 }
 
-func (m *microDeployer) updateInstance(instance bminsup.Instance, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
+func (m *microDeployer) updateInstance(instance bmins.Instance, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 4,
@@ -206,7 +206,7 @@ func (m *microDeployer) updateInstance(instance bminsup.Instance, stemcellApplyS
 	return nil
 }
 
-func (m *microDeployer) sendStartMessage(instance bminsup.Instance) error {
+func (m *microDeployer) sendStartMessage(instance bmins.Instance) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 4,

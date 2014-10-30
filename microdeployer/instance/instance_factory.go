@@ -1,4 +1,4 @@
-package instanceupdater
+package instance
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -7,7 +7,7 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 )
 
-type InstanceFactory interface {
+type Factory interface {
 	Create(string) Instance
 }
 
@@ -25,7 +25,7 @@ func NewInstanceFactory(
 	applySpecFactory bmas.Factory,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
-) InstanceFactory {
+) Factory {
 	return &instanceFactory{
 		agentClientFactory:     agentClientFactory,
 		templatesSpecGenerator: templatesSpecGenerator,

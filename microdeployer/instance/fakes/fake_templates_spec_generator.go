@@ -2,13 +2,13 @@ package fakes
 
 import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
+	bmins "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type FakeTemplatesSpecGenerator struct {
 	CreateInputs        []CreateInput
-	CreateTemplatesSpec bminsup.TemplatesSpec
+	CreateTemplatesSpec bmins.TemplatesSpec
 	CreateErr           error
 	CreateCalled        bool
 }
@@ -33,7 +33,7 @@ func (g *FakeTemplatesSpecGenerator) Create(
 	deploymentName string,
 	properties map[string]interface{},
 	mbusURL string,
-) (bminsup.TemplatesSpec, error) {
+) (bmins.TemplatesSpec, error) {
 	g.CreateInputs = append(g.CreateInputs, CreateInput{
 		DeploymentJob:  deploymentJob,
 		StemcellJob:    stemcellJob,
@@ -46,7 +46,7 @@ func (g *FakeTemplatesSpecGenerator) Create(
 	return g.CreateTemplatesSpec, g.CreateErr
 }
 
-func (g *FakeTemplatesSpecGenerator) SetCreateBehavior(createTemplatesSpec bminsup.TemplatesSpec, err error) {
+func (g *FakeTemplatesSpecGenerator) SetCreateBehavior(createTemplatesSpec bmins.TemplatesSpec, err error) {
 	g.CreateTemplatesSpec = createTemplatesSpec
 	g.CreateErr = err
 }

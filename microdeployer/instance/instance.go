@@ -1,4 +1,4 @@
-package instanceupdater
+package instance
 
 import (
 	"time"

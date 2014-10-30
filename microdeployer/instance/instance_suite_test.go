@@ -1,4 +1,4 @@
-package instanceupdater_test
+package instance_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestInstanceupdater(t *testing.T) {
+func TestInstance(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Instanceupdater Suite")
+	RunSpecs(t, "Instance Suite")
 }

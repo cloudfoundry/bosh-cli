@@ -1,4 +1,4 @@
-package instanceupdater_test
+package instance_test
 
 import (
 	"errors"
@@ -9,14 +9,14 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec/fakes"
-	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater/fakes"
+	fakebmins "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance"
 )
 
 var _ = Describe("Instance", func() {
@@ -24,7 +24,7 @@ var _ = Describe("Instance", func() {
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		instance                   Instance
 		applySpec                  bmstemcell.ApplySpec
-		fakeTemplatesSpecGenerator *fakebminsup.FakeTemplatesSpecGenerator
+		fakeTemplatesSpecGenerator *fakebmins.FakeTemplatesSpecGenerator
 		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
 		deployment                 bmdepl.Deployment
 		deploymentJob              bmdepl.Job
@@ -34,7 +34,7 @@ var _ = Describe("Instance", func() {
 	)
 
 	BeforeEach(func() {
-		fakeTemplatesSpecGenerator = fakebminsup.NewFakeTemplatesSpecGenerator()
+		fakeTemplatesSpecGenerator = fakebmins.NewFakeTemplatesSpecGenerator()
 		fakeTemplatesSpecGenerator.SetCreateBehavior(TemplatesSpec{
 			BlobID:            "fake-blob-id",
 			ArchiveSha1:       "fake-archive-sha1",
@@ -136,7 +136,7 @@ var _ = Describe("Instance", func() {
 		It("generates templates spec", func() {
 			err := instance.Apply(applySpec, deployment)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeTemplatesSpecGenerator.CreateInputs).To(ContainElement(fakebminsup.CreateInput{
+			Expect(fakeTemplatesSpecGenerator.CreateInputs).To(ContainElement(fakebmins.CreateInput{
 				DeploymentJob:  deploymentJob,
 				StemcellJob:    stemcellJob,
 				DeploymentName: "fake-deployment-name",

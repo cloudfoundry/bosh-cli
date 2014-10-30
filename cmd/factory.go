@@ -24,7 +24,7 @@ import (
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
+	bmins "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/microdeployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
@@ -183,10 +183,10 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentConfig.DeploymentUUID, 1*time.Second, f.logger)
 	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
-	sha1Calculator := bminsup.NewSha1Calculator(f.fs)
+	sha1Calculator := bmins.NewSha1Calculator(f.fs)
 	applySpecFactory := bmas.NewFactory()
 
-	templatesSpecGenerator := bminsup.NewTemplatesSpecGenerator(
+	templatesSpecGenerator := bmins.NewTemplatesSpecGenerator(
 		blobstoreFactory,
 		compressor,
 		jobRenderer,
@@ -195,7 +195,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fs,
 		f.logger,
 	)
-	instanceFactory := bminsup.NewInstanceFactory(
+	instanceFactory := bmins.NewInstanceFactory(
 		agentClientFactory,
 		templatesSpecGenerator,
 		applySpecFactory,

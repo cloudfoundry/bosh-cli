@@ -18,7 +18,7 @@ import (
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
-	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater/fakes"
+	fakebmins "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/microdeployer/registry/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/retrystrategy/fakes"
@@ -37,7 +37,7 @@ var _ = Describe("MicroDeployer", func() {
 		eventLogger                *fakebmlog.FakeEventLogger
 		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
 		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
-		fakeInstance               *fakebminsup.FakeInstance
+		fakeInstance               *fakebmins.FakeInstance
 		sshTunnelConfig            bmdepl.SSHTunnel
 		fakeAgentPingRetryStrategy *fakebmretry.FakeRetryStrategy
 
@@ -69,8 +69,8 @@ var _ = Describe("MicroDeployer", func() {
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
-		fakeInstance = fakebminsup.NewFakeInstance()
-		instanceFactory := fakebminsup.NewFakeInstanceFactory()
+		fakeInstance = fakebmins.NewFakeInstance()
+		instanceFactory := fakebmins.NewFakeInstanceFactory()
 		instanceFactory.CreateInstance = fakeInstance
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
@@ -133,7 +133,7 @@ var _ = Describe("MicroDeployer", func() {
 	It("waits for the instance", func() {
 		err := microDeployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fakeInstance.WaitInputs).To(ContainElement(fakebminsup.WaitInput{
+		Expect(fakeInstance.WaitInputs).To(ContainElement(fakebmins.WaitInput{
 			MaxAttempts: 300,
 			Delay:       500 * time.Millisecond,
 		}))
@@ -143,7 +143,7 @@ var _ = Describe("MicroDeployer", func() {
 		err := microDeployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeInstance.ApplyInputs).To(ContainElement(fakebminsup.ApplyInput{
+		Expect(fakeInstance.ApplyInputs).To(ContainElement(fakebmins.ApplyInput{
 			StemcellApplySpec: applySpec,
 			Deployment:        deployment,
 		}))

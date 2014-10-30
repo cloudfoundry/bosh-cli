@@ -1,14 +1,14 @@
-package instanceupdater_test
+package instance_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec/fakes"
-	fakebminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater/fakes"
+	fakebmins "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,16 +16,16 @@ import (
 
 var _ = Describe("InstanceFactory", func() {
 	var (
-		instanceFactory            InstanceFactory
+		instanceFactory            Factory
 		fakeAgentClientFactory     *fakebmagentclient.FakeAgentClientFactory
-		fakeTemplatesSpecGenerator *fakebminsup.FakeTemplatesSpecGenerator
+		fakeTemplatesSpecGenerator *fakebmins.FakeTemplatesSpecGenerator
 		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
 		fs                         *fakesys.FakeFileSystem
 		logger                     boshlog.Logger
 	)
 	BeforeEach(func() {
 		fakeAgentClientFactory = fakebmagentclient.NewFakeAgentClientFactory()
-		fakeTemplatesSpecGenerator = fakebminsup.NewFakeTemplatesSpecGenerator()
+		fakeTemplatesSpecGenerator = fakebmins.NewFakeTemplatesSpecGenerator()
 		fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
 		fs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
