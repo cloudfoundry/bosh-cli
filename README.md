@@ -2,6 +2,13 @@
 
 This is the BOSH Micro CLI rewritten to support external CPIs.
 
+* Documentation: [docs.cloudfoundry.org/bosh](http://docs.cloudfoundry.org/bosh)
+* IRC: `#bosh` on freenode
+* Google groups:
+  [bosh-users](https://groups.google.com/a/cloudfoundry.org/group/bosh-users/topics) &
+  [bosh-dev](https://groups.google.com/a/cloudfoundry.org/group/bosh-dev/topics) &
+  [vcap-dev](https://groups.google.com/a/cloudfoundry.org/group/vcap-dev/topics) (for CF)
+
 ### Set up a workstation for development
 
 Note: This guide assumes a few things:
@@ -62,7 +69,7 @@ Vagrant providers supported are:
   When using the AWS provider, you will need to provide the following:
 
       $ export BOSH_MICRO_PRIVATE_KEY=/tmp/id_rsa
-      
+
       # The following variables are required by Bosh Lite
       $ export BOSH_AWS_ACCESS_KEY_ID=access_key
       $ export BOSH_AWS_SECRET_ACCESS_KEY=secret
