@@ -3,19 +3,17 @@ package fakes
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type DeployInput struct {
-	StemcellCID            bmstemcell.CID
-	Cloud                  bmcloud.Cloud
-	Deployment             bmdepl.Deployment
-	Registry               bmdepl.Registry
-	SSHTunnelConfig        bmdepl.SSHTunnel
-	AgentPingRetryStrategy bmretrystrategy.RetryStrategy
-	InstanceUpdater        bminsup.InstanceUpdater
+	Cpi               bmcloud.Cloud
+	Deployment        bmdepl.Deployment
+	StemcellApplySpec bmstemcell.ApplySpec
+	Registry          bmdepl.Registry
+	SSHTunnelConfig   bmdepl.SSHTunnel
+	MbusURL           string
+	StemcellCID       bmstemcell.CID
 }
 
 type deployOutput struct {
@@ -34,22 +32,22 @@ func NewFakeMicroDeployer() *FakeMicroDeployer {
 }
 
 func (m *FakeMicroDeployer) Deploy(
-	cloud bmcloud.Cloud,
+	cpi bmcloud.Cloud,
 	deployment bmdepl.Deployment,
+	stemcellApplySpec bmstemcell.ApplySpec,
 	registry bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
-	agentPingRetryStrategy bmretrystrategy.RetryStrategy,
+	mbusURL string,
 	stemcellCID bmstemcell.CID,
-	instanceUpdater bminsup.InstanceUpdater,
 ) error {
 	input := DeployInput{
-		StemcellCID:            stemcellCID,
-		Cloud:                  cloud,
-		Deployment:             deployment,
-		Registry:               registry,
-		SSHTunnelConfig:        sshTunnelConfig,
-		AgentPingRetryStrategy: agentPingRetryStrategy,
-		InstanceUpdater:        instanceUpdater,
+		Cpi:               cpi,
+		Deployment:        deployment,
+		StemcellApplySpec: stemcellApplySpec,
+		Registry:          registry,
+		SSHTunnelConfig:   sshTunnelConfig,
+		MbusURL:           mbusURL,
+		StemcellCID:       stemcellCID,
 	}
 	m.DeployInput = input
 

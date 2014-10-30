@@ -1,4 +1,4 @@
-package applyspec_test
+package instanceupdater_test
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
+	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 )
 
 var _ = Describe("Sha1Calculator", func() {

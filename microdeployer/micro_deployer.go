@@ -2,6 +2,7 @@ package microdeployer
 
 import (
 	"fmt"
+	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -12,7 +13,6 @@ import (
 	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/microdeployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )
@@ -21,11 +21,11 @@ type Deployer interface {
 	Deploy(
 		bmcloud.Cloud,
 		bmdepl.Deployment,
+		bmstemcell.ApplySpec,
 		bmdepl.Registry,
 		bmdepl.SSHTunnel,
-		bmretrystrategy.RetryStrategy,
+		string,
 		bmstemcell.CID,
-		bminsup.InstanceUpdater,
 	) error
 }
 
@@ -33,6 +33,7 @@ type microDeployer struct {
 	vmManagerFactory bmvm.ManagerFactory
 	sshTunnelFactory bmsshtunnel.Factory
 	registryServer   bmregistry.Server
+	instanceFactory  bminsup.InstanceFactory
 	eventLogger      bmeventlog.EventLogger
 	logger           boshlog.Logger
 	logTag           string
@@ -42,6 +43,7 @@ func NewMicroDeployer(
 	vmManagerFactory bmvm.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	registryServer bmregistry.Server,
+	instanceFactory bminsup.InstanceFactory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *microDeployer {
@@ -49,6 +51,7 @@ func NewMicroDeployer(
 		vmManagerFactory: vmManagerFactory,
 		sshTunnelFactory: sshTunnelFactory,
 		registryServer:   registryServer,
+		instanceFactory:  instanceFactory,
 		eventLogger:      eventLogger,
 		logger:           logger,
 		logTag:           "microDeployer",
@@ -58,11 +61,11 @@ func NewMicroDeployer(
 func (m *microDeployer) Deploy(
 	cpi bmcloud.Cloud,
 	deployment bmdepl.Deployment,
+	stemcellApplySpec bmstemcell.ApplySpec,
 	registry bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
-	agentPingRetryStrategy bmretrystrategy.RetryStrategy,
+	mbusURL string,
 	stemcellCID bmstemcell.CID,
-	instanceUpdater bminsup.InstanceUpdater,
 ) error {
 	registryReadyErrCh := make(chan error)
 	go m.startRegistry(registry, registryReadyErrCh)
@@ -79,17 +82,19 @@ func (m *microDeployer) Deploy(
 		return bosherr.WrapError(err, "Creating VM")
 	}
 
-	err = m.waitUntilAgentIsReady(agentPingRetryStrategy, sshTunnelConfig, registry)
+	instance := m.instanceFactory.Create(mbusURL)
+
+	err = m.waitUntilAgentIsReady(instance, sshTunnelConfig, registry)
 	if err != nil {
 		return bosherr.WrapError(err, "Waiting for the agent")
 	}
 
-	err = m.updateInstance(instanceUpdater)
+	err = m.updateInstance(instance, stemcellApplySpec, deployment)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating instance")
 	}
 
-	err = m.sendStartMessage(instanceUpdater)
+	err = m.sendStartMessage(instance)
 	if err != nil {
 		return bosherr.WrapError(err, "Starting agent services")
 	}
@@ -105,7 +110,7 @@ func (m *microDeployer) startRegistry(registry bmdepl.Registry, readyErrCh chan 
 }
 
 func (m *microDeployer) waitUntilAgentIsReady(
-	agentPingRetryStrategy bmretrystrategy.RetryStrategy,
+	instance bminsup.Instance,
 	sshTunnelConfig bmdepl.SSHTunnel,
 	registry bmdepl.Registry,
 ) error {
@@ -138,7 +143,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 		return bosherr.WrapError(err, "Starting SSH tunnel")
 	}
 
-	err = agentPingRetryStrategy.Try()
+	err = instance.WaitToBeReady(300, 500*time.Millisecond)
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
@@ -164,7 +169,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 	return nil
 }
 
-func (m *microDeployer) updateInstance(instanceUpdater bminsup.InstanceUpdater) error {
+func (m *microDeployer) updateInstance(instance bminsup.Instance, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 4,
@@ -174,7 +179,7 @@ func (m *microDeployer) updateInstance(instanceUpdater bminsup.InstanceUpdater) 
 	}
 	m.eventLogger.AddEvent(event)
 
-	err := instanceUpdater.Update()
+	err := instance.Apply(stemcellApplySpec, deployment)
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
@@ -201,7 +206,7 @@ func (m *microDeployer) updateInstance(instanceUpdater bminsup.InstanceUpdater) 
 	return nil
 }
 
-func (m *microDeployer) sendStartMessage(instanceUpdater bminsup.InstanceUpdater) error {
+func (m *microDeployer) sendStartMessage(instance bminsup.Instance) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 4,
@@ -211,7 +216,7 @@ func (m *microDeployer) sendStartMessage(instanceUpdater bminsup.InstanceUpdater
 	}
 	m.eventLogger.AddEvent(event)
 
-	err := instanceUpdater.Start()
+	err := instance.Start()
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",

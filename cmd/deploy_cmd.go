@@ -1,32 +1,18 @@
 package cmd
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
-	"net/http"
-	"time"
 
-	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
-	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
-	bmapplyspec "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
@@ -40,10 +26,6 @@ type deployCmd struct {
 	cpiDeployer            bmcpideploy.CpiDeployer
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	microDeployer          bmmicrodeploy.Deployer
-	compressor             boshcmd.Compressor
-	jobRenderer            bmtempcomp.JobRenderer
-	uuidGenerator          boshuuid.Generator
-	deploymentUUID         string
 	logger                 boshlog.Logger
 	logTag                 string
 }
@@ -57,10 +39,6 @@ func NewDeployCmd(
 	cpiDeployer bmcpideploy.CpiDeployer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	microDeployer bmmicrodeploy.Deployer,
-	compressor boshcmd.Compressor,
-	jobRenderer bmtempcomp.JobRenderer,
-	uuidGenerator boshuuid.Generator,
-	deploymentUUID string,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
@@ -72,10 +50,6 @@ func NewDeployCmd(
 		cpiDeployer:            cpiDeployer,
 		stemcellManagerFactory: stemcellManagerFactory,
 		microDeployer:          microDeployer,
-		compressor:             compressor,
-		jobRenderer:            jobRenderer,
-		uuidGenerator:          uuidGenerator,
-		deploymentUUID:         deploymentUUID,
 		logger:                 logger,
 		logTag:                 "deployCmd",
 	}
@@ -112,49 +86,14 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
 	}
 
-	agentClient := bmagentclient.NewAgentClient(cpiDeployment.Mbus, c.deploymentUUID, 1*time.Second, c.logger)
-	agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
-	agentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, c.logger)
-	endpoint, username, password, err := cpiDeployment.MbusConfig()
-	if err != nil {
-		return bosherr.WrapError(err, "Creating blobstore config")
-	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	httpClient := http.Client{Transport: tr}
-
-	davClient := boshdavcli.NewClient(boshdavcliconf.Config{
-		Endpoint: fmt.Sprintf("%s/blobs", endpoint),
-		User:     username,
-		Password: password,
-	}, &httpClient)
-
-	blobstore := bmblobstore.NewBlobstore(davClient, c.fs, c.logger)
-	sha1Calculator := bmapplyspec.NewSha1Calculator(c.fs)
-	applySpecFactory := bmas.NewFactory(sha1Calculator)
-	instanceUpdater := bminsup.NewInstanceUpdater(
-		agentClient,
-		stemcell.ApplySpec,
-		boshDeployment,
-		blobstore,
-		c.compressor,
-		c.jobRenderer,
-		c.uuidGenerator,
-		applySpecFactory,
-		c.fs,
-		c.logger,
-	)
-
 	err = c.microDeployer.Deploy(
 		cloud,
 		boshDeployment,
+		stemcell.ApplySpec,
 		cpiDeployment.Registry,
 		cpiDeployment.SSHTunnel,
-		agentPingRetryStrategy,
+		cpiDeployment.Mbus,
 		stemcellCID,
-		instanceUpdater,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")

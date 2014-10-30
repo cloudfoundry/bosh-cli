@@ -1,28 +1,17 @@
 package cmd_test
 
 import (
-	"crypto/tls"
 	"errors"
-	"net/http"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
-	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
-	bmapplyspec "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
-	bminsup "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instanceupdater"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
@@ -91,10 +80,6 @@ var _ = Describe("DeployCmd", func() {
 			fakeCpiDeployer,
 			fakeStemcellManagerFactory,
 			fakeMicroDeployer,
-			fakeCompressor,
-			fakeJobRenderer,
-			fakeUUIDGenerator,
-			"fake-deployment-uuid",
 			logger,
 		)
 
@@ -153,10 +138,6 @@ var _ = Describe("DeployCmd", func() {
 						fakeCpiDeployer,
 						fakeStemcellManagerFactory,
 						fakeMicroDeployer,
-						fakeCompressor,
-						fakeJobRenderer,
-						fakeUUIDGenerator,
-						"fake-deployment-uuid",
 						logger,
 					)
 
@@ -246,50 +227,15 @@ version: fake-version
 					It("creates a VM", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						agentClient := bmagentclient.NewAgentClient(
-							"http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
-							"fake-deployment-uuid",
-							1*time.Second,
-							logger,
-						)
-						agentPingRetryable := bmagentclient.NewPingRetryable(agentClient)
-						expectedAgentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(300, 500*time.Millisecond, agentPingRetryable, logger)
-
-						tr := &http.Transport{
-							TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-						}
-						httpClient := http.Client{Transport: tr}
-						davClient := boshdavcli.NewClient(boshdavcliconf.Config{
-							Endpoint: "http://fake-mbus-endpoint/blobs",
-							User:     "fake-mbus-user",
-							Password: "fake-mbus-password",
-						}, &httpClient)
-
-						blobstore := bmblobstore.NewBlobstore(davClient, fakeFs, logger)
-						sha1Calculator := bmapplyspec.NewSha1Calculator(fakeFs)
-						applySpecFactory := bmas.NewFactory(sha1Calculator)
-						expectedInstanceUpdater := bminsup.NewInstanceUpdater(
-							agentClient,
-							expectedStemcell.ApplySpec,
-							boshDeployment,
-							blobstore,
-							fakeCompressor,
-							fakeJobRenderer,
-							fakeUUIDGenerator,
-							applySpecFactory,
-							fakeFs,
-							logger,
-						)
-
 						Expect(fakeMicroDeployer.DeployInput).To(Equal(
 							fakemicrodeploy.DeployInput{
-								Cloud:                  cloud,
-								Deployment:             boshDeployment,
-								StemcellCID:            expectedStemcellCID,
-								Registry:               cpiDeployment.Registry,
-								SSHTunnelConfig:        cpiDeployment.SSHTunnel,
-								AgentPingRetryStrategy: expectedAgentPingRetryStrategy,
-								InstanceUpdater:        expectedInstanceUpdater,
+								Cpi:               cloud,
+								Deployment:        boshDeployment,
+								StemcellApplySpec: expectedStemcell.ApplySpec,
+								Registry:          cpiDeployment.Registry,
+								SSHTunnelConfig:   cpiDeployment.SSHTunnel,
+								MbusURL:           cpiDeployment.Mbus,
+								StemcellCID:       expectedStemcellCID,
 							},
 						))
 					})
@@ -332,10 +278,6 @@ version: fake-version
 							fakeCpiDeployer,
 							fakeStemcellManagerFactory,
 							fakeMicroDeployer,
-							fakeCompressor,
-							fakeJobRenderer,
-							fakeUUIDGenerator,
-							"fake-deployment-uuid",
 							logger,
 						)
 					})

@@ -1,13 +1,10 @@
 package applyspec
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
-type factory struct {
-	sha1Calculator SHA1Calculator
-}
+type factory struct{}
 
 type Factory interface {
 	Create(
@@ -18,13 +15,11 @@ type Factory interface {
 		string,
 		string,
 		string,
-	) (ApplySpec, error)
+	) ApplySpec
 }
 
-func NewFactory(sha1Calculator SHA1Calculator) Factory {
-	return &factory{
-		sha1Calculator: sha1Calculator,
-	}
+func NewFactory() Factory {
+	return &factory{}
 }
 
 func (c *factory) Create(
@@ -33,19 +28,9 @@ func (c *factory) Create(
 	jobName string,
 	networksSpec map[string]interface{},
 	archivedTemplatesBlobID string,
-	archivedTemplatesPath string,
-	templatesDir string,
-) (ApplySpec, error) {
-	archivedTemplatesSha1, err := c.sha1Calculator.Calculate(archivedTemplatesPath)
-	if err != nil {
-		return ApplySpec{}, bosherr.WrapError(err, "Calculating archived templates SHA1")
-	}
-
-	templatesDirSha1, err := c.sha1Calculator.Calculate(templatesDir)
-	if err != nil {
-		return ApplySpec{}, bosherr.WrapError(err, "Calculating templates dir SHA1")
-	}
-
+	archivedTemplatesSha1 string,
+	templatesDirSha1 string,
+) ApplySpec {
 	applySpec := NewApplySpec(
 		deploymentName,
 		networksSpec,
@@ -56,5 +41,5 @@ func (c *factory) Create(
 	applySpec.PopulatePackages(stemcellApplySpec.Packages)
 	applySpec.PopulateJob(stemcellApplySpec.Job.Templates, jobName)
 
-	return *applySpec, nil
+	return *applySpec
 }

@@ -15,6 +15,12 @@ type Blobstore interface {
 	Save(string, string) error
 }
 
+type Config struct {
+	Endpoint string
+	Username string
+	Password string
+}
+
 type blobstore struct {
 	davClient boshdavcli.Client
 	fs        boshsys.FileSystem

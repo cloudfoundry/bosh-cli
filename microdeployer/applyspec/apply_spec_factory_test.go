@@ -1,13 +1,10 @@
 package applyspec_test
 
 import (
-	"errors"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec/fakes"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
@@ -15,10 +12,9 @@ import (
 
 var _ = Describe("Factory", func() {
 	var (
-		originalApplySpec  bmstemcell.ApplySpec
-		networksSpec       map[string]interface{}
-		applySpecFactory   Factory
-		fakeSha1Calculator *fakebmas.FakeSha1Calculator
+		originalApplySpec bmstemcell.ApplySpec
+		networksSpec      map[string]interface{}
+		applySpecFactory  Factory
 	)
 
 	BeforeEach(func() {
@@ -41,32 +37,20 @@ var _ = Describe("Factory", func() {
 			"fake-network-name": "fake-network-value",
 		}
 
-		fakeSha1Calculator = fakebmas.NewFakeSha1Calculator()
-		fakeSha1Calculator.SetCalculateBehavior(map[string]fakebmas.CalculateInput{
-			"/fake-archived-templates-path": fakebmas.CalculateInput{
-				Sha1: "fake-archived-templates-sha1",
-				Err:  nil,
-			},
-			"/fake-templates-dir": fakebmas.CalculateInput{
-				Sha1: "fake-templates-dir-sha1",
-				Err:  nil,
-			},
-		})
-		applySpecFactory = NewFactory(fakeSha1Calculator)
+		applySpecFactory = NewFactory()
 	})
 
 	Describe("Create", func() {
 		It("creates an apply spec", func() {
-			applySpec, err := applySpecFactory.Create(
+			applySpec := applySpecFactory.Create(
 				originalApplySpec,
 				"fake-deployment-name",
 				"fake-job-name",
 				networksSpec,
 				"fake-archived-templates-blob-id",
-				"/fake-archived-templates-path",
-				"/fake-templates-dir",
+				"fake-archived-templates-sha1",
+				"fake-templates-dir-sha1",
 			)
-			Expect(err).ToNot(HaveOccurred())
 			Expect(applySpec).To(Equal(bmas.ApplySpec{
 				Deployment: "fake-deployment-name",
 				Index:      0,
@@ -92,36 +76,6 @@ var _ = Describe("Factory", func() {
 					SHA1:        "fake-archived-templates-sha1",
 				},
 			}))
-		})
-
-		Context("when creating the apply spec fails", func() {
-			BeforeEach(func() {
-				calculateErr := errors.New("fake-calculate-error")
-				fakeSha1Calculator.SetCalculateBehavior(map[string]fakebmas.CalculateInput{
-					"/fake-archived-templates-path": fakebmas.CalculateInput{
-						Sha1: "fake-archived-templates-sha1",
-						Err:  calculateErr,
-					},
-					"/fake-templates-dir": fakebmas.CalculateInput{
-						Sha1: "fake-templates-dir-sha1",
-						Err:  nil,
-					},
-				})
-			})
-
-			It("returns an error", func() {
-				_, err := applySpecFactory.Create(
-					originalApplySpec,
-					"fake-deployment-name",
-					"fake-job-name",
-					networksSpec,
-					"fake-archived-templates-blob-id",
-					"/fake-archived-templates-path",
-					"/fake-templates-dir",
-				)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-calculate-error"))
-			})
 		})
 	})
 })

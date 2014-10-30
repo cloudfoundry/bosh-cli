@@ -1,4 +1,4 @@
-package applyspec
+package instanceupdater
 
 import (
 	"crypto/sha1"
@@ -44,16 +44,16 @@ func (c sha1Calculator) Calculate(filePath string) (string, error) {
 			if !info.IsDir() {
 				err := c.populateSha1(path, h)
 				if err != nil {
-					return bosherr.WrapError(err, "Calculating SHA1 for %s", path)
+					return bosherr.WrapError(err, "Calculating directory SHA1 for %s", path)
 				}
 			}
 			return nil
 		})
-	}
-
-	err = c.populateSha1(filePath, h)
-	if err != nil {
-		return "", bosherr.WrapError(err, "Calculating SHA1 for %s", filePath)
+	} else {
+		err = c.populateSha1(filePath, h)
+		if err != nil {
+			return "", bosherr.WrapError(err, "Calculating file SHA1 for %s", filePath)
+		}
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil)), nil

@@ -8,7 +8,6 @@ import (
 type FakeApplySpecFactory struct {
 	CreateInput     CreateInput
 	CreateApplySpec bmas.ApplySpec
-	CreateErr       error
 }
 
 type CreateInput struct {
@@ -17,8 +16,8 @@ type CreateInput struct {
 	JobName                 string
 	NetworksSpec            map[string]interface{}
 	ArchivedTemplatesBlobID string
-	ArchivedTemplatesPath   string
-	TemplatesDir            string
+	ArchivedTemplatesSha1   string
+	TemplatesDirSha1        string
 }
 
 func NewFakeApplySpecFactory() *FakeApplySpecFactory {
@@ -31,18 +30,18 @@ func (c *FakeApplySpecFactory) Create(
 	jobName string,
 	networksSpec map[string]interface{},
 	archivedTemplatesBlobID string,
-	archivedTemplatesPath string,
-	templatesDir string,
-) (bmas.ApplySpec, error) {
+	archivedTemplatesSha1 string,
+	templatesDirSha1 string,
+) bmas.ApplySpec {
 	c.CreateInput = CreateInput{
 		ApplySpec:               applySpec,
 		DeploymentName:          deploymentName,
 		JobName:                 jobName,
 		NetworksSpec:            networksSpec,
 		ArchivedTemplatesBlobID: archivedTemplatesBlobID,
-		ArchivedTemplatesPath:   archivedTemplatesPath,
-		TemplatesDir:            templatesDir,
+		ArchivedTemplatesSha1:   archivedTemplatesSha1,
+		TemplatesDirSha1:        templatesDirSha1,
 	}
 
-	return c.CreateApplySpec, c.CreateErr
+	return c.CreateApplySpec
 }

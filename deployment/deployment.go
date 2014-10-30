@@ -1,9 +1,6 @@
 package deployment
 
 import (
-	"fmt"
-	"net/url"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
 )
@@ -80,22 +77,6 @@ func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error)
 	}
 
 	return result, nil
-}
-
-func (d Deployment) MbusConfig() (string, string, string, error) {
-	parsedURL, err := url.Parse(d.Mbus)
-	if err != nil {
-		return "", "", "", bosherr.WrapError(err, "Parsing Mbus URL")
-	}
-
-	var username, password string
-	userInfo := parsedURL.User
-	if userInfo != nil {
-		username = userInfo.Username()
-		password, _ = userInfo.Password()
-	}
-
-	return fmt.Sprintf("%s://%s", parsedURL.Scheme, parsedURL.Host), username, password, nil
 }
 
 func (d Deployment) networksToMap() map[string]Network {
