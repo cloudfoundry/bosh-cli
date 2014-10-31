@@ -1,7 +1,6 @@
 package blobstore_test
 
 import (
-	"crypto/tls"
 	"net/http"
 
 	. "github.com/onsi/ginkgo"
@@ -11,6 +10,7 @@ import (
 	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/httpclient"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
 )
@@ -25,10 +25,7 @@ var _ = Describe("BlobstoreFactory", func() {
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		httpClient = http.Client{Transport: tr}
+		httpClient = bmhttpclient.DefaultClient
 
 		blobstoreFactory = NewBlobstoreFactory(fs, logger)
 	})

@@ -1,17 +1,16 @@
 package agentclient
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
+	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/httpclient"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 )
 
@@ -25,7 +24,7 @@ type AgentClient interface {
 type agentClient struct {
 	endpoint     string
 	uuid         string
-	httpClient   http.Client
+	httpClient   bmhttpclient.HTTPClient
 	getTaskDelay time.Duration
 	logger       boshlog.Logger
 	logTag       string
@@ -37,12 +36,13 @@ type AgentRequest struct {
 	ReplyTo   string        `json:"reply_to"`
 }
 
-func NewAgentClient(endpoint string, uuid string, getTaskDelay time.Duration, logger boshlog.Logger) AgentClient {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	httpClient := http.Client{Transport: tr}
-
+func NewAgentClient(
+	endpoint string,
+	uuid string,
+	getTaskDelay time.Duration,
+	httpClient bmhttpclient.HTTPClient,
+	logger boshlog.Logger,
+) AgentClient {
 	return &agentClient{
 		endpoint:     fmt.Sprintf("%s/agent", endpoint),
 		uuid:         uuid,
@@ -141,7 +141,7 @@ func (c *agentClient) sendMessage(method string, arguments []interface{}) ([]byt
 		ReplyTo:   c.uuid,
 	}
 
-	httpResponse, err := c.doPost(c.endpoint, postBody)
+	httpResponse, err := c.makeRequest(c.endpoint, postBody)
 	if err != nil {
 		return []byte{}, bosherr.WrapError(err, "Sending %s to agent", method)
 	}
@@ -159,23 +159,15 @@ func (c *agentClient) sendMessage(method string, arguments []interface{}) ([]byt
 	return httpBody, nil
 }
 
-func (c *agentClient) doPost(endpoint string, agentRequest AgentRequest) (*http.Response, error) {
+func (c *agentClient) makeRequest(endpoint string, agentRequest AgentRequest) (*http.Response, error) {
 	agentRequestJSON, err := json.Marshal(agentRequest)
 	if err != nil {
-		return &http.Response{}, bosherr.WrapError(err, "Marshaling agent request")
-	}
-	postPayload := strings.NewReader(string(agentRequestJSON))
-
-	c.logger.Debug(c.logTag, "Sending POST request with body %s, endpoint %s", agentRequestJSON, endpoint)
-
-	request, err := http.NewRequest("POST", endpoint, postPayload)
-	if err != nil {
-		return &http.Response{}, bosherr.WrapError(err, "Creating POST request")
+		return nil, bosherr.WrapError(err, "Marshaling agent request")
 	}
 
-	httpResponse, err := c.httpClient.Do(request)
+	httpResponse, err := c.httpClient.Post(endpoint, agentRequestJSON)
 	if err != nil {
-		return &http.Response{}, bosherr.WrapError(err, "Performing POST request")
+		return nil, bosherr.WrapError(err, "Performing request to agent endpoint '%s'", endpoint)
 	}
 
 	return httpResponse, nil

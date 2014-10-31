@@ -1,9 +1,7 @@
 package blobstore
 
 import (
-	"crypto/tls"
 	"fmt"
-	"net/http"
 	"net/url"
 
 	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
@@ -11,6 +9,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/httpclient"
 )
 
 type Factory interface {
@@ -35,10 +34,7 @@ func (f blobstoreFactory) Create(blobstoreURL string) (Blobstore, error) {
 		return nil, bosherr.WrapError(err, "Creating blobstore config")
 	}
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	httpClient := http.Client{Transport: tr}
+	httpClient := bmhttpclient.DefaultClient
 
 	davClient := boshdavcli.NewClient(boshdavcliconf.Config{
 		Endpoint: fmt.Sprintf("%s/blobs", blobstoreConfig.Endpoint),

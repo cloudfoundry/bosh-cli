@@ -2,8 +2,6 @@ package agentclient_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"net"
 	"net/http"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
@@ -13,49 +11,39 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
+	fakebmhttpclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/httpclient/fakes"
 )
 
 var _ = Describe("AgentClient", func() {
 	var (
-		agentClient AgentClient
-		agentServer *agentServer
+		fakeHTTPClient *fakebmhttpclient.FakeHTTPClient
+		agentClient    AgentClient
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid", 0, logger)
-		agentServer = NewAgentServer("localhost:6305")
-
-		readyCh := make(chan error)
-		go agentServer.Start(readyCh)
-		err := <-readyCh
-		Expect(err).ToNot(HaveOccurred())
-	})
-
-	AfterEach(func() {
-		agentServer.Stop()
+		fakeHTTPClient = fakebmhttpclient.NewFakeHTTPClient()
+		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid", 0, fakeHTTPClient, logger)
 	})
 
 	Describe("Ping", func() {
 		Context("when agent responds with a value", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseBody(`{"value":"pong"}`)
+				fakeHTTPClient.SetPostBehavior(`{"value":"pong"}`, 200, nil)
 			})
 
 			It("makes a POST request to the endpoint", func() {
 				_, err := agentClient.Ping()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(len(agentServer.ReceivedRequests)).To(Equal(1))
-				receivedRequest := agentServer.ReceivedRequests[0]
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				Expect(receivedRequest.Method).To(Equal("POST"))
-
-				var request receivedRequestBody
-				err = json.Unmarshal(receivedRequest.Body, &request)
+				var request AgentRequest
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(receivedRequestBody{
+				Expect(request).To(Equal(AgentRequest{
 					Method:    "ping",
 					Arguments: []interface{}{},
 					ReplyTo:   "fake-uuid",
@@ -71,18 +59,19 @@ var _ = Describe("AgentClient", func() {
 
 		Context("when agent does not respond with 200", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseStatus(http.StatusInternalServerError)
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, nil)
 			})
 
 			It("returns an error", func() {
 				_, err := agentClient.Ping()
 				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("status code: 500"))
 			})
 		})
 
 		Context("when agent responds with exception", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseBody(`{"exception":{"message":"bad request"}}`)
+				fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"bad request"}}`, 200, nil)
 			})
 
 			It("returns an error", func() {
@@ -96,22 +85,24 @@ var _ = Describe("AgentClient", func() {
 	Describe("Stop", func() {
 		Context("when agent responds with a value", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseBody(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`)
-				agentServer.SetTaskStates([]string{"running", "running", "stoppped"})
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":"stopped"}`, 200, nil)
 			})
 
 			It("makes a POST request to the endpoint", func() {
 				err := agentClient.Stop()
 				Expect(err).ToNot(HaveOccurred())
 
-				receivedStopRequest := agentServer.ReceivedRequests[0]
-				Expect(receivedStopRequest.Method).To(Equal("POST"))
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				var request receivedRequestBody
-				err = json.Unmarshal(receivedStopRequest.Body, &request)
+				var request AgentRequest
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(receivedRequestBody{
+				Expect(request).To(Equal(AgentRequest{
 					Method:    "stop",
 					Arguments: []interface{}{},
 					ReplyTo:   "fake-uuid",
@@ -122,37 +113,36 @@ var _ = Describe("AgentClient", func() {
 				err := agentClient.Stop()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(len(agentServer.ReceivedRequests)).To(Equal(4))
-				for _, receivedGetTaskRequest := range agentServer.ReceivedRequests[1:] {
-					Expect(receivedGetTaskRequest.Method).To(Equal("POST"))
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[1].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-					var request receivedRequestBody
-					err = json.Unmarshal(receivedGetTaskRequest.Body, &request)
-					Expect(err).ToNot(HaveOccurred())
+				var request AgentRequest
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[1].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
 
-					Expect(request).To(Equal(receivedRequestBody{
-						Method:    "get_task",
-						Arguments: []interface{}{"fake-agent-task-id"},
-						ReplyTo:   "fake-uuid",
-					}))
-				}
+				Expect(request).To(Equal(AgentRequest{
+					Method:    "get_task",
+					Arguments: []interface{}{"fake-agent-task-id"},
+					ReplyTo:   "fake-uuid",
+				}))
 			})
 		})
 
 		Context("when agent does not respond with 200", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseStatus(http.StatusInternalServerError)
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, nil)
 			})
 
 			It("returns an error", func() {
 				err := agentClient.Stop()
 				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("status code: 500"))
 			})
 		})
 
 		Context("when agent responds with exception", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseBody(`{"exception":{"message":"bad request"}}`)
+				fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"bad request"}}`, 200, nil)
 			})
 
 			It("returns an error", func() {
@@ -180,26 +170,28 @@ var _ = Describe("AgentClient", func() {
 
 		Context("when agent responds with a value", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseBody(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`)
-				agentServer.SetTaskStates([]string{"running", "running", "stopped"})
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":"stopped"}`, 200, nil)
 			})
 
 			It("makes a POST request to the endpoint", func() {
 				err := agentClient.Apply(spec)
 				Expect(err).ToNot(HaveOccurred())
 
-				receivedApplyRequest := agentServer.ReceivedRequests[0]
-				Expect(receivedApplyRequest.Method).To(Equal("POST"))
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				var request receivedRequestBody
-				err = json.Unmarshal(receivedApplyRequest.Body, &request)
+				var request AgentRequest
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
 				var specArgument interface{}
 				err = json.Unmarshal(specJSON, &specArgument)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(receivedRequestBody{
+				Expect(request).To(Equal(AgentRequest{
 					Method:    "apply",
 					Arguments: []interface{}{specArgument},
 					ReplyTo:   "fake-uuid",
@@ -210,45 +202,42 @@ var _ = Describe("AgentClient", func() {
 				err := agentClient.Apply(spec)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(len(agentServer.ReceivedRequests)).To(Equal(4))
-				for _, receivedGetTaskRequest := range agentServer.ReceivedRequests[1:] {
-					Expect(receivedGetTaskRequest.Method).To(Equal("POST"))
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[1].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-					var request receivedRequestBody
-					err = json.Unmarshal(receivedGetTaskRequest.Body, &request)
-					Expect(err).ToNot(HaveOccurred())
+				var request AgentRequest
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[1].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
 
-					Expect(request).To(Equal(receivedRequestBody{
-						Method:    "get_task",
-						Arguments: []interface{}{"fake-agent-task-id"},
-						ReplyTo:   "fake-uuid",
-					}))
-				}
+				Expect(request).To(Equal(AgentRequest{
+					Method:    "get_task",
+					Arguments: []interface{}{"fake-agent-task-id"},
+					ReplyTo:   "fake-uuid",
+				}))
 			})
 		})
 
 		Context("when agent does not respond with 200", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseStatus(http.StatusInternalServerError)
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, nil)
 			})
 
 			It("returns an error", func() {
 				err := agentClient.Apply(spec)
 				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("status code: 500"))
 			})
 		})
 
-		Context("when agent responds with exception to get_task", func() {
+		Context("when agent responds with exception", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseBody(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`)
-				agentServer.SetTaskResponseBody(`{"exception":{"message":"bad request"}}`)
+				fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"bad request"}}`, 200, nil)
 			})
 
-			It("stops polling for task state", func() {
+			It("returns an error", func() {
 				err := agentClient.Apply(spec)
 				Expect(err).To(HaveOccurred())
-
-				Expect(agentServer.GetTaskRequests).To(Equal(1))
+				Expect(err.Error()).To(ContainSubstring("bad request"))
 			})
 		})
 	})
@@ -256,49 +245,43 @@ var _ = Describe("AgentClient", func() {
 	Describe("Start", func() {
 		Context("when agent responds with a value", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseBody(`{"value":"started"}`)
+				fakeHTTPClient.SetPostBehavior(`{"value":"started"}`, 200, nil)
 			})
 
 			It("makes a POST request to the endpoint", func() {
 				err := agentClient.Start()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(len(agentServer.ReceivedRequests)).To(Equal(1))
-				receivedRequest := agentServer.ReceivedRequests[0]
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				Expect(receivedRequest.Method).To(Equal("POST"))
-
-				var request receivedRequestBody
-				err = json.Unmarshal(receivedRequest.Body, &request)
+				var request AgentRequest
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(receivedRequestBody{
+				Expect(request).To(Equal(AgentRequest{
 					Method:    "start",
 					Arguments: []interface{}{},
 					ReplyTo:   "fake-uuid",
 				}))
 			})
-
-			It("returns the value", func() {
-				err := agentClient.Start()
-				Expect(err).ToNot(HaveOccurred())
-			})
 		})
 
 		Context("when agent does not respond with 200", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseStatus(http.StatusInternalServerError)
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, nil)
 			})
 
 			It("returns an error", func() {
 				err := agentClient.Start()
 				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("status code: 500"))
 			})
 		})
 
 		Context("when agent responds with exception", func() {
 			BeforeEach(func() {
-				agentServer.SetResponseBody(`{"exception":{"message":"bad request"}}`)
+				fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"bad request"}}`, 200, nil)
 			})
 
 			It("returns an error", func() {
@@ -309,129 +292,3 @@ var _ = Describe("AgentClient", func() {
 		})
 	})
 })
-
-type receivedRequestBody struct {
-	Method    string
-	Arguments []interface{}
-	ReplyTo   string `json:"reply_to"`
-}
-
-type receivedRequest struct {
-	Body   []byte
-	Method string
-}
-
-type agentServer struct {
-	listener         net.Listener
-	endpoint         string
-	ReceivedRequests []receivedRequest
-	responseBody     string
-	responseStatus   int
-	taskResponseBody string
-	taskStates       []string
-	GetTaskRequests  int
-}
-
-func NewAgentServer(endpoint string) *agentServer {
-	return &agentServer{
-		endpoint:         endpoint,
-		responseStatus:   http.StatusOK,
-		ReceivedRequests: []receivedRequest{},
-	}
-}
-
-type taskStateResponse struct {
-	Value string
-}
-
-type runningTaskStateResponse struct {
-	Value agentTaskState
-}
-
-type agentTaskState struct {
-	AgentTaskID string `json:"agent_task_id"`
-	State       string `json:"state"`
-}
-
-func (s *agentServer) Start(readyErrCh chan error) {
-	var err error
-	s.listener, err = net.Listen("tcp", s.endpoint)
-	if err != nil {
-		readyErrCh <- err
-		return
-	}
-
-	readyErrCh <- nil
-
-	fakeServer := http.Server{}
-	fakeServer.SetKeepAlivesEnabled(false)
-	mux := http.NewServeMux()
-	fakeServer.Handler = mux
-
-	mux.HandleFunc("/agent", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(s.responseStatus)
-
-		requestBody, _ := ioutil.ReadAll(r.Body)
-		defer r.Body.Close()
-
-		receivedRequest := receivedRequest{
-			Body:   requestBody,
-			Method: r.Method,
-		}
-
-		s.ReceivedRequests = append(s.ReceivedRequests, receivedRequest)
-
-		var agentRequest AgentRequest
-		json.Unmarshal(requestBody, &agentRequest)
-		if agentRequest.Method == "get_task" {
-			s.GetTaskRequests++
-			if s.taskResponseBody != "" {
-				w.Write([]byte(s.taskResponseBody))
-				return
-			}
-
-			if len(s.taskStates) > 0 {
-				state := s.taskStates[0]
-				s.taskStates = s.taskStates[1:]
-				var responseBody []byte
-				if state == "running" {
-					responseBody, _ = json.Marshal(runningTaskStateResponse{
-						Value: agentTaskState{
-							State: "running",
-						},
-					})
-				} else {
-					responseBody, _ = json.Marshal(taskStateResponse{
-						Value: state,
-					})
-				}
-
-				w.Write([]byte(responseBody))
-			}
-		} else {
-			w.Write([]byte(s.responseBody))
-		}
-	})
-
-	fakeServer.Serve(s.listener)
-}
-
-func (s *agentServer) Stop() {
-	s.listener.Close()
-}
-
-func (s *agentServer) SetResponseStatus(code int) {
-	s.responseStatus = code
-}
-
-func (s *agentServer) SetResponseBody(body string) {
-	s.responseBody = body
-}
-
-func (s *agentServer) SetTaskStates(taskStates []string) {
-	s.taskStates = taskStates
-}
-
-func (s *agentServer) SetTaskResponseBody(taskResponseBody string) {
-	s.taskResponseBody = taskResponseBody
-}
