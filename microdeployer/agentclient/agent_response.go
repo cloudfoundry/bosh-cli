@@ -32,6 +32,23 @@ func (r *SimpleTaskResponse) Unmarshal(message []byte) error {
 	return json.Unmarshal(message, r)
 }
 
+type StateResponse struct {
+	Value     State
+	Exception exceptionResponse
+}
+
+type State struct {
+	JobState string `json:"job_state"`
+}
+
+func (r *StateResponse) GetException() exceptionResponse {
+	return r.Exception
+}
+
+func (r *StateResponse) Unmarshal(message []byte) error {
+	return json.Unmarshal(message, r)
+}
+
 type TaskResponse struct {
 	Value     interface{}
 	Exception exceptionResponse

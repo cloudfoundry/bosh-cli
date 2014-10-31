@@ -1,6 +1,7 @@
 package fakes
 
 import (
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 )
 
@@ -16,6 +17,10 @@ type FakeAgentClient struct {
 
 	StartCalled bool
 	startErr    error
+
+	GetStateCalled        bool
+	getStateStateResponse bmagentclient.State
+	getStateErr           error
 }
 
 type pingResponse struct {
@@ -55,6 +60,11 @@ func (c *FakeAgentClient) Start() error {
 	return c.startErr
 }
 
+func (c *FakeAgentClient) GetState() (bmagentclient.State, error) {
+	c.GetStateCalled = true
+	return c.getStateStateResponse, c.getStateErr
+}
+
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {
 	c.PingResponses = append(c.PingResponses, pingResponse{
 		response: response,
@@ -68,4 +78,9 @@ func (c *FakeAgentClient) SetStopBehavior(err error) {
 
 func (c *FakeAgentClient) SetStartBehavior(err error) {
 	c.startErr = err
+}
+
+func (c *FakeAgentClient) SetGetStateBehavior(stateResponse bmagentclient.State, err error) {
+	c.getStateStateResponse = stateResponse
+	c.getStateErr = err
 }

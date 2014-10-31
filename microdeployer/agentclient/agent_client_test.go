@@ -291,4 +291,57 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 	})
+
+	Describe("GetState", func() {
+		Context("when agent responds with a value", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior(`{"value":{"job_state":"running"}}`, 200, nil)
+			})
+
+			It("makes a POST request to the endpoint", func() {
+				stateResponse, err := agentClient.GetState()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stateResponse).To(Equal(State{JobState: "running"}))
+
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+				var request AgentRequestMessage
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(AgentRequestMessage{
+					Method:    "get_state",
+					Arguments: []interface{}{},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+		})
+
+		Context("when agent does not respond with 200", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, nil)
+			})
+
+			It("returns an error", func() {
+				stateResponse, err := agentClient.GetState()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("status code: 500"))
+				Expect(stateResponse).To(Equal(State{}))
+			})
+		})
+
+		Context("when agent responds with exception", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"bad request"}}`, 200, nil)
+			})
+
+			It("returns an error", func() {
+				stateResponse, err := agentClient.GetState()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("bad request"))
+				Expect(stateResponse).To(Equal(State{}))
+			})
+		})
+	})
 })

@@ -16,6 +16,7 @@ type AgentClient interface {
 	Stop() error
 	Apply(bmas.ApplySpec) error
 	Start() error
+	GetState() (State, error)
 }
 
 type agentClient struct {
@@ -73,6 +74,16 @@ func (c *agentClient) Start() error {
 	}
 
 	return nil
+}
+
+func (c *agentClient) GetState() (State, error) {
+	var response StateResponse
+	err := c.agentRequest.Send("get_state", []interface{}{}, &response)
+	if err != nil {
+		return State{}, bosherr.WrapError(err, "Sending get_state to the agent")
+	}
+
+	return response.Value, nil
 }
 
 func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) error {
