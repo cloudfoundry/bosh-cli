@@ -1,20 +1,35 @@
 package agentclient
 
 import (
+	"encoding/json"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 )
 
 type Response interface {
+	Unmarshal([]byte) error
 	GetException() exceptionResponse
 }
 
-type SimpleResponse struct {
+type exceptionResponse struct {
+	Message string
+}
+
+func (r exceptionResponse) IsEmpty() bool {
+	return r == exceptionResponse{}
+}
+
+type SimpleTaskResponse struct {
 	Value     string
 	Exception exceptionResponse
 }
 
-func (r *SimpleResponse) GetException() exceptionResponse {
+func (r *SimpleTaskResponse) GetException() exceptionResponse {
 	return r.Exception
+}
+
+func (r *SimpleTaskResponse) Unmarshal(message []byte) error {
+	return json.Unmarshal(message, r)
 }
 
 type TaskResponse struct {
@@ -22,12 +37,12 @@ type TaskResponse struct {
 	Exception exceptionResponse
 }
 
-type exceptionResponse struct {
-	Message string
-}
-
 func (r *TaskResponse) GetException() exceptionResponse {
 	return r.Exception
+}
+
+func (r *TaskResponse) Unmarshal(message []byte) error {
+	return json.Unmarshal(message, r)
 }
 
 func (r *TaskResponse) TaskID() (string, error) {

@@ -39,11 +39,11 @@ var _ = Describe("AgentClient", func() {
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
 				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				var request AgentRequest
+				var request AgentRequestMessage
 				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(AgentRequest{
+				Expect(request).To(Equal(AgentRequestMessage{
 					Method:    "ping",
 					Arguments: []interface{}{},
 					ReplyTo:   "fake-uuid",
@@ -98,11 +98,11 @@ var _ = Describe("AgentClient", func() {
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
 				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				var request AgentRequest
+				var request AgentRequestMessage
 				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(AgentRequest{
+				Expect(request).To(Equal(AgentRequestMessage{
 					Method:    "stop",
 					Arguments: []interface{}{},
 					ReplyTo:   "fake-uuid",
@@ -116,11 +116,11 @@ var _ = Describe("AgentClient", func() {
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
 				Expect(fakeHTTPClient.PostInputs[1].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				var request AgentRequest
+				var request AgentRequestMessage
 				err = json.Unmarshal(fakeHTTPClient.PostInputs[1].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(AgentRequest{
+				Expect(request).To(Equal(AgentRequestMessage{
 					Method:    "get_task",
 					Arguments: []interface{}{"fake-agent-task-id"},
 					ReplyTo:   "fake-uuid",
@@ -183,7 +183,7 @@ var _ = Describe("AgentClient", func() {
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
 				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				var request AgentRequest
+				var request AgentRequestMessage
 				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -191,7 +191,7 @@ var _ = Describe("AgentClient", func() {
 				err = json.Unmarshal(specJSON, &specArgument)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(AgentRequest{
+				Expect(request).To(Equal(AgentRequestMessage{
 					Method:    "apply",
 					Arguments: []interface{}{specArgument},
 					ReplyTo:   "fake-uuid",
@@ -205,11 +205,11 @@ var _ = Describe("AgentClient", func() {
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
 				Expect(fakeHTTPClient.PostInputs[1].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				var request AgentRequest
+				var request AgentRequestMessage
 				err = json.Unmarshal(fakeHTTPClient.PostInputs[1].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(AgentRequest{
+				Expect(request).To(Equal(AgentRequestMessage{
 					Method:    "get_task",
 					Arguments: []interface{}{"fake-agent-task-id"},
 					ReplyTo:   "fake-uuid",
@@ -255,11 +255,11 @@ var _ = Describe("AgentClient", func() {
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
 				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
 
-				var request AgentRequest
+				var request AgentRequestMessage
 				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(request).To(Equal(AgentRequest{
+				Expect(request).To(Equal(AgentRequestMessage{
 					Method:    "start",
 					Arguments: []interface{}{},
 					ReplyTo:   "fake-uuid",
