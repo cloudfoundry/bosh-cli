@@ -45,7 +45,14 @@ var _ = Describe("MicroDeployer", func() {
 	)
 
 	BeforeEach(func() {
-		deployment = bmdepl.Deployment{}
+		deployment = bmdepl.Deployment{
+			Update: bmdepl.Update{
+				UpdateWatchTime: bmdepl.WatchTime{
+					Start: 0,
+					End:   5478,
+				},
+			},
+		}
 		registry = bmdepl.Registry{
 			Username: "fake-username",
 			Password: "fake-password",
@@ -133,7 +140,7 @@ var _ = Describe("MicroDeployer", func() {
 	It("waits for the instance", func() {
 		err := microDeployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fakeInstance.WaitInputs).To(ContainElement(fakebmins.WaitInput{
+		Expect(fakeInstance.WaitToBeReadyInputs).To(ContainElement(fakebmins.WaitInput{
 			MaxAttempts: 300,
 			Delay:       500 * time.Millisecond,
 		}))
@@ -156,54 +163,78 @@ var _ = Describe("MicroDeployer", func() {
 		Expect(fakeInstance.StartCalled).To(BeTrue())
 	})
 
+	It("waits until agent reports state as running", func() {
+		err := microDeployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(fakeInstance.WaitToBeRunningInputs).To(ContainElement(fakebmins.WaitInput{
+			MaxAttempts: 5,
+			Delay:       1 * time.Second,
+		}))
+	})
+
 	It("logs start and stop events to the eventLogger", func() {
 		err := microDeployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 4,
+			Total: 5,
 			Task:  fmt.Sprintf("Waiting for the agent"),
 			Index: 2,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 4,
+			Total: 5,
 			Task:  fmt.Sprintf("Waiting for the agent"),
 			Index: 2,
 			State: bmeventlog.Finished,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 4,
+			Total: 5,
 			Task:  fmt.Sprintf("Applying micro BOSH spec"),
 			Index: 3,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 4,
+			Total: 5,
 			Task:  fmt.Sprintf("Applying micro BOSH spec"),
 			Index: 3,
 			State: bmeventlog.Finished,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 4,
+			Total: 5,
 			Task:  fmt.Sprintf("Starting agent services"),
 			Index: 4,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 4,
+			Total: 5,
 			Task:  fmt.Sprintf("Starting agent services"),
 			Index: 4,
+			State: bmeventlog.Finished,
+		}))
+		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
+			Stage: "Deploy Micro BOSH",
+			Total: 5,
+			Task:  fmt.Sprintf("Waiting for the director"),
+			Index: 5,
+			State: bmeventlog.Started,
+		}))
+		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
+			Stage: "Deploy Micro BOSH",
+			Total: 5,
+			Task:  fmt.Sprintf("Waiting for the director"),
+			Index: 5,
 			State: bmeventlog.Finished,
 		}))
 
-		Expect(eventLogger.LoggedEvents).To(HaveLen(6))
+		Expect(eventLogger.LoggedEvents).To(HaveLen(8))
 	})
 
 	Context("when starting SSH tunnel fails", func() {
@@ -242,7 +273,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 4,
+				Total: 5,
 				Task:  fmt.Sprintf("Waiting for the agent"),
 				Index: 2,
 				State: bmeventlog.Started,
@@ -250,7 +281,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   4,
+				Total:   5,
 				Task:    fmt.Sprintf("Waiting for the agent"),
 				Index:   2,
 				State:   bmeventlog.Failed,
@@ -274,7 +305,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 4,
+				Total: 5,
 				Task:  fmt.Sprintf("Applying micro BOSH spec"),
 				Index: 3,
 				State: bmeventlog.Started,
@@ -282,7 +313,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   4,
+				Total:   5,
 				Task:    fmt.Sprintf("Applying micro BOSH spec"),
 				Index:   3,
 				State:   bmeventlog.Failed,
@@ -306,7 +337,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 4,
+				Total: 5,
 				Task:  fmt.Sprintf("Starting agent services"),
 				Index: 4,
 				State: bmeventlog.Started,
@@ -314,7 +345,7 @@ var _ = Describe("MicroDeployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   4,
+				Total:   5,
 				Task:    fmt.Sprintf("Starting agent services"),
 				Index:   4,
 				State:   bmeventlog.Failed,
@@ -333,6 +364,38 @@ var _ = Describe("MicroDeployer", func() {
 			err := microDeployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-vm-error"))
+		})
+	})
+
+	Context("when waiting for running state fails", func() {
+		BeforeEach(func() {
+			fakeInstance.WaitToBeRunningErr = errors.New("fake-wait-running-error")
+		})
+
+		It("logs start and stop events to the eventLogger", func() {
+			err := microDeployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
+
+			expectedStartEvent := bmeventlog.Event{
+				Stage: "Deploy Micro BOSH",
+				Total: 5,
+				Task:  fmt.Sprintf("Waiting for the director"),
+				Index: 5,
+				State: bmeventlog.Started,
+			}
+
+			expectedFailedEvent := bmeventlog.Event{
+				Stage:   "Deploy Micro BOSH",
+				Total:   5,
+				Task:    fmt.Sprintf("Waiting for the director"),
+				Index:   5,
+				State:   bmeventlog.Failed,
+				Message: "fake-wait-running-error",
+			}
+			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
+			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
+			Expect(eventLogger.LoggedEvents).To(HaveLen(8))
 		})
 	})
 })

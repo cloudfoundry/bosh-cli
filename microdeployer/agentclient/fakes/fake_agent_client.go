@@ -18,9 +18,8 @@ type FakeAgentClient struct {
 	StartCalled bool
 	startErr    error
 
-	GetStateCalled        bool
-	getStateStateResponse bmagentclient.State
-	getStateErr           error
+	GetStateCalledTimes int
+	getStateOutputs     []getStateOutput
 }
 
 type pingResponse struct {
@@ -28,8 +27,15 @@ type pingResponse struct {
 	err      error
 }
 
+type getStateOutput struct {
+	state bmagentclient.State
+	err   error
+}
+
 func NewFakeAgentClient() *FakeAgentClient {
-	return &FakeAgentClient{}
+	return &FakeAgentClient{
+		getStateOutputs: []getStateOutput{},
+	}
 }
 
 func (c *FakeAgentClient) Ping() (string, error) {
@@ -61,8 +67,12 @@ func (c *FakeAgentClient) Start() error {
 }
 
 func (c *FakeAgentClient) GetState() (bmagentclient.State, error) {
-	c.GetStateCalled = true
-	return c.getStateStateResponse, c.getStateErr
+	c.GetStateCalledTimes++
+
+	getStateReturn := c.getStateOutputs[0]
+	c.getStateOutputs = c.getStateOutputs[1:]
+
+	return getStateReturn.state, getStateReturn.err
 }
 
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {
@@ -81,6 +91,8 @@ func (c *FakeAgentClient) SetStartBehavior(err error) {
 }
 
 func (c *FakeAgentClient) SetGetStateBehavior(stateResponse bmagentclient.State, err error) {
-	c.getStateStateResponse = stateResponse
-	c.getStateErr = err
+	c.getStateOutputs = append(c.getStateOutputs, getStateOutput{
+		state: stateResponse,
+		err:   err,
+	})
 }

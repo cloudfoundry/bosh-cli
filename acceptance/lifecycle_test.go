@@ -75,6 +75,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(stdout).To(ContainSubstring("Waiting for the agent"))
 		Expect(stdout).To(ContainSubstring("Applying micro BOSH spec"))
 		Expect(stdout).To(ContainSubstring("Starting agent services"))
+		Expect(stdout).To(ContainSubstring("Waiting for the director"))
 	})
 })
 

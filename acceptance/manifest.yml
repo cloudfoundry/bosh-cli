@@ -123,3 +123,9 @@ jobs:
         port: 5432
         adapter: "postgres"
     ntp: []
+    # Control some remote vCenter
+    vcenter:
+      address: fake-address
+      user: fake-user
+      password: fake-password
+      datacenters: []

@@ -99,6 +99,11 @@ func (m *microDeployer) Deploy(
 		return bosherr.WrapError(err, "Starting agent services")
 	}
 
+	err = m.waitUntilRunning(instance, deployment.Update.UpdateWatchTime)
+	if err != nil {
+		return bosherr.WrapError(err, "Waiting for director to be running")
+	}
+
 	return nil
 }
 
@@ -116,7 +121,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 ) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 4,
+		Total: 5,
 		Task:  fmt.Sprintf("Waiting for the agent"),
 		Index: 2,
 		State: bmeventlog.Started,
@@ -147,7 +152,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   4,
+			Total:   5,
 			Task:    fmt.Sprintf("Waiting for the agent"),
 			Index:   2,
 			State:   bmeventlog.Failed,
@@ -159,7 +164,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 4,
+		Total: 5,
 		Task:  fmt.Sprintf("Waiting for the agent"),
 		Index: 2,
 		State: bmeventlog.Finished,
@@ -172,7 +177,7 @@ func (m *microDeployer) waitUntilAgentIsReady(
 func (m *microDeployer) updateInstance(instance bmins.Instance, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 4,
+		Total: 5,
 		Task:  fmt.Sprintf("Applying micro BOSH spec"),
 		Index: 3,
 		State: bmeventlog.Started,
@@ -183,7 +188,7 @@ func (m *microDeployer) updateInstance(instance bmins.Instance, stemcellApplySpe
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   4,
+			Total:   5,
 			Task:    fmt.Sprintf("Applying micro BOSH spec"),
 			Index:   3,
 			State:   bmeventlog.Failed,
@@ -196,7 +201,7 @@ func (m *microDeployer) updateInstance(instance bmins.Instance, stemcellApplySpe
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 4,
+		Total: 5,
 		Task:  fmt.Sprintf("Applying micro BOSH spec"),
 		Index: 3,
 		State: bmeventlog.Finished,
@@ -209,7 +214,7 @@ func (m *microDeployer) updateInstance(instance bmins.Instance, stemcellApplySpe
 func (m *microDeployer) sendStartMessage(instance bmins.Instance) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 4,
+		Total: 5,
 		Task:  fmt.Sprintf("Starting agent services"),
 		Index: 4,
 		State: bmeventlog.Started,
@@ -220,7 +225,7 @@ func (m *microDeployer) sendStartMessage(instance bmins.Instance) error {
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   4,
+			Total:   5,
 			Task:    fmt.Sprintf("Starting agent services"),
 			Index:   4,
 			State:   bmeventlog.Failed,
@@ -233,12 +238,51 @@ func (m *microDeployer) sendStartMessage(instance bmins.Instance) error {
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 4,
+		Total: 5,
 		Task:  fmt.Sprintf("Starting agent services"),
 		Index: 4,
 		State: bmeventlog.Finished,
 	}
 	m.eventLogger.AddEvent(event)
 
+	return nil
+}
+
+func (m *microDeployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmdepl.WatchTime) error {
+	event := bmeventlog.Event{
+		Stage: "Deploy Micro BOSH",
+		Total: 5,
+		Task:  fmt.Sprintf("Waiting for the director"),
+		Index: 5,
+		State: bmeventlog.Started,
+	}
+	m.eventLogger.AddEvent(event)
+
+	time.Sleep(time.Duration(updateWatchTime.Start) * time.Millisecond)
+	numAttempts := int((updateWatchTime.End - updateWatchTime.Start) / 1000)
+
+	err := instance.WaitToBeRunning(numAttempts, 1*time.Second)
+	if err != nil {
+		event = bmeventlog.Event{
+			Stage:   "Deploy Micro BOSH",
+			Total:   5,
+			Task:    fmt.Sprintf("Waiting for the director"),
+			Index:   5,
+			State:   bmeventlog.Failed,
+			Message: err.Error(),
+		}
+		m.eventLogger.AddEvent(event)
+
+		return bosherr.WrapError(err, "Waiting for the director")
+	}
+
+	event = bmeventlog.Event{
+		Stage: "Deploy Micro BOSH",
+		Total: 5,
+		Task:  fmt.Sprintf("Waiting for the director"),
+		Index: 5,
+		State: bmeventlog.Finished,
+	}
+	m.eventLogger.AddEvent(event)
 	return nil
 }

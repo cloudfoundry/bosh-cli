@@ -28,6 +28,7 @@ type Instance interface {
 	WaitToBeReady(maxAttempts int, delay time.Duration) error
 	Apply(bmstemcell.ApplySpec, bmdepl.Deployment) error
 	Start() error
+	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 }
 
 func NewInstance(
@@ -114,4 +115,10 @@ func (i *instance) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmde
 
 func (i *instance) Start() error {
 	return i.agentClient.Start()
+}
+
+func (i *instance) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
+	agentGetStateRetryable := bmagentclient.NewGetStateRetryable(i.agentClient)
+	agentGetStateRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(maxAttempts, delay, agentGetStateRetryable, i.logger)
+	return agentGetStateRetryStrategy.Try()
 }

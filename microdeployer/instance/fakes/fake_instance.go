@@ -14,8 +14,11 @@ type FakeInstance struct {
 	StartCalled bool
 	StartErr    error
 
-	WaitInputs       []WaitInput
-	WaitToBeReadyErr error
+	WaitToBeReadyInputs []WaitInput
+	WaitToBeReadyErr    error
+
+	WaitToBeRunningInputs []WaitInput
+	WaitToBeRunningErr    error
 }
 
 type ApplyInput struct {
@@ -30,13 +33,14 @@ type WaitInput struct {
 
 func NewFakeInstance() *FakeInstance {
 	return &FakeInstance{
-		ApplyInputs: []ApplyInput{},
-		WaitInputs:  []WaitInput{},
+		ApplyInputs:           []ApplyInput{},
+		WaitToBeReadyInputs:   []WaitInput{},
+		WaitToBeRunningInputs: []WaitInput{},
 	}
 }
 
 func (i *FakeInstance) WaitToBeReady(maxAttempts int, delay time.Duration) error {
-	i.WaitInputs = append(i.WaitInputs, WaitInput{
+	i.WaitToBeReadyInputs = append(i.WaitToBeReadyInputs, WaitInput{
 		MaxAttempts: maxAttempts,
 		Delay:       delay,
 	})
@@ -56,4 +60,12 @@ func (i *FakeInstance) Start() error {
 	i.StartCalled = true
 
 	return i.StartErr
+}
+
+func (i *FakeInstance) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
+	i.WaitToBeRunningInputs = append(i.WaitToBeRunningInputs, WaitInput{
+		MaxAttempts: maxAttempts,
+		Delay:       delay,
+	})
+	return i.WaitToBeRunningErr
 }

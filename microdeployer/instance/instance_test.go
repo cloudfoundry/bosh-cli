@@ -13,6 +13,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
@@ -126,7 +127,7 @@ var _ = Describe("Instance", func() {
 		)
 	})
 
-	Describe("Update", func() {
+	Describe("Apply", func() {
 		It("stops the agent", func() {
 			err := instance.Apply(applySpec, deployment)
 			Expect(err).ToNot(HaveOccurred())
@@ -234,6 +235,20 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 			})
+		})
+	})
+
+	Describe("WaitToBeRunning", func() {
+		BeforeEach(func() {
+			fakeAgentClient.SetGetStateBehavior(bmagentclient.State{JobState: "pending"}, nil)
+			fakeAgentClient.SetGetStateBehavior(bmagentclient.State{JobState: "pending"}, nil)
+			fakeAgentClient.SetGetStateBehavior(bmagentclient.State{JobState: "running"}, nil)
+		})
+
+		It("waits until agent reports state as running", func() {
+			err := instance.WaitToBeRunning(5, 0)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.GetStateCalledTimes).To(Equal(3))
 		})
 	})
 })

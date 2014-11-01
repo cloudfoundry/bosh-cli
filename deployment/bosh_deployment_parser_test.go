@@ -48,6 +48,8 @@ var _ = Describe("DeploymentRenderer", func() {
 				contents := `
 ---
 name: fake-deployment-name
+update:
+  update_watch_time: 2000-7000
 resource_pools:
 - name: fake-resource-pool-name
   env:
@@ -68,7 +70,7 @@ jobs:
   - name: vip
     static_ips: [1.2.3.4]
   properties:
-    fake-prop-key: 
+    fake-prop-key:
       nested-prop-key: fake-prop-value
 cloud_provider:
   properties:
@@ -82,6 +84,9 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.Name).To(Equal("fake-deployment-name"))
+				Expect(deployment.Update.UpdateWatchTime.Start).To(Equal(2000))
+				Expect(deployment.Update.UpdateWatchTime.End).To(Equal(7000))
+
 				networks := deployment.Networks
 				Expect(networks).To(Equal([]Network{
 					{
@@ -127,6 +132,25 @@ cloud_provider:
 						},
 					},
 				}))
+			})
+
+			Context("when update watch time is not set", func() {
+				BeforeEach(func() {
+					contents := `
+---
+name: fake-deployment-name
+`
+					fakeFs.WriteFileString(deploymentPath, contents)
+				})
+
+				It("uses default values", func() {
+					deployment, err := manifestParser.Parse(deploymentPath)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(deployment.Name).To(Equal("fake-deployment-name"))
+					Expect(deployment.Update.UpdateWatchTime.Start).To(Equal(0))
+					Expect(deployment.Update.UpdateWatchTime.End).To(Equal(300000))
+				})
 			})
 		})
 	})

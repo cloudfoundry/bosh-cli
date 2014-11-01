@@ -52,6 +52,11 @@ type Deployment struct {
 	Jobs            []Job
 	Networks        []Network
 	ResourcePools   []ResourcePool
+	Update          Update
+}
+
+type Update struct {
+	UpdateWatchTime WatchTime
 }
 
 func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error) {

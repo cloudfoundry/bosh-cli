@@ -17,9 +17,23 @@ func NewBoshDeploymentParser(fs boshsys.FileSystem) ManifestParser {
 
 type boshDeploymentManifest struct {
 	Name          string
+	Update        UpdateSpec
 	Networks      []Network
 	ResourcePools []ResourcePool `yaml:"resource_pools"`
 	Jobs          []Job
+}
+
+type UpdateSpec struct {
+	UpdateWatchTime *string `yaml:"update_watch_time"`
+}
+
+var boshDeploymentDefaults = Deployment{
+	Update: Update{
+		UpdateWatchTime: WatchTime{
+			Start: 0,
+			End:   300000,
+		},
+	},
 }
 
 func (p boshDeploymentParser) Parse(path string) (Deployment, error) {
@@ -34,11 +48,21 @@ func (p boshDeploymentParser) Parse(path string) (Deployment, error) {
 		return Deployment{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
 
-	deployment := Deployment{
-		Name:          depManifest.Name,
-		Networks:      depManifest.Networks,
-		ResourcePools: depManifest.ResourcePools,
-		Jobs:          depManifest.Jobs,
+	deployment := boshDeploymentDefaults
+	deployment.Name = depManifest.Name
+	deployment.Networks = depManifest.Networks
+	deployment.ResourcePools = depManifest.ResourcePools
+	deployment.Jobs = depManifest.Jobs
+
+	if depManifest.Update.UpdateWatchTime != nil {
+		updateWatchTime, err := NewWatchTime(*depManifest.Update.UpdateWatchTime)
+		if err != nil {
+			return Deployment{}, bosherr.WrapError(err, "Parsing update watch time")
+		}
+
+		deployment.Update = Update{
+			UpdateWatchTime: updateWatchTime,
+		}
 	}
 
 	return deployment, nil
