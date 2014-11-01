@@ -16,17 +16,17 @@ import (
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
+	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployer/blobstore"
+	bmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
+	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
-	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/microdeployer/agentclient"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/microdeployer/applyspec"
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/microdeployer/blobstore"
-	bmins "github.com/cloudfoundry/bosh-micro-cli/microdeployer/instance"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/microdeployer/registry"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/microdeployer/sshtunnel"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
@@ -202,7 +202,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fs,
 		f.logger,
 	)
-	microDeployer := bmmicrodeploy.NewMicroDeployer(
+	deployer := bmdeployer.NewDeployer(
 		vmManagerFactory,
 		sshTunnelFactory,
 		registryServer,
@@ -219,7 +219,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		boshManifestParser,
 		cpiDeployer,
 		stemcellManagerFactory,
-		microDeployer,
+		deployer,
 		f.logger,
 	), nil
 }

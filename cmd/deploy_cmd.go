@@ -10,8 +10,8 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
+	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmmicrodeploy "github.com/cloudfoundry/bosh-micro-cli/microdeployer"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
@@ -25,7 +25,7 @@ type deployCmd struct {
 	boshManifestParser     bmdepl.ManifestParser
 	cpiDeployer            bmcpideploy.CpiDeployer
 	stemcellManagerFactory bmstemcell.ManagerFactory
-	microDeployer          bmmicrodeploy.Deployer
+	deployer               bmdeployer.Deployer
 	logger                 boshlog.Logger
 	logTag                 string
 }
@@ -38,7 +38,7 @@ func NewDeployCmd(
 	boshManifestParser bmdepl.ManifestParser,
 	cpiDeployer bmcpideploy.CpiDeployer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
-	microDeployer bmmicrodeploy.Deployer,
+	deployer bmdeployer.Deployer,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
@@ -49,7 +49,7 @@ func NewDeployCmd(
 		boshManifestParser:     boshManifestParser,
 		cpiDeployer:            cpiDeployer,
 		stemcellManagerFactory: stemcellManagerFactory,
-		microDeployer:          microDeployer,
+		deployer:               deployer,
 		logger:                 logger,
 		logTag:                 "deployCmd",
 	}
@@ -86,7 +86,7 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
 	}
 
-	err = c.microDeployer.Deploy(
+	err = c.deployer.Deploy(
 		cloud,
 		boshDeployment,
 		stemcell.ApplySpec,
