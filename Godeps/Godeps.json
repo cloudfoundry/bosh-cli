@@ -12,7 +12,7 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/candiedyaml",
-			"Rev": "42b748ad054a21a2867b5fcd557a82a06cbdc782"
+			"Rev": "4828bc8c3d776f1c7753b0559508fc0bb84c94b2"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/blobstore",

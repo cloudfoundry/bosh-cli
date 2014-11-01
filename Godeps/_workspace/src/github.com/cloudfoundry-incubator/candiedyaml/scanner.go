@@ -2276,6 +2276,9 @@ func yaml_parser_scan_tag(parser *yaml_parser_t, token *yaml_token_t) bool {
 		}
 
 		skip(parser)
+	} else if is_blank(parser.buffer[parser.buffer_pos+1]) {
+		// NON-SPECIFIED
+		skip(parser)
 	} else {
 		/* The tag has either the '!suffix' or the '!handle!suffix' form. */
 
@@ -2287,7 +2290,7 @@ func yaml_parser_scan_tag(parser *yaml_parser_t, token *yaml_token_t) bool {
 
 		/* Check if it is, indeed, handle. */
 
-		if handle[0] == '!' && len(handle) > 0 && handle[len(handle)-1] == '!' {
+		if handle[0] == '!' && len(handle) > 1 && handle[len(handle)-1] == '!' {
 			/* Scan the suffix now. */
 
 			if !yaml_parser_scan_tag_uri(parser, false, nil, start_mark, &suffix) {
@@ -2946,8 +2949,8 @@ func yaml_parser_scan_flow_scalar(parser *yaml_parser_t, token *yaml_token_t,
 					s = append(s, '\x20')
 				case '"':
 					s = append(s, '"')
-				case '\'':
-					s = append(s, '\'')
+				case '/':
+					s = append(s, '/')
 				case '\\':
 					s = append(s, '\\')
 				case 'N': /* NEL (#x85) */

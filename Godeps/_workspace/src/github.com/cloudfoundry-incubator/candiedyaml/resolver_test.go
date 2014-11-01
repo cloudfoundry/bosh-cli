@@ -209,21 +209,10 @@ var _ = Describe("Resolver", func() {
 					Ω(i).To(Equal(int32(-2345)))
 				})
 
-				It("base 2", func() {
-					i := 0
-					v := reflect.ValueOf(&i)
-					event.value = []byte("0b11")
-
-					tag, err := resolve(event, v.Elem(), false)
-					Ω(err).ShouldNot(HaveOccurred())
-					Ω(tag).Should(Equal("!!int"))
-					Ω(i).To(Equal(3))
-				})
-
 				It("base 8", func() {
 					i := 0
 					v := reflect.ValueOf(&i)
-					event.value = []byte("012")
+					event.value = []byte("0o12")
 
 					tag, err := resolve(event, v.Elem(), false)
 					Ω(err).ShouldNot(HaveOccurred())
@@ -240,17 +229,6 @@ var _ = Describe("Resolver", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(tag).Should(Equal("!!int"))
 					Ω(i).To(Equal(255))
-				})
-
-				It("base 60", func() {
-					i := 0
-					v := reflect.ValueOf(&i)
-					event.value = []byte("1:30:00")
-
-					tag, err := resolve(event, v.Elem(), false)
-					Ω(err).ShouldNot(HaveOccurred())
-					Ω(tag).Should(Equal("!!int"))
-					Ω(i).To(Equal(5400))
 				})
 
 				It("fails on overflow", func() {
@@ -337,21 +315,10 @@ var _ = Describe("Resolver", func() {
 					Ω(i).To(Equal(uint16(678)))
 				})
 
-				It("base 2", func() {
-					i := uint(0)
-					v := reflect.ValueOf(&i)
-					event.value = []byte("0b11")
-
-					tag, err := resolve(event, v.Elem(), false)
-					Ω(err).ShouldNot(HaveOccurred())
-					Ω(tag).Should(Equal("!!int"))
-					Ω(i).To(Equal(uint(3)))
-				})
-
 				It("base 8", func() {
 					i := uint(0)
 					v := reflect.ValueOf(&i)
-					event.value = []byte("012")
+					event.value = []byte("0o12")
 
 					tag, err := resolve(event, v.Elem(), false)
 					Ω(err).ShouldNot(HaveOccurred())
@@ -368,17 +335,6 @@ var _ = Describe("Resolver", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(tag).Should(Equal("!!int"))
 					Ω(i).To(Equal(uint(255)))
-				})
-
-				It("base 60", func() {
-					i := uint(0)
-					v := reflect.ValueOf(&i)
-					event.value = []byte("1:30:01")
-
-					tag, err := resolve(event, v.Elem(), false)
-					Ω(err).ShouldNot(HaveOccurred())
-					Ω(tag).Should(Equal("!!int"))
-					Ω(i).To(Equal(uint(5401)))
 				})
 
 				It("fails with negative ints", func() {
@@ -495,17 +451,6 @@ var _ = Describe("Resolver", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(tag).Should(Equal("!!float"))
 					Ω(math.IsNaN(f)).To(BeTrue())
-				})
-
-				It("base 60", func() {
-					f := float64(0)
-					v := reflect.ValueOf(&f)
-					event.value = []byte("1:30:02")
-
-					tag, err := resolve(event, v.Elem(), false)
-					Ω(err).ShouldNot(HaveOccurred())
-					Ω(tag).Should(Equal("!!float"))
-					Ω(f).To(Equal(float64(5402)))
 				})
 
 				It("fails on overflow", func() {

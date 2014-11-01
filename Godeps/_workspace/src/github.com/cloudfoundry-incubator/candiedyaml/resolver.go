@@ -90,7 +90,12 @@ func resolve(event yaml_event_t, v reflect.Value, useNumber bool) (string, error
 		return resolve_float(val, v, useNumber)
 	case reflect.Interface:
 		_, i := resolveInterface(event, useNumber)
-		v.Set(reflect.ValueOf(i))
+		if i != nil {
+			v.Set(reflect.ValueOf(i))
+		} else {
+			v.Set(reflect.Zero(v.Type()))
+		}
+
 	case reflect.Struct:
 		return resolve_time(val, v)
 	case reflect.Slice:
@@ -175,22 +180,14 @@ func resolve_int(val string, v reflect.Value, useNumber bool) (string, error) {
 		return "!!int", nil
 	}
 
-	var err error
-	if strings.Contains(val, ":") {
-		value, err = decode_int_base64(val)
-		if err != nil {
-			return "", errors.New("Integer: " + original)
-		}
-	} else {
-		if strings.HasPrefix(val, "0b") {
-			base = 2
-			val = val[2:]
-		}
+	if strings.HasPrefix(val, "0o") {
+		base = 8
+		val = val[2:]
+	}
 
-		value, err = strconv.ParseUint(val, base, 64)
-		if err != nil {
-			return "", errors.New("Integer: " + original)
-		}
+	value, err := strconv.ParseUint(val, base, 64)
+	if err != nil {
+		return "", errors.New("Integer: " + original)
 	}
 
 	var val64 int64
@@ -217,24 +214,6 @@ func resolve_int(val string, v reflect.Value, useNumber bool) (string, error) {
 	return "!!int", nil
 }
 
-func decode_int_base64(val string) (uint64, error) {
-	digits := strings.Split(val, ":")
-
-	bes := uint64(1)
-	var value uint64
-	for j := len(digits) - 1; j >= 0; j-- {
-		n, err := strconv.ParseUint(digits[j], 10, 64)
-		if err != nil {
-			return 0, err
-		}
-
-		n *= bes
-		value += n
-		bes *= 60
-	}
-	return value, nil
-}
-
 func resolve_uint(val string, v reflect.Value, useNumber bool) (string, error) {
 	original := val
 	val = strings.Replace(val, "_", "", -1)
@@ -250,7 +229,7 @@ func resolve_uint(val string, v reflect.Value, useNumber bool) (string, error) {
 		val = val[1:]
 	}
 
-	base := 10
+	base := 0
 	if val == "0" {
 		if isNumberValue {
 			v.SetString("0")
@@ -261,38 +240,9 @@ func resolve_uint(val string, v reflect.Value, useNumber bool) (string, error) {
 		return "!!int", nil
 	}
 
-	if strings.HasPrefix(val, "0b") {
-		base = 2
-		val = val[2:]
-	} else if strings.HasPrefix(val, "0x") {
-		base = 16
-		val = val[2:]
-	} else if val[0] == '0' {
+	if strings.HasPrefix(val, "0o") {
 		base = 8
-		val = val[1:]
-	} else if strings.Contains(val, ":") {
-		digits := strings.Split(val, ":")
-		bes := uint64(1)
-		for j := len(digits) - 1; j >= 0; j-- {
-			n, err := strconv.ParseUint(digits[j], 10, 64)
-			n *= bes
-			if err != nil {
-				return "", errors.New("Unsigned Integer: " + original)
-			}
-			value += n
-			bes *= 60
-		}
-
-		if isNumberValue {
-			v.SetString(strconv.FormatUint(value, 10))
-		} else {
-			if v.OverflowUint(value) {
-				return "", errors.New("Unsigned Integer: " + original)
-			}
-
-			v.SetUint(value)
-		}
-		return "!!int", nil
+		val = val[2:]
 	}
 
 	value, err := strconv.ParseUint(val, base, 64)
@@ -336,19 +286,6 @@ func resolve_float(val string, v reflect.Value, useNumber bool) (string, error) 
 		value = math.Inf(sign)
 	} else if valLower == ".nan" {
 		value = math.NaN()
-	} else if strings.Contains(val, ":") {
-		digits := strings.Split(val, ":")
-		bes := float64(1)
-		for j := len(digits) - 1; j >= 0; j-- {
-			n, err := strconv.ParseFloat(digits[j], typeBits)
-			n *= bes
-			if err != nil {
-				return "", errors.New("Float: " + val)
-			}
-			value += n
-			bes *= 60
-		}
-		value *= float64(sign)
 	} else {
 		var err error
 		value, err = strconv.ParseFloat(val, typeBits)

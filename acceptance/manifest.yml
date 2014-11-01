@@ -21,7 +21,7 @@ cloud_provider:
     port: 22
     user: vcap
     password: c1oudc0w
-  registry:
+  registry: &registry
     host: 127.0.0.1
     port: 6301
     username: fake-registry-user
@@ -35,11 +35,7 @@ cloud_provider:
         network_pool: 10.244.0.0/16
         host_ip: 192.168.54.4
       agent_env_service: registry
-      registry:
-        host: 127.0.0.1
-        port: 6301
-        username: fake-registry-user
-        password: fake-registry-password
+      registry: *registry
       agent:
         mbus: https://admin:admin@0.0.0.0:6868
         blobstore:
