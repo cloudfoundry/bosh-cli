@@ -8,7 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployer/httpclient"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
+	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy"
 )
 
 type AgentClient interface {

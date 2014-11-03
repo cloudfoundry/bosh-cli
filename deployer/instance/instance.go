@@ -9,8 +9,8 @@ import (
 
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
+	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 

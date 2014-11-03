@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/fakes"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
+	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 )

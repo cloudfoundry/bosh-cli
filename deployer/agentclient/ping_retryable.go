@@ -1,7 +1,7 @@
 package agentclient
 
 import (
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/retrystrategy"
+	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy"
 )
 
 type pingRetryable struct {
