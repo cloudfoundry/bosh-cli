@@ -3,6 +3,9 @@ name: test-release
 
 resource_pools:
 - name: fake-resource-pool-name
+  env:
+    bosh:
+      password: pjF0EjcwDTvyQ # openssl passwd -crypt sshpassword
 
 networks:
 - name: fake-network-name

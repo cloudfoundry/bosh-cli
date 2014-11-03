@@ -17,6 +17,12 @@ cleanup() {
   if [ ! -z "$OLD_BOSH_LITE_PRIVATE_KEY" ]; then
     export BOSH_LITE_PRIVATE_KEY=$OLD_BOSH_LITE_PRIVATE_KEY
   fi
+
+  if [ `uname` = "Darwin" ]; then
+    sudo route delete -net 10.244.0.0/19 $BOSH_MICRO_VM_IP > /dev/null 2>&1
+  elif [ `uname` = "Linux" ]; then
+    sudo route del -net 10.244.0.0/19 gw $BOSH_MICRO_VM_IP
+  fi
 }
 trap cleanup EXIT
 
@@ -40,5 +46,12 @@ vagrant up $@
 export BOSH_MICRO_VM_USERNAME=`vagrant ssh-config | grep "User " | awk '{print $2}'`
 export BOSH_MICRO_VM_IP=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{print $2}'`
 export BOSH_MICRO_PRIVATE_KEY=${BOSH_LITE_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
+
+if [ `uname` = "Darwin" ]; then
+  sudo route delete -net 10.244.0.0/19 $BOSH_MICRO_VM_IP > /dev/null 2>&1
+  sudo route add -net 10.244.0.0/19 $BOSH_MICRO_VM_IP
+elif [ `uname` = "Linux" ]; then
+  sudo route add -net 10.244.0.0/19 gw $BOSH_MICRO_VM_IP
+fi
 
 ./bin/test-acceptance

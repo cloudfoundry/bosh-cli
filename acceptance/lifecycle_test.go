@@ -1,6 +1,8 @@
 package acceptance_test
 
 import (
+	"bytes"
+	"code.google.com/p/go.crypto/ssh"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -57,6 +59,26 @@ var _ = Describe("bosh-micro", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	ItSetsSSHPassword := func(username, password, hostname string) {
+		authMethods := []ssh.AuthMethod{
+			ssh.Password(password),
+		}
+
+		sshConfig := &ssh.ClientConfig{
+			User: username,
+			Auth: authMethods,
+		}
+
+		conn, _ := ssh.Dial("tcp", hostname+":22", sshConfig)
+		session, _ := conn.NewSession()
+		defer session.Close()
+
+		var stdoutBuf bytes.Buffer
+		session.Stdout = &stdoutBuf
+		session.Run("echo ok")
+		Expect(stdoutBuf.String()).To(ContainSubstring("ok"))
+	}
+
 	It("is able to deploy a CPI release with a stemcell", func() {
 		manifestPath := "./manifest.yml"
 		manifestContents, err := ioutil.ReadFile(manifestPath)
@@ -76,6 +98,8 @@ var _ = Describe("bosh-micro", func() {
 		Expect(stdout).To(ContainSubstring("Applying micro BOSH spec"))
 		Expect(stdout).To(ContainSubstring("Starting agent services"))
 		Expect(stdout).To(ContainSubstring("Waiting for the director"))
+
+		ItSetsSSHPassword("vcap", "sshpassword", "10.244.0.42")
 	})
 })
 
