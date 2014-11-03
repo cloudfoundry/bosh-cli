@@ -88,8 +88,8 @@ var _ = Describe("CpiDeployer", func() {
 					SHA1:          "fake-release-job-sha1",
 					ExtractedPath: "/release/extracted_jobs/fake-release-job-name",
 					Templates: map[string]string{
-						"cpi.erb":               "bin/cpi",
-						"micro_discover_ip.erb": "bin/micro_discover_ip",
+						"cpi.erb":     "bin/cpi",
+						"cpi.yml.erb": "config/cpi.yml",
 					},
 					PackageNames: []string{releasePackage.Name},
 					Packages:     []*bmrel.Package{releasePackage},
@@ -126,7 +126,7 @@ jobs:
 name: fake-release-job-name
 templates:
  cpi.erb: bin/cpi
- micro_discover_ip.erb: bin/micro_discover_ip
+ cpi.yml.erb: config/cpi.yml
 
 packages:
  - fake-release-package-name

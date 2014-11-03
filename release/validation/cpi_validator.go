@@ -41,10 +41,5 @@ func (v CpiValidator) validateCpiJob(release bmrel.Release) []error {
 		errs = append(errs, errors.New("Job `cpi' is missing bin/cpi target"))
 	}
 
-	_, ok = job.FindTemplateByValue("bin/micro_discover_ip")
-	if !ok {
-		errs = append(errs, errors.New("Job `cpi' is missing bin/micro_discover_ip target"))
-	}
-
 	return errs
 }

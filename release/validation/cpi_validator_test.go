@@ -18,8 +18,7 @@ var _ = Describe("CpiValidator", func() {
 					Fingerprint: "fake-job-1-fingerprint",
 					SHA1:        "fake-job-1-sha",
 					Templates: map[string]string{
-						"cpi.erb":               "bin/cpi",
-						"micro_discover_ip.erb": "bin/micro_discover_ip",
+						"cpi.erb": "bin/cpi",
 					},
 				},
 			},
@@ -69,8 +68,7 @@ var _ = Describe("CpiValidator", func() {
 						Fingerprint: "fake-job-1-fingerprint",
 						SHA1:        "fake-job-1-sha",
 						Templates: map[string]string{
-							"cpi.erb":               "nonsense",
-							"micro_discover_ip.erb": "bin/micro_discover_ip",
+							"cpi.erb": "nonsense",
 						},
 					},
 				},
@@ -82,33 +80,6 @@ var _ = Describe("CpiValidator", func() {
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Job `cpi' is missing bin/cpi target"))
-		})
-	})
-
-	Context("when the templates are missing a bin/micro_discover_ip target", func() {
-		var validator CpiValidator
-		var release bmrel.Release
-
-		BeforeEach(func() {
-			release = bmrel.Release{
-				Jobs: []bmrel.Job{
-					{
-						Name:        "cpi",
-						Fingerprint: "fake-job-1-fingerprint",
-						SHA1:        "fake-job-1-sha",
-						Templates: map[string]string{
-							"cpi.erb": "nonsense",
-						},
-					},
-				},
-			}
-			validator = NewCpiValidator()
-		})
-
-		It("returns an error that the bin/micro_discover_ip template target is missing", func() {
-			err := validator.Validate(release)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Job `cpi' is missing bin/micro_discover_ip target"))
 		})
 	})
 })
