@@ -20,8 +20,6 @@ cleanup() {
 
   if [ `uname` = "Darwin" ]; then
     sudo route delete -net 10.244.0.0/19 $BOSH_MICRO_VM_IP > /dev/null 2>&1
-  elif [ `uname` = "Linux" ]; then
-    sudo route del -net 10.244.0.0/19 gw $BOSH_MICRO_VM_IP
   fi
 }
 trap cleanup EXIT
