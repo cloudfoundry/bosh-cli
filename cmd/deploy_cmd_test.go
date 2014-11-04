@@ -56,7 +56,11 @@ var _ = Describe("DeployCmd", func() {
 	BeforeEach(func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
-		userConfig = bmconfig.UserConfig{}
+		userConfig = bmconfig.UserConfig{
+			DeploymentFile: "/some/deployment/file",
+		}
+		fakeFs.WriteFileString("/some/deployment/file", "")
+
 		fakeCpiDeployer = fakecpideploy.NewFakeCpiDeployer()
 		fakeStemcellManager = fakebmstemcell.NewFakeManager()
 		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
@@ -266,20 +270,7 @@ version: fake-version
 
 				Context("when the deployment manifest is missing", func() {
 					BeforeEach(func() {
-						userConfig.DeploymentFile = "/some/deployment/file"
-
-						// re-create command to update userConfig.DeploymentFile
-						command = bmcmd.NewDeployCmd(
-							fakeUI,
-							userConfig,
-							fakeFs,
-							fakeCpiManifestParser,
-							fakeBoshManifestParser,
-							fakeCpiDeployer,
-							fakeStemcellManagerFactory,
-							fakeDeployer,
-							logger,
-						)
+						fakeFs.RemoveAll("/some/deployment/file")
 					})
 
 					It("returns err", func() {
@@ -293,6 +284,23 @@ version: fake-version
 			})
 
 			Context("when there is no deployment set", func() {
+				BeforeEach(func() {
+					userConfig.DeploymentFile = ""
+
+					// re-create command to update userConfig.DeploymentFile
+					command = bmcmd.NewDeployCmd(
+						fakeUI,
+						userConfig,
+						fakeFs,
+						fakeCpiManifestParser,
+						fakeBoshManifestParser,
+						fakeCpiDeployer,
+						fakeStemcellManagerFactory,
+						fakeDeployer,
+						logger,
+					)
+				})
+
 				It("returns err", func() {
 					err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 					Expect(err).To(HaveOccurred())

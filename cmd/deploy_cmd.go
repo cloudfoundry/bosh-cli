@@ -115,11 +115,24 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 		return "", "", errors.New("Invalid usage - deploy command requires exactly 2 arguments")
 	}
 
+	// validate current state: 'microbosh' deployment set
+	if len(c.userConfig.DeploymentFile) == 0 {
+		c.ui.Error("No deployment set")
+		return "", "", bosherr.New("No deployment set")
+	}
+
+	c.logger.Info(c.logTag, "Checking for deployment `%s'", c.userConfig.DeploymentFile)
+	fileValidator := bmvalidation.NewFileValidator(c.fs)
+	err := fileValidator.Exists(c.userConfig.DeploymentFile)
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.userConfig.DeploymentFile))
+		return "", "", bosherr.WrapError(err, "Reading deployment manifest for deploy")
+	}
+
 	releaseTarballPath := args[0]
 	c.logger.Info(c.logTag, "Validating release tarball `%s'", releaseTarballPath)
 
-	fileValidator := bmvalidation.NewFileValidator(c.fs)
-	err := fileValidator.Exists(releaseTarballPath)
+	err = fileValidator.Exists(releaseTarballPath)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("CPI release `%s' does not exist", releaseTarballPath))
 		return "", "", bosherr.WrapError(err, "Checking CPI release `%s' existence", releaseTarballPath)
@@ -131,19 +144,6 @@ func (c *deployCmd) validateDeployInputs(args []string) (string, string, error) 
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Stemcell `%s' does not exist", stemcellTarballPath))
 		return "", "", bosherr.WrapError(err, "Checking stemcell `%s' existence", stemcellTarballPath)
-	}
-
-	// validate current state: 'microbosh' deployment set
-	if len(c.userConfig.DeploymentFile) == 0 {
-		c.ui.Error("No deployment set")
-		return "", "", bosherr.New("No deployment set")
-	}
-
-	c.logger.Info(c.logTag, "Checking for deployment `%s'", c.userConfig.DeploymentFile)
-	err = fileValidator.Exists(c.userConfig.DeploymentFile)
-	if err != nil {
-		c.ui.Error(fmt.Sprintf("Deployment manifest path `%s' does not exist", c.userConfig.DeploymentFile))
-		return "", "", bosherr.WrapError(err, "Reading deployment manifest for deploy")
 	}
 
 	return releaseTarballPath, stemcellTarballPath, nil
