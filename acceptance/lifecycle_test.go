@@ -116,7 +116,7 @@ Host warden-vm
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand("BOSH_MICRO_LOG=yes", testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"), "2> /home/vagrant/deploy.log")
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		Expect(stdout).To(ContainSubstring("uploading stemcell"))
