@@ -1,4 +1,4 @@
-## BOSH Micro CLI [![Build Status](https://travis-ci.org/cloudfoundry/bosh-micro-cli.svg?branch=master)](https://travis-ci.org/cloudfoundry/bosh-micro-cli)
+# BOSH Micro CLI [![Build Status](https://travis-ci.org/cloudfoundry/bosh-micro-cli.svg?branch=master)](https://travis-ci.org/cloudfoundry/bosh-micro-cli)
 
 This is the BOSH Micro CLI rewritten to support external CPIs.
 
@@ -8,6 +8,35 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
   [bosh-users](https://groups.google.com/a/cloudfoundry.org/group/bosh-users/topics) &
   [bosh-dev](https://groups.google.com/a/cloudfoundry.org/group/bosh-dev/topics) &
   [vcap-dev](https://groups.google.com/a/cloudfoundry.org/group/vcap-dev/topics) (for CF)
+
+## Usage
+
+1. Build micro:
+
+```
+bin/build
+```
+
+2. Set up deployment manifest:
+
+```
+out/bosh-micro deployment manifest.yml
+```
+
+3. Deploy
+
+```
+out/bosh-micro deploy cpi-release.tgz stemcell.tgz
+```
+
+where `cpi-release.tgz` is a BOSH CPI release and `stemcell.tgz` is a BOSH stemcell appropriate for the CPI release.
+
+Please see the [Wiki](https://github.com/cloudfoundry/bosh-micro-cli/wiki/BOSH-Micro-CLI-Workflow) for more information on creating a manifest.
+
+To output debug logs to stderr during bosh-micro commands set the `BOSH_MICRO_LOG` environment variable to any value.
+
+
+## Contributing
 
 ### Set up a workstation for development
 
