@@ -13,21 +13,21 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
 
 1. Build micro:
 
-```
-bin/build
-```
+  ```
+  bin/build
+  ```
 
 2. Set up deployment manifest:
 
-```
-out/bosh-micro deployment manifest.yml
-```
+  ```
+  out/bosh-micro deployment manifest.yml
+  ```
 
 3. Deploy
 
-```
-out/bosh-micro deploy cpi-release.tgz stemcell.tgz
-```
+  ```
+  out/bosh-micro deploy cpi-release.tgz stemcell.tgz
+  ```
 
 where `cpi-release.tgz` is a BOSH CPI release and `stemcell.tgz` is a BOSH stemcell appropriate for the CPI release.
 
