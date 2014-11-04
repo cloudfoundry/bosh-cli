@@ -75,10 +75,12 @@ Host vagrant-vm
   HostName %s
   User %s
   Port 22
+  StrictHostKeyChecking no
   IdentityFile %s
 Host warden-vm
   Hostname %s
   User %s
+  StrictHostKeyChecking no
   ProxyCommand ssh -F %s vagrant-vm netcat -w 120 %%h %%p
 `
 		sshConfig := fmt.Sprintf(
