@@ -17,7 +17,13 @@ import (
 const mainLogTag = "main"
 
 func main() {
-	logger := boshlog.NewLogger(boshlog.LevelError)
+	debugLogEnabled := os.Getenv("BOSH_MICRO_LOG")
+	var logger boshlog.Logger
+	if debugLogEnabled != "" {
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr, os.Stderr)
+	} else {
+		logger = boshlog.NewLogger(boshlog.LevelError)
+	}
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	workspace := path.Join(os.Getenv("HOME"), ".bosh_micro")
