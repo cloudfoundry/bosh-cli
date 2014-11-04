@@ -52,6 +52,10 @@ Get Golang and its dependencies (Mac example, replace with your package manager 
 - `brew install git` (Go needs git for the `go get` command)
 - `brew install hg` (Go needs mercurial for the `go get` command)
 
+For lifecycle tests install sshpass:
+
+- `brew install https://raw.github.com/eugeneoden/homebrew/eca9de1/Library/Formula/sshpass.rb`
+
 Clone and set up the BOSH Micro CLI repository:
 
 - `go get -d github.com/cloudfoundry/bosh-micro-cli`

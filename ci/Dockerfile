@@ -24,6 +24,9 @@ ADD install-go.sh /tmp/install-go.sh
 RUN chmod a+x /tmp/install-go.sh
 RUN cd tmp; ./install-go.sh; rm install-go.sh
 
+# lifecycle ssh test
+RUN apt-get install sshpass
+
 # package manager provides 1.4.3, which is too old for vagrant-aws
 RUN cd /tmp && wget -q https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.5_x86_64.deb && dpkg -i vagrant_1.6.5_x86_64.deb
 
