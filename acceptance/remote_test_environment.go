@@ -1,0 +1,107 @@
+package acceptance
+
+import (
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
+)
+
+type Environment interface {
+	Path(string) string
+	Copy(string, string) error
+	WriteContent(string, []byte) error
+	RemoteDownload(string, string) error
+	DownloadOrCopy(string, string) error
+}
+
+type remoteTestEnvironment struct {
+	vmUsername     string
+	vmIP           string
+	privateKeyPath string
+	cmdRunner      boshsys.CmdRunner
+	fileSystem     boshsys.FileSystem
+}
+
+func NewRemoteTestEnvironment(
+	vmUsername string,
+	vmIP string,
+	privateKeyPath string,
+	fileSystem boshsys.FileSystem,
+	logger boshlog.Logger,
+) remoteTestEnvironment {
+	return remoteTestEnvironment{
+		vmUsername:     vmUsername,
+		vmIP:           vmIP,
+		privateKeyPath: privateKeyPath,
+		cmdRunner:      boshsys.NewExecCmdRunner(logger),
+		fileSystem:     fileSystem,
+	}
+}
+
+func (e remoteTestEnvironment) Path(name string) string {
+	return filepath.Join("/", "home", e.vmUsername, name)
+}
+
+func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
+	if srcPath == "" {
+		return fmt.Errorf("Cannot use an empty file for `%s'", destName)
+	}
+
+	_, _, exitCode, err := e.cmdRunner.RunCommand(
+		"scp",
+		"-o", "StrictHostKeyChecking=no",
+		"-i", e.privateKeyPath,
+		srcPath,
+		fmt.Sprintf("%s@%s:%s", e.vmUsername, e.vmIP, e.Path(destName)),
+	)
+	if exitCode != 0 {
+		return fmt.Errorf("scp of `%s' to `%s' failed", srcPath, destName)
+	}
+	return err
+}
+
+func (e remoteTestEnvironment) DownloadOrCopy(destName, src string) error {
+	if strings.HasPrefix(src, "http") {
+		return e.RemoteDownload(destName, src)
+	}
+	return e.Copy(destName, src)
+}
+
+func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {
+	if srcURL == "" {
+		return fmt.Errorf("Cannot use an empty file for `%s'", destName)
+	}
+
+	_, _, exitCode, err := e.cmdRunner.RunCommand(
+		"ssh",
+		"-o", "StrictHostKeyChecking=no",
+		"-i", e.privateKeyPath,
+		fmt.Sprintf("%s@%s", e.vmUsername, e.vmIP),
+		fmt.Sprintf("wget -q -O %s %s", destName, srcURL),
+	)
+	if exitCode != 0 {
+		return fmt.Errorf("download of `%s' to `%s' failed", srcURL, destName)
+	}
+	return err
+}
+
+func (e remoteTestEnvironment) WriteContent(destName string, contents []byte) error {
+	tmpFile, err := e.fileSystem.TempFile("bosh-micro-cli-acceptance")
+	if err != nil {
+		return err
+	}
+	defer e.fileSystem.RemoveAll(tmpFile.Name())
+	_, err = tmpFile.Write(contents)
+	if err != nil {
+		return err
+	}
+	err = tmpFile.Close()
+	if err != nil {
+		return err
+	}
+
+	return e.Copy(destName, tmpFile.Name())
+}

@@ -18,12 +18,6 @@ RUN apt-get install -y curl; apt-get clean
 RUN apt-get install -y wget; apt-get clean
 RUN apt-get install -y tar; apt-get clean
 
-# bosh_cli dependencies
-RUN apt-get install -y ruby-dev; apt-get clean
-RUN apt-get install -y libxml2-dev; apt-get clean
-RUN apt-get install -y libxslt-dev; apt-get clean
-RUN gem install bosh_cli --no-rdoc --no-ri
-
 # bosh-micro dependencies
 RUN apt-get install -y mercurial; apt-get clean
 ADD install-go.sh /tmp/install-go.sh
