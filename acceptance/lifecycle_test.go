@@ -1,10 +1,8 @@
 package acceptance_test
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,30 +21,34 @@ var _ = Describe("bosh-micro", func() {
 		cmdRunner    boshsys.CmdRunner
 		sshCmdRunner CmdRunner
 		testEnv      Environment
-		localEnv     localEnvironment
+		config       *Config
 	)
 
 	BeforeSuite(func() {
-		var err error
-		localEnv, err = parseEnv()
-		Expect(err).NotTo(HaveOccurred())
-
 		logger := boshlog.NewLogger(boshlog.LevelDebug)
 		fileSystem = boshsys.NewOsFileSystem(logger)
+
+		var err error
+		config, err = NewConfig(fileSystem)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = config.Validate()
+		Expect(err).NotTo(HaveOccurred())
+
 		cmdRunner = boshsys.NewExecCmdRunner(logger)
 
 		testEnv = NewRemoteTestEnvironment(
-			localEnv.vmUsername,
-			localEnv.vmIP,
-			localEnv.privateKeyPath,
+			config.VMUsername,
+			config.VMIP,
+			config.PrivateKeyPath,
 			fileSystem,
 			logger,
 		)
 
 		sshCmdRunner = NewSSHCmdRunner(
-			localEnv.vmUsername,
-			localEnv.vmIP,
-			localEnv.privateKeyPath,
+			config.VMUsername,
+			config.VMIP,
+			config.PrivateKeyPath,
 			logger,
 		)
 
@@ -57,9 +59,9 @@ var _ = Describe("bosh-micro", func() {
 		Expect(fileSystem.FileExists(boshMicroPath)).To(BeTrue())
 		err = testEnv.Copy("bosh-micro", boshMicroPath)
 		Expect(err).NotTo(HaveOccurred())
-		err = testEnv.DownloadOrCopy("stemcell", localEnv.stemcellURL)
+		err = testEnv.DownloadOrCopy("stemcell", config.StemcellPath, config.StemcellURL)
 		Expect(err).NotTo(HaveOccurred())
-		err = testEnv.DownloadOrCopy("cpiRelease", localEnv.cpiReleaseURL)
+		err = testEnv.DownloadOrCopy("cpiRelease", config.CpiReleasePath, config.CpiReleaseURL)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -81,9 +83,9 @@ Host warden-vm
 `
 		sshConfig := fmt.Sprintf(
 			sshConfigTemplate,
-			localEnv.vmIP,
-			localEnv.vmUsername,
-			localEnv.privateKeyPath,
+			config.VMIP,
+			config.VMUsername,
+			config.PrivateKeyPath,
 			hostname,
 			username,
 			sshConfigFile.Name(),
@@ -127,45 +129,3 @@ Host warden-vm
 		ItSetsSSHPassword("vcap", "sshpassword", "10.244.0.42")
 	})
 })
-
-type localEnvironment struct {
-	vmUsername     string
-	vmIP           string
-	privateKeyPath string
-	stemcellURL    string
-	cpiReleaseURL  string
-}
-
-func parseEnv() (localEnvironment, error) {
-	env := localEnvironment{
-		vmUsername:     os.Getenv("BOSH_MICRO_VM_USERNAME"),
-		vmIP:           os.Getenv("BOSH_MICRO_VM_IP"),
-		privateKeyPath: os.Getenv("BOSH_MICRO_PRIVATE_KEY"),
-		stemcellURL:    os.Getenv("BOSH_MICRO_STEMCELL"),
-		cpiReleaseURL:  os.Getenv("BOSH_MICRO_CPI_RELEASE"),
-	}
-
-	var err error
-	if env.vmUsername == "" {
-		fmt.Println("BOSH_MICRO_VM_USERNAME must be set")
-		err = errors.New("")
-	}
-	if env.vmIP == "" {
-		fmt.Println("BOSH_MICRO_VM_IP must be set")
-		err = errors.New("")
-	}
-	if env.privateKeyPath == "" {
-		fmt.Println("BOSH_MICRO_PRIVATE_KEY must be set")
-		err = errors.New("")
-	}
-	if env.stemcellURL == "" {
-		fmt.Println("BOSH_MICRO_STEMCELL must be set")
-		err = errors.New("")
-	}
-	if env.cpiReleaseURL == "" {
-		fmt.Println("BOSH_MICRO_CPI_RELEASE must be set")
-		err = errors.New("")
-	}
-
-	return env, err
-}

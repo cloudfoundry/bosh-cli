@@ -3,7 +3,6 @@ package acceptance
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -14,7 +13,7 @@ type Environment interface {
 	Copy(string, string) error
 	WriteContent(string, []byte) error
 	RemoteDownload(string, string) error
-	DownloadOrCopy(string, string) error
+	DownloadOrCopy(string, string, string) error
 }
 
 type remoteTestEnvironment struct {
@@ -63,11 +62,11 @@ func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 	return err
 }
 
-func (e remoteTestEnvironment) DownloadOrCopy(destName, src string) error {
-	if strings.HasPrefix(src, "http") {
-		return e.RemoteDownload(destName, src)
+func (e remoteTestEnvironment) DownloadOrCopy(destName, srcPath, srcURL string) error {
+	if srcPath != "" {
+		return e.Copy(destName, srcPath)
 	}
-	return e.Copy(destName, src)
+	return e.RemoteDownload(destName, srcURL)
 }
 
 func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {

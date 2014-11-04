@@ -14,14 +14,18 @@ cleanup() {
     rm -rf $tmpfile
   fi
 
+  if [ -f "$config_file" ]; then
+    rm -rf $config_file
+  fi
+
   if [ ! -z "$OLD_BOSH_LITE_PRIVATE_KEY" ]; then
     export BOSH_LITE_PRIVATE_KEY=$OLD_BOSH_LITE_PRIVATE_KEY
   fi
 }
 trap cleanup EXIT
 
-export BOSH_MICRO_CPI_RELEASE=${BOSH_MICRO_CPI_RELEASE:-https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-warden-cpi-release/$cpi_release_file}
-export BOSH_MICRO_STEMCELL=${BOSH_MICRO_STEMCELL:-https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-stemcell/warden/$stemcell_file}
+cpi_release_url=${BOSH_MICRO_CPI_RELEASE_URL:-https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-warden-cpi-release/$cpi_release_file}
+stemcell_url=${BOSH_MICRO_STEMCELL_URL:-https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-stemcell/warden/$stemcell_file}
 
 echo "ENV"
 echo `env`
@@ -37,8 +41,23 @@ fi
 cd $base
 vagrant up $@
 
-export BOSH_MICRO_VM_USERNAME=`vagrant ssh-config | grep "User " | awk '{print $2}'`
-export BOSH_MICRO_VM_IP=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{print $2}'`
-export BOSH_MICRO_PRIVATE_KEY=${BOSH_LITE_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
+vm_username=`vagrant ssh-config | grep "User " | awk '{print $2}'`
+vm_ip=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{print $2}'`
+private_key_path=${BOSH_LITE_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
+
+config_file=`mktemp -t bosh-micro-config-XXXXXXXX`
+cat > $config_file <<EOF
+{
+  "vm_username": "${vm_username}",
+  "vm_ip": "${vm_ip}",
+  "private_key_path": "${private_key_path}",
+  "cpi_release_path": "${BOSH_MICRO_CPI_RELEASE_PATH}",
+  "cpi_release_url": "${cpi_release_url}",
+  "stemcell_path": "${BOSH_MICRO_STEMCELL_PATH}",
+  "stemcell_url": "${stemcell_url}"
+}
+EOF
+
+export BOSH_MICRO_CONFIG_PATH=$config_file
 
 ./bin/test-acceptance
