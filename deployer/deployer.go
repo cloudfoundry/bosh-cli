@@ -90,22 +90,22 @@ func (m *deployer) Deploy(
 
 	err = m.waitUntilAgentIsReady(instance, sshTunnelConfig, registry)
 	if err != nil {
-		return bosherr.WrapError(err, "Waiting for the agent")
+		return err
 	}
 
 	err = m.updateInstance(instance, stemcellApplySpec, deployment)
 	if err != nil {
-		return bosherr.WrapError(err, "Updating instance")
+		return err
 	}
 
 	err = m.sendStartMessage(instance)
 	if err != nil {
-		return bosherr.WrapError(err, "Starting agent services")
+		return err
 	}
 
 	err = m.waitUntilRunning(instance, deployment.Update.UpdateWatchTime)
 	if err != nil {
-		return bosherr.WrapError(err, "Waiting for director to be running")
+		return err
 	}
 
 	if deploymentJob := deployment.Jobs[0]; deploymentJob.PersistentDisk > 0 {
@@ -170,7 +170,7 @@ func (m *deployer) waitUntilAgentIsReady(
 			Message: err.Error(),
 		}
 		m.eventLogger.AddEvent(event)
-		return err
+		return bosherr.WrapError(err, "Waiting for the instance to be ready")
 	}
 
 	event = bmeventlog.Event{
