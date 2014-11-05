@@ -74,6 +74,12 @@ func (c cloud) CreateVM(
 }
 
 func (c cloud) CreateDisk(size int, cloudProperties map[string]interface{}, instanceID string) (string, error) {
+	c.logger.Debug(c.logTag,
+		"Creating disk with size %s, cloudProperties %#v, instanceID %s",
+		size,
+		cloudProperties,
+		instanceID,
+	)
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		"create_disk",
 		size,
