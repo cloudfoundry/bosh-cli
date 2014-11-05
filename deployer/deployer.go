@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
@@ -30,17 +31,19 @@ type Deployer interface {
 }
 
 type deployer struct {
-	vmManagerFactory bmvm.ManagerFactory
-	sshTunnelFactory bmsshtunnel.Factory
-	registryServer   bmregistry.Server
-	instanceFactory  bmins.Factory
-	eventLogger      bmeventlog.EventLogger
-	logger           boshlog.Logger
-	logTag           string
+	vmManagerFactory   bmvm.ManagerFactory
+	diskManagerFactory bmdisk.ManagerFactory
+	sshTunnelFactory   bmsshtunnel.Factory
+	registryServer     bmregistry.Server
+	instanceFactory    bmins.Factory
+	eventLogger        bmeventlog.EventLogger
+	logger             boshlog.Logger
+	logTag             string
 }
 
 func NewDeployer(
 	vmManagerFactory bmvm.ManagerFactory,
+	diskManagerFactory bmdisk.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	registryServer bmregistry.Server,
 	instanceFactory bmins.Factory,
@@ -48,13 +51,14 @@ func NewDeployer(
 	logger boshlog.Logger,
 ) *deployer {
 	return &deployer{
-		vmManagerFactory: vmManagerFactory,
-		sshTunnelFactory: sshTunnelFactory,
-		registryServer:   registryServer,
-		instanceFactory:  instanceFactory,
-		eventLogger:      eventLogger,
-		logger:           logger,
-		logTag:           "deployer",
+		vmManagerFactory:   vmManagerFactory,
+		diskManagerFactory: diskManagerFactory,
+		sshTunnelFactory:   sshTunnelFactory,
+		registryServer:     registryServer,
+		instanceFactory:    instanceFactory,
+		eventLogger:        eventLogger,
+		logger:             logger,
+		logTag:             "deployer",
 	}
 }
 
@@ -77,7 +81,7 @@ func (m *deployer) Deploy(
 	}
 
 	vmManager := m.vmManagerFactory.NewManager(cpi)
-	_, err = vmManager.Create(stemcellCID, deployment)
+	vmCID, err := vmManager.Create(stemcellCID, deployment)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating VM")
 	}
@@ -102,6 +106,14 @@ func (m *deployer) Deploy(
 	err = m.waitUntilRunning(instance, deployment.Update.UpdateWatchTime)
 	if err != nil {
 		return bosherr.WrapError(err, "Waiting for director to be running")
+	}
+
+	if deploymentJob := deployment.Jobs[0]; deploymentJob.PersistentDisk > 0 {
+		diskManager := m.diskManagerFactory.NewManager(cpi)
+		_, err = diskManager.Create(deploymentJob.PersistentDisk, map[string]interface{}{}, vmCID.String())
+		if err != nil {
+			return bosherr.WrapError(err, "Creating VM")
+		}
 	}
 
 	return nil

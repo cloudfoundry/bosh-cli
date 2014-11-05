@@ -17,6 +17,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk/fakes"
 	fakebmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy/fakes"
@@ -30,6 +31,7 @@ var _ = Describe("Deployer", func() {
 		deployer                   Deployer
 		fakeVMManagerFactory       *fakebmvm.FakeManagerFactory
 		fakeVMManager              *fakebmvm.FakeManager
+		fakeDiskManager            *fakebmdisk.FakeManager
 		cloud                      *fakebmcloud.FakeCloud
 		deployment                 bmdepl.Deployment
 		registry                   bmdepl.Registry
@@ -52,6 +54,11 @@ var _ = Describe("Deployer", func() {
 					End:   5478,
 				},
 			},
+			Jobs: []bmdepl.Job{
+				{
+					Name: "fake-job-name",
+				},
+			},
 		}
 		registry = bmdepl.Registry{
 			Username: "fake-username",
@@ -72,6 +79,11 @@ var _ = Describe("Deployer", func() {
 		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
 		fakeVMManager = fakebmvm.NewFakeManager()
 		fakeVMManagerFactory.SetNewManagerBehavior(cloud, fakeVMManager)
+
+		fakeDiskManagerFactory := fakebmdisk.NewFakeManagerFactory()
+		fakeDiskManager = fakebmdisk.NewFakeManager()
+		fakeDiskManagerFactory.NewManagerManager = fakeDiskManager
+
 		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
@@ -84,6 +96,7 @@ var _ = Describe("Deployer", func() {
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		deployer = NewDeployer(
 			fakeVMManagerFactory,
+			fakeDiskManagerFactory,
 			fakeSSHTunnelFactory,
 			fakeRegistryServer,
 			instanceFactory,
@@ -97,6 +110,8 @@ var _ = Describe("Deployer", func() {
 				Name: "fake-job-name",
 			},
 		}
+
+		fakeVMManager.SetCreateVMBehavior("fake-vm-cid", nil)
 	})
 
 	It("starts the registry", func() {
@@ -171,6 +186,38 @@ var _ = Describe("Deployer", func() {
 			MaxAttempts: 5,
 			Delay:       1 * time.Second,
 		}))
+	})
+
+	Context("when the deployment's first job contains a non-zero persistent disk", func() {
+		BeforeEach(func() {
+			deployment.Jobs[0].PersistentDisk = 1024
+		})
+
+		It("creates a persistent disk", func() {
+			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeDiskManager.CreateDiskInputs).To(Equal([]fakebmdisk.CreateDiskInput{
+				{
+					Size:            1024,
+					CloudProperties: map[string]interface{}{},
+					InstanceID:      "fake-vm-cid",
+				},
+			}))
+		})
+	})
+
+	Context("when the deployment's first job does not contain a non-zero persistent disk", func() {
+		BeforeEach(func() {
+			deployment.Jobs[0].PersistentDisk = 0
+		})
+
+		It("does not create a persistent disk", func() {
+			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeDiskManager.CreateDiskInputs).To(BeEmpty())
+		})
 	})
 
 	It("logs start and stop events to the eventLogger", func() {
@@ -360,7 +407,7 @@ var _ = Describe("Deployer", func() {
 	Context("when creating VM fails", func() {
 		It("returns an error", func() {
 			createVMError := errors.New("fake-create-vm-error")
-			fakeVMManager.SetCreateVMBehavior("fake-stemcell-cid", createVMError)
+			fakeVMManager.SetCreateVMBehavior("fake-vm-cid", createVMError)
 			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-vm-error"))

@@ -22,6 +22,7 @@ import (
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployer/blobstore"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
@@ -178,6 +179,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	repo := bmstemcell.NewRepo(f.deploymentConfigService)
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fs, stemcellReader, repo, eventLogger)
 	vmManagerFactory := bmvm.NewManagerFactory(eventLogger, f.deploymentConfigService, f.logger)
+	diskManagerFactory := bmdisk.NewManagerFactory(f.logger)
 	registryServer := bmregistry.NewServer(f.logger)
 	sshTunnelFactory := bmsshtunnel.NewFactory(f.logger)
 
@@ -204,6 +206,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	)
 	deployer := bmdeployer.NewDeployer(
 		vmManagerFactory,
+		diskManagerFactory,
 		sshTunnelFactory,
 		registryServer,
 		instanceFactory,
