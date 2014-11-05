@@ -1,8 +1,8 @@
 package fakes
 
 import (
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 )

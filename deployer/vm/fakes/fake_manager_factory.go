@@ -5,8 +5,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 )
 
 type NewManagerInput struct {

@@ -9,8 +9,8 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/vm"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 

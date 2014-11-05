@@ -14,10 +14,10 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/vm/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/vm"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 )
 
 var _ = Describe("Manager", func() {
