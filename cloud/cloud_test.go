@@ -1,8 +1,7 @@
 package cloud_test
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"errors"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -12,32 +11,23 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakecloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cloud"
 )
 
 var _ = Describe("Cloud", func() {
 	var (
-		cloud          Cloud
-		fs             *fakesys.FakeFileSystem
-		cmdRunner      *fakesys.FakeCmdRunner
-		deploymentUUID string
-		cpiJob         CPIJob
-		cmdInputBytes  []byte
+		cloud            Cloud
+		fakeCPICmdRunner *fakecloud.FakeCPICmdRunner
+		deploymentUUID   string
 	)
 
 	BeforeEach(func() {
-		fs = fakesys.NewFakeFileSystem()
-		cmdRunner = fakesys.NewFakeCmdRunner()
+		fakeCPICmdRunner = fakecloud.NewFakeCPICmdRunner()
 		deploymentUUID = "fake-uuid"
-		cpiJob = CPIJob{
-			JobPath:      "/jobs/cpi",
-			JobsPath:     "/jobs",
-			PackagesPath: "/packages",
-		}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		cloud = NewCloud(fs, cmdRunner, cpiJob, deploymentUUID, logger)
+		cloud = NewCloud(fakeCPICmdRunner, deploymentUUID, logger)
 	})
 
 	Describe("CreateStemcell", func() {
@@ -58,56 +48,26 @@ var _ = Describe("Cloud", func() {
 					"fake-key": "fake-value",
 				},
 			}
-			err := fs.WriteFile("/jobs/cpi/bin/cpi", []byte{})
-			Expect(err).NotTo(HaveOccurred())
-
-			cmdInput := CmdInput{
-				Method: "create_stemcell",
-				Arguments: []interface{}{
-					stemcellImagePath,
-					cloudProperties,
-				},
-				Context: CmdContext{
-					DirectorUUID: deploymentUUID,
-				},
-			}
-			cmdInputBytes, err = json.Marshal(cmdInput)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when the cpi successfully creates the stemcell", func() {
 			BeforeEach(func() {
-				cmdOutput := CmdOutput{
+				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
 					Result: "fake-cid",
 				}
-				outputBytes, err := json.Marshal(cmdOutput)
-				Expect(err).NotTo(HaveOccurred())
-
-				result := fakesys.FakeCmdResult{
-					Stdout:     string(outputBytes),
-					ExitStatus: 0,
-				}
-				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 			})
 
 			It("executes the cpi job script with stemcell image path & cloud_properties", func() {
 				_, err := cloud.CreateStemcell(stemcellManifest)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
-
-				actualCmd := cmdRunner.RunComplexCommands[0]
-				Expect(actualCmd.Name).To(Equal("/jobs/cpi/bin/cpi"))
-				Expect(actualCmd.Args).To(BeNil())
-				Expect(actualCmd.Env).To(Equal(map[string]string{
-					"BOSH_PACKAGES_DIR": cpiJob.PackagesPath,
-					"BOSH_JOBS_DIR":     cpiJob.JobsPath,
-					"PATH":              "/usr/local/bin:/usr/bin:/bin",
+				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakecloud.RunInput{
+					Method: "create_stemcell",
+					Arguments: []interface{}{
+						stemcellImagePath,
+						cloudProperties,
+					},
 				}))
-				Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
-
-				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(string(bytes)).To(Equal(string(cmdInputBytes)))
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
@@ -117,28 +77,29 @@ var _ = Describe("Cloud", func() {
 			})
 		})
 
-		Context("when the cpi returns an error", func() {
+		Context("when the result is of an unexpected type", func() {
 			BeforeEach(func() {
-				cmdOutput := CmdOutput{
-					Error: &CmdError{
-						Message: "fake-error",
-					},
-					Result: "fake-cid",
+				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+					Result: 1,
 				}
-				outputBytes, err := json.Marshal(cmdOutput)
-				Expect(err).NotTo(HaveOccurred())
-
-				result := fakesys.FakeCmdResult{
-					Stdout:     string(outputBytes),
-					ExitStatus: 0,
-				}
-				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 			})
 
 			It("returns an error", func() {
 				_, err := cloud.CreateStemcell(stemcellManifest)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("External CPI command for method `create_stemcell' returned an error"))
+				Expect(err.Error()).To(ContainSubstring("Unexpected external CPI command result: '1'"))
+			})
+		})
+
+		Context("when the cpi returns an error", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+			})
+
+			It("returns an error", func() {
+				_, err := cloud.CreateStemcell(stemcellManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
 			})
 		})
 	})
@@ -167,60 +128,30 @@ var _ = Describe("Cloud", func() {
 			env = map[string]interface{}{
 				"fake-env-key": "fake-env-value",
 			}
-
-			err := fs.WriteFile("/jobs/cpi/bin/cpi", []byte{})
-			Expect(err).NotTo(HaveOccurred())
-
-			cmdInput := CmdInput{
-				Method: "create_vm",
-				Arguments: []interface{}{
-					deploymentUUID,
-					stemcellCID,
-					cloudProperties,
-					networksSpec,
-					[]interface{}{},
-					env,
-				},
-				Context: CmdContext{
-					DirectorUUID: deploymentUUID,
-				},
-			}
-			cmdInputBytes, err = json.Marshal(cmdInput)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when the cpi successfully creates the vm", func() {
 			BeforeEach(func() {
-				cmdOutput := CmdOutput{
+				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
 					Result: "fake-vm-cid",
 				}
-				outputBytes, err := json.Marshal(cmdOutput)
-				Expect(err).NotTo(HaveOccurred())
-
-				result := fakesys.FakeCmdResult{
-					Stdout:     string(outputBytes),
-					ExitStatus: 0,
-				}
-				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 			})
 
 			It("executes the cpi job script with the director UUID and stemcell CID", func() {
 				_, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
-
-				actualCmd := cmdRunner.RunComplexCommands[0]
-				Expect(actualCmd.Name).To(Equal("/jobs/cpi/bin/cpi"))
-				Expect(actualCmd.Args).To(BeNil())
-				Expect(actualCmd.Env).To(Equal(map[string]string{
-					"BOSH_PACKAGES_DIR": cpiJob.PackagesPath,
-					"BOSH_JOBS_DIR":     cpiJob.JobsPath,
-					"PATH":              "/usr/local/bin:/usr/bin:/bin",
+				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakecloud.RunInput{
+					Method: "create_vm",
+					Arguments: []interface{}{
+						deploymentUUID,
+						stemcellCID,
+						cloudProperties,
+						networksSpec,
+						[]interface{}{},
+						env,
+					},
 				}))
-
-				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(string(bytes)).To(Equal(string(cmdInputBytes)))
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
@@ -230,27 +161,29 @@ var _ = Describe("Cloud", func() {
 			})
 		})
 
-		Context("when the cpi returns an error", func() {
+		Context("when the result is of an unexpected type", func() {
 			BeforeEach(func() {
-				cmdOutput := CmdOutput{
-					Error: &CmdError{
-						Message: "fake-error",
-					},
+				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+					Result: 1,
 				}
-				outputBytes, err := json.Marshal(cmdOutput)
-				Expect(err).NotTo(HaveOccurred())
-
-				result := fakesys.FakeCmdResult{
-					Stdout:     string(outputBytes),
-					ExitStatus: 0,
-				}
-				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 			})
 
 			It("returns an error", func() {
 				_, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("External CPI command for method `create_vm' returned an error"))
+				Expect(err.Error()).To(ContainSubstring("Unexpected external CPI command result: '1'"))
+			})
+		})
+
+		Context("when the cpi returns an error", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+			})
+
+			It("returns an error", func() {
+				_, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
 			})
 		})
 	})

@@ -35,18 +35,19 @@ func NewFactory(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, config bmcon
 
 func (f *factory) NewCloud(jobs []bminstall.InstalledJob) (Cloud, error) {
 	// for now, the installed job must be named "cpi"
-	cpiJob, found := f.findCPIJob(jobs)
+	installedCPIJob, found := f.findCPIJob(jobs)
 	if !found {
 		return nil, bosherr.New("No `%s' release job found in the CPI deployment", cpiJobName)
 	}
 
-	cpi := CPIJob{
-		JobPath:      cpiJob.Path,
-		JobsPath:     f.config.JobsPath(),
-		PackagesPath: f.config.PackagesPath(),
+	cpiJob := CPIJob{
+		JobPath:     installedCPIJob.Path,
+		JobsDir:     f.config.JobsPath(),
+		PackagesDir: f.config.PackagesPath(),
 	}
 
-	return NewCloud(f.fs, f.cmdRunner, cpi, f.config.DeploymentUUID, f.logger), nil
+	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpiJob, f.config.DeploymentUUID, f.logger)
+	return NewCloud(cpiCmdRunner, f.config.DeploymentUUID, f.logger), nil
 }
 
 func (f *factory) findCPIJob(jobs []bminstall.InstalledJob) (cpiJob bminstall.InstalledJob, found bool) {
