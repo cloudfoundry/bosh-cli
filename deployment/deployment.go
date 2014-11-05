@@ -11,11 +11,12 @@ type ReleaseJobRef struct {
 }
 
 type Job struct {
-	Name          string
-	Instances     int
-	Templates     []ReleaseJobRef
-	Networks      []JobNetwork
-	RawProperties map[interface{}]interface{} `yaml:"properties"`
+	Name           string
+	Instances      int
+	Templates      []ReleaseJobRef
+	Networks       []JobNetwork
+	PersistentDisk int                         `yaml:"persistent_disk"`
+	RawProperties  map[interface{}]interface{} `yaml:"properties"`
 }
 
 func (j *Job) Properties() (map[string]interface{}, error) {
