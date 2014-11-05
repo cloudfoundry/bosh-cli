@@ -8,6 +8,10 @@ type FakeCloud struct {
 	CreateVMInput CreateVMInput
 	CreateVMCID   string
 	CreateVMErr   error
+
+	CreateDiskInput CreateDiskInput
+	CreateDiskCID   string
+	CreateDiskErr   error
 }
 
 type CreateStemcellInput struct {
@@ -20,6 +24,12 @@ type CreateVMInput struct {
 	CloudProperties map[string]interface{}
 	NetworksSpec    map[string]interface{}
 	Env             map[string]interface{}
+}
+
+type CreateDiskInput struct {
+	Size            int
+	CloudProperties map[string]interface{}
+	InstanceID      string
 }
 
 func NewFakeCloud() *FakeCloud {
@@ -51,4 +61,18 @@ func (c *FakeCloud) CreateVM(
 	}
 
 	return c.CreateVMCID, c.CreateVMErr
+}
+
+func (c *FakeCloud) CreateDisk(
+	size int,
+	cloudProperties map[string]interface{},
+	instanceID string,
+) (string, error) {
+	c.CreateDiskInput = CreateDiskInput{
+		Size:            size,
+		CloudProperties: cloudProperties,
+		InstanceID:      instanceID,
+	}
+
+	return c.CreateDiskCID, c.CreateDiskErr
 }

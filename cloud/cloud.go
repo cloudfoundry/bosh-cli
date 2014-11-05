@@ -8,6 +8,7 @@ import (
 type Cloud interface {
 	CreateStemcell(map[string]interface{}, string) (string, error)
 	CreateVM(string, map[string]interface{}, map[string]interface{}, map[string]interface{}) (string, error)
+	CreateDisk(int, map[string]interface{}, string) (string, error)
 }
 
 type cloud struct {
@@ -65,6 +66,24 @@ func (c cloud) CreateVM(
 	}
 
 	// for create_vm, the result is a string of the vm cid
+	cidString, ok := cmdOutput.Result.(string)
+	if !ok {
+		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
+	}
+	return cidString, nil
+}
+
+func (c cloud) CreateDisk(size int, cloudProperties map[string]interface{}, instanceID string) (string, error) {
+	cmdOutput, err := c.cpiCmdRunner.Run(
+		"create_disk",
+		size,
+		cloudProperties,
+		instanceID,
+	)
+	if err != nil {
+		return "", err
+	}
+
 	cidString, ok := cmdOutput.Result.(string)
 	if !ok {
 		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)

@@ -177,4 +177,74 @@ var _ = Describe("Cloud", func() {
 			})
 		})
 	})
+
+	Describe("CreateDisk", func() {
+		var (
+			size            int
+			cloudProperties map[string]interface{}
+			instanceID      string
+		)
+
+		BeforeEach(func() {
+			size = 1024
+			cloudProperties = map[string]interface{}{
+				"fake-cloud-property-key": "fake-cloud-property-value",
+			}
+			instanceID = "fake-instance-id"
+		})
+
+		Context("when the cpi successfully creates the disk", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+					Result: "fake-disk-cid",
+				}
+			})
+
+			It("executes the cpi job script with the correct arguments", func() {
+				_, err := cloud.CreateDisk(size, cloudProperties, instanceID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+					Method: "create_disk",
+					Arguments: []interface{}{
+						size,
+						cloudProperties,
+						instanceID,
+					},
+				}))
+			})
+
+			It("returns the cid returned from executing the cpi script", func() {
+				cid, err := cloud.CreateDisk(size, cloudProperties, instanceID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cid).To(Equal("fake-disk-cid"))
+			})
+		})
+
+		Context("when the result is of an unexpected type", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+					Result: 1,
+				}
+			})
+
+			It("returns an error", func() {
+				_, err := cloud.CreateDisk(size, cloudProperties, instanceID)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Unexpected external CPI command result: '1'"))
+			})
+		})
+
+		Context("when the cpi returns an error", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+			})
+
+			It("returns an error", func() {
+				_, err := cloud.CreateDisk(size, cloudProperties, instanceID)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
+			})
+		})
+	})
 })
