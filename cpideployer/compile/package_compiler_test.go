@@ -15,9 +15,9 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
-	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages/fakes"
+	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages/fakes"
 
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"

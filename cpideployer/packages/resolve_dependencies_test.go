@@ -6,7 +6,7 @@ import (
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/packages"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
 )
 
 var _ = Describe("DependencyResolver", func() {

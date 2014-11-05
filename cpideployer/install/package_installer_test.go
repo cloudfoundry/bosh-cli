@@ -6,11 +6,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
-	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages/fakes"
+	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
 )

@@ -11,7 +11,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
