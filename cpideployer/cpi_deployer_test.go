@@ -10,14 +10,14 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile/fakes"
-	fakebmjobi "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
+	fakebmjobi "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"

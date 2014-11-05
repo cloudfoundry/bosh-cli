@@ -6,7 +6,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
 )
 
 const (

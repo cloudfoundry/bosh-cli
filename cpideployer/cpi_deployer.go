@@ -10,8 +10,8 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"

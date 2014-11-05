@@ -14,7 +14,7 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
+	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
 	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages/fakes"
 
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"

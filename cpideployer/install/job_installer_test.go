@@ -15,11 +15,11 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
+	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
-	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
 	fakebmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/install"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
 )
 
 var _ = Describe("JobInstaller", func() {

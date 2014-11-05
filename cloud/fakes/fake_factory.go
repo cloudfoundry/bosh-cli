@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 

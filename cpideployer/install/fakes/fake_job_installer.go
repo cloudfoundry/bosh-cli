@@ -3,7 +3,7 @@ package fakes
 import (
 	"fmt"
 
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )

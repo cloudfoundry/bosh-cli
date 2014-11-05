@@ -9,10 +9,10 @@ import (
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
+	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
 	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/install"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
 )
 
 var _ = Describe("Install", func() {
