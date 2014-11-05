@@ -9,7 +9,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
+	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/install"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"

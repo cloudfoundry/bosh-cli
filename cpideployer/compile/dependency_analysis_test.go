@@ -8,7 +8,7 @@ import (
 
 	gomegafmt "github.com/onsi/gomega/format"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/compile"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )

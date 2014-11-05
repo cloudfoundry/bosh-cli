@@ -20,7 +20,7 @@ import (
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/compile"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
 )
 
 var _ = Describe("PackageCompiler", func() {

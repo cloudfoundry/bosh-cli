@@ -16,7 +16,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/compile/fakes"
+	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile/fakes"
 	fakebmjobi "github.com/cloudfoundry/bosh-micro-cli/install/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"

@@ -13,7 +13,7 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmcomp "github.com/cloudfoundry/bosh-micro-cli/compile"
+	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
