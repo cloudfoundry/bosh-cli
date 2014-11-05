@@ -10,7 +10,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 )
 
 var _ = Describe("Repo", func() {

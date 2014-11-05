@@ -3,8 +3,8 @@ package fakes
 import (
 	"time"
 
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type FakeInstance struct {

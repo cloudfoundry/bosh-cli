@@ -10,8 +10,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type CmdContext struct {

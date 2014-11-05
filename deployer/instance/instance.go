@@ -10,8 +10,8 @@ import (
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type instance struct {

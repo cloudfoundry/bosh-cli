@@ -5,7 +5,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 

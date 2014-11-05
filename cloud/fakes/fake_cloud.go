@@ -1,10 +1,10 @@
 package fakes
 
 import (
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 )
 
 type FakeCloud struct {

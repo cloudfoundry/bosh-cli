@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 )

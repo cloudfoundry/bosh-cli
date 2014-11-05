@@ -2,8 +2,8 @@ package fakes
 
 import (
 	bmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type FakeTemplatesSpecGenerator struct {

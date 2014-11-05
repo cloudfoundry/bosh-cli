@@ -14,8 +14,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 )

@@ -10,10 +10,10 @@ import (
 
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 )
 
 var _ = Describe("Manager", func() {

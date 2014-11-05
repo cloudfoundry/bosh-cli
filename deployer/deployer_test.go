@@ -12,9 +12,9 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"

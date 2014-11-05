@@ -1,7 +1,7 @@
 package applyspec
 
 import (
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 )
 
 type factory struct{}

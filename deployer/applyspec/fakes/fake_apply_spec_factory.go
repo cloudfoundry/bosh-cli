@@ -2,7 +2,7 @@ package fakes
 
 import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 )
 
 type FakeApplySpecFactory struct {
