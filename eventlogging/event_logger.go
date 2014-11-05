@@ -5,7 +5,7 @@ import (
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	durationfmt "github.com/cloudfoundry/bosh-micro-cli/durationfmt"
+	durationfmt "github.com/cloudfoundry/bosh-micro-cli/eventlogging/durationfmt"
 
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
