@@ -88,9 +88,11 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("creates a VM", func() {
-			vmCID, err := manager.Create("fake-stemcell-cid", deployment)
+			vm, err := manager.Create("fake-stemcell-cid", deployment)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(vmCID).To(Equal(CID("fake-vm-cid")))
+			Expect(vm).To(Equal(VM{
+				CID: "fake-vm-cid",
+			}))
 			Expect(fakeCloud.CreateVMInput).To(Equal(
 				fakebmcloud.CreateVMInput{
 					StemcellCID:     "fake-stemcell-cid",

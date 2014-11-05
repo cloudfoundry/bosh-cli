@@ -13,6 +13,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 
@@ -111,7 +112,7 @@ var _ = Describe("Deployer", func() {
 			},
 		}
 
-		fakeVMManager.SetCreateVMBehavior("fake-vm-cid", nil)
+		fakeVMManager.CreateVM = bmvm.VM{CID: "fake-vm-cid"}
 	})
 
 	It("starts the registry", func() {
@@ -129,8 +130,8 @@ var _ = Describe("Deployer", func() {
 	It("creates a VM", func() {
 		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fakeVMManager.CreateVMInput).To(Equal(
-			fakebmvm.CreateVMInput{
+		Expect(fakeVMManager.CreateInput).To(Equal(
+			fakebmvm.CreateInput{
 				StemcellCID: "fake-stemcell-cid",
 				Deployment:  deployment,
 			},
@@ -406,8 +407,7 @@ var _ = Describe("Deployer", func() {
 
 	Context("when creating VM fails", func() {
 		It("returns an error", func() {
-			createVMError := errors.New("fake-create-vm-error")
-			fakeVMManager.SetCreateVMBehavior("fake-vm-cid", createVMError)
+			fakeVMManager.CreateErr = errors.New("fake-create-vm-error")
 			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-vm-error"))

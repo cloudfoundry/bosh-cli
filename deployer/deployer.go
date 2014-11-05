@@ -81,7 +81,7 @@ func (m *deployer) Deploy(
 	}
 
 	vmManager := m.vmManagerFactory.NewManager(cpi)
-	vmCID, err := vmManager.Create(stemcellCID, deployment)
+	vm, err := vmManager.Create(stemcellCID, deployment)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating VM")
 	}
@@ -109,10 +109,9 @@ func (m *deployer) Deploy(
 	}
 
 	if deploymentJob := deployment.Jobs[0]; deploymentJob.PersistentDisk > 0 {
-		diskManager := m.diskManagerFactory.NewManager(cpi)
-		_, err = diskManager.Create(deploymentJob.PersistentDisk, map[string]interface{}{}, vmCID.String())
+		err = m.createDisk(deploymentJob.PersistentDisk, cpi, vm)
 		if err != nil {
-			return bosherr.WrapError(err, "Creating VM")
+			return err
 		}
 	}
 
@@ -296,5 +295,15 @@ func (m *deployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmd
 		State: bmeventlog.Finished,
 	}
 	m.eventLogger.AddEvent(event)
+	return nil
+}
+
+func (m *deployer) createDisk(diskSize int, cpi bmcloud.Cloud, vm bmvm.VM) error {
+	diskManager := m.diskManagerFactory.NewManager(cpi)
+	_, err := diskManager.Create(diskSize, map[string]interface{}{}, vm.CID)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating Disk")
+	}
+
 	return nil
 }

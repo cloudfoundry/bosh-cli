@@ -12,14 +12,8 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
-type CID string
-
-func (c CID) String() string {
-	return string(c)
-}
-
 type Manager interface {
-	Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error)
+	Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (VM, error)
 }
 
 type manager struct {
@@ -30,7 +24,7 @@ type manager struct {
 	logger                  boshlog.Logger
 }
 
-func (m *manager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error) {
+func (m *manager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (VM, error) {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 5,
@@ -44,18 +38,18 @@ func (m *manager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deploymen
 	networksSpec, err := deployment.NetworksSpec(microBoshJobName)
 	m.logger.Debug(m.logTag, "Creating VM with network spec: %#v", networksSpec)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+		return VM{}, bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
 	}
 
 	resourcePool := deployment.ResourcePools[0]
 	cloudProperties, err := resourcePool.CloudProperties()
 	if err != nil {
-		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+		return VM{}, bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
 	}
 
 	env, err := resourcePool.Env()
 	if err != nil {
-		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+		return VM{}, bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
 	}
 
 	cid, err := m.cloud.CreateVM(stemcellCID.String(), cloudProperties, networksSpec, env)
@@ -69,18 +63,18 @@ func (m *manager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deploymen
 			Message: err.Error(),
 		}
 		m.eventLogger.AddEvent(event)
-		return "", bosherr.WrapError(err, "creating vm with stemcell cid `%s'", stemcellCID)
+		return VM{}, bosherr.WrapError(err, "creating vm with stemcell cid `%s'", stemcellCID)
 	}
 
 	deploymentConfig, err := m.deploymentConfigService.Load()
 	if err != nil {
-		return "", bosherr.WrapError(err, "Reading existing deployment config")
+		return VM{}, bosherr.WrapError(err, "Reading existing deployment config")
 	}
 	deploymentConfig.VMCID = cid
 
 	err = m.deploymentConfigService.Save(deploymentConfig)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Saving deployment config")
+		return VM{}, bosherr.WrapError(err, "Saving deployment config")
 	}
 
 	event = bmeventlog.Event{
@@ -92,5 +86,9 @@ func (m *manager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deploymen
 	}
 	m.eventLogger.AddEvent(event)
 
-	return CID(cid), err
+	vm := VM{
+		CID: cid,
+	}
+
+	return vm, err
 }

@@ -6,41 +6,27 @@ import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
 
-type CreateVMInput struct {
+type CreateInput struct {
 	StemcellCID bmstemcell.CID
 	Deployment  bmdepl.Deployment
 }
 
-type createVMOutput struct {
-	cid bmvm.CID
-	err error
-}
-
 type FakeManager struct {
-	CreateVMInput  CreateVMInput
-	CreateVMOutput createVMOutput
+	CreateInput CreateInput
+	CreateVM    bmvm.VM
+	CreateErr   error
 }
 
 func NewFakeManager() *FakeManager {
-	return &FakeManager{
-		CreateVMInput: CreateVMInput{},
-	}
+	return &FakeManager{}
 }
 
-func (m *FakeManager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (bmvm.CID, error) {
-	input := CreateVMInput{
+func (m *FakeManager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (bmvm.VM, error) {
+	input := CreateInput{
 		StemcellCID: stemcellCID,
 		Deployment:  deployment,
 	}
-	m.CreateVMInput = input
+	m.CreateInput = input
 
-	if (m.CreateVMOutput != createVMOutput{}) {
-		return m.CreateVMOutput.cid, m.CreateVMOutput.err
-	}
-
-	return "", nil
-}
-
-func (m *FakeManager) SetCreateVMBehavior(cid bmvm.CID, err error) {
-	m.CreateVMOutput = createVMOutput{cid: cid, err: err}
+	return m.CreateVM, m.CreateErr
 }
