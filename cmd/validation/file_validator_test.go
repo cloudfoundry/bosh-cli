@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/validation"
+	. "github.com/cloudfoundry/bosh-micro-cli/cmd/validation"
 )
 
 var _ = Describe("fileValidator", func() {

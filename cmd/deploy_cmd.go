@@ -8,13 +8,13 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/cmd/validation"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
 	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
-	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
 
 type deployCmd struct {

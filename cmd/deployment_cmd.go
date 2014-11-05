@@ -9,9 +9,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
+	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/cmd/validation"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
-	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/validation"
 )
 
 type deploymentCmd struct {
