@@ -1,4 +1,4 @@
-package eventlogging_test
+package eventlogger_test
 
 import (
 	. "github.com/onsi/ginkgo"

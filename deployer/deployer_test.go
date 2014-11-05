@@ -15,7 +15,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk/fakes"
@@ -24,7 +24,7 @@ import (
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
 
 var _ = Describe("Deployer", func() {

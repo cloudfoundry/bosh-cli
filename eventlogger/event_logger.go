@@ -1,11 +1,11 @@
-package eventlogging
+package eventlogger
 
 import (
 	"fmt"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	durationfmt "github.com/cloudfoundry/bosh-micro-cli/eventlogging/durationfmt"
+	durationfmt "github.com/cloudfoundry/bosh-micro-cli/eventlogger/durationfmt"
 
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )

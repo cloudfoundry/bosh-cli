@@ -4,7 +4,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type ManagerFactory interface {

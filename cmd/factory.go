@@ -29,7 +29,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"

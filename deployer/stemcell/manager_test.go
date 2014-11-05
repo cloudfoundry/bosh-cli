@@ -8,11 +8,11 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 )

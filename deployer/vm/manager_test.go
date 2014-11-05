@@ -10,11 +10,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 )

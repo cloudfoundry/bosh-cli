@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 

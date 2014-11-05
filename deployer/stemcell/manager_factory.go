@@ -3,7 +3,7 @@ package stemcell
 import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type ManagerFactory interface {

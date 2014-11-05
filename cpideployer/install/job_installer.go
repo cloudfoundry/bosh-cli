@@ -9,7 +9,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )

@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type FakeEventLogger struct {

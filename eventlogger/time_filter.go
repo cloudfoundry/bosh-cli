@@ -1,4 +1,4 @@
-package eventlogging
+package eventlogger
 
 import (
 	boshtime "github.com/cloudfoundry/bosh-agent/time"

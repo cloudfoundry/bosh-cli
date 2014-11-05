@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/eventlogging/durationfmt"
+	. "github.com/cloudfoundry/bosh-micro-cli/eventlogger/durationfmt"
 )
 
 var _ = Describe("DurationFmt", func() {

@@ -1,9 +1,9 @@
-package eventlogging_test
+package eventlogger_test
 
 import (
 	"time"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	. "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

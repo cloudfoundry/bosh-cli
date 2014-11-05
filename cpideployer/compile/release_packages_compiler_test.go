@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
 
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
