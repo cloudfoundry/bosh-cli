@@ -27,7 +27,7 @@ func NewFakeManager() *FakeManager {
 	}
 }
 
-func (m *FakeManager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (bmvm.CID, error) {
+func (m *FakeManager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (bmvm.CID, error) {
 	input := CreateVMInput{
 		StemcellCID: stemcellCID,
 		Deployment:  deployment,

@@ -3,14 +3,11 @@ package cloud
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 )
 
 type Cloud interface {
-	bmstemcell.Infrastructure
-	bmvm.Infrastructure
+	CreateStemcell(map[string]interface{}, string) (string, error)
+	CreateVM(string, map[string]interface{}, map[string]interface{}, map[string]interface{}) (string, error)
 }
 
 type cloud struct {
@@ -33,31 +30,26 @@ func NewCloud(
 	}
 }
 
-func (c cloud) CreateStemcell(stemcellManifest bmstemcell.Manifest) (cid bmstemcell.CID, err error) {
-	cloudProperties, err := stemcellManifest.CloudProperties()
+func (c cloud) CreateStemcell(cloudProperties map[string]interface{}, imagePath string) (string, error) {
+	cmdOutput, err := c.cpiCmdRunner.Run("create_stemcell", imagePath, cloudProperties)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Building stemcell CloudProperties")
-	}
-
-	cmdOutput, err := c.cpiCmdRunner.Run("create_stemcell", stemcellManifest.ImagePath, cloudProperties)
-	if err != nil {
-		return cid, err
+		return "", err
 	}
 
 	// for create_stemcell, the result is a string of the stemcell cid
 	cidString, ok := cmdOutput.Result.(string)
 	if !ok {
-		return cid, bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
+		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
-	return bmstemcell.CID(cidString), nil
+	return cidString, nil
 }
 
 func (c cloud) CreateVM(
-	stemcellCID bmstemcell.CID,
+	stemcellCID string,
 	cloudProperties map[string]interface{},
 	networksSpec map[string]interface{},
 	env map[string]interface{},
-) (bmvm.CID, error) {
+) (string, error) {
 	diskLocality := []interface{}{} // not used with bosh-micro-cli
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		"create_vm",
@@ -77,5 +69,5 @@ func (c cloud) CreateVM(
 	if !ok {
 		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
-	return bmvm.CID(cidString), nil
+	return cidString, nil
 }

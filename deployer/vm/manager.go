@@ -5,6 +5,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -18,18 +19,18 @@ func (c CID) String() string {
 }
 
 type Manager interface {
-	CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error)
+	Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error)
 }
 
 type manager struct {
-	infrastructure          Infrastructure
+	cloud                   bmcloud.Cloud
 	eventLogger             bmeventlog.EventLogger
 	deploymentConfigService bmconfig.DeploymentConfigService
 	logTag                  string
 	logger                  boshlog.Logger
 }
 
-func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error) {
+func (m *manager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (CID, error) {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
 		Total: 5,
@@ -57,7 +58,7 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 		return "", bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
 	}
 
-	cid, err := m.infrastructure.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
+	cid, err := m.cloud.CreateVM(stemcellCID.String(), cloudProperties, networksSpec, env)
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
@@ -75,7 +76,7 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 	if err != nil {
 		return "", bosherr.WrapError(err, "Reading existing deployment config")
 	}
-	deploymentConfig.VMCID = cid.String()
+	deploymentConfig.VMCID = cid
 
 	err = m.deploymentConfigService.Save(deploymentConfig)
 	if err != nil {
@@ -91,5 +92,5 @@ func (m *manager) CreateVM(stemcellCID bmstemcell.CID, deployment bmdepl.Deploym
 	}
 	m.eventLogger.AddEvent(event)
 
-	return cid, err
+	return CID(cid), err
 }

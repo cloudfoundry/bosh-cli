@@ -1,20 +1,19 @@
 package vm_test
 
 import (
+	"errors"
 	"fmt"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
@@ -23,15 +22,12 @@ import (
 var _ = Describe("Manager", func() {
 	Describe("CreateVM", func() {
 		var (
-			infrastructure          *fakebmvm.FakeInfrastructure
+			fakeCloud               *fakebmcloud.FakeCloud
 			eventLogger             *fakebmlog.FakeEventLogger
 			manager                 Manager
-			expectedStemcellCID     bmstemcell.CID
-			expectedVMCID           CID
 			expectedNetworksSpec    map[string]interface{}
 			expectedCloudProperties map[string]interface{}
 			expectedEnv             map[string]interface{}
-			stemcellCID             bmstemcell.CID
 			deployment              bmdepl.Deployment
 			configService           bmconfig.DeploymentConfigService
 			fs                      *fakesys.FakeFileSystem
@@ -41,11 +37,10 @@ var _ = Describe("Manager", func() {
 			logger := boshlog.NewLogger(boshlog.LevelNone)
 			fs = fakesys.NewFakeFileSystem()
 			configService = bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
-			infrastructure = fakebmvm.NewFakeInfrastructure()
+			fakeCloud = fakebmcloud.NewFakeCloud()
 			eventLogger = fakebmlog.NewFakeEventLogger()
-			manager = NewManagerFactory(eventLogger, configService, logger).NewManager(infrastructure)
-			expectedStemcellCID = bmstemcell.CID("fake-stemcell-cid")
-			expectedVMCID = CID("fake-vm-cid")
+			manager = NewManagerFactory(eventLogger, configService, logger).NewManager(fakeCloud)
+			fakeCloud.CreateVMCID = "fake-vm-cid"
 			expectedNetworksSpec = map[string]interface{}{
 				"fake-network-name": map[string]interface{}{
 					"type":             "dynamic",
@@ -59,8 +54,6 @@ var _ = Describe("Manager", func() {
 			expectedEnv = map[string]interface{}{
 				"fake-env-key": "fake-env-value",
 			}
-			infrastructure.SetCreateVMBehavior(expectedVMCID, nil)
-			stemcellCID = bmstemcell.CID("fake-stemcell-cid")
 			deployment = bmdepl.Deployment{
 				Name: "fake-deployment",
 				Networks: []bmdepl.Network{
@@ -95,12 +88,12 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("creates a VM", func() {
-			vmCID, err := manager.CreateVM(expectedStemcellCID, deployment)
+			vmCID, err := manager.Create("fake-stemcell-cid", deployment)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(vmCID).To(Equal(expectedVMCID))
-			Expect(infrastructure.CreateInput).To(Equal(
-				fakebmvm.CreateInput{
-					StemcellCID:     expectedStemcellCID,
+			Expect(vmCID).To(Equal(CID("fake-vm-cid")))
+			Expect(fakeCloud.CreateVMInput).To(Equal(
+				fakebmcloud.CreateVMInput{
+					StemcellCID:     "fake-stemcell-cid",
 					CloudProperties: expectedCloudProperties,
 					NetworksSpec:    expectedNetworksSpec,
 					Env:             expectedEnv,
@@ -109,13 +102,13 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := manager.CreateVM(stemcellCID, deployment)
+			_, err := manager.Create("fake-stemcell-cid", deployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
 				Total: 5,
-				Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
+				Task:  fmt.Sprintf("Creating VM from %s", "fake-stemcell-cid"),
 				Index: 1,
 				State: bmeventlog.Started,
 			}
@@ -123,7 +116,7 @@ var _ = Describe("Manager", func() {
 			expectedFinishEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
 				Total: 5,
-				Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
+				Task:  fmt.Sprintf("Creating VM from %s", "fake-stemcell-cid"),
 				Index: 1,
 				State: bmeventlog.Finished,
 			}
@@ -134,30 +127,32 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("saves the vm record using the config service", func() {
-			_, err := manager.CreateVM(stemcellCID, deployment)
+			_, err := manager.Create("fake-stemcell-cid", deployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := bmconfig.DeploymentConfig{
-				VMCID: expectedVMCID.String(),
+				VMCID: "fake-vm-cid",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))
 		})
 
 		Context("when creating the vm fails", func() {
-			It("logs start and failure events to the eventLogger", func() {
-				infrastructure.SetCreateVMBehavior(expectedVMCID, bosherr.New("fake-create-error"))
+			BeforeEach(func() {
+				fakeCloud.CreateVMErr = errors.New("fake-create-error")
+			})
 
-				_, err := manager.CreateVM(stemcellCID, deployment)
+			It("logs start and failure events to the eventLogger", func() {
+				_, err := manager.Create("fake-stemcell-cid", deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 
 				expectedStartEvent := bmeventlog.Event{
 					Stage: "Deploy Micro BOSH",
 					Total: 5,
-					Task:  fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
+					Task:  fmt.Sprintf("Creating VM from %s", "fake-stemcell-cid"),
 					Index: 1,
 					State: bmeventlog.Started,
 				}
@@ -165,7 +160,7 @@ var _ = Describe("Manager", func() {
 				expectedFailedEvent := bmeventlog.Event{
 					Stage:   "Deploy Micro BOSH",
 					Total:   5,
-					Task:    fmt.Sprintf("Creating VM from %s", expectedStemcellCID),
+					Task:    fmt.Sprintf("Creating VM from %s", "fake-stemcell-cid"),
 					Index:   1,
 					State:   bmeventlog.Failed,
 					Message: "fake-create-error",

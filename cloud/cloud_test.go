@@ -8,10 +8,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
-
-	fakecloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cloud"
 )
@@ -19,12 +16,12 @@ import (
 var _ = Describe("Cloud", func() {
 	var (
 		cloud            Cloud
-		fakeCPICmdRunner *fakecloud.FakeCPICmdRunner
+		fakeCPICmdRunner *fakebmcloud.FakeCPICmdRunner
 		deploymentUUID   string
 	)
 
 	BeforeEach(func() {
-		fakeCPICmdRunner = fakecloud.NewFakeCPICmdRunner()
+		fakeCPICmdRunner = fakebmcloud.NewFakeCPICmdRunner()
 		deploymentUUID = "fake-uuid"
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		cloud = NewCloud(fakeCPICmdRunner, deploymentUUID, logger)
@@ -32,7 +29,6 @@ var _ = Describe("Cloud", func() {
 
 	Describe("CreateStemcell", func() {
 		var (
-			stemcellManifest  bmstemcell.Manifest
 			stemcellImagePath string
 			cloudProperties   map[string]interface{}
 		)
@@ -41,12 +37,6 @@ var _ = Describe("Cloud", func() {
 			stemcellImagePath = "/stemcell/path"
 			cloudProperties = map[string]interface{}{
 				"fake-key": "fake-value",
-			}
-			stemcellManifest = bmstemcell.Manifest{
-				ImagePath: stemcellImagePath,
-				RawCloudProperties: map[interface{}]interface{}{
-					"fake-key": "fake-value",
-				},
 			}
 		})
 
@@ -58,10 +48,10 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("executes the cpi job script with stemcell image path & cloud_properties", func() {
-				_, err := cloud.CreateStemcell(stemcellManifest)
+				_, err := cloud.CreateStemcell(cloudProperties, stemcellImagePath)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakecloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
 					Method: "create_stemcell",
 					Arguments: []interface{}{
 						stemcellImagePath,
@@ -71,9 +61,9 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
-				cid, err := cloud.CreateStemcell(stemcellManifest)
+				cid, err := cloud.CreateStemcell(cloudProperties, stemcellImagePath)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(cid).To(Equal(bmstemcell.CID("fake-cid")))
+				Expect(cid).To(Equal("fake-cid"))
 			})
 		})
 
@@ -85,7 +75,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := cloud.CreateStemcell(stemcellManifest)
+				_, err := cloud.CreateStemcell(cloudProperties, stemcellImagePath)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Unexpected external CPI command result: '1'"))
 			})
@@ -97,7 +87,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := cloud.CreateStemcell(stemcellManifest)
+				_, err := cloud.CreateStemcell(cloudProperties, stemcellImagePath)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
 			})
@@ -106,7 +96,7 @@ var _ = Describe("Cloud", func() {
 
 	Describe("CreateVM", func() {
 		var (
-			stemcellCID     bmstemcell.CID
+			stemcellCID     string
 			cloudProperties map[string]interface{}
 			networksSpec    map[string]interface{}
 			env             map[string]interface{}
@@ -141,7 +131,7 @@ var _ = Describe("Cloud", func() {
 				_, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakecloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
 					Method: "create_vm",
 					Arguments: []interface{}{
 						deploymentUUID,
@@ -157,7 +147,7 @@ var _ = Describe("Cloud", func() {
 			It("returns the cid returned from executing the cpi script", func() {
 				cid, err := cloud.CreateVM(stemcellCID, cloudProperties, networksSpec, env)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(cid).To(Equal(bmvm.CID("fake-vm-cid")))
+				Expect(cid).To(Equal("fake-vm-cid"))
 			})
 		})
 

@@ -77,7 +77,7 @@ func (m *deployer) Deploy(
 	}
 
 	vmManager := m.vmManagerFactory.NewManager(cpi)
-	_, err = vmManager.CreateVM(stemcellCID, deployment)
+	_, err = vmManager.Create(stemcellCID, deployment)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating VM")
 	}

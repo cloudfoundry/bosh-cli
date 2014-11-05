@@ -2,12 +2,13 @@ package vm
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
 type ManagerFactory interface {
-	NewManager(infrastructure Infrastructure) Manager
+	NewManager(bmcloud.Cloud) Manager
 }
 
 type managerFactory struct {
@@ -28,12 +29,12 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(infrastructure Infrastructure) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
 	return &manager{
-		infrastructure:          infrastructure,
+		cloud:                   cloud,
 		eventLogger:             f.eventLogger,
+		deploymentConfigService: f.deploymentConfigService,
 		logger:                  f.logger,
 		logTag:                  "vmManager",
-		deploymentConfigService: f.deploymentConfigService,
 	}
 }

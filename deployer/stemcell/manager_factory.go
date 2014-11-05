@@ -2,11 +2,12 @@ package stemcell
 
 import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 )
 
 type ManagerFactory interface {
-	NewManager(Infrastructure) Manager
+	NewManager(bmcloud.Cloud) Manager
 }
 
 type managerFactory struct {
@@ -25,12 +26,12 @@ func NewManagerFactory(fs boshsys.FileSystem, reader Reader, repo Repo, eventLog
 	}
 }
 
-func (f *managerFactory) NewManager(infrastructure Infrastructure) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
 	return &manager{
-		fs:             f.fs,
-		reader:         f.reader,
-		repo:           f.repo,
-		eventLogger:    f.eventLogger,
-		infrastructure: infrastructure,
+		fs:          f.fs,
+		reader:      f.reader,
+		repo:        f.repo,
+		eventLogger: f.eventLogger,
+		cloud:       cloud,
 	}
 }

@@ -10,6 +10,7 @@ import (
 
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging"
 
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogging/fakes"
 
@@ -22,13 +23,12 @@ var _ = Describe("Manager", func() {
 		manager             Manager
 		fs                  *fakesys.FakeFileSystem
 		reader              *fakebmstemcell.FakeStemcellReader
-		infrastructure      *fakebmstemcell.FakeInfrastructure
+		fakeCloud           *fakebmcloud.FakeCloud
 		eventLogger         *fakebmlog.FakeEventLogger
 		stemcellTarballPath string
 		tempExtractionDir   string
 
 		expectedStemcell Stemcell
-		expectedCID      CID
 	)
 
 	BeforeEach(func() {
@@ -36,16 +36,20 @@ var _ = Describe("Manager", func() {
 		reader = fakebmstemcell.NewFakeReader()
 		repo = fakebmstemcell.NewFakeRepo()
 		eventLogger = fakebmlog.NewFakeEventLogger()
-		infrastructure = fakebmstemcell.NewFakeInfrastructure()
+		fakeCloud = fakebmcloud.NewFakeCloud()
 		managerFactory := NewManagerFactory(fs, reader, repo, eventLogger)
-		manager = managerFactory.NewManager(infrastructure)
+		manager = managerFactory.NewManager(fakeCloud)
 		stemcellTarballPath = "/stemcell/tarball/path"
 		tempExtractionDir = "/path/to/dest"
 		fs.TempDirDir = tempExtractionDir
 
 		expectedStemcell = Stemcell{
 			Manifest: Manifest{
-				Name: "fake-stemcell-name",
+				Name:      "fake-stemcell-name",
+				ImagePath: "fake-image-path",
+				RawCloudProperties: map[interface{}]interface{}{
+					"fake-prop-key": "fake-prop-value",
+				},
 			},
 		}
 		reader.SetReadBehavior(stemcellTarballPath, tempExtractionDir, expectedStemcell, nil)
@@ -53,10 +57,9 @@ var _ = Describe("Manager", func() {
 		// no existing stemcell found
 		repo.SetFindBehavior(expectedStemcell.Manifest, CID(""), false, nil)
 
-		expectedCID = "fake-cid"
-		infrastructure.SetCreateStemcellBehavior(expectedStemcell.Manifest, expectedCID, nil)
+		fakeCloud.CreateStemcellCID = "fake-stemcell-cid"
 
-		repo.SetSaveBehavior(expectedStemcell.Manifest, expectedCID, nil)
+		repo.SetSaveBehavior(expectedStemcell.Manifest, "fake-stemcell-cid", nil)
 	})
 
 	It("cleans up the temp work dir", func() {
@@ -99,27 +102,28 @@ var _ = Describe("Manager", func() {
 	It("uploads the stemcell to the infrastructure and returns the cid", func() {
 		_, cid, err := manager.Upload(stemcellTarballPath)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(cid).To(Equal(expectedCID))
+		Expect(cid).To(Equal(CID("fake-stemcell-cid")))
 
-		Expect(infrastructure.CreateInputs).To(Equal(
-			[]fakebmstemcell.CreateInput{
-				{
-					StemcellManifest: expectedStemcell.Manifest,
+		Expect(fakeCloud.CreateStemcellInputs).To(Equal([]fakebmcloud.CreateStemcellInput{
+			{
+				CloudProperties: map[string]interface{}{
+					"fake-prop-key": "fake-prop-value",
 				},
+				ImagePath: "fake-image-path",
 			},
-		))
+		}))
 	})
 
 	It("saves the stemcell record in the repo", func() {
 		_, cid, err := manager.Upload(stemcellTarballPath)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(cid).To(Equal(expectedCID))
+		Expect(cid).To(Equal(CID("fake-stemcell-cid")))
 
 		Expect(repo.SaveInputs).To(Equal(
 			[]fakebmstemcell.SaveInput{
 				fakebmstemcell.SaveInput{
 					StemcellManifest: expectedStemcell.Manifest,
-					CID:              expectedCID,
+					CID:              "fake-stemcell-cid",
 				},
 			},
 		))
@@ -204,12 +208,7 @@ var _ = Describe("Manager", func() {
 	})
 
 	It("when the upload fails, logs uploading start and failure events to the eventLogger", func() {
-		infrastructure.SetCreateStemcellBehavior(
-			expectedStemcell.Manifest,
-			expectedCID,
-			errors.New("fake-create-error"),
-		)
-
+		fakeCloud.CreateStemcellErr = errors.New("fake-create-error")
 		_, _, err := manager.Upload(stemcellTarballPath)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake-create-error"))
@@ -238,7 +237,7 @@ var _ = Describe("Manager", func() {
 	It("when the repo save fails, logs uploading start and failure events to the eventLogger", func() {
 		repo.SetSaveBehavior(
 			expectedStemcell.Manifest,
-			expectedCID,
+			"fake-stemcell-cid",
 			errors.New("fake-save-error"),
 		)
 
@@ -301,7 +300,7 @@ var _ = Describe("Manager", func() {
 		It("does not re-upload the stemcell to the infrastructure", func() {
 			_, _, err := manager.Upload(stemcellTarballPath)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(infrastructure.CreateInputs).To(HaveLen(0))
+			Expect(fakeCloud.CreateStemcellInputs).To(HaveLen(0))
 		})
 
 		It("logs skipping uploading events to the eventLogger", func() {

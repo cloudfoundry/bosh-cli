@@ -5,12 +5,13 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type NewManagerInput struct {
-	Infrastructure bmvm.Infrastructure
+	Cloud bmcloud.Cloud
 }
 
 type newManagerOutput struct {
@@ -29,9 +30,9 @@ func NewFakeManagerFactory() *FakeManagerFactory {
 	}
 }
 
-func (f *FakeManagerFactory) NewManager(infrastructure bmvm.Infrastructure) bmvm.Manager {
+func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud) bmvm.Manager {
 	input := NewManagerInput{
-		Infrastructure: infrastructure,
+		Cloud: cloud,
 	}
 	f.NewManagerInputs = append(f.NewManagerInputs, input)
 
@@ -48,9 +49,9 @@ func (f *FakeManagerFactory) NewManager(infrastructure bmvm.Infrastructure) bmvm
 	return output.manager
 }
 
-func (f *FakeManagerFactory) SetNewManagerBehavior(infrastructure bmvm.Infrastructure, manager bmvm.Manager) {
+func (f *FakeManagerFactory) SetNewManagerBehavior(cloud bmcloud.Cloud, manager bmvm.Manager) {
 	input := NewManagerInput{
-		Infrastructure: infrastructure,
+		Cloud: cloud,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
