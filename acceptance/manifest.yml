@@ -60,6 +60,7 @@ jobs:
   - name: fake-network-name
     static_ips:
     - 10.244.0.42
+  persistent_disk: 1024
   properties:
     external_cpi:
       enabled: true

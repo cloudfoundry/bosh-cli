@@ -39,6 +39,7 @@ type deployer struct {
 	eventLogger        bmeventlog.EventLogger
 	logger             boshlog.Logger
 	logTag             string
+	totalEvents        int
 }
 
 func NewDeployer(
@@ -59,6 +60,7 @@ func NewDeployer(
 		eventLogger:        eventLogger,
 		logger:             logger,
 		logTag:             "deployer",
+		totalEvents:        6,
 	}
 }
 
@@ -132,7 +134,7 @@ func (m *deployer) waitUntilAgentIsReady(
 ) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 5,
+		Total: m.totalEvents,
 		Task:  fmt.Sprintf("Waiting for the agent"),
 		Index: 2,
 		State: bmeventlog.Started,
@@ -163,7 +165,7 @@ func (m *deployer) waitUntilAgentIsReady(
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   5,
+			Total:   6,
 			Task:    fmt.Sprintf("Waiting for the agent"),
 			Index:   2,
 			State:   bmeventlog.Failed,
@@ -175,7 +177,7 @@ func (m *deployer) waitUntilAgentIsReady(
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 5,
+		Total: m.totalEvents,
 		Task:  fmt.Sprintf("Waiting for the agent"),
 		Index: 2,
 		State: bmeventlog.Finished,
@@ -188,7 +190,7 @@ func (m *deployer) waitUntilAgentIsReady(
 func (m *deployer) updateInstance(instance bmins.Instance, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 5,
+		Total: m.totalEvents,
 		Task:  fmt.Sprintf("Applying micro BOSH spec"),
 		Index: 3,
 		State: bmeventlog.Started,
@@ -199,7 +201,7 @@ func (m *deployer) updateInstance(instance bmins.Instance, stemcellApplySpec bms
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   5,
+			Total:   6,
 			Task:    fmt.Sprintf("Applying micro BOSH spec"),
 			Index:   3,
 			State:   bmeventlog.Failed,
@@ -212,7 +214,7 @@ func (m *deployer) updateInstance(instance bmins.Instance, stemcellApplySpec bms
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 5,
+		Total: m.totalEvents,
 		Task:  fmt.Sprintf("Applying micro BOSH spec"),
 		Index: 3,
 		State: bmeventlog.Finished,
@@ -225,7 +227,7 @@ func (m *deployer) updateInstance(instance bmins.Instance, stemcellApplySpec bms
 func (m *deployer) sendStartMessage(instance bmins.Instance) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 5,
+		Total: m.totalEvents,
 		Task:  fmt.Sprintf("Starting agent services"),
 		Index: 4,
 		State: bmeventlog.Started,
@@ -236,7 +238,7 @@ func (m *deployer) sendStartMessage(instance bmins.Instance) error {
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   5,
+			Total:   6,
 			Task:    fmt.Sprintf("Starting agent services"),
 			Index:   4,
 			State:   bmeventlog.Failed,
@@ -249,7 +251,7 @@ func (m *deployer) sendStartMessage(instance bmins.Instance) error {
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 5,
+		Total: m.totalEvents,
 		Task:  fmt.Sprintf("Starting agent services"),
 		Index: 4,
 		State: bmeventlog.Finished,
@@ -262,7 +264,7 @@ func (m *deployer) sendStartMessage(instance bmins.Instance) error {
 func (m *deployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmdepl.WatchTime) error {
 	event := bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 5,
+		Total: m.totalEvents,
 		Task:  fmt.Sprintf("Waiting for the director"),
 		Index: 5,
 		State: bmeventlog.Started,
@@ -276,7 +278,7 @@ func (m *deployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmd
 	if err != nil {
 		event = bmeventlog.Event{
 			Stage:   "Deploy Micro BOSH",
-			Total:   5,
+			Total:   m.totalEvents,
 			Task:    fmt.Sprintf("Waiting for the director"),
 			Index:   5,
 			State:   bmeventlog.Failed,
@@ -289,7 +291,7 @@ func (m *deployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmd
 
 	event = bmeventlog.Event{
 		Stage: "Deploy Micro BOSH",
-		Total: 5,
+		Total: m.totalEvents,
 		Task:  fmt.Sprintf("Waiting for the director"),
 		Index: 5,
 		State: bmeventlog.Finished,
@@ -299,11 +301,37 @@ func (m *deployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmd
 }
 
 func (m *deployer) createDisk(diskSize int, cpi bmcloud.Cloud, vm bmvm.VM) error {
+	event := bmeventlog.Event{
+		Stage: "Deploy Micro BOSH",
+		Total: m.totalEvents,
+		Task:  fmt.Sprintf("Creating disk"),
+		Index: 6,
+		State: bmeventlog.Started,
+	}
+	m.eventLogger.AddEvent(event)
+
 	diskManager := m.diskManagerFactory.NewManager(cpi)
 	_, err := diskManager.Create(diskSize, map[string]interface{}{}, vm.CID)
 	if err != nil {
+		event = bmeventlog.Event{
+			Stage:   "Deploy Micro BOSH",
+			Total:   m.totalEvents,
+			Task:    fmt.Sprintf("Creating disk"),
+			Index:   6,
+			State:   bmeventlog.Failed,
+			Message: err.Error(),
+		}
+		m.eventLogger.AddEvent(event)
 		return bosherr.WrapError(err, "Creating Disk")
 	}
 
+	event = bmeventlog.Event{
+		Stage: "Deploy Micro BOSH",
+		Total: m.totalEvents,
+		Task:  fmt.Sprintf("Creating disk"),
+		Index: 6,
+		State: bmeventlog.Finished,
+	}
+	m.eventLogger.AddEvent(event)
 	return nil
 }

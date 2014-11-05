@@ -4,16 +4,16 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 )
 
-type CreateDiskInput struct {
+type CreateInput struct {
 	Size            int
 	CloudProperties map[string]interface{}
 	InstanceID      string
 }
 
 type FakeManager struct {
-	CreateDiskInputs []CreateDiskInput
-	CreateDiskDisk   bmdisk.Disk
-	CreateDiskErr    error
+	CreateInputs []CreateInput
+	CreateDisk   bmdisk.Disk
+	CreateErr    error
 }
 
 func NewFakeManager() *FakeManager {
@@ -25,12 +25,12 @@ func (m *FakeManager) Create(
 	cloudProperties map[string]interface{},
 	instanceID string,
 ) (bmdisk.Disk, error) {
-	input := CreateDiskInput{
+	input := CreateInput{
 		Size:            size,
 		CloudProperties: cloudProperties,
 		InstanceID:      instanceID,
 	}
-	m.CreateDiskInputs = append(m.CreateDiskInputs, input)
+	m.CreateInputs = append(m.CreateInputs, input)
 
-	return m.CreateDiskDisk, m.CreateDiskErr
+	return m.CreateDisk, m.CreateErr
 }
