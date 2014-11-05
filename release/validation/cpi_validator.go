@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
 type CpiValidator struct {

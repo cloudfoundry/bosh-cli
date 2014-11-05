@@ -8,8 +8,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
 type boshValidator struct {

@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/errors"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
 var _ = Describe("explainableError", func() {

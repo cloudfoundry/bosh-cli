@@ -9,7 +9,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	bmerr "github.com/cloudfoundry/bosh-micro-cli/errors"
+	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 	bmrelman "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
