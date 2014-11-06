@@ -34,8 +34,8 @@ func NewInstanceHandler(
 }
 
 type SettingsResponse struct {
-	Settings string
-	Status   string
+	Settings string `json:"settings"`
+	Status   string `json:"status"`
 }
 
 func (h *instanceHandler) HandleFunc(w http.ResponseWriter, req *http.Request) {
