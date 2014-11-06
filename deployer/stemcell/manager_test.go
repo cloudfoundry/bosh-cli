@@ -24,6 +24,7 @@ var _ = Describe("Manager", func() {
 		fs                  *fakesys.FakeFileSystem
 		reader              *fakebmstemcell.FakeStemcellReader
 		fakeCloud           *fakebmcloud.FakeCloud
+		fakeStage           *fakebmlog.FakeStage
 		eventLogger         *fakebmlog.FakeEventLogger
 		stemcellTarballPath string
 		tempExtractionDir   string
@@ -36,6 +37,8 @@ var _ = Describe("Manager", func() {
 		reader = fakebmstemcell.NewFakeReader()
 		repo = fakebmstemcell.NewFakeRepo()
 		eventLogger = fakebmlog.NewFakeEventLogger()
+		fakeStage = fakebmlog.NewFakeStage()
+		eventLogger.SetNewStageBehavior(fakeStage)
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		managerFactory := NewManagerFactory(fs, reader, repo, eventLogger)
 		manager = managerFactory.NewManager(fakeCloud)
@@ -60,6 +63,18 @@ var _ = Describe("Manager", func() {
 		fakeCloud.CreateStemcellCID = "fake-stemcell-cid"
 
 		repo.SetSaveBehavior(expectedStemcell.Manifest, "fake-stemcell-cid", nil)
+	})
+
+	It("starts a new event logger stage", func() {
+		_, _, err := manager.Upload(stemcellTarballPath)
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
+			{
+				Name:       "Uploading stemcell",
+				TotalSteps: 2,
+			},
+		}))
 	})
 
 	It("cleans up the temp work dir", func() {
@@ -133,25 +148,13 @@ var _ = Describe("Manager", func() {
 		_, _, err := manager.Upload(stemcellTarballPath)
 		Expect(err).ToNot(HaveOccurred())
 
-		expectedStartEvent := bmeventlog.Event{
-			Stage: "Uploading stemcell",
-			Total: 2,
-			Task:  "Unpacking",
-			Index: 1,
-			State: bmeventlog.Started,
-		}
-
-		expectedFinishEvent := bmeventlog.Event{
-			Stage: "Uploading stemcell",
-			Total: 2,
-			Task:  "Unpacking",
-			Index: 1,
-			State: bmeventlog.Finished,
-		}
-
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFinishEvent))
-		Expect(eventLogger.LoggedEvents).To(HaveLen(4))
+		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+			Name: "Unpacking",
+			States: []bmeventlog.EventState{
+				bmeventlog.Started,
+				bmeventlog.Finished,
+			},
+		}))
 	})
 
 	It("when the read fails, logs unpacking start and failure events to the eventLogger", func() {
@@ -161,51 +164,27 @@ var _ = Describe("Manager", func() {
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake-read-error"))
 
-		expectedStartEvent := bmeventlog.Event{
-			Stage: "Uploading stemcell",
-			Total: 2,
-			Task:  "Unpacking",
-			Index: 1,
-			State: bmeventlog.Started,
-		}
-
-		expectedFailedEvent := bmeventlog.Event{
-			Stage:   "Uploading stemcell",
-			Total:   2,
-			Task:    "Unpacking",
-			Index:   1,
-			State:   bmeventlog.Failed,
-			Message: "fake-read-error",
-		}
-
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
-		Expect(eventLogger.LoggedEvents).To(HaveLen(2))
+		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+			Name: "Unpacking",
+			States: []bmeventlog.EventState{
+				bmeventlog.Started,
+				bmeventlog.Failed,
+			},
+			FailMessage: "fake-read-error",
+		}))
 	})
 
 	It("logs uploading start and stop events to the eventLogger", func() {
 		_, _, err := manager.Upload(stemcellTarballPath)
 		Expect(err).ToNot(HaveOccurred())
 
-		expectedStartEvent := bmeventlog.Event{
-			Stage: "Uploading stemcell",
-			Total: 2,
-			Task:  "Uploading",
-			Index: 2,
-			State: bmeventlog.Started,
-		}
-
-		expectedFinishEvent := bmeventlog.Event{
-			Stage: "Uploading stemcell",
-			Total: 2,
-			Task:  "Uploading",
-			Index: 2,
-			State: bmeventlog.Finished,
-		}
-
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFinishEvent))
-		Expect(eventLogger.LoggedEvents).To(HaveLen(4))
+		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+			Name: "Uploading",
+			States: []bmeventlog.EventState{
+				bmeventlog.Started,
+				bmeventlog.Finished,
+			},
+		}))
 	})
 
 	It("when the upload fails, logs uploading start and failure events to the eventLogger", func() {
@@ -214,26 +193,14 @@ var _ = Describe("Manager", func() {
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 
-		expectedStartEvent := bmeventlog.Event{
-			Stage: "Uploading stemcell",
-			Total: 2,
-			Task:  "Uploading",
-			Index: 2,
-			State: bmeventlog.Started,
-		}
-
-		expectedFailedEvent := bmeventlog.Event{
-			Stage:   "Uploading stemcell",
-			Total:   2,
-			Task:    "Uploading",
-			Index:   2,
-			State:   bmeventlog.Failed,
-			Message: "fake-create-error",
-		}
-
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
-		Expect(eventLogger.LoggedEvents).To(HaveLen(4))
+		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+			Name: "Uploading",
+			States: []bmeventlog.EventState{
+				bmeventlog.Started,
+				bmeventlog.Failed,
+			},
+			FailMessage: "fake-create-error",
+		}))
 	})
 
 	It("when the repo save fails, logs uploading start and failure events to the eventLogger", func() {
@@ -247,26 +214,14 @@ var _ = Describe("Manager", func() {
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake-save-error"))
 
-		expectedStartEvent := bmeventlog.Event{
-			Stage: "Uploading stemcell",
-			Total: 2,
-			Task:  "Uploading",
-			Index: 2,
-			State: bmeventlog.Started,
-		}
-
-		expectedFailedEvent := bmeventlog.Event{
-			Stage:   "Uploading stemcell",
-			Total:   2,
-			Task:    "Uploading",
-			Index:   2,
-			State:   bmeventlog.Failed,
-			Message: "fake-save-error",
-		}
-
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
-		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
-		Expect(eventLogger.LoggedEvents).To(HaveLen(4))
+		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+			Name: "Uploading",
+			States: []bmeventlog.EventState{
+				bmeventlog.Started,
+				bmeventlog.Failed,
+			},
+			FailMessage: "fake-save-error",
+		}))
 	})
 
 	Context("when the stemcell record exists in the repo (having been previously uploaded)", func() {
@@ -310,35 +265,21 @@ var _ = Describe("Manager", func() {
 			_, _, err := manager.Upload(stemcellTarballPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedStartEvent := bmeventlog.Event{
-				Stage: "Uploading stemcell",
-				Total: 2,
-				Task:  "Unpacking",
-				Index: 1,
-				State: bmeventlog.Started,
-			}
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Unpacking",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
 
-			expectedFinishEvent := bmeventlog.Event{
-				Stage: "Uploading stemcell",
-				Total: 2,
-				Task:  "Unpacking",
-				Index: 1,
-				State: bmeventlog.Finished,
-			}
-
-			expectedSkipEvent := bmeventlog.Event{
-				Stage:   "Uploading stemcell",
-				Total:   2,
-				Task:    "Uploading",
-				Index:   2,
-				State:   bmeventlog.Skipped,
-				Message: "Stemcell already uploaded",
-			}
-
-			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
-			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFinishEvent))
-			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedSkipEvent))
-			Expect(eventLogger.LoggedEvents).To(HaveLen(3))
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Uploading",
+				States: []bmeventlog.EventState{
+					bmeventlog.Skipped,
+				},
+				SkipMessage: "Stemcell already uploaded",
+			}))
 		})
 	})
 })
