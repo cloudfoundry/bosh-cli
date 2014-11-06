@@ -3,6 +3,7 @@ package fakes
 import (
 	"time"
 
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
@@ -13,6 +14,9 @@ type FakeInstance struct {
 
 	StartCalled bool
 	StartErr    error
+
+	AttachDiskInputs []AttachDiskInput
+	AttachDiskErr    error
 
 	WaitToBeReadyInputs []WaitInput
 	WaitToBeReadyErr    error
@@ -31,11 +35,16 @@ type WaitInput struct {
 	Delay       time.Duration
 }
 
+type AttachDiskInput struct {
+	Disk bmdisk.Disk
+}
+
 func NewFakeInstance() *FakeInstance {
 	return &FakeInstance{
 		ApplyInputs:           []ApplyInput{},
 		WaitToBeReadyInputs:   []WaitInput{},
 		WaitToBeRunningInputs: []WaitInput{},
+		AttachDiskInputs:      []AttachDiskInput{},
 	}
 }
 
@@ -68,4 +77,12 @@ func (i *FakeInstance) WaitToBeRunning(maxAttempts int, delay time.Duration) err
 		Delay:       delay,
 	})
 	return i.WaitToBeRunningErr
+}
+
+func (i *FakeInstance) AttachDisk(disk bmdisk.Disk) error {
+	i.AttachDiskInputs = append(i.AttachDiskInputs, AttachDiskInput{
+		Disk: disk,
+	})
+
+	return i.AttachDiskErr
 }

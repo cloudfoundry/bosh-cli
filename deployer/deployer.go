@@ -50,7 +50,7 @@ func NewDeployer(
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
-	eventLoggerStage := eventLogger.NewStage("Deploy Micro BOSH", 8)
+	eventLoggerStage := eventLogger.NewStage("Deploy Micro BOSH", 10)
 
 	return &deployer{
 		vmManagerFactory:   vmManagerFactory,
@@ -65,7 +65,7 @@ func NewDeployer(
 }
 
 func (m *deployer) Deploy(
-	cpi bmcloud.Cloud,
+	cloud bmcloud.Cloud,
 	deployment bmdepl.Deployment,
 	stemcellApplySpec bmstemcell.ApplySpec,
 	registry bmdepl.Registry,
@@ -82,12 +82,12 @@ func (m *deployer) Deploy(
 		return bosherr.WrapError(err, "Starting registry")
 	}
 
-	vm, err := m.createVM(cpi, stemcellCID, deployment)
+	vm, err := m.createVM(cloud, stemcellCID, deployment)
 	if err != nil {
 		return err
 	}
 
-	instance := m.instanceFactory.Create(mbusURL)
+	instance := m.instanceFactory.Create(vm.CID, mbusURL, cloud)
 
 	err = m.waitUntilAgentIsReady(instance, sshTunnelConfig, registry)
 	if err != nil {
@@ -110,7 +110,7 @@ func (m *deployer) Deploy(
 	}
 
 	if deploymentJob := deployment.Jobs[0]; deploymentJob.PersistentDisk > 0 {
-		err = m.createDisk(deploymentJob.PersistentDisk, cpi, vm)
+		err := m.createAndAttachDisk(deploymentJob.PersistentDisk, cloud, vm, instance)
 		if err != nil {
 			return err
 		}
@@ -126,8 +126,8 @@ func (m *deployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error
 	}
 }
 
-func (m *deployer) createVM(cpi bmcloud.Cloud, stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (bmvm.VM, error) {
-	vmManager := m.vmManagerFactory.NewManager(cpi)
+func (m *deployer) createVM(cloud bmcloud.Cloud, stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (bmvm.VM, error) {
+	vmManager := m.vmManagerFactory.NewManager(cloud)
 	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from '%s'", stemcellCID))
 	eventStep.Start()
 
@@ -228,18 +228,27 @@ func (m *deployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmd
 	return nil
 }
 
-func (m *deployer) createDisk(diskSize int, cpi bmcloud.Cloud, vm bmvm.VM) error {
-	eventStep := m.eventLoggerStage.NewStep("Creating disk")
-	eventStep.Start()
+func (m *deployer) createAndAttachDisk(diskSize int, cloud bmcloud.Cloud, vm bmvm.VM, instance bmins.Instance) error {
+	createEventStep := m.eventLoggerStage.NewStep("Creating disk")
+	createEventStep.Start()
 
-	diskManager := m.diskManagerFactory.NewManager(cpi)
-	_, err := diskManager.Create(diskSize, map[string]interface{}{}, vm.CID)
+	diskManager := m.diskManagerFactory.NewManager(cloud)
+	disk, err := diskManager.Create(diskSize, map[string]interface{}{}, vm.CID)
 	if err != nil {
-		eventStep.Fail(err.Error())
+		createEventStep.Fail(err.Error())
 		return bosherr.WrapError(err, "Creating Disk")
 	}
+	createEventStep.Finish()
 
-	eventStep.Finish()
+	attachEventStep := m.eventLoggerStage.NewStep("Attaching disk")
+	attachEventStep.Start()
+
+	err = instance.AttachDisk(disk)
+	if err != nil {
+		attachEventStep.Fail(err.Error())
+		return err
+	}
+	attachEventStep.Finish()
 
 	return nil
 }

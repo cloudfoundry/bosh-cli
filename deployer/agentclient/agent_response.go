@@ -85,13 +85,16 @@ func (r *TaskResponse) TaskID() (string, error) {
 func (r *TaskResponse) TaskState() (string, error) {
 	complexResponse, ok := r.Value.(map[string]interface{})
 	if ok {
-		taskState, ok := complexResponse["state"]
+		_, ok := complexResponse["agent_task_id"]
 		if ok {
-			return taskState.(string), nil
-		}
+			taskState, ok := complexResponse["state"]
+			if ok {
+				return taskState.(string), nil
+			}
 
-		return "", bosherr.New("Failed to parse task state from agent response %#v", r.Value)
+			return "", bosherr.New("Failed to parse task state from agent response %#v", r.Value)
+		}
 	}
 
-	return r.Value.(string), nil
+	return "finished", nil
 }

@@ -41,7 +41,7 @@ var _ = Describe("AgentResponse", func() {
 		})
 
 		Describe("TaskState", func() {
-			Context("when task value is a map", func() {
+			Context("when task value is a map and has agent_task_id", func() {
 				BeforeEach(func() {
 					agentResponseJSON := `{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`
 					err := json.Unmarshal([]byte(agentResponseJSON), &agentTaskResponse)
@@ -55,6 +55,20 @@ var _ = Describe("AgentResponse", func() {
 				})
 			})
 
+			Context("when task value is a map and does not have agent_task_id", func() {
+				BeforeEach(func() {
+					agentResponseJSON := `{"value":{}}`
+					err := json.Unmarshal([]byte(agentResponseJSON), &agentTaskResponse)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("returns task state", func() {
+					taskState, err := agentTaskResponse.TaskState()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(taskState).To(Equal("finished"))
+				})
+			})
+
 			Context("when task value is a string", func() {
 				BeforeEach(func() {
 					agentResponseJSON := `{"value":"stopped"}`
@@ -65,7 +79,7 @@ var _ = Describe("AgentResponse", func() {
 				It("returns task state", func() {
 					taskState, err := agentTaskResponse.TaskState()
 					Expect(err).ToNot(HaveOccurred())
-					Expect(taskState).To(Equal("stopped"))
+					Expect(taskState).To(Equal("finished"))
 				})
 			})
 		})

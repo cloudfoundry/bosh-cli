@@ -12,6 +12,9 @@ type FakeCloud struct {
 	CreateDiskInput CreateDiskInput
 	CreateDiskCID   string
 	CreateDiskErr   error
+
+	AttachDiskInput AttachDiskInput
+	AttachDiskErr   error
 }
 
 type CreateStemcellInput struct {
@@ -30,6 +33,11 @@ type CreateDiskInput struct {
 	Size            int
 	CloudProperties map[string]interface{}
 	InstanceID      string
+}
+
+type AttachDiskInput struct {
+	VMCID   string
+	DiskCID string
 }
 
 func NewFakeCloud() *FakeCloud {
@@ -75,4 +83,12 @@ func (c *FakeCloud) CreateDisk(
 	}
 
 	return c.CreateDiskCID, c.CreateDiskErr
+}
+
+func (c *FakeCloud) AttachDisk(vmCID, diskCID string) error {
+	c.AttachDiskInput = AttachDiskInput{
+		VMCID:   vmCID,
+		DiskCID: diskCID,
+	}
+	return c.AttachDiskErr
 }

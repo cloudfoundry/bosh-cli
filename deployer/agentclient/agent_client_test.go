@@ -344,4 +344,75 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 	})
+
+	Describe("MountDisk", func() {
+		Context("when agent responds with a value", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{}}`, 200, nil)
+			})
+
+			It("makes a POST request to the endpoint", func() {
+				err := agentClient.MountDisk("fake-disk-cid")
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+				var request AgentRequestMessage
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(AgentRequestMessage{
+					Method:    "mount_disk",
+					Arguments: []interface{}{"fake-disk-cid"},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+
+			It("waits for the task to be finished", func() {
+				err := agentClient.MountDisk("fake-disk-cid")
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[1].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+				var request AgentRequestMessage
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[1].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(AgentRequestMessage{
+					Method:    "get_task",
+					Arguments: []interface{}{"fake-agent-task-id"},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+		})
+
+		Context("when agent does not respond with 200", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, nil)
+			})
+
+			It("returns an error", func() {
+				err := agentClient.MountDisk("fake-disk-cid")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("status code: 500"))
+			})
+		})
+
+		Context("when agent responds with exception", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"bad request"}}`, 200, nil)
+			})
+
+			It("returns an error", func() {
+				err := agentClient.MountDisk("fake-disk-cid")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("bad request"))
+			})
+		})
+	})
 })

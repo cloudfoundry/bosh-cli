@@ -6,6 +6,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
 	fakebmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"
@@ -36,9 +37,12 @@ var _ = Describe("InstanceFactory", func() {
 		It("creates an instance", func() {
 			fakeAgentClient := fakebmagentclient.NewFakeAgentClient()
 			fakeAgentClientFactory.CreateAgentClient = fakeAgentClient
+			fakeCloud := fakebmcloud.NewFakeCloud()
 
 			expectedInstance := NewInstance(
+				"fake-vm-cid",
 				fakeAgentClient,
+				fakeCloud,
 				fakeTemplatesSpecGenerator,
 				fakeApplySpecFactory,
 				"fake-mbus-url",
@@ -46,7 +50,7 @@ var _ = Describe("InstanceFactory", func() {
 				logger,
 			)
 
-			instance := instanceFactory.Create("fake-mbus-url")
+			instance := instanceFactory.Create("fake-vm-cid", "fake-mbus-url", fakeCloud)
 			Expect(instance).To(Equal(expectedInstance))
 		})
 	})

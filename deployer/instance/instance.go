@@ -7,15 +7,19 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
 
 type instance struct {
+	vmCID                  string
 	agentClient            bmagentclient.AgentClient
+	cloud                  bmcloud.Cloud
 	templatesSpecGenerator TemplatesSpecGenerator
 	applySpecFactory       bmas.Factory
 	mbusURL                string
@@ -29,10 +33,13 @@ type Instance interface {
 	Apply(bmstemcell.ApplySpec, bmdepl.Deployment) error
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
+	AttachDisk(bmdisk.Disk) error
 }
 
 func NewInstance(
+	vmCID string,
 	agentClient bmagentclient.AgentClient,
+	cloud bmcloud.Cloud,
 	templatesSpecGenerator TemplatesSpecGenerator,
 	applySpecFactory bmas.Factory,
 	mbusURL string,
@@ -40,7 +47,9 @@ func NewInstance(
 	logger boshlog.Logger,
 ) Instance {
 	return &instance{
-		agentClient:            agentClient,
+		vmCID:       vmCID,
+		agentClient: agentClient,
+		cloud:       cloud,
 		templatesSpecGenerator: templatesSpecGenerator,
 		applySpecFactory:       applySpecFactory,
 		mbusURL:                mbusURL,
@@ -121,4 +130,18 @@ func (i *instance) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
 	agentGetStateRetryable := bmagentclient.NewGetStateRetryable(i.agentClient)
 	agentGetStateRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(maxAttempts, delay, agentGetStateRetryable, i.logger)
 	return agentGetStateRetryStrategy.Try()
+}
+
+func (i *instance) AttachDisk(disk bmdisk.Disk) error {
+	err := i.cloud.AttachDisk(i.vmCID, disk.CID)
+	if err != nil {
+		return bosherr.WrapError(err, "Attaching disk in the cloud")
+	}
+
+	err = i.agentClient.MountDisk(disk.CID)
+	if err != nil {
+		return bosherr.WrapError(err, "Mounting disk")
+	}
+
+	return nil
 }

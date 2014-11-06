@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
 	fakebmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"
@@ -14,6 +15,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 
@@ -23,6 +25,7 @@ import (
 var _ = Describe("Instance", func() {
 	var (
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
+		fakeCloud                  *fakebmcloud.FakeCloud
 		instance                   Instance
 		applySpec                  bmstemcell.ApplySpec
 		fakeTemplatesSpecGenerator *fakebmins.FakeTemplatesSpecGenerator
@@ -117,8 +120,11 @@ var _ = Describe("Instance", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
+		fakeCloud = fakebmcloud.NewFakeCloud()
 		instance = NewInstance(
+			"fake-vm-cid",
 			fakeAgentClient,
+			fakeCloud,
 			fakeTemplatesSpecGenerator,
 			fakeApplySpecFactory,
 			"fake-mbus-url",
@@ -249,6 +255,55 @@ var _ = Describe("Instance", func() {
 			err := instance.WaitToBeRunning(5, 0)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.GetStateCalledTimes).To(Equal(3))
+		})
+	})
+
+	Describe("AttachDisk", func() {
+		var disk bmdisk.Disk
+
+		BeforeEach(func() {
+			disk = bmdisk.Disk{
+				CID: "fake-disk-cid",
+			}
+		})
+
+		It("attaches disk to vm in the cloud", func() {
+			err := instance.AttachDisk(disk)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeCloud.AttachDiskInput).To(Equal(fakebmcloud.AttachDiskInput{
+				VMCID:   "fake-vm-cid",
+				DiskCID: "fake-disk-cid",
+			}))
+		})
+
+		It("sends mount disk to the agent", func() {
+			err := instance.AttachDisk(disk)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.MountDiskCID).To(Equal("fake-disk-cid"))
+		})
+
+		Context("when attaching disk to cloud fails", func() {
+			BeforeEach(func() {
+				fakeCloud.AttachDiskErr = errors.New("fake-attach-error")
+			})
+
+			It("returns an error", func() {
+				err := instance.AttachDisk(disk)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-attach-error"))
+			})
+		})
+
+		Context("when mounting disk fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.SetMountDiskBehavior(errors.New("fake-mount-error"))
+			})
+
+			It("returns an error", func() {
+				err := instance.AttachDisk(disk)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-mount-error"))
+			})
 		})
 	})
 })

@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
@@ -83,6 +84,9 @@ var _ = Describe("Deployer", func() {
 
 		fakeDiskManagerFactory := fakebmdisk.NewFakeManagerFactory()
 		fakeDiskManager = fakebmdisk.NewFakeManager()
+		fakeDiskManager.CreateDisk = bmdisk.Disk{
+			CID: "fake-disk-cid",
+		}
 		fakeDiskManagerFactory.NewManagerManager = fakeDiskManager
 
 		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
@@ -207,29 +211,53 @@ var _ = Describe("Deployer", func() {
 			}))
 		})
 
+		It("attaches the persistent disk", func() {
+			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeInstance.AttachDiskInputs).To(Equal([]fakebmins.AttachDiskInput{
+				{
+					Disk: bmdisk.Disk{
+						CID: "fake-disk-cid",
+					},
+				},
+			}))
+		})
+
 		It("logs start and stop events to the eventLogger", func() {
 			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedStartEvent := bmeventlog.Event{
+			Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 8,
+				Total: 10,
 				Task:  fmt.Sprintf("Creating disk"),
 				Index: 6,
 				State: bmeventlog.Started,
-			}
-
-			expectedFailedEvent := bmeventlog.Event{
+			}))
+			Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   8,
+				Total:   10,
 				Task:    fmt.Sprintf("Creating disk"),
 				Index:   6,
 				State:   bmeventlog.Finished,
 				Message: "",
-			}
-			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
-			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
-			Expect(eventLogger.LoggedEvents).To(HaveLen(12))
+			}))
+			Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
+				Stage: "Deploy Micro BOSH",
+				Total: 10,
+				Task:  fmt.Sprintf("Attaching disk"),
+				Index: 7,
+				State: bmeventlog.Started,
+			}))
+			Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
+				Stage:   "Deploy Micro BOSH",
+				Total:   10,
+				Task:    fmt.Sprintf("Attaching disk"),
+				Index:   7,
+				State:   bmeventlog.Finished,
+				Message: "",
+			}))
+			Expect(eventLogger.LoggedEvents).To(HaveLen(14))
 		})
 
 		Context("when creating the persistent disk fails", func() {
@@ -249,7 +277,7 @@ var _ = Describe("Deployer", func() {
 
 				expectedStartEvent := bmeventlog.Event{
 					Stage: "Deploy Micro BOSH",
-					Total: 8,
+					Total: 10,
 					Task:  fmt.Sprintf("Creating disk"),
 					Index: 6,
 					State: bmeventlog.Started,
@@ -257,7 +285,7 @@ var _ = Describe("Deployer", func() {
 
 				expectedFailedEvent := bmeventlog.Event{
 					Stage:   "Deploy Micro BOSH",
-					Total:   8,
+					Total:   10,
 					Task:    fmt.Sprintf("Creating disk"),
 					Index:   6,
 					State:   bmeventlog.Failed,
@@ -266,6 +294,43 @@ var _ = Describe("Deployer", func() {
 				Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
 				Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
 				Expect(eventLogger.LoggedEvents).To(HaveLen(12))
+			})
+		})
+
+		Context("when attaching the persistent disk fails", func() {
+			BeforeEach(func() {
+				fakeInstance.AttachDiskErr = errors.New("fake-attach-disk-error")
+			})
+
+			It("return an error", func() {
+				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-attach-disk-error"))
+			})
+
+			It("logs start and failed events to the eventLogger", func() {
+				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+				Expect(err).To(HaveOccurred())
+
+				expectedStartEvent := bmeventlog.Event{
+					Stage: "Deploy Micro BOSH",
+					Total: 10,
+					Task:  fmt.Sprintf("Attaching disk"),
+					Index: 7,
+					State: bmeventlog.Started,
+				}
+
+				expectedFailedEvent := bmeventlog.Event{
+					Stage:   "Deploy Micro BOSH",
+					Total:   10,
+					Task:    fmt.Sprintf("Attaching disk"),
+					Index:   7,
+					State:   bmeventlog.Failed,
+					Message: "fake-attach-disk-error",
+				}
+				Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
+				Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailedEvent))
+				Expect(eventLogger.LoggedEvents).To(HaveLen(14))
 			})
 		})
 	})
@@ -289,70 +354,70 @@ var _ = Describe("Deployer", func() {
 
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  "Creating VM from 'fake-stemcell-cid'",
 			Index: 1,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  "Creating VM from 'fake-stemcell-cid'",
 			Index: 1,
 			State: bmeventlog.Finished,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  fmt.Sprintf("Waiting for the agent"),
 			Index: 2,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  fmt.Sprintf("Waiting for the agent"),
 			Index: 2,
 			State: bmeventlog.Finished,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  fmt.Sprintf("Applying micro BOSH spec"),
 			Index: 3,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  fmt.Sprintf("Applying micro BOSH spec"),
 			Index: 3,
 			State: bmeventlog.Finished,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  fmt.Sprintf("Starting agent services"),
 			Index: 4,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  fmt.Sprintf("Starting agent services"),
 			Index: 4,
 			State: bmeventlog.Finished,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  fmt.Sprintf("Waiting for the director"),
 			Index: 5,
 			State: bmeventlog.Started,
 		}))
 		Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 			Stage: "Deploy Micro BOSH",
-			Total: 8,
+			Total: 10,
 			Task:  fmt.Sprintf("Waiting for the director"),
 			Index: 5,
 			State: bmeventlog.Finished,
@@ -397,7 +462,7 @@ var _ = Describe("Deployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 8,
+				Total: 10,
 				Task:  fmt.Sprintf("Waiting for the agent"),
 				Index: 2,
 				State: bmeventlog.Started,
@@ -405,7 +470,7 @@ var _ = Describe("Deployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   8,
+				Total:   10,
 				Task:    fmt.Sprintf("Waiting for the agent"),
 				Index:   2,
 				State:   bmeventlog.Failed,
@@ -429,7 +494,7 @@ var _ = Describe("Deployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 8,
+				Total: 10,
 				Task:  fmt.Sprintf("Applying micro BOSH spec"),
 				Index: 3,
 				State: bmeventlog.Started,
@@ -437,7 +502,7 @@ var _ = Describe("Deployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   8,
+				Total:   10,
 				Task:    fmt.Sprintf("Applying micro BOSH spec"),
 				Index:   3,
 				State:   bmeventlog.Failed,
@@ -461,7 +526,7 @@ var _ = Describe("Deployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 8,
+				Total: 10,
 				Task:  fmt.Sprintf("Starting agent services"),
 				Index: 4,
 				State: bmeventlog.Started,
@@ -469,7 +534,7 @@ var _ = Describe("Deployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   8,
+				Total:   10,
 				Task:    fmt.Sprintf("Starting agent services"),
 				Index:   4,
 				State:   bmeventlog.Failed,
@@ -498,14 +563,14 @@ var _ = Describe("Deployer", func() {
 
 			Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 8,
+				Total: 10,
 				Task:  "Creating VM from 'fake-stemcell-cid'",
 				Index: 1,
 				State: bmeventlog.Started,
 			}))
 			Expect(eventLogger.LoggedEvents).To(ContainElement(bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   8,
+				Total:   10,
 				Task:    "Creating VM from 'fake-stemcell-cid'",
 				Index:   1,
 				State:   bmeventlog.Failed,
@@ -527,7 +592,7 @@ var _ = Describe("Deployer", func() {
 
 			expectedStartEvent := bmeventlog.Event{
 				Stage: "Deploy Micro BOSH",
-				Total: 8,
+				Total: 10,
 				Task:  fmt.Sprintf("Waiting for the director"),
 				Index: 5,
 				State: bmeventlog.Started,
@@ -535,7 +600,7 @@ var _ = Describe("Deployer", func() {
 
 			expectedFailedEvent := bmeventlog.Event{
 				Stage:   "Deploy Micro BOSH",
-				Total:   8,
+				Total:   10,
 				Task:    fmt.Sprintf("Waiting for the director"),
 				Index:   5,
 				State:   bmeventlog.Failed,

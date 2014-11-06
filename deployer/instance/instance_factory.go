@@ -3,12 +3,13 @@ package instance
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 )
 
 type Factory interface {
-	Create(string) Instance
+	Create(string, string, bmcloud.Cloud) Instance
 }
 
 type instanceFactory struct {
@@ -35,11 +36,13 @@ func NewInstanceFactory(
 	}
 }
 
-func (f *instanceFactory) Create(mbusURL string) Instance {
+func (f *instanceFactory) Create(vmCID string, mbusURL string, cloud bmcloud.Cloud) Instance {
 	agentClient := f.agentClientFactory.Create(mbusURL)
 
 	return NewInstance(
+		vmCID,
 		agentClient,
+		cloud,
 		f.templatesSpecGenerator,
 		f.applySpecFactory,
 		mbusURL,

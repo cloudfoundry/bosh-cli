@@ -128,6 +128,7 @@ Host warden-vm
 		Expect(stdout).To(ContainSubstring("Starting agent services"))
 		Expect(stdout).To(ContainSubstring("Waiting for the director"))
 		Expect(stdout).To(ContainSubstring("Creating disk"))
+		Expect(stdout).To(ContainSubstring("Attaching disk"))
 
 		ItSetsSSHPassword("vcap", "sshpassword", "10.244.0.42")
 	})

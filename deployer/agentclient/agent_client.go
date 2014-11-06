@@ -17,6 +17,7 @@ type AgentClient interface {
 	Apply(bmas.ApplySpec) error
 	Start() error
 	GetState() (State, error)
+	MountDisk(string) error
 }
 
 type agentClient struct {
@@ -84,6 +85,10 @@ func (c *agentClient) GetState() (State, error) {
 	}
 
 	return response.Value, nil
+}
+
+func (c *agentClient) MountDisk(diskCID string) error {
+	return c.sendAsyncTaskMessage("mount_disk", []interface{}{diskCID})
 }
 
 func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) error {

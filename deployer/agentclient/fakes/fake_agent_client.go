@@ -18,6 +18,9 @@ type FakeAgentClient struct {
 	StartCalled bool
 	startErr    error
 
+	MountDiskCID string
+	mountDiskErr error
+
 	GetStateCalledTimes int
 	getStateOutputs     []getStateOutput
 }
@@ -75,6 +78,12 @@ func (c *FakeAgentClient) GetState() (bmagentclient.State, error) {
 	return getStateReturn.state, getStateReturn.err
 }
 
+func (c *FakeAgentClient) MountDisk(diskCID string) error {
+	c.MountDiskCID = diskCID
+
+	return c.mountDiskErr
+}
+
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {
 	c.PingResponses = append(c.PingResponses, pingResponse{
 		response: response,
@@ -95,4 +104,8 @@ func (c *FakeAgentClient) SetGetStateBehavior(stateResponse bmagentclient.State,
 		state: stateResponse,
 		err:   err,
 	})
+}
+
+func (c *FakeAgentClient) SetMountDiskBehavior(err error) {
+	c.mountDiskErr = err
 }
