@@ -35,6 +35,7 @@ type DeploymentFile struct {
 	UUID      string           `json:"uuid"`
 	Stemcells []StemcellRecord `json:"stemcells"`
 	VMCID     string           `json:"vm_cid"`
+	DiskCID   string           `json:"disk_cid"`
 }
 
 func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
@@ -56,6 +57,7 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
 	config.DeploymentUUID = deploymentFile.UUID
 	config.Stemcells = deploymentFile.Stemcells
 	config.VMCID = deploymentFile.VMCID
+	config.DiskCID = deploymentFile.DiskCID
 
 	return config, nil
 }
@@ -65,6 +67,7 @@ func (s fileSystemDeploymentConfigService) Save(config DeploymentConfig) error {
 		UUID:      config.DeploymentUUID,
 		Stemcells: config.Stemcells,
 		VMCID:     config.VMCID,
+		DiskCID:   config.DiskCID,
 	}
 	jsonContent, err := json.MarshalIndent(deploymentFile, "", "    ")
 	if err != nil {

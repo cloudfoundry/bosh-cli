@@ -6,6 +6,7 @@ type DeploymentConfig struct {
 	ContainingDir  string           `json:"-"`
 	DeploymentUUID string           `json:"-"`
 	VMCID          string           `json:"-"`
+	DiskCID        string           `json:"-"`
 	Stemcells      []StemcellRecord `json:"-"`
 }
 

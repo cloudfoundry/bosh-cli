@@ -3,6 +3,7 @@ package disk
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
 type ManagerFactory interface {
@@ -10,19 +11,25 @@ type ManagerFactory interface {
 }
 
 type managerFactory struct {
-	logger boshlog.Logger
+	deploymentConfigService bmconfig.DeploymentConfigService
+	logger                  boshlog.Logger
 }
 
-func NewManagerFactory(logger boshlog.Logger) ManagerFactory {
+func NewManagerFactory(
+	deploymentConfigService bmconfig.DeploymentConfigService,
+	logger boshlog.Logger,
+) ManagerFactory {
 	return &managerFactory{
-		logger: logger,
+		deploymentConfigService: deploymentConfigService,
+		logger:                  logger,
 	}
 }
 
 func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
 	return &manager{
-		cloud:  cloud,
-		logger: f.logger,
-		logTag: "diskManager",
+		cloud: cloud,
+		deploymentConfigService: f.deploymentConfigService,
+		logger:                  f.logger,
+		logTag:                  "diskManager",
 	}
 }

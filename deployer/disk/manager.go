@@ -4,6 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
 type Manager interface {
@@ -11,9 +12,10 @@ type Manager interface {
 }
 
 type manager struct {
-	cloud  bmcloud.Cloud
-	logger boshlog.Logger
-	logTag string
+	cloud                   bmcloud.Cloud
+	deploymentConfigService bmconfig.DeploymentConfigService
+	logger                  boshlog.Logger
+	logTag                  string
 }
 
 func (m *manager) Create(
@@ -31,6 +33,17 @@ func (m *manager) Create(
 				cloudProperties,
 				instanceID,
 			)
+	}
+
+	deploymentConfig, err := m.deploymentConfigService.Load()
+	if err != nil {
+		return Disk{}, bosherr.WrapError(err, "Reading existing deployment config")
+	}
+	deploymentConfig.DiskCID = cid
+
+	err = m.deploymentConfigService.Save(deploymentConfig)
+	if err != nil {
+		return Disk{}, bosherr.WrapError(err, "Saving deployment config")
 	}
 
 	disk := Disk{

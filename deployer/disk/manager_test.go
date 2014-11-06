@@ -6,9 +6,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 )
@@ -19,11 +21,14 @@ var _ = Describe("Manager", func() {
 			manager         Manager
 			fakeCloud       *fakebmcloud.FakeCloud
 			cloudProperties map[string]interface{}
+			configService   bmconfig.DeploymentConfigService
 		)
 
 		BeforeEach(func() {
 			logger := boshlog.NewLogger(boshlog.LevelNone)
-			managerFactory := NewManagerFactory(logger)
+			fs := fakesys.NewFakeFileSystem()
+			configService = bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
+			managerFactory := NewManagerFactory(configService, logger)
 			fakeCloud = fakebmcloud.NewFakeCloud()
 			manager = managerFactory.NewManager(fakeCloud)
 			cloudProperties = map[string]interface{}{
@@ -42,6 +47,19 @@ var _ = Describe("Manager", func() {
 				Expect(disk).To(Equal(Disk{
 					CID: "fake-disk-cid",
 				}))
+			})
+
+			It("saves the disk record using the config service", func() {
+				_, err := manager.Create(1024, cloudProperties, "fake-instance-id")
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentConfig, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				expectedConfig := bmconfig.DeploymentConfig{
+					DiskCID: "fake-disk-cid",
+				}
+				Expect(deploymentConfig).To(Equal(expectedConfig))
 			})
 		})
 
