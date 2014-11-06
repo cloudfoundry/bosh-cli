@@ -34,6 +34,7 @@ const (
 )
 
 type EventLogger interface {
+	NewStage(string, int) Stage
 	AddEvent(event Event) error
 }
 
@@ -49,6 +50,10 @@ func NewEventLogger(ui bmui.UI) EventLogger {
 		startedTasks: make(map[string]time.Time),
 		filters:      []EventFilter{},
 	}
+}
+
+func (e *eventLogger) NewStage(name string, totalSteps int) Stage {
+	return NewStage(name, totalSteps, e)
 }
 
 func NewEventLoggerWithFilters(ui bmui.UI, filters []EventFilter) EventLogger {

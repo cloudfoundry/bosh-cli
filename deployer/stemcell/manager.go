@@ -37,65 +37,28 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 	}
 	defer m.fs.RemoveAll(tmpDir)
 
-	event := bmeventlog.Event{
-		Stage: "uploading stemcell",
-		Total: 2,
-		Task:  "Unpacking",
-		Index: 1,
-		State: bmeventlog.Started,
-	}
-	m.eventLogger.AddEvent(event)
+	eventLoggerStage := m.eventLogger.NewStage("Uploading stemcell", 2)
+	eventStep := eventLoggerStage.NewStep("Unpacking")
+	eventStep.Start()
 
 	stemcell, err = m.reader.Read(tarballPath, tmpDir)
 	if err != nil {
-		event = bmeventlog.Event{
-			Stage: "uploading stemcell",
-			Total: 2,
-			Task:  "Unpacking",
-			Index: 1,
-			State: bmeventlog.Failed,
-		}
-		m.eventLogger.AddEvent(event)
-
+		eventStep.Fail(err.Error())
 		return Stemcell{}, "", bosherr.WrapError(err, "reading extracted stemcell manifest in `%s'", tmpDir)
 	}
 
-	event = bmeventlog.Event{
-		Stage: "uploading stemcell",
-		Total: 2,
-		Task:  "Unpacking",
-		Index: 1,
-		State: bmeventlog.Finished,
-	}
-	m.eventLogger.AddEvent(event)
-
+	eventStep.Finish()
 	cid, found, err := m.repo.Find(stemcell.Manifest)
 	if err != nil {
 		return Stemcell{}, "", bosherr.WrapError(err, "finding existing stemcell record in repo")
 	}
+	eventStep = eventLoggerStage.NewStep("Uploading")
 	if found {
-		event = bmeventlog.Event{
-			Stage:   "uploading stemcell",
-			Total:   2,
-			Task:    "Uploading",
-			Index:   2,
-			State:   bmeventlog.Skipped,
-			Message: "stemcell already uploaded",
-		}
-		m.eventLogger.AddEvent(event)
-
+		eventStep.Skip("Stemcell already uploaded")
 		return stemcell, cid, nil
 	}
 
-	event = bmeventlog.Event{
-		Stage: "uploading stemcell",
-		Total: 2,
-		Task:  "Uploading",
-		Index: 2,
-		State: bmeventlog.Started,
-	}
-	m.eventLogger.AddEvent(event)
-
+	eventStep.Start()
 	cloudProperties, err := stemcell.Manifest.CloudProperties()
 	if err != nil {
 		return Stemcell{}, "", bosherr.WrapError(err, "Getting cloud properties from stemcell manifest")
@@ -103,15 +66,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 
 	stemcellCid, err := m.cloud.CreateStemcell(cloudProperties, stemcell.Manifest.ImagePath)
 	if err != nil {
-		event = bmeventlog.Event{
-			Stage: "uploading stemcell",
-			Total: 2,
-			Task:  "Uploading",
-			Index: 2,
-			State: bmeventlog.Failed,
-		}
-		m.eventLogger.AddEvent(event)
-
+		eventStep.Fail(err.Error())
 		return Stemcell{}, "", bosherr.WrapError(
 			err,
 			"creating stemcell (cloud=%s, stemcell=%s)",
@@ -124,15 +79,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 	err = m.repo.Save(stemcell.Manifest, cid)
 	if err != nil {
 		//TODO: delete stemcell from cloud when saving fails
-		event = bmeventlog.Event{
-			Stage: "uploading stemcell",
-			Total: 2,
-			Task:  "Uploading",
-			Index: 2,
-			State: bmeventlog.Failed,
-		}
-		m.eventLogger.AddEvent(event)
-
+		eventStep.Fail(err.Error())
 		return Stemcell{}, "", bosherr.WrapError(
 			err,
 			"saving stemcell record in repo (record=%s, stemcell=%s)",
@@ -141,14 +88,7 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 		)
 	}
 
-	event = bmeventlog.Event{
-		Stage: "uploading stemcell",
-		Total: 2,
-		Task:  "Uploading",
-		Index: 2,
-		State: bmeventlog.Finished,
-	}
-	m.eventLogger.AddEvent(event)
+	eventStep.Finish()
 
 	return stemcell, cid, nil
 }

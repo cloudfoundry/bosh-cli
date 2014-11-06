@@ -134,7 +134,7 @@ var _ = Describe("Manager", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		expectedStartEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
+			Stage: "Uploading stemcell",
 			Total: 2,
 			Task:  "Unpacking",
 			Index: 1,
@@ -142,7 +142,7 @@ var _ = Describe("Manager", func() {
 		}
 
 		expectedFinishEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
+			Stage: "Uploading stemcell",
 			Total: 2,
 			Task:  "Unpacking",
 			Index: 1,
@@ -162,7 +162,7 @@ var _ = Describe("Manager", func() {
 		Expect(err.Error()).To(ContainSubstring("fake-read-error"))
 
 		expectedStartEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
+			Stage: "Uploading stemcell",
 			Total: 2,
 			Task:  "Unpacking",
 			Index: 1,
@@ -170,11 +170,12 @@ var _ = Describe("Manager", func() {
 		}
 
 		expectedFailedEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
-			Total: 2,
-			Task:  "Unpacking",
-			Index: 1,
-			State: bmeventlog.Failed,
+			Stage:   "Uploading stemcell",
+			Total:   2,
+			Task:    "Unpacking",
+			Index:   1,
+			State:   bmeventlog.Failed,
+			Message: "fake-read-error",
 		}
 
 		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
@@ -187,7 +188,7 @@ var _ = Describe("Manager", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		expectedStartEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
+			Stage: "Uploading stemcell",
 			Total: 2,
 			Task:  "Uploading",
 			Index: 2,
@@ -195,7 +196,7 @@ var _ = Describe("Manager", func() {
 		}
 
 		expectedFinishEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
+			Stage: "Uploading stemcell",
 			Total: 2,
 			Task:  "Uploading",
 			Index: 2,
@@ -214,7 +215,7 @@ var _ = Describe("Manager", func() {
 		Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 
 		expectedStartEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
+			Stage: "Uploading stemcell",
 			Total: 2,
 			Task:  "Uploading",
 			Index: 2,
@@ -222,11 +223,12 @@ var _ = Describe("Manager", func() {
 		}
 
 		expectedFailedEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
-			Total: 2,
-			Task:  "Uploading",
-			Index: 2,
-			State: bmeventlog.Failed,
+			Stage:   "Uploading stemcell",
+			Total:   2,
+			Task:    "Uploading",
+			Index:   2,
+			State:   bmeventlog.Failed,
+			Message: "fake-create-error",
 		}
 
 		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
@@ -246,7 +248,7 @@ var _ = Describe("Manager", func() {
 		Expect(err.Error()).To(ContainSubstring("fake-save-error"))
 
 		expectedStartEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
+			Stage: "Uploading stemcell",
 			Total: 2,
 			Task:  "Uploading",
 			Index: 2,
@@ -254,11 +256,12 @@ var _ = Describe("Manager", func() {
 		}
 
 		expectedFailedEvent := bmeventlog.Event{
-			Stage: "uploading stemcell",
-			Total: 2,
-			Task:  "Uploading",
-			Index: 2,
-			State: bmeventlog.Failed,
+			Stage:   "Uploading stemcell",
+			Total:   2,
+			Task:    "Uploading",
+			Index:   2,
+			State:   bmeventlog.Failed,
+			Message: "fake-save-error",
 		}
 
 		Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
@@ -308,7 +311,7 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedStartEvent := bmeventlog.Event{
-				Stage: "uploading stemcell",
+				Stage: "Uploading stemcell",
 				Total: 2,
 				Task:  "Unpacking",
 				Index: 1,
@@ -316,7 +319,7 @@ var _ = Describe("Manager", func() {
 			}
 
 			expectedFinishEvent := bmeventlog.Event{
-				Stage: "uploading stemcell",
+				Stage: "Uploading stemcell",
 				Total: 2,
 				Task:  "Unpacking",
 				Index: 1,
@@ -324,12 +327,12 @@ var _ = Describe("Manager", func() {
 			}
 
 			expectedSkipEvent := bmeventlog.Event{
-				Stage:   "uploading stemcell",
+				Stage:   "Uploading stemcell",
 				Total:   2,
 				Task:    "Uploading",
 				Index:   2,
 				State:   bmeventlog.Skipped,
-				Message: "stemcell already uploaded",
+				Message: "Stemcell already uploaded",
 			}
 
 			Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
