@@ -28,6 +28,8 @@ chmod -R o+w $SRC_DIR
 
 echo "Running '$@' in docker container '$DOCKER_IMAGE'..."
 
+docker pull $DOCKER_IMAGE
+
 docker run \
   -e BOSH_AWS_ACCESS_KEY_ID \
   -e BOSH_AWS_SECRET_ACCESS_KEY \
