@@ -71,7 +71,7 @@ func (e *eventLogger) AddEvent(event Event) error {
 		}
 	}
 
-	key := fmt.Sprintf("%s > %s.", event.Stage, event.Task)
+	key := fmt.Sprintf("%s > %s...", event.Stage, event.Task)
 	switch event.State {
 	case Started:
 		if event.Index == 1 {
@@ -81,16 +81,16 @@ func (e *eventLogger) AddEvent(event Event) error {
 		e.startedTasks[key] = event.Time
 	case Finished:
 		duration := event.Time.Sub(e.startedTasks[key])
-		e.ui.Sayln(fmt.Sprintf(" Done (%s)", durationfmt.Format(duration)))
+		e.ui.Sayln(fmt.Sprintf(" done. (%s)", durationfmt.Format(duration)))
 		if event.Index == event.Total {
 			e.ui.Sayln(fmt.Sprintf("Done %s", event.Stage))
 			e.ui.Sayln("")
 		}
 	case Failed:
 		duration := event.Time.Sub(e.startedTasks[key])
-		e.ui.Sayln(fmt.Sprintf(" Failed '%s' (%s)", event.Message, durationfmt.Format(duration)))
+		e.ui.Sayln(fmt.Sprintf(" failed (%s). (%s)", event.Message, durationfmt.Format(duration)))
 	case Skipped:
-		e.ui.Sayln(fmt.Sprintf("Started %s Skipped '%s'", key, event.Message))
+		e.ui.Sayln(fmt.Sprintf("Started %s skipped (%s).", key, event.Message))
 		if event.Index == event.Total {
 			e.ui.Sayln(fmt.Sprintf("Done %s", event.Stage))
 			e.ui.Sayln("")

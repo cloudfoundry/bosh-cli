@@ -121,7 +121,7 @@ var _ = Describe("EventLogger", func() {
 
 			It("tells the UI to print out Done when the task is finished", func() {
 				output := uiOut.String()
-				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-2. Done (00:00:01)\n"))
+				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-2... done. (00:00:01)\n"))
 			})
 
 			It("tells the UI to finish the stage with an extra linebreak", func() {
@@ -152,7 +152,7 @@ var _ = Describe("EventLogger", func() {
 					Message: "fake-fail-message",
 				})
 				output := uiOut.String()
-				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1. Failed 'fake-fail-message' (00:00:01)\n"))
+				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1... failed (fake-fail-message). (00:00:01)\n"))
 			})
 		})
 
@@ -178,7 +178,7 @@ var _ = Describe("EventLogger", func() {
 					Message: "fake-skipped-message",
 				})
 				output := uiOut.String()
-				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1. Skipped 'fake-skipped-message'\n"))
+				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1... skipped (fake-skipped-message).\n"))
 			})
 		})
 
