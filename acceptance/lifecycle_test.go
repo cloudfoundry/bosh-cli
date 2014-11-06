@@ -124,11 +124,11 @@ Host warden-vm
 		Expect(stdout).To(ContainSubstring("Uploading stemcell"))
 		Expect(stdout).To(ContainSubstring("Creating VM from"))
 		Expect(stdout).To(ContainSubstring("Waiting for the agent"))
+		Expect(stdout).To(ContainSubstring("Creating disk"))
+		Expect(stdout).To(ContainSubstring("Attaching disk"))
 		Expect(stdout).To(ContainSubstring("Applying micro BOSH spec"))
 		Expect(stdout).To(ContainSubstring("Starting agent services"))
 		Expect(stdout).To(ContainSubstring("Waiting for the director"))
-		Expect(stdout).To(ContainSubstring("Creating disk"))
-		Expect(stdout).To(ContainSubstring("Attaching disk"))
 
 		ItSetsSSHPassword("vcap", "sshpassword", "10.244.0.42")
 	})

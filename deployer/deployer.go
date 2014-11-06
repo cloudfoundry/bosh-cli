@@ -94,6 +94,13 @@ func (m *deployer) Deploy(
 		return err
 	}
 
+	if deploymentJob := deployment.Jobs[0]; deploymentJob.PersistentDisk > 0 {
+		err := m.createAndAttachDisk(deploymentJob.PersistentDisk, cloud, vm, instance)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = m.updateInstance(instance, stemcellApplySpec, deployment)
 	if err != nil {
 		return err
@@ -107,13 +114,6 @@ func (m *deployer) Deploy(
 	err = m.waitUntilRunning(instance, deployment.Update.UpdateWatchTime)
 	if err != nil {
 		return err
-	}
-
-	if deploymentJob := deployment.Jobs[0]; deploymentJob.PersistentDisk > 0 {
-		err := m.createAndAttachDisk(deploymentJob.PersistentDisk, cloud, vm, instance)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
