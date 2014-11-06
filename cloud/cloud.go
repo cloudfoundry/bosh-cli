@@ -9,6 +9,7 @@ type Cloud interface {
 	CreateStemcell(map[string]interface{}, string) (string, error)
 	CreateVM(string, map[string]interface{}, map[string]interface{}, map[string]interface{}) (string, error)
 	CreateDisk(int, map[string]interface{}, string) (string, error)
+	AttachDisk(string, string) error
 }
 
 type cloud struct {
@@ -95,4 +96,18 @@ func (c cloud) CreateDisk(size int, cloudProperties map[string]interface{}, inst
 		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
 	return cidString, nil
+}
+
+func (c cloud) AttachDisk(vmCID, diskCID string) error {
+	c.logger.Debug(c.logTag, "Attaching disk '%s' to vm '%s'", diskCID, vmCID)
+	_, err := c.cpiCmdRunner.Run(
+		"attach_disk",
+		vmCID,
+		diskCID,
+	)
+	if err != nil {
+		return bosherr.WrapError(err, "Calling CPI 'attach_disk' method")
+	}
+
+	return nil
 }
