@@ -11,6 +11,9 @@ Vagrant.configure('2') do |config|
   end
 
   config.vm.provider :aws do |v, override|
+    v.tags = {
+      'PipelineName' => 'bosh-micro-cli'
+    }
   end
 
   config.vm.synced_folder Dir.pwd, '/vagrant', disabled: true
