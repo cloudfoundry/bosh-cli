@@ -121,7 +121,7 @@ Host warden-vm
 		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		Expect(stdout).To(ContainSubstring("Uploading stemcell"))
+		Expect(stdout).To(ContainSubstring("uploading stemcell"))
 		Expect(stdout).To(ContainSubstring("Creating VM from stemcell"))
 		Expect(stdout).To(ContainSubstring("Waiting for the agent"))
 		Expect(stdout).To(ContainSubstring("Creating disk"))

@@ -71,7 +71,7 @@ var _ = Describe("Manager", func() {
 
 		Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
 			{
-				Name:       "Uploading stemcell",
+				Name:       "uploading stemcell",
 				TotalSteps: 2,
 			},
 		}))
