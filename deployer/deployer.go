@@ -144,7 +144,7 @@ func (m *deployer) waitUntilAgentIsReady(
 	sshTunnelConfig bmdepl.SSHTunnel,
 	registry bmdepl.Registry,
 ) error {
-	eventStep := m.eventLoggerStage.NewStep("Waiting for the agent")
+	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
 	eventStep.Start()
 
 	sshTunnelOptions := bmsshtunnel.Options{

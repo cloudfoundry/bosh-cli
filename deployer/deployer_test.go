@@ -329,7 +329,7 @@ var _ = Describe("Deployer", func() {
 			},
 		}))
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Waiting for the agent",
+			Name: "Waiting for the agent on VM 'fake-vm-cid'",
 			States: []bmeventlog.EventState{
 				bmeventlog.Started,
 				bmeventlog.Finished,
@@ -386,7 +386,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Waiting for the agent",
+				Name: "Waiting for the agent on VM 'fake-vm-cid'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
