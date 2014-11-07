@@ -138,12 +138,12 @@ func (vm *vm) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
 }
 
 func (vm *vm) AttachDisk(disk bmdisk.Disk) error {
-	err := vm.cloud.AttachDisk(vm.cid, disk.CID)
+	err := vm.cloud.AttachDisk(vm.cid, disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Attaching disk in the cloud")
 	}
 
-	err = vm.agentClient.MountDisk(disk.CID)
+	err = vm.agentClient.MountDisk(disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Mounting disk")
 	}

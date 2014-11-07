@@ -82,9 +82,7 @@ var _ = Describe("Deployer", func() {
 
 		fakeDiskManagerFactory := fakebmdisk.NewFakeManagerFactory()
 		fakeDiskManager = fakebmdisk.NewFakeManager()
-		fakeDiskManager.CreateDisk = bmdisk.Disk{
-			CID: "fake-disk-cid",
-		}
+		fakeDiskManager.CreateDisk = bmdisk.NewDisk("fake-disk-cid")
 		fakeDiskManagerFactory.NewManagerManager = fakeDiskManager
 
 		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
@@ -228,9 +226,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
 				{
-					Disk: bmdisk.Disk{
-						CID: "fake-disk-cid",
-					},
+					Disk: bmdisk.NewDisk("fake-disk-cid"),
 				},
 			}))
 		})
@@ -247,7 +243,7 @@ var _ = Describe("Deployer", func() {
 				},
 			}))
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Attaching disk",
+				Name: "Attaching disk 'fake-disk-cid' to VM 'fake-vm-cid'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Finished,
@@ -297,7 +293,7 @@ var _ = Describe("Deployer", func() {
 				Expect(err).To(HaveOccurred())
 
 				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Attaching disk",
+					Name: "Attaching disk 'fake-disk-cid' to VM 'fake-vm-cid'",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Failed,

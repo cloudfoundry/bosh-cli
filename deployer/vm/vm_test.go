@@ -261,9 +261,7 @@ var _ = Describe("VM", func() {
 		var disk bmdisk.Disk
 
 		BeforeEach(func() {
-			disk = bmdisk.Disk{
-				CID: "fake-disk-cid",
-			}
+			disk = bmdisk.NewDisk("fake-disk-cid")
 		})
 
 		It("attaches disk to vm in the cloud", func() {

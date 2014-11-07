@@ -46,9 +46,7 @@ var _ = Describe("Manager", func() {
 			It("returns the existing disk", func() {
 				disk, err := manager.Create(1024, cloudProperties, "fake-instance-id")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(disk).To(Equal(Disk{
-					CID: "fake-existing-disk-cid",
-				}))
+				Expect(disk.CID()).To(Equal("fake-existing-disk-cid"))
 			})
 		})
 
@@ -60,9 +58,7 @@ var _ = Describe("Manager", func() {
 			It("returns a disk", func() {
 				disk, err := manager.Create(1024, cloudProperties, "fake-instance-id")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(disk).To(Equal(Disk{
-					CID: "fake-disk-cid",
-				}))
+				Expect(disk.CID()).To(Equal("fake-disk-cid"))
 			})
 
 			It("saves the disk record using the config service", func() {

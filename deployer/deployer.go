@@ -229,7 +229,7 @@ func (m *deployer) createAndAttachDisk(diskSize int, cloud bmcloud.Cloud, vm bmv
 	}
 	createEventStep.Finish()
 
-	attachEventStep := m.eventLoggerStage.NewStep("Attaching disk")
+	attachEventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Attaching disk '%s' to VM '%s'", disk.CID(), vm.CID()))
 	attachEventStep.Start()
 
 	err = vm.AttachDisk(disk)
