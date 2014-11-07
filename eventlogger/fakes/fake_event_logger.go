@@ -10,11 +10,13 @@ type FakeEventLogger struct {
 
 	NewStageInputs []NewStageInput
 	newStageStage  bmeventlog.Stage
+
+	StartStageInputs  []string
+	FinishStageInputs []string
 }
 
 type NewStageInput struct {
-	Name       string
-	TotalSteps int
+	Name string
 }
 
 func NewFakeEventLogger() *FakeEventLogger {
@@ -32,13 +34,20 @@ func (fl *FakeEventLogger) AddEvent(event bmeventlog.Event) error {
 	return nil
 }
 
-func (fl *FakeEventLogger) NewStage(name string, totalSteps int) bmeventlog.Stage {
+func (fl *FakeEventLogger) NewStage(name string) bmeventlog.Stage {
 	fl.NewStageInputs = append(fl.NewStageInputs, NewStageInput{
-		Name:       name,
-		TotalSteps: totalSteps,
+		Name: name,
 	})
 
 	return fl.newStageStage
+}
+
+func (fl *FakeEventLogger) StartStage(name string) {
+	fl.StartStageInputs = append(fl.StartStageInputs, name)
+}
+
+func (fl *FakeEventLogger) FinishStage(name string) {
+	fl.FinishStageInputs = append(fl.FinishStageInputs, name)
 }
 
 func (fl *FakeEventLogger) SetNewStageBehavior(stage bmeventlog.Stage) {

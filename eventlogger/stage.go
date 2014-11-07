@@ -1,32 +1,28 @@
 package eventlogger
 
 type stage struct {
-	name         string
-	totalSteps   int
-	eventLogger  EventLogger
-	currentIndex int
+	name        string
+	eventLogger EventLogger
 }
 
 type Stage interface {
 	NewStep(string) Step
 	Name() string
-	TotalSteps() int
+	Start()
+	Finish()
 }
 
-func NewStage(name string, totalSteps int, eventLogger EventLogger) Stage {
+func NewStage(name string, eventLogger EventLogger) Stage {
 	return &stage{
 		name:        name,
-		totalSteps:  totalSteps,
 		eventLogger: eventLogger,
 	}
 }
 
 func (s *stage) NewStep(stepName string) Step {
-	s.currentIndex++
 	step := &step{
 		name:        stepName,
 		stage:       s,
-		index:       s.currentIndex,
 		eventLogger: s.eventLogger,
 	}
 
@@ -37,6 +33,10 @@ func (s *stage) Name() string {
 	return s.name
 }
 
-func (s *stage) TotalSteps() int {
-	return s.totalSteps
+func (s *stage) Start() {
+	s.eventLogger.StartStage(s.name)
+}
+
+func (s *stage) Finish() {
+	s.eventLogger.FinishStage(s.name)
 }

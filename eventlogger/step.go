@@ -17,9 +17,7 @@ type Step interface {
 func (s *step) Start() {
 	event := Event{
 		Stage: s.stage.Name(),
-		Total: s.stage.TotalSteps(),
 		Task:  s.name,
-		Index: s.index,
 		State: Started,
 	}
 	s.eventLogger.AddEvent(event)
@@ -28,9 +26,7 @@ func (s *step) Start() {
 func (s *step) Finish() {
 	event := Event{
 		Stage: s.stage.Name(),
-		Total: s.stage.TotalSteps(),
 		Task:  s.name,
-		Index: s.index,
 		State: Finished,
 	}
 	s.eventLogger.AddEvent(event)
@@ -39,9 +35,7 @@ func (s *step) Finish() {
 func (s *step) Skip(message string) {
 	event := Event{
 		Stage:   s.stage.Name(),
-		Total:   s.stage.TotalSteps(),
 		Task:    s.name,
-		Index:   s.index,
 		State:   Skipped,
 		Message: message,
 	}
@@ -51,9 +45,7 @@ func (s *step) Skip(message string) {
 func (s *step) Fail(message string) {
 	event := Event{
 		Stage:   s.stage.Name(),
-		Total:   s.stage.TotalSteps(),
 		Task:    s.name,
-		Index:   s.index,
 		State:   Failed,
 		Message: message,
 	}

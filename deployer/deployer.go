@@ -47,7 +47,7 @@ func NewDeployer(
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
-	eventLoggerStage := eventLogger.NewStage("deploying", 10)
+	eventLoggerStage := eventLogger.NewStage("deploying")
 
 	return &deployer{
 		vmManagerFactory:   vmManagerFactory,
@@ -69,6 +69,9 @@ func (m *deployer) Deploy(
 	mbusURL string,
 	stemcellCID bmstemcell.CID,
 ) error {
+	m.eventLoggerStage.Start()
+	defer m.eventLoggerStage.Finish()
+
 	registryReadyErrCh := make(chan error)
 	go m.startRegistry(registry, registryReadyErrCh)
 	defer m.registryServer.Stop()

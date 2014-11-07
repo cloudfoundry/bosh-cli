@@ -116,16 +116,18 @@ var _ = Describe("Deployer", func() {
 		fakeVMManager.CreateVM = fakeVM
 	})
 
-	It("starts a new event logger stage", func() {
+	It("adds a new event logger stage", func() {
 		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
 			{
-				Name:       "deploying",
-				TotalSteps: 10,
+				Name: "deploying",
 			},
 		}))
+
+		Expect(fakeStage.Started).To(BeTrue())
+		Expect(fakeStage.Finished).To(BeTrue())
 	})
 
 	It("starts the registry", func() {

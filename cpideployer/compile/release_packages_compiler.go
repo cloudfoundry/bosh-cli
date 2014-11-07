@@ -36,58 +36,28 @@ func NewReleasePackagesCompiler(
 }
 
 func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
+	eventLoggerStage := c.eventLogger.NewStage("compiling packages")
+	eventLoggerStage.Start()
+	defer eventLoggerStage.Finish()
+
 	packages, err := c.dependencyAnalysis.DeterminePackageCompilationOrder(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release")
 	}
 
-	totalCount := len(packages)
-	for index, pkg := range packages {
-		logErr := c.compilationEvent(totalCount, index+1, pkg, bmeventlog.Started, "")
-		if logErr != nil {
-			return logErr
-		}
+	for _, pkg := range packages {
+		eventStep := eventLoggerStage.NewStep(fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint))
+		eventStep.Start()
 
 		err = c.packageCompiler.Compile(pkg)
 
 		if err != nil {
-			logErr := c.compilationEvent(totalCount, index+1, pkg, bmeventlog.Failed, err.Error())
-			if logErr != nil {
-				return logErr
-			}
-
+			eventStep.Fail(err.Error())
 			return bosherr.WrapError(err, fmt.Sprintf("Package `%s' compilation failed", pkg.Name))
 		}
-		logErr = c.compilationEvent(totalCount, index+1, pkg, bmeventlog.Finished, "")
-		if logErr != nil {
-			return logErr
-		}
+
+		eventStep.Finish()
 	}
 
-	return nil
-}
-
-func (c releasePackagesCompiler) compilationEvent(
-	totalCount,
-	index int,
-	pkg *bmrel.Package,
-	state bmeventlog.EventState,
-	message string,
-) error {
-	stage := "compiling packages"
-	task := fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint)
-	event := bmeventlog.Event{
-		Time:    c.timeService.Now(),
-		Stage:   stage,
-		Total:   totalCount,
-		State:   state,
-		Index:   index,
-		Task:    task,
-		Message: message,
-	}
-	logErr := c.eventLogger.AddEvent(event)
-	if logErr != nil {
-		return bosherr.WrapError(logErr, "Logging event: %#v", event)
-	}
 	return nil
 }

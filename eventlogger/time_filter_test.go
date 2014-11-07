@@ -25,9 +25,7 @@ var _ = Describe("TimeFilter", func() {
 	It("adds the current time to the event", func() {
 		event := &Event{
 			Stage: "fake-stage",
-			Total: 1,
 			Task:  "fake-task",
-			Index: 1,
 			State: Started,
 		}
 
@@ -38,9 +36,7 @@ var _ = Describe("TimeFilter", func() {
 		Expect(*event).To(Equal(Event{
 			Time:  expectedTime,
 			Stage: "fake-stage",
-			Total: 1,
 			Task:  "fake-task",
-			Index: 1,
 			State: Started,
 		}))
 	})

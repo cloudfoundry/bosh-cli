@@ -35,17 +35,13 @@ var _ = Describe("EventLogger", func() {
 
 	Describe("AddEvent", func() {
 		It("tells the UI to print out start event", func() {
-
 			event := Event{
 				Stage: "fake-stage",
-				Total: 2,
 				State: Started,
 				Task:  "fake-task-1",
-				Index: 1,
 			}
 			eventLogger.AddEvent(event)
 			output := uiOut.String()
-			Expect(output).To(ContainSubstring("Started fake-stage\n"))
 			Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1."))
 		})
 
@@ -67,15 +63,12 @@ var _ = Describe("EventLogger", func() {
 
 				event := Event{
 					Stage: "fake-stage",
-					Total: 2,
 					State: Started,
 					Task:  "fake-task-1",
-					Index: 1,
 				}
 				eventLogger.AddEvent(event)
 
 				output := uiOut.String()
-				Expect(output).To(ContainSubstring("Started filtered-fake-stage\n"))
 				Expect(output).To(ContainSubstring("Started filtered-fake-stage > fake-task-1."))
 			})
 		})
@@ -83,40 +76,41 @@ var _ = Describe("EventLogger", func() {
 		Context("When all the tasks are finished", func() {
 			BeforeEach(func() {
 				now := time.Now()
+				eventLogger.StartStage("fake-stage")
 				eventLogger.AddEvent(Event{
 					Time:  now,
 					Stage: "fake-stage",
-					Total: 2,
 					Task:  "fake-task-1",
 					State: Started,
-					Index: 1,
 				})
 
 				eventLogger.AddEvent(Event{
 					Time:  now.Add(1 * time.Second),
 					Stage: "fake-stage",
-					Total: 2,
 					Task:  "fake-task-1",
 					State: Finished,
-					Index: 1,
 				})
 
 				eventLogger.AddEvent(Event{
 					Time:  now.Add(2 * time.Second),
 					Stage: "fake-stage",
-					Total: 2,
 					Task:  "fake-task-2",
 					State: Started,
-					Index: 2,
 				})
+
 				eventLogger.AddEvent(Event{
 					Time:  now.Add(3 * time.Second),
 					Stage: "fake-stage",
-					Total: 2,
 					Task:  "fake-task-2",
 					State: Finished,
-					Index: 2,
 				})
+
+				eventLogger.FinishStage("fake-stage")
+			})
+
+			It("tells the UI to start the stage", func() {
+				output := uiOut.String()
+				Expect(output).To(ContainSubstring("Done fake-stage\n"))
 			})
 
 			It("tells the UI to print out Done when the task is finished", func() {
@@ -136,19 +130,15 @@ var _ = Describe("EventLogger", func() {
 				eventLogger.AddEvent(Event{
 					Time:  now,
 					Stage: "fake-stage",
-					Total: 2,
 					Task:  "fake-task-1",
 					State: Started,
-					Index: 1,
 				})
 
 				eventLogger.AddEvent(Event{
 					Time:    now.Add(1 * time.Second),
 					Stage:   "fake-stage",
-					Total:   2,
 					Task:    "fake-task-1",
 					State:   Failed,
-					Index:   1,
 					Message: "fake-fail-message",
 				})
 				output := uiOut.String()
@@ -162,19 +152,15 @@ var _ = Describe("EventLogger", func() {
 				eventLogger.AddEvent(Event{
 					Time:  now,
 					Stage: "fake-stage",
-					Total: 2,
 					Task:  "fake-task-1",
 					State: Started,
-					Index: 1,
 				})
 
 				eventLogger.AddEvent(Event{
 					Time:    now.Add(1 * time.Second),
 					Stage:   "fake-stage",
-					Total:   2,
 					Task:    "fake-task-1",
 					State:   Skipped,
-					Index:   1,
 					Message: "fake-skipped-message",
 				})
 				output := uiOut.String()

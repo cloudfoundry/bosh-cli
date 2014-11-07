@@ -26,6 +26,7 @@ var _ = Describe("ReleaseCompiler", func() {
 		da                      *fakebmreal.FakeDependencyAnalysis
 		packageCompiler         *fakebmcomp.FakePackageCompiler
 		eventLogger             *fakebmlog.FakeEventLogger
+		fakeStage               *fakebmlog.FakeStage
 		timeService             *faketime.FakeService
 	)
 
@@ -33,12 +34,28 @@ var _ = Describe("ReleaseCompiler", func() {
 		da = fakebmreal.NewFakeDependencyAnalysis()
 		packageCompiler = fakebmcomp.NewFakePackageCompiler()
 		eventLogger = fakebmlog.NewFakeEventLogger()
+		fakeStage = fakebmlog.NewFakeStage()
+		eventLogger.SetNewStageBehavior(fakeStage)
 		timeService = &faketime.FakeService{}
 		releasePackagesCompiler = NewReleasePackagesCompiler(da, packageCompiler, eventLogger, timeService)
 		release = bmrel.Release{}
 	})
 
 	Context("Compile", func() {
+		It("adds a new event logger stage", func() {
+			err := releasePackagesCompiler.Compile(release)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
+				{
+					Name: "compiling packages",
+				},
+			}))
+
+			Expect(fakeStage.Started).To(BeTrue())
+			Expect(fakeStage.Finished).To(BeTrue())
+		})
+
 		Context("when there is a release", func() {
 			var expectedPackages []*bmrel.Package
 			var package1, package2 bmrel.Package
@@ -82,32 +99,13 @@ var _ = Describe("ReleaseCompiler", func() {
 				err := releasePackagesCompiler.Compile(release)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectedStartEvent := bmeventlog.Event{
-					Time:  pkg1Start,
-					Stage: "compiling packages",
-					Total: 2,
-					Task:  "fake-package-1/fake-fingerprint-1",
-					Index: 1,
-					State: "started",
-				}
-
-				expectedFinishEvent := bmeventlog.Event{
-					Time:  pkg1Finish,
-					Stage: "compiling packages",
-					Total: 2,
-					Task:  "fake-package-1/fake-fingerprint-1",
-					Index: 1,
-					State: "finished",
-				}
-
-				Expect(eventLogger.LoggedEvents).To(ContainElement(expectedStartEvent))
-				Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFinishEvent))
-			})
-
-			It("logs events for each of the packages", func() {
-				err := releasePackagesCompiler.Compile(release)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(eventLogger.LoggedEvents).To(HaveLen(4))
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "fake-package-1/fake-fingerprint-1",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				}))
 			})
 
 			It("logs failure event", func() {
@@ -119,17 +117,14 @@ var _ = Describe("ReleaseCompiler", func() {
 				err := releasePackagesCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
 
-				expectedFailEvent := bmeventlog.Event{
-					Time:    pkg1Fail,
-					Stage:   "compiling packages",
-					Total:   2,
-					Task:    "fake-package-1/fake-fingerprint-1",
-					Index:   1,
-					State:   "failed",
-					Message: "Compilation failed",
-				}
-
-				Expect(eventLogger.LoggedEvents).To(ContainElement(expectedFailEvent))
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "fake-package-1/fake-fingerprint-1",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Compilation failed",
+				}))
 			})
 
 			It("stops compiling after the first failure", func() {
@@ -137,43 +132,6 @@ var _ = Describe("ReleaseCompiler", func() {
 				err := releasePackagesCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
 				Expect(len(packageCompiler.CompilePackages)).To(Equal(1))
-			})
-
-			Context("when adding a started event fails", func() {
-				BeforeEach(func() {
-					eventLogger.AddEventErrors[bmeventlog.Started] = errors.New("fake-add-event-error")
-				})
-
-				It("returns error", func() {
-					err := releasePackagesCompiler.Compile(release)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Logging event"))
-				})
-			})
-
-			Context("when adding a failed event fails", func() {
-				BeforeEach(func() {
-					packageCompiler.CompileError = errors.New("Compilation failed")
-					eventLogger.AddEventErrors[bmeventlog.Failed] = errors.New("fake-add-event-error")
-				})
-
-				It("returns error", func() {
-					err := releasePackagesCompiler.Compile(release)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Logging event"))
-				})
-			})
-
-			Context("when adding a finished event fails", func() {
-				BeforeEach(func() {
-					eventLogger.AddEventErrors[bmeventlog.Finished] = errors.New("fake-add-event-error")
-				})
-
-				It("returns error", func() {
-					err := releasePackagesCompiler.Compile(release)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Logging event"))
-				})
 			})
 		})
 	})

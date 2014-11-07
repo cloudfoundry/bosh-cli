@@ -37,7 +37,10 @@ func (m *manager) Upload(tarballPath string) (stemcell Stemcell, cid CID, err er
 	}
 	defer m.fs.RemoveAll(tmpDir)
 
-	eventLoggerStage := m.eventLogger.NewStage("uploading stemcell", 2)
+	eventLoggerStage := m.eventLogger.NewStage("uploading stemcell")
+	eventLoggerStage.Start()
+	defer eventLoggerStage.Finish()
+
 	eventStep := eventLoggerStage.NewStep("Unpacking")
 	eventStep.Start()
 

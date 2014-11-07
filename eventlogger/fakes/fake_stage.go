@@ -8,6 +8,9 @@ type FakeStage struct {
 	StageName       string
 	StageTotalSteps int
 	Steps           []*FakeStep
+
+	Started  bool
+	Finished bool
 }
 
 func NewFakeStage() *FakeStage {
@@ -32,4 +35,12 @@ func (s *FakeStage) Name() string {
 
 func (s *FakeStage) TotalSteps() int {
 	return s.StageTotalSteps
+}
+
+func (s *FakeStage) Start() {
+	s.Started = true
+}
+
+func (s *FakeStage) Finish() {
+	s.Finished = true
 }

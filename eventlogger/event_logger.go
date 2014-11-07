@@ -17,10 +17,8 @@ type EventFilter interface {
 type Event struct {
 	Time    time.Time
 	Stage   string
-	Total   int
 	Task    string
 	State   EventState
-	Index   int
 	Message string
 }
 
@@ -34,8 +32,10 @@ const (
 )
 
 type EventLogger interface {
-	NewStage(string, int) Stage
+	NewStage(string) Stage
 	AddEvent(event Event) error
+	StartStage(string)
+	FinishStage(string)
 }
 
 type eventLogger struct {
@@ -52,8 +52,8 @@ func NewEventLogger(ui bmui.UI) EventLogger {
 	}
 }
 
-func (e *eventLogger) NewStage(name string, totalSteps int) Stage {
-	return NewStage(name, totalSteps, e)
+func (e *eventLogger) NewStage(name string) Stage {
+	return NewStage(name, e)
 }
 
 func NewEventLoggerWithFilters(ui bmui.UI, filters []EventFilter) EventLogger {
@@ -74,29 +74,27 @@ func (e *eventLogger) AddEvent(event Event) error {
 	key := fmt.Sprintf("%s > %s...", event.Stage, event.Task)
 	switch event.State {
 	case Started:
-		if event.Index == 1 {
-			e.ui.Sayln(fmt.Sprintf("Started %s", event.Stage))
-		}
 		e.ui.Say(fmt.Sprintf("Started %s", key))
 		e.startedTasks[key] = event.Time
 	case Finished:
 		duration := event.Time.Sub(e.startedTasks[key])
 		e.ui.Sayln(fmt.Sprintf(" done. (%s)", durationfmt.Format(duration)))
-		if event.Index == event.Total {
-			e.ui.Sayln(fmt.Sprintf("Done %s", event.Stage))
-			e.ui.Sayln("")
-		}
 	case Failed:
 		duration := event.Time.Sub(e.startedTasks[key])
 		e.ui.Sayln(fmt.Sprintf(" failed (%s). (%s)", event.Message, durationfmt.Format(duration)))
 	case Skipped:
 		e.ui.Sayln(fmt.Sprintf("Started %s skipped (%s).", key, event.Message))
-		if event.Index == event.Total {
-			e.ui.Sayln(fmt.Sprintf("Done %s", event.Stage))
-			e.ui.Sayln("")
-		}
 	default:
 		return bosherr.New("Unsupported event state `%s'", event.State)
 	}
 	return nil
+}
+
+func (e *eventLogger) FinishStage(name string) {
+	e.ui.Sayln(fmt.Sprintf("Done %s", name))
+	e.ui.Sayln("")
+}
+
+func (e *eventLogger) StartStage(name string) {
+	e.ui.Sayln(fmt.Sprintf("Started %s", name))
 }

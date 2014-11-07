@@ -35,49 +35,21 @@ type jobInstaller struct {
 }
 
 func (i jobInstaller) Install(job bmrel.Job) (InstalledJob, error) {
-	event := bmeventlog.Event{
-		Time:  i.timeService.Now(),
-		Stage: "installing CPI jobs",
-		Total: 1,
-		State: bmeventlog.Started,
-		Index: 1,
-		Task:  "cpi",
-	}
-	logErr := i.eventLogger.AddEvent(event)
-	if logErr != nil {
-		return InstalledJob{}, bosherr.WrapError(logErr, "Logging event: %#v", event)
-	}
+	eventLoggerStage := i.eventLogger.NewStage("installing CPI jobs")
+	eventLoggerStage.Start()
+	defer eventLoggerStage.Finish()
+
+	eventStep := eventLoggerStage.NewStep("cpi")
+	eventStep.Start()
 
 	installedJob, err := i.install(job)
 	if err != nil {
-		event = bmeventlog.Event{
-			Time:    i.timeService.Now(),
-			Stage:   "installing CPI jobs",
-			Total:   1,
-			State:   bmeventlog.Failed,
-			Index:   1,
-			Task:    "cpi",
-			Message: err.Error(),
-		}
-		logErr = i.eventLogger.AddEvent(event)
-		if logErr != nil {
-			return InstalledJob{}, bosherr.WrapError(logErr, "Logging event: %#v", event)
-		}
+		eventStep.Fail(err.Error())
 		return InstalledJob{}, err
 	}
 
-	event = bmeventlog.Event{
-		Time:  i.timeService.Now(),
-		Stage: "installing CPI jobs",
-		Total: 1,
-		State: bmeventlog.Finished,
-		Index: 1,
-		Task:  "cpi",
-	}
-	logErr = i.eventLogger.AddEvent(event)
-	if logErr != nil {
-		return InstalledJob{}, bosherr.WrapError(logErr, "Logging event: %#v", event)
-	}
+	eventStep.Finish()
+
 	return installedJob, nil
 }
 
