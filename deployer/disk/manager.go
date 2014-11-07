@@ -23,6 +23,19 @@ func (m *manager) Create(
 	cloudProperties map[string]interface{},
 	instanceID string,
 ) (Disk, error) {
+	deploymentConfig, err := m.deploymentConfigService.Load()
+	if err != nil {
+		return Disk{}, bosherr.WrapError(err, "Reading existing deployment config")
+	}
+
+	if cid := deploymentConfig.DiskCID; cid != "" {
+		m.logger.Debug(m.logTag, "Using existing disk '%s'", cid)
+		disk := Disk{
+			CID: cid,
+		}
+		return disk, nil
+	}
+
 	m.logger.Debug(m.logTag, "Creating disk")
 	cid, err := m.cloud.CreateDisk(size, cloudProperties, instanceID)
 	if err != nil {
@@ -35,10 +48,6 @@ func (m *manager) Create(
 			)
 	}
 
-	deploymentConfig, err := m.deploymentConfigService.Load()
-	if err != nil {
-		return Disk{}, bosherr.WrapError(err, "Reading existing deployment config")
-	}
 	deploymentConfig.DiskCID = cid
 
 	err = m.deploymentConfigService.Save(deploymentConfig)

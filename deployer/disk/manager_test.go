@@ -36,6 +36,22 @@ var _ = Describe("Manager", func() {
 			}
 		})
 
+		Context("when disk already exists in deployment config", func() {
+			BeforeEach(func() {
+				configService.Save(bmconfig.DeploymentConfig{
+					DiskCID: "fake-existing-disk-cid",
+				})
+			})
+
+			It("returns the existing disk", func() {
+				disk, err := manager.Create(1024, cloudProperties, "fake-instance-id")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(disk).To(Equal(Disk{
+					CID: "fake-existing-disk-cid",
+				}))
+			})
+		})
+
 		Context("when creating disk succeeds", func() {
 			BeforeEach(func() {
 				fakeCloud.CreateDiskCID = "fake-disk-cid"
