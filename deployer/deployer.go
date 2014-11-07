@@ -47,7 +47,7 @@ func NewDeployer(
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
-	eventLoggerStage := eventLogger.NewStage("Deploy Micro BOSH", 10)
+	eventLoggerStage := eventLogger.NewStage("deploying", 10)
 
 	return &deployer{
 		vmManagerFactory:   vmManagerFactory,
@@ -95,17 +95,13 @@ func (m *deployer) Deploy(
 		}
 	}
 
-	err = m.updateVM(vm, stemcellApplySpec, deployment)
+	jobName := deployment.Jobs[0].Name
+	err = m.startVM(vm, stemcellApplySpec, deployment, jobName)
 	if err != nil {
 		return err
 	}
 
-	err = m.sendStartMessage(vm)
-	if err != nil {
-		return err
-	}
-
-	err = m.waitUntilRunning(vm, deployment.Update.UpdateWatchTime)
+	err = m.waitUntilRunning(vm, deployment.Update.UpdateWatchTime, jobName)
 	if err != nil {
 		return err
 	}
@@ -127,7 +123,7 @@ func (m *deployer) createVM(
 	mbusURL string,
 ) (bmvm.VM, error) {
 	vmManager := m.vmManagerFactory.NewManager(cloud)
-	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from '%s'", stemcellCID))
+	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from stemcell '%s'", stemcellCID))
 	eventStep.Start()
 
 	vm, err := vmManager.Create(stemcellCID, deployment, mbusURL)
@@ -179,8 +175,8 @@ func (m *deployer) waitUntilAgentIsReady(
 	return nil
 }
 
-func (m *deployer) updateVM(vm bmvm.VM, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
-	eventStep := m.eventLoggerStage.NewStep("Applying micro BOSH spec")
+func (m *deployer) startVM(vm bmvm.VM, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment, jobName string) error {
+	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Starting '%s'", jobName))
 	eventStep.Start()
 
 	err := vm.Apply(stemcellApplySpec, deployment)
@@ -189,16 +185,7 @@ func (m *deployer) updateVM(vm bmvm.VM, stemcellApplySpec bmstemcell.ApplySpec, 
 		return bosherr.WrapError(err, "Updating the vm")
 	}
 
-	eventStep.Finish()
-
-	return nil
-}
-
-func (m *deployer) sendStartMessage(vm bmvm.VM) error {
-	eventStep := m.eventLoggerStage.NewStep("Starting agent services")
-	eventStep.Start()
-
-	err := vm.Start()
+	err = vm.Start()
 	if err != nil {
 		eventStep.Fail(err.Error())
 		return bosherr.WrapError(err, "Starting vm")
@@ -209,8 +196,8 @@ func (m *deployer) sendStartMessage(vm bmvm.VM) error {
 	return nil
 }
 
-func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime) error {
-	eventStep := m.eventLoggerStage.NewStep("Waiting for the director")
+func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime, jobName string) error {
+	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Waiting for '%s'", jobName))
 	eventStep.Start()
 
 	time.Sleep(time.Duration(updateWatchTime.Start) * time.Millisecond)
@@ -219,7 +206,7 @@ func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime
 	err := vm.WaitToBeRunning(numAttempts, 1*time.Second)
 	if err != nil {
 		eventStep.Fail(err.Error())
-		return bosherr.WrapError(err, "Waiting for the director")
+		return bosherr.WrapError(err, fmt.Sprintf("Waiting for '%s'", jobName))
 	}
 
 	eventStep.Finish()

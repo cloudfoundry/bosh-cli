@@ -122,7 +122,7 @@ var _ = Describe("Deployer", func() {
 
 		Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
 			{
-				Name:       "Deploy Micro BOSH",
+				Name:       "deploying",
 				TotalSteps: 10,
 			},
 		}))
@@ -324,7 +324,7 @@ var _ = Describe("Deployer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Creating VM from 'fake-stemcell-cid'",
+			Name: "Creating VM from stemcell 'fake-stemcell-cid'",
 			States: []bmeventlog.EventState{
 				bmeventlog.Started,
 				bmeventlog.Finished,
@@ -338,21 +338,14 @@ var _ = Describe("Deployer", func() {
 			},
 		}))
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Applying micro BOSH spec",
+			Name: "Starting 'fake-job-name'",
 			States: []bmeventlog.EventState{
 				bmeventlog.Started,
 				bmeventlog.Finished,
 			},
 		}))
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Starting agent services",
-			States: []bmeventlog.EventState{
-				bmeventlog.Started,
-				bmeventlog.Finished,
-			},
-		}))
-		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Waiting for the director",
+			Name: "Waiting for 'fake-job-name'",
 			States: []bmeventlog.EventState{
 				bmeventlog.Started,
 				bmeventlog.Finished,
@@ -416,7 +409,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Applying micro BOSH spec",
+				Name: "Starting 'fake-job-name'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
@@ -437,7 +430,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Starting agent services",
+				Name: "Starting 'fake-job-name'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
@@ -463,7 +456,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err).To(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Creating VM from 'fake-stemcell-cid'",
+				Name: "Creating VM from stemcell 'fake-stemcell-cid'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
@@ -484,7 +477,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Waiting for the director",
+				Name: "Waiting for 'fake-job-name'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
