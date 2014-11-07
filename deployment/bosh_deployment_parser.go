@@ -20,6 +20,7 @@ type boshDeploymentManifest struct {
 	Update        UpdateSpec
 	Networks      []Network
 	ResourcePools []ResourcePool `yaml:"resource_pools"`
+	DiskPools     []DiskPool     `yaml:"disk_pools"`
 	Jobs          []Job
 }
 
@@ -52,6 +53,7 @@ func (p boshDeploymentParser) Parse(path string) (Deployment, error) {
 	deployment.Name = depManifest.Name
 	deployment.Networks = depManifest.Networks
 	deployment.ResourcePools = depManifest.ResourcePools
+	deployment.DiskPools = depManifest.DiskPools
 	deployment.Jobs = depManifest.Jobs
 
 	if depManifest.Update.UpdateWatchTime != nil {

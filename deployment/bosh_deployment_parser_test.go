@@ -64,12 +64,18 @@ networks:
       b: value
 - name: vip
   type: vip
+disk_pools:
+- name: fake-disk-pool-name
+  disk_size: 1024
+  cloud_properties:
+    fake-disk-pool-cloud-property-key: fake-disk-pool-cloud-property-value
 jobs:
 - name: bosh
   networks:
   - name: vip
     static_ips: [1.2.3.4]
   persistent_disk: 1024
+  persistent_disk_pool: fake-disk-pool-name
   properties:
     fake-prop-key:
       nested-prop-key: fake-prop-value
@@ -116,6 +122,16 @@ cloud_provider:
 						},
 					},
 				}))
+				diskPools := deployment.DiskPools
+				Expect(diskPools).To(Equal([]DiskPool{
+					{
+						Name: "fake-disk-pool-name",
+						Size: 1024,
+						RawCloudProperties: map[interface{}]interface{}{
+							"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
+						},
+					},
+				}))
 				jobs := deployment.Jobs
 				Expect(jobs).To(Equal([]Job{
 					{
@@ -126,7 +142,8 @@ cloud_provider:
 								StaticIPs: []string{"1.2.3.4"},
 							},
 						},
-						PersistentDisk: 1024,
+						PersistentDisk:     1024,
+						PersistentDiskPool: "fake-disk-pool-name",
 						RawProperties: map[interface{}]interface{}{
 							"fake-prop-key": map[interface{}]interface{}{
 								"nested-prop-key": "fake-prop-value",

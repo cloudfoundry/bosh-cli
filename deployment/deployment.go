@@ -11,12 +11,13 @@ type ReleaseJobRef struct {
 }
 
 type Job struct {
-	Name           string
-	Instances      int
-	Templates      []ReleaseJobRef
-	Networks       []JobNetwork
-	PersistentDisk int                         `yaml:"persistent_disk"`
-	RawProperties  map[interface{}]interface{} `yaml:"properties"`
+	Name               string
+	Instances          int
+	Templates          []ReleaseJobRef
+	Networks           []JobNetwork
+	PersistentDisk     int                         `yaml:"persistent_disk"`
+	PersistentDiskPool string                      `yaml:"persistent_disk_pool"`
+	RawProperties      map[interface{}]interface{} `yaml:"properties"`
 }
 
 func (j *Job) Properties() (map[string]interface{}, error) {
@@ -52,6 +53,7 @@ type Deployment struct {
 	SSHTunnel       SSHTunnel
 	Jobs            []Job
 	Networks        []Network
+	DiskPools       []DiskPool
 	ResourcePools   []ResourcePool
 	Update          Update
 }
@@ -83,6 +85,33 @@ func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error)
 	}
 
 	return result, nil
+}
+
+func (d Deployment) DiskPool(jobName string) (DiskPool, error) {
+	job, found := d.findJobByName(jobName)
+	if !found {
+		return DiskPool{}, bosherr.New("Could not find job with name: %s", jobName)
+	}
+
+	if job.PersistentDiskPool != "" {
+		for _, diskPool := range d.DiskPools {
+			if diskPool.Name == job.PersistentDiskPool {
+				return diskPool, nil
+			}
+		}
+		err := bosherr.New("Could not find persistent disk pool '%s' for job '%s'", job.PersistentDiskPool, jobName)
+		return DiskPool{}, err
+	}
+
+	if job.PersistentDisk > 0 {
+		diskPool := DiskPool{
+			Size:               job.PersistentDisk,
+			RawCloudProperties: map[interface{}]interface{}{},
+		}
+		return diskPool, nil
+	}
+
+	return DiskPool{}, nil
 }
 
 func (d Deployment) networksToMap() map[string]Network {
