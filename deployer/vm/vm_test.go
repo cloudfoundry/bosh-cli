@@ -1,4 +1,4 @@
-package instance_test
+package vm_test
 
 import (
 	"errors"
@@ -10,7 +10,6 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
-	fakebmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
@@ -19,16 +18,16 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 )
 
-var _ = Describe("Instance", func() {
+var _ = Describe("VM", func() {
 	var (
+		vm                         VM
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeCloud                  *fakebmcloud.FakeCloud
-		instance                   Instance
 		applySpec                  bmstemcell.ApplySpec
-		fakeTemplatesSpecGenerator *fakebmins.FakeTemplatesSpecGenerator
+		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
 		deployment                 bmdepl.Deployment
 		deploymentJob              bmdepl.Job
@@ -38,8 +37,8 @@ var _ = Describe("Instance", func() {
 	)
 
 	BeforeEach(func() {
-		fakeTemplatesSpecGenerator = fakebmins.NewFakeTemplatesSpecGenerator()
-		fakeTemplatesSpecGenerator.SetCreateBehavior(TemplatesSpec{
+		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
+		fakeTemplatesSpecGenerator.SetCreateBehavior(bmas.TemplatesSpec{
 			BlobID:            "fake-blob-id",
 			ArchiveSha1:       "fake-archive-sha1",
 			ConfigurationHash: "fake-configuration-hash",
@@ -121,7 +120,7 @@ var _ = Describe("Instance", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebmcloud.NewFakeCloud()
-		instance = NewInstance(
+		vm = NewVM(
 			"fake-vm-cid",
 			fakeAgentClient,
 			fakeCloud,
@@ -135,15 +134,15 @@ var _ = Describe("Instance", func() {
 
 	Describe("Apply", func() {
 		It("stops the agent", func() {
-			err := instance.Apply(applySpec, deployment)
+			err := vm.Apply(applySpec, deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.StopCalled).To(BeTrue())
 		})
 
 		It("generates templates spec", func() {
-			err := instance.Apply(applySpec, deployment)
+			err := vm.Apply(applySpec, deployment)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeTemplatesSpecGenerator.CreateInputs).To(ContainElement(fakebmins.CreateInput{
+			Expect(fakeTemplatesSpecGenerator.CreateTemplatesSpecInputs).To(ContainElement(fakebmas.CreateTemplatesSpecInput{
 				DeploymentJob:  deploymentJob,
 				StemcellJob:    stemcellJob,
 				DeploymentName: "fake-deployment-name",
@@ -155,7 +154,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("creates apply spec", func() {
-			err := instance.Apply(applySpec, deployment)
+			err := vm.Apply(applySpec, deployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeApplySpecFactory.CreateInput).To(Equal(
@@ -182,7 +181,7 @@ var _ = Describe("Instance", func() {
 				Deployment: "fake-deployment-name",
 			}
 			fakeApplySpecFactory.CreateApplySpec = agentApplySpec
-			err := instance.Apply(applySpec, deployment)
+			err := vm.Apply(applySpec, deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.ApplyApplySpec).To(Equal(agentApplySpec))
 		})
@@ -193,7 +192,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.Apply(applySpec, deployment)
+				err := vm.Apply(applySpec, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-err"))
 			})
@@ -205,7 +204,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.Apply(applySpec, deployment)
+				err := vm.Apply(applySpec, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-agent-apply-err"))
 			})
@@ -217,7 +216,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.Apply(applySpec, deployment)
+				err := vm.Apply(applySpec, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 			})
@@ -226,7 +225,7 @@ var _ = Describe("Instance", func() {
 
 	Describe("Start", func() {
 		It("starts agent services", func() {
-			err := instance.Start()
+			err := vm.Start()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.StartCalled).To(BeTrue())
 		})
@@ -237,7 +236,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.Start()
+				err := vm.Start()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 			})
@@ -252,7 +251,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("waits until agent reports state as running", func() {
-			err := instance.WaitToBeRunning(5, 0)
+			err := vm.WaitToBeRunning(5, 0)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.GetStateCalledTimes).To(Equal(3))
 		})
@@ -268,7 +267,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("attaches disk to vm in the cloud", func() {
-			err := instance.AttachDisk(disk)
+			err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeCloud.AttachDiskInput).To(Equal(fakebmcloud.AttachDiskInput{
 				VMCID:   "fake-vm-cid",
@@ -277,7 +276,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("sends mount disk to the agent", func() {
-			err := instance.AttachDisk(disk)
+			err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.MountDiskCID).To(Equal("fake-disk-cid"))
 		})
@@ -288,7 +287,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.AttachDisk(disk)
+				err := vm.AttachDisk(disk)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-attach-error"))
 			})
@@ -300,7 +299,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.AttachDisk(disk)
+				err := vm.AttachDisk(disk)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-mount-error"))
 			})

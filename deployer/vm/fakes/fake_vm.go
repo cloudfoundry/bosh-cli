@@ -8,7 +8,9 @@ import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
 
-type FakeInstance struct {
+type FakeVM struct {
+	cid string
+
 	ApplyInputs []ApplyInput
 	ApplyErr    error
 
@@ -39,16 +41,21 @@ type AttachDiskInput struct {
 	Disk bmdisk.Disk
 }
 
-func NewFakeInstance() *FakeInstance {
-	return &FakeInstance{
+func NewFakeVM(cid string) *FakeVM {
+	return &FakeVM{
 		ApplyInputs:           []ApplyInput{},
 		WaitToBeReadyInputs:   []WaitInput{},
 		WaitToBeRunningInputs: []WaitInput{},
 		AttachDiskInputs:      []AttachDiskInput{},
+		cid:                   cid,
 	}
 }
 
-func (i *FakeInstance) WaitToBeReady(maxAttempts int, delay time.Duration) error {
+func (i *FakeVM) CID() string {
+	return i.cid
+}
+
+func (i *FakeVM) WaitToBeReady(maxAttempts int, delay time.Duration) error {
 	i.WaitToBeReadyInputs = append(i.WaitToBeReadyInputs, WaitInput{
 		MaxAttempts: maxAttempts,
 		Delay:       delay,
@@ -56,7 +63,7 @@ func (i *FakeInstance) WaitToBeReady(maxAttempts int, delay time.Duration) error
 	return i.WaitToBeReadyErr
 }
 
-func (i *FakeInstance) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
+func (i *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
 	i.ApplyInputs = append(i.ApplyInputs, ApplyInput{
 		StemcellApplySpec: stemcellApplySpec,
 		Deployment:        deployment,
@@ -65,13 +72,13 @@ func (i *FakeInstance) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment 
 	return i.ApplyErr
 }
 
-func (i *FakeInstance) Start() error {
+func (i *FakeVM) Start() error {
 	i.StartCalled = true
 
 	return i.StartErr
 }
 
-func (i *FakeInstance) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
+func (i *FakeVM) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
 	i.WaitToBeRunningInputs = append(i.WaitToBeRunningInputs, WaitInput{
 		MaxAttempts: maxAttempts,
 		Delay:       delay,
@@ -79,7 +86,7 @@ func (i *FakeInstance) WaitToBeRunning(maxAttempts int, delay time.Duration) err
 	return i.WaitToBeRunningErr
 }
 
-func (i *FakeInstance) AttachDisk(disk bmdisk.Disk) error {
+func (i *FakeVM) AttachDisk(disk bmdisk.Disk) error {
 	i.AttachDiskInputs = append(i.AttachDiskInputs, AttachDiskInput{
 		Disk: disk,
 	})

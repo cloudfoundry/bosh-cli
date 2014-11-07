@@ -1,4 +1,4 @@
-package instance_test
+package applyspec_test
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 )
 
 var _ = Describe("Sha1Calculator", func() {

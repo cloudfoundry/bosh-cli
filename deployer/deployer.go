@@ -9,7 +9,6 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
-	bmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -35,7 +34,6 @@ type deployer struct {
 	diskManagerFactory bmdisk.ManagerFactory
 	sshTunnelFactory   bmsshtunnel.Factory
 	registryServer     bmregistry.Server
-	instanceFactory    bmins.Factory
 	eventLoggerStage   bmeventlog.Stage
 	logger             boshlog.Logger
 	logTag             string
@@ -46,7 +44,6 @@ func NewDeployer(
 	diskManagerFactory bmdisk.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	registryServer bmregistry.Server,
-	instanceFactory bmins.Factory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
@@ -57,7 +54,6 @@ func NewDeployer(
 		diskManagerFactory: diskManagerFactory,
 		sshTunnelFactory:   sshTunnelFactory,
 		registryServer:     registryServer,
-		instanceFactory:    instanceFactory,
 		eventLoggerStage:   eventLoggerStage,
 		logger:             logger,
 		logTag:             "deployer",
@@ -82,36 +78,34 @@ func (m *deployer) Deploy(
 		return bosherr.WrapError(err, "Starting registry")
 	}
 
-	vm, err := m.createVM(cloud, stemcellCID, deployment)
+	vm, err := m.createVM(cloud, stemcellCID, deployment, mbusURL)
 	if err != nil {
 		return err
 	}
 
-	instance := m.instanceFactory.Create(vm.CID, mbusURL, cloud)
-
-	err = m.waitUntilAgentIsReady(instance, sshTunnelConfig, registry)
+	err = m.waitUntilAgentIsReady(vm, sshTunnelConfig, registry)
 	if err != nil {
 		return err
 	}
 
 	if deploymentJob := deployment.Jobs[0]; deploymentJob.PersistentDisk > 0 {
-		err := m.createAndAttachDisk(deploymentJob.PersistentDisk, cloud, vm, instance)
+		err := m.createAndAttachDisk(deploymentJob.PersistentDisk, cloud, vm)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = m.updateInstance(instance, stemcellApplySpec, deployment)
+	err = m.updateVM(vm, stemcellApplySpec, deployment)
 	if err != nil {
 		return err
 	}
 
-	err = m.sendStartMessage(instance)
+	err = m.sendStartMessage(vm)
 	if err != nil {
 		return err
 	}
 
-	err = m.waitUntilRunning(instance, deployment.Update.UpdateWatchTime)
+	err = m.waitUntilRunning(vm, deployment.Update.UpdateWatchTime)
 	if err != nil {
 		return err
 	}
@@ -126,15 +120,20 @@ func (m *deployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error
 	}
 }
 
-func (m *deployer) createVM(cloud bmcloud.Cloud, stemcellCID bmstemcell.CID, deployment bmdepl.Deployment) (bmvm.VM, error) {
+func (m *deployer) createVM(
+	cloud bmcloud.Cloud,
+	stemcellCID bmstemcell.CID,
+	deployment bmdepl.Deployment,
+	mbusURL string,
+) (bmvm.VM, error) {
 	vmManager := m.vmManagerFactory.NewManager(cloud)
 	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from '%s'", stemcellCID))
 	eventStep.Start()
 
-	vm, err := vmManager.Create(stemcellCID, deployment)
+	vm, err := vmManager.Create(stemcellCID, deployment, mbusURL)
 	if err != nil {
 		eventStep.Fail(err.Error())
-		return bmvm.VM{}, bosherr.WrapError(err, "Creating VM")
+		return nil, bosherr.WrapError(err, "Creating VM")
 	}
 	eventStep.Finish()
 
@@ -142,7 +141,7 @@ func (m *deployer) createVM(cloud bmcloud.Cloud, stemcellCID bmstemcell.CID, dep
 }
 
 func (m *deployer) waitUntilAgentIsReady(
-	instance bmins.Instance,
+	vm bmvm.VM,
 	sshTunnelConfig bmdepl.SSHTunnel,
 	registry bmdepl.Registry,
 ) error {
@@ -169,10 +168,10 @@ func (m *deployer) waitUntilAgentIsReady(
 		return bosherr.WrapError(err, "Starting SSH tunnel")
 	}
 
-	err = instance.WaitToBeReady(300, 500*time.Millisecond)
+	err = vm.WaitToBeReady(300, 500*time.Millisecond)
 	if err != nil {
 		eventStep.Fail(err.Error())
-		return bosherr.WrapError(err, "Waiting for the instance to be ready")
+		return bosherr.WrapError(err, "Waiting for the vm to be ready")
 	}
 
 	eventStep.Finish()
@@ -180,14 +179,14 @@ func (m *deployer) waitUntilAgentIsReady(
 	return nil
 }
 
-func (m *deployer) updateInstance(instance bmins.Instance, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
+func (m *deployer) updateVM(vm bmvm.VM, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
 	eventStep := m.eventLoggerStage.NewStep("Applying micro BOSH spec")
 	eventStep.Start()
 
-	err := instance.Apply(stemcellApplySpec, deployment)
+	err := vm.Apply(stemcellApplySpec, deployment)
 	if err != nil {
 		eventStep.Fail(err.Error())
-		return bosherr.WrapError(err, "Updating the instance")
+		return bosherr.WrapError(err, "Updating the vm")
 	}
 
 	eventStep.Finish()
@@ -195,14 +194,14 @@ func (m *deployer) updateInstance(instance bmins.Instance, stemcellApplySpec bms
 	return nil
 }
 
-func (m *deployer) sendStartMessage(instance bmins.Instance) error {
+func (m *deployer) sendStartMessage(vm bmvm.VM) error {
 	eventStep := m.eventLoggerStage.NewStep("Starting agent services")
 	eventStep.Start()
 
-	err := instance.Start()
+	err := vm.Start()
 	if err != nil {
 		eventStep.Fail(err.Error())
-		return bosherr.WrapError(err, "Updating the instance")
+		return bosherr.WrapError(err, "Starting vm")
 	}
 
 	eventStep.Finish()
@@ -210,14 +209,14 @@ func (m *deployer) sendStartMessage(instance bmins.Instance) error {
 	return nil
 }
 
-func (m *deployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmdepl.WatchTime) error {
+func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime) error {
 	eventStep := m.eventLoggerStage.NewStep("Waiting for the director")
 	eventStep.Start()
 
 	time.Sleep(time.Duration(updateWatchTime.Start) * time.Millisecond)
 	numAttempts := int((updateWatchTime.End - updateWatchTime.Start) / 1000)
 
-	err := instance.WaitToBeRunning(numAttempts, 1*time.Second)
+	err := vm.WaitToBeRunning(numAttempts, 1*time.Second)
 	if err != nil {
 		eventStep.Fail(err.Error())
 		return bosherr.WrapError(err, "Waiting for the director")
@@ -228,12 +227,12 @@ func (m *deployer) waitUntilRunning(instance bmins.Instance, updateWatchTime bmd
 	return nil
 }
 
-func (m *deployer) createAndAttachDisk(diskSize int, cloud bmcloud.Cloud, vm bmvm.VM, instance bmins.Instance) error {
+func (m *deployer) createAndAttachDisk(diskSize int, cloud bmcloud.Cloud, vm bmvm.VM) error {
 	createEventStep := m.eventLoggerStage.NewStep("Creating disk")
 	createEventStep.Start()
 
 	diskManager := m.diskManagerFactory.NewManager(cloud)
-	disk, err := diskManager.Create(diskSize, map[string]interface{}{}, vm.CID)
+	disk, err := diskManager.Create(diskSize, map[string]interface{}{}, vm.CID())
 	if err != nil {
 		createEventStep.Fail(err.Error())
 		return bosherr.WrapError(err, "Creating Disk")
@@ -243,7 +242,7 @@ func (m *deployer) createAndAttachDisk(diskSize int, cloud bmcloud.Cloud, vm bmv
 	attachEventStep := m.eventLoggerStage.NewStep("Attaching disk")
 	attachEventStep.Start()
 
-	err = instance.AttachDisk(disk)
+	err = vm.AttachDisk(disk)
 	if err != nil {
 		attachEventStep.Fail(err.Error())
 		return err

@@ -1,4 +1,4 @@
-package instance_test
+package applyspec_test
 
 import (
 	"encoding/json"
@@ -17,11 +17,11 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
 	fakebmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployer/blobstore/fakes"
-	fakebmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 )
 
 var _ = Describe("TemplatesSpecGenerator", func() {
@@ -32,7 +32,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		fakeBlobstore          *fakebmblobstore.FakeBlobstore
 		fakeBlobstoreFactory   *fakebmblobstore.FakeBlobstoreFactory
 		fakeUUIDGenerator      *fakeuuid.FakeGenerator
-		fakeSha1Calculator     *fakebmins.FakeSha1Calculator
+		fakeSha1Calculator     *fakebmas.FakeSha1Calculator
 		deploymentJob          bmdepl.Job
 		stemcellJob            bmstemcell.Job
 		extractedJob           bmrel.Job
@@ -84,7 +84,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 			"fake-property-key": "fake-property-value",
 		}
 
-		fakeSha1Calculator = fakebmins.NewFakeSha1Calculator()
+		fakeSha1Calculator = fakebmas.NewFakeSha1Calculator()
 		fs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -137,11 +137,11 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 
 		fakeCompressor.CompressFilesInDirTarballPath = "fake-tarball-path"
 
-		fakeSha1Calculator.SetCalculateBehavior(map[string]fakebmins.CalculateInput{
-			compileDir: fakebmins.CalculateInput{
+		fakeSha1Calculator.SetCalculateBehavior(map[string]fakebmas.CalculateInput{
+			compileDir: fakebmas.CalculateInput{
 				Sha1: "fake-configuration-hash",
 			},
-			"fake-tarball-path": fakebmins.CalculateInput{
+			"fake-tarball-path": fakebmas.CalculateInput{
 				Sha1: "fake-archive-sha1",
 			},
 		})
@@ -323,8 +323,8 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 
 		Context("when calculating sha1 fails", func() {
 			It("returns an error", func() {
-				fakeSha1Calculator.SetCalculateBehavior(map[string]fakebmins.CalculateInput{
-					"/fake-tmp-dir": fakebmins.CalculateInput{
+				fakeSha1Calculator.SetCalculateBehavior(map[string]fakebmas.CalculateInput{
+					"/fake-tmp-dir": fakebmas.CalculateInput{
 						Sha1: "",
 						Err:  errors.New("fake-sha1-error"),
 					},

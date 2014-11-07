@@ -1,19 +1,19 @@
 package fakes
 
 import (
-	bmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
 
 type FakeTemplatesSpecGenerator struct {
-	CreateInputs        []CreateInput
-	CreateTemplatesSpec bmins.TemplatesSpec
-	CreateErr           error
-	CreateCalled        bool
+	CreateTemplatesSpecInputs []CreateTemplatesSpecInput
+	CreateTemplatesSpec       bmas.TemplatesSpec
+	CreateErr                 error
+	CreateCalled              bool
 }
 
-type CreateInput struct {
+type CreateTemplatesSpecInput struct {
 	DeploymentJob  bmdepl.Job
 	StemcellJob    bmstemcell.Job
 	DeploymentName string
@@ -23,7 +23,7 @@ type CreateInput struct {
 
 func NewFakeTemplatesSpecGenerator() *FakeTemplatesSpecGenerator {
 	return &FakeTemplatesSpecGenerator{
-		CreateInputs: []CreateInput{},
+		CreateTemplatesSpecInputs: []CreateTemplatesSpecInput{},
 	}
 }
 
@@ -33,8 +33,8 @@ func (g *FakeTemplatesSpecGenerator) Create(
 	deploymentName string,
 	properties map[string]interface{},
 	mbusURL string,
-) (bmins.TemplatesSpec, error) {
-	g.CreateInputs = append(g.CreateInputs, CreateInput{
+) (bmas.TemplatesSpec, error) {
+	g.CreateTemplatesSpecInputs = append(g.CreateTemplatesSpecInputs, CreateTemplatesSpecInput{
 		DeploymentJob:  deploymentJob,
 		StemcellJob:    stemcellJob,
 		DeploymentName: deploymentName,
@@ -46,7 +46,7 @@ func (g *FakeTemplatesSpecGenerator) Create(
 	return g.CreateTemplatesSpec, g.CreateErr
 }
 
-func (g *FakeTemplatesSpecGenerator) SetCreateBehavior(createTemplatesSpec bmins.TemplatesSpec, err error) {
+func (g *FakeTemplatesSpecGenerator) SetCreateBehavior(createTemplatesSpec bmas.TemplatesSpec, err error) {
 	g.CreateTemplatesSpec = createTemplatesSpec
 	g.CreateErr = err
 }

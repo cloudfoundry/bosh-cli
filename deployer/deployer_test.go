@@ -13,13 +13,11 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk/fakes"
-	fakebmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel/fakes"
@@ -41,9 +39,9 @@ var _ = Describe("Deployer", func() {
 		fakeStage                  *fakebmlog.FakeStage
 		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
 		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
-		fakeInstance               *fakebmins.FakeInstance
 		sshTunnelConfig            bmdepl.SSHTunnel
 		fakeAgentPingRetryStrategy *fakebmretry.FakeRetryStrategy
+		fakeVM                     *fakebmvm.FakeVM
 
 		applySpec bmstemcell.ApplySpec
 	)
@@ -93,9 +91,6 @@ var _ = Describe("Deployer", func() {
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
-		fakeInstance = fakebmins.NewFakeInstance()
-		instanceFactory := fakebmins.NewFakeInstanceFactory()
-		instanceFactory.CreateInstance = fakeInstance
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
@@ -106,7 +101,6 @@ var _ = Describe("Deployer", func() {
 			fakeDiskManagerFactory,
 			fakeSSHTunnelFactory,
 			fakeRegistryServer,
-			instanceFactory,
 			eventLogger,
 			logger,
 		)
@@ -118,7 +112,8 @@ var _ = Describe("Deployer", func() {
 			},
 		}
 
-		fakeVMManager.CreateVM = bmvm.VM{CID: "fake-vm-cid"}
+		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
+		fakeVMManager.CreateVM = fakeVM
 	})
 
 	It("starts a new event logger stage", func() {
@@ -152,6 +147,7 @@ var _ = Describe("Deployer", func() {
 			fakebmvm.CreateInput{
 				StemcellCID: "fake-stemcell-cid",
 				Deployment:  deployment,
+				MbusURL:     "fake-mbus-url",
 			},
 		))
 	})
@@ -171,20 +167,20 @@ var _ = Describe("Deployer", func() {
 		}))
 	})
 
-	It("waits for the instance", func() {
+	It("waits for the vm", func() {
 		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fakeInstance.WaitToBeReadyInputs).To(ContainElement(fakebmins.WaitInput{
+		Expect(fakeVM.WaitToBeReadyInputs).To(ContainElement(fakebmvm.WaitInput{
 			MaxAttempts: 300,
 			Delay:       500 * time.Millisecond,
 		}))
 	})
 
-	It("updates the instance", func() {
+	It("updates the vm", func() {
 		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeInstance.ApplyInputs).To(ContainElement(fakebmins.ApplyInput{
+		Expect(fakeVM.ApplyInputs).To(ContainElement(fakebmvm.ApplyInput{
 			StemcellApplySpec: applySpec,
 			Deployment:        deployment,
 		}))
@@ -194,14 +190,14 @@ var _ = Describe("Deployer", func() {
 		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeInstance.StartCalled).To(BeTrue())
+		Expect(fakeVM.StartCalled).To(BeTrue())
 	})
 
 	It("waits until agent reports state as running", func() {
 		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeInstance.WaitToBeRunningInputs).To(ContainElement(fakebmins.WaitInput{
+		Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
 			MaxAttempts: 5,
 			Delay:       1 * time.Second,
 		}))
@@ -228,7 +224,7 @@ var _ = Describe("Deployer", func() {
 		It("attaches the persistent disk", func() {
 			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeInstance.AttachDiskInputs).To(Equal([]fakebmins.AttachDiskInput{
+			Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
 				{
 					Disk: bmdisk.Disk{
 						CID: "fake-disk-cid",
@@ -285,7 +281,7 @@ var _ = Describe("Deployer", func() {
 
 		Context("when attaching the persistent disk fails", func() {
 			BeforeEach(func() {
-				fakeInstance.AttachDiskErr = errors.New("fake-attach-disk-error")
+				fakeVM.AttachDiskErr = errors.New("fake-attach-disk-error")
 			})
 
 			It("return an error", func() {
@@ -390,7 +386,7 @@ var _ = Describe("Deployer", func() {
 
 	Context("when waiting for the agent fails", func() {
 		BeforeEach(func() {
-			fakeInstance.WaitToBeReadyErr = errors.New("fake-wait-error")
+			fakeVM.WaitToBeReadyErr = errors.New("fake-wait-error")
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
@@ -411,7 +407,7 @@ var _ = Describe("Deployer", func() {
 
 	Context("when updating instance fails", func() {
 		BeforeEach(func() {
-			fakeInstance.ApplyErr = errors.New("fake-apply-error")
+			fakeVM.ApplyErr = errors.New("fake-apply-error")
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
@@ -432,7 +428,7 @@ var _ = Describe("Deployer", func() {
 
 	Context("when starting agent services fails", func() {
 		BeforeEach(func() {
-			fakeInstance.StartErr = errors.New("fake-start-error")
+			fakeVM.StartErr = errors.New("fake-start-error")
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
@@ -479,7 +475,7 @@ var _ = Describe("Deployer", func() {
 
 	Context("when waiting for running state fails", func() {
 		BeforeEach(func() {
-			fakeInstance.WaitToBeRunningErr = errors.New("fake-wait-running-error")
+			fakeVM.WaitToBeRunningErr = errors.New("fake-wait-running-error")
 		})
 
 		It("logs start and stop events to the eventLogger", func() {

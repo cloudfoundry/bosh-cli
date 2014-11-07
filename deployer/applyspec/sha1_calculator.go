@@ -1,4 +1,4 @@
-package instance
+package applyspec
 
 import (
 	"crypto/sha1"

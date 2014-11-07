@@ -23,7 +23,6 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployer/blobstore"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
-	bmins "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -178,17 +177,13 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	stemcellReader := bmstemcell.NewReader(compressor, f.fs)
 	repo := bmstemcell.NewRepo(f.deploymentConfigService)
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fs, stemcellReader, repo, eventLogger)
-	vmManagerFactory := bmvm.NewManagerFactory(f.deploymentConfigService, f.logger)
-	diskManagerFactory := bmdisk.NewManagerFactory(f.deploymentConfigService, f.logger)
-	registryServer := bmregistry.NewServer(f.logger)
-	sshTunnelFactory := bmsshtunnel.NewFactory(f.logger)
 
 	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentConfig.DeploymentUUID, 1*time.Second, f.logger)
 	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
-	sha1Calculator := bmins.NewSha1Calculator(f.fs)
+	sha1Calculator := bmas.NewSha1Calculator(f.fs)
 	applySpecFactory := bmas.NewFactory()
 
-	templatesSpecGenerator := bmins.NewTemplatesSpecGenerator(
+	templatesSpecGenerator := bmas.NewTemplatesSpecGenerator(
 		blobstoreFactory,
 		compressor,
 		jobRenderer,
@@ -197,19 +192,25 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fs,
 		f.logger,
 	)
-	instanceFactory := bmins.NewInstanceFactory(
+
+	vmManagerFactory := bmvm.NewManagerFactory(
 		agentClientFactory,
-		templatesSpecGenerator,
+		f.deploymentConfigService,
 		applySpecFactory,
+		templatesSpecGenerator,
 		f.fs,
 		f.logger,
 	)
+
+	diskManagerFactory := bmdisk.NewManagerFactory(f.deploymentConfigService, f.logger)
+	registryServer := bmregistry.NewServer(f.logger)
+	sshTunnelFactory := bmsshtunnel.NewFactory(f.logger)
+
 	deployer := bmdeployer.NewDeployer(
 		vmManagerFactory,
 		diskManagerFactory,
 		sshTunnelFactory,
 		registryServer,
-		instanceFactory,
 		eventLogger,
 		f.logger,
 	)
