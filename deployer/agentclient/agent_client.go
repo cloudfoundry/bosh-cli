@@ -18,6 +18,7 @@ type AgentClient interface {
 	Start() error
 	GetState() (State, error)
 	MountDisk(string) error
+	ListDisk() ([]string, error)
 }
 
 type agentClient struct {
@@ -82,6 +83,16 @@ func (c *agentClient) GetState() (State, error) {
 	err := c.agentRequest.Send("get_state", []interface{}{}, &response)
 	if err != nil {
 		return State{}, bosherr.WrapError(err, "Sending get_state to the agent")
+	}
+
+	return response.Value, nil
+}
+
+func (c *agentClient) ListDisk() ([]string, error) {
+	var response ListResponse
+	err := c.agentRequest.Send("list_disk", []interface{}{}, &response)
+	if err != nil {
+		return []string{}, bosherr.WrapError(err, "Sending 'list_disk' to the agent")
 	}
 
 	return response.Value, nil

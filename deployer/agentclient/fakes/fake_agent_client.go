@@ -21,6 +21,10 @@ type FakeAgentClient struct {
 	MountDiskCID string
 	mountDiskErr error
 
+	listDiskDisks  []string
+	listDiskErr    error
+	ListDiskCalled bool
+
 	GetStateCalledTimes int
 	getStateOutputs     []getStateOutput
 }
@@ -78,6 +82,11 @@ func (c *FakeAgentClient) GetState() (bmagentclient.State, error) {
 	return getStateReturn.state, getStateReturn.err
 }
 
+func (c *FakeAgentClient) ListDisk() ([]string, error) {
+	c.ListDiskCalled = true
+	return c.listDiskDisks, c.listDiskErr
+}
+
 func (c *FakeAgentClient) MountDisk(diskCID string) error {
 	c.MountDiskCID = diskCID
 
@@ -108,4 +117,9 @@ func (c *FakeAgentClient) SetGetStateBehavior(stateResponse bmagentclient.State,
 
 func (c *FakeAgentClient) SetMountDiskBehavior(err error) {
 	c.mountDiskErr = err
+}
+
+func (c *FakeAgentClient) SetListDiskBehavior(disks []string, err error) {
+	c.listDiskDisks = disks
+	c.listDiskErr = err
 }

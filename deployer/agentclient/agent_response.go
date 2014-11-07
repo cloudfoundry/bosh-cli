@@ -32,6 +32,19 @@ func (r *SimpleTaskResponse) Unmarshal(message []byte) error {
 	return json.Unmarshal(message, r)
 }
 
+type ListResponse struct {
+	Value     []string
+	Exception exceptionResponse
+}
+
+func (r *ListResponse) GetException() exceptionResponse {
+	return r.Exception
+}
+
+func (r *ListResponse) Unmarshal(message []byte) error {
+	return json.Unmarshal(message, r)
+}
+
 type StateResponse struct {
 	Value     State
 	Exception exceptionResponse

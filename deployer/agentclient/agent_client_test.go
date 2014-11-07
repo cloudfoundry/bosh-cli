@@ -415,4 +415,60 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 	})
+
+	Describe("ListDisk", func() {
+		Context("when agent responds with a value", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior(`{"value":["fake-disk-1", "fake-disk-2"]}`, 200, nil)
+			})
+
+			It("makes a POST request to the endpoint", func() {
+				_, err := agentClient.ListDisk()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+				var request AgentRequestMessage
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(AgentRequestMessage{
+					Method:    "list_disk",
+					Arguments: []interface{}{},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+
+			It("returns disks", func() {
+				disks, err := agentClient.ListDisk()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(disks).To(Equal([]string{"fake-disk-1", "fake-disk-2"}))
+			})
+		})
+
+		Context("when agent does not respond with 200", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, nil)
+			})
+
+			It("returns an error", func() {
+				_, err := agentClient.ListDisk()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("status code: 500"))
+			})
+		})
+
+		Context("when agent responds with exception", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"bad request"}}`, 200, nil)
+			})
+
+			It("returns an error", func() {
+				_, err := agentClient.ListDisk()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("bad request"))
+			})
+		})
+	})
 })
