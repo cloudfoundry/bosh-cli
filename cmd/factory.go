@@ -146,7 +146,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	)
 
 	cpiManifestParser := bmdepl.NewCpiDeploymentParser(f.fs)
-	boshManifestParser := bmdepl.NewBoshDeploymentParser(f.fs)
+	boshManifestParser := bmdepl.NewBoshDeploymentParser(f.fs, f.logger)
 	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
 	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
 	templatesIndex := bmindex.NewFileIndex(f.deploymentConfig.TemplatesIndexPath(), f.fs)

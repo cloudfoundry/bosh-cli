@@ -99,6 +99,7 @@ func (m *deployer) Deploy(
 	}
 
 	if diskPool.Size > 0 {
+		m.logger.Debug(m.logTag, "Creating and Attaching disk to vm '%s'", vm.CID())
 		err = m.createAndAttachDisk(diskPool, cloud, vm)
 		if err != nil {
 			return err

@@ -4,15 +4,22 @@ import (
 	"github.com/cloudfoundry-incubator/candiedyaml"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
 type boshDeploymentParser struct {
-	fs boshsys.FileSystem
+	fs     boshsys.FileSystem
+	logger boshlog.Logger
+	logTag string
 }
 
-func NewBoshDeploymentParser(fs boshsys.FileSystem) ManifestParser {
-	return boshDeploymentParser{fs: fs}
+func NewBoshDeploymentParser(fs boshsys.FileSystem, logger boshlog.Logger) ManifestParser {
+	return boshDeploymentParser{
+		fs:     fs,
+		logger: logger,
+		logTag: "boshDeploymentParser",
+	}
 }
 
 type boshDeploymentManifest struct {
@@ -48,6 +55,8 @@ func (p boshDeploymentParser) Parse(path string) (Deployment, error) {
 	if err != nil {
 		return Deployment{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
+
+	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest: %#v", depManifest)
 
 	deployment := boshDeploymentDefaults
 	deployment.Name = depManifest.Name

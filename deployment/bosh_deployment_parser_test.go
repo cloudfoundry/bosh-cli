@@ -8,6 +8,8 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
 
@@ -21,7 +23,8 @@ var _ = Describe("DeploymentRenderer", func() {
 	BeforeEach(func() {
 		deploymentPath = "fake-deployment-path"
 		fakeFs = fakesys.NewFakeFileSystem()
-		manifestParser = NewBoshDeploymentParser(fakeFs)
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		manifestParser = NewBoshDeploymentParser(fakeFs, logger)
 	})
 
 	Context("when deployment path does not exist", func() {
