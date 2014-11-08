@@ -153,7 +153,14 @@ Once `apply` task is finished micro CLI sends `start` message to the agent which
 
 ## 11. Creating disk
 
-If your manifest specifies a `persistent_disk` property for the Micro BOSH job, the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in `deployment.json` in the same folder as the deployment manifest.
+ClI will create and attach a disk to Micro BOSH VM if it is requested in manifest. There are two ways to request the disk:
+
+1. Adding `persistent_disk_pool` property on a Micro BOSH job which references the disk pool in the list of `disk_pools` specified on the top level of the manifest.
+2. Adding `persistent_disk` property which specifies the size of persistent disk.
+
+You should use `disk_pools` if you want to use disk cloud_properties.
+
+In this case the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in `deployment.json` in the same folder as the deployment manifest.
 
 ## 12. Attaching disk
 
