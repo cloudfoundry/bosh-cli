@@ -203,9 +203,19 @@ var _ = Describe("Deployer", func() {
 		}))
 	})
 
-	Context("when the deployment's first job contains a non-zero persistent disk", func() {
+	Context("when the deployment has a disk pool", func() {
+		var diskPool bmdepl.DiskPool
+
 		BeforeEach(func() {
-			deployment.Jobs[0].PersistentDisk = 1024
+			diskPool = bmdepl.DiskPool{
+				Name: "fake-persistent-disk-pool-name",
+				Size: 1024,
+				RawCloudProperties: map[interface{}]interface{}{
+					"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
+				},
+			}
+			deployment.DiskPools = []bmdepl.DiskPool{diskPool}
+			deployment.Jobs[0].PersistentDiskPool = "fake-persistent-disk-pool-name"
 		})
 
 		It("creates a persistent disk", func() {
@@ -214,9 +224,8 @@ var _ = Describe("Deployer", func() {
 
 			Expect(fakeDiskManager.CreateInputs).To(Equal([]fakebmdisk.CreateInput{
 				{
-					Size:            1024,
-					CloudProperties: map[string]interface{}{},
-					InstanceID:      "fake-vm-cid",
+					DiskPool:   diskPool,
+					InstanceID: "fake-vm-cid",
 				},
 			}))
 		})
@@ -301,6 +310,17 @@ var _ = Describe("Deployer", func() {
 					FailMessage: "fake-attach-disk-error",
 				}))
 			})
+		})
+	})
+
+	Context("when the deployment has an invalid disk pool specification", func() {
+		BeforeEach(func() {
+			deployment.Jobs[0].PersistentDiskPool = "fake-persistent-disk-pool-name"
+		})
+
+		It("returns an error", func() {
+			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+			Expect(err).To(HaveOccurred())
 		})
 	})
 

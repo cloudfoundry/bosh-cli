@@ -91,14 +91,20 @@ func (m *deployer) Deploy(
 		return err
 	}
 
-	if deploymentJob := deployment.Jobs[0]; deploymentJob.PersistentDisk > 0 {
-		err := m.createAndAttachDisk(deploymentJob.PersistentDisk, cloud, vm)
+	jobName := deployment.Jobs[0].Name
+
+	diskPool, err := deployment.DiskPool(jobName)
+	if err != nil {
+		return bosherr.WrapError(err, "Getting disk pool")
+	}
+
+	if diskPool.Size > 0 {
+		err = m.createAndAttachDisk(diskPool, cloud, vm)
 		if err != nil {
 			return err
 		}
 	}
 
-	jobName := deployment.Jobs[0].Name
 	err = m.startVM(vm, stemcellApplySpec, deployment, jobName)
 	if err != nil {
 		return err
@@ -217,12 +223,12 @@ func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime
 	return nil
 }
 
-func (m *deployer) createAndAttachDisk(diskSize int, cloud bmcloud.Cloud, vm bmvm.VM) error {
+func (m *deployer) createAndAttachDisk(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM) error {
 	createEventStep := m.eventLoggerStage.NewStep("Creating disk")
 	createEventStep.Start()
 
 	diskManager := m.diskManagerFactory.NewManager(cloud)
-	disk, err := diskManager.Create(diskSize, map[string]interface{}{}, vm.CID())
+	disk, err := diskManager.Create(diskPool, vm.CID())
 	if err != nil {
 		createEventStep.Fail(err.Error())
 		return bosherr.WrapError(err, "Creating Disk")

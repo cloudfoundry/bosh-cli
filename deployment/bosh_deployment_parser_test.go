@@ -66,7 +66,7 @@ networks:
   type: vip
 disk_pools:
 - name: fake-disk-pool-name
-  disk_size: 1024
+  disk_size: 2048
   cloud_properties:
     fake-disk-pool-cloud-property-key: fake-disk-pool-cloud-property-value
 jobs:
@@ -126,7 +126,7 @@ cloud_provider:
 				Expect(diskPools).To(Equal([]DiskPool{
 					{
 						Name: "fake-disk-pool-name",
-						Size: 1024,
+						Size: 2048,
 						RawCloudProperties: map[interface{}]interface{}{
 							"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 						},
