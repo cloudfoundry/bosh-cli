@@ -97,7 +97,7 @@ Once the deploy is finished, Micro BOSH will be available to be targeted.
 # Deployment Flow
 This section describes how the CLI works. These steps are performed by the CLI.
 
-For additional information see the [decision tree](docs/micro-cli-flow.png) of the deploy command.
+For additional information see the [decision tree](micro-cli-flow.png) of the deploy command.
 
 ## 1. Parsing manifest
 
