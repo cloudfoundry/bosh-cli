@@ -31,7 +31,7 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
 
 where `cpi-release.tgz` is a BOSH CPI release and `stemcell.tgz` is a BOSH stemcell appropriate for the CPI release.
 
-Please see the [Wiki](https://github.com/cloudfoundry/bosh-micro-cli/wiki/BOSH-Micro-CLI-Workflow) for more information on creating a manifest.
+Please see the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
 
 To output debug logs to stderr during bosh-micro commands set the `BOSH_MICRO_LOG` environment variable to any value.
 
@@ -109,7 +109,7 @@ Acceptance tests can be run in a VM with the following vagrant providers:
       $ export BOSH_LITE_KEYPAIR=keypair
       $ export BOSH_LITE_SECURITY_GROUP=sg-1234
       $ export BOSH_LITE_PRIVATE_KEY=$BOSH_MICRO_PRIVATE_KEY
-      
+
 #### Running tests against existing VM
 
 Acceptance tests use configuration file specified via `BOSH_MICRO_CONFIG_PATH`. The format of the configuration file is basic JSON.
