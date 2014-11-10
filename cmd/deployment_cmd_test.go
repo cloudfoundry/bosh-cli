@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path"
 
 	. "github.com/onsi/ginkgo"
@@ -62,7 +63,7 @@ var _ = Describe("DeploymentCmd", func() {
 					manifestDir, err := fakeFs.TempDir("deployment-cmd")
 					Expect(err).ToNot(HaveOccurred())
 
-					manifestPath = path.Join(manifestDir, "manifestFile.yml")
+					manifestPath = path.Join("/", manifestDir, "manifestFile.yml")
 					err = fakeFs.WriteFileString(manifestPath, "")
 					Expect(err).ToNot(HaveOccurred())
 				})
@@ -84,6 +85,26 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentFile: manifestPath}))
+				})
+
+				It("saves absolute path to deployment manifest in user config", func() {
+					wd, err := os.Getwd()
+					Expect(err).NotTo(HaveOccurred())
+					manifestAbsolutePath := path.Join(wd, "fake-manifest-file")
+
+					err = fakeFs.WriteFileString(manifestAbsolutePath, "")
+					Expect(err).NotTo(HaveOccurred())
+
+					err = command.Run([]string{"fake-manifest-file"})
+					Expect(err).NotTo(HaveOccurred())
+
+					userConfigContents, err := fakeFs.ReadFile("/fake-user-config")
+					Expect(err).NotTo(HaveOccurred())
+					userConfig := bmconfig.UserConfig{}
+					err = json.Unmarshal(userConfigContents, &userConfig)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentFile: manifestAbsolutePath}))
 				})
 
 				It("creates a deployment config", func() {
@@ -119,10 +140,10 @@ var _ = Describe("DeploymentCmd", func() {
 
 			Context("when the deployment manifest does not exist", func() {
 				It("returns err", func() {
-					err := command.Run([]string{"fake/manifest/path"})
+					err := command.Run([]string{"/fake/manifest/path"})
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Setting deployment manifest"))
-					Expect(fakeUI.Errors).To(ContainElement("Deployment `fake/manifest/path' does not exist"))
+					Expect(fakeUI.Errors).To(ContainElement("Deployment `/fake/manifest/path' does not exist"))
 				})
 			})
 		})

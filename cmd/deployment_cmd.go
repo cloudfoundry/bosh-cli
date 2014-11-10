@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -70,14 +71,20 @@ func (c *deploymentCmd) showDeploymentStatus() error {
 }
 
 func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
-	fileValidator := bmvalidation.NewFileValidator(c.fs)
-	err := fileValidator.Exists(manifestFilePath)
+	manifestAbsFilePath, err := filepath.Abs(manifestFilePath)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("Deployment `%s' does not exist", manifestFilePath))
+		c.ui.Error(fmt.Sprintf("Failed getting absolute path to deployment file `%s'", manifestFilePath))
+		return bosherr.WrapError(err, "Getting absolute path to deployment file `%s'", manifestFilePath)
+	}
+
+	fileValidator := bmvalidation.NewFileValidator(c.fs)
+	err = fileValidator.Exists(manifestAbsFilePath)
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("Deployment `%s' does not exist", manifestAbsFilePath))
 		return bosherr.WrapError(err, "Setting deployment manifest")
 	}
 
-	c.userConfig.DeploymentFile = manifestFilePath
+	c.userConfig.DeploymentFile = manifestAbsFilePath
 	err = c.userConfigService.Save(c.userConfig)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving user config")
@@ -107,6 +114,6 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		}
 	}
 
-	c.ui.Sayln(fmt.Sprintf("Deployment set to `%s'", manifestFilePath))
+	c.ui.Sayln(fmt.Sprintf("Deployment set to `%s'", manifestAbsFilePath))
 	return nil
 }
