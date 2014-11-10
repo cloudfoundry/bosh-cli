@@ -26,10 +26,12 @@ func NewManagerFactory(
 }
 
 func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
+	deploymentRecord := bmconfig.NewDeploymentRecord(f.deploymentConfigService, f.logger)
+
 	return &manager{
-		cloud: cloud,
-		deploymentConfigService: f.deploymentConfigService,
-		logger:                  f.logger,
-		logTag:                  "diskManager",
+		cloud:            cloud,
+		deploymentRecord: deploymentRecord,
+		logger:           f.logger,
+		logTag:           "diskManager",
 	}
 }

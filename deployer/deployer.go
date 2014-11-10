@@ -225,16 +225,23 @@ func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime
 }
 
 func (m *deployer) createAndAttachDisk(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM) error {
-	createEventStep := m.eventLoggerStage.NewStep("Creating disk")
-	createEventStep.Start()
-
 	diskManager := m.diskManagerFactory.NewManager(cloud)
-	disk, err := diskManager.Create(diskPool, vm.CID())
+
+	disk, found, err := diskManager.Find()
 	if err != nil {
-		createEventStep.Fail(err.Error())
-		return bosherr.WrapError(err, "Creating Disk")
+		return bosherr.WrapError(err, "Finding existing disk")
 	}
-	createEventStep.Finish()
+	if !found {
+		createEventStep := m.eventLoggerStage.NewStep("Creating disk")
+		createEventStep.Start()
+
+		disk, err = diskManager.Create(diskPool, vm.CID())
+		if err != nil {
+			createEventStep.Fail(err.Error())
+			return bosherr.WrapError(err, "Creating new disk")
+		}
+		createEventStep.Finish()
+	}
 
 	attachEventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Attaching disk '%s' to VM '%s'", disk.CID(), vm.CID()))
 	attachEventStep.Start()

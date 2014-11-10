@@ -41,9 +41,13 @@ type DeploymentFile struct {
 func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
 	config := DeploymentConfig{}
 
+	if !s.fs.FileExists(s.configPath) {
+		return config, nil
+	}
+
 	deploymentFileContents, err := s.fs.ReadFile(s.configPath)
 	if err != nil {
-		return config, nil
+		return config, bosherr.WrapError(err, "Reading deployment config file `%s'", s.configPath)
 	}
 	s.logger.Debug(s.logTag, "Deployment File Contents %#s", deploymentFileContents)
 

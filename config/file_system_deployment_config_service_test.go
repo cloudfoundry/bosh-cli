@@ -66,6 +66,19 @@ var _ = Describe("fileSystemConfigService", func() {
 			})
 		})
 
+		Context("when reading config file fails", func() {
+			BeforeEach(func() {
+				fakeFs.WriteFileString(deploymentFilePath, "{}")
+				fakeFs.ReadFileError = errors.New("fake-read-error")
+			})
+
+			It("returns an error", func() {
+				_, err := service.Load()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-read-error"))
+			})
+		})
+
 		Context("when the config is invalid", func() {
 			It("returns an empty DeploymentConfig and an error", func() {
 				fakeFs.WriteFileString(deploymentFilePath, "some invalid content")

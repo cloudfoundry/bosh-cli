@@ -9,50 +9,55 @@ import (
 )
 
 type Manager interface {
+	Find() (Disk, bool, error)
 	Create(bmdepl.DiskPool, string) (Disk, error)
 }
 
 type manager struct {
-	cloud                   bmcloud.Cloud
-	deploymentConfigService bmconfig.DeploymentConfigService
-	logger                  boshlog.Logger
-	logTag                  string
+	cloud            bmcloud.Cloud
+	deploymentRecord bmconfig.DeploymentRecord
+	logger           boshlog.Logger
+	logTag           string
 }
 
-func (m *manager) Create(diskPool bmdepl.DiskPool, instanceID string) (Disk, error) {
-	deploymentConfig, err := m.deploymentConfigService.Load()
+func (m *manager) Find() (Disk, bool, error) {
+	diskRecord, found, err := m.deploymentRecord.Disk()
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Reading existing deployment config")
+		return nil, false, bosherr.WrapError(err, "Reading disk record")
 	}
 
-	if cid := deploymentConfig.DiskCID; cid != "" {
-		m.logger.Debug(m.logTag, "Using existing disk '%s'", cid)
-		disk := NewDisk(cid)
-		return disk, nil
+	if !found {
+		return nil, false, nil
 	}
 
+	disk := NewDisk(diskRecord.CID)
+
+	return disk, true, err
+}
+
+func (m *manager) Create(diskPool bmdepl.DiskPool, vmCID string) (Disk, error) {
 	diskCloudProperties, err := diskPool.CloudProperties()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Reading existing deployment config")
 	}
 
 	m.logger.Debug(m.logTag, "Creating disk")
-	cid, err := m.cloud.CreateDisk(diskPool.Size, diskCloudProperties, instanceID)
+	cid, err := m.cloud.CreateDisk(diskPool.Size, diskCloudProperties, vmCID)
 	if err != nil {
 		return nil,
 			bosherr.WrapError(err,
 				"Creating disk with size %s, cloudProperties %#v, instanceID %s",
 				diskPool.Size,
 				diskCloudProperties,
-				instanceID,
+				vmCID,
 			)
 	}
 
-	deploymentConfig.DiskCID = cid
-
-	err = m.deploymentConfigService.Save(deploymentConfig)
+	err = m.deploymentRecord.UpdateDisk(bmconfig.DiskRecord{
+		CID: cid,
+	})
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Saving deployment config")
+		return nil, bosherr.WrapError(err, "Updating deployment disk record")
 	}
 
 	disk := NewDisk(cid)

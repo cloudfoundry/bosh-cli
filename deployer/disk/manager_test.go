@@ -17,21 +17,30 @@ import (
 )
 
 var _ = Describe("Manager", func() {
+	var (
+		manager          Manager
+		fakeCloud        *fakebmcloud.FakeCloud
+		fakeFs           *fakesys.FakeFileSystem
+		deploymentRecord bmconfig.DeploymentRecord
+	)
+
+	BeforeEach(func() {
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		fakeFs = fakesys.NewFakeFileSystem()
+		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, logger)
+		deploymentRecord = bmconfig.NewDeploymentRecord(configService, logger)
+		managerFactory := NewManagerFactory(configService, logger)
+		fakeCloud = fakebmcloud.NewFakeCloud()
+		manager = managerFactory.NewManager(fakeCloud)
+	})
+
 	Describe("Create", func() {
 		var (
-			manager       Manager
-			fakeCloud     *fakebmcloud.FakeCloud
-			configService bmconfig.DeploymentConfigService
-			diskPool      bmdepl.DiskPool
+			diskPool bmdepl.DiskPool
 		)
 
 		BeforeEach(func() {
-			logger := boshlog.NewLogger(boshlog.LevelNone)
-			fs := fakesys.NewFakeFileSystem()
-			configService = bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
-			managerFactory := NewManagerFactory(configService, logger)
-			fakeCloud = fakebmcloud.NewFakeCloud()
-			manager = managerFactory.NewManager(fakeCloud)
+
 			diskPool = bmdepl.DiskPool{
 				Name: "fake-disk-pool-name",
 				Size: 1024,
@@ -41,42 +50,29 @@ var _ = Describe("Manager", func() {
 			}
 		})
 
-		Context("when disk already exists in deployment config", func() {
-			BeforeEach(func() {
-				configService.Save(bmconfig.DeploymentConfig{
-					DiskCID: "fake-existing-disk-cid",
-				})
-			})
-
-			It("returns the existing disk", func() {
-				disk, err := manager.Create(diskPool, "fake-instance-id")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(disk.CID()).To(Equal("fake-existing-disk-cid"))
-			})
-		})
-
 		Context("when creating disk succeeds", func() {
 			BeforeEach(func() {
 				fakeCloud.CreateDiskCID = "fake-disk-cid"
 			})
 
 			It("returns a disk", func() {
-				disk, err := manager.Create(diskPool, "fake-instance-id")
+				disk, err := manager.Create(diskPool, "fake-vm-cid")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(disk.CID()).To(Equal("fake-disk-cid"))
 			})
 
-			It("saves the disk record using the config service", func() {
-				_, err := manager.Create(diskPool, "fake-instance-id")
+			It("saves the disk record", func() {
+				_, err := manager.Create(diskPool, "fake-vm-cid")
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentConfig, err := configService.Load()
+				deploymentRecord, found, err := deploymentRecord.Disk()
 				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(BeTrue())
 
-				expectedConfig := bmconfig.DeploymentConfig{
-					DiskCID: "fake-disk-cid",
+				expectedRecord := bmconfig.DiskRecord{
+					CID: "fake-disk-cid",
 				}
-				Expect(deploymentConfig).To(Equal(expectedConfig))
+				Expect(deploymentRecord).To(Equal(expectedRecord))
 			})
 		})
 
@@ -86,9 +82,60 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create(diskPool, "fake-instance-id")
+				_, err := manager.Create(diskPool, "fake-vm-cid")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
+			})
+		})
+
+		Context("when updating disk record fails", func() {
+			BeforeEach(func() {
+				fakeFs.WriteToFileError = errors.New("fake-write-error")
+			})
+
+			It("returns an error", func() {
+				_, err := manager.Create(diskPool, "fake-vm-cid")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-write-error"))
+			})
+		})
+	})
+
+	Describe("Find", func() {
+		Context("when disk already exists in deployment record", func() {
+			BeforeEach(func() {
+				deploymentRecord.UpdateDisk(bmconfig.DiskRecord{
+					CID: "fake-existing-disk-cid",
+				})
+			})
+
+			It("returns the existing disk", func() {
+				disk, found, err := manager.Find()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(BeTrue())
+				Expect(disk.CID()).To(Equal("fake-existing-disk-cid"))
+			})
+		})
+
+		Context("when disk does not exists in deployment record", func() {
+			It("returns false", func() {
+				_, found, err := manager.Find()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(BeFalse())
+			})
+		})
+
+		Context("when reading existing disk record fails", func() {
+			BeforeEach(func() {
+				fakeFs.WriteFileString("/fake/path", "{}")
+				fakeFs.ReadFileError = errors.New("fake-read-error")
+			})
+
+			It("returns an error", func() {
+				_, found, err := manager.Find()
+				Expect(found).To(BeFalse())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-read-error"))
 			})
 		})
 	})

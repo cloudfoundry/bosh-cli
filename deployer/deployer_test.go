@@ -112,6 +112,8 @@ var _ = Describe("Deployer", func() {
 
 		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
 		fakeVMManager.CreateVM = fakeVM
+
+		fakeDiskManager.SetFindBehavior(nil, false, nil)
 	})
 
 	It("adds a new event logger stage", func() {
@@ -218,16 +220,45 @@ var _ = Describe("Deployer", func() {
 			deployment.Jobs[0].PersistentDiskPool = "fake-persistent-disk-pool-name"
 		})
 
-		It("creates a persistent disk", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
-			Expect(err).NotTo(HaveOccurred())
+		Context("when disk already exists", func() {
+			BeforeEach(func() {
+				disk := bmdisk.NewDisk("fake-disk-cid")
+				fakeDiskManager.SetFindBehavior(disk, true, nil)
+			})
 
-			Expect(fakeDiskManager.CreateInputs).To(Equal([]fakebmdisk.CreateInput{
-				{
-					DiskPool:   diskPool,
-					InstanceID: "fake-vm-cid",
-				},
-			}))
+			It("does not create disk", func() {
+				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeDiskManager.CreateInputs).To(BeEmpty())
+			})
+
+			It("does not log the create disk event", func() {
+				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeStage.Steps).ToNot(ContainElement(&fakebmlog.FakeStep{
+					Name: "Creating disk",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				}))
+			})
+		})
+
+		Context("when disk does not exist", func() {
+			It("creates a persistent disk", func() {
+				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", "fake-stemcell-cid")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeDiskManager.CreateInputs).To(Equal([]fakebmdisk.CreateInput{
+					{
+						DiskPool:   diskPool,
+						InstanceID: "fake-vm-cid",
+					},
+				}))
+			})
 		})
 
 		It("attaches the persistent disk", func() {
