@@ -81,7 +81,9 @@ cloud_provider:
 						Port:     123,
 					}))
 					Expect(deployment.AgentEnvService).To(Equal("registry"))
-					Expect(deployment.Properties["fake-property-name"]).To(Equal(map[string]interface{}{
+					properties, err := deployment.Properties()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(properties["fake-property-name"]).To(Equal(map[string]interface{}{
 						"nested-property": "fake-property-value",
 					}))
 					Expect(deployment.SSHTunnel).To(Equal(
@@ -111,25 +113,6 @@ cloud_provider:
 						},
 					}
 					Expect(deployment.Jobs).To(Equal(expectedJobs))
-				})
-			})
-
-			Context("when parsing properties fails", func() {
-				BeforeEach(func() {
-					contents := `
----
-name: fake-deployment-name
-cloud_provider:
-  properties:
-    123: fake-property-value
-`
-					fakeFs.WriteFileString(deploymentPath, contents)
-				})
-
-				It("returns an error", func() {
-					_, err := manifestParser.Parse(deploymentPath)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Converting manifest cloud properties"))
 				})
 			})
 		})

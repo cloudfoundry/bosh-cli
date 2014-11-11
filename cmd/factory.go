@@ -28,6 +28,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
@@ -147,6 +148,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	cpiManifestParser := bmdepl.NewCpiDeploymentParser(f.fs)
 	boshManifestParser := bmdepl.NewBoshDeploymentParser(f.fs, f.logger)
+	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
 	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
 	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
 	templatesIndex := bmindex.NewFileIndex(f.deploymentConfig.TemplatesIndexPath(), f.fs)
@@ -221,9 +223,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fs,
 		cpiManifestParser,
 		boshManifestParser,
+		boshDeploymentValidator,
 		cpiDeployer,
 		stemcellManagerFactory,
 		deployer,
+		eventLogger,
 		f.logger,
 	), nil
 }

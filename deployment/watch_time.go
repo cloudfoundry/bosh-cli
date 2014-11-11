@@ -15,7 +15,7 @@ type WatchTime struct {
 func NewWatchTime(timeRange string) (WatchTime, error) {
 	parts := strings.Split(timeRange, "-")
 	if len(parts) != 2 {
-		return WatchTime{}, bosherr.New("Invalid watch time range %s", timeRange)
+		return WatchTime{}, bosherr.New("Invalid watch time range '%s'", timeRange)
 	}
 
 	start, err := strconv.Atoi(strings.Trim(parts[0], " "))

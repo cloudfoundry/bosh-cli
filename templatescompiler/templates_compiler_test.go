@@ -44,7 +44,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		templatesRepo = fakebmtemp.NewFakeTemplatesRepo()
 
 		deployment = fakebmdepl.NewFakeDeployment()
-		deployment.Properties["fake-property-key"] = "fake-property-value"
+		deployment.RawProperties["fake-property-key"] = "fake-property-value"
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -262,6 +262,20 @@ var _ = Describe("TemplatesCompiler", func() {
 				err := templatesCompiler.Compile(jobs, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-2-error"))
+			})
+		})
+
+		Context("when parsing properties fails", func() {
+			BeforeEach(func() {
+				deployment.RawProperties = map[interface{}]interface{}{
+					123: "fake-property-value",
+				}
+			})
+
+			It("returns an error", func() {
+				err := templatesCompiler.Compile(jobs, deployment)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Getting deployment properties"))
 			})
 		})
 	})

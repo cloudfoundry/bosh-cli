@@ -6,6 +6,7 @@ import (
 
 type ResourcePool struct {
 	Name               string                      `yaml:"name"`
+	Network            string                      `yaml:"network"`
 	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 	RawEnv             map[interface{}]interface{} `yaml:"env"`
 }

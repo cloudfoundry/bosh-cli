@@ -145,8 +145,8 @@ properties: {}
 
 				BeforeEach(func() {
 					deployment = bmdepl.Deployment{
-						Name:       "fake-deployment-name",
-						Properties: map[string]interface{}{},
+						Name:          "fake-deployment-name",
+						RawProperties: map[interface{}]interface{}{},
 						Jobs: []bmdepl.Job{
 							bmdepl.Job{
 								Name:      "fake-deployment-job-name",

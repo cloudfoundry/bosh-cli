@@ -60,7 +60,12 @@ func (tc templatesCompiler) compileJob(job bmrel.Job, deployment bmdepl.Deployme
 	}
 	defer tc.fs.RemoveAll(jobCompileDir)
 
-	err = tc.jobRenderer.Render(jobSrcDir, jobCompileDir, job, deployment.Properties, deployment.Name)
+	properties, err := deployment.Properties()
+	if err != nil {
+		return bosherr.WrapError(err, "Getting deployment properties")
+	}
+
+	err = tc.jobRenderer.Render(jobSrcDir, jobCompileDir, job, properties, deployment.Name)
 	if err != nil {
 		return bosherr.WrapError(err, "Rendering templates")
 	}

@@ -14,20 +14,24 @@ import (
 	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type deployCmd struct {
-	ui                     bmui.UI
-	userConfig             bmconfig.UserConfig
-	fs                     boshsys.FileSystem
-	cpiManifestParser      bmdepl.ManifestParser
-	boshManifestParser     bmdepl.ManifestParser
-	cpiDeployer            bmcpideploy.CpiDeployer
-	stemcellManagerFactory bmstemcell.ManagerFactory
-	deployer               bmdeployer.Deployer
-	logger                 boshlog.Logger
-	logTag                 string
+	ui                      bmui.UI
+	userConfig              bmconfig.UserConfig
+	fs                      boshsys.FileSystem
+	cpiManifestParser       bmdepl.ManifestParser
+	boshManifestParser      bmdepl.ManifestParser
+	boshDeploymentValidator bmdeplval.DeploymentValidator
+	cpiDeployer             bmcpideploy.CpiDeployer
+	stemcellManagerFactory  bmstemcell.ManagerFactory
+	deployer                bmdeployer.Deployer
+	eventLogger             bmeventlog.EventLogger
+	logger                  boshlog.Logger
+	logTag                  string
 }
 
 func NewDeployCmd(
@@ -36,22 +40,26 @@ func NewDeployCmd(
 	fs boshsys.FileSystem,
 	cpiManifestParser bmdepl.ManifestParser,
 	boshManifestParser bmdepl.ManifestParser,
+	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiDeployer bmcpideploy.CpiDeployer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	deployer bmdeployer.Deployer,
+	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployCmd {
 	return &deployCmd{
-		ui:                     ui,
-		userConfig:             userConfig,
-		fs:                     fs,
-		cpiManifestParser:      cpiManifestParser,
-		boshManifestParser:     boshManifestParser,
-		cpiDeployer:            cpiDeployer,
-		stemcellManagerFactory: stemcellManagerFactory,
-		deployer:               deployer,
-		logger:                 logger,
-		logTag:                 "deployCmd",
+		ui:                      ui,
+		userConfig:              userConfig,
+		fs:                      fs,
+		cpiManifestParser:       cpiManifestParser,
+		boshManifestParser:      boshManifestParser,
+		boshDeploymentValidator: boshDeploymentValidator,
+		cpiDeployer:             cpiDeployer,
+		stemcellManagerFactory:  stemcellManagerFactory,
+		deployer:                deployer,
+		eventLogger:             eventLogger,
+		logger:                  logger,
+		logTag:                  "deployCmd",
 	}
 }
 
@@ -65,15 +73,35 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
+	validationStage := c.eventLogger.NewStage("validating")
+	validationStage.Start()
+
+	manifestValidationStep := validationStage.NewStep("Validating manifest")
+	manifestValidationStep.Start()
+
 	cpiDeployment, err := c.cpiManifestParser.Parse(c.userConfig.DeploymentFile)
 	if err != nil {
-		return bosherr.WrapError(err, "Parsing CPI deployment manifest `%s'", c.userConfig.DeploymentFile)
+		err = bosherr.WrapError(err, "Parsing CPI deployment manifest `%s'", c.userConfig.DeploymentFile)
+		manifestValidationStep.Fail(err.Error())
+		return err
 	}
 
 	boshDeployment, err := c.boshManifestParser.Parse(c.userConfig.DeploymentFile)
 	if err != nil {
-		return bosherr.WrapError(err, "Parsing Bosh deployment manifest `%s'", c.userConfig.DeploymentFile)
+		err = bosherr.WrapError(err, "Parsing Bosh deployment manifest `%s'", c.userConfig.DeploymentFile)
+		manifestValidationStep.Fail(err.Error())
+		return err
 	}
+
+	err = c.boshDeploymentValidator.Validate(boshDeployment)
+	if err != nil {
+		err = bosherr.WrapError(err, "Validating bosh deployment manifest")
+		manifestValidationStep.Fail(err.Error())
+		return err
+	}
+
+	manifestValidationStep.Finish()
+	validationStage.Finish()
 
 	cloud, err := c.cpiDeployer.Deploy(cpiDeployment, releaseTarballPath)
 	if err != nil {

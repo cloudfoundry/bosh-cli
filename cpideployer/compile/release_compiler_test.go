@@ -49,9 +49,9 @@ var _ = Describe("ReleaseCompiler", func() {
 		)
 		BeforeEach(func() {
 			deployment = bmdepl.Deployment{
-				Name:       "fake-deployment-name",
-				Properties: map[string]interface{}{},
-				Jobs:       []bmdepl.Job{},
+				Name:          "fake-deployment-name",
+				RawProperties: map[interface{}]interface{}{},
+				Jobs:          []bmdepl.Job{},
 			}
 			fakeTemplatesCompiler.SetCompileBehavior(release.Jobs, deployment, nil)
 		})

@@ -12,6 +12,7 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
@@ -22,6 +23,8 @@ import (
 	fakebmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
+	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -40,12 +43,16 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeDeployer *fakebmdeployer.FakeDeployer
 
-		fakeCpiManifestParser  *fakebmdepl.FakeManifestParser
-		fakeBoshManifestParser *fakebmdepl.FakeManifestParser
+		fakeCpiManifestParser   *fakebmdepl.FakeManifestParser
+		fakeBoshManifestParser  *fakebmdepl.FakeManifestParser
+		fakeDeploymentValidator *fakebmdeplval.FakeValidator
 
 		fakeCompressor    *fakecmd.FakeCompressor
 		fakeJobRenderer   *fakebmtemp.FakeJobRenderer
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
+
+		fakeEventLogger *fakebmlog.FakeEventLogger
+		fakeStage       *fakebmlog.FakeStage
 
 		cpiReleaseTarballPath string
 		stemcellTarballPath   string
@@ -69,6 +76,11 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeCpiManifestParser = fakebmdepl.NewFakeManifestParser()
 		fakeBoshManifestParser = fakebmdepl.NewFakeManifestParser()
+		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
+
+		fakeEventLogger = fakebmlog.NewFakeEventLogger()
+		fakeStage = fakebmlog.NewFakeStage()
+		fakeEventLogger.SetNewStageBehavior(fakeStage)
 
 		fakeCompressor = fakecmd.NewFakeCompressor()
 		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
@@ -81,9 +93,11 @@ var _ = Describe("DeployCmd", func() {
 			fakeFs,
 			fakeCpiManifestParser,
 			fakeBoshManifestParser,
+			fakeDeploymentValidator,
 			fakeCpiDeployer,
 			fakeStemcellManagerFactory,
 			fakeDeployer,
+			fakeEventLogger,
 			logger,
 		)
 
@@ -139,9 +153,11 @@ var _ = Describe("DeployCmd", func() {
 						fakeFs,
 						fakeCpiManifestParser,
 						fakeBoshManifestParser,
+						fakeDeploymentValidator,
 						fakeCpiDeployer,
 						fakeStemcellManagerFactory,
 						fakeDeployer,
+						fakeEventLogger,
 						logger,
 					)
 
@@ -158,6 +174,11 @@ name: fake-release
 version: fake-version
 `
 					fakeFs.WriteFileString("/some/release/path/release.MF", releaseContents)
+					fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
+						{
+							Err: nil,
+						},
+					})
 				})
 
 				Context("when the deployment manifest exists", func() {
@@ -198,6 +219,20 @@ version: fake-version
 						fakeFs.WriteFile(stemcellTarballPath, []byte{})
 					})
 
+					It("adds a new event logger stage", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(fakeEventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
+							{
+								Name: "validating",
+							},
+						}))
+
+						Expect(fakeStage.Started).To(BeTrue())
+						Expect(fakeStage.Finished).To(BeTrue())
+					})
+
 					It("parses the CPI portion of the manifest", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
@@ -208,6 +243,29 @@ version: fake-version
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeBoshManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
+					})
+
+					It("validates bosh deployment manifest", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+						Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
+							{
+								Deployment: boshDeployment,
+							},
+						}))
+					})
+
+					It("logs validation stage", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+							Name: "Validating manifest",
+							States: []bmeventlog.EventState{
+								bmeventlog.Started,
+								bmeventlog.Finished,
+							},
+						}))
 					})
 
 					It("deploys the CPI locally", func() {
@@ -266,6 +324,36 @@ version: fake-version
 							Expect(err.Error()).To(ContainSubstring("fake-reading-error"))
 						})
 					})
+
+					Context("when deployment validation fails", func() {
+						BeforeEach(func() {
+							fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
+								{
+									Err: errors.New("fake-validation-error"),
+								},
+							})
+						})
+
+						It("returns an error", func() {
+							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("fake-validation-error"))
+						})
+
+						It("logs the failed event log", func() {
+							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+							Expect(err).To(HaveOccurred())
+
+							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+								Name: "Validating manifest",
+								States: []bmeventlog.EventState{
+									bmeventlog.Started,
+									bmeventlog.Failed,
+								},
+								FailMessage: "Validating bosh deployment manifest: fake-validation-error",
+							}))
+						})
+					})
 				})
 
 				Context("when the deployment manifest is missing", func() {
@@ -280,7 +368,6 @@ version: fake-version
 						Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path `/some/deployment/file' does not exist"))
 					})
 				})
-
 			})
 
 			Context("when there is no deployment set", func() {
@@ -294,9 +381,11 @@ version: fake-version
 						fakeFs,
 						fakeCpiManifestParser,
 						fakeBoshManifestParser,
+						fakeDeploymentValidator,
 						fakeCpiDeployer,
 						fakeStemcellManagerFactory,
 						fakeDeployer,
+						fakeEventLogger,
 						logger,
 					)
 				})

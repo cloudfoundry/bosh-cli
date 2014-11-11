@@ -3,6 +3,7 @@ name: test-release
 
 resource_pools:
 - name: fake-resource-pool-name
+  network: fake-network-name
   env:
     bosh:
       password: pjF0EjcwDTvyQ # openssl passwd -crypt sshpassword
@@ -56,6 +57,7 @@ jobs:
   - name: blobstore
   - name: director
   - name: health_monitor
+  resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name
     static_ips:

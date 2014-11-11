@@ -13,6 +13,7 @@ type ReleaseJobRef struct {
 type Job struct {
 	Name               string
 	Instances          int
+	Lifecycle          JobLifecycle
 	Templates          []ReleaseJobRef
 	Networks           []JobNetwork
 	PersistentDisk     int                         `yaml:"persistent_disk"`
@@ -20,14 +21,29 @@ type Job struct {
 	RawProperties      map[interface{}]interface{} `yaml:"properties"`
 }
 
+type JobLifecycle string
+
+const (
+	JobLifecycleService JobLifecycle = "service"
+	JobLifecycleErrand  JobLifecycle = "errand"
+)
+
 func (j *Job) Properties() (map[string]interface{}, error) {
 	return bmkeystr.NewKeyStringifier().ConvertMap(j.RawProperties)
 }
 
 type JobNetwork struct {
 	Name      string
+	Default   []NetworkDefault
 	StaticIPs []string `yaml:"static_ips"`
 }
+
+type NetworkDefault string
+
+const (
+	NetworkDefaultDNS     NetworkDefault = "dns"
+	NetworkDefaultGateway NetworkDefault = "gateway"
+)
 
 type Registry struct {
 	Username string
@@ -46,7 +62,7 @@ type SSHTunnel struct {
 
 type Deployment struct {
 	Name            string
-	Properties      map[string]interface{}
+	RawProperties   map[interface{}]interface{}
 	Mbus            string
 	Registry        Registry
 	AgentEnvService string
@@ -60,6 +76,10 @@ type Deployment struct {
 
 type Update struct {
 	UpdateWatchTime WatchTime
+}
+
+func (d Deployment) Properties() (map[string]interface{}, error) {
+	return bmkeystr.NewKeyStringifier().ConvertMap(d.RawProperties)
 }
 
 func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error) {

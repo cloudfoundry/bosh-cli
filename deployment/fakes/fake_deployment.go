@@ -21,8 +21,8 @@ func NewFakeJob() bmdepl.Job {
 
 func NewFakeDeployment() bmdepl.Deployment {
 	return bmdepl.Deployment{
-		Name:       "fake-deployment-name",
-		Properties: map[string]interface{}{},
-		Jobs:       []bmdepl.Job{NewFakeJob()},
+		Name:          "fake-deployment-name",
+		RawProperties: map[interface{}]interface{}{},
+		Jobs:          []bmdepl.Job{NewFakeJob()},
 	}
 }
