@@ -54,6 +54,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeEventLogger *fakebmlog.FakeEventLogger
 		fakeStage       *fakebmlog.FakeStage
 
+		deploymentRecord bmconfig.DeploymentRecord
+
 		cpiReleaseTarballPath string
 		stemcellTarballPath   string
 		expectedStemcellCID   bmstemcell.CID
@@ -85,12 +87,15 @@ var _ = Describe("DeployCmd", func() {
 		fakeCompressor = fakecmd.NewFakeCompressor()
 		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, logger)
+		deploymentRecord = bmconfig.NewDeploymentRecord(configService, logger)
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		command = bmcmd.NewDeployCmd(
 			fakeUI,
 			userConfig,
 			fakeFs,
+			deploymentRecord,
 			fakeCpiManifestParser,
 			fakeBoshManifestParser,
 			fakeDeploymentValidator,
@@ -151,6 +156,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeUI,
 						userConfig,
 						fakeFs,
+						deploymentRecord,
 						fakeCpiManifestParser,
 						fakeBoshManifestParser,
 						fakeDeploymentValidator,
@@ -379,6 +385,7 @@ version: fake-version
 						fakeUI,
 						userConfig,
 						fakeFs,
+						deploymentRecord,
 						fakeCpiManifestParser,
 						fakeBoshManifestParser,
 						fakeDeploymentValidator,

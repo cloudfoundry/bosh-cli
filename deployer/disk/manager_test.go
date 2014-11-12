@@ -29,7 +29,7 @@ var _ = Describe("Manager", func() {
 		fakeFs = fakesys.NewFakeFileSystem()
 		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, logger)
 		deploymentRecord = bmconfig.NewDeploymentRecord(configService, logger)
-		managerFactory := NewManagerFactory(configService, logger)
+		managerFactory := NewManagerFactory(deploymentRecord, logger)
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		manager = managerFactory.NewManager(fakeCloud)
 	})
