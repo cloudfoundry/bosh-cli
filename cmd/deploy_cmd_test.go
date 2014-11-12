@@ -272,7 +272,14 @@ version: fake-version
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-							Name: "Validating manifest",
+							Name: "Validating deployment manifest",
+							States: []bmeventlog.EventState{
+								bmeventlog.Started,
+								bmeventlog.Finished,
+							},
+						}))
+						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+							Name: "Validating cpi release",
 							States: []bmeventlog.EventState{
 								bmeventlog.Started,
 								bmeventlog.Finished,
@@ -378,12 +385,12 @@ version: fake-version
 							Expect(err).To(HaveOccurred())
 
 							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-								Name: "Validating manifest",
+								Name: "Validating deployment manifest",
 								States: []bmeventlog.EventState{
 									bmeventlog.Started,
 									bmeventlog.Failed,
 								},
-								FailMessage: "Validating bosh deployment manifest: fake-validation-error",
+								FailMessage: "Validating deployment manifest: fake-validation-error",
 							}))
 						})
 					})

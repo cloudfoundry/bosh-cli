@@ -79,7 +79,7 @@ func (c *deployCmd) Run(args []string) error {
 	validationStage := c.eventLogger.NewStage("validating")
 	validationStage.Start()
 
-	manifestValidationStep := validationStage.NewStep("Validating manifest")
+	manifestValidationStep := validationStage.NewStep("Validating deployment manifest")
 	manifestValidationStep.Start()
 
 	cpiDeployment, err := c.cpiManifestParser.Parse(c.userConfig.DeploymentFile)
@@ -91,26 +91,34 @@ func (c *deployCmd) Run(args []string) error {
 
 	boshDeployment, err := c.boshManifestParser.Parse(c.userConfig.DeploymentFile)
 	if err != nil {
-		err = bosherr.WrapError(err, "Parsing Bosh deployment manifest `%s'", c.userConfig.DeploymentFile)
+		err = bosherr.WrapError(err, "Parsing deployment manifest `%s'", c.userConfig.DeploymentFile)
 		manifestValidationStep.Fail(err.Error())
 		return err
 	}
 
 	err = c.boshDeploymentValidator.Validate(boshDeployment)
 	if err != nil {
-		err = bosherr.WrapError(err, "Validating bosh deployment manifest")
+		err = bosherr.WrapError(err, "Validating deployment manifest")
 		manifestValidationStep.Fail(err.Error())
 		return err
 	}
 
 	manifestValidationStep.Finish()
-	validationStage.Finish()
+
+	cpiValidationStep := validationStage.NewStep("Validating cpi release")
+	cpiValidationStep.Start()
 
 	extractedRelease, err := c.cpiInstaller.Extract(releaseTarballPath)
 	if err != nil {
-		return bosherr.WrapError(err, "Extracting CPI release `%s'", releaseTarballPath)
+		err = bosherr.WrapError(err, "Extracting CPI release `%s'", releaseTarballPath)
+		cpiValidationStep.Fail(err.Error())
+		return err
 	}
 	defer extractedRelease.Delete()
+
+	cpiValidationStep.Finish()
+
+	validationStage.Finish()
 
 	cloud, err := c.cpiInstaller.Install(cpiDeployment, extractedRelease)
 	if err != nil {
