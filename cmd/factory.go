@@ -178,7 +178,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fs)
 	repo := bmstemcell.NewRepo(f.deploymentConfigService)
-	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.fs, stemcellReader, repo, eventLogger)
+	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)
+	stemcellManagerFactory := bmstemcell.NewManagerFactory(repo, eventLogger)
 
 	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentConfig.DeploymentUUID, 1*time.Second, f.logger)
 	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
@@ -227,6 +228,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		boshManifestParser,
 		boshDeploymentValidator,
 		cpiInstaller,
+		stemcellExtractor,
 		stemcellManagerFactory,
 		deployer,
 		eventLogger,

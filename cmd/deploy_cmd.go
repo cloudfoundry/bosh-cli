@@ -28,6 +28,7 @@ type deployCmd struct {
 	boshManifestParser      bmdepl.ManifestParser
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiInstaller            bmcpi.Installer
+	stemcellExtractor       bmstemcell.Extractor
 	stemcellManagerFactory  bmstemcell.ManagerFactory
 	deployer                bmdeployer.Deployer
 	eventLogger             bmeventlog.EventLogger
@@ -44,6 +45,7 @@ func NewDeployCmd(
 	boshManifestParser bmdepl.ManifestParser,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiInstaller bmcpi.Installer,
+	stemcellExtractor bmstemcell.Extractor,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	deployer bmdeployer.Deployer,
 	eventLogger bmeventlog.EventLogger,
@@ -58,6 +60,7 @@ func NewDeployCmd(
 		boshManifestParser:      boshManifestParser,
 		boshDeploymentValidator: boshDeploymentValidator,
 		cpiInstaller:            cpiInstaller,
+		stemcellExtractor:       stemcellExtractor,
 		stemcellManagerFactory:  stemcellManagerFactory,
 		deployer:                deployer,
 		eventLogger:             eventLogger,
@@ -125,13 +128,13 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
-	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-	extractedStemcell, err := stemcellManager.Extract(stemcellTarballPath)
+	extractedStemcell, err := c.stemcellExtractor.Extract(stemcellTarballPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Extracting stemcell from `%s'", stemcellTarballPath)
 	}
 	defer extractedStemcell.Delete()
 
+	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
 	cloudStemcell, err := stemcellManager.Upload(extractedStemcell)
 	if err != nil {
 		return bosherr.WrapError(err, "Uploading stemcell")

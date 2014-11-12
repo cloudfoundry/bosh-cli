@@ -17,10 +17,8 @@ type managerFactory struct {
 	eventLogger bmeventlog.EventLogger
 }
 
-func NewManagerFactory(fs boshsys.FileSystem, reader Reader, repo Repo, eventLogger bmeventlog.EventLogger) ManagerFactory {
+func NewManagerFactory(repo Repo, eventLogger bmeventlog.EventLogger) ManagerFactory {
 	return &managerFactory{
-		fs:          fs,
-		reader:      reader,
 		repo:        repo,
 		eventLogger: eventLogger,
 	}
@@ -28,8 +26,6 @@ func NewManagerFactory(fs boshsys.FileSystem, reader Reader, repo Repo, eventLog
 
 func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
 	return &manager{
-		fs:          f.fs,
-		reader:      f.reader,
 		repo:        f.repo,
 		eventLogger: f.eventLogger,
 		cloud:       cloud,

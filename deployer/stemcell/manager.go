@@ -2,40 +2,27 @@ package stemcell
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type Manager interface {
-	Extract(tarballPath string) (ExtractedStemcell, error)
 	Upload(ExtractedStemcell) (CloudStemcell, error)
 }
 
 type manager struct {
-	fs          boshsys.FileSystem
-	reader      Reader
 	repo        Repo
-	eventLogger bmeventlog.EventLogger
 	cloud       bmcloud.Cloud
+	eventLogger bmeventlog.EventLogger
 }
 
-// Extract decompresses a stemcell tarball into a temp directory (stemcell.extractedPath)
-// and parses and validates the stemcell manifest.
-// Use stemcell.Delete() to clean up the temp directory.
-func (m *manager) Extract(tarballPath string) (ExtractedStemcell, error) {
-	tmpDir, err := m.fs.TempDir("stemcell-manager")
-	if err != nil {
-		return nil, bosherr.WrapError(err, "creating temp dir for stemcell extraction")
+func NewManager(repo Repo, cloud bmcloud.Cloud, eventLogger bmeventlog.EventLogger) Manager {
+	return &manager{
+		repo:        repo,
+		cloud:       cloud,
+		eventLogger: eventLogger,
 	}
-
-	stemcell, err := m.reader.Read(tarballPath, tmpDir)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "reading extracted stemcell manifest in `%s'", tmpDir)
-	}
-
-	return stemcell, nil
 }
 
 // Upload stemcell to an IAAS. It does the following steps:

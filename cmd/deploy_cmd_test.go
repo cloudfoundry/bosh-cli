@@ -40,6 +40,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeCPIRelease             *fakebmrel.FakeRelease
 		logger                     boshlog.Logger
 		release                    bmrel.Release
+		fakeStemcellExtractor      *fakebmstemcell.FakeExtractor
 		fakeStemcellManager        *fakebmstemcell.FakeManager
 		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
 
@@ -73,6 +74,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs.WriteFileString("/some/deployment/file", "")
 
 		fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
+		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 		fakeStemcellManager = fakebmstemcell.NewFakeManager()
 		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
 
@@ -102,6 +104,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeBoshManifestParser,
 			fakeDeploymentValidator,
 			fakeCPIInstaller,
+			fakeStemcellExtractor,
 			fakeStemcellManagerFactory,
 			fakeDeployer,
 			fakeEventLogger,
@@ -165,6 +168,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeBoshManifestParser,
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
+						fakeStemcellExtractor,
 						fakeStemcellManagerFactory,
 						fakeDeployer,
 						fakeEventLogger,
@@ -228,7 +232,7 @@ version: fake-version
 						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
 						fakeDeployer.SetDeployBehavior(nil)
-						fakeStemcellManager.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
+						fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
 						fakeStemcellManager.SetUploadBehavior(expectedExtractedStemcell, expectedCloudStemcell, nil)
 
 						fakeFs.WriteFile(stemcellTarballPath, []byte{})
@@ -320,7 +324,7 @@ version: fake-version
 					It("extracts the stemcell", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeStemcellManager.ExtractInputs).To(Equal([]fakebmstemcell.ExtractInput{
+						Expect(fakeStemcellExtractor.ExtractInputs).To(Equal([]fakebmstemcell.ExtractInput{
 							{
 								TarballPath: stemcellTarballPath,
 							},
@@ -438,6 +442,7 @@ version: fake-version
 						fakeBoshManifestParser,
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
+						fakeStemcellExtractor,
 						fakeStemcellManagerFactory,
 						fakeDeployer,
 						fakeEventLogger,

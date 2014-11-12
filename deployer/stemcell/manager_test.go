@@ -40,8 +40,7 @@ var _ = Describe("Manager", func() {
 		fakeStage = fakebmlog.NewFakeStage()
 		eventLogger.SetNewStageBehavior(fakeStage)
 		fakeCloud = fakebmcloud.NewFakeCloud()
-		managerFactory := NewManagerFactory(fs, reader, repo, eventLogger)
-		manager = managerFactory.NewManager(fakeCloud)
+		manager = NewManager(repo, fakeCloud, eventLogger)
 		stemcellTarballPath = "/stemcell/tarball/path"
 		tempExtractionDir = "/path/to/dest"
 		fs.TempDirDir = tempExtractionDir
@@ -59,29 +58,6 @@ var _ = Describe("Manager", func() {
 			fs,
 		)
 		reader.SetReadBehavior(stemcellTarballPath, tempExtractionDir, expectedExtractedStemcell, nil)
-	})
-
-	Describe("Extract", func() {
-		It("extracts and parses the stemcell manifest", func() {
-			stemcell, err := manager.Extract(stemcellTarballPath)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(stemcell).To(Equal(expectedExtractedStemcell))
-
-			Expect(reader.ReadInputs).To(Equal([]fakebmstemcell.ReadInput{
-				{
-					StemcellTarballPath: stemcellTarballPath,
-					DestPath:            tempExtractionDir,
-				},
-			}))
-		})
-
-		It("when the read fails, returns an error", func() {
-			reader.SetReadBehavior(stemcellTarballPath, tempExtractionDir, expectedExtractedStemcell, errors.New("fake-read-error"))
-
-			_, err := manager.Extract(stemcellTarballPath)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-read-error"))
-		})
 	})
 
 	Describe("Upload", func() {
