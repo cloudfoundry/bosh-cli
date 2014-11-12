@@ -29,13 +29,13 @@ var _ = Describe("Repo", func() {
 
 	Describe("Save", func() {
 		It("saves the stemcell record using the config service", func() {
-			cid := CID("fake-cid")
+			stemcell := CloudStemcell{CID: "fake-cid"}
 			stemcellManifest := Manifest{
 				Name:    "fake-name",
 				Version: "fake-version",
 				SHA1:    "fake-sha1",
 			}
-			err := repo.Save(stemcellManifest, cid)
+			err := repo.Save(stemcellManifest, stemcell)
 			Expect(err).ToNot(HaveOccurred())
 
 			deploymentConfig, err := configService.Load()
@@ -47,7 +47,7 @@ var _ = Describe("Repo", func() {
 						Name:    "fake-name",
 						Version: "fake-version",
 						SHA1:    "fake-sha1",
-						CID:     cid.String(),
+						CID:     "fake-cid",
 					},
 				},
 			}
@@ -57,18 +57,18 @@ var _ = Describe("Repo", func() {
 
 	Describe("Find", func() {
 		It("finds existing stemcell records", func() {
-			expectedCid := CID("fake-cid")
+			expectedStemcell := CloudStemcell{CID: "fake-cid"}
 			stemcellManifest := Manifest{
 				Name:    "fake-name",
 				Version: "fake-version",
 				SHA1:    "fake-sha1",
 			}
-			repo.Save(stemcellManifest, expectedCid)
+			repo.Save(stemcellManifest, expectedStemcell)
 
-			cid, found, err := repo.Find(stemcellManifest)
+			stemcell, found, err := repo.Find(stemcellManifest)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
-			Expect(cid).To(Equal(expectedCid))
+			Expect(stemcell).To(Equal(expectedStemcell))
 		})
 	})
 })

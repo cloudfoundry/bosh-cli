@@ -126,19 +126,25 @@ func (c *deployCmd) Run(args []string) error {
 	}
 
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-	stemcell, stemcellCID, err := stemcellManager.Upload(stemcellTarballPath)
+	extractedStemcell, err := stemcellManager.Extract(stemcellTarballPath)
 	if err != nil {
-		return bosherr.WrapError(err, "Uploading stemcell from `%s'", stemcellTarballPath)
+		return bosherr.WrapError(err, "Extracting stemcell from `%s'", stemcellTarballPath)
+	}
+	defer extractedStemcell.Delete()
+
+	cloudStemcell, err := stemcellManager.Upload(extractedStemcell)
+	if err != nil {
+		return bosherr.WrapError(err, "Uploading stemcell")
 	}
 
 	err = c.deployer.Deploy(
 		cloud,
 		boshDeployment,
-		stemcell.ApplySpec,
+		extractedStemcell.ApplySpec(),
 		cpiDeployment.Registry,
 		cpiDeployment.SSHTunnel,
 		cpiDeployment.Mbus,
-		stemcellCID,
+		cloudStemcell,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")

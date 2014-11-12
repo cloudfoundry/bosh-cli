@@ -8,6 +8,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -32,6 +33,7 @@ var _ = Describe("Manager", func() {
 			fakeAgentClient            *fakebmagentclient.FakeAgentClient
 			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 			fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
+			stemcell                   bmstemcell.CloudStemcell
 			fs                         *fakesys.FakeFileSystem
 		)
 
@@ -98,10 +100,12 @@ var _ = Describe("Manager", func() {
 					},
 				},
 			}
+
+			stemcell = bmstemcell.CloudStemcell{CID: "fake-stemcell-cid"}
 		})
 
 		It("creates a VM", func() {
-			vm, err := manager.Create("fake-stemcell-cid", deployment, "fake-mbus-url")
+			vm, err := manager.Create(stemcell, deployment, "fake-mbus-url")
 			Expect(err).ToNot(HaveOccurred())
 			expectedVM := NewVM(
 				"fake-vm-cid",
@@ -126,7 +130,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("saves the vm record using the config service", func() {
-			_, err := manager.Create("fake-stemcell-cid", deployment, "fake-mbus-url")
+			_, err := manager.Create(stemcell, deployment, "fake-mbus-url")
 			Expect(err).ToNot(HaveOccurred())
 
 			deploymentConfig, err := configService.Load()
@@ -144,7 +148,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create("fake-stemcell-cid", deployment, "fake-mbus-url")
+				_, err := manager.Create(stemcell, deployment, "fake-mbus-url")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 			})

@@ -58,10 +58,10 @@ var _ = Describe("DeployCmd", func() {
 
 		deploymentRecord bmconfig.DeploymentRecord
 
-		cpiReleaseTarballPath string
-		stemcellTarballPath   string
-		expectedStemcellCID   bmstemcell.CID
-		expectedStemcell      bmstemcell.Stemcell
+		cpiReleaseTarballPath     string
+		stemcellTarballPath       string
+		expectedExtractedStemcell bmstemcell.ExtractedStemcell
+		expectedCloudStemcell     bmstemcell.CloudStemcell
 	)
 
 	BeforeEach(func() {
@@ -111,17 +111,19 @@ var _ = Describe("DeployCmd", func() {
 		cpiReleaseTarballPath = "/release/tarball/path"
 
 		stemcellTarballPath = "/stemcell/tarball/path"
-		expectedStemcellCID = bmstemcell.CID("fake-stemcell-cid")
-		expectedStemcell = bmstemcell.Stemcell{
-			Manifest: bmstemcell.Manifest{
+		expectedCloudStemcell = bmstemcell.CloudStemcell{CID: "fake-stemcell-cid"}
+		expectedExtractedStemcell = bmstemcell.NewExtractedStemcell(
+			bmstemcell.Manifest{
 				ImagePath:          "/stemcell/image/path",
 				Name:               "fake-stemcell-name",
 				Version:            "fake-stemcell-version",
 				SHA1:               "fake-stemcell-sha1",
 				RawCloudProperties: map[interface{}]interface{}{},
 			},
-			ApplySpec: bmstemcell.ApplySpec{},
-		}
+			bmstemcell.ApplySpec{},
+			"fake-extracted-path",
+			fakeFs,
+		)
 	})
 
 	Describe("Run", func() {
@@ -226,7 +228,8 @@ version: fake-version
 						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
 						fakeDeployer.SetDeployBehavior(nil)
-						fakeStemcellManager.SetUploadBehavior(stemcellTarballPath, expectedStemcell, expectedStemcellCID, nil)
+						fakeStemcellManager.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
+						fakeStemcellManager.SetUploadBehavior(expectedExtractedStemcell, expectedCloudStemcell, nil)
 
 						fakeFs.WriteFile(stemcellTarballPath, []byte{})
 					})
@@ -314,13 +317,23 @@ version: fake-version
 						Expect(fakeCPIRelease.DeleteCalled).To(BeTrue())
 					})
 
+					It("extracts the stemcell", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+						Expect(fakeStemcellManager.ExtractInputs).To(Equal([]fakebmstemcell.ExtractInput{
+							{
+								TarballPath: stemcellTarballPath,
+							},
+						}))
+					})
+
 					It("uploads the stemcell", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeStemcellManager.UploadInputs).To(Equal(
 							[]fakebmstemcell.UploadInput{
 								{
-									TarballPath: stemcellTarballPath,
+									Stemcell: expectedExtractedStemcell,
 								},
 							},
 						))
@@ -333,11 +346,11 @@ version: fake-version
 							fakebmdeployer.DeployInput{
 								Cpi:               cloud,
 								Deployment:        boshDeployment,
-								StemcellApplySpec: expectedStemcell.ApplySpec,
+								StemcellApplySpec: expectedExtractedStemcell.ApplySpec(),
 								Registry:          cpiDeployment.Registry,
 								SSHTunnelConfig:   cpiDeployment.SSHTunnel,
 								MbusURL:           cpiDeployment.Mbus,
-								StemcellCID:       expectedStemcellCID,
+								Stemcell:          expectedCloudStemcell,
 							},
 						))
 					})
@@ -356,7 +369,8 @@ version: fake-version
 
 					Context("when reading stemcell fails", func() {
 						It("returns error", func() {
-							fakeStemcellManager.SetUploadBehavior(stemcellTarballPath, bmstemcell.Stemcell{}, bmstemcell.CID(""), errors.New("fake-reading-error"))
+							expectedCloudStemcell = bmstemcell.CloudStemcell{CID: ""}
+							fakeStemcellManager.SetUploadBehavior(expectedExtractedStemcell, expectedCloudStemcell, errors.New("fake-reading-error"))
 
 							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 							Expect(err).To(HaveOccurred())

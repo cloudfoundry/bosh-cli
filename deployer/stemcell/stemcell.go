@@ -1,12 +1,47 @@
 package stemcell
 
 import (
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
 )
 
-type Stemcell struct {
-	Manifest  Manifest
-	ApplySpec ApplySpec
+type ExtractedStemcell interface {
+	Manifest() Manifest
+	ApplySpec() ApplySpec
+	Delete() error
+}
+
+type extractedStemcell struct {
+	manifest      Manifest
+	applySpec     ApplySpec
+	extractedPath string
+	fs            boshsys.FileSystem
+}
+
+func NewExtractedStemcell(
+	manifest Manifest,
+	applySpec ApplySpec,
+	extractedPath string,
+	fs boshsys.FileSystem,
+) ExtractedStemcell {
+	return &extractedStemcell{
+		manifest:      manifest,
+		applySpec:     applySpec,
+		extractedPath: extractedPath,
+		fs:            fs,
+	}
+}
+
+func (s *extractedStemcell) Manifest() Manifest { return s.manifest }
+
+func (s *extractedStemcell) ApplySpec() ApplySpec { return s.applySpec }
+
+func (s *extractedStemcell) Delete() error {
+	return s.fs.RemoveAll(s.extractedPath)
+}
+
+type CloudStemcell struct {
+	CID string
 }
 
 type Manifest struct {

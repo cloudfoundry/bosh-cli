@@ -12,7 +12,7 @@ type ReadInput struct {
 }
 
 type ReadOutput struct {
-	stemcell bmstemcell.Stemcell
+	stemcell bmstemcell.ExtractedStemcell
 	err      error
 }
 
@@ -28,7 +28,7 @@ func NewFakeReader() *FakeStemcellReader {
 	}
 }
 
-func (fr *FakeStemcellReader) Read(stemcellTarballPath, destPath string) (bmstemcell.Stemcell, error) {
+func (fr *FakeStemcellReader) Read(stemcellTarballPath, destPath string) (bmstemcell.ExtractedStemcell, error) {
 	input := ReadInput{
 		StemcellTarballPath: stemcellTarballPath,
 		DestPath:            destPath,
@@ -36,13 +36,13 @@ func (fr *FakeStemcellReader) Read(stemcellTarballPath, destPath string) (bmstem
 	fr.ReadInputs = append(fr.ReadInputs, input)
 	output, found := fr.ReadBehavior[input]
 	if !found {
-		return bmstemcell.Stemcell{}, fmt.Errorf("Unsupported Input: Read('%#v', '%#v')", stemcellTarballPath, destPath)
+		return nil, fmt.Errorf("Unsupported Input: Read('%#v', '%#v')", stemcellTarballPath, destPath)
 	}
 
 	return output.stemcell, output.err
 }
 
-func (fr *FakeStemcellReader) SetReadBehavior(stemcellTarballPath, destPath string, stemcell bmstemcell.Stemcell, err error) {
+func (fr *FakeStemcellReader) SetReadBehavior(stemcellTarballPath, destPath string, stemcell bmstemcell.ExtractedStemcell, err error) {
 	input := ReadInput{
 		StemcellTarballPath: stemcellTarballPath,
 		DestPath:            destPath,

@@ -79,8 +79,8 @@ cloud_properties:
 	It("generates correct stemcell", func() {
 		stemcell, err := stemcellReader.Read("fake-stemcell-path", "fake-extracted-path")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(stemcell).To(Equal(Stemcell{
-			Manifest: Manifest{
+		expectedStemcell := NewExtractedStemcell(
+			Manifest{
 				Name:      "fake-stemcell-name",
 				Version:   "2690",
 				ImagePath: "fake-extracted-path/image",
@@ -91,7 +91,7 @@ cloud_properties:
 					},
 				},
 			},
-			ApplySpec: ApplySpec{
+			ApplySpec{
 				Packages: map[string]Blob{
 					"ruby": Blob{
 						Name:        "ruby",
@@ -124,7 +124,10 @@ cloud_properties:
 					},
 				},
 			},
-		}))
+			"fake-extracted-path",
+			fs,
+		)
+		Expect(stemcell).To(Equal(expectedStemcell))
 	})
 
 	Context("when extracting stemcell fails", func() {

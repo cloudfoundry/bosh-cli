@@ -13,7 +13,7 @@ type DeployInput struct {
 	Registry          bmdepl.Registry
 	SSHTunnelConfig   bmdepl.SSHTunnel
 	MbusURL           string
-	StemcellCID       bmstemcell.CID
+	Stemcell          bmstemcell.CloudStemcell
 }
 
 type deployOutput struct {
@@ -38,7 +38,7 @@ func (m *FakeDeployer) Deploy(
 	registry bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
 	mbusURL string,
-	stemcellCID bmstemcell.CID,
+	stemcell bmstemcell.CloudStemcell,
 ) error {
 	input := DeployInput{
 		Cpi:               cpi,
@@ -47,7 +47,7 @@ func (m *FakeDeployer) Deploy(
 		Registry:          registry,
 		SSHTunnelConfig:   sshTunnelConfig,
 		MbusURL:           mbusURL,
-		StemcellCID:       stemcellCID,
+		Stemcell:          stemcell,
 	}
 	m.DeployInput = input
 

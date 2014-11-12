@@ -25,7 +25,7 @@ type Deployer interface {
 		bmdepl.Registry,
 		bmdepl.SSHTunnel,
 		string,
-		bmstemcell.CID,
+		bmstemcell.CloudStemcell,
 	) error
 }
 
@@ -67,7 +67,7 @@ func (m *deployer) Deploy(
 	registry bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
 	mbusURL string,
-	stemcellCID bmstemcell.CID,
+	stemcell bmstemcell.CloudStemcell,
 ) error {
 	m.eventLoggerStage.Start()
 	defer m.eventLoggerStage.Finish()
@@ -81,7 +81,7 @@ func (m *deployer) Deploy(
 		return bosherr.WrapError(err, "Starting registry")
 	}
 
-	vm, err := m.createVM(cloud, stemcellCID, deployment, mbusURL)
+	vm, err := m.createVM(cloud, stemcell, deployment, mbusURL)
 	if err != nil {
 		return err
 	}
@@ -128,15 +128,15 @@ func (m *deployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error
 
 func (m *deployer) createVM(
 	cloud bmcloud.Cloud,
-	stemcellCID bmstemcell.CID,
+	stemcell bmstemcell.CloudStemcell,
 	deployment bmdepl.Deployment,
 	mbusURL string,
 ) (bmvm.VM, error) {
 	vmManager := m.vmManagerFactory.NewManager(cloud)
-	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from stemcell '%s'", stemcellCID))
+	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from stemcell '%s'", stemcell.CID))
 	eventStep.Start()
 
-	vm, err := vmManager.Create(stemcellCID, deployment, mbusURL)
+	vm, err := vmManager.Create(stemcell, deployment, mbusURL)
 	if err != nil {
 		eventStep.Fail(err.Error())
 		return nil, bosherr.WrapError(err, "Creating VM")

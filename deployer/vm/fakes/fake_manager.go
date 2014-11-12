@@ -7,9 +7,9 @@ import (
 )
 
 type CreateInput struct {
-	StemcellCID bmstemcell.CID
-	Deployment  bmdepl.Deployment
-	MbusURL     string
+	Stemcell   bmstemcell.CloudStemcell
+	Deployment bmdepl.Deployment
+	MbusURL    string
 }
 
 type FakeManager struct {
@@ -22,11 +22,11 @@ func NewFakeManager() *FakeManager {
 	return &FakeManager{}
 }
 
-func (m *FakeManager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment, mbusURL string) (bmvm.VM, error) {
+func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.Deployment, mbusURL string) (bmvm.VM, error) {
 	input := CreateInput{
-		StemcellCID: stemcellCID,
-		Deployment:  deployment,
-		MbusURL:     mbusURL,
+		Stemcell:   stemcell,
+		Deployment: deployment,
+		MbusURL:    mbusURL,
 	}
 	m.CreateInput = input
 

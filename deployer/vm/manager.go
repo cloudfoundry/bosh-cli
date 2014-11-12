@@ -13,7 +13,7 @@ import (
 )
 
 type Manager interface {
-	Create(bmstemcell.CID, bmdepl.Deployment, string) (VM, error)
+	Create(bmstemcell.CloudStemcell, bmdepl.Deployment, string) (VM, error)
 }
 
 type manager struct {
@@ -27,28 +27,28 @@ type manager struct {
 	logTag                  string
 }
 
-func (m *manager) Create(stemcellCID bmstemcell.CID, deployment bmdepl.Deployment, mbusURL string) (VM, error) {
+func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.Deployment, mbusURL string) (VM, error) {
 	microBoshJobName := deployment.Jobs[0].Name
 	networksSpec, err := deployment.NetworksSpec(microBoshJobName)
 	m.logger.Debug(m.logTag, "Creating VM with network spec: %#v", networksSpec)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+		return nil, bosherr.WrapError(err, "Getting network spec")
 	}
 
 	resourcePool := deployment.ResourcePools[0]
 	cloudProperties, err := resourcePool.CloudProperties()
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+		return nil, bosherr.WrapError(err, "Getting cloud properties")
 	}
 
 	env, err := resourcePool.Env()
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating VM with stemcellCID `%s'", stemcellCID)
+		return nil, bosherr.WrapError(err, "Getting resource pool env")
 	}
 
-	cid, err := m.cloud.CreateVM(stemcellCID.String(), cloudProperties, networksSpec, env)
+	cid, err := m.cloud.CreateVM(stemcell.CID, cloudProperties, networksSpec, env)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "creating vm with stemcell cid `%s'", stemcellCID)
+		return nil, bosherr.WrapError(err, "Creating vm with stemcell cid `%s'", stemcell.CID)
 	}
 
 	deploymentConfig, err := m.deploymentConfigService.Load()

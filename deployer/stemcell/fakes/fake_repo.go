@@ -11,7 +11,7 @@ import (
 
 type SaveInput struct {
 	StemcellManifest bmstemcell.Manifest
-	CID              bmstemcell.CID
+	Stemcell         bmstemcell.CloudStemcell
 }
 
 type SaveOutput struct {
@@ -23,9 +23,9 @@ type FindInput struct {
 }
 
 type FindOutput struct {
-	cid   bmstemcell.CID
-	found bool
-	err   error
+	stemcell bmstemcell.CloudStemcell
+	found    bool
+	err      error
 }
 
 type FakeRepo struct {
@@ -44,10 +44,10 @@ func NewFakeRepo() *FakeRepo {
 	}
 }
 
-func (fr *FakeRepo) Save(stemcellManifest bmstemcell.Manifest, cid bmstemcell.CID) error {
+func (fr *FakeRepo) Save(stemcellManifest bmstemcell.Manifest, stemcell bmstemcell.CloudStemcell) error {
 	input := SaveInput{
 		StemcellManifest: stemcellManifest,
-		CID:              cid,
+		Stemcell:         stemcell,
 	}
 	fr.SaveInputs = append(fr.SaveInputs, input)
 
@@ -64,10 +64,10 @@ func (fr *FakeRepo) Save(stemcellManifest bmstemcell.Manifest, cid bmstemcell.CI
 	return output.err
 }
 
-func (fr *FakeRepo) SetSaveBehavior(stemcellManifest bmstemcell.Manifest, cid bmstemcell.CID, err error) error {
+func (fr *FakeRepo) SetSaveBehavior(stemcellManifest bmstemcell.Manifest, stemcell bmstemcell.CloudStemcell, err error) error {
 	input := SaveInput{
 		StemcellManifest: stemcellManifest,
-		CID:              cid,
+		Stemcell:         stemcell,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
@@ -82,7 +82,7 @@ func (fr *FakeRepo) SetSaveBehavior(stemcellManifest bmstemcell.Manifest, cid bm
 	return nil
 }
 
-func (fr *FakeRepo) Find(stemcellManifest bmstemcell.Manifest) (bmstemcell.CID, bool, error) {
+func (fr *FakeRepo) Find(stemcellManifest bmstemcell.Manifest) (bmstemcell.CloudStemcell, bool, error) {
 	input := FindInput{
 		StemcellManifest: stemcellManifest,
 	}
@@ -90,18 +90,18 @@ func (fr *FakeRepo) Find(stemcellManifest bmstemcell.Manifest) (bmstemcell.CID, 
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
-		return "", false, bosherr.WrapError(marshalErr, "Marshaling Find input")
+		return bmstemcell.CloudStemcell{}, false, bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
 
 	output, found := fr.FindBehavior[inputString]
 	if !found {
-		return "", false, fmt.Errorf("Unsupported Find Input: %s", inputString)
+		return bmstemcell.CloudStemcell{}, false, fmt.Errorf("Unsupported Find Input: %s", inputString)
 	}
 
-	return output.cid, output.found, output.err
+	return output.stemcell, output.found, output.err
 }
 
-func (fr *FakeRepo) SetFindBehavior(stemcellManifest bmstemcell.Manifest, cid bmstemcell.CID, found bool, err error) error {
+func (fr *FakeRepo) SetFindBehavior(stemcellManifest bmstemcell.Manifest, stemcell bmstemcell.CloudStemcell, found bool, err error) error {
 	input := FindInput{
 		StemcellManifest: stemcellManifest,
 	}
@@ -112,9 +112,9 @@ func (fr *FakeRepo) SetFindBehavior(stemcellManifest bmstemcell.Manifest, cid bm
 	}
 
 	fr.FindBehavior[inputString] = FindOutput{
-		cid:   cid,
-		found: found,
-		err:   err,
+		stemcell: stemcell,
+		found:    found,
+		err:      err,
 	}
 
 	return nil
