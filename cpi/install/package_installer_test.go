@@ -6,26 +6,26 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
-	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages/fakes"
+	fakebmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install/fakes"
+	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 )
 
 var _ = Describe("Install", func() {
 	var (
 		installer     PackageInstaller
-		blobExtractor *fakebminstall.FakeBlobExtractor
+		blobExtractor *fakebmcpiinstall.FakeBlobExtractor
 		repo          *fakebmpkgs.FakeCompiledPackageRepo
 		targetDir     string
 		pkg           *bmrel.Package
 	)
 	BeforeEach(func() {
 		repo = fakebmpkgs.NewFakeCompiledPackageRepo()
-		blobExtractor = fakebminstall.NewFakeBlobExtractor()
+		blobExtractor = fakebmcpiinstall.NewFakeBlobExtractor()
 		targetDir = "fake-target-dir"
 		installer = NewPackageInstaller(repo, blobExtractor)
 
@@ -56,7 +56,7 @@ var _ = Describe("Install", func() {
 			err := installer.Install(pkg, targetDir)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobExtractor.ExtractInputs).To(ContainElement(
-				fakebminstall.ExtractInput{
+				fakebmcpiinstall.ExtractInput{
 					BlobID:    "fake-blob-id",
 					BlobSHA1:  "fake-package-fingerprint",
 					TargetDir: "fake-target-dir/fake-package-name",

@@ -1,4 +1,4 @@
-package cpideployer
+package cpi
 
 import (
 	"fmt"
@@ -9,41 +9,41 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
+	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
+	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
-type CpiDeployer interface {
-	Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error)
+type Installer interface {
+	Install(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error)
 }
 
-type cpiDeployer struct {
+type cpiInstaller struct {
 	ui              bmui.UI
 	fs              boshsys.FileSystem
 	extractor       boshcmd.Compressor
 	validator       bmrelvalidation.ReleaseValidator
 	releaseCompiler bmcomp.ReleaseCompiler
-	jobInstaller    bminstall.JobInstaller
+	jobInstaller    bmcpiinstall.JobInstaller
 	cloudFactory    bmcloud.Factory
 	logger          boshlog.Logger
 	logTag          string
 }
 
-func NewCpiDeployer(
+func NewInstaller(
 	ui bmui.UI,
 	fs boshsys.FileSystem,
 	extractor boshcmd.Compressor,
 	validator bmrelvalidation.ReleaseValidator,
 	releaseCompiler bmcomp.ReleaseCompiler,
-	jobInstaller bminstall.JobInstaller,
+	jobInstaller bmcpiinstall.JobInstaller,
 	cloudFactory bmcloud.Factory,
 	logger boshlog.Logger,
-) CpiDeployer {
-	return &cpiDeployer{
+) Installer {
+	return &cpiInstaller{
 		ui:              ui,
 		fs:              fs,
 		extractor:       extractor,
@@ -52,11 +52,11 @@ func NewCpiDeployer(
 		jobInstaller:    jobInstaller,
 		cloudFactory:    cloudFactory,
 		logger:          logger,
-		logTag:          "cpiDeployer",
+		logTag:          "cpiInstaller",
 	}
 }
 
-func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
+func (c *cpiInstaller) Install(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
 	c.logger.Info(c.logTag, "Extracting CPI release")
 	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
 	if err != nil {
@@ -121,8 +121,8 @@ func (c *cpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath st
 	return cloud, nil
 }
 
-func (c *cpiDeployer) installJob(deploymentJob bmdepl.Job, release bmrel.Release) ([]bminstall.InstalledJob, error) {
-	installedJobs := make([]bminstall.InstalledJob, 0, len(deploymentJob.Templates))
+func (c *cpiInstaller) installJob(deploymentJob bmdepl.Job, release bmrel.Release) ([]bmcpiinstall.InstalledJob, error) {
+	installedJobs := make([]bmcpiinstall.InstalledJob, 0, len(deploymentJob.Templates))
 	for _, releaseJobRef := range deploymentJob.Templates {
 		releaseJobName := releaseJobRef.Name
 		releaseJob, found := release.FindJobByName(releaseJobName)

@@ -6,13 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile/fakes"
+	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
 )
 
 var _ = Describe("ReleaseCompiler", func() {

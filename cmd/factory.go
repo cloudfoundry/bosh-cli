@@ -14,10 +14,10 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
-	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
+	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
+	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
+	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
 	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
@@ -121,8 +121,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
 		boshblob.NewLocalBlobstore(f.fs, f.uuidGenerator, options),
 	)
-	blobExtractor := bminstall.NewBlobExtractor(f.fs, compressor, blobstore, f.logger)
-	packageInstaller := bminstall.NewPackageInstaller(compiledPackageRepo, blobExtractor)
+	blobExtractor := bmcpiinstall.NewBlobExtractor(f.fs, compressor, blobstore, f.logger)
+	packageInstaller := bmcpiinstall.NewPackageInstaller(compiledPackageRepo, blobExtractor)
 	packageCompiler := bmcomp.NewPackageCompiler(
 		runner,
 		f.deploymentConfig.PackagesPath(),
@@ -155,7 +155,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(jobRenderer, compressor, blobstore, templatesRepo, f.fs, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
-	jobInstaller := bminstall.NewJobInstaller(
+	jobInstaller := bmcpiinstall.NewJobInstaller(
 		f.fs,
 		packageInstaller,
 		blobExtractor,
@@ -166,7 +166,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		timeService,
 	)
 	cloudFactory := bmcloud.NewFactory(f.fs, runner, f.deploymentConfig, f.logger)
-	cpiDeployer := bmcpideploy.NewCpiDeployer(
+	cpiInstaller := bmcpi.NewInstaller(
 		f.ui,
 		f.fs,
 		extractor,
@@ -226,7 +226,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		cpiManifestParser,
 		boshManifestParser,
 		boshDeploymentValidator,
-		cpiDeployer,
+		cpiInstaller,
 		stemcellManagerFactory,
 		deployer,
 		eventLogger,

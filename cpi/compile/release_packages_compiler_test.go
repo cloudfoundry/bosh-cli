@@ -12,11 +12,11 @@ import (
 
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
 
-	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile/fakes"
+	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
 )
 
 var _ = Describe("ReleaseCompiler", func() {

@@ -10,8 +10,8 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
+	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
@@ -26,7 +26,7 @@ type packageCompiler struct {
 	compressor          boshcmd.Compressor
 	blobstore           boshblob.Blobstore
 	compiledPackageRepo bmpkgs.CompiledPackageRepo
-	packageInstaller    bminstall.PackageInstaller
+	packageInstaller    bmcpiinstall.PackageInstaller
 }
 
 func NewPackageCompiler(
@@ -36,7 +36,7 @@ func NewPackageCompiler(
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
 	compiledPackageRepo bmpkgs.CompiledPackageRepo,
-	packageInstaller bminstall.PackageInstaller,
+	packageInstaller bmcpiinstall.PackageInstaller,
 ) PackageCompiler {
 	return &packageCompiler{
 		runner:              runner,

@@ -1,4 +1,4 @@
-package cpideployer_test
+package cpi_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestDeployer(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cpideployer Suite")
+	RunSpecs(t, "CPI Suite")
 }

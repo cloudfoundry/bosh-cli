@@ -14,13 +14,13 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
-	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages/fakes"
+	fakebmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install/fakes"
+	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages/fakes"
 
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/compile"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
 )
 
 var _ = Describe("PackageCompiler", func() {
@@ -33,7 +33,7 @@ var _ = Describe("PackageCompiler", func() {
 		packagesDir         string
 		blobstore           *fakeblobstore.FakeBlobstore
 		compiledPackageRepo *fakebmpkgs.FakeCompiledPackageRepo
-		packageInstaller    *fakebminstall.FakePackageInstaller
+		packageInstaller    *fakebmcpiinstall.FakePackageInstaller
 		dependency1         *bmrel.Package
 		dependency2         *bmrel.Package
 	)
@@ -43,7 +43,7 @@ var _ = Describe("PackageCompiler", func() {
 		runner = fakesys.NewFakeCmdRunner()
 		fs = fakesys.NewFakeFileSystem()
 		compressor = fakecmd.NewFakeCompressor()
-		packageInstaller = fakebminstall.NewFakePackageInstaller()
+		packageInstaller = fakebmcpiinstall.NewFakePackageInstaller()
 
 		blobstore = fakeblobstore.NewFakeBlobstore()
 		blobstore.CreateFingerprint = "fake-fingerprint"
@@ -123,13 +123,13 @@ var _ = Describe("PackageCompiler", func() {
 
 			It("installs all the dependencies for the package", func() {
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
-					fakebminstall.InstallInput{
+					fakebmcpiinstall.InstallInput{
 						Package: dependency1,
 						Target:  path.Join(packagesDir),
 					},
 				))
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
-					fakebminstall.InstallInput{
+					fakebmcpiinstall.InstallInput{
 						Package: dependency2,
 						Target:  path.Join(packagesDir),
 					},

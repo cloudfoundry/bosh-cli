@@ -18,19 +18,19 @@ type deployOutput struct {
 	err   error
 }
 
-type FakeCpiDeployer struct {
+type FakeInstaller struct {
 	DeployInputs   []DeployInput
 	deployBehavior map[string]deployOutput
 }
 
-func NewFakeCpiDeployer() *FakeCpiDeployer {
-	return &FakeCpiDeployer{
+func NewFakeInstaller() *FakeInstaller {
+	return &FakeInstaller{
 		DeployInputs:   []DeployInput{},
 		deployBehavior: map[string]deployOutput{},
 	}
 }
 
-func (f *FakeCpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
+func (f *FakeInstaller) Install(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
 	input := DeployInput{
 		Deployment:         deployment,
 		ReleaseTarballPath: releaseTarballPath,
@@ -49,7 +49,7 @@ func (f *FakeCpiDeployer) Deploy(deployment bmdepl.Deployment, releaseTarballPat
 	return nil, fmt.Errorf("Unsupported Input: %s", value)
 }
 
-func (f *FakeCpiDeployer) SetDeployBehavior(
+func (f *FakeInstaller) SetDeployBehavior(
 	deployment bmdepl.Deployment,
 	releaseTarballPath string,
 	cloud bmcloud.Cloud,

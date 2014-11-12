@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpideployer/packages"
+	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 

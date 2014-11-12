@@ -10,7 +10,7 @@ import (
 
 	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/cmd/validation"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer"
+	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -27,7 +27,7 @@ type deployCmd struct {
 	cpiManifestParser       bmdepl.ManifestParser
 	boshManifestParser      bmdepl.ManifestParser
 	boshDeploymentValidator bmdeplval.DeploymentValidator
-	cpiDeployer             bmcpideploy.CpiDeployer
+	cpiInstaller            bmcpi.Installer
 	stemcellManagerFactory  bmstemcell.ManagerFactory
 	deployer                bmdeployer.Deployer
 	eventLogger             bmeventlog.EventLogger
@@ -43,7 +43,7 @@ func NewDeployCmd(
 	cpiManifestParser bmdepl.ManifestParser,
 	boshManifestParser bmdepl.ManifestParser,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
-	cpiDeployer bmcpideploy.CpiDeployer,
+	cpiInstaller bmcpi.Installer,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	deployer bmdeployer.Deployer,
 	eventLogger bmeventlog.EventLogger,
@@ -57,7 +57,7 @@ func NewDeployCmd(
 		cpiManifestParser:       cpiManifestParser,
 		boshManifestParser:      boshManifestParser,
 		boshDeploymentValidator: boshDeploymentValidator,
-		cpiDeployer:             cpiDeployer,
+		cpiInstaller:            cpiInstaller,
 		stemcellManagerFactory:  stemcellManagerFactory,
 		deployer:                deployer,
 		eventLogger:             eventLogger,
@@ -106,7 +106,7 @@ func (c *deployCmd) Run(args []string) error {
 	manifestValidationStep.Finish()
 	validationStage.Finish()
 
-	cloud, err := c.cpiDeployer.Deploy(cpiDeployment, releaseTarballPath)
+	cloud, err := c.cpiInstaller.Install(cpiDeployment, releaseTarballPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying CPI `%s'", releaseTarballPath)
 	}

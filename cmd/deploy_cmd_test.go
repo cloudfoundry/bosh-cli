@@ -19,7 +19,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakecpideploy "github.com/cloudfoundry/bosh-micro-cli/cpideployer/fakes"
+	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
 	fakebmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
@@ -35,7 +35,7 @@ var _ = Describe("DeployCmd", func() {
 		userConfig                 bmconfig.UserConfig
 		fakeFs                     *fakesys.FakeFileSystem
 		fakeUI                     *fakeui.FakeUI
-		fakeCpiDeployer            *fakecpideploy.FakeCpiDeployer
+		fakeCPIInstaller           *fakebmcpi.FakeInstaller
 		logger                     boshlog.Logger
 		release                    bmrel.Release
 		fakeStemcellManager        *fakebmstemcell.FakeManager
@@ -70,7 +70,7 @@ var _ = Describe("DeployCmd", func() {
 		}
 		fakeFs.WriteFileString("/some/deployment/file", "")
 
-		fakeCpiDeployer = fakecpideploy.NewFakeCpiDeployer()
+		fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
 		fakeStemcellManager = fakebmstemcell.NewFakeManager()
 		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
 
@@ -99,7 +99,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeCpiManifestParser,
 			fakeBoshManifestParser,
 			fakeDeploymentValidator,
-			fakeCpiDeployer,
+			fakeCPIInstaller,
 			fakeStemcellManagerFactory,
 			fakeDeployer,
 			fakeEventLogger,
@@ -160,7 +160,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeCpiManifestParser,
 						fakeBoshManifestParser,
 						fakeDeploymentValidator,
-						fakeCpiDeployer,
+						fakeCPIInstaller,
 						fakeStemcellManagerFactory,
 						fakeDeployer,
 						fakeEventLogger,
@@ -216,7 +216,7 @@ version: fake-version
 						}
 						fakeBoshManifestParser.SetParseBehavior(userConfig.DeploymentFile, boshDeployment, nil)
 						cloud = fakebmcloud.NewFakeCloud()
-						fakeCpiDeployer.SetDeployBehavior(cpiDeployment, cpiReleaseTarballPath, cloud, nil)
+						fakeCPIInstaller.SetDeployBehavior(cpiDeployment, cpiReleaseTarballPath, cloud, nil)
 						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
 						fakeDeployer.SetDeployBehavior(nil)
@@ -277,7 +277,7 @@ version: fake-version
 					It("deploys the CPI locally", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCpiDeployer.DeployInputs[0].Deployment).To(Equal(cpiDeployment))
+						Expect(fakeCPIInstaller.DeployInputs[0].Deployment).To(Equal(cpiDeployment))
 					})
 
 					It("uploads the stemcell", func() {
@@ -389,7 +389,7 @@ version: fake-version
 						fakeCpiManifestParser,
 						fakeBoshManifestParser,
 						fakeDeploymentValidator,
-						fakeCpiDeployer,
+						fakeCPIInstaller,
 						fakeStemcellManagerFactory,
 						fakeDeployer,
 						fakeEventLogger,

@@ -6,12 +6,12 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
+	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type NewCloudInput struct {
-	InstalledJobs []bminstall.InstalledJob
+	InstalledJobs []bmcpiinstall.InstalledJob
 }
 
 type newCloudOutput struct {
@@ -31,7 +31,7 @@ func NewFakeFactory() *FakeFactory {
 	}
 }
 
-func (f *FakeFactory) NewCloud(installedJobs []bminstall.InstalledJob) (bmcloud.Cloud, error) {
+func (f *FakeFactory) NewCloud(installedJobs []bmcpiinstall.InstalledJob) (bmcloud.Cloud, error) {
 	input := NewCloudInput{
 		InstalledJobs: installedJobs,
 	}
@@ -50,7 +50,7 @@ func (f *FakeFactory) NewCloud(installedJobs []bminstall.InstalledJob) (bmcloud.
 	return output.cloud, output.err
 }
 
-func (f *FakeFactory) SetNewCloudBehavior(installedJobs []bminstall.InstalledJob, cloud bmcloud.Cloud, err error) {
+func (f *FakeFactory) SetNewCloudBehavior(installedJobs []bmcpiinstall.InstalledJob, cloud bmcloud.Cloud, err error) {
 	input := NewCloudInput{
 		InstalledJobs: installedJobs,
 	}

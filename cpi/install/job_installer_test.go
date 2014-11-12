@@ -15,11 +15,11 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
-	fakebminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install/fakes"
+	fakebmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 )
 
 var _ = Describe("JobInstaller", func() {
@@ -27,8 +27,8 @@ var _ = Describe("JobInstaller", func() {
 		fs               *fakesys.FakeFileSystem
 		jobInstaller     JobInstaller
 		job              bmrel.Job
-		packageInstaller *fakebminstall.FakePackageInstaller
-		blobExtractor    *fakebminstall.FakeBlobExtractor
+		packageInstaller *fakebmcpiinstall.FakePackageInstaller
+		blobExtractor    *fakebmcpiinstall.FakeBlobExtractor
 		templateRepo     *fakebmtemcomp.FakeTemplatesRepo
 		jobsPath         string
 		packagesPath     string
@@ -40,8 +40,8 @@ var _ = Describe("JobInstaller", func() {
 	Context("Installing the job", func() {
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
-			packageInstaller = fakebminstall.NewFakePackageInstaller()
-			blobExtractor = fakebminstall.NewFakeBlobExtractor()
+			packageInstaller = fakebmcpiinstall.NewFakePackageInstaller()
+			blobExtractor = fakebmcpiinstall.NewFakeBlobExtractor()
 			templateRepo = fakebmtemcomp.NewFakeTemplatesRepo()
 
 			jobsPath = "/fake/jobs"
@@ -110,7 +110,7 @@ var _ = Describe("JobInstaller", func() {
 		It("tells the blobExtractor to extract the templates into the installed job dir", func() {
 			_, err := jobInstaller.Install(job)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstall.ExtractInput{
+			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebmcpiinstall.ExtractInput{
 				BlobID:    "fake-blob-id",
 				BlobSHA1:  "fake-sha1",
 				TargetDir: filepath.Join(jobsPath, job.Name),
@@ -168,7 +168,7 @@ var _ = Describe("JobInstaller", func() {
 				_, err := jobInstaller.Install(job)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
-					fakebminstall.InstallInput{Package: &pkg1, Target: packagesPath},
+					fakebmcpiinstall.InstallInput{Package: &pkg1, Target: packagesPath},
 				))
 			})
 

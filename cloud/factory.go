@@ -6,7 +6,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
+	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 type Factory interface {
-	NewCloud([]bminstall.InstalledJob) (Cloud, error)
+	NewCloud([]bmcpiinstall.InstalledJob) (Cloud, error)
 }
 
 type factory struct {
@@ -33,7 +33,7 @@ func NewFactory(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, config bmcon
 	}
 }
 
-func (f *factory) NewCloud(jobs []bminstall.InstalledJob) (Cloud, error) {
+func (f *factory) NewCloud(jobs []bmcpiinstall.InstalledJob) (Cloud, error) {
 	// for now, the installed job must be named "cpi"
 	installedCPIJob, found := f.findCPIJob(jobs)
 	if !found {
@@ -50,7 +50,7 @@ func (f *factory) NewCloud(jobs []bminstall.InstalledJob) (Cloud, error) {
 	return NewCloud(cpiCmdRunner, f.config.DeploymentUUID, f.logger), nil
 }
 
-func (f *factory) findCPIJob(jobs []bminstall.InstalledJob) (cpiJob bminstall.InstalledJob, found bool) {
+func (f *factory) findCPIJob(jobs []bmcpiinstall.InstalledJob) (cpiJob bmcpiinstall.InstalledJob, found bool) {
 	for _, job := range jobs {
 		if job.Name == cpiJobName {
 			return job, true

@@ -12,7 +12,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cpideployer/install"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 )
 
 var _ = Describe("BlobExtractor", func() {
