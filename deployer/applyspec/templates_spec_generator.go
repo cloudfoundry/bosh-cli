@@ -9,6 +9,7 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployer/blobstore"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -25,7 +26,7 @@ type templatesSpecGenerator struct {
 	compressor       boshcmd.Compressor
 	jobRenderer      bmtempcomp.JobRenderer
 	uuidGenerator    boshuuid.Generator
-	sha1Calculator   SHA1Calculator
+	sha1Calculator   bmcrypto.SHA1Calculator
 	fs               boshsys.FileSystem
 	logger           boshlog.Logger
 	logTag           string
@@ -42,7 +43,7 @@ func NewTemplatesSpecGenerator(
 	compressor boshcmd.Compressor,
 	jobRenderer bmtempcomp.JobRenderer,
 	uuidGenerator boshuuid.Generator,
-	sha1Calculator SHA1Calculator,
+	sha1Calculator bmcrypto.SHA1Calculator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) TemplatesSpecGenerator {

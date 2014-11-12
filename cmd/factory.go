@@ -18,6 +18,7 @@ import (
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
 	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
+	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
 	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
@@ -183,7 +184,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentConfig.DeploymentUUID, 1*time.Second, f.logger)
 	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
-	sha1Calculator := bmas.NewSha1Calculator(f.fs)
+	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
 	applySpecFactory := bmas.NewFactory()
 
 	templatesSpecGenerator := bmas.NewTemplatesSpecGenerator(

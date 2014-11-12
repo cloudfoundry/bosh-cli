@@ -1,4 +1,4 @@
-package applyspec
+package crypto
 
 import (
 	"crypto/sha1"
