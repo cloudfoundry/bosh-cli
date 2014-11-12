@@ -59,6 +59,7 @@ var _ = Describe("DeployCmd", func() {
 
 		deploymentRecord bmconfig.DeploymentRecord
 
+		deploymentManifestPath    string
 		cpiReleaseTarballPath     string
 		stemcellTarballPath       string
 		expectedExtractedStemcell bmstemcell.ExtractedStemcell
@@ -68,10 +69,11 @@ var _ = Describe("DeployCmd", func() {
 	BeforeEach(func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
+		deploymentManifestPath = "/some/deployment/file"
 		userConfig = bmconfig.UserConfig{
-			DeploymentFile: "/some/deployment/file",
+			DeploymentFile: deploymentManifestPath,
 		}
-		fakeFs.WriteFileString("/some/deployment/file", "")
+		fakeFs.WriteFileString(deploymentManifestPath, "")
 
 		fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
 		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
@@ -156,7 +158,7 @@ var _ = Describe("DeployCmd", func() {
 
 			Context("when there is a deployment set", func() {
 				BeforeEach(func() {
-					userConfig.DeploymentFile = "/some/deployment/file"
+					userConfig.DeploymentFile = deploymentManifestPath
 
 					// re-create command to update userConfig.DeploymentFile
 					command = bmcmd.NewDeployCmd(
@@ -255,13 +257,13 @@ version: fake-version
 					It("parses the CPI portion of the manifest", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
+						Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
 					})
 
 					It("parses the Bosh portion of the manifest", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeBoshManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
+						Expect(fakeBoshManifestParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
 					})
 
 					It("validates bosh deployment manifest", func() {
@@ -274,7 +276,7 @@ version: fake-version
 						}))
 					})
 
-					It("logs validation stage", func() {
+					It("logs validation stages", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 
@@ -287,6 +289,13 @@ version: fake-version
 						}))
 						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 							Name: "Validating cpi release",
+							States: []bmeventlog.EventState{
+								bmeventlog.Started,
+								bmeventlog.Finished,
+							},
+						}))
+						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+							Name: "Validating stemcell",
 							States: []bmeventlog.EventState{
 								bmeventlog.Started,
 								bmeventlog.Finished,
@@ -367,7 +376,7 @@ version: fake-version
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("Parsing CPI deployment manifest"))
 							Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
-							Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal("/some/deployment/file"))
+							Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
 						})
 					})
 
@@ -412,18 +421,68 @@ version: fake-version
 							}))
 						})
 					})
+
+					Context("When the CPI release tarball does not exist", func() {
+						BeforeEach(func() {
+							fakeFs.RemoveAll(cpiReleaseTarballPath)
+						})
+
+						It("returns error", func() {
+							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("Verifying that the CPI release `/release/tarball/path' exists"))
+
+							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+								Name: "Validating cpi release",
+								States: []bmeventlog.EventState{
+									bmeventlog.Started,
+									bmeventlog.Failed,
+								},
+								FailMessage: "Verifying that the CPI release `/release/tarball/path' exists",
+							}))
+						})
+					})
+
+					Context("When the CPI stemcell tarball does not exist", func() {
+						BeforeEach(func() {
+							fakeFs.RemoveAll(stemcellTarballPath)
+						})
+
+						It("returns error", func() {
+							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell `/stemcell/tarball/path' exists"))
+
+							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+								Name: "Validating stemcell",
+								States: []bmeventlog.EventState{
+									bmeventlog.Started,
+									bmeventlog.Failed,
+								},
+								FailMessage: "Verifying that the stemcell `/stemcell/tarball/path' exists",
+							}))
+						})
+					})
 				})
 
 				Context("when the deployment manifest is missing", func() {
 					BeforeEach(func() {
-						fakeFs.RemoveAll("/some/deployment/file")
+						fakeFs.RemoveAll(deploymentManifestPath)
 					})
 
 					It("returns err", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Reading deployment manifest for deploy"))
-						Expect(fakeUI.Errors).To(ContainElement("Deployment manifest path `/some/deployment/file' does not exist"))
+						Expect(err.Error()).To(ContainSubstring("Verifying that the deployment `/some/deployment/file' exists"))
+
+						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+							Name: "Validating deployment manifest",
+							States: []bmeventlog.EventState{
+								bmeventlog.Started,
+								bmeventlog.Failed,
+							},
+							FailMessage: "Verifying that the deployment `/some/deployment/file' exists",
+						}))
 					})
 				})
 			})
@@ -453,33 +512,16 @@ version: fake-version
 				It("returns err", func() {
 					err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 					Expect(err).To(HaveOccurred())
-					Expect(fakeUI.Errors).To(ContainElement("No deployment set"))
-				})
-			})
+					Expect(err.Error()).To(ContainSubstring("No deployment set"))
 
-			Context("When the CPI release tarball does not exist", func() {
-				BeforeEach(func() {
-					fakeFs.RemoveAll(cpiReleaseTarballPath)
-				})
-
-				It("returns error", func() {
-					err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Checking CPI release `/release/tarball/path' existence"))
-					Expect(fakeUI.Errors).To(ContainElement("CPI release `/release/tarball/path' does not exist"))
-				})
-			})
-
-			Context("When the CPI stemcell tarball does not exist", func() {
-				BeforeEach(func() {
-					fakeFs.RemoveAll(stemcellTarballPath)
-				})
-
-				It("returns error", func() {
-					err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Checking stemcell `/stemcell/tarball/path' existence"))
-					Expect(fakeUI.Errors).To(ContainElement("Stemcell `/stemcell/tarball/path' does not exist"))
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Validating deployment manifest",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Failed,
+						},
+						FailMessage: "No deployment set",
+					}))
 				})
 			})
 		})

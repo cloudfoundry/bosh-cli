@@ -123,6 +123,7 @@ Host warden-vm
 		Expect(exitCode).To(Equal(0))
 		Expect(stdout).To(ContainSubstring("Validating deployment manifest"))
 		Expect(stdout).To(ContainSubstring("Validating cpi release"))
+		Expect(stdout).To(ContainSubstring("Validating stemcell"))
 		Expect(stdout).To(ContainSubstring("uploading stemcell"))
 		Expect(stdout).To(ContainSubstring("Creating VM from stemcell"))
 		Expect(stdout).To(ContainSubstring("Waiting for the agent"))
