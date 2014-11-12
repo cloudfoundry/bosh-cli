@@ -41,24 +41,24 @@ func NewReader(
 func (r *reader) Read() (Release, error) {
 	err := r.extractor.DecompressFileToDir(r.tarFilePath, r.extractedReleasePath, boshcmd.CompressorOptions{})
 	if err != nil {
-		return Release{}, bosherr.WrapError(err, "Extracting release")
+		return nil, bosherr.WrapError(err, "Extracting release")
 	}
 
 	releaseManifestPath := path.Join(r.extractedReleasePath, "release.MF")
 	releaseManifestBytes, err := r.fs.ReadFile(releaseManifestPath)
 	if err != nil {
-		return Release{}, bosherr.WrapError(err, "Reading release manifest")
+		return nil, bosherr.WrapError(err, "Reading release manifest")
 	}
 
-	var releaseManifest bmrelman.Release
-	err = candiedyaml.Unmarshal(releaseManifestBytes, &releaseManifest)
+	var manifest bmrelman.Release
+	err = candiedyaml.Unmarshal(releaseManifestBytes, &manifest)
 	if err != nil {
-		return Release{}, bosherr.WrapError(err, "Parsing release manifest")
+		return nil, bosherr.WrapError(err, "Parsing release manifest")
 	}
 
-	release, err := r.newReleaseFromManifest(releaseManifest)
+	release, err := r.newReleaseFromManifest(manifest)
 	if err != nil {
-		return Release{}, bosherr.WrapError(err, "Constructing release from manifest")
+		return nil, bosherr.WrapError(err, "Constructing release from manifest")
 	}
 
 	return release, nil
@@ -77,21 +77,21 @@ func (r *reader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Relea
 	}
 
 	if len(errors) > 0 {
-		return Release{}, bmerr.NewExplainableError(errors)
+		return nil, bmerr.NewExplainableError(errors)
 	}
 
-	return Release{
-		Name:    releaseManifest.Name,
-		Version: releaseManifest.Version,
+	release := &release{
+		name:    releaseManifest.Name,
+		version: releaseManifest.Version,
 
-		CommitHash:         releaseManifest.CommitHash,
-		UncommittedChanges: releaseManifest.UncommittedChanges,
+		jobs:     jobs,
+		packages: packages,
 
-		ExtractedPath: r.extractedReleasePath,
+		extractedPath: r.extractedReleasePath,
+		fs:            r.fs,
+	}
 
-		Jobs:     jobs,
-		Packages: packages,
-	}, nil
+	return release, nil
 }
 
 func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmrelman.Job) ([]Job, error) {

@@ -10,6 +10,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
 
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile/fakes"
@@ -38,7 +39,15 @@ var _ = Describe("ReleaseCompiler", func() {
 		eventLogger.SetNewStageBehavior(fakeStage)
 		timeService = &faketime.FakeService{}
 		releasePackagesCompiler = NewReleasePackagesCompiler(da, packageCompiler, eventLogger, timeService)
-		release = bmrel.Release{}
+		fakeFS := fakesys.NewFakeFileSystem()
+		release = bmrel.NewRelease(
+			"fake-release",
+			"fake-version",
+			[]bmrel.Job{},
+			[]*bmrel.Package{},
+			"/some/release/path",
+			fakeFS,
+		)
 	})
 
 	Context("Compile", func() {

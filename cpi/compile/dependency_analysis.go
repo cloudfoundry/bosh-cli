@@ -24,7 +24,7 @@ func NewDependencyAnalysis() DependencyAnalysis {
 
 func (da *dependencyAnalysis) DeterminePackageCompilationOrder(release bmrel.Release) ([]*bmrel.Package, error) {
 	// Implementation of the topological sort alg outlined here http://en.wikipedia.org/wiki/Topological_sort
-	for _, pkg := range release.Packages {
+	for _, pkg := range release.Packages() {
 		da.markedPkgs[pkg] = false
 	}
 

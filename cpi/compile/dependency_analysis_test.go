@@ -8,15 +8,17 @@ import (
 
 	gomegafmt "github.com/onsi/gomega/format"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
-
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
 )
 
 var _ = Describe("NewDependencyAnalylis", func() {
 	var (
 		release bmrel.Release
 		da      DependencyAnalysis
+		fakeFS  *fakesys.FakeFileSystem
 	)
 
 	gomegafmt.UseStringerRepresentation = true
@@ -30,9 +32,16 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			package2 = bmrel.Package{
 				Name: "fake-package-name-2",
 			}
-			release = bmrel.Release{
-				Packages: []*bmrel.Package{&package1, &package2},
-			}
+			fakeFS = fakesys.NewFakeFileSystem()
+			release = bmrel.NewRelease(
+				"fake-release",
+				"fake-version",
+				[]bmrel.Job{},
+				[]*bmrel.Package{&package1, &package2},
+				"/some/release/path",
+				fakeFS,
+			)
+
 			da = NewDependencyAnalysis()
 		})
 		Context("disjoint packages have a valid compilation sequence", func() {
@@ -68,13 +77,20 @@ var _ = Describe("NewDependencyAnalylis", func() {
 					Name:         "fake-package-name-4",
 					Dependencies: []*bmrel.Package{&package3, &package2},
 				}
-				release.Packages = append(release.Packages, &package3, &package4)
+				release = bmrel.NewRelease(
+					"fake-release",
+					"fake-version",
+					[]bmrel.Job{},
+					[]*bmrel.Package{&package1, &package2, &package3, &package4},
+					"/some/release/path",
+					fakeFS,
+				)
 			})
 
 			It("returns an ordered set of package compilation", func() {
 				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
 				Expect(err).NotTo(HaveOccurred())
-				for _, pkg := range release.Packages {
+				for _, pkg := range release.Packages() {
 					compileOrder := indexOf(compilationOrder, pkg)
 					for _, dependencyPkg := range pkg.Dependencies {
 						errorMessage := fmt.Sprintf("Package '%s' should be compiled later than package '%s'", pkg.Name, dependencyPkg.Name)
@@ -123,7 +139,7 @@ var _ = Describe("NewDependencyAnalylis", func() {
 					Dependencies: []*bmrel.Package{&ruby},
 				}
 
-				release.Packages = []*bmrel.Package{
+				packages := []*bmrel.Package{
 					&nginx,
 					&genisoimage,
 					&powerdns,
@@ -140,10 +156,19 @@ var _ = Describe("NewDependencyAnalylis", func() {
 					&healthMonitor, // after ruby, libpq, postgres
 				}
 
+				release = bmrel.NewRelease(
+					"fake-release",
+					"fake-version",
+					[]bmrel.Job{},
+					packages,
+					"/some/release/path",
+					fakeFS,
+				)
+
 				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
 				Expect(err).NotTo(HaveOccurred())
 
-				for _, pkg := range release.Packages {
+				for _, pkg := range release.Packages() {
 					compileOrder := indexOf(compilationOrder, pkg)
 					for _, dependencyPkg := range pkg.Dependencies {
 						errorMessage := fmt.Sprintf("Package '%s' should be compiled later than package '%s'", pkg.Name, dependencyPkg.Name)

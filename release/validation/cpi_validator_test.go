@@ -4,15 +4,26 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 )
 
 var _ = Describe("CpiValidator", func() {
+	var (
+		fakeFs *fakesys.FakeFileSystem
+	)
+
+	BeforeEach(func() {
+		fakeFs = fakesys.NewFakeFileSystem()
+	})
+
 	It("validates a valid release without error", func() {
-		release := bmrel.Release{
-			Jobs: []bmrel.Job{
+		release := bmrel.NewRelease(
+			"fake-release-name",
+			"fake-release-version",
+			[]bmrel.Job{
 				{
 					Name:        "cpi",
 					Fingerprint: "fake-job-1-fingerprint",
@@ -22,7 +33,10 @@ var _ = Describe("CpiValidator", func() {
 					},
 				},
 			},
-		}
+			[]*bmrel.Package{},
+			"/some/release/path",
+			fakeFs,
+		)
 		validator := NewCpiValidator()
 
 		err := validator.Validate(release)
@@ -34,8 +48,10 @@ var _ = Describe("CpiValidator", func() {
 		var release bmrel.Release
 
 		BeforeEach(func() {
-			release = bmrel.Release{
-				Jobs: []bmrel.Job{
+			release = bmrel.NewRelease(
+				"fake-release-name",
+				"fake-release-version",
+				[]bmrel.Job{
 					{
 						Name:        "non-cpi-job",
 						Fingerprint: "fake-job-1-fingerprint",
@@ -45,7 +61,10 @@ var _ = Describe("CpiValidator", func() {
 						},
 					},
 				},
-			}
+				[]*bmrel.Package{},
+				"/some/release/path",
+				fakeFs,
+			)
 			validator = NewCpiValidator()
 		})
 
@@ -61,8 +80,10 @@ var _ = Describe("CpiValidator", func() {
 		var release bmrel.Release
 
 		BeforeEach(func() {
-			release = bmrel.Release{
-				Jobs: []bmrel.Job{
+			release = bmrel.NewRelease(
+				"fake-release-name",
+				"fake-release-version",
+				[]bmrel.Job{
 					{
 						Name:        "cpi",
 						Fingerprint: "fake-job-1-fingerprint",
@@ -72,7 +93,10 @@ var _ = Describe("CpiValidator", func() {
 						},
 					},
 				},
-			}
+				[]*bmrel.Package{},
+				"/some/release/path",
+				fakeFs,
+			)
 			validator = NewCpiValidator()
 		})
 

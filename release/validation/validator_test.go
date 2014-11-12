@@ -8,6 +8,7 @@ import (
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmrelease "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 
@@ -26,7 +27,15 @@ var _ = Describe("Validator", func() {
 		fakeBoshValidator = fakebmrelease.NewFakeValidator()
 		fakeCpiValidator = fakebmrelease.NewFakeValidator()
 		fakeUI = &fakeui.FakeUI{}
-		release = bmrel.Release{TarballPath: "/somepath"}
+		fakeFs := fakesys.NewFakeFileSystem()
+		release = bmrel.NewRelease(
+			"fake-release-name",
+			"fake-release-version",
+			[]bmrel.Job{},
+			[]*bmrel.Package{},
+			"/some/release/path",
+			fakeFs,
+		)
 		validator = NewValidator(fakeBoshValidator, fakeCpiValidator, fakeUI)
 	})
 
@@ -56,7 +65,7 @@ var _ = Describe("Validator", func() {
 
 		It("errors in the ui", func() {
 			validator.Validate(release)
-			Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a valid BOSH release"))
+			Expect(fakeUI.Errors).To(ContainElement("CPI release is not a valid BOSH release"))
 		})
 	})
 
@@ -74,7 +83,7 @@ var _ = Describe("Validator", func() {
 		It("errors in the ui", func() {
 			Expect(fakeUI.Errors).To(BeEmpty())
 			validator.Validate(release)
-			Expect(fakeUI.Errors).To(ContainElement("CPI release `/somepath' is not a valid CPI release"))
+			Expect(fakeUI.Errors).To(ContainElement("CPI release is not a valid CPI release"))
 		})
 	})
 })

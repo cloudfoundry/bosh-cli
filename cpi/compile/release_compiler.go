@@ -33,7 +33,7 @@ func (c releaseCompiler) Compile(release bmrel.Release, deployment bmdepl.Deploy
 		return bosherr.WrapError(err, "Compiling release packages")
 	}
 
-	err = c.templatesCompiler.Compile(release.Jobs, deployment)
+	err = c.templatesCompiler.Compile(release.Jobs(), deployment)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling job templates")
 	}

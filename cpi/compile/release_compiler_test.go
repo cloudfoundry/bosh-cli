@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
@@ -19,6 +20,7 @@ var _ = Describe("ReleaseCompiler", func() {
 	var (
 		fakeReleasePackagesCompiler *fakebmcomp.FakeReleasePackagesCompiler
 		fakeTemplatesCompiler       *fakebmtemp.FakeTemplatesCompiler
+		fakeFS                      *fakesys.FakeFileSystem
 		releaseCompiler             ReleaseCompiler
 		release                     bmrel.Release
 	)
@@ -32,15 +34,19 @@ var _ = Describe("ReleaseCompiler", func() {
 			fakeTemplatesCompiler,
 		)
 
-		release = bmrel.Release{
-			Name:     "fake-release-name",
-			Packages: []*bmrel.Package{},
-			Jobs: []bmrel.Job{
+		fakeFS = fakesys.NewFakeFileSystem()
+		release = bmrel.NewRelease(
+			"fake-release-name",
+			"fake-version",
+			[]bmrel.Job{
 				bmrel.Job{
 					Name: "fake-job-name",
 				},
 			},
-		}
+			[]*bmrel.Package{},
+			"/some/release/path",
+			fakeFS,
+		)
 	})
 
 	Describe("Compile", func() {
@@ -53,13 +59,13 @@ var _ = Describe("ReleaseCompiler", func() {
 				RawProperties: map[interface{}]interface{}{},
 				Jobs:          []bmdepl.Job{},
 			}
-			fakeTemplatesCompiler.SetCompileBehavior(release.Jobs, deployment, nil)
+			fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), deployment, nil)
 		})
 
 		It("compiles the release", func() {
 			err := releaseCompiler.Compile(release, deployment)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeReleasePackagesCompiler.CompileRelease.Name).To(Equal("fake-release-name"))
+			Expect(fakeReleasePackagesCompiler.CompileRelease.Name()).To(Equal("fake-release-name"))
 		})
 
 		It("compiles templates", func() {
@@ -67,7 +73,7 @@ var _ = Describe("ReleaseCompiler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeTemplatesCompiler.CompileInputs).To(HaveLen(1))
 			Expect(fakeTemplatesCompiler.CompileInputs[0]).To(Equal(fakebmtemp.CompileInput{
-				Jobs:       release.Jobs,
+				Jobs:       release.Jobs(),
 				Deployment: deployment,
 			}))
 		})
@@ -84,7 +90,7 @@ var _ = Describe("ReleaseCompiler", func() {
 		Context("when compiling templates fails", func() {
 			BeforeEach(func() {
 				err := errors.New("fake-compiling-templates-error")
-				fakeTemplatesCompiler.SetCompileBehavior(release.Jobs, deployment, err)
+				fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), deployment, err)
 			})
 
 			It("returns an error", func() {

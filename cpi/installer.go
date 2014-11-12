@@ -72,7 +72,6 @@ func (c *cpiInstaller) Install(deployment bmdepl.Deployment, releaseTarballPath 
 		return nil, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
 	}
 
-	release.TarballPath = releaseTarballPath
 	c.logger.Info(c.logTag, "Extracted CPI release `%s' to `%s'", release.Name, extractedReleasePath)
 
 	c.logger.Info(c.logTag, "Validating CPI release `%s'", release.Name)

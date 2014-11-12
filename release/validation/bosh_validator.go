@@ -51,7 +51,7 @@ func (v *boshValidator) Validate(release bmrel.Release) error {
 }
 
 func (v *boshValidator) validateReleaseName(release bmrel.Release) error {
-	if release.Name == "" {
+	if release.Name() == "" {
 		return errors.New("Release name is missing")
 	}
 
@@ -59,7 +59,7 @@ func (v *boshValidator) validateReleaseName(release bmrel.Release) error {
 }
 
 func (v *boshValidator) validateReleaseVersion(release bmrel.Release) error {
-	if release.Version == "" {
+	if release.Version() == "" {
 		return errors.New("Release version is missing")
 	}
 
@@ -68,7 +68,7 @@ func (v *boshValidator) validateReleaseVersion(release bmrel.Release) error {
 
 func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 	errs := []error{}
-	for _, job := range release.Jobs {
+	for _, job := range release.Jobs() {
 		if job.Name == "" {
 			errs = append(errs, errors.New("Job name is missing"))
 		}
@@ -95,7 +95,7 @@ func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 
 		for _, pkgName := range job.PackageNames {
 			found := false
-			for _, releasePackage := range release.Packages {
+			for _, releasePackage := range release.Packages() {
 				if releasePackage.Name == pkgName {
 					found = true
 					break
@@ -116,7 +116,7 @@ func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 
 func (v *boshValidator) validateReleasePackages(release bmrel.Release) error {
 	errs := []error{}
-	for _, pkg := range release.Packages {
+	for _, pkg := range release.Packages() {
 		if pkg.Name == "" {
 			errs = append(errs, errors.New("Package name is missing"))
 		}

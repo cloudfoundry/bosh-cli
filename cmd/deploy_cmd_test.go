@@ -167,12 +167,14 @@ var _ = Describe("DeployCmd", func() {
 						logger,
 					)
 
-					release = bmrel.Release{
-						Name:          "fake-release",
-						Version:       "fake-version",
-						ExtractedPath: "/some/release/path",
-						TarballPath:   cpiReleaseTarballPath,
-					}
+					release = bmrel.NewRelease(
+						"fake-release",
+						"fake-version",
+						[]bmrel.Job{},
+						[]*bmrel.Package{},
+						"/some/release/path",
+						fakeFs,
+					)
 
 					releaseContents :=
 						`---

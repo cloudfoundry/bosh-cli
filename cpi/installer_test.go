@@ -96,14 +96,16 @@ var _ = Describe("Installer", func() {
 					Properties:   map[string]bmrel.PropertyDefinition{},
 				}
 
-				release = bmrel.Release{
-					Name:          "fake-release-name",
-					Version:       "fake-release-version",
-					Jobs:          []bmrel.Job{releaseJob},
-					Packages:      []*bmrel.Package{releasePackage},
-					ExtractedPath: "/release",
-					TarballPath:   releaseTarballPath,
-				}
+				fakeFS := fakesys.NewFakeFileSystem()
+
+				release = bmrel.NewRelease(
+					"fake-release-name",
+					"fake-release-version",
+					[]bmrel.Job{releaseJob},
+					[]*bmrel.Package{releasePackage},
+					"/release",
+					fakeFS,
+				)
 
 				releaseContents := `---
 name: fake-release-name

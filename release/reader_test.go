@@ -73,11 +73,7 @@ packages:
 						It("returns a release from the given tar file", func() {
 							release, err := reader.Read()
 							Expect(err).NotTo(HaveOccurred())
-							Expect(release.Name).To(Equal("fake-release"))
-							Expect(release.Version).To(Equal("fake-version"))
-							Expect(release.CommitHash).To(Equal("abc123"))
-							Expect(release.UncommittedChanges).To(BeTrue())
-							Expect(release.ExtractedPath).To(Equal("/extracted/release"))
+
 							expectedPackage := &Package{
 								Name:          "fake-package",
 								Fingerprint:   "fake-package-fingerprint",
@@ -85,24 +81,20 @@ packages:
 								Dependencies:  []*Package{&Package{Name: "fake-package-1"}},
 								ExtractedPath: "/extracted/release/extracted_packages/fake-package",
 							}
-
-							Expect(len(release.Jobs)).To(Equal(1))
-							Expect(release.Jobs).To(
-								ContainElement(
-									Job{
-										Name:          "fake-job",
-										Fingerprint:   "fake-job-fingerprint",
-										SHA1:          "fake-job-sha",
-										ExtractedPath: "/extracted/release/extracted_jobs/fake-job",
-										Templates:     map[string]string{"some_template": "some_file"},
-										PackageNames:  []string{"fake-package"},
-										Packages:      []*Package{expectedPackage},
-									},
-								),
-							)
-
-							Expect(len(release.Packages)).To(Equal(1))
-							Expect(release.Packages).To(ContainElement(expectedPackage))
+							Expect(release.Name()).To(Equal("fake-release"))
+							Expect(release.Version()).To(Equal("fake-version"))
+							Expect(release.Jobs()).To(Equal([]Job{
+								{
+									Name:          "fake-job",
+									Fingerprint:   "fake-job-fingerprint",
+									SHA1:          "fake-job-sha",
+									ExtractedPath: "/extracted/release/extracted_jobs/fake-job",
+									Templates:     map[string]string{"some_template": "some_file"},
+									PackageNames:  []string{"fake-package"},
+									Packages:      []*Package{expectedPackage},
+								},
+							}))
+							Expect(release.Packages()).To(Equal([]*Package{expectedPackage}))
 						})
 					})
 

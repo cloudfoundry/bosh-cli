@@ -31,13 +31,13 @@ func NewValidator(boshValidator, cpiValidator ReleaseValidator, ui bmui.UI) Rele
 func (v *validator) Validate(release bmrel.Release) error {
 	err := v.boshValidator.Validate(release)
 	if err != nil {
-		v.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid BOSH release", release.TarballPath))
+		v.ui.Error(fmt.Sprintf("CPI release is not a valid BOSH release"))
 		return bosherr.WrapError(err, "Validating CPI release")
 	}
 
 	err = v.cpiValidator.Validate(release)
 	if err != nil {
-		v.ui.Error(fmt.Sprintf("CPI release `%s' is not a valid CPI release", release.TarballPath))
+		v.ui.Error(fmt.Sprintf("CPI release is not a valid CPI release"))
 		return bosherr.WrapError(err, "Validating CPI release")
 	}
 

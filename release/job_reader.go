@@ -44,7 +44,7 @@ func (r *jobReader) Read() (Job, error) {
 		return Job{}, bosherr.WrapError(err, "Reading job manifest")
 	}
 
-	var jobManifest Manifest
+	var jobManifest JobManifest
 	err = candiedyaml.Unmarshal(jobManifestBytes, &jobManifest)
 	if err != nil {
 		return Job{}, bosherr.WrapError(err, "Parsing job manifest")

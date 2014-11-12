@@ -17,8 +17,7 @@ type Job struct {
 	Properties    map[string]PropertyDefinition
 }
 
-// Manifest - for reading job.MF
-type Manifest struct {
+type JobManifest struct {
 	Name       string                        `yaml:"name"`
 	Templates  map[string]string             `yaml:"templates"`
 	Packages   []string                      `yaml:"packages"`
