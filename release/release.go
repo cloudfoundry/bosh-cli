@@ -58,6 +58,8 @@ func (r *release) FindJobByName(jobName string) (Job, bool) {
 	return Job{}, false
 }
 
+// Delete removes the extracted release code.
+// Since packages and jobs are under the same path, they will be deleted too.
 func (r *release) Delete() error {
 	return r.fs.RemoveAll(r.extractedPath)
 }

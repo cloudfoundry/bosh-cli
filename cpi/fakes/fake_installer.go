@@ -5,58 +5,109 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
-type DeployInput struct {
-	Deployment         bmdepl.Deployment
-	ReleaseTarballPath string
+type InstallInput struct {
+	Deployment bmdepl.Deployment
+	Release    bmrel.Release
 }
 
-type deployOutput struct {
+type installOutput struct {
 	cloud bmcloud.Cloud
 	err   error
 }
 
+type ExtractInput struct {
+	ReleaseTarballPath string
+}
+
+type extractOutput struct {
+	release bmrel.Release
+	err     error
+}
+
 type FakeInstaller struct {
-	DeployInputs   []DeployInput
-	deployBehavior map[string]deployOutput
+	InstallInputs   []InstallInput
+	installBehavior map[string]installOutput
+
+	ExtractInputs   []ExtractInput
+	extractBehavior map[string]extractOutput
 }
 
 func NewFakeInstaller() *FakeInstaller {
 	return &FakeInstaller{
-		DeployInputs:   []DeployInput{},
-		deployBehavior: map[string]deployOutput{},
+		InstallInputs:   []InstallInput{},
+		installBehavior: map[string]installOutput{},
+
+		ExtractInputs:   []ExtractInput{},
+		extractBehavior: map[string]extractOutput{},
 	}
 }
 
-func (f *FakeInstaller) Install(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
-	input := DeployInput{
-		Deployment:         deployment,
+func (f *FakeInstaller) Extract(releaseTarballPath string) (bmrel.Release, error) {
+	input := ExtractInput{
 		ReleaseTarballPath: releaseTarballPath,
 	}
-	f.DeployInputs = append(f.DeployInputs, input)
+	f.ExtractInputs = append(f.ExtractInputs, input)
 
 	value, err := bmtestutils.MarshalToString(input)
 	if err != nil {
 		return nil, fmt.Errorf("Could not serialize input %#v", input)
 	}
 
-	output, found := f.deployBehavior[value]
+	output, found := f.extractBehavior[value]
+	if found {
+		return output.release, output.err
+	}
+	return nil, fmt.Errorf("Unsupported Input: %s", value)
+}
+
+func (f *FakeInstaller) Install(deployment bmdepl.Deployment, release bmrel.Release) (bmcloud.Cloud, error) {
+	input := InstallInput{
+		Deployment: deployment,
+		Release:    release,
+	}
+	f.InstallInputs = append(f.InstallInputs, input)
+
+	value, err := bmtestutils.MarshalToString(input)
+	if err != nil {
+		return nil, fmt.Errorf("Could not serialize input %#v", input)
+	}
+
+	output, found := f.installBehavior[value]
 	if found {
 		return output.cloud, output.err
 	}
 	return nil, fmt.Errorf("Unsupported Input: %s", value)
 }
 
-func (f *FakeInstaller) SetDeployBehavior(
+func (f *FakeInstaller) SetInstallBehavior(
 	deployment bmdepl.Deployment,
-	releaseTarballPath string,
+	release bmrel.Release,
 	cloud bmcloud.Cloud,
 	err error,
 ) error {
-	input := DeployInput{
-		Deployment:         deployment,
+	input := InstallInput{
+		Deployment: deployment,
+		Release:    release,
+	}
+
+	value, err := bmtestutils.MarshalToString(input)
+	if err != nil {
+		return fmt.Errorf("Could not serialize input %#v", input)
+	}
+	f.installBehavior[value] = installOutput{cloud: cloud, err: err}
+	return nil
+}
+
+func (f *FakeInstaller) SetExtractBehavior(
+	releaseTarballPath string,
+	release bmrel.Release,
+	err error,
+) error {
+	input := ExtractInput{
 		ReleaseTarballPath: releaseTarballPath,
 	}
 
@@ -64,6 +115,6 @@ func (f *FakeInstaller) SetDeployBehavior(
 	if err != nil {
 		return fmt.Errorf("Could not serialize input %#v", input)
 	}
-	f.deployBehavior[value] = deployOutput{cloud: cloud, err: err}
+	f.extractBehavior[value] = extractOutput{release: release, err: err}
 	return nil
 }

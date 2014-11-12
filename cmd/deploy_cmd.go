@@ -106,9 +106,15 @@ func (c *deployCmd) Run(args []string) error {
 	manifestValidationStep.Finish()
 	validationStage.Finish()
 
-	cloud, err := c.cpiInstaller.Install(cpiDeployment, releaseTarballPath)
+	extractedRelease, err := c.cpiInstaller.Extract(releaseTarballPath)
 	if err != nil {
-		return bosherr.WrapError(err, "Deploying CPI `%s'", releaseTarballPath)
+		return bosherr.WrapError(err, "Extracting CPI release `%s'", releaseTarballPath)
+	}
+	defer extractedRelease.Delete()
+
+	cloud, err := c.cpiInstaller.Install(cpiDeployment, extractedRelease)
+	if err != nil {
+		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)

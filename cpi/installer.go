@@ -18,7 +18,8 @@ import (
 )
 
 type Installer interface {
-	Install(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error)
+	Extract(releaseTarballPath string) (bmrel.Release, error)
+	Install(deployment bmdepl.Deployment, release bmrel.Release) (bmcloud.Cloud, error)
 }
 
 type cpiInstaller struct {
@@ -56,14 +57,16 @@ func NewInstaller(
 	}
 }
 
-func (c *cpiInstaller) Install(deployment bmdepl.Deployment, releaseTarballPath string) (bmcloud.Cloud, error) {
+// Extract decompresses a release tarball into a temp directory (release.extractedPath),
+// parses and validates the release manifest, and decompresses the packages and jobs.
+// Use release.Delete() to clean up the temp directory.
+func (c *cpiInstaller) Extract(releaseTarballPath string) (bmrel.Release, error) {
 	c.logger.Info(c.logTag, "Extracting CPI release")
 	extractedReleasePath, err := c.fs.TempDir("cmd-deployCmd")
 	if err != nil {
 		c.ui.Error("Could not create a temporary directory")
 		return nil, bosherr.WrapError(err, "Creating temp directory")
 	}
-	defer c.fs.RemoveAll(extractedReleasePath)
 
 	releaseReader := bmrel.NewReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
 	release, err := releaseReader.Read()
@@ -80,9 +83,13 @@ func (c *cpiInstaller) Install(deployment bmdepl.Deployment, releaseTarballPath 
 		return nil, bosherr.WrapError(err, "Validating CPI release `%s'", release.Name)
 	}
 
+	return release, nil
+}
+
+func (c *cpiInstaller) Install(deployment bmdepl.Deployment, release bmrel.Release) (bmcloud.Cloud, error) {
 	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name))
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release `%s': %#v", release.Name, release))
-	err = c.releaseCompiler.Compile(release, deployment)
+	err := c.releaseCompiler.Compile(release, deployment)
 	if err != nil {
 		c.ui.Error("Could not compile CPI release")
 		return nil, bosherr.WrapError(err, "Compiling CPI release")

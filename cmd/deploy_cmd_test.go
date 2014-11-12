@@ -25,6 +25,7 @@ import (
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -36,6 +37,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs                     *fakesys.FakeFileSystem
 		fakeUI                     *fakeui.FakeUI
 		fakeCPIInstaller           *fakebmcpi.FakeInstaller
+		fakeCPIRelease             *fakebmrel.FakeRelease
 		logger                     boshlog.Logger
 		release                    bmrel.Release
 		fakeStemcellManager        *fakebmstemcell.FakeManager
@@ -218,7 +220,9 @@ version: fake-version
 						}
 						fakeBoshManifestParser.SetParseBehavior(userConfig.DeploymentFile, boshDeployment, nil)
 						cloud = fakebmcloud.NewFakeCloud()
-						fakeCPIInstaller.SetDeployBehavior(cpiDeployment, cpiReleaseTarballPath, cloud, nil)
+						fakeCPIRelease = fakebmrel.NewFakeRelease()
+						fakeCPIInstaller.SetExtractBehavior(cpiReleaseTarballPath, fakeCPIRelease, nil)
+						fakeCPIInstaller.SetInstallBehavior(cpiDeployment, fakeCPIRelease, cloud, nil)
 						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
 						fakeDeployer.SetDeployBehavior(nil)
@@ -276,10 +280,31 @@ version: fake-version
 						}))
 					})
 
-					It("deploys the CPI locally", func() {
+					It("extracts CPI release tarball", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCPIInstaller.DeployInputs[0].Deployment).To(Equal(cpiDeployment))
+						Expect(fakeCPIInstaller.ExtractInputs).To(Equal([]fakebmcpi.ExtractInput{
+							{
+								ReleaseTarballPath: cpiReleaseTarballPath,
+							},
+						}))
+					})
+
+					It("installs the CPI locally", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+						Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
+							{
+								Deployment: cpiDeployment,
+								Release:    fakeCPIRelease,
+							},
+						}))
+					})
+
+					It("deletes the extracted CPI release", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+						Expect(fakeCPIRelease.DeleteCalled).To(BeTrue())
 					})
 
 					It("uploads the stemcell", func() {
