@@ -14,7 +14,7 @@ import (
 var _ = Describe("DiskRepo", func() {
 	var (
 		configService     DeploymentConfigService
-		diskRepo          DiskRepo
+		repo              DiskRepo
 		fs                *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 	)
@@ -24,14 +24,13 @@ var _ = Describe("DiskRepo", func() {
 		fs = fakesys.NewFakeFileSystem()
 		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		diskRepo = NewDiskRepo(configService, fakeUUIDGenerator)
-
+		repo = NewDiskRepo(configService, fakeUUIDGenerator)
 	})
 
 	Describe("Save", func() {
 		It("saves the disk record using the config service", func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-			record, err := diskRepo.Save("fake-cid")
+			record, err := repo.Save("fake-cid")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(record).To(Equal(DiskRecord{
 				ID:  "fake-guid-1",
@@ -56,10 +55,10 @@ var _ = Describe("DiskRepo", func() {
 	Describe("Find", func() {
 		It("finds existing disk records", func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-			savedRecord, err := diskRepo.Save("fake-cid")
+			savedRecord, err := repo.Save("fake-cid")
 			Expect(err).ToNot(HaveOccurred())
 
-			foundRecord, found, err := diskRepo.Find("fake-cid")
+			foundRecord, found, err := repo.Find("fake-cid")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 			Expect(foundRecord).To(Equal(savedRecord))
@@ -67,12 +66,46 @@ var _ = Describe("DiskRepo", func() {
 
 		It("when the disk is not in the records, returns not found", func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
-			_, err := diskRepo.Save("other-cid")
+			_, err := repo.Save("other-cid")
 			Expect(err).ToNot(HaveOccurred())
 
-			_, found, err := diskRepo.Find("fake-cid")
+			_, found, err := repo.Find("fake-cid")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeFalse())
+		})
+	})
+
+	Describe("UpdateCurrent", func() {
+		Context("when a disk record exists with the same ID", func() {
+			BeforeEach(func() {
+				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+				_, err := repo.Save("fake-cid")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("saves the disk record as current stemcell", func() {
+				err := repo.UpdateCurrent("fake-uuid-1")
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentConfig, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deploymentConfig.CurrentDiskID).To(Equal("fake-uuid-1"))
+			})
+		})
+
+		Context("when a disk record does not exists with the same ID", func() {
+			BeforeEach(func() {
+				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+				_, err := repo.Save("fake-cid")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("returns an error", func() {
+				err := repo.UpdateCurrent("fake-uuid-2")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Verifying disk record exists with id `fake-uuid-2'"))
+			})
 		})
 	})
 
@@ -80,18 +113,18 @@ var _ = Describe("DiskRepo", func() {
 		Context("when current disk exists", func() {
 			BeforeEach(func() {
 				fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-				_, err := diskRepo.Save("fake-cid-1")
+				_, err := repo.Save("fake-cid-1")
 				Expect(err).ToNot(HaveOccurred())
 
 				fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
-				record, err := diskRepo.Save("fake-cid-2")
+				record, err := repo.Save("fake-cid-2")
 				Expect(err).ToNot(HaveOccurred())
 
-				diskRepo.UpdateCurrent(record)
+				repo.UpdateCurrent(record.ID)
 			})
 
 			It("returns existing disk", func() {
-				record, found, err := diskRepo.FindCurrent()
+				record, found, err := repo.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(record).To(Equal(DiskRecord{
@@ -104,12 +137,12 @@ var _ = Describe("DiskRepo", func() {
 		Context("when current disk does not exist", func() {
 			BeforeEach(func() {
 				fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-				_, err := diskRepo.Save("fake-cid")
+				_, err := repo.Save("fake-cid")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns not found", func() {
-				_, found, err := diskRepo.FindCurrent()
+				_, found, err := repo.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeFalse())
 			})
@@ -117,7 +150,7 @@ var _ = Describe("DiskRepo", func() {
 
 		Context("when there are no disks", func() {
 			It("returns not found", func() {
-				_, found, err := diskRepo.FindCurrent()
+				_, found, err := repo.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeFalse())
 			})

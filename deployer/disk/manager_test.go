@@ -111,7 +111,7 @@ var _ = Describe("Manager", func() {
 				diskRecord, err := diskRepo.Save("fake-existing-disk-cid")
 				Expect(err).ToNot(HaveOccurred())
 
-				err = diskRepo.UpdateCurrent(diskRecord)
+				err = diskRepo.UpdateCurrent(diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
 			})
 

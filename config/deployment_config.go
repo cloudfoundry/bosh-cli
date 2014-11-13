@@ -3,10 +3,11 @@ package config
 import "path"
 
 type DeploymentConfig struct {
-	ContainingDir  string
-	DeploymentUUID string
-	CurrentVMCID   string
-	CurrentDiskID string
+	ContainingDir     string
+	DeploymentUUID    string
+	CurrentVMCID      string
+	CurrentStemcellID string
+	CurrentDiskID     string
 	Disks     []DiskRecord
 	Stemcells []StemcellRecord
 }

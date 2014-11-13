@@ -81,7 +81,7 @@ var _ = Describe("Manager", func() {
 				CID:     "fake-stemcell-cid",
 			}
 
-			repo.SetSaveBehavior(saveStemcellRecord, nil)
+			repo.SetSaveBehavior("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", saveStemcellRecord, nil)
 		})
 
 		It("starts a new event logger stage", func() {
@@ -132,7 +132,9 @@ var _ = Describe("Manager", func() {
 
 			Expect(repo.SaveInputs).To(Equal([]fakebmconfig.SaveInput{
 				{
-					StemcellRecord: saveStemcellRecord,
+					Name:    "fake-stemcell-name",
+					Version: "fake-stemcell-version",
+					CID:     "fake-stemcell-cid",
 				},
 			}))
 		})
@@ -167,7 +169,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("when the repo save fails, logs uploading start and failure events to the eventLogger", func() {
-			repo.SetSaveBehavior(saveStemcellRecord, errors.New("fake-save-error"))
+			repo.SetSaveBehavior("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", saveStemcellRecord, errors.New("fake-save-error"))
 
 			_, err := manager.Upload(expectedExtractedStemcell)
 			Expect(err).To(HaveOccurred())

@@ -178,7 +178,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.logger,
 	)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fs)
-	stemcellRepo := bmconfig.NewStemcellRepo(f.deploymentConfigService)
+	stemcellRepo := bmconfig.NewStemcellRepo(f.deploymentConfigService, f.uuidGenerator)
 	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 

@@ -64,13 +64,7 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 		)
 	}
 
-	record := bmconfig.StemcellRecord{
-		Name:    manifest.Name,
-		Version: manifest.Version,
-		CID:     cid,
-	}
-
-	err = m.repo.Save(record)
+	_, err = m.repo.Save(manifest.Name, manifest.Version, cid)
 	if err != nil {
 		//TODO: delete stemcell from cloud when saving fails
 		eventStep.Fail(err.Error())

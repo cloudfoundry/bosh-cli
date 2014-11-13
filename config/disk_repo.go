@@ -11,7 +11,7 @@ type DiskRecord struct {
 }
 
 type DiskRepo interface {
-	UpdateCurrent(DiskRecord) error
+	UpdateCurrent(diskID string) error
 	FindCurrent() (DiskRecord, bool, error)
 	Save(cid string) (DiskRecord, error)
 	Find(cid string) (DiskRecord, bool, error)
@@ -72,22 +72,32 @@ func (r diskRepo) FindCurrent() (DiskRecord, bool, error) {
 		return DiskRecord{}, false, nil
 	}
 
-	for _, existingRecord := range config.Disks {
-		if existingRecord.ID == currentDiskID {
-			return existingRecord, true, nil
+	for _, oldRecord := range config.Disks {
+		if oldRecord.ID == currentDiskID {
+			return oldRecord, true, nil
 		}
 	}
 
 	return DiskRecord{}, false, nil
 }
 
-func (r diskRepo) UpdateCurrent(existingRecord DiskRecord) error {
+func (r diskRepo) UpdateCurrent(diskID string) error {
 	config, err := r.configService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
-	config.CurrentDiskID = existingRecord.ID
+	found := false
+	for _, oldRecord := range config.Disks {
+		if oldRecord.ID == diskID {
+			found = true
+		}
+	}
+	if !found {
+		return bosherr.New("Verifying disk record exists with id `%s'", diskID)
+	}
+
+	config.CurrentDiskID = diskID
 
 	err = r.configService.Save(config)
 	if err != nil {
