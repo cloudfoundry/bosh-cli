@@ -8,6 +8,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -15,7 +16,7 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		repo                *fakebmstemcell.FakeRepo
+		repo                *fakebmconfig.FakeStemcellRepo
 		extractor           Extractor
 		fs                  *fakesys.FakeFileSystem
 		reader              *fakebmstemcell.FakeStemcellReader
@@ -28,7 +29,7 @@ var _ = Describe("Manager", func() {
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		reader = fakebmstemcell.NewFakeReader()
-		repo = fakebmstemcell.NewFakeRepo()
+		repo = fakebmconfig.NewFakeStemcellRepo()
 		stemcellTarballPath = "/stemcell/tarball/path"
 		tempExtractionDir = "/path/to/dest"
 		fs.TempDirDir = tempExtractionDir

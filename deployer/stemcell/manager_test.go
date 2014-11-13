@@ -8,9 +8,11 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 
@@ -19,7 +21,7 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		repo                *fakebmstemcell.FakeRepo
+		repo                *fakebmconfig.FakeStemcellRepo
 		manager             Manager
 		fs                  *fakesys.FakeFileSystem
 		reader              *fakebmstemcell.FakeStemcellReader
@@ -30,12 +32,13 @@ var _ = Describe("Manager", func() {
 		tempExtractionDir   string
 
 		expectedExtractedStemcell ExtractedStemcell
+		saveStemcellRecord        bmconfig.StemcellRecord
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		reader = fakebmstemcell.NewFakeReader()
-		repo = fakebmstemcell.NewFakeRepo()
+		repo = fakebmconfig.NewFakeStemcellRepo()
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
 		eventLogger.SetNewStageBehavior(fakeStage)
@@ -48,6 +51,7 @@ var _ = Describe("Manager", func() {
 		expectedExtractedStemcell = NewExtractedStemcell(
 			Manifest{
 				Name:      "fake-stemcell-name",
+				Version:   "fake-stemcell-version",
 				ImagePath: "fake-image-path",
 				RawCloudProperties: map[interface{}]interface{}{
 					"fake-prop-key": "fake-prop-value",
@@ -62,20 +66,22 @@ var _ = Describe("Manager", func() {
 
 	Describe("Upload", func() {
 		var (
-			foundCloudStemcell    CloudStemcell
 			expectedCloudStemcell CloudStemcell
 		)
-		BeforeEach(func() {
-			foundCloudStemcell = CloudStemcell{}
 
-			// no existing stemcell found
-			repo.SetFindBehavior(expectedExtractedStemcell.Manifest(), foundCloudStemcell, false, nil)
+		BeforeEach(func() {
+			repo.SetFindBehavior("fake-stemcell-name", "fake-stemcell-version", bmconfig.StemcellRecord{}, false, nil)
 
 			fakeCloud.CreateStemcellCID = "fake-stemcell-cid"
 
 			expectedCloudStemcell = CloudStemcell{CID: "fake-stemcell-cid"}
+			saveStemcellRecord = bmconfig.StemcellRecord{
+				Name:    "fake-stemcell-name",
+				Version: "fake-stemcell-version",
+				CID:     "fake-stemcell-cid",
+			}
 
-			repo.SetSaveBehavior(expectedExtractedStemcell.Manifest(), expectedCloudStemcell, nil)
+			repo.SetSaveBehavior(saveStemcellRecord, nil)
 		})
 
 		It("starts a new event logger stage", func() {
@@ -96,9 +102,10 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Upload(expectedExtractedStemcell)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(repo.FindInputs).To(Equal([]fakebmstemcell.FindInput{
+			Expect(repo.FindInputs).To(Equal([]fakebmconfig.FindInput{
 				{
-					StemcellManifest: expectedExtractedStemcell.Manifest(),
+					Name:    "fake-stemcell-name",
+					Version: "fake-stemcell-version",
 				},
 			}))
 		})
@@ -123,10 +130,9 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
-			Expect(repo.SaveInputs).To(Equal([]fakebmstemcell.SaveInput{
+			Expect(repo.SaveInputs).To(Equal([]fakebmconfig.SaveInput{
 				{
-					StemcellManifest: expectedExtractedStemcell.Manifest(),
-					Stemcell:         cloudStemcell,
+					StemcellRecord: saveStemcellRecord,
 				},
 			}))
 		})
@@ -161,11 +167,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("when the repo save fails, logs uploading start and failure events to the eventLogger", func() {
-			repo.SetSaveBehavior(
-				expectedExtractedStemcell.Manifest(),
-				expectedCloudStemcell,
-				errors.New("fake-save-error"),
-			)
+			repo.SetSaveBehavior(saveStemcellRecord, errors.New("fake-save-error"))
 
 			_, err := manager.Upload(expectedExtractedStemcell)
 			Expect(err).To(HaveOccurred())
@@ -183,18 +185,22 @@ var _ = Describe("Manager", func() {
 
 		Context("when the stemcell record exists in the repo (having been previously uploaded)", func() {
 			var (
-				existingCloudStemcell CloudStemcell
+				foundStemcellRecord bmconfig.StemcellRecord
 			)
 
 			BeforeEach(func() {
-				existingCloudStemcell = CloudStemcell{CID: "fake-existing-cid"}
-				repo.SetFindBehavior(expectedExtractedStemcell.Manifest(), existingCloudStemcell, true, nil)
+				foundStemcellRecord = bmconfig.StemcellRecord{
+					Name:    "fake-stemcell-name",
+					Version: "fake-stemcell-version",
+					CID:     "fake-existing-cid",
+				}
+				repo.SetFindBehavior("fake-stemcell-name", "fake-stemcell-version", foundStemcellRecord, true, nil)
 			})
 
 			It("returns the existing cloud stemcell", func() {
 				stemcell, err := manager.Upload(expectedExtractedStemcell)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(stemcell).To(Equal(existingCloudStemcell))
+				Expect(stemcell).To(Equal(CloudStemcell{CID: "fake-existing-cid"}))
 			})
 
 			It("does not re-upload the stemcell to the infrastructure", func() {

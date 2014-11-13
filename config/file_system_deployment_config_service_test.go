@@ -32,13 +32,11 @@ var _ = Describe("fileSystemConfigService", func() {
 				StemcellRecord{
 					Name:    "fake-stemcell-name-1",
 					Version: "fake-stemcell-version-1",
-					SHA1:    "fake-stemcell-sha1-1",
 					CID:     "fake-stemcell-cid-1",
 				},
 				StemcellRecord{
 					Name:    "fake-stemcell-name-2",
 					Version: "fake-stemcell-version-2",
-					SHA1:    "fake-stemcell-sha1-2",
 					CID:     "fake-stemcell-cid-2",
 				},
 			}
@@ -98,7 +96,6 @@ var _ = Describe("fileSystemConfigService", func() {
 					{
 						Name:    "fake-stemcell-name",
 						Version: "fake-stemcell-version",
-						SHA1:    "fake-stemcell-sha1",
 						CID:     "fake-stemcell-cid",
 					},
 				},
@@ -116,7 +113,6 @@ var _ = Describe("fileSystemConfigService", func() {
 					{
 						Name:    "fake-stemcell-name",
 						Version: "fake-stemcell-version",
-						SHA1:    "fake-stemcell-sha1",
 						CID:     "fake-stemcell-cid",
 					},
 				},

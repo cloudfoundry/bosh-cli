@@ -5,13 +5,12 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type SaveInput struct {
-	StemcellManifest bmstemcell.Manifest
-	Stemcell         bmstemcell.CloudStemcell
+	StemcellRecord bmconfig.StemcellRecord
 }
 
 type SaveOutput struct {
@@ -19,24 +18,25 @@ type SaveOutput struct {
 }
 
 type FindInput struct {
-	StemcellManifest bmstemcell.Manifest
+	Name    string
+	Version string
 }
 
 type FindOutput struct {
-	stemcell bmstemcell.CloudStemcell
-	found    bool
-	err      error
+	stemcellRecord bmconfig.StemcellRecord
+	found          bool
+	err            error
 }
 
-type FakeRepo struct {
+type FakeStemcellRepo struct {
 	SaveBehavior map[string]SaveOutput
 	SaveInputs   []SaveInput
 	FindBehavior map[string]FindOutput
 	FindInputs   []FindInput
 }
 
-func NewFakeRepo() *FakeRepo {
-	return &FakeRepo{
+func NewFakeStemcellRepo() *FakeStemcellRepo {
+	return &FakeStemcellRepo{
 		FindBehavior: map[string]FindOutput{},
 		FindInputs:   []FindInput{},
 		SaveBehavior: map[string]SaveOutput{},
@@ -44,10 +44,9 @@ func NewFakeRepo() *FakeRepo {
 	}
 }
 
-func (fr *FakeRepo) Save(stemcellManifest bmstemcell.Manifest, stemcell bmstemcell.CloudStemcell) error {
+func (fr *FakeStemcellRepo) Save(stemcellRecord bmconfig.StemcellRecord) error {
 	input := SaveInput{
-		StemcellManifest: stemcellManifest,
-		Stemcell:         stemcell,
+		StemcellRecord: stemcellRecord,
 	}
 	fr.SaveInputs = append(fr.SaveInputs, input)
 
@@ -64,10 +63,9 @@ func (fr *FakeRepo) Save(stemcellManifest bmstemcell.Manifest, stemcell bmstemce
 	return output.err
 }
 
-func (fr *FakeRepo) SetSaveBehavior(stemcellManifest bmstemcell.Manifest, stemcell bmstemcell.CloudStemcell, err error) error {
+func (fr *FakeStemcellRepo) SetSaveBehavior(stemcellRecord bmconfig.StemcellRecord, err error) error {
 	input := SaveInput{
-		StemcellManifest: stemcellManifest,
-		Stemcell:         stemcell,
+		StemcellRecord: stemcellRecord,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
@@ -82,28 +80,30 @@ func (fr *FakeRepo) SetSaveBehavior(stemcellManifest bmstemcell.Manifest, stemce
 	return nil
 }
 
-func (fr *FakeRepo) Find(stemcellManifest bmstemcell.Manifest) (bmstemcell.CloudStemcell, bool, error) {
+func (fr *FakeStemcellRepo) Find(name, version string) (bmconfig.StemcellRecord, bool, error) {
 	input := FindInput{
-		StemcellManifest: stemcellManifest,
+		Name:    name,
+		Version: version,
 	}
 	fr.FindInputs = append(fr.FindInputs, input)
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
-		return bmstemcell.CloudStemcell{}, false, bosherr.WrapError(marshalErr, "Marshaling Find input")
+		return bmconfig.StemcellRecord{}, false, bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
 
 	output, found := fr.FindBehavior[inputString]
 	if !found {
-		return bmstemcell.CloudStemcell{}, false, fmt.Errorf("Unsupported Find Input: %s", inputString)
+		return bmconfig.StemcellRecord{}, false, fmt.Errorf("Unsupported Find Input: %s", inputString)
 	}
 
-	return output.stemcell, output.found, output.err
+	return output.stemcellRecord, output.found, output.err
 }
 
-func (fr *FakeRepo) SetFindBehavior(stemcellManifest bmstemcell.Manifest, stemcell bmstemcell.CloudStemcell, found bool, err error) error {
+func (fr *FakeStemcellRepo) SetFindBehavior(name, version string, foundRecord bmconfig.StemcellRecord, found bool, err error) error {
 	input := FindInput{
-		StemcellManifest: stemcellManifest,
+		Name:    name,
+		Version: version,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
@@ -112,9 +112,9 @@ func (fr *FakeRepo) SetFindBehavior(stemcellManifest bmstemcell.Manifest, stemce
 	}
 
 	fr.FindBehavior[inputString] = FindOutput{
-		stemcell: stemcell,
-		found:    found,
-		err:      err,
+		stemcellRecord: foundRecord,
+		found:          found,
+		err:            err,
 	}
 
 	return nil

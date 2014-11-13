@@ -1,52 +1,47 @@
-package stemcell_test
+package config_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
+	. "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
 var _ = Describe("Repo", func() {
 	var (
-		repo          Repo
-		configService bmconfig.DeploymentConfigService
+		repo          StemcellRepo
+		configService DeploymentConfigService
 		fs            *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		configService = bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
-		repo = NewRepo(configService)
+		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
+		repo = NewStemcellRepo(configService)
 	})
 
 	Describe("Save", func() {
 		It("saves the stemcell record using the config service", func() {
-			stemcell := CloudStemcell{CID: "fake-cid"}
-			stemcellManifest := Manifest{
+			stemcellRecord := StemcellRecord{
 				Name:    "fake-name",
 				Version: "fake-version",
-				SHA1:    "fake-sha1",
+				CID:     "fake-cid",
 			}
-			err := repo.Save(stemcellManifest, stemcell)
+			err := repo.Save(stemcellRecord)
 			Expect(err).ToNot(HaveOccurred())
 
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := bmconfig.DeploymentConfig{
-				Stemcells: []bmconfig.StemcellRecord{
+			expectedConfig := DeploymentConfig{
+				Stemcells: []StemcellRecord{
 					{
 						Name:    "fake-name",
 						Version: "fake-version",
-						SHA1:    "fake-sha1",
 						CID:     "fake-cid",
 					},
 				},
@@ -57,18 +52,17 @@ var _ = Describe("Repo", func() {
 
 	Describe("Find", func() {
 		It("finds existing stemcell records", func() {
-			expectedStemcell := CloudStemcell{CID: "fake-cid"}
-			stemcellManifest := Manifest{
+			stemcellRecord := StemcellRecord{
 				Name:    "fake-name",
 				Version: "fake-version",
-				SHA1:    "fake-sha1",
+				CID:     "fake-cid",
 			}
-			repo.Save(stemcellManifest, expectedStemcell)
+			repo.Save(stemcellRecord)
 
-			stemcell, found, err := repo.Find(stemcellManifest)
+			foundStemcellRecord, found, err := repo.Find("fake-name", "fake-version")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
-			Expect(stemcell).To(Equal(expectedStemcell))
+			Expect(foundStemcellRecord).To(Equal(stemcellRecord))
 		})
 	})
 })

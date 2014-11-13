@@ -27,7 +27,6 @@ func NewFileSystemDeploymentConfigService(configPath string, fs boshsys.FileSyst
 type StemcellRecord struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
-	SHA1    string `json:"sha1"`
 	CID     string `json:"cid"`
 }
 

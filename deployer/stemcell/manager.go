@@ -4,6 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
@@ -12,12 +13,12 @@ type Manager interface {
 }
 
 type manager struct {
-	repo        Repo
+	repo        bmconfig.StemcellRepo
 	cloud       bmcloud.Cloud
 	eventLogger bmeventlog.EventLogger
 }
 
-func NewManager(repo Repo, cloud bmcloud.Cloud, eventLogger bmeventlog.EventLogger) Manager {
+func NewManager(repo bmconfig.StemcellRepo, cloud bmcloud.Cloud, eventLogger bmeventlog.EventLogger) Manager {
 	return &manager{
 		repo:        repo,
 		cloud:       cloud,
@@ -33,13 +34,16 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 	eventLoggerStage.Start()
 
 	manifest := extractedStemcell.Manifest()
-	cloudStemcell, found, err := m.repo.Find(manifest)
+	foundStemcellRecord, found, err := m.repo.Find(manifest.Name, manifest.Version)
 	if err != nil {
 		return CloudStemcell{}, bosherr.WrapError(err, "finding existing stemcell record in repo")
 	}
 	eventStep := eventLoggerStage.NewStep("Uploading")
 	if found {
 		eventStep.Skip("Stemcell already uploaded")
+		cloudStemcell := CloudStemcell{
+			CID: foundStemcellRecord.CID,
+		}
 		return cloudStemcell, nil
 	}
 
@@ -60,18 +64,25 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 		)
 	}
 
-	cloudStemcell = CloudStemcell{CID: cid}
-	err = m.repo.Save(manifest, cloudStemcell)
+	record := bmconfig.StemcellRecord{
+		Name:    manifest.Name,
+		Version: manifest.Version,
+		CID:     cid,
+	}
+
+	err = m.repo.Save(record)
 	if err != nil {
 		//TODO: delete stemcell from cloud when saving fails
 		eventStep.Fail(err.Error())
-		return cloudStemcell, bosherr.WrapError(
+		return CloudStemcell{}, bosherr.WrapError(
 			err,
 			"saving stemcell record in repo (record=%s, stemcell=%s)",
 			cid,
 			manifest,
 		)
 	}
+
+	cloudStemcell := CloudStemcell{CID: cid}
 
 	eventStep.Finish()
 	eventLoggerStage.Finish()
