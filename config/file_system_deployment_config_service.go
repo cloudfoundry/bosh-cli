@@ -31,10 +31,13 @@ type StemcellRecord struct {
 }
 
 type DeploymentFile struct {
-	UUID      string           `json:"uuid"`
-	Stemcells []StemcellRecord `json:"stemcells"`
-	VMCID     string           `json:"vm_cid"`
-	DiskCID   string           `json:"disk_cid"`
+	UUID              string           `json:"uuid"`
+	CurrentVMCID      string           `json:"current_vm_cid"`
+	CurrentStemcellID string           `json:"current_stemcell_id"`
+	CurrentDiskID     string           `json:"current_disk_id"`
+	CurrentReleaseID  string           `json:"current_release_id"`
+	Disks             []DiskRecord     `json:"disks"`
+	Stemcells         []StemcellRecord `json:"stemcells"`
 }
 
 func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
@@ -58,19 +61,21 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
 	}
 
 	config.DeploymentUUID = deploymentFile.UUID
+	config.CurrentVMCID = deploymentFile.CurrentVMCID
+	config.CurrentDiskID = deploymentFile.CurrentDiskID
+	config.Disks = deploymentFile.Disks
 	config.Stemcells = deploymentFile.Stemcells
-	config.VMCID = deploymentFile.VMCID
-	config.DiskCID = deploymentFile.DiskCID
 
 	return config, nil
 }
 
 func (s fileSystemDeploymentConfigService) Save(config DeploymentConfig) error {
 	deploymentFile := DeploymentFile{
-		UUID:      config.DeploymentUUID,
-		Stemcells: config.Stemcells,
-		VMCID:     config.VMCID,
-		DiskCID:   config.DiskCID,
+		UUID:          config.DeploymentUUID,
+		CurrentVMCID:  config.CurrentVMCID,
+		CurrentDiskID: config.CurrentDiskID,
+		Stemcells:     config.Stemcells,
+		Disks:         config.Disks,
 	}
 	jsonContent, err := json.MarshalIndent(deploymentFile, "", "    ")
 	if err != nil {

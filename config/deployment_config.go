@@ -3,11 +3,12 @@ package config
 import "path"
 
 type DeploymentConfig struct {
-	ContainingDir  string           `json:"-"`
-	DeploymentUUID string           `json:"-"`
-	VMCID          string           `json:"-"`
-	DiskCID        string           `json:"-"`
-	Stemcells      []StemcellRecord `json:"-"`
+	ContainingDir  string
+	DeploymentUUID string
+	CurrentVMCID   string
+	CurrentDiskID string
+	Disks     []DiskRecord
+	Stemcells []StemcellRecord
 }
 
 func (c DeploymentConfig) BlobstorePath() string {

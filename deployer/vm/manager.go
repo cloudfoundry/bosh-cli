@@ -55,7 +55,7 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.De
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Reading existing deployment config")
 	}
-	deploymentConfig.VMCID = cid
+	deploymentConfig.CurrentVMCID = cid
 
 	err = m.deploymentConfigService.Save(deploymentConfig)
 	if err != nil {

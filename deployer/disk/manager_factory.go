@@ -11,25 +11,25 @@ type ManagerFactory interface {
 }
 
 type managerFactory struct {
-	deploymentRecord bmconfig.DeploymentRecord
-	logger           boshlog.Logger
+	diskRepo bmconfig.DiskRepo
+	logger   boshlog.Logger
 }
 
 func NewManagerFactory(
-	deploymentRecord bmconfig.DeploymentRecord,
+	diskRepo bmconfig.DiskRepo,
 	logger boshlog.Logger,
 ) ManagerFactory {
 	return &managerFactory{
-		deploymentRecord: deploymentRecord,
-		logger:           logger,
+		diskRepo: diskRepo,
+		logger:   logger,
 	}
 }
 
 func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
 	return &manager{
-		cloud:            cloud,
-		deploymentRecord: f.deploymentRecord,
-		logger:           f.logger,
-		logTag:           "diskManager",
+		cloud:    cloud,
+		diskRepo: f.diskRepo,
+		logger:   f.logger,
+		logTag:   "diskManager",
 	}
 }

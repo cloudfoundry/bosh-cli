@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -18,20 +19,23 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		manager          Manager
-		fakeCloud        *fakebmcloud.FakeCloud
-		fakeFs           *fakesys.FakeFileSystem
-		deploymentRecord bmconfig.DeploymentRecord
+		manager           Manager
+		fakeCloud         *fakebmcloud.FakeCloud
+		fakeFs            *fakesys.FakeFileSystem
+		fakeUUIDGenerator *fakeuuid.FakeGenerator
+		diskRepo          bmconfig.DiskRepo
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeFs = fakesys.NewFakeFileSystem()
 		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, logger)
-		deploymentRecord = bmconfig.NewDeploymentRecord(configService, logger)
-		managerFactory := NewManagerFactory(deploymentRecord, logger)
+		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+		diskRepo = bmconfig.NewDiskRepo(configService, fakeUUIDGenerator)
+		managerFactory := NewManagerFactory(diskRepo, logger)
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		manager = managerFactory.NewManager(fakeCloud)
+		fakeUUIDGenerator.GeneratedUuid = "fake-uuid"
 	})
 
 	Describe("Create", func() {
@@ -65,14 +69,14 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(diskPool, "fake-vm-cid")
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentRecord, found, err := deploymentRecord.Disk()
+				diskRecord, found, err := diskRepo.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				expectedRecord := bmconfig.DiskRecord{
+				Expect(diskRecord).To(Equal(bmconfig.DiskRecord{
+					ID:  "fake-uuid",
 					CID: "fake-disk-cid",
-				}
-				Expect(deploymentRecord).To(Equal(expectedRecord))
+				}))
 			})
 		})
 
@@ -102,11 +106,13 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("Find", func() {
-		Context("when disk already exists in deployment record", func() {
+		Context("when disk already exists in disk repo", func() {
 			BeforeEach(func() {
-				deploymentRecord.UpdateDisk(bmconfig.DiskRecord{
-					CID: "fake-existing-disk-cid",
-				})
+				diskRecord, err := diskRepo.Save("fake-existing-disk-cid")
+				Expect(err).ToNot(HaveOccurred())
+
+				err = diskRepo.UpdateCurrent(diskRecord)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns the existing disk", func() {
@@ -117,7 +123,7 @@ var _ = Describe("Manager", func() {
 			})
 		})
 
-		Context("when disk does not exists in deployment record", func() {
+		Context("when disk does not exists in disk repo", func() {
 			It("returns false", func() {
 				_, found, err := manager.Find()
 				Expect(err).ToNot(HaveOccurred())
@@ -125,7 +131,7 @@ var _ = Describe("Manager", func() {
 			})
 		})
 
-		Context("when reading existing disk record fails", func() {
+		Context("when reading disk repo fails", func() {
 			BeforeEach(func() {
 				fakeFs.WriteFileString("/fake/path", "{}")
 				fakeFs.ReadFileError = errors.New("fake-read-error")

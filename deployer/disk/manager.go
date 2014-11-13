@@ -14,14 +14,14 @@ type Manager interface {
 }
 
 type manager struct {
-	cloud            bmcloud.Cloud
-	deploymentRecord bmconfig.DeploymentRecord
-	logger           boshlog.Logger
-	logTag           string
+	cloud    bmcloud.Cloud
+	diskRepo bmconfig.DiskRepo
+	logger   boshlog.Logger
+	logTag   string
 }
 
 func (m *manager) Find() (Disk, bool, error) {
-	diskRecord, found, err := m.deploymentRecord.Disk()
+	diskRecord, found, err := m.diskRepo.FindCurrent()
 	if err != nil {
 		return nil, false, bosherr.WrapError(err, "Reading disk record")
 	}
@@ -53,11 +53,14 @@ func (m *manager) Create(diskPool bmdepl.DiskPool, vmCID string) (Disk, error) {
 			)
 	}
 
-	err = m.deploymentRecord.UpdateDisk(bmconfig.DiskRecord{
-		CID: cid,
-	})
+	diskRecord, err := m.diskRepo.Save(cid)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Updating deployment disk record")
+		return nil, bosherr.WrapError(err, "Saving deployment disk record")
+	}
+
+	err = m.diskRepo.UpdateCurrent(diskRecord)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Updating current deployment disk record")
 	}
 
 	disk := NewDisk(cid)

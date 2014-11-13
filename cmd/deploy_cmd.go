@@ -22,7 +22,6 @@ type deployCmd struct {
 	ui                      bmui.UI
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
-	deploymentRecord        bmconfig.DeploymentRecord
 	cpiManifestParser       bmdepl.ManifestParser
 	boshManifestParser      bmdepl.ManifestParser
 	boshDeploymentValidator bmdeplval.DeploymentValidator
@@ -39,7 +38,6 @@ func NewDeployCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
-	deploymentRecord bmconfig.DeploymentRecord,
 	cpiManifestParser bmdepl.ManifestParser,
 	boshManifestParser bmdepl.ManifestParser,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
@@ -54,7 +52,6 @@ func NewDeployCmd(
 		ui:                      ui,
 		userConfig:              userConfig,
 		fs:                      fs,
-		deploymentRecord:        deploymentRecord,
 		cpiManifestParser:       cpiManifestParser,
 		boshManifestParser:      boshManifestParser,
 		boshDeploymentValidator: boshDeploymentValidator,

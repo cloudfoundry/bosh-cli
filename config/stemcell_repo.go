@@ -10,17 +10,17 @@ type StemcellRepo interface {
 	Find(name, version string) (StemcellRecord, bool, error)
 }
 
-type repo struct {
+type stemcellRepo struct {
 	configService DeploymentConfigService
 }
 
-func NewStemcellRepo(configService DeploymentConfigService) repo {
-	return repo{
+func NewStemcellRepo(configService DeploymentConfigService) stemcellRepo {
+	return stemcellRepo{
 		configService: configService,
 	}
 }
 
-func (r repo) Save(newRecord StemcellRecord) error {
+func (r stemcellRepo) Save(newRecord StemcellRecord) error {
 	config, err := r.configService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
@@ -46,7 +46,7 @@ func (r repo) Save(newRecord StemcellRecord) error {
 	return nil
 }
 
-func (r repo) Find(name, version string) (StemcellRecord, bool, error) {
+func (r stemcellRepo) Find(name, version string) (StemcellRecord, bool, error) {
 	config, err := r.configService.Load()
 	if err != nil {
 		return StemcellRecord{}, false, bosherr.WrapError(err, "Loading existing config")
@@ -61,7 +61,7 @@ func (r repo) Find(name, version string) (StemcellRecord, bool, error) {
 	return foundRecord, found, nil
 }
 
-func (r repo) find(records []StemcellRecord, name, version string) (StemcellRecord, bool) {
+func (r stemcellRepo) find(records []StemcellRecord, name, version string) (StemcellRecord, bool) {
 	for _, existingRecord := range records {
 		if existingRecord.Name == name && existingRecord.Version == version {
 			return existingRecord, true

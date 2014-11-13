@@ -206,8 +206,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.logger,
 	)
 
-	deploymentRecord := bmconfig.NewDeploymentRecord(f.deploymentConfigService, f.logger)
-	diskManagerFactory := bmdisk.NewManagerFactory(deploymentRecord, f.logger)
+	diskRepo := bmconfig.NewDiskRepo(f.deploymentConfigService, f.uuidGenerator)
+	diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, f.logger)
 	registryServer := bmregistry.NewServer(f.logger)
 	sshTunnelFactory := bmsshtunnel.NewFactory(f.logger)
 
@@ -224,7 +224,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.ui,
 		f.userConfig,
 		f.fs,
-		deploymentRecord,
 		cpiManifestParser,
 		boshManifestParser,
 		boshDeploymentValidator,
