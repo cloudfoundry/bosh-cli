@@ -220,6 +220,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.logger,
 	)
 
+	deploymentRecord := bmdeployer.NewDeploymentRecord(stemcellRepo)
+
 	return NewDeployCmd(
 		f.ui,
 		f.userConfig,
@@ -230,6 +232,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		cpiInstaller,
 		stemcellExtractor,
 		stemcellManagerFactory,
+		deploymentRecord,
 		deployer,
 		eventLogger,
 		f.logger,

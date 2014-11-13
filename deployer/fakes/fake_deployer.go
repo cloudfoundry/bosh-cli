@@ -21,13 +21,14 @@ type deployOutput struct {
 }
 
 type FakeDeployer struct {
-	DeployInput  DeployInput
-	DeployOutput deployOutput
+	DeployInputs  []DeployInput
+	DeployOutputs []deployOutput
 }
 
 func NewFakeDeployer() *FakeDeployer {
 	return &FakeDeployer{
-		DeployInput: DeployInput{},
+		DeployInputs:  []DeployInput{},
+		DeployOutputs: []deployOutput{},
 	}
 }
 
@@ -49,15 +50,14 @@ func (m *FakeDeployer) Deploy(
 		MbusURL:           mbusURL,
 		Stemcell:          stemcell,
 	}
-	m.DeployInput = input
+	m.DeployInputs = append(m.DeployInputs, input)
 
-	if (m.DeployOutput != deployOutput{}) {
-		return m.DeployOutput.err
-	}
+	output := m.DeployOutputs[0]
+	m.DeployOutputs = m.DeployOutputs[1:]
 
-	return nil
+	return output.err
 }
 
 func (m *FakeDeployer) SetDeployBehavior(err error) {
-	m.DeployOutput = deployOutput{err: err}
+	m.DeployOutputs = append(m.DeployOutputs, deployOutput{err: err})
 }

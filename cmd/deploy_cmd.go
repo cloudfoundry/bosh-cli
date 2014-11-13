@@ -28,6 +28,7 @@ type deployCmd struct {
 	cpiInstaller            bmcpi.Installer
 	stemcellExtractor       bmstemcell.Extractor
 	stemcellManagerFactory  bmstemcell.ManagerFactory
+	deploymentRecord        bmdeployer.DeploymentRecord
 	deployer                bmdeployer.Deployer
 	eventLogger             bmeventlog.EventLogger
 	logger                  boshlog.Logger
@@ -44,6 +45,7 @@ func NewDeployCmd(
 	cpiInstaller bmcpi.Installer,
 	stemcellExtractor bmstemcell.Extractor,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
+	deploymentRecord bmdeployer.DeploymentRecord,
 	deployer bmdeployer.Deployer,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
@@ -58,6 +60,7 @@ func NewDeployCmd(
 		cpiInstaller:            cpiInstaller,
 		stemcellExtractor:       stemcellExtractor,
 		stemcellManagerFactory:  stemcellManagerFactory,
+		deploymentRecord:        deploymentRecord,
 		deployer:                deployer,
 		eventLogger:             eventLogger,
 		logger:                  logger,
@@ -81,6 +84,16 @@ func (c *deployCmd) Run(args []string) error {
 	}
 	defer extractedStemcell.Delete()
 	defer cpiRelease.Delete()
+
+	isDeployed, err := c.deploymentRecord.IsDeployed(c.userConfig.DeploymentFile, cpiRelease, extractedStemcell)
+	if err != nil {
+		return bosherr.WrapError(err, "Checking if deployment has changed")
+	}
+
+	if isDeployed {
+		c.ui.Sayln("No deployment, stemcell or cpi release changes. Skipping deploy.")
+		return nil
+	}
 
 	cloud, err := c.cpiInstaller.Install(cpiDeployment, cpiRelease)
 	if err != nil {
@@ -106,7 +119,11 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Deploying Microbosh")
 	}
 
-	// register the stemcell
+	err = c.deploymentRecord.Update(c.userConfig.DeploymentFile, cpiRelease, extractedStemcell)
+	if err != nil {
+		return bosherr.WrapError(err, "Updating deployment record")
+	}
+
 	return nil
 }
 

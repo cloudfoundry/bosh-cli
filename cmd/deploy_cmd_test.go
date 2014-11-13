@@ -44,7 +44,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeStemcellManager        *fakebmstemcell.FakeManager
 		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
 
-		fakeDeployer *fakebmdeployer.FakeDeployer
+		fakeDeployer         *fakebmdeployer.FakeDeployer
+		fakeDeploymentRecord *fakebmdeployer.FakeDeploymentRecord
 
 		fakeCpiManifestParser   *fakebmdepl.FakeManifestParser
 		fakeBoshManifestParser  *fakebmdepl.FakeManifestParser
@@ -92,6 +93,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
+		fakeDeploymentRecord = fakebmdeployer.NewFakeDeploymentRecord()
+
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		command = bmcmd.NewDeployCmd(
 			fakeUI,
@@ -103,6 +106,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeCPIInstaller,
 			fakeStemcellExtractor,
 			fakeStemcellManagerFactory,
+			fakeDeploymentRecord,
 			fakeDeployer,
 			fakeEventLogger,
 			logger,
@@ -166,6 +170,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeCPIInstaller,
 						fakeStemcellExtractor,
 						fakeStemcellManagerFactory,
+						fakeDeploymentRecord,
 						fakeDeployer,
 						fakeEventLogger,
 						logger,
@@ -232,6 +237,14 @@ version: fake-version
 						fakeStemcellManager.SetUploadBehavior(expectedExtractedStemcell, expectedCloudStemcell, nil)
 
 						fakeFs.WriteFile(stemcellTarballPath, []byte{})
+
+						fakeDeploymentRecord.SetIsDeployedBehavior(
+							deploymentManifestPath,
+							fakeCPIRelease,
+							expectedExtractedStemcell,
+							false,
+							nil,
+						)
 					})
 
 					It("adds a new event logger stage", func() {
@@ -349,8 +362,8 @@ version: fake-version
 					It("creates a VM", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeDeployer.DeployInput).To(Equal(
-							fakebmdeployer.DeployInput{
+						Expect(fakeDeployer.DeployInputs).To(Equal([]fakebmdeployer.DeployInput{
+							{
 								Cpi:               cloud,
 								Deployment:        boshDeployment,
 								StemcellApplySpec: expectedExtractedStemcell.ApplySpec(),
@@ -359,7 +372,38 @@ version: fake-version
 								MbusURL:           cpiDeployment.Mbus,
 								Stemcell:          expectedCloudStemcell,
 							},
-						))
+						}))
+					})
+
+					It("updates the deployment record", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+						Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdeployer.UpdateInput{
+							{
+								ManifestPath: deploymentManifestPath,
+								Release:      fakeCPIRelease,
+								Stemcell:     expectedExtractedStemcell,
+							},
+						}))
+					})
+
+					Context("when deployment has not changed", func() {
+						BeforeEach(func() {
+							fakeDeploymentRecord.SetIsDeployedBehavior(
+								deploymentManifestPath,
+								fakeCPIRelease,
+								expectedExtractedStemcell,
+								true,
+								nil,
+							)
+						})
+
+						It("skips deploy", func() {
+							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+							Expect(err).NotTo(HaveOccurred())
+							Expect(fakeUI.Said).To(ContainElement("No deployment, stemcell or cpi release changes. Skipping deploy."))
+							Expect(fakeDeployer.DeployInputs).To(BeEmpty())
+						})
 					})
 
 					Context("when parsing the cpi deployment manifest fails", func() {
@@ -496,6 +540,7 @@ version: fake-version
 						fakeCPIInstaller,
 						fakeStemcellExtractor,
 						fakeStemcellManagerFactory,
+						fakeDeploymentRecord,
 						fakeDeployer,
 						fakeEventLogger,
 						logger,
