@@ -220,7 +220,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.logger,
 	)
 
-	deploymentRecord := bmdeployer.NewDeploymentRecord(stemcellRepo)
+	releaseRepo := bmconfig.NewReleaseRepo(f.deploymentConfigService, f.uuidGenerator)
+	deploymentRecord := bmdeployer.NewDeploymentRecord(releaseRepo, stemcellRepo)
 
 	return NewDeployCmd(
 		f.ui,

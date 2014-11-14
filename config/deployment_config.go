@@ -8,8 +8,10 @@ type DeploymentConfig struct {
 	CurrentVMCID      string
 	CurrentStemcellID string
 	CurrentDiskID     string
-	Disks     []DiskRecord
-	Stemcells []StemcellRecord
+	CurrentReleaseID  string
+	Disks             []DiskRecord
+	Stemcells         []StemcellRecord
+	Releases          []ReleaseRecord
 }
 
 func (c DeploymentConfig) BlobstorePath() string {

@@ -102,7 +102,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Upload(expectedExtractedStemcell)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(repo.FindInputs).To(Equal([]fakebmconfig.FindInput{
+			Expect(repo.FindInputs).To(Equal([]fakebmconfig.StemcellRepoFindInput{
 				{
 					Name:    "fake-stemcell-name",
 					Version: "fake-stemcell-version",
@@ -130,7 +130,7 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
-			Expect(repo.SaveInputs).To(Equal([]fakebmconfig.SaveInput{
+			Expect(repo.SaveInputs).To(Equal([]fakebmconfig.StemcellRepoSaveInput{
 				{
 					Name:    "fake-stemcell-name",
 					Version: "fake-stemcell-version",

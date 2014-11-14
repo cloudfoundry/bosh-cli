@@ -9,23 +9,23 @@ import (
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
-type SaveInput struct {
+type StemcellRepoSaveInput struct {
 	Name    string
 	Version string
 	CID     string
 }
 
-type SaveOutput struct {
+type StemcellRepoSaveOutput struct {
 	stemcellRecord bmconfig.StemcellRecord
 	err            error
 }
 
-type FindInput struct {
+type StemcellRepoFindInput struct {
 	Name    string
 	Version string
 }
 
-type FindOutput struct {
+type StemcellRepoFindOutput struct {
 	stemcellRecord bmconfig.StemcellRecord
 	found          bool
 	err            error
@@ -38,10 +38,10 @@ type FindCurrentOutput struct {
 }
 
 type FakeStemcellRepo struct {
-	SaveBehavior map[string]SaveOutput
-	SaveInputs   []SaveInput
-	FindBehavior map[string]FindOutput
-	FindInputs   []FindInput
+	SaveBehavior map[string]StemcellRepoSaveOutput
+	SaveInputs   []StemcellRepoSaveInput
+	FindBehavior map[string]StemcellRepoFindOutput
+	FindInputs   []StemcellRepoFindInput
 
 	UpdateCurrentRecordID string
 	UpdateCurrentErr      error
@@ -51,10 +51,10 @@ type FakeStemcellRepo struct {
 
 func NewFakeStemcellRepo() *FakeStemcellRepo {
 	return &FakeStemcellRepo{
-		FindBehavior: map[string]FindOutput{},
-		FindInputs:   []FindInput{},
-		SaveBehavior: map[string]SaveOutput{},
-		SaveInputs:   []SaveInput{},
+		FindBehavior: map[string]StemcellRepoFindOutput{},
+		FindInputs:   []StemcellRepoFindInput{},
+		SaveBehavior: map[string]StemcellRepoSaveOutput{},
+		SaveInputs:   []StemcellRepoSaveInput{},
 	}
 }
 
@@ -68,7 +68,7 @@ func (fr *FakeStemcellRepo) FindCurrent() (bmconfig.StemcellRecord, bool, error)
 }
 
 func (fr *FakeStemcellRepo) Save(name, version, cid string) (bmconfig.StemcellRecord, error) {
-	input := SaveInput{
+	input := StemcellRepoSaveInput{
 		Name:    name,
 		Version: version,
 		CID:     cid,
@@ -89,7 +89,7 @@ func (fr *FakeStemcellRepo) Save(name, version, cid string) (bmconfig.StemcellRe
 }
 
 func (fr *FakeStemcellRepo) SetSaveBehavior(name, version, cid string, stemcellRecord bmconfig.StemcellRecord, err error) error {
-	input := SaveInput{
+	input := StemcellRepoSaveInput{
 		Name:    name,
 		Version: version,
 		CID:     cid,
@@ -100,7 +100,7 @@ func (fr *FakeStemcellRepo) SetSaveBehavior(name, version, cid string, stemcellR
 		return bosherr.WrapError(marshalErr, "Marshaling Save input")
 	}
 
-	fr.SaveBehavior[inputString] = SaveOutput{
+	fr.SaveBehavior[inputString] = StemcellRepoSaveOutput{
 		stemcellRecord: stemcellRecord,
 		err:            err,
 	}
@@ -109,7 +109,7 @@ func (fr *FakeStemcellRepo) SetSaveBehavior(name, version, cid string, stemcellR
 }
 
 func (fr *FakeStemcellRepo) Find(name, version string) (bmconfig.StemcellRecord, bool, error) {
-	input := FindInput{
+	input := StemcellRepoFindInput{
 		Name:    name,
 		Version: version,
 	}
@@ -129,7 +129,7 @@ func (fr *FakeStemcellRepo) Find(name, version string) (bmconfig.StemcellRecord,
 }
 
 func (fr *FakeStemcellRepo) SetFindBehavior(name, version string, foundRecord bmconfig.StemcellRecord, found bool, err error) error {
-	input := FindInput{
+	input := StemcellRepoFindInput{
 		Name:    name,
 		Version: version,
 	}
@@ -139,7 +139,7 @@ func (fr *FakeStemcellRepo) SetFindBehavior(name, version string, foundRecord bm
 		return bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
 
-	fr.FindBehavior[inputString] = FindOutput{
+	fr.FindBehavior[inputString] = StemcellRepoFindOutput{
 		stemcellRecord: foundRecord,
 		found:          found,
 		err:            err,

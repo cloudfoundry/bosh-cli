@@ -32,6 +32,7 @@ type DeploymentFile struct {
 	CurrentReleaseID  string           `json:"current_release_id"`
 	Disks             []DiskRecord     `json:"disks"`
 	Stemcells         []StemcellRecord `json:"stemcells"`
+	Releases          []ReleaseRecord  `json:"releases"`
 }
 
 func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
@@ -58,8 +59,10 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
 	config.CurrentVMCID = deploymentFile.CurrentVMCID
 	config.CurrentDiskID = deploymentFile.CurrentDiskID
 	config.CurrentStemcellID = deploymentFile.CurrentStemcellID
+	config.CurrentReleaseID = deploymentFile.CurrentReleaseID
 	config.Disks = deploymentFile.Disks
 	config.Stemcells = deploymentFile.Stemcells
+	config.Releases = deploymentFile.Releases
 
 	return config, nil
 }
@@ -70,8 +73,10 @@ func (s fileSystemDeploymentConfigService) Save(config DeploymentConfig) error {
 		CurrentVMCID:      config.CurrentVMCID,
 		CurrentDiskID:     config.CurrentDiskID,
 		CurrentStemcellID: config.CurrentStemcellID,
-		Stemcells:         config.Stemcells,
+		CurrentReleaseID:  config.CurrentReleaseID,
 		Disks:             config.Disks,
+		Stemcells:         config.Stemcells,
+		Releases:          config.Releases,
 	}
 	jsonContent, err := json.MarshalIndent(deploymentFile, "", "    ")
 	if err != nil {
