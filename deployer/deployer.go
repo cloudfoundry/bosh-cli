@@ -30,9 +30,8 @@ type Deployer interface {
 }
 
 type deployer struct {
-	vmManagerFactory   bmvm.ManagerFactory
+	vmDeployer         bmvm.Deployer
 	diskManagerFactory bmdisk.ManagerFactory
-	sshTunnelFactory   bmsshtunnel.Factory
 	registryServer     bmregistry.Server
 	eventLoggerStage   bmeventlog.Stage
 	logger             boshlog.Logger
@@ -40,9 +39,8 @@ type deployer struct {
 }
 
 func NewDeployer(
-	vmManagerFactory bmvm.ManagerFactory,
+	vmDeployer bmvm.Deployer,
 	diskManagerFactory bmdisk.ManagerFactory,
-	sshTunnelFactory bmsshtunnel.Factory,
 	registryServer bmregistry.Server,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
@@ -50,9 +48,8 @@ func NewDeployer(
 	eventLoggerStage := eventLogger.NewStage("deploying")
 
 	return &deployer{
-		vmManagerFactory:   vmManagerFactory,
+		vmDeployer:         vmDeployer,
 		diskManagerFactory: diskManagerFactory,
-		sshTunnelFactory:   sshTunnelFactory,
 		registryServer:     registryServer,
 		eventLoggerStage:   eventLoggerStage,
 		logger:             logger,
@@ -81,14 +78,19 @@ func (m *deployer) Deploy(
 		return bosherr.WrapError(err, "Starting registry")
 	}
 
-	vm, err := m.createVM(cloud, stemcell, deployment, mbusURL)
-	if err != nil {
-		return err
+	sshTunnelOptions := bmsshtunnel.Options{
+		Host:              sshTunnelConfig.Host,
+		Port:              sshTunnelConfig.Port,
+		User:              sshTunnelConfig.User,
+		Password:          sshTunnelConfig.Password,
+		PrivateKey:        sshTunnelConfig.PrivateKey,
+		LocalForwardPort:  registry.Port,
+		RemoteForwardPort: registry.Port,
 	}
 
-	err = m.waitUntilAgentIsReady(vm, sshTunnelConfig, registry)
+	vm, err := m.vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, mbusURL, m.eventLoggerStage)
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Deploying VM")
 	}
 
 	jobName := deployment.Jobs[0].Name
@@ -124,65 +126,6 @@ func (m *deployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error
 	if err != nil {
 		m.logger.Debug(m.logTag, "Registry error occurred: %s", err.Error())
 	}
-}
-
-func (m *deployer) createVM(
-	cloud bmcloud.Cloud,
-	stemcell bmstemcell.CloudStemcell,
-	deployment bmdepl.Deployment,
-	mbusURL string,
-) (bmvm.VM, error) {
-	vmManager := m.vmManagerFactory.NewManager(cloud)
-	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from stemcell '%s'", stemcell.CID))
-	eventStep.Start()
-
-	vm, err := vmManager.Create(stemcell, deployment, mbusURL)
-	if err != nil {
-		eventStep.Fail(err.Error())
-		return nil, bosherr.WrapError(err, "Creating VM")
-	}
-	eventStep.Finish()
-
-	return vm, nil
-}
-
-func (m *deployer) waitUntilAgentIsReady(
-	vm bmvm.VM,
-	sshTunnelConfig bmdepl.SSHTunnel,
-	registry bmdepl.Registry,
-) error {
-	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
-	eventStep.Start()
-
-	sshTunnelOptions := bmsshtunnel.Options{
-		Host:              sshTunnelConfig.Host,
-		Port:              sshTunnelConfig.Port,
-		User:              sshTunnelConfig.User,
-		Password:          sshTunnelConfig.Password,
-		PrivateKey:        sshTunnelConfig.PrivateKey,
-		LocalForwardPort:  registry.Port,
-		RemoteForwardPort: registry.Port,
-	}
-	sshTunnel := m.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
-	sshReadyErrCh := make(chan error)
-	sshErrCh := make(chan error)
-	go sshTunnel.Start(sshReadyErrCh, sshErrCh)
-	defer sshTunnel.Stop()
-
-	err := <-sshReadyErrCh
-	if err != nil {
-		return bosherr.WrapError(err, "Starting SSH tunnel")
-	}
-
-	err = vm.WaitToBeReady(300, 500*time.Millisecond)
-	if err != nil {
-		eventStep.Fail(err.Error())
-		return bosherr.WrapError(err, "Waiting for the vm to be ready")
-	}
-
-	eventStep.Finish()
-
-	return nil
 }
 
 func (m *deployer) startVM(vm bmvm.VM, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment, jobName string) error {

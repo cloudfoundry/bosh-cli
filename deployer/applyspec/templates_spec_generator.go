@@ -18,7 +18,13 @@ import (
 )
 
 type TemplatesSpecGenerator interface {
-	Create(deploymentJob bmdepl.Job, stemcellJob bmstemcell.Job, deploymentName string, properties map[string]interface{}, blobstoreURL string) (TemplatesSpec, error)
+	Create(
+		deploymentJob bmdepl.Job,
+		stemcellJob bmstemcell.Job,
+		deploymentName string,
+		properties map[string]interface{},
+		blobstoreURL string,
+	) (TemplatesSpec, error)
 }
 
 type templatesSpecGenerator struct {
