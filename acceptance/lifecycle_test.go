@@ -108,6 +108,16 @@ Host warden-vm
 		Expect(stdout).To(ContainSubstring("ssh-succeeded"))
 	}
 
+	ItSkipsDeployIfNoChanges := func() {
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+
+		Expect(stdout).To(ContainSubstring("No deployment, stemcell or cpi release changes. Skipping deploy."))
+		Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
+		Expect(stdout).ToNot(ContainSubstring("Started deploying"))
+	}
+
 	It("is able to deploy a CPI release with a stemcell", func() {
 		manifestPath := "./manifest.yml"
 		manifestContents, err := ioutil.ReadFile(manifestPath)
@@ -121,17 +131,33 @@ Host warden-vm
 		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
+
+		Expect(stdout).To(ContainSubstring("Started validating"))
 		Expect(stdout).To(ContainSubstring("Validating deployment manifest"))
 		Expect(stdout).To(ContainSubstring("Validating cpi release"))
 		Expect(stdout).To(ContainSubstring("Validating stemcell"))
-		Expect(stdout).To(ContainSubstring("uploading stemcell"))
+		Expect(stdout).To(ContainSubstring("Done validating"))
+
+		Expect(stdout).To(ContainSubstring("Started compiling packages"))
+		Expect(stdout).To(ContainSubstring("Done compiling packages"))
+
+		Expect(stdout).To(ContainSubstring("Started installing CPI jobs"))
+		Expect(stdout).To(ContainSubstring("Done installing CPI jobs"))
+
+		Expect(stdout).To(ContainSubstring("Started uploading stemcell"))
+		Expect(stdout).To(ContainSubstring("Done uploading stemcell"))
+
+		Expect(stdout).To(ContainSubstring("Started deploying"))
 		Expect(stdout).To(ContainSubstring("Creating VM from stemcell"))
 		Expect(stdout).To(ContainSubstring("Waiting for the agent"))
 		Expect(stdout).To(ContainSubstring("Creating disk"))
 		Expect(stdout).To(ContainSubstring("Attaching disk"))
 		Expect(stdout).To(ContainSubstring("Starting 'bosh'"))
 		Expect(stdout).To(ContainSubstring("Waiting for 'bosh'"))
+		Expect(stdout).To(ContainSubstring("Done deploying"))
 
 		ItSetsSSHPassword("vcap", "sshpassword", "10.244.0.42")
+
+		ItSkipsDeployIfNoChanges()
 	})
 })
