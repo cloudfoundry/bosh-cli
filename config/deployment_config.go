@@ -3,15 +3,16 @@ package config
 import "path"
 
 type DeploymentConfig struct {
-	ContainingDir     string
-	DeploymentUUID    string
-	CurrentVMCID      string
-	CurrentStemcellID string
-	CurrentDiskID     string
-	CurrentReleaseID  string
-	Disks             []DiskRecord
-	Stemcells         []StemcellRecord
-	Releases          []ReleaseRecord
+	ContainingDir       string
+	DeploymentUUID      string
+	CurrentVMCID        string
+	CurrentStemcellID   string
+	CurrentDiskID       string
+	CurrentReleaseID    string
+	CurrentManifestSHA1 string
+	Disks               []DiskRecord
+	Stemcells           []StemcellRecord
+	Releases            []ReleaseRecord
 }
 
 func (c DeploymentConfig) BlobstorePath() string {
