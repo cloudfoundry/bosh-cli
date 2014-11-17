@@ -20,7 +20,7 @@ type FakeVM struct {
 	AttachDiskInputs []AttachDiskInput
 	AttachDiskErr    error
 
-	WaitToBeReadyInputs []WaitInput
+	WaitToBeReadyInputs []WaitToBeReadyInput
 	WaitToBeReadyErr    error
 
 	WaitToBeRunningInputs []WaitInput
@@ -30,6 +30,11 @@ type FakeVM struct {
 type ApplyInput struct {
 	StemcellApplySpec bmstemcell.ApplySpec
 	Deployment        bmdepl.Deployment
+}
+
+type WaitToBeReadyInput struct {
+	Timeout time.Duration
+	Delay   time.Duration
 }
 
 type WaitInput struct {
@@ -44,7 +49,7 @@ type AttachDiskInput struct {
 func NewFakeVM(cid string) *FakeVM {
 	return &FakeVM{
 		ApplyInputs:           []ApplyInput{},
-		WaitToBeReadyInputs:   []WaitInput{},
+		WaitToBeReadyInputs:   []WaitToBeReadyInput{},
 		WaitToBeRunningInputs: []WaitInput{},
 		AttachDiskInputs:      []AttachDiskInput{},
 		cid:                   cid,
@@ -55,10 +60,10 @@ func (i *FakeVM) CID() string {
 	return i.cid
 }
 
-func (i *FakeVM) WaitToBeReady(maxAttempts int, delay time.Duration) error {
-	i.WaitToBeReadyInputs = append(i.WaitToBeReadyInputs, WaitInput{
-		MaxAttempts: maxAttempts,
-		Delay:       delay,
+func (i *FakeVM) WaitToBeReady(timeout time.Duration, delay time.Duration) error {
+	i.WaitToBeReadyInputs = append(i.WaitToBeReadyInputs, WaitToBeReadyInput{
+		Timeout: timeout,
+		Delay:   delay,
 	})
 	return i.WaitToBeReadyErr
 }

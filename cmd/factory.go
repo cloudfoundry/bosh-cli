@@ -197,7 +197,10 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.logger,
 	)
 
+	vmRepo := bmconfig.NewVMRepo(f.deploymentConfigService)
+
 	vmManagerFactory := bmvm.NewManagerFactory(
+		vmRepo,
 		agentClientFactory,
 		f.deploymentConfigService,
 		applySpecFactory,

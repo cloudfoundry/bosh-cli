@@ -10,10 +10,11 @@ import (
 )
 
 type ManagerFactory interface {
-	NewManager(bmcloud.Cloud) Manager
+	NewManager(cloud bmcloud.Cloud, mbusURL string) Manager
 }
 
 type managerFactory struct {
+	vmRepo                  bmconfig.VMRepo
 	agentClientFactory      bmagentclient.Factory
 	deploymentConfigService bmconfig.DeploymentConfigService
 	applySpecFactory        bmas.Factory
@@ -23,6 +24,7 @@ type managerFactory struct {
 }
 
 func NewManagerFactory(
+	vmRepo bmconfig.VMRepo,
 	agentClientFactory bmagentclient.Factory,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	applySpecFactory bmas.Factory,
@@ -31,6 +33,7 @@ func NewManagerFactory(
 	logger boshlog.Logger,
 ) ManagerFactory {
 	return &managerFactory{
+		vmRepo:                  vmRepo,
 		agentClientFactory:      agentClientFactory,
 		deploymentConfigService: deploymentConfigService,
 		applySpecFactory:        applySpecFactory,
@@ -40,9 +43,11 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud, mbusURL string) Manager {
 	return &manager{
 		cloud:                   cloud,
+		mbusURL:                 mbusURL,
+		vmRepo:                  f.vmRepo,
 		agentClientFactory:      f.agentClientFactory,
 		deploymentConfigService: f.deploymentConfigService,
 		applySpecFactory:        f.applySpecFactory,

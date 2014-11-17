@@ -11,7 +11,8 @@ import (
 )
 
 type NewManagerInput struct {
-	Cloud bmcloud.Cloud
+	Cloud   bmcloud.Cloud
+	MbusURL string
 }
 
 type newManagerOutput struct {
@@ -30,9 +31,10 @@ func NewFakeManagerFactory() *FakeManagerFactory {
 	}
 }
 
-func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud) bmvm.Manager {
+func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud, mbusURL string) bmvm.Manager {
 	input := NewManagerInput{
-		Cloud: cloud,
+		Cloud:   cloud,
+		MbusURL: mbusURL,
 	}
 	f.NewManagerInputs = append(f.NewManagerInputs, input)
 
@@ -49,9 +51,10 @@ func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud) bmvm.Manager {
 	return output.manager
 }
 
-func (f *FakeManagerFactory) SetNewManagerBehavior(cloud bmcloud.Cloud, manager bmvm.Manager) {
+func (f *FakeManagerFactory) SetNewManagerBehavior(cloud bmcloud.Cloud, mbusURL string, manager bmvm.Manager) {
 	input := NewManagerInput{
-		Cloud: cloud,
+		Cloud:   cloud,
+		MbusURL: mbusURL,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)

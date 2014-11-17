@@ -9,26 +9,44 @@ import (
 type CreateInput struct {
 	Stemcell   bmstemcell.CloudStemcell
 	Deployment bmdepl.Deployment
-	MbusURL    string
 }
 
 type FakeManager struct {
 	CreateInput CreateInput
 	CreateVM    bmvm.VM
 	CreateErr   error
+
+	findCurrentBehaviour findCurrentOutput
+}
+
+type findCurrentOutput struct {
+	vm    bmvm.VM
+	found bool
+	err   error
 }
 
 func NewFakeManager() *FakeManager {
 	return &FakeManager{}
 }
 
-func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.Deployment, mbusURL string) (bmvm.VM, error) {
+func (m *FakeManager) FindCurrent() (bmvm.VM, bool, error) {
+	return m.findCurrentBehaviour.vm, m.findCurrentBehaviour.found, m.findCurrentBehaviour.err
+}
+
+func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.Deployment) (bmvm.VM, error) {
 	input := CreateInput{
 		Stemcell:   stemcell,
 		Deployment: deployment,
-		MbusURL:    mbusURL,
 	}
 	m.CreateInput = input
 
 	return m.CreateVM, m.CreateErr
+}
+
+func (m *FakeManager) SetFindCurrentBehavior(vm bmvm.VM, found bool, err error) {
+	m.findCurrentBehaviour = findCurrentOutput{
+		vm:    vm,
+		found: found,
+		err:   err,
+	}
 }

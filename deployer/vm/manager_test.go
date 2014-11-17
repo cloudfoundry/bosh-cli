@@ -13,6 +13,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
 
@@ -20,92 +21,96 @@ import (
 )
 
 var _ = Describe("Manager", func() {
-	Describe("CreateVM", func() {
-		var (
-			fakeCloud                  *fakebmcloud.FakeCloud
-			manager                    Manager
-			logger                     boshlog.Logger
-			expectedNetworksSpec       map[string]interface{}
-			expectedCloudProperties    map[string]interface{}
-			expectedEnv                map[string]interface{}
-			deployment                 bmdepl.Deployment
-			configService              bmconfig.DeploymentConfigService
-			fakeAgentClient            *fakebmagentclient.FakeAgentClient
-			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
-			fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
-			stemcell                   bmstemcell.CloudStemcell
-			fs                         *fakesys.FakeFileSystem
-		)
+	var (
+		fakeCloud                  *fakebmcloud.FakeCloud
+		manager                    Manager
+		logger                     boshlog.Logger
+		expectedNetworksSpec       map[string]interface{}
+		expectedCloudProperties    map[string]interface{}
+		expectedEnv                map[string]interface{}
+		deployment                 bmdepl.Deployment
+		configService              bmconfig.DeploymentConfigService
+		fakeVMRepo                 *fakebmconfig.FakeVMRepo
+		fakeAgentClient            *fakebmagentclient.FakeAgentClient
+		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
+		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
+		stemcell                   bmstemcell.CloudStemcell
+		fs                         *fakesys.FakeFileSystem
+	)
 
-		BeforeEach(func() {
-			logger = boshlog.NewLogger(boshlog.LevelNone)
-			fs = fakesys.NewFakeFileSystem()
-			configService = bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
-			fakeCloud = fakebmcloud.NewFakeCloud()
-			fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
-			fakeAgentClientFactory := fakebmagentclient.NewFakeAgentClientFactory()
-			fakeAgentClientFactory.CreateAgentClient = fakeAgentClient
-			fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
-			fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
-			manager = NewManagerFactory(
-				fakeAgentClientFactory,
-				configService,
-				fakeApplySpecFactory,
-				fakeTemplatesSpecGenerator,
-				fs,
-				logger,
-			).NewManager(fakeCloud)
-			fakeCloud.CreateVMCID = "fake-vm-cid"
-			expectedNetworksSpec = map[string]interface{}{
-				"fake-network-name": map[string]interface{}{
-					"type":             "dynamic",
-					"ip":               "fake-micro-ip",
-					"cloud_properties": map[string]interface{}{},
+	BeforeEach(func() {
+		logger = boshlog.NewLogger(boshlog.LevelNone)
+		fs = fakesys.NewFakeFileSystem()
+		configService = bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
+		fakeCloud = fakebmcloud.NewFakeCloud()
+		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
+		fakeAgentClientFactory := fakebmagentclient.NewFakeAgentClientFactory()
+		fakeAgentClientFactory.CreateAgentClient = fakeAgentClient
+		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
+		fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
+		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
+		manager = NewManagerFactory(
+			fakeVMRepo,
+			fakeAgentClientFactory,
+			configService,
+			fakeApplySpecFactory,
+			fakeTemplatesSpecGenerator,
+			fs,
+			logger,
+		).NewManager(fakeCloud, "fake-mbus-url")
+
+		fakeCloud.CreateVMCID = "fake-vm-cid"
+		expectedNetworksSpec = map[string]interface{}{
+			"fake-network-name": map[string]interface{}{
+				"type":             "dynamic",
+				"ip":               "fake-micro-ip",
+				"cloud_properties": map[string]interface{}{},
+			},
+		}
+		expectedCloudProperties = map[string]interface{}{
+			"fake-cloud-property-key": "fake-cloud-property-value",
+		}
+		expectedEnv = map[string]interface{}{
+			"fake-env-key": "fake-env-value",
+		}
+		deployment = bmdepl.Deployment{
+			Name: "fake-deployment",
+			Networks: []bmdepl.Network{
+				{
+					Name: "fake-network-name",
+					Type: "dynamic",
 				},
-			}
-			expectedCloudProperties = map[string]interface{}{
-				"fake-cloud-property-key": "fake-cloud-property-value",
-			}
-			expectedEnv = map[string]interface{}{
-				"fake-env-key": "fake-env-value",
-			}
-			deployment = bmdepl.Deployment{
-				Name: "fake-deployment",
-				Networks: []bmdepl.Network{
-					{
-						Name: "fake-network-name",
-						Type: "dynamic",
+			},
+			ResourcePools: []bmdepl.ResourcePool{
+				{
+					Name: "fake-resource-pool-name",
+					RawCloudProperties: map[interface{}]interface{}{
+						"fake-cloud-property-key": "fake-cloud-property-value",
+					},
+					RawEnv: map[interface{}]interface{}{
+						"fake-env-key": "fake-env-value",
 					},
 				},
-				ResourcePools: []bmdepl.ResourcePool{
-					{
-						Name: "fake-resource-pool-name",
-						RawCloudProperties: map[interface{}]interface{}{
-							"fake-cloud-property-key": "fake-cloud-property-value",
-						},
-						RawEnv: map[interface{}]interface{}{
-							"fake-env-key": "fake-env-value",
-						},
-					},
-				},
-				Jobs: []bmdepl.Job{
-					{
-						Name: "fake-job",
-						Networks: []bmdepl.JobNetwork{
-							{
-								Name:      "fake-network-name",
-								StaticIPs: []string{"fake-micro-ip"},
-							},
+			},
+			Jobs: []bmdepl.Job{
+				{
+					Name: "fake-job",
+					Networks: []bmdepl.JobNetwork{
+						{
+							Name:      "fake-network-name",
+							StaticIPs: []string{"fake-micro-ip"},
 						},
 					},
 				},
-			}
+			},
+		}
 
-			stemcell = bmstemcell.CloudStemcell{CID: "fake-stemcell-cid"}
-		})
+		stemcell = bmstemcell.CloudStemcell{CID: "fake-stemcell-cid"}
+	})
 
+	Describe("Create", func() {
 		It("creates a VM", func() {
-			vm, err := manager.Create(stemcell, deployment, "fake-mbus-url")
+			vm, err := manager.Create(stemcell, deployment)
 			Expect(err).ToNot(HaveOccurred())
 			expectedVM := NewVM(
 				"fake-vm-cid",
@@ -130,7 +135,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("saves the vm record using the config service", func() {
-			_, err := manager.Create(stemcell, deployment, "fake-mbus-url")
+			_, err := manager.Create(stemcell, deployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			deploymentConfig, err := configService.Load()
@@ -148,7 +153,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create(stemcell, deployment, "fake-mbus-url")
+				_, err := manager.Create(stemcell, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 			})

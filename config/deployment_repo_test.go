@@ -55,7 +55,7 @@ var _ = Describe("DeploymentRepo", func() {
 		})
 
 		Context("when a current manifest sha1 is not set", func() {
-			It("returns current manifest sha1", func() {
+			It("returns false", func() {
 				_, found, err := repo.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeFalse())

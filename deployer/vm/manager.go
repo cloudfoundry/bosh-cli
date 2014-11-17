@@ -13,10 +13,13 @@ import (
 )
 
 type Manager interface {
-	Create(bmstemcell.CloudStemcell, bmdepl.Deployment, string) (VM, error)
+	FindCurrent() (VM, bool, error)
+	Create(bmstemcell.CloudStemcell, bmdepl.Deployment) (VM, error)
 }
 
 type manager struct {
+	vmRepo                  bmconfig.VMRepo
+	mbusURL                 string
 	agentClientFactory      bmagentclient.Factory
 	templatesSpecGenerator  bmas.TemplatesSpecGenerator
 	deploymentConfigService bmconfig.DeploymentConfigService
@@ -27,7 +30,31 @@ type manager struct {
 	logTag                  string
 }
 
-func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.Deployment, mbusURL string) (VM, error) {
+func (m *manager) FindCurrent() (VM, bool, error) {
+	vmCID, found, err := m.vmRepo.FindCurrent()
+	if err != nil {
+		return nil, false, bosherr.WrapError(err, "Finding currently deployed vm")
+	}
+
+	if !found {
+		return nil, false, nil
+	}
+
+	vm := NewVM(
+		vmCID,
+		m.agentClient(),
+		m.cloud,
+		m.templatesSpecGenerator,
+		m.applySpecFactory,
+		m.mbusURL,
+		m.fs,
+		m.logger,
+	)
+
+	return vm, true, err
+}
+
+func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.Deployment) (VM, error) {
 	microBoshJobName := deployment.Jobs[0].Name
 	networksSpec, err := deployment.NetworksSpec(microBoshJobName)
 	m.logger.Debug(m.logTag, "Creating VM with network spec: %#v", networksSpec)
@@ -62,17 +89,20 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.De
 		return nil, bosherr.WrapError(err, "Saving deployment config")
 	}
 
-	agentClient := m.agentClientFactory.Create(mbusURL)
 	vm := NewVM(
 		cid,
-		agentClient,
+		m.agentClient(),
 		m.cloud,
 		m.templatesSpecGenerator,
 		m.applySpecFactory,
-		mbusURL,
+		m.mbusURL,
 		m.fs,
 		m.logger,
 	)
 
 	return vm, nil
+}
+
+func (m *manager) agentClient() bmagentclient.AgentClient {
+	return m.agentClientFactory.Create(m.mbusURL)
 }

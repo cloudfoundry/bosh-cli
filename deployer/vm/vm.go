@@ -6,6 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
@@ -18,7 +19,7 @@ import (
 
 type VM interface {
 	CID() string
-	WaitToBeReady(maxAttempts int, delay time.Duration) error
+	WaitToBeReady(timeout time.Duration, delay time.Duration) error
 	Apply(bmstemcell.ApplySpec, bmdepl.Deployment) error
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
@@ -64,9 +65,10 @@ func (vm *vm) CID() string {
 	return vm.cid
 }
 
-func (vm *vm) WaitToBeReady(maxAttempts int, delay time.Duration) error {
+func (vm *vm) WaitToBeReady(timeout time.Duration, delay time.Duration) error {
 	agentPingRetryable := bmagentclient.NewPingRetryable(vm.agentClient)
-	agentPingRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(maxAttempts, delay, agentPingRetryable, vm.logger)
+	timeService := boshtime.NewConcreteService()
+	agentPingRetryStrategy := bmretrystrategy.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, timeService, vm.logger)
 	return agentPingRetryStrategy.Try()
 }
 
