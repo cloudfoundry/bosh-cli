@@ -9,7 +9,7 @@ import (
 )
 
 type Manager interface {
-	Find() (Disk, bool, error)
+	FindCurrent() (Disk, bool, error)
 	Create(bmdepl.DiskPool, string) (Disk, error)
 }
 
@@ -20,7 +20,7 @@ type manager struct {
 	logTag   string
 }
 
-func (m *manager) Find() (Disk, bool, error) {
+func (m *manager) FindCurrent() (Disk, bool, error) {
 	diskRecord, found, err := m.diskRepo.FindCurrent()
 	if err != nil {
 		return nil, false, bosherr.WrapError(err, "Reading disk record")

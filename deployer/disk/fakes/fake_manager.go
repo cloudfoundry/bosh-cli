@@ -10,7 +10,7 @@ type FakeManager struct {
 	CreateDisk   bmdisk.Disk
 	CreateErr    error
 
-	FindOutput FindOutput
+	findCurrentOutput findCurrentOutput
 }
 
 type CreateInput struct {
@@ -18,7 +18,7 @@ type CreateInput struct {
 	InstanceID string
 }
 
-type FindOutput struct {
+type findCurrentOutput struct {
 	Disk  bmdisk.Disk
 	Found bool
 	Err   error
@@ -38,12 +38,12 @@ func (m *FakeManager) Create(diskPool bmdepl.DiskPool, instanceID string) (bmdis
 	return m.CreateDisk, m.CreateErr
 }
 
-func (m *FakeManager) Find() (bmdisk.Disk, bool, error) {
-	return m.FindOutput.Disk, m.FindOutput.Found, m.FindOutput.Err
+func (m *FakeManager) FindCurrent() (bmdisk.Disk, bool, error) {
+	return m.findCurrentOutput.Disk, m.findCurrentOutput.Found, m.findCurrentOutput.Err
 }
 
-func (m *FakeManager) SetFindBehavior(disk bmdisk.Disk, found bool, err error) {
-	m.FindOutput = FindOutput{
+func (m *FakeManager) SetFindCurrentBehavior(disk bmdisk.Disk, found bool, err error) {
+	m.findCurrentOutput = findCurrentOutput{
 		Disk:  disk,
 		Found: found,
 		Err:   err,

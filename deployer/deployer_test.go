@@ -102,7 +102,7 @@ var _ = Describe("Deployer", func() {
 			},
 		}
 
-		fakeDiskManager.SetFindBehavior(nil, false, nil)
+		fakeDiskManager.SetFindCurrentBehavior(nil, false, nil)
 
 		stemcell = bmstemcell.CloudStemcell{
 			CID: "fake-stemcell-cid",
@@ -204,7 +204,7 @@ var _ = Describe("Deployer", func() {
 		Context("when disk already exists", func() {
 			BeforeEach(func() {
 				disk := bmdisk.NewDisk("fake-disk-cid")
-				fakeDiskManager.SetFindBehavior(disk, true, nil)
+				fakeDiskManager.SetFindCurrentBehavior(disk, true, nil)
 			})
 
 			It("does not create disk", func() {

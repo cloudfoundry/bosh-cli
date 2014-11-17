@@ -170,7 +170,7 @@ func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime
 func (m *deployer) createAndAttachDisk(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM) error {
 	diskManager := m.diskManagerFactory.NewManager(cloud)
 
-	disk, found, err := diskManager.Find()
+	disk, found, err := diskManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding existing disk")
 	}
