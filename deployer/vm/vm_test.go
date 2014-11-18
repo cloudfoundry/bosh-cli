@@ -303,4 +303,26 @@ var _ = Describe("VM", func() {
 			})
 		})
 	})
+
+	Describe("Delete", func() {
+		It("deletes vm in the cloud", func() {
+			err := vm.Delete()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeCloud.DeleteVMInput).To(Equal(fakebmcloud.DeleteVMInput{
+				VMCID: "fake-vm-cid",
+			}))
+		})
+
+		Context("when deleting vm in the cloud fails", func() {
+			BeforeEach(func() {
+				fakeCloud.DeleteVMErr = errors.New("fake-delete-vm-error")
+			})
+
+			It("returns an error", func() {
+				err := vm.Delete()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-delete-vm-error"))
+			})
+		})
+	})
 })

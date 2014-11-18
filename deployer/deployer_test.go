@@ -173,7 +173,7 @@ var _ = Describe("Deployer", func() {
 		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVM.StartCalled).To(BeTrue())
+		Expect(fakeVM.StartCalled).To(Equal(1))
 	})
 
 	It("waits until agent reports state as running", func() {

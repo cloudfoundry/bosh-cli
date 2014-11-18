@@ -6,10 +6,16 @@ import (
 )
 
 type Cloud interface {
-	CreateStemcell(map[string]interface{}, string) (string, error)
-	CreateVM(string, map[string]interface{}, map[string]interface{}, map[string]interface{}) (string, error)
-	CreateDisk(int, map[string]interface{}, string) (string, error)
-	AttachDisk(string, string) error
+	CreateStemcell(cloudProperties map[string]interface{}, imagePath string) (stemcellCID string, err error)
+	CreateVM(
+		stemcellCID string,
+		cloudProperties map[string]interface{},
+		networksSpec map[string]interface{},
+		env map[string]interface{},
+	) (vmCID string, err error)
+	DeleteVM(vmCID string) error
+	CreateDisk(size int, cloudProperties map[string]interface{}, vmCID string) (diskCID string, err error)
+	AttachDisk(vmCID, diskCID string) error
 }
 
 type cloud struct {
@@ -74,18 +80,18 @@ func (c cloud) CreateVM(
 	return cidString, nil
 }
 
-func (c cloud) CreateDisk(size int, cloudProperties map[string]interface{}, instanceID string) (string, error) {
+func (c cloud) CreateDisk(size int, cloudProperties map[string]interface{}, vmCID string) (string, error) {
 	c.logger.Debug(c.logTag,
 		"Creating disk with size %d, cloudProperties %#v, instanceID %s",
 		size,
 		cloudProperties,
-		instanceID,
+		vmCID,
 	)
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		"create_disk",
 		size,
 		cloudProperties,
-		instanceID,
+		vmCID,
 	)
 	if err != nil {
 		return "", err
@@ -107,6 +113,19 @@ func (c cloud) AttachDisk(vmCID, diskCID string) error {
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'attach_disk' method")
+	}
+
+	return nil
+}
+
+func (c cloud) DeleteVM(vmCID string) error {
+	c.logger.Debug(c.logTag, "Deleting vm '%s'", vmCID)
+	_, err := c.cpiCmdRunner.Run(
+		"delete_vm",
+		vmCID,
+	)
+	if err != nil {
+		return bosherr.WrapError(err, "Calling CPI 'delete_vm' method")
 	}
 
 	return nil

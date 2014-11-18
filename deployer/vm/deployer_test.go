@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -44,7 +45,9 @@ var _ = Describe("VmDeployer", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
-		vmDeployer = NewDeployer(fakeVMManagerFactory, fakeSSHTunnelFactory)
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+
+		vmDeployer = NewDeployer(fakeVMManagerFactory, fakeSSHTunnelFactory, logger)
 
 		deployment = bmdepl.Deployment{
 			Update: bmdepl.Update{
@@ -100,30 +103,47 @@ var _ = Describe("VmDeployer", func() {
 				}))
 			})
 
+			It("deletes existing vm", func() {
+				vm, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(vm).To(Equal(fakeVM))
+
+				Expect(existingVM.DeleteCalled).To(Equal(1))
+			})
+
 			It("logs start and stop events to the eventLogger", func() {
 				vm, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(vm).To(Equal(fakeVM))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Waiting for the agent on VM 'existing-vm-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
+				Expect(fakeStage.Steps).To(Equal([]*fakebmlog.FakeStep{
+					{
+						Name: "Waiting for the agent on VM 'existing-vm-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
 					},
-				}))
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Creating VM from stemcell 'fake-stemcell-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
+					{
+						Name: "Deleting VM 'existing-vm-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
 					},
-				}))
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Waiting for the agent on VM 'fake-vm-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
+					{
+						Name: "Creating VM from stemcell 'fake-stemcell-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					},
+					{
+						Name: "Waiting for the agent on VM 'fake-vm-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
 					},
 				}))
 			})
@@ -133,10 +153,39 @@ var _ = Describe("VmDeployer", func() {
 					existingVM.WaitToBeReadyErr = errors.New("fake-wait-error")
 				})
 
+				It("logs failed event", func() {
+					_, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Waiting for the agent on VM 'existing-vm-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Failed,
+						},
+						FailMessage: "Agent unreachable: fake-wait-error",
+					}))
+				})
+			})
+
+			Context("when deleting VM fails", func() {
+				BeforeEach(func() {
+					existingVM.DeleteErr = errors.New("fake-delete-error")
+				})
+
 				It("returns an error", func() {
 					_, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
+					Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
+
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Deleting VM 'existing-vm-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Failed,
+						},
+						FailMessage: "Deleting VM: fake-delete-error",
+					}))
 				})
 			})
 		})

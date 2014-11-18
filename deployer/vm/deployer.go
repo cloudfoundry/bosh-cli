@@ -5,6 +5,7 @@ import (
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
@@ -27,15 +28,20 @@ type Deployer interface {
 type vmDeployer struct {
 	vmManagerFactory ManagerFactory
 	sshTunnelFactory bmsshtunnel.Factory
+	logger           boshlog.Logger
+	logTag           string
 }
 
 func NewDeployer(
 	vmManagerFactory ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
+	logger boshlog.Logger,
 ) Deployer {
 	return &vmDeployer{
 		vmManagerFactory: vmManagerFactory,
 		sshTunnelFactory: sshTunnelFactory,
+		logger:           logger,
+		logTag:           "vmDeployer",
 	}
 }
 
@@ -49,29 +55,15 @@ func (d *vmDeployer) Deploy(
 ) (VM, error) {
 	vmManager := d.vmManagerFactory.NewManager(cloud, mbusURL)
 
-	vm, found, err := vmManager.FindCurrent()
+	err := d.deleteExistingVM(vmManager, eventLoggerStage)
 	if err != nil {
-		return vm, bosherr.WrapError(err, "Finding existing VM")
-	}
-
-	if found {
-		eventStep := eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
-		eventStep.Start()
-
-		err = vm.WaitToBeReady(10*time.Second, 500*time.Millisecond)
-		if err != nil {
-			err = bosherr.WrapError(err, "Pinging existing VM")
-			eventStep.Fail(err.Error())
-			return vm, err
-		}
-
-		eventStep.Finish()
+		return nil, err
 	}
 
 	eventStep := eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from stemcell '%s'", stemcell.CID))
 	eventStep.Start()
 
-	vm, err = vmManager.Create(stemcell, deployment)
+	vm, err := vmManager.Create(stemcell, deployment)
 	if err != nil {
 		err = bosherr.WrapError(err, "Creating VM")
 		eventStep.Fail(err.Error())
@@ -92,6 +84,40 @@ func (d *vmDeployer) Deploy(
 	eventStep.Finish()
 
 	return vm, nil
+}
+
+func (d *vmDeployer) deleteExistingVM(vmManager Manager, eventLoggerStage bmeventlog.Stage) error {
+	vm, found, err := vmManager.FindCurrent()
+	if err != nil {
+		return bosherr.WrapError(err, "Finding existing VM")
+	}
+
+	if found {
+		waitingForAgentStep := eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
+		waitingForAgentStep.Start()
+
+		err = vm.WaitToBeReady(10*time.Second, 500*time.Millisecond)
+		if err != nil {
+			err = bosherr.WrapError(err, "Agent unreachable")
+			waitingForAgentStep.Fail(err.Error())
+		} else {
+			waitingForAgentStep.Finish()
+		}
+
+		deleteVMStep := eventLoggerStage.NewStep(fmt.Sprintf("Deleting VM '%s'", vm.CID()))
+		deleteVMStep.Start()
+
+		err = vm.Delete()
+		if err != nil {
+			err = bosherr.WrapError(err, "Deleting VM")
+			deleteVMStep.Fail(err.Error())
+			return err
+		}
+
+		deleteVMStep.Finish()
+	}
+
+	return nil
 }
 
 func (d *vmDeployer) waitUntilAgentIsReady(

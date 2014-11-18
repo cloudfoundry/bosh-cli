@@ -276,4 +276,32 @@ var _ = Describe("Cloud", func() {
 			})
 		})
 	})
+
+	Describe("DeleteVM", func() {
+		Context("when the cpi successfully deletes vm", func() {
+			It("executes the cpi job script with the correct arguments", func() {
+				err := cloud.DeleteVM("fake-vm-cid")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+					Method: "delete_vm",
+					Arguments: []interface{}{
+						"fake-vm-cid",
+					},
+				}))
+			})
+		})
+
+		Context("when the cpi returns an error", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunErr = errors.New("fake-delete-error")
+			})
+
+			It("returns an error", func() {
+				err := cloud.DeleteVM("fake-vm-cid")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
+			})
+		})
+	})
 })

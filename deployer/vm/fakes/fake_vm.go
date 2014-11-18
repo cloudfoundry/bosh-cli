@@ -14,7 +14,7 @@ type FakeVM struct {
 	ApplyInputs []ApplyInput
 	ApplyErr    error
 
-	StartCalled bool
+	StartCalled int
 	StartErr    error
 
 	AttachDiskInputs []AttachDiskInput
@@ -25,6 +25,9 @@ type FakeVM struct {
 
 	WaitToBeRunningInputs []WaitInput
 	WaitToBeRunningErr    error
+
+	DeleteCalled int
+	DeleteErr    error
 }
 
 type ApplyInput struct {
@@ -78,8 +81,7 @@ func (i *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl
 }
 
 func (i *FakeVM) Start() error {
-	i.StartCalled = true
-
+	i.StartCalled++
 	return i.StartErr
 }
 
@@ -97,4 +99,9 @@ func (i *FakeVM) AttachDisk(disk bmdisk.Disk) error {
 	})
 
 	return i.AttachDiskErr
+}
+
+func (i *FakeVM) Delete() error {
+	i.DeleteCalled++
+	return i.DeleteErr
 }

@@ -24,6 +24,7 @@ type VM interface {
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
+	Delete() error
 }
 
 type vm struct {
@@ -148,6 +149,15 @@ func (vm *vm) AttachDisk(disk bmdisk.Disk) error {
 	err = vm.agentClient.MountDisk(disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Mounting disk")
+	}
+
+	return nil
+}
+
+func (vm *vm) Delete() error {
+	err := vm.cloud.DeleteVM(vm.cid)
+	if err != nil {
+		return bosherr.WrapError(err, "Deleting vm in the cloud")
 	}
 
 	return nil

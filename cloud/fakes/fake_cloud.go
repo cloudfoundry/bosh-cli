@@ -15,6 +15,9 @@ type FakeCloud struct {
 
 	AttachDiskInput AttachDiskInput
 	AttachDiskErr   error
+
+	DeleteVMInput DeleteVMInput
+	DeleteVMErr   error
 }
 
 type CreateStemcellInput struct {
@@ -38,6 +41,10 @@ type CreateDiskInput struct {
 type AttachDiskInput struct {
 	VMCID   string
 	DiskCID string
+}
+
+type DeleteVMInput struct {
+	VMCID string
 }
 
 func NewFakeCloud() *FakeCloud {
@@ -91,4 +98,11 @@ func (c *FakeCloud) AttachDisk(vmCID, diskCID string) error {
 		DiskCID: diskCID,
 	}
 	return c.AttachDiskErr
+}
+
+func (c *FakeCloud) DeleteVM(vmCID string) error {
+	c.DeleteVMInput = DeleteVMInput{
+		VMCID: vmCID,
+	}
+	return c.DeleteVMErr
 }
