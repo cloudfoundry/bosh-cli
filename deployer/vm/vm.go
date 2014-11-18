@@ -24,6 +24,7 @@ type VM interface {
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
+	Stop() error
 	Delete() error
 }
 
@@ -152,6 +153,10 @@ func (vm *vm) AttachDisk(disk bmdisk.Disk) error {
 	}
 
 	return nil
+}
+
+func (vm *vm) Stop() error {
+	return vm.agentClient.Stop()
 }
 
 func (vm *vm) Delete() error {

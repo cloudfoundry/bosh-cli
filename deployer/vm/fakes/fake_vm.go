@@ -28,6 +28,9 @@ type FakeVM struct {
 
 	DeleteCalled int
 	DeleteErr    error
+
+	StopCalled int
+	StopErr    error
 }
 
 type ApplyInput struct {
@@ -99,6 +102,11 @@ func (i *FakeVM) AttachDisk(disk bmdisk.Disk) error {
 	})
 
 	return i.AttachDiskErr
+}
+
+func (i *FakeVM) Stop() error {
+	i.StopCalled++
+	return i.StopErr
 }
 
 func (i *FakeVM) Delete() error {

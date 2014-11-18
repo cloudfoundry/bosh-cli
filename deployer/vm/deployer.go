@@ -55,7 +55,8 @@ func (d *vmDeployer) Deploy(
 ) (VM, error) {
 	vmManager := d.vmManagerFactory.NewManager(cloud, mbusURL)
 
-	err := d.deleteExistingVM(vmManager, eventLoggerStage)
+	jobName := deployment.Jobs[0].Name
+	err := d.deleteExistingVM(vmManager, eventLoggerStage, jobName)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +87,7 @@ func (d *vmDeployer) Deploy(
 	return vm, nil
 }
 
-func (d *vmDeployer) deleteExistingVM(vmManager Manager, eventLoggerStage bmeventlog.Stage) error {
+func (d *vmDeployer) deleteExistingVM(vmManager Manager, eventLoggerStage bmeventlog.Stage, jobName string) error {
 	vm, found, err := vmManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding existing VM")
@@ -102,6 +103,17 @@ func (d *vmDeployer) deleteExistingVM(vmManager Manager, eventLoggerStage bmeven
 			waitingForAgentStep.Fail(err.Error())
 		} else {
 			waitingForAgentStep.Finish()
+
+			stopVMStep := eventLoggerStage.NewStep(fmt.Sprintf("Stopping '%s'", jobName))
+			stopVMStep.Start()
+			err = vm.Stop()
+			if err != nil {
+				err = bosherr.WrapError(err, "Stopping VM")
+				stopVMStep.Fail(err.Error())
+				return err
+			}
+			stopVMStep.Finish()
+
 		}
 
 		deleteVMStep := eventLoggerStage.NewStep(fmt.Sprintf("Deleting VM '%s'", vm.CID()))

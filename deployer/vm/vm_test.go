@@ -304,6 +304,26 @@ var _ = Describe("VM", func() {
 		})
 	})
 
+	Describe("Stop", func() {
+		It("stops agent services", func() {
+			err := vm.Stop()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.StopCalled).To(BeTrue())
+		})
+
+		Context("when stopping an agent fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.SetStopBehavior(errors.New("fake-stop-error"))
+			})
+
+			It("returns an error", func() {
+				err := vm.Stop()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
+			})
+		})
+	})
+
 	Describe("Delete", func() {
 		It("deletes vm in the cloud", func() {
 			err := vm.Delete()

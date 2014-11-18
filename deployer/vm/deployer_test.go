@@ -125,6 +125,13 @@ var _ = Describe("VmDeployer", func() {
 						},
 					},
 					{
+						Name: "Stopping 'fake-job-name'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					},
+					{
 						Name: "Deleting VM 'existing-vm-cid'",
 						States: []bmeventlog.EventState{
 							bmeventlog.Started,
@@ -148,7 +155,50 @@ var _ = Describe("VmDeployer", func() {
 				}))
 			})
 
-			Context("when waiting for the agent fails", func() {
+			Context("when agent is responsive", func() {
+				It("logs waiting for the agent event", func() {
+					_, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Waiting for the agent on VM 'existing-vm-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					}))
+				})
+
+				It("stops vm", func() {
+					_, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(existingVM.StopCalled).To(Equal(1))
+				})
+
+				Context("when stopping vm fails", func() {
+					BeforeEach(func() {
+						existingVM.StopErr = errors.New("fake-stop-error")
+					})
+
+					It("returns an error", func() {
+						_, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
+
+						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+							Name: "Stopping 'fake-job-name'",
+							States: []bmeventlog.EventState{
+								bmeventlog.Started,
+								bmeventlog.Failed,
+							},
+							FailMessage: "Stopping VM: fake-stop-error",
+						}))
+					})
+				})
+			})
+
+			Context("when agent fails to respond", func() {
 				BeforeEach(func() {
 					existingVM.WaitToBeReadyErr = errors.New("fake-wait-error")
 				})
