@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -176,6 +177,37 @@ var _ = Describe("VmDeployer", func() {
 					Expect(existingVM.StopCalled).To(Equal(1))
 				})
 
+				It("unmounts vm disks", func() {
+					existingVM.ListDisksDisks = []bmdisk.Disk{bmdisk.NewDisk("fake-disk-1"), bmdisk.NewDisk("fake-disk-2")}
+
+					_, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(existingVM.UnmountDiskInputs).To(Equal([]fakebmvm.UnmountDiskInput{
+						{
+							Disk: bmdisk.NewDisk("fake-disk-1"),
+						},
+						{
+							Disk: bmdisk.NewDisk("fake-disk-2"),
+						},
+					}))
+
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Unmounting disk 'fake-disk-1'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					}))
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Unmounting disk 'fake-disk-2'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					}))
+				})
+
 				Context("when stopping vm fails", func() {
 					BeforeEach(func() {
 						existingVM.StopErr = errors.New("fake-stop-error")
@@ -193,6 +225,28 @@ var _ = Describe("VmDeployer", func() {
 								bmeventlog.Failed,
 							},
 							FailMessage: "Stopping VM: fake-stop-error",
+						}))
+					})
+				})
+
+				Context("when unmounting disk fails", func() {
+					BeforeEach(func() {
+						existingVM.ListDisksDisks = []bmdisk.Disk{bmdisk.NewDisk("fake-disk")}
+						existingVM.UnmountDiskErr = errors.New("fake-unmount-error")
+					})
+
+					It("returns an error", func() {
+						_, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-unmount-error"))
+
+						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+							Name: "Unmounting disk 'fake-disk'",
+							States: []bmeventlog.EventState{
+								bmeventlog.Started,
+								bmeventlog.Failed,
+							},
+							FailMessage: "Unmounting disk 'fake-disk' from VM 'existing-vm-cid': fake-unmount-error",
 						}))
 					})
 				})

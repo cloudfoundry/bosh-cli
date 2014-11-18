@@ -18,6 +18,7 @@ type AgentClient interface {
 	Start() error
 	GetState() (State, error)
 	MountDisk(string) error
+	UnmountDisk(string) error
 	ListDisk() ([]string, error)
 }
 
@@ -100,6 +101,10 @@ func (c *agentClient) ListDisk() ([]string, error) {
 
 func (c *agentClient) MountDisk(diskCID string) error {
 	return c.sendAsyncTaskMessage("mount_disk", []interface{}{diskCID})
+}
+
+func (c *agentClient) UnmountDisk(diskCID string) error {
+	return c.sendAsyncTaskMessage("unmount_disk", []interface{}{diskCID})
 }
 
 func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) error {

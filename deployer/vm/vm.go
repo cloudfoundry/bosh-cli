@@ -25,6 +25,8 @@ type VM interface {
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
 	Stop() error
+	Disks() ([]bmdisk.Disk, error)
+	UnmountDisk(bmdisk.Disk) error
 	Delete() error
 }
 
@@ -157,6 +159,25 @@ func (vm *vm) AttachDisk(disk bmdisk.Disk) error {
 
 func (vm *vm) Stop() error {
 	return vm.agentClient.Stop()
+}
+
+func (vm *vm) Disks() ([]bmdisk.Disk, error) {
+	result := []bmdisk.Disk{}
+
+	disks, err := vm.agentClient.ListDisk()
+	if err != nil {
+		return result, bosherr.WrapError(err, "Listing vm disks")
+	}
+
+	for _, diskCID := range disks {
+		result = append(result, bmdisk.NewDisk(diskCID))
+	}
+
+	return result, nil
+}
+
+func (vm *vm) UnmountDisk(disk bmdisk.Disk) error {
+	return vm.agentClient.UnmountDisk(disk.CID())
 }
 
 func (vm *vm) Delete() error {

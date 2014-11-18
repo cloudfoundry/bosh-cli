@@ -114,6 +114,22 @@ func (d *vmDeployer) deleteExistingVM(vmManager Manager, eventLoggerStage bmeven
 			}
 			stopVMStep.Finish()
 
+			disks, err := vm.Disks()
+			if err != nil {
+				return bosherr.WrapError(err, "Getting VM '%s' disks", vm.CID())
+			}
+
+			for _, disk := range disks {
+				unmountDiskStep := eventLoggerStage.NewStep(fmt.Sprintf("Unmounting disk '%s'", disk.CID()))
+				unmountDiskStep.Start()
+				err = vm.UnmountDisk(disk)
+				if err != nil {
+					err = bosherr.WrapError(err, "Unmounting disk '%s' from VM '%s'", disk.CID(), vm.CID())
+					unmountDiskStep.Fail(err.Error())
+					return err
+				}
+				unmountDiskStep.Finish()
+			}
 		}
 
 		deleteVMStep := eventLoggerStage.NewStep(fmt.Sprintf("Deleting VM '%s'", vm.CID()))

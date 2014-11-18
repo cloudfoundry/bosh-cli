@@ -31,6 +31,12 @@ type FakeVM struct {
 
 	StopCalled int
 	StopErr    error
+
+	ListDisksDisks []bmdisk.Disk
+	ListDisksErr   error
+
+	UnmountDiskInputs []UnmountDiskInput
+	UnmountDiskErr    error
 }
 
 type ApplyInput struct {
@@ -52,12 +58,17 @@ type AttachDiskInput struct {
 	Disk bmdisk.Disk
 }
 
+type UnmountDiskInput struct {
+	Disk bmdisk.Disk
+}
+
 func NewFakeVM(cid string) *FakeVM {
 	return &FakeVM{
 		ApplyInputs:           []ApplyInput{},
 		WaitToBeReadyInputs:   []WaitToBeReadyInput{},
 		WaitToBeRunningInputs: []WaitInput{},
 		AttachDiskInputs:      []AttachDiskInput{},
+		UnmountDiskInputs:     []UnmountDiskInput{},
 		cid:                   cid,
 	}
 }
@@ -104,9 +115,21 @@ func (i *FakeVM) AttachDisk(disk bmdisk.Disk) error {
 	return i.AttachDiskErr
 }
 
+func (i *FakeVM) UnmountDisk(disk bmdisk.Disk) error {
+	i.UnmountDiskInputs = append(i.UnmountDiskInputs, UnmountDiskInput{
+		Disk: disk,
+	})
+
+	return i.UnmountDiskErr
+}
+
 func (i *FakeVM) Stop() error {
 	i.StopCalled++
 	return i.StopErr
+}
+
+func (i *FakeVM) Disks() ([]bmdisk.Disk, error) {
+	return i.ListDisksDisks, i.ListDisksErr
 }
 
 func (i *FakeVM) Delete() error {

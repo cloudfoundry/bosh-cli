@@ -304,6 +304,32 @@ var _ = Describe("VM", func() {
 		})
 	})
 
+	Describe("UnmountDisk", func() {
+		var disk bmdisk.Disk
+
+		BeforeEach(func() {
+			disk = bmdisk.NewDisk("fake-disk-cid")
+		})
+
+		It("sends unmount disk to the agent", func() {
+			err := vm.UnmountDisk(disk)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.UnmountDiskCID).To(Equal("fake-disk-cid"))
+		})
+
+		Context("when unmounting disk fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.SetUnmountDiskBehavior(errors.New("fake-unmount-error"))
+			})
+
+			It("returns an error", func() {
+				err := vm.UnmountDisk(disk)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-unmount-error"))
+			})
+		})
+	})
+
 	Describe("Stop", func() {
 		It("stops agent services", func() {
 			err := vm.Stop()
@@ -320,6 +346,30 @@ var _ = Describe("VM", func() {
 				err := vm.Stop()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
+			})
+		})
+	})
+
+	Describe("Disks", func() {
+		BeforeEach(func() {
+			fakeAgentClient.SetListDiskBehavior([]string{"fake-disk-1", "fake-disk-2"}, nil)
+		})
+
+		It("returns disks that are reported by the agent", func() {
+			disks, err := vm.Disks()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(disks).To(Equal([]bmdisk.Disk{bmdisk.NewDisk("fake-disk-1"), bmdisk.NewDisk("fake-disk-2")}))
+		})
+
+		Context("when listing disks fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.SetListDiskBehavior([]string{}, errors.New("fake-list-disk-error"))
+			})
+
+			It("returns an error", func() {
+				_, err := vm.Disks()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-list-disk-error"))
 			})
 		})
 	})
