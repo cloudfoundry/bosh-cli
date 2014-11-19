@@ -7,14 +7,11 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
-var _ = Describe("Config", func() {
+var _ = Describe("DeploymentWorkspace", func() {
 	Describe("Paths", func() {
-		var c DeploymentConfig
+		var c DeploymentWorkspace
 		BeforeEach(func() {
-			c = DeploymentConfig{
-				ContainingDir:  "/home/fake",
-				DeploymentUUID: "madcow",
-			}
+			c = NewDeploymentWorkspace("/home/fake", "madcow")
 		})
 
 		It("returns the blobstore path", func() {

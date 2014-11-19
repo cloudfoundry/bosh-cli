@@ -142,7 +142,7 @@ var _ = Describe("Manager", func() {
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := bmconfig.DeploymentConfig{
+			expectedConfig := bmconfig.DeploymentFile{
 				CurrentVMCID: "fake-vm-cid",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))

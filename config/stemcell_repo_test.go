@@ -36,7 +36,7 @@ var _ = Describe("StemcellRepo", func() {
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentConfig{
+			expectedConfig := DeploymentFile{
 				Stemcells: []StemcellRecord{
 					{
 						ID:      "fake-uuid",

@@ -40,7 +40,7 @@ var _ = Describe("DiskRepo", func() {
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentConfig{
+			expectedConfig := DeploymentFile{
 				Disks: []DiskRecord{
 					{
 						ID:  "fake-guid-1",

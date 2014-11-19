@@ -46,7 +46,8 @@ type factory struct {
 	commands                map[string](func() (Cmd, error))
 	userConfig              bmconfig.UserConfig
 	userConfigService       bmconfig.UserConfigService
-	deploymentConfig        bmconfig.DeploymentConfig
+	deploymentFile          bmconfig.DeploymentFile
+	deploymentWorkspace     bmconfig.DeploymentWorkspace
 	deploymentConfigService bmconfig.DeploymentConfigService
 	fs                      boshsys.FileSystem
 	ui                      bmui.UI
@@ -94,7 +95,7 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 		f.ui,
 		f.userConfig,
 		f.userConfigService,
-		f.deploymentConfig,
+		f.deploymentFile,
 		f.fs,
 		f.uuidGenerator,
 		f.logger,
@@ -114,11 +115,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	)
 
 	compressor := boshcmd.NewTarballCompressor(runner, f.fs)
-	indexFilePath := f.deploymentConfig.CompiledPackagedIndexPath()
+	indexFilePath := f.deploymentWorkspace.CompiledPackagedIndexPath()
 	compiledPackageIndex := bmindex.NewFileIndex(indexFilePath, f.fs)
 	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(compiledPackageIndex)
 
-	options := map[string]interface{}{"blobstore_path": f.deploymentConfig.BlobstorePath()}
+	options := map[string]interface{}{"blobstore_path": f.deploymentWorkspace.BlobstorePath()}
 	blobstore := boshblob.NewSHA1VerifiableBlobstore(
 		boshblob.NewLocalBlobstore(f.fs, f.uuidGenerator, options),
 	)
@@ -126,7 +127,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	packageInstaller := bmcpiinstall.NewPackageInstaller(compiledPackageRepo, blobExtractor)
 	packageCompiler := bmcomp.NewPackageCompiler(
 		runner,
-		f.deploymentConfig.PackagesPath(),
+		f.deploymentWorkspace.PackagesPath(),
 		f.fs,
 		compressor,
 		blobstore,
@@ -152,7 +153,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
 	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
 	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
-	templatesIndex := bmindex.NewFileIndex(f.deploymentConfig.TemplatesIndexPath(), f.fs)
+	templatesIndex := bmindex.NewFileIndex(f.deploymentWorkspace.TemplatesIndexPath(), f.fs)
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(jobRenderer, compressor, blobstore, templatesRepo, f.fs, f.logger)
 	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
@@ -161,12 +162,12 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		packageInstaller,
 		blobExtractor,
 		templatesRepo,
-		f.deploymentConfig.JobsPath(),
-		f.deploymentConfig.PackagesPath(),
+		f.deploymentWorkspace.JobsPath(),
+		f.deploymentWorkspace.PackagesPath(),
 		eventLogger,
 		timeService,
 	)
-	cloudFactory := bmcloud.NewFactory(f.fs, runner, f.deploymentConfig, f.logger)
+	cloudFactory := bmcloud.NewFactory(f.fs, runner, f.deploymentWorkspace, f.logger)
 	cpiInstaller := bmcpi.NewInstaller(
 		f.ui,
 		f.fs,
@@ -182,7 +183,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)
 	stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 
-	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentConfig.DeploymentUUID, 1*time.Second, f.logger)
+	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
 	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
 	applySpecFactory := bmas.NewFactory()
@@ -251,10 +252,10 @@ func (f *factory) loadDeploymentConfig() error {
 		f.logger,
 	)
 	var err error
-	f.deploymentConfig, err = f.deploymentConfigService.Load()
+	f.deploymentFile, err = f.deploymentConfigService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
-	f.deploymentConfig.ContainingDir = f.workspace
+	f.deploymentWorkspace = bmconfig.NewDeploymentWorkspace(f.workspace, f.deploymentFile.UUID)
 	return nil
 }

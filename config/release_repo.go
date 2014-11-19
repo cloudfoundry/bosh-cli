@@ -5,12 +5,6 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 )
 
-type ReleaseRecord struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Version string `json:"version"`
-}
-
 // ReleaseRepo persists releases metadata
 type ReleaseRepo interface {
 	UpdateCurrent(recordID string) error

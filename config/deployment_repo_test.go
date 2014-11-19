@@ -32,7 +32,7 @@ var _ = Describe("DeploymentRepo", func() {
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentConfig{
+			expectedConfig := DeploymentFile{
 				CurrentManifestSHA1: "fake-manifest-sha1",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))

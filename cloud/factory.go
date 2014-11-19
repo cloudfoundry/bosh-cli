@@ -18,18 +18,18 @@ type Factory interface {
 }
 
 type factory struct {
-	fs        boshsys.FileSystem
-	cmdRunner boshsys.CmdRunner
-	config    bmconfig.DeploymentConfig
-	logger    boshlog.Logger
+	fs                  boshsys.FileSystem
+	cmdRunner           boshsys.CmdRunner
+	deploymentWorkspace bmconfig.DeploymentWorkspace
+	logger              boshlog.Logger
 }
 
-func NewFactory(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, config bmconfig.DeploymentConfig, logger boshlog.Logger) Factory {
+func NewFactory(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, deploymentWorkspace bmconfig.DeploymentWorkspace, logger boshlog.Logger) Factory {
 	return &factory{
-		fs:        fs,
-		cmdRunner: cmdRunner,
-		config:    config,
-		logger:    logger,
+		fs:                  fs,
+		cmdRunner:           cmdRunner,
+		deploymentWorkspace: deploymentWorkspace,
+		logger:              logger,
 	}
 }
 
@@ -42,12 +42,12 @@ func (f *factory) NewCloud(jobs []bmcpiinstall.InstalledJob) (Cloud, error) {
 
 	cpiJob := CPIJob{
 		JobPath:     installedCPIJob.Path,
-		JobsDir:     f.config.JobsPath(),
-		PackagesDir: f.config.PackagesPath(),
+		JobsDir:     f.deploymentWorkspace.JobsPath(),
+		PackagesDir: f.deploymentWorkspace.PackagesPath(),
 	}
 
-	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpiJob, f.config.DeploymentUUID, f.logger)
-	return NewCloud(cpiCmdRunner, f.config.DeploymentUUID, f.logger), nil
+	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpiJob, f.deploymentWorkspace.DeploymentUUID(), f.logger)
+	return NewCloud(cpiCmdRunner, f.deploymentWorkspace.DeploymentUUID(), f.logger), nil
 }
 
 func (f *factory) findCPIJob(jobs []bmcpiinstall.InstalledJob) (cpiJob bmcpiinstall.InstalledJob, found bool) {

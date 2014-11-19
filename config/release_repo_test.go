@@ -36,7 +36,7 @@ var _ = Describe("ReleaseRepo", func() {
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentConfig{
+			expectedConfig := DeploymentFile{
 				Releases: []ReleaseRecord{
 					{
 						ID:      "fake-uuid",

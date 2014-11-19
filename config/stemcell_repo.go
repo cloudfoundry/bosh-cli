@@ -5,13 +5,6 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 )
 
-type StemcellRecord struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	CID     string `json:"cid"`
-}
-
 // StemcellRepo persists stemcells metadata
 type StemcellRepo interface {
 	UpdateCurrent(recordID string) error

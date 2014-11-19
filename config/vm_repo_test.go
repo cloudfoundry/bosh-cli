@@ -56,7 +56,7 @@ var _ = Describe("VMRepo", func() {
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentConfig{
+			expectedConfig := DeploymentFile{
 				CurrentVMCID: "fake-vm-cid",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))
@@ -71,7 +71,7 @@ var _ = Describe("VMRepo", func() {
 			deploymentConfig, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentConfig{
+			expectedConfig := DeploymentFile{
 				CurrentVMCID: "",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))

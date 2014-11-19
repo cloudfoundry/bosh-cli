@@ -5,11 +5,6 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 )
 
-type DiskRecord struct {
-	ID  string `json:"id"`
-	CID string `json:"cid"`
-}
-
 type DiskRepo interface {
 	UpdateCurrent(diskID string) error
 	FindCurrent() (DiskRecord, bool, error)

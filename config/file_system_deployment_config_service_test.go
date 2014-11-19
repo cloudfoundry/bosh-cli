@@ -55,20 +55,20 @@ var _ = Describe("fileSystemConfigService", func() {
 			})
 			fakeFs.WriteFile(deploymentFilePath, deploymentFileContents)
 
-			config, err := service.Load()
+			deploymentFile, err := service.Load()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(config.DeploymentUUID).To(Equal("deadbeef"))
-			Expect(config.Stemcells).To(Equal(stemcells))
-			Expect(config.CurrentVMCID).To(Equal("fake-vm-cid"))
-			Expect(config.CurrentDiskID).To(Equal("fake-disk-id"))
-			Expect(config.Disks).To(Equal(disks))
+			Expect(deploymentFile.UUID).To(Equal("deadbeef"))
+			Expect(deploymentFile.Stemcells).To(Equal(stemcells))
+			Expect(deploymentFile.CurrentVMCID).To(Equal("fake-vm-cid"))
+			Expect(deploymentFile.CurrentDiskID).To(Equal("fake-disk-id"))
+			Expect(deploymentFile.Disks).To(Equal(disks))
 		})
 
 		Context("when the config does not exist", func() {
 			It("returns an empty DeploymentConfig", func() {
 				config, err := service.Load()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(config).To(Equal(DeploymentConfig{}))
+				Expect(config).To(Equal(DeploymentFile{}))
 			})
 		})
 
@@ -91,15 +91,15 @@ var _ = Describe("fileSystemConfigService", func() {
 				config, err := service.Load()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Unmarshalling deployment config file `/some/deployment.json'"))
-				Expect(config).To(Equal(DeploymentConfig{}))
+				Expect(config).To(Equal(DeploymentFile{}))
 			})
 		})
 	})
 
 	Describe("Save", func() {
 		It("writes the deployment config to the deployment file", func() {
-			config := DeploymentConfig{
-				DeploymentUUID: "deadbeef",
+			config := DeploymentFile{
+				UUID: "deadbeef",
 				Stemcells: []StemcellRecord{
 					{
 						Name:    "fake-stemcell-name",
@@ -145,7 +145,7 @@ var _ = Describe("fileSystemConfigService", func() {
 			})
 
 			It("returns an error when it cannot write the config file", func() {
-				config := DeploymentConfig{
+				config := DeploymentFile{
 					Stemcells: []StemcellRecord{},
 				}
 				err := service.Save(config)

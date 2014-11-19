@@ -24,28 +24,14 @@ func NewFileSystemDeploymentConfigService(configPath string, fs boshsys.FileSyst
 	}
 }
 
-type DeploymentFile struct {
-	UUID                string           `json:"uuid"`
-	CurrentVMCID        string           `json:"current_vm_cid"`
-	CurrentStemcellID   string           `json:"current_stemcell_id"`
-	CurrentDiskID       string           `json:"current_disk_id"`
-	CurrentReleaseID    string           `json:"current_release_id"`
-	CurrentManifestSHA1 string           `json:"current_manifest_sha1"`
-	Disks               []DiskRecord     `json:"disks"`
-	Stemcells           []StemcellRecord `json:"stemcells"`
-	Releases            []ReleaseRecord  `json:"releases"`
-}
-
-func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
-	config := DeploymentConfig{}
-
+func (s fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {
 	if !s.fs.FileExists(s.configPath) {
-		return config, nil
+		return DeploymentFile{}, nil
 	}
 
 	deploymentFileContents, err := s.fs.ReadFile(s.configPath)
 	if err != nil {
-		return config, bosherr.WrapError(err, "Reading deployment config file `%s'", s.configPath)
+		return DeploymentFile{}, bosherr.WrapError(err, "Reading deployment config file `%s'", s.configPath)
 	}
 	s.logger.Debug(s.logTag, "Deployment File Contents %#s", deploymentFileContents)
 
@@ -53,34 +39,13 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentConfig, error) {
 
 	err = json.Unmarshal(deploymentFileContents, &deploymentFile)
 	if err != nil {
-		return config, bosherr.WrapError(err, "Unmarshalling deployment config file `%s'", s.configPath)
+		return DeploymentFile{}, bosherr.WrapError(err, "Unmarshalling deployment config file `%s'", s.configPath)
 	}
 
-	config.DeploymentUUID = deploymentFile.UUID
-	config.CurrentVMCID = deploymentFile.CurrentVMCID
-	config.CurrentDiskID = deploymentFile.CurrentDiskID
-	config.CurrentStemcellID = deploymentFile.CurrentStemcellID
-	config.CurrentReleaseID = deploymentFile.CurrentReleaseID
-	config.CurrentManifestSHA1 = deploymentFile.CurrentManifestSHA1
-	config.Disks = deploymentFile.Disks
-	config.Stemcells = deploymentFile.Stemcells
-	config.Releases = deploymentFile.Releases
-
-	return config, nil
+	return deploymentFile, nil
 }
 
-func (s fileSystemDeploymentConfigService) Save(config DeploymentConfig) error {
-	deploymentFile := DeploymentFile{
-		UUID:                config.DeploymentUUID,
-		CurrentVMCID:        config.CurrentVMCID,
-		CurrentDiskID:       config.CurrentDiskID,
-		CurrentStemcellID:   config.CurrentStemcellID,
-		CurrentReleaseID:    config.CurrentReleaseID,
-		CurrentManifestSHA1: config.CurrentManifestSHA1,
-		Disks:               config.Disks,
-		Stemcells:           config.Stemcells,
-		Releases:            config.Releases,
-	}
+func (s fileSystemDeploymentConfigService) Save(deploymentFile DeploymentFile) error {
 	jsonContent, err := json.MarshalIndent(deploymentFile, "", "    ")
 	if err != nil {
 		return bosherr.WrapError(err, "Marshalling deployment config into JSON")

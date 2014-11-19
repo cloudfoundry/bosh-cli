@@ -19,7 +19,7 @@ type deploymentCmd struct {
 	ui                bmui.UI
 	userConfig        bmconfig.UserConfig
 	userConfigService bmconfig.UserConfigService
-	deploymentConfig  bmconfig.DeploymentConfig
+	deploymentFile    bmconfig.DeploymentFile
 	fs                boshsys.FileSystem
 	uuidGenerator     boshuuid.Generator
 	logger            boshlog.Logger
@@ -30,7 +30,7 @@ func NewDeploymentCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	userConfigService bmconfig.UserConfigService,
-	deploymentConfig bmconfig.DeploymentConfig,
+	deploymentFile bmconfig.DeploymentFile,
 	fs boshsys.FileSystem,
 	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
@@ -39,7 +39,7 @@ func NewDeploymentCmd(
 		ui:                ui,
 		userConfig:        userConfig,
 		userConfigService: userConfigService,
-		deploymentConfig:  deploymentConfig,
+		deploymentFile:    deploymentFile,
 		fs:                fs,
 		uuidGenerator:     uuidGenerator,
 		logger:            logger,
@@ -95,20 +95,20 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		c.fs,
 		c.logger,
 	)
-	c.deploymentConfig, err = deploymentConfigService.Load()
+	c.deploymentFile, err = deploymentConfigService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Reading existing deployment config")
 	}
 
-	if c.deploymentConfig.DeploymentUUID == "" {
+	if c.deploymentFile.UUID == "" {
 		uuid, err := c.uuidGenerator.Generate()
 		if err != nil {
 			return bosherr.WrapError(err, "UUID Generation failed")
 		}
-		c.deploymentConfig.DeploymentUUID = uuid
+		c.deploymentFile.UUID = uuid
 
-		c.logger.Debug(c.logTag, "Config %#v", c.deploymentConfig)
-		err = deploymentConfigService.Save(c.deploymentConfig)
+		c.logger.Debug(c.logTag, "Config %#v", c.deploymentFile)
+		err = deploymentConfigService.Save(c.deploymentFile)
 		if err != nil {
 			return bosherr.WrapError(err, "Saving deployment config")
 		}

@@ -24,7 +24,7 @@ import (
 var _ = Describe("DeploymentCmd", func() {
 	var (
 		command           Cmd
-		deploymentConfig  bmconfig.DeploymentConfig
+		deploymentFile    bmconfig.DeploymentFile
 		userConfig        bmconfig.UserConfig
 		userConfigService bmconfig.UserConfigService
 		manifestPath      string
@@ -40,15 +40,13 @@ var _ = Describe("DeploymentCmd", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fakeFs, logger)
 		fakeUUID = &fakeuuid.FakeGenerator{}
-		deploymentConfig = bmconfig.DeploymentConfig{
-			ContainingDir: "/fake-path",
-		}
+		deploymentFile = bmconfig.DeploymentFile{}
 
 		command = NewDeploymentCmd(
 			fakeUI,
 			userConfig,
 			userConfigService,
-			deploymentConfig,
+			deploymentFile,
 			fakeFs,
 			fakeUUID,
 			logger,
@@ -116,7 +114,7 @@ var _ = Describe("DeploymentCmd", func() {
 					deploymentConfig, err := deploymentConfigService.Load()
 					Expect(err).NotTo(HaveOccurred())
 
-					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentConfig{DeploymentUUID: "abc123"}))
+					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{UUID: "abc123"}))
 				})
 
 				It("reuses the existing deployment config if it exists", func() {
@@ -126,7 +124,7 @@ var _ = Describe("DeploymentCmd", func() {
 						fakeFs,
 						logger,
 					)
-					deploymentConfigService.Save(bmconfig.DeploymentConfig{DeploymentUUID: "def456"})
+					deploymentConfigService.Save(bmconfig.DeploymentFile{UUID: "def456"})
 
 					err := command.Run([]string{manifestPath})
 					Expect(err).NotTo(HaveOccurred())
@@ -134,7 +132,7 @@ var _ = Describe("DeploymentCmd", func() {
 					deploymentConfig, err := deploymentConfigService.Load()
 					Expect(err).NotTo(HaveOccurred())
 
-					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentConfig{DeploymentUUID: "def456"}))
+					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{UUID: "def456"}))
 				})
 			})
 
@@ -155,7 +153,7 @@ var _ = Describe("DeploymentCmd", func() {
 					command = NewDeploymentCmd(fakeUI,
 						userConfig,
 						userConfigService,
-						deploymentConfig,
+						deploymentFile,
 						fakeFs,
 						fakeUUID,
 						logger,
