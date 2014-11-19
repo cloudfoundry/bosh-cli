@@ -9,6 +9,7 @@ import (
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
@@ -32,6 +33,7 @@ type VM interface {
 
 type vm struct {
 	cid                    string
+	vmRepo                 bmconfig.VMRepo
 	agentClient            bmagentclient.AgentClient
 	cloud                  bmcloud.Cloud
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
@@ -44,6 +46,7 @@ type vm struct {
 
 func NewVM(
 	cid string,
+	vmRepo bmconfig.VMRepo,
 	agentClient bmagentclient.AgentClient,
 	cloud bmcloud.Cloud,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
@@ -54,6 +57,7 @@ func NewVM(
 ) VM {
 	return &vm{
 		cid:         cid,
+		vmRepo:      vmRepo,
 		agentClient: agentClient,
 		cloud:       cloud,
 		templatesSpecGenerator: templatesSpecGenerator,
@@ -184,6 +188,11 @@ func (vm *vm) Delete() error {
 	err := vm.cloud.DeleteVM(vm.cid)
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting vm in the cloud")
+	}
+
+	err = vm.vmRepo.DeleteCurrent()
+	if err != nil {
+		return bosherr.WrapError(err, "Deleting vm from vm repo")
 	}
 
 	return nil

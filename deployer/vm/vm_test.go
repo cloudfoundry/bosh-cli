@@ -8,6 +8,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
 
@@ -24,6 +25,7 @@ import (
 var _ = Describe("VM", func() {
 	var (
 		vm                         VM
+		fakeVMRepo                 *fakebmconfig.FakeVMRepo
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeCloud                  *fakebmcloud.FakeCloud
 		applySpec                  bmstemcell.ApplySpec
@@ -120,8 +122,10 @@ var _ = Describe("VM", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebmcloud.NewFakeCloud()
+		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
 		vm = NewVM(
 			"fake-vm-cid",
+			fakeVMRepo,
 			fakeAgentClient,
 			fakeCloud,
 			fakeTemplatesSpecGenerator,
@@ -381,6 +385,12 @@ var _ = Describe("VM", func() {
 			Expect(fakeCloud.DeleteVMInput).To(Equal(fakebmcloud.DeleteVMInput{
 				VMCID: "fake-vm-cid",
 			}))
+		})
+
+		It("deletes VM in the vm repo", func() {
+			err := vm.Delete()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeVMRepo.DeleteCurrentCalled).To(BeTrue())
 		})
 
 		Context("when deleting vm in the cloud fails", func() {

@@ -42,6 +42,7 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 
 	vm := NewVM(
 		vmCID,
+		m.vmRepo,
 		m.agentClient(),
 		m.cloud,
 		m.templatesSpecGenerator,
@@ -91,6 +92,7 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.De
 
 	vm := NewVM(
 		cid,
+		m.vmRepo,
 		m.agentClient(),
 		m.cloud,
 		m.templatesSpecGenerator,

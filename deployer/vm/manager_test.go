@@ -114,6 +114,7 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			expectedVM := NewVM(
 				"fake-vm-cid",
+				fakeVMRepo,
 				fakeAgentClient,
 				fakeCloud,
 				fakeTemplatesSpecGenerator,
