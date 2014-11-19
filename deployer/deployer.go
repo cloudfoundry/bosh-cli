@@ -29,7 +29,7 @@ type Deployer interface {
 }
 
 type deployer struct {
-	vmDeployer       bmvm.Deployer
+	vmDeployer       VMDeployer
 	diskDeployer     DiskDeployer
 	registryServer   bmregistry.Server
 	eventLoggerStage bmeventlog.Stage
@@ -38,7 +38,7 @@ type deployer struct {
 }
 
 func NewDeployer(
-	vmDeployer bmvm.Deployer,
+	vmDeployer VMDeployer,
 	diskDeployer DiskDeployer,
 	registryServer bmregistry.Server,
 	eventLogger bmeventlog.EventLogger,

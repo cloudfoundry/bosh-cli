@@ -1,4 +1,4 @@
-package vm
+package deployer
 
 import (
 	"fmt"
@@ -10,11 +10,12 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
-type Deployer interface {
+type VMDeployer interface {
 	Deploy(
 		cloud bmcloud.Cloud,
 		deployment bmdepl.Deployment,
@@ -22,21 +23,21 @@ type Deployer interface {
 		sshTunnelOptions bmsshtunnel.Options,
 		mbusURL string,
 		eventLoggerStage bmeventlog.Stage,
-	) (VM, error)
+	) (bmvm.VM, error)
 }
 
 type vmDeployer struct {
-	vmManagerFactory ManagerFactory
+	vmManagerFactory bmvm.ManagerFactory
 	sshTunnelFactory bmsshtunnel.Factory
 	logger           boshlog.Logger
 	logTag           string
 }
 
-func NewDeployer(
-	vmManagerFactory ManagerFactory,
+func NewVMDeployer(
+	vmManagerFactory bmvm.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	logger boshlog.Logger,
-) Deployer {
+) VMDeployer {
 	return &vmDeployer{
 		vmManagerFactory: vmManagerFactory,
 		sshTunnelFactory: sshTunnelFactory,
@@ -52,7 +53,7 @@ func (d *vmDeployer) Deploy(
 	sshTunnelOptions bmsshtunnel.Options,
 	mbusURL string,
 	eventLoggerStage bmeventlog.Stage,
-) (VM, error) {
+) (bmvm.VM, error) {
 	vmManager := d.vmManagerFactory.NewManager(cloud, mbusURL)
 
 	jobName := deployment.Jobs[0].Name
@@ -87,7 +88,7 @@ func (d *vmDeployer) Deploy(
 	return vm, nil
 }
 
-func (d *vmDeployer) deleteExistingVM(vmManager Manager, eventLoggerStage bmeventlog.Stage, jobName string) error {
+func (d *vmDeployer) deleteExistingVM(vmManager bmvm.Manager, eventLoggerStage bmeventlog.Stage, jobName string) error {
 	vm, found, err := vmManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding existing VM")
@@ -149,7 +150,7 @@ func (d *vmDeployer) deleteExistingVM(vmManager Manager, eventLoggerStage bmeven
 }
 
 func (d *vmDeployer) waitUntilAgentIsReady(
-	vm VM,
+	vm bmvm.VM,
 	sshTunnelOptions bmsshtunnel.Options,
 ) error {
 	sshTunnel := d.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)

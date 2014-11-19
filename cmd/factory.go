@@ -215,7 +215,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	registryServer := bmregistry.NewServer(f.logger)
 	sshTunnelFactory := bmsshtunnel.NewFactory(f.logger)
 
-	vmDeployer := bmvm.NewDeployer(vmManagerFactory, sshTunnelFactory, f.logger)
+	vmDeployer := bmdeployer.NewVMDeployer(vmManagerFactory, sshTunnelFactory, f.logger)
 	diskDeployer := bmdeployer.NewDiskDeployer(diskManagerFactory, f.logger)
 	deployer := bmdeployer.NewDeployer(
 		vmDeployer,

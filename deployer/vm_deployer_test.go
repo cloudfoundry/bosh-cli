@@ -1,4 +1,4 @@
-package vm_test
+package deployer_test
 
 import (
 	"errors"
@@ -19,7 +19,7 @@ import (
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployer"
 )
 
 var _ = Describe("VmDeployer", func() {
@@ -34,7 +34,7 @@ var _ = Describe("VmDeployer", func() {
 		sshTunnelOptions     bmsshtunnel.Options
 		fakeStage            *fakebmlog.FakeStage
 		fakeVM               *fakebmvm.FakeVM
-		vmDeployer           Deployer
+		vmDeployer           VMDeployer
 	)
 
 	BeforeEach(func() {
@@ -48,7 +48,7 @@ var _ = Describe("VmDeployer", func() {
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		vmDeployer = NewDeployer(fakeVMManagerFactory, fakeSSHTunnelFactory, logger)
+		vmDeployer = NewVMDeployer(fakeVMManagerFactory, fakeSSHTunnelFactory, logger)
 
 		deployment = bmdepl.Deployment{
 			Update: bmdepl.Update{

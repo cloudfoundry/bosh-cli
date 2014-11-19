@@ -9,7 +9,12 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
-type DeployInput struct {
+type FakeVMDeployer struct {
+	DeployInputs  []VMDeployInput
+	DeployOutputs []vmDeployOutput
+}
+
+type VMDeployInput struct {
 	Cloud            bmcloud.Cloud
 	Deployment       bmdepl.Deployment
 	Stemcell         bmstemcell.CloudStemcell
@@ -18,24 +23,19 @@ type DeployInput struct {
 	EventLoggerStage bmeventlog.Stage
 }
 
-type deployOutput struct {
+type vmDeployOutput struct {
 	vm  bmvm.VM
 	err error
 }
 
-type FakeDeployer struct {
-	DeployInputs  []DeployInput
-	DeployOutputs []deployOutput
-}
-
-func NewFakeDeployer() *FakeDeployer {
-	return &FakeDeployer{
-		DeployInputs:  []DeployInput{},
-		DeployOutputs: []deployOutput{},
+func NewFakeVMDeployer() *FakeVMDeployer {
+	return &FakeVMDeployer{
+		DeployInputs:  []VMDeployInput{},
+		DeployOutputs: []vmDeployOutput{},
 	}
 }
 
-func (m *FakeDeployer) Deploy(
+func (m *FakeVMDeployer) Deploy(
 	cloud bmcloud.Cloud,
 	deployment bmdepl.Deployment,
 	stemcell bmstemcell.CloudStemcell,
@@ -43,7 +43,7 @@ func (m *FakeDeployer) Deploy(
 	mbusURL string,
 	eventLoggerStage bmeventlog.Stage,
 ) (bmvm.VM, error) {
-	input := DeployInput{
+	input := VMDeployInput{
 		Cloud:            cloud,
 		Deployment:       deployment,
 		Stemcell:         stemcell,
@@ -59,6 +59,6 @@ func (m *FakeDeployer) Deploy(
 	return output.vm, output.err
 }
 
-func (m *FakeDeployer) SetDeployBehavior(vm bmvm.VM, err error) {
-	m.DeployOutputs = append(m.DeployOutputs, deployOutput{vm: vm, err: err})
+func (m *FakeVMDeployer) SetDeployBehavior(vm bmvm.VM, err error) {
+	m.DeployOutputs = append(m.DeployOutputs, vmDeployOutput{vm: vm, err: err})
 }

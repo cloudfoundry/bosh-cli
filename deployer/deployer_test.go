@@ -26,7 +26,7 @@ import (
 var _ = Describe("Deployer", func() {
 	var (
 		deployer                   Deployer
-		fakeVMDeployer             *fakebmvm.FakeDeployer
+		fakeVMDeployer             *fakebmdeployer.FakeVMDeployer
 		fakeDiskDeployer           *fakebmdeployer.FakeDiskDeployer
 		cloud                      *fakebmcloud.FakeCloud
 		deployment                 bmdepl.Deployment
@@ -85,7 +85,7 @@ var _ = Describe("Deployer", func() {
 		cloud = fakebmcloud.NewFakeCloud()
 		fakeRegistryServer = fakeregistry.NewFakeServer()
 
-		fakeVMDeployer = fakebmvm.NewFakeDeployer()
+		fakeVMDeployer = fakebmdeployer.NewFakeVMDeployer()
 		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
 		fakeVMDeployer.SetDeployBehavior(fakeVM, nil)
 
@@ -155,7 +155,7 @@ var _ = Describe("Deployer", func() {
 			RemoteForwardPort: 123,
 		}
 
-		Expect(fakeVMDeployer.DeployInputs).To(ContainElement(fakebmvm.DeployInput{
+		Expect(fakeVMDeployer.DeployInputs).To(ContainElement(fakebmdeployer.VMDeployInput{
 			Cloud:            cloud,
 			Deployment:       deployment,
 			Stemcell:         stemcell,
