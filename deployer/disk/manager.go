@@ -53,7 +53,7 @@ func (m *manager) Create(diskPool bmdepl.DiskPool, vmCID string) (Disk, error) {
 			)
 	}
 
-	diskRecord, err := m.diskRepo.Save(cid)
+	diskRecord, err := m.diskRepo.Save(cid, diskPool.Size, diskCloudProperties)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Saving deployment disk record")
 	}

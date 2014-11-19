@@ -8,7 +8,7 @@ import (
 type DiskRepo interface {
 	UpdateCurrent(diskID string) error
 	FindCurrent() (DiskRecord, bool, error)
-	Save(cid string) (DiskRecord, error)
+	Save(cid string, size int, cloudProperties map[string]interface{}) (DiskRecord, error)
 	Find(cid string) (DiskRecord, bool, error)
 }
 
@@ -24,7 +24,7 @@ func NewDiskRepo(configService DeploymentConfigService, uuidGenerator boshuuid.G
 	}
 }
 
-func (r diskRepo) Save(cid string) (DiskRecord, error) {
+func (r diskRepo) Save(cid string, size int, cloudProperties map[string]interface{}) (DiskRecord, error) {
 	config, err := r.configService.Load()
 	if err != nil {
 		return DiskRecord{}, bosherr.WrapError(err, "Loading existing config")
@@ -40,7 +40,11 @@ func (r diskRepo) Save(cid string) (DiskRecord, error) {
 		return DiskRecord{}, bosherr.New("Failed to save disk cid `%s', existing record found `%s'", cid, oldRecord)
 	}
 
-	newRecord := DiskRecord{CID: cid}
+	newRecord := DiskRecord{
+		CID:             cid,
+		Size:            size,
+		CloudProperties: cloudProperties,
+	}
 	newRecord.ID, err = r.uuidGenerator.Generate()
 	if err != nil {
 		return newRecord, bosherr.WrapError(err, "Generating disk id")

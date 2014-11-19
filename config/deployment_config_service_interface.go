@@ -20,8 +20,10 @@ type StemcellRecord struct {
 }
 
 type DiskRecord struct {
-	ID  string `json:"id"`
-	CID string `json:"cid"`
+	ID              string                 `json:"id"`
+	CID             string                 `json:"cid"`
+	Size            int                    `json:"size"`
+	CloudProperties map[string]interface{} `json:"cloud_properties"`
 }
 
 type ReleaseRecord struct {

@@ -42,8 +42,12 @@ var _ = Describe("fileSystemConfigService", func() {
 			}
 			disks := []DiskRecord{
 				{
-					ID:  "fake-disk-id",
-					CID: "fake-disk-cid",
+					ID:   "fake-disk-id",
+					CID:  "fake-disk-cid",
+					Size: 1024,
+					CloudProperties: map[string]interface{}{
+						"fake-disk-property-key": "fake-disk-property-value",
+					},
 				},
 			}
 			deploymentFileContents, err := json.Marshal(map[string]interface{}{
@@ -110,7 +114,11 @@ var _ = Describe("fileSystemConfigService", func() {
 				CurrentVMCID: "fake-vm-cid",
 				Disks: []DiskRecord{
 					{
-						CID: "fake-disk-cid",
+						CID:  "fake-disk-cid",
+						Size: 1024,
+						CloudProperties: map[string]interface{}{
+							"fake-disk-property-key": "fake-disk-property-value",
+						},
 					},
 				},
 			}
@@ -131,7 +139,11 @@ var _ = Describe("fileSystemConfigService", func() {
 				CurrentVMCID: "fake-vm-cid",
 				Disks: []DiskRecord{
 					{
-						CID: "fake-disk-cid",
+						CID:  "fake-disk-cid",
+						Size: 1024,
+						CloudProperties: map[string]interface{}{
+							"fake-disk-property-key": "fake-disk-property-value",
+						},
 					},
 				},
 			}

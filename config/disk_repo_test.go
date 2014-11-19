@@ -17,6 +17,7 @@ var _ = Describe("DiskRepo", func() {
 		repo              DiskRepo
 		fs                *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
+		cloudProperties   map[string]interface{}
 	)
 
 	BeforeEach(func() {
@@ -25,16 +26,21 @@ var _ = Describe("DiskRepo", func() {
 		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		repo = NewDiskRepo(configService, fakeUUIDGenerator)
+		cloudProperties = map[string]interface{}{
+			"fake-cloud_property-key": "fake-cloud-property-value",
+		}
 	})
 
 	Describe("Save", func() {
 		It("saves the disk record using the config service", func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-			record, err := repo.Save("fake-cid")
+			record, err := repo.Save("fake-cid", 1024, cloudProperties)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(record).To(Equal(DiskRecord{
-				ID:  "fake-guid-1",
-				CID: "fake-cid",
+				ID:              "fake-guid-1",
+				CID:             "fake-cid",
+				Size:            1024,
+				CloudProperties: cloudProperties,
 			}))
 
 			deploymentConfig, err := configService.Load()
@@ -43,8 +49,10 @@ var _ = Describe("DiskRepo", func() {
 			expectedConfig := DeploymentFile{
 				Disks: []DiskRecord{
 					{
-						ID:  "fake-guid-1",
-						CID: "fake-cid",
+						ID:              "fake-guid-1",
+						CID:             "fake-cid",
+						Size:            1024,
+						CloudProperties: cloudProperties,
 					},
 				},
 			}
@@ -55,7 +63,7 @@ var _ = Describe("DiskRepo", func() {
 	Describe("Find", func() {
 		It("finds existing disk records", func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-			savedRecord, err := repo.Save("fake-cid")
+			savedRecord, err := repo.Save("fake-cid", 1024, cloudProperties)
 			Expect(err).ToNot(HaveOccurred())
 
 			foundRecord, found, err := repo.Find("fake-cid")
@@ -66,7 +74,7 @@ var _ = Describe("DiskRepo", func() {
 
 		It("when the disk is not in the records, returns not found", func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
-			_, err := repo.Save("other-cid")
+			_, err := repo.Save("other-cid", 1024, cloudProperties)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, found, err := repo.Find("fake-cid")
@@ -79,7 +87,7 @@ var _ = Describe("DiskRepo", func() {
 		Context("when a disk record exists with the same ID", func() {
 			BeforeEach(func() {
 				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
-				_, err := repo.Save("fake-cid")
+				_, err := repo.Save("fake-cid", 1024, cloudProperties)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -97,7 +105,7 @@ var _ = Describe("DiskRepo", func() {
 		Context("when a disk record does not exists with the same ID", func() {
 			BeforeEach(func() {
 				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
-				_, err := repo.Save("fake-cid")
+				_, err := repo.Save("fake-cid", 1024, cloudProperties)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -113,11 +121,11 @@ var _ = Describe("DiskRepo", func() {
 		Context("when current disk exists", func() {
 			BeforeEach(func() {
 				fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-				_, err := repo.Save("fake-cid-1")
+				_, err := repo.Save("fake-cid-1", 1024, cloudProperties)
 				Expect(err).ToNot(HaveOccurred())
 
 				fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
-				record, err := repo.Save("fake-cid-2")
+				record, err := repo.Save("fake-cid-2", 1024, cloudProperties)
 				Expect(err).ToNot(HaveOccurred())
 
 				repo.UpdateCurrent(record.ID)
@@ -128,8 +136,10 @@ var _ = Describe("DiskRepo", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(record).To(Equal(DiskRecord{
-					ID:  "fake-guid-2",
-					CID: "fake-cid-2",
+					ID:              "fake-guid-2",
+					CID:             "fake-cid-2",
+					Size:            1024,
+					CloudProperties: cloudProperties,
 				}))
 			})
 		})
@@ -137,7 +147,7 @@ var _ = Describe("DiskRepo", func() {
 		Context("when current disk does not exist", func() {
 			BeforeEach(func() {
 				fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-				_, err := repo.Save("fake-cid")
+				_, err := repo.Save("fake-cid", 1024, cloudProperties)
 				Expect(err).ToNot(HaveOccurred())
 			})
 

@@ -74,8 +74,12 @@ var _ = Describe("Manager", func() {
 				Expect(found).To(BeTrue())
 
 				Expect(diskRecord).To(Equal(bmconfig.DiskRecord{
-					ID:  "fake-uuid",
-					CID: "fake-disk-cid",
+					ID:   "fake-uuid",
+					CID:  "fake-disk-cid",
+					Size: 1024,
+					CloudProperties: map[string]interface{}{
+						"fake-cloud-property-key": "fake-cloud-property-value",
+					},
 				}))
 			})
 		})
@@ -108,7 +112,7 @@ var _ = Describe("Manager", func() {
 	Describe("Find", func() {
 		Context("when disk already exists in disk repo", func() {
 			BeforeEach(func() {
-				diskRecord, err := diskRepo.Save("fake-existing-disk-cid")
+				diskRecord, err := diskRepo.Save("fake-existing-disk-cid", 1024, map[string]interface{}{})
 				Expect(err).ToNot(HaveOccurred())
 
 				err = diskRepo.UpdateCurrent(diskRecord.ID)
