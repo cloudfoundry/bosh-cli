@@ -114,15 +114,15 @@ var _ = Describe("Deployment", func() {
 				deployment = Deployment{
 					DiskPools: []DiskPool{
 						{
-							Name: "fake-disk-pool-name-1",
-							Size: 1024,
+							Name:     "fake-disk-pool-name-1",
+							DiskSize: 1024,
 							RawCloudProperties: map[interface{}]interface{}{
 								"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 							},
 						},
 						{
-							Name: "fake-disk-pool-name-2",
-							Size: 2048,
+							Name:     "fake-disk-pool-name-2",
+							DiskSize: 2048,
 							RawCloudProperties: map[interface{}]interface{}{
 								"fake-disk-prop-key-2": "fake-disk-prop-value-1",
 							},
@@ -142,8 +142,8 @@ var _ = Describe("Deployment", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(diskPool).To(Equal(DiskPool{
-					Name: "fake-disk-pool-name-2",
-					Size: 2048,
+					Name:     "fake-disk-pool-name-2",
+					DiskSize: 2048,
 					RawCloudProperties: map[interface{}]interface{}{
 						"fake-disk-prop-key-2": "fake-disk-prop-value-1",
 					},
@@ -169,7 +169,7 @@ var _ = Describe("Deployment", func() {
 
 				Expect(diskPool).To(Equal(DiskPool{
 					Name:               "",
-					Size:               1024,
+					DiskSize:           1024,
 					RawCloudProperties: map[interface{}]interface{}{},
 				}))
 			})
@@ -180,8 +180,8 @@ var _ = Describe("Deployment", func() {
 				deployment = Deployment{
 					DiskPools: []DiskPool{
 						{
-							Name: "fake-disk-pool-name-1",
-							Size: 1024,
+							Name:     "fake-disk-pool-name-1",
+							DiskSize: 1024,
 							RawCloudProperties: map[interface{}]interface{}{
 								"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 							},
@@ -202,8 +202,8 @@ var _ = Describe("Deployment", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(diskPool).To(Equal(DiskPool{
-					Name: "fake-disk-pool-name-1",
-					Size: 1024,
+					Name:     "fake-disk-pool-name-1",
+					DiskSize: 1024,
 					RawCloudProperties: map[interface{}]interface{}{
 						"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 					},

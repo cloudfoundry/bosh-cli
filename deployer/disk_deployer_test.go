@@ -53,8 +53,8 @@ var _ = Describe("DiskDeployer", func() {
 	Context("when the disk pool size is > 0", func() {
 		BeforeEach(func() {
 			diskPool = bmdepl.DiskPool{
-				Name: "fake-persistent-disk-pool-name",
-				Size: 1024,
+				Name:     "fake-persistent-disk-pool-name",
+				DiskSize: 1024,
 				RawCloudProperties: map[interface{}]interface{}{
 					"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 				},

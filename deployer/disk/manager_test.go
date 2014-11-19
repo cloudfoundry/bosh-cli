@@ -46,8 +46,8 @@ var _ = Describe("Manager", func() {
 		BeforeEach(func() {
 
 			diskPool = bmdepl.DiskPool{
-				Name: "fake-disk-pool-name",
-				Size: 1024,
+				Name:     "fake-disk-pool-name",
+				DiskSize: 1024,
 				RawCloudProperties: map[interface{}]interface{}{
 					"fake-cloud-property-key": "fake-cloud-property-value",
 				},

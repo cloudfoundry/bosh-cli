@@ -6,7 +6,7 @@ import (
 
 type DiskPool struct {
 	Name               string                      `yaml:"name"`
-	Size               int                         `yaml:"disk_size"`
+	DiskSize           int                         `yaml:"disk_size"`
 	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 }
 

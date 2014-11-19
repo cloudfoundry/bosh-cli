@@ -125,7 +125,7 @@ func (d Deployment) DiskPool(jobName string) (DiskPool, error) {
 
 	if job.PersistentDisk > 0 {
 		diskPool := DiskPool{
-			Size:               job.PersistentDisk,
+			DiskSize:           job.PersistentDisk,
 			RawCloudProperties: map[interface{}]interface{}{},
 		}
 		return diskPool, nil

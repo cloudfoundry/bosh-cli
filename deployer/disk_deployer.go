@@ -33,7 +33,7 @@ func NewDiskDeployer(diskManagerFactory bmdisk.ManagerFactory, logger boshlog.Lo
 }
 
 func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error {
-	if diskPool.Size > 0 {
+	if diskPool.DiskSize > 0 {
 		d.logger.Debug(d.logTag, "Creating and Attaching disk to vm '%s'", vm.CID())
 		d.diskManager = d.diskManagerFactory.NewManager(cloud)
 
@@ -70,7 +70,7 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 				return bosherr.WrapError(err, "Getting disk pool cloud properties")
 			}
 
-			if disk.NeedsMigration(diskPool.Size, diskCloudProperties) {
+			if disk.NeedsMigration(diskPool.DiskSize, diskCloudProperties) {
 				err = d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
 				if err != nil {
 					return err

@@ -42,8 +42,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 				DiskPools: []bmdepl.DiskPool{
 					{
-						Name: "fake-disk-pool-name",
-						Size: 1024,
+						Name:     "fake-disk-pool-name",
+						DiskSize: 1024,
 						RawCloudProperties: map[interface{}]interface{}{
 							"fake-prop-key": "fake-prop-value",
 							"fake-prop-map-key": map[interface{}]interface{}{

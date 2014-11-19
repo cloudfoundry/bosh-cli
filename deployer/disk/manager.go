@@ -42,18 +42,18 @@ func (m *manager) Create(diskPool bmdepl.DiskPool, vmCID string) (Disk, error) {
 	}
 
 	m.logger.Debug(m.logTag, "Creating disk")
-	cid, err := m.cloud.CreateDisk(diskPool.Size, diskCloudProperties, vmCID)
+	cid, err := m.cloud.CreateDisk(diskPool.DiskSize, diskCloudProperties, vmCID)
 	if err != nil {
 		return nil,
 			bosherr.WrapError(err,
 				"Creating disk with size %s, cloudProperties %#v, instanceID %s",
-				diskPool.Size,
+				diskPool.DiskSize,
 				diskCloudProperties,
 				vmCID,
 			)
 	}
 
-	diskRecord, err := m.diskRepo.Save(cid, diskPool.Size, diskCloudProperties)
+	diskRecord, err := m.diskRepo.Save(cid, diskPool.DiskSize, diskCloudProperties)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Saving deployment disk record")
 	}
@@ -63,7 +63,7 @@ func (m *manager) Create(diskPool bmdepl.DiskPool, vmCID string) (Disk, error) {
 		return nil, bosherr.WrapError(err, "Updating current deployment disk record")
 	}
 
-	disk := NewDisk(cid, diskPool.Size, diskCloudProperties)
+	disk := NewDisk(cid, diskPool.DiskSize, diskCloudProperties)
 
 	return disk, nil
 }

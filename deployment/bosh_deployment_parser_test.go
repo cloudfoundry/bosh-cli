@@ -128,8 +128,8 @@ cloud_provider:
 				diskPools := deployment.DiskPools
 				Expect(diskPools).To(Equal([]DiskPool{
 					{
-						Name: "fake-disk-pool-name",
-						Size: 2048,
+						Name:     "fake-disk-pool-name",
+						DiskSize: 2048,
 						RawCloudProperties: map[interface{}]interface{}{
 							"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 						},

@@ -55,7 +55,7 @@ func (v *boshDeploymentValidator) Validate(deployment bmdepl.Deployment) error {
 		if v.isBlank(diskPool.Name) {
 			errs = append(errs, bosherr.New("disk_pools[%d].name must not be empty or blank", idx))
 		}
-		if diskPool.Size <= 0 {
+		if diskPool.DiskSize <= 0 {
 			errs = append(errs, bosherr.New("disk_pools[%d].disk_size must be > 0", idx))
 		}
 		if _, err := diskPool.CloudProperties(); err != nil {
