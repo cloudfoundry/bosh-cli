@@ -58,6 +58,7 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 
 		err = vm.AttachDisk(disk)
 		if err != nil {
+			err = bosherr.WrapError(err, "Attaching disk")
 			attachEventStep.Fail(err.Error())
 			return err
 		}
@@ -104,6 +105,18 @@ func (d *diskDeployer) migrateDisk(primaryDisk bmdisk.Disk, diskPool bmdepl.Disk
 		return err
 	}
 	attachEventStep.Finish()
+
+	migrateEventStep := eventLoggerStage.NewStep(fmt.Sprintf("Migrating disk '%s' to '%s'", primaryDisk.CID(), secondaryDisk.CID()))
+	migrateEventStep.Start()
+
+	err = vm.MigrateDisk()
+	if err != nil {
+		err = bosherr.WrapError(err, "Migrating disk")
+		migrateEventStep.Fail(err.Error())
+		return err
+	}
+
+	migrateEventStep.Finish()
 
 	return nil
 }

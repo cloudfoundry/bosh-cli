@@ -20,6 +20,7 @@ type AgentClient interface {
 	MountDisk(string) error
 	UnmountDisk(string) error
 	ListDisk() ([]string, error)
+	MigrateDisk() error
 }
 
 type agentClient struct {
@@ -105,6 +106,10 @@ func (c *agentClient) MountDisk(diskCID string) error {
 
 func (c *agentClient) UnmountDisk(diskCID string) error {
 	return c.sendAsyncTaskMessage("unmount_disk", []interface{}{diskCID})
+}
+
+func (c *agentClient) MigrateDisk() error {
+	return c.sendAsyncTaskMessage("migrate_disk", []interface{}{})
 }
 
 func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) error {

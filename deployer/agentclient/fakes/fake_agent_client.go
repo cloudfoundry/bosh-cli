@@ -30,6 +30,9 @@ type FakeAgentClient struct {
 
 	GetStateCalledTimes int
 	getStateOutputs     []getStateOutput
+
+	MigrateDiskCalledTimes int
+	migrateDiskErr         error
 }
 
 type pingResponse struct {
@@ -101,6 +104,11 @@ func (c *FakeAgentClient) UnmountDisk(diskCID string) error {
 	return c.unmountDiskErr
 }
 
+func (c *FakeAgentClient) MigrateDisk() error {
+	c.MigrateDiskCalledTimes++
+	return c.migrateDiskErr
+}
+
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {
 	c.PingResponses = append(c.PingResponses, pingResponse{
 		response: response,
@@ -129,6 +137,10 @@ func (c *FakeAgentClient) SetMountDiskBehavior(err error) {
 
 func (c *FakeAgentClient) SetUnmountDiskBehavior(err error) {
 	c.unmountDiskErr = err
+}
+
+func (c *FakeAgentClient) SetMigrateDiskBehavior(err error) {
+	c.migrateDiskErr = err
 }
 
 func (c *FakeAgentClient) SetListDiskBehavior(disks []string, err error) {

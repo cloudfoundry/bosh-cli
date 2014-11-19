@@ -17,8 +17,8 @@ type FakeVM struct {
 	StartCalled int
 	StartErr    error
 
-	AttachDiskInputs []AttachDiskInput
-	AttachDiskErr    error
+	AttachDiskInputs   []AttachDiskInput
+	attachDiskBehavior map[string]error
 
 	WaitToBeReadyInputs []WaitToBeReadyInput
 	WaitToBeReadyErr    error
@@ -37,6 +37,9 @@ type FakeVM struct {
 
 	UnmountDiskInputs []UnmountDiskInput
 	UnmountDiskErr    error
+
+	MigrateDiskCalledTimes int
+	MigrateDiskErr         error
 }
 
 type ApplyInput struct {
@@ -69,70 +72,81 @@ func NewFakeVM(cid string) *FakeVM {
 		WaitToBeRunningInputs: []WaitInput{},
 		AttachDiskInputs:      []AttachDiskInput{},
 		UnmountDiskInputs:     []UnmountDiskInput{},
+		attachDiskBehavior:    map[string]error{},
 		cid:                   cid,
 	}
 }
 
-func (i *FakeVM) CID() string {
-	return i.cid
+func (vm *FakeVM) CID() string {
+	return vm.cid
 }
 
-func (i *FakeVM) WaitToBeReady(timeout time.Duration, delay time.Duration) error {
-	i.WaitToBeReadyInputs = append(i.WaitToBeReadyInputs, WaitToBeReadyInput{
+func (vm *FakeVM) WaitToBeReady(timeout time.Duration, delay time.Duration) error {
+	vm.WaitToBeReadyInputs = append(vm.WaitToBeReadyInputs, WaitToBeReadyInput{
 		Timeout: timeout,
 		Delay:   delay,
 	})
-	return i.WaitToBeReadyErr
+	return vm.WaitToBeReadyErr
 }
 
-func (i *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
-	i.ApplyInputs = append(i.ApplyInputs, ApplyInput{
+func (vm *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
+	vm.ApplyInputs = append(vm.ApplyInputs, ApplyInput{
 		StemcellApplySpec: stemcellApplySpec,
 		Deployment:        deployment,
 	})
 
-	return i.ApplyErr
+	return vm.ApplyErr
 }
 
-func (i *FakeVM) Start() error {
-	i.StartCalled++
-	return i.StartErr
+func (vm *FakeVM) Start() error {
+	vm.StartCalled++
+	return vm.StartErr
 }
 
-func (i *FakeVM) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
-	i.WaitToBeRunningInputs = append(i.WaitToBeRunningInputs, WaitInput{
+func (vm *FakeVM) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
+	vm.WaitToBeRunningInputs = append(vm.WaitToBeRunningInputs, WaitInput{
 		MaxAttempts: maxAttempts,
 		Delay:       delay,
 	})
-	return i.WaitToBeRunningErr
+	return vm.WaitToBeRunningErr
 }
 
-func (i *FakeVM) AttachDisk(disk bmdisk.Disk) error {
-	i.AttachDiskInputs = append(i.AttachDiskInputs, AttachDiskInput{
+func (vm *FakeVM) AttachDisk(disk bmdisk.Disk) error {
+	vm.AttachDiskInputs = append(vm.AttachDiskInputs, AttachDiskInput{
 		Disk: disk,
 	})
 
-	return i.AttachDiskErr
+	return vm.attachDiskBehavior[disk.CID()]
 }
 
-func (i *FakeVM) UnmountDisk(disk bmdisk.Disk) error {
-	i.UnmountDiskInputs = append(i.UnmountDiskInputs, UnmountDiskInput{
+func (vm *FakeVM) UnmountDisk(disk bmdisk.Disk) error {
+	vm.UnmountDiskInputs = append(vm.UnmountDiskInputs, UnmountDiskInput{
 		Disk: disk,
 	})
 
-	return i.UnmountDiskErr
+	return vm.UnmountDiskErr
 }
 
-func (i *FakeVM) Stop() error {
-	i.StopCalled++
-	return i.StopErr
+func (vm *FakeVM) MigrateDisk() error {
+	vm.MigrateDiskCalledTimes++
+
+	return vm.MigrateDiskErr
 }
 
-func (i *FakeVM) Disks() ([]bmdisk.Disk, error) {
-	return i.ListDisksDisks, i.ListDisksErr
+func (vm *FakeVM) Stop() error {
+	vm.StopCalled++
+	return vm.StopErr
 }
 
-func (i *FakeVM) Delete() error {
-	i.DeleteCalled++
-	return i.DeleteErr
+func (vm *FakeVM) Disks() ([]bmdisk.Disk, error) {
+	return vm.ListDisksDisks, vm.ListDisksErr
+}
+
+func (vm *FakeVM) Delete() error {
+	vm.DeleteCalled++
+	return vm.DeleteErr
+}
+
+func (vm *FakeVM) SetAttachDiskBehavior(disk bmdisk.Disk, err error) {
+	vm.attachDiskBehavior[disk.CID()] = err
 }

@@ -28,6 +28,7 @@ type VM interface {
 	Stop() error
 	Disks() ([]bmdisk.Disk, error)
 	UnmountDisk(bmdisk.Disk) error
+	MigrateDisk() error
 	Delete() error
 }
 
@@ -182,6 +183,10 @@ func (vm *vm) Disks() ([]bmdisk.Disk, error) {
 
 func (vm *vm) UnmountDisk(disk bmdisk.Disk) error {
 	return vm.agentClient.UnmountDisk(disk.CID())
+}
+
+func (vm *vm) MigrateDisk() error {
+	return vm.agentClient.MigrateDisk()
 }
 
 func (vm *vm) Delete() error {

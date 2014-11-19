@@ -407,4 +407,24 @@ var _ = Describe("VM", func() {
 			})
 		})
 	})
+
+	Describe("MigrateDisk", func() {
+		It("sends migrate_disk to the agent", func() {
+			err := vm.MigrateDisk()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.MigrateDiskCalledTimes).To(Equal(1))
+		})
+
+		Context("when migrating disk fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.SetMigrateDiskBehavior(errors.New("fake-migrate-error"))
+			})
+
+			It("returns an error", func() {
+				err := vm.MigrateDisk()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-migrate-error"))
+			})
+		})
+	})
 })

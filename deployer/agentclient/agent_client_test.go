@@ -518,4 +518,51 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 	})
+
+	Describe("MigrateDisk", func() {
+		Context("when agent responds with a value", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{}}`, 200, nil)
+			})
+
+			It("makes a POST request to the endpoint", func() {
+				err := agentClient.MigrateDisk()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+				var request AgentRequestMessage
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(AgentRequestMessage{
+					Method:    "migrate_disk",
+					Arguments: []interface{}{},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+
+			It("waits for the task to be finished", func() {
+				err := agentClient.MigrateDisk()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[1].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+				var request AgentRequestMessage
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[1].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(AgentRequestMessage{
+					Method:    "get_task",
+					Arguments: []interface{}{"fake-agent-task-id"},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
+		})
+	})
 })
