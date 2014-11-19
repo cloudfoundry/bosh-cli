@@ -118,6 +118,21 @@ Host warden-vm
 		Expect(stdout).ToNot(ContainSubstring("Started deploying"))
 	}
 
+	ItDeletesVMOnUpdate := func() {
+		manifestPath := "./modified_manifest.yml"
+		manifestContents, err := ioutil.ReadFile(manifestPath)
+		Expect(err).ToNot(HaveOccurred())
+		testEnv.WriteContent("manifest", manifestContents)
+
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+
+		Expect(stdout).To(ContainSubstring("Deleting VM"))
+		Expect(stdout).To(ContainSubstring("Stopping 'bosh'"))
+		Expect(stdout).To(ContainSubstring("Unmounting disk"))
+	}
+
 	It("is able to deploy a CPI release with a stemcell", func() {
 		manifestPath := "./manifest.yml"
 		manifestContents, err := ioutil.ReadFile(manifestPath)
@@ -159,5 +174,7 @@ Host warden-vm
 		ItSetsSSHPassword("vcap", "sshpassword", "10.244.0.42")
 
 		ItSkipsDeployIfNoChanges()
+
+		ItDeletesVMOnUpdate()
 	})
 })
