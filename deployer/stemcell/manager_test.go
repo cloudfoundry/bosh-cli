@@ -222,6 +222,8 @@ var _ = Describe("Manager", func() {
 					},
 					SkipMessage: "Stemcell already uploaded",
 				}))
+
+				Expect(fakeStage.Finished).To(BeTrue())
 			})
 		})
 	})

@@ -44,6 +44,7 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 		cloudStemcell := CloudStemcell{
 			CID: foundStemcellRecord.CID,
 		}
+		eventLoggerStage.Finish()
 		return cloudStemcell, nil
 	}
 
