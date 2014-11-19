@@ -19,6 +19,7 @@ type DiskDeployer interface {
 
 type diskDeployer struct {
 	diskManagerFactory bmdisk.ManagerFactory
+	diskManager        bmdisk.Manager
 	logger             boshlog.Logger
 	logTag             string
 }
@@ -34,17 +35,17 @@ func NewDiskDeployer(diskManagerFactory bmdisk.ManagerFactory, logger boshlog.Lo
 func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error {
 	if diskPool.Size > 0 {
 		d.logger.Debug(d.logTag, "Creating and Attaching disk to vm '%s'", vm.CID())
-		diskManager := d.diskManagerFactory.NewManager(cloud)
+		d.diskManager = d.diskManagerFactory.NewManager(cloud)
 
-		disk, found, err := diskManager.FindCurrent()
+		disk, diskFound, err := d.diskManager.FindCurrent()
 		if err != nil {
 			return bosherr.WrapError(err, "Finding existing disk")
 		}
-		if !found {
+		if !diskFound {
 			createEventStep := eventLoggerStage.NewStep("Creating disk")
 			createEventStep.Start()
 
-			disk, err = diskManager.Create(diskPool, vm.CID())
+			disk, err = d.diskManager.Create(diskPool, vm.CID())
 			if err != nil {
 				createEventStep.Fail(err.Error())
 				return bosherr.WrapError(err, "Creating new disk")
@@ -61,7 +62,32 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 			return err
 		}
 		attachEventStep.Finish()
+
+		if diskFound {
+			diskCloudProperties, err := diskPool.CloudProperties()
+			if err != nil {
+				return bosherr.WrapError(err, "Getting disk pool cloud properties")
+			}
+
+			if disk.NeedsMigration(diskPool.Size, diskCloudProperties) {
+				d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
+			}
+		}
 	}
 
+	return nil
+}
+
+func (d *diskDeployer) migrateDisk(primaryDisk bmdisk.Disk, diskPool bmdepl.DiskPool, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error {
+	createEventStep := eventLoggerStage.NewStep("Creating disk")
+	createEventStep.Start()
+
+	_, err := d.diskManager.Create(diskPool, vm.CID())
+	if err != nil {
+		createEventStep.Fail(err.Error())
+		return bosherr.WrapError(err, "Creating secondary disk")
+	}
+
+	createEventStep.Finish()
 	return nil
 }

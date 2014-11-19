@@ -30,7 +30,7 @@ func (m *manager) FindCurrent() (Disk, bool, error) {
 		return nil, false, nil
 	}
 
-	disk := NewDisk(diskRecord.CID)
+	disk := NewDisk(diskRecord.CID, diskRecord.Size, diskRecord.CloudProperties)
 
 	return disk, true, err
 }
@@ -63,7 +63,7 @@ func (m *manager) Create(diskPool bmdepl.DiskPool, vmCID string) (Disk, error) {
 		return nil, bosherr.WrapError(err, "Updating current deployment disk record")
 	}
 
-	disk := NewDisk(cid)
+	disk := NewDisk(cid, diskPool.Size, diskCloudProperties)
 
 	return disk, nil
 }

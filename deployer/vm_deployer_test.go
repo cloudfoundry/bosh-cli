@@ -15,6 +15,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
@@ -178,17 +179,19 @@ var _ = Describe("VmDeployer", func() {
 				})
 
 				It("unmounts vm disks", func() {
-					existingVM.ListDisksDisks = []bmdisk.Disk{bmdisk.NewDisk("fake-disk-1"), bmdisk.NewDisk("fake-disk-2")}
+					firstDisk := fakebmdisk.NewFakeDisk("fake-disk-1")
+					secondDisk := fakebmdisk.NewFakeDisk("fake-disk-2")
+					existingVM.ListDisksDisks = []bmdisk.Disk{firstDisk, secondDisk}
 
 					_, err := vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, "fake-mbus-url", fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(existingVM.UnmountDiskInputs).To(Equal([]fakebmvm.UnmountDiskInput{
 						{
-							Disk: bmdisk.NewDisk("fake-disk-1"),
+							Disk: firstDisk,
 						},
 						{
-							Disk: bmdisk.NewDisk("fake-disk-2"),
+							Disk: secondDisk,
 						},
 					}))
 
@@ -231,7 +234,7 @@ var _ = Describe("VmDeployer", func() {
 
 				Context("when unmounting disk fails", func() {
 					BeforeEach(func() {
-						existingVM.ListDisksDisks = []bmdisk.Disk{bmdisk.NewDisk("fake-disk")}
+						existingVM.ListDisksDisks = []bmdisk.Disk{fakebmdisk.NewFakeDisk("fake-disk")}
 						existingVM.UnmountDiskErr = errors.New("fake-unmount-error")
 					})
 

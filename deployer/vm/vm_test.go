@@ -265,7 +265,7 @@ var _ = Describe("VM", func() {
 		var disk bmdisk.Disk
 
 		BeforeEach(func() {
-			disk = bmdisk.NewDisk("fake-disk-cid")
+			disk = bmdisk.NewDisk("fake-disk-cid", 1024, map[string]interface{}{})
 		})
 
 		It("attaches disk to vm in the cloud", func() {
@@ -312,7 +312,7 @@ var _ = Describe("VM", func() {
 		var disk bmdisk.Disk
 
 		BeforeEach(func() {
-			disk = bmdisk.NewDisk("fake-disk-cid")
+			disk = bmdisk.NewDisk("fake-disk-cid", 1024, map[string]interface{}{})
 		})
 
 		It("sends unmount disk to the agent", func() {
@@ -362,7 +362,9 @@ var _ = Describe("VM", func() {
 		It("returns disks that are reported by the agent", func() {
 			disks, err := vm.Disks()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(disks).To(Equal([]bmdisk.Disk{bmdisk.NewDisk("fake-disk-1"), bmdisk.NewDisk("fake-disk-2")}))
+			expectedFirstDisk := bmdisk.NewDisk("fake-disk-1", 0, map[string]interface{}{})
+			expectedSecondDisk := bmdisk.NewDisk("fake-disk-2", 0, map[string]interface{}{})
+			Expect(disks).To(Equal([]bmdisk.Disk{expectedFirstDisk, expectedSecondDisk}))
 		})
 
 		Context("when listing disks fails", func() {

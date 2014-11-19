@@ -9,7 +9,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
@@ -27,6 +26,7 @@ var _ = Describe("DiskDeployer", func() {
 		cloud           *fakebmcloud.FakeCloud
 		fakeStage       *fakebmlog.FakeStage
 		fakeVM          *fakebmvm.FakeVM
+		fakeDisk        *fakebmdisk.FakeDisk
 	)
 
 	BeforeEach(func() {
@@ -35,7 +35,8 @@ var _ = Describe("DiskDeployer", func() {
 
 		fakeDiskManagerFactory := fakebmdisk.NewFakeManagerFactory()
 		fakeDiskManager = fakebmdisk.NewFakeManager()
-		fakeDiskManager.CreateDisk = bmdisk.NewDisk("fake-disk-cid")
+		fakeDisk = fakebmdisk.NewFakeDisk("fake-disk-cid")
+		fakeDiskManager.CreateDisk = fakeDisk
 		fakeDiskManagerFactory.NewManagerManager = fakeDiskManager
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
@@ -59,30 +60,64 @@ var _ = Describe("DiskDeployer", func() {
 			}
 		})
 
-		Context("when disk already exists", func() {
+		Context("when primary disk already exists", func() {
+			var existingDisk *fakebmdisk.FakeDisk
+
 			BeforeEach(func() {
-				disk := bmdisk.NewDisk("fake-disk-cid")
-				fakeDiskManager.SetFindCurrentBehavior(disk, true, nil)
+				existingDisk = fakebmdisk.NewFakeDisk("fake-existing-disk-cid")
+				fakeDiskManager.SetFindCurrentBehavior(existingDisk, true, nil)
 			})
 
-			It("does not create disk", func() {
+			It("does not create primary disk", func() {
 				err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeDiskManager.CreateInputs).To(BeEmpty())
 			})
 
-			It("does not log the create disk event", func() {
-				err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
-				Expect(err).ToNot(HaveOccurred())
+			Context("when disk does not need migration", func() {
+				BeforeEach(func() {
+					existingDisk.SetNeedsMigrationBehavior(false)
+				})
 
-				Expect(fakeStage.Steps).ToNot(ContainElement(&fakebmlog.FakeStep{
-					Name: "Creating disk",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
-				}))
+				It("does not log the create disk event", func() {
+					err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeStage.Steps).ToNot(ContainElement(&fakebmlog.FakeStep{
+						Name: "Creating disk",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					}))
+				})
+			})
+
+			Context("when disk needs migration", func() {
+				BeforeEach(func() {
+					existingDisk.SetNeedsMigrationBehavior(true)
+				})
+
+				It("creates secondary disk", func() {
+					err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeDiskManager.CreateInputs).To(Equal([]fakebmdisk.CreateInput{
+						{
+							DiskPool:   diskPool,
+							InstanceID: "fake-vm-cid",
+						},
+					}))
+
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Creating disk",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					}))
+				})
 			})
 		})
 
@@ -113,17 +148,17 @@ var _ = Describe("DiskDeployer", func() {
 			})
 		})
 
-		It("attaches the persistent disk", func() {
+		It("attaches the primary disk", func() {
 			err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
 				{
-					Disk: bmdisk.NewDisk("fake-disk-cid"),
+					Disk: fakeDisk,
 				},
 			}))
 		})
 
-		It("logs attaching persistent disk event", func() {
+		It("logs attaching primary disk event", func() {
 			err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -134,6 +169,10 @@ var _ = Describe("DiskDeployer", func() {
 					bmeventlog.Finished,
 				},
 			}))
+		})
+
+		It("removes unused disks", func() {
+
 		})
 
 		Context("when creating the persistent disk fails", func() {
