@@ -67,7 +67,6 @@ func (m *deployer) Deploy(
 	stemcell bmstemcell.CloudStemcell,
 ) error {
 	m.eventLoggerStage.Start()
-	defer m.eventLoggerStage.Finish()
 
 	registryReadyErrCh := make(chan error)
 	go m.startRegistry(registry, registryReadyErrCh)
@@ -118,6 +117,7 @@ func (m *deployer) Deploy(
 		return err
 	}
 
+	m.eventLoggerStage.Finish()
 	return nil
 }
 
