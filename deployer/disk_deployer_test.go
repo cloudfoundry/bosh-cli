@@ -95,8 +95,13 @@ var _ = Describe("DiskDeployer", func() {
 			})
 
 			Context("when disk needs migration", func() {
+				var secondaryDisk *fakebmdisk.FakeDisk
+
 				BeforeEach(func() {
 					existingDisk.SetNeedsMigrationBehavior(true)
+
+					secondaryDisk = fakebmdisk.NewFakeDisk("fake-secondary-disk-cid")
+					fakeDiskManager.CreateDisk = secondaryDisk
 				})
 
 				It("creates secondary disk", func() {
@@ -117,6 +122,61 @@ var _ = Describe("DiskDeployer", func() {
 							bmeventlog.Finished,
 						},
 					}))
+				})
+
+				It("attaches secondary disk", func() {
+					err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
+						{
+							Disk: existingDisk,
+						},
+						{
+							Disk: secondaryDisk,
+						},
+					}))
+
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Attaching disk 'fake-secondary-disk-cid' to VM 'fake-vm-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					}))
+				})
+
+				Context("when disk creation fails", func() {
+					BeforeEach(func() {
+						fakeDiskManager.CreateErr = errors.New("fake-create-disk-error")
+					})
+
+					It("returns error and leaves the existing disk attached", func() {
+						err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-create-disk-error"))
+						Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
+							{
+								Disk: existingDisk,
+							},
+						}))
+					})
+				})
+
+				Context("when attaching the new disk fails", func() {
+					BeforeEach(func() {
+						fakeVM.AttachDiskErr = errors.New("fake-attach-disk-error")
+					})
+
+					It("returns error and leaves the existing disk attached", func() {
+						err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-attach-disk-error"))
+						Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
+							{
+								Disk: existingDisk,
+							},
+						}))
+					})
 				})
 			})
 		})
