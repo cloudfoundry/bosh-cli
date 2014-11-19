@@ -8,7 +8,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -30,17 +29,17 @@ type Deployer interface {
 }
 
 type deployer struct {
-	vmDeployer         bmvm.Deployer
-	diskManagerFactory bmdisk.ManagerFactory
-	registryServer     bmregistry.Server
-	eventLoggerStage   bmeventlog.Stage
-	logger             boshlog.Logger
-	logTag             string
+	vmDeployer       bmvm.Deployer
+	diskDeployer     DiskDeployer
+	registryServer   bmregistry.Server
+	eventLoggerStage bmeventlog.Stage
+	logger           boshlog.Logger
+	logTag           string
 }
 
 func NewDeployer(
 	vmDeployer bmvm.Deployer,
-	diskManagerFactory bmdisk.ManagerFactory,
+	diskDeployer DiskDeployer,
 	registryServer bmregistry.Server,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
@@ -48,12 +47,12 @@ func NewDeployer(
 	eventLoggerStage := eventLogger.NewStage("deploying")
 
 	return &deployer{
-		vmDeployer:         vmDeployer,
-		diskManagerFactory: diskManagerFactory,
-		registryServer:     registryServer,
-		eventLoggerStage:   eventLoggerStage,
-		logger:             logger,
-		logTag:             "deployer",
+		vmDeployer:       vmDeployer,
+		diskDeployer:     diskDeployer,
+		registryServer:   registryServer,
+		eventLoggerStage: eventLoggerStage,
+		logger:           logger,
+		logTag:           "deployer",
 	}
 }
 
@@ -99,12 +98,9 @@ func (m *deployer) Deploy(
 		return bosherr.WrapError(err, "Getting disk pool")
 	}
 
-	if diskPool.Size > 0 {
-		m.logger.Debug(m.logTag, "Creating and Attaching disk to vm '%s'", vm.CID())
-		err = m.createAndAttachDisk(diskPool, cloud, vm)
-		if err != nil {
-			return err
-		}
+	err = m.diskDeployer.Deploy(diskPool, cloud, vm, m.eventLoggerStage)
+	if err != nil {
+		return bosherr.WrapError(err, "Deploying disk")
 	}
 
 	err = m.startVM(vm, stemcellApplySpec, deployment, jobName)
@@ -163,38 +159,6 @@ func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime
 	}
 
 	eventStep.Finish()
-
-	return nil
-}
-
-func (m *deployer) createAndAttachDisk(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM) error {
-	diskManager := m.diskManagerFactory.NewManager(cloud)
-
-	disk, found, err := diskManager.FindCurrent()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding existing disk")
-	}
-	if !found {
-		createEventStep := m.eventLoggerStage.NewStep("Creating disk")
-		createEventStep.Start()
-
-		disk, err = diskManager.Create(diskPool, vm.CID())
-		if err != nil {
-			createEventStep.Fail(err.Error())
-			return bosherr.WrapError(err, "Creating new disk")
-		}
-		createEventStep.Finish()
-	}
-
-	attachEventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Attaching disk '%s' to VM '%s'", disk.CID(), vm.CID()))
-	attachEventStep.Start()
-
-	err = vm.AttachDisk(disk)
-	if err != nil {
-		attachEventStep.Fail(err.Error())
-		return err
-	}
-	attachEventStep.Finish()
 
 	return nil
 }

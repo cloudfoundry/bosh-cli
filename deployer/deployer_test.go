@@ -10,14 +10,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk/fakes"
+	fakebmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
@@ -28,9 +27,10 @@ var _ = Describe("Deployer", func() {
 	var (
 		deployer                   Deployer
 		fakeVMDeployer             *fakebmvm.FakeDeployer
-		fakeDiskManager            *fakebmdisk.FakeManager
+		fakeDiskDeployer           *fakebmdeployer.FakeDiskDeployer
 		cloud                      *fakebmcloud.FakeCloud
 		deployment                 bmdepl.Deployment
+		diskPool                   bmdepl.DiskPool
 		registry                   bmdepl.Registry
 		fakeRegistryServer         *fakeregistry.FakeServer
 		eventLogger                *fakebmlog.FakeEventLogger
@@ -44,6 +44,13 @@ var _ = Describe("Deployer", func() {
 	)
 
 	BeforeEach(func() {
+		diskPool = bmdepl.DiskPool{
+			Name: "fake-persistent-disk-pool-name",
+			Size: 1024,
+			RawCloudProperties: map[interface{}]interface{}{
+				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
+			},
+		}
 		deployment = bmdepl.Deployment{
 			Update: bmdepl.Update{
 				UpdateWatchTime: bmdepl.WatchTime{
@@ -51,9 +58,13 @@ var _ = Describe("Deployer", func() {
 					End:   5478,
 				},
 			},
+			DiskPools: []bmdepl.DiskPool{
+				diskPool,
+			},
 			Jobs: []bmdepl.Job{
 				{
-					Name: "fake-job-name",
+					Name:               "fake-job-name",
+					PersistentDiskPool: "fake-persistent-disk-pool-name",
 				},
 			},
 		}
@@ -78,10 +89,7 @@ var _ = Describe("Deployer", func() {
 		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
 		fakeVMDeployer.SetDeployBehavior(fakeVM, nil)
 
-		fakeDiskManagerFactory := fakebmdisk.NewFakeManagerFactory()
-		fakeDiskManager = fakebmdisk.NewFakeManager()
-		fakeDiskManager.CreateDisk = bmdisk.NewDisk("fake-disk-cid")
-		fakeDiskManagerFactory.NewManagerManager = fakeDiskManager
+		fakeDiskDeployer = fakebmdeployer.NewFakeDiskDeployer()
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
@@ -89,7 +97,7 @@ var _ = Describe("Deployer", func() {
 		eventLogger.SetNewStageBehavior(fakeStage)
 		deployer = NewDeployer(
 			fakeVMDeployer,
-			fakeDiskManagerFactory,
+			fakeDiskDeployer,
 			fakeRegistryServer,
 			eventLogger,
 			logger,
@@ -101,8 +109,6 @@ var _ = Describe("Deployer", func() {
 				Name: "fake-job-name",
 			},
 		}
-
-		fakeDiskManager.SetFindCurrentBehavior(nil, false, nil)
 
 		stemcell = bmstemcell.CloudStemcell{
 			CID: "fake-stemcell-cid",
@@ -169,6 +175,20 @@ var _ = Describe("Deployer", func() {
 		}))
 	})
 
+	It("deploys disk", func() {
+		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebmdeployer.DiskDeployInput{
+			{
+				DiskPool:         diskPool,
+				Cloud:            cloud,
+				VM:               fakeVM,
+				EventLoggerStage: fakeStage,
+			},
+		}))
+	})
+
 	It("starts the agent", func() {
 		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
 		Expect(err).NotTo(HaveOccurred())
@@ -186,166 +206,14 @@ var _ = Describe("Deployer", func() {
 		}))
 	})
 
-	Context("when the deployment has a disk pool", func() {
-		var diskPool bmdepl.DiskPool
-
-		BeforeEach(func() {
-			diskPool = bmdepl.DiskPool{
-				Name: "fake-persistent-disk-pool-name",
-				Size: 1024,
-				RawCloudProperties: map[interface{}]interface{}{
-					"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
-				},
-			}
-			deployment.DiskPools = []bmdepl.DiskPool{diskPool}
-			deployment.Jobs[0].PersistentDiskPool = "fake-persistent-disk-pool-name"
-		})
-
-		Context("when disk already exists", func() {
-			BeforeEach(func() {
-				disk := bmdisk.NewDisk("fake-disk-cid")
-				fakeDiskManager.SetFindCurrentBehavior(disk, true, nil)
-			})
-
-			It("does not create disk", func() {
-				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(fakeDiskManager.CreateInputs).To(BeEmpty())
-			})
-
-			It("does not log the create disk event", func() {
-				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(fakeStage.Steps).ToNot(ContainElement(&fakebmlog.FakeStep{
-					Name: "Creating disk",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
-				}))
-			})
-		})
-
-		Context("when disk does not exist", func() {
-			It("creates a persistent disk", func() {
-				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(fakeDiskManager.CreateInputs).To(Equal([]fakebmdisk.CreateInput{
-					{
-						DiskPool:   diskPool,
-						InstanceID: "fake-vm-cid",
-					},
-				}))
-			})
-		})
-
-		It("attaches the persistent disk", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
-				{
-					Disk: bmdisk.NewDisk("fake-disk-cid"),
-				},
-			}))
-		})
-
-		It("logs start and stop events to the eventLogger", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Creating disk",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Attaching disk 'fake-disk-cid' to VM 'fake-vm-cid'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-		})
-
-		Context("when creating the persistent disk fails", func() {
-			BeforeEach(func() {
-				fakeDiskManager.CreateErr = errors.New("fake-create-disk-error")
-			})
-
-			It("return an error", func() {
-				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-create-disk-error"))
-			})
-
-			It("logs start and stop events to the eventLogger", func() {
-				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-				Expect(err).To(HaveOccurred())
-
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Creating disk",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "fake-create-disk-error",
-				}))
-			})
-		})
-
-		Context("when attaching the persistent disk fails", func() {
-			BeforeEach(func() {
-				fakeVM.AttachDiskErr = errors.New("fake-attach-disk-error")
-			})
-
-			It("return an error", func() {
-				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-attach-disk-error"))
-			})
-
-			It("logs start and failed events to the eventLogger", func() {
-				err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-				Expect(err).To(HaveOccurred())
-
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Attaching disk 'fake-disk-cid' to VM 'fake-vm-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "fake-attach-disk-error",
-				}))
-			})
-		})
-	})
-
 	Context("when the deployment has an invalid disk pool specification", func() {
 		BeforeEach(func() {
-			deployment.Jobs[0].PersistentDiskPool = "fake-persistent-disk-pool-name"
+			deployment.Jobs[0].PersistentDiskPool = "fake-non-existent-persistent-disk-pool-name"
 		})
 
 		It("returns an error", func() {
 			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
 			Expect(err).To(HaveOccurred())
-		})
-	})
-
-	Context("when the deployment's first job does not contain a non-zero persistent disk", func() {
-		BeforeEach(func() {
-			deployment.Jobs[0].PersistentDisk = 0
-		})
-
-		It("does not create a persistent disk", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeDiskManager.CreateInputs).To(BeEmpty())
 		})
 	})
 
