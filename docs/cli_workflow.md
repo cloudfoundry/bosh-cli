@@ -99,9 +99,11 @@ This section describes how the CLI works. These steps are performed by the CLI.
 
 For additional information see the [decision tree](micro-cli-flow.png) of the deploy command.
 
-## 1. Parsing manifest
+## 1. Validating manifest, release and stemcell
 
-The BOSH Micro CLI parses the deployment manifest into two parts: the BOSH deployment manifest, and the CPI deployment manifest.
+The first step of the deploy process is validation. As part of that validation the CLI verifies if there are changes in either manifest, release or stemcell. In case there are no changes CLI will exit early with message `Skipping deploy`.
+
+As part of manifest validation BOSH Micro CLI validates manifest properties and parses manifest for deploy. BOSH Micro CLI parses the deployment manifest into two parts: the BOSH deployment manifest, and the CPI deployment manifest.
 
 The BOSH deployment manifest is used to deploy Micro BOSH. The Micro BOSH is defined by the `networks`, `resource_pools`, and `jobs` sections of the manifest. The BOSH micro job must be defined as the first job in the `jobs` section. Any other job will be ignored.
 
@@ -125,33 +127,37 @@ Before deploying Micro BOSH, the CLI starts the registry. The registry can be us
 
 The CPI will store the registry URL in the infrastructure's metadata service. The agent on the Micro BOSH VM will fetch registry settings from the provided URL.
 
-## 5. Creating VM
+## 5. Deleting existing VM
 
-Once the registry is started, the deployer sends the `create_vm` command to the CPI with the properties parsed from the manifest. Additionally, the vm CID is persisted in `deployment.json` in the same folder as the deployment manifest.
+In case the VM was previosly deployed, the CLI tries to connect to the agent on the existing VM. If the agent is responsive, the CLI stops services that are running on that VM and unmounts all disks that are attached to the VM. Eventually, the CLI deletes the existing VM and removes VM CID from `deployment.json`.
 
-## 6. Starting SSH Tunnel
+## 6. Creating new VM
+
+Next, the CLI sends the `create_vm` command to the CPI with the properties parsed from the manifest. Additionally, the VM CID is persisted in `deployment.json` in the same folder as the deployment manifest.
+
+## 7. Starting SSH Tunnel
 
 The CLI creates a reverse SSH tunnel to Micro BOSH VM using the properties provided in the manifest. This allows the agent on the Micro BOSH VM to access the registry, which is running on the machine where `bosh-micro deploy` was run.
 
-## 7. Waiting for Agent
+## 8. Waiting for Agent
 
 Once the SSH tunnel is up the CLI uses provided mbus URL to issue ping messages to the agent on the Micro BOSH VM. Once the agent is ready it will respond to the ping.
 
-## 8. Sending stop message
+## 9. Sending stop message
 
 Once agent is listening on Mbus endpoint micro CLI sends stop message to the agent. The agent is using `monit` to manage job states on VM. The stop is a preparation for the subsequent job update.
 
-## 9. Sending micro BOSH apply spec
+## 10. Sending micro BOSH apply spec
 
 Next micro CLI sends apply message with the list of packages and jobs that should be installed on VM. The agent serves a blobstore at `<Mbus URL>/blobs` endpoint. The package and job list is parsed from `apply_spec.yml` which is included in the stemcell.
 
 For each of the template specified in micro BOSH job micro CLI downloads corresponding job template from the blobstore, renders the template with the properties specified for micro BOSH job in deployment manifest. Once all the templates are rendered micro CLI uploads the archive of all the rendered templates to the blobstore and generates an apply message. Apply message contains the list of all packages, spec of templates archive with uploaded blob ID, networks spec parsed from deployment manifest and configuration hash which is a digest of all rendered job template files.
 
-## 10. Sending start message
+## 11. Sending start message
 
 Once `apply` task is finished micro CLI sends `start` message to the agent which starts installed jobs.
 
-## 11. Creating disk
+## 12. Creating disk
 
 ClI will create and attach a disk to Micro BOSH VM if it is requested in manifest. There are two ways to request the disk:
 
@@ -162,7 +168,7 @@ You should use `disk_pools` if you want to use disk cloud_properties.
 
 In this case the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in `deployment.json` in the same folder as the deployment manifest.
 
-## 12. Attaching disk
+## 13. Attaching disk
 
 After disk is created CLI calls `attach_disk` CPI method. After disk is attached CLI issues `mount_disk` request to the agent on the Micro BOSH VM.
 
