@@ -246,7 +246,7 @@ var _ = Describe("DeploymentRecord", func() {
 				Name:    "fake-release-name",
 				Version: "fake-release-version",
 			}
-			releaseRepo.SetSaveBehavior("fake-release-name", "fake-release-version", deployedRelease, nil)
+			releaseRepo.SetFindBehavior("fake-release-name", "fake-release-version", deployedRelease, true, nil)
 		})
 
 		It("calculates and updates sha1 of currently deployed manifest", func() {
@@ -265,6 +265,44 @@ var _ = Describe("DeploymentRecord", func() {
 			err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseRepo.UpdateCurrentRecordID).To(Equal("fake-release-id"))
+		})
+
+		Context("when release is not in release repo", func() {
+			BeforeEach(func() {
+				releaseRepo.SetFindBehavior("fake-release-name", "fake-release-version", bmconfig.ReleaseRecord{}, false, nil)
+				savedRelease := bmconfig.ReleaseRecord{
+					ID:      "fake-saved-release-id",
+					Name:    "fake-release-name",
+					Version: "fake-release-version",
+				}
+
+				releaseRepo.SetSaveBehavior("fake-release-name", "fake-release-version", savedRelease, nil)
+			})
+
+			It("saves release to release repo", func() {
+				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(releaseRepo.UpdateCurrentRecordID).To(Equal("fake-saved-release-id"))
+
+				Expect(releaseRepo.SaveInputs).To(Equal([]fakebmconfig.ReleaseRepoSaveInput{
+					{
+						Name:    "fake-release-name",
+						Version: "fake-release-version",
+					},
+				}))
+			})
+
+			Context("when saving release record fails", func() {
+				BeforeEach(func() {
+					releaseRepo.SetSaveBehavior("fake-release-name", "fake-release-version", bmconfig.ReleaseRecord{}, errors.New("fake-save-error"))
+				})
+
+				It("returns an error", func() {
+					err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+				})
+			})
 		})
 
 		Context("when calculating the deployment manifest sha1 fails", func() {
@@ -293,18 +331,6 @@ var _ = Describe("DeploymentRecord", func() {
 				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
-			})
-		})
-
-		Context("when saving release record fails", func() {
-			BeforeEach(func() {
-				releaseRepo.SetSaveBehavior("fake-release-name", "fake-release-version", bmconfig.ReleaseRecord{}, errors.New("fake-save-error"))
-			})
-
-			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-save-error"))
 			})
 		})
 

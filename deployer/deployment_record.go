@@ -94,9 +94,12 @@ func (v *deploymentRecord) Update(manifestPath string, release bmrel.Release, st
 		return bosherr.WrapError(err, "Saving sha1 of deployed manifest")
 	}
 
-	releaseRecord, err := v.releaseRepo.Save(release.Name(), release.Version())
-	if err != nil {
-		return bosherr.WrapError(err, "Saving release record with name: '%s', version: '%s'", release.Name(), release.Version())
+	releaseRecord, found, err := v.releaseRepo.Find(release.Name(), release.Version())
+	if !found {
+		releaseRecord, err = v.releaseRepo.Save(release.Name(), release.Version())
+		if err != nil {
+			return bosherr.WrapError(err, "Saving release record with name: '%s', version: '%s'", release.Name(), release.Version())
+		}
 	}
 
 	err = v.releaseRepo.UpdateCurrent(releaseRecord.ID)
