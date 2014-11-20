@@ -69,7 +69,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(diskPool, "fake-vm-cid")
 				Expect(err).ToNot(HaveOccurred())
 
-				diskRecord, found, err := diskRepo.FindCurrent()
+				diskRecord, found, err := diskRepo.Find("fake-disk-cid")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 

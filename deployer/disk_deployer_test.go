@@ -9,10 +9,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
@@ -27,6 +29,7 @@ var _ = Describe("DiskDeployer", func() {
 		fakeStage       *fakebmlog.FakeStage
 		fakeVM          *fakebmvm.FakeVM
 		fakeDisk        *fakebmdisk.FakeDisk
+		fakeDiskRepo    *fakebmconfig.FakeDiskRepo
 	)
 
 	BeforeEach(func() {
@@ -41,13 +44,16 @@ var _ = Describe("DiskDeployer", func() {
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeStage = fakebmlog.NewFakeStage()
+		fakeDiskRepo = fakebmconfig.NewFakeDiskRepo()
 		diskDeployer = NewDiskDeployer(
 			fakeDiskManagerFactory,
+			fakeDiskRepo,
 			logger,
 		)
 
 		fakeDiskManager.SetFindCurrentBehavior(nil, false, nil)
 		fakeVM.SetAttachDiskBehavior(fakeDisk, nil)
+		fakeDiskRepo.SetFindBehavior("fake-disk-cid", bmconfig.DiskRecord{}, true, nil)
 	})
 
 	Context("when the disk pool size is > 0", func() {
@@ -68,6 +74,7 @@ var _ = Describe("DiskDeployer", func() {
 				existingDisk = fakebmdisk.NewFakeDisk("fake-existing-disk-cid")
 				fakeDiskManager.SetFindCurrentBehavior(existingDisk, true, nil)
 				fakeVM.SetAttachDiskBehavior(existingDisk, nil)
+				fakeDiskRepo.SetFindBehavior("fake-existing-disk-cid", bmconfig.DiskRecord{}, true, nil)
 			})
 
 			It("does not create primary disk", func() {
@@ -104,6 +111,11 @@ var _ = Describe("DiskDeployer", func() {
 
 					secondaryDisk = fakebmdisk.NewFakeDisk("fake-secondary-disk-cid")
 					fakeDiskManager.CreateDisk = secondaryDisk
+					secondaryDiskRecord := bmconfig.DiskRecord{
+						ID: "fake-secondary-disk-id",
+					}
+
+					fakeDiskRepo.SetFindBehavior("fake-secondary-disk-cid", secondaryDiskRecord, true, nil)
 				})
 
 				It("creates secondary disk", func() {
@@ -175,6 +187,17 @@ var _ = Describe("DiskDeployer", func() {
 						States: []bmeventlog.EventState{
 							bmeventlog.Started,
 							bmeventlog.Finished,
+						},
+					}))
+				})
+
+				It("promotes secondary disk as primary", func() {
+					err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(fakeDiskRepo.UpdateCurrentInputs).To(Equal([]fakebmconfig.DiskRepoUpdateCurrentInput{
+						{
+							DiskID: "fake-secondary-disk-id",
 						},
 					}))
 				})

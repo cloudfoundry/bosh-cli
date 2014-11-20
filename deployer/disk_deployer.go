@@ -7,6 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -18,15 +19,17 @@ type DiskDeployer interface {
 }
 
 type diskDeployer struct {
+	diskRepo           bmconfig.DiskRepo
 	diskManagerFactory bmdisk.ManagerFactory
 	diskManager        bmdisk.Manager
 	logger             boshlog.Logger
 	logTag             string
 }
 
-func NewDiskDeployer(diskManagerFactory bmdisk.ManagerFactory, logger boshlog.Logger) DiskDeployer {
+func NewDiskDeployer(diskManagerFactory bmdisk.ManagerFactory, diskRepo bmconfig.DiskRepo, logger boshlog.Logger) DiskDeployer {
 	return &diskDeployer{
 		diskManagerFactory: diskManagerFactory,
+		diskRepo:           diskRepo,
 		logger:             logger,
 		logTag:             "diskDeployer",
 	}
@@ -41,10 +44,10 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 		if err != nil {
 			return bosherr.WrapError(err, "Finding existing disk")
 		}
+
 		if !diskFound {
 			createEventStep := eventLoggerStage.NewStep("Creating disk")
 			createEventStep.Start()
-
 			disk, err = d.diskManager.Create(diskPool, vm.CID())
 			if err != nil {
 				createEventStep.Fail(err.Error())
@@ -55,7 +58,6 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 
 		attachEventStep := eventLoggerStage.NewStep(fmt.Sprintf("Attaching disk '%s' to VM '%s'", disk.CID(), vm.CID()))
 		attachEventStep.Start()
-
 		err = vm.AttachDisk(disk)
 		if err != nil {
 			err = bosherr.WrapError(err, "Attaching disk")
@@ -71,18 +73,28 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 			}
 
 			if disk.NeedsMigration(diskPool.DiskSize, diskCloudProperties) {
-				err = d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
+				disk, err = d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
 				if err != nil {
 					return err
 				}
 			}
+		}
+
+		err = d.updateCurrentDiskRecord(disk)
+		if err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func (d *diskDeployer) migrateDisk(primaryDisk bmdisk.Disk, diskPool bmdepl.DiskPool, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error {
+func (d *diskDeployer) migrateDisk(
+	primaryDisk bmdisk.Disk,
+	diskPool bmdepl.DiskPool,
+	vm bmvm.VM,
+	eventLoggerStage bmeventlog.Stage,
+) (bmdisk.Disk, error) {
 	createEventStep := eventLoggerStage.NewStep("Creating disk")
 	createEventStep.Start()
 
@@ -90,7 +102,7 @@ func (d *diskDeployer) migrateDisk(primaryDisk bmdisk.Disk, diskPool bmdepl.Disk
 	if err != nil {
 		err = bosherr.WrapError(err, "Creating secondary disk")
 		createEventStep.Fail(err.Error())
-		return err
+		return nil, err
 	}
 
 	createEventStep.Finish()
@@ -102,7 +114,7 @@ func (d *diskDeployer) migrateDisk(primaryDisk bmdisk.Disk, diskPool bmdepl.Disk
 	if err != nil {
 		err = bosherr.WrapError(err, "Attaching secondary disk")
 		attachEventStep.Fail(err.Error())
-		return err
+		return nil, err
 	}
 	attachEventStep.Finish()
 
@@ -113,7 +125,7 @@ func (d *diskDeployer) migrateDisk(primaryDisk bmdisk.Disk, diskPool bmdepl.Disk
 	if err != nil {
 		err = bosherr.WrapError(err, "Migrating disk")
 		migrateEventStep.Fail(err.Error())
-		return err
+		return nil, err
 	}
 
 	migrateEventStep.Finish()
@@ -125,10 +137,28 @@ func (d *diskDeployer) migrateDisk(primaryDisk bmdisk.Disk, diskPool bmdepl.Disk
 	if err != nil {
 		err = bosherr.WrapError(err, "Detaching disk")
 		detachEventStep.Fail(err.Error())
-		return err
+		return nil, err
 	}
 
 	detachEventStep.Finish()
+
+	return secondaryDisk, nil
+}
+
+func (d *diskDeployer) updateCurrentDiskRecord(disk bmdisk.Disk) error {
+	savedDiskRecord, found, err := d.diskRepo.Find(disk.CID())
+	if err != nil {
+		return bosherr.WrapError(err, "Finding disk record")
+	}
+
+	if !found {
+		return bosherr.New("Failed to find disk record for new disk")
+	}
+
+	err = d.diskRepo.UpdateCurrent(savedDiskRecord.ID)
+	if err != nil {
+		return bosherr.WrapError(err, "Updating current disk record")
+	}
 
 	return nil
 }
