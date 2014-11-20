@@ -38,8 +38,9 @@ cloud_provider:
         connect_address: 0.0.0.0:7777
         network_pool: 10.244.0.0/16
         host_ip: 192.168.54.4
-      agent_env_service: registry
-      registry: *registry
+      actions:
+        agent_env_service: registry
+        registry: *registry
       agent:
         mbus: https://admin:admin@0.0.0.0:6868
         blobstore:
