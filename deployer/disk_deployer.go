@@ -118,5 +118,17 @@ func (d *diskDeployer) migrateDisk(primaryDisk bmdisk.Disk, diskPool bmdepl.Disk
 
 	migrateEventStep.Finish()
 
+	detachEventStep := eventLoggerStage.NewStep(fmt.Sprintf("Detaching disk '%s'", primaryDisk.CID()))
+	detachEventStep.Start()
+
+	err = vm.DetachDisk(primaryDisk)
+	if err != nil {
+		err = bosherr.WrapError(err, "Detaching disk")
+		detachEventStep.Fail(err.Error())
+		return err
+	}
+
+	detachEventStep.Finish()
+
 	return nil
 }

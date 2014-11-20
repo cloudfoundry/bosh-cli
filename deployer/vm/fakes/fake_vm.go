@@ -20,6 +20,9 @@ type FakeVM struct {
 	AttachDiskInputs   []AttachDiskInput
 	attachDiskBehavior map[string]error
 
+	DetachDiskInputs   []DetachDiskInput
+	detachDiskBehavior map[string]error
+
 	WaitToBeReadyInputs []WaitToBeReadyInput
 	WaitToBeReadyErr    error
 
@@ -61,6 +64,10 @@ type AttachDiskInput struct {
 	Disk bmdisk.Disk
 }
 
+type DetachDiskInput struct {
+	Disk bmdisk.Disk
+}
+
 type UnmountDiskInput struct {
 	Disk bmdisk.Disk
 }
@@ -71,8 +78,10 @@ func NewFakeVM(cid string) *FakeVM {
 		WaitToBeReadyInputs:   []WaitToBeReadyInput{},
 		WaitToBeRunningInputs: []WaitInput{},
 		AttachDiskInputs:      []AttachDiskInput{},
+		DetachDiskInputs:      []DetachDiskInput{},
 		UnmountDiskInputs:     []UnmountDiskInput{},
 		attachDiskBehavior:    map[string]error{},
+		detachDiskBehavior:    map[string]error{},
 		cid:                   cid,
 	}
 }
@@ -119,6 +128,14 @@ func (vm *FakeVM) AttachDisk(disk bmdisk.Disk) error {
 	return vm.attachDiskBehavior[disk.CID()]
 }
 
+func (vm *FakeVM) DetachDisk(disk bmdisk.Disk) error {
+	vm.DetachDiskInputs = append(vm.DetachDiskInputs, DetachDiskInput{
+		Disk: disk,
+	})
+
+	return vm.detachDiskBehavior[disk.CID()]
+}
+
 func (vm *FakeVM) UnmountDisk(disk bmdisk.Disk) error {
 	vm.UnmountDiskInputs = append(vm.UnmountDiskInputs, UnmountDiskInput{
 		Disk: disk,
@@ -149,4 +166,8 @@ func (vm *FakeVM) Delete() error {
 
 func (vm *FakeVM) SetAttachDiskBehavior(disk bmdisk.Disk, err error) {
 	vm.attachDiskBehavior[disk.CID()] = err
+}
+
+func (vm *FakeVM) SetDetachDiskBehavior(disk bmdisk.Disk, err error) {
+	vm.detachDiskBehavior[disk.CID()] = err
 }

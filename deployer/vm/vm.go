@@ -25,6 +25,7 @@ type VM interface {
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
+	DetachDisk(bmdisk.Disk) error
 	Stop() error
 	Disks() ([]bmdisk.Disk, error)
 	UnmountDisk(bmdisk.Disk) error
@@ -157,6 +158,15 @@ func (vm *vm) AttachDisk(disk bmdisk.Disk) error {
 	err = vm.agentClient.MountDisk(disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Mounting disk")
+	}
+
+	return nil
+}
+
+func (vm *vm) DetachDisk(disk bmdisk.Disk) error {
+	err := vm.cloud.DetachDisk(vm.cid, disk.CID())
+	if err != nil {
+		return bosherr.WrapError(err, "Detaching disk in the cloud")
 	}
 
 	return nil

@@ -308,6 +308,35 @@ var _ = Describe("VM", func() {
 		})
 	})
 
+	Describe("DetachDisk", func() {
+		var disk bmdisk.Disk
+
+		BeforeEach(func() {
+			disk = bmdisk.NewDisk("fake-disk-cid", 1024, map[string]interface{}{})
+		})
+
+		It("detaches disk from vm in the cloud", func() {
+			err := vm.DetachDisk(disk)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeCloud.DetachDiskInput).To(Equal(fakebmcloud.DetachDiskInput{
+				VMCID:   "fake-vm-cid",
+				DiskCID: "fake-disk-cid",
+			}))
+		})
+
+		Context("when detaching disk to cloud fails", func() {
+			BeforeEach(func() {
+				fakeCloud.DetachDiskErr = errors.New("fake-detach-error")
+			})
+
+			It("returns an error", func() {
+				err := vm.DetachDisk(disk)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-detach-error"))
+			})
+		})
+	})
+
 	Describe("UnmountDisk", func() {
 		var disk bmdisk.Disk
 

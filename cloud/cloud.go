@@ -16,6 +16,7 @@ type Cloud interface {
 	DeleteVM(vmCID string) error
 	CreateDisk(size int, cloudProperties map[string]interface{}, vmCID string) (diskCID string, err error)
 	AttachDisk(vmCID, diskCID string) error
+	DetachDisk(vmCID, diskCID string) error
 }
 
 type cloud struct {
@@ -113,6 +114,20 @@ func (c cloud) AttachDisk(vmCID, diskCID string) error {
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'attach_disk' method")
+	}
+
+	return nil
+}
+
+func (c cloud) DetachDisk(vmCID, diskCID string) error {
+	c.logger.Debug(c.logTag, "Detaching disk '%s' from vm '%s'", diskCID, vmCID)
+	_, err := c.cpiCmdRunner.Run(
+		"detach_disk",
+		vmCID,
+		diskCID,
+	)
+	if err != nil {
+		return bosherr.WrapError(err, "Calling CPI 'detach_disk' method")
 	}
 
 	return nil

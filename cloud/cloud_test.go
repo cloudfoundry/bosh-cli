@@ -249,7 +249,7 @@ var _ = Describe("Cloud", func() {
 	})
 
 	Describe("AttachDisk", func() {
-		Context("when the cpi successfully creates the disk", func() {
+		Context("when the cpi successfully attaches the disk", func() {
 			It("executes the cpi job script with the correct arguments", func() {
 				err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
 				Expect(err).NotTo(HaveOccurred())
@@ -273,6 +273,35 @@ var _ = Describe("Cloud", func() {
 				err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-attach-error"))
+			})
+		})
+	})
+
+	Describe("DetachDisk", func() {
+		Context("when the cpi successfully detaches the disk", func() {
+			It("executes the cpi job script with the correct arguments", func() {
+				err := cloud.DetachDisk("fake-vm-cid", "fake-disk-cid")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+					Method: "detach_disk",
+					Arguments: []interface{}{
+						"fake-vm-cid",
+						"fake-disk-cid",
+					},
+				}))
+			})
+		})
+
+		Context("when the cpi returns an error", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunErr = errors.New("fake-deattach-error")
+			})
+
+			It("returns an error", func() {
+				err := cloud.DetachDisk("fake-vm-cid", "fake-disk-cid")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-deattach-error"))
 			})
 		})
 	})

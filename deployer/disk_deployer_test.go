@@ -161,6 +161,24 @@ var _ = Describe("DiskDeployer", func() {
 					}))
 				})
 
+				It("detaches primary disk", func() {
+					err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebmvm.DetachDiskInput{
+						{
+							Disk: existingDisk,
+						},
+					}))
+
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Detaching disk 'fake-existing-disk-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Finished,
+						},
+					}))
+				})
+
 				Context("when disk creation fails", func() {
 					BeforeEach(func() {
 						fakeDiskManager.CreateErr = errors.New("fake-create-disk-error")
@@ -170,11 +188,7 @@ var _ = Describe("DiskDeployer", func() {
 						err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-create-disk-error"))
-						Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
-							{
-								Disk: existingDisk,
-							},
-						}))
+						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebmvm.DetachDiskInput{}))
 					})
 				})
 
@@ -187,14 +201,7 @@ var _ = Describe("DiskDeployer", func() {
 						err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-attach-disk-error"))
-						Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
-							{
-								Disk: existingDisk,
-							},
-							{
-								Disk: secondaryDisk,
-							},
-						}))
+						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebmvm.DetachDiskInput{}))
 
 						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 							Name: "Attaching disk 'fake-secondary-disk-cid' to VM 'fake-vm-cid'",
@@ -203,6 +210,27 @@ var _ = Describe("DiskDeployer", func() {
 								bmeventlog.Failed,
 							},
 							FailMessage: "Attaching secondary disk: fake-attach-disk-error",
+						}))
+					})
+				})
+
+				Context("when detaching the new disk fails", func() {
+					BeforeEach(func() {
+						fakeVM.SetDetachDiskBehavior(existingDisk, errors.New("fake-detach-disk-error"))
+					})
+
+					It("returns error", func() {
+						err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-detach-disk-error"))
+
+						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+							Name: "Detaching disk 'fake-existing-disk-cid'",
+							States: []bmeventlog.EventState{
+								bmeventlog.Started,
+								bmeventlog.Failed,
+							},
+							FailMessage: "Detaching disk: fake-detach-disk-error",
 						}))
 					})
 				})
@@ -216,14 +244,7 @@ var _ = Describe("DiskDeployer", func() {
 						err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migrate-disk-error"))
-						Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebmvm.AttachDiskInput{
-							{
-								Disk: existingDisk,
-							},
-							{
-								Disk: secondaryDisk,
-							},
-						}))
+						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebmvm.DetachDiskInput{}))
 
 						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 							Name: "Migrating disk 'fake-existing-disk-cid' to 'fake-secondary-disk-cid'",
