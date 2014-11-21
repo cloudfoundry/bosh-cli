@@ -18,16 +18,15 @@ type Manager interface {
 }
 
 type manager struct {
-	vmRepo                  bmconfig.VMRepo
-	mbusURL                 string
-	agentClientFactory      bmagentclient.Factory
-	templatesSpecGenerator  bmas.TemplatesSpecGenerator
-	deploymentConfigService bmconfig.DeploymentConfigService
-	applySpecFactory        bmas.Factory
-	cloud                   bmcloud.Cloud
-	fs                      boshsys.FileSystem
-	logger                  boshlog.Logger
-	logTag                  string
+	vmRepo                 bmconfig.VMRepo
+	mbusURL                string
+	agentClientFactory     bmagentclient.Factory
+	templatesSpecGenerator bmas.TemplatesSpecGenerator
+	applySpecFactory       bmas.Factory
+	cloud                  bmcloud.Cloud
+	fs                     boshsys.FileSystem
+	logger                 boshlog.Logger
+	logTag                 string
 }
 
 func (m *manager) FindCurrent() (VM, bool, error) {
@@ -79,15 +78,9 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.De
 		return nil, bosherr.WrapError(err, "Creating vm with stemcell cid `%s'", stemcell.CID)
 	}
 
-	deploymentConfig, err := m.deploymentConfigService.Load()
+	err = m.vmRepo.UpdateCurrent(cid)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Reading existing deployment config")
-	}
-	deploymentConfig.CurrentVMCID = cid
-
-	err = m.deploymentConfigService.Save(deploymentConfig)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Saving deployment config")
+		return nil, bosherr.WrapError(err, "Updating current vm record")
 	}
 
 	vm := NewVM(

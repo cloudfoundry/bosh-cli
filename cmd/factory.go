@@ -203,7 +203,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	vmManagerFactory := bmvm.NewManagerFactory(
 		vmRepo,
 		agentClientFactory,
-		f.deploymentConfigService,
 		applySpecFactory,
 		templatesSpecGenerator,
 		f.fs,

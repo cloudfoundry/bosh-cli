@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 
@@ -29,7 +28,6 @@ var _ = Describe("Manager", func() {
 		expectedCloudProperties    map[string]interface{}
 		expectedEnv                map[string]interface{}
 		deployment                 bmdepl.Deployment
-		configService              bmconfig.DeploymentConfigService
 		fakeVMRepo                 *fakebmconfig.FakeVMRepo
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
@@ -41,7 +39,6 @@ var _ = Describe("Manager", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		configService = bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
 		fakeAgentClientFactory := fakebmagentclient.NewFakeAgentClientFactory()
@@ -52,7 +49,6 @@ var _ = Describe("Manager", func() {
 		manager = NewManagerFactory(
 			fakeVMRepo,
 			fakeAgentClientFactory,
-			configService,
 			fakeApplySpecFactory,
 			fakeTemplatesSpecGenerator,
 			fs,
@@ -139,13 +135,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Create(stemcell, deployment)
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentConfig, err := configService.Load()
-			Expect(err).ToNot(HaveOccurred())
-
-			expectedConfig := bmconfig.DeploymentFile{
-				CurrentVMCID: "fake-vm-cid",
-			}
-			Expect(deploymentConfig).To(Equal(expectedConfig))
+			Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
 		})
 
 		Context("when creating the vm fails", func() {
