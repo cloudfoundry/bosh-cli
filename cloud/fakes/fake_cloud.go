@@ -78,6 +78,10 @@ func (c *FakeCloud) CreateStemcell(cloudProperties map[string]interface{}, image
 	return c.CreateStemcellCID, c.CreateStemcellErr
 }
 
+func (c *FakeCloud) DeleteStemcell(stemcellCID string) error {
+	return nil
+}
+
 func (c *FakeCloud) CreateVM(
 	stemcellCID string,
 	cloudProperties map[string]interface{},

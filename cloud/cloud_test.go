@@ -94,6 +94,32 @@ var _ = Describe("Cloud", func() {
 		})
 	})
 
+	Describe("DeleteStemcell", func() {
+		It("executes the delete_stemcell method on the CPI with stemcell cid", func() {
+			err := cloud.DeleteStemcell("fake-stemcell-cid")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
+			Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+				Method: "delete_stemcell",
+				Arguments: []interface{}{
+					"fake-stemcell-cid",
+				},
+			}))
+		})
+
+		Context("when the cpi returns an error", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+			})
+
+			It("returns an error", func() {
+				err := cloud.DeleteStemcell("fake-stemcell-cid")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
+			})
+		})
+	})
+
 	Describe("CreateVM", func() {
 		var (
 			stemcellCID     string

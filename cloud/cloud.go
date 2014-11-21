@@ -7,6 +7,7 @@ import (
 
 type Cloud interface {
 	CreateStemcell(cloudProperties map[string]interface{}, imagePath string) (stemcellCID string, err error)
+	DeleteStemcell(stemcellCID string) error
 	CreateVM(
 		stemcellCID string,
 		cloudProperties map[string]interface{},
@@ -41,6 +42,8 @@ func NewCloud(
 }
 
 func (c cloud) CreateStemcell(cloudProperties map[string]interface{}, imagePath string) (string, error) {
+	c.logger.Debug(c.logTag, "Creating stemcell")
+
 	cmdOutput, err := c.cpiCmdRunner.Run("create_stemcell", imagePath, cloudProperties)
 	if err != nil {
 		return "", err
@@ -52,6 +55,17 @@ func (c cloud) CreateStemcell(cloudProperties map[string]interface{}, imagePath 
 		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
 	return cidString, nil
+}
+
+func (c cloud) DeleteStemcell(stemcellCID string) error {
+	c.logger.Debug(c.logTag, "Deleting stemcell '%s'", stemcellCID)
+
+	_, err := c.cpiCmdRunner.Run("delete_stemcell", stemcellCID)
+	if err != nil {
+		return bosherr.WrapError(err, "Calling CPI 'delete_stemcell' method")
+	}
+
+	return nil
 }
 
 func (c cloud) CreateVM(
