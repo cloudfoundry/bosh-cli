@@ -205,7 +205,7 @@ func (vm *vm) Delete() error {
 		return bosherr.WrapError(err, "Deleting vm in the cloud")
 	}
 
-	err = vm.vmRepo.DeleteCurrent()
+	err = vm.vmRepo.ClearCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting vm from vm repo")
 	}

@@ -9,6 +9,7 @@ import (
 type StemcellRepo interface {
 	UpdateCurrent(recordID string) error
 	FindCurrent() (StemcellRecord, bool, error)
+	ClearCurrent() error
 	Save(name, version, cid string) (StemcellRecord, error)
 	Find(name, version string) (StemcellRecord, bool, error)
 }
@@ -26,43 +27,43 @@ func NewStemcellRepo(configService DeploymentConfigService, uuidGenerator boshuu
 }
 
 func (r stemcellRepo) Save(name, version, cid string) (StemcellRecord, error) {
-	config, err := r.configService.Load()
-	if err != nil {
-		return StemcellRecord{}, bosherr.WrapError(err, "Loading existing config")
-	}
+	stemcellRecord := StemcellRecord{}
 
-	records := config.Stemcells
-	if records == nil {
-		records = []StemcellRecord{}
-	}
-
-	newRecord := StemcellRecord{
-		Name:    name,
-		Version: version,
-		CID:     cid,
-	}
-	newRecord.ID, err = r.uuidGenerator.Generate()
-	if err != nil {
-		return newRecord, bosherr.WrapError(err, "Generating stemcell id")
-	}
-
-	for _, oldRecord := range records {
-		if oldRecord.Name == newRecord.Name && oldRecord.Version == newRecord.Version {
-			return oldRecord, bosherr.New("Failed to save stemcell record `%s' (duplicate name/version), existing record found `%s'", newRecord, oldRecord)
+	err := r.updateConfig(func(config *DeploymentFile) error {
+		records := config.Stemcells
+		if records == nil {
+			records = []StemcellRecord{}
 		}
-		if oldRecord.CID == newRecord.CID {
-			return oldRecord, bosherr.New("Failed to save stemcell record `%s' (duplicate cid), existing record found `%s'", newRecord, oldRecord)
+
+		newRecord := StemcellRecord{
+			Name:    name,
+			Version: version,
+			CID:     cid,
 		}
-	}
+		var err error
+		newRecord.ID, err = r.uuidGenerator.Generate()
+		if err != nil {
+			return bosherr.WrapError(err, "Generating stemcell id")
+		}
 
-	records = append(records, newRecord)
-	config.Stemcells = records
+		for _, oldRecord := range records {
+			if oldRecord.Name == newRecord.Name && oldRecord.Version == newRecord.Version {
+				return bosherr.New("Failed to save stemcell record `%s' (duplicate name/version), existing record found `%s'", newRecord, oldRecord)
+			}
+			if oldRecord.CID == newRecord.CID {
+				return bosherr.New("Failed to save stemcell record `%s' (duplicate cid), existing record found `%s'", newRecord, oldRecord)
+			}
+		}
 
-	err = r.configService.Save(config)
-	if err != nil {
-		return newRecord, bosherr.WrapError(err, "Saving new config")
-	}
-	return newRecord, nil
+		records = append(records, newRecord)
+		config.Stemcells = records
+
+		stemcellRecord = newRecord
+
+		return nil
+	})
+
+	return stemcellRecord, err
 }
 
 func (r stemcellRepo) Find(name, version string) (StemcellRecord, bool, error) {
@@ -105,26 +106,46 @@ func (r stemcellRepo) FindCurrent() (StemcellRecord, bool, error) {
 }
 
 func (r stemcellRepo) UpdateCurrent(recordID string) error {
+	return r.updateConfig(func(config *DeploymentFile) error {
+		found := false
+		for _, oldRecord := range config.Stemcells {
+			if oldRecord.ID == recordID {
+				found = true
+			}
+		}
+		if !found {
+			return bosherr.New("Verifying stemcell record exists with id `%s'", recordID)
+		}
+
+		config.CurrentStemcellID = recordID
+
+		return nil
+	})
+}
+
+func (r stemcellRepo) ClearCurrent() error {
+	return r.updateConfig(func(config *DeploymentFile) error {
+		config.CurrentStemcellID = ""
+
+		return nil
+	})
+}
+
+func (r stemcellRepo) updateConfig(updateFunc func(*DeploymentFile) error) error {
 	config, err := r.configService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
-	found := false
-	for _, oldRecord := range config.Stemcells {
-		if oldRecord.ID == recordID {
-			found = true
-		}
+	err = updateFunc(&config)
+	if err != nil {
+		return err
 	}
-	if !found {
-		return bosherr.New("Verifying stemcell record exists with id `%s'", recordID)
-	}
-
-	config.CurrentStemcellID = recordID
 
 	err = r.configService.Save(config)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
 	}
+
 	return nil
 }

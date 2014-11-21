@@ -63,9 +63,9 @@ var _ = Describe("VMRepo", func() {
 		})
 	})
 
-	Describe("DeleteCurrent", func() {
+	Describe("ClearCurrent", func() {
 		It("updates vm cid", func() {
-			err := repo.DeleteCurrent()
+			err := repo.ClearCurrent()
 			Expect(err).ToNot(HaveOccurred())
 
 			deploymentConfig, err := configService.Load()

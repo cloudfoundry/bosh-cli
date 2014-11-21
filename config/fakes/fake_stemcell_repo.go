@@ -67,6 +67,10 @@ func (fr *FakeStemcellRepo) FindCurrent() (bmconfig.StemcellRecord, bool, error)
 	return fr.findCurrentOutput.stemcellRecord, fr.findCurrentOutput.found, fr.findCurrentOutput.err
 }
 
+func (fr *FakeStemcellRepo) ClearCurrent() error {
+	return nil
+}
+
 func (fr *FakeStemcellRepo) Save(name, version, cid string) (bmconfig.StemcellRecord, error) {
 	input := StemcellRepoSaveInput{
 		Name:    name,

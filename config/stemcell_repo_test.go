@@ -161,6 +161,29 @@ var _ = Describe("StemcellRepo", func() {
 		})
 	})
 
+	Describe("ClearCurrent", func() {
+		Context("when a stemcell record exists with the same ID", func() {
+			BeforeEach(func() {
+				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+				_, err := repo.Save("fake-name", "fake-version", "fake-cid")
+				Expect(err).ToNot(HaveOccurred())
+
+				err = repo.UpdateCurrent("fake-uuid-1")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("clears current stemcell id", func() {
+				err := repo.ClearCurrent()
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentConfig, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deploymentConfig.CurrentStemcellID).To(Equal(""))
+			})
+		})
+	})
+
 	Describe("FindCurrent", func() {
 		Context("when current stemcell exists", func() {
 			BeforeEach(func() {

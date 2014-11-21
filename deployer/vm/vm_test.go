@@ -421,7 +421,7 @@ var _ = Describe("VM", func() {
 		It("deletes VM in the vm repo", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeVMRepo.DeleteCurrentCalled).To(BeTrue())
+			Expect(fakeVMRepo.ClearCurrentCalled).To(BeTrue())
 		})
 
 		Context("when deleting vm in the cloud fails", func() {

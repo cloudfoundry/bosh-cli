@@ -4,8 +4,8 @@ type FakeVMRepo struct {
 	UpdateCurrentCID string
 	UpdateCurrentErr error
 
-	DeleteCurrentCalled bool
-	DeleteCurrentErr    error
+	ClearCurrentCalled bool
+	ClearCurrentErr    error
 
 	findCurrentOutput vmRepoFindCurrentOutput
 }
@@ -37,7 +37,7 @@ func (r *FakeVMRepo) UpdateCurrent(cid string) error {
 	return r.UpdateCurrentErr
 }
 
-func (r *FakeVMRepo) DeleteCurrent() error {
-	r.DeleteCurrentCalled = true
-	return r.DeleteCurrentErr
+func (r *FakeVMRepo) ClearCurrent() error {
+	r.ClearCurrentCalled = true
+	return r.ClearCurrentErr
 }

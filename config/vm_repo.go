@@ -7,7 +7,7 @@ import (
 type VMRepo interface {
 	FindCurrent() (cid string, found bool, err error)
 	UpdateCurrent(cid string) error
-	DeleteCurrent() error
+	ClearCurrent() error
 }
 
 type vMRepo struct {
@@ -49,7 +49,7 @@ func (r vMRepo) UpdateCurrent(cid string) error {
 	return nil
 }
 
-func (r vMRepo) DeleteCurrent() error {
+func (r vMRepo) ClearCurrent() error {
 	config, err := r.configService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
