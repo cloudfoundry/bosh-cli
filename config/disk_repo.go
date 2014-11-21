@@ -10,6 +10,8 @@ type DiskRepo interface {
 	FindCurrent() (DiskRecord, bool, error)
 	Save(cid string, size int, cloudProperties map[string]interface{}) (DiskRecord, error)
 	Find(cid string) (DiskRecord, bool, error)
+	All() ([]DiskRecord, error)
+	Delete(DiskRecord) error
 }
 
 type diskRepo struct {
@@ -25,14 +27,9 @@ func NewDiskRepo(configService DeploymentConfigService, uuidGenerator boshuuid.G
 }
 
 func (r diskRepo) Save(cid string, size int, cloudProperties map[string]interface{}) (DiskRecord, error) {
-	config, err := r.configService.Load()
+	config, records, err := r.load()
 	if err != nil {
-		return DiskRecord{}, bosherr.WrapError(err, "Loading existing config")
-	}
-
-	records := config.Disks
-	if records == nil {
-		records = []DiskRecord{}
+		return DiskRecord{}, err
 	}
 
 	oldRecord, found := r.find(records, cid)
@@ -106,18 +103,58 @@ func (r diskRepo) UpdateCurrent(diskID string) error {
 }
 
 func (r diskRepo) Find(cid string) (DiskRecord, bool, error) {
-	config, err := r.configService.Load()
+	_, records, err := r.load()
 	if err != nil {
-		return DiskRecord{}, false, bosherr.WrapError(err, "Loading existing config")
-	}
-
-	records := config.Disks
-	if records == nil {
-		return DiskRecord{}, false, nil
+		return DiskRecord{}, false, err
 	}
 
 	foundRecord, found := r.find(records, cid)
 	return foundRecord, found, nil
+}
+
+func (r diskRepo) All() ([]DiskRecord, error) {
+	config, err := r.configService.Load()
+	if err != nil {
+		return []DiskRecord{}, bosherr.WrapError(err, "Loading existing config")
+	}
+
+	return config.Disks, nil
+}
+
+func (r diskRepo) Delete(diskRecord DiskRecord) error {
+	config, records, err := r.load()
+	if err != nil {
+		return err
+	}
+
+	newRecords := []DiskRecord{}
+	for _, record := range records {
+		if record.ID != diskRecord.ID {
+			newRecords = append(newRecords, record)
+		}
+	}
+
+	config.Disks = newRecords
+	err = r.configService.Save(config)
+	if err != nil {
+		return bosherr.WrapError(err, "Saving new config")
+	}
+
+	return nil
+}
+
+func (r diskRepo) load() (DeploymentFile, []DiskRecord, error) {
+	config, err := r.configService.Load()
+	if err != nil {
+		return config, []DiskRecord{}, bosherr.WrapError(err, "Loading existing config")
+	}
+
+	records := config.Disks
+	if records == nil {
+		return config, []DiskRecord{}, nil
+	}
+
+	return config, records, nil
 }
 
 func (r diskRepo) find(records []DiskRecord, cid string) (DiskRecord, bool) {

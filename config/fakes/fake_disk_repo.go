@@ -14,6 +14,11 @@ type FakeDiskRepo struct {
 	saveOutput diskRepoSaveOutput
 
 	findOutput map[string]diskRepoFindOutput
+
+	DeleteInputs []DiskRepoDeleteInput
+	DeleteErr    error
+
+	allOutput diskRepoAllOutput
 }
 
 type DiskRepoUpdateCurrentInput struct {
@@ -37,16 +42,26 @@ type diskRepoSaveOutput struct {
 	err        error
 }
 
+type DiskRepoDeleteInput struct {
+	DiskRecord bmconfig.DiskRecord
+}
+
 type diskRepoFindOutput struct {
 	diskRecord bmconfig.DiskRecord
 	found      bool
 	err        error
 }
 
+type diskRepoAllOutput struct {
+	diskRecords []bmconfig.DiskRecord
+	err         error
+}
+
 func NewFakeDiskRepo() *FakeDiskRepo {
 	return &FakeDiskRepo{
 		UpdateCurrentInputs: []DiskRepoUpdateCurrentInput{},
 		SaveInputs:          []DiskRepoSaveInput{},
+		DeleteInputs:        []DiskRepoDeleteInput{},
 		findOutput:          map[string]diskRepoFindOutput{},
 	}
 }
@@ -76,6 +91,18 @@ func (r *FakeDiskRepo) Find(cid string) (bmconfig.DiskRecord, bool, error) {
 	return r.findOutput[cid].diskRecord, r.findOutput[cid].found, r.findOutput[cid].err
 }
 
+func (r *FakeDiskRepo) All() ([]bmconfig.DiskRecord, error) {
+	return r.allOutput.diskRecords, r.allOutput.err
+}
+
+func (r *FakeDiskRepo) Delete(diskRecord bmconfig.DiskRecord) error {
+	r.DeleteInputs = append(r.DeleteInputs, DiskRepoDeleteInput{
+		DiskRecord: diskRecord,
+	})
+
+	return r.DeleteErr
+}
+
 func (r *FakeDiskRepo) SetUpdateBehavior(err error) {
 	r.updateErr = err
 }
@@ -100,5 +127,12 @@ func (r *FakeDiskRepo) SetFindBehavior(cid string, diskRecord bmconfig.DiskRecor
 		diskRecord: diskRecord,
 		found:      found,
 		err:        err,
+	}
+}
+
+func (r *FakeDiskRepo) SetAllBehavior(diskRecords []bmconfig.DiskRecord, err error) {
+	r.allOutput = diskRepoAllOutput{
+		diskRecords: diskRecords,
+		err:         err,
 	}
 }

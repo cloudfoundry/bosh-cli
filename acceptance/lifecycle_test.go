@@ -151,6 +151,7 @@ Host warden-vm
 
 		Expect(stdout).To(ContainSubstring("Creating disk"))
 		Expect(stdout).To(ContainSubstring("Migrating disk"))
+		Expect(stdout).To(ContainSubstring("Deleting unneeded disks"))
 	}
 
 	It("is able to deploy a CPI release with a stemcell", func() {

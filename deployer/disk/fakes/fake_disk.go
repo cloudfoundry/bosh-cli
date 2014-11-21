@@ -5,6 +5,9 @@ type FakeDisk struct {
 
 	NeedsMigrationInputs []NeedsMigrationInput
 	needsMigrationOutput needsMigrationOutput
+
+	DeleteCalledTimes int
+	deleteErr         error
 }
 
 type NeedsMigrationInput struct {
@@ -36,8 +39,17 @@ func (d *FakeDisk) NeedsMigration(size int, cloudProperties map[string]interface
 	return d.needsMigrationOutput.needsMigration
 }
 
+func (d *FakeDisk) Delete() error {
+	d.DeleteCalledTimes++
+	return d.deleteErr
+}
+
 func (d *FakeDisk) SetNeedsMigrationBehavior(needsMigration bool) {
 	d.needsMigrationOutput = needsMigrationOutput{
 		needsMigration: needsMigration,
 	}
+}
+
+func (d *FakeDisk) SetDeleteBehavior(err error) {
+	d.deleteErr = err
 }

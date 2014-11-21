@@ -11,6 +11,9 @@ type FakeManager struct {
 	CreateErr    error
 
 	findCurrentOutput findCurrentOutput
+
+	DeleteUnusedCalledTimes int
+	DeleteUnusedErr         error
 }
 
 type CreateInput struct {
@@ -40,6 +43,11 @@ func (m *FakeManager) Create(diskPool bmdepl.DiskPool, instanceID string) (bmdis
 
 func (m *FakeManager) FindCurrent() (bmdisk.Disk, bool, error) {
 	return m.findCurrentOutput.Disk, m.findCurrentOutput.Found, m.findCurrentOutput.Err
+}
+
+func (m *FakeManager) DeleteUnused() error {
+	m.DeleteUnusedCalledTimes++
+	return m.DeleteUnusedErr
 }
 
 func (m *FakeManager) SetFindCurrentBehavior(disk bmdisk.Disk, found bool, err error) {

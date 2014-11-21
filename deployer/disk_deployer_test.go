@@ -333,7 +333,18 @@ var _ = Describe("DiskDeployer", func() {
 		})
 
 		It("removes unused disks", func() {
+			err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
 
+			Expect(fakeDiskManager.DeleteUnusedCalledTimes).To(Equal(1))
+
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Deleting unneeded disks",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
 		})
 
 		Context("when creating the persistent disk fails", func() {
@@ -384,6 +395,32 @@ var _ = Describe("DiskDeployer", func() {
 						bmeventlog.Failed,
 					},
 					FailMessage: "Attaching disk: fake-attach-disk-error",
+				}))
+			})
+		})
+
+		Context("when deleting unused disks fails", func() {
+			BeforeEach(func() {
+				fakeDiskManager.DeleteUnusedErr = errors.New("fake-delete-error")
+			})
+
+			It("returns an error", func() {
+				err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
+			})
+
+			It("logs failed event", func() {
+				err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "Deleting unneeded disks",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Deleting unneeded disks: fake-delete-error",
 				}))
 			})
 		})

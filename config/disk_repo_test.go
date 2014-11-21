@@ -166,4 +166,61 @@ var _ = Describe("DiskRepo", func() {
 			})
 		})
 	})
+
+	Describe("All", func() {
+		var (
+			firstDisk  DiskRecord
+			secondDisk DiskRecord
+		)
+
+		BeforeEach(func() {
+			var err error
+			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
+			firstDisk, err = repo.Save("fake-cid-1", 1024, cloudProperties)
+			Expect(err).ToNot(HaveOccurred())
+
+			fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
+			secondDisk, err = repo.Save("fake-cid-2", 2048, cloudProperties)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns all disks", func() {
+			disks, err := repo.All()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(disks).To(Equal([]DiskRecord{
+				firstDisk,
+				secondDisk,
+			}))
+		})
+	})
+
+	Describe("Delete", func() {
+		var (
+			firstDisk  DiskRecord
+			secondDisk DiskRecord
+		)
+
+		BeforeEach(func() {
+			var err error
+
+			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
+			firstDisk, err = repo.Save("fake-cid-1", 1024, cloudProperties)
+			Expect(err).ToNot(HaveOccurred())
+
+			fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
+			secondDisk, err = repo.Save("fake-cid-2", 2048, cloudProperties)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("removes the disk record from the repo", func() {
+			err := repo.Delete(firstDisk)
+			Expect(err).ToNot(HaveOccurred())
+
+			disks, err := repo.All()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(disks).To(Equal([]DiskRecord{
+				secondDisk,
+			}))
+		})
+	})
 })

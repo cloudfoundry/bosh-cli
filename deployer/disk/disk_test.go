@@ -4,6 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 )
 
@@ -11,12 +13,14 @@ var _ = Describe("Disk", func() {
 	var (
 		disk                Disk
 		diskCloudProperties map[string]interface{}
+		fakeCloud           *fakebmcloud.FakeCloud
 	)
 
 	BeforeEach(func() {
 		diskCloudProperties = map[string]interface{}{
 			"fake-cloud-property-key": "fake-cloud-property-value",
 		}
+		fakeCloud = fakebmcloud.NewFakeCloud()
 
 		disk = NewDisk("fake-disk-cid", 1024, diskCloudProperties)
 	})

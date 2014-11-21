@@ -15,7 +15,11 @@ type disk struct {
 	cloudProperties map[string]interface{}
 }
 
-func NewDisk(cid string, size int, cloudProperties map[string]interface{}) Disk {
+func NewDisk(
+	cid string,
+	size int,
+	cloudProperties map[string]interface{},
+) Disk {
 	return &disk{
 		cid:             cid,
 		size:            size,

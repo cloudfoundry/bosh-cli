@@ -149,4 +149,63 @@ var _ = Describe("Manager", func() {
 			})
 		})
 	})
+
+	Describe("DeleteUnused", func() {
+		var usedDisk bmconfig.DiskRecord
+
+		BeforeEach(func() {
+			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
+			_, err := diskRepo.Save("fake-disk-cid-1", 1024, map[string]interface{}{})
+			Expect(err).ToNot(HaveOccurred())
+			fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
+			usedDisk, err = diskRepo.Save("fake-disk-cid-2", 1024, map[string]interface{}{})
+			Expect(err).ToNot(HaveOccurred())
+			fakeUUIDGenerator.GeneratedUuid = "fake-guid-3"
+			_, err = diskRepo.Save("fake-disk-cid-3", 1024, map[string]interface{}{})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		Context("when there is no current disk", func() {
+			It("deletes all disks from repo", func() {
+				err := manager.DeleteUnused()
+				Expect(err).ToNot(HaveOccurred())
+
+				disks, err := diskRepo.All()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(disks).To(Equal([]bmconfig.DiskRecord{}))
+			})
+		})
+
+		Context("when there is a current disk", func() {
+			BeforeEach(func() {
+				err := diskRepo.UpdateCurrent("fake-guid-2")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("deletes unused disks from repo", func() {
+				err := manager.DeleteUnused()
+				Expect(err).ToNot(HaveOccurred())
+
+				disks, err := diskRepo.All()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(disks).To(Equal([]bmconfig.DiskRecord{
+					usedDisk,
+				}))
+			})
+
+			It("deletes unused disks from cloud", func() {
+				err := manager.DeleteUnused()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeCloud.DeleteDiskInputs).To(Equal([]fakebmcloud.DeleteDiskInput{
+					{
+						DiskCID: "fake-disk-cid-1",
+					},
+					{
+						DiskCID: "fake-disk-cid-3",
+					},
+				}))
+			})
+		})
+	})
 })
