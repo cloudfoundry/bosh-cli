@@ -6,6 +6,13 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 )
 
+type FakeManager struct {
+	UploadInputs   []UploadInput
+	uploadBehavior map[UploadInput]uploadOutput
+
+	findUnusedOutput findUnusedOutput
+}
+
 type UploadInput struct {
 	Stemcell bmstemcell.ExtractedStemcell
 }
@@ -15,9 +22,9 @@ type uploadOutput struct {
 	err      error
 }
 
-type FakeManager struct {
-	UploadInputs   []UploadInput
-	uploadBehavior map[UploadInput]uploadOutput
+type findUnusedOutput struct {
+	stemcells []bmstemcell.CloudStemcell
+	err       error
 }
 
 func NewFakeManager() *FakeManager {
@@ -34,10 +41,14 @@ func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell) (bmstemcell.
 	m.UploadInputs = append(m.UploadInputs, input)
 	output, found := m.uploadBehavior[input]
 	if !found {
-		return bmstemcell.CloudStemcell{}, fmt.Errorf("Unsupported Upload Input: %#v", stemcell)
+		return nil, fmt.Errorf("Unsupported Upload Input: %#v", stemcell)
 	}
 
 	return output.stemcell, output.err
+}
+
+func (m *FakeManager) FindUnused() ([]bmstemcell.CloudStemcell, error) {
+	return m.findUnusedOutput.stemcells, m.findUnusedOutput.err
 }
 
 func (m *FakeManager) SetUploadBehavior(
@@ -49,4 +60,14 @@ func (m *FakeManager) SetUploadBehavior(
 		Stemcell: extractedStemcell,
 	}
 	m.uploadBehavior[input] = uploadOutput{stemcell: cloudStemcell, err: err}
+}
+
+func (m *FakeManager) SetFindUnusedBehavior(
+	stemcells []bmstemcell.CloudStemcell,
+	err error,
+) {
+	m.findUnusedOutput = findUnusedOutput{
+		stemcells: stemcells,
+		err:       err,
+	}
 }

@@ -15,6 +15,7 @@ type ManagerFactory interface {
 
 type managerFactory struct {
 	vmRepo                 bmconfig.VMRepo
+	stemcellRepo           bmconfig.StemcellRepo
 	agentClientFactory     bmagentclient.Factory
 	applySpecFactory       bmas.Factory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
@@ -24,6 +25,7 @@ type managerFactory struct {
 
 func NewManagerFactory(
 	vmRepo bmconfig.VMRepo,
+	stemcellRepo bmconfig.StemcellRepo,
 	agentClientFactory bmagentclient.Factory,
 	applySpecFactory bmas.Factory,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
@@ -32,6 +34,7 @@ func NewManagerFactory(
 ) ManagerFactory {
 	return &managerFactory{
 		vmRepo:                 vmRepo,
+		stemcellRepo:           stemcellRepo,
 		agentClientFactory:     agentClientFactory,
 		applySpecFactory:       applySpecFactory,
 		templatesSpecGenerator: templatesSpecGenerator,
@@ -45,6 +48,7 @@ func (f *managerFactory) NewManager(cloud bmcloud.Cloud, mbusURL string) Manager
 		cloud:                  cloud,
 		mbusURL:                mbusURL,
 		vmRepo:                 f.vmRepo,
+		stemcellRepo:           f.stemcellRepo,
 		agentClientFactory:     f.agentClientFactory,
 		applySpecFactory:       f.applySpecFactory,
 		templatesSpecGenerator: f.templatesSpecGenerator,

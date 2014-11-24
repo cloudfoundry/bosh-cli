@@ -221,8 +221,7 @@ var _ = Describe("DeploymentRecord", func() {
 
 	Describe("Update", func() {
 		var (
-			deployedStemcell bmconfig.StemcellRecord
-			deployedRelease  bmconfig.ReleaseRecord
+			deployedRelease bmconfig.ReleaseRecord
 		)
 
 		BeforeEach(func() {
@@ -233,14 +232,6 @@ var _ = Describe("DeploymentRecord", func() {
 				},
 			})
 
-			deployedStemcell = bmconfig.StemcellRecord{
-				ID:      "fake-stemcell-id",
-				Name:    "fake-stemcell-name",
-				Version: "fake-stemcell-version",
-				CID:     "fake-stemcell-cid",
-			}
-			stemcellRepo.SetFindBehavior("fake-stemcell-name", "fake-stemcell-version", deployedStemcell, true, nil)
-
 			deployedRelease = bmconfig.ReleaseRecord{
 				ID:      "fake-release-id",
 				Name:    "fake-release-name",
@@ -250,19 +241,13 @@ var _ = Describe("DeploymentRecord", func() {
 		})
 
 		It("calculates and updates sha1 of currently deployed manifest", func() {
-			err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+			err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploymentRepo.UpdateCurrentManifestSHA1).To(Equal("fake-manifest-sha1"))
 		})
 
-		It("updates currently deployed stemcell", func() {
-			err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(stemcellRepo.UpdateCurrentRecordID).To(Equal("fake-stemcell-id"))
-		})
-
 		It("updates currently deployed release", func() {
-			err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+			err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseRepo.UpdateCurrentRecordID).To(Equal("fake-release-id"))
 		})
@@ -280,7 +265,7 @@ var _ = Describe("DeploymentRecord", func() {
 			})
 
 			It("saves release to release repo", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+				err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(releaseRepo.UpdateCurrentRecordID).To(Equal("fake-saved-release-id"))
 
@@ -298,7 +283,7 @@ var _ = Describe("DeploymentRecord", func() {
 				})
 
 				It("returns an error", func() {
-					err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+					err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
 				})
@@ -316,7 +301,7 @@ var _ = Describe("DeploymentRecord", func() {
 			})
 
 			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+				err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-calculate-error"))
 			})
@@ -328,7 +313,7 @@ var _ = Describe("DeploymentRecord", func() {
 			})
 
 			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+				err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
 			})
@@ -340,43 +325,7 @@ var _ = Describe("DeploymentRecord", func() {
 			})
 
 			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
-			})
-		})
-
-		Context("when the specified stemcell is not in the stemcell repo", func() {
-			BeforeEach(func() {
-				stemcellRepo.SetFindBehavior("fake-stemcell-name", "fake-stemcell-version", bmconfig.StemcellRecord{}, false, nil)
-			})
-
-			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Stemcell record not found"))
-			})
-		})
-
-		Context("when finding the currently deployed stemcell fails", func() {
-			BeforeEach(func() {
-				stemcellRepo.SetFindBehavior("fake-stemcell-name", "fake-stemcell-version", deployedStemcell, false, errors.New("fake-find-error"))
-			})
-
-			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-find-error"))
-			})
-		})
-
-		Context("when updating currently deployed stemcell fails", func() {
-			BeforeEach(func() {
-				stemcellRepo.UpdateCurrentErr = errors.New("fake-update-error")
-			})
-
-			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease, stemcell)
+				err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
 			})

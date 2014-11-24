@@ -26,6 +26,7 @@ var _ = Describe("VM", func() {
 	var (
 		vm                         VM
 		fakeVMRepo                 *fakebmconfig.FakeVMRepo
+		fakeStemcellRepo           *fakebmconfig.FakeStemcellRepo
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeCloud                  *fakebmcloud.FakeCloud
 		applySpec                  bmstemcell.ApplySpec
@@ -123,9 +124,11 @@ var _ = Describe("VM", func() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
+		fakeStemcellRepo = fakebmconfig.NewFakeStemcellRepo()
 		vm = NewVM(
 			"fake-vm-cid",
 			fakeVMRepo,
+			fakeStemcellRepo,
 			fakeAgentClient,
 			fakeCloud,
 			fakeTemplatesSpecGenerator,
@@ -422,6 +425,12 @@ var _ = Describe("VM", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeVMRepo.ClearCurrentCalled).To(BeTrue())
+		})
+
+		It("clears current stemcell in the stemcell repo", func() {
+			err := vm.Delete()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeStemcellRepo.ClearCurrentCalled).To(BeTrue())
 		})
 
 		Context("when deleting vm in the cloud fails", func() {

@@ -27,7 +27,6 @@ type deployCmd struct {
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiInstaller            bmcpi.Installer
 	stemcellExtractor       bmstemcell.Extractor
-	stemcellManagerFactory  bmstemcell.ManagerFactory
 	deploymentRecord        bmdeployer.DeploymentRecord
 	deployer                bmdeployer.Deployer
 	eventLogger             bmeventlog.EventLogger
@@ -44,7 +43,6 @@ func NewDeployCmd(
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiInstaller bmcpi.Installer,
 	stemcellExtractor bmstemcell.Extractor,
-	stemcellManagerFactory bmstemcell.ManagerFactory,
 	deploymentRecord bmdeployer.DeploymentRecord,
 	deployer bmdeployer.Deployer,
 	eventLogger bmeventlog.EventLogger,
@@ -59,7 +57,6 @@ func NewDeployCmd(
 		boshDeploymentValidator: boshDeploymentValidator,
 		cpiInstaller:            cpiInstaller,
 		stemcellExtractor:       stemcellExtractor,
-		stemcellManagerFactory:  stemcellManagerFactory,
 		deploymentRecord:        deploymentRecord,
 		deployer:                deployer,
 		eventLogger:             eventLogger,
@@ -100,26 +97,19 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
-	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-	cloudStemcell, err := stemcellManager.Upload(extractedStemcell)
-	if err != nil {
-		return bosherr.WrapError(err, "Uploading stemcell")
-	}
-
 	err = c.deployer.Deploy(
 		cloud,
 		boshDeployment,
-		extractedStemcell.ApplySpec(),
+		extractedStemcell,
 		cpiDeployment.Registry,
 		cpiDeployment.SSHTunnel,
 		cpiDeployment.Mbus,
-		cloudStemcell,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")
 	}
 
-	err = c.deploymentRecord.Update(c.userConfig.DeploymentFile, cpiRelease, extractedStemcell)
+	err = c.deploymentRecord.Update(c.userConfig.DeploymentFile, cpiRelease)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating deployment record")
 	}

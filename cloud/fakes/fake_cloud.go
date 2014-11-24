@@ -24,6 +24,9 @@ type FakeCloud struct {
 
 	DeleteDiskInputs []DeleteDiskInput
 	DeleteDiskErr    error
+
+	DeleteStemcellInputs []DeleteStemcellInput
+	DeleteStemcellErr    error
 }
 
 type CreateStemcellInput struct {
@@ -62,6 +65,10 @@ type DeleteDiskInput struct {
 	DiskCID string
 }
 
+type DeleteStemcellInput struct {
+	StemcellCID string
+}
+
 func NewFakeCloud() *FakeCloud {
 	return &FakeCloud{
 		CreateStemcellInputs: []CreateStemcellInput{},
@@ -79,7 +86,10 @@ func (c *FakeCloud) CreateStemcell(cloudProperties map[string]interface{}, image
 }
 
 func (c *FakeCloud) DeleteStemcell(stemcellCID string) error {
-	return nil
+	c.DeleteStemcellInputs = append(c.DeleteStemcellInputs, DeleteStemcellInput{
+		StemcellCID: stemcellCID,
+	})
+	return c.DeleteStemcellErr
 }
 
 func (c *FakeCloud) CreateVM(

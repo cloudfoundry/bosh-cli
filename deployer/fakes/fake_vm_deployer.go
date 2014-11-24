@@ -12,14 +12,22 @@ import (
 type FakeVMDeployer struct {
 	DeployInputs  []VMDeployInput
 	DeployOutputs []vmDeployOutput
+
+	WaitUntilReadyInputs []WaitUntilReadyInput
+	WaitUntilReadyErr    error
 }
 
 type VMDeployInput struct {
 	Cloud            bmcloud.Cloud
 	Deployment       bmdepl.Deployment
 	Stemcell         bmstemcell.CloudStemcell
-	SSHTunnelOptions bmsshtunnel.Options
 	MbusURL          string
+	EventLoggerStage bmeventlog.Stage
+}
+
+type WaitUntilReadyInput struct {
+	VM               bmvm.VM
+	SSHTunnelOptions bmsshtunnel.Options
 	EventLoggerStage bmeventlog.Stage
 }
 
@@ -39,7 +47,6 @@ func (m *FakeVMDeployer) Deploy(
 	cloud bmcloud.Cloud,
 	deployment bmdepl.Deployment,
 	stemcell bmstemcell.CloudStemcell,
-	sshTunnelOptions bmsshtunnel.Options,
 	mbusURL string,
 	eventLoggerStage bmeventlog.Stage,
 ) (bmvm.VM, error) {
@@ -47,7 +54,6 @@ func (m *FakeVMDeployer) Deploy(
 		Cloud:            cloud,
 		Deployment:       deployment,
 		Stemcell:         stemcell,
-		SSHTunnelOptions: sshTunnelOptions,
 		MbusURL:          mbusURL,
 		EventLoggerStage: eventLoggerStage,
 	}
@@ -57,6 +63,17 @@ func (m *FakeVMDeployer) Deploy(
 	m.DeployOutputs = m.DeployOutputs[1:]
 
 	return output.vm, output.err
+}
+
+func (m *FakeVMDeployer) WaitUntilReady(vm bmvm.VM, sshTunnelOptions bmsshtunnel.Options, eventLoggerStage bmeventlog.Stage) error {
+	input := WaitUntilReadyInput{
+		VM:               vm,
+		SSHTunnelOptions: sshTunnelOptions,
+		EventLoggerStage: eventLoggerStage,
+	}
+	m.WaitUntilReadyInputs = append(m.WaitUntilReadyInputs, input)
+
+	return m.WaitUntilReadyErr
 }
 
 func (m *FakeVMDeployer) SetDeployBehavior(vm bmvm.VM, err error) {

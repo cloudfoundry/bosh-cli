@@ -20,24 +20,25 @@ type Deployer interface {
 	Deploy(
 		bmcloud.Cloud,
 		bmdepl.Deployment,
-		bmstemcell.ApplySpec,
+		bmstemcell.ExtractedStemcell,
 		bmdepl.Registry,
 		bmdepl.SSHTunnel,
 		string,
-		bmstemcell.CloudStemcell,
 	) error
 }
 
 type deployer struct {
-	vmDeployer       VMDeployer
-	diskDeployer     DiskDeployer
-	registryServer   bmregistry.Server
-	eventLoggerStage bmeventlog.Stage
-	logger           boshlog.Logger
-	logTag           string
+	stemcellManagerFactory bmstemcell.ManagerFactory
+	vmDeployer             VMDeployer
+	diskDeployer           DiskDeployer
+	registryServer         bmregistry.Server
+	eventLoggerStage       bmeventlog.Stage
+	logger                 boshlog.Logger
+	logTag                 string
 }
 
 func NewDeployer(
+	stemcellManagerFactory bmstemcell.ManagerFactory,
 	vmDeployer VMDeployer,
 	diskDeployer DiskDeployer,
 	registryServer bmregistry.Server,
@@ -47,33 +48,44 @@ func NewDeployer(
 	eventLoggerStage := eventLogger.NewStage("deploying")
 
 	return &deployer{
-		vmDeployer:       vmDeployer,
-		diskDeployer:     diskDeployer,
-		registryServer:   registryServer,
-		eventLoggerStage: eventLoggerStage,
-		logger:           logger,
-		logTag:           "deployer",
+		stemcellManagerFactory: stemcellManagerFactory,
+		vmDeployer:             vmDeployer,
+		diskDeployer:           diskDeployer,
+		registryServer:         registryServer,
+		eventLoggerStage:       eventLoggerStage,
+		logger:                 logger,
+		logTag:                 "deployer",
 	}
 }
 
 func (m *deployer) Deploy(
 	cloud bmcloud.Cloud,
 	deployment bmdepl.Deployment,
-	stemcellApplySpec bmstemcell.ApplySpec,
+	extractedStemcell bmstemcell.ExtractedStemcell,
 	registry bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
 	mbusURL string,
-	stemcell bmstemcell.CloudStemcell,
 ) error {
+	stemcellManager := m.stemcellManagerFactory.NewManager(cloud)
+	cloudStemcell, err := stemcellManager.Upload(extractedStemcell)
+	if err != nil {
+		return bosherr.WrapError(err, "Uploading stemcell")
+	}
+
 	m.eventLoggerStage.Start()
 
 	registryReadyErrCh := make(chan error)
 	go m.startRegistry(registry, registryReadyErrCh)
 	defer m.registryServer.Stop()
 
-	err := <-registryReadyErrCh
+	err = <-registryReadyErrCh
 	if err != nil {
 		return bosherr.WrapError(err, "Starting registry")
+	}
+
+	vm, err := m.vmDeployer.Deploy(cloud, deployment, cloudStemcell, mbusURL, m.eventLoggerStage)
+	if err != nil {
+		return bosherr.WrapError(err, "Deploying VM")
 	}
 
 	sshTunnelOptions := bmsshtunnel.Options{
@@ -86,9 +98,14 @@ func (m *deployer) Deploy(
 		RemoteForwardPort: registry.Port,
 	}
 
-	vm, err := m.vmDeployer.Deploy(cloud, deployment, stemcell, sshTunnelOptions, mbusURL, m.eventLoggerStage)
+	err = m.deleteUnusedStemcells(stemcellManager)
 	if err != nil {
-		return bosherr.WrapError(err, "Deploying VM")
+		return err
+	}
+
+	err = m.vmDeployer.WaitUntilReady(vm, sshTunnelOptions, m.eventLoggerStage)
+	if err != nil {
+		return bosherr.WrapError(err, "Waiting until VM is ready")
 	}
 
 	jobName := deployment.Jobs[0].Name
@@ -103,7 +120,7 @@ func (m *deployer) Deploy(
 		return bosherr.WrapError(err, "Deploying disk")
 	}
 
-	err = m.startVM(vm, stemcellApplySpec, deployment, jobName)
+	err = m.startVM(vm, extractedStemcell.ApplySpec(), deployment, jobName)
 	if err != nil {
 		return err
 	}
@@ -159,6 +176,28 @@ func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime
 	}
 
 	eventStep.Finish()
+
+	return nil
+}
+
+func (m *deployer) deleteUnusedStemcells(stemcellManager bmstemcell.Manager) error {
+	stemcells, err := stemcellManager.FindUnused()
+	if err != nil {
+		return bosherr.WrapError(err, "Finding unused stemcells")
+	}
+
+	for _, stemcell := range stemcells {
+		eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID()))
+		eventStep.Start()
+
+		err = stemcell.Delete()
+		if err != nil {
+			err = bosherr.WrapError(err, "Deleting unused stemcell '%s'", stemcell.CID())
+			eventStep.Fail(err.Error())
+			return err
+		}
+		eventStep.Finish()
+	}
 
 	return nil
 }

@@ -40,10 +40,6 @@ func (s *extractedStemcell) Delete() error {
 	return s.fs.RemoveAll(s.extractedPath)
 }
 
-type CloudStemcell struct {
-	CID string
-}
-
 type Manifest struct {
 	ImagePath          string
 	Name               string

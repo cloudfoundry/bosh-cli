@@ -32,17 +32,15 @@ import (
 
 var _ = Describe("DeployCmd", func() {
 	var (
-		command                    bmcmd.Cmd
-		userConfig                 bmconfig.UserConfig
-		fakeFs                     *fakesys.FakeFileSystem
-		fakeUI                     *fakeui.FakeUI
-		fakeCPIInstaller           *fakebmcpi.FakeInstaller
-		fakeCPIRelease             *fakebmrel.FakeRelease
-		logger                     boshlog.Logger
-		release                    bmrel.Release
-		fakeStemcellExtractor      *fakebmstemcell.FakeExtractor
-		fakeStemcellManager        *fakebmstemcell.FakeManager
-		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
+		command               bmcmd.Cmd
+		userConfig            bmconfig.UserConfig
+		fakeFs                *fakesys.FakeFileSystem
+		fakeUI                *fakeui.FakeUI
+		fakeCPIInstaller      *fakebmcpi.FakeInstaller
+		fakeCPIRelease        *fakebmrel.FakeRelease
+		logger                boshlog.Logger
+		release               bmrel.Release
+		fakeStemcellExtractor *fakebmstemcell.FakeExtractor
 
 		fakeDeployer         *fakebmdeployer.FakeDeployer
 		fakeDeploymentRecord *fakebmdeployer.FakeDeploymentRecord
@@ -62,7 +60,6 @@ var _ = Describe("DeployCmd", func() {
 		cpiReleaseTarballPath     string
 		stemcellTarballPath       string
 		expectedExtractedStemcell bmstemcell.ExtractedStemcell
-		expectedCloudStemcell     bmstemcell.CloudStemcell
 	)
 
 	BeforeEach(func() {
@@ -76,8 +73,6 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
 		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
-		fakeStemcellManager = fakebmstemcell.NewFakeManager()
-		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
 
 		fakeDeployer = fakebmdeployer.NewFakeDeployer()
 
@@ -105,7 +100,6 @@ var _ = Describe("DeployCmd", func() {
 			fakeDeploymentValidator,
 			fakeCPIInstaller,
 			fakeStemcellExtractor,
-			fakeStemcellManagerFactory,
 			fakeDeploymentRecord,
 			fakeDeployer,
 			fakeEventLogger,
@@ -115,7 +109,6 @@ var _ = Describe("DeployCmd", func() {
 		cpiReleaseTarballPath = "/release/tarball/path"
 
 		stemcellTarballPath = "/stemcell/tarball/path"
-		expectedCloudStemcell = bmstemcell.CloudStemcell{CID: "fake-stemcell-cid"}
 		expectedExtractedStemcell = bmstemcell.NewExtractedStemcell(
 			bmstemcell.Manifest{
 				ImagePath:          "/stemcell/image/path",
@@ -169,7 +162,6 @@ var _ = Describe("DeployCmd", func() {
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
 						fakeStemcellExtractor,
-						fakeStemcellManagerFactory,
 						fakeDeploymentRecord,
 						fakeDeployer,
 						fakeEventLogger,
@@ -230,11 +222,9 @@ version: fake-version
 						fakeCPIRelease = fakebmrel.NewFakeRelease()
 						fakeCPIInstaller.SetExtractBehavior(cpiReleaseTarballPath, fakeCPIRelease, nil)
 						fakeCPIInstaller.SetInstallBehavior(cpiDeployment, fakeCPIRelease, cloud, nil)
-						fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
 						fakeDeployer.SetDeployBehavior(nil)
 						fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
-						fakeStemcellManager.SetUploadBehavior(expectedExtractedStemcell, expectedCloudStemcell, nil)
 
 						fakeFs.WriteFile(stemcellTarballPath, []byte{})
 
@@ -243,6 +233,12 @@ version: fake-version
 							fakeCPIRelease,
 							expectedExtractedStemcell,
 							false,
+							nil,
+						)
+
+						fakeDeploymentRecord.SetUpdateBehavior(
+							deploymentManifestPath,
+							fakeCPIRelease,
 							nil,
 						)
 					})
@@ -347,30 +343,17 @@ version: fake-version
 						}))
 					})
 
-					It("uploads the stemcell", func() {
-						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeStemcellManager.UploadInputs).To(Equal(
-							[]fakebmstemcell.UploadInput{
-								{
-									Stemcell: expectedExtractedStemcell,
-								},
-							},
-						))
-					})
-
 					It("creates a VM", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeDeployer.DeployInputs).To(Equal([]fakebmdeployer.DeployInput{
 							{
-								Cpi:               cloud,
-								Deployment:        boshDeployment,
-								StemcellApplySpec: expectedExtractedStemcell.ApplySpec(),
-								Registry:          cpiDeployment.Registry,
-								SSHTunnelConfig:   cpiDeployment.SSHTunnel,
-								MbusURL:           cpiDeployment.Mbus,
-								Stemcell:          expectedCloudStemcell,
+								Cpi:             cloud,
+								Deployment:      boshDeployment,
+								Stemcell:        expectedExtractedStemcell,
+								Registry:        cpiDeployment.Registry,
+								SSHTunnelConfig: cpiDeployment.SSHTunnel,
+								MbusURL:         cpiDeployment.Mbus,
 							},
 						}))
 					})
@@ -382,7 +365,6 @@ version: fake-version
 							{
 								ManifestPath: deploymentManifestPath,
 								Release:      fakeCPIRelease,
-								Stemcell:     expectedExtractedStemcell,
 							},
 						}))
 					})
@@ -415,18 +397,6 @@ version: fake-version
 							Expect(err.Error()).To(ContainSubstring("Parsing CPI deployment manifest"))
 							Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
 							Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
-						})
-					})
-
-					Context("when reading stemcell fails", func() {
-						It("returns error", func() {
-							expectedCloudStemcell = bmstemcell.CloudStemcell{CID: ""}
-							fakeStemcellManager.SetUploadBehavior(expectedExtractedStemcell, expectedCloudStemcell, errors.New("fake-reading-error"))
-
-							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Uploading stemcell"))
-							Expect(err.Error()).To(ContainSubstring("fake-reading-error"))
 						})
 					})
 
@@ -539,7 +509,6 @@ version: fake-version
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
 						fakeStemcellExtractor,
-						fakeStemcellManagerFactory,
 						fakeDeploymentRecord,
 						fakeDeployer,
 						fakeEventLogger,

@@ -47,6 +47,15 @@ type FakeStemcellRepo struct {
 	UpdateCurrentErr      error
 
 	findCurrentOutput FindCurrentOutput
+
+	ClearCurrentCalled bool
+	ClearCurrentErr    error
+
+	DeleteStemcellRecords []bmconfig.StemcellRecord
+	DeleteErr             error
+
+	AllStemcellRecords []bmconfig.StemcellRecord
+	AllErr             error
 }
 
 func NewFakeStemcellRepo() *FakeStemcellRepo {
@@ -68,7 +77,17 @@ func (fr *FakeStemcellRepo) FindCurrent() (bmconfig.StemcellRecord, bool, error)
 }
 
 func (fr *FakeStemcellRepo) ClearCurrent() error {
-	return nil
+	fr.ClearCurrentCalled = true
+	return fr.ClearCurrentErr
+}
+
+func (fr *FakeStemcellRepo) Delete(stemcellRecord bmconfig.StemcellRecord) error {
+	fr.DeleteStemcellRecords = append(fr.DeleteStemcellRecords, stemcellRecord)
+	return fr.DeleteErr
+}
+
+func (fr *FakeStemcellRepo) All() ([]bmconfig.StemcellRecord, error) {
+	return fr.AllStemcellRecords, fr.AllErr
 }
 
 func (fr *FakeStemcellRepo) Save(name, version, cid string) (bmconfig.StemcellRecord, error) {

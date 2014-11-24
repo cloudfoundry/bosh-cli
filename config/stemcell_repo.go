@@ -12,6 +12,8 @@ type StemcellRepo interface {
 	ClearCurrent() error
 	Save(name, version, cid string) (StemcellRecord, error)
 	Find(name, version string) (StemcellRecord, bool, error)
+	All() ([]StemcellRecord, error)
+	Delete(StemcellRecord) error
 }
 
 type stemcellRepo struct {
@@ -67,14 +69,9 @@ func (r stemcellRepo) Save(name, version, cid string) (StemcellRecord, error) {
 }
 
 func (r stemcellRepo) Find(name, version string) (StemcellRecord, bool, error) {
-	config, err := r.configService.Load()
+	_, records, err := r.load()
 	if err != nil {
-		return StemcellRecord{}, false, bosherr.WrapError(err, "Loading existing config")
-	}
-
-	records := config.Stemcells
-	if records == nil {
-		return StemcellRecord{}, false, nil
+		return StemcellRecord{}, false, err
 	}
 
 	for _, oldRecord := range records {
@@ -103,6 +100,38 @@ func (r stemcellRepo) FindCurrent() (StemcellRecord, bool, error) {
 	}
 
 	return StemcellRecord{}, false, nil
+}
+
+func (r stemcellRepo) All() ([]StemcellRecord, error) {
+	config, err := r.configService.Load()
+	if err != nil {
+		return []StemcellRecord{}, bosherr.WrapError(err, "Loading existing config")
+	}
+
+	return config.Stemcells, nil
+}
+
+func (r stemcellRepo) Delete(stemcellRecord StemcellRecord) error {
+	config, records, err := r.load()
+	if err != nil {
+		return err
+	}
+
+	newRecords := []StemcellRecord{}
+	for _, record := range records {
+		if stemcellRecord.ID != record.ID {
+			newRecords = append(newRecords, record)
+		}
+	}
+
+	config.Stemcells = newRecords
+
+	err = r.configService.Save(config)
+	if err != nil {
+		return bosherr.WrapError(err, "Saving config")
+	}
+
+	return nil
 }
 
 func (r stemcellRepo) UpdateCurrent(recordID string) error {
@@ -148,4 +177,18 @@ func (r stemcellRepo) updateConfig(updateFunc func(*DeploymentFile) error) error
 	}
 
 	return nil
+}
+
+func (r stemcellRepo) load() (DeploymentFile, []StemcellRecord, error) {
+	config, err := r.configService.Load()
+	if err != nil {
+		return config, []StemcellRecord{}, bosherr.WrapError(err, "Loading existing config")
+	}
+
+	records := config.Stemcells
+	if records == nil {
+		return config, []StemcellRecord{}, nil
+	}
+
+	return config, records, nil
 }

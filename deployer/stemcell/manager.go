@@ -10,6 +10,7 @@ import (
 
 type Manager interface {
 	Upload(ExtractedStemcell) (CloudStemcell, error)
+	FindUnused() ([]CloudStemcell, error)
 }
 
 type manager struct {
@@ -36,14 +37,12 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 	manifest := extractedStemcell.Manifest()
 	foundStemcellRecord, found, err := m.repo.Find(manifest.Name, manifest.Version)
 	if err != nil {
-		return CloudStemcell{}, bosherr.WrapError(err, "finding existing stemcell record in repo")
+		return nil, bosherr.WrapError(err, "finding existing stemcell record in repo")
 	}
 	eventStep := eventLoggerStage.NewStep("Uploading")
 	if found {
 		eventStep.Skip("Stemcell already uploaded")
-		cloudStemcell := CloudStemcell{
-			CID: foundStemcellRecord.CID,
-		}
+		cloudStemcell := NewCloudStemcell(foundStemcellRecord, m.repo, m.cloud)
 		eventLoggerStage.Finish()
 		return cloudStemcell, nil
 	}
@@ -51,13 +50,13 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 	eventStep.Start()
 	cloudProperties, err := manifest.CloudProperties()
 	if err != nil {
-		return CloudStemcell{}, bosherr.WrapError(err, "Getting cloud properties from stemcell manifest")
+		return nil, bosherr.WrapError(err, "Getting cloud properties from stemcell manifest")
 	}
 
 	cid, err := m.cloud.CreateStemcell(cloudProperties, manifest.ImagePath)
 	if err != nil {
 		eventStep.Fail(err.Error())
-		return CloudStemcell{}, bosherr.WrapError(
+		return nil, bosherr.WrapError(
 			err,
 			"creating stemcell (cloud=%s, stemcell=%s)",
 			m.cloud,
@@ -65,11 +64,11 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 		)
 	}
 
-	_, err = m.repo.Save(manifest.Name, manifest.Version, cid)
+	stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid)
 	if err != nil {
 		//TODO: delete stemcell from cloud when saving fails
 		eventStep.Fail(err.Error())
-		return CloudStemcell{}, bosherr.WrapError(
+		return nil, bosherr.WrapError(
 			err,
 			"saving stemcell record in repo (record=%s, stemcell=%s)",
 			cid,
@@ -77,10 +76,33 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 		)
 	}
 
-	cloudStemcell := CloudStemcell{CID: cid}
+	cloudStemcell := NewCloudStemcell(stemcellRecord, m.repo, m.cloud)
 
 	eventStep.Finish()
 	eventLoggerStage.Finish()
 
 	return cloudStemcell, nil
+}
+
+func (m *manager) FindUnused() ([]CloudStemcell, error) {
+	unusedStemcells := []CloudStemcell{}
+
+	stemcellRecords, err := m.repo.All()
+	if err != nil {
+		return unusedStemcells, bosherr.WrapError(err, "Getting all stemcell records")
+	}
+
+	currentStemcellRecord, found, err := m.repo.FindCurrent()
+	if err != nil {
+		return unusedStemcells, bosherr.WrapError(err, "Finding current disk record")
+	}
+
+	for _, stemcellRecord := range stemcellRecords {
+		if !found || stemcellRecord.ID != currentStemcellRecord.ID {
+			stemcell := NewCloudStemcell(stemcellRecord, m.repo, m.cloud)
+			unusedStemcells = append(unusedStemcells, stemcell)
+		}
+	}
+
+	return unusedStemcells, nil
 }

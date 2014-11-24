@@ -7,10 +7,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/fakes"
@@ -29,6 +31,7 @@ var _ = Describe("Manager", func() {
 		expectedEnv                map[string]interface{}
 		deployment                 bmdepl.Deployment
 		fakeVMRepo                 *fakebmconfig.FakeVMRepo
+		stemcellRepo               bmconfig.StemcellRepo
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
@@ -46,8 +49,14 @@ var _ = Describe("Manager", func() {
 		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
 		fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
 		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
+
+		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
+		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
+		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
+
 		manager = NewManagerFactory(
 			fakeVMRepo,
+			stemcellRepo,
 			fakeAgentClientFactory,
 			fakeApplySpecFactory,
 			fakeTemplatesSpecGenerator,
@@ -101,7 +110,8 @@ var _ = Describe("Manager", func() {
 			},
 		}
 
-		stemcell = bmstemcell.CloudStemcell{CID: "fake-stemcell-cid"}
+		stemcellRecord := bmconfig.StemcellRecord{CID: "fake-stemcell-cid"}
+		stemcell = bmstemcell.NewCloudStemcell(stemcellRecord, stemcellRepo, fakeCloud)
 	})
 
 	Describe("Create", func() {
@@ -111,6 +121,7 @@ var _ = Describe("Manager", func() {
 			expectedVM := NewVM(
 				"fake-vm-cid",
 				fakeVMRepo,
+				stemcellRepo,
 				fakeAgentClient,
 				fakeCloud,
 				fakeTemplatesSpecGenerator,
@@ -131,7 +142,7 @@ var _ = Describe("Manager", func() {
 			))
 		})
 
-		It("saves the vm record using the config service", func() {
+		It("updates the current vm record", func() {
 			_, err := manager.Create(stemcell, deployment)
 			Expect(err).ToNot(HaveOccurred())
 

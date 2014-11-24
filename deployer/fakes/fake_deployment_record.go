@@ -32,7 +32,6 @@ type isDeployedOutput struct {
 type UpdateInput struct {
 	ManifestPath string
 	Release      bmrel.Release
-	Stemcell     bmstemcell.ExtractedStemcell
 }
 
 type updateOutput struct {
@@ -61,17 +60,16 @@ func (r *FakeDeploymentRecord) IsDeployed(manifestPath string, release bmrel.Rel
 
 	output, found := r.isDeployedBehavior[inputString]
 	if !found {
-		return false, fmt.Errorf("Unsupported Find Input: %s\nExpected: %#v", inputString, r.isDeployedBehavior)
+		return false, fmt.Errorf("Unsupported IsDeployed Input: %s\nExpected: %#v", inputString, r.isDeployedBehavior)
 	}
 
 	return output.isDeployed, output.err
 }
 
-func (r *FakeDeploymentRecord) Update(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) error {
+func (r *FakeDeploymentRecord) Update(manifestPath string, release bmrel.Release) error {
 	input := UpdateInput{
 		ManifestPath: manifestPath,
 		Release:      release,
-		Stemcell:     stemcell,
 	}
 	r.UpdateInputs = append(r.UpdateInputs, input)
 
@@ -80,9 +78,9 @@ func (r *FakeDeploymentRecord) Update(manifestPath string, release bmrel.Release
 		return bosherr.WrapError(marshalErr, "Marshaling Update input")
 	}
 
-	output, found := r.isDeployedBehavior[inputString]
+	output, found := r.updateBehavior[inputString]
 	if !found {
-		return fmt.Errorf("Unsupported Find Input: %s", inputString)
+		return fmt.Errorf("Unsupported Update Input: %s\nExpected: %#v", inputString, r.updateBehavior)
 	}
 
 	return output.err
@@ -117,13 +115,11 @@ func (r *FakeDeploymentRecord) SetIsDeployedBehavior(
 func (r *FakeDeploymentRecord) SetUpdateBehavior(
 	manifestPath string,
 	release bmrel.Release,
-	stemcell bmstemcell.ExtractedStemcell,
 	err error,
 ) error {
 	input := UpdateInput{
 		ManifestPath: manifestPath,
 		Release:      release,
-		Stemcell:     stemcell,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)

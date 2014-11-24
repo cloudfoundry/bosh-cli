@@ -19,6 +19,7 @@ type Manager interface {
 
 type manager struct {
 	vmRepo                 bmconfig.VMRepo
+	stemcellRepo           bmconfig.StemcellRepo
 	mbusURL                string
 	agentClientFactory     bmagentclient.Factory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
@@ -42,6 +43,7 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 	vm := NewVM(
 		vmCID,
 		m.vmRepo,
+		m.stemcellRepo,
 		m.agentClient(),
 		m.cloud,
 		m.templatesSpecGenerator,
@@ -73,7 +75,7 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.De
 		return nil, bosherr.WrapError(err, "Getting resource pool env")
 	}
 
-	cid, err := m.cloud.CreateVM(stemcell.CID, cloudProperties, networksSpec, env)
+	cid, err := m.cloud.CreateVM(stemcell.CID(), cloudProperties, networksSpec, env)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating vm with stemcell cid `%s'", stemcell.CID)
 	}
@@ -86,6 +88,7 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.De
 	vm := NewVM(
 		cid,
 		m.vmRepo,
+		m.stemcellRepo,
 		m.agentClient(),
 		m.cloud,
 		m.templatesSpecGenerator,

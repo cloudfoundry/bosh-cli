@@ -184,6 +184,40 @@ var _ = Describe("StemcellRepo", func() {
 		})
 	})
 
+	Describe("Delete", func() {
+		var (
+			firstStemcellRecord  StemcellRecord
+			secondStemcellRecord StemcellRecord
+			thirdStemcellRecord  StemcellRecord
+		)
+
+		BeforeEach(func() {
+			var err error
+			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+			firstStemcellRecord, err = repo.Save("fake-name1", "fake-version1", "fake-cid1")
+			Expect(err).ToNot(HaveOccurred())
+			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-2"
+			secondStemcellRecord, err = repo.Save("fake-name2", "fake-version2", "fake-cid2")
+			Expect(err).ToNot(HaveOccurred())
+			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-3"
+			thirdStemcellRecord, err = repo.Save("fake-name3", "fake-version3", "fake-cid3")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("deletes stemcell record from repo", func() {
+			err := repo.Delete(secondStemcellRecord)
+			Expect(err).ToNot(HaveOccurred())
+
+			stemcellRecords, err := repo.All()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(stemcellRecords).To(Equal([]StemcellRecord{
+				firstStemcellRecord,
+				thirdStemcellRecord,
+			}))
+		})
+	})
+
 	Describe("FindCurrent", func() {
 		Context("when current stemcell exists", func() {
 			BeforeEach(func() {

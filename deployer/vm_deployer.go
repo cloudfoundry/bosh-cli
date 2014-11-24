@@ -20,10 +20,15 @@ type VMDeployer interface {
 		cloud bmcloud.Cloud,
 		deployment bmdepl.Deployment,
 		stemcell bmstemcell.CloudStemcell,
-		sshTunnelOptions bmsshtunnel.Options,
 		mbusURL string,
 		eventLoggerStage bmeventlog.Stage,
 	) (bmvm.VM, error)
+
+	WaitUntilReady(
+		vm bmvm.VM,
+		sshTunnelOptions bmsshtunnel.Options,
+		eventLoggerStage bmeventlog.Stage,
+	) error
 }
 
 type vmDeployer struct {
@@ -50,7 +55,6 @@ func (d *vmDeployer) Deploy(
 	cloud bmcloud.Cloud,
 	deployment bmdepl.Deployment,
 	stemcell bmstemcell.CloudStemcell,
-	sshTunnelOptions bmsshtunnel.Options,
 	mbusURL string,
 	eventLoggerStage bmeventlog.Stage,
 ) (bmvm.VM, error) {
@@ -62,7 +66,7 @@ func (d *vmDeployer) Deploy(
 		return nil, err
 	}
 
-	eventStep := eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from stemcell '%s'", stemcell.CID))
+	eventStep := eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from stemcell '%s'", stemcell.CID()))
 	eventStep.Start()
 
 	vm, err := vmManager.Create(stemcell, deployment)
@@ -72,20 +76,41 @@ func (d *vmDeployer) Deploy(
 		return nil, err
 	}
 
-	eventStep.Finish()
-
-	eventStep = eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
-	eventStep.Start()
-
-	err = d.waitUntilAgentIsReady(vm, sshTunnelOptions)
+	err = stemcell.PromoteAsCurrent()
 	if err != nil {
-		eventStep.Fail(err.Error())
-		return nil, err
+		return nil, bosherr.WrapError(err, "Promoting stemcell as current '%s'", stemcell.CID())
 	}
 
 	eventStep.Finish()
 
 	return vm, nil
+}
+
+func (d *vmDeployer) WaitUntilReady(vm bmvm.VM, sshTunnelOptions bmsshtunnel.Options, eventLoggerStage bmeventlog.Stage) error {
+	eventStep := eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
+	eventStep.Start()
+
+	sshTunnel := d.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
+	sshReadyErrCh := make(chan error)
+	sshErrCh := make(chan error)
+	go sshTunnel.Start(sshReadyErrCh, sshErrCh)
+	defer sshTunnel.Stop()
+
+	err := <-sshReadyErrCh
+	if err != nil {
+		return bosherr.WrapError(err, "Starting SSH tunnel")
+	}
+
+	err = vm.WaitToBeReady(10*time.Minute, 500*time.Millisecond)
+	if err != nil {
+		err = bosherr.WrapError(err, "Waiting for the vm to be ready")
+		eventStep.Fail(err.Error())
+		return err
+	}
+
+	eventStep.Finish()
+
+	return nil
 }
 
 func (d *vmDeployer) deleteExistingVM(vmManager bmvm.Manager, eventLoggerStage bmeventlog.Stage, jobName string) error {
@@ -144,29 +169,6 @@ func (d *vmDeployer) deleteExistingVM(vmManager bmvm.Manager, eventLoggerStage b
 		}
 
 		deleteVMStep.Finish()
-	}
-
-	return nil
-}
-
-func (d *vmDeployer) waitUntilAgentIsReady(
-	vm bmvm.VM,
-	sshTunnelOptions bmsshtunnel.Options,
-) error {
-	sshTunnel := d.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
-	sshReadyErrCh := make(chan error)
-	sshErrCh := make(chan error)
-	go sshTunnel.Start(sshReadyErrCh, sshErrCh)
-	defer sshTunnel.Stop()
-
-	err := <-sshReadyErrCh
-	if err != nil {
-		return bosherr.WrapError(err, "Starting SSH tunnel")
-	}
-
-	err = vm.WaitToBeReady(10*time.Minute, 500*time.Millisecond)
-	if err != nil {
-		return bosherr.WrapError(err, "Waiting for the vm to be ready")
 	}
 
 	return nil

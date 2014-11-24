@@ -202,6 +202,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	vmManagerFactory := bmvm.NewManagerFactory(
 		vmRepo,
+		stemcellRepo,
 		agentClientFactory,
 		applySpecFactory,
 		templatesSpecGenerator,
@@ -217,6 +218,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	vmDeployer := bmdeployer.NewVMDeployer(vmManagerFactory, sshTunnelFactory, f.logger)
 	diskDeployer := bmdeployer.NewDiskDeployer(diskManagerFactory, diskRepo, f.logger)
 	deployer := bmdeployer.NewDeployer(
+		stemcellManagerFactory,
 		vmDeployer,
 		diskDeployer,
 		registryServer,
@@ -237,7 +239,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		boshDeploymentValidator,
 		cpiInstaller,
 		stemcellExtractor,
-		stemcellManagerFactory,
 		deploymentRecord,
 		deployer,
 		eventLogger,

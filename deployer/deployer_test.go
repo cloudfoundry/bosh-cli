@@ -10,15 +10,19 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
@@ -38,9 +42,12 @@ var _ = Describe("Deployer", func() {
 		sshTunnelConfig            bmdepl.SSHTunnel
 		fakeAgentPingRetryStrategy *fakebmretry.FakeRetryStrategy
 		fakeVM                     *fakebmvm.FakeVM
+		fakeStemcellManager        *fakebmstemcell.FakeManager
+		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
+		extractedStemcell          bmstemcell.ExtractedStemcell
 
-		applySpec bmstemcell.ApplySpec
-		stemcell  bmstemcell.CloudStemcell
+		applySpec             bmstemcell.ApplySpec
+		expectedCloudStemcell bmstemcell.CloudStemcell
 	)
 
 	BeforeEach(func() {
@@ -95,13 +102,7 @@ var _ = Describe("Deployer", func() {
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
 		eventLogger.SetNewStageBehavior(fakeStage)
-		deployer = NewDeployer(
-			fakeVMDeployer,
-			fakeDiskDeployer,
-			fakeRegistryServer,
-			eventLogger,
-			logger,
-		)
+
 		fakeAgentPingRetryStrategy = fakebmretry.NewFakeRetryStrategy()
 
 		applySpec = bmstemcell.ApplySpec{
@@ -110,13 +111,46 @@ var _ = Describe("Deployer", func() {
 			},
 		}
 
-		stemcell = bmstemcell.CloudStemcell{
-			CID: "fake-stemcell-cid",
-		}
+		fakeFs := fakesys.NewFakeFileSystem()
+		extractedStemcell = bmstemcell.NewExtractedStemcell(
+			bmstemcell.Manifest{},
+			applySpec,
+			"fake-extracted-path",
+			fakeFs,
+		)
+
+		fakeStemcellManager = fakebmstemcell.NewFakeManager()
+		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
+		stemcellRepo := fakebmconfig.NewFakeStemcellRepo()
+		stemcellRecord := bmconfig.StemcellRecord{}
+		expectedCloudStemcell = bmstemcell.NewCloudStemcell(stemcellRecord, stemcellRepo, cloud)
+		fakeStemcellManager.SetUploadBehavior(extractedStemcell, expectedCloudStemcell, nil)
+		fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
+
+		deployer = NewDeployer(
+			fakeStemcellManagerFactory,
+			fakeVMDeployer,
+			fakeDiskDeployer,
+			fakeRegistryServer,
+			eventLogger,
+			logger,
+		)
+	})
+
+	It("uploads the stemcell", func() {
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(fakeStemcellManager.UploadInputs).To(Equal(
+			[]fakebmstemcell.UploadInput{
+				{
+					Stemcell: extractedStemcell,
+				},
+			},
+		))
 	})
 
 	It("adds a new event logger stage", func() {
-		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
@@ -130,7 +164,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("starts the registry", func() {
-		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeRegistryServer.StartInput).To(Equal(fakeregistry.StartInput{
 			Username: "fake-username",
@@ -142,7 +176,50 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("deploys vm", func() {
-		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(fakeVMDeployer.DeployInputs).To(ContainElement(fakebmdeployer.VMDeployInput{
+			Cloud:            cloud,
+			Deployment:       deployment,
+			Stemcell:         expectedCloudStemcell,
+			MbusURL:          "fake-mbus-url",
+			EventLoggerStage: fakeStage,
+		}))
+	})
+
+	It("deletes unused stemcells", func() {
+		firstStemcell := fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid-1", "fake-stemcell-name-1", "fake-stemcell-version-1")
+		secondStemcell := fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid-2", "fake-stemcell-name-2", "fake-stemcell-version-2")
+		fakeStemcellManager.SetFindUnusedBehavior([]bmstemcell.CloudStemcell{
+			firstStemcell,
+			secondStemcell,
+		}, nil)
+
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(firstStemcell.DeleteCalledTimes).To(Equal(1))
+		Expect(secondStemcell.DeleteCalledTimes).To(Equal(1))
+
+		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+			Name: "Deleting unused stemcell 'fake-stemcell-cid-1'",
+			States: []bmeventlog.EventState{
+				bmeventlog.Started,
+				bmeventlog.Finished,
+			},
+		}))
+		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+			Name: "Deleting unused stemcell 'fake-stemcell-cid-2'",
+			States: []bmeventlog.EventState{
+				bmeventlog.Started,
+				bmeventlog.Finished,
+			},
+		}))
+	})
+
+	It("waits until vm is ready", func() {
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
 		expectedSSHTunnelOptions := bmsshtunnel.Options{
@@ -155,18 +232,15 @@ var _ = Describe("Deployer", func() {
 			RemoteForwardPort: 123,
 		}
 
-		Expect(fakeVMDeployer.DeployInputs).To(ContainElement(fakebmdeployer.VMDeployInput{
-			Cloud:            cloud,
-			Deployment:       deployment,
-			Stemcell:         stemcell,
+		Expect(fakeVMDeployer.WaitUntilReadyInputs).To(ContainElement(fakebmdeployer.WaitUntilReadyInput{
+			VM:               fakeVM,
 			SSHTunnelOptions: expectedSSHTunnelOptions,
-			MbusURL:          "fake-mbus-url",
 			EventLoggerStage: fakeStage,
 		}))
 	})
 
 	It("updates the vm", func() {
-		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVM.ApplyInputs).To(ContainElement(fakebmvm.ApplyInput{
@@ -176,7 +250,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("deploys disk", func() {
-		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebmdeployer.DiskDeployInput{
@@ -190,14 +264,14 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("starts the agent", func() {
-		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVM.StartCalled).To(Equal(1))
 	})
 
 	It("waits until agent reports state as running", func() {
-		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
@@ -212,13 +286,13 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("returns an error", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	It("logs start and stop events to the eventLogger", func() {
-		err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -237,13 +311,25 @@ var _ = Describe("Deployer", func() {
 		}))
 	})
 
+	Context("when uploading stemcell fails", func() {
+		BeforeEach(func() {
+			fakeStemcellManager.SetUploadBehavior(extractedStemcell, nil, errors.New("fake-upload-error"))
+		})
+
+		It("returns an error", func() {
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-upload-error"))
+		})
+	})
+
 	Context("when starting registry fails", func() {
 		BeforeEach(func() {
 			fakeRegistryServer.SetStartBehavior(errors.New("fake-registry-start-error"), nil)
 		})
 
 		It("returns an error", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-registry-start-error"))
 		})
@@ -255,7 +341,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
@@ -276,7 +362,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
@@ -297,7 +383,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := deployer.Deploy(cloud, deployment, applySpec, registry, sshTunnelConfig, "fake-mbus-url", stemcell)
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 

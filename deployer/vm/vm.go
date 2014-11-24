@@ -36,6 +36,7 @@ type VM interface {
 type vm struct {
 	cid                    string
 	vmRepo                 bmconfig.VMRepo
+	stemcellRepo           bmconfig.StemcellRepo
 	agentClient            bmagentclient.AgentClient
 	cloud                  bmcloud.Cloud
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
@@ -49,6 +50,7 @@ type vm struct {
 func NewVM(
 	cid string,
 	vmRepo bmconfig.VMRepo,
+	stemcellRepo bmconfig.StemcellRepo,
 	agentClient bmagentclient.AgentClient,
 	cloud bmcloud.Cloud,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
@@ -58,10 +60,11 @@ func NewVM(
 	logger boshlog.Logger,
 ) VM {
 	return &vm{
-		cid:         cid,
-		vmRepo:      vmRepo,
-		agentClient: agentClient,
-		cloud:       cloud,
+		cid:          cid,
+		vmRepo:       vmRepo,
+		stemcellRepo: stemcellRepo,
+		agentClient:  agentClient,
+		cloud:        cloud,
 		templatesSpecGenerator: templatesSpecGenerator,
 		applySpecFactory:       applySpecFactory,
 		mbusURL:                mbusURL,
@@ -208,6 +211,11 @@ func (vm *vm) Delete() error {
 	err = vm.vmRepo.ClearCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting vm from vm repo")
+	}
+
+	err = vm.stemcellRepo.ClearCurrent()
+	if err != nil {
+		return bosherr.WrapError(err, "Clearing current stemcell from stemcell repo")
 	}
 
 	return nil

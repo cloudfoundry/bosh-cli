@@ -11,7 +11,7 @@ import (
 
 type DeploymentRecord interface {
 	IsDeployed(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error)
-	Update(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) error
+	Update(manifestPath string, release bmrel.Release) error
 }
 
 type deploymentRecord struct {
@@ -83,7 +83,7 @@ func (v *deploymentRecord) IsDeployed(manifestPath string, release bmrel.Release
 	return true, nil
 }
 
-func (v *deploymentRecord) Update(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) error {
+func (v *deploymentRecord) Update(manifestPath string, release bmrel.Release) error {
 	manifestSHA1, err := v.sha1Calculator.Calculate(manifestPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Calculating sha1 of current deployment manifest")
@@ -105,21 +105,6 @@ func (v *deploymentRecord) Update(manifestPath string, release bmrel.Release, st
 	err = v.releaseRepo.UpdateCurrent(releaseRecord.ID)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating current release record")
-	}
-
-	stemcellManifest := stemcell.Manifest()
-	stemcellRecord, found, err := v.stemcellRepo.Find(stemcellManifest.Name, stemcellManifest.Version)
-	if err != nil {
-		return bosherr.WrapError(err, "Finding stemcell record with name: '%s', version: '%s'", stemcellManifest.Name, stemcellManifest.Version)
-	}
-
-	if !found {
-		return bosherr.New("Stemcell record not found with name '%s', version: '%s'", stemcellManifest.Name, stemcellManifest.Version)
-	}
-
-	err = v.stemcellRepo.UpdateCurrent(stemcellRecord.ID)
-	if err != nil {
-		return bosherr.WrapError(err, "Updating current stemcell record")
 	}
 
 	return nil
