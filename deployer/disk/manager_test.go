@@ -12,6 +12,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
@@ -150,62 +151,38 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
-	Describe("DeleteUnused", func() {
-		var usedDisk bmconfig.DiskRecord
+	Describe("FindUnused", func() {
+		var (
+			firstDisk bmdisk.Disk
+			thirdDisk bmdisk.Disk
+		)
 
 		BeforeEach(func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-			_, err := diskRepo.Save("fake-disk-cid-1", 1024, map[string]interface{}{})
+			firstDiskRecord, err := diskRepo.Save("fake-disk-cid-1", 1024, map[string]interface{}{})
 			Expect(err).ToNot(HaveOccurred())
+			firstDisk = NewDisk(firstDiskRecord, fakeCloud, diskRepo)
+
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
-			usedDisk, err = diskRepo.Save("fake-disk-cid-2", 1024, map[string]interface{}{})
+			_, err = diskRepo.Save("fake-disk-cid-2", 1024, map[string]interface{}{})
 			Expect(err).ToNot(HaveOccurred())
+			err = diskRepo.UpdateCurrent("fake-guid-2")
+			Expect(err).ToNot(HaveOccurred())
+
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-3"
-			_, err = diskRepo.Save("fake-disk-cid-3", 1024, map[string]interface{}{})
+			thirdDiskRecord, err := diskRepo.Save("fake-disk-cid-3", 1024, map[string]interface{}{})
 			Expect(err).ToNot(HaveOccurred())
+			thirdDisk = NewDisk(thirdDiskRecord, fakeCloud, diskRepo)
 		})
 
-		Context("when there is no current disk", func() {
-			It("deletes all disks from repo", func() {
-				err := manager.DeleteUnused()
-				Expect(err).ToNot(HaveOccurred())
+		It("returns unused disks from repo", func() {
+			disks, err := manager.FindUnused()
+			Expect(err).ToNot(HaveOccurred())
 
-				disks, err := diskRepo.All()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(disks).To(Equal([]bmconfig.DiskRecord{}))
-			})
-		})
-
-		Context("when there is a current disk", func() {
-			BeforeEach(func() {
-				err := diskRepo.UpdateCurrent("fake-guid-2")
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("deletes unused disks from repo", func() {
-				err := manager.DeleteUnused()
-				Expect(err).ToNot(HaveOccurred())
-
-				disks, err := diskRepo.All()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(disks).To(Equal([]bmconfig.DiskRecord{
-					usedDisk,
-				}))
-			})
-
-			It("deletes unused disks from cloud", func() {
-				err := manager.DeleteUnused()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(fakeCloud.DeleteDiskInputs).To(Equal([]fakebmcloud.DeleteDiskInput{
-					{
-						DiskCID: "fake-disk-cid-1",
-					},
-					{
-						DiskCID: "fake-disk-cid-3",
-					},
-				}))
-			})
+			Expect(disks).To(Equal([]bmdisk.Disk{
+				firstDisk,
+				thirdDisk,
+			}))
 		})
 	})
 })

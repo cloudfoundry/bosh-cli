@@ -14,6 +14,8 @@ type FakeManager struct {
 
 	DeleteUnusedCalledTimes int
 	DeleteUnusedErr         error
+
+	findUnusedOutput findUnusedOutput
 }
 
 type CreateInput struct {
@@ -25,6 +27,11 @@ type findCurrentOutput struct {
 	Disk  bmdisk.Disk
 	Found bool
 	Err   error
+}
+
+type findUnusedOutput struct {
+	disks []bmdisk.Disk
+	err   error
 }
 
 func NewFakeManager() *FakeManager {
@@ -45,9 +52,8 @@ func (m *FakeManager) FindCurrent() (bmdisk.Disk, bool, error) {
 	return m.findCurrentOutput.Disk, m.findCurrentOutput.Found, m.findCurrentOutput.Err
 }
 
-func (m *FakeManager) DeleteUnused() error {
-	m.DeleteUnusedCalledTimes++
-	return m.DeleteUnusedErr
+func (m *FakeManager) FindUnused() ([]bmdisk.Disk, error) {
+	return m.findUnusedOutput.disks, m.findUnusedOutput.err
 }
 
 func (m *FakeManager) SetFindCurrentBehavior(disk bmdisk.Disk, found bool, err error) {
@@ -55,5 +61,15 @@ func (m *FakeManager) SetFindCurrentBehavior(disk bmdisk.Disk, found bool, err e
 		Disk:  disk,
 		Found: found,
 		Err:   err,
+	}
+}
+
+func (m *FakeManager) SetFindUnusedBehavior(
+	disks []bmdisk.Disk,
+	err error,
+) {
+	m.findUnusedOutput = findUnusedOutput{
+		disks: disks,
+		err:   err,
 	}
 }

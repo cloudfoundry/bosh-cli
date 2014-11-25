@@ -180,17 +180,23 @@ func (d *diskDeployer) createDisk(diskPool bmdepl.DiskPool, vm bmvm.VM) (bmdisk.
 }
 
 func (d *diskDeployer) deleteUnusedDisks() error {
-	deleteEventStep := d.eventLoggerStage.NewStep("Deleting unneeded disks")
-	deleteEventStep.Start()
-
-	err := d.diskManager.DeleteUnused()
+	disks, err := d.diskManager.FindUnused()
 	if err != nil {
-		err = bosherr.WrapError(err, "Deleting unneeded disks")
-		deleteEventStep.Fail(err.Error())
-		return err
+		return bosherr.WrapError(err, "Finding unused disks")
 	}
 
-	deleteEventStep.Finish()
+	for _, disk := range disks {
+		deleteEventStep := d.eventLoggerStage.NewStep(fmt.Sprintf("Deleting unused disk '%s'", disk.CID()))
+		deleteEventStep.Start()
+
+		err = disk.Delete()
+		if err != nil {
+			err = bosherr.WrapError(err, "Deleting unused disk '%s'", disk.CID())
+			deleteEventStep.Fail(err.Error())
+			return err
+		}
+		deleteEventStep.Finish()
+	}
 
 	return nil
 }

@@ -10,6 +10,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
@@ -332,19 +333,63 @@ var _ = Describe("DiskDeployer", func() {
 			}))
 		})
 
-		It("removes unused disks", func() {
-			err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
-			Expect(err).ToNot(HaveOccurred())
+		Context("when there are unused disks", func() {
+			var (
+				firstDisk  *fakebmdisk.FakeDisk
+				secondDisk *fakebmdisk.FakeDisk
+			)
+			BeforeEach(func() {
+				firstDisk = fakebmdisk.NewFakeDisk("fake-disk-cid-1")
+				secondDisk = fakebmdisk.NewFakeDisk("fake-disk-cid-2")
+				fakeDiskManager.SetFindUnusedBehavior([]bmdisk.Disk{
+					firstDisk,
+					secondDisk,
+				}, nil)
+			})
 
-			Expect(fakeDiskManager.DeleteUnusedCalledTimes).To(Equal(1))
+			It("removes unused disks", func() {
+				err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Deleting unneeded disks",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
+				Expect(firstDisk.DeleteCalledTimes).To(Equal(1))
+				Expect(secondDisk.DeleteCalledTimes).To(Equal(1))
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "Deleting unused disk 'fake-disk-cid-1'",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				}))
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "Deleting unused disk 'fake-disk-cid-2'",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				}))
+			})
+
+			Context("when removing unused disk fails", func() {
+				BeforeEach(func() {
+					firstDisk.SetDeleteBehavior(errors.New("fake-delete-error"))
+				})
+
+				It("returns an error", func() {
+					err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
+
+					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+						Name: "Deleting unused disk 'fake-disk-cid-1'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Failed,
+						},
+						FailMessage: "Deleting unused disk 'fake-disk-cid-1': fake-delete-error",
+					}))
+				})
+			})
 		})
 
 		Context("when creating the persistent disk fails", func() {
@@ -395,32 +440,6 @@ var _ = Describe("DiskDeployer", func() {
 						bmeventlog.Failed,
 					},
 					FailMessage: "Attaching disk: fake-attach-disk-error",
-				}))
-			})
-		})
-
-		Context("when deleting unused disks fails", func() {
-			BeforeEach(func() {
-				fakeDiskManager.DeleteUnusedErr = errors.New("fake-delete-error")
-			})
-
-			It("returns an error", func() {
-				err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
-			})
-
-			It("logs failed event", func() {
-				err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
-				Expect(err).To(HaveOccurred())
-
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Deleting unneeded disks",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "Deleting unneeded disks: fake-delete-error",
 				}))
 			})
 		})

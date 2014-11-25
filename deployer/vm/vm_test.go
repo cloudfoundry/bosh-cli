@@ -11,8 +11,10 @@ import (
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
+	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
@@ -265,10 +267,10 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("AttachDisk", func() {
-		var disk bmdisk.Disk
+		var disk *fakebmdisk.FakeDisk
 
 		BeforeEach(func() {
-			disk = bmdisk.NewDisk("fake-disk-cid", 1024, map[string]interface{}{})
+			disk = fakebmdisk.NewFakeDisk("fake-disk-cid")
 		})
 
 		It("attaches disk to vm in the cloud", func() {
@@ -312,10 +314,10 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("DetachDisk", func() {
-		var disk bmdisk.Disk
+		var disk *fakebmdisk.FakeDisk
 
 		BeforeEach(func() {
-			disk = bmdisk.NewDisk("fake-disk-cid", 1024, map[string]interface{}{})
+			disk = fakebmdisk.NewFakeDisk("fake-disk-cid")
 		})
 
 		It("detaches disk from vm in the cloud", func() {
@@ -341,10 +343,10 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("UnmountDisk", func() {
-		var disk bmdisk.Disk
+		var disk *fakebmdisk.FakeDisk
 
 		BeforeEach(func() {
-			disk = bmdisk.NewDisk("fake-disk-cid", 1024, map[string]interface{}{})
+			disk = fakebmdisk.NewFakeDisk("fake-disk-cid")
 		})
 
 		It("sends unmount disk to the agent", func() {
@@ -388,14 +390,14 @@ var _ = Describe("VM", func() {
 
 	Describe("Disks", func() {
 		BeforeEach(func() {
-			fakeAgentClient.SetListDiskBehavior([]string{"fake-disk-1", "fake-disk-2"}, nil)
+			fakeAgentClient.SetListDiskBehavior([]string{"fake-disk-cid-1", "fake-disk-cid-2"}, nil)
 		})
 
 		It("returns disks that are reported by the agent", func() {
 			disks, err := vm.Disks()
 			Expect(err).ToNot(HaveOccurred())
-			expectedFirstDisk := bmdisk.NewDisk("fake-disk-1", 0, map[string]interface{}{})
-			expectedSecondDisk := bmdisk.NewDisk("fake-disk-2", 0, map[string]interface{}{})
+			expectedFirstDisk := bmdisk.NewDisk(bmconfig.DiskRecord{CID: "fake-disk-cid-1"}, nil, nil)
+			expectedSecondDisk := bmdisk.NewDisk(bmconfig.DiskRecord{CID: "fake-disk-cid-2"}, nil, nil)
 			Expect(disks).To(Equal([]bmdisk.Disk{expectedFirstDisk, expectedSecondDisk}))
 		})
 

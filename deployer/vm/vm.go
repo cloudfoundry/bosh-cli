@@ -188,7 +188,8 @@ func (vm *vm) Disks() ([]bmdisk.Disk, error) {
 	}
 
 	for _, diskCID := range disks {
-		result = append(result, bmdisk.NewDisk(diskCID, 0, map[string]interface{}{}))
+		disk := bmdisk.NewDisk(bmconfig.DiskRecord{CID: diskCID}, nil, nil)
+		result = append(result, disk)
 	}
 
 	return result, nil

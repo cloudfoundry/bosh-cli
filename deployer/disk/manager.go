@@ -11,7 +11,7 @@ import (
 type Manager interface {
 	FindCurrent() (Disk, bool, error)
 	Create(bmdepl.DiskPool, string) (Disk, error)
-	DeleteUnused() error
+	FindUnused() ([]Disk, error)
 }
 
 type manager struct {
@@ -31,7 +31,7 @@ func (m *manager) FindCurrent() (Disk, bool, error) {
 		return nil, false, nil
 	}
 
-	disk := NewDisk(diskRecord.CID, diskRecord.Size, diskRecord.CloudProperties)
+	disk := NewDisk(diskRecord, m.cloud, m.diskRepo)
 
 	return disk, true, err
 }
@@ -54,40 +54,34 @@ func (m *manager) Create(diskPool bmdepl.DiskPool, vmCID string) (Disk, error) {
 			)
 	}
 
-	_, err = m.diskRepo.Save(cid, diskPool.DiskSize, diskCloudProperties)
+	diskRecord, err := m.diskRepo.Save(cid, diskPool.DiskSize, diskCloudProperties)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Saving deployment disk record")
 	}
 
-	disk := NewDisk(cid, diskPool.DiskSize, diskCloudProperties)
+	disk := NewDisk(diskRecord, m.cloud, m.diskRepo)
 
 	return disk, nil
 }
 
-func (m *manager) DeleteUnused() error {
+func (m *manager) FindUnused() ([]Disk, error) {
+	disks := []Disk{}
+
 	diskRecords, err := m.diskRepo.All()
 	if err != nil {
-		return bosherr.WrapError(err, "Getting all disk records")
+		return disks, bosherr.WrapError(err, "Getting all disk records")
 	}
 
 	currentDiskRecord, found, err := m.diskRepo.FindCurrent()
 	if err != nil {
-		return bosherr.WrapError(err, "Finding current disk record")
+		return disks, bosherr.WrapError(err, "Finding current disk record")
 	}
 
 	for _, diskRecord := range diskRecords {
 		if !found || diskRecord.ID != currentDiskRecord.ID {
-			err = m.cloud.DeleteDisk(diskRecord.CID)
-			if err != nil {
-				return bosherr.WrapError(err, "Deleting disk from cloud")
-			}
-
-			err = m.diskRepo.Delete(diskRecord)
-			if err != nil {
-				return bosherr.WrapError(err, "Deleting disk record")
-			}
+			disks = append(disks, NewDisk(diskRecord, m.cloud, m.diskRepo))
 		}
 	}
 
-	return nil
+	return disks, nil
 }
