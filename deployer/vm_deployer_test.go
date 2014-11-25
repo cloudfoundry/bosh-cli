@@ -390,6 +390,18 @@ var _ = Describe("VmDeployer", func() {
 			}))
 		})
 
+		Context("when ssh options are empty", func() {
+			BeforeEach(func() {
+				sshTunnelOptions = bmsshtunnel.Options{}
+			})
+
+			It("does not start ssh tunnel", func() {
+				err := vmDeployer.WaitUntilReady(fakeVM, sshTunnelOptions, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fakeSSHTunnel.Started).To(BeFalse())
+			})
+		})
+
 		Context("when starting SSH tunnel fails", func() {
 			BeforeEach(func() {
 				fakeSSHTunnel.SetStartBehavior(errors.New("fake-ssh-tunnel-start-error"), nil)

@@ -90,18 +90,20 @@ func (d *vmDeployer) WaitUntilReady(vm bmvm.VM, sshTunnelOptions bmsshtunnel.Opt
 	eventStep := eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
 	eventStep.Start()
 
-	sshTunnel := d.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
-	sshReadyErrCh := make(chan error)
-	sshErrCh := make(chan error)
-	go sshTunnel.Start(sshReadyErrCh, sshErrCh)
-	defer sshTunnel.Stop()
+	if !sshTunnelOptions.IsEmpty() {
+		sshTunnel := d.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
+		sshReadyErrCh := make(chan error)
+		sshErrCh := make(chan error)
+		go sshTunnel.Start(sshReadyErrCh, sshErrCh)
+		defer sshTunnel.Stop()
 
-	err := <-sshReadyErrCh
-	if err != nil {
-		return bosherr.WrapError(err, "Starting SSH tunnel")
+		err := <-sshReadyErrCh
+		if err != nil {
+			return bosherr.WrapError(err, "Starting SSH tunnel")
+		}
 	}
 
-	err = vm.WaitToBeReady(10*time.Minute, 500*time.Millisecond)
+	err := vm.WaitToBeReady(10*time.Minute, 500*time.Millisecond)
 	if err != nil {
 		err = bosherr.WrapError(err, "Waiting for the vm to be ready")
 		eventStep.Fail(err.Error())

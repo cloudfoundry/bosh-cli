@@ -74,13 +74,15 @@ func (m *deployer) Deploy(
 
 	m.eventLoggerStage.Start()
 
-	registryReadyErrCh := make(chan error)
-	go m.startRegistry(registry, registryReadyErrCh)
-	defer m.registryServer.Stop()
+	if !registry.IsEmpty() {
+		registryReadyErrCh := make(chan error)
+		go m.startRegistry(registry, registryReadyErrCh)
+		defer m.registryServer.Stop()
 
-	err = <-registryReadyErrCh
-	if err != nil {
-		return bosherr.WrapError(err, "Starting registry")
+		err = <-registryReadyErrCh
+		if err != nil {
+			return bosherr.WrapError(err, "Starting registry")
+		}
 	}
 
 	vm, err := m.vmDeployer.Deploy(cloud, deployment, cloudStemcell, mbusURL, m.eventLoggerStage)

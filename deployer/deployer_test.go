@@ -175,6 +175,19 @@ var _ = Describe("Deployer", func() {
 		Expect(fakeRegistryServer.ReceivedActions).To(Equal([]string{"Start", "Stop"}))
 	})
 
+	Context("when registry settings are empty", func() {
+		BeforeEach(func() {
+			registry = bmdepl.Registry{}
+		})
+
+		It("starts the registry", func() {
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeRegistryServer.StartInput).To(Equal(fakeregistry.StartInput{}))
+			Expect(fakeRegistryServer.ReceivedActions).To(BeEmpty())
+		})
+	})
+
 	It("deploys vm", func() {
 		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())

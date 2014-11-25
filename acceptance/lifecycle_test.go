@@ -71,18 +71,18 @@ var _ = Describe("bosh-micro", func() {
 		defer fileSystem.RemoveAll(sshConfigFile.Name())
 
 		sshConfigTemplate := `
-Host vagrant-vm
-  HostName %s
-  User %s
-  Port 22
-  StrictHostKeyChecking no
-  IdentityFile %s
-Host warden-vm
-  Hostname %s
-  User %s
-  StrictHostKeyChecking no
-  ProxyCommand ssh -F %s vagrant-vm netcat -w 120 %%h %%p
-`
+	Host vagrant-vm
+	  HostName %s
+	  User %s
+	  Port 22
+	  StrictHostKeyChecking no
+	  IdentityFile %s
+	Host warden-vm
+	  Hostname %s
+	  User %s
+	  StrictHostKeyChecking no
+	  ProxyCommand ssh -F %s vagrant-vm netcat -w 120 %%h %%p
+	`
 		sshConfig := fmt.Sprintf(
 			sshConfigTemplate,
 			config.VMIP,
@@ -199,5 +199,22 @@ Host warden-vm
 		ItDeletesVMOnUpdate()
 
 		ItMigratesDisk()
+	})
+
+	It("deploys without registry and ssh tunnel", func() {
+		manifestPath := "./manifest_without_registry.yml"
+		manifestContents, err := ioutil.ReadFile(manifestPath)
+		Expect(err).ToNot(HaveOccurred())
+		testEnv.WriteContent("manifest", manifestContents)
+
+		_, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deployment", testEnv.Path("manifest"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+
+		Expect(stdout).To(ContainSubstring("Done deploying"))
 	})
 })

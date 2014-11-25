@@ -52,6 +52,10 @@ type Registry struct {
 	Port     int
 }
 
+func (r Registry) IsEmpty() bool {
+	return r == Registry{}
+}
+
 type SSHTunnel struct {
 	User       string
 	Host       string

@@ -17,6 +17,10 @@ type Options struct {
 	RemoteForwardPort int
 }
 
+func (o Options) IsEmpty() bool {
+	return o == Options{}
+}
+
 type Factory interface {
 	NewSSHTunnel(Options) SSHTunnel
 }
