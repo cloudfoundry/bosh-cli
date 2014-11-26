@@ -22,8 +22,7 @@ type deployCmd struct {
 	ui                      bmui.UI
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
-	cpiManifestParser       bmdepl.CPIDeploymentParser
-	boshManifestParser      bmdepl.BoshDeploymentParser
+	deploymentParser        bmdepl.Parser
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiInstaller            bmcpi.Installer
 	stemcellExtractor       bmstemcell.Extractor
@@ -34,26 +33,22 @@ type deployCmd struct {
 	logTag                  string
 }
 
-func NewDeployCmd(
-	ui bmui.UI,
+func NewDeployCmd(ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
-	cpiManifestParser bmdepl.CPIDeploymentParser,
-	boshManifestParser bmdepl.BoshDeploymentParser,
+	deploymentParser bmdepl.Parser,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiInstaller bmcpi.Installer,
 	stemcellExtractor bmstemcell.Extractor,
 	deploymentRecord bmdeployer.DeploymentRecord,
 	deployer bmdeployer.Deployer,
 	eventLogger bmeventlog.EventLogger,
-	logger boshlog.Logger,
-) *deployCmd {
+	logger boshlog.Logger) *deployCmd {
 	return &deployCmd{
 		ui:                      ui,
 		userConfig:              userConfig,
 		fs:                      fs,
-		cpiManifestParser:       cpiManifestParser,
-		boshManifestParser:      boshManifestParser,
+		deploymentParser:        deploymentParser,
 		boshDeploymentValidator: boshDeploymentValidator,
 		cpiInstaller:            cpiInstaller,
 		stemcellExtractor:       stemcellExtractor,
@@ -147,14 +142,7 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 		return cpiDeployment, boshDeployment, nil, nil, err
 	}
 
-	cpiDeployment, err = c.cpiManifestParser.Parse(deploymentFilePath)
-	if err != nil {
-		err = bosherr.WrapError(err, "Parsing CPI deployment manifest `%s'", deploymentFilePath)
-		manifestValidationStep.Fail(err.Error())
-		return cpiDeployment, boshDeployment, nil, nil, err
-	}
-
-	boshDeployment, err = c.boshManifestParser.Parse(deploymentFilePath)
+	boshDeployment, cpiDeployment, err = c.deploymentParser.Parse(deploymentFilePath)
 	if err != nil {
 		err = bosherr.WrapError(err, "Parsing deployment manifest `%s'", deploymentFilePath)
 		manifestValidationStep.Fail(err.Error())

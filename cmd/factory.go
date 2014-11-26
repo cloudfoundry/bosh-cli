@@ -148,8 +148,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		timeService,
 	)
 
-	cpiManifestParser := bmdepl.NewCpiDeploymentParser(f.fs)
-	boshManifestParser := bmdepl.NewBoshDeploymentParser(f.fs, f.logger)
+	deploymentParser := bmdepl.NewParser(f.fs, f.logger)
 	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
 	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
 	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
@@ -234,8 +233,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.ui,
 		f.userConfig,
 		f.fs,
-		cpiManifestParser,
-		boshManifestParser,
+		deploymentParser,
 		boshDeploymentValidator,
 		cpiInstaller,
 		stemcellExtractor,

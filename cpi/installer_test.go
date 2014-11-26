@@ -237,7 +237,7 @@ properties: {}
 			}
 
 			releaseJob = bmrel.Job{
-				Name:          "fake-release-job-name",
+				Name:          "cpi",
 				Fingerprint:   "fake-release-job-fingerprint",
 				SHA1:          "fake-release-job-sha1",
 				ExtractedPath: "/extracted-release-path/extracted_jobs/fake-release-job-name",

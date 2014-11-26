@@ -45,9 +45,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeployer         *fakebmdeployer.FakeDeployer
 		fakeDeploymentRecord *fakebmdeployer.FakeDeploymentRecord
 
-		fakeCpiDeploymentParser  *fakebmdepl.FakeCPIDeploymentParser
-		fakeBoshDeploymentParser *fakebmdepl.FakeBoshDeploymentParser
-		fakeDeploymentValidator  *fakebmdeplval.FakeValidator
+		fakeDeploymentParser    *fakebmdepl.FakeParser
+		fakeDeploymentValidator *fakebmdeplval.FakeValidator
 
 		fakeCompressor    *fakecmd.FakeCompressor
 		fakeJobRenderer   *fakebmtemp.FakeJobRenderer
@@ -76,8 +75,7 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeDeployer = fakebmdeployer.NewFakeDeployer()
 
-		fakeCpiDeploymentParser = fakebmdepl.NewFakeCPIDeploymentParser()
-		fakeBoshDeploymentParser = fakebmdepl.NewFakeBoshDeploymentParser()
+		fakeDeploymentParser = fakebmdepl.NewFakeParser()
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
@@ -95,8 +93,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeUI,
 			userConfig,
 			fakeFs,
-			fakeCpiDeploymentParser,
-			fakeBoshDeploymentParser,
+			fakeDeploymentParser,
 			fakeDeploymentValidator,
 			fakeCPIInstaller,
 			fakeStemcellExtractor,
@@ -157,8 +154,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeUI,
 						userConfig,
 						fakeFs,
-						fakeCpiDeploymentParser,
-						fakeBoshDeploymentParser,
+						fakeDeploymentParser,
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
 						fakeStemcellExtractor,
@@ -207,7 +203,7 @@ version: fake-version
 							},
 							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
 						}
-						fakeCpiDeploymentParser.ParseDeployment = cpiDeployment
+						fakeDeploymentParser.ParseCPIDeployment = cpiDeployment
 
 						boshDeployment = bmdepl.Deployment{
 							Name: "fake-deployment-name",
@@ -217,7 +213,8 @@ version: fake-version
 								},
 							},
 						}
-						fakeBoshDeploymentParser.SetParseBehavior(userConfig.DeploymentFile, boshDeployment, nil)
+						fakeDeploymentParser.ParseDeployment = boshDeployment
+
 						cloud = fakebmcloud.NewFakeCloud()
 						fakeCPIRelease = fakebmrel.NewFakeRelease()
 						fakeCPIInstaller.SetExtractBehavior(cpiReleaseTarballPath, fakeCPIRelease, nil)
@@ -257,16 +254,10 @@ version: fake-version
 						Expect(fakeStage.Finished).To(BeTrue())
 					})
 
-					It("parses the CPI portion of the manifest", func() {
+					It("parses the deployment manifest", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCpiDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
-					})
-
-					It("parses the Bosh portion of the manifest", func() {
-						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeBoshDeploymentParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
+						Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
 					})
 
 					It("validates bosh deployment manifest", func() {
@@ -390,13 +381,13 @@ version: fake-version
 
 					Context("when parsing the cpi deployment manifest fails", func() {
 						It("returns error", func() {
-							fakeCpiDeploymentParser.ParseErr = errors.New("fake-parse-error")
+							fakeDeploymentParser.ParseErr = errors.New("fake-parse-error")
 
 							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Parsing CPI deployment manifest"))
+							Expect(err.Error()).To(ContainSubstring("Parsing deployment manifest"))
 							Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
-							Expect(fakeCpiDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
+							Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
 						})
 					})
 
@@ -504,8 +495,7 @@ version: fake-version
 						fakeUI,
 						userConfig,
 						fakeFs,
-						fakeCpiDeploymentParser,
-						fakeBoshDeploymentParser,
+						fakeDeploymentParser,
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
 						fakeStemcellExtractor,

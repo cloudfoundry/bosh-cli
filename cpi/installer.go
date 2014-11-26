@@ -87,38 +87,23 @@ func (c *cpiInstaller) Extract(releaseTarballPath string) (bmrel.Release, error)
 }
 
 func (c *cpiInstaller) Install(deployment bmdepl.CPIDeployment, release bmrel.Release) (bmcloud.Cloud, error) {
-	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name))
-	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release `%s': %#v", release.Name, release))
+	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name()))
+	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release `%s': %#v", release.Name(), release))
 	err := c.releaseCompiler.Compile(release, deployment)
 	if err != nil {
 		c.ui.Error("Could not compile CPI release")
 		return nil, bosherr.WrapError(err, "Compiling CPI release")
 	}
 
-	jobs := deployment.Jobs
-	if len(jobs) != 1 {
-		c.ui.Error("Invalid CPI deployment: exactly one job required")
-		return nil, bosherr.New("Invalid CPI deployment: exactly one job required, %d jobs found", len(jobs))
-	}
-	cpiJob := jobs[0]
-
-	instances := cpiJob.Instances
-	if instances != 1 {
-		c.ui.Error("Invalid CPI deployment: exactly one job instance required")
-		return nil, bosherr.New(
-			"Invalid CPI deployment: exactly one instance required, found %d instances in job `%s'",
-			instances,
-			cpiJob.Name,
-		)
-	}
-
-	installedJobs, err := c.installJob(cpiJob, release)
+	installedJob, err := c.installCPIJob(release)
 	if err != nil {
 		c.ui.Error("Could not install CPI deployment job")
 		return nil, bosherr.WrapError(err, "Installing CPI deployment job")
 	}
 
-	cloud, err := c.cloudFactory.NewCloud(installedJobs)
+	cloud, err := c.cloudFactory.NewCloud([]bmcpiinstall.InstalledJob{
+		installedJob,
+	})
 	if err != nil {
 		c.ui.Error("Invalid CPI deployment")
 		return nil, bosherr.WrapError(err, "Validating CPI deployment job installation")
@@ -127,23 +112,21 @@ func (c *cpiInstaller) Install(deployment bmdepl.CPIDeployment, release bmrel.Re
 	return cloud, nil
 }
 
-func (c *cpiInstaller) installJob(deploymentJob bmdepl.Job, release bmrel.Release) ([]bmcpiinstall.InstalledJob, error) {
-	installedJobs := make([]bmcpiinstall.InstalledJob, 0, len(deploymentJob.Templates))
-	for _, releaseJobRef := range deploymentJob.Templates {
-		releaseJobName := releaseJobRef.Name
-		releaseJob, found := release.FindJobByName(releaseJobName)
+func (c *cpiInstaller) installCPIJob(release bmrel.Release) (bmcpiinstall.InstalledJob, error) {
+	releaseJobName := "cpi"
 
-		if !found {
-			c.ui.Error(fmt.Sprintf("Could not find CPI job `%s' in release `%s'", releaseJobName, release.Name))
-			return installedJobs, bosherr.New("Invalid CPI deployment manifest: job `%s' not found in release `%s'", releaseJobName, release.Name)
-		}
+	releaseJob, found := release.FindJobByName(releaseJobName)
 
-		installedJob, err := c.jobInstaller.Install(releaseJob)
-		if err != nil {
-			c.ui.Error(fmt.Sprintf("Could not install `%s' job", releaseJobName))
-			return installedJobs, bosherr.WrapError(err, "Installing `%s' job for CPI release", releaseJobName)
-		}
-		installedJobs = append(installedJobs, installedJob)
+	if !found {
+		c.ui.Error(fmt.Sprintf("Could not find CPI job `%s' in release `%s'", releaseJobName, release.Name()))
+		return bmcpiinstall.InstalledJob{}, bosherr.New("Invalid CPI deployment manifest: job `%s' not found in release `%s'", releaseJobName, release.Name())
 	}
-	return installedJobs, nil
+
+	installedJob, err := c.jobInstaller.Install(releaseJob)
+	if err != nil {
+		c.ui.Error(fmt.Sprintf("Could not install `%s' job", releaseJobName))
+		return bmcpiinstall.InstalledJob{}, bosherr.WrapError(err, "Installing `%s' job for CPI release", releaseJobName)
+	}
+
+	return installedJob, nil
 }
