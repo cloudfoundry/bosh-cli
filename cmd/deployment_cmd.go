@@ -10,7 +10,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmvalidation "github.com/cloudfoundry/bosh-micro-cli/cmd/validation"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
@@ -77,11 +76,9 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		return bosherr.WrapError(err, "Getting absolute path to deployment file `%s'", manifestFilePath)
 	}
 
-	fileValidator := bmvalidation.NewFileValidator(c.fs)
-	err = fileValidator.Exists(manifestAbsFilePath)
-	if err != nil {
+	if !c.fs.FileExists(manifestAbsFilePath) {
 		c.ui.Error(fmt.Sprintf("Deployment `%s' does not exist", manifestAbsFilePath))
-		return bosherr.WrapError(err, "Setting deployment manifest")
+		return bosherr.New("Verifying that the deployment `%s' exists", manifestAbsFilePath)
 	}
 
 	c.userConfig.DeploymentFile = manifestAbsFilePath
