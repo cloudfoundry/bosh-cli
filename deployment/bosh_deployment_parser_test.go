@@ -17,7 +17,7 @@ var _ = Describe("DeploymentRenderer", func() {
 	var (
 		deploymentPath string
 		fakeFs         *fakesys.FakeFileSystem
-		manifestParser ManifestParser
+		manifestParser BoshDeploymentParser
 	)
 
 	BeforeEach(func() {

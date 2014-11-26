@@ -8,13 +8,17 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
+type BoshDeploymentParser interface {
+	Parse(manifestPath string) (Deployment, error)
+}
+
 type boshDeploymentParser struct {
 	fs     boshsys.FileSystem
 	logger boshlog.Logger
 	logTag string
 }
 
-func NewBoshDeploymentParser(fs boshsys.FileSystem, logger boshlog.Logger) ManifestParser {
+func NewBoshDeploymentParser(fs boshsys.FileSystem, logger boshlog.Logger) BoshDeploymentParser {
 	return boshDeploymentParser{
 		fs:     fs,
 		logger: logger,

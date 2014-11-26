@@ -45,9 +45,9 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeployer         *fakebmdeployer.FakeDeployer
 		fakeDeploymentRecord *fakebmdeployer.FakeDeploymentRecord
 
-		fakeCpiDeploymentParser *fakebmdepl.FakeCPIDeploymentParser
-		fakeBoshManifestParser  *fakebmdepl.FakeManifestParser
-		fakeDeploymentValidator *fakebmdeplval.FakeValidator
+		fakeCpiDeploymentParser  *fakebmdepl.FakeCPIDeploymentParser
+		fakeBoshDeploymentParser *fakebmdepl.FakeBoshDeploymentParser
+		fakeDeploymentValidator  *fakebmdeplval.FakeValidator
 
 		fakeCompressor    *fakecmd.FakeCompressor
 		fakeJobRenderer   *fakebmtemp.FakeJobRenderer
@@ -77,7 +77,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeployer = fakebmdeployer.NewFakeDeployer()
 
 		fakeCpiDeploymentParser = fakebmdepl.NewFakeCPIDeploymentParser()
-		fakeBoshManifestParser = fakebmdepl.NewFakeManifestParser()
+		fakeBoshDeploymentParser = fakebmdepl.NewFakeBoshDeploymentParser()
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
@@ -96,7 +96,7 @@ var _ = Describe("DeployCmd", func() {
 			userConfig,
 			fakeFs,
 			fakeCpiDeploymentParser,
-			fakeBoshManifestParser,
+			fakeBoshDeploymentParser,
 			fakeDeploymentValidator,
 			fakeCPIInstaller,
 			fakeStemcellExtractor,
@@ -158,7 +158,7 @@ var _ = Describe("DeployCmd", func() {
 						userConfig,
 						fakeFs,
 						fakeCpiDeploymentParser,
-						fakeBoshManifestParser,
+						fakeBoshDeploymentParser,
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
 						fakeStemcellExtractor,
@@ -217,7 +217,7 @@ version: fake-version
 								},
 							},
 						}
-						fakeBoshManifestParser.SetParseBehavior(userConfig.DeploymentFile, boshDeployment, nil)
+						fakeBoshDeploymentParser.SetParseBehavior(userConfig.DeploymentFile, boshDeployment, nil)
 						cloud = fakebmcloud.NewFakeCloud()
 						fakeCPIRelease = fakebmrel.NewFakeRelease()
 						fakeCPIInstaller.SetExtractBehavior(cpiReleaseTarballPath, fakeCPIRelease, nil)
@@ -266,7 +266,7 @@ version: fake-version
 					It("parses the Bosh portion of the manifest", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeBoshManifestParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
+						Expect(fakeBoshDeploymentParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
 					})
 
 					It("validates bosh deployment manifest", func() {
@@ -505,7 +505,7 @@ version: fake-version
 						userConfig,
 						fakeFs,
 						fakeCpiDeploymentParser,
-						fakeBoshManifestParser,
+						fakeBoshDeploymentParser,
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
 						fakeStemcellExtractor,

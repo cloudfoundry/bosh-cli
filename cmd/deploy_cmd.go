@@ -23,7 +23,7 @@ type deployCmd struct {
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
 	cpiManifestParser       bmdepl.CPIDeploymentParser
-	boshManifestParser      bmdepl.ManifestParser
+	boshManifestParser      bmdepl.BoshDeploymentParser
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiInstaller            bmcpi.Installer
 	stemcellExtractor       bmstemcell.Extractor
@@ -39,7 +39,7 @@ func NewDeployCmd(
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
 	cpiManifestParser bmdepl.CPIDeploymentParser,
-	boshManifestParser bmdepl.ManifestParser,
+	boshManifestParser bmdepl.BoshDeploymentParser,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiInstaller bmcpi.Installer,
 	stemcellExtractor bmstemcell.Extractor,

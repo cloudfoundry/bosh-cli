@@ -15,19 +15,19 @@ type parseOutput struct {
 	err        error
 }
 
-type FakeManifestParser struct {
+type FakeBoshDeploymentParser struct {
 	ParseInputs   []parseInput
 	parseBehavior map[parseInput]parseOutput
 }
 
-func NewFakeManifestParser() *FakeManifestParser {
-	return &FakeManifestParser{
+func NewFakeBoshDeploymentParser() *FakeBoshDeploymentParser {
+	return &FakeBoshDeploymentParser{
 		ParseInputs:   []parseInput{},
 		parseBehavior: map[parseInput]parseOutput{},
 	}
 }
 
-func (f *FakeManifestParser) Parse(deploymentPath string) (bmdepl.Deployment, error) {
+func (f *FakeBoshDeploymentParser) Parse(deploymentPath string) (bmdepl.Deployment, error) {
 	input := parseInput{DeploymentPath: deploymentPath}
 	f.ParseInputs = append(f.ParseInputs, input)
 	output, found := f.parseBehavior[input]
@@ -39,6 +39,6 @@ func (f *FakeManifestParser) Parse(deploymentPath string) (bmdepl.Deployment, er
 	return NewFakeDeployment(), fmt.Errorf("Unsupported Input: Parse('%s'), available behaviors '%#v'", deploymentPath, f.parseBehavior)
 }
 
-func (f *FakeManifestParser) SetParseBehavior(deploymentPath string, deployment bmdepl.Deployment, err error) {
+func (f *FakeBoshDeploymentParser) SetParseBehavior(deploymentPath string, deployment bmdepl.Deployment, err error) {
 	f.parseBehavior[parseInput{DeploymentPath: deploymentPath}] = parseOutput{deployment: deployment, err: err}
 }
