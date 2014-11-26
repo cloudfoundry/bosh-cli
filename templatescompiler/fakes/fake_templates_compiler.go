@@ -7,13 +7,13 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type CompileInput struct {
-	Jobs       []bmrel.Job
-	Deployment bmdepl.Deployment
+	Jobs                 []bmrel.Job
+	DeploymentName       string
+	DeploymentProperties map[string]interface{}
 }
 
 type compileOutput struct {
@@ -33,8 +33,12 @@ func NewFakeTemplatesCompiler() *FakeTemplatesCompiler {
 	}
 }
 
-func (f *FakeTemplatesCompiler) Compile(jobs []bmrel.Job, deployment bmdepl.Deployment) error {
-	input := CompileInput{Jobs: jobs, Deployment: deployment}
+func (f *FakeTemplatesCompiler) Compile(jobs []bmrel.Job, deploymentName string, deploymentProperties map[string]interface{}) error {
+	input := CompileInput{
+		Jobs:                 jobs,
+		DeploymentName:       deploymentName,
+		DeploymentProperties: deploymentProperties,
+	}
 	f.CompileInputs = append(f.CompileInputs, input)
 
 	inputString, err := marshalToString(input)
@@ -46,11 +50,15 @@ func (f *FakeTemplatesCompiler) Compile(jobs []bmrel.Job, deployment bmdepl.Depl
 	if found {
 		return output.err
 	}
-	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v')", jobs, deployment)
+	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v', '%#v')", jobs, deploymentName, deploymentProperties)
 }
 
-func (f *FakeTemplatesCompiler) SetCompileBehavior(jobs []bmrel.Job, deployment bmdepl.Deployment, err error) error {
-	input := CompileInput{Jobs: jobs, Deployment: deployment}
+func (f *FakeTemplatesCompiler) SetCompileBehavior(jobs []bmrel.Job, deploymentName string, deploymentProperties map[string]interface{}, err error) error {
+	input := CompileInput{
+		Jobs:                 jobs,
+		DeploymentName:       deploymentName,
+		DeploymentProperties: deploymentProperties,
+	}
 	inputString, marshalErr := marshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Save input")

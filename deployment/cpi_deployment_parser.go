@@ -7,11 +7,15 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
+type CPIDeploymentParser interface {
+	Parse(path string) (CPIDeployment, error)
+}
+
 type microDeploymentParser struct {
 	fs boshsys.FileSystem
 }
 
-func NewCpiDeploymentParser(fs boshsys.FileSystem) ManifestParser {
+func NewCpiDeploymentParser(fs boshsys.FileSystem) CPIDeploymentParser {
 	return microDeploymentParser{fs: fs}
 }
 
@@ -28,19 +32,19 @@ type cloudProviderProperties struct {
 	Mbus            string
 }
 
-func (m microDeploymentParser) Parse(path string) (Deployment, error) {
+func (m microDeploymentParser) Parse(path string) (CPIDeployment, error) {
 	contents, err := m.fs.ReadFile(path)
 	if err != nil {
-		return Deployment{}, bosherr.WrapError(err, "Reading file %s", path)
+		return CPIDeployment{}, bosherr.WrapError(err, "Reading file %s", path)
 	}
 
 	depManifest := cpiDeploymentManifest{}
 	err = candiedyaml.Unmarshal(contents, &depManifest)
 	if err != nil {
-		return Deployment{}, bosherr.WrapError(err, "Parsing job manifest")
+		return CPIDeployment{}, bosherr.WrapError(err, "Parsing job manifest")
 	}
 
-	deployment := Deployment{
+	deployment := CPIDeployment{
 		Name:            depManifest.Name,
 		Jobs:            m.defaultCPIJobs(),
 		Registry:        depManifest.CloudProvider.Registry,

@@ -22,7 +22,7 @@ type deployCmd struct {
 	ui                      bmui.UI
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
-	cpiManifestParser       bmdepl.ManifestParser
+	cpiManifestParser       bmdepl.CPIDeploymentParser
 	boshManifestParser      bmdepl.ManifestParser
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiInstaller            bmcpi.Installer
@@ -38,7 +38,7 @@ func NewDeployCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
-	cpiManifestParser bmdepl.ManifestParser,
+	cpiManifestParser bmdepl.CPIDeploymentParser,
 	boshManifestParser bmdepl.ManifestParser,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiInstaller bmcpi.Installer,
@@ -120,7 +120,7 @@ func (c *deployCmd) Run(args []string) error {
 type Deployment struct{}
 
 func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath string) (
-	cpiDeployment bmdepl.Deployment,
+	cpiDeployment bmdepl.CPIDeployment,
 	boshDeployment bmdepl.Deployment,
 	cpiRelease bmrel.Release,
 	extractedStemcell bmstemcell.ExtractedStemcell,

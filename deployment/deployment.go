@@ -45,37 +45,14 @@ const (
 	NetworkDefaultGateway NetworkDefault = "gateway"
 )
 
-type Registry struct {
-	Username string
-	Password string
-	Host     string
-	Port     int
-}
-
-func (r Registry) IsEmpty() bool {
-	return r == Registry{}
-}
-
-type SSHTunnel struct {
-	User       string
-	Host       string
-	Port       int
-	Password   string
-	PrivateKey string `yaml:"private_key"`
-}
-
 type Deployment struct {
-	Name            string
-	RawProperties   map[interface{}]interface{}
-	Mbus            string
-	Registry        Registry
-	AgentEnvService string
-	SSHTunnel       SSHTunnel
-	Jobs            []Job
-	Networks        []Network
-	DiskPools       []DiskPool
-	ResourcePools   []ResourcePool
-	Update          Update
+	Name          string
+	RawProperties map[interface{}]interface{}
+	Jobs          []Job
+	Networks      []Network
+	DiskPools     []DiskPool
+	ResourcePools []ResourcePool
+	Update        Update
 }
 
 type Update struct {

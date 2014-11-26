@@ -219,14 +219,14 @@ properties: {}
 
 	Describe("Install", func() {
 		var (
-			deployment bmdepl.Deployment
+			deployment bmdepl.CPIDeployment
 			release    bmrel.Release
 			releaseJob bmrel.Job
 		)
 		BeforeEach(func() {
 			fakeFs.WriteFileString(deploymentManifestPath, "")
 
-			deployment = bmdepl.Deployment{}
+			deployment = bmdepl.CPIDeployment{}
 
 			releasePackage := &bmrel.Package{
 				Name:          "fake-release-package-name",
@@ -270,7 +270,7 @@ properties: {}
 			)
 
 			BeforeEach(func() {
-				deployment = bmdepl.Deployment{
+				deployment = bmdepl.CPIDeployment{
 					Name:          "fake-deployment-name",
 					RawProperties: map[interface{}]interface{}{},
 					Jobs: []bmdepl.Job{

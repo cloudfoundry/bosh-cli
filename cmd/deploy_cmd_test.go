@@ -45,7 +45,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeployer         *fakebmdeployer.FakeDeployer
 		fakeDeploymentRecord *fakebmdeployer.FakeDeploymentRecord
 
-		fakeCpiManifestParser   *fakebmdepl.FakeManifestParser
+		fakeCpiDeploymentParser *fakebmdepl.FakeCPIDeploymentParser
 		fakeBoshManifestParser  *fakebmdepl.FakeManifestParser
 		fakeDeploymentValidator *fakebmdeplval.FakeValidator
 
@@ -76,7 +76,7 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeDeployer = fakebmdeployer.NewFakeDeployer()
 
-		fakeCpiManifestParser = fakebmdepl.NewFakeManifestParser()
+		fakeCpiDeploymentParser = fakebmdepl.NewFakeCPIDeploymentParser()
 		fakeBoshManifestParser = fakebmdepl.NewFakeManifestParser()
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
@@ -95,7 +95,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeUI,
 			userConfig,
 			fakeFs,
-			fakeCpiManifestParser,
+			fakeCpiDeploymentParser,
 			fakeBoshManifestParser,
 			fakeDeploymentValidator,
 			fakeCPIInstaller,
@@ -157,7 +157,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeUI,
 						userConfig,
 						fakeFs,
-						fakeCpiManifestParser,
+						fakeCpiDeploymentParser,
 						fakeBoshManifestParser,
 						fakeDeploymentValidator,
 						fakeCPIInstaller,
@@ -193,12 +193,12 @@ version: fake-version
 				Context("when the deployment manifest exists", func() {
 					var (
 						boshDeployment bmdepl.Deployment
-						cpiDeployment  bmdepl.Deployment
+						cpiDeployment  bmdepl.CPIDeployment
 						cloud          *fakebmcloud.FakeCloud
 					)
 					BeforeEach(func() {
 						fakeFs.WriteFileString(userConfig.DeploymentFile, "")
-						cpiDeployment = bmdepl.Deployment{
+						cpiDeployment = bmdepl.CPIDeployment{
 							Registry: bmdepl.Registry{
 								Username: "fake-username",
 							},
@@ -207,7 +207,7 @@ version: fake-version
 							},
 							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
 						}
-						fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, cpiDeployment, nil)
+						fakeCpiDeploymentParser.ParseDeployment = cpiDeployment
 
 						boshDeployment = bmdepl.Deployment{
 							Name: "fake-deployment-name",
@@ -260,7 +260,7 @@ version: fake-version
 					It("parses the CPI portion of the manifest", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
+						Expect(fakeCpiDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
 					})
 
 					It("parses the Bosh portion of the manifest", func() {
@@ -390,13 +390,13 @@ version: fake-version
 
 					Context("when parsing the cpi deployment manifest fails", func() {
 						It("returns error", func() {
-							fakeCpiManifestParser.SetParseBehavior(userConfig.DeploymentFile, bmdepl.Deployment{}, errors.New("fake-parse-error"))
+							fakeCpiDeploymentParser.ParseErr = errors.New("fake-parse-error")
 
 							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("Parsing CPI deployment manifest"))
 							Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
-							Expect(fakeCpiManifestParser.ParseInputs[0].DeploymentPath).To(Equal(deploymentManifestPath))
+							Expect(fakeCpiDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
 						})
 					})
 
@@ -504,7 +504,7 @@ version: fake-version
 						fakeUI,
 						userConfig,
 						fakeFs,
-						fakeCpiManifestParser,
+						fakeCpiDeploymentParser,
 						fakeBoshManifestParser,
 						fakeDeploymentValidator,
 						fakeCPIInstaller,

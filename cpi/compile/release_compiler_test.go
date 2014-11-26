@@ -51,15 +51,23 @@ var _ = Describe("ReleaseCompiler", func() {
 
 	Describe("Compile", func() {
 		var (
-			deployment bmdepl.Deployment
+			deployment          bmdepl.CPIDeployment
+			deploymentProperies map[string]interface{}
 		)
+
 		BeforeEach(func() {
-			deployment = bmdepl.Deployment{
-				Name:          "fake-deployment-name",
-				RawProperties: map[interface{}]interface{}{},
-				Jobs:          []bmdepl.Job{},
+			deploymentProperies = map[string]interface{}{
+				"fake-property-key": "fake-property-value",
 			}
-			fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), deployment, nil)
+
+			deployment = bmdepl.CPIDeployment{
+				Name: "fake-deployment-name",
+				RawProperties: map[interface{}]interface{}{
+					"fake-property-key": "fake-property-value",
+				},
+				Jobs: []bmdepl.Job{},
+			}
+			fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), "fake-deployment-name", deploymentProperies, nil)
 		})
 
 		It("compiles the release", func() {
@@ -73,8 +81,9 @@ var _ = Describe("ReleaseCompiler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeTemplatesCompiler.CompileInputs).To(HaveLen(1))
 			Expect(fakeTemplatesCompiler.CompileInputs[0]).To(Equal(fakebmtemp.CompileInput{
-				Jobs:       release.Jobs(),
-				Deployment: deployment,
+				Jobs:                 release.Jobs(),
+				DeploymentName:       "fake-deployment-name",
+				DeploymentProperties: deploymentProperies,
 			}))
 		})
 
@@ -90,13 +99,27 @@ var _ = Describe("ReleaseCompiler", func() {
 		Context("when compiling templates fails", func() {
 			BeforeEach(func() {
 				err := errors.New("fake-compiling-templates-error")
-				fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), deployment, err)
+				fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), "fake-deployment-name", deploymentProperies, err)
 			})
 
 			It("returns an error", func() {
 				err := releaseCompiler.Compile(release, deployment)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compiling-templates-error"))
+			})
+		})
+
+		Context("when parsing properties fails", func() {
+			BeforeEach(func() {
+				deployment.RawProperties = map[interface{}]interface{}{
+					123: "fake-property-value",
+				}
+			})
+
+			It("returns an error", func() {
+				err := releaseCompiler.Compile(release, deployment)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Getting deployment properties"))
 			})
 		})
 	})

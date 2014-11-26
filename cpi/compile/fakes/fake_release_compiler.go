@@ -12,7 +12,7 @@ import (
 
 type compileInput struct {
 	Release    bmrel.Release
-	Deployment bmdepl.Deployment
+	Deployment bmdepl.CPIDeployment
 }
 
 type compileOutput struct {
@@ -31,7 +31,7 @@ func NewFakeReleaseCompiler() *FakeReleaseCompiler {
 	}
 }
 
-func (f *FakeReleaseCompiler) Compile(release bmrel.Release, deployment bmdepl.Deployment) error {
+func (f *FakeReleaseCompiler) Compile(release bmrel.Release, deployment bmdepl.CPIDeployment) error {
 	input := compileInput{Release: release, Deployment: deployment}
 	f.CompileInputs = append(f.CompileInputs, input)
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
@@ -48,7 +48,7 @@ func (f *FakeReleaseCompiler) Compile(release bmrel.Release, deployment bmdepl.D
 	return fmt.Errorf("Unsupported Compile Input: %s\nAvailable inputs: %s", inputString, f.compileBehavior)
 }
 
-func (f *FakeReleaseCompiler) SetCompileBehavior(release bmrel.Release, deployment bmdepl.Deployment, err error) error {
+func (f *FakeReleaseCompiler) SetCompileBehavior(release bmrel.Release, deployment bmdepl.CPIDeployment, err error) error {
 	input := compileInput{Release: release, Deployment: deployment}
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {

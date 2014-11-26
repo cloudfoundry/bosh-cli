@@ -9,7 +9,7 @@ import (
 )
 
 type ReleaseCompiler interface {
-	Compile(release bmrel.Release, deployment bmdepl.Deployment) error
+	Compile(release bmrel.Release, deployment bmdepl.CPIDeployment) error
 }
 
 type releaseCompiler struct {
@@ -27,13 +27,18 @@ func NewReleaseCompiler(
 	}
 }
 
-func (c releaseCompiler) Compile(release bmrel.Release, deployment bmdepl.Deployment) error {
+func (c releaseCompiler) Compile(release bmrel.Release, deployment bmdepl.CPIDeployment) error {
 	err := c.packagesCompiler.Compile(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release packages")
 	}
 
-	err = c.templatesCompiler.Compile(release.Jobs(), deployment)
+	deploymentProperties, err := deployment.Properties()
+	if err != nil {
+		return bosherr.WrapError(err, "Getting deployment properties")
+	}
+
+	err = c.templatesCompiler.Compile(release.Jobs(), deployment.Name, deploymentProperties)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling job templates")
 	}

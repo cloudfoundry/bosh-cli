@@ -10,7 +10,7 @@ import (
 )
 
 type InstallInput struct {
-	Deployment bmdepl.Deployment
+	Deployment bmdepl.CPIDeployment
 	Release    bmrel.Release
 }
 
@@ -64,7 +64,7 @@ func (f *FakeInstaller) Extract(releaseTarballPath string) (bmrel.Release, error
 	return nil, fmt.Errorf("Unsupported Input: %s", value)
 }
 
-func (f *FakeInstaller) Install(deployment bmdepl.Deployment, release bmrel.Release) (bmcloud.Cloud, error) {
+func (f *FakeInstaller) Install(deployment bmdepl.CPIDeployment, release bmrel.Release) (bmcloud.Cloud, error) {
 	input := InstallInput{
 		Deployment: deployment,
 		Release:    release,
@@ -84,7 +84,7 @@ func (f *FakeInstaller) Install(deployment bmdepl.Deployment, release bmrel.Rele
 }
 
 func (f *FakeInstaller) SetInstallBehavior(
-	deployment bmdepl.Deployment,
+	deployment bmdepl.CPIDeployment,
 	release bmrel.Release,
 	cloud bmcloud.Cloud,
 	err error,

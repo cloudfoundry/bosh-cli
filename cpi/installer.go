@@ -19,7 +19,7 @@ import (
 
 type Installer interface {
 	Extract(releaseTarballPath string) (bmrel.Release, error)
-	Install(deployment bmdepl.Deployment, release bmrel.Release) (bmcloud.Cloud, error)
+	Install(deployment bmdepl.CPIDeployment, release bmrel.Release) (bmcloud.Cloud, error)
 }
 
 type cpiInstaller struct {
@@ -86,7 +86,7 @@ func (c *cpiInstaller) Extract(releaseTarballPath string) (bmrel.Release, error)
 	return release, nil
 }
 
-func (c *cpiInstaller) Install(deployment bmdepl.Deployment, release bmrel.Release) (bmcloud.Cloud, error) {
+func (c *cpiInstaller) Install(deployment bmdepl.CPIDeployment, release bmrel.Release) (bmcloud.Cloud, error) {
 	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name))
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release `%s': %#v", release.Name, release))
 	err := c.releaseCompiler.Compile(release, deployment)

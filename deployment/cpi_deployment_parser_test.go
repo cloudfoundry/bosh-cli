@@ -13,20 +13,20 @@ import (
 
 var _ = Describe("DeploymentRenderer", func() {
 	var (
-		deploymentPath string
-		fakeFs         *fakesys.FakeFileSystem
-		manifestParser ManifestParser
+		deploymentPath      string
+		fakeFs              *fakesys.FakeFileSystem
+		cpiDeploymentParser CPIDeploymentParser
 	)
 
 	BeforeEach(func() {
 		deploymentPath = "fake-deployment-path"
 		fakeFs = fakesys.NewFakeFileSystem()
-		manifestParser = NewCpiDeploymentParser(fakeFs)
+		cpiDeploymentParser = NewCpiDeploymentParser(fakeFs)
 	})
 
 	Context("when deployment path does not exist", func() {
 		It("returns an error", func() {
-			_, err := manifestParser.Parse(deploymentPath)
+			_, err := cpiDeploymentParser.Parse(deploymentPath)
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -38,7 +38,7 @@ var _ = Describe("DeploymentRenderer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manifestParser.Parse(deploymentPath)
+				_, err := cpiDeploymentParser.Parse(deploymentPath)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -70,7 +70,7 @@ cloud_provider:
 				})
 
 				It("parses deployment manifest", func() {
-					deployment, err := manifestParser.Parse(deploymentPath)
+					deployment, err := cpiDeploymentParser.Parse(deploymentPath)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(deployment.Name).To(Equal("fake-deployment-name"))
@@ -98,7 +98,7 @@ cloud_provider:
 				})
 
 				It("sets a CPI job into the deployment", func() {
-					deployment, err := manifestParser.Parse(deploymentPath)
+					deployment, err := cpiDeploymentParser.Parse(deploymentPath)
 					Expect(err).ToNot(HaveOccurred())
 					expectedJobs := []Job{
 						Job{

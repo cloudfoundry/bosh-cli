@@ -11,26 +11,24 @@ import (
 	fakeblobs "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
 var _ = Describe("TemplatesCompiler", func() {
 	var (
-		templatesCompiler TemplatesCompiler
-		jobRenderer       *fakebmtemp.FakeJobRenderer
-		compressor        *fakecmd.FakeCompressor
-		blobstore         *fakeblobs.FakeBlobstore
-		templatesRepo     *fakebmtemp.FakeTemplatesRepo
-		fs                *fakesys.FakeFileSystem
-		compileDir        string
-		jobs              []bmrel.Job
-		deployment        bmdepl.Deployment
-		logger            boshlog.Logger
+		templatesCompiler    TemplatesCompiler
+		jobRenderer          *fakebmtemp.FakeJobRenderer
+		compressor           *fakecmd.FakeCompressor
+		blobstore            *fakeblobs.FakeBlobstore
+		templatesRepo        *fakebmtemp.FakeTemplatesRepo
+		fs                   *fakesys.FakeFileSystem
+		compileDir           string
+		jobs                 []bmrel.Job
+		deploymentProperties map[string]interface{}
+		logger               boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -43,8 +41,9 @@ var _ = Describe("TemplatesCompiler", func() {
 
 		templatesRepo = fakebmtemp.NewFakeTemplatesRepo()
 
-		deployment = fakebmdepl.NewFakeDeployment()
-		deployment.RawProperties["fake-property-key"] = "fake-property-value"
+		deploymentProperties = map[string]interface{}{
+			"fake-property-key": "fake-property-value",
+		}
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -86,7 +85,7 @@ var _ = Describe("TemplatesCompiler", func() {
 
 		It("renders job templates", func() {
 			fs.TempDirDir = "/fake-temp-dir"
-			err := templatesCompiler.Compile(jobs, deployment)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(jobRenderer.RenderInputs).To(ContainElement(
 				fakebmtemp.RenderInput{
@@ -113,26 +112,26 @@ var _ = Describe("TemplatesCompiler", func() {
 		})
 
 		It("cleans the temp folder to hold the compile result for job", func() {
-			err := templatesCompiler.Compile(jobs, deployment)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.FileExists(compileDir)).To(BeFalse())
 		})
 
 		It("generates templates archive", func() {
-			err := templatesCompiler.Compile(jobs, deployment)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(compressor.CompressFilesInDirDir).To(Equal(compileDir))
 			Expect(compressor.CleanUpTarballPath).To(Equal("fake-tarball-path"))
 		})
 
 		It("saves archive in blobstore", func() {
-			err := templatesCompiler.Compile(jobs, deployment)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobstore.CreateFileName).To(Equal("fake-tarball-path"))
 		})
 
 		It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
-			err := templatesCompiler.Compile(jobs, deployment)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
 
 			record := TemplateRecord{
@@ -151,7 +150,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, deployment)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-tempdir-error"))
 			})
@@ -166,7 +165,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, deployment)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
 			})
@@ -178,7 +177,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, deployment)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compress-error"))
 			})
@@ -190,7 +189,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, deployment)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-blobstore-error"))
 			})
@@ -208,7 +207,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, deployment)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-error"))
 			})
@@ -259,23 +258,9 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, deployment)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-2-error"))
-			})
-		})
-
-		Context("when parsing properties fails", func() {
-			BeforeEach(func() {
-				deployment.RawProperties = map[interface{}]interface{}{
-					123: "fake-property-value",
-				}
-			})
-
-			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, deployment)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Getting deployment properties"))
 			})
 		})
 	})
