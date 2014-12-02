@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+bin=$(dirname $0)
+
+rootPackage=github.com/cloudfoundry/bosh-micro-cli
+
+$bin/go install code.google.com/p/gomock/mockgen
+
+srcFiles=(
+  cloud/Cloud
+	deployer/agentclient/AgentClient,Factory
+)
+
+for srcFile in ${srcFiles[*]}; do
+  package=`dirname $srcFile`
+  class=`basename $srcFile`
+
+  srcDir=`dirname $srcFile`
+  srcFilename=`basename $srcFile`
+  destFile=$srcDir/mocks/mocks.go
+
+  echo $bin/env mockgen -package mocks -destination $destFile $rootPackage/$package $class
+  $bin/env mockgen -package mocks -destination $destFile $rootPackage/$package $class
+done
