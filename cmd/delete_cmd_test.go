@@ -184,7 +184,34 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			XIt("prints event logging stages", func() {})
+			It("logs validation stages", func() {
+				gomock.InOrder(
+					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+					mockAgentClient.EXPECT().Stop(),
+					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+					mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
+					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
+				)
+
+				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(ui.Said).To(ConsistOf(
+					"Started validating",
+					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+					"Started validating > Validating cpi release...", " done. (00:00:00)",
+					"Done validating",
+					"",
+					// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
+					"Started deleting deployment",
+					"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting VM...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting disk...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting stemcell...", " done. (00:00:00)",
+					"Done deleting deployment",
+					"",
+				))
+			})
 		})
 
 		Context("when microbosh has not been deployed", func() {

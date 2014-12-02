@@ -74,6 +74,9 @@ func (c *deleteCmd) Run(args []string) error {
 	}
 	defer cpiRelease.Delete()
 
+	deleteStage := c.eventLogger.NewStage("deleting deployment")
+	deleteStage.Start()
+
 	vmCID, vmFound, err := c.vmRepo.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding current deployment VM")
@@ -99,32 +102,54 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
+	stopAgentStep := deleteStage.NewStep("Stopping agent")
+	stopAgentStep.Start()
 	agentClient := c.agentClientFactory.Create(cpiDeployment.Mbus)
 	err = agentClient.Stop()
 	if err != nil {
-		return bosherr.WrapError(err, "Stopping the agent with mbus `%s'", cpiDeployment.Mbus)
+		err = bosherr.WrapError(err, "Stopping the agent with mbus `%s'", cpiDeployment.Mbus)
+		stopAgentStep.Fail(err.Error())
+		return err
 	}
+	stopAgentStep.Finish()
 
 	if vmFound {
+		deleteVMStep := deleteStage.NewStep("Deleting VM")
+		deleteVMStep.Start()
 		err = cloud.DeleteVM(vmCID)
 		if err != nil {
-			return bosherr.WrapError(err, "Deleting deployment VM `%s'", vmCID)
+			err = bosherr.WrapError(err, "Deleting deployment VM `%s'", vmCID)
+			deleteVMStep.Fail(err.Error())
+			return err
 		}
+		deleteVMStep.Finish()
 	}
 
 	if diskFound {
+		deleteDiskStep := deleteStage.NewStep("Deleting disk")
+		deleteDiskStep.Start()
 		err = cloud.DeleteDisk(diskRecord.CID)
 		if err != nil {
-			return bosherr.WrapError(err, "Deleting deployment disk `%s'", diskRecord)
+			err = bosherr.WrapError(err, "Deleting deployment disk `%s'", diskRecord)
+			deleteDiskStep.Fail(err.Error())
+			return err
 		}
+		deleteDiskStep.Finish()
 	}
 
 	if stemcellFound {
+		deleteStemcellStep := deleteStage.NewStep("Deleting stemcell")
+		deleteStemcellStep.Start()
 		err = cloud.DeleteStemcell(stemcellRecord.CID)
 		if err != nil {
-			return bosherr.WrapError(err, "Deleting deployment stemcell `%s'", stemcellRecord)
+			err = bosherr.WrapError(err, "Deleting deployment stemcell `%s'", stemcellRecord)
+			deleteStemcellStep.Fail(err.Error())
+			return err
 		}
+		deleteStemcellStep.Finish()
 	}
+
+	deleteStage.Finish()
 
 	return nil
 }
