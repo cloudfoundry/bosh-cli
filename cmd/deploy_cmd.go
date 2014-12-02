@@ -204,7 +204,7 @@ func (c *deployCmd) parseCmdInputs(args []string) (string, string, error) {
 	if len(args) != 2 {
 		c.ui.Error("Invalid usage - deploy command requires exactly 2 arguments")
 		c.ui.Sayln("Expected usage: bosh-micro deploy <cpi-release-tarball> <stemcell-tarball>")
-		c.logger.Error(c.logTag, "Invalid arguments: ")
+		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
 		return "", "", errors.New("Invalid usage - deploy command requires exactly 2 arguments")
 	}
 	return args[0], args[1], nil

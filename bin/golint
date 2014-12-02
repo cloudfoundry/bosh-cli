@@ -8,6 +8,7 @@ errors=$(
   $bin/env golint $bin/..                                           \
     | grep -v 'Godeps/_workspace'                                   \
     | grep -v 'should have comment.* or be unexported'              \
+    | grep -v '/mocks/'                                             \
     | grep -v 'should not be capitalized'
 )
 

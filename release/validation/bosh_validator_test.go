@@ -123,8 +123,8 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
 
-			Expect(err.Error()).To(ContainSubstring("Job `fake-job' is missing template `fake-template'"))
-			Expect(err.Error()).To(ContainSubstring("Job `fake-job-2' is missing template `fake-template-2'"))
+			Expect(err.Error()).To(ContainSubstring("Job `fake-job' is missing template `templates/fake-template'"))
+			Expect(err.Error()).To(ContainSubstring("Job `fake-job-2' is missing template `templates/fake-template-2'"))
 		})
 	})
 

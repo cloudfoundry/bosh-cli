@@ -47,7 +47,7 @@ func (r *reader) Read() (Release, error) {
 	releaseManifestPath := path.Join(r.extractedReleasePath, "release.MF")
 	releaseManifestBytes, err := r.fs.ReadFile(releaseManifestPath)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Reading release manifest")
+		return nil, bosherr.WrapError(err, "Reading release manifest `%s'", releaseManifestPath)
 	}
 
 	var manifest bmrelman.Release

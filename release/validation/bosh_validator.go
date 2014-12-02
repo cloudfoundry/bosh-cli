@@ -89,7 +89,7 @@ func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 		for template := range job.Templates {
 			templatePath := path.Join(job.ExtractedPath, "templates", template)
 			if !v.fs.FileExists(templatePath) {
-				errs = append(errs, fmt.Errorf("Job `%s' is missing template `%s'", job.Name, template))
+				errs = append(errs, fmt.Errorf("Job `%s' is missing template `%s'", job.Name, templatePath))
 			}
 		}
 

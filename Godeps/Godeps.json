@@ -11,6 +11,10 @@
 			"Rev": "d415780565165acd4cc9d476e485d4603b7c42ec"
 		},
 		{
+			"ImportPath": "code.google.com/p/gomock/gomock",
+			"Rev": "e033c7513ca3d743bbb64df299bdec29e93fed03"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry-incubator/candiedyaml",
 			"Rev": "4828bc8c3d776f1c7753b0559508fc0bb84c94b2"
 		},
