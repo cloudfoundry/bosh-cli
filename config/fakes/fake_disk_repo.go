@@ -77,6 +77,10 @@ func (r *FakeDiskRepo) FindCurrent() (bmconfig.DiskRecord, bool, error) {
 	return r.findCurrentOutput.diskRecord, r.findCurrentOutput.found, r.findCurrentOutput.err
 }
 
+func (r *FakeDiskRepo) ClearCurrent() error {
+	return nil
+}
+
 func (r *FakeDiskRepo) Save(cid string, size int, cloudProperties map[string]interface{}) (bmconfig.DiskRecord, error) {
 	r.SaveInputs = append(r.SaveInputs, DiskRepoSaveInput{
 		CID:             cid,

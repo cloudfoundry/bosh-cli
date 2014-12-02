@@ -8,6 +8,7 @@ import (
 type DiskRepo interface {
 	UpdateCurrent(diskID string) error
 	FindCurrent() (DiskRecord, bool, error)
+	ClearCurrent() error
 	Save(cid string, size int, cloudProperties map[string]interface{}) (DiskRecord, error)
 	Find(cid string) (DiskRecord, bool, error)
 	All() ([]DiskRecord, error)
@@ -140,6 +141,21 @@ func (r diskRepo) Delete(diskRecord DiskRecord) error {
 		return bosherr.WrapError(err, "Saving new config")
 	}
 
+	return nil
+}
+
+func (r diskRepo) ClearCurrent() error {
+	config, err := r.configService.Load()
+	if err != nil {
+		return bosherr.WrapError(err, "Loading existing config")
+	}
+
+	config.CurrentDiskID = ""
+
+	err = r.configService.Save(config)
+	if err != nil {
+		return bosherr.WrapError(err, "Saving new config")
+	}
 	return nil
 }
 

@@ -223,4 +223,23 @@ var _ = Describe("DiskRepo", func() {
 			}))
 		})
 	})
+
+	Describe("ClearCurrent", func() {
+		It("updates disk cid", func() {
+			err := repo.ClearCurrent()
+			Expect(err).ToNot(HaveOccurred())
+
+			deploymentConfig, err := configService.Load()
+			Expect(err).ToNot(HaveOccurred())
+
+			expectedConfig := DeploymentFile{
+				CurrentDiskID: "",
+			}
+			Expect(deploymentConfig).To(Equal(expectedConfig))
+
+			_, found, err := repo.FindCurrent()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
+		})
+	})
 })

@@ -212,6 +212,28 @@ cloud_provider:
 					"",
 				))
 			})
+
+			It("clears current vm, disk and stemcell", func() {
+				gomock.InOrder(
+					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+					mockAgentClient.EXPECT().Stop(),
+					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+					mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
+					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
+				)
+
+				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				Expect(err).ToNot(HaveOccurred())
+
+				_, found, err := vmRepo.FindCurrent()
+				Expect(found).To(BeFalse(), "should be no current VM")
+
+				_, found, err = diskRepo.FindCurrent()
+				Expect(found).To(BeFalse(), "should be no current disk")
+
+				_, found, err = stemcellRepo.FindCurrent()
+				Expect(found).To(BeFalse(), "should be no current stemcell")
+			})
 		})
 
 		Context("when microbosh has not been deployed", func() {

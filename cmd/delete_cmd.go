@@ -122,6 +122,12 @@ func (c *deleteCmd) Run(args []string) error {
 			deleteVMStep.Fail(err.Error())
 			return err
 		}
+		err = c.vmRepo.ClearCurrent()
+		if err != nil {
+			err = bosherr.WrapError(err, "Deleting deployment VM record `%s'", vmCID)
+			deleteVMStep.Fail(err.Error())
+			return err
+		}
 		deleteVMStep.Finish()
 	}
 
@@ -134,6 +140,11 @@ func (c *deleteCmd) Run(args []string) error {
 			deleteDiskStep.Fail(err.Error())
 			return err
 		}
+		if err = c.diskRepo.ClearCurrent(); err != nil {
+			err = bosherr.WrapError(err, "Deleting deployment disk record `%s'", diskRecord)
+			deleteDiskStep.Fail(err.Error())
+			return err
+		}
 		deleteDiskStep.Finish()
 	}
 
@@ -143,6 +154,11 @@ func (c *deleteCmd) Run(args []string) error {
 		err = cloud.DeleteStemcell(stemcellRecord.CID)
 		if err != nil {
 			err = bosherr.WrapError(err, "Deleting deployment stemcell `%s'", stemcellRecord)
+			deleteStemcellStep.Fail(err.Error())
+			return err
+		}
+		if err = c.stemcellRepo.ClearCurrent(); err != nil {
+			err = bosherr.WrapError(err, "Deleting deployment stemcell record `%s'", stemcellRecord)
 			deleteStemcellStep.Fail(err.Error())
 			return err
 		}
