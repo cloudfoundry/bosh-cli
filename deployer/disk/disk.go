@@ -54,7 +54,7 @@ func (d *disk) Delete() error {
 
 	diskRecord, found, err := d.repo.Find(d.cid)
 	if err != nil {
-		return bosherr.WrapError(err, "Finding current disk")
+		return bosherr.WrapError(err, "Finding disk record (cid=%s)", d.cid)
 	}
 
 	if !found {

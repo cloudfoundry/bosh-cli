@@ -10,6 +10,8 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -74,6 +76,11 @@ func (c *deleteCmd) Run(args []string) error {
 	}
 	defer cpiRelease.Delete()
 
+	cloud, err := c.cpiInstaller.Install(cpiDeployment, cpiRelease)
+	if err != nil {
+		return bosherr.WrapError(err, "Installing CPI deployment")
+	}
+
 	deleteStage := c.eventLogger.NewStage("deleting deployment")
 	deleteStage.Start()
 
@@ -82,12 +89,14 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Finding current deployment VM")
 	}
 
-	diskRecord, diskFound, err := c.diskRepo.FindCurrent()
+	diskManager := bmdisk.NewManagerFactory(c.diskRepo, c.logger).NewManager(cloud)
+	disk, diskFound, err := diskManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding current deployment disk")
 	}
 
-	stemcellRecord, stemcellFound, err := c.stemcellRepo.FindCurrent()
+	stemcellManager := bmstemcell.NewManagerFactory(c.stemcellRepo, c.eventLogger).NewManager(cloud)
+	stemcell, stemcellFound, err := stemcellManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding current deployment stemcell")
 	}
@@ -95,11 +104,6 @@ func (c *deleteCmd) Run(args []string) error {
 	if !vmFound && !diskFound && !stemcellFound {
 		c.ui.Error("No existing microbosh instance to delete")
 		return bosherr.New("No existing microbosh instance to delete")
-	}
-
-	cloud, err := c.cpiInstaller.Install(cpiDeployment, cpiRelease)
-	if err != nil {
-		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
 	stopAgentStep := deleteStage.NewStep("Stopping agent")
@@ -134,14 +138,14 @@ func (c *deleteCmd) Run(args []string) error {
 	if diskFound {
 		deleteDiskStep := deleteStage.NewStep("Deleting disk")
 		deleteDiskStep.Start()
-		err = cloud.DeleteDisk(diskRecord.CID)
+		err = disk.Delete()
 		if err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment disk `%s'", diskRecord)
+			err = bosherr.WrapError(err, "Deleting deployment disk `%s'", disk.CID())
 			deleteDiskStep.Fail(err.Error())
 			return err
 		}
 		if err = c.diskRepo.ClearCurrent(); err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment disk record `%s'", diskRecord)
+			err = bosherr.WrapError(err, "Deleting deployment disk record `%s'", disk.CID())
 			deleteDiskStep.Fail(err.Error())
 			return err
 		}
@@ -151,16 +155,46 @@ func (c *deleteCmd) Run(args []string) error {
 	if stemcellFound {
 		deleteStemcellStep := deleteStage.NewStep("Deleting stemcell")
 		deleteStemcellStep.Start()
-		err = cloud.DeleteStemcell(stemcellRecord.CID)
+		err = stemcell.Delete()
 		if err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment stemcell `%s'", stemcellRecord)
+			err = bosherr.WrapError(err, "Deleting deployment stemcell `%s'", stemcell.CID())
 			deleteStemcellStep.Fail(err.Error())
 			return err
 		}
 		if err = c.stemcellRepo.ClearCurrent(); err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment stemcell record `%s'", stemcellRecord)
+			err = bosherr.WrapError(err, "Deleting deployment stemcell record `%s'", stemcell.CID())
 			deleteStemcellStep.Fail(err.Error())
 			return err
+		}
+		deleteStemcellStep.Finish()
+	}
+
+	unusedDisks, err := diskManager.FindUnused()
+	if len(unusedDisks) > 0 {
+		deleteDiskStep := deleteStage.NewStep("Deleting orphaned disks")
+		deleteDiskStep.Start()
+		for _, disk := range unusedDisks {
+			err = disk.Delete()
+			if err != nil {
+				err = bosherr.WrapError(err, "Deleting orphaned disk `%s'", disk.CID())
+				deleteDiskStep.Fail(err.Error())
+				return err
+			}
+		}
+		deleteDiskStep.Finish()
+	}
+
+	unusedStemcells, err := stemcellManager.FindUnused()
+	if len(unusedStemcells) > 0 {
+		deleteStemcellStep := deleteStage.NewStep("Deleting orphaned stemcells")
+		deleteStemcellStep.Start()
+		for _, stemcell := range unusedStemcells {
+			err = stemcell.Delete()
+			if err != nil {
+				err = bosherr.WrapError(err, "Deleting orphaned stemcell `%s'", stemcell.CID())
+				deleteStemcellStep.Fail(err.Error())
+				return err
+			}
 		}
 		deleteStemcellStep.Finish()
 	}

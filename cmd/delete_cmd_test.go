@@ -149,7 +149,7 @@ cloud_provider:
 		Context("when microbosh has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
-				deploymentFile := bmconfig.DeploymentFile{
+				deploymentConfigService.Save(bmconfig.DeploymentFile{
 					UUID:              "",
 					CurrentVMCID:      "fake-vm-cid",
 					CurrentStemcellID: "fake-stemcell-guid",
@@ -167,8 +167,7 @@ cloud_provider:
 							CID: "fake-stemcell-cid",
 						},
 					},
-				}
-				deploymentConfigService.Save(deploymentFile)
+				})
 			})
 
 			It("stops the agent, then deletes the vm, disk, and stemcell", func() {
@@ -231,8 +230,149 @@ cloud_provider:
 				_, found, err = diskRepo.FindCurrent()
 				Expect(found).To(BeFalse(), "should be no current disk")
 
+				diskRecords, err := diskRepo.All()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(diskRecords).To(BeEmpty(), "expected no disk records")
+
 				_, found, err = stemcellRepo.FindCurrent()
 				Expect(found).To(BeFalse(), "should be no current stemcell")
+
+				stemcellRecords, err := stemcellRepo.All()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stemcellRecords).To(BeEmpty(), "expected no stemcell records")
+			})
+
+			Context("and orphan disks exist", func() {
+				BeforeEach(func() {
+					deploymentFile, err := deploymentConfigService.Load()
+					Expect(err).ToNot(HaveOccurred())
+
+					deploymentFile.Disks = append(deploymentFile.Disks, bmconfig.DiskRecord{
+						ID:   "fake-disk-guid-2",
+						CID:  "fake-disk-cid-2",
+						Size: 1000,
+					})
+
+					err = deploymentConfigService.Save(deploymentFile)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("deletes the orphaned disks", func() {
+					gomock.InOrder(
+						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+						mockAgentClient.EXPECT().Stop(),
+						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
+						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
+					)
+
+					mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+
+					diskRecords, err := diskRepo.All()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(diskRecords).To(BeEmpty(), "expected no disk records")
+				})
+
+				It("logs validation stages", func() {
+					gomock.InOrder(
+						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+						mockAgentClient.EXPECT().Stop(),
+						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
+						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
+					)
+
+					mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(ui.Said).To(ConsistOf(
+						"Started validating",
+						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+						"Started validating > Validating cpi release...", " done. (00:00:00)",
+						"Done validating",
+						"",
+						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
+						"Started deleting deployment",
+						"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting VM...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting disk...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting stemcell...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned disks...", " done. (00:00:00)",
+						"Done deleting deployment",
+						"",
+					))
+				})
+			})
+
+			Context("and orphan stemcells exist", func() {
+				BeforeEach(func() {
+					deploymentFile, err := deploymentConfigService.Load()
+					Expect(err).ToNot(HaveOccurred())
+
+					deploymentFile.Stemcells = append(deploymentFile.Stemcells, bmconfig.StemcellRecord{
+						ID:  "fake-stemcell-guid-2",
+						CID: "fake-stemcell-cid-2",
+					})
+
+					err = deploymentConfigService.Save(deploymentFile)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("deletes the orphaned stemcells", func() {
+					gomock.InOrder(
+						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+						mockAgentClient.EXPECT().Stop(),
+						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
+						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
+					)
+
+					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid-2")
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+
+					stemcellRecords, err := stemcellRepo.All()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(stemcellRecords).To(BeEmpty(), "expected no stemcell records")
+				})
+
+				It("logs validation stages", func() {
+					gomock.InOrder(
+						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+						mockAgentClient.EXPECT().Stop(),
+						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
+						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
+					)
+
+					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid-2")
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(ui.Said).To(ConsistOf(
+						"Started validating",
+						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+						"Started validating > Validating cpi release...", " done. (00:00:00)",
+						"Done validating",
+						"",
+						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
+						"Started deleting deployment",
+						"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting VM...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting disk...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting stemcell...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned stemcells...", " done. (00:00:00)",
+						"Done deleting deployment",
+						"",
+					))
+				})
 			})
 		})
 
@@ -251,8 +391,6 @@ cloud_provider:
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("No existing microbosh instance to delete"))
 				Expect(ui.Errors).To(ContainElement("No existing microbosh instance to delete"))
-
-				Expect(len(fakeCPIInstaller.InstallInputs)).To(Equal(0))
 			})
 		})
 

@@ -74,7 +74,7 @@ func (s *cloudStemcell) Delete() error {
 
 	stemcellRecord, found, err := s.repo.Find(s.name, s.version)
 	if err != nil {
-		return bosherr.WrapError(err, "Finding current stemcell")
+		return bosherr.WrapError(err, "Finding stemcell record (name=%s, version=%s)", s.name, s.version)
 	}
 
 	if !found {

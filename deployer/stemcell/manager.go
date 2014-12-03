@@ -9,6 +9,7 @@ import (
 )
 
 type Manager interface {
+	FindCurrent() (CloudStemcell, bool, error)
 	Upload(ExtractedStemcell) (CloudStemcell, error)
 	FindUnused() ([]CloudStemcell, error)
 }
@@ -25,6 +26,21 @@ func NewManager(repo bmconfig.StemcellRepo, cloud bmcloud.Cloud, eventLogger bme
 		cloud:       cloud,
 		eventLogger: eventLogger,
 	}
+}
+
+func (m *manager) FindCurrent() (CloudStemcell, bool, error) {
+	stemcellRecord, found, err := m.repo.FindCurrent()
+	if err != nil {
+		return nil, false, bosherr.WrapError(err, "Reading stemcell record")
+	}
+
+	if !found {
+		return nil, false, nil
+	}
+
+	cloudStemcell := NewCloudStemcell(stemcellRecord, m.repo, m.cloud)
+
+	return cloudStemcell, true, err
 }
 
 // Upload stemcell to an IAAS. It does the following steps:

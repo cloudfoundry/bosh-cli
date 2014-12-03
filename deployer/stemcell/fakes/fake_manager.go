@@ -34,6 +34,10 @@ func NewFakeManager() *FakeManager {
 	}
 }
 
+func (m *FakeManager) FindCurrent() (bmstemcell.CloudStemcell, bool, error) {
+	return nil, false, nil
+}
+
 func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell) (bmstemcell.CloudStemcell, error) {
 	input := UploadInput{
 		Stemcell: stemcell,

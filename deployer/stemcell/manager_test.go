@@ -41,6 +41,7 @@ var _ = Describe("Manager", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+		fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-1"
 		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
@@ -119,6 +120,7 @@ var _ = Describe("Manager", func() {
 			stemcellRecords, err := stemcellRepo.All()
 			Expect(stemcellRecords).To(Equal([]bmconfig.StemcellRecord{
 				{
+					ID:      "fake-stemcell-id-1",
 					Name:    "fake-stemcell-name",
 					Version: "fake-stemcell-version",
 					CID:     "fake-stemcell-cid",
@@ -207,6 +209,47 @@ var _ = Describe("Manager", func() {
 				}))
 
 				Expect(fakeStage.Finished).To(BeTrue())
+			})
+		})
+	})
+
+	Describe("FindCurrent", func() {
+		Context("when stemcell already exists in stemcell repo", func() {
+			BeforeEach(func() {
+				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-existing-stemcell-cid")
+				Expect(err).ToNot(HaveOccurred())
+
+				err = stemcellRepo.UpdateCurrent(stemcellRecord.ID)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("returns the existing stemcell", func() {
+				stemcell, found, err := manager.FindCurrent()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(BeTrue())
+				Expect(stemcell.CID()).To(Equal("fake-existing-stemcell-cid"))
+			})
+		})
+
+		Context("when stemcell does not exists in stemcell repo", func() {
+			It("returns false", func() {
+				_, found, err := manager.FindCurrent()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(BeFalse())
+			})
+		})
+
+		Context("when reading stemcell repo fails", func() {
+			BeforeEach(func() {
+				fs.WriteFileString("/fake/path", "{}")
+				fs.ReadFileError = errors.New("fake-read-error")
+			})
+
+			It("returns an error", func() {
+				_, found, err := manager.FindCurrent()
+				Expect(found).To(BeFalse())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-read-error"))
 			})
 		})
 	})

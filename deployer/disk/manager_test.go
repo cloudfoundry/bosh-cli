@@ -110,7 +110,7 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
-	Describe("Find", func() {
+	Describe("FindCurrent", func() {
 		Context("when disk already exists in disk repo", func() {
 			BeforeEach(func() {
 				diskRecord, err := diskRepo.Save("fake-existing-disk-cid", 1024, map[string]interface{}{})
