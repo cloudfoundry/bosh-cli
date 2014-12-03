@@ -77,7 +77,7 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.De
 
 	cid, err := m.cloud.CreateVM(stemcell.CID(), cloudProperties, networksSpec, env)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating vm with stemcell cid `%s'", stemcell.CID)
+		return nil, bosherr.WrapErrorf(err, "Creating vm with stemcell cid `%s'", stemcell.CID)
 	}
 
 	err = m.vmRepo.UpdateCurrent(cid)

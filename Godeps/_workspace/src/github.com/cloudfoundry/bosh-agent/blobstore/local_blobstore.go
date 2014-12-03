@@ -79,12 +79,12 @@ func (b localBlobstore) Create(fileName string) (blobID string, fingerprint stri
 func (b localBlobstore) Validate() error {
 	path, found := b.options["blobstore_path"]
 	if !found {
-		return bosherr.New("missing blobstore_path")
+		return bosherr.Error("missing blobstore_path")
 	}
 
 	_, ok := path.(string)
 	if !ok {
-		return bosherr.New("blobstore_path must be a string")
+		return bosherr.Error("blobstore_path must be a string")
 	}
 
 	return nil

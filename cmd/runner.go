@@ -29,7 +29,7 @@ func (runner *Runner) Run(args []string) error {
 	commandName := args[0]
 	cmd, err := runner.factory.CreateCommand(commandName)
 	if err != nil {
-		return bosherr.WrapError(err, "Failed creating command with name: %s", commandName)
+		return bosherr.WrapErrorf(err, "Failed creating command with name: %s", commandName)
 	}
 
 	return cmd.Run(args[1:])

@@ -9,7 +9,7 @@ import (
 func MarshalToString(input interface{}) (string, error) {
 	bytes, err := candiedyaml.Marshal(input)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Marshaling to string: %#v", input)
+		return "", bosherr.WrapErrorf(err, "Marshaling to string: %#v", input)
 	}
 
 	return string(bytes), nil

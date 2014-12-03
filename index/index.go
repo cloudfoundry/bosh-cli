@@ -105,7 +105,7 @@ func (ri FileIndex) readRawEntries() ([]indexEntry, error) {
 	if ri.fs.FileExists(ri.path) {
 		bytes, err := ri.fs.ReadFile(ri.path)
 		if err != nil {
-			return entries, bosherr.WrapError(err, "Reading index file %s", ri.path)
+			return entries, bosherr.WrapErrorf(err, "Reading index file %s", ri.path)
 		}
 
 		err = json.Unmarshal(bytes, &entries)
@@ -125,7 +125,7 @@ func (ri FileIndex) writeRawEntries(entries []indexEntry) error {
 
 	err = ri.fs.WriteFile(ri.path, bytes)
 	if err != nil {
-		return bosherr.WrapError(err, "Writing index file %s", ri.path)
+		return bosherr.WrapErrorf(err, "Writing index file %s", ri.path)
 	}
 
 	return nil
@@ -137,7 +137,7 @@ func (ri FileIndex) structToMap(s interface{}) (map[string]interface{}, error) {
 	stv := reflect.ValueOf(s)
 
 	if stv.Kind() != reflect.Struct {
-		return res, bosherr.New(
+		return res, bosherr.Errorf(
 			"Must be reflect.Struct: %#v (%#v)", stv, ri.kindToStr(stv.Kind()))
 	}
 
@@ -156,7 +156,7 @@ func (ri FileIndex) mapToStructFromSlice(m map[string]interface{}, t interface{}
 	slice := reflect.ValueOf(t).Elem()
 
 	if slice.Kind() != reflect.Slice {
-		return reflect.Value{}, bosherr.New(
+		return reflect.Value{}, bosherr.Errorf(
 			"Must be reflect.Slice: %#v (%#v)",
 			slice, ri.kindToStr(slice.Kind()),
 		)
@@ -167,7 +167,7 @@ func (ri FileIndex) mapToStructFromSlice(m map[string]interface{}, t interface{}
 
 func (ri FileIndex) mapToNewStruct(m map[string]interface{}, t reflect.Type) (reflect.Value, error) {
 	if t.Kind() != reflect.Struct {
-		return reflect.Value{}, bosherr.New(
+		return reflect.Value{}, bosherr.Errorf(
 			"Must be reflect.Struct: %#v (%#v)",
 			t, ri.kindToStr(t.Kind()),
 		)

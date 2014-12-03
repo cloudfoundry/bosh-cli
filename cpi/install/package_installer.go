@@ -27,10 +27,10 @@ func NewPackageInstaller(repo bmpkgs.CompiledPackageRepo, blobExtractor BlobExtr
 func (pi *packageInstaller) Install(pkg *bmrel.Package, parentDir string) error {
 	pkgRecord, found, err := pi.repo.Find(*pkg)
 	if err != nil {
-		return bosherr.WrapError(err, "Finding compiled package record: %#v", pkg)
+		return bosherr.WrapErrorf(err, "Finding compiled package record: %#v", pkg)
 	}
 	if !found {
-		return bosherr.New("Compiled package record not found: %#v", pkg)
+		return bosherr.Errorf("Compiled package record not found: %#v", pkg)
 	}
 
 	return pi.blobExtractor.Extract(pkgRecord.BlobID, pkgRecord.BlobSHA1, filepath.Join(parentDir, pkg.Name))

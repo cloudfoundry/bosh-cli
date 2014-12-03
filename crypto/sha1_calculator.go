@@ -28,13 +28,13 @@ func NewSha1Calculator(fs boshsys.FileSystem) SHA1Calculator {
 func (c sha1Calculator) Calculate(filePath string) (string, error) {
 	file, err := c.fs.OpenFile(filePath, os.O_RDONLY, 0)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Calculating sha1 of '%s'", filePath)
+		return "", bosherr.WrapErrorf(err, "Calculating sha1 of '%s'", filePath)
 	}
 	defer file.Close()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return "", bosherr.WrapError(err, "Opening file '%s' for sha1 calculation", filePath)
+		return "", bosherr.WrapErrorf(err, "Opening file '%s' for sha1 calculation", filePath)
 	}
 
 	h := sha1.New()
@@ -44,7 +44,7 @@ func (c sha1Calculator) Calculate(filePath string) (string, error) {
 			if !info.IsDir() {
 				err := c.populateSha1(path, h)
 				if err != nil {
-					return bosherr.WrapError(err, "Calculating directory SHA1 for %s", path)
+					return bosherr.WrapErrorf(err, "Calculating directory SHA1 for %s", path)
 				}
 			}
 			return nil
@@ -52,7 +52,7 @@ func (c sha1Calculator) Calculate(filePath string) (string, error) {
 	} else {
 		err = c.populateSha1(filePath, h)
 		if err != nil {
-			return "", bosherr.WrapError(err, "Calculating file SHA1 for %s", filePath)
+			return "", bosherr.WrapErrorf(err, "Calculating file SHA1 for %s", filePath)
 		}
 	}
 
@@ -62,7 +62,7 @@ func (c sha1Calculator) Calculate(filePath string) (string, error) {
 func (c sha1Calculator) populateSha1(filePath string, hash hash.Hash) error {
 	file, err := c.fs.OpenFile(filePath, os.O_RDONLY, 0)
 	if err != nil {
-		return bosherr.WrapError(err, "Opening file '%s' for sha1 calculation", filePath)
+		return bosherr.WrapErrorf(err, "Opening file '%s' for sha1 calculation", filePath)
 	}
 	defer file.Close()
 

@@ -78,12 +78,12 @@ func (r *TaskResponse) Unmarshal(message []byte) error {
 func (r *TaskResponse) TaskID() (string, error) {
 	complexResponse, ok := r.Value.(map[string]interface{})
 	if !ok {
-		return "", bosherr.New("Failed to convert agent response to map %#v", r.Value)
+		return "", bosherr.Errorf("Failed to convert agent response to map %#v", r.Value)
 	}
 
 	agentTaskID, ok := complexResponse["agent_task_id"]
 	if !ok {
-		return "", bosherr.New("Failed to parse task id from agent response %#v", r.Value)
+		return "", bosherr.Errorf("Failed to parse task id from agent response %#v", r.Value)
 	}
 
 	return agentTaskID.(string), nil
@@ -105,7 +105,7 @@ func (r *TaskResponse) TaskState() (string, error) {
 				return taskState.(string), nil
 			}
 
-			return "", bosherr.New("Failed to parse task state from agent response %#v", r.Value)
+			return "", bosherr.Errorf("Failed to parse task state from agent response %#v", r.Value)
 		}
 	}
 

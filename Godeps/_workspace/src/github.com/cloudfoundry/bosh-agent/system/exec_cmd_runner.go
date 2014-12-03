@@ -87,7 +87,7 @@ func (p *execProcess) Start() error {
 
 	err := p.cmd.Start()
 	if err != nil {
-		return bosherr.WrapError(err, "Starting command %s", cmdString)
+		return bosherr.WrapErrorf(err, "Starting command %s", cmdString)
 	}
 
 	p.pid = p.cmd.Process.Pid
@@ -154,7 +154,7 @@ func (p *execProcess) TerminateNicely(killGracePeriod time.Duration) error {
 
 	err := p.signalGroup(syscall.SIGTERM)
 	if err != nil {
-		return bosherr.WrapError(err, "Sending SIGTERM to process group %d", p.pid)
+		return bosherr.WrapErrorf(err, "Sending SIGTERM to process group %d", p.pid)
 	}
 
 	terminatedCh := make(chan struct{})
@@ -182,7 +182,7 @@ func (p *execProcess) TerminateNicely(killGracePeriod time.Duration) error {
 
 		err = p.signalGroup(syscall.SIGKILL)
 		if err != nil {
-			return bosherr.WrapError(err, "Sending SIGKILL to process group %d", p.pid)
+			return bosherr.WrapErrorf(err, "Sending SIGKILL to process group %d", p.pid)
 		}
 	}
 
@@ -194,7 +194,7 @@ func (p *execProcess) TerminateNicely(killGracePeriod time.Duration) error {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	return bosherr.New("Failed to kill process after grace timeout (PID %d)", p.pid)
+	return bosherr.Errorf("Failed to kill process after grace timeout (PID %d)", p.pid)
 }
 
 // signalGroup does not return an error if the process group does not exist

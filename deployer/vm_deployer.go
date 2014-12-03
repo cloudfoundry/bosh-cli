@@ -74,7 +74,7 @@ func (d *vmDeployer) Deploy(
 		}
 
 		if err = stemcell.PromoteAsCurrent(); err != nil {
-			return bosherr.WrapError(err, "Promoting stemcell as current '%s'", stemcell.CID())
+			return bosherr.WrapErrorf(err, "Promoting stemcell as current '%s'", stemcell.CID())
 		}
 
 		return nil
@@ -152,7 +152,7 @@ func (d *vmDeployer) shutDownJob(jobName string, vm bmvm.VM, eventLoggerStage bm
 	err := eventLoggerStage.PerformStep(stepNAme, func() error {
 		err := vm.Stop()
 		if err != nil {
-			return bosherr.WrapError(err, "Stopping job '%s'", jobName)
+			return bosherr.WrapErrorf(err, "Stopping job '%s'", jobName)
 		}
 		return nil
 	})
@@ -162,14 +162,14 @@ func (d *vmDeployer) shutDownJob(jobName string, vm bmvm.VM, eventLoggerStage bm
 
 	disks, err := vm.Disks()
 	if err != nil {
-		return bosherr.WrapError(err, "Getting VM '%s' disks", vm.CID())
+		return bosherr.WrapErrorf(err, "Getting VM '%s' disks", vm.CID())
 	}
 
 	for _, disk := range disks {
 		stepName := fmt.Sprintf("Unmounting disk '%s'", disk.CID())
 		err = eventLoggerStage.PerformStep(stepName, func() error {
 			if err = vm.UnmountDisk(disk); err != nil {
-				return bosherr.WrapError(err, "Unmounting disk '%s' from VM '%s'", disk.CID(), vm.CID())
+				return bosherr.WrapErrorf(err, "Unmounting disk '%s' from VM '%s'", disk.CID(), vm.CID())
 			}
 			return nil
 		})

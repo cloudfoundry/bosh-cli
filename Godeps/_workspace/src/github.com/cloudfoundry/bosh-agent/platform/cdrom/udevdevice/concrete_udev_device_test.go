@@ -2,23 +2,29 @@ package udevdevice_test
 
 import (
 	. "github.com/cloudfoundry/bosh-agent/platform/cdrom/udevdevice"
-	fakes "github.com/cloudfoundry/bosh-agent/system/fakes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	fakes "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 var _ = Describe("ConcreteUdevDevice", func() {
 	var (
 		cmdRunner *fakes.FakeCmdRunner
 		udev      ConcreteUdevDevice
+		logger    boshlog.Logger
 	)
 
 	BeforeEach(func() {
 		cmdRunner = fakes.NewFakeCmdRunner()
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 	})
 
 	JustBeforeEach(func() {
-		udev = NewConcreteUdevDevice(cmdRunner)
+		udev = NewConcreteUdevDevice(cmdRunner, logger)
 	})
 
 	Describe("#Settle", func() {

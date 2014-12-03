@@ -30,7 +30,7 @@ func NewReader(compressor boshcmd.Compressor, fs boshsys.FileSystem) Reader {
 func (s reader) Read(stemcellTarballPath string, extractedPath string) (ExtractedStemcell, error) {
 	err := s.compressor.DecompressFileToDir(stemcellTarballPath, extractedPath, boshcmd.CompressorOptions{})
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Extracting stemcell from %s to %s", stemcellTarballPath, extractedPath)
+		return nil, bosherr.WrapErrorf(err, "Extracting stemcell from %s to %s", stemcellTarballPath, extractedPath)
 	}
 
 	var stemcellManifest Manifest
@@ -38,12 +38,12 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 
 	stemcellManifestContents, err := s.fs.ReadFile(stemcellManifestPath)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Reading stemcell manifest %s", stemcellManifestPath)
+		return nil, bosherr.WrapErrorf(err, "Reading stemcell manifest %s", stemcellManifestPath)
 	}
 
 	err = candiedyaml.Unmarshal(stemcellManifestContents, &stemcellManifest)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Parsing stemcell manifest %s", stemcellManifestContents)
+		return nil, bosherr.WrapErrorf(err, "Parsing stemcell manifest %s", stemcellManifestContents)
 	}
 
 	var stemcellApplySpec ApplySpec
@@ -51,12 +51,12 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 
 	stemcellApplySpecContents, err := s.fs.ReadFile(stemcellApplySpecPath)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Reading stemcell apply spec %s", stemcellApplySpecPath)
+		return nil, bosherr.WrapErrorf(err, "Reading stemcell apply spec %s", stemcellApplySpecPath)
 	}
 
 	err = json.Unmarshal(stemcellApplySpecContents, &stemcellApplySpec)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Parsing stemcell apply spec %s", stemcellApplySpecContents)
+		return nil, bosherr.WrapErrorf(err, "Parsing stemcell apply spec %s", stemcellApplySpecContents)
 	}
 
 	stemcellManifest.ImagePath = filepath.Join(extractedPath, "image")

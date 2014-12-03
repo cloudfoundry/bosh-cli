@@ -11,7 +11,7 @@ func CreateStemcell(stemcellSrcDir string, stemcellPath string) error {
 	}
 
 	if session.ExitCode() != 0 {
-		return bosherr.New("Failed to create stemcell src:'%s' dest:'%s'", stemcellSrcDir, stemcellPath)
+		return bosherr.Errorf("Failed to create stemcell src:'%s' dest:'%s'", stemcellSrcDir, stemcellPath)
 	}
 
 	return nil

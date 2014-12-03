@@ -32,7 +32,7 @@ func (r defaultNetworkResolver) GetDefaultNetwork() (boshsettings.Network, error
 	}
 
 	if len(routes) == 0 {
-		return network, bosherr.New("No routes found")
+		return network, bosherr.Error("No routes found")
 	}
 
 	for _, route := range routes {
@@ -42,8 +42,7 @@ func (r defaultNetworkResolver) GetDefaultNetwork() (boshsettings.Network, error
 
 		ip, err := r.ipResolver.GetPrimaryIPv4(route.InterfaceName)
 		if err != nil {
-			return network, bosherr.WrapError(
-				err, "Getting primary IPv4 for interface '%s'", route.InterfaceName)
+			return network, bosherr.WrapErrorf(err, "Getting primary IPv4 for interface '%s'", route.InterfaceName)
 		}
 
 		return boshsettings.Network{
@@ -54,5 +53,5 @@ func (r defaultNetworkResolver) GetDefaultNetwork() (boshsettings.Network, error
 
 	}
 
-	return network, bosherr.New("Failed to find default route")
+	return network, bosherr.Error("Failed to find default route")
 }

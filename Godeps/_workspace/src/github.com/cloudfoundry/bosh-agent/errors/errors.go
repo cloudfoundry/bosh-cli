@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -36,15 +37,27 @@ func (e complexError) ShortError() string {
 	return fmt.Sprintf("%s: %s", delegateMessage, causeMessage)
 }
 
-func New(msg string, args ...interface{}) error {
+func Error(msg string) error {
+	return errors.New(msg)
+}
+
+func Errorf(msg string, args ...interface{}) error {
 	return fmt.Errorf(msg, args...)
 }
 
-func WrapError(cause error, msg string, args ...interface{}) error {
-	return WrapComplexError(cause, New(msg, args...))
+func WrapError(cause error, msg string) error {
+	return WrapComplexError(cause, Error(msg))
+}
+
+func WrapErrorf(cause error, msg string, args ...interface{}) error {
+	return WrapComplexError(cause, Errorf(msg, args...))
 }
 
 func WrapComplexError(cause, delegate error) error {
+	if cause == nil {
+		cause = Error("<nil cause>")
+	}
+
 	return complexError{
 		delegate: delegate,
 		cause:    cause,

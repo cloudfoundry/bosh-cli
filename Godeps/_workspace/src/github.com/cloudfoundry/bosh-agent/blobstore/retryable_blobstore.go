@@ -5,18 +5,19 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
-const retryableBlobstoreLogTag = "retryableBlobstore"
-
 type retryableBlobstore struct {
 	blobstore Blobstore
 	maxTries  int
-	logger    boshlog.Logger
+
+	logTag string
+	logger boshlog.Logger
 }
 
 func NewRetryableBlobstore(blobstore Blobstore, maxTries int, logger boshlog.Logger) Blobstore {
 	return retryableBlobstore{
 		blobstore: blobstore,
 		maxTries:  maxTries,
+		logTag:    "retryableBlobstore",
 		logger:    logger,
 	}
 }
@@ -31,8 +32,8 @@ func (b retryableBlobstore) Get(blobID, fingerprint string) (string, error) {
 			return fileName, nil
 		}
 
-		b.logger.Info(retryableBlobstoreLogTag,
-			"Failed to get blob with error %s, attempt %d", lastErr.Error(), i)
+		b.logger.Info(b.logTag,
+			"Failed to get blob with error '%s', attempt %d out of %d", lastErr.Error(), i, b.maxTries)
 	}
 
 	return "", bosherr.WrapError(lastErr, "Getting blob from inner blobstore")
@@ -43,12 +44,26 @@ func (b retryableBlobstore) CleanUp(fileName string) error {
 }
 
 func (b retryableBlobstore) Create(fileName string) (string, string, error) {
-	return b.blobstore.Create(fileName)
+	var blobID string
+	var fingerprint string
+	var lastErr error
+
+	for i := 0; i < b.maxTries; i++ {
+		blobID, fingerprint, lastErr = b.blobstore.Create(fileName)
+		if lastErr == nil {
+			return blobID, fingerprint, nil
+		}
+
+		b.logger.Info(b.logTag,
+			"Failed to create blob with error %s, attempt %d out of %d", lastErr.Error(), i, b.maxTries)
+	}
+
+	return "", "", bosherr.WrapError(lastErr, "Creating blob in inner blobstore")
 }
 
 func (b retryableBlobstore) Validate() error {
 	if b.maxTries < 1 {
-		return bosherr.New("Max tries must be > 0")
+		return bosherr.Error("Max tries must be > 0")
 	}
 
 	return b.blobstore.Validate()

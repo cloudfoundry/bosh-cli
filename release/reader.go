@@ -47,7 +47,7 @@ func (r *reader) Read() (Release, error) {
 	releaseManifestPath := path.Join(r.extractedReleasePath, "release.MF")
 	releaseManifestBytes, err := r.fs.ReadFile(releaseManifestPath)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Reading release manifest `%s'", releaseManifestPath)
+		return nil, bosherr.WrapErrorf(err, "Reading release manifest `%s'", releaseManifestPath)
 	}
 
 	var manifest bmrelman.Release
@@ -109,7 +109,7 @@ func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmr
 		jobReader := NewJobReader(jobArchivePath, extractedJobPath, r.extractor, r.fs)
 		job, err := jobReader.Read()
 		if err != nil {
-			errors = append(errors, bosherr.WrapError(err, "Reading job `%s' from archive", manifestJob.Name))
+			errors = append(errors, bosherr.WrapErrorf(err, "Reading job `%s' from archive", manifestJob.Name))
 			continue
 		}
 
@@ -118,7 +118,7 @@ func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmr
 		for _, pkgName := range job.PackageNames {
 			pkg, found := r.findPackageByName(packages, pkgName)
 			if !found {
-				return []Job{}, bosherr.New("Package not found: `%s'", pkgName)
+				return []Job{}, bosherr.Errorf("Package not found: `%s'", pkgName)
 			}
 			job.Packages = append(job.Packages, pkg)
 		}
@@ -159,7 +159,7 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Pac
 		packageArchivePath := path.Join(r.extractedReleasePath, "packages", manifestPackage.Name+".tgz")
 		err = r.extractor.DecompressFileToDir(packageArchivePath, extractedPackagePath, boshcmd.CompressorOptions{})
 		if err != nil {
-			errors = append(errors, bosherr.WrapError(err, "Extracting package `%s'", manifestPackage.Name))
+			errors = append(errors, bosherr.WrapErrorf(err, "Extracting package `%s'", manifestPackage.Name))
 			continue
 		}
 

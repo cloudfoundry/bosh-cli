@@ -39,7 +39,7 @@ func (c client) Get(path string) (content io.ReadCloser, err error) {
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		err = bosherr.WrapError(err, "Getting dav blob %s", path)
+		err = bosherr.WrapErrorf(err, "Getting dav blob %s", path)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (c client) Put(path string, content io.ReadCloser, contentLength int64) (er
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		err = bosherr.WrapError(err, "Putting dav blob %s", path)
+		err = bosherr.WrapErrorf(err, "Putting dav blob %s", path)
 		return
 	}
 

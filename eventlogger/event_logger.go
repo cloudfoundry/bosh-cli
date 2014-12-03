@@ -85,7 +85,7 @@ func (e *eventLogger) AddEvent(event Event) error {
 	case Skipped:
 		e.ui.Sayln(fmt.Sprintf("Started %s skipped (%s).", key, event.Message))
 	default:
-		return bosherr.New("Unsupported event state `%s'", event.State)
+		return bosherr.Errorf("Unsupported event state `%s'", event.State)
 	}
 	return nil
 }

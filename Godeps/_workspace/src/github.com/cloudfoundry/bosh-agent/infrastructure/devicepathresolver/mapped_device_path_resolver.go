@@ -27,7 +27,7 @@ func (dpr mappedDevicePathResolver) GetRealDevicePath(devicePath string) (string
 
 	for !found {
 		if time.Now().After(stopAfter) {
-			return "", true, bosherr.New("Timed out getting real device path for %s", devicePath)
+			return "", true, bosherr.Errorf("Timed out getting real device path for %s", devicePath)
 		}
 
 		time.Sleep(100 * time.Millisecond)

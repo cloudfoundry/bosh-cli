@@ -54,7 +54,7 @@ func (c cloud) CreateStemcell(cloudProperties map[string]interface{}, imagePath 
 	// for create_stemcell, the result is a string of the stemcell cid
 	cidString, ok := cmdOutput.Result.(string)
 	if !ok {
-		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
+		return "", bosherr.Errorf("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
 	return cidString, nil
 }
@@ -93,7 +93,7 @@ func (c cloud) CreateVM(
 	// for create_vm, the result is a string of the vm cid
 	cidString, ok := cmdOutput.Result.(string)
 	if !ok {
-		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
+		return "", bosherr.Errorf("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
 	return cidString, nil
 }
@@ -117,7 +117,7 @@ func (c cloud) CreateDisk(size int, cloudProperties map[string]interface{}, vmCI
 
 	cidString, ok := cmdOutput.Result.(string)
 	if !ok {
-		return "", bosherr.New("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
+		return "", bosherr.Errorf("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
 	return cidString, nil
 }

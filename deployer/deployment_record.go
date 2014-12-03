@@ -98,7 +98,7 @@ func (v *deploymentRecord) Update(manifestPath string, release bmrel.Release) er
 	if !found {
 		releaseRecord, err = v.releaseRepo.Save(release.Name(), release.Version())
 		if err != nil {
-			return bosherr.WrapError(err, "Saving release record with name: '%s', version: '%s'", release.Name(), release.Version())
+			return bosherr.WrapErrorf(err, "Saving release record with name: '%s', version: '%s'", release.Name(), release.Version())
 		}
 	}
 

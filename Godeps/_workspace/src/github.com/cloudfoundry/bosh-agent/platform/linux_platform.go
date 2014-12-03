@@ -364,7 +364,7 @@ func (p linux) SetTimeWithNtpServers(servers []string) (err error) {
 
 	err = p.fs.WriteFileString(serversFilePath, strings.Join(servers, " "))
 	if err != nil {
-		err = bosherr.WrapError(err, "Writing to %s", serversFilePath)
+		err = bosherr.WrapErrorf(err, "Writing to %s", serversFilePath)
 		return
 	}
 
@@ -380,7 +380,7 @@ func (p linux) SetupEphemeralDiskWithPath(realPath string) error {
 	mountPointGlob := path.Join(mountPoint, "*")
 	contents, err := p.fs.Glob(mountPointGlob)
 	if err != nil {
-		return bosherr.WrapError(err, "Globbing ephemeral disk mount point `%s'", mountPointGlob)
+		return bosherr.WrapErrorf(err, "Globbing ephemeral disk mount point `%s'", mountPointGlob)
 	}
 	if contents != nil && len(contents) > 0 {
 		p.logger.Debug(logTag, "Existing ephemeral mount `%s' is not empty. Contents: %s", mountPoint, contents)
@@ -451,28 +451,28 @@ func (p linux) SetupDataDir() error {
 	logDir := filepath.Join(sysDir, "log")
 	err := p.fs.MkdirAll(logDir, logDirPermissions)
 	if err != nil {
-		return bosherr.WrapError(err, "Making %s dir", logDir)
+		return bosherr.WrapErrorf(err, "Making %s dir", logDir)
 	}
 
 	_, _, _, err = p.cmdRunner.RunCommand("chown", "root:vcap", sysDir)
 	if err != nil {
-		return bosherr.WrapError(err, "chown %s", sysDir)
+		return bosherr.WrapErrorf(err, "chown %s", sysDir)
 	}
 
 	_, _, _, err = p.cmdRunner.RunCommand("chown", "root:vcap", logDir)
 	if err != nil {
-		return bosherr.WrapError(err, "chown %s", logDir)
+		return bosherr.WrapErrorf(err, "chown %s", logDir)
 	}
 
 	runDir := filepath.Join(sysDir, "run")
 	err = p.fs.MkdirAll(runDir, runDirPermissions)
 	if err != nil {
-		return bosherr.WrapError(err, "Making %s dir", runDir)
+		return bosherr.WrapErrorf(err, "Making %s dir", runDir)
 	}
 
 	_, _, _, err = p.cmdRunner.RunCommand("chown", "root:vcap", runDir)
 	if err != nil {
-		return bosherr.WrapError(err, "chown %s", runDir)
+		return bosherr.WrapErrorf(err, "chown %s", runDir)
 	}
 
 	return nil
@@ -510,7 +510,7 @@ func (p linux) SetupTmpDir() error {
 
 	systemTmpDirIsMounted, err := p.IsMountPoint(systemTmpDir)
 	if err != nil {
-		return bosherr.WrapError(err, "Checking for mount point %s", systemTmpDir)
+		return bosherr.WrapErrorf(err, "Checking for mount point %s", systemTmpDir)
 	}
 
 	if !systemTmpDirIsMounted {
@@ -548,12 +548,12 @@ func (p linux) SetupTmpDir() error {
 func (p linux) changeTmpDirPermissions(path string) error {
 	_, _, _, err := p.cmdRunner.RunCommand("chown", "root:vcap", path)
 	if err != nil {
-		return bosherr.WrapError(err, "chown %s", path)
+		return bosherr.WrapErrorf(err, "chown %s", path)
 	}
 
 	_, _, _, err = p.cmdRunner.RunCommand("chmod", "0770", path)
 	if err != nil {
-		return bosherr.WrapError(err, "chmod %s", path)
+		return bosherr.WrapErrorf(err, "chmod %s", path)
 	}
 
 	return nil
@@ -564,7 +564,7 @@ func (p linux) MountPersistentDisk(devicePath, mountPoint string) error {
 
 	err := p.fs.MkdirAll(mountPoint, persistentDiskPermissions)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating directory %s", mountPoint)
+		return bosherr.WrapErrorf(err, "Creating directory %s", mountPoint)
 	}
 
 	realPath, _, err := p.devicePathResolver.GetRealDevicePath(devicePath)
@@ -711,7 +711,7 @@ func (p linux) GetMonitCredentials() (username, password string, err error) {
 
 	credParts := strings.SplitN(credContent, ":", 2)
 	if len(credParts) != 2 {
-		err = bosherr.New("Malformated monit user file, expecting username and password separated by ':'")
+		err = bosherr.Error("Malformated monit user file, expecting username and password separated by ':'")
 		return
 	}
 
@@ -772,14 +772,14 @@ func (p linux) findRootDevicePath() (string, error) {
 
 			validRootPartition := regexp.MustCompile(`^/dev/[a-z]+1$`)
 			if !validRootPartition.MatchString(rootPartition) {
-				return "", bosherr.New("Root partition is not the first partition")
+				return "", bosherr.Error("Root partition is not the first partition")
 			}
 
 			return strings.Trim(rootPartition, "1"), nil
 		}
 	}
 
-	return "", bosherr.New("Getting root partition device")
+	return "", bosherr.Error("Getting root partition device")
 }
 
 func (p linux) createEphemeralPartitionsOnRootDevice() (string, string, error) {
@@ -818,7 +818,7 @@ func (p linux) createEphemeralPartitionsOnRootDevice() (string, string, error) {
 	}
 	err = p.diskManager.GetRootDevicePartitioner().Partition(rootDevicePath, partitions)
 	if err != nil {
-		return "", "", bosherr.WrapError(err, "Partitioning root device `%s'", rootDevicePath)
+		return "", "", bosherr.WrapErrorf(err, "Partitioning root device `%s'", rootDevicePath)
 	}
 
 	swapPartitionPath := rootDevicePath + "2"
@@ -848,7 +848,7 @@ func (p linux) partitionEphemeralDisk(realPath string) (string, string, error) {
 	p.logger.Info(logTag, "Partitioning ephemeral disk `%s' with %s", realPath, partitions)
 	err = p.diskManager.GetPartitioner().Partition(realPath, partitions)
 	if err != nil {
-		return "", "", bosherr.WrapError(err, "Partitioning ephemeral disk `%s'", realPath)
+		return "", "", bosherr.WrapErrorf(err, "Partitioning ephemeral disk `%s'", realPath)
 	}
 
 	swapPartitionPath := realPath + "1"

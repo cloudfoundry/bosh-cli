@@ -161,7 +161,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("moves the compressed package to a blobstore", func() {
-				Expect(blobstore.CreateFileName).To(Equal(newTarballPath))
+				Expect(blobstore.CreateFileNames).To(Equal([]string{newTarballPath}))
 			})
 
 			It("stores the compiled package blobID and fingerprint into the compile package repo", func() {

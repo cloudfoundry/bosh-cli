@@ -55,7 +55,7 @@ func (s *cloudStemcell) PromoteAsCurrent() error {
 	}
 
 	if !found {
-		return bosherr.New("Stemcell does not exist in repo")
+		return bosherr.Error("Stemcell does not exist in repo")
 	}
 
 	err = s.repo.UpdateCurrent(stemcellRecord.ID)
@@ -74,7 +74,7 @@ func (s *cloudStemcell) Delete() error {
 
 	stemcellRecord, found, err := s.repo.Find(s.name, s.version)
 	if err != nil {
-		return bosherr.WrapError(err, "Finding stemcell record (name=%s, version=%s)", s.name, s.version)
+		return bosherr.WrapErrorf(err, "Finding stemcell record (name=%s, version=%s)", s.name, s.version)
 	}
 
 	if !found {

@@ -91,7 +91,7 @@ var _ = Describe("sha1VerifiableBlobstore", func() {
 			Expect(blobID).To(Equal("fake-blob-id"))
 			Expect(sha1).To(Equal(fixtureSHA1))
 
-			Expect(innerBlobstore.CreateFileName).To(Equal(fixturePath))
+			Expect(innerBlobstore.CreateFileNames[0]).To(Equal(fixturePath))
 		})
 
 		It("returns error if inner blobstore blob creation fails", func() {
@@ -110,7 +110,7 @@ var _ = Describe("sha1VerifiableBlobstore", func() {
 		})
 
 		It("returns error if inner blobstore validation fails", func() {
-			innerBlobstore.ValidateError = bosherr.New("fake-validate-error")
+			innerBlobstore.ValidateError = bosherr.Error("fake-validate-error")
 
 			err := sha1VerifiableBlobstore.Validate()
 			Expect(err).To(HaveOccurred())

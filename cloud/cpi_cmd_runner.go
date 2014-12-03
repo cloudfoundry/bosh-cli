@@ -77,7 +77,7 @@ func (r *cpiCmdRunner) Run(method string, args ...interface{}) (CmdOutput, error
 	}
 	inputBytes, err := json.Marshal(cmdInput)
 	if err != nil {
-		return CmdOutput{}, bosherr.WrapError(err, "Marshalling external CPI command input %#v", cmdInput)
+		return CmdOutput{}, bosherr.WrapErrorf(err, "Marshalling external CPI command input %#v", cmdInput)
 	}
 
 	cmdPath := r.cpiJob.ExecutablePath()
@@ -94,19 +94,19 @@ func (r *cpiCmdRunner) Run(method string, args ...interface{}) (CmdOutput, error
 	stdout, stderr, exitCode, err := r.cmdRunner.RunComplexCommand(cmd)
 	r.logger.Debug(r.logTag, "Exit Code %d when executing external CPI command '%s'\nSTDIN: '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", exitCode, cmdPath, string(inputBytes), stdout, stderr)
 	if err != nil {
-		return CmdOutput{}, bosherr.WrapError(err, "Executing external CPI command: '%s'", cmdPath)
+		return CmdOutput{}, bosherr.WrapErrorf(err, "Executing external CPI command: '%s'", cmdPath)
 	}
 
 	cmdOutput := CmdOutput{}
 	err = json.Unmarshal([]byte(stdout), &cmdOutput)
 	if err != nil {
-		return CmdOutput{}, bosherr.WrapError(err, "Unmarshalling external CPI command output: STDOUT: '%s', STDERR: '%s'", stdout, stderr)
+		return CmdOutput{}, bosherr.WrapErrorf(err, "Unmarshalling external CPI command output: STDOUT: '%s', STDERR: '%s'", stdout, stderr)
 	}
 
 	r.logger.Debug(r.logTag, cmdOutput.Log)
 
 	if cmdOutput.Error != nil {
-		return cmdOutput, bosherr.New("External CPI command for method `%s' returned an error: %s", method, cmdOutput.Error)
+		return cmdOutput, bosherr.Errorf("External CPI command for method `%s' returned an error: %s", method, cmdOutput.Error)
 	}
 
 	return cmdOutput, err

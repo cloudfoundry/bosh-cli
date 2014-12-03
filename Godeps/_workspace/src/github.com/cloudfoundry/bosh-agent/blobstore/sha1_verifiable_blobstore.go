@@ -33,7 +33,7 @@ func (b sha1VerifiableBlobstore) Get(blobID, fingerprint string) (string, error)
 	}
 
 	if actualSha1 != fingerprint {
-		return "", bosherr.New("SHA1 mismatch. Expected %s, got %s for blob %s", fingerprint, actualSha1, fileName)
+		return "", bosherr.Errorf("SHA1 mismatch. Expected %s, got %s for blob %s", fingerprint, actualSha1, fileName)
 	}
 
 	return fileName, nil

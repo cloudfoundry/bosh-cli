@@ -127,7 +127,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		It("saves archive in blobstore", func() {
 			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobstore.CreateFileName).To(Equal("fake-tarball-path"))
+			Expect(blobstore.CreateFileNames).To(Equal([]string{"fake-tarball-path"}))
 		})
 
 		It("stores the compiled package blobID and fingerprint into the compile package repo", func() {

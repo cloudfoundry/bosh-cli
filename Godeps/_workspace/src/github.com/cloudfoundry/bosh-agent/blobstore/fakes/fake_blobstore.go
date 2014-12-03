@@ -11,11 +11,14 @@ type FakeBlobstore struct {
 	CleanUpFileName string
 	CleanUpErr      error
 
-	CreateFileName    string
-	CreateBlobID      string
-	CreateFingerprint string
-	CreateErr         error
-	CreateCallBack    func()
+	CreateFileNames    []string
+	CreateBlobID       string
+	CreateBlobIDs      []string
+	CreateFingerprint  string
+	CreateFingerprints []string
+	CreateErr          error
+	CreateErrs         []error
+	CreateCallBack     func()
 
 	ValidateError error
 }
@@ -49,13 +52,30 @@ func (bs *FakeBlobstore) CleanUp(fileName string) error {
 }
 
 func (bs *FakeBlobstore) Create(fileName string) (string, string, error) {
-	bs.CreateFileName = fileName
+	bs.CreateFileNames = append(bs.CreateFileNames, fileName)
 
 	if bs.CreateCallBack != nil {
 		bs.CreateCallBack()
 	}
 
-	return bs.CreateBlobID, bs.CreateFingerprint, bs.CreateErr
+	blobID, fingerprint, err := bs.CreateBlobID, bs.CreateFingerprint, bs.CreateErr
+
+	if len(bs.CreateBlobIDs) > 0 {
+		blobID = bs.CreateBlobIDs[0]
+		bs.CreateBlobIDs = bs.CreateBlobIDs[1:]
+	}
+
+	if len(bs.CreateFingerprints) > 0 {
+		fingerprint = bs.CreateFingerprints[0]
+		bs.CreateFingerprints = bs.CreateFingerprints[1:]
+	}
+
+	if len(bs.CreateErrs) > 0 {
+		err = bs.CreateErrs[0]
+		bs.CreateErrs = bs.CreateErrs[1:]
+	}
+
+	return blobID, fingerprint, err
 }
 
 func (bs *FakeBlobstore) Validate() error {

@@ -33,20 +33,20 @@ func NewUI(stdOut, stdErr io.Writer, logger boshlog.Logger) UI {
 func (u *ui) Say(message string) {
 	_, err := fmt.Fprint(u.stdOut, message)
 	if err != nil {
-		u.logger.Error(logTag, bosherr.WrapError(err, "Writing to STDOUT: %s", message).Error())
+		u.logger.Error(logTag, bosherr.WrapErrorf(err, "Writing to STDOUT: %s", message).Error())
 	}
 }
 
 func (u *ui) Sayln(message string) {
 	_, err := fmt.Fprintln(u.stdOut, message)
 	if err != nil {
-		u.logger.Error(logTag, bosherr.WrapError(err, "Writing to STDOUT (with newline): %s", message).Error())
+		u.logger.Error(logTag, bosherr.WrapErrorf(err, "Writing to STDOUT (with newline): %s", message).Error())
 	}
 }
 
 func (u *ui) Error(message string) {
 	_, err := fmt.Fprintln(u.stdErr, message)
 	if err != nil {
-		u.logger.Error(logTag, bosherr.WrapError(err, "Writing to STDERR: %s", message).Error())
+		u.logger.Error(logTag, bosherr.WrapErrorf(err, "Writing to STDERR: %s", message).Error())
 	}
 }

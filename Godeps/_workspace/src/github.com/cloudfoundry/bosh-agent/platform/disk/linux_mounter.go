@@ -55,12 +55,12 @@ func (m linuxMounter) RemountAsReadonly(mountPoint string) error {
 func (m linuxMounter) Remount(fromMountPoint, toMountPoint string, mountOptions ...string) error {
 	partitionPath, found, err := m.findDeviceMatchingMountPoint(fromMountPoint)
 	if err != nil || !found {
-		return bosherr.WrapError(err, "Error finding device for mount point %s", fromMountPoint)
+		return bosherr.WrapErrorf(err, "Error finding device for mount point %s", fromMountPoint)
 	}
 
 	_, err = m.Unmount(fromMountPoint)
 	if err != nil {
-		return bosherr.WrapError(err, "Unmounting %s", fromMountPoint)
+		return bosherr.WrapErrorf(err, "Unmounting %s", fromMountPoint)
 	}
 
 	return m.Mount(partitionPath, toMountPoint, mountOptions...)
@@ -162,10 +162,10 @@ func (m linuxMounter) shouldMount(partitionPath, mountPoint string) (bool, error
 		case mount.PartitionPath == partitionPath && mount.MountPoint == mountPoint:
 			return false, nil
 		case mount.PartitionPath == partitionPath && mount.MountPoint != mountPoint:
-			return false, bosherr.New("Device %s is already mounted to %s, can't mount to %s",
+			return false, bosherr.Errorf("Device %s is already mounted to %s, can't mount to %s",
 				mount.PartitionPath, mount.MountPoint, mountPoint)
 		case mount.MountPoint == mountPoint:
-			return false, bosherr.New("Device %s is already mounted to %s, can't mount %s",
+			return false, bosherr.Errorf("Device %s is already mounted to %s, can't mount %s",
 				mount.PartitionPath, mount.MountPoint, partitionPath)
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcdrom "github.com/cloudfoundry/bosh-agent/platform/cdrom"
 	fakecdrom "github.com/cloudfoundry/bosh-agent/platform/cdrom/fakes"
 	boshdevutil "github.com/cloudfoundry/bosh-agent/platform/deviceutil"
@@ -15,15 +16,17 @@ var _ = Describe("Cdutil", func() {
 		fs     *fakesys.FakeFileSystem
 		cdrom  *fakecdrom.FakeCdrom
 		cdutil boshdevutil.DeviceUtil
+		logger boshlog.Logger
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		cdrom = fakecdrom.NewFakeCdrom(fs, "env", "fake env contents")
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 	})
 
 	JustBeforeEach(func() {
-		cdutil = boshcdrom.NewCdUtil("/fake/settings/dir", fs, cdrom)
+		cdutil = boshcdrom.NewCdUtil("/fake/settings/dir", fs, cdrom, logger)
 	})
 
 	It("gets file contents from CDROM", func() {

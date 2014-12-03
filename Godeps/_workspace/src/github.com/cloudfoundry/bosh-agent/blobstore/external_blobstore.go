@@ -79,7 +79,7 @@ func (b externalBlobstore) Create(fileName string) (string, string, error) {
 
 func (b externalBlobstore) Validate() error {
 	if !b.runner.CommandExists(b.executable()) {
-		return bosherr.New("executable %s not found in PATH", b.executable())
+		return bosherr.Errorf("executable %s not found in PATH", b.executable())
 	}
 
 	return b.writeConfigFile()
@@ -102,7 +102,7 @@ func (b externalBlobstore) writeConfigFile() error {
 func (b externalBlobstore) run(method, src, dst string) (err error) {
 	_, _, _, err = b.runner.RunCommand(b.executable(), "-c", b.configFilePath, method, src, dst)
 	if err != nil {
-		return bosherr.WrapError(err, "Shelling out to %s cli", b.executable())
+		return bosherr.WrapErrorf(err, "Shelling out to %s cli", b.executable())
 	}
 
 	return nil

@@ -50,10 +50,10 @@ func (r stemcellRepo) Save(name, version, cid string) (StemcellRecord, error) {
 
 		for _, oldRecord := range records {
 			if oldRecord.Name == newRecord.Name && oldRecord.Version == newRecord.Version {
-				return bosherr.New("Failed to save stemcell record `%s' (duplicate name/version), existing record found `%s'", newRecord, oldRecord)
+				return bosherr.Errorf("Failed to save stemcell record `%s' (duplicate name/version), existing record found `%s'", newRecord, oldRecord)
 			}
 			if oldRecord.CID == newRecord.CID {
-				return bosherr.New("Failed to save stemcell record `%s' (duplicate cid), existing record found `%s'", newRecord, oldRecord)
+				return bosherr.Errorf("Failed to save stemcell record `%s' (duplicate cid), existing record found `%s'", newRecord, oldRecord)
 			}
 		}
 
@@ -143,7 +143,7 @@ func (r stemcellRepo) UpdateCurrent(recordID string) error {
 			}
 		}
 		if !found {
-			return bosherr.New("Verifying stemcell record exists with id `%s'", recordID)
+			return bosherr.Errorf("Verifying stemcell record exists with id `%s'", recordID)
 		}
 
 		config.CurrentStemcellID = recordID

@@ -26,43 +26,85 @@ var _ = Describe("rootDevicePartitioner", func() {
 	Describe("Partition", func() {
 		Context("when the desired partitions do not exist", func() {
 			BeforeEach(func() {
+				// 20GiB device, ~3GiB partition 0, 18403868671B remaining
 				fakeCmdRunner.AddCmdResult(
 					"parted -m /dev/sda unit B print",
 					fakesys.FakeCmdResult{
 						Stdout: `BYT;
-/dev/sda:129B:virtblk:512:512:msdos:Virtio Block Device;
-1:1B:32B:32B:ext4::;
+/dev/vda:21474836480B:virtblk:512:512:msdos:Virtio Block Device;
+1:32256B:3071000063B:3070967808B:ext4::;
 `,
 					},
 				)
 			})
 
-			It("creates partitions using parted", func() {
+			It("creates partitions (aligned to 1MiB) using parted", func() {
 				partitions := []Partition{
-					{SizeInBytes: 32},
-					{SizeInBytes: 64},
+					{SizeInBytes: 8589934592}, // swap (8GiB)
+					{SizeInBytes: 8589934592}, // ephemeral (8GiB)
 				}
+
+				// Calculating "aligned" partition start/end/size
+				// (3071000063 + 1) % 1048576 = 769536
+				// (3071000063 + 1) + 1048576 - 769536 = 3071279104 (aligned start)
+				// 3071279104 + 8589934592 - 1 = 11661213695 (desired end)
+				// swap start=3071279104, end=11661213695, size=8589934592
+				// (11661213695 + 1) % 1048576 = 0
+				// (11661213695 + 1) = 11661213696 (aligned start)
+				// 11661213696 + 8589934592 - 1 = 20251148287 (desired end)
+				// 20251148287 > 21474836480 = false (smaller than disk)
+				// swap start=11661213696, end=20251148287, size=8589934592
 
 				err := partitioner.Partition("/dev/sda", partitions)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(len(fakeCmdRunner.RunCommands)).To(Equal(3))
 				Expect(fakeCmdRunner.RunCommands).To(ContainElement([]string{"parted", "-m", "/dev/sda", "unit", "B", "print"}))
-				Expect(fakeCmdRunner.RunCommands).To(ContainElement([]string{"parted", "-s", "/dev/sda", "unit", "B", "mkpart", "primary", "33", "64"}))
-				Expect(fakeCmdRunner.RunCommands).To(ContainElement([]string{"parted", "-s", "/dev/sda", "unit", "B", "mkpart", "primary", "65", "128"}))
+				Expect(fakeCmdRunner.RunCommands).To(ContainElement([]string{"parted", "-s", "/dev/sda", "unit", "B", "mkpart", "primary", "3071279104", "11661213695"}))
+				Expect(fakeCmdRunner.RunCommands).To(ContainElement([]string{"parted", "-s", "/dev/sda", "unit", "B", "mkpart", "primary", "11661213696", "20251148287"}))
+			})
+
+			It("truncates the last partition if it is larger than remaining disk space", func() {
+				partitions := []Partition{
+					{SizeInBytes: 8589934592}, // swap (8GiB)
+					{SizeInBytes: 9813934079}, // ephemeral ("remaining" that exceeds disk size when aligned)
+				}
+
+				// Calculating "aligned" partition start/end/size
+				// (3071000063 + 1) % 1048576 = 769536
+				// (3071000063 + 1) + 1048576 - 769536 = 3071279104 (aligned start)
+				// 3071279104 + 8589934592 - 1 = 11661213695 (desired end)
+				// 11661213695 - 3071279104 + 1 = 8589934592 (final size)
+				// swap start=3071279104, end=11661213695, size=8589934592
+				// (11661213695 + 1) % 1048576 = 0
+				// (11661213695 + 1) = 11661213696 (aligned start)
+				// 11661213696 + 9813934079 - 1 = 21475147774 (desired end)
+				// 21475147774 > 21474836480 = true (bigger than disk)
+				// 21474836480 - 1 = 21474836479 (end of disk)
+				// 21474836479 - 11661213696 + 1 = 9813622784 (final size from aligned start to end of disk)
+				// swap start=11661213696, end=21474836479, size=9813622784
+
+				err := partitioner.Partition("/dev/sda", partitions)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(len(fakeCmdRunner.RunCommands)).To(Equal(3))
+				Expect(fakeCmdRunner.RunCommands).To(ContainElement([]string{"parted", "-m", "/dev/sda", "unit", "B", "print"}))
+				Expect(fakeCmdRunner.RunCommands).To(ContainElement([]string{"parted", "-s", "/dev/sda", "unit", "B", "mkpart", "primary", "3071279104", "11661213695"}))
+				Expect(fakeCmdRunner.RunCommands).To(ContainElement([]string{"parted", "-s", "/dev/sda", "unit", "B", "mkpart", "primary", "11661213696", "21474836479"}))
 			})
 
 			Context("when partitioning fails", func() {
 				BeforeEach(func() {
 					fakeCmdRunner.AddCmdResult(
-						"parted -s /dev/sda unit B mkpart primary 33 64",
+						"parted -s /dev/sda unit B mkpart primary 3071279104 11661213695",
 						fakesys.FakeCmdResult{Error: errors.New("fake-parted-error")},
 					)
 				})
 
 				It("returns error", func() {
 					partitions := []Partition{
-						{SizeInBytes: 32},
+						{SizeInBytes: 8589934592}, // swap (8GiB)
+						{SizeInBytes: 9813934079}, // ephemeral (remaining)
 					}
 
 					err := partitioner.Partition("/dev/sda", partitions)
@@ -82,9 +124,7 @@ var _ = Describe("rootDevicePartitioner", func() {
 			})
 
 			It("returns error", func() {
-				partitions := []Partition{
-					{SizeInBytes: 32},
-				}
+				partitions := []Partition{{SizeInBytes: 32}}
 
 				err := partitioner.Partition("/dev/sda", partitions)
 				Expect(err).To(HaveOccurred())

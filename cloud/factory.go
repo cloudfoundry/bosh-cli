@@ -37,7 +37,7 @@ func (f *factory) NewCloud(jobs []bmcpiinstall.InstalledJob) (Cloud, error) {
 	// for now, the installed job must be named "cpi"
 	installedCPIJob, found := f.findCPIJob(jobs)
 	if !found {
-		return nil, bosherr.New("No `%s' release job found in the CPI deployment", cpiJobName)
+		return nil, bosherr.Errorf("No `%s' release job found in the CPI deployment", cpiJobName)
 	}
 
 	cpiJob := CPIJob{

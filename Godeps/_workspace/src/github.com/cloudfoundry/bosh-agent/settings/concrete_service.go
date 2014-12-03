@@ -122,7 +122,7 @@ func (s concreteService) checkAtMostOneDynamicNetwork(settings Settings) error {
 		// network to interface to IP mapping
 		if network.IsDynamic() {
 			if foundOneDynamicNetwork {
-				return bosherr.New("Multiple dynamic networks are not supported")
+				return bosherr.Error("Multiple dynamic networks are not supported")
 			}
 			foundOneDynamicNetwork = true
 		}

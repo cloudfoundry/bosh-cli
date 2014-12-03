@@ -185,7 +185,7 @@ func (m *deployer) deleteUnusedStemcells(stemcellManager bmstemcell.Manager) err
 	for _, stemcell := range stemcells {
 		err = m.eventLoggerStage.PerformStep(fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID()), func() error {
 			if err = stemcell.Delete(); err != nil {
-				return bosherr.WrapError(err, "Deleting unused stemcell '%s'", stemcell.CID())
+				return bosherr.WrapErrorf(err, "Deleting unused stemcell '%s'", stemcell.CID())
 			}
 			return nil
 		})

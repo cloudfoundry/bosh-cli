@@ -42,18 +42,18 @@ func (b *blobstore) Get(blobID string, destinationPath string) error {
 
 	readCloser, err := b.davClient.Get(blobID)
 	if err != nil {
-		return bosherr.WrapError(err, "Getting blob %s from blobstore", blobID)
+		return bosherr.WrapErrorf(err, "Getting blob %s from blobstore", blobID)
 	}
 	defer readCloser.Close()
 
 	targetFile, err := b.fs.OpenFile(destinationPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		return bosherr.WrapError(err, "Opening file for blob at %s", destinationPath)
+		return bosherr.WrapErrorf(err, "Opening file for blob at %s", destinationPath)
 	}
 
 	_, err = io.Copy(targetFile, readCloser)
 	if err != nil {
-		return bosherr.WrapError(err, "Saving blob to %s", destinationPath)
+		return bosherr.WrapErrorf(err, "Saving blob to %s", destinationPath)
 	}
 
 	return nil
@@ -64,13 +64,13 @@ func (b *blobstore) Save(sourcePath string, blobID string) error {
 
 	file, err := b.fs.OpenFile(sourcePath, os.O_RDONLY, 0)
 	if err != nil {
-		return bosherr.WrapError(err, "Opening file for reading %s", sourcePath)
+		return bosherr.WrapErrorf(err, "Opening file for reading %s", sourcePath)
 	}
 	defer file.Close()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return bosherr.WrapError(err, "Getting fileInfo from %s", sourcePath)
+		return bosherr.WrapErrorf(err, "Getting fileInfo from %s", sourcePath)
 	}
 
 	return b.davClient.Put(blobID, file, fileInfo.Size())

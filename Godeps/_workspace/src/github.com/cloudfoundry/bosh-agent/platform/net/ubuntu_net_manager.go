@@ -74,7 +74,7 @@ func (net ubuntuNetManager) SetupDhcp(networks boshsettings.Networks, errCh chan
 	dhclientConfigFile := net.dhclientConfigFile()
 	written, err := net.fs.ConvergeFileContents(dhclientConfigFile, buffer.Bytes())
 	if err != nil {
-		return bosherr.WrapError(err, "Writing to %s", dhclientConfigFile)
+		return bosherr.WrapErrorf(err, "Writing to %s", dhclientConfigFile)
 	}
 
 	if written {

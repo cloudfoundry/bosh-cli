@@ -82,7 +82,7 @@ func (ec jobEvaluationContext) convertForPropertyResolver(properties map[string]
 	for propertyKey, property := range properties {
 		defaultValue, err := property.Default()
 		if err != nil {
-			return result, bosherr.WrapError(err, "Retrieving default for property `%s'", propertyKey)
+			return result, bosherr.WrapErrorf(err, "Retrieving default for property `%s'", propertyKey)
 		}
 		result[propertyKey] = defaultValue
 	}

@@ -43,12 +43,12 @@ func (r agentRequest) Send(method string, arguments []interface{}, response Resp
 
 	httpResponse, err := r.httpClient.Post(r.endpoint, agentRequestJSON)
 	if err != nil {
-		return bosherr.WrapError(err, "Performing request to agent endpoint '%s'", r.endpoint)
+		return bosherr.WrapErrorf(err, "Performing request to agent endpoint '%s'", r.endpoint)
 	}
 	defer httpResponse.Body.Close()
 
 	if httpResponse.StatusCode != http.StatusOK {
-		return bosherr.New("Agent responded with non-successful status code: %d", httpResponse.StatusCode)
+		return bosherr.Errorf("Agent responded with non-successful status code: %d", httpResponse.StatusCode)
 	}
 
 	responseBody, err := ioutil.ReadAll(httpResponse.Body)
@@ -64,7 +64,7 @@ func (r agentRequest) Send(method string, arguments []interface{}, response Resp
 	exception := response.GetException()
 
 	if !exception.IsEmpty() {
-		return bosherr.New("Agent responded with error: %s", exception.Message)
+		return bosherr.Errorf("Agent responded with error: %s", exception.Message)
 	}
 
 	return nil

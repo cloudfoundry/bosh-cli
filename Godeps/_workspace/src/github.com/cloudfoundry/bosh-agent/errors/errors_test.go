@@ -15,21 +15,23 @@ type testShortError struct {
 func (e testShortError) Error() string       { return e.fullMsg }
 func (e *testShortError) ShortError() string { return e.shortMsg }
 
-var _ = Describe("New", func() {
+var _ = Describe("Error", func() {
 	It("constructs an error", func() {
-		err := New("fake-message")
+		err := Error("fake-message")
 		Expect(err).To(MatchError("fake-message"))
 	})
+})
 
+var _ = Describe("Errorf", func() {
 	It("constructs a formatted error", func() {
-		err := New("fake-message: %s", "fake-details")
+		err := Errorf("fake-message: %s", "fake-details")
 		Expect(err).To(MatchError("fake-message: fake-details"))
 	})
 })
 
 var _ = Describe("WrapError", func() {
 	It("constructs a ShortenableError", func() {
-		cause := New("fake-cause-message")
+		cause := Error("fake-cause-message")
 
 		err := WrapError(cause, "fake-message")
 		Expect(err).To(MatchError("fake-message: fake-cause-message"))
@@ -37,11 +39,13 @@ var _ = Describe("WrapError", func() {
 		typedErr := err.(ShortenableError)
 		Expect(typedErr.ShortError()).To(Equal("fake-message: fake-cause-message"))
 	})
+})
 
+var _ = Describe("WrapErrorf", func() {
 	It("constructs a formatted ShortenableError", func() {
-		cause := New("fake-cause-message")
+		cause := Error("fake-cause-message")
 
-		err := WrapError(cause, "fake-message: %s", "fake-details")
+		err := WrapErrorf(cause, "fake-message: %s", "fake-details")
 		Expect(err).To(MatchError("fake-message: fake-details: fake-cause-message"))
 
 		typedErr := err.(ShortenableError)
@@ -51,8 +55,8 @@ var _ = Describe("WrapError", func() {
 
 var _ = Describe("WrapComplexError", func() {
 	It("constructs a ShortenableError", func() {
-		cause := New("fake-cause-message")
-		delegate := New("fake-message")
+		cause := Error("fake-cause-message")
+		delegate := Error("fake-message")
 
 		err := WrapComplexError(cause, delegate)
 		Expect(err).To(MatchError("fake-message: fake-cause-message"))
@@ -62,12 +66,12 @@ var _ = Describe("WrapComplexError", func() {
 	})
 
 	It("allows chaining", func() {
-		causeCause := New("fake-cause-cause")
-		causeDelegate := New("fake-cause-delegate")
+		causeCause := Error("fake-cause-cause")
+		causeDelegate := Error("fake-cause-delegate")
 		cause := WrapComplexError(causeCause, causeDelegate)
 
-		delegateCause := New("fake-delegate-cause")
-		delegateDelegate := New("fake-delegate-delegate")
+		delegateCause := Error("fake-delegate-cause")
+		delegateDelegate := Error("fake-delegate-delegate")
 		delegate := WrapComplexError(delegateCause, delegateDelegate)
 
 		err := WrapComplexError(cause, delegate)
@@ -88,5 +92,14 @@ var _ = Describe("WrapComplexError", func() {
 
 		typedErr := err.(ShortenableError)
 		Expect(typedErr.ShortError()).To(Equal("delegate-short1: cause-short1"))
+	})
+
+	It("handles errors with nil cause", func() {
+		delegate := &testShortError{fullMsg: "delegate-full", shortMsg: "delegate-short1"}
+		err := WrapComplexError(nil, delegate)
+		Expect(err).To(MatchError("delegate-full: <nil cause>"))
+
+		shortErr := err.(ShortenableError)
+		Expect(shortErr.ShortError()).To(Equal("delegate-short1: <nil cause>"))
 	})
 })

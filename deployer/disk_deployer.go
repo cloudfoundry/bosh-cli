@@ -150,7 +150,7 @@ func (d *diskDeployer) updateCurrentDiskRecord(disk bmdisk.Disk) error {
 	}
 
 	if !found {
-		return bosherr.New("Failed to find disk record for new disk")
+		return bosherr.Error("Failed to find disk record for new disk")
 	}
 
 	err = d.diskRepo.UpdateCurrent(savedDiskRecord.ID)
@@ -184,7 +184,7 @@ func (d *diskDeployer) deleteUnusedDisks() error {
 		err = d.eventLoggerStage.PerformStep(stepName, func() error {
 			err = disk.Delete()
 			if err != nil {
-				return bosherr.WrapError(err, "Deleting unused disk '%s'", disk.CID())
+				return bosherr.WrapErrorf(err, "Deleting unused disk '%s'", disk.CID())
 			}
 			return nil
 		})

@@ -66,7 +66,7 @@ func (d Deployment) Properties() (map[string]interface{}, error) {
 func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error) {
 	job, found := d.findJobByName(jobName)
 	if !found {
-		return map[string]interface{}{}, bosherr.New("Could not find job with name: %s", jobName)
+		return map[string]interface{}{}, bosherr.Errorf("Could not find job with name: %s", jobName)
 	}
 
 	networksMap := d.networksToMap()
@@ -91,7 +91,7 @@ func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error)
 func (d Deployment) DiskPool(jobName string) (DiskPool, error) {
 	job, found := d.findJobByName(jobName)
 	if !found {
-		return DiskPool{}, bosherr.New("Could not find job with name: %s", jobName)
+		return DiskPool{}, bosherr.Errorf("Could not find job with name: %s", jobName)
 	}
 
 	if job.PersistentDiskPool != "" {
@@ -100,7 +100,7 @@ func (d Deployment) DiskPool(jobName string) (DiskPool, error) {
 				return diskPool, nil
 			}
 		}
-		err := bosherr.New("Could not find persistent disk pool '%s' for job '%s'", job.PersistentDiskPool, jobName)
+		err := bosherr.Errorf("Could not find persistent disk pool '%s' for job '%s'", job.PersistentDiskPool, jobName)
 		return DiskPool{}, err
 	}
 

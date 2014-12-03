@@ -29,7 +29,7 @@ func NewDiskUtil(diskPath string, mounter Mounter, fs boshsys.FileSystem, logger
 
 func (util diskUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 	if !util.fs.FileExists(util.diskPath) {
-		return [][]byte{}, bosherr.New("Failed to get file contents, disk path '%s' does not exist", util.diskPath)
+		return [][]byte{}, bosherr.Errorf("Failed to get file contents, disk path '%s' does not exist", util.diskPath)
 	}
 
 	tempDir, err := util.fs.TempDir("diskutil")
@@ -40,7 +40,7 @@ func (util diskUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 
 	err = util.mounter.Mount(util.diskPath, tempDir)
 	if err != nil {
-		return [][]byte{}, bosherr.WrapError(err, "Mounting disk path %s to %s", util.diskPath, tempDir)
+		return [][]byte{}, bosherr.WrapErrorf(err, "Mounting disk path %s to %s", util.diskPath, tempDir)
 	}
 	util.logger.Debug(util.logTag, "Mounted disk path %s to %s", util.diskPath, tempDir)
 
@@ -50,7 +50,7 @@ func (util diskUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 		util.logger.Debug(util.logTag, "Reading contents of %s", diskFilePath)
 		content, err := util.fs.ReadFile(diskFilePath)
 		if err != nil {
-			return [][]byte{}, bosherr.WrapError(err, "Reading from disk file %s", diskFilePath)
+			return [][]byte{}, bosherr.WrapErrorf(err, "Reading from disk file %s", diskFilePath)
 		}
 		util.logger.Debug(util.logTag, "Got contents of %s: %s", diskFilePath, string(content))
 		contents = append(contents, content)
@@ -59,7 +59,7 @@ func (util diskUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 	_, err = util.mounter.Unmount(tempDir)
 	util.logger.Debug(util.logTag, "Unmounting disk path %s", tempDir)
 	if err != nil {
-		return [][]byte{}, bosherr.WrapError(err, "Unmounting path %s", tempDir)
+		return [][]byte{}, bosherr.WrapErrorf(err, "Unmounting path %s", tempDir)
 	}
 
 	return contents, nil

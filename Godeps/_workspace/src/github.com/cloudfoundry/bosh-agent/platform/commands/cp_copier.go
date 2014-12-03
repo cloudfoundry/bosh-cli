@@ -47,7 +47,7 @@ func (c cpCopier) FilteredCopyToTemp(dir string, filters []string) (string, erro
 		err = c.fs.MkdirAll(filepath.Dir(dst), os.ModePerm)
 		if err != nil {
 			c.CleanUp(tempDir)
-			return "", bosherr.WrapError(err, "Making destination directory for %s", relativePath)
+			return "", bosherr.WrapErrorf(err, "Making destination directory for %s", relativePath)
 		}
 
 		// Golang does not have a way of copying files and preserving file info...

@@ -74,7 +74,7 @@ func (c *agentClient) Start() error {
 	}
 
 	if response.Value != "started" {
-		return bosherr.New("Failed to start agent services with response: '%s'", response)
+		return bosherr.Errorf("Failed to start agent services with response: '%s'", response)
 	}
 
 	return nil
@@ -116,7 +116,7 @@ func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{
 	var response TaskResponse
 	err := c.agentRequest.Send(method, arguments, &response)
 	if err != nil {
-		return bosherr.WrapError(err, "Sending '%s' to the agent", method)
+		return bosherr.WrapErrorf(err, "Sending '%s' to the agent", method)
 	}
 
 	agentTaskID, err := response.TaskID()
@@ -140,7 +140,7 @@ func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{
 			return true, nil
 		}
 
-		return true, bosherr.New("Task %s is still running", method)
+		return true, bosherr.Errorf("Task %s is still running", method)
 	})
 
 	getTaskRetryStrategy := bmretrystrategy.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)

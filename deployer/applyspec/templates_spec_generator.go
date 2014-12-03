@@ -110,7 +110,7 @@ func (g *templatesSpecGenerator) Create(
 	g.logger.Debug(g.logTag, "Saving job templates archive to blobstore")
 	err = blobstore.Save(renderedTarballPath, blobID)
 	if err != nil {
-		return TemplatesSpec{}, bosherr.WrapError(err, "Uploading blob at '%s'", renderedTarballPath)
+		return TemplatesSpec{}, bosherr.WrapErrorf(err, "Uploading blob at '%s'", renderedTarballPath)
 	}
 
 	archivedTemplatesSha1, err := g.sha1Calculator.Calculate(renderedTarballPath)
@@ -184,12 +184,12 @@ func (g *templatesSpecGenerator) renderTemplate(
 	jobReader := bmrel.NewJobReader(blobPath, jobExtractDir, g.compressor, g.fs)
 	job, err := jobReader.Read()
 	if err != nil {
-		return bosherr.WrapError(err, "Reading job from blob path '%s'", blobPath)
+		return bosherr.WrapErrorf(err, "Reading job from blob path '%s'", blobPath)
 	}
 
 	err = g.jobRenderer.Render(jobExtractDir, renderedDir, job, jobProperties, deploymentName)
 	if err != nil {
-		return bosherr.WrapError(err, "Rendering job from blob path: '%s'", blobPath)
+		return bosherr.WrapErrorf(err, "Rendering job from blob path: '%s'", blobPath)
 	}
 
 	return nil

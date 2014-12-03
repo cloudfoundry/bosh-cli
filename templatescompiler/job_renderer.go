@@ -44,7 +44,7 @@ func (r *jobRenderer) Render(sourcePath string, destinationPath string, job bmre
 		)
 
 		if err != nil {
-			return bosherr.WrapError(err, "Rendering template src: %s, dst: %s", src, dst)
+			return bosherr.WrapErrorf(err, "Rendering template src: %s, dst: %s", src, dst)
 		}
 	}
 
@@ -63,12 +63,12 @@ func (r *jobRenderer) Render(sourcePath string, destinationPath string, job bmre
 func (r *jobRenderer) renderFile(sourcePath, destinationPath string, context bmerbrenderer.TemplateEvaluationContext) error {
 	err := r.fs.MkdirAll(filepath.Dir(destinationPath), os.ModePerm)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating tempdir '%s'", filepath.Dir(destinationPath))
+		return bosherr.WrapErrorf(err, "Creating tempdir '%s'", filepath.Dir(destinationPath))
 	}
 
 	err = r.erbRenderer.Render(sourcePath, destinationPath, context)
 	if err != nil {
-		return bosherr.WrapError(err, "Rendering template src: %s, dst: %s", sourcePath, destinationPath)
+		return bosherr.WrapErrorf(err, "Rendering template src: %s, dst: %s", sourcePath, destinationPath)
 	}
 	return nil
 }

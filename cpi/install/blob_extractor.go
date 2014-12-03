@@ -40,7 +40,7 @@ func NewBlobExtractor(
 func (e blobExtractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
 	filePath, err := e.blobstore.Get(blobID, blobSHA1)
 	if err != nil {
-		return bosherr.WrapError(err, "Getting object from blobstore: %s", blobID)
+		return bosherr.WrapErrorf(err, "Getting object from blobstore: %s", blobID)
 	}
 	defer e.cleanUpBlob(filePath)
 
@@ -48,7 +48,7 @@ func (e blobExtractor) Extract(blobID string, blobSHA1 string, targetDir string)
 	if !existed {
 		err = e.fs.MkdirAll(targetDir, os.ModePerm)
 		if err != nil {
-			return bosherr.WrapError(err, "Creating target dir: %s", targetDir)
+			return bosherr.WrapErrorf(err, "Creating target dir: %s", targetDir)
 		}
 	}
 
@@ -57,7 +57,7 @@ func (e blobExtractor) Extract(blobID string, blobSHA1 string, targetDir string)
 		if !existed {
 			e.cleanUpFile(targetDir)
 		}
-		return bosherr.WrapError(err, "Extracting compiled package: BlobID:`%s', BlobSHA1: `%s'", blobID, blobSHA1)
+		return bosherr.WrapErrorf(err, "Extracting compiled package: BlobID:`%s', BlobSHA1: `%s'", blobID, blobSHA1)
 	}
 	return nil
 }
@@ -67,7 +67,7 @@ func (e blobExtractor) cleanUpBlob(filePath string) {
 	if err != nil {
 		e.logger.Error(
 			e.logTag,
-			bosherr.WrapError(err, "Removing compiled package tarball: %s", filePath).Error(),
+			bosherr.WrapErrorf(err, "Removing compiled package tarball: %s", filePath).Error(),
 		)
 	}
 }
@@ -77,7 +77,7 @@ func (e blobExtractor) cleanUpFile(filePath string) {
 	if err != nil {
 		e.logger.Error(
 			e.logTag,
-			bosherr.WrapError(err, "Removing: %s", filePath).Error(),
+			bosherr.WrapErrorf(err, "Removing: %s", filePath).Error(),
 		)
 	}
 }

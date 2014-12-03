@@ -73,12 +73,12 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	manifestAbsFilePath, err := filepath.Abs(manifestFilePath)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf("Failed getting absolute path to deployment file `%s'", manifestFilePath))
-		return bosherr.WrapError(err, "Getting absolute path to deployment file `%s'", manifestFilePath)
+		return bosherr.WrapErrorf(err, "Getting absolute path to deployment file `%s'", manifestFilePath)
 	}
 
 	if !c.fs.FileExists(manifestAbsFilePath) {
 		c.ui.Error(fmt.Sprintf("Deployment `%s' does not exist", manifestAbsFilePath))
-		return bosherr.New("Verifying that the deployment `%s' exists", manifestAbsFilePath)
+		return bosherr.Errorf("Verifying that the deployment `%s' exists", manifestAbsFilePath)
 	}
 
 	c.userConfig.DeploymentFile = manifestAbsFilePath

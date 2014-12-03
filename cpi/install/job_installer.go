@@ -54,44 +54,44 @@ func (i jobInstaller) install(job bmrel.Job) (InstalledJob, error) {
 	jobDir := filepath.Join(i.jobsPath, job.Name)
 	err := i.fs.MkdirAll(jobDir, os.ModePerm)
 	if err != nil {
-		return InstalledJob{}, bosherr.WrapError(err, "Creating jobs directory `%s'", jobDir)
+		return InstalledJob{}, bosherr.WrapErrorf(err, "Creating jobs directory `%s'", jobDir)
 	}
 
 	err = i.fs.MkdirAll(i.packagesPath, os.ModePerm)
 	if err != nil {
-		return InstalledJob{}, bosherr.WrapError(err, "Creating packages directory `%s'", i.packagesPath)
+		return InstalledJob{}, bosherr.WrapErrorf(err, "Creating packages directory `%s'", i.packagesPath)
 	}
 
 	for _, pkg := range job.Packages {
 		err = i.packageInstaller.Install(pkg, i.packagesPath)
 		if err != nil {
-			return InstalledJob{}, bosherr.WrapError(err, "Installing package `%s'", pkg.Name)
+			return InstalledJob{}, bosherr.WrapErrorf(err, "Installing package `%s'", pkg.Name)
 		}
 	}
 
 	template, found, err := i.templateRepo.Find(job)
 	if err != nil {
-		return InstalledJob{}, bosherr.WrapError(err, "Finding template for job `%s'", job.Name)
+		return InstalledJob{}, bosherr.WrapErrorf(err, "Finding template for job `%s'", job.Name)
 	}
 	if !found {
-		return InstalledJob{}, bosherr.New("Could not find template for job `%s'", job.Name)
+		return InstalledJob{}, bosherr.Errorf("Could not find template for job `%s'", job.Name)
 	}
 
 	err = i.templateExtractor.Extract(template.BlobID, template.BlobSHA1, jobDir)
 	if err != nil {
-		return InstalledJob{}, bosherr.WrapError(err, "Extracting blob with ID `%s'", template.BlobID)
+		return InstalledJob{}, bosherr.WrapErrorf(err, "Extracting blob with ID `%s'", template.BlobID)
 	}
 
 	binFiles := path.Join(jobDir, "bin", "*")
 	files, err := i.fs.Glob(binFiles)
 	if err != nil {
-		return InstalledJob{}, bosherr.WrapError(err, "Globbing %s", binFiles)
+		return InstalledJob{}, bosherr.WrapErrorf(err, "Globbing %s", binFiles)
 	}
 
 	for _, file := range files {
 		err = i.fs.Chmod(file, os.FileMode(0755))
 		if err != nil {
-			return InstalledJob{}, bosherr.WrapError(err, "Making %s executable", binFiles)
+			return InstalledJob{}, bosherr.WrapErrorf(err, "Making %s executable", binFiles)
 		}
 	}
 

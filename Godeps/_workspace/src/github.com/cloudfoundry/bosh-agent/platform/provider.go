@@ -44,9 +44,9 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options P
 
 	linuxDiskManager := boshdisk.NewLinuxDiskManager(logger, runner, fs, options.Linux.BindMountPersistentDisk)
 
-	udev := boshudev.NewConcreteUdevDevice(runner)
+	udev := boshudev.NewConcreteUdevDevice(runner, logger)
 	linuxCdrom := boshcdrom.NewLinuxCdrom("/dev/sr0", udev, runner)
-	linuxCdutil := boshcdrom.NewCdUtil(dirProvider.SettingsDir(), fs, linuxCdrom)
+	linuxCdutil := boshcdrom.NewCdUtil(dirProvider.SettingsDir(), fs, linuxCdrom, logger)
 
 	compressor := boshcmd.NewTarballCompressor(runner, fs)
 	copier := boshcmd.NewCpCopier(runner, fs, logger)
@@ -110,7 +110,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options P
 func (p provider) Get(name string) (Platform, error) {
 	plat, found := p.platforms[name]
 	if !found {
-		return nil, bosherror.New("Platform %s could not be found", name)
+		return nil, bosherror.Errorf("Platform %s could not be found", name)
 	}
 	return plat, nil
 }

@@ -60,7 +60,7 @@ func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {
 func (p *parser) Parse(path string) (Deployment, CPIDeployment, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
-		return Deployment{}, CPIDeployment{}, bosherr.WrapError(err, "Reading file %s", path)
+		return Deployment{}, CPIDeployment{}, bosherr.WrapErrorf(err, "Reading file %s", path)
 	}
 
 	depManifest := manifest{}

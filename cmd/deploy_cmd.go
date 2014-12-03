@@ -126,19 +126,19 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
 		if c.userConfig.DeploymentFile == "" {
-			return bosherr.New("No deployment set")
+			return bosherr.Error("No deployment set")
 		}
 
 		deploymentFilePath := c.userConfig.DeploymentFile
 
 		c.logger.Info(c.logTag, "Checking for deployment `%s'", deploymentFilePath)
 		if !c.fs.FileExists(deploymentFilePath) {
-			return bosherr.New("Verifying that the deployment `%s' exists", deploymentFilePath)
+			return bosherr.Errorf("Verifying that the deployment `%s' exists", deploymentFilePath)
 		}
 
 		boshDeployment, cpiDeployment, err = c.deploymentParser.Parse(deploymentFilePath)
 		if err != nil {
-			return bosherr.WrapError(err, "Parsing deployment manifest `%s'", deploymentFilePath)
+			return bosherr.WrapErrorf(err, "Parsing deployment manifest `%s'", deploymentFilePath)
 		}
 
 		err = c.boshDeploymentValidator.Validate(boshDeployment)
@@ -154,12 +154,12 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 
 	err = validationStage.PerformStep("Validating cpi release", func() error {
 		if !c.fs.FileExists(releaseTarballPath) {
-			return bosherr.New("Verifying that the CPI release `%s' exists", releaseTarballPath)
+			return bosherr.Errorf("Verifying that the CPI release `%s' exists", releaseTarballPath)
 		}
 
 		cpiRelease, err = c.cpiInstaller.Extract(releaseTarballPath)
 		if err != nil {
-			return bosherr.WrapError(err, "Extracting CPI release `%s'", releaseTarballPath)
+			return bosherr.WrapErrorf(err, "Extracting CPI release `%s'", releaseTarballPath)
 		}
 
 		return nil
@@ -170,13 +170,13 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 
 	err = validationStage.PerformStep("Validating stemcell", func() error {
 		if !c.fs.FileExists(stemcellTarballPath) {
-			return bosherr.New("Verifying that the stemcell `%s' exists", stemcellTarballPath)
+			return bosherr.Errorf("Verifying that the stemcell `%s' exists", stemcellTarballPath)
 		}
 
 		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
 		if err != nil {
 			defer cpiRelease.Delete()
-			return bosherr.WrapError(err, "Extracting stemcell from `%s'", stemcellTarballPath)
+			return bosherr.WrapErrorf(err, "Extracting stemcell from `%s'", stemcellTarballPath)
 		}
 
 		return nil

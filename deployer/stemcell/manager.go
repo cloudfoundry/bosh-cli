@@ -72,13 +72,13 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (cloudStemcell Clo
 
 		cid, err := m.cloud.CreateStemcell(cloudProperties, manifest.ImagePath)
 		if err != nil {
-			return bosherr.WrapError(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
+			return bosherr.WrapErrorf(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
 		}
 
 		stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid)
 		if err != nil {
 			//TODO: delete stemcell from cloud when saving fails
-			return bosherr.WrapError(err, "saving stemcell record in repo (cid=%s, stemcell=%s)", cid, extractedStemcell)
+			return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s)", cid, extractedStemcell)
 		}
 
 		cloudStemcell = NewCloudStemcell(stemcellRecord, m.repo, m.cloud)
