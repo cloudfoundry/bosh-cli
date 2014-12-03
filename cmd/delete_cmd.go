@@ -106,97 +106,90 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.New("No existing microbosh instance to delete")
 	}
 
-	stopAgentStep := deleteStage.NewStep("Stopping agent")
-	stopAgentStep.Start()
-	agentClient := c.agentClientFactory.Create(cpiDeployment.Mbus)
-	err = agentClient.Stop()
+	err = deleteStage.PerformStep("Stopping agent", func() error {
+		agentClient := c.agentClientFactory.Create(cpiDeployment.Mbus)
+		if err := agentClient.Stop(); err != nil {
+			return bosherr.WrapError(err, "Stopping the agent with mbus `%s'", cpiDeployment.Mbus)
+		}
+		return nil
+	})
 	if err != nil {
-		err = bosherr.WrapError(err, "Stopping the agent with mbus `%s'", cpiDeployment.Mbus)
-		stopAgentStep.Fail(err.Error())
 		return err
 	}
-	stopAgentStep.Finish()
 
 	if vmFound {
-		deleteVMStep := deleteStage.NewStep("Deleting VM")
-		deleteVMStep.Start()
-		err = cloud.DeleteVM(vmCID)
+		err = deleteStage.PerformStep("Deleting VM", func() error {
+			if err := cloud.DeleteVM(vmCID); err != nil {
+				return bosherr.WrapError(err, "Deleting deployment VM `%s'", vmCID)
+			}
+			if err = c.vmRepo.ClearCurrent(); err != nil {
+				return bosherr.WrapError(err, "Deleting deployment VM record `%s'", vmCID)
+			}
+			return nil
+		})
 		if err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment VM `%s'", vmCID)
-			deleteVMStep.Fail(err.Error())
 			return err
 		}
-		err = c.vmRepo.ClearCurrent()
-		if err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment VM record `%s'", vmCID)
-			deleteVMStep.Fail(err.Error())
-			return err
-		}
-		deleteVMStep.Finish()
 	}
 
 	if diskFound {
-		deleteDiskStep := deleteStage.NewStep("Deleting disk")
-		deleteDiskStep.Start()
-		err = disk.Delete()
+		err = deleteStage.PerformStep("Deleting disk", func() error {
+			if err := disk.Delete(); err != nil {
+				return bosherr.WrapError(err, "Deleting deployment disk `%s'", disk.CID())
+			}
+			if err = c.diskRepo.ClearCurrent(); err != nil {
+				return bosherr.WrapError(err, "Deleting deployment disk record `%s'", disk.CID())
+			}
+			return nil
+		})
 		if err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment disk `%s'", disk.CID())
-			deleteDiskStep.Fail(err.Error())
 			return err
 		}
-		if err = c.diskRepo.ClearCurrent(); err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment disk record `%s'", disk.CID())
-			deleteDiskStep.Fail(err.Error())
-			return err
-		}
-		deleteDiskStep.Finish()
 	}
 
 	if stemcellFound {
-		deleteStemcellStep := deleteStage.NewStep("Deleting stemcell")
-		deleteStemcellStep.Start()
-		err = stemcell.Delete()
+		err = deleteStage.PerformStep("Deleting stemcell", func() error {
+			if err := stemcell.Delete(); err != nil {
+				return bosherr.WrapError(err, "Deleting deployment stemcell `%s'", stemcell.CID())
+			}
+			if err := c.stemcellRepo.ClearCurrent(); err != nil {
+				return bosherr.WrapError(err, "Deleting deployment stemcell record `%s'", stemcell.CID())
+			}
+			return nil
+		})
 		if err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment stemcell `%s'", stemcell.CID())
-			deleteStemcellStep.Fail(err.Error())
 			return err
 		}
-		if err = c.stemcellRepo.ClearCurrent(); err != nil {
-			err = bosherr.WrapError(err, "Deleting deployment stemcell record `%s'", stemcell.CID())
-			deleteStemcellStep.Fail(err.Error())
-			return err
-		}
-		deleteStemcellStep.Finish()
 	}
 
 	unusedDisks, err := diskManager.FindUnused()
 	if len(unusedDisks) > 0 {
-		deleteDiskStep := deleteStage.NewStep("Deleting orphaned disks")
-		deleteDiskStep.Start()
-		for _, disk := range unusedDisks {
-			err = disk.Delete()
-			if err != nil {
-				err = bosherr.WrapError(err, "Deleting orphaned disk `%s'", disk.CID())
-				deleteDiskStep.Fail(err.Error())
-				return err
+		err = deleteStage.PerformStep("Deleting orphaned disks", func() error {
+			for _, disk := range unusedDisks {
+				if err := disk.Delete(); err != nil {
+					return bosherr.WrapError(err, "Deleting orphaned disk `%s'", disk.CID())
+				}
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
-		deleteDiskStep.Finish()
 	}
 
 	unusedStemcells, err := stemcellManager.FindUnused()
 	if len(unusedStemcells) > 0 {
-		deleteStemcellStep := deleteStage.NewStep("Deleting orphaned stemcells")
-		deleteStemcellStep.Start()
-		for _, stemcell := range unusedStemcells {
-			err = stemcell.Delete()
-			if err != nil {
-				err = bosherr.WrapError(err, "Deleting orphaned stemcell `%s'", stemcell.CID())
-				deleteStemcellStep.Fail(err.Error())
-				return err
+		err = deleteStage.PerformStep("Deleting orphaned stemcells", func() error {
+			for _, stemcell := range unusedStemcells {
+				if err := stemcell.Delete(); err != nil {
+					return bosherr.WrapError(err, "Deleting orphaned stemcell `%s'", stemcell.CID())
+				}
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
-		deleteStemcellStep.Finish()
 	}
 
 	deleteStage.Finish()
@@ -212,50 +205,44 @@ func (c *deleteCmd) validateInputFiles(releaseTarballPath string) (
 	validationStage := c.eventLogger.NewStage("validating")
 	validationStage.Start()
 
-	manifestValidationStep := validationStage.NewStep("Validating deployment manifest")
-	manifestValidationStep.Start()
+	err = validationStage.PerformStep("Validating deployment manifest", func() error {
+		if c.userConfig.DeploymentFile == "" {
+			return bosherr.New("No deployment set")
+		}
 
-	if c.userConfig.DeploymentFile == "" {
-		err = bosherr.New("No deployment set")
-		manifestValidationStep.Fail(err.Error())
-		return cpiDeployment, nil, err
-	}
+		deploymentFilePath := c.userConfig.DeploymentFile
 
-	deploymentFilePath := c.userConfig.DeploymentFile
+		c.logger.Info(c.logTag, "Checking for deployment `%s'", deploymentFilePath)
+		if !c.fs.FileExists(deploymentFilePath) {
+			return bosherr.New("Verifying that the deployment `%s' exists", deploymentFilePath)
+		}
 
-	c.logger.Info(c.logTag, "Checking for deployment `%s'", deploymentFilePath)
-	if !c.fs.FileExists(deploymentFilePath) {
-		err = bosherr.New("Verifying that the deployment `%s' exists", deploymentFilePath)
-		manifestValidationStep.Fail(err.Error())
-		return cpiDeployment, nil, err
-	}
+		_, cpiDeployment, err = c.deploymentParser.Parse(deploymentFilePath)
+		if err != nil {
+			return bosherr.WrapError(err, "Parsing deployment manifest `%s'", deploymentFilePath)
+		}
 
-	_, cpiDeployment, err = c.deploymentParser.Parse(deploymentFilePath)
+		return nil
+	})
 	if err != nil {
-		err = bosherr.WrapError(err, "Parsing deployment manifest `%s'", deploymentFilePath)
-		manifestValidationStep.Fail(err.Error())
 		return cpiDeployment, nil, err
 	}
 
-	manifestValidationStep.Finish()
+	err = validationStage.PerformStep("Validating cpi release", func() error {
+		if !c.fs.FileExists(releaseTarballPath) {
+			return bosherr.New("Verifying that the CPI release `%s' exists", releaseTarballPath)
+		}
 
-	cpiValidationStep := validationStage.NewStep("Validating cpi release")
-	cpiValidationStep.Start()
+		cpiRelease, err = c.cpiInstaller.Extract(releaseTarballPath)
+		if err != nil {
+			return bosherr.WrapError(err, "Extracting CPI release `%s'", releaseTarballPath)
+		}
 
-	if !c.fs.FileExists(releaseTarballPath) {
-		err = bosherr.New("Verifying that the CPI release `%s' exists", releaseTarballPath)
-		cpiValidationStep.Fail(err.Error())
+		return nil
+	})
+	if err != nil {
 		return cpiDeployment, cpiRelease, err
 	}
-
-	cpiRelease, err = c.cpiInstaller.Extract(releaseTarballPath)
-	if err != nil {
-		err = bosherr.WrapError(err, "Extracting CPI release `%s'", releaseTarballPath)
-		cpiValidationStep.Fail(err.Error())
-		return cpiDeployment, cpiRelease, err
-	}
-
-	cpiValidationStep.Finish()
 
 	validationStage.Finish()
 

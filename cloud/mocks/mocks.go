@@ -110,3 +110,13 @@ func (_m *MockCloud) DetachDisk(_param0 string, _param1 string) error {
 func (_mr *_MockCloudRecorder) DetachDisk(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DetachDisk", arg0, arg1)
 }
+
+func (_m *MockCloud) String() string {
+	ret := _m.ctrl.Call(_m, "String")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+func (_mr *_MockCloudRecorder) String() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "String")
+}

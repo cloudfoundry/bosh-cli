@@ -46,7 +46,7 @@ func (m *manager) FindCurrent() (CloudStemcell, bool, error) {
 // Upload stemcell to an IAAS. It does the following steps:
 // 1) uploads the stemcell to the cloud (if needed),
 // 2) saves a record of the uploaded stemcell in the repo
-func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, error) {
+func (m *manager) Upload(extractedStemcell ExtractedStemcell) (cloudStemcell CloudStemcell, err error) {
 	eventLoggerStage := m.eventLogger.NewStage("uploading stemcell")
 	eventLoggerStage.Start()
 
@@ -55,48 +55,40 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (CloudStemcell, er
 	if err != nil {
 		return nil, bosherr.WrapError(err, "finding existing stemcell record in repo")
 	}
-	eventStep := eventLoggerStage.NewStep("Uploading")
+
 	if found {
+		eventStep := eventLoggerStage.NewStep("Uploading")
 		eventStep.Skip("Stemcell already uploaded")
 		cloudStemcell := NewCloudStemcell(foundStemcellRecord, m.repo, m.cloud)
 		eventLoggerStage.Finish()
 		return cloudStemcell, nil
 	}
 
-	eventStep.Start()
-	cloudProperties, err := manifest.CloudProperties()
+	err = eventLoggerStage.PerformStep("Uploading", func() error {
+		cloudProperties, err := manifest.CloudProperties()
+		if err != nil {
+			return bosherr.WrapError(err, "Getting cloud properties from stemcell manifest")
+		}
+
+		cid, err := m.cloud.CreateStemcell(cloudProperties, manifest.ImagePath)
+		if err != nil {
+			return bosherr.WrapError(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
+		}
+
+		stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid)
+		if err != nil {
+			//TODO: delete stemcell from cloud when saving fails
+			return bosherr.WrapError(err, "saving stemcell record in repo (cid=%s, stemcell=%s)", cid, extractedStemcell)
+		}
+
+		cloudStemcell = NewCloudStemcell(stemcellRecord, m.repo, m.cloud)
+		return nil
+	})
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Getting cloud properties from stemcell manifest")
+		return cloudStemcell, err
 	}
 
-	cid, err := m.cloud.CreateStemcell(cloudProperties, manifest.ImagePath)
-	if err != nil {
-		eventStep.Fail(err.Error())
-		return nil, bosherr.WrapError(
-			err,
-			"creating stemcell (cloud=%s, stemcell=%s)",
-			m.cloud,
-			extractedStemcell.Manifest(),
-		)
-	}
-
-	stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid)
-	if err != nil {
-		//TODO: delete stemcell from cloud when saving fails
-		eventStep.Fail(err.Error())
-		return nil, bosherr.WrapError(
-			err,
-			"saving stemcell record in repo (record=%s, stemcell=%s)",
-			cid,
-			manifest,
-		)
-	}
-
-	cloudStemcell := NewCloudStemcell(stemcellRecord, m.repo, m.cloud)
-
-	eventStep.Finish()
 	eventLoggerStage.Finish()
-
 	return cloudStemcell, nil
 }
 

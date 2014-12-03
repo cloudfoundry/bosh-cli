@@ -364,7 +364,7 @@ var _ = Describe("Deployer", func() {
 					bmeventlog.Started,
 					bmeventlog.Failed,
 				},
-				FailMessage: "fake-apply-error",
+				FailMessage: "Updating the vm: fake-apply-error",
 			}))
 		})
 	})
@@ -385,7 +385,7 @@ var _ = Describe("Deployer", func() {
 					bmeventlog.Started,
 					bmeventlog.Failed,
 				},
-				FailMessage: "fake-start-error",
+				FailMessage: "Starting vm: fake-start-error",
 			}))
 		})
 	})
@@ -406,7 +406,7 @@ var _ = Describe("Deployer", func() {
 					bmeventlog.Started,
 					bmeventlog.Failed,
 				},
-				FailMessage: "fake-wait-running-error",
+				FailMessage: "Waiting for 'fake-job-name': fake-wait-running-error",
 			}))
 		})
 	})

@@ -132,7 +132,7 @@ var _ = Describe("ReleaseCompiler", func() {
 						bmeventlog.Started,
 						bmeventlog.Failed,
 					},
-					FailMessage: "Compilation failed",
+					FailMessage: "Package `fake-package-1' compilation failed: Compilation failed",
 				}))
 			})
 

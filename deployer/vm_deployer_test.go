@@ -125,7 +125,7 @@ var _ = Describe("VmDeployer", func() {
 						},
 					},
 					{
-						Name: "Stopping 'fake-job-name'",
+						Name: "Stopping job 'fake-job-name'",
 						States: []bmeventlog.EventState{
 							bmeventlog.Started,
 							bmeventlog.Finished,
@@ -213,12 +213,12 @@ var _ = Describe("VmDeployer", func() {
 						Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 
 						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-							Name: "Stopping 'fake-job-name'",
+							Name: "Stopping job 'fake-job-name'",
 							States: []bmeventlog.EventState{
 								bmeventlog.Started,
 								bmeventlog.Failed,
 							},
-							FailMessage: "Stopping VM: fake-stop-error",
+							FailMessage: "Stopping job 'fake-job-name': fake-stop-error",
 						}))
 					})
 				})

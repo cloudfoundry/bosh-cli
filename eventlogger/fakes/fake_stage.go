@@ -29,6 +29,18 @@ func (s *FakeStage) NewStep(name string) bmeventlog.Step {
 	return fakeStep
 }
 
+func (s *FakeStage) PerformStep(stepName string, stepFunc func() error) error {
+	step := s.NewStep(stepName)
+	step.Start()
+	err := stepFunc()
+	if err != nil {
+		step.Fail(err.Error())
+		return err
+	}
+	step.Finish()
+	return nil
+}
+
 func (s *FakeStage) Name() string {
 	return s.StageName
 }

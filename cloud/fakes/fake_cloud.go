@@ -151,3 +151,7 @@ func (c *FakeCloud) DeleteDisk(diskCID string) error {
 	})
 	return c.DeleteDiskErr
 }
+
+func (c *FakeCloud) String() string {
+	return "FakeCloud{}"
+}

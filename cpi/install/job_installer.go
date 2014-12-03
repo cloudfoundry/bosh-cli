@@ -34,21 +34,18 @@ type jobInstaller struct {
 	timeService       boshtime.Service
 }
 
-func (i jobInstaller) Install(job bmrel.Job) (InstalledJob, error) {
+func (i jobInstaller) Install(job bmrel.Job) (installedJob InstalledJob, err error) {
 	eventLoggerStage := i.eventLogger.NewStage("installing CPI jobs")
 	eventLoggerStage.Start()
 	defer eventLoggerStage.Finish()
 
-	eventStep := eventLoggerStage.NewStep("cpi")
-	eventStep.Start()
-
-	installedJob, err := i.install(job)
+	err = eventLoggerStage.PerformStep("cpi", func() error {
+		installedJob, err = i.install(job)
+		return err
+	})
 	if err != nil {
-		eventStep.Fail(err.Error())
 		return InstalledJob{}, err
 	}
-
-	eventStep.Finish()
 
 	return installedJob, nil
 }

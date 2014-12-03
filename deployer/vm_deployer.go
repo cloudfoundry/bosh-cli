@@ -57,62 +57,57 @@ func (d *vmDeployer) Deploy(
 	stemcell bmstemcell.CloudStemcell,
 	mbusURL string,
 	eventLoggerStage bmeventlog.Stage,
-) (bmvm.VM, error) {
+) (vm bmvm.VM, err error) {
 	vmManager := d.vmManagerFactory.NewManager(cloud, mbusURL)
 
 	jobName := deployment.Jobs[0].Name
-	err := d.deleteExistingVM(vmManager, eventLoggerStage, jobName)
+	err = d.deleteExistingVM(vmManager, eventLoggerStage, jobName)
 	if err != nil {
 		return nil, err
 	}
 
-	eventStep := eventLoggerStage.NewStep(fmt.Sprintf("Creating VM from stemcell '%s'", stemcell.CID()))
-	eventStep.Start()
+	stepName := fmt.Sprintf("Creating VM from stemcell '%s'", stemcell.CID())
+	err = eventLoggerStage.PerformStep(stepName, func() error {
+		vm, err = vmManager.Create(stemcell, deployment)
+		if err != nil {
+			return bosherr.WrapError(err, "Creating VM")
+		}
 
-	vm, err := vmManager.Create(stemcell, deployment)
-	if err != nil {
-		err = bosherr.WrapError(err, "Creating VM")
-		eventStep.Fail(err.Error())
-		return nil, err
-	}
+		if err = stemcell.PromoteAsCurrent(); err != nil {
+			return bosherr.WrapError(err, "Promoting stemcell as current '%s'", stemcell.CID())
+		}
 
-	err = stemcell.PromoteAsCurrent()
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Promoting stemcell as current '%s'", stemcell.CID())
-	}
+		return nil
+	})
 
-	eventStep.Finish()
-
-	return vm, nil
+	return vm, err
 }
 
 func (d *vmDeployer) WaitUntilReady(vm bmvm.VM, sshTunnelOptions bmsshtunnel.Options, eventLoggerStage bmeventlog.Stage) error {
-	eventStep := eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
-	eventStep.Start()
+	stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID())
+	err := eventLoggerStage.PerformStep(stepName, func() error {
+		if !sshTunnelOptions.IsEmpty() {
+			sshTunnel := d.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
+			sshReadyErrCh := make(chan error)
+			sshErrCh := make(chan error)
+			go sshTunnel.Start(sshReadyErrCh, sshErrCh)
+			defer sshTunnel.Stop()
 
-	if !sshTunnelOptions.IsEmpty() {
-		sshTunnel := d.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
-		sshReadyErrCh := make(chan error)
-		sshErrCh := make(chan error)
-		go sshTunnel.Start(sshReadyErrCh, sshErrCh)
-		defer sshTunnel.Stop()
-
-		err := <-sshReadyErrCh
-		if err != nil {
-			return bosherr.WrapError(err, "Starting SSH tunnel")
+			err := <-sshReadyErrCh
+			if err != nil {
+				return bosherr.WrapError(err, "Starting SSH tunnel")
+			}
 		}
-	}
 
-	err := vm.WaitToBeReady(10*time.Minute, 500*time.Millisecond)
-	if err != nil {
-		err = bosherr.WrapError(err, "Waiting for the vm to be ready")
-		eventStep.Fail(err.Error())
-		return err
-	}
+		err := vm.WaitToBeReady(10*time.Minute, 500*time.Millisecond)
+		if err != nil {
+			return bosherr.WrapError(err, "Waiting for the vm to be ready")
+		}
 
-	eventStep.Finish()
+		return nil
+	})
 
-	return nil
+	return err
 }
 
 func (d *vmDeployer) deleteExistingVM(vmManager bmvm.Manager, eventLoggerStage bmeventlog.Stage, jobName string) error {
@@ -122,56 +117,65 @@ func (d *vmDeployer) deleteExistingVM(vmManager bmvm.Manager, eventLoggerStage b
 	}
 
 	if found {
-		waitingForAgentStep := eventLoggerStage.NewStep(fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID()))
-		waitingForAgentStep.Start()
-
-		err = vm.WaitToBeReady(10*time.Second, 500*time.Millisecond)
-		if err != nil {
-			err = bosherr.WrapError(err, "Agent unreachable")
-			waitingForAgentStep.Fail(err.Error())
-		} else {
-			waitingForAgentStep.Finish()
-
-			stopVMStep := eventLoggerStage.NewStep(fmt.Sprintf("Stopping '%s'", jobName))
-			stopVMStep.Start()
-			err = vm.Stop()
-			if err != nil {
-				err = bosherr.WrapError(err, "Stopping VM")
-				stopVMStep.Fail(err.Error())
+		stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", vm.CID())
+		waitingForAgentErr := eventLoggerStage.PerformStep(stepName, func() error {
+			if err = vm.WaitToBeReady(10*time.Second, 500*time.Millisecond); err != nil {
+				return bosherr.WrapError(err, "Agent unreachable")
+			}
+			return nil
+		})
+		// if agent responds, delete vm, otherwise continue
+		if waitingForAgentErr == nil {
+			if err = d.shutDownJob(jobName, vm, eventLoggerStage); err != nil {
 				return err
 			}
-			stopVMStep.Finish()
-
-			disks, err := vm.Disks()
-			if err != nil {
-				return bosherr.WrapError(err, "Getting VM '%s' disks", vm.CID())
-			}
-
-			for _, disk := range disks {
-				unmountDiskStep := eventLoggerStage.NewStep(fmt.Sprintf("Unmounting disk '%s'", disk.CID()))
-				unmountDiskStep.Start()
-				err = vm.UnmountDisk(disk)
-				if err != nil {
-					err = bosherr.WrapError(err, "Unmounting disk '%s' from VM '%s'", disk.CID(), vm.CID())
-					unmountDiskStep.Fail(err.Error())
-					return err
-				}
-				unmountDiskStep.Finish()
-			}
 		}
 
-		deleteVMStep := eventLoggerStage.NewStep(fmt.Sprintf("Deleting VM '%s'", vm.CID()))
-		deleteVMStep.Start()
+		stepName = fmt.Sprintf("Deleting VM '%s'", vm.CID())
+		err = eventLoggerStage.PerformStep(stepName, func() error {
+			if err = vm.Delete(); err != nil {
+				return bosherr.WrapError(err, "Deleting VM")
+			}
 
-		err = vm.Delete()
+			return nil
+		})
 		if err != nil {
-			err = bosherr.WrapError(err, "Deleting VM")
-			deleteVMStep.Fail(err.Error())
 			return err
 		}
-
-		deleteVMStep.Finish()
 	}
 
+	return nil
+}
+
+func (d *vmDeployer) shutDownJob(jobName string, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error {
+	stepNAme := fmt.Sprintf("Stopping job '%s'", jobName)
+	err := eventLoggerStage.PerformStep(stepNAme, func() error {
+		err := vm.Stop()
+		if err != nil {
+			return bosherr.WrapError(err, "Stopping job '%s'", jobName)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	disks, err := vm.Disks()
+	if err != nil {
+		return bosherr.WrapError(err, "Getting VM '%s' disks", vm.CID())
+	}
+
+	for _, disk := range disks {
+		stepName := fmt.Sprintf("Unmounting disk '%s'", disk.CID())
+		err = eventLoggerStage.PerformStep(stepName, func() error {
+			if err = vm.UnmountDisk(disk); err != nil {
+				return bosherr.WrapError(err, "Unmounting disk '%s' from VM '%s'", disk.CID(), vm.CID())
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

@@ -144,42 +144,36 @@ func (m *deployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error
 }
 
 func (m *deployer) startVM(vm bmvm.VM, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment, jobName string) error {
-	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Starting '%s'", jobName))
-	eventStep.Start()
+	err := m.eventLoggerStage.PerformStep(fmt.Sprintf("Starting '%s'", jobName), func() error {
+		err := vm.Apply(stemcellApplySpec, deployment)
+		if err != nil {
+			return bosherr.WrapError(err, "Updating the vm")
+		}
 
-	err := vm.Apply(stemcellApplySpec, deployment)
-	if err != nil {
-		eventStep.Fail(err.Error())
-		return bosherr.WrapError(err, "Updating the vm")
-	}
+		err = vm.Start()
+		if err != nil {
+			return bosherr.WrapError(err, "Starting vm")
+		}
 
-	err = vm.Start()
-	if err != nil {
-		eventStep.Fail(err.Error())
-		return bosherr.WrapError(err, "Starting vm")
-	}
+		return nil
+	})
 
-	eventStep.Finish()
-
-	return nil
+	return err
 }
 
 func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime, jobName string) error {
-	eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Waiting for '%s'", jobName))
-	eventStep.Start()
+	err := m.eventLoggerStage.PerformStep(fmt.Sprintf("Waiting for '%s'", jobName), func() error {
+		time.Sleep(time.Duration(updateWatchTime.Start) * time.Millisecond)
+		numAttempts := int((updateWatchTime.End - updateWatchTime.Start) / 1000)
 
-	time.Sleep(time.Duration(updateWatchTime.Start) * time.Millisecond)
-	numAttempts := int((updateWatchTime.End - updateWatchTime.Start) / 1000)
+		if err := vm.WaitToBeRunning(numAttempts, 1*time.Second); err != nil {
+			return bosherr.WrapError(err, fmt.Sprintf("Waiting for '%s'", jobName))
+		}
 
-	err := vm.WaitToBeRunning(numAttempts, 1*time.Second)
-	if err != nil {
-		eventStep.Fail(err.Error())
-		return bosherr.WrapError(err, fmt.Sprintf("Waiting for '%s'", jobName))
-	}
+		return nil
+	})
 
-	eventStep.Finish()
-
-	return nil
+	return err
 }
 
 func (m *deployer) deleteUnusedStemcells(stemcellManager bmstemcell.Manager) error {
@@ -189,16 +183,15 @@ func (m *deployer) deleteUnusedStemcells(stemcellManager bmstemcell.Manager) err
 	}
 
 	for _, stemcell := range stemcells {
-		eventStep := m.eventLoggerStage.NewStep(fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID()))
-		eventStep.Start()
-
-		err = stemcell.Delete()
+		err = m.eventLoggerStage.PerformStep(fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID()), func() error {
+			if err = stemcell.Delete(); err != nil {
+				return bosherr.WrapError(err, "Deleting unused stemcell '%s'", stemcell.CID())
+			}
+			return nil
+		})
 		if err != nil {
-			err = bosherr.WrapError(err, "Deleting unused stemcell '%s'", stemcell.CID())
-			eventStep.Fail(err.Error())
 			return err
 		}
-		eventStep.Finish()
 	}
 
 	return nil

@@ -153,7 +153,7 @@ var _ = Describe("Manager", func() {
 					bmeventlog.Started,
 					bmeventlog.Failed,
 				},
-				FailMessage: "fake-create-error",
+				FailMessage: "creating stemcell (fake-stemcell-name fake-stemcell-version): fake-create-error",
 			}))
 		})
 

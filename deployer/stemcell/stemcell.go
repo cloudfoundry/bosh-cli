@@ -1,6 +1,8 @@
 package stemcell
 
 import (
+	"fmt"
+
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
 )
@@ -9,6 +11,7 @@ type ExtractedStemcell interface {
 	Manifest() Manifest
 	ApplySpec() ApplySpec
 	Delete() error
+	fmt.Stringer
 }
 
 type extractedStemcell struct {
@@ -38,6 +41,10 @@ func (s *extractedStemcell) ApplySpec() ApplySpec { return s.applySpec }
 
 func (s *extractedStemcell) Delete() error {
 	return s.fs.RemoveAll(s.extractedPath)
+}
+
+func (s *extractedStemcell) String() string {
+	return fmt.Sprintf("ExtractedStemcell{name=%s version=%s}", s.manifest.Name, s.manifest.Version)
 }
 
 type Manifest struct {

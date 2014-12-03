@@ -413,7 +413,7 @@ var _ = Describe("DiskDeployer", func() {
 						bmeventlog.Started,
 						bmeventlog.Failed,
 					},
-					FailMessage: "fake-create-disk-error",
+					FailMessage: "Creating new disk: fake-create-disk-error",
 				}))
 			})
 		})

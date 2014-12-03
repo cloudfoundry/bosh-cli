@@ -46,17 +46,19 @@ func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
 	}
 
 	for _, pkg := range packages {
-		eventStep := eventLoggerStage.NewStep(fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint))
-		eventStep.Start()
+		stepName := fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint)
+		err := eventLoggerStage.PerformStep(stepName, func() error {
+			err = c.packageCompiler.Compile(pkg)
 
-		err = c.packageCompiler.Compile(pkg)
+			if err != nil {
+				return bosherr.WrapError(err, fmt.Sprintf("Package `%s' compilation failed", pkg.Name))
+			}
 
+			return nil
+		})
 		if err != nil {
-			eventStep.Fail(err.Error())
-			return bosherr.WrapError(err, fmt.Sprintf("Package `%s' compilation failed", pkg.Name))
+			return err
 		}
-
-		eventStep.Finish()
 	}
 
 	return nil

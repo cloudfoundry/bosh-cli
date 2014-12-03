@@ -1,6 +1,7 @@
 package cloud
 
 import (
+	"fmt"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
@@ -19,6 +20,7 @@ type Cloud interface {
 	AttachDisk(vmCID, diskCID string) error
 	DetachDisk(vmCID, diskCID string) error
 	DeleteDisk(diskCID string) error
+	fmt.Stringer
 }
 
 type cloud struct {
@@ -172,4 +174,8 @@ func (c cloud) DeleteDisk(diskCID string) error {
 	}
 
 	return nil
+}
+
+func (c cloud) String() string {
+	return fmt.Sprintf("Cloud{deploymentUUID=%s}", c.deploymentUUID)
 }
