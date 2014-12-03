@@ -66,6 +66,14 @@ var _ = Describe("cmd.Factory", func() {
 				Expect(cmd.Name()).To(Equal("deploy"))
 			})
 		})
+
+		Describe("delete command", func() {
+			It("returns delete command", func() {
+				cmd, err := factory.CreateCommand("delete")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cmd.Name()).To(Equal("delete"))
+			})
+		})
 	})
 
 	Context("unknown command name", func() {

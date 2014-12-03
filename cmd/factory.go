@@ -78,6 +78,7 @@ func NewFactory(
 	f.commands = map[string](func() (Cmd, error)){
 		"deployment": f.createDeploymentCmd,
 		"deploy":     f.createDeployCmd,
+		"delete":     f.createDeleteCmd,
 	}
 	return f
 }
@@ -104,79 +105,20 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 
 func (f *factory) createDeployCmd() (Cmd, error) {
 	runner := boshsys.NewExecCmdRunner(f.logger)
-	extractor := boshcmd.NewTarballCompressor(runner, f.fs)
-
-	boshValidator := bmrelvalidation.NewBoshValidator(f.fs)
-	cpiReleaseValidator := bmrelvalidation.NewCpiValidator()
-	releaseValidator := bmrelvalidation.NewValidator(
-		boshValidator,
-		cpiReleaseValidator,
-		f.ui,
-	)
 
 	compressor := boshcmd.NewTarballCompressor(runner, f.fs)
-	indexFilePath := f.deploymentWorkspace.CompiledPackagedIndexPath()
-	compiledPackageIndex := bmindex.NewFileIndex(indexFilePath, f.fs)
-	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(compiledPackageIndex)
 
-	options := map[string]interface{}{"blobstore_path": f.deploymentWorkspace.BlobstorePath()}
-	blobstore := boshblob.NewSHA1VerifiableBlobstore(
-		boshblob.NewLocalBlobstore(f.fs, f.uuidGenerator, options),
-	)
-	blobExtractor := bmcpiinstall.NewBlobExtractor(f.fs, compressor, blobstore, f.logger)
-	packageInstaller := bmcpiinstall.NewPackageInstaller(compiledPackageRepo, blobExtractor)
-	packageCompiler := bmcomp.NewPackageCompiler(
-		runner,
-		f.deploymentWorkspace.PackagesPath(),
-		f.fs,
-		compressor,
-		blobstore,
-		compiledPackageRepo,
-		packageInstaller,
-	)
 	timeService := boshtime.NewConcreteService()
 	eventFilters := []bmeventlog.EventFilter{
 		bmeventlog.NewTimeFilter(timeService),
 	}
 	eventLogger := bmeventlog.NewEventLoggerWithFilters(f.ui, eventFilters)
 
-	da := bmcomp.NewDependencyAnalysis()
-	releasePackagesCompiler := bmcomp.NewReleasePackagesCompiler(
-		da,
-		packageCompiler,
-		eventLogger,
-		timeService,
-	)
-
 	deploymentParser := bmdepl.NewParser(f.fs, f.logger)
 	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
 	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
 	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
-	templatesIndex := bmindex.NewFileIndex(f.deploymentWorkspace.TemplatesIndexPath(), f.fs)
-	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
-	templatesCompiler := bmtempcomp.NewTemplatesCompiler(jobRenderer, compressor, blobstore, templatesRepo, f.fs, f.logger)
-	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
-	jobInstaller := bmcpiinstall.NewJobInstaller(
-		f.fs,
-		packageInstaller,
-		blobExtractor,
-		templatesRepo,
-		f.deploymentWorkspace.JobsPath(),
-		f.deploymentWorkspace.PackagesPath(),
-		eventLogger,
-		timeService,
-	)
-	cloudFactory := bmcloud.NewFactory(f.fs, runner, f.deploymentWorkspace, f.logger)
-	cpiInstaller := bmcpi.NewInstaller(
-		f.ui,
-		f.fs,
-		extractor,
-		releaseValidator,
-		releaseCompiler,
-		jobInstaller,
-		cloudFactory,
-		f.logger,
-	)
+	cpiInstaller := f.newCPIInstaller(eventLogger, timeService)
 	stemcellReader := bmstemcell.NewReader(compressor, f.fs)
 	stemcellRepo := bmconfig.NewStemcellRepo(f.deploymentConfigService, f.uuidGenerator)
 	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)
@@ -244,6 +186,37 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	), nil
 }
 
+func (f *factory) createDeleteCmd() (Cmd, error) {
+	timeService := boshtime.NewConcreteService()
+	eventFilters := []bmeventlog.EventFilter{
+		bmeventlog.NewTimeFilter(timeService),
+	}
+	eventLogger := bmeventlog.NewEventLoggerWithFilters(f.ui, eventFilters)
+
+	deploymentParser := bmdepl.NewParser(f.fs, f.logger)
+	cpiInstaller := f.newCPIInstaller(eventLogger, timeService)
+
+	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
+
+	vmRepo := bmconfig.NewVMRepo(f.deploymentConfigService)
+	diskRepo := bmconfig.NewDiskRepo(f.deploymentConfigService, f.uuidGenerator)
+	stemcellRepo := bmconfig.NewStemcellRepo(f.deploymentConfigService, f.uuidGenerator)
+
+	return NewDeleteCmd(
+		f.ui,
+		f.userConfig,
+		f.fs,
+		deploymentParser,
+		cpiInstaller,
+		vmRepo,
+		diskRepo,
+		stemcellRepo,
+		agentClientFactory,
+		eventLogger,
+		f.logger,
+	), nil
+}
+
 func (f *factory) loadDeploymentConfig() error {
 	f.deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(
 		f.userConfig.DeploymentConfigFilePath(),
@@ -257,4 +230,74 @@ func (f *factory) loadDeploymentConfig() error {
 	}
 	f.deploymentWorkspace = bmconfig.NewDeploymentWorkspace(f.workspace, f.deploymentFile.UUID)
 	return nil
+}
+
+func (f *factory) newCPIInstaller(eventLogger bmeventlog.EventLogger, timeService boshtime.Service) bmcpi.Installer {
+	runner := boshsys.NewExecCmdRunner(f.logger)
+	extractor := boshcmd.NewTarballCompressor(runner, f.fs)
+
+	boshValidator := bmrelvalidation.NewBoshValidator(f.fs)
+	cpiReleaseValidator := bmrelvalidation.NewCpiValidator()
+	releaseValidator := bmrelvalidation.NewValidator(
+		boshValidator,
+		cpiReleaseValidator,
+		f.ui,
+	)
+
+	compressor := boshcmd.NewTarballCompressor(runner, f.fs)
+	indexFilePath := f.deploymentWorkspace.CompiledPackagedIndexPath()
+	compiledPackageIndex := bmindex.NewFileIndex(indexFilePath, f.fs)
+	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(compiledPackageIndex)
+
+	options := map[string]interface{}{"blobstore_path": f.deploymentWorkspace.BlobstorePath()}
+	blobstore := boshblob.NewSHA1VerifiableBlobstore(
+		boshblob.NewLocalBlobstore(f.fs, f.uuidGenerator, options),
+	)
+	blobExtractor := bmcpiinstall.NewBlobExtractor(f.fs, compressor, blobstore, f.logger)
+	packageInstaller := bmcpiinstall.NewPackageInstaller(compiledPackageRepo, blobExtractor)
+	packageCompiler := bmcomp.NewPackageCompiler(
+		runner,
+		f.deploymentWorkspace.PackagesPath(),
+		f.fs,
+		compressor,
+		blobstore,
+		compiledPackageRepo,
+		packageInstaller,
+	)
+
+	da := bmcomp.NewDependencyAnalysis()
+	releasePackagesCompiler := bmcomp.NewReleasePackagesCompiler(
+		da,
+		packageCompiler,
+		eventLogger,
+		timeService,
+	)
+
+	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
+	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
+	templatesIndex := bmindex.NewFileIndex(f.deploymentWorkspace.TemplatesIndexPath(), f.fs)
+	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
+	templatesCompiler := bmtempcomp.NewTemplatesCompiler(jobRenderer, compressor, blobstore, templatesRepo, f.fs, f.logger)
+	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
+	jobInstaller := bmcpiinstall.NewJobInstaller(
+		f.fs,
+		packageInstaller,
+		blobExtractor,
+		templatesRepo,
+		f.deploymentWorkspace.JobsPath(),
+		f.deploymentWorkspace.PackagesPath(),
+		eventLogger,
+		timeService,
+	)
+	cloudFactory := bmcloud.NewFactory(f.fs, runner, f.deploymentWorkspace, f.logger)
+	return bmcpi.NewInstaller(
+		f.ui,
+		f.fs,
+		extractor,
+		releaseValidator,
+		releaseCompiler,
+		jobInstaller,
+		cloudFactory,
+		f.logger,
+	)
 }

@@ -154,7 +154,18 @@ var _ = Describe("bosh-micro", func() {
 		Expect(stdout).To(ContainSubstring("Deleting unused disk"))
 	}
 
-	It("is able to deploy a CPI release with a stemcell", func() {
+	ItDeletesEverything := func() {
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpiRelease"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+
+		Expect(stdout).To(ContainSubstring("Stopping agent"))
+		Expect(stdout).To(ContainSubstring("Deleting VM"))
+		Expect(stdout).To(ContainSubstring("Deleting disk"))
+		Expect(stdout).To(ContainSubstring("Deleting stemcell"))
+	}
+
+	It("can set deployment, deploy, update, and delete", func() {
 		manifestPath := "./manifest.yml"
 		manifestContents, err := ioutil.ReadFile(manifestPath)
 		Expect(err).ToNot(HaveOccurred())
@@ -199,6 +210,8 @@ var _ = Describe("bosh-micro", func() {
 		ItDeletesVMOnUpdate()
 
 		ItMigratesDisk()
+
+		ItDeletesEverything()
 	})
 
 	It("deploys without registry and ssh tunnel", func() {
