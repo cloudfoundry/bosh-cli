@@ -129,7 +129,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(exitCode).To(Equal(0))
 
 		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Stopping 'bosh'"))
+		Expect(stdout).To(ContainSubstring("Stopping job 'bosh'"))
 		Expect(stdout).To(ContainSubstring("Unmounting disk"))
 
 		Expect(stdout).ToNot(ContainSubstring("Creating disk"))
@@ -146,7 +146,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(exitCode).To(Equal(0))
 
 		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Stopping 'bosh'"))
+		Expect(stdout).To(ContainSubstring("Stopping job 'bosh'"))
 		Expect(stdout).To(ContainSubstring("Unmounting disk"))
 
 		Expect(stdout).To(ContainSubstring("Creating disk"))
