@@ -3,14 +3,13 @@
 
 goVetParams=-printfuncs=WrapError:1,WrapErrorf:1
 
+result=0
+
 bin=$(dirname $0)
 
-anyFailed=0
 while IFS= read -r line ; do
   $line
-  if [ $? -ne 0 ]; then anyFailed=1; fi
+  let "result+=$?"
 done < <($bin/go vet -n github.com/cloudfoundry/bosh-micro-cli/... | sed -e "s/\/vet /\/vet $goVetParams /")
 
-if [ $anyFailed -ne 0 ]; then
-  exit 1
-fi
+exit $result
