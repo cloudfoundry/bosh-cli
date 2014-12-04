@@ -52,10 +52,12 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			mockAgentClient        *mock_agentclient.MockAgentClient
 			mockAgentClientFactory *mock_agentclient.MockFactory
 			mockCloud              *mock_cloud.MockCloud
+			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
+			deploymentConfigPath   = "/fake-bosh-deployments.json"
 		)
 
 		var writeDeploymentManifest = func() {
-			fs.WriteFileString("/deployment-dir/fake-deployment-manifest.yml", `---
+			fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
 
 cloud_provider:
@@ -108,7 +110,7 @@ cloud_provider:
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
-			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService("/fake-bosh-deployments.json", fs, logger)
+			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, logger)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 
 			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
@@ -124,9 +126,7 @@ cloud_provider:
 			mockAgentClientFactory = mock_agentclient.NewMockFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			userConfig = bmconfig.UserConfig{
-				DeploymentFile: "/deployment-dir/fake-deployment-manifest.yml",
-			}
+			userConfig = bmconfig.UserConfig{DeploymentFile: deploymentManifestPath}
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -143,6 +143,30 @@ cloud_provider:
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("No deployment set"))
+			})
+		})
+
+		Context("when the deployment config file does not exist", func() {
+			BeforeEach(func() {
+				err := fs.RemoveAll(deploymentConfigPath)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("does not delete anything", func() {
+				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(ui.Said).To(Equal([]string{
+					"Started validating",
+					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+					"Started validating > Validating cpi release...", " done. (00:00:00)",
+					"Done validating",
+					"",
+					// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
+					"Started deleting deployment",
+					"Done deleting deployment",
+					"",
+				}))
 			})
 		})
 
@@ -240,6 +264,41 @@ cloud_provider:
 				stemcellRecords, err := stemcellRepo.All()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(stemcellRecords).To(BeEmpty(), "expected no stemcell records")
+			})
+
+			Context("and delete previously suceeded", func() {
+				BeforeEach(func() {
+					gomock.InOrder(
+						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+						mockAgentClient.EXPECT().Stop(),
+						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
+						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
+					)
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+
+					// reset ui output
+					ui.Said = []string{}
+				})
+
+				It("does not delete anything", func() {
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(ui.Said).To(Equal([]string{
+						"Started validating",
+						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+						"Started validating > Validating cpi release...", " done. (00:00:00)",
+						"Done validating",
+						"",
+						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
+						"Started deleting deployment",
+						"Done deleting deployment",
+						"",
+					}))
+				})
 			})
 
 			Context("and orphan disks exist", func() {
