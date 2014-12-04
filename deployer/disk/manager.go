@@ -47,7 +47,7 @@ func (m *manager) Create(diskPool bmdepl.DiskPool, vmCID string) (Disk, error) {
 	if err != nil {
 		return nil,
 			bosherr.WrapErrorf(err,
-				"Creating disk with size %s, cloudProperties %#v, instanceID %s",
+				"Creating disk with size %d, cloudProperties %#v, instanceID %s",
 				diskPool.DiskSize, diskCloudProperties, vmCID,
 			)
 	}
