@@ -8,7 +8,7 @@ import (
 )
 
 type Factory interface {
-	Create(string) AgentClient
+	Create(mbusURL string) AgentClient
 }
 
 type agentClientFactory struct {

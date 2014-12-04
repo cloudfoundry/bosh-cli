@@ -13,7 +13,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
@@ -40,7 +40,7 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			fs                      boshsys.FileSystem
 			logger                  boshlog.Logger
 			fakeCPIInstaller        *fakebmcpi.FakeInstaller
-			uuidGenerator           boshuuid.Generator
+			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			deploymentConfigService bmconfig.DeploymentConfigService
 			vmRepo                  bmconfig.VMRepo
 			diskRepo                bmconfig.DiskRepo
@@ -109,11 +109,11 @@ cloud_provider:
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService("/fake-bosh-deployments.json", fs, logger)
-			uuidGenerator = boshuuid.Generator(nil)
+			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 
 			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, uuidGenerator)
-			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, uuidGenerator)
+			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeUUIDGenerator)
+			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
@@ -146,7 +146,7 @@ cloud_provider:
 			})
 		})
 
-		Context("when microbosh has been deployed", func() {
+		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
 				deploymentConfigService.Save(bmconfig.DeploymentFile{
@@ -195,7 +195,7 @@ cloud_provider:
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Said).To(ConsistOf(
+				Expect(ui.Said).To(Equal([]string{
 					"Started validating",
 					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 					"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -204,12 +204,12 @@ cloud_provider:
 					// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
 					"Started deleting deployment",
 					"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
-					"Started deleting deployment > Deleting VM...", " done. (00:00:00)",
-					"Started deleting deployment > Deleting disk...", " done. (00:00:00)",
-					"Started deleting deployment > Deleting stemcell...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting current VM `fake-vm-cid'...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting current disk `fake-disk-cid'...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting current stemcell `fake-stemcell-cid'...", " done. (00:00:00)",
 					"Done deleting deployment",
 					"",
-				))
+				}))
 			})
 
 			It("clears current vm, disk and stemcell", func() {
@@ -244,16 +244,7 @@ cloud_provider:
 
 			Context("and orphan disks exist", func() {
 				BeforeEach(func() {
-					deploymentFile, err := deploymentConfigService.Load()
-					Expect(err).ToNot(HaveOccurred())
-
-					deploymentFile.Disks = append(deploymentFile.Disks, bmconfig.DiskRecord{
-						ID:   "fake-disk-guid-2",
-						CID:  "fake-disk-cid-2",
-						Size: 1000,
-					})
-
-					err = deploymentConfigService.Save(deploymentFile)
+					_, err := diskRepo.Save("orphan-disk-cid-2", 100, nil)
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -266,7 +257,7 @@ cloud_provider:
 						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
 					)
 
-					mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
+					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid-2")
 
 					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 					Expect(err).ToNot(HaveOccurred())
@@ -285,12 +276,12 @@ cloud_provider:
 						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
 					)
 
-					mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
+					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid-2")
 
 					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Said).To(ConsistOf(
+					Expect(ui.Said).To(Equal([]string{
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 						"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -299,27 +290,19 @@ cloud_provider:
 						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
 						"Started deleting deployment",
 						"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting VM...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting disk...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting stemcell...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned disks...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting current VM `fake-vm-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting current disk `fake-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting current stemcell `fake-stemcell-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned disk `orphan-disk-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
 						"",
-					))
+					}))
 				})
 			})
 
 			Context("and orphan stemcells exist", func() {
 				BeforeEach(func() {
-					deploymentFile, err := deploymentConfigService.Load()
-					Expect(err).ToNot(HaveOccurred())
-
-					deploymentFile.Stemcells = append(deploymentFile.Stemcells, bmconfig.StemcellRecord{
-						ID:  "fake-stemcell-guid-2",
-						CID: "fake-stemcell-cid-2",
-					})
-
-					err = deploymentConfigService.Save(deploymentFile)
+					_, err := stemcellRepo.Save("orphan-stemcell-name-2", "orphan-stemcell-version-2", "orphan-stemcell-cid-2")
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -332,7 +315,7 @@ cloud_provider:
 						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
 					)
 
-					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid-2")
+					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid-2")
 
 					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 					Expect(err).ToNot(HaveOccurred())
@@ -351,57 +334,88 @@ cloud_provider:
 						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
 					)
 
-					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid-2")
+					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid-2")
 
 					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Said).To(ConsistOf(
+					Expect(ui.Said).To(Equal([]string{
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 						"Started validating > Validating cpi release...", " done. (00:00:00)",
 						"Done validating",
 						"",
-						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
+						// if cpiInstaller were not mocked, it would print the compilation and installation stages here.
 						"Started deleting deployment",
 						"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting VM...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting disk...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting stemcell...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned stemcells...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting current VM `fake-vm-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting current disk `fake-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting current stemcell `fake-stemcell-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned stemcell `orphan-stemcell-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
 						"",
-					))
+					}))
 				})
 			})
 		})
 
-		Context("when microbosh has not been deployed", func() {
+		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{
-					UUID:              "",
-					CurrentVMCID:      "",
-					CurrentStemcellID: "",
-					CurrentDiskID:     "",
-				})
+				deploymentConfigService.Save(bmconfig.DeploymentFile{})
 			})
 
 			It("returns an error", func() {
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("No existing microbosh instance to delete"))
-				Expect(ui.Errors).To(ContainElement("No existing microbosh instance to delete"))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ui.Errors).To(BeEmpty())
+			})
+
+			Context("when there are orphans", func() {
+				BeforeEach(func() {
+					diskRepo.Save("orphan-disk-cid", 1, nil)
+					stemcellRepo.Save("orphan-stemcell-name", "orphan-stemcell-version", "orphan-stemcell-cid")
+					stemcellRepo.Save("orphan-stemcell-name", "orphan-stemcell-version-2", "orphan-stemcell-cid-2")
+				})
+
+				It("deletes the orphans", func() {
+					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid")
+					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid")
+					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid-2")
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).NotTo(HaveOccurred())
+
+					diskRecords, err := diskRepo.All()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(diskRecords).To(BeEmpty(), "expected no disk records")
+
+					stemcellRecords, err := stemcellRepo.All()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(stemcellRecords).To(BeEmpty(), "expected no stemcell records")
+
+					Expect(ui.Errors).To(BeEmpty())
+					Expect(ui.Said).To(Equal([]string{
+						"Started validating",
+						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+						"Started validating > Validating cpi release...", " done. (00:00:00)",
+						"Done validating",
+						"",
+						// if cpiInstaller were not mocked, it would print the compilation and installation stages here.
+						"Started deleting deployment",
+						"Started deleting deployment > Deleting orphaned disk `orphan-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned stemcell `orphan-stemcell-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned stemcell `orphan-stemcell-cid-2'...", " done. (00:00:00)",
+						"Done deleting deployment",
+						"",
+					}))
+				})
 			})
 		})
 
 		Context("when VM has been deployed", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{
-					UUID:              "",
-					CurrentVMCID:      "fake-vm-cid",
-					CurrentStemcellID: "",
-					CurrentDiskID:     "",
-				})
+				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				vmRepo.UpdateCurrent("fake-vm-cid")
 			})
 
 			It("stops the agent and deletes the VM", func() {
@@ -418,27 +432,14 @@ cloud_provider:
 
 		Context("when a current disk exists", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{
-					UUID:              "",
-					CurrentVMCID:      "",
-					CurrentStemcellID: "",
-					CurrentDiskID:     "fake-disk-guid",
-					Disks: []bmconfig.DiskRecord{
-						{
-							ID:   "fake-disk-guid",
-							CID:  "fake-disk-cid",
-							Size: 100,
-						},
-					},
-				})
+				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				diskRecord, err := diskRepo.Save("fake-disk-cid", 100, nil)
+				Expect(err).ToNot(HaveOccurred())
+				diskRepo.UpdateCurrent(diskRecord.ID)
 			})
 
-			It("stops the agent and deletes the VM", func() {
-				gomock.InOrder(
-					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-					mockAgentClient.EXPECT().Stop(),
-					mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
-				)
+			It("deletes the disk", func() {
+				mockCloud.EXPECT().DeleteDisk("fake-disk-cid")
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
@@ -447,26 +448,14 @@ cloud_provider:
 
 		Context("when a current stemcell exists", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{
-					UUID:              "",
-					CurrentVMCID:      "",
-					CurrentStemcellID: "fake-stemcell-guid",
-					CurrentDiskID:     "",
-					Stemcells: []bmconfig.StemcellRecord{
-						{
-							ID:  "fake-stemcell-guid",
-							CID: "fake-stemcell-cid",
-						},
-					},
-				})
+				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
+				Expect(err).ToNot(HaveOccurred())
+				stemcellRepo.UpdateCurrent(stemcellRecord.ID)
 			})
 
-			It("stops the agent and deletes the VM", func() {
-				gomock.InOrder(
-					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-					mockAgentClient.EXPECT().Stop(),
-					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
-				)
+			It("deletes the stemcell", func() {
+				mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid")
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())

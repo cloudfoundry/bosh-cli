@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
@@ -101,95 +103,34 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Finding current deployment stemcell")
 	}
 
-	if !vmFound && !diskFound && !stemcellFound {
-		c.ui.Error("No existing microbosh instance to delete")
-		return bosherr.Error("No existing microbosh instance to delete")
-	}
-
-	err = deleteStage.PerformStep("Stopping agent", func() error {
-		agentClient := c.agentClientFactory.Create(cpiDeployment.Mbus)
-		if err := agentClient.Stop(); err != nil {
-			return bosherr.WrapErrorf(err, "Stopping the agent with mbus `%s'", cpiDeployment.Mbus)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
 	if vmFound {
-		err = deleteStage.PerformStep("Deleting VM", func() error {
-			if err := cloud.DeleteVM(vmCID); err != nil {
-				return bosherr.WrapErrorf(err, "Deleting deployment VM `%s'", vmCID)
-			}
-			if err = c.vmRepo.ClearCurrent(); err != nil {
-				return bosherr.WrapErrorf(err, "Deleting deployment VM record `%s'", vmCID)
-			}
-			return nil
-		})
-		if err != nil {
+		if err = c.stopCurrentAgent(deleteStage, cpiDeployment.Mbus); err != nil {
+			return err
+		}
+
+		if err = c.deleteCurrentVM(deleteStage, vmCID, cloud); err != nil {
 			return err
 		}
 	}
 
 	if diskFound {
-		err = deleteStage.PerformStep("Deleting disk", func() error {
-			if err := disk.Delete(); err != nil {
-				return bosherr.WrapErrorf(err, "Deleting deployment disk `%s'", disk.CID())
-			}
-			if err = c.diskRepo.ClearCurrent(); err != nil {
-				return bosherr.WrapErrorf(err, "Deleting deployment disk record `%s'", disk.CID())
-			}
-			return nil
-		})
-		if err != nil {
+		if err = c.deleteCurrentDisk(deleteStage, disk); err != nil {
 			return err
 		}
 	}
 
 	if stemcellFound {
-		err = deleteStage.PerformStep("Deleting stemcell", func() error {
-			if err := stemcell.Delete(); err != nil {
-				return bosherr.WrapErrorf(err, "Deleting deployment stemcell `%s'", stemcell.CID())
-			}
-			if err := c.stemcellRepo.ClearCurrent(); err != nil {
-				return bosherr.WrapErrorf(err, "Deleting deployment stemcell record `%s'", stemcell.CID())
-			}
-			return nil
-		})
-		if err != nil {
+		if err = c.deleteCurrentStemcell(deleteStage, stemcell); err != nil {
 			return err
 		}
 	}
 
-	unusedDisks, err := diskManager.FindUnused()
-	if len(unusedDisks) > 0 {
-		err = deleteStage.PerformStep("Deleting orphaned disks", func() error {
-			for _, disk := range unusedDisks {
-				if err := disk.Delete(); err != nil {
-					return bosherr.WrapErrorf(err, "Deleting orphaned disk `%s'", disk.CID())
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
+	if err = c.deleteOrphanedDisks(deleteStage, diskManager); err != nil {
+		return err
 	}
 
-	unusedStemcells, err := stemcellManager.FindUnused()
-	if len(unusedStemcells) > 0 {
-		err = deleteStage.PerformStep("Deleting orphaned stemcells", func() error {
-			for _, stemcell := range unusedStemcells {
-				if err := stemcell.Delete(); err != nil {
-					return bosherr.WrapErrorf(err, "Deleting orphaned stemcell `%s'", stemcell.CID())
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
+	if err = c.deleteOrphanedStemcells(deleteStage, stemcellManager); err != nil {
+		return err
 	}
 
 	deleteStage.Finish()
@@ -257,4 +198,87 @@ func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
 		return "", errors.New("Invalid usage - delete command requires exactly 1 argument")
 	}
 	return args[0], nil
+}
+
+func (c *deleteCmd) stopCurrentAgent(deleteStage bmeventlog.Stage, mbusURL string) error {
+	return deleteStage.PerformStep("Stopping agent", func() error {
+		agentClient := c.agentClientFactory.Create(mbusURL)
+		if err := agentClient.Stop(); err != nil {
+			return bosherr.WrapErrorf(err, "Stopping the agent with mbus `%s'", mbusURL)
+		}
+		return nil
+	})
+}
+
+func (c *deleteCmd) deleteCurrentVM(deleteStage bmeventlog.Stage, vmCID string, cloud bmcloud.Cloud) error {
+	stepName := fmt.Sprintf("Deleting current VM `%s'", vmCID)
+	return deleteStage.PerformStep(stepName, func() error {
+		if err := cloud.DeleteVM(vmCID); err != nil {
+			return err
+		}
+		if err := c.vmRepo.ClearCurrent(); err != nil {
+			return bosherr.WrapErrorf(err, "Deleting deployment VM record `%s'", vmCID)
+		}
+		return nil
+	})
+}
+
+func (c *deleteCmd) deleteCurrentDisk(deleteStage bmeventlog.Stage, disk bmdisk.Disk) error {
+	stepName := fmt.Sprintf("Deleting current disk `%s'", disk.CID())
+	return deleteStage.PerformStep(stepName, func() error {
+		if err := disk.Delete(); err != nil {
+			return err
+		}
+		if err := c.diskRepo.ClearCurrent(); err != nil {
+			return bosherr.WrapErrorf(err, "Deleting deployment disk record `%s'", disk.CID())
+		}
+		return nil
+	})
+}
+
+func (c *deleteCmd) deleteCurrentStemcell(deleteStage bmeventlog.Stage, stemcell bmstemcell.CloudStemcell) error {
+	stepName := fmt.Sprintf("Deleting current stemcell `%s'", stemcell.CID())
+	return deleteStage.PerformStep(stepName, func() error {
+		if err := stemcell.Delete(); err != nil {
+			return err
+		}
+		if err := c.stemcellRepo.ClearCurrent(); err != nil {
+			return bosherr.WrapErrorf(err, "Deleting deployment stemcell record `%s'", stemcell.CID())
+		}
+		return nil
+	})
+}
+
+func (c *deleteCmd) deleteOrphanedDisks(deleteStage bmeventlog.Stage, diskManager bmdisk.Manager) error {
+	unusedDisks, err := diskManager.FindUnused()
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Finding orphaned disks")
+	}
+	for _, disk := range unusedDisks {
+		stepName := fmt.Sprintf("Deleting orphaned disk `%s'", disk.CID())
+		err = deleteStage.PerformStep(stepName, func() error {
+			return disk.Delete()
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *deleteCmd) deleteOrphanedStemcells(deleteStage bmeventlog.Stage, stemcellManager bmstemcell.Manager) error {
+	unusedStemcells, err := stemcellManager.FindUnused()
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Finding orphaned stemcells")
+	}
+	for _, stemcell := range unusedStemcells {
+		stepName := fmt.Sprintf("Deleting orphaned stemcell `%s'", stemcell.CID())
+		err = deleteStage.PerformStep(stepName, func() error {
+			return stemcell.Delete()
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

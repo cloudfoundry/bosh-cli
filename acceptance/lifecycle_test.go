@@ -160,9 +160,9 @@ var _ = Describe("bosh-micro", func() {
 		Expect(exitCode).To(Equal(0))
 
 		Expect(stdout).To(ContainSubstring("Stopping agent"))
-		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Deleting disk"))
-		Expect(stdout).To(ContainSubstring("Deleting stemcell"))
+		Expect(stdout).To(ContainSubstring("Deleting current VM"))
+		Expect(stdout).To(ContainSubstring("Deleting current disk"))
+		Expect(stdout).To(ContainSubstring("Deleting current stemcell"))
 	}
 
 	It("can set deployment, deploy, update, and delete", func() {
