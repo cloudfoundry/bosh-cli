@@ -1,4 +1,4 @@
-package deployer
+package instance
 
 import (
 	"fmt"
@@ -14,6 +14,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
+// DiskDeployer is in the instance package to avoid a [disk -> vm -> disk] dependency cycle
 type DiskDeployer interface {
 	Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error
 }

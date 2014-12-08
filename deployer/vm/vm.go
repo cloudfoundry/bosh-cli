@@ -20,7 +20,7 @@ import (
 
 type VM interface {
 	CID() string
-	WaitToBeReady(timeout time.Duration, delay time.Duration) error
+	WaitUntilReady(timeout time.Duration, delay time.Duration) error
 	Apply(bmstemcell.ApplySpec, bmdepl.Deployment) error
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
@@ -78,7 +78,7 @@ func (vm *vm) CID() string {
 	return vm.cid
 }
 
-func (vm *vm) WaitToBeReady(timeout time.Duration, delay time.Duration) error {
+func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
 	agentPingRetryable := bmagentclient.NewPingRetryable(vm.agentClient)
 	timeService := boshtime.NewConcreteService()
 	agentPingRetryStrategy := bmretrystrategy.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, timeService, vm.logger)

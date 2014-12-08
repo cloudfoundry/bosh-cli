@@ -1,6 +1,8 @@
 package stemcell
 
 import (
+	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
@@ -12,6 +14,7 @@ type Manager interface {
 	FindCurrent() (CloudStemcell, bool, error)
 	Upload(ExtractedStemcell) (CloudStemcell, error)
 	FindUnused() ([]CloudStemcell, error)
+	DeleteUnused(bmeventlog.Stage) error
 }
 
 type manager struct {
@@ -113,4 +116,26 @@ func (m *manager) FindUnused() ([]CloudStemcell, error) {
 	}
 
 	return unusedStemcells, nil
+}
+
+func (m *manager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
+	stemcells, err := m.FindUnused()
+	if err != nil {
+		return bosherr.WrapError(err, "Finding unused stemcells")
+	}
+
+	for _, stemcell := range stemcells {
+		stepName := fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID())
+		err = eventLoggerStage.PerformStep(stepName, func() error {
+			if err = stemcell.Delete(); err != nil {
+				return bosherr.WrapErrorf(err, "Deleting unused stemcell '%s'", stemcell.CID())
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

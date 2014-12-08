@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type FakeManager struct {
@@ -11,6 +12,9 @@ type FakeManager struct {
 	uploadBehavior map[UploadInput]uploadOutput
 
 	findUnusedOutput findUnusedOutput
+
+	DeleteUnusedCalledTimes int
+	DeleteUnusedErr         error
 }
 
 type UploadInput struct {
@@ -53,6 +57,11 @@ func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell) (bmstemcell.
 
 func (m *FakeManager) FindUnused() ([]bmstemcell.CloudStemcell, error) {
 	return m.findUnusedOutput.stemcells, m.findUnusedOutput.err
+}
+
+func (m *FakeManager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
+	m.DeleteUnusedCalledTimes++
+	return m.DeleteUnusedErr
 }
 
 func (m *FakeManager) SetUploadBehavior(

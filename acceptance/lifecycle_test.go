@@ -65,111 +65,20 @@ var _ = Describe("bosh-micro", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	ItSetsSSHPassword := func(username, password, hostname string) {
-		sshConfigFile, err := fileSystem.TempFile("ssh-config")
-		Expect(err).ToNot(HaveOccurred())
-		defer fileSystem.RemoveAll(sshConfigFile.Name())
-
-		sshConfigTemplate := `
-	Host vagrant-vm
-	  HostName %s
-	  User %s
-	  Port 22
-	  StrictHostKeyChecking no
-	  IdentityFile %s
-	Host warden-vm
-	  Hostname %s
-	  User %s
-	  StrictHostKeyChecking no
-	  ProxyCommand ssh -F %s vagrant-vm netcat -w 120 %%h %%p
-	`
-		sshConfig := fmt.Sprintf(
-			sshConfigTemplate,
-			config.VMIP,
-			config.VMUsername,
-			config.PrivateKeyPath,
-			hostname,
-			username,
-			sshConfigFile.Name(),
-		)
-
-		fileSystem.WriteFileString(sshConfigFile.Name(), sshConfig)
-		stdout, _, exitCode, err := cmdRunner.RunCommand(
-			"sshpass",
-			"-p"+password,
-			"ssh",
-			"warden-vm",
-			"-F",
-			sshConfigFile.Name(),
-			"echo ssh-succeeded",
-		)
+	AfterEach(func() {
+		_, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpiRelease"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		Expect(stdout).To(ContainSubstring("ssh-succeeded"))
-	}
+	})
 
-	ItSkipsDeployIfNoChanges := func() {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-
-		Expect(stdout).To(ContainSubstring("No deployment, stemcell or cpi release changes. Skipping deploy."))
-		Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
-		Expect(stdout).ToNot(ContainSubstring("Started deploying"))
-	}
-
-	ItDeletesVMOnUpdate := func() {
-		manifestPath := "./modified_manifest.yml"
+	var setDeploymentManifest = func(manifestPath string) {
 		manifestContents, err := ioutil.ReadFile(manifestPath)
 		Expect(err).ToNot(HaveOccurred())
 		testEnv.WriteContent("manifest", manifestContents)
-
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-
-		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Stopping job 'bosh'"))
-		Expect(stdout).To(ContainSubstring("Unmounting disk"))
-
-		Expect(stdout).ToNot(ContainSubstring("Creating disk"))
-	}
-
-	ItMigratesDisk := func() {
-		manifestPath := "./modified_disk_manifest.yml"
-		manifestContents, err := ioutil.ReadFile(manifestPath)
-		Expect(err).ToNot(HaveOccurred())
-		testEnv.WriteContent("manifest", manifestContents)
-
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-
-		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Stopping job 'bosh'"))
-		Expect(stdout).To(ContainSubstring("Unmounting disk"))
-
-		Expect(stdout).To(ContainSubstring("Creating disk"))
-		Expect(stdout).To(ContainSubstring("Migrating disk"))
-		Expect(stdout).To(ContainSubstring("Deleting unused disk"))
-	}
-
-	ItDeletesEverything := func() {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpiRelease"))
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-
-		Expect(stdout).To(ContainSubstring("Stopping agent"))
-		Expect(stdout).To(ContainSubstring("Deleting current VM"))
-		Expect(stdout).To(ContainSubstring("Deleting current disk"))
-		Expect(stdout).To(ContainSubstring("Deleting current stemcell"))
 	}
 
 	It("can set deployment, deploy, update, and delete", func() {
-		manifestPath := "./manifest.yml"
-		manifestContents, err := ioutil.ReadFile(manifestPath)
-		Expect(err).ToNot(HaveOccurred())
-		testEnv.WriteContent("manifest", manifestContents)
+		setDeploymentManifest("./manifest.yml")
 
 		_, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deployment", testEnv.Path("manifest"))
 		Expect(err).ToNot(HaveOccurred())
@@ -195,30 +104,129 @@ var _ = Describe("bosh-micro", func() {
 		Expect(stdout).To(ContainSubstring("Done uploading stemcell"))
 
 		Expect(stdout).To(ContainSubstring("Started deploying"))
-		Expect(stdout).To(ContainSubstring("Creating VM from stemcell"))
-		Expect(stdout).To(ContainSubstring("Waiting for the agent"))
+		Expect(stdout).To(ContainSubstring("Creating VM for instance 'bosh/0' from stemcell"))
+		Expect(stdout).To(ContainSubstring("Waiting for the agent on VM"))
 		Expect(stdout).To(ContainSubstring("Creating disk"))
 		Expect(stdout).To(ContainSubstring("Attaching disk"))
-		Expect(stdout).To(ContainSubstring("Starting 'bosh'"))
-		Expect(stdout).To(ContainSubstring("Waiting for 'bosh'"))
+		Expect(stdout).To(ContainSubstring("Starting instance 'bosh/0'"))
+		Expect(stdout).To(ContainSubstring("Waiting for instance 'bosh/0' to be running"))
 		Expect(stdout).To(ContainSubstring("Done deploying"))
+	})
 
-		ItSetsSSHPassword("vcap", "sshpassword", "10.244.0.42")
+	Context("when microbosh has been previously deployed", func() {
+		BeforeEach(func() {
+			setDeploymentManifest("./manifest.yml")
 
-		ItSkipsDeployIfNoChanges()
+			_, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deployment", testEnv.Path("manifest"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
 
-		ItDeletesVMOnUpdate()
+			_, _, exitCode, err = sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+		})
 
-		ItMigratesDisk()
+		It("sets the ssh password", func() {
+			username := "vcap"
+			password := "sshpassword"
+			hostname := "10.244.0.42"
 
-		ItDeletesEverything()
+			sshConfigFile, err := fileSystem.TempFile("ssh-config")
+			Expect(err).ToNot(HaveOccurred())
+			defer fileSystem.RemoveAll(sshConfigFile.Name())
+
+			sshConfigTemplate := `
+Host vagrant-vm
+	HostName %s
+	User %s
+	Port 22
+	StrictHostKeyChecking no
+	IdentityFile %s
+Host warden-vm
+	Hostname %s
+	User %s
+	StrictHostKeyChecking no
+	ProxyCommand ssh -F %s vagrant-vm netcat -w 120 %%h %%p
+`
+			sshConfig := fmt.Sprintf(
+				sshConfigTemplate,
+				config.VMIP,
+				config.VMUsername,
+				config.PrivateKeyPath,
+				hostname,
+				username,
+				sshConfigFile.Name(),
+			)
+
+			fileSystem.WriteFileString(sshConfigFile.Name(), sshConfig)
+			stdout, _, exitCode, err := cmdRunner.RunCommand(
+				"sshpass",
+				"-p"+password,
+				"ssh",
+				"warden-vm",
+				"-F",
+				sshConfigFile.Name(),
+				"echo ssh-succeeded",
+			)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+			Expect(stdout).To(ContainSubstring("ssh-succeeded"))
+		})
+
+		It("when there are no changes, it skips deploy", func() {
+			stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+
+			Expect(stdout).To(ContainSubstring("No deployment, stemcell or cpi release changes. Skipping deploy."))
+			Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
+			Expect(stdout).ToNot(ContainSubstring("Started deploying"))
+		})
+
+		It("when updating with property changes, it deletes the old VM", func() {
+			setDeploymentManifest("./modified_manifest.yml")
+
+			stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+
+			Expect(stdout).To(ContainSubstring("Deleting VM"))
+			Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
+			Expect(stdout).To(ContainSubstring("Unmounting disk"))
+
+			Expect(stdout).ToNot(ContainSubstring("Creating disk"))
+		})
+
+		It("when updating with disk size changed, it migrates the disk", func() {
+			setDeploymentManifest("./modified_disk_manifest.yml")
+
+			stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+
+			Expect(stdout).To(ContainSubstring("Deleting VM"))
+			Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
+			Expect(stdout).To(ContainSubstring("Unmounting disk"))
+
+			Expect(stdout).To(ContainSubstring("Creating disk"))
+			Expect(stdout).To(ContainSubstring("Migrating disk"))
+			Expect(stdout).To(ContainSubstring("Deleting unused disk"))
+		})
+
+		It("can delete all vms, disk, and stemcells", func() {
+			stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpiRelease"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+
+			Expect(stdout).To(ContainSubstring("Stopping agent"))
+			Expect(stdout).To(ContainSubstring("Deleting VM"))
+			Expect(stdout).To(ContainSubstring("Deleting disk"))
+			Expect(stdout).To(ContainSubstring("Deleting stemcell"))
+		})
 	})
 
 	It("deploys without registry and ssh tunnel", func() {
-		manifestPath := "./manifest_without_registry.yml"
-		manifestContents, err := ioutil.ReadFile(manifestPath)
-		Expect(err).ToNot(HaveOccurred())
-		testEnv.WriteContent("manifest", manifestContents)
+		setDeploymentManifest("./manifest_without_registry.yml")
 
 		_, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deployment", testEnv.Path("manifest"))
 		Expect(err).ToNot(HaveOccurred())

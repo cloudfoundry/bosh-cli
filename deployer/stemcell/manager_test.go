@@ -287,4 +287,61 @@ var _ = Describe("Manager", func() {
 			}))
 		})
 	})
+
+	Describe("DeleteUnused", func() {
+		var (
+			secondStemcellRecord bmconfig.StemcellRecord
+		)
+		BeforeEach(func() {
+			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-1"
+			_, err := stemcellRepo.Save("fake-stemcell-name-1", "fake-stemcell-version-1", "fake-stemcell-cid-1")
+			Expect(err).ToNot(HaveOccurred())
+
+			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-2"
+			secondStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name-2", "fake-stemcell-version-2", "fake-stemcell-cid-2")
+			Expect(err).ToNot(HaveOccurred())
+			err = stemcellRepo.UpdateCurrent(secondStemcellRecord.ID)
+			Expect(err).ToNot(HaveOccurred())
+
+			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-3"
+			_, err = stemcellRepo.Save("fake-stemcell-name-3", "fake-stemcell-version-3", "fake-stemcell-cid-3")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("deletes unused stemcells", func() {
+			err := manager.DeleteUnused(fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebmcloud.DeleteStemcellInput{
+				{StemcellCID: "fake-stemcell-cid-1"},
+				{StemcellCID: "fake-stemcell-cid-3"},
+			}))
+
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Deleting unused stemcell 'fake-stemcell-cid-1'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Deleting unused stemcell 'fake-stemcell-cid-3'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+
+			currentRecord, found, err := stemcellRepo.FindCurrent()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
+			Expect(currentRecord).To(Equal(secondStemcellRecord))
+
+			records, err := stemcellRepo.All()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(records).To(Equal([]bmconfig.StemcellRecord{
+				secondStemcellRecord,
+			}))
+		})
+	})
 })

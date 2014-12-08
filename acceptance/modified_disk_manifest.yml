@@ -50,6 +50,7 @@ cloud_provider:
 
 jobs:
 - name: bosh
+  instances: 1
   templates:
   - name: nats
   - name: redis

@@ -6,6 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"errors"
+
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/mocks"
@@ -16,12 +18,18 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
+	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
+	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Cmd/DeleteCmd", func() {
@@ -48,6 +56,9 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			userConfig              bmconfig.UserConfig
 
 			ui *fakeui.FakeUI
+
+			fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
+			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 
 			mockAgentClient        *mock_agentclient.MockAgentClient
 			mockAgentClientFactory *mock_agentclient.MockFactory
@@ -99,11 +110,44 @@ cloud_provider:
 
 		var newDeleteCmd = func() Cmd {
 			deploymentParser := bmdepl.NewParser(fs, logger)
+			vmManagerFactory := bmvm.NewManagerFactory(
+				vmRepo,
+				stemcellRepo,
+				mockAgentClientFactory,
+				fakeApplySpecFactory,
+				fakeTemplatesSpecGenerator,
+				fs,
+				logger,
+			)
+			registryServer := bmregistry.NewServer(logger)
+			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
+			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
+			diskDeployer := bminstance.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+			instanceManagerFactory := bminstance.NewManagerFactory(
+				registryServer,
+				sshTunnelFactory,
+				diskDeployer,
+				logger,
+			)
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			return NewDeleteCmd(
 				ui, userConfig, fs, deploymentParser, fakeCPIInstaller,
+				vmManagerFactory, instanceManagerFactory,
 				vmRepo, diskRepo, stemcellRepo, mockAgentClientFactory,
 				eventLogger, logger,
+			)
+		}
+
+		var expectNormalFlow = func() {
+			gomock.InOrder(
+				mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
+				mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
+				mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
+				mockAgentClient.EXPECT().UnmountDisk("fake-disk-cid"),
+				mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+				mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
+				mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
 			)
 		}
 
@@ -194,27 +238,15 @@ cloud_provider:
 				})
 			})
 
-			It("stops the agent, then deletes the vm, disk, and stemcell", func() {
-				gomock.InOrder(
-					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-					mockAgentClient.EXPECT().Stop(),
-					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
-					mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
-					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
-				)
+			It("stops agent, unmounts disk, deletes vm, deletes disk, deletes stemcell", func() {
+				expectNormalFlow()
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("logs validation stages", func() {
-				gomock.InOrder(
-					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-					mockAgentClient.EXPECT().Stop(),
-					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
-					mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
-					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
-				)
+				expectNormalFlow()
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
@@ -227,23 +259,19 @@ cloud_provider:
 					"",
 					// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
 					"Started deleting deployment",
-					"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
-					"Started deleting deployment > Deleting current VM `fake-vm-cid'...", " done. (00:00:00)",
-					"Started deleting deployment > Deleting current disk `fake-disk-cid'...", " done. (00:00:00)",
-					"Started deleting deployment > Deleting current stemcell `fake-stemcell-cid'...", " done. (00:00:00)",
+					"Started deleting deployment > Waiting for the agent on VM 'fake-vm-cid'...", " done. (00:00:00)",
+					"Started deleting deployment > Stopping jobs on instance 'unknown/0'...", " done. (00:00:00)",
+					"Started deleting deployment > Unmounting disk 'fake-disk-cid'...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting VM 'fake-vm-cid'...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting disk 'fake-disk-cid'...", " done. (00:00:00)",
+					"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
 					"Done deleting deployment",
 					"",
 				}))
 			})
 
 			It("clears current vm, disk and stemcell", func() {
-				gomock.InOrder(
-					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-					mockAgentClient.EXPECT().Stop(),
-					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
-					mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
-					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
-				)
+				expectNormalFlow()
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
@@ -266,15 +294,24 @@ cloud_provider:
 				Expect(stemcellRecords).To(BeEmpty(), "expected no stemcell records")
 			})
 
-			Context("and delete previously suceeded", func() {
-				BeforeEach(func() {
+			Context("when agent is unresponsive", func() {
+				It("times out pinging agent, deletes vm, deletes disk, deletes stemcell", func() {
 					gomock.InOrder(
 						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-						mockAgentClient.EXPECT().Stop(),
+						mockAgentClient.EXPECT().Ping().Return("", errors.New("unresponsive agent")).AnyTimes(), // ping to make sure agent is responsive
 						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
 						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
 					)
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+
+			Context("and delete previously suceeded", func() {
+				BeforeEach(func() {
+					expectNormalFlow()
 
 					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 					Expect(err).ToNot(HaveOccurred())
@@ -308,13 +345,7 @@ cloud_provider:
 				})
 
 				It("deletes the orphaned disks", func() {
-					gomock.InOrder(
-						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-						mockAgentClient.EXPECT().Stop(),
-						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
-						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
-						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
-					)
+					expectNormalFlow()
 
 					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid-2")
 
@@ -327,13 +358,7 @@ cloud_provider:
 				})
 
 				It("logs validation stages", func() {
-					gomock.InOrder(
-						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-						mockAgentClient.EXPECT().Stop(),
-						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
-						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
-						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
-					)
+					expectNormalFlow()
 
 					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid-2")
 
@@ -348,11 +373,13 @@ cloud_provider:
 						"",
 						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
 						"Started deleting deployment",
-						"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting current VM `fake-vm-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting current disk `fake-disk-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting current stemcell `fake-stemcell-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned disk `orphan-disk-cid-2'...", " done. (00:00:00)",
+						"Started deleting deployment > Waiting for the agent on VM 'fake-vm-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Stopping jobs on instance 'unknown/0'...", " done. (00:00:00)",
+						"Started deleting deployment > Unmounting disk 'fake-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting VM 'fake-vm-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting disk 'fake-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned disk 'orphan-disk-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
 						"",
 					}))
@@ -366,13 +393,7 @@ cloud_provider:
 				})
 
 				It("deletes the orphaned stemcells", func() {
-					gomock.InOrder(
-						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-						mockAgentClient.EXPECT().Stop(),
-						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
-						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
-						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
-					)
+					expectNormalFlow()
 
 					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid-2")
 
@@ -385,13 +406,7 @@ cloud_provider:
 				})
 
 				It("logs validation stages", func() {
-					gomock.InOrder(
-						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-						mockAgentClient.EXPECT().Stop(),
-						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
-						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
-						mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
-					)
+					expectNormalFlow()
 
 					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid-2")
 
@@ -406,11 +421,13 @@ cloud_provider:
 						"",
 						// if cpiInstaller were not mocked, it would print the compilation and installation stages here.
 						"Started deleting deployment",
-						"Started deleting deployment > Stopping agent...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting current VM `fake-vm-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting current disk `fake-disk-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting current stemcell `fake-stemcell-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned stemcell `orphan-stemcell-cid-2'...", " done. (00:00:00)",
+						"Started deleting deployment > Waiting for the agent on VM 'fake-vm-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Stopping jobs on instance 'unknown/0'...", " done. (00:00:00)",
+						"Started deleting deployment > Unmounting disk 'fake-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting VM 'fake-vm-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting disk 'fake-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned stemcell 'orphan-stemcell-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
 						"",
 					}))
@@ -461,9 +478,9 @@ cloud_provider:
 						"",
 						// if cpiInstaller were not mocked, it would print the compilation and installation stages here.
 						"Started deleting deployment",
-						"Started deleting deployment > Deleting orphaned disk `orphan-disk-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned stemcell `orphan-stemcell-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned stemcell `orphan-stemcell-cid-2'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned disk 'orphan-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned stemcell 'orphan-stemcell-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting orphaned stemcell 'orphan-stemcell-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
 						"",
 					}))
@@ -480,9 +497,13 @@ cloud_provider:
 			It("stops the agent and deletes the VM", func() {
 				gomock.InOrder(
 					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
-					mockAgentClient.EXPECT().Stop(),
+					mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
+					mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
+					mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
+					mockAgentClient.EXPECT().UnmountDisk("fake-disk-cid"),
 					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
 				)
+				//TODO: expectNormalFlow()
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())

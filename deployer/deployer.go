@@ -1,13 +1,13 @@
 package deployer
 
 import (
-	"fmt"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -29,8 +29,9 @@ type Deployer interface {
 
 type deployer struct {
 	stemcellManagerFactory bmstemcell.ManagerFactory
-	vmDeployer             VMDeployer
-	diskDeployer           DiskDeployer
+	vmManagerFactory       bmvm.ManagerFactory
+	sshTunnelFactory       bmsshtunnel.Factory
+	diskDeployer           bminstance.DiskDeployer
 	registryServer         bmregistry.Server
 	eventLoggerStage       bmeventlog.Stage
 	logger                 boshlog.Logger
@@ -39,8 +40,9 @@ type deployer struct {
 
 func NewDeployer(
 	stemcellManagerFactory bmstemcell.ManagerFactory,
-	vmDeployer VMDeployer,
-	diskDeployer DiskDeployer,
+	vmManagerFactory bmvm.ManagerFactory,
+	sshTunnelFactory bmsshtunnel.Factory,
+	diskDeployer bminstance.DiskDeployer,
 	registryServer bmregistry.Server,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
@@ -49,7 +51,8 @@ func NewDeployer(
 
 	return &deployer{
 		stemcellManagerFactory: stemcellManagerFactory,
-		vmDeployer:             vmDeployer,
+		vmManagerFactory:       vmManagerFactory,
+		sshTunnelFactory:       sshTunnelFactory,
 		diskDeployer:           diskDeployer,
 		registryServer:         registryServer,
 		eventLoggerStage:       eventLoggerStage,
@@ -62,8 +65,8 @@ func (m *deployer) Deploy(
 	cloud bmcloud.Cloud,
 	deployment bmdepl.Deployment,
 	extractedStemcell bmstemcell.ExtractedStemcell,
-	registry bmdepl.Registry,
-	sshTunnelConfig bmdepl.SSHTunnel,
+	registrySpec bmdepl.Registry,
+	sshTunnelSpec bmdepl.SSHTunnel,
 	mbusURL string,
 ) error {
 	stemcellManager := m.stemcellManagerFactory.NewManager(cloud)
@@ -74,61 +77,22 @@ func (m *deployer) Deploy(
 
 	m.eventLoggerStage.Start()
 
-	if !registry.IsEmpty() {
-		registryReadyErrCh := make(chan error)
-		go m.startRegistry(registry, registryReadyErrCh)
-		defer m.registryServer.Stop()
+	vmManager := m.vmManagerFactory.NewManager(cloud, mbusURL)
+	instanceManager := bminstance.NewManager(cloud, vmManager, m.registryServer, m.sshTunnelFactory, m.diskDeployer, m.logger)
 
-		err = <-registryReadyErrCh
-		if err != nil {
-			return bosherr.WrapError(err, "Starting registry")
-		}
-	}
-
-	vm, err := m.vmDeployer.Deploy(cloud, deployment, cloudStemcell, mbusURL, m.eventLoggerStage)
-	if err != nil {
-		return bosherr.WrapError(err, "Deploying VM")
-	}
-
-	sshTunnelOptions := bmsshtunnel.Options{
-		Host:              sshTunnelConfig.Host,
-		Port:              sshTunnelConfig.Port,
-		User:              sshTunnelConfig.User,
-		Password:          sshTunnelConfig.Password,
-		PrivateKey:        sshTunnelConfig.PrivateKey,
-		LocalForwardPort:  registry.Port,
-		RemoteForwardPort: registry.Port,
-	}
-
-	err = m.deleteUnusedStemcells(stemcellManager)
-	if err != nil {
+	pingTimeout := 10 * time.Second
+	pingDelay := 500 * time.Millisecond
+	if err = instanceManager.DeleteAll(pingTimeout, pingDelay, m.eventLoggerStage); err != nil {
 		return err
 	}
 
-	err = m.vmDeployer.WaitUntilReady(vm, sshTunnelOptions, m.eventLoggerStage)
-	if err != nil {
-		return bosherr.WrapError(err, "Waiting until VM is ready")
-	}
-
-	jobName := deployment.Jobs[0].Name
-
-	diskPool, err := deployment.DiskPool(jobName)
-	if err != nil {
-		return bosherr.WrapError(err, "Getting disk pool")
-	}
-
-	err = m.diskDeployer.Deploy(diskPool, cloud, vm, m.eventLoggerStage)
-	if err != nil {
-		return bosherr.WrapError(err, "Deploying disk")
-	}
-
-	err = m.startVM(vm, extractedStemcell.ApplySpec(), deployment, jobName)
-	if err != nil {
+	if err = m.createAllInstances(deployment, instanceManager, extractedStemcell, cloudStemcell, registrySpec, sshTunnelSpec); err != nil {
 		return err
 	}
 
-	err = m.waitUntilRunning(vm, deployment.Update.UpdateWatchTime, jobName)
-	if err != nil {
+	// TODO: cleanup unused disks?
+
+	if err = stemcellManager.DeleteUnused(m.eventLoggerStage); err != nil {
 		return err
 	}
 
@@ -136,63 +100,30 @@ func (m *deployer) Deploy(
 	return nil
 }
 
-func (m *deployer) startRegistry(registry bmdepl.Registry, readyErrCh chan error) {
-	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyErrCh)
-	if err != nil {
-		m.logger.Debug(m.logTag, "Registry error occurred: %s", err.Error())
-	}
-}
-
-func (m *deployer) startVM(vm bmvm.VM, stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment, jobName string) error {
-	err := m.eventLoggerStage.PerformStep(fmt.Sprintf("Starting '%s'", jobName), func() error {
-		err := vm.Apply(stemcellApplySpec, deployment)
-		if err != nil {
-			return bosherr.WrapError(err, "Updating the vm")
-		}
-
-		err = vm.Start()
-		if err != nil {
-			return bosherr.WrapError(err, "Starting vm")
-		}
-
-		return nil
-	})
-
-	return err
-}
-
-func (m *deployer) waitUntilRunning(vm bmvm.VM, updateWatchTime bmdepl.WatchTime, jobName string) error {
-	err := m.eventLoggerStage.PerformStep(fmt.Sprintf("Waiting for '%s'", jobName), func() error {
-		time.Sleep(time.Duration(updateWatchTime.Start) * time.Millisecond)
-		numAttempts := int((updateWatchTime.End - updateWatchTime.Start) / 1000)
-
-		if err := vm.WaitToBeRunning(numAttempts, 1*time.Second); err != nil {
-			return bosherr.WrapError(err, fmt.Sprintf("Waiting for '%s'", jobName))
-		}
-
-		return nil
-	})
-
-	return err
-}
-
-func (m *deployer) deleteUnusedStemcells(stemcellManager bmstemcell.Manager) error {
-	stemcells, err := stemcellManager.FindUnused()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding unused stemcells")
+func (m *deployer) createAllInstances(
+	deployment bmdepl.Deployment,
+	instanceManager bminstance.Manager,
+	extractedStemcell bmstemcell.ExtractedStemcell,
+	cloudStemcell bmstemcell.CloudStemcell,
+	registrySpec bmdepl.Registry,
+	sshTunnelSpec bmdepl.SSHTunnel,
+) error {
+	if len(deployment.Jobs) != 1 {
+		return bosherr.Errorf("There must only be one job, found %d", len(deployment.Jobs))
 	}
 
-	for _, stemcell := range stemcells {
-		err = m.eventLoggerStage.PerformStep(fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID()), func() error {
-			if err = stemcell.Delete(); err != nil {
-				return bosherr.WrapErrorf(err, "Deleting unused stemcell '%s'", stemcell.CID())
+	for _, jobSpec := range deployment.Jobs {
+		if jobSpec.Instances != 1 {
+			return bosherr.Errorf("Job '%s' must have only one instance, found %d", jobSpec.Name, jobSpec.Instances)
+		}
+		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
+			_, err := instanceManager.Create(jobSpec.Name, instanceID,
+				deployment, extractedStemcell, cloudStemcell,
+				registrySpec, sshTunnelSpec, m.eventLoggerStage)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)
 			}
-			return nil
-		})
-		if err != nil {
-			return err
 		}
 	}
-
 	return nil
 }

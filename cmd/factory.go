@@ -24,6 +24,7 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployer/blobstore"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -54,6 +55,17 @@ type factory struct {
 	logger                  boshlog.Logger
 	uuidGenerator           boshuuid.Generator
 	workspace               string
+	runner                  boshsys.CmdRunner
+	compressor              boshcmd.Compressor
+	vmManagerFactory        bmvm.ManagerFactory
+	vmRepo                  bmconfig.VMRepo
+	stemcellRepo            bmconfig.StemcellRepo
+	diskRepo                bmconfig.DiskRepo
+	registryServer          bmregistry.Server
+	sshTunnelFactory        bmsshtunnel.Factory
+	diskDeployer            bminstance.DiskDeployer
+	diskManagerFactory      bmdisk.ManagerFactory
+	instanceManagerFactory  bminstance.ManagerFactory
 }
 
 func NewFactory(
@@ -104,10 +116,6 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
-	runner := boshsys.NewExecCmdRunner(f.logger)
-
-	compressor := boshcmd.NewTarballCompressor(runner, f.fs)
-
 	timeService := boshtime.NewConcreteService()
 	eventFilters := []bmeventlog.EventFilter{
 		bmeventlog.NewTimeFilter(timeService),
@@ -116,60 +124,26 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	deploymentParser := bmdepl.NewParser(f.fs, f.logger)
 	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
-	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
-	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
 	cpiInstaller := f.newCPIInstaller(eventLogger, timeService)
-	stemcellReader := bmstemcell.NewReader(compressor, f.fs)
-	stemcellRepo := bmconfig.NewStemcellRepo(f.deploymentConfigService, f.uuidGenerator)
+	stemcellReader := bmstemcell.NewReader(f.loadCompressor(), f.fs)
 	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)
-	stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
+	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.loadStemcellRepo(), eventLogger)
 
-	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
-	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
-	applySpecFactory := bmas.NewFactory()
 
-	templatesSpecGenerator := bmas.NewTemplatesSpecGenerator(
-		blobstoreFactory,
-		compressor,
-		jobRenderer,
-		f.uuidGenerator,
-		sha1Calculator,
-		f.fs,
-		f.logger,
-	)
-
-	vmRepo := bmconfig.NewVMRepo(f.deploymentConfigService)
-
-	vmManagerFactory := bmvm.NewManagerFactory(
-		vmRepo,
-		stemcellRepo,
-		agentClientFactory,
-		applySpecFactory,
-		templatesSpecGenerator,
-		f.fs,
-		f.logger,
-	)
-
-	diskRepo := bmconfig.NewDiskRepo(f.deploymentConfigService, f.uuidGenerator)
-	diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, f.logger)
-	registryServer := bmregistry.NewServer(f.logger)
-	sshTunnelFactory := bmsshtunnel.NewFactory(f.logger)
-
-	vmDeployer := bmdeployer.NewVMDeployer(vmManagerFactory, sshTunnelFactory, f.logger)
-	diskDeployer := bmdeployer.NewDiskDeployer(diskManagerFactory, diskRepo, f.logger)
 	deployer := bmdeployer.NewDeployer(
 		stemcellManagerFactory,
-		vmDeployer,
-		diskDeployer,
-		registryServer,
+		f.loadVMManagerFactory(),
+		f.loadSSHTunnelFactory(),
+		f.loadDiskDeployer(),
+		f.loadRegistryServer(),
 		eventLogger,
 		f.logger,
 	)
 
 	deploymentRepo := bmconfig.NewDeploymentRepo(f.deploymentConfigService)
 	releaseRepo := bmconfig.NewReleaseRepo(f.deploymentConfigService, f.uuidGenerator)
-	deploymentRecord := bmdeployer.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
+	deploymentRecord := bmdeployer.NewDeploymentRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
 
 	return NewDeployCmd(
 		f.ui,
@@ -198,23 +172,146 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 
 	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
 
-	vmRepo := bmconfig.NewVMRepo(f.deploymentConfigService)
-	diskRepo := bmconfig.NewDiskRepo(f.deploymentConfigService, f.uuidGenerator)
-	stemcellRepo := bmconfig.NewStemcellRepo(f.deploymentConfigService, f.uuidGenerator)
-
 	return NewDeleteCmd(
 		f.ui,
 		f.userConfig,
 		f.fs,
 		deploymentParser,
 		cpiInstaller,
-		vmRepo,
-		diskRepo,
-		stemcellRepo,
+		f.loadVMManagerFactory(),
+		f.loadInstanceManagerFactory(),
+		f.loadVMRepo(),
+		f.loadDiskRepo(),
+		f.loadStemcellRepo(),
 		agentClientFactory,
 		eventLogger,
 		f.logger,
 	), nil
+}
+
+func (f *factory) loadCMDRunner() boshsys.CmdRunner {
+	if f.runner != nil {
+		return f.runner
+	}
+	f.runner = boshsys.NewExecCmdRunner(f.logger)
+	return f.runner
+}
+
+func (f *factory) loadCompressor() boshcmd.Compressor {
+	if f.compressor != nil {
+		return f.compressor
+	}
+	f.compressor = boshcmd.NewTarballCompressor(f.loadCMDRunner(), f.fs)
+	return f.compressor
+}
+
+func (f *factory) loadStemcellRepo() bmconfig.StemcellRepo {
+	if f.stemcellRepo != nil {
+		return f.stemcellRepo
+	}
+	f.stemcellRepo = bmconfig.NewStemcellRepo(f.deploymentConfigService, f.uuidGenerator)
+	return f.stemcellRepo
+}
+
+func (f *factory) loadVMRepo() bmconfig.VMRepo {
+	if f.vmRepo != nil {
+		return f.vmRepo
+	}
+	f.vmRepo = bmconfig.NewVMRepo(f.deploymentConfigService)
+	return f.vmRepo
+}
+
+func (f *factory) loadDiskRepo() bmconfig.DiskRepo {
+	if f.diskRepo != nil {
+		return f.diskRepo
+	}
+	f.diskRepo = bmconfig.NewDiskRepo(f.deploymentConfigService, f.uuidGenerator)
+	return f.diskRepo
+}
+
+func (f *factory) loadRegistryServer() bmregistry.Server {
+	if f.registryServer != nil {
+		return f.registryServer
+	}
+
+	f.registryServer = bmregistry.NewServer(f.logger)
+	return f.registryServer
+}
+
+func (f *factory) loadSSHTunnelFactory() bmsshtunnel.Factory {
+	if f.sshTunnelFactory != nil {
+		return f.sshTunnelFactory
+	}
+
+	f.sshTunnelFactory = bmsshtunnel.NewFactory(f.logger)
+	return f.sshTunnelFactory
+}
+
+func (f *factory) loadDiskDeployer() bminstance.DiskDeployer {
+	if f.diskDeployer != nil {
+		return f.diskDeployer
+	}
+
+	f.diskDeployer = bminstance.NewDiskDeployer(f.loadDiskManagerFactory(), f.loadDiskRepo(), f.logger)
+	return f.diskDeployer
+}
+
+func (f *factory) loadDiskManagerFactory() bmdisk.ManagerFactory {
+	if f.diskManagerFactory != nil {
+		return f.diskManagerFactory
+	}
+
+	f.diskManagerFactory = bmdisk.NewManagerFactory(f.loadDiskRepo(), f.logger)
+	return f.diskManagerFactory
+}
+
+func (f *factory) loadInstanceManagerFactory() bminstance.ManagerFactory {
+	if f.instanceManagerFactory != nil {
+		return f.instanceManagerFactory
+	}
+
+	f.instanceManagerFactory = bminstance.NewManagerFactory(
+		f.loadRegistryServer(),
+		f.loadSSHTunnelFactory(),
+		f.loadDiskDeployer(),
+		f.logger,
+	)
+	return f.instanceManagerFactory
+}
+
+func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
+	if f.vmManagerFactory != nil {
+		return f.vmManagerFactory
+	}
+
+	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
+	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
+
+	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
+	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
+	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
+	applySpecFactory := bmas.NewFactory()
+
+	templatesSpecGenerator := bmas.NewTemplatesSpecGenerator(
+		blobstoreFactory,
+		f.loadCompressor(),
+		jobRenderer,
+		f.uuidGenerator,
+		sha1Calculator,
+		f.fs,
+		f.logger,
+	)
+
+	f.vmManagerFactory = bmvm.NewManagerFactory(
+		f.loadVMRepo(),
+		f.loadStemcellRepo(),
+		agentClientFactory,
+		applySpecFactory,
+		templatesSpecGenerator,
+		f.fs,
+		f.logger,
+	)
+	return f.vmManagerFactory
 }
 
 func (f *factory) loadDeploymentConfig() error {

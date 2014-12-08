@@ -1,9 +1,9 @@
-package deployer_test
+package instance_test
 
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployer"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -19,9 +19,10 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
+	fakebminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"
 	fakeregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/deployer/retrystrategy/fakes"
+	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
@@ -30,8 +31,11 @@ import (
 var _ = Describe("Deployer", func() {
 	var (
 		deployer                   Deployer
-		fakeVMDeployer             *fakebmdeployer.FakeVMDeployer
-		fakeDiskDeployer           *fakebmdeployer.FakeDiskDeployer
+		fakeVMManagerFactory       *fakebmvm.FakeManagerFactory
+		fakeVMManager              *fakebmvm.FakeManager
+		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
+		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
+		fakeDiskDeployer           *fakebminstance.FakeDiskDeployer
 		cloud                      *fakebmcloud.FakeCloud
 		deployment                 bmdepl.Deployment
 		diskPool                   bmdepl.DiskPool
@@ -46,8 +50,8 @@ var _ = Describe("Deployer", func() {
 		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
 		extractedStemcell          bmstemcell.ExtractedStemcell
 
-		applySpec             bmstemcell.ApplySpec
-		expectedCloudStemcell bmstemcell.CloudStemcell
+		applySpec     bmstemcell.ApplySpec
+		cloudStemcell bmstemcell.CloudStemcell
 	)
 
 	BeforeEach(func() {
@@ -72,6 +76,7 @@ var _ = Describe("Deployer", func() {
 				{
 					Name:               "fake-job-name",
 					PersistentDiskPool: "fake-persistent-disk-pool-name",
+					Instances:          1,
 				},
 			},
 		}
@@ -92,11 +97,19 @@ var _ = Describe("Deployer", func() {
 		cloud = fakebmcloud.NewFakeCloud()
 		fakeRegistryServer = fakeregistry.NewFakeServer()
 
-		fakeVMDeployer = fakebmdeployer.NewFakeVMDeployer()
-		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
-		fakeVMDeployer.SetDeployBehavior(fakeVM, nil)
+		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
+		fakeVMManager = fakebmvm.NewFakeManager()
+		fakeVMManagerFactory.SetNewManagerBehavior(cloud, "fake-mbus-url", fakeVMManager)
 
-		fakeDiskDeployer = fakebmdeployer.NewFakeDiskDeployer()
+		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
+		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
+		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
+		fakeSSHTunnel.SetStartBehavior(nil, nil)
+
+		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
+		fakeVMManager.CreateVM = fakeVM
+
+		fakeDiskDeployer = fakebminstance.NewFakeDiskDeployer()
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
@@ -121,15 +134,24 @@ var _ = Describe("Deployer", func() {
 
 		fakeStemcellManager = fakebmstemcell.NewFakeManager()
 		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
-		stemcellRepo := fakebmconfig.NewFakeStemcellRepo()
-		stemcellRecord := bmconfig.StemcellRecord{}
-		expectedCloudStemcell = bmstemcell.NewCloudStemcell(stemcellRecord, stemcellRepo, cloud)
-		fakeStemcellManager.SetUploadBehavior(extractedStemcell, expectedCloudStemcell, nil)
+		fakeStemcellRepo := fakebmconfig.NewFakeStemcellRepo()
+		stemcellRecord := bmconfig.StemcellRecord{
+			ID:      "fake-stemcell-id",
+			Name:    "fake-stemcell-name",
+			Version: "fake-stemcell-version",
+			CID:     "fake-stemcell-cid",
+		}
+		err := fakeStemcellRepo.SetFindBehavior("fake-stemcell-name", "fake-stemcell-version", stemcellRecord, true, nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		cloudStemcell = bmstemcell.NewCloudStemcell(stemcellRecord, fakeStemcellRepo, cloud)
+		fakeStemcellManager.SetUploadBehavior(extractedStemcell, cloudStemcell, nil)
 		fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
 		deployer = NewDeployer(
 			fakeStemcellManagerFactory,
-			fakeVMDeployer,
+			fakeVMManagerFactory,
+			fakeSSHTunnelFactory,
 			fakeDiskDeployer,
 			fakeRegistryServer,
 			eventLogger,
@@ -140,13 +162,9 @@ var _ = Describe("Deployer", func() {
 	It("uploads the stemcell", func() {
 		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(fakeStemcellManager.UploadInputs).To(Equal(
-			[]fakebmstemcell.UploadInput{
-				{
-					Stemcell: extractedStemcell,
-				},
-			},
-		))
+		Expect(fakeStemcellManager.UploadInputs).To(Equal([]fakebmstemcell.UploadInput{
+			{Stemcell: extractedStemcell},
+		}))
 	})
 
 	It("adds a new event logger stage", func() {
@@ -154,13 +172,42 @@ var _ = Describe("Deployer", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-			{
-				Name: "deploying",
-			},
+			{Name: "deploying"},
 		}))
 
 		Expect(fakeStage.Started).To(BeTrue())
 		Expect(fakeStage.Finished).To(BeTrue())
+	})
+
+	Context("when a previous instance exists", func() {
+		var fakeExistingVM *fakebmvm.FakeVM
+
+		BeforeEach(func() {
+			fakeExistingVM = fakebmvm.NewFakeVM("existing-vm-cid")
+			fakeVMManager.SetFindCurrentBehavior(fakeExistingVM, true, nil)
+		})
+
+		It("deletes existing vm", func() {
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
+
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Waiting for the agent on VM 'existing-vm-cid'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Deleting VM 'existing-vm-cid'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+		})
 	})
 
 	It("starts the registry", func() {
@@ -180,7 +227,7 @@ var _ = Describe("Deployer", func() {
 			registry = bmdepl.Registry{}
 		})
 
-		It("starts the registry", func() {
+		It("does not start the registry", func() {
 			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeRegistryServer.StartInput).To(Equal(fakeregistry.StartInput{}))
@@ -188,42 +235,53 @@ var _ = Describe("Deployer", func() {
 		})
 	})
 
-	It("deploys vm", func() {
+	It("creates a vm", func() {
 		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVMDeployer.DeployInputs).To(ContainElement(fakebmdeployer.VMDeployInput{
-			Cloud:            cloud,
-			Deployment:       deployment,
-			Stemcell:         expectedCloudStemcell,
-			MbusURL:          "fake-mbus-url",
-			EventLoggerStage: fakeStage,
+		Expect(fakeVMManager.CreateInput).To(Equal(fakebmvm.CreateInput{
+			Stemcell:   cloudStemcell,
+			Deployment: deployment,
 		}))
 	})
 
 	It("deletes unused stemcells", func() {
-		firstStemcell := fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid-1", "fake-stemcell-name-1", "fake-stemcell-version-1")
-		secondStemcell := fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid-2", "fake-stemcell-name-2", "fake-stemcell-version-2")
-		fakeStemcellManager.SetFindUnusedBehavior([]bmstemcell.CloudStemcell{
-			firstStemcell,
-			secondStemcell,
-		}, nil)
-
 		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(firstStemcell.DeleteCalledTimes).To(Equal(1))
-		Expect(secondStemcell.DeleteCalledTimes).To(Equal(1))
+		Expect(fakeStemcellManager.DeleteUnusedCalledTimes).To(Equal(1))
+	})
+
+	It("starts the SSH tunnel", func() {
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fakeSSHTunnel.Started).To(BeTrue())
+		Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bmsshtunnel.Options{
+			User:              "fake-ssh-username",
+			PrivateKey:        "fake-private-key-path",
+			Password:          "fake-password",
+			Host:              "fake-ssh-host",
+			Port:              124,
+			LocalForwardPort:  123,
+			RemoteForwardPort: 123,
+		}))
+	})
+
+	It("waits for the vm", func() {
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebmvm.WaitUntilReadyInput{
+			Timeout: 10 * time.Minute,
+			Delay:   500 * time.Millisecond,
+		}))
+	})
+
+	It("logs start and stop events to the eventLogger", func() {
+		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Deleting unused stemcell 'fake-stemcell-cid-1'",
-			States: []bmeventlog.EventState{
-				bmeventlog.Started,
-				bmeventlog.Finished,
-			},
-		}))
-		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Deleting unused stemcell 'fake-stemcell-cid-2'",
+			Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 			States: []bmeventlog.EventState{
 				bmeventlog.Started,
 				bmeventlog.Finished,
@@ -231,25 +289,37 @@ var _ = Describe("Deployer", func() {
 		}))
 	})
 
-	It("waits until vm is ready", func() {
-		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
-		Expect(err).NotTo(HaveOccurred())
+	Context("when starting SSH tunnel fails", func() {
+		BeforeEach(func() {
+			fakeSSHTunnel.SetStartBehavior(errors.New("fake-ssh-tunnel-start-error"), nil)
+		})
 
-		expectedSSHTunnelOptions := bmsshtunnel.Options{
-			Host:              "fake-ssh-host",
-			Port:              124,
-			User:              "fake-ssh-username",
-			Password:          "fake-password",
-			PrivateKey:        "fake-private-key-path",
-			LocalForwardPort:  123,
-			RemoteForwardPort: 123,
-		}
+		It("returns an error", func() {
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-ssh-tunnel-start-error"))
+		})
+	})
 
-		Expect(fakeVMDeployer.WaitUntilReadyInputs).To(ContainElement(fakebmdeployer.WaitUntilReadyInput{
-			VM:               fakeVM,
-			SSHTunnelOptions: expectedSSHTunnelOptions,
-			EventLoggerStage: fakeStage,
-		}))
+	Context("when waiting for the agent fails", func() {
+		BeforeEach(func() {
+			fakeVM.WaitUntilReadyErr = errors.New("fake-wait-error")
+		})
+
+		It("logs start and stop events to the eventLogger", func() {
+			err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
+
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Failed,
+				},
+				FailMessage: "fake-wait-error",
+			}))
+		})
 	})
 
 	It("updates the vm", func() {
@@ -266,7 +336,7 @@ var _ = Describe("Deployer", func() {
 		err := deployer.Deploy(cloud, deployment, extractedStemcell, registry, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebmdeployer.DiskDeployInput{
+		Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebminstance.DiskDeployInput{
 			{
 				DiskPool:         diskPool,
 				Cloud:            cloud,
@@ -309,14 +379,14 @@ var _ = Describe("Deployer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Starting 'fake-job-name'",
+			Name: "Starting instance 'fake-job-name/0'",
 			States: []bmeventlog.EventState{
 				bmeventlog.Started,
 				bmeventlog.Finished,
 			},
 		}))
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-			Name: "Waiting for 'fake-job-name'",
+			Name: "Waiting for instance 'fake-job-name/0' to be running",
 			States: []bmeventlog.EventState{
 				bmeventlog.Started,
 				bmeventlog.Finished,
@@ -359,12 +429,12 @@ var _ = Describe("Deployer", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Starting 'fake-job-name'",
+				Name: "Starting instance 'fake-job-name/0'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
 				},
-				FailMessage: "Updating the vm: fake-apply-error",
+				FailMessage: "Applying the agent state: fake-apply-error",
 			}))
 		})
 	})
@@ -380,12 +450,12 @@ var _ = Describe("Deployer", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Starting 'fake-job-name'",
+				Name: "Starting instance 'fake-job-name/0'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
 				},
-				FailMessage: "Starting vm: fake-start-error",
+				FailMessage: "Starting the agent: fake-start-error",
 			}))
 		})
 	})
@@ -401,12 +471,12 @@ var _ = Describe("Deployer", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Waiting for 'fake-job-name'",
+				Name: "Waiting for instance 'fake-job-name/0' to be running",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
 				},
-				FailMessage: "Waiting for 'fake-job-name': fake-wait-running-error",
+				FailMessage: "fake-wait-running-error",
 			}))
 		})
 	})
