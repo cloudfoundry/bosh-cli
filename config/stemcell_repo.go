@@ -126,6 +126,10 @@ func (r stemcellRepo) Delete(stemcellRecord StemcellRecord) error {
 
 	config.Stemcells = newRecords
 
+	if config.CurrentStemcellID == stemcellRecord.ID {
+		config.CurrentStemcellID = ""
+	}
+
 	err = r.configService.Save(config)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving config")

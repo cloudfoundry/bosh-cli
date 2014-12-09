@@ -216,6 +216,29 @@ var _ = Describe("StemcellRepo", func() {
 				thirdStemcellRecord,
 			}))
 		})
+
+		Context("when the stemcell to be deleted is also the current stemcell", func() {
+			BeforeEach(func() {
+				err := repo.UpdateCurrent(secondStemcellRecord.ID)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("clears the current stemcell", func() {
+				err := repo.Delete(secondStemcellRecord)
+				Expect(err).ToNot(HaveOccurred())
+
+				disks, err := repo.All()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(disks).To(Equal([]StemcellRecord{
+					firstStemcellRecord,
+					thirdStemcellRecord,
+				}))
+
+				_, found, err := repo.FindCurrent()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(BeFalse())
+			})
+		})
 	})
 
 	Describe("FindCurrent", func() {

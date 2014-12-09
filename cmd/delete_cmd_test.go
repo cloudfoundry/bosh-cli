@@ -22,6 +22,7 @@ import (
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -130,11 +131,11 @@ cloud_provider:
 				logger,
 			)
 			eventLogger := bmeventlog.NewEventLogger(ui)
+			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
 				ui, userConfig, fs, deploymentParser, fakeCPIInstaller,
-				vmManagerFactory, instanceManagerFactory,
-				vmRepo, diskRepo, stemcellRepo, mockAgentClientFactory,
-				eventLogger, logger,
+				vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
+				mockAgentClientFactory, eventLogger, logger,
 			)
 		}
 

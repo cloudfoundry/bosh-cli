@@ -104,6 +104,19 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			Expect(err.Error()).To(ContainSubstring("name must not be empty or blank"))
 		})
 
+		It("validates that there is only one resource pool", func() {
+			deployment := bmdepl.Deployment{
+				ResourcePools: []bmdepl.ResourcePool{
+					{},
+					{},
+				},
+			}
+
+			err := validator.Validate(deployment)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("resource_pools must be of size 1"))
+		})
+
 		It("validates resource pool name", func() {
 			deployment := bmdepl.Deployment{
 				ResourcePools: []bmdepl.ResourcePool{

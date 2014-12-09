@@ -222,6 +222,28 @@ var _ = Describe("DiskRepo", func() {
 				secondDisk,
 			}))
 		})
+
+		Context("when the disk to be deleted is also the current disk", func() {
+			BeforeEach(func() {
+				err := repo.UpdateCurrent(firstDisk.ID)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("clears the current disk", func() {
+				err := repo.Delete(firstDisk)
+				Expect(err).ToNot(HaveOccurred())
+
+				disks, err := repo.All()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(disks).To(Equal([]DiskRecord{
+					secondDisk,
+				}))
+
+				_, found, err := repo.FindCurrent()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(BeFalse())
+			})
+		})
 	})
 
 	Describe("ClearCurrent", func() {

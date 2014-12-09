@@ -66,6 +66,10 @@ type factory struct {
 	diskDeployer            bminstance.DiskDeployer
 	diskManagerFactory      bmdisk.ManagerFactory
 	instanceManagerFactory  bminstance.ManagerFactory
+	stemcellManagerFactory  bmstemcell.ManagerFactory
+	eventLogger             bmeventlog.EventLogger
+	timeService             boshtime.Service
+	cpiInstaller            bmcpi.Installer
 }
 
 func NewFactory(
@@ -116,34 +120,27 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
-	timeService := boshtime.NewConcreteService()
-	eventFilters := []bmeventlog.EventFilter{
-		bmeventlog.NewTimeFilter(timeService),
-	}
-	eventLogger := bmeventlog.NewEventLoggerWithFilters(f.ui, eventFilters)
-
 	deploymentParser := bmdepl.NewParser(f.fs, f.logger)
+
 	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
-	cpiInstaller := f.newCPIInstaller(eventLogger, timeService)
+
 	stemcellReader := bmstemcell.NewReader(f.loadCompressor(), f.fs)
 	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)
-	stemcellManagerFactory := bmstemcell.NewManagerFactory(f.loadStemcellRepo(), eventLogger)
 
+	deploymentRepo := bmconfig.NewDeploymentRepo(f.deploymentConfigService)
+	releaseRepo := bmconfig.NewReleaseRepo(f.deploymentConfigService, f.uuidGenerator)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
+	deploymentRecord := bmdeployer.NewDeploymentRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
 
 	deployer := bmdeployer.NewDeployer(
-		stemcellManagerFactory,
+		f.loadStemcellManagerFactory(),
 		f.loadVMManagerFactory(),
 		f.loadSSHTunnelFactory(),
 		f.loadDiskDeployer(),
 		f.loadRegistryServer(),
-		eventLogger,
+		f.loadEventLogger(),
 		f.logger,
 	)
-
-	deploymentRepo := bmconfig.NewDeploymentRepo(f.deploymentConfigService)
-	releaseRepo := bmconfig.NewReleaseRepo(f.deploymentConfigService, f.uuidGenerator)
-	deploymentRecord := bmdeployer.NewDeploymentRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
 
 	return NewDeployCmd(
 		f.ui,
@@ -151,24 +148,17 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fs,
 		deploymentParser,
 		boshDeploymentValidator,
-		cpiInstaller,
+		f.loadCPIInstaller(),
 		stemcellExtractor,
 		deploymentRecord,
 		deployer,
-		eventLogger,
+		f.loadEventLogger(),
 		f.logger,
 	), nil
 }
 
 func (f *factory) createDeleteCmd() (Cmd, error) {
-	timeService := boshtime.NewConcreteService()
-	eventFilters := []bmeventlog.EventFilter{
-		bmeventlog.NewTimeFilter(timeService),
-	}
-	eventLogger := bmeventlog.NewEventLoggerWithFilters(f.ui, eventFilters)
-
 	deploymentParser := bmdepl.NewParser(f.fs, f.logger)
-	cpiInstaller := f.newCPIInstaller(eventLogger, timeService)
 
 	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
 
@@ -177,14 +167,13 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.userConfig,
 		f.fs,
 		deploymentParser,
-		cpiInstaller,
+		f.loadCPIInstaller(),
 		f.loadVMManagerFactory(),
 		f.loadInstanceManagerFactory(),
-		f.loadVMRepo(),
-		f.loadDiskRepo(),
-		f.loadStemcellRepo(),
+		f.loadDiskManagerFactory(),
+		f.loadStemcellManagerFactory(),
 		agentClientFactory,
-		eventLogger,
+		f.loadEventLogger(),
 		f.logger,
 	), nil
 }
@@ -314,6 +303,15 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 	return f.vmManagerFactory
 }
 
+func (f *factory) loadStemcellManagerFactory() bmstemcell.ManagerFactory {
+	if f.stemcellManagerFactory != nil {
+		return f.stemcellManagerFactory
+	}
+
+	f.stemcellManagerFactory = bmstemcell.NewManagerFactory(f.loadStemcellRepo(), f.loadEventLogger())
+	return f.stemcellManagerFactory
+}
+
 func (f *factory) loadDeploymentConfig() error {
 	f.deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(
 		f.userConfig.DeploymentConfigFilePath(),
@@ -329,7 +327,30 @@ func (f *factory) loadDeploymentConfig() error {
 	return nil
 }
 
-func (f *factory) newCPIInstaller(eventLogger bmeventlog.EventLogger, timeService boshtime.Service) bmcpi.Installer {
+func (f *factory) loadEventLogger() bmeventlog.EventLogger {
+	if f.eventLogger != nil {
+		return f.eventLogger
+	}
+
+	eventFilters := []bmeventlog.EventFilter{bmeventlog.NewTimeFilter(f.loadTimeService())}
+	f.eventLogger = bmeventlog.NewEventLoggerWithFilters(f.ui, eventFilters)
+	return f.eventLogger
+}
+
+func (f *factory) loadTimeService() boshtime.Service {
+	if f.timeService != nil {
+		return f.timeService
+	}
+
+	f.timeService = boshtime.NewConcreteService()
+	return f.timeService
+}
+
+func (f *factory) loadCPIInstaller() bmcpi.Installer {
+	if f.cpiInstaller != nil {
+		return f.cpiInstaller
+	}
+
 	runner := boshsys.NewExecCmdRunner(f.logger)
 	extractor := boshcmd.NewTarballCompressor(runner, f.fs)
 
@@ -366,8 +387,8 @@ func (f *factory) newCPIInstaller(eventLogger bmeventlog.EventLogger, timeServic
 	releasePackagesCompiler := bmcomp.NewReleasePackagesCompiler(
 		da,
 		packageCompiler,
-		eventLogger,
-		timeService,
+		f.loadEventLogger(),
+		f.loadTimeService(),
 	)
 
 	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
@@ -383,11 +404,11 @@ func (f *factory) newCPIInstaller(eventLogger bmeventlog.EventLogger, timeServic
 		templatesRepo,
 		f.deploymentWorkspace.JobsPath(),
 		f.deploymentWorkspace.PackagesPath(),
-		eventLogger,
-		timeService,
+		f.loadEventLogger(),
+		f.loadTimeService(),
 	)
 	cloudFactory := bmcloud.NewFactory(f.fs, runner, f.deploymentWorkspace, f.logger)
-	return bmcpi.NewInstaller(
+	f.cpiInstaller = bmcpi.NewInstaller(
 		f.ui,
 		f.fs,
 		extractor,
@@ -397,4 +418,5 @@ func (f *factory) newCPIInstaller(eventLogger bmeventlog.EventLogger, timeServic
 		cloudFactory,
 		f.logger,
 	)
+	return f.cpiInstaller
 }

@@ -31,9 +31,8 @@ type deleteCmd struct {
 	cpiInstaller           bmcpi.Installer
 	vmManagerFactory       bmvm.ManagerFactory
 	instanceManagerFactory bminstance.ManagerFactory
-	vmRepo                 bmconfig.VMRepo
-	diskRepo               bmconfig.DiskRepo
-	stemcellRepo           bmconfig.StemcellRepo
+	diskManagerFactory     bmdisk.ManagerFactory
+	stemcellManagerFactory bmstemcell.ManagerFactory
 	agentClientFactory     bmagentclient.Factory
 	eventLogger            bmeventlog.EventLogger
 	logger                 boshlog.Logger
@@ -47,9 +46,8 @@ func NewDeleteCmd(ui bmui.UI,
 	cpiInstaller bmcpi.Installer,
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,
-	vmRepo bmconfig.VMRepo,
-	diskRepo bmconfig.DiskRepo,
-	stemcellRepo bmconfig.StemcellRepo,
+	diskManagerFactory bmdisk.ManagerFactory,
+	stemcellManagerFactory bmstemcell.ManagerFactory,
 	agentClientFactory bmagentclient.Factory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger) *deleteCmd {
@@ -61,9 +59,8 @@ func NewDeleteCmd(ui bmui.UI,
 		cpiInstaller:           cpiInstaller,
 		vmManagerFactory:       vmManagerFactory,
 		instanceManagerFactory: instanceManagerFactory,
-		vmRepo:                 vmRepo,
-		diskRepo:               diskRepo,
-		stemcellRepo:           stemcellRepo,
+		diskManagerFactory:     diskManagerFactory,
+		stemcellManagerFactory: stemcellManagerFactory,
 		agentClientFactory:     agentClientFactory,
 		eventLogger:            eventLogger,
 		logger:                 logger,
@@ -92,60 +89,12 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
-	deleteStage := c.eventLogger.NewStage("deleting deployment")
-	deleteStage.Start()
-
 	vmManager := c.vmManagerFactory.NewManager(cloud, cpiDeployment.Mbus)
 	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
+	diskManager := c.diskManagerFactory.NewManager(cloud)
+	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
 
-	instances, err := instanceManager.FindCurrent()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment instances")
-	}
-
-	diskManager := bmdisk.NewManagerFactory(c.diskRepo, c.logger).NewManager(cloud)
-	disk, diskFound, err := diskManager.FindCurrent()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment disk")
-	}
-
-	stemcellManager := bmstemcell.NewManagerFactory(c.stemcellRepo, c.eventLogger).NewManager(cloud)
-	stemcell, stemcellFound, err := stemcellManager.FindCurrent()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment stemcell")
-	}
-
-	pingTimeout := 10 * time.Second
-	pingDelay := 500 * time.Millisecond
-	for _, instance := range instances {
-		if err = instance.Delete(pingTimeout, pingDelay, deleteStage); err != nil {
-			return err
-		}
-	}
-
-	if diskFound {
-		if err = c.deleteCurrentDisk(deleteStage, disk); err != nil {
-			return err
-		}
-	}
-
-	if stemcellFound {
-		if err = c.deleteCurrentStemcell(deleteStage, stemcell); err != nil {
-			return err
-		}
-	}
-
-	if err = diskManager.DeleteUnused(deleteStage); err != nil {
-		return err
-	}
-
-	if err = stemcellManager.DeleteUnused(deleteStage); err != nil {
-		return err
-	}
-
-	deleteStage.Finish()
-
-	return nil
+	return c.deleteDeployment(instanceManager, diskManager, stemcellManager)
 }
 
 func (c *deleteCmd) validateInputFiles(releaseTarballPath string) (
@@ -210,62 +159,72 @@ func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
 	return args[0], nil
 }
 
-func (c *deleteCmd) deleteCurrentDisk(deleteStage bmeventlog.Stage, disk bmdisk.Disk) error {
+func (c *deleteCmd) deleteDisk(deleteStage bmeventlog.Stage, disk bmdisk.Disk) error {
 	stepName := fmt.Sprintf("Deleting disk '%s'", disk.CID())
 	return deleteStage.PerformStep(stepName, func() error {
-		if err := disk.Delete(); err != nil {
-			return err
-		}
-		if err := c.diskRepo.ClearCurrent(); err != nil {
-			return bosherr.WrapErrorf(err, "Deleting deployment disk record '%s'", disk.CID())
-		}
-		return nil
+		return disk.Delete()
 	})
 }
 
-func (c *deleteCmd) deleteCurrentStemcell(deleteStage bmeventlog.Stage, stemcell bmstemcell.CloudStemcell) error {
+func (c *deleteCmd) deleteStemcell(deleteStage bmeventlog.Stage, stemcell bmstemcell.CloudStemcell) error {
 	stepName := fmt.Sprintf("Deleting stemcell '%s'", stemcell.CID())
 	return deleteStage.PerformStep(stepName, func() error {
-		if err := stemcell.Delete(); err != nil {
-			return err
-		}
-		if err := c.stemcellRepo.ClearCurrent(); err != nil {
-			return bosherr.WrapErrorf(err, "Deleting deployment stemcell record '%s'", stemcell.CID())
-		}
-		return nil
+		return stemcell.Delete()
 	})
 }
 
-func (c *deleteCmd) deleteOrphanedDisks(deleteStage bmeventlog.Stage, diskManager bmdisk.Manager) error {
-	unusedDisks, err := diskManager.FindUnused()
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Finding orphaned disks")
-	}
-	for _, disk := range unusedDisks {
-		stepName := fmt.Sprintf("Deleting orphaned disk '%s'", disk.CID())
-		err = deleteStage.PerformStep(stepName, func() error {
-			return disk.Delete()
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+func (c *deleteCmd) deleteDeployment(
+	instanceManager bminstance.Manager,
+	diskManager bmdisk.Manager,
+	stemcellManager bmstemcell.Manager,
+) error {
+	deleteStage := c.eventLogger.NewStage("deleting deployment")
+	deleteStage.Start()
 
-func (c *deleteCmd) deleteOrphanedStemcells(deleteStage bmeventlog.Stage, stemcellManager bmstemcell.Manager) error {
-	unusedStemcells, err := stemcellManager.FindUnused()
+	instances, err := instanceManager.FindCurrent()
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Finding orphaned stemcells")
+		return bosherr.WrapError(err, "Finding current deployment instances")
 	}
-	for _, stemcell := range unusedStemcells {
-		stepName := fmt.Sprintf("Deleting orphaned stemcell '%s'", stemcell.CID())
-		err = deleteStage.PerformStep(stepName, func() error {
-			return stemcell.Delete()
-		})
-		if err != nil {
+
+	disk, diskFound, err := diskManager.FindCurrent()
+	if err != nil {
+		return bosherr.WrapError(err, "Finding current deployment disk")
+	}
+
+	stemcell, stemcellFound, err := stemcellManager.FindCurrent()
+	if err != nil {
+		return bosherr.WrapError(err, "Finding current deployment stemcell")
+	}
+
+	pingTimeout := 10 * time.Second
+	pingDelay := 500 * time.Millisecond
+	for _, instance := range instances {
+		if err = instance.Delete(pingTimeout, pingDelay, deleteStage); err != nil {
 			return err
 		}
 	}
+
+	if diskFound {
+		if err = c.deleteDisk(deleteStage, disk); err != nil {
+			return err
+		}
+	}
+
+	if stemcellFound {
+		if err = c.deleteStemcell(deleteStage, stemcell); err != nil {
+			return err
+		}
+	}
+
+	if err = diskManager.DeleteUnused(deleteStage); err != nil {
+		return err
+	}
+
+	if err = stemcellManager.DeleteUnused(deleteStage); err != nil {
+		return err
+	}
+
+	deleteStage.Finish()
+
 	return nil
 }

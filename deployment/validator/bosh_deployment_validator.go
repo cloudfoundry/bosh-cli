@@ -34,6 +34,10 @@ func (v *boshDeploymentValidator) Validate(deployment bmdepl.Deployment) error {
 		}
 	}
 
+	if len(deployment.ResourcePools) != 1 {
+		errs = append(errs, bosherr.Error("resource_pools must be of size 1"))
+	}
+
 	for idx, resourcePool := range deployment.ResourcePools {
 		if v.isBlank(resourcePool.Name) {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].name must not be empty or blank", idx))

@@ -136,6 +136,11 @@ func (r diskRepo) Delete(diskRecord DiskRecord) error {
 	}
 
 	config.Disks = newRecords
+
+	if config.CurrentDiskID == diskRecord.ID {
+		config.CurrentDiskID = ""
+	}
+
 	err = r.configService.Save(config)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")

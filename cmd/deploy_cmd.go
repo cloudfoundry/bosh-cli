@@ -33,7 +33,8 @@ type deployCmd struct {
 	logTag                  string
 }
 
-func NewDeployCmd(ui bmui.UI,
+func NewDeployCmd(
+	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
 	deploymentParser bmdepl.Parser,
@@ -43,7 +44,8 @@ func NewDeployCmd(ui bmui.UI,
 	deploymentRecord bmdeployer.DeploymentRecord,
 	deployer bmdeployer.Deployer,
 	eventLogger bmeventlog.EventLogger,
-	logger boshlog.Logger) *deployCmd {
+	logger boshlog.Logger,
+) *deployCmd {
 	return &deployCmd{
 		ui:                      ui,
 		userConfig:              userConfig,
