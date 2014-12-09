@@ -1,17 +1,21 @@
 package disk
 
 import (
+	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type Manager interface {
 	FindCurrent() (Disk, bool, error)
 	Create(bmdepl.DiskPool, string) (Disk, error)
 	FindUnused() ([]Disk, error)
+	DeleteUnused(bmeventlog.Stage) error
 }
 
 type manager struct {
@@ -82,4 +86,27 @@ func (m *manager) FindUnused() ([]Disk, error) {
 	}
 
 	return disks, nil
+}
+
+func (m *manager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
+	disks, err := m.FindUnused()
+	if err != nil {
+		return bosherr.WrapError(err, "Finding unused disks")
+	}
+
+	for _, disk := range disks {
+		stepName := fmt.Sprintf("Deleting unused disk '%s'", disk.CID())
+		err = eventLoggerStage.PerformStep(stepName, func() error {
+			err = disk.Delete()
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Deleting unused disk '%s'", disk.CID())
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

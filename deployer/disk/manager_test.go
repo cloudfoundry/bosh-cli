@@ -9,11 +9,13 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 )
@@ -182,6 +184,66 @@ var _ = Describe("Manager", func() {
 			Expect(disks).To(Equal([]bmdisk.Disk{
 				firstDisk,
 				thirdDisk,
+			}))
+		})
+	})
+
+	Describe("DeleteUnused", func() {
+		var (
+			secondDiskRecord bmconfig.DiskRecord
+			fakeStage        *fakebmlog.FakeStage
+		)
+		BeforeEach(func() {
+			fakeStage = fakebmlog.NewFakeStage()
+
+			fakeUUIDGenerator.GeneratedUuid = "fake-disk-id-1"
+			_, err := diskRepo.Save("fake-disk-cid-1", 100, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			fakeUUIDGenerator.GeneratedUuid = "fake-disk-id-2"
+			secondDiskRecord, err = diskRepo.Save("fake-disk-cid-2", 100, nil)
+			Expect(err).ToNot(HaveOccurred())
+			err = diskRepo.UpdateCurrent(secondDiskRecord.ID)
+			Expect(err).ToNot(HaveOccurred())
+
+			fakeUUIDGenerator.GeneratedUuid = "fake-disk-id-3"
+			_, err = diskRepo.Save("fake-disk-cid-3", 100, nil)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("deletes unused disks", func() {
+			err := manager.DeleteUnused(fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeCloud.DeleteDiskInputs).To(Equal([]fakebmcloud.DeleteDiskInput{
+				{DiskCID: "fake-disk-cid-1"},
+				{DiskCID: "fake-disk-cid-3"},
+			}))
+
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Deleting unused disk 'fake-disk-cid-1'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Name: "Deleting unused disk 'fake-disk-cid-3'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+
+			currentRecord, found, err := diskRepo.FindCurrent()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
+			Expect(currentRecord).To(Equal(secondDiskRecord))
+
+			records, err := diskRepo.All()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(records).To(Equal([]bmconfig.DiskRecord{
+				secondDiskRecord,
 			}))
 		})
 	})

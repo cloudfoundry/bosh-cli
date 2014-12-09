@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 )
 
 type MicroSSH interface {
@@ -26,7 +26,7 @@ type microSSH struct {
 }
 
 func NewMicroSSH(
-  vmUsername string,
+	vmUsername string,
 	vmIP string,
 	privateKeyPath string,
 	microUsername string,
@@ -34,20 +34,20 @@ func NewMicroSSH(
 	microPassword string,
 	fileSystem boshsys.FileSystem,
 	logger boshlog.Logger,
-) microSSH {
-	return microSSH{
+) *microSSH {
+	return &microSSH{
 		vmUsername:     vmUsername,
 		vmIP:           vmIP,
 		privateKeyPath: privateKeyPath,
-		microUsername: microUsername,
-		microIP: microIP,
-		microPassword: microPassword,
+		microUsername:  microUsername,
+		microIP:        microIP,
+		microPassword:  microPassword,
 		runner:         boshsys.NewExecCmdRunner(logger),
 		fileSystem:     fileSystem,
 	}
 }
 
-func (s microSSH) setupSSH() (*os.File, error) {
+func (s *microSSH) setupSSH() (*os.File, error) {
 	sshConfigFile, err := s.fileSystem.TempFile("ssh-config")
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating temp ssh-config file")
@@ -77,7 +77,7 @@ Host warden-vm
 		sshConfigTemplate,
 		s.vmIP,
 		s.vmUsername,
-	  s.privateKeyPath,
+		s.privateKeyPath,
 		s.microIP,
 		s.microUsername,
 		sshConfigFile.Name(),
@@ -92,7 +92,7 @@ Host warden-vm
 	return sshConfigFile, nil
 }
 
-func (s microSSH) RunCommand(cmd string) (stdout, stderr string, exitCode int, err error) {
+func (s *microSSH) RunCommand(cmd string) (stdout, stderr string, exitCode int, err error) {
 	sshConfigFile, err := s.setupSSH()
 	if err != nil {
 		return "", "", -1, bosherr.WrapError(err, "Setting up SSH")
@@ -110,7 +110,7 @@ func (s microSSH) RunCommand(cmd string) (stdout, stderr string, exitCode int, e
 	)
 }
 
-func (s microSSH) RunCommandWithSudo(cmd string) (stdout, stderr string, exitCode int, err error) {
+func (s *microSSH) RunCommandWithSudo(cmd string) (stdout, stderr string, exitCode int, err error) {
 	sshConfigFile, err := s.setupSSH()
 	if err != nil {
 		return "", "", -1, bosherr.WrapError(err, "Setting up SSH")
@@ -119,7 +119,7 @@ func (s microSSH) RunCommandWithSudo(cmd string) (stdout, stderr string, exitCod
 
 	return s.runner.RunCommand(
 		"sshpass",
-			"-p"+s.microPassword,
+		"-p"+s.microPassword,
 		"ssh",
 		"warden-vm",
 		"-F",

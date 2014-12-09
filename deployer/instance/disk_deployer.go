@@ -23,7 +23,6 @@ type diskDeployer struct {
 	diskRepo           bmconfig.DiskRepo
 	diskManagerFactory bmdisk.ManagerFactory
 	diskManager        bmdisk.Manager
-	eventLoggerStage   bmeventlog.Stage
 	logger             boshlog.Logger
 	logTag             string
 }
@@ -42,8 +41,6 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 		return nil
 	}
 
-	d.eventLoggerStage = eventLoggerStage
-
 	d.diskManager = d.diskManagerFactory.NewManager(cloud)
 	disk, diskFound, err := d.diskManager.FindCurrent()
 	if err != nil {
@@ -51,15 +48,22 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 	}
 
 	if !diskFound {
-		disk, err = d.createDisk(diskPool, vm)
+		disk, err = d.createDisk(diskPool, vm, eventLoggerStage)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = d.attachDisk(disk, vm)
+	err = d.attachDisk(disk, vm, eventLoggerStage)
 	if err != nil {
 		return err
+	}
+
+	if !diskFound {
+		err = d.updateCurrentDiskRecord(disk)
+		if err != nil {
+			return err
+		}
 	}
 
 	if diskFound {
@@ -69,19 +73,14 @@ func (d *diskDeployer) Deploy(diskPool bmdepl.DiskPool, cloud bmcloud.Cloud, vm 
 		}
 
 		if disk.NeedsMigration(diskPool.DiskSize, diskCloudProperties) {
-			disk, err = d.migrateDisk(disk, diskPool, vm)
+			disk, err = d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	err = d.updateCurrentDiskRecord(disk)
-	if err != nil {
-		return err
-	}
-
-	err = d.deleteUnusedDisks()
+	err = d.diskManager.DeleteUnused(eventLoggerStage)
 	if err != nil {
 		return err
 	}
@@ -93,52 +92,53 @@ func (d *diskDeployer) migrateDisk(
 	originalDisk bmdisk.Disk,
 	diskPool bmdepl.DiskPool,
 	vm bmvm.VM,
+	eventLoggerStage bmeventlog.Stage,
 ) (newDisk bmdisk.Disk, err error) {
 	d.logger.Debug(d.logTag, "Migrating disk '%s'", originalDisk.CID())
 
-	err = d.eventLoggerStage.PerformStep("Creating disk", func() error {
+	err = eventLoggerStage.PerformStep("Creating disk", func() error {
 		newDisk, err = d.diskManager.Create(diskPool, vm.CID())
-		if err != nil {
-			return bosherr.WrapError(err, "Creating secondary disk")
-		}
-		return nil
+		return err
 	})
 	if err != nil {
-		return nil, err
+		return newDisk, err
 	}
 
 	stepName := fmt.Sprintf("Attaching disk '%s' to VM '%s'", newDisk.CID(), vm.CID())
-	err = d.eventLoggerStage.PerformStep(stepName, func() error {
-		if err = vm.AttachDisk(newDisk); err != nil {
-			return bosherr.WrapError(err, "Attaching secondary disk")
-		}
-		return nil
+	err = eventLoggerStage.PerformStep(stepName, func() error {
+		return vm.AttachDisk(newDisk)
 	})
 	if err != nil {
-		return nil, err
+		return newDisk, err
 	}
 
-	stepName = fmt.Sprintf("Migrating disk '%s' to '%s'", originalDisk.CID(), newDisk.CID())
-	err = d.eventLoggerStage.PerformStep(stepName, func() error {
-		if err = vm.MigrateDisk(); err != nil {
-			return bosherr.WrapError(err, "Migrating disk")
-		}
-		return nil
+	stepName = fmt.Sprintf("Migrating disk content from '%s' to '%s'", originalDisk.CID(), newDisk.CID())
+	err = eventLoggerStage.PerformStep(stepName, func() error {
+		return vm.MigrateDisk()
 	})
 	if err != nil {
-		return nil, err
+		return newDisk, err
+	}
+
+	err = d.updateCurrentDiskRecord(newDisk)
+	if err != nil {
+		return newDisk, err
 	}
 
 	stepName = fmt.Sprintf("Detaching disk '%s'", originalDisk.CID())
-	err = d.eventLoggerStage.PerformStep(stepName, func() error {
-		if err = vm.DetachDisk(originalDisk); err != nil {
-			return bosherr.WrapError(err, "Detaching disk")
-		}
-
-		return nil
+	err = eventLoggerStage.PerformStep(stepName, func() error {
+		return vm.DetachDisk(originalDisk)
 	})
 	if err != nil {
-		return nil, err
+		return newDisk, err
+	}
+
+	stepName = fmt.Sprintf("Deleting disk '%s'", originalDisk.CID())
+	err = eventLoggerStage.PerformStep(stepName, func() error {
+		return originalDisk.Delete()
+	})
+	if err != nil {
+		return newDisk, err
 	}
 
 	return newDisk, nil
@@ -162,50 +162,19 @@ func (d *diskDeployer) updateCurrentDiskRecord(disk bmdisk.Disk) error {
 	return nil
 }
 
-func (d *diskDeployer) createDisk(diskPool bmdepl.DiskPool, vm bmvm.VM) (disk bmdisk.Disk, err error) {
-	err = d.eventLoggerStage.PerformStep("Creating disk", func() error {
+func (d *diskDeployer) createDisk(diskPool bmdepl.DiskPool, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) (disk bmdisk.Disk, err error) {
+	err = eventLoggerStage.PerformStep("Creating disk", func() error {
 		disk, err = d.diskManager.Create(diskPool, vm.CID())
-		if err != nil {
-			return bosherr.WrapError(err, "Creating new disk")
-		}
-		return nil
+		return err
 	})
 
 	return disk, err
 }
 
-func (d *diskDeployer) deleteUnusedDisks() error {
-	disks, err := d.diskManager.FindUnused()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding unused disks")
-	}
-
-	for _, disk := range disks {
-		stepName := fmt.Sprintf("Deleting unused disk '%s'", disk.CID())
-		err = d.eventLoggerStage.PerformStep(stepName, func() error {
-			err = disk.Delete()
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Deleting unused disk '%s'", disk.CID())
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (d *diskDeployer) attachDisk(disk bmdisk.Disk, vm bmvm.VM) error {
+func (d *diskDeployer) attachDisk(disk bmdisk.Disk, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error {
 	stepName := fmt.Sprintf("Attaching disk '%s' to VM '%s'", disk.CID(), vm.CID())
-	err := d.eventLoggerStage.PerformStep(stepName, func() error {
-		err := vm.AttachDisk(disk)
-		if err != nil {
-			return bosherr.WrapError(err, "Attaching disk")
-		}
-
-		return nil
+	err := eventLoggerStage.PerformStep(stepName, func() error {
+		return vm.AttachDisk(disk)
 	})
 
 	return err

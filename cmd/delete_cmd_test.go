@@ -344,7 +344,7 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 				})
 
-				It("deletes the orphaned disks", func() {
+				It("deletes the unused disks", func() {
 					expectNormalFlow()
 
 					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid-2")
@@ -379,7 +379,7 @@ cloud_provider:
 						"Started deleting deployment > Deleting VM 'fake-vm-cid'...", " done. (00:00:00)",
 						"Started deleting deployment > Deleting disk 'fake-disk-cid'...", " done. (00:00:00)",
 						"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned disk 'orphan-disk-cid-2'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting unused disk 'orphan-disk-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
 						"",
 					}))
@@ -392,7 +392,7 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 				})
 
-				It("deletes the orphaned stemcells", func() {
+				It("deletes the unused stemcells", func() {
 					expectNormalFlow()
 
 					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid-2")
@@ -427,7 +427,7 @@ cloud_provider:
 						"Started deleting deployment > Deleting VM 'fake-vm-cid'...", " done. (00:00:00)",
 						"Started deleting deployment > Deleting disk 'fake-disk-cid'...", " done. (00:00:00)",
 						"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned stemcell 'orphan-stemcell-cid-2'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting unused stemcell 'orphan-stemcell-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
 						"",
 					}))
@@ -478,9 +478,9 @@ cloud_provider:
 						"",
 						// if cpiInstaller were not mocked, it would print the compilation and installation stages here.
 						"Started deleting deployment",
-						"Started deleting deployment > Deleting orphaned disk 'orphan-disk-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned stemcell 'orphan-stemcell-cid'...", " done. (00:00:00)",
-						"Started deleting deployment > Deleting orphaned stemcell 'orphan-stemcell-cid-2'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting unused disk 'orphan-disk-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting unused stemcell 'orphan-stemcell-cid'...", " done. (00:00:00)",
+						"Started deleting deployment > Deleting unused stemcell 'orphan-stemcell-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
 						"",
 					}))

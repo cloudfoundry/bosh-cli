@@ -2,7 +2,6 @@ package acceptance_test
 
 import (
 	"io/ioutil"
-	"regexp"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,10 +21,10 @@ var _ = Describe("bosh-micro", func() {
 		testEnv      Environment
 		config       *Config
 
-		microSSH     MicroSSH
+		microSSH      MicroSSH
 		microUsername = "vcap"
 		microPassword = "sshpassword"
-		microIP = "10.244.0.42"
+		microIP       = "10.244.0.42"
 	)
 
 	BeforeSuite(func() {
@@ -61,7 +60,7 @@ var _ = Describe("bosh-micro", func() {
 			microUsername,
 			microIP,
 			microPassword,
-		  fileSystem,
+			fileSystem,
 			logger,
 		)
 
@@ -127,9 +126,6 @@ var _ = Describe("bosh-micro", func() {
 	})
 
 	Context("when microbosh has been previously deployed", func() {
-		var (
-			vmCID string
-		)
 		BeforeEach(func() {
 			setDeploymentManifest("./manifest.yml")
 
@@ -137,15 +133,9 @@ var _ = Describe("bosh-micro", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(exitCode).To(Equal(0))
 
-			stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+			_, _, exitCode, err = sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(exitCode).To(Equal(0))
-
-			rp := regexp.MustCompile("Waiting for the agent on VM '(.*)'")
-			result := rp.FindStringSubmatch(stdout)
-			Expect(result).ToNot(BeNil())
-
-			vmCID = result[1]
 		})
 
 		It("sets the ssh password", func() {
@@ -192,7 +182,7 @@ var _ = Describe("bosh-micro", func() {
 
 			Expect(stdout).To(ContainSubstring("Creating disk"))
 			Expect(stdout).To(ContainSubstring("Migrating disk"))
-			Expect(stdout).To(ContainSubstring("Deleting unused disk"))
+			Expect(stdout).To(ContainSubstring("Deleting disk"))
 		})
 
 		It("can delete all vms, disk, and stemcells", func() {
@@ -215,9 +205,7 @@ var _ = Describe("bosh-micro", func() {
 			})
 
 			It("re-deploys if the agent is unresponsive", func() {
-				_, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deployment", testEnv.Path("manifest"))
-				Expect(err).ToNot(HaveOccurred())
-				Expect(exitCode).To(Equal(0))
+				setDeploymentManifest("./modified_manifest.yml")
 
 				stdout, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
 				Expect(err).ToNot(HaveOccurred())

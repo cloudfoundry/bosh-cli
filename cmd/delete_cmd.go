@@ -135,11 +135,11 @@ func (c *deleteCmd) Run(args []string) error {
 		}
 	}
 
-	if err = c.deleteOrphanedDisks(deleteStage, diskManager); err != nil {
+	if err = diskManager.DeleteUnused(deleteStage); err != nil {
 		return err
 	}
 
-	if err = c.deleteOrphanedStemcells(deleteStage, stemcellManager); err != nil {
+	if err = stemcellManager.DeleteUnused(deleteStage); err != nil {
 		return err
 	}
 

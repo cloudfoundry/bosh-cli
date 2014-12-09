@@ -3,6 +3,7 @@ package fakes
 import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type FakeManager struct {
@@ -54,6 +55,11 @@ func (m *FakeManager) FindCurrent() (bmdisk.Disk, bool, error) {
 
 func (m *FakeManager) FindUnused() ([]bmdisk.Disk, error) {
 	return m.findUnusedOutput.disks, m.findUnusedOutput.err
+}
+
+func (m *FakeManager) DeleteUnused(eventLogStage bmeventlog.Stage) error {
+	m.DeleteUnusedCalledTimes++
+	return m.DeleteUnusedErr
 }
 
 func (m *FakeManager) SetFindCurrentBehavior(disk bmdisk.Disk, found bool, err error) {
