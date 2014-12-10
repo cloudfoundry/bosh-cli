@@ -34,7 +34,7 @@ func NewMicroSSH(
 	microPassword string,
 	fileSystem boshsys.FileSystem,
 	logger boshlog.Logger,
-) *microSSH {
+) MicroSSH {
 	return &microSSH{
 		vmUsername:     vmUsername,
 		vmIP:           vmIP,
@@ -71,7 +71,7 @@ Host warden-vm
 	Hostname %s
 	User %s
 	StrictHostKeyChecking no
-	ProxyCommand ssh -F %s vagrant-vm netcat -w 120 %%h %%p
+	ProxyCommand ssh -q -F %s vagrant-vm netcat -w 120 %%h %%p
 `
 	sshConfig := fmt.Sprintf(
 		sshConfigTemplate,

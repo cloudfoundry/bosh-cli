@@ -199,7 +199,7 @@ var _ = Describe("bosh-micro", func() {
 
 		Context("when the agent is unresponsive", func() {
 			BeforeEach(func() {
-				_, _, exitCode, err := microSSH.RunCommandWithSudo("sv force-shutdown agent")
+				_, _, exitCode, err := microSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(exitCode).To(Equal(0))
 			})
