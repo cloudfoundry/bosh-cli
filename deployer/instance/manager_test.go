@@ -9,6 +9,9 @@ import (
 	"errors"
 	"time"
 
+	"code.google.com/p/gomock/gomock"
+	mock_registry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry/mocks"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -17,7 +20,6 @@ import (
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance/fakes"
-	fakebmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm/fakes"
@@ -27,9 +29,22 @@ import (
 )
 
 var _ = Describe("Manager", func() {
+
+	var mockCtrl *gomock.Controller
+
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
+
 	var (
-		fakeCloud            *fakebmcloud.FakeCloud
-		fakeRegistryServer   *fakebmregistry.FakeServer
+		fakeCloud                 *fakebmcloud.FakeCloud
+		mockRegistryServerFactory *mock_registry.MockServerFactory
+		mockRegistryServer        *mock_registry.MockServer
+
 		fakeVMManager        *fakebmvm.FakeManager
 		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
 		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
@@ -45,7 +60,8 @@ var _ = Describe("Manager", func() {
 
 		fakeVMManager = fakebmvm.NewFakeManager()
 
-		fakeRegistryServer = fakebmregistry.NewFakeServer()
+		mockRegistryServerFactory = mock_registry.NewMockServerFactory(mockCtrl)
+		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
 
 		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
@@ -61,7 +77,7 @@ var _ = Describe("Manager", func() {
 		manager = NewManager(
 			fakeCloud,
 			fakeVMManager,
-			fakeRegistryServer,
+			mockRegistryServerFactory,
 			fakeSSHTunnelFactory,
 			fakeDiskDeployer,
 			logger,
@@ -216,8 +232,6 @@ var _ = Describe("Manager", func() {
 					fakeStage,
 				)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeRegistryServer.StartInput).To(Equal(fakebmregistry.StartInput{}))
-				Expect(fakeRegistryServer.ReceivedActions).To(BeEmpty())
 			})
 		})
 
@@ -441,6 +455,9 @@ var _ = Describe("Manager", func() {
 					Password:   "fake-ssh-password",
 					PrivateKey: "fake-ssh-private-key-path",
 				}
+
+				mockRegistryServerFactory.EXPECT().Create("fake-registry-username", "fake-registry-password", "fake-registry-host", 124).Return(mockRegistryServer, nil)
+				mockRegistryServer.EXPECT().Stop()
 			})
 
 			It("starts & stops the ssh tunnel", func() {
@@ -523,6 +540,9 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("starts & stops the registry", func() {
+				mockRegistryServerFactory.EXPECT().Create("fake-registry-username", "fake-registry-password", "fake-registry-host", 123).Return(mockRegistryServer, nil)
+				mockRegistryServer.EXPECT().Stop()
+
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
@@ -534,35 +554,23 @@ var _ = Describe("Manager", func() {
 					fakeStage,
 				)
 				Expect(err).ToNot(HaveOccurred())
-
-				Expect(fakeRegistryServer.ReceivedActions).To(Equal([]string{"Start", "Stop"}))
-				Expect(fakeRegistryServer.StartInput).To(Equal(fakebmregistry.StartInput{
-					Username: "fake-registry-username",
-					Password: "fake-registry-password",
-					Host:     "fake-registry-host",
-					Port:     123,
-				}))
 			})
 
-			Context("when starting registry fails", func() {
-				BeforeEach(func() {
-					fakeRegistryServer.SetStartBehavior(errors.New("fake-registry-start-error"), nil)
-				})
+			It("returns an error, when starting registry fails", func() {
+				mockRegistryServerFactory.EXPECT().Create("fake-registry-username", "fake-registry-password", "fake-registry-host", 123).Return(nil, errors.New("fake-registry-start-error"))
 
-				It("returns an error", func() {
-					_, err := manager.Create(
-						"fake-job-name",
-						0,
-						deployment,
-						extractedStemcell,
-						fakeCloudStemcell,
-						registry,
-						sshTunnelConfig,
-						fakeStage,
-					)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-registry-start-error"))
-				})
+				_, err := manager.Create(
+					"fake-job-name",
+					0,
+					deployment,
+					extractedStemcell,
+					fakeCloudStemcell,
+					registry,
+					sshTunnelConfig,
+					fakeStage,
+				)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-registry-start-error"))
 			})
 		})
 

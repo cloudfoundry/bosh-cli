@@ -14,23 +14,23 @@ type ManagerFactory interface {
 }
 
 type managerFactory struct {
-	registryServer   bmregistry.Server
-	sshTunnelFactory bmsshtunnel.Factory
-	diskDeployer     DiskDeployer
-	logger           boshlog.Logger
+	registryServerFactory bmregistry.ServerFactory
+	sshTunnelFactory      bmsshtunnel.Factory
+	diskDeployer          DiskDeployer
+	logger                boshlog.Logger
 }
 
 func NewManagerFactory(
-	registryServer bmregistry.Server,
+	registryServerFactory bmregistry.ServerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	diskDeployer DiskDeployer,
 	logger boshlog.Logger,
 ) ManagerFactory {
 	return &managerFactory{
-		registryServer:   registryServer,
-		sshTunnelFactory: sshTunnelFactory,
-		diskDeployer:     diskDeployer,
-		logger:           logger,
+		registryServerFactory: registryServerFactory,
+		sshTunnelFactory:      sshTunnelFactory,
+		diskDeployer:          diskDeployer,
+		logger:                logger,
 	}
 }
 
@@ -38,7 +38,7 @@ func (f *managerFactory) NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager)
 	return NewManager(
 		cloud,
 		vmManager,
-		f.registryServer,
+		f.registryServerFactory,
 		f.sshTunnelFactory,
 		f.diskDeployer,
 		f.logger,

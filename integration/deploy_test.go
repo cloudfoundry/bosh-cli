@@ -65,8 +65,8 @@ var _ = Describe("bosh-micro", func() {
 			releaseRepo             bmconfig.ReleaseRepo
 			userConfig              bmconfig.UserConfig
 
-			registryServer   bmregistry.Server
-			sshTunnelFactory bmsshtunnel.Factory
+			registryServerFactory bmregistry.ServerFactory
+			sshTunnelFactory      bmsshtunnel.Factory
 
 			diskManagerFactory bmdisk.ManagerFactory
 			diskDeployer       bminstance.DiskDeployer
@@ -241,7 +241,7 @@ cloud_provider:
 				vmManagerFactory,
 				sshTunnelFactory,
 				diskDeployer,
-				registryServer,
+				registryServerFactory,
 				eventLogger,
 				logger,
 			)
@@ -400,7 +400,7 @@ cloud_provider:
 
 			fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
 
-			registryServer = bmregistry.NewServer(logger)
+			registryServerFactory = bmregistry.NewServerFactory(logger)
 			sshTunnelFactory = bmsshtunnel.NewFactory(logger)
 
 			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)

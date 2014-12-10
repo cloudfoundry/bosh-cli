@@ -9,8 +9,46 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
+type ServerFactory interface {
+	Create(string, string, string, int) (Server, error)
+}
+
+type serverFactory struct {
+	logger boshlog.Logger
+	logTag string
+}
+
+func NewServerFactory(logger boshlog.Logger) ServerFactory {
+	return &serverFactory{
+		logger: logger,
+		logTag: "registryServer",
+	}
+}
+
+// Create starts a new server on a goroutine and returns it
+// The returned error is only for starting. Error while running is logged.
+func (s *serverFactory) Create(username string, password string, host string, port int) (Server, error) {
+	startedCh := make(chan error)
+	server := &server{
+		logger: s.logger,
+		logTag: "registryServer",
+	}
+	go func() {
+		err := server.start(username, password, host, port, startedCh)
+		if err != nil {
+			s.logger.Debug(s.logTag, "Registry error occurred: %s", err.Error())
+		}
+	}()
+
+	// block until started
+	err := <-startedCh
+	if err != nil {
+		server.Stop()
+	}
+	return server, err
+}
+
 type Server interface {
-	Start(string, string, string, int, chan error) error
 	Stop() error
 }
 
@@ -27,7 +65,7 @@ func NewServer(logger boshlog.Logger) Server {
 	}
 }
 
-func (s *server) Start(username string, password string, host string, port int, readyErrCh chan error) error {
+func (s *server) start(username string, password string, host string, port int, readyErrCh chan error) error {
 	s.logger.Debug(s.logTag, "Starting registry server at %s:%d", host, port)
 	var err error
 	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))

@@ -17,7 +17,7 @@ import (
 type Instance interface {
 	JobName() string
 	ID() int
-	WaitUntilReady(bmsshtunnel.Options, bmeventlog.Stage) error
+	WaitUntilReady(bmdepl.Registry, bmdepl.SSHTunnel, bmeventlog.Stage) error
 	StartJobs(newState bmstemcell.ApplySpec, deployment bmdepl.Deployment, eventLoggerStage bmeventlog.Stage) error
 	Delete(
 		pingTimeout time.Duration,
@@ -63,10 +63,23 @@ func (i *instance) ID() int {
 	return i.id
 }
 
-func (i *instance) WaitUntilReady(sshTunnelOptions bmsshtunnel.Options, eventLoggerStage bmeventlog.Stage) error {
+func (i *instance) WaitUntilReady(
+	registryConfig bmdepl.Registry,
+	sshTunnelConfig bmdepl.SSHTunnel,
+	eventLoggerStage bmeventlog.Stage,
+) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s' to be ready", i.vm.CID())
 	err := eventLoggerStage.PerformStep(stepName, func() error {
-		if !sshTunnelOptions.IsEmpty() {
+		if !registryConfig.IsEmpty() && !sshTunnelConfig.IsEmpty() {
+			sshTunnelOptions := bmsshtunnel.Options{
+				Host:              sshTunnelConfig.Host,
+				Port:              sshTunnelConfig.Port,
+				User:              sshTunnelConfig.User,
+				Password:          sshTunnelConfig.Password,
+				PrivateKey:        sshTunnelConfig.PrivateKey,
+				LocalForwardPort:  registryConfig.Port,
+				RemoteForwardPort: registryConfig.Port,
+			}
 			sshTunnel := i.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
 			sshReadyErrCh := make(chan error)
 			sshErrCh := make(chan error)

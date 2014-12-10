@@ -61,7 +61,7 @@ type factory struct {
 	vmRepo                  bmconfig.VMRepo
 	stemcellRepo            bmconfig.StemcellRepo
 	diskRepo                bmconfig.DiskRepo
-	registryServer          bmregistry.Server
+	registryServerFactory   bmregistry.ServerFactory
 	sshTunnelFactory        bmsshtunnel.Factory
 	diskDeployer            bminstance.DiskDeployer
 	diskManagerFactory      bmdisk.ManagerFactory
@@ -137,7 +137,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadVMManagerFactory(),
 		f.loadSSHTunnelFactory(),
 		f.loadDiskDeployer(),
-		f.loadRegistryServer(),
+		f.loadRegistryServerFactory(),
 		f.loadEventLogger(),
 		f.logger,
 	)
@@ -218,13 +218,13 @@ func (f *factory) loadDiskRepo() bmconfig.DiskRepo {
 	return f.diskRepo
 }
 
-func (f *factory) loadRegistryServer() bmregistry.Server {
-	if f.registryServer != nil {
-		return f.registryServer
+func (f *factory) loadRegistryServerFactory() bmregistry.ServerFactory {
+	if f.registryServerFactory != nil {
+		return f.registryServerFactory
 	}
 
-	f.registryServer = bmregistry.NewServer(f.logger)
-	return f.registryServer
+	f.registryServerFactory = bmregistry.NewServerFactory(f.logger)
+	return f.registryServerFactory
 }
 
 func (f *factory) loadSSHTunnelFactory() bmsshtunnel.Factory {
@@ -260,7 +260,7 @@ func (f *factory) loadInstanceManagerFactory() bminstance.ManagerFactory {
 	}
 
 	f.instanceManagerFactory = bminstance.NewManagerFactory(
-		f.loadRegistryServer(),
+		f.loadRegistryServerFactory(),
 		f.loadSSHTunnelFactory(),
 		f.loadDiskDeployer(),
 		f.logger,

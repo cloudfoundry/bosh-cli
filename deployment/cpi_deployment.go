@@ -33,6 +33,10 @@ type SSHTunnel struct {
 	PrivateKey string `yaml:"private_key"`
 }
 
+func (o SSHTunnel) IsEmpty() bool {
+	return o == SSHTunnel{}
+}
+
 func (d CPIDeployment) Properties() (map[string]interface{}, error) {
 	return bmkeystr.NewKeyStringifier().ConvertMap(d.RawProperties)
 }

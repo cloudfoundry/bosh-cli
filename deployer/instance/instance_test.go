@@ -368,23 +368,25 @@ var _ = Describe("Instance", func() {
 
 	Describe("WaitUntilReady", func() {
 		var (
-			sshTunnelOptions bmsshtunnel.Options
+			registryConfig  bmdepl.Registry
+			sshTunnelConfig bmdepl.SSHTunnel
 		)
 
 		BeforeEach(func() {
-			sshTunnelOptions = bmsshtunnel.Options{
-				Host:              "fake-ssh-host",
-				Port:              124,
-				User:              "fake-ssh-username",
-				Password:          "fake-password",
-				PrivateKey:        "fake-private-key-path",
-				LocalForwardPort:  125,
-				RemoteForwardPort: 126,
+			registryConfig = bmdepl.Registry{
+				Port: 125,
+			}
+			sshTunnelConfig = bmdepl.SSHTunnel{
+				Host:       "fake-ssh-host",
+				Port:       124,
+				User:       "fake-ssh-username",
+				Password:   "fake-password",
+				PrivateKey: "fake-private-key-path",
 			}
 		})
 
 		It("starts & stops the SSH tunnel", func() {
-			err := instance.WaitUntilReady(sshTunnelOptions, fakeStage)
+			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bmsshtunnel.Options{
 				User:              "fake-ssh-username",
@@ -393,14 +395,14 @@ var _ = Describe("Instance", func() {
 				Host:              "fake-ssh-host",
 				Port:              124,
 				LocalForwardPort:  125,
-				RemoteForwardPort: 126,
+				RemoteForwardPort: 125,
 			}))
 			Expect(fakeSSHTunnel.Started).To(BeTrue())
 			Expect(fakeSSHTunnel.Stopped).To(BeTrue())
 		})
 
 		It("waits for the vm", func() {
-			err := instance.WaitUntilReady(sshTunnelOptions, fakeStage)
+			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebmvm.WaitUntilReadyInput{
 				Timeout: 10 * time.Minute,
@@ -409,7 +411,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := instance.WaitUntilReady(sshTunnelOptions, fakeStage)
+			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -421,13 +423,25 @@ var _ = Describe("Instance", func() {
 			}))
 		})
 
-		Context("when ssh options are empty", func() {
+		Context("when ssh tunnel config is empty", func() {
 			BeforeEach(func() {
-				sshTunnelOptions = bmsshtunnel.Options{}
+				sshTunnelConfig = bmdepl.SSHTunnel{}
 			})
 
 			It("does not start ssh tunnel", func() {
-				err := instance.WaitUntilReady(sshTunnelOptions, fakeStage)
+				err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fakeSSHTunnel.Started).To(BeFalse())
+			})
+		})
+
+		Context("when registry config is empty", func() {
+			BeforeEach(func() {
+				registryConfig = bmdepl.Registry{}
+			})
+
+			It("does not start ssh tunnel", func() {
+				err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeSSHTunnel.Started).To(BeFalse())
 			})
@@ -439,7 +453,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.WaitUntilReady(sshTunnelOptions, fakeStage)
+				err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-ssh-tunnel-start-error"))
 			})
@@ -451,7 +465,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.WaitUntilReady(sshTunnelOptions, fakeStage)
+				err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 

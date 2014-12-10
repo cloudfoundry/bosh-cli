@@ -120,12 +120,12 @@ cloud_provider:
 				fs,
 				logger,
 			)
-			registryServer := bmregistry.NewServer(logger)
+			registryServerFactory := bmregistry.NewServerFactory(logger)
 			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bminstance.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 			instanceManagerFactory := bminstance.NewManagerFactory(
-				registryServer,
+				registryServerFactory,
 				sshTunnelFactory,
 				diskDeployer,
 				logger,

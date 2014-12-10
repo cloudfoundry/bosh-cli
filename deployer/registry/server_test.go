@@ -28,10 +28,10 @@ var _ = Describe("Server", func() {
 		registryURL = fmt.Sprintf("http://fake-user:fake-password@%s", registryHost)
 		incorrectAuthRegistryURL = fmt.Sprintf("http://incorrect-user:incorrect-password@%s", registryHost)
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		server = NewServer(logger)
-		readyErrCh := make(chan error)
-		go server.Start("fake-user", "fake-password", "localhost", 6901, readyErrCh)
-		err := <-readyErrCh
+
+		serverFactory := NewServerFactory(logger)
+		var err error
+		server, err = serverFactory.Create("fake-user", "fake-password", "localhost", 6901)
 		Expect(err).ToNot(HaveOccurred())
 
 		transport := &http.Transport{DisableKeepAlives: true}

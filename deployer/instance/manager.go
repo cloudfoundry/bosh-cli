@@ -24,7 +24,7 @@ type Manager interface {
 		deployment bmdepl.Deployment,
 		extractedStemcell bmstemcell.ExtractedStemcell,
 		cloudStemcell bmstemcell.CloudStemcell,
-		registry bmdepl.Registry,
+		registryConfig bmdepl.Registry,
 		sshTunnelConfig bmdepl.SSHTunnel,
 		eventLoggerStage bmeventlog.Stage,
 	) (instance Instance, err error)
@@ -36,31 +36,31 @@ type Manager interface {
 }
 
 type manager struct {
-	cloud            bmcloud.Cloud
-	vmManager        bmvm.Manager
-	registryServer   bmregistry.Server
-	sshTunnelFactory bmsshtunnel.Factory
-	diskDeployer     DiskDeployer
-	logger           boshlog.Logger
-	logTag           string
+	cloud                 bmcloud.Cloud
+	vmManager             bmvm.Manager
+	registryServerFactory bmregistry.ServerFactory
+	sshTunnelFactory      bmsshtunnel.Factory
+	diskDeployer          DiskDeployer
+	logger                boshlog.Logger
+	logTag                string
 }
 
 func NewManager(
 	cloud bmcloud.Cloud,
 	vmManager bmvm.Manager,
-	registryServer bmregistry.Server,
+	registryServerFactory bmregistry.ServerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	diskDeployer DiskDeployer,
 	logger boshlog.Logger,
 ) Manager {
 	return &manager{
-		cloud:            cloud,
-		vmManager:        vmManager,
-		registryServer:   registryServer,
-		sshTunnelFactory: sshTunnelFactory,
-		diskDeployer:     diskDeployer,
-		logger:           logger,
-		logTag:           "vmDeployer",
+		cloud:                 cloud,
+		vmManager:             vmManager,
+		registryServerFactory: registryServerFactory,
+		sshTunnelFactory:      sshTunnelFactory,
+		diskDeployer:          diskDeployer,
+		logger:                logger,
+		logTag:                "vmDeployer",
 	}
 }
 
@@ -90,20 +90,17 @@ func (m *manager) Create(
 	deployment bmdepl.Deployment,
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	cloudStemcell bmstemcell.CloudStemcell,
-	registry bmdepl.Registry,
+	registryConfig bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
 	eventLoggerStage bmeventlog.Stage,
 ) (instance Instance, err error) {
 
-	if !registry.IsEmpty() {
-		registryReadyErrCh := make(chan error)
-		go m.startRegistry(registry, registryReadyErrCh)
-		defer m.registryServer.Stop()
-
-		err = <-registryReadyErrCh
+	if !registryConfig.IsEmpty() {
+		server, err := m.registryServerFactory.Create(registryConfig.Username, registryConfig.Password, registryConfig.Host, registryConfig.Port)
 		if err != nil {
 			return instance, bosherr.WrapError(err, "Starting registry")
 		}
+		defer server.Stop()
 	}
 
 	var vm bmvm.VM
@@ -126,17 +123,7 @@ func (m *manager) Create(
 
 	instance = NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.logger)
 
-	sshTunnelOptions := bmsshtunnel.Options{
-		Host:              sshTunnelConfig.Host,
-		Port:              sshTunnelConfig.Port,
-		User:              sshTunnelConfig.User,
-		Password:          sshTunnelConfig.Password,
-		PrivateKey:        sshTunnelConfig.PrivateKey,
-		LocalForwardPort:  registry.Port,
-		RemoteForwardPort: registry.Port,
-	}
-
-	if err := instance.WaitUntilReady(sshTunnelOptions, eventLoggerStage); err != nil {
+	if err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, eventLoggerStage); err != nil {
 		return instance, bosherr.WrapError(err, "Waiting until instance is ready")
 	}
 
@@ -174,11 +161,4 @@ func (m *manager) DeleteAll(
 		}
 	}
 	return nil
-}
-
-func (m *manager) startRegistry(registry bmdepl.Registry, readyErrCh chan error) {
-	err := m.registryServer.Start(registry.Username, registry.Password, registry.Host, registry.Port, readyErrCh)
-	if err != nil {
-		m.logger.Debug(m.logTag, "Registry error occurred: %s", err.Error())
-	}
 }

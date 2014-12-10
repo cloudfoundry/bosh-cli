@@ -32,7 +32,7 @@ type deployer struct {
 	vmManagerFactory       bmvm.ManagerFactory
 	sshTunnelFactory       bmsshtunnel.Factory
 	diskDeployer           bminstance.DiskDeployer
-	registryServer         bmregistry.Server
+	registryServerFactory  bmregistry.ServerFactory
 	eventLoggerStage       bmeventlog.Stage
 	logger                 boshlog.Logger
 	logTag                 string
@@ -43,7 +43,7 @@ func NewDeployer(
 	vmManagerFactory bmvm.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	diskDeployer bminstance.DiskDeployer,
-	registryServer bmregistry.Server,
+	registryServerFactory bmregistry.ServerFactory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
@@ -54,7 +54,7 @@ func NewDeployer(
 		vmManagerFactory:       vmManagerFactory,
 		sshTunnelFactory:       sshTunnelFactory,
 		diskDeployer:           diskDeployer,
-		registryServer:         registryServer,
+		registryServerFactory:  registryServerFactory,
 		eventLoggerStage:       eventLoggerStage,
 		logger:                 logger,
 		logTag:                 "deployer",
@@ -78,7 +78,7 @@ func (m *deployer) Deploy(
 	m.eventLoggerStage.Start()
 
 	vmManager := m.vmManagerFactory.NewManager(cloud, mbusURL)
-	instanceManager := bminstance.NewManager(cloud, vmManager, m.registryServer, m.sshTunnelFactory, m.diskDeployer, m.logger)
+	instanceManager := bminstance.NewManager(cloud, vmManager, m.registryServerFactory, m.sshTunnelFactory, m.diskDeployer, m.logger)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
