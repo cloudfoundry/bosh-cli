@@ -26,7 +26,6 @@ import (
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
@@ -124,12 +123,10 @@ cloud_provider:
 				fs,
 				logger,
 			)
-			registryServerManager := bmregistry.NewServerManager(logger)
 			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bminstance.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 			instanceManagerFactory := bminstance.NewManagerFactory(
-				registryServerManager,
 				sshTunnelFactory,
 				diskDeployer,
 				logger,

@@ -13,7 +13,6 @@ import (
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 )
 
 type Manager interface {
@@ -36,31 +35,28 @@ type Manager interface {
 }
 
 type manager struct {
-	cloud                 bmcloud.Cloud
-	vmManager             bmvm.Manager
-	registryServerManager bmregistry.ServerManager
-	sshTunnelFactory      bmsshtunnel.Factory
-	diskDeployer          DiskDeployer
-	logger                boshlog.Logger
-	logTag                string
+	cloud            bmcloud.Cloud
+	vmManager        bmvm.Manager
+	sshTunnelFactory bmsshtunnel.Factory
+	diskDeployer     DiskDeployer
+	logger           boshlog.Logger
+	logTag           string
 }
 
 func NewManager(
 	cloud bmcloud.Cloud,
 	vmManager bmvm.Manager,
-	registryServerManager bmregistry.ServerManager,
 	sshTunnelFactory bmsshtunnel.Factory,
 	diskDeployer DiskDeployer,
 	logger boshlog.Logger,
 ) Manager {
 	return &manager{
-		cloud:                 cloud,
-		vmManager:             vmManager,
-		registryServerManager: registryServerManager,
-		sshTunnelFactory:      sshTunnelFactory,
-		diskDeployer:          diskDeployer,
-		logger:                logger,
-		logTag:                "vmDeployer",
+		cloud:            cloud,
+		vmManager:        vmManager,
+		sshTunnelFactory: sshTunnelFactory,
+		diskDeployer:     diskDeployer,
+		logger:           logger,
+		logTag:           "vmDeployer",
 	}
 }
 

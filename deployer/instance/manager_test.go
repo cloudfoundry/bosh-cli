@@ -9,9 +9,6 @@ import (
 	"errors"
 	"time"
 
-	"code.google.com/p/gomock/gomock"
-	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
-
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -29,21 +26,8 @@ import (
 )
 
 var _ = Describe("Manager", func() {
-
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
-		fakeCloud                 *fakebmcloud.FakeCloud
-		mockRegistryServerManager *mock_registry.MockServerManager
-		mockRegistryServer        *mock_registry.MockServer
+		fakeCloud *fakebmcloud.FakeCloud
 
 		fakeVMManager        *fakebmvm.FakeManager
 		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
@@ -60,9 +44,6 @@ var _ = Describe("Manager", func() {
 
 		fakeVMManager = fakebmvm.NewFakeManager()
 
-		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
-		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
-
 		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
@@ -77,7 +58,6 @@ var _ = Describe("Manager", func() {
 		manager = NewManager(
 			fakeCloud,
 			fakeVMManager,
-			mockRegistryServerManager,
 			fakeSSHTunnelFactory,
 			fakeDiskDeployer,
 			logger,

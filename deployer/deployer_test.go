@@ -9,9 +9,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"code.google.com/p/gomock/gomock"
-	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
-
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
@@ -32,16 +29,6 @@ import (
 
 var _ = Describe("Deployer", func() {
 
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
 		deployer                   Deployer
 		fakeVMManagerFactory       *fakebmvm.FakeManagerFactory
@@ -53,8 +40,6 @@ var _ = Describe("Deployer", func() {
 		deployment                 bmdepl.Deployment
 		diskPool                   bmdepl.DiskPool
 		registryConfig             bmdepl.Registry
-		mockRegistryServerManager  *mock_registry.MockServerManager
-		mockRegistryServer         *mock_registry.MockServer
 		eventLogger                *fakebmlog.FakeEventLogger
 		fakeStage                  *fakebmlog.FakeStage
 		sshTunnelConfig            bmdepl.SSHTunnel
@@ -104,9 +89,6 @@ var _ = Describe("Deployer", func() {
 		}
 
 		cloud = fakebmcloud.NewFakeCloud()
-
-		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
-		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
 
 		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
 		fakeVMManager = fakebmvm.NewFakeManager()
@@ -164,7 +146,6 @@ var _ = Describe("Deployer", func() {
 			fakeVMManagerFactory,
 			fakeSSHTunnelFactory,
 			fakeDiskDeployer,
-			mockRegistryServerManager,
 			eventLogger,
 			logger,
 		)

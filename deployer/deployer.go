@@ -13,7 +13,6 @@ import (
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 )
 
 type Deployer interface {
@@ -32,7 +31,6 @@ type deployer struct {
 	vmManagerFactory       bmvm.ManagerFactory
 	sshTunnelFactory       bmsshtunnel.Factory
 	diskDeployer           bminstance.DiskDeployer
-	registryServerManager  bmregistry.ServerManager
 	eventLoggerStage       bmeventlog.Stage
 	logger                 boshlog.Logger
 	logTag                 string
@@ -43,7 +41,6 @@ func NewDeployer(
 	vmManagerFactory bmvm.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	diskDeployer bminstance.DiskDeployer,
-	registryServerManager bmregistry.ServerManager,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
@@ -54,7 +51,6 @@ func NewDeployer(
 		vmManagerFactory:       vmManagerFactory,
 		sshTunnelFactory:       sshTunnelFactory,
 		diskDeployer:           diskDeployer,
-		registryServerManager:  registryServerManager,
 		eventLoggerStage:       eventLoggerStage,
 		logger:                 logger,
 		logTag:                 "deployer",
@@ -78,7 +74,7 @@ func (m *deployer) Deploy(
 	m.eventLoggerStage.Start()
 
 	vmManager := m.vmManagerFactory.NewManager(cloud, mbusURL)
-	instanceManager := bminstance.NewManager(cloud, vmManager, m.registryServerManager, m.sshTunnelFactory, m.diskDeployer, m.logger)
+	instanceManager := bminstance.NewManager(cloud, vmManager, m.sshTunnelFactory, m.diskDeployer, m.logger)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond

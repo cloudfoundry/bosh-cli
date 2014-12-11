@@ -32,7 +32,6 @@ import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
@@ -74,8 +73,7 @@ var _ = Describe("bosh-micro", func() {
 			releaseRepo             bmconfig.ReleaseRepo
 			userConfig              bmconfig.UserConfig
 
-			registryServerManager bmregistry.ServerManager
-			sshTunnelFactory      bmsshtunnel.Factory
+			sshTunnelFactory bmsshtunnel.Factory
 
 			diskManagerFactory bmdisk.ManagerFactory
 			diskDeployer       bminstance.DiskDeployer
@@ -252,7 +250,6 @@ cloud_provider:
 				vmManagerFactory,
 				sshTunnelFactory,
 				diskDeployer,
-				registryServerManager,
 				eventLogger,
 				logger,
 			)
@@ -413,7 +410,6 @@ cloud_provider:
 
 			mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
 
-			registryServerManager = bmregistry.NewServerManager(logger)
 			sshTunnelFactory = bmsshtunnel.NewFactory(logger)
 
 			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)

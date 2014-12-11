@@ -138,7 +138,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadVMManagerFactory(),
 		f.loadSSHTunnelFactory(),
 		f.loadDiskDeployer(),
-		f.loadRegistryServerManager(),
 		f.loadEventLogger(),
 		f.logger,
 	)
@@ -261,7 +260,6 @@ func (f *factory) loadInstanceManagerFactory() bminstance.ManagerFactory {
 	}
 
 	f.instanceManagerFactory = bminstance.NewManagerFactory(
-		f.loadRegistryServerManager(),
 		f.loadSSHTunnelFactory(),
 		f.loadDiskDeployer(),
 		f.logger,
