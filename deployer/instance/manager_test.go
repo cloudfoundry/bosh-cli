@@ -66,13 +66,13 @@ var _ = Describe("Manager", func() {
 
 	Describe("Create", func() {
 		var (
-			fakeVM            *fakebmvm.FakeVM
-			diskPool          bmdepl.DiskPool
-			deployment        bmdepl.Deployment
-			extractedStemcell bmstemcell.ExtractedStemcell
-			fakeCloudStemcell *fakebmstemcell.FakeCloudStemcell
-			registry          bmdepl.Registry
-			sshTunnelConfig   bmdepl.SSHTunnel
+			fakeVM             *fakebmvm.FakeVM
+			diskPool           bmdepl.DiskPool
+			deploymentManifest bmdepl.Manifest
+			extractedStemcell  bmstemcell.ExtractedStemcell
+			fakeCloudStemcell  *fakebmstemcell.FakeCloudStemcell
+			registry           bmdepl.Registry
+			sshTunnelConfig    bmdepl.SSHTunnel
 
 			expectedInstance Instance
 		)
@@ -86,7 +86,7 @@ var _ = Describe("Manager", func() {
 				},
 			}
 
-			deployment = bmdepl.Deployment{
+			deploymentManifest = bmdepl.Manifest{
 				Update: bmdepl.Update{
 					UpdateWatchTime: bmdepl.WatchTime{
 						Start: 0,
@@ -139,7 +139,7 @@ var _ = Describe("Manager", func() {
 			instance, err := manager.Create(
 				"fake-job-name",
 				0,
-				deployment,
+				deploymentManifest,
 				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
@@ -150,8 +150,8 @@ var _ = Describe("Manager", func() {
 			Expect(instance).To(Equal(expectedInstance))
 
 			Expect(fakeVMManager.CreateInput).To(Equal(fakebmvm.CreateInput{
-				Stemcell:   fakeCloudStemcell,
-				Deployment: deployment,
+				Stemcell: fakeCloudStemcell,
+				Manifest: deploymentManifest,
 			}))
 		})
 
@@ -159,7 +159,7 @@ var _ = Describe("Manager", func() {
 			instance, err := manager.Create(
 				"fake-job-name",
 				0,
-				deployment,
+				deploymentManifest,
 				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
@@ -176,7 +176,7 @@ var _ = Describe("Manager", func() {
 			instance, err := manager.Create(
 				"fake-job-name",
 				0,
-				deployment,
+				deploymentManifest,
 				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
@@ -204,7 +204,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
-					deployment,
+					deploymentManifest,
 					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
@@ -219,7 +219,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Create(
 				"fake-job-name",
 				0,
-				deployment,
+				deploymentManifest,
 				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
@@ -247,7 +247,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Create(
 				"fake-job-name",
 				0,
-				deployment,
+				deploymentManifest,
 				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
@@ -270,7 +270,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Create(
 				"fake-job-name",
 				0,
-				deployment,
+				deploymentManifest,
 				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
@@ -286,7 +286,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Create(
 				"fake-job-name",
 				0,
-				deployment,
+				deploymentManifest,
 				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
@@ -305,7 +305,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Create(
 				"fake-job-name",
 				0,
-				deployment,
+				deploymentManifest,
 				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
@@ -339,7 +339,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
-					deployment,
+					deploymentManifest,
 					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
@@ -369,7 +369,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
-					deployment,
+					deploymentManifest,
 					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
@@ -399,7 +399,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
-					deployment,
+					deploymentManifest,
 					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
@@ -441,7 +441,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
-					deployment,
+					deploymentManifest,
 					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
@@ -471,7 +471,7 @@ var _ = Describe("Manager", func() {
 					_, err := manager.Create(
 						"fake-job-name",
 						0,
-						deployment,
+						deploymentManifest,
 						extractedStemcell,
 						fakeCloudStemcell,
 						registry,
@@ -493,7 +493,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
-					deployment,
+					deploymentManifest,
 					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
@@ -515,7 +515,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
-					deployment,
+					deploymentManifest,
 					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
@@ -530,7 +530,7 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(
 					"fake-job-name",
 					0,
-					deployment,
+					deploymentManifest,
 					extractedStemcell,
 					fakeCloudStemcell,
 					registry,

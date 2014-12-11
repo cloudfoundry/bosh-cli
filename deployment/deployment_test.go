@@ -7,15 +7,15 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
 
-var _ = Describe("Deployment", func() {
+var _ = Describe("Manifest", func() {
 	var (
-		deployment Deployment
+		deploymentManifest Manifest
 	)
 
 	Describe("NetworksSpec", func() {
 		Context("when the deployment has networks", func() {
 			BeforeEach(func() {
-				deployment = Deployment{
+				deploymentManifest = Manifest{
 					Networks: []Network{
 						{
 							Name: "fake-network-name",
@@ -57,7 +57,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("is a map of the networks in spec form", func() {
-				Expect(deployment.NetworksSpec("fake-job-name")).To(Equal(map[string]interface{}{
+				Expect(deploymentManifest.NetworksSpec("fake-job-name")).To(Equal(map[string]interface{}{
 					"fake-network-name": map[string]interface{}{
 						"type":             "dynamic",
 						"ip":               "5.6.7.8",
@@ -79,7 +79,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when the deployment does not have networks", func() {
 			BeforeEach(func() {
-				deployment = Deployment{
+				deploymentManifest = Manifest{
 					Jobs: []Job{
 						{
 							Name: "fake-job-name",
@@ -90,17 +90,17 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("is an empty map", func() {
-				Expect(deployment.NetworksSpec("fake-job-name")).To(Equal(map[string]interface{}{}))
+				Expect(deploymentManifest.NetworksSpec("fake-job-name")).To(Equal(map[string]interface{}{}))
 			})
 		})
 
 		Context("when the deployment does not have a job with requested name", func() {
 			BeforeEach(func() {
-				deployment = Deployment{}
+				deploymentManifest = Manifest{}
 			})
 
 			It("returns an error", func() {
-				networksSpec, err := deployment.NetworksSpec("fake-job-name")
+				networksSpec, err := deploymentManifest.NetworksSpec("fake-job-name")
 				Expect(networksSpec).To(Equal(map[string]interface{}{}))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Could not find job with name: fake-job-name"))
@@ -111,7 +111,7 @@ var _ = Describe("Deployment", func() {
 	Describe("DiskPool", func() {
 		Context("when the deployment has disk_pools", func() {
 			BeforeEach(func() {
-				deployment = Deployment{
+				deploymentManifest = Manifest{
 					DiskPools: []DiskPool{
 						{
 							Name:     "fake-disk-pool-name-1",
@@ -138,7 +138,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("is the disk pool", func() {
-				diskPool, err := deployment.DiskPool("fake-job-name")
+				diskPool, err := deploymentManifest.DiskPool("fake-job-name")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(diskPool).To(Equal(DiskPool{
@@ -153,7 +153,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when job has persistent_disk and there are no disk_pools", func() {
 			BeforeEach(func() {
-				deployment = Deployment{
+				deploymentManifest = Manifest{
 					Jobs: []Job{
 						{
 							Name:           "fake-job-name",
@@ -164,7 +164,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("is a new disk pool with the specified persistent disk size", func() {
-				diskPool, err := deployment.DiskPool("fake-job-name")
+				diskPool, err := deploymentManifest.DiskPool("fake-job-name")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(diskPool).To(Equal(DiskPool{
@@ -177,7 +177,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when job has persistent_disk_pool and persistent_disk", func() {
 			BeforeEach(func() {
-				deployment = Deployment{
+				deploymentManifest = Manifest{
 					DiskPools: []DiskPool{
 						{
 							Name:     "fake-disk-pool-name-1",
@@ -198,7 +198,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("returns the deployment disk pool", func() {
-				diskPool, err := deployment.DiskPool("fake-job-name")
+				diskPool, err := deploymentManifest.DiskPool("fake-job-name")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(diskPool).To(Equal(DiskPool{
@@ -213,7 +213,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when job has persistent_disk_pool but no matching disk pool exists", func() {
 			BeforeEach(func() {
-				deployment = Deployment{
+				deploymentManifest = Manifest{
 					Jobs: []Job{
 						{
 							Name:               "fake-job-name",
@@ -224,7 +224,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := deployment.DiskPool("fake-job-name")
+				_, err := deploymentManifest.DiskPool("fake-job-name")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Could not find persistent disk pool 'fake-disk-pool-name-1' for job 'fake-job-name'"))
 			})
@@ -232,7 +232,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when job does not have persistent_disk_pool or persistent_disk", func() {
 			BeforeEach(func() {
-				deployment = Deployment{
+				deploymentManifest = Manifest{
 					Jobs: []Job{
 						{
 							Name: "fake-job-name",
@@ -242,7 +242,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("returns an empty disk pool", func() {
-				diskPool, err := deployment.DiskPool("fake-job-name")
+				diskPool, err := deploymentManifest.DiskPool("fake-job-name")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(diskPool).To(Equal(DiskPool{}))
 			})

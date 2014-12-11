@@ -14,7 +14,7 @@ import (
 
 type Manager interface {
 	FindCurrent() (VM, bool, error)
-	Create(bmstemcell.CloudStemcell, bmdepl.Deployment) (VM, error)
+	Create(bmstemcell.CloudStemcell, bmdepl.Manifest) (VM, error)
 }
 
 type manager struct {
@@ -56,15 +56,15 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 	return vm, true, err
 }
 
-func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.Deployment) (VM, error) {
-	microBoshJobName := deployment.Jobs[0].Name
-	networksSpec, err := deployment.NetworksSpec(microBoshJobName)
+func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmdepl.Manifest) (VM, error) {
+	microBoshJobName := deploymentManifest.Jobs[0].Name
+	networksSpec, err := deploymentManifest.NetworksSpec(microBoshJobName)
 	m.logger.Debug(m.logTag, "Creating VM with network spec: %#v", networksSpec)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Getting network spec")
 	}
 
-	resourcePool := deployment.ResourcePools[0]
+	resourcePool := deploymentManifest.ResourcePools[0]
 	cloudProperties, err := resourcePool.CloudProperties()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Getting cloud properties")

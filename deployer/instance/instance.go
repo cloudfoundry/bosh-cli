@@ -18,7 +18,7 @@ type Instance interface {
 	JobName() string
 	ID() int
 	WaitUntilReady(bmdepl.Registry, bmdepl.SSHTunnel, bmeventlog.Stage) error
-	StartJobs(newState bmstemcell.ApplySpec, deployment bmdepl.Deployment, eventLoggerStage bmeventlog.Stage) error
+	StartJobs(newState bmstemcell.ApplySpec, deploymentManifest bmdepl.Manifest, eventLoggerStage bmeventlog.Stage) error
 	Delete(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
@@ -99,12 +99,12 @@ func (i *instance) WaitUntilReady(
 }
 
 // StartJobs sends the agent a new apply spec, restarts the agent, and polls until the agent says the jobs are running
-func (i *instance) StartJobs(newState bmstemcell.ApplySpec, deployment bmdepl.Deployment, eventLoggerStage bmeventlog.Stage) error {
-	if err := i.startJobs(i.vm, newState, deployment, eventLoggerStage); err != nil {
+func (i *instance) StartJobs(newState bmstemcell.ApplySpec, deploymentManifest bmdepl.Manifest, eventLoggerStage bmeventlog.Stage) error {
+	if err := i.startJobs(i.vm, newState, deploymentManifest, eventLoggerStage); err != nil {
 		return err
 	}
 
-	return i.waitUntilJobsAreRunning(deployment, eventLoggerStage)
+	return i.waitUntilJobsAreRunning(deploymentManifest, eventLoggerStage)
 }
 
 func (i *instance) Delete(
@@ -144,12 +144,12 @@ func (i *instance) Delete(
 func (i *instance) startJobs(
 	vm bmvm.VM,
 	stemcellApplySpec bmstemcell.ApplySpec,
-	deployment bmdepl.Deployment,
+	deploymentManifest bmdepl.Manifest,
 	eventLoggerStage bmeventlog.Stage,
 ) error {
 	stepName := fmt.Sprintf("Starting instance '%s/%d'", i.jobName, i.id)
 	return eventLoggerStage.PerformStep(stepName, func() error {
-		err := vm.Apply(stemcellApplySpec, deployment)
+		err := vm.Apply(stemcellApplySpec, deploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Applying the agent state")
 		}
@@ -164,8 +164,8 @@ func (i *instance) startJobs(
 	})
 }
 
-func (i *instance) waitUntilJobsAreRunning(deployment bmdepl.Deployment, eventLoggerStage bmeventlog.Stage) error {
-	updateWatchTime := deployment.Update.UpdateWatchTime
+func (i *instance) waitUntilJobsAreRunning(deploymentManifest bmdepl.Manifest, eventLoggerStage bmeventlog.Stage) error {
+	updateWatchTime := deploymentManifest.Update.UpdateWatchTime
 	start := time.Duration(updateWatchTime.Start) * time.Millisecond
 	end := time.Duration(updateWatchTime.End) * time.Millisecond
 	delayBetweenAttempts := 1 * time.Second

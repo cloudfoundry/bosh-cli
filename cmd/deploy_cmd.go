@@ -127,7 +127,7 @@ func (c *deployCmd) Run(args []string) error {
 type Deployment struct{}
 
 func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath string) (
-	boshDeployment bmdepl.Deployment,
+	boshDeploymentManifest bmdepl.Manifest,
 	cpiDeployment bmcpi.Deployment,
 	cpiRelease bmrel.Release,
 	extractedStemcell bmstemcell.ExtractedStemcell,
@@ -149,12 +149,12 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 		}
 
 		var cpiDeploymentManifest bmdepl.CPIDeploymentManifest
-		boshDeployment, cpiDeploymentManifest, err = c.deploymentParser.Parse(deploymentFilePath)
+		boshDeploymentManifest, cpiDeploymentManifest, err = c.deploymentParser.Parse(deploymentFilePath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest `%s'", deploymentFilePath)
 		}
 
-		err = c.boshDeploymentValidator.Validate(boshDeployment)
+		err = c.boshDeploymentValidator.Validate(boshDeploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
@@ -163,7 +163,7 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 		return nil
 	})
 	if err != nil {
-		return boshDeployment, nil, nil, nil, err
+		return boshDeploymentManifest, nil, nil, nil, err
 	}
 
 	err = validationStage.PerformStep("Validating cpi release", func() error {
@@ -179,7 +179,7 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 		return nil
 	})
 	if err != nil {
-		return boshDeployment, cpiDeployment, cpiRelease, nil, err
+		return boshDeploymentManifest, cpiDeployment, cpiRelease, nil, err
 	}
 
 	err = validationStage.PerformStep("Validating stemcell", func() error {
@@ -196,12 +196,12 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 		return nil
 	})
 	if err != nil {
-		return boshDeployment, cpiDeployment, cpiRelease, extractedStemcell, err
+		return boshDeploymentManifest, cpiDeployment, cpiRelease, extractedStemcell, err
 	}
 
 	validationStage.Finish()
 
-	return boshDeployment, cpiDeployment, cpiRelease, extractedStemcell, nil
+	return boshDeploymentManifest, cpiDeployment, cpiRelease, extractedStemcell, nil
 }
 
 func (c *deployCmd) parseCmdInputs(args []string) (string, string, error) {

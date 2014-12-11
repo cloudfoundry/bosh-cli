@@ -7,8 +7,8 @@ import (
 )
 
 type CreateInput struct {
-	Stemcell   bmstemcell.CloudStemcell
-	Deployment bmdepl.Deployment
+	Stemcell bmstemcell.CloudStemcell
+	Manifest bmdepl.Manifest
 }
 
 type FakeManager struct {
@@ -33,10 +33,10 @@ func (m *FakeManager) FindCurrent() (bmvm.VM, bool, error) {
 	return m.findCurrentBehaviour.vm, m.findCurrentBehaviour.found, m.findCurrentBehaviour.err
 }
 
-func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deployment bmdepl.Deployment) (bmvm.VM, error) {
+func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmdepl.Manifest) (bmvm.VM, error) {
 	input := CreateInput{
-		Stemcell:   stemcell,
-		Deployment: deployment,
+		Stemcell: stemcell,
+		Manifest: deploymentManifest,
 	}
 	m.CreateInput = input
 

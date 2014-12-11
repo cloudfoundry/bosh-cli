@@ -21,7 +21,7 @@ import (
 type VM interface {
 	CID() string
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
-	Apply(bmstemcell.ApplySpec, bmdepl.Deployment) error
+	Apply(bmstemcell.ApplySpec, bmdepl.Manifest) error
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
@@ -85,7 +85,7 @@ func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
 	return agentPingRetryStrategy.Try()
 }
 
-func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
+func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmdepl.Manifest) error {
 	vm.logger.Debug(vm.logTag, "Stopping agent")
 
 	err := vm.agentClient.Stop()
@@ -100,13 +100,13 @@ func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.De
 	}
 	defer vm.fs.RemoveAll(renderedJobDir)
 
-	deploymentJob := deployment.Jobs[0]
+	deploymentJob := deploymentManifest.Jobs[0]
 	jobProperties, err := deploymentJob.Properties()
 	if err != nil {
 		return bosherr.WrapError(err, "Stringifying job properties")
 	}
 
-	networksSpec, err := deployment.NetworksSpec(deploymentJob.Name)
+	networksSpec, err := deploymentManifest.NetworksSpec(deploymentJob.Name)
 	if err != nil {
 		return bosherr.WrapError(err, "Stringifying job properties")
 	}
@@ -114,7 +114,7 @@ func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.De
 	templatesSpec, err := vm.templatesSpecGenerator.Create(
 		deploymentJob,
 		stemcellApplySpec.Job,
-		deployment.Name,
+		deploymentManifest.Name,
 		jobProperties,
 		vm.mbusURL,
 	)
@@ -125,7 +125,7 @@ func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.De
 	vm.logger.Debug(vm.logTag, "Creating apply spec")
 	agentApplySpec := vm.applySpecFactory.Create(
 		stemcellApplySpec,
-		deployment.Name,
+		deploymentManifest.Name,
 		deploymentJob.Name,
 		networksSpec,
 		templatesSpec.BlobID,

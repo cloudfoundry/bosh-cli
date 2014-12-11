@@ -9,7 +9,7 @@ import (
 )
 
 type Parser interface {
-	Parse(path string) (Deployment, CPIDeploymentManifest, error)
+	Parse(path string) (Manifest, CPIDeploymentManifest, error)
 }
 
 type parser struct {
@@ -40,7 +40,7 @@ type cloudProviderProperties struct {
 	Mbus            string
 }
 
-var boshDeploymentDefaults = Deployment{
+var boshDeploymentDefaults = Manifest{
 	Update: Update{
 		UpdateWatchTime: WatchTime{
 			Start: 0,
@@ -57,22 +57,22 @@ func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {
 	}
 }
 
-func (p *parser) Parse(path string) (Deployment, CPIDeploymentManifest, error) {
+func (p *parser) Parse(path string) (Manifest, CPIDeploymentManifest, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
-		return Deployment{}, CPIDeploymentManifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
+		return Manifest{}, CPIDeploymentManifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
 	}
 
 	depManifest := manifest{}
 	err = candiedyaml.Unmarshal(contents, &depManifest)
 	if err != nil {
-		return Deployment{}, CPIDeploymentManifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
+		return Manifest{}, CPIDeploymentManifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
 	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest: %#v", depManifest)
 
 	deployment, err := p.parseBoshDeployment(depManifest)
 	if err != nil {
-		return Deployment{}, CPIDeploymentManifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
+		return Manifest{}, CPIDeploymentManifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
 
 	cpiDeploymentManifest := p.parseCPIDeploymentManifest(depManifest)
@@ -80,7 +80,7 @@ func (p *parser) Parse(path string) (Deployment, CPIDeploymentManifest, error) {
 	return deployment, cpiDeploymentManifest, nil
 }
 
-func (p *parser) parseBoshDeployment(depManifest manifest) (Deployment, error) {
+func (p *parser) parseBoshDeployment(depManifest manifest) (Manifest, error) {
 	deployment := boshDeploymentDefaults
 	deployment.Name = depManifest.Name
 	deployment.Networks = depManifest.Networks
@@ -91,7 +91,7 @@ func (p *parser) parseBoshDeployment(depManifest manifest) (Deployment, error) {
 	if depManifest.Update.UpdateWatchTime != nil {
 		updateWatchTime, err := NewWatchTime(*depManifest.Update.UpdateWatchTime)
 		if err != nil {
-			return Deployment{}, bosherr.WrapError(err, "Parsing update watch time")
+			return Manifest{}, bosherr.WrapError(err, "Parsing update watch time")
 		}
 
 		deployment.Update = Update{

@@ -34,7 +34,7 @@ var _ = Describe("VM", func() {
 		applySpec                  bmstemcell.ApplySpec
 		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
-		deployment                 bmdepl.Deployment
+		deploymentManifest         bmdepl.Manifest
 		deploymentJob              bmdepl.Job
 		stemcellJob                bmstemcell.Job
 		fs                         *fakesys.FakeFileSystem
@@ -107,7 +107,7 @@ var _ = Describe("VM", func() {
 				},
 			},
 		}
-		deployment = bmdepl.Deployment{
+		deploymentManifest = bmdepl.Manifest{
 			Name: "fake-deployment-name",
 			Jobs: []bmdepl.Job{
 				deploymentJob,
@@ -143,13 +143,13 @@ var _ = Describe("VM", func() {
 
 	Describe("Apply", func() {
 		It("stops the agent", func() {
-			err := vm.Apply(applySpec, deployment)
+			err := vm.Apply(applySpec, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.StopCalled).To(BeTrue())
 		})
 
 		It("generates templates spec", func() {
-			err := vm.Apply(applySpec, deployment)
+			err := vm.Apply(applySpec, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeTemplatesSpecGenerator.CreateTemplatesSpecInputs).To(ContainElement(fakebmas.CreateTemplatesSpecInput{
 				DeploymentJob:  deploymentJob,
@@ -163,7 +163,7 @@ var _ = Describe("VM", func() {
 		})
 
 		It("creates apply spec", func() {
-			err := vm.Apply(applySpec, deployment)
+			err := vm.Apply(applySpec, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeApplySpecFactory.CreateInput).To(Equal(
@@ -190,7 +190,7 @@ var _ = Describe("VM", func() {
 				Deployment: "fake-deployment-name",
 			}
 			fakeApplySpecFactory.CreateApplySpec = agentApplySpec
-			err := vm.Apply(applySpec, deployment)
+			err := vm.Apply(applySpec, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.ApplyApplySpec).To(Equal(agentApplySpec))
 		})
@@ -201,7 +201,7 @@ var _ = Describe("VM", func() {
 			})
 
 			It("returns an error", func() {
-				err := vm.Apply(applySpec, deployment)
+				err := vm.Apply(applySpec, deploymentManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-err"))
 			})
@@ -213,7 +213,7 @@ var _ = Describe("VM", func() {
 			})
 
 			It("returns an error", func() {
-				err := vm.Apply(applySpec, deployment)
+				err := vm.Apply(applySpec, deploymentManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-agent-apply-err"))
 			})
@@ -225,7 +225,7 @@ var _ = Describe("VM", func() {
 			})
 
 			It("returns an error", func() {
-				err := vm.Apply(applySpec, deployment)
+				err := vm.Apply(applySpec, deploymentManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 			})

@@ -213,9 +213,9 @@ version: fake-version
 
 				Context("when the deployment manifest exists", func() {
 					var (
-						boshDeployment        bmdepl.Deployment
-						cpiDeploymentManifest bmdepl.CPIDeploymentManifest
-						cloud                 *fakebmcloud.FakeCloud
+						boshDeploymentManifest bmdepl.Manifest
+						cpiDeploymentManifest  bmdepl.CPIDeploymentManifest
+						cloud                  *fakebmcloud.FakeCloud
 					)
 
 					BeforeEach(func() {
@@ -228,7 +228,7 @@ version: fake-version
 							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
 						}
 
-						boshDeployment = bmdepl.Deployment{
+						boshDeploymentManifest = bmdepl.Manifest{
 							Name: "fake-deployment-name",
 							Jobs: []bmdepl.Job{
 								{
@@ -236,7 +236,7 @@ version: fake-version
 								},
 							},
 						}
-						fakeDeploymentParser.ParseDeployment = boshDeployment
+						fakeDeploymentParser.ParseDeployment = boshDeploymentManifest
 
 						cloud = fakebmcloud.NewFakeCloud()
 						fakeCPIRelease = fakebmrel.NewFakeRelease()
@@ -300,7 +300,7 @@ version: fake-version
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
-							{Deployment: boshDeployment},
+							{Deployment: boshDeploymentManifest},
 						}))
 					})
 
@@ -389,7 +389,7 @@ version: fake-version
 						Expect(fakeDeployer.DeployInputs).To(Equal([]fakebmdeployer.DeployInput{
 							{
 								Cpi:             cloud,
-								Deployment:      boshDeployment,
+								Manifest:        boshDeploymentManifest,
 								Stemcell:        expectedExtractedStemcell,
 								Registry:        cpiDeploymentManifest.Registry,
 								SSHTunnelConfig: cpiDeploymentManifest.SSHTunnel,

@@ -18,7 +18,7 @@ import (
 type Deployer interface {
 	Deploy(
 		bmcloud.Cloud,
-		bmdepl.Deployment,
+		bmdepl.Manifest,
 		bmstemcell.ExtractedStemcell,
 		bmdepl.Registry,
 		bmdepl.SSHTunnel,
@@ -59,7 +59,7 @@ func NewDeployer(
 
 func (m *deployer) Deploy(
 	cloud bmcloud.Cloud,
-	deployment bmdepl.Deployment,
+	deploymentManifest bmdepl.Manifest,
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	registryConfig bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
@@ -82,7 +82,7 @@ func (m *deployer) Deploy(
 		return err
 	}
 
-	if err = m.createAllInstances(deployment, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig); err != nil {
+	if err = m.createAllInstances(deploymentManifest, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig); err != nil {
 		return err
 	}
 
@@ -97,24 +97,24 @@ func (m *deployer) Deploy(
 }
 
 func (m *deployer) createAllInstances(
-	deployment bmdepl.Deployment,
+	deploymentManifest bmdepl.Manifest,
 	instanceManager bminstance.Manager,
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	cloudStemcell bmstemcell.CloudStemcell,
 	registryConfig bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
 ) error {
-	if len(deployment.Jobs) != 1 {
-		return bosherr.Errorf("There must only be one job, found %d", len(deployment.Jobs))
+	if len(deploymentManifest.Jobs) != 1 {
+		return bosherr.Errorf("There must only be one job, found %d", len(deploymentManifest.Jobs))
 	}
 
-	for _, jobSpec := range deployment.Jobs {
+	for _, jobSpec := range deploymentManifest.Jobs {
 		if jobSpec.Instances != 1 {
 			return bosherr.Errorf("Job '%s' must have only one instance, found %d", jobSpec.Name, jobSpec.Instances)
 		}
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
 			_, err := instanceManager.Create(jobSpec.Name, instanceID,
-				deployment, extractedStemcell, cloudStemcell,
+				deploymentManifest, extractedStemcell, cloudStemcell,
 				registryConfig, sshTunnelConfig, m.eventLoggerStage)
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)

@@ -45,7 +45,7 @@ const (
 	NetworkDefaultGateway NetworkDefault = "gateway"
 )
 
-type Deployment struct {
+type Manifest struct {
 	Name          string
 	RawProperties map[interface{}]interface{}
 	Jobs          []Job
@@ -59,11 +59,11 @@ type Update struct {
 	UpdateWatchTime WatchTime
 }
 
-func (d Deployment) Properties() (map[string]interface{}, error) {
+func (d Manifest) Properties() (map[string]interface{}, error) {
 	return bmkeystr.NewKeyStringifier().ConvertMap(d.RawProperties)
 }
 
-func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error) {
+func (d Manifest) NetworksSpec(jobName string) (map[string]interface{}, error) {
 	job, found := d.findJobByName(jobName)
 	if !found {
 		return map[string]interface{}{}, bosherr.Errorf("Could not find job with name: %s", jobName)
@@ -88,7 +88,7 @@ func (d Deployment) NetworksSpec(jobName string) (map[string]interface{}, error)
 	return result, nil
 }
 
-func (d Deployment) DiskPool(jobName string) (DiskPool, error) {
+func (d Manifest) DiskPool(jobName string) (DiskPool, error) {
 	job, found := d.findJobByName(jobName)
 	if !found {
 		return DiskPool{}, bosherr.Errorf("Could not find job with name: %s", jobName)
@@ -115,7 +115,7 @@ func (d Deployment) DiskPool(jobName string) (DiskPool, error) {
 	return DiskPool{}, nil
 }
 
-func (d Deployment) networksToMap() map[string]Network {
+func (d Manifest) networksToMap() map[string]Network {
 	result := map[string]Network{}
 	for _, network := range d.Networks {
 		result[network.Name] = network
@@ -123,7 +123,7 @@ func (d Deployment) networksToMap() map[string]Network {
 	return result
 }
 
-func (d Deployment) findJobByName(jobName string) (Job, bool) {
+func (d Manifest) findJobByName(jobName string) (Job, bool) {
 	for _, job := range d.Jobs {
 		if job.Name == jobName {
 			return job, true

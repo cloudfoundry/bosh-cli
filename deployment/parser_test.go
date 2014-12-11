@@ -103,10 +103,10 @@ cloud_provider:
 			})
 
 			It("parses deployment from manifest", func() {
-				deployment, _, err := parser.Parse(deploymentPath)
+				deploymentManifest, _, err := parser.Parse(deploymentPath)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deployment).To(Equal(Deployment{
+				Expect(deploymentManifest).To(Equal(Manifest{
 					Name: "fake-deployment-name",
 					Update: Update{
 						UpdateWatchTime: WatchTime{

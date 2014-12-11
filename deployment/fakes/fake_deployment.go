@@ -19,8 +19,8 @@ func NewFakeJob() bmdepl.Job {
 	}
 }
 
-func NewFakeDeployment() bmdepl.Deployment {
-	return bmdepl.Deployment{
+func NewFakeDeployment() bmdepl.Manifest {
+	return bmdepl.Manifest{
 		Name:          "fake-deployment-name",
 		RawProperties: map[interface{}]interface{}{},
 		Jobs:          []bmdepl.Job{NewFakeJob()},

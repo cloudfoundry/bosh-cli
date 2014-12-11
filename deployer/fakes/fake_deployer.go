@@ -8,7 +8,7 @@ import (
 
 type DeployInput struct {
 	Cpi             bmcloud.Cloud
-	Deployment      bmdepl.Deployment
+	Manifest        bmdepl.Manifest
 	Stemcell        bmstemcell.ExtractedStemcell
 	Registry        bmdepl.Registry
 	SSHTunnelConfig bmdepl.SSHTunnel
@@ -33,7 +33,7 @@ func NewFakeDeployer() *FakeDeployer {
 
 func (m *FakeDeployer) Deploy(
 	cpi bmcloud.Cloud,
-	deployment bmdepl.Deployment,
+	deploymentManifest bmdepl.Manifest,
 	stemcell bmstemcell.ExtractedStemcell,
 	registry bmdepl.Registry,
 	sshTunnelConfig bmdepl.SSHTunnel,
@@ -41,7 +41,7 @@ func (m *FakeDeployer) Deploy(
 ) error {
 	input := DeployInput{
 		Cpi:             cpi,
-		Deployment:      deployment,
+		Manifest:        deploymentManifest,
 		Stemcell:        stemcell,
 		Registry:        registry,
 		SSHTunnelConfig: sshTunnelConfig,

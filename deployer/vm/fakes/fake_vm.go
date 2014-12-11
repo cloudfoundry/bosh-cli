@@ -47,7 +47,7 @@ type FakeVM struct {
 
 type ApplyInput struct {
 	StemcellApplySpec bmstemcell.ApplySpec
-	Deployment        bmdepl.Deployment
+	Manifest          bmdepl.Manifest
 }
 
 type WaitUntilReadyInput struct {
@@ -98,10 +98,10 @@ func (vm *FakeVM) WaitUntilReady(timeout time.Duration, delay time.Duration) err
 	return vm.WaitUntilReadyErr
 }
 
-func (vm *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deployment bmdepl.Deployment) error {
+func (vm *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmdepl.Manifest) error {
 	vm.ApplyInputs = append(vm.ApplyInputs, ApplyInput{
 		StemcellApplySpec: stemcellApplySpec,
-		Deployment:        deployment,
+		Manifest:          deploymentManifest,
 	})
 
 	return vm.ApplyErr

@@ -5,5 +5,5 @@ import (
 )
 
 type DeploymentValidator interface {
-	Validate(deployment bmdepl.Deployment) error
+	Validate(deploymentManifest bmdepl.Manifest) error
 }

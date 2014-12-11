@@ -17,14 +17,14 @@ func NewFakeValidator() *FakeValidator {
 }
 
 type ValidateInput struct {
-	Deployment bmdepl.Deployment
+	Deployment bmdepl.Manifest
 }
 
 type ValidateOutput struct {
 	Err error
 }
 
-func (v *FakeValidator) Validate(deployment bmdepl.Deployment) error {
+func (v *FakeValidator) Validate(deployment bmdepl.Manifest) error {
 	v.ValidateInputs = append(v.ValidateInputs, ValidateInput{
 		Deployment: deployment,
 	})

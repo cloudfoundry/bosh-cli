@@ -20,7 +20,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 	Describe("Validate", func() {
 		It("does not error if deployment is valid", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Name: "fake-deployment-name",
 				Networks: []bmdepl.Network{
 					{
@@ -80,45 +80,45 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("validates name is not empty", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Name: "",
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("name must not be empty or blank"))
 		})
 
 		It("validates name is not blank", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Name: "   \t",
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("name must not be empty or blank"))
 		})
 
 		It("validates that there is only one resource pool", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				ResourcePools: []bmdepl.ResourcePool{
 					{},
 					{},
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools must be of size 1"))
 		})
 
 		It("validates resource pool name", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				ResourcePools: []bmdepl.ResourcePool{
 					{
 						Name: "",
@@ -126,11 +126,11 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].name must not be empty or blank"))
 
-			deployment = bmdepl.Deployment{
+			deploymentManifest = bmdepl.Manifest{
 				ResourcePools: []bmdepl.ResourcePool{
 					{
 						Name: "not-blank",
@@ -141,13 +141,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err = validator.Validate(deployment)
+			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[1].name must not be empty or blank"))
 		})
 
 		It("validates resource pool network", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				ResourcePools: []bmdepl.ResourcePool{
 					{
 						Network: "",
@@ -155,11 +155,11 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must not be empty or blank"))
 
-			deployment = bmdepl.Deployment{
+			deploymentManifest = bmdepl.Manifest{
 				Networks: []bmdepl.Network{
 					{
 						Name: "fake-network",
@@ -172,13 +172,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err = validator.Validate(deployment)
+			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must be the name of a network"))
 		})
 
 		It("validates resource pool cloud_properties", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				ResourcePools: []bmdepl.ResourcePool{
 					{
 						RawCloudProperties: map[interface{}]interface{}{
@@ -188,13 +188,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].cloud_properties must have only string keys"))
 		})
 
 		It("validates resource pool env", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				ResourcePools: []bmdepl.ResourcePool{
 					{
 						RawEnv: map[interface{}]interface{}{
@@ -204,13 +204,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].env must have only string keys"))
 		})
 
 		It("validates disk pool name", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				DiskPools: []bmdepl.DiskPool{
 					{
 						Name: "",
@@ -218,11 +218,11 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("disk_pools[0].name must not be empty or blank"))
 
-			deployment = bmdepl.Deployment{
+			deploymentManifest = bmdepl.Manifest{
 				DiskPools: []bmdepl.DiskPool{
 					{
 						Name: "not-blank",
@@ -233,13 +233,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err = validator.Validate(deployment)
+			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("disk_pools[1].name must not be empty or blank"))
 		})
 
 		It("validates disk pool size", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				DiskPools: []bmdepl.DiskPool{
 					{
 						Name: "fake-disk",
@@ -247,13 +247,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("disk_pools[0].disk_size must be > 0"))
 		})
 
 		It("validates disk pool cloud_properties", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				DiskPools: []bmdepl.DiskPool{
 					{
 						RawCloudProperties: map[interface{}]interface{}{
@@ -263,13 +263,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("disk_pools[0].cloud_properties must have only string keys"))
 		})
 
 		It("validates network name", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Networks: []bmdepl.Network{
 					{
 						Name: "",
@@ -277,11 +277,11 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[0].name must not be empty or blank"))
 
-			deployment = bmdepl.Deployment{
+			deploymentManifest = bmdepl.Manifest{
 				Networks: []bmdepl.Network{
 					{
 						Name: "not-blank",
@@ -292,13 +292,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err = validator.Validate(deployment)
+			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[1].name must not be empty or blank"))
 		})
 
 		It("validates network type", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Networks: []bmdepl.Network{
 					{
 						Type: "unknown-type",
@@ -306,13 +306,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[0].type must be 'manual', 'dynamic', or 'vip'"))
 		})
 
 		It("validates disk pool cloud_properties", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Networks: []bmdepl.Network{
 					{
 						RawCloudProperties: map[interface{}]interface{}{
@@ -322,26 +322,26 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[0].cloud_properties must have only string keys"))
 		})
 
 		It("validates that there is only one job", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{},
 					{},
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs must be of size 1"))
 		})
 
 		It("validates job name", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						Name: "",
@@ -349,11 +349,11 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].name must not be empty or blank"))
 
-			deployment = bmdepl.Deployment{
+			deploymentManifest = bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						Name: "not-blank",
@@ -364,13 +364,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err = validator.Validate(deployment)
+			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[1].name must not be empty or blank"))
 		})
 
 		It("validates job persistent_disk", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						PersistentDisk: -1234,
@@ -378,13 +378,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].persistent_disk must be >= 0"))
 		})
 
 		It("validates job persistent_disk_pool", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						PersistentDiskPool: "non-existent-disk-pool",
@@ -397,13 +397,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].persistent_disk_pool must be the name of a disk pool"))
 		})
 
 		It("validates job instances", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						Instances: -1234,
@@ -411,13 +411,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].instances must be >= 0"))
 		})
 
 		It("validates job networks", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						Networks: []bmdepl.JobNetwork{},
@@ -425,13 +425,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks must be a non-empty array"))
 		})
 
 		It("validates job network name", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						Networks: []bmdepl.JobNetwork{
@@ -443,13 +443,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].name must not be empty or blank"))
 		})
 
 		It("validates job network static ips", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						Networks: []bmdepl.JobNetwork{
@@ -461,13 +461,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].static_ips[0] must be a valid IP"))
 		})
 
 		It("validates job network default", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						Networks: []bmdepl.JobNetwork{
@@ -481,13 +481,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].default[0] must be 'dns' or 'gateway'"))
 		})
 
 		It("validates job lifecycle", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						Lifecycle: "errand",
@@ -495,13 +495,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].lifecycle must be 'service' ('errand' not supported)"))
 		})
 
 		It("validates job properties", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				Jobs: []bmdepl.Job{
 					{
 						RawProperties: map[interface{}]interface{}{
@@ -511,19 +511,19 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].properties must have only string keys"))
 		})
 
 		It("validates deployment properties", func() {
-			deployment := bmdepl.Deployment{
+			deploymentManifest := bmdepl.Manifest{
 				RawProperties: map[interface{}]interface{}{
 					123: "fake-property-value",
 				},
 			}
 
-			err := validator.Validate(deployment)
+			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("properties must have only string keys"))
 		})

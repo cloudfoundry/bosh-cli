@@ -237,8 +237,8 @@ var _ = Describe("Instance", func() {
 
 	Describe("StartJobs", func() {
 		var (
-			applySpec  bmstemcell.ApplySpec
-			deployment bmdepl.Deployment
+			applySpec          bmstemcell.ApplySpec
+			deploymentManifest bmdepl.Manifest
 		)
 
 		BeforeEach(func() {
@@ -248,7 +248,7 @@ var _ = Describe("Instance", func() {
 				},
 			}
 
-			deployment = bmdepl.Deployment{
+			deploymentManifest = bmdepl.Manifest{
 				Update: bmdepl.Update{
 					UpdateWatchTime: bmdepl.WatchTime{
 						Start: 0,
@@ -266,14 +266,14 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("tells the agent to start the jobs", func() {
-			err := instance.StartJobs(applySpec, deployment, fakeStage)
+			err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.StartCalled).To(Equal(1))
 		})
 
 		It("waits until agent reports state as running", func() {
-			err := instance.StartJobs(applySpec, deployment, fakeStage)
+			err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
@@ -283,7 +283,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := instance.StartJobs(applySpec, deployment, fakeStage)
+			err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -308,7 +308,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.StartJobs(applySpec, deployment, fakeStage)
+				err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
@@ -329,7 +329,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.StartJobs(applySpec, deployment, fakeStage)
+				err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
@@ -350,7 +350,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.StartJobs(applySpec, deployment, fakeStage)
+				err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 

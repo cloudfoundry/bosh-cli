@@ -29,7 +29,7 @@ var _ = Describe("Manager", func() {
 		expectedNetworksSpec       map[string]interface{}
 		expectedCloudProperties    map[string]interface{}
 		expectedEnv                map[string]interface{}
-		deployment                 bmdepl.Deployment
+		deploymentManifest         bmdepl.Manifest
 		fakeVMRepo                 *fakebmconfig.FakeVMRepo
 		stemcellRepo               bmconfig.StemcellRepo
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
@@ -78,7 +78,7 @@ var _ = Describe("Manager", func() {
 		expectedEnv = map[string]interface{}{
 			"fake-env-key": "fake-env-value",
 		}
-		deployment = bmdepl.Deployment{
+		deploymentManifest = bmdepl.Manifest{
 			Name: "fake-deployment",
 			Networks: []bmdepl.Network{
 				{
@@ -116,7 +116,7 @@ var _ = Describe("Manager", func() {
 
 	Describe("Create", func() {
 		It("creates a VM", func() {
-			vm, err := manager.Create(stemcell, deployment)
+			vm, err := manager.Create(stemcell, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 			expectedVM := NewVM(
 				"fake-vm-cid",
@@ -143,7 +143,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("updates the current vm record", func() {
-			_, err := manager.Create(stemcell, deployment)
+			_, err := manager.Create(stemcell, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
@@ -155,7 +155,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create(stemcell, deployment)
+				_, err := manager.Create(stemcell, deploymentManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 			})

@@ -20,7 +20,7 @@ type Manager interface {
 	Create(
 		jobName string,
 		id int,
-		deployment bmdepl.Deployment,
+		deploymentManifest bmdepl.Manifest,
 		extractedStemcell bmstemcell.ExtractedStemcell,
 		cloudStemcell bmstemcell.CloudStemcell,
 		registryConfig bmdepl.Registry,
@@ -83,7 +83,7 @@ func (m *manager) FindCurrent() ([]Instance, error) {
 func (m *manager) Create(
 	jobName string,
 	id int,
-	deployment bmdepl.Deployment,
+	deploymentManifest bmdepl.Manifest,
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	cloudStemcell bmstemcell.CloudStemcell,
 	registryConfig bmdepl.Registry,
@@ -93,7 +93,7 @@ func (m *manager) Create(
 	var vm bmvm.VM
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
 	err = eventLoggerStage.PerformStep(stepName, func() error {
-		vm, err = m.vmManager.Create(cloudStemcell, deployment)
+		vm, err = m.vmManager.Create(cloudStemcell, deploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Creating VM")
 		}
@@ -115,7 +115,7 @@ func (m *manager) Create(
 	}
 
 	// disk creation requires knowledge of the vm, so we can't use the diskManager.Create pattern
-	diskPool, err := deployment.DiskPool(jobName)
+	diskPool, err := deploymentManifest.DiskPool(jobName)
 	if err != nil {
 		return instance, bosherr.WrapError(err, "Getting disk pool")
 	}
@@ -125,7 +125,7 @@ func (m *manager) Create(
 		return instance, bosherr.WrapError(err, "Deploying disk")
 	}
 
-	if err = instance.StartJobs(extractedStemcell.ApplySpec(), deployment, eventLoggerStage); err != nil {
+	if err = instance.StartJobs(extractedStemcell.ApplySpec(), deploymentManifest, eventLoggerStage); err != nil {
 		return instance, err
 	}
 

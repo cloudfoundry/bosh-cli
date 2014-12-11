@@ -6,7 +6,7 @@ import (
 
 type FakeParser struct {
 	ParsePath                  string
-	ParseDeployment            bmdepl.Deployment
+	ParseDeployment            bmdepl.Manifest // todo
 	ParseCPIDeploymentManifest bmdepl.CPIDeploymentManifest
 	ParseErr                   error
 }
@@ -15,7 +15,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string) (bmdepl.Deployment, bmdepl.CPIDeploymentManifest, error) {
+func (p *FakeParser) Parse(path string) (bmdepl.Manifest, bmdepl.CPIDeploymentManifest, error) {
 	p.ParsePath = path
 	return p.ParseDeployment, p.ParseCPIDeploymentManifest, p.ParseErr
 }

@@ -16,13 +16,13 @@ func NewBoshDeploymentValidator() DeploymentValidator {
 	return &boshDeploymentValidator{}
 }
 
-func (v *boshDeploymentValidator) Validate(deployment bmdepl.Deployment) error {
+func (v *boshDeploymentValidator) Validate(deploymentManifest bmdepl.Manifest) error {
 	errs := []error{}
-	if v.isBlank(deployment.Name) {
+	if v.isBlank(deploymentManifest.Name) {
 		errs = append(errs, bosherr.Error("name must not be empty or blank"))
 	}
 
-	for idx, network := range deployment.Networks {
+	for idx, network := range deploymentManifest.Networks {
 		if v.isBlank(network.Name) {
 			errs = append(errs, bosherr.Errorf("networks[%d].name must not be empty or blank", idx))
 		}
@@ -34,17 +34,17 @@ func (v *boshDeploymentValidator) Validate(deployment bmdepl.Deployment) error {
 		}
 	}
 
-	if len(deployment.ResourcePools) != 1 {
+	if len(deploymentManifest.ResourcePools) != 1 {
 		errs = append(errs, bosherr.Error("resource_pools must be of size 1"))
 	}
 
-	for idx, resourcePool := range deployment.ResourcePools {
+	for idx, resourcePool := range deploymentManifest.ResourcePools {
 		if v.isBlank(resourcePool.Name) {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].name must not be empty or blank", idx))
 		}
 		if v.isBlank(resourcePool.Network) {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].network must not be empty or blank", idx))
-		} else if _, ok := v.networkNames(deployment)[resourcePool.Network]; !ok {
+		} else if _, ok := v.networkNames(deploymentManifest)[resourcePool.Network]; !ok {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].network must be the name of a network", idx))
 		}
 		if _, err := resourcePool.CloudProperties(); err != nil {
@@ -55,7 +55,7 @@ func (v *boshDeploymentValidator) Validate(deployment bmdepl.Deployment) error {
 		}
 	}
 
-	for idx, diskPool := range deployment.DiskPools {
+	for idx, diskPool := range deploymentManifest.DiskPools {
 		if v.isBlank(diskPool.Name) {
 			errs = append(errs, bosherr.Errorf("disk_pools[%d].name must not be empty or blank", idx))
 		}
@@ -67,11 +67,11 @@ func (v *boshDeploymentValidator) Validate(deployment bmdepl.Deployment) error {
 		}
 	}
 
-	if len(deployment.Jobs) > 1 {
+	if len(deploymentManifest.Jobs) > 1 {
 		errs = append(errs, bosherr.Error("jobs must be of size 1"))
 	}
 
-	for idx, job := range deployment.Jobs {
+	for idx, job := range deploymentManifest.Jobs {
 		if v.isBlank(job.Name) {
 			errs = append(errs, bosherr.Errorf("jobs[%d].name must not be empty or blank", idx))
 		}
@@ -79,7 +79,7 @@ func (v *boshDeploymentValidator) Validate(deployment bmdepl.Deployment) error {
 			errs = append(errs, bosherr.Errorf("jobs[%d].persistent_disk must be >= 0", idx))
 		}
 		if job.PersistentDiskPool != "" {
-			if _, ok := v.diskPoolNames(deployment)[job.PersistentDiskPool]; !ok {
+			if _, ok := v.diskPoolNames(deploymentManifest)[job.PersistentDiskPool]; !ok {
 				errs = append(errs, bosherr.Errorf("jobs[%d].persistent_disk_pool must be the name of a disk pool", idx))
 			}
 		}
@@ -116,7 +116,7 @@ func (v *boshDeploymentValidator) Validate(deployment bmdepl.Deployment) error {
 		}
 	}
 
-	if _, err := deployment.Properties(); err != nil {
+	if _, err := deploymentManifest.Properties(); err != nil {
 		errs = append(errs, bosherr.Error("properties must have only string keys"))
 	}
 
@@ -131,17 +131,17 @@ func (v *boshDeploymentValidator) isBlank(str string) bool {
 	return str == "" || strings.TrimSpace(str) == ""
 }
 
-func (v *boshDeploymentValidator) networkNames(deployment bmdepl.Deployment) map[string]struct{} {
+func (v *boshDeploymentValidator) networkNames(deploymentManifest bmdepl.Manifest) map[string]struct{} {
 	names := make(map[string]struct{})
-	for _, network := range deployment.Networks {
+	for _, network := range deploymentManifest.Networks {
 		names[network.Name] = struct{}{}
 	}
 	return names
 }
 
-func (v *boshDeploymentValidator) diskPoolNames(deployment bmdepl.Deployment) map[string]struct{} {
+func (v *boshDeploymentValidator) diskPoolNames(deploymentManifest bmdepl.Manifest) map[string]struct{} {
 	names := make(map[string]struct{})
-	for _, diskPool := range deployment.DiskPools {
+	for _, diskPool := range deploymentManifest.DiskPools {
 		names[diskPool.Name] = struct{}{}
 	}
 	return names

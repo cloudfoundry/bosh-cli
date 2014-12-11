@@ -19,7 +19,7 @@ type FakeVMDeployer struct {
 
 type VMDeployInput struct {
 	Cloud            bmcloud.Cloud
-	Deployment       bmdepl.Deployment
+	Manifest         bmdepl.Manifest
 	Stemcell         bmstemcell.CloudStemcell
 	MbusURL          string
 	EventLoggerStage bmeventlog.Stage
@@ -45,14 +45,14 @@ func NewFakeVMDeployer() *FakeVMDeployer {
 
 func (m *FakeVMDeployer) Deploy(
 	cloud bmcloud.Cloud,
-	deployment bmdepl.Deployment,
+	deploymentManifest bmdepl.Manifest,
 	stemcell bmstemcell.CloudStemcell,
 	mbusURL string,
 	eventLoggerStage bmeventlog.Stage,
 ) (bmvm.VM, error) {
 	input := VMDeployInput{
 		Cloud:            cloud,
-		Deployment:       deployment,
+		Manifest:         deploymentManifest,
 		Stemcell:         stemcell,
 		MbusURL:          mbusURL,
 		EventLoggerStage: eventLoggerStage,
