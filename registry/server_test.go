@@ -12,7 +12,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
+	. "github.com/cloudfoundry/bosh-micro-cli/registry"
 )
 
 var _ = Describe("Server", func() {
@@ -29,9 +29,9 @@ var _ = Describe("Server", func() {
 		incorrectAuthRegistryURL = fmt.Sprintf("http://incorrect-user:incorrect-password@%s", registryHost)
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		serverFactory := NewServerFactory(logger)
+		serverFactory := NewServerManager(logger)
 		var err error
-		server, err = serverFactory.Create("fake-user", "fake-password", "localhost", 6901)
+		server, err = serverFactory.Start("fake-user", "fake-password", "localhost", 6901)
 		Expect(err).ToNot(HaveOccurred())
 
 		transport := &http.Transport{DisableKeepAlives: true}

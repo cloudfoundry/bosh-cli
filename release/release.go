@@ -20,6 +20,7 @@ type Release interface {
 	Packages() []*Package
 	FindJobByName(jobName string) (Job, bool)
 	Delete() error
+	Exists() bool
 }
 
 func NewRelease(
@@ -62,6 +63,11 @@ func (r *release) FindJobByName(jobName string) (Job, bool) {
 // Since packages and jobs are under the same path, they will be deleted too.
 func (r *release) Delete() error {
 	return r.fs.RemoveAll(r.extractedPath)
+}
+
+// Exists returns false after Delete (or if extractedPath does not exist)
+func (r *release) Exists() bool {
+	return r.fs.FileExists(r.extractedPath)
 }
 
 type Package struct {

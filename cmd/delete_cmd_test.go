@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"errors"
+	"os"
 
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
@@ -20,12 +21,12 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
@@ -87,10 +88,13 @@ cloud_provider:
 				"fake-cpi-release-version",
 				[]bmrel.Job{},
 				[]*bmrel.Package{},
-				"fake-extracted-dir",
+				"fake-cpi-extracted-dir",
 				fs,
 			)
-			fakeCPIInstaller.SetExtractBehavior("/fake-cpi-release.tgz", cpiRelease, nil)
+			fakeCPIInstaller.SetExtractBehavior("/fake-cpi-release.tgz", func(releaseTarballPath string) (bmrel.Release, error) {
+				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
+				return cpiRelease, err
+			})
 		}
 
 		var allowCPIToBeInstalled = func() {
@@ -102,11 +106,11 @@ cloud_provider:
 				"fake-extracted-dir",
 				fs,
 			)
-			cpiDeployment := bmdepl.CPIDeployment{
+			cpiDeploymentManifest := bmdepl.CPIDeploymentManifest{
 				Name: "test-release",
 				Mbus: "http://fake-mbus-url",
 			}
-			fakeCPIInstaller.SetInstallBehavior(cpiDeployment, cpiRelease, mockCloud, nil)
+			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, cpiRelease, mockCloud, nil)
 		}
 
 		var newDeleteCmd = func() Cmd {
@@ -120,12 +124,12 @@ cloud_provider:
 				fs,
 				logger,
 			)
-			registryServerFactory := bmregistry.NewServerFactory(logger)
+			registryServerManager := bmregistry.NewServerManager(logger)
 			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bminstance.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 			instanceManagerFactory := bminstance.NewManagerFactory(
-				registryServerFactory,
+				registryServerManager,
 				sshTunnelFactory,
 				diskDeployer,
 				logger,

@@ -51,7 +51,7 @@ var _ = Describe("ReleaseCompiler", func() {
 
 	Describe("Compile", func() {
 		var (
-			deployment          bmdepl.CPIDeployment
+			deployment          bmdepl.CPIDeploymentManifest
 			deploymentProperies map[string]interface{}
 		)
 
@@ -60,7 +60,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				"fake-property-key": "fake-property-value",
 			}
 
-			deployment = bmdepl.CPIDeployment{
+			deployment = bmdepl.CPIDeploymentManifest{
 				Name: "fake-deployment-name",
 				RawProperties: map[interface{}]interface{}{
 					"fake-property-key": "fake-property-value",

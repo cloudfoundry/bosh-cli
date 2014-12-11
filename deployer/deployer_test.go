@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
-	mock_registry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry/mocks"
+	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
@@ -53,7 +53,7 @@ var _ = Describe("Deployer", func() {
 		deployment                 bmdepl.Deployment
 		diskPool                   bmdepl.DiskPool
 		registryConfig             bmdepl.Registry
-		mockRegistryServerFactory  *mock_registry.MockServerFactory
+		mockRegistryServerManager  *mock_registry.MockServerManager
 		mockRegistryServer         *mock_registry.MockServer
 		eventLogger                *fakebmlog.FakeEventLogger
 		fakeStage                  *fakebmlog.FakeStage
@@ -105,7 +105,7 @@ var _ = Describe("Deployer", func() {
 
 		cloud = fakebmcloud.NewFakeCloud()
 
-		mockRegistryServerFactory = mock_registry.NewMockServerFactory(mockCtrl)
+		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
 
 		fakeVMManagerFactory = fakebmvm.NewFakeManagerFactory()
@@ -164,7 +164,7 @@ var _ = Describe("Deployer", func() {
 			fakeVMManagerFactory,
 			fakeSSHTunnelFactory,
 			fakeDiskDeployer,
-			mockRegistryServerFactory,
+			mockRegistryServerManager,
 			eventLogger,
 			logger,
 		)
@@ -221,48 +221,6 @@ var _ = Describe("Deployer", func() {
 		})
 	})
 
-	Context("when registry config is not empty", func() {
-		BeforeEach(func() {
-			registryConfig = bmdepl.Registry{
-				Username: "fake-username",
-				Password: "fake-password",
-				Host:     "fake-host",
-				Port:     123,
-			}
-		})
-
-		It("starts & stops the registry", func() {
-			mockRegistryServerFactory.EXPECT().Create("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
-			mockRegistryServer.EXPECT().Stop()
-
-			err := deployer.Deploy(cloud, deployment, extractedStemcell, registryConfig, sshTunnelConfig, "fake-mbus-url")
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		Context("when starting registry fails", func() {
-			BeforeEach(func() {
-				mockRegistryServerFactory.EXPECT().Create("fake-username", "fake-password", "fake-host", 123).Return(nil, errors.New("fake-registry-start-error"))
-			})
-
-			It("returns an error", func() {
-				err := deployer.Deploy(cloud, deployment, extractedStemcell, registryConfig, sshTunnelConfig, "fake-mbus-url")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-registry-start-error"))
-			})
-		})
-	})
-
-	Context("when registry config is empty", func() {
-		BeforeEach(func() {
-			registryConfig = bmdepl.Registry{}
-		})
-
-		It("does not start the registry", func() {
-			err := deployer.Deploy(cloud, deployment, extractedStemcell, registryConfig, sshTunnelConfig, "fake-mbus-url")
-			Expect(err).ToNot(HaveOccurred())
-		})
-	})
-
 	It("creates a vm", func() {
 		err := deployer.Deploy(cloud, deployment, extractedStemcell, registryConfig, sshTunnelConfig, "fake-mbus-url")
 		Expect(err).NotTo(HaveOccurred())
@@ -295,9 +253,6 @@ var _ = Describe("Deployer", func() {
 				Host:       "fake-ssh-host",
 				Port:       124,
 			}
-
-			mockRegistryServerFactory.EXPECT().Create("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
-			mockRegistryServer.EXPECT().Stop()
 		})
 
 		It("starts the SSH tunnel", func() {

@@ -9,7 +9,7 @@ import (
 )
 
 type Parser interface {
-	Parse(path string) (Deployment, CPIDeployment, error)
+	Parse(path string) (Deployment, CPIDeploymentManifest, error)
 }
 
 type parser struct {
@@ -57,27 +57,27 @@ func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {
 	}
 }
 
-func (p *parser) Parse(path string) (Deployment, CPIDeployment, error) {
+func (p *parser) Parse(path string) (Deployment, CPIDeploymentManifest, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
-		return Deployment{}, CPIDeployment{}, bosherr.WrapErrorf(err, "Reading file %s", path)
+		return Deployment{}, CPIDeploymentManifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
 	}
 
 	depManifest := manifest{}
 	err = candiedyaml.Unmarshal(contents, &depManifest)
 	if err != nil {
-		return Deployment{}, CPIDeployment{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
+		return Deployment{}, CPIDeploymentManifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
 	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest: %#v", depManifest)
 
 	deployment, err := p.parseBoshDeployment(depManifest)
 	if err != nil {
-		return Deployment{}, CPIDeployment{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
+		return Deployment{}, CPIDeploymentManifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
 
-	cpiDeployment := p.parseCPIDeployment(depManifest)
+	cpiDeploymentManifest := p.parseCPIDeploymentManifest(depManifest)
 
-	return deployment, cpiDeployment, nil
+	return deployment, cpiDeploymentManifest, nil
 }
 
 func (p *parser) parseBoshDeployment(depManifest manifest) (Deployment, error) {
@@ -102,8 +102,8 @@ func (p *parser) parseBoshDeployment(depManifest manifest) (Deployment, error) {
 	return deployment, nil
 }
 
-func (p *parser) parseCPIDeployment(depManifest manifest) CPIDeployment {
-	return CPIDeployment{
+func (p *parser) parseCPIDeploymentManifest(depManifest manifest) CPIDeploymentManifest {
+	return CPIDeploymentManifest{
 		Name:            depManifest.Name,
 		Registry:        depManifest.CloudProvider.Registry,
 		AgentEnvService: depManifest.CloudProvider.AgentEnvService,

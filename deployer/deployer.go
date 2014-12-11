@@ -8,12 +8,12 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 )
 
 type Deployer interface {
@@ -32,7 +32,7 @@ type deployer struct {
 	vmManagerFactory       bmvm.ManagerFactory
 	sshTunnelFactory       bmsshtunnel.Factory
 	diskDeployer           bminstance.DiskDeployer
-	registryServerFactory  bmregistry.ServerFactory
+	registryServerManager  bmregistry.ServerManager
 	eventLoggerStage       bmeventlog.Stage
 	logger                 boshlog.Logger
 	logTag                 string
@@ -43,7 +43,7 @@ func NewDeployer(
 	vmManagerFactory bmvm.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
 	diskDeployer bminstance.DiskDeployer,
-	registryServerFactory bmregistry.ServerFactory,
+	registryServerManager bmregistry.ServerManager,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
@@ -54,7 +54,7 @@ func NewDeployer(
 		vmManagerFactory:       vmManagerFactory,
 		sshTunnelFactory:       sshTunnelFactory,
 		diskDeployer:           diskDeployer,
-		registryServerFactory:  registryServerFactory,
+		registryServerManager:  registryServerManager,
 		eventLoggerStage:       eventLoggerStage,
 		logger:                 logger,
 		logTag:                 "deployer",
@@ -65,8 +65,8 @@ func (m *deployer) Deploy(
 	cloud bmcloud.Cloud,
 	deployment bmdepl.Deployment,
 	extractedStemcell bmstemcell.ExtractedStemcell,
-	registrySpec bmdepl.Registry,
-	sshTunnelSpec bmdepl.SSHTunnel,
+	registryConfig bmdepl.Registry,
+	sshTunnelConfig bmdepl.SSHTunnel,
 	mbusURL string,
 ) error {
 	stemcellManager := m.stemcellManagerFactory.NewManager(cloud)
@@ -78,7 +78,7 @@ func (m *deployer) Deploy(
 	m.eventLoggerStage.Start()
 
 	vmManager := m.vmManagerFactory.NewManager(cloud, mbusURL)
-	instanceManager := bminstance.NewManager(cloud, vmManager, m.registryServerFactory, m.sshTunnelFactory, m.diskDeployer, m.logger)
+	instanceManager := bminstance.NewManager(cloud, vmManager, m.registryServerManager, m.sshTunnelFactory, m.diskDeployer, m.logger)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
@@ -86,7 +86,7 @@ func (m *deployer) Deploy(
 		return err
 	}
 
-	if err = m.createAllInstances(deployment, instanceManager, extractedStemcell, cloudStemcell, registrySpec, sshTunnelSpec); err != nil {
+	if err = m.createAllInstances(deployment, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig); err != nil {
 		return err
 	}
 
@@ -105,8 +105,8 @@ func (m *deployer) createAllInstances(
 	instanceManager bminstance.Manager,
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	cloudStemcell bmstemcell.CloudStemcell,
-	registrySpec bmdepl.Registry,
-	sshTunnelSpec bmdepl.SSHTunnel,
+	registryConfig bmdepl.Registry,
+	sshTunnelConfig bmdepl.SSHTunnel,
 ) error {
 	if len(deployment.Jobs) != 1 {
 		return bosherr.Errorf("There must only be one job, found %d", len(deployment.Jobs))
@@ -119,7 +119,7 @@ func (m *deployer) createAllInstances(
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
 			_, err := instanceManager.Create(jobSpec.Name, instanceID,
 				deployment, extractedStemcell, cloudStemcell,
-				registrySpec, sshTunnelSpec, m.eventLoggerStage)
+				registryConfig, sshTunnelConfig, m.eventLoggerStage)
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)
 			}

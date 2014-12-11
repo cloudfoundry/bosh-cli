@@ -9,7 +9,7 @@ import (
 )
 
 type ReleaseCompiler interface {
-	Compile(release bmrel.Release, deployment bmdepl.CPIDeployment) error
+	Compile(release bmrel.Release, deployment bmdepl.CPIDeploymentManifest) error
 }
 
 type releaseCompiler struct {
@@ -27,7 +27,7 @@ func NewReleaseCompiler(
 	}
 }
 
-func (c releaseCompiler) Compile(release bmrel.Release, deployment bmdepl.CPIDeployment) error {
+func (c releaseCompiler) Compile(release bmrel.Release, deployment bmdepl.CPIDeploymentManifest) error {
 	err := c.packagesCompiler.Compile(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release packages")

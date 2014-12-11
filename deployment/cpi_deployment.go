@@ -2,9 +2,10 @@ package deployment
 
 import (
 	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 )
 
-type CPIDeployment struct {
+type CPIDeploymentManifest struct {
 	Name            string
 	RawProperties   map[interface{}]interface{}
 	Mbus            string
@@ -37,6 +38,34 @@ func (o SSHTunnel) IsEmpty() bool {
 	return o == SSHTunnel{}
 }
 
-func (d CPIDeployment) Properties() (map[string]interface{}, error) {
+func (d CPIDeploymentManifest) Properties() (map[string]interface{}, error) {
 	return bmkeystr.NewKeyStringifier().ConvertMap(d.RawProperties)
+}
+
+type CPIDeployment interface {
+	StartRegistry() (bmregistry.Server, error)
+}
+
+type cpiDeployment struct {
+	manifest              CPIDeploymentManifest
+	registryServerManager bmregistry.ServerManager
+}
+
+func NewCPIDeployment(
+	manifest CPIDeploymentManifest,
+	registryServerManager bmregistry.ServerManager,
+) CPIDeployment {
+	return &cpiDeployment{
+		manifest:              manifest,
+		registryServerManager: registryServerManager,
+	}
+}
+
+func (d *cpiDeployment) Manifest() CPIDeploymentManifest {
+	return d.manifest
+}
+
+func (d *cpiDeployment) StartRegistry() (bmregistry.Server, error) {
+	config := d.manifest.Registry
+	return d.registryServerManager.Start(config.Username, config.Password, config.Host, config.Port)
 }

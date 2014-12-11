@@ -7,28 +7,32 @@ import (
 	. "github.com/onsi/gomega"
 
 	"errors"
+	"os"
 
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
+	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/mocks"
+	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmac "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
@@ -51,8 +55,13 @@ var _ = Describe("bosh-micro", func() {
 
 	Describe("Deploy", func() {
 		var (
-			fs                      *fakesys.FakeFileSystem
-			logger                  boshlog.Logger
+			fs     *fakesys.FakeFileSystem
+			logger boshlog.Logger
+
+			mockCPIDeploymentFactory  *mock_cpi.MockDeploymentFactory
+			mockRegistryServerManager *mock_registry.MockServerManager
+			mockRegistryServer        *mock_registry.MockServer
+
 			fakeCPIInstaller        *fakebmcpi.FakeInstaller
 			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
@@ -65,7 +74,7 @@ var _ = Describe("bosh-micro", func() {
 			releaseRepo             bmconfig.ReleaseRepo
 			userConfig              bmconfig.UserConfig
 
-			registryServerFactory bmregistry.ServerFactory
+			registryServerManager bmregistry.ServerManager
 			sshTunnelFactory      bmsshtunnel.Factory
 
 			diskManagerFactory bmdisk.ManagerFactory
@@ -103,7 +112,7 @@ var _ = Describe("bosh-micro", func() {
 		)
 
 		var writeDeploymentManifest = func() {
-			fs.WriteFileString(deploymentManifestPath, `---
+			err := fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
 
 networks:
@@ -124,13 +133,15 @@ jobs:
 cloud_provider:
   mbus: http://fake-mbus-url
 `)
+			Expect(err).ToNot(HaveOccurred())
+
 			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
 				deploymentManifestPath: {Sha1: "fake-deployment-sha1-1"},
 			})
 		}
 
 		var writeDeploymentManifestWithLargerDisk = func() {
-			fs.WriteFileString(deploymentManifestPath, `---
+			err := fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
 
 networks:
@@ -151,25 +162,16 @@ jobs:
 cloud_provider:
   mbus: http://fake-mbus-url
 `)
+			Expect(err).ToNot(HaveOccurred())
+
 			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
 				deploymentManifestPath: {Sha1: "fake-deployment-sha1-2"},
 			})
 		}
 
 		var writeCPIReleaseTarball = func() {
-			fs.WriteFileString("/fake-cpi-release.tgz", "fake-tgz-content")
-		}
-
-		var allowCPIToBeExtracted = func() {
-			cpiRelease := bmrel.NewRelease(
-				"fake-cpi-release-name",
-				"fake-cpi-release-version",
-				[]bmrel.Job{},
-				[]*bmrel.Package{},
-				"fake-cpi-extracted-dir",
-				fs,
-			)
-			fakeCPIInstaller.SetExtractBehavior("/fake-cpi-release.tgz", cpiRelease, nil)
+			err := fs.WriteFileString("/fake-cpi-release.tgz", "fake-tgz-content")
+			Expect(err).ToNot(HaveOccurred())
 		}
 
 		var allowCPIToBeInstalled = func() {
@@ -181,15 +183,24 @@ cloud_provider:
 				"fake-cpi-extracted-dir",
 				fs,
 			)
-			cpiDeployment := bmdepl.CPIDeployment{
+			fakeCPIInstaller.SetExtractBehavior("/fake-cpi-release.tgz", func(releaseTarballPath string) (bmrel.Release, error) {
+				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
+				return cpiRelease, err
+			})
+
+			cpiDeploymentManifest := bmdepl.CPIDeploymentManifest{
 				Name: "test-release",
 				Mbus: mbusURL,
 			}
-			fakeCPIInstaller.SetInstallBehavior(cpiDeployment, cpiRelease, mockCloud, nil)
+			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, cpiRelease, mockCloud, nil)
+
+			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller)
+			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(cpiDeployment).AnyTimes()
 		}
 
 		var writeStemcellReleaseTarball = func() {
-			fs.WriteFileString("/fake-stemcell-release.tgz", "fake-tgz-content")
+			err := fs.WriteFileString("/fake-stemcell-release.tgz", "fake-tgz-content")
+			Expect(err).ToNot(HaveOccurred())
 		}
 
 		var allowStemcellToBeExtracted = func() {
@@ -241,7 +252,7 @@ cloud_provider:
 				vmManagerFactory,
 				sshTunnelFactory,
 				diskDeployer,
-				registryServerFactory,
+				registryServerManager,
 				eventLogger,
 				logger,
 			)
@@ -252,7 +263,7 @@ cloud_provider:
 				fs,
 				deploymentParser,
 				boshDeploymentValidator,
-				fakeCPIInstaller,
+				mockCPIDeploymentFactory,
 				fakeStemcellExtractor,
 				deploymentRecord,
 				deployer,
@@ -400,7 +411,9 @@ cloud_provider:
 
 			fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
 
-			registryServerFactory = bmregistry.NewServerFactory(logger)
+			mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
+
+			registryServerManager = bmregistry.NewServerManager(logger)
 			sshTunnelFactory = bmsshtunnel.NewFactory(logger)
 
 			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
@@ -413,6 +426,9 @@ cloud_provider:
 			diskDeployer = bminstance.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
+
+			mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
+			mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
 
 			fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
 			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
@@ -442,7 +458,6 @@ cloud_provider:
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
-			allowCPIToBeExtracted()
 			allowCPIToBeInstalled()
 
 			writeStemcellReleaseTarball()

@@ -9,8 +9,9 @@ $bin/go install code.google.com/p/gomock/mockgen
 
 srcFiles=(
   cloud/Cloud
+  registry/Server,ServerManager
 	deployer/agentclient/AgentClient,Factory
-	deployer/registry/Server,ServerFactory
+	cpi/DeploymentFactory
 )
 
 for srcFile in ${srcFiles[*]}; do

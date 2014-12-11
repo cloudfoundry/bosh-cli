@@ -171,10 +171,10 @@ cloud_provider:
 			})
 
 			It("parses cpi deployment from manifest", func() {
-				_, cpiDeployment, err := parser.Parse(deploymentPath)
+				_, cpiDeploymentManifest, err := parser.Parse(deploymentPath)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(cpiDeployment).To(Equal(CPIDeployment{
+				Expect(cpiDeploymentManifest).To(Equal(CPIDeploymentManifest{
 					Name: "fake-deployment-name",
 					Registry: Registry{
 						Username: "fake-registry-username",

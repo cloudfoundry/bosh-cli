@@ -25,7 +25,6 @@ import (
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployer/blobstore"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
@@ -33,6 +32,7 @@ import (
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
@@ -61,7 +61,7 @@ type factory struct {
 	vmRepo                  bmconfig.VMRepo
 	stemcellRepo            bmconfig.StemcellRepo
 	diskRepo                bmconfig.DiskRepo
-	registryServerFactory   bmregistry.ServerFactory
+	registryServerManager   bmregistry.ServerManager
 	sshTunnelFactory        bmsshtunnel.Factory
 	diskDeployer            bminstance.DiskDeployer
 	diskManagerFactory      bmdisk.ManagerFactory
@@ -69,6 +69,7 @@ type factory struct {
 	stemcellManagerFactory  bmstemcell.ManagerFactory
 	eventLogger             bmeventlog.EventLogger
 	timeService             boshtime.Service
+	cpiDeploymentFactory    bmcpi.DeploymentFactory
 	cpiInstaller            bmcpi.Installer
 }
 
@@ -137,7 +138,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadVMManagerFactory(),
 		f.loadSSHTunnelFactory(),
 		f.loadDiskDeployer(),
-		f.loadRegistryServerFactory(),
+		f.loadRegistryServerManager(),
 		f.loadEventLogger(),
 		f.logger,
 	)
@@ -148,7 +149,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.fs,
 		deploymentParser,
 		boshDeploymentValidator,
-		f.loadCPIInstaller(),
+		f.loadCPIDeploymentFactory(),
 		stemcellExtractor,
 		deploymentRecord,
 		deployer,
@@ -218,13 +219,13 @@ func (f *factory) loadDiskRepo() bmconfig.DiskRepo {
 	return f.diskRepo
 }
 
-func (f *factory) loadRegistryServerFactory() bmregistry.ServerFactory {
-	if f.registryServerFactory != nil {
-		return f.registryServerFactory
+func (f *factory) loadRegistryServerManager() bmregistry.ServerManager {
+	if f.registryServerManager != nil {
+		return f.registryServerManager
 	}
 
-	f.registryServerFactory = bmregistry.NewServerFactory(f.logger)
-	return f.registryServerFactory
+	f.registryServerManager = bmregistry.NewServerManager(f.logger)
+	return f.registryServerManager
 }
 
 func (f *factory) loadSSHTunnelFactory() bmsshtunnel.Factory {
@@ -260,7 +261,7 @@ func (f *factory) loadInstanceManagerFactory() bminstance.ManagerFactory {
 	}
 
 	f.instanceManagerFactory = bminstance.NewManagerFactory(
-		f.loadRegistryServerFactory(),
+		f.loadRegistryServerManager(),
 		f.loadSSHTunnelFactory(),
 		f.loadDiskDeployer(),
 		f.logger,
@@ -344,6 +345,18 @@ func (f *factory) loadTimeService() boshtime.Service {
 
 	f.timeService = boshtime.NewConcreteService()
 	return f.timeService
+}
+
+func (f *factory) loadCPIDeploymentFactory() bmcpi.DeploymentFactory {
+	if f.cpiDeploymentFactory != nil {
+		return f.cpiDeploymentFactory
+	}
+
+	f.cpiDeploymentFactory = bmcpi.NewDeploymentFactory(
+		f.loadRegistryServerManager(),
+		f.loadCPIInstaller(),
+	)
+	return f.cpiDeploymentFactory
 }
 
 func (f *factory) loadCPIInstaller() bmcpi.Installer {

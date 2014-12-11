@@ -10,7 +10,7 @@ import (
 )
 
 type InstallInput struct {
-	Deployment bmdepl.CPIDeployment
+	Deployment bmdepl.CPIDeploymentManifest
 	Release    bmrel.Release
 }
 
@@ -23,17 +23,14 @@ type ExtractInput struct {
 	ReleaseTarballPath string
 }
 
-type extractOutput struct {
-	release bmrel.Release
-	err     error
-}
+type extractCallback func(releaseTarballPath string) (bmrel.Release, error)
 
 type FakeInstaller struct {
 	InstallInputs   []InstallInput
 	installBehavior map[string]installOutput
 
 	ExtractInputs   []ExtractInput
-	extractBehavior map[string]extractOutput
+	extractBehavior map[string]extractCallback
 }
 
 func NewFakeInstaller() *FakeInstaller {
@@ -42,7 +39,7 @@ func NewFakeInstaller() *FakeInstaller {
 		installBehavior: map[string]installOutput{},
 
 		ExtractInputs:   []ExtractInput{},
-		extractBehavior: map[string]extractOutput{},
+		extractBehavior: map[string]extractCallback{},
 	}
 }
 
@@ -57,14 +54,14 @@ func (f *FakeInstaller) Extract(releaseTarballPath string) (bmrel.Release, error
 		return nil, fmt.Errorf("Could not serialize input %#v", input)
 	}
 
-	output, found := f.extractBehavior[value]
+	callback, found := f.extractBehavior[value]
 	if found {
-		return output.release, output.err
+		return callback(releaseTarballPath)
 	}
-	return nil, fmt.Errorf("Unsupported Input: %s", value)
+	return nil, fmt.Errorf("Unsupported Extract Input: %s", value)
 }
 
-func (f *FakeInstaller) Install(deployment bmdepl.CPIDeployment, release bmrel.Release) (bmcloud.Cloud, error) {
+func (f *FakeInstaller) Install(deployment bmdepl.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
 	input := InstallInput{
 		Deployment: deployment,
 		Release:    release,
@@ -80,11 +77,11 @@ func (f *FakeInstaller) Install(deployment bmdepl.CPIDeployment, release bmrel.R
 	if found {
 		return output.cloud, output.err
 	}
-	return nil, fmt.Errorf("Unsupported Input: %s", value)
+	return nil, fmt.Errorf("Unsupported Install Input: %s", value)
 }
 
 func (f *FakeInstaller) SetInstallBehavior(
-	deployment bmdepl.CPIDeployment,
+	deployment bmdepl.CPIDeploymentManifest,
 	release bmrel.Release,
 	cloud bmcloud.Cloud,
 	err error,
@@ -102,11 +99,7 @@ func (f *FakeInstaller) SetInstallBehavior(
 	return nil
 }
 
-func (f *FakeInstaller) SetExtractBehavior(
-	releaseTarballPath string,
-	release bmrel.Release,
-	err error,
-) error {
+func (f *FakeInstaller) SetExtractBehavior(releaseTarballPath string, callback extractCallback) error {
 	input := ExtractInput{
 		ReleaseTarballPath: releaseTarballPath,
 	}
@@ -115,6 +108,6 @@ func (f *FakeInstaller) SetExtractBehavior(
 	if err != nil {
 		return fmt.Errorf("Could not serialize input %#v", input)
 	}
-	f.extractBehavior[value] = extractOutput{release: release, err: err}
+	f.extractBehavior[value] = callback
 	return nil
 }

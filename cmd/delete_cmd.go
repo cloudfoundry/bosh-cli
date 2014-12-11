@@ -78,27 +78,31 @@ func (c *deleteCmd) Run(args []string) error {
 		return err
 	}
 
-	cpiDeployment, cpiRelease, err := c.validateInputFiles(cpiReleaseTarballPath)
+	cpiDeploymentManifest, cpiRelease, err := c.validateInputFiles(cpiReleaseTarballPath)
 	if err != nil {
 		return err
 	}
 	defer cpiRelease.Delete()
 
-	cloud, err := c.cpiInstaller.Install(cpiDeployment, cpiRelease)
+	cloud, err := c.cpiInstaller.Install(cpiDeploymentManifest, cpiRelease)
 	if err != nil {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
-	vmManager := c.vmManagerFactory.NewManager(cloud, cpiDeployment.Mbus)
+	vmManager := c.vmManagerFactory.NewManager(cloud, cpiDeploymentManifest.Mbus)
 	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
 	diskManager := c.diskManagerFactory.NewManager(cloud)
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
 
-	return c.deleteDeployment(instanceManager, diskManager, stemcellManager)
+	return c.deleteDeployment(
+		instanceManager,
+		diskManager,
+		stemcellManager,
+	)
 }
 
 func (c *deleteCmd) validateInputFiles(releaseTarballPath string) (
-	cpiDeployment bmdepl.CPIDeployment,
+	cpiDeploymentManifest bmdepl.CPIDeploymentManifest,
 	cpiRelease bmrel.Release,
 	err error,
 ) {
@@ -117,7 +121,7 @@ func (c *deleteCmd) validateInputFiles(releaseTarballPath string) (
 			return bosherr.Errorf("Verifying that the deployment '%s' exists", deploymentFilePath)
 		}
 
-		_, cpiDeployment, err = c.deploymentParser.Parse(deploymentFilePath)
+		_, cpiDeploymentManifest, err = c.deploymentParser.Parse(deploymentFilePath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentFilePath)
 		}
@@ -125,7 +129,7 @@ func (c *deleteCmd) validateInputFiles(releaseTarballPath string) (
 		return nil
 	})
 	if err != nil {
-		return cpiDeployment, nil, err
+		return cpiDeploymentManifest, nil, err
 	}
 
 	err = validationStage.PerformStep("Validating cpi release", func() error {
@@ -141,12 +145,12 @@ func (c *deleteCmd) validateInputFiles(releaseTarballPath string) (
 		return nil
 	})
 	if err != nil {
-		return cpiDeployment, cpiRelease, err
+		return cpiDeploymentManifest, cpiRelease, err
 	}
 
 	validationStage.Finish()
 
-	return cpiDeployment, cpiRelease, nil
+	return cpiDeploymentManifest, cpiRelease, nil
 }
 
 func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {

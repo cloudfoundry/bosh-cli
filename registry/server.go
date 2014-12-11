@@ -9,8 +9,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
-type ServerFactory interface {
-	Create(string, string, string, int) (Server, error)
+type ServerManager interface {
+	Start(string, string, string, int) (Server, error)
 }
 
 type serverFactory struct {
@@ -18,7 +18,7 @@ type serverFactory struct {
 	logTag string
 }
 
-func NewServerFactory(logger boshlog.Logger) ServerFactory {
+func NewServerManager(logger boshlog.Logger) ServerManager {
 	return &serverFactory{
 		logger: logger,
 		logTag: "registryServer",
@@ -27,7 +27,7 @@ func NewServerFactory(logger boshlog.Logger) ServerFactory {
 
 // Create starts a new server on a goroutine and returns it
 // The returned error is only for starting. Error while running is logged.
-func (s *serverFactory) Create(username string, password string, host string, port int) (Server, error) {
+func (s *serverFactory) Start(username string, password string, host string, port int) (Server, error) {
 	startedCh := make(chan error)
 	server := &server{
 		logger: s.logger,

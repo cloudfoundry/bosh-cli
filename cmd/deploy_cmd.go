@@ -24,7 +24,7 @@ type deployCmd struct {
 	fs                      boshsys.FileSystem
 	deploymentParser        bmdepl.Parser
 	boshDeploymentValidator bmdeplval.DeploymentValidator
-	cpiInstaller            bmcpi.Installer
+	cpiDeploymentFactory    bmcpi.DeploymentFactory
 	stemcellExtractor       bmstemcell.Extractor
 	deploymentRecord        bmdeployer.DeploymentRecord
 	deployer                bmdeployer.Deployer
@@ -39,7 +39,7 @@ func NewDeployCmd(
 	fs boshsys.FileSystem,
 	deploymentParser bmdepl.Parser,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
-	cpiInstaller bmcpi.Installer,
+	cpiDeploymentFactory bmcpi.DeploymentFactory,
 	stemcellExtractor bmstemcell.Extractor,
 	deploymentRecord bmdeployer.DeploymentRecord,
 	deployer bmdeployer.Deployer,
@@ -52,7 +52,7 @@ func NewDeployCmd(
 		fs:                      fs,
 		deploymentParser:        deploymentParser,
 		boshDeploymentValidator: boshDeploymentValidator,
-		cpiInstaller:            cpiInstaller,
+		cpiDeploymentFactory:    cpiDeploymentFactory,
 		stemcellExtractor:       stemcellExtractor,
 		deploymentRecord:        deploymentRecord,
 		deployer:                deployer,
@@ -72,7 +72,7 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
-	cpiDeployment, boshDeployment, cpiRelease, extractedStemcell, err := c.validateInputFiles(releaseTarballPath, stemcellTarballPath)
+	boshDeployment, cpiDeployment, cpiRelease, extractedStemcell, err := c.validateInputFiles(releaseTarballPath, stemcellTarballPath)
 	if err != nil {
 		return err
 	}
@@ -89,18 +89,28 @@ func (c *deployCmd) Run(args []string) error {
 		return nil
 	}
 
-	cloud, err := c.cpiInstaller.Install(cpiDeployment, cpiRelease)
+	cloud, err := cpiDeployment.Install()
 	if err != nil {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
+	err = cpiDeployment.StartJobs()
+	if err != nil {
+		return bosherr.WrapError(err, "Starting CPI jobs")
+	}
+	defer func() {
+		err := cpiDeployment.StopJobs()
+		c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
+	}()
+
+	cpiDeploymentManifest := cpiDeployment.Manifest()
 	err = c.deployer.Deploy(
 		cloud,
 		boshDeployment,
 		extractedStemcell,
-		cpiDeployment.Registry,
-		cpiDeployment.SSHTunnel,
-		cpiDeployment.Mbus,
+		cpiDeploymentManifest.Registry,
+		cpiDeploymentManifest.SSHTunnel,
+		cpiDeploymentManifest.Mbus,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")
@@ -117,8 +127,8 @@ func (c *deployCmd) Run(args []string) error {
 type Deployment struct{}
 
 func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath string) (
-	cpiDeployment bmdepl.CPIDeployment,
 	boshDeployment bmdepl.Deployment,
+	cpiDeployment bmcpi.Deployment,
 	cpiRelease bmrel.Release,
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	err error,
@@ -138,7 +148,8 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 			return bosherr.Errorf("Verifying that the deployment `%s' exists", deploymentFilePath)
 		}
 
-		boshDeployment, cpiDeployment, err = c.deploymentParser.Parse(deploymentFilePath)
+		var cpiDeploymentManifest bmdepl.CPIDeploymentManifest
+		boshDeployment, cpiDeploymentManifest, err = c.deploymentParser.Parse(deploymentFilePath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest `%s'", deploymentFilePath)
 		}
@@ -148,10 +159,11 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
 
+		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest)
 		return nil
 	})
 	if err != nil {
-		return cpiDeployment, boshDeployment, nil, nil, err
+		return boshDeployment, nil, nil, nil, err
 	}
 
 	err = validationStage.PerformStep("Validating cpi release", func() error {
@@ -159,7 +171,7 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 			return bosherr.Errorf("Verifying that the CPI release `%s' exists", releaseTarballPath)
 		}
 
-		cpiRelease, err = c.cpiInstaller.Extract(releaseTarballPath)
+		cpiRelease, err = cpiDeployment.ExtractRelease(releaseTarballPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Extracting CPI release `%s'", releaseTarballPath)
 		}
@@ -167,7 +179,7 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 		return nil
 	})
 	if err != nil {
-		return cpiDeployment, boshDeployment, cpiRelease, nil, err
+		return boshDeployment, cpiDeployment, cpiRelease, nil, err
 	}
 
 	err = validationStage.PerformStep("Validating stemcell", func() error {
@@ -177,19 +189,19 @@ func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath s
 
 		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
 		if err != nil {
-			defer cpiRelease.Delete()
+			cpiRelease.Delete()
 			return bosherr.WrapErrorf(err, "Extracting stemcell from `%s'", stemcellTarballPath)
 		}
 
 		return nil
 	})
 	if err != nil {
-		return cpiDeployment, boshDeployment, cpiRelease, extractedStemcell, err
+		return boshDeployment, cpiDeployment, cpiRelease, extractedStemcell, err
 	}
 
 	validationStage.Finish()
 
-	return cpiDeployment, boshDeployment, cpiRelease, extractedStemcell, nil
+	return boshDeployment, cpiDeployment, cpiRelease, extractedStemcell, nil
 }
 
 func (c *deployCmd) parseCmdInputs(args []string) (string, string, error) {

@@ -62,4 +62,17 @@ var _ = Describe("Release", func() {
 			Expect(fakeFS.FileExists("fake-extracted-path")).To(BeFalse())
 		})
 	})
+
+	Describe("Exists", func() {
+		BeforeEach(func() {
+			fakeFS.WriteFileString("fake-extracted-path", "")
+		})
+
+		It("returns false after deletion", func() {
+			Expect(release.Exists()).To(BeTrue())
+			err := release.Delete()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(release.Exists()).To(BeFalse())
+		})
+	})
 })

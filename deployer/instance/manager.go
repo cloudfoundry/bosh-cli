@@ -8,12 +8,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 )
 
 type Manager interface {
@@ -38,7 +38,7 @@ type Manager interface {
 type manager struct {
 	cloud                 bmcloud.Cloud
 	vmManager             bmvm.Manager
-	registryServerFactory bmregistry.ServerFactory
+	registryServerManager bmregistry.ServerManager
 	sshTunnelFactory      bmsshtunnel.Factory
 	diskDeployer          DiskDeployer
 	logger                boshlog.Logger
@@ -48,7 +48,7 @@ type manager struct {
 func NewManager(
 	cloud bmcloud.Cloud,
 	vmManager bmvm.Manager,
-	registryServerFactory bmregistry.ServerFactory,
+	registryServerManager bmregistry.ServerManager,
 	sshTunnelFactory bmsshtunnel.Factory,
 	diskDeployer DiskDeployer,
 	logger boshlog.Logger,
@@ -56,7 +56,7 @@ func NewManager(
 	return &manager{
 		cloud:                 cloud,
 		vmManager:             vmManager,
-		registryServerFactory: registryServerFactory,
+		registryServerManager: registryServerManager,
 		sshTunnelFactory:      sshTunnelFactory,
 		diskDeployer:          diskDeployer,
 		logger:                logger,
@@ -94,15 +94,6 @@ func (m *manager) Create(
 	sshTunnelConfig bmdepl.SSHTunnel,
 	eventLoggerStage bmeventlog.Stage,
 ) (instance Instance, err error) {
-
-	if !registryConfig.IsEmpty() {
-		server, err := m.registryServerFactory.Create(registryConfig.Username, registryConfig.Password, registryConfig.Host, registryConfig.Port)
-		if err != nil {
-			return instance, bosherr.WrapError(err, "Starting registry")
-		}
-		defer server.Stop()
-	}
-
 	var vm bmvm.VM
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
 	err = eventLoggerStage.PerformStep(stepName, func() error {

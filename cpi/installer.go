@@ -19,7 +19,7 @@ import (
 
 type Installer interface {
 	Extract(releaseTarballPath string) (bmrel.Release, error)
-	Install(deployment bmdepl.CPIDeployment, release bmrel.Release) (bmcloud.Cloud, error)
+	Install(deployment bmdepl.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error)
 }
 
 type cpiInstaller struct {
@@ -75,18 +75,18 @@ func (c *cpiInstaller) Extract(releaseTarballPath string) (bmrel.Release, error)
 		return nil, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
 	}
 
-	c.logger.Info(c.logTag, "Extracted CPI release `%s' to `%s'", release.Name, extractedReleasePath)
+	c.logger.Info(c.logTag, "Extracted CPI release `%s' to `%s'", release.Name(), extractedReleasePath)
 
-	c.logger.Info(c.logTag, "Validating CPI release `%s'", release.Name)
+	c.logger.Info(c.logTag, "Validating CPI release `%s'", release.Name())
 	err = c.validator.Validate(release)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Validating CPI release `%s'", release.Name)
+		return nil, bosherr.WrapErrorf(err, "Validating CPI release `%s'", release.Name())
 	}
 
 	return release, nil
 }
 
-func (c *cpiInstaller) Install(deployment bmdepl.CPIDeployment, release bmrel.Release) (bmcloud.Cloud, error) {
+func (c *cpiInstaller) Install(deployment bmdepl.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
 	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name()))
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release `%s': %#v", release.Name(), release))
 	err := c.releaseCompiler.Compile(release, deployment)

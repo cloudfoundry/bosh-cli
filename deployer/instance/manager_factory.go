@@ -4,9 +4,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/deployer/registry"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 )
 
 type ManagerFactory interface {
@@ -14,20 +14,20 @@ type ManagerFactory interface {
 }
 
 type managerFactory struct {
-	registryServerFactory bmregistry.ServerFactory
+	registryServerManager bmregistry.ServerManager
 	sshTunnelFactory      bmsshtunnel.Factory
 	diskDeployer          DiskDeployer
 	logger                boshlog.Logger
 }
 
 func NewManagerFactory(
-	registryServerFactory bmregistry.ServerFactory,
+	registryServerManager bmregistry.ServerManager,
 	sshTunnelFactory bmsshtunnel.Factory,
 	diskDeployer DiskDeployer,
 	logger boshlog.Logger,
 ) ManagerFactory {
 	return &managerFactory{
-		registryServerFactory: registryServerFactory,
+		registryServerManager: registryServerManager,
 		sshTunnelFactory:      sshTunnelFactory,
 		diskDeployer:          diskDeployer,
 		logger:                logger,
@@ -38,7 +38,7 @@ func (f *managerFactory) NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager)
 	return NewManager(
 		cloud,
 		vmManager,
-		f.registryServerFactory,
+		f.registryServerManager,
 		f.sshTunnelFactory,
 		f.diskDeployer,
 		f.logger,

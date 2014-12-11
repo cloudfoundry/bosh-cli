@@ -39,3 +39,7 @@ func (r *FakeRelease) Delete() error {
 	r.DeleteCalled = true
 	return r.DeleteErr
 }
+
+func (r *FakeRelease) Exists() bool {
+	return !r.DeleteCalled
+}

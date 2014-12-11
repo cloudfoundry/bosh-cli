@@ -6,10 +6,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"code.google.com/p/gomock/gomock"
+	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
+	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -31,11 +36,26 @@ import (
 )
 
 var _ = Describe("DeployCmd", func() {
+	var mockCtrl *gomock.Controller
+
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
+
 	var (
-		command               bmcmd.Cmd
-		userConfig            bmconfig.UserConfig
-		fakeFs                *fakesys.FakeFileSystem
-		fakeUI                *fakeui.FakeUI
+		command    bmcmd.Cmd
+		userConfig bmconfig.UserConfig
+		fakeFs     *fakesys.FakeFileSystem
+		fakeUI     *fakeui.FakeUI
+
+		mockCPIDeploymentFactory  *mock_cpi.MockDeploymentFactory
+		mockRegistryServerManager *mock_registry.MockServerManager
+		mockRegistryServer        *mock_registry.MockServer
+
 		fakeCPIInstaller      *fakebmcpi.FakeInstaller
 		fakeCPIRelease        *fakebmrel.FakeRelease
 		logger                boshlog.Logger
@@ -70,6 +90,11 @@ var _ = Describe("DeployCmd", func() {
 		}
 		fakeFs.WriteFileString(deploymentManifestPath, "")
 
+		mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
+
+		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
+		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
+
 		fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
 		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
@@ -95,7 +120,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeFs,
 			fakeDeploymentParser,
 			fakeDeploymentValidator,
-			fakeCPIInstaller,
+			mockCPIDeploymentFactory,
 			fakeStemcellExtractor,
 			fakeDeploymentRecord,
 			fakeDeployer,
@@ -156,7 +181,7 @@ var _ = Describe("DeployCmd", func() {
 						fakeFs,
 						fakeDeploymentParser,
 						fakeDeploymentValidator,
-						fakeCPIInstaller,
+						mockCPIDeploymentFactory,
 						fakeStemcellExtractor,
 						fakeDeploymentRecord,
 						fakeDeployer,
@@ -188,22 +213,20 @@ version: fake-version
 
 				Context("when the deployment manifest exists", func() {
 					var (
-						boshDeployment bmdepl.Deployment
-						cpiDeployment  bmdepl.CPIDeployment
-						cloud          *fakebmcloud.FakeCloud
+						boshDeployment        bmdepl.Deployment
+						cpiDeploymentManifest bmdepl.CPIDeploymentManifest
+						cloud                 *fakebmcloud.FakeCloud
 					)
+
 					BeforeEach(func() {
 						fakeFs.WriteFileString(userConfig.DeploymentFile, "")
-						cpiDeployment = bmdepl.CPIDeployment{
-							Registry: bmdepl.Registry{
-								Username: "fake-username",
-							},
+						cpiDeploymentManifest = bmdepl.CPIDeploymentManifest{
+							Registry: bmdepl.Registry{},
 							SSHTunnel: bmdepl.SSHTunnel{
 								Host: "fake-host",
 							},
 							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
 						}
-						fakeDeploymentParser.ParseCPIDeployment = cpiDeployment
 
 						boshDeployment = bmdepl.Deployment{
 							Name: "fake-deployment-name",
@@ -217,8 +240,6 @@ version: fake-version
 
 						cloud = fakebmcloud.NewFakeCloud()
 						fakeCPIRelease = fakebmrel.NewFakeRelease()
-						fakeCPIInstaller.SetExtractBehavior(cpiReleaseTarballPath, fakeCPIRelease, nil)
-						fakeCPIInstaller.SetInstallBehavior(cpiDeployment, fakeCPIRelease, cloud, nil)
 
 						fakeDeployer.SetDeployBehavior(nil)
 						fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
@@ -240,14 +261,29 @@ version: fake-version
 						)
 					})
 
+					// allow cpiDeploymentManifest to be modified by child contexts
+					JustBeforeEach(func() {
+						fakeDeploymentParser.ParseCPIDeploymentManifest = cpiDeploymentManifest
+
+						cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller)
+						mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(cpiDeployment).AnyTimes()
+
+						fakeCPIInstaller.SetExtractBehavior(
+							cpiReleaseTarballPath,
+							func(releaseTarballPath string) (bmrel.Release, error) {
+								return fakeCPIRelease, nil
+							},
+						)
+
+						fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, fakeCPIRelease, cloud, nil)
+					})
+
 					It("adds a new event logger stage", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeEventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-							{
-								Name: "validating",
-							},
+							{Name: "validating"},
 						}))
 
 						Expect(fakeStage.Started).To(BeTrue())
@@ -264,9 +300,7 @@ version: fake-version
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
-							{
-								Deployment: boshDeployment,
-							},
+							{Deployment: boshDeployment},
 						}))
 					})
 
@@ -301,9 +335,7 @@ version: fake-version
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeCPIInstaller.ExtractInputs).To(Equal([]fakebmcpi.ExtractInput{
-							{
-								ReleaseTarballPath: cpiReleaseTarballPath,
-							},
+							{ReleaseTarballPath: cpiReleaseTarballPath},
 						}))
 					})
 
@@ -312,10 +344,29 @@ version: fake-version
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
 							{
-								Deployment: cpiDeployment,
+								Deployment: cpiDeploymentManifest,
 								Release:    fakeCPIRelease,
 							},
 						}))
+					})
+
+					Context("when the registry is configured", func() {
+						BeforeEach(func() {
+							cpiDeploymentManifest.Registry = bmdepl.Registry{
+								Username: "fake-username",
+								Password: "fake-password",
+								Host:     "fake-host",
+								Port:     123,
+							}
+						})
+
+						It("starts & stops the registry", func() {
+							mockRegistryServerManager.EXPECT().Start("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
+							mockRegistryServer.EXPECT().Stop()
+
+							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+							Expect(err).NotTo(HaveOccurred())
+						})
 					})
 
 					It("deletes the extracted CPI release", func() {
@@ -328,9 +379,7 @@ version: fake-version
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeStemcellExtractor.ExtractInputs).To(Equal([]fakebmstemcell.ExtractInput{
-							{
-								TarballPath: stemcellTarballPath,
-							},
+							{TarballPath: stemcellTarballPath},
 						}))
 					})
 
@@ -342,9 +391,9 @@ version: fake-version
 								Cpi:             cloud,
 								Deployment:      boshDeployment,
 								Stemcell:        expectedExtractedStemcell,
-								Registry:        cpiDeployment.Registry,
-								SSHTunnelConfig: cpiDeployment.SSHTunnel,
-								MbusURL:         cpiDeployment.Mbus,
+								Registry:        cpiDeploymentManifest.Registry,
+								SSHTunnelConfig: cpiDeploymentManifest.SSHTunnel,
+								MbusURL:         cpiDeploymentManifest.Mbus,
 							},
 						}))
 					})
@@ -380,9 +429,11 @@ version: fake-version
 					})
 
 					Context("when parsing the cpi deployment manifest fails", func() {
-						It("returns error", func() {
+						BeforeEach(func() {
 							fakeDeploymentParser.ParseErr = errors.New("fake-parse-error")
+						})
 
+						It("returns error", func() {
 							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("Parsing deployment manifest"))
@@ -394,9 +445,7 @@ version: fake-version
 					Context("when deployment validation fails", func() {
 						BeforeEach(func() {
 							fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
-								{
-									Err: errors.New("fake-validation-error"),
-								},
+								{Err: errors.New("fake-validation-error")},
 							})
 						})
 
@@ -442,7 +491,7 @@ version: fake-version
 						})
 					})
 
-					Context("When the CPI stemcell tarball does not exist", func() {
+					Context("When the stemcell tarball does not exist", func() {
 						BeforeEach(func() {
 							fakeFs.RemoveAll(stemcellTarballPath)
 						})
@@ -497,7 +546,7 @@ version: fake-version
 						fakeFs,
 						fakeDeploymentParser,
 						fakeDeploymentValidator,
-						fakeCPIInstaller,
+						mockCPIDeploymentFactory,
 						fakeStemcellExtractor,
 						fakeDeploymentRecord,
 						fakeDeployer,
