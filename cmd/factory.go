@@ -67,6 +67,7 @@ type factory struct {
 	diskManagerFactory      bmdisk.ManagerFactory
 	instanceManagerFactory  bminstance.ManagerFactory
 	stemcellManagerFactory  bmstemcell.ManagerFactory
+	deploymentFactory       bmdeployer.Factory
 	eventLogger             bmeventlog.EventLogger
 	timeService             boshtime.Service
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
@@ -133,15 +134,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
 	deploymentRecord := bmdeployer.NewDeploymentRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
 
-	deployer := bmdeployer.NewDeployer(
-		f.loadStemcellManagerFactory(),
-		f.loadVMManagerFactory(),
-		f.loadSSHTunnelFactory(),
-		f.loadDiskDeployer(),
-		f.loadEventLogger(),
-		f.logger,
-	)
-
 	return NewDeployCmd(
 		f.ui,
 		f.userConfig,
@@ -151,7 +143,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadCPIDeploymentFactory(),
 		stemcellExtractor,
 		deploymentRecord,
-		deployer,
+		f.loadDeploymentFactory(),
 		f.loadEventLogger(),
 		f.logger,
 	), nil
@@ -167,7 +159,7 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.userConfig,
 		f.fs,
 		deploymentParser,
-		f.loadCPIInstaller(),
+		f.loadCPIDeploymentFactory(),
 		f.loadVMManagerFactory(),
 		f.loadInstanceManagerFactory(),
 		f.loadDiskManagerFactory(),
@@ -324,6 +316,23 @@ func (f *factory) loadDeploymentConfig() error {
 	}
 	f.deploymentWorkspace = bmconfig.NewDeploymentWorkspace(f.workspace, f.deploymentFile.UUID)
 	return nil
+}
+
+func (f *factory) loadDeploymentFactory() bmdeployer.Factory {
+	if f.deploymentFactory != nil {
+		return f.deploymentFactory
+	}
+
+	deployer := bmdeployer.NewDeployer(
+		f.loadStemcellManagerFactory(),
+		f.loadVMManagerFactory(),
+		f.loadSSHTunnelFactory(),
+		f.loadDiskDeployer(),
+		f.loadEventLogger(),
+		f.logger,
+	)
+	f.deploymentFactory = bmdeployer.NewFactory(deployer)
+	return f.deploymentFactory
 }
 
 func (f *factory) loadEventLogger() bmeventlog.EventLogger {

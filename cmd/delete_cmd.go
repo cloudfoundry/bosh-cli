@@ -28,7 +28,7 @@ type deleteCmd struct {
 	userConfig             bmconfig.UserConfig
 	fs                     boshsys.FileSystem
 	deploymentParser       bmdepl.Parser
-	cpiInstaller           bmcpi.Installer
+	cpiDeploymentFactory   bmcpi.DeploymentFactory
 	vmManagerFactory       bmvm.ManagerFactory
 	instanceManagerFactory bminstance.ManagerFactory
 	diskManagerFactory     bmdisk.ManagerFactory
@@ -43,7 +43,7 @@ func NewDeleteCmd(ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
 	deploymentParser bmdepl.Parser,
-	cpiInstaller bmcpi.Installer,
+	cpiDeploymentFactory bmcpi.DeploymentFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,
 	diskManagerFactory bmdisk.ManagerFactory,
@@ -56,7 +56,7 @@ func NewDeleteCmd(ui bmui.UI,
 		userConfig:             userConfig,
 		fs:                     fs,
 		deploymentParser:       deploymentParser,
-		cpiInstaller:           cpiInstaller,
+		cpiDeploymentFactory:   cpiDeploymentFactory,
 		vmManagerFactory:       vmManagerFactory,
 		instanceManagerFactory: instanceManagerFactory,
 		diskManagerFactory:     diskManagerFactory,
@@ -78,37 +78,12 @@ func (c *deleteCmd) Run(args []string) error {
 		return err
 	}
 
-	cpiDeploymentManifest, cpiRelease, err := c.validateInputFiles(cpiReleaseTarballPath)
-	if err != nil {
-		return err
-	}
-	defer cpiRelease.Delete()
-
-	cloud, err := c.cpiInstaller.Install(cpiDeploymentManifest, cpiRelease)
-	if err != nil {
-		return bosherr.WrapError(err, "Installing CPI deployment")
-	}
-
-	vmManager := c.vmManagerFactory.NewManager(cloud, cpiDeploymentManifest.Mbus)
-	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
-	diskManager := c.diskManagerFactory.NewManager(cloud)
-	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-
-	return c.deleteDeployment(
-		instanceManager,
-		diskManager,
-		stemcellManager,
-	)
-}
-
-func (c *deleteCmd) validateInputFiles(releaseTarballPath string) (
-	cpiDeploymentManifest bmdepl.CPIDeploymentManifest,
-	cpiRelease bmrel.Release,
-	err error,
-) {
 	validationStage := c.eventLogger.NewStage("validating")
 	validationStage.Start()
 
+	var (
+		cpiDeployment bmcpi.Deployment
+	)
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
 		if c.userConfig.DeploymentFile == "" {
 			return bosherr.Error("No deployment set")
@@ -121,36 +96,56 @@ func (c *deleteCmd) validateInputFiles(releaseTarballPath string) (
 			return bosherr.Errorf("Verifying that the deployment '%s' exists", deploymentFilePath)
 		}
 
-		_, cpiDeploymentManifest, err = c.deploymentParser.Parse(deploymentFilePath)
+		_, cpiDeploymentManifest, err := c.deploymentParser.Parse(deploymentFilePath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentFilePath)
 		}
 
+		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest)
+
 		return nil
 	})
 	if err != nil {
-		return cpiDeploymentManifest, nil, err
+		return err
 	}
 
+	var (
+		cpiRelease bmrel.Release
+	)
 	err = validationStage.PerformStep("Validating cpi release", func() error {
-		if !c.fs.FileExists(releaseTarballPath) {
-			return bosherr.Errorf("Verifying that the CPI release '%s' exists", releaseTarballPath)
+		if !c.fs.FileExists(cpiReleaseTarballPath) {
+			return bosherr.Errorf("Verifying that the CPI release '%s' exists", cpiReleaseTarballPath)
 		}
 
-		cpiRelease, err = c.cpiInstaller.Extract(releaseTarballPath)
+		cpiRelease, err = cpiDeployment.ExtractRelease(cpiReleaseTarballPath)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting CPI release '%s'", releaseTarballPath)
+			return bosherr.WrapErrorf(err, "Extracting CPI release '%s'", cpiReleaseTarballPath)
 		}
 
 		return nil
 	})
 	if err != nil {
-		return cpiDeploymentManifest, cpiRelease, err
+		return err
 	}
+	defer cpiRelease.Delete()
 
 	validationStage.Finish()
 
-	return cpiDeploymentManifest, cpiRelease, nil
+	cloud, err := cpiDeployment.Install()
+	if err != nil {
+		return bosherr.WrapError(err, "Installing CPI deployment")
+	}
+
+	vmManager := c.vmManagerFactory.NewManager(cloud, cpiDeployment.Manifest().Mbus)
+	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
+	diskManager := c.diskManagerFactory.NewManager(cloud)
+	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
+
+	return c.deleteDeployment(
+		instanceManager,
+		diskManager,
+		stemcellManager,
+	)
 }
 
 func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {

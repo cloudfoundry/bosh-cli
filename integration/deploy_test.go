@@ -254,6 +254,8 @@ cloud_provider:
 				logger,
 			)
 
+			deploymentFactory := bmdeployer.NewFactory(deployer)
+
 			return NewDeployCmd(
 				ui,
 				userConfig,
@@ -263,7 +265,7 @@ cloud_provider:
 				mockCPIDeploymentFactory,
 				fakeStemcellExtractor,
 				deploymentRecord,
-				deployer,
+				deploymentFactory,
 				eventLogger,
 				logger,
 			)

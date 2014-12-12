@@ -8,6 +8,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
+	mock_deployer "github.com/cloudfoundry/bosh-micro-cli/deployer/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -15,6 +16,7 @@ import (
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
+	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -52,6 +54,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs     *fakesys.FakeFileSystem
 		fakeUI     *fakeui.FakeUI
 
+		mockDeploymentFactory     *mock_deployer.MockFactory
 		mockCPIDeploymentFactory  *mock_cpi.MockDeploymentFactory
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
@@ -90,6 +93,7 @@ var _ = Describe("DeployCmd", func() {
 		}
 		fakeFs.WriteFileString(deploymentManifestPath, "")
 
+		mockDeploymentFactory = mock_deployer.NewMockFactory(mockCtrl)
 		mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
 
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
@@ -123,7 +127,7 @@ var _ = Describe("DeployCmd", func() {
 			mockCPIDeploymentFactory,
 			fakeStemcellExtractor,
 			fakeDeploymentRecord,
-			fakeDeployer,
+			mockDeploymentFactory,
 			fakeEventLogger,
 			logger,
 		)
@@ -184,7 +188,7 @@ var _ = Describe("DeployCmd", func() {
 						mockCPIDeploymentFactory,
 						fakeStemcellExtractor,
 						fakeDeploymentRecord,
-						fakeDeployer,
+						mockDeploymentFactory,
 						fakeEventLogger,
 						logger,
 					)
@@ -267,6 +271,9 @@ version: fake-version
 
 						cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller)
 						mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(cpiDeployment).AnyTimes()
+
+						deployment := bmdeployer.NewDeployment(boshDeploymentManifest, fakeDeployer)
+						mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
 
 						fakeCPIInstaller.SetExtractBehavior(
 							cpiReleaseTarballPath,
@@ -549,7 +556,7 @@ version: fake-version
 						mockCPIDeploymentFactory,
 						fakeStemcellExtractor,
 						fakeDeploymentRecord,
-						fakeDeployer,
+						mockDeploymentFactory,
 						fakeEventLogger,
 						logger,
 					)

@@ -27,7 +27,7 @@ type deployCmd struct {
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
 	stemcellExtractor       bmstemcell.Extractor
 	deploymentRecord        bmdeployer.DeploymentRecord
-	deployer                bmdeployer.Deployer
+	deploymentFactory       bmdeployer.Factory
 	eventLogger             bmeventlog.EventLogger
 	logger                  boshlog.Logger
 	logTag                  string
@@ -42,7 +42,7 @@ func NewDeployCmd(
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
 	stemcellExtractor bmstemcell.Extractor,
 	deploymentRecord bmdeployer.DeploymentRecord,
-	deployer bmdeployer.Deployer,
+	deploymentFactory bmdeployer.Factory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployCmd {
@@ -55,7 +55,7 @@ func NewDeployCmd(
 		cpiDeploymentFactory:    cpiDeploymentFactory,
 		stemcellExtractor:       stemcellExtractor,
 		deploymentRecord:        deploymentRecord,
-		deployer:                deployer,
+		deploymentFactory:       deploymentFactory,
 		eventLogger:             eventLogger,
 		logger:                  logger,
 		logTag:                  "deployCmd",
@@ -72,10 +72,83 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
-	boshDeployment, cpiDeployment, cpiRelease, extractedStemcell, err := c.validateInputFiles(releaseTarballPath, stemcellTarballPath)
+	validationStage := c.eventLogger.NewStage("validating")
+	validationStage.Start()
+
+	var (
+		boshDeployment bmdeployer.Deployment
+		cpiDeployment  bmcpi.Deployment
+	)
+
+	err = validationStage.PerformStep("Validating deployment manifest", func() error {
+		if c.userConfig.DeploymentFile == "" {
+			return bosherr.Error("No deployment set")
+		}
+
+		deploymentFilePath := c.userConfig.DeploymentFile
+
+		c.logger.Info(c.logTag, "Checking for deployment `%s'", deploymentFilePath)
+		if !c.fs.FileExists(deploymentFilePath) {
+			return bosherr.Errorf("Verifying that the deployment `%s' exists", deploymentFilePath)
+		}
+
+		boshDeploymentManifest, cpiDeploymentManifest, err := c.deploymentParser.Parse(deploymentFilePath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing deployment manifest `%s'", deploymentFilePath)
+		}
+
+		err = c.boshDeploymentValidator.Validate(boshDeploymentManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating deployment manifest")
+		}
+		boshDeployment = c.deploymentFactory.NewDeployment(boshDeploymentManifest)
+
+		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
+
+	var (
+		cpiRelease        bmrel.Release
+		extractedStemcell bmstemcell.ExtractedStemcell
+	)
+	err = validationStage.PerformStep("Validating cpi release", func() error {
+		if !c.fs.FileExists(releaseTarballPath) {
+			return bosherr.Errorf("Verifying that the CPI release `%s' exists", releaseTarballPath)
+		}
+
+		cpiRelease, err = cpiDeployment.ExtractRelease(releaseTarballPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Extracting CPI release `%s'", releaseTarballPath)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	err = validationStage.PerformStep("Validating stemcell", func() error {
+		if !c.fs.FileExists(stemcellTarballPath) {
+			return bosherr.Errorf("Verifying that the stemcell `%s' exists", stemcellTarballPath)
+		}
+
+		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
+		if err != nil {
+			cpiRelease.Delete()
+			return bosherr.WrapErrorf(err, "Extracting stemcell from `%s'", stemcellTarballPath)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	validationStage.Finish()
+
 	defer extractedStemcell.Delete()
 	defer cpiRelease.Delete()
 
@@ -104,9 +177,8 @@ func (c *deployCmd) Run(args []string) error {
 	}()
 
 	cpiDeploymentManifest := cpiDeployment.Manifest()
-	err = c.deployer.Deploy(
+	err = boshDeployment.Deploy(
 		cloud,
-		boshDeployment,
 		extractedStemcell,
 		cpiDeploymentManifest.Registry,
 		cpiDeploymentManifest.SSHTunnel,
@@ -125,84 +197,6 @@ func (c *deployCmd) Run(args []string) error {
 }
 
 type Deployment struct{}
-
-func (c *deployCmd) validateInputFiles(releaseTarballPath, stemcellTarballPath string) (
-	boshDeploymentManifest bmdepl.Manifest,
-	cpiDeployment bmcpi.Deployment,
-	cpiRelease bmrel.Release,
-	extractedStemcell bmstemcell.ExtractedStemcell,
-	err error,
-) {
-	validationStage := c.eventLogger.NewStage("validating")
-	validationStage.Start()
-
-	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		if c.userConfig.DeploymentFile == "" {
-			return bosherr.Error("No deployment set")
-		}
-
-		deploymentFilePath := c.userConfig.DeploymentFile
-
-		c.logger.Info(c.logTag, "Checking for deployment `%s'", deploymentFilePath)
-		if !c.fs.FileExists(deploymentFilePath) {
-			return bosherr.Errorf("Verifying that the deployment `%s' exists", deploymentFilePath)
-		}
-
-		var cpiDeploymentManifest bmdepl.CPIDeploymentManifest
-		boshDeploymentManifest, cpiDeploymentManifest, err = c.deploymentParser.Parse(deploymentFilePath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing deployment manifest `%s'", deploymentFilePath)
-		}
-
-		err = c.boshDeploymentValidator.Validate(boshDeploymentManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating deployment manifest")
-		}
-
-		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest)
-		return nil
-	})
-	if err != nil {
-		return boshDeploymentManifest, nil, nil, nil, err
-	}
-
-	err = validationStage.PerformStep("Validating cpi release", func() error {
-		if !c.fs.FileExists(releaseTarballPath) {
-			return bosherr.Errorf("Verifying that the CPI release `%s' exists", releaseTarballPath)
-		}
-
-		cpiRelease, err = cpiDeployment.ExtractRelease(releaseTarballPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting CPI release `%s'", releaseTarballPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return boshDeploymentManifest, cpiDeployment, cpiRelease, nil, err
-	}
-
-	err = validationStage.PerformStep("Validating stemcell", func() error {
-		if !c.fs.FileExists(stemcellTarballPath) {
-			return bosherr.Errorf("Verifying that the stemcell `%s' exists", stemcellTarballPath)
-		}
-
-		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
-		if err != nil {
-			cpiRelease.Delete()
-			return bosherr.WrapErrorf(err, "Extracting stemcell from `%s'", stemcellTarballPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return boshDeploymentManifest, cpiDeployment, cpiRelease, extractedStemcell, err
-	}
-
-	validationStage.Finish()
-
-	return boshDeploymentManifest, cpiDeployment, cpiRelease, extractedStemcell, nil
-}
 
 func (c *deployCmd) parseCmdInputs(args []string) (string, string, error) {
 	if len(args) != 2 {

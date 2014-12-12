@@ -11,6 +11,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
+	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -28,7 +29,6 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -48,7 +48,8 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 		var (
 			fs                      boshsys.FileSystem
 			logger                  boshlog.Logger
-			fakeCPIInstaller        *fakebmcpi.FakeInstaller
+			mockDeploymentFactory   *mock_cpi.MockDeploymentFactory
+			mockDeployment          *mock_cpi.MockDeployment
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			deploymentConfigService bmconfig.DeploymentConfigService
 			vmRepo                  bmconfig.VMRepo
@@ -81,7 +82,7 @@ cloud_provider:
 			fs.WriteFileString("/fake-cpi-release.tgz", "fake-tgz-content")
 		}
 
-		var allowCPIToBeExtracted = func() {
+		var allowCPIToBeInstalled = func() {
 			cpiRelease := bmrel.NewRelease(
 				"fake-cpi-release-name",
 				"fake-cpi-release-version",
@@ -90,26 +91,19 @@ cloud_provider:
 				"fake-cpi-extracted-dir",
 				fs,
 			)
-			fakeCPIInstaller.SetExtractBehavior("/fake-cpi-release.tgz", func(releaseTarballPath string) (bmrel.Release, error) {
-				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
-				return cpiRelease, err
-			})
-		}
 
-		var allowCPIToBeInstalled = func() {
-			cpiRelease := bmrel.NewRelease(
-				"fake-cpi-release-name",
-				"fake-cpi-release-version",
-				[]bmrel.Job{},
-				[]*bmrel.Package{},
-				"fake-extracted-dir",
-				fs,
-			)
 			cpiDeploymentManifest := bmdepl.CPIDeploymentManifest{
 				Name: "test-release",
 				Mbus: "http://fake-mbus-url",
 			}
-			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, cpiRelease, mockCloud, nil)
+
+			mockDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(mockDeployment).AnyTimes()
+			var err error
+			mockDeployment.EXPECT().ExtractRelease("/fake-cpi-release.tgz").Do(func(_ string) {
+				err = fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
+			}).Return(cpiRelease, err).AnyTimes()
+			mockDeployment.EXPECT().Install().Return(mockCloud, nil).AnyTimes()
+			mockDeployment.EXPECT().Manifest().Return(cpiDeploymentManifest).AnyTimes()
 		}
 
 		var newDeleteCmd = func() Cmd {
@@ -134,7 +128,7 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, deploymentParser, fakeCPIInstaller,
+				ui, userConfig, fs, deploymentParser, mockDeploymentFactory,
 				vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
 				mockAgentClientFactory, eventLogger, logger,
 			)
@@ -165,7 +159,8 @@ cloud_provider:
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
-			fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
+			mockDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
+			mockDeployment = mock_cpi.NewMockDeployment(mockCtrl)
 
 			ui = &fakeui.FakeUI{}
 
@@ -176,7 +171,6 @@ cloud_provider:
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
-			allowCPIToBeExtracted()
 			allowCPIToBeInstalled()
 		})
 

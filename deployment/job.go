@@ -43,4 +43,3 @@ const (
 func (j *Job) Properties() (map[string]interface{}, error) {
 	return bmkeystr.NewKeyStringifier().ConvertMap(j.RawProperties)
 }
-
