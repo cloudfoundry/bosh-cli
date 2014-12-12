@@ -136,6 +136,15 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
+	err = cpiDeployment.StartJobs()
+	if err != nil {
+		return bosherr.WrapError(err, "Starting CPI jobs")
+	}
+	defer func() {
+		err := cpiDeployment.StopJobs()
+		c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
+	}()
+
 	vmManager := c.vmManagerFactory.NewManager(cloud, cpiDeployment.Manifest().Mbus)
 	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
 	diskManager := c.diskManagerFactory.NewManager(cloud)

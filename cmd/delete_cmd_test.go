@@ -48,8 +48,8 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 		var (
 			fs                      boshsys.FileSystem
 			logger                  boshlog.Logger
-			mockDeploymentFactory   *mock_cpi.MockDeploymentFactory
-			mockDeployment          *mock_cpi.MockDeployment
+			mockCPIDeploymentFactory   *mock_cpi.MockDeploymentFactory
+			mockCPIDeployment          *mock_cpi.MockDeployment
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			deploymentConfigService bmconfig.DeploymentConfigService
 			vmRepo                  bmconfig.VMRepo
@@ -67,6 +67,11 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			mockCloud              *mock_cloud.MockCloud
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
+
+			expectCPIExtractRelease *gomock.Call
+			expectCPIInstall *gomock.Call
+			expectCPIStartJobs *gomock.Call
+			expectCPIStopJobs *gomock.Call
 		)
 
 		var writeDeploymentManifest = func() {
@@ -97,13 +102,16 @@ cloud_provider:
 				Mbus: "http://fake-mbus-url",
 			}
 
-			mockDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(mockDeployment).AnyTimes()
+			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(mockCPIDeployment).AnyTimes()
 			var err error
-			mockDeployment.EXPECT().ExtractRelease("/fake-cpi-release.tgz").Do(func(_ string) {
+			expectCPIExtractRelease = mockCPIDeployment.EXPECT().ExtractRelease("/fake-cpi-release.tgz").Do(func(_ string) {
 				err = fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
 			}).Return(cpiRelease, err).AnyTimes()
-			mockDeployment.EXPECT().Install().Return(mockCloud, nil).AnyTimes()
-			mockDeployment.EXPECT().Manifest().Return(cpiDeploymentManifest).AnyTimes()
+			expectCPIInstall = mockCPIDeployment.EXPECT().Install().Return(mockCloud, nil).AnyTimes()
+			mockCPIDeployment.EXPECT().Manifest().Return(cpiDeploymentManifest).AnyTimes()
+
+			expectCPIStartJobs = mockCPIDeployment.EXPECT().StartJobs().AnyTimes()
+			expectCPIStopJobs = mockCPIDeployment.EXPECT().StopJobs().AnyTimes()
 		}
 
 		var newDeleteCmd = func() Cmd {
@@ -128,7 +136,7 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, deploymentParser, mockDeploymentFactory,
+				ui, userConfig, fs, deploymentParser, mockCPIDeploymentFactory,
 				vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
 				mockAgentClientFactory, eventLogger, logger,
 			)
@@ -159,8 +167,8 @@ cloud_provider:
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
-			mockDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
-			mockDeployment = mock_cpi.NewMockDeployment(mockCtrl)
+			mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
+			mockCPIDeployment = mock_cpi.NewMockDeployment(mockCtrl)
 
 			ui = &fakeui.FakeUI{}
 
@@ -232,6 +240,36 @@ cloud_provider:
 						},
 					},
 				})
+			})
+
+			It("extracts & install CPI release tarball", func() {
+				expectNormalFlow()
+
+				gomock.InOrder(
+					expectCPIExtractRelease.Times(1),
+					expectCPIInstall.Times(1),
+				)
+
+				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("starts & stops the CPI jobs", func() {
+				expectNormalFlow()
+
+				expectCPIStartJobs.Times(1)
+				expectCPIStopJobs.Times(1)
+
+				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("deletes the extracted CPI release", func() {
+				expectNormalFlow()
+
+				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fs.FileExists("fake-cpi-extracted-dir")).To(BeFalse())
 			})
 
 			It("stops agent, unmounts disk, deletes vm, deletes disk, deletes stemcell", func() {
