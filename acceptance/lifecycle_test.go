@@ -118,7 +118,28 @@ var _ = Describe("bosh-micro", func() {
 		deleteDeployment()
 	})
 
-	FIt("can set deployment", func() {
+	// parseUserConfig reads & parses the remote bosh-micro user config
+	// This would be a lot cleaner if there were a RemoteFileSystem that used SSH.
+	var parseUserConfig = func() bmconfig.UserConfig {
+		userConfigPath := testEnv.Path(".bosh_micro.json")
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "cat", userConfigPath)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+
+		tempUserConfigFile, err := fileSystem.TempFile("bosh-micro-user-config")
+		Expect(err).ToNot(HaveOccurred())
+		_, err = tempUserConfigFile.WriteString(stdout)
+		Expect(err).ToNot(HaveOccurred())
+		defer fileSystem.RemoveAll(tempUserConfigFile.Name())
+
+		userConfigService := bmconfig.NewFileSystemUserConfigService(tempUserConfigFile.Name(), fileSystem, logger)
+		userConfig, err := userConfigService.Load()
+		Expect(err).ToNot(HaveOccurred())
+
+		return userConfig
+	}
+
+	It("can set deployment", func() {
 		updateDeploymentManifest("./assets/manifest.yml")
 
 		manifestPath := testEnv.Path("manifest")
@@ -126,11 +147,7 @@ var _ = Describe("bosh-micro", func() {
 		stdout := setDeployment(manifestPath)
 		Expect(stdout).To(ContainSubstring(fmt.Sprintf("Deployment set to `%s'", manifestPath)))
 
-		userConfigPath := testEnv.Path(".bosh_micro.json")
-		userConfigService := bmconfig.NewFileSystemUserConfigService(userConfigPath, fileSystem, logger)
-		userConfig, err := userConfigService.Load()
-		Expect(err).ToNot(HaveOccurred())
-		Expect(userConfig).To(Equal(bmconfig.UserConfig{
+		Expect(parseUserConfig()).To(Equal(bmconfig.UserConfig{
 			DeploymentFile: manifestPath,
 		}))
 	})
@@ -239,7 +256,7 @@ var _ = Describe("bosh-micro", func() {
 
 				stdout := deploy()
 
-				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'... failed."))
+				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. failed."))
 				Expect(stdout).To(ContainSubstring("Deleting VM"))
 				Expect(stdout).To(ContainSubstring("Creating VM for instance 'bosh/0' from stemcell"))
 				Expect(stdout).To(ContainSubstring("Done deploying"))
@@ -248,7 +265,7 @@ var _ = Describe("bosh-micro", func() {
 			It("deletes if the agent is unresponsive", func() {
 				stdout := deleteDeployment()
 
-				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'... failed."))
+				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. failed."))
 				Expect(stdout).To(ContainSubstring("Deleting VM"))
 				Expect(stdout).To(ContainSubstring("Deleting disk"))
 				Expect(stdout).To(ContainSubstring("Deleting stemcell"))
