@@ -46,16 +46,16 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			fs                      boshsys.FileSystem
-			logger                  boshlog.Logger
-			mockCPIDeploymentFactory   *mock_cpi.MockDeploymentFactory
-			mockCPIDeployment          *mock_cpi.MockDeployment
-			fakeUUIDGenerator       *fakeuuid.FakeGenerator
-			deploymentConfigService bmconfig.DeploymentConfigService
-			vmRepo                  bmconfig.VMRepo
-			diskRepo                bmconfig.DiskRepo
-			stemcellRepo            bmconfig.StemcellRepo
-			userConfig              bmconfig.UserConfig
+			fs                       boshsys.FileSystem
+			logger                   boshlog.Logger
+			mockCPIDeploymentFactory *mock_cpi.MockDeploymentFactory
+			mockCPIDeployment        *mock_cpi.MockDeployment
+			fakeUUIDGenerator        *fakeuuid.FakeGenerator
+			deploymentConfigService  bmconfig.DeploymentConfigService
+			vmRepo                   bmconfig.VMRepo
+			diskRepo                 bmconfig.DiskRepo
+			stemcellRepo             bmconfig.StemcellRepo
+			userConfig               bmconfig.UserConfig
 
 			ui *fakeui.FakeUI
 
@@ -69,9 +69,9 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
 
 			expectCPIExtractRelease *gomock.Call
-			expectCPIInstall *gomock.Call
-			expectCPIStartJobs *gomock.Call
-			expectCPIStopJobs *gomock.Call
+			expectCPIInstall        *gomock.Call
+			expectCPIStartJobs      *gomock.Call
+			expectCPIStopJobs       *gomock.Call
 		)
 
 		var writeDeploymentManifest = func() {

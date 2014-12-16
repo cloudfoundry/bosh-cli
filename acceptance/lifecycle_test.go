@@ -89,7 +89,7 @@ var _ = Describe("bosh-micro", func() {
 		testEnv.WriteContent("manifest", manifestContents)
 	}
 
-	It("can set deployment, deploy, update, and delete", func() {
+	It("can set deployment & deploy", func() {
 		setDeploymentManifest("./manifest.yml")
 
 		_, _, exitCode, err := sshCmdRunner.RunCommand(testEnv.Path("bosh-micro"), "deployment", testEnv.Path("manifest"))

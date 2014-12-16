@@ -13,13 +13,13 @@ type ServerManager interface {
 	Start(string, string, string, int) (Server, error)
 }
 
-type serverFactory struct {
+type serverManager struct {
 	logger boshlog.Logger
 	logTag string
 }
 
 func NewServerManager(logger boshlog.Logger) ServerManager {
-	return &serverFactory{
+	return &serverManager{
 		logger: logger,
 		logTag: "registryServer",
 	}
@@ -27,7 +27,7 @@ func NewServerManager(logger boshlog.Logger) ServerManager {
 
 // Create starts a new server on a goroutine and returns it
 // The returned error is only for starting. Error while running is logged.
-func (s *serverFactory) Start(username string, password string, host string, port int) (Server, error) {
+func (s *serverManager) Start(username string, password string, host string, port int) (Server, error) {
 	startedCh := make(chan error)
 	server := &server{
 		logger: s.logger,

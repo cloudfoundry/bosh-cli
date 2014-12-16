@@ -8,10 +8,16 @@ import (
 
 type FakeHTTPClient struct {
 	PostInputs  []postInput
-	postOutputs []postOutput
+	postOutputs []output
 
 	GetInputs  []getInput
-	getOutputs []getOutput
+	getOutputs []output
+
+	DeleteInputs  []deleteInput
+	deleteOutputs []output
+
+	PutInputs  []putInput
+	putOutputs []output
 }
 
 type postInput struct {
@@ -19,24 +25,30 @@ type postInput struct {
 	Endpoint string
 }
 
-type postOutput struct {
-	response *http.Response
-	err      error
+type putInput struct {
+	Payload  []byte
+	Endpoint string
+}
+
+type deleteInput struct {
+	Endpoint string
 }
 
 type getInput struct {
 	Endpoint string
 }
 
-type getOutput struct {
+type output struct {
 	response *http.Response
 	err      error
 }
 
 func NewFakeHTTPClient() *FakeHTTPClient {
 	return &FakeHTTPClient{
-		postOutputs: []postOutput{},
-		getOutputs:  []getOutput{},
+		postOutputs:   []output{},
+		putOutputs:    []output{},
+		getOutputs:    []output{},
+		deleteOutputs: []output{},
 	}
 }
 
@@ -63,13 +75,47 @@ func (c *FakeHTTPClient) Get(endpoint string) (*http.Response, error) {
 	return getReturn.response, getReturn.err
 }
 
+func (c *FakeHTTPClient) Put(endpoint string, payload []byte) (*http.Response, error) {
+	c.PutInputs = append(c.PutInputs, putInput{
+		Payload:  payload,
+		Endpoint: endpoint,
+	})
+
+	putReturn := c.putOutputs[0]
+	c.putOutputs = c.putOutputs[1:]
+
+	return putReturn.response, putReturn.err
+}
+
+func (c *FakeHTTPClient) Delete(endpoint string) (*http.Response, error) {
+	c.DeleteInputs = append(c.DeleteInputs, deleteInput{
+		Endpoint: endpoint,
+	})
+
+	deleteReturn := c.deleteOutputs[0]
+	c.deleteOutputs = c.deleteOutputs[1:]
+
+	return deleteReturn.response, deleteReturn.err
+}
+
 func (c *FakeHTTPClient) SetPostBehavior(body string, statusCode int, err error) {
 	postResponse := &http.Response{
 		Body:       ioutil.NopCloser(strings.NewReader(body)),
 		StatusCode: statusCode,
 	}
-	c.postOutputs = append(c.postOutputs, postOutput{
+	c.postOutputs = append(c.postOutputs, output{
 		response: postResponse,
+		err:      err,
+	})
+}
+
+func (c *FakeHTTPClient) SetPutBehavior(body string, statusCode int, err error) {
+	putResponse := &http.Response{
+		Body:       ioutil.NopCloser(strings.NewReader(body)),
+		StatusCode: statusCode,
+	}
+	c.putOutputs = append(c.putOutputs, output{
+		response: putResponse,
 		err:      err,
 	})
 }
@@ -80,8 +126,20 @@ func (c *FakeHTTPClient) SetGetBehavior(body string, statusCode int, err error) 
 		StatusCode: statusCode,
 	}
 
-	c.getOutputs = append(c.getOutputs, getOutput{
+	c.getOutputs = append(c.getOutputs, output{
 		response: getResponse,
+		err:      err,
+	})
+}
+
+func (c *FakeHTTPClient) SetDeleteBehavior(body string, statusCode int, err error) {
+	deleteResponse := &http.Response{
+		Body:       ioutil.NopCloser(strings.NewReader(body)),
+		StatusCode: statusCode,
+	}
+
+	c.deleteOutputs = append(c.deleteOutputs, output{
+		response: deleteResponse,
 		err:      err,
 	})
 }

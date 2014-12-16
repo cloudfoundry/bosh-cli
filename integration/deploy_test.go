@@ -7,13 +7,14 @@ import (
 	. "github.com/onsi/gomega"
 
 	"errors"
+	"io/ioutil"
+	"net/http"
 	"os"
 
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/mocks"
-	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -25,6 +26,7 @@ import (
 	bmac "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
+	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployer/httpclient"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
@@ -32,6 +34,7 @@ import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
@@ -57,9 +60,8 @@ var _ = Describe("bosh-micro", func() {
 			fs     *fakesys.FakeFileSystem
 			logger boshlog.Logger
 
-			mockCPIDeploymentFactory  *mock_cpi.MockDeploymentFactory
-			mockRegistryServerManager *mock_registry.MockServerManager
-			mockRegistryServer        *mock_registry.MockServer
+			mockCPIDeploymentFactory *mock_cpi.MockDeploymentFactory
+			registryServerManager    bmregistry.ServerManager
 
 			fakeCPIInstaller        *fakebmcpi.FakeInstaller
 			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
@@ -130,6 +132,11 @@ jobs:
 
 cloud_provider:
   mbus: http://fake-mbus-url
+  registry:
+    host: 127.0.0.1
+    port: 6301
+    username: fake-registry-user
+    password: fake-registry-password
 `)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -159,6 +166,11 @@ jobs:
 
 cloud_provider:
   mbus: http://fake-mbus-url
+  registry:
+    host: 127.0.0.1
+    port: 6301
+    username: fake-registry-user
+    password: fake-registry-password
 `)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -189,10 +201,16 @@ cloud_provider:
 			cpiDeploymentManifest := bmdepl.CPIDeploymentManifest{
 				Name: "test-release",
 				Mbus: mbusURL,
+				Registry: bmdepl.Registry{
+					Username: "fake-registry-user",
+					Password: "fake-registry-password",
+					Host:     "127.0.0.1",
+					Port:     6301,
+				},
 			}
 			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, cpiRelease, mockCloud, nil)
 
-			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller)
+			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, registryServerManager, fakeCPIInstaller)
 			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(cpiDeployment).AnyTimes()
 		}
 
@@ -402,6 +420,61 @@ cloud_provider:
 			)
 		}
 
+		var expectRegistryToWork = func() {
+			httpClient := bmhttp.NewHTTPClient(logger)
+
+			endpoint := "http://fake-registry-user:fake-registry-password@127.0.0.1:6301/instances/fake-agent-id/settings"
+
+			settingsBytes := []byte("fake-registry-contents") //usually json, but not required to be
+			response, err := httpClient.Put(endpoint, settingsBytes)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(response.StatusCode).To(Equal(http.StatusCreated))
+
+			response, err = httpClient.Get(endpoint)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(response.StatusCode).To(Equal(http.StatusOK))
+			responseBytes, err := ioutil.ReadAll(response.Body)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(responseBytes).To(Equal([]byte("{\"settings\":\"fake-registry-contents\",\"status\":\"ok\"}")))
+
+			response, err = httpClient.Delete(endpoint)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(response.StatusCode).To(Equal(http.StatusOK))
+		}
+
+		var expectDeployFlowWithRegistry = func() {
+			vmCID := "fake-vm-cid-1"
+			diskCID := "fake-disk-cid-1"
+			diskSize := 1024
+
+			gomock.InOrder(
+				mockCloud.EXPECT().CreateStemcell(cloudProperties, stemcellImagePath).Do(
+					func(_, _ interface{}) { expectRegistryToWork() },
+				).Return(stemcellCID, nil),
+				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Do(
+					func(_, _, _, _ interface{}) { expectRegistryToWork() },
+				).Return(vmCID, nil),
+
+				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+
+				mockCloud.EXPECT().CreateDisk(diskSize, cloudProperties, vmCID).Do(
+					func(_, _, _ interface{}) { expectRegistryToWork() },
+				).Return(diskCID, nil),
+				mockCloud.EXPECT().AttachDisk(vmCID, diskCID).Do(
+					func(_, _ interface{}) { expectRegistryToWork() },
+				),
+
+				mockAgentClient.EXPECT().MountDisk(diskCID),
+				mockAgentClient.EXPECT().Stop().Do(
+					func() { expectRegistryToWork() },
+				),
+				mockAgentClient.EXPECT().Apply(applySpec),
+				mockAgentClient.EXPECT().Start(),
+				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
+			)
+		}
+
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
@@ -414,6 +487,12 @@ cloud_provider:
 
 			sshTunnelFactory = bmsshtunnel.NewFactory(logger)
 
+			config, err := deploymentConfigService.Load()
+			Expect(err).ToNot(HaveOccurred())
+			config.UUID = "fake-agent-id"
+			err = deploymentConfigService.Save(config)
+			Expect(err).ToNot(HaveOccurred())
+
 			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
 			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeUUIDGenerator)
 			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
@@ -425,8 +504,7 @@ cloud_provider:
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
-			mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
-			mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
+			registryServerManager = bmregistry.NewServerManager(logger)
 
 			fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
 			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
@@ -548,6 +626,15 @@ cloud_provider:
 						Expect(diskRecords).To(Equal([]bmconfig.DiskRecord{diskRecord}))
 					})
 				})
+			})
+		})
+
+		Context("when the registry is configured", func() {
+			It("makes the registry available for all CPI commands", func() {
+				expectDeployFlowWithRegistry()
+
+				err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 	})
