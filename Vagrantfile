@@ -2,11 +2,10 @@ Vagrant.configure('2') do |config|
   config.vm.box = 'cloudfoundry/bosh-lite'
   config.vm.box_version = '388'
 
-  config.vm.provider :virtualbox do |v, override|
-  end
-
-  [:vmware_fusion, :vmware_desktop, :vmware_workstation].each do |provider|
+  [:virtualbox, :vmware_fusion, :vmware_desktop, :vmware_workstation].each do |provider|
     config.vm.provider provider do |v, override|
+      v.memory = 1024 * 4
+      v.cpus = 4
     end
   end
 
