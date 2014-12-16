@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
+	"strings"
 )
 
 type LogLevel int
@@ -17,6 +18,25 @@ const (
 	LevelError
 	LevelNone LogLevel = 99
 )
+
+var levels = map[string]LogLevel{
+	"DEBUG": LevelDebug,
+	"INFO":  LevelInfo,
+	"WARN":  LevelWarn,
+	"ERROR": LevelError,
+	"NONE":  LevelNone,
+}
+var levelKeys = []string{"DEBUG", "INFO", "WARN", "ERROR", "NONE"}
+
+func Levelify(levelString string) (LogLevel, error) {
+	upperLevelString := strings.ToUpper(levelString)
+	level, ok := levels[upperLevelString]
+	if !ok {
+		expected := strings.Join(levelKeys, ", ")
+		return level, fmt.Errorf("Unknown LogLevel string '%s', expected one of [%s]", levelString, expected)
+	}
+	return level, nil
+}
 
 type Logger struct {
 	level LogLevel

@@ -73,6 +73,17 @@ var _ = Describe("linuxMounter", func() {
 			Expect(0).To(Equal(len(runner.RunCommands)))
 		})
 
+		It("allows to mount tmpfs to multiple mount points", func() {
+			mountsSearcher.SearchMountsMounts = []Mount{
+				Mount{PartitionPath: "tmpfs", MountPoint: "/mnt/foo1"},
+			}
+
+			err := mounter.Mount("tmpfs", "/mnt/foo2")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(1).To(Equal(len(runner.RunCommands)))
+			Expect(runner.RunCommands[0]).To(Equal([]string{"mount", "tmpfs", "/mnt/foo2"}))
+		})
+
 		It("returns error when another disk is already mounted to mount point", func() {
 			mountsSearcher.SearchMountsMounts = []Mount{
 				Mount{PartitionPath: "/dev/baz", MountPoint: "/mnt/foo"},

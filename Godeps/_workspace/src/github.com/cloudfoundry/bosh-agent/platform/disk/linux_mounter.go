@@ -161,7 +161,7 @@ func (m linuxMounter) shouldMount(partitionPath, mountPoint string) (bool, error
 		switch {
 		case mount.PartitionPath == partitionPath && mount.MountPoint == mountPoint:
 			return false, nil
-		case mount.PartitionPath == partitionPath && mount.MountPoint != mountPoint:
+		case mount.PartitionPath == partitionPath && mount.MountPoint != mountPoint && partitionPath != "tmpfs":
 			return false, bosherr.Errorf("Device %s is already mounted to %s, can't mount to %s",
 				mount.PartitionPath, mount.MountPoint, mountPoint)
 		case mount.MountPoint == mountPoint:

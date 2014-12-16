@@ -464,15 +464,37 @@ func (p linux) SetupDataDir() error {
 		return bosherr.WrapErrorf(err, "chown %s", logDir)
 	}
 
-	runDir := filepath.Join(sysDir, "run")
-	err = p.fs.MkdirAll(runDir, runDirPermissions)
+	err = p.setupRunDir(sysDir)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Making %s dir", runDir)
+		return err
 	}
 
-	_, _, _, err = p.cmdRunner.RunCommand("chown", "root:vcap", runDir)
+	return nil
+}
+
+func (p linux) setupRunDir(sysDir string) error {
+	runDir := filepath.Join(sysDir, "run")
+
+	runDirIsMounted, err := p.IsMountPoint(runDir)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "chown %s", runDir)
+		return bosherr.WrapErrorf(err, "Checking for mount point %s", runDir)
+	}
+
+	if !runDirIsMounted {
+		err = p.fs.MkdirAll(runDir, runDirPermissions)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Making %s dir", runDir)
+		}
+
+		err = p.diskManager.GetMounter().Mount("tmpfs", runDir, "-t", "tmpfs", "-o", "size=1m")
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Mounting tmpfs to %s", runDir)
+		}
+
+		_, _, _, err = p.cmdRunner.RunCommand("chown", "root:vcap", runDir)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "chown %s", runDir)
+		}
 	}
 
 	return nil
@@ -681,7 +703,12 @@ func (p linux) IsPersistentDiskMounted(path string) (bool, error) {
 }
 
 func (p linux) StartMonit() error {
-	_, _, _, err := p.cmdRunner.RunCommand("sv", "up", "monit")
+	err := p.fs.Symlink(filepath.Join("/etc", "sv", "monit"), filepath.Join("/etc", "service", "monit"))
+	if err != nil {
+		return bosherr.WrapError(err, "Symlinking /etc/service/monit to /etc/sv/monit")
+	}
+
+	_, _, _, err = p.cmdRunner.RunCommand("sv", "start", "monit")
 	if err != nil {
 		return bosherr.WrapError(err, "Shelling out to sv")
 	}

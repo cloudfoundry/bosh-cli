@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
@@ -17,13 +18,7 @@ import (
 const mainLogTag = "main"
 
 func main() {
-	debugLogEnabled := os.Getenv("BOSH_MICRO_LOG")
-	var logger boshlog.Logger
-	if debugLogEnabled != "" {
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr, os.Stderr)
-	} else {
-		logger = boshlog.NewLogger(boshlog.LevelError)
-	}
+	logger := newLogger()
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	workspace := path.Join(os.Getenv("HOME"), ".bosh_micro")
@@ -50,6 +45,21 @@ func main() {
 	if err != nil {
 		fail(err, logger)
 	}
+}
+
+func newLogger() boshlog.Logger {
+	logLevelString := os.Getenv("BOSH_MICRO_LOG")
+	var logger boshlog.Logger
+	if logLevelString != "" {
+		logLevel, err := boshlog.Levelify(logLevelString)
+		if err != nil {
+			fail(bosherr.WrapError(err, "Invalid BOSH_MICRO_LOG value"), logger)
+		}
+		logger = boshlog.NewLogger(logLevel)
+	} else {
+		logger = boshlog.NewLogger(boshlog.LevelError)
+	}
+	return logger
 }
 
 func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, logger boshlog.Logger) (

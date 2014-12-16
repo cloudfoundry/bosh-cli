@@ -9,7 +9,7 @@ import (
 )
 
 type CmdRunner interface {
-	RunCommand(...string) (string, string, int, error)
+	RunCommand(env map[string]string, args ...string) (string, string, int, error)
 }
 
 type sshCmdRunner struct {
@@ -24,8 +24,8 @@ func NewSSHCmdRunner(
 	vmIP string,
 	privateKeyPath string,
 	logger boshlog.Logger,
-) sshCmdRunner {
-	return sshCmdRunner{
+) CmdRunner {
+	return &sshCmdRunner{
 		vmUsername:     vmUsername,
 		vmIP:           vmIP,
 		privateKeyPath: privateKeyPath,
@@ -33,8 +33,13 @@ func NewSSHCmdRunner(
 	}
 }
 
-func (r sshCmdRunner) RunCommand(args ...string) (string, string, int, error) {
-	argsWithEnv := append([]string{fmt.Sprintf("TMPDIR=/home/%s", r.vmUsername)}, args...)
+func (r *sshCmdRunner) RunCommand(env map[string]string, args ...string) (string, string, int, error) {
+	exports := make([]string, len(env))
+	for k, v := range env {
+		exports = append(exports, fmt.Sprintf("%s=%s", k, v))
+	}
+
+	argsWithEnv := append(exports, args...)
 	return r.runner.RunCommand(
 		"ssh",
 		"-o", "StrictHostKeyChecking=no",

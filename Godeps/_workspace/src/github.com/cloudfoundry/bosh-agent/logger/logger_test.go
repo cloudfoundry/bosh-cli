@@ -56,6 +56,60 @@ func captureOutputs(f func()) (stdout, stderr []byte) {
 	return
 }
 
+var _ = Describe("Levelify", func() {
+	It("converts strings into LogLevel constants", func() {
+		level, err := Levelify("NONE")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelNone))
+
+		level, err = Levelify("none")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelNone))
+
+		level, err = Levelify("DEBUG")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelDebug))
+
+		level, err = Levelify("debug")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelDebug))
+
+		level, err = Levelify("INFO")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelInfo))
+
+		level, err = Levelify("info")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelInfo))
+
+		level, err = Levelify("WARN")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelWarn))
+
+		level, err = Levelify("warn")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelWarn))
+
+		level, err = Levelify("ERROR")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelError))
+
+		level, err = Levelify("error")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(level).To(Equal(LevelError))
+	})
+
+	It("errors on unknown input", func() {
+		_, err := Levelify("unknown")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Unknown LogLevel string 'unknown', expected one of [DEBUG, INFO, WARN, ERROR, NONE]"))
+
+		_, err = Levelify("")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Unknown LogLevel string '', expected one of [DEBUG, INFO, WARN, ERROR, NONE]"))
+	})
+})
+
 var _ = Describe("Logger", func() {
 	Describe("Debug", func() {
 		It("logs the formatted message to Logger.out at the debug level", func() {

@@ -697,22 +697,96 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 	})
 
 	Describe("SetupDataDir", func() {
-		It("creates sys/log and sys/run directories in data directory", func() {
-			err := platform.SetupDataDir()
-			Expect(err).NotTo(HaveOccurred())
+		var mounter *fakedisk.FakeMounter
+		BeforeEach(func() {
+			mounter = diskManager.FakeMounter
+		})
 
-			sysLogStats := fs.GetFileTestStat("/fake-dir/data/sys/log")
-			Expect(sysLogStats).ToNot(BeNil())
-			Expect(sysLogStats.FileType).To(Equal(fakesys.FakeFileTypeDir))
-			Expect(sysLogStats.FileMode).To(Equal(os.FileMode(0750)))
-			Expect(cmdRunner.RunCommands[0]).To(Equal([]string{"chown", "root:vcap", "/fake-dir/data/sys"}))
-			Expect(cmdRunner.RunCommands[1]).To(Equal([]string{"chown", "root:vcap", "/fake-dir/data/sys/log"}))
+		Context("when sys/run is already mounted", func() {
+			BeforeEach(func() {
+				mounter.IsMountPointResult = true
+			})
 
-			sysRunStats := fs.GetFileTestStat("/fake-dir/data/sys/run")
-			Expect(sysRunStats).ToNot(BeNil())
-			Expect(sysRunStats.FileType).To(Equal(fakesys.FakeFileTypeDir))
-			Expect(sysRunStats.FileMode).To(Equal(os.FileMode(0750)))
-			Expect(cmdRunner.RunCommands[2]).To(Equal([]string{"chown", "root:vcap", "/fake-dir/data/sys/run"}))
+			It("creates sys/log directory in data directory", func() {
+				err := platform.SetupDataDir()
+				Expect(err).NotTo(HaveOccurred())
+
+				sysLogStats := fs.GetFileTestStat("/fake-dir/data/sys/log")
+				Expect(sysLogStats).ToNot(BeNil())
+				Expect(sysLogStats.FileType).To(Equal(fakesys.FakeFileTypeDir))
+				Expect(sysLogStats.FileMode).To(Equal(os.FileMode(0750)))
+				Expect(cmdRunner.RunCommands[0]).To(Equal([]string{"chown", "root:vcap", "/fake-dir/data/sys"}))
+				Expect(cmdRunner.RunCommands[1]).To(Equal([]string{"chown", "root:vcap", "/fake-dir/data/sys/log"}))
+			})
+
+			It("does not create new sys/run dir", func() {
+				err := platform.SetupDataDir()
+				Expect(err).NotTo(HaveOccurred())
+
+				sysRunStats := fs.GetFileTestStat("/fake-dir/data/sys/run")
+				Expect(sysRunStats).To(BeNil())
+			})
+
+			It("does not mount tmpfs again", func() {
+				err := platform.SetupDataDir()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(mounter.MountPartitionPaths)).To(Equal(0))
+			})
+		})
+
+		Context("when sys/run is not yet mounted", func() {
+			BeforeEach(func() {
+				mounter.IsMountPointResult = false
+			})
+
+			It("creates sys/log directory in data directory", func() {
+				err := platform.SetupDataDir()
+				Expect(err).NotTo(HaveOccurred())
+
+				sysLogStats := fs.GetFileTestStat("/fake-dir/data/sys/log")
+				Expect(sysLogStats).ToNot(BeNil())
+				Expect(sysLogStats.FileType).To(Equal(fakesys.FakeFileTypeDir))
+				Expect(sysLogStats.FileMode).To(Equal(os.FileMode(0750)))
+				Expect(cmdRunner.RunCommands[0]).To(Equal([]string{"chown", "root:vcap", "/fake-dir/data/sys"}))
+				Expect(cmdRunner.RunCommands[1]).To(Equal([]string{"chown", "root:vcap", "/fake-dir/data/sys/log"}))
+			})
+
+			It("creates new sys/run dir", func() {
+				err := platform.SetupDataDir()
+				Expect(err).NotTo(HaveOccurred())
+
+				sysRunStats := fs.GetFileTestStat("/fake-dir/data/sys/run")
+				Expect(sysRunStats).ToNot(BeNil())
+				Expect(sysRunStats.FileType).To(Equal(fakesys.FakeFileTypeDir))
+				Expect(sysRunStats.FileMode).To(Equal(os.FileMode(0750)))
+				Expect(cmdRunner.RunCommands[2]).To(Equal([]string{"chown", "root:vcap", "/fake-dir/data/sys/run"}))
+			})
+
+			It("mounts tmpfs to sys/run", func() {
+				err := platform.SetupDataDir()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(len(mounter.MountPartitionPaths)).To(Equal(1))
+				Expect(mounter.MountPartitionPaths[0]).To(Equal("tmpfs"))
+				Expect(mounter.MountMountPoints[0]).To(Equal("/fake-dir/data/sys/run"))
+				Expect(mounter.MountMountOptions[0]).To(Equal([]string{"-t", "tmpfs", "-o", "size=1m"}))
+			})
+
+			It("returns an error if creation of mount point fails", func() {
+				fs.MkdirAllError = errors.New("fake-mkdir-error")
+
+				err := platform.SetupDataDir()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-mkdir-error"))
+			})
+
+			It("returns an error if mounting tmpfs fails", func() {
+				mounter.MountErr = errors.New("fake-mount-error")
+
+				err := platform.SetupDataDir()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-mount-error"))
+			})
 		})
 	})
 
@@ -1237,11 +1311,18 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 	})
 
 	Describe("StartMonit", func() {
-		It("start monit", func() {
+		It("creates a symlink between /etc/service/monit and /etc/sv/monit", func() {
+			err := platform.StartMonit()
+			Expect(err).NotTo(HaveOccurred())
+			target, _ := fs.ReadLink(filepath.Join("/etc", "service", "monit"))
+			Expect(target).To(Equal(filepath.Join("/etc", "sv", "monit")))
+		})
+
+		It("starts monit", func() {
 			err := platform.StartMonit()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(len(cmdRunner.RunCommands)).To(Equal(1))
-			Expect(cmdRunner.RunCommands[0]).To(Equal([]string{"sv", "up", "monit"}))
+			Expect(cmdRunner.RunCommands[0]).To(Equal([]string{"sv", "start", "monit"}))
 		})
 	})
 
