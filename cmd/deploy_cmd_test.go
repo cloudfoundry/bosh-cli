@@ -8,7 +8,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
-	mock_deployer "github.com/cloudfoundry/bosh-micro-cli/deployer/mocks"
+	mock_deployer "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -16,9 +16,9 @@ import (
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
-	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
@@ -27,10 +27,10 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
-	fakebmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
-	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator/fakes"
+	fakebmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
+	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
@@ -65,10 +65,10 @@ var _ = Describe("DeployCmd", func() {
 		release               bmrel.Release
 		fakeStemcellExtractor *fakebmstemcell.FakeExtractor
 
-		fakeDeployer         *fakebmdeployer.FakeDeployer
-		fakeDeploymentRecord *fakebmdeployer.FakeDeploymentRecord
+		fakeDeployer         *fakebmdepl.FakeDeployer
+		fakeDeploymentRecord *fakebmdepl.FakeDeploymentRecord
 
-		fakeDeploymentParser    *fakebmdepl.FakeParser
+		fakeDeploymentParser    *fakebmmanifest.FakeParser
 		fakeDeploymentValidator *fakebmdeplval.FakeValidator
 
 		fakeCompressor    *fakecmd.FakeCompressor
@@ -102,9 +102,9 @@ var _ = Describe("DeployCmd", func() {
 		fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
 		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
-		fakeDeployer = fakebmdeployer.NewFakeDeployer()
+		fakeDeployer = fakebmdepl.NewFakeDeployer()
 
-		fakeDeploymentParser = fakebmdepl.NewFakeParser()
+		fakeDeploymentParser = fakebmmanifest.NewFakeParser()
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
@@ -115,7 +115,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
-		fakeDeploymentRecord = fakebmdeployer.NewFakeDeploymentRecord()
+		fakeDeploymentRecord = fakebmdepl.NewFakeDeploymentRecord()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		command = bmcmd.NewDeployCmd(
@@ -217,24 +217,24 @@ version: fake-version
 
 				Context("when the deployment manifest exists", func() {
 					var (
-						boshDeploymentManifest bmdepl.Manifest
-						cpiDeploymentManifest  bmdepl.CPIDeploymentManifest
+						boshDeploymentManifest bmmanifest.Manifest
+						cpiDeploymentManifest  bmmanifest.CPIDeploymentManifest
 						cloud                  *fakebmcloud.FakeCloud
 					)
 
 					BeforeEach(func() {
 						fakeFs.WriteFileString(userConfig.DeploymentFile, "")
-						cpiDeploymentManifest = bmdepl.CPIDeploymentManifest{
-							Registry: bmdepl.Registry{},
-							SSHTunnel: bmdepl.SSHTunnel{
+						cpiDeploymentManifest = bmmanifest.CPIDeploymentManifest{
+							Registry: bmmanifest.Registry{},
+							SSHTunnel: bmmanifest.SSHTunnel{
 								Host: "fake-host",
 							},
 							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
 						}
 
-						boshDeploymentManifest = bmdepl.Manifest{
+						boshDeploymentManifest = bmmanifest.Manifest{
 							Name: "fake-deployment-name",
-							Jobs: []bmdepl.Job{
+							Jobs: []bmmanifest.Job{
 								{
 									Name: "fake-job-name",
 								},
@@ -272,7 +272,7 @@ version: fake-version
 						cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller)
 						mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(cpiDeployment).AnyTimes()
 
-						deployment := bmdeployer.NewDeployment(boshDeploymentManifest, fakeDeployer)
+						deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
 						mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
 
 						fakeCPIInstaller.SetExtractBehavior(
@@ -359,7 +359,7 @@ version: fake-version
 
 					Context("when the registry is configured", func() {
 						BeforeEach(func() {
-							cpiDeploymentManifest.Registry = bmdepl.Registry{
+							cpiDeploymentManifest.Registry = bmmanifest.Registry{
 								Username: "fake-username",
 								Password: "fake-password",
 								Host:     "fake-host",
@@ -393,7 +393,7 @@ version: fake-version
 					It("creates a VM", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeDeployer.DeployInputs).To(Equal([]fakebmdeployer.DeployInput{
+						Expect(fakeDeployer.DeployInputs).To(Equal([]fakebmdepl.DeployInput{
 							{
 								Cpi:             cloud,
 								Manifest:        boshDeploymentManifest,
@@ -408,7 +408,7 @@ version: fake-version
 					It("updates the deployment record", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdeployer.UpdateInput{
+						Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdepl.UpdateInput{
 							{
 								ManifestPath: deploymentManifestPath,
 								Release:      fakeCPIRelease,

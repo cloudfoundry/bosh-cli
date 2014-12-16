@@ -14,7 +14,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -22,25 +22,25 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
-	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
-	bmac "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
-	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployer/httpclient"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
+	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
+	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
+	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell/fakes"
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
@@ -198,10 +198,10 @@ cloud_provider:
 				return cpiRelease, err
 			})
 
-			cpiDeploymentManifest := bmdepl.CPIDeploymentManifest{
+			cpiDeploymentManifest := bmmanifest.CPIDeploymentManifest{
 				Name: "test-release",
 				Mbus: mbusURL,
-				Registry: bmdepl.Registry{
+				Registry: bmmanifest.Registry{
 					Username: "fake-registry-user",
 					Password: "fake-registry-password",
 					Host:     "127.0.0.1",
@@ -257,13 +257,13 @@ cloud_provider:
 		}
 
 		var newDeployCmd = func() Cmd {
-			deploymentParser := bmdepl.NewParser(fs, logger)
+			deploymentParser := bmmanifest.NewParser(fs, logger)
 
 			boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
 
-			deploymentRecord := bmdeployer.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
+			deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 
-			deployer := bmdeployer.NewDeployer(
+			deployer := bmdepl.NewDeployer(
 				stemcellManagerFactory,
 				vmManagerFactory,
 				sshTunnelFactory,
@@ -272,7 +272,7 @@ cloud_provider:
 				logger,
 			)
 
-			deploymentFactory := bmdeployer.NewFactory(deployer)
+			deploymentFactory := bmdepl.NewFactory(deployer)
 
 			return NewDeployCmd(
 				ui,

@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type InstallInput struct {
-	Deployment bmdepl.CPIDeploymentManifest
+	Deployment bmmanifest.CPIDeploymentManifest
 	Release    bmrel.Release
 }
 
@@ -61,7 +61,7 @@ func (f *FakeInstaller) Extract(releaseTarballPath string) (bmrel.Release, error
 	return nil, fmt.Errorf("Unsupported Extract Input: %s", value)
 }
 
-func (f *FakeInstaller) Install(deployment bmdepl.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
+func (f *FakeInstaller) Install(deployment bmmanifest.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
 	input := InstallInput{
 		Deployment: deployment,
 		Release:    release,
@@ -81,7 +81,7 @@ func (f *FakeInstaller) Install(deployment bmdepl.CPIDeploymentManifest, release
 }
 
 func (f *FakeInstaller) SetInstallBehavior(
-	deployment bmdepl.CPIDeploymentManifest,
+	deployment bmmanifest.CPIDeploymentManifest,
 	release bmrel.Release,
 	cloud bmcloud.Cloud,
 	err error,

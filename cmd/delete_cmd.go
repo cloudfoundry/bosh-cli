@@ -11,23 +11,23 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
 
 type deleteCmd struct {
 	ui                     bmui.UI
 	userConfig             bmconfig.UserConfig
 	fs                     boshsys.FileSystem
-	deploymentParser       bmdepl.Parser
+	deploymentParser       bmmanifest.Parser
 	cpiDeploymentFactory   bmcpi.DeploymentFactory
 	vmManagerFactory       bmvm.ManagerFactory
 	instanceManagerFactory bminstance.ManagerFactory
@@ -42,7 +42,7 @@ type deleteCmd struct {
 func NewDeleteCmd(ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
-	deploymentParser bmdepl.Parser,
+	deploymentParser bmmanifest.Parser,
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,

@@ -3,13 +3,13 @@ package compile
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
 type ReleaseCompiler interface {
-	Compile(release bmrel.Release, deployment bmdepl.CPIDeploymentManifest) error
+	Compile(release bmrel.Release, deployment bmmanifest.CPIDeploymentManifest) error
 }
 
 type releaseCompiler struct {
@@ -27,7 +27,7 @@ func NewReleaseCompiler(
 	}
 }
 
-func (c releaseCompiler) Compile(release bmrel.Release, deployment bmdepl.CPIDeploymentManifest) error {
+func (c releaseCompiler) Compile(release bmrel.Release, deployment bmmanifest.CPIDeploymentManifest) error {
 	err := c.packagesCompiler.Compile(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release packages")

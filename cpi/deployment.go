@@ -4,7 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
@@ -14,11 +14,11 @@ type Deployment interface {
 	Install() (bmcloud.Cloud, error)
 	StartJobs() error
 	StopJobs() error
-	Manifest() bmdepl.CPIDeploymentManifest
+	Manifest() bmmanifest.CPIDeploymentManifest
 }
 
 type deployment struct {
-	manifest              bmdepl.CPIDeploymentManifest
+	manifest              bmmanifest.CPIDeploymentManifest
 	registryServerManager bmregistry.ServerManager
 	installer             Installer
 
@@ -27,7 +27,7 @@ type deployment struct {
 }
 
 func NewDeployment(
-	manifest bmdepl.CPIDeploymentManifest,
+	manifest bmmanifest.CPIDeploymentManifest,
 	registryServerManager bmregistry.ServerManager,
 	installer Installer,
 ) Deployment {
@@ -38,7 +38,7 @@ func NewDeployment(
 	}
 }
 
-func (d *deployment) Manifest() bmdepl.CPIDeploymentManifest {
+func (d *deployment) Manifest() bmmanifest.CPIDeploymentManifest {
 	return d.manifest
 }
 

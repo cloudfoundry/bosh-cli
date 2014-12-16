@@ -12,7 +12,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -20,16 +20,16 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec/fakes"
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
@@ -97,7 +97,7 @@ cloud_provider:
 				fs,
 			)
 
-			cpiDeploymentManifest := bmdepl.CPIDeploymentManifest{
+			cpiDeploymentManifest := bmmanifest.CPIDeploymentManifest{
 				Name: "test-release",
 				Mbus: "http://fake-mbus-url",
 			}
@@ -115,7 +115,7 @@ cloud_provider:
 		}
 
 		var newDeleteCmd = func() Cmd {
-			deploymentParser := bmdepl.NewParser(fs, logger)
+			deploymentParser := bmmanifest.NewParser(fs, logger)
 			vmManagerFactory := bmvm.NewManagerFactory(
 				vmRepo,
 				stemcellRepo,

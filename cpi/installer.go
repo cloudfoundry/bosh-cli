@@ -11,7 +11,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
 	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -19,7 +19,7 @@ import (
 
 type Installer interface {
 	Extract(releaseTarballPath string) (bmrel.Release, error)
-	Install(deployment bmdepl.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error)
+	Install(deployment bmmanifest.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error)
 }
 
 type cpiInstaller struct {
@@ -86,10 +86,10 @@ func (c *cpiInstaller) Extract(releaseTarballPath string) (bmrel.Release, error)
 	return release, nil
 }
 
-func (c *cpiInstaller) Install(deployment bmdepl.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
+func (c *cpiInstaller) Install(manifest bmmanifest.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
 	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name()))
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release `%s': %#v", release.Name(), release))
-	err := c.releaseCompiler.Compile(release, deployment)
+	err := c.releaseCompiler.Compile(release, manifest)
 	if err != nil {
 		c.ui.Error("Could not compile CPI release")
 		return nil, bosherr.WrapError(err, "Compiling CPI release")

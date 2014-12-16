@@ -11,7 +11,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
 )
@@ -28,7 +28,7 @@ var _ = Describe("Deployment", func() {
 	})
 
 	var (
-		manifest                  bmdepl.CPIDeploymentManifest
+		manifest                  bmmanifest.CPIDeploymentManifest
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
 		fakeInstaller             *fakebmcpi.FakeInstaller
@@ -36,7 +36,7 @@ var _ = Describe("Deployment", func() {
 		deployment Deployment
 	)
 	BeforeEach(func() {
-		manifest = bmdepl.CPIDeploymentManifest{}
+		manifest = bmmanifest.CPIDeploymentManifest{}
 
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
@@ -53,7 +53,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when registry config is not empty", func() {
 			BeforeEach(func() {
-				manifest.Registry = bmdepl.Registry{
+				manifest.Registry = bmmanifest.Registry{
 					Username: "fake-username",
 					Password: "fake-password",
 					Host:     "fake-host",
@@ -84,7 +84,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when registry config is empty", func() {
 			BeforeEach(func() {
-				manifest.Registry = bmdepl.Registry{}
+				manifest.Registry = bmmanifest.Registry{}
 				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller)
 			})
 
@@ -98,7 +98,7 @@ var _ = Describe("Deployment", func() {
 	Describe("StopJobs", func() {
 		Context("when registry has been started", func() {
 			BeforeEach(func() {
-				manifest.Registry = bmdepl.Registry{
+				manifest.Registry = bmmanifest.Registry{
 					Username: "fake-username",
 					Password: "fake-password",
 					Host:     "fake-host",
@@ -121,7 +121,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when registry is configured but has not been started", func() {
 			BeforeEach(func() {
-				manifest.Registry = bmdepl.Registry{
+				manifest.Registry = bmmanifest.Registry{
 					Username: "fake-username",
 					Password: "fake-password",
 					Host:     "fake-host",
@@ -139,7 +139,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when registry config is empty", func() {
 			BeforeEach(func() {
-				manifest.Registry = bmdepl.Registry{}
+				manifest.Registry = bmmanifest.Registry{}
 				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller)
 			})
 

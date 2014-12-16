@@ -7,7 +7,7 @@ import (
 	gomock "code.google.com/p/gomock/gomock"
 	cloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	cpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
-	deployment "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	release "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
@@ -54,9 +54,9 @@ func (_mr *_MockDeploymentRecorder) Install() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Install")
 }
 
-func (_m *MockDeployment) Manifest() deployment.CPIDeploymentManifest {
+func (_m *MockDeployment) Manifest() manifest.CPIDeploymentManifest {
 	ret := _m.ctrl.Call(_m, "Manifest")
-	ret0, _ := ret[0].(deployment.CPIDeploymentManifest)
+	ret0, _ := ret[0].(manifest.CPIDeploymentManifest)
 	return ret0
 }
 
@@ -105,7 +105,7 @@ func (_m *MockDeploymentFactory) EXPECT() *_MockDeploymentFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDeploymentFactory) NewDeployment(_param0 deployment.CPIDeploymentManifest) cpi.Deployment {
+func (_m *MockDeploymentFactory) NewDeployment(_param0 manifest.CPIDeploymentManifest) cpi.Deployment {
 	ret := _m.ctrl.Call(_m, "NewDeployment", _param0)
 	ret0, _ := ret[0].(cpi.Deployment)
 	return ret0

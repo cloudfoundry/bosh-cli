@@ -9,10 +9,10 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
-	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -22,12 +22,12 @@ type deployCmd struct {
 	ui                      bmui.UI
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
-	deploymentParser        bmdepl.Parser
+	deploymentParser        bmmanifest.Parser
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
 	stemcellExtractor       bmstemcell.Extractor
-	deploymentRecord        bmdeployer.DeploymentRecord
-	deploymentFactory       bmdeployer.Factory
+	deploymentRecord        bmdepl.DeploymentRecord
+	deploymentFactory       bmdepl.Factory
 	eventLogger             bmeventlog.EventLogger
 	logger                  boshlog.Logger
 	logTag                  string
@@ -37,12 +37,12 @@ func NewDeployCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
-	deploymentParser bmdepl.Parser,
+	deploymentParser bmmanifest.Parser,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
 	stemcellExtractor bmstemcell.Extractor,
-	deploymentRecord bmdeployer.DeploymentRecord,
-	deploymentFactory bmdeployer.Factory,
+	deploymentRecord bmdepl.DeploymentRecord,
+	deploymentFactory bmdepl.Factory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployCmd {
@@ -76,7 +76,7 @@ func (c *deployCmd) Run(args []string) error {
 	validationStage.Start()
 
 	var (
-		boshDeployment bmdeployer.Deployment
+		boshDeployment bmdepl.Deployment
 		cpiDeployment  bmcpi.Deployment
 	)
 

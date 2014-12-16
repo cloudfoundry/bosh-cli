@@ -19,17 +19,17 @@ import (
 	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
 	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
-	bmdeployer "github.com/cloudfoundry/bosh-micro-cli/deployer"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployer/agentclient"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployer/applyspec"
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployer/blobstore"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployer/disk"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployer/instance"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployer/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployer/stemcell"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployer/vm"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/validator"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployment/blobstore"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
+	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
@@ -67,7 +67,7 @@ type factory struct {
 	diskManagerFactory      bmdisk.ManagerFactory
 	instanceManagerFactory  bminstance.ManagerFactory
 	stemcellManagerFactory  bmstemcell.ManagerFactory
-	deploymentFactory       bmdeployer.Factory
+	deploymentFactory       bmdepl.Factory
 	eventLogger             bmeventlog.EventLogger
 	timeService             boshtime.Service
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
@@ -122,7 +122,7 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
-	deploymentParser := bmdepl.NewParser(f.fs, f.logger)
+	deploymentParser := bmmanifest.NewParser(f.fs, f.logger)
 
 	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
 
@@ -132,7 +132,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	deploymentRepo := bmconfig.NewDeploymentRepo(f.deploymentConfigService)
 	releaseRepo := bmconfig.NewReleaseRepo(f.deploymentConfigService, f.uuidGenerator)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
-	deploymentRecord := bmdeployer.NewDeploymentRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
+	deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
 
 	return NewDeployCmd(
 		f.ui,
@@ -150,7 +150,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 }
 
 func (f *factory) createDeleteCmd() (Cmd, error) {
-	deploymentParser := bmdepl.NewParser(f.fs, f.logger)
+	deploymentParser := bmmanifest.NewParser(f.fs, f.logger)
 
 	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
 
@@ -318,12 +318,12 @@ func (f *factory) loadDeploymentConfig() error {
 	return nil
 }
 
-func (f *factory) loadDeploymentFactory() bmdeployer.Factory {
+func (f *factory) loadDeploymentFactory() bmdepl.Factory {
 	if f.deploymentFactory != nil {
 		return f.deploymentFactory
 	}
 
-	deployer := bmdeployer.NewDeployer(
+	deployer := bmdepl.NewDeployer(
 		f.loadStemcellManagerFactory(),
 		f.loadVMManagerFactory(),
 		f.loadSSHTunnelFactory(),
@@ -331,7 +331,7 @@ func (f *factory) loadDeploymentFactory() bmdeployer.Factory {
 		f.loadEventLogger(),
 		f.logger,
 	)
-	f.deploymentFactory = bmdeployer.NewFactory(deployer)
+	f.deploymentFactory = bmdepl.NewFactory(deployer)
 	return f.deploymentFactory
 }
 

@@ -1,12 +1,12 @@
 package cpi
 
 import (
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 )
 
 type DeploymentFactory interface {
-	NewDeployment(bmdepl.CPIDeploymentManifest) Deployment
+	NewDeployment(bmmanifest.CPIDeploymentManifest) Deployment
 }
 
 type deploymentFactory struct {
@@ -24,7 +24,7 @@ func NewDeploymentFactory(
 	}
 }
 
-func (f *deploymentFactory) NewDeployment(manifest bmdepl.CPIDeploymentManifest) Deployment {
+func (f *deploymentFactory) NewDeployment(manifest bmmanifest.CPIDeploymentManifest) Deployment {
 	return NewDeployment(
 		manifest,
 		f.registryServerManager,

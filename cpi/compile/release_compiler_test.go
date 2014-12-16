@@ -10,7 +10,7 @@ import (
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
@@ -51,7 +51,7 @@ var _ = Describe("ReleaseCompiler", func() {
 
 	Describe("Compile", func() {
 		var (
-			deployment          bmdepl.CPIDeploymentManifest
+			deployment          bmmanifest.CPIDeploymentManifest
 			deploymentProperies map[string]interface{}
 		)
 
@@ -60,12 +60,12 @@ var _ = Describe("ReleaseCompiler", func() {
 				"fake-property-key": "fake-property-value",
 			}
 
-			deployment = bmdepl.CPIDeploymentManifest{
+			deployment = bmmanifest.CPIDeploymentManifest{
 				Name: "fake-deployment-name",
 				RawProperties: map[interface{}]interface{}{
 					"fake-property-key": "fake-property-value",
 				},
-				Jobs: []bmdepl.Job{},
+				Jobs: []bmmanifest.Job{},
 			}
 			fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), "fake-deployment-name", deploymentProperies, nil)
 		})
