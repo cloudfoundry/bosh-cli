@@ -19,6 +19,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
@@ -138,13 +139,13 @@ cloud_provider:
 			return NewDeleteCmd(
 				ui, userConfig, fs, deploymentParser, mockCPIDeploymentFactory,
 				vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
-				mockAgentClientFactory, eventLogger, logger,
+				eventLogger, logger,
 			)
 		}
 
 		var expectNormalFlow = func() {
 			gomock.InOrder(
-				mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+				mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
 				mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
 				mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
@@ -176,6 +177,8 @@ cloud_provider:
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
 			userConfig = bmconfig.UserConfig{DeploymentFile: deploymentManifestPath}
+
+			mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient).AnyTimes()
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -331,7 +334,7 @@ cloud_provider:
 			Context("when agent is unresponsive", func() {
 				It("times out pinging agent, deletes vm, deletes disk, deletes stemcell", func() {
 					gomock.InOrder(
-						mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+						mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil),
 						mockAgentClient.EXPECT().Ping().Return("", errors.New("unresponsive agent")).AnyTimes(), // ping to make sure agent is responsive
 						mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid"),
@@ -530,14 +533,43 @@ cloud_provider:
 
 			It("stops the agent and deletes the VM", func() {
 				gomock.InOrder(
-					mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient),
+					mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil),
 					mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
 					mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
 					mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
 					mockAgentClient.EXPECT().UnmountDisk("fake-disk-cid"),
 					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
 				)
-				//TODO: expectNormalFlow()
+
+				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when VM has been deployed, then deleted manually (outside of bosh)", func() {
+			BeforeEach(func() {
+				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				vmRepo.UpdateCurrent("fake-vm-cid")
+			})
+
+			It("skips agent shutdown & deletes the VM (to ensure related resources are released by the CPI)", func() {
+				gomock.InOrder(
+					mockCloud.EXPECT().HasVM("fake-vm-cid").Return(false, nil),
+					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
+				)
+
+				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("ignores VMNotFound errors", func() {
+				gomock.InOrder(
+					mockCloud.EXPECT().HasVM("fake-vm-cid").Return(false, nil),
+					mockCloud.EXPECT().DeleteVM("fake-vm-cid").Return(bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
+						Type:    bmcloud.VMNotFoundError,
+						Message: "fake-vm-not-found-message",
+					})),
+				)
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())

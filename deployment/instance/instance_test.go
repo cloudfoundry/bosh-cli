@@ -10,6 +10,8 @@ import (
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
@@ -229,7 +231,49 @@ var _ = Describe("Instance", func() {
 						bmeventlog.Started,
 						bmeventlog.Failed,
 					},
-					FailMessage: "Deleting VM: fake-delete-error",
+					FailMessage: "fake-delete-error",
+				}))
+			})
+		})
+
+		Context("when VM does not exist (deleted manually)", func() {
+			BeforeEach(func() {
+				fakeVM.ExistsFound = false
+				fakeVM.DeleteErr = bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
+					Type:    bmcloud.VMNotFoundError,
+					Message: "fake-vm-not-found-message",
+				})
+			})
+
+			It("deletes existing vm", func() {
+				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeVM.DeleteCalled).To(Equal(1))
+			})
+
+			It("does not contact the agent", func() {
+				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeVM.WaitUntilReadyInputs).To(HaveLen(0))
+				Expect(fakeVM.StopCalled).To(Equal(0))
+				Expect(fakeVM.UnmountDiskInputs).To(HaveLen(0))
+			})
+
+			It("logs vm delete as skipped", func() {
+				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(Equal([]*fakebmlog.FakeStep{
+					{
+						Name: "Deleting VM 'fake-vm-cid'",
+						States: []bmeventlog.EventState{
+							bmeventlog.Started,
+							bmeventlog.Skipped,
+						},
+						SkipMessage: "CPI 'delete_vm' method responded with error: CmdError{\"type\":\"Bosh::Cloud::VMNotFound\",\"message\":\"fake-vm-not-found-message\",\"ok_to_retry\":false}",
+					},
 				}))
 			})
 		})

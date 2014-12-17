@@ -20,6 +20,7 @@ import (
 
 type VM interface {
 	CID() string
+	Exists() (bool, error)
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
 	Apply(bmstemcell.ApplySpec, bmmanifest.Manifest) error
 	Start() error
@@ -76,6 +77,14 @@ func NewVM(
 
 func (vm *vm) CID() string {
 	return vm.cid
+}
+
+func (vm *vm) Exists() (bool, error) {
+	exists, err := vm.cloud.HasVM(vm.cid)
+	if err != nil {
+		return false, bosherr.WrapErrorf(err, "Checking existance of VM '%s'", vm.cid)
+	}
+	return exists, nil
 }
 
 func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
@@ -204,12 +213,16 @@ func (vm *vm) MigrateDisk() error {
 }
 
 func (vm *vm) Delete() error {
-	err := vm.cloud.DeleteVM(vm.cid)
-	if err != nil {
-		return bosherr.WrapError(err, "Deleting vm in the cloud")
+	deleteErr := vm.cloud.DeleteVM(vm.cid)
+	if deleteErr != nil {
+		// allow VMNotFoundError for idempotency
+		cloudErr, ok := deleteErr.(bmcloud.Error)
+		if !ok || cloudErr.Type() != bmcloud.VMNotFoundError {
+			return bosherr.WrapError(deleteErr, "Deleting vm in the cloud")
+		}
 	}
 
-	err = vm.vmRepo.ClearCurrent()
+	err := vm.vmRepo.ClearCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting vm from vm repo")
 	}
@@ -219,5 +232,6 @@ func (vm *vm) Delete() error {
 		return bosherr.WrapError(err, "Clearing current stemcell from stemcell repo")
 	}
 
-	return nil
+	// returns bmcloud.Error only if it is a VMNotFoundError
+	return deleteErr
 }

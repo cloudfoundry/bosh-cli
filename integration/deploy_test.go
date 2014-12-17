@@ -297,7 +297,6 @@ cloud_provider:
 			gomock.InOrder(
 				mockCloud.EXPECT().CreateStemcell(cloudProperties, stemcellImagePath).Return(stemcellCID, nil),
 				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(vmCID, nil),
-				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				mockCloud.EXPECT().CreateDisk(diskSize, cloudProperties, vmCID).Return(diskCID, nil),
@@ -311,7 +310,7 @@ cloud_provider:
 			)
 		}
 
-		var expectDeployWithMigration = func() {
+		var expectDeployWithDiskMigration = func() {
 			oldVMCID := "fake-vm-cid-1"
 			newVMCID := "fake-vm-cid-2"
 			oldDiskCID := "fake-disk-cid-1"
@@ -320,7 +319,6 @@ cloud_provider:
 
 			gomock.InOrder(
 				// shutdown old vm
-				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
@@ -329,7 +327,6 @@ cloud_provider:
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
-				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -350,7 +347,40 @@ cloud_provider:
 			)
 		}
 
-		var expectDeployWithMigrationFailure = func() {
+		var expectDeployWithDiskMigrationNoVMShutdown = func() {
+			oldVMCID := "fake-vm-cid-1"
+			newVMCID := "fake-vm-cid-2"
+			oldDiskCID := "fake-disk-cid-1"
+			newDiskCID := "fake-disk-cid-2"
+			newDiskSize := 2048
+
+			gomock.InOrder(
+				// shutdown old vm (without talking to agent)
+				mockCloud.EXPECT().DeleteVM(oldVMCID),
+
+				// create new vm
+				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+
+				// attach both disks and migrate
+				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
+				mockCloud.EXPECT().CreateDisk(newDiskSize, cloudProperties, newVMCID).Return(newDiskCID, nil),
+				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockAgentClient.EXPECT().MountDisk(newDiskCID),
+				mockAgentClient.EXPECT().MigrateDisk(),
+				mockCloud.EXPECT().DetachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
+
+				// start jobs & wait for running
+				mockAgentClient.EXPECT().Stop(),
+				mockAgentClient.EXPECT().Apply(applySpec),
+				mockAgentClient.EXPECT().Start(),
+				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
+			)
+		}
+
+		var expectDeployWithDiskMigrationFailure = func() {
 			oldVMCID := "fake-vm-cid-1"
 			newVMCID := "fake-vm-cid-2"
 			oldDiskCID := "fake-disk-cid-1"
@@ -359,7 +389,6 @@ cloud_provider:
 
 			gomock.InOrder(
 				// shutdown old vm
-				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
@@ -368,7 +397,6 @@ cloud_provider:
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
-				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate (with error
@@ -381,7 +409,7 @@ cloud_provider:
 			)
 		}
 
-		var expectDeployWithMigrationRepair = func() {
+		var expectDeployWithDiskMigrationRepair = func() {
 			oldVMCID := "fake-vm-cid-2"
 			newVMCID := "fake-vm-cid-3"
 			oldDiskCID := "fake-disk-cid-1"
@@ -390,7 +418,6 @@ cloud_provider:
 
 			gomock.InOrder(
 				// shutdown old vm
-				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
@@ -399,7 +426,6 @@ cloud_provider:
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
-				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -455,7 +481,6 @@ cloud_provider:
 					func(_, _, _, _ interface{}) { expectRegistryToWork() },
 				).Return(vmCID, nil),
 
-				mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				mockCloud.EXPECT().CreateDisk(diskSize, cloudProperties, vmCID).Do(
@@ -532,6 +557,8 @@ cloud_provider:
 
 			userConfig = bmconfig.UserConfig{DeploymentFile: deploymentManifestPath}
 
+			mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient).AnyTimes()
+
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
 			allowCPIToBeInstalled()
@@ -570,6 +597,9 @@ cloud_provider:
 		})
 
 		Context("when the deployment has been deployed", func() {
+			var (
+				expectHasVM1 *gomock.Call
+			)
 			BeforeEach(func() {
 				expectDeployFlow()
 
@@ -578,6 +608,9 @@ cloud_provider:
 
 				// reset output buffer
 				ui.Said = []string{}
+
+				// after cloud.CreateVM, cloud.HasVM should return true
+				expectHasVM1 = mockCloud.EXPECT().HasVM("fake-vm-cid-1").Return(true, nil)
 			})
 
 			Context("when persistent disk size is increased", func() {
@@ -586,30 +619,46 @@ cloud_provider:
 				})
 
 				It("migrates the disk content", func() {
-					expectDeployWithMigration()
+					expectDeployWithDiskMigration()
 
 					err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
 					Expect(err).ToNot(HaveOccurred())
 				})
 
+				Context("after VM has been manually deleted", func() {
+					BeforeEach(func() {
+						// after manual deletion (in infrastructure), cloud.HasVM should return false
+						expectHasVM1.Return(false, nil)
+					})
+
+					It("migrates the disk content, but does not shutdown the old VM", func() {
+						expectDeployWithDiskMigrationNoVMShutdown()
+
+						err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+						Expect(err).ToNot(HaveOccurred())
+					})
+				})
+
 				Context("after migration has failed", func() {
 					BeforeEach(func() {
-						expectDeployWithMigrationFailure()
+						expectDeployWithDiskMigrationFailure()
 
 						err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migration-error"))
 
-						// reset output buffer
-						ui.Said = []string{}
-
 						diskRecords, err := diskRepo.All()
 						Expect(err).ToNot(HaveOccurred())
 						Expect(diskRecords).To(HaveLen(2)) // current + unused
+
+						// reset output buffer
+						ui.Said = []string{}
+
+						mockCloud.EXPECT().HasVM("fake-vm-cid-2").Return(true, nil)
 					})
 
 					It("deletes unused disks", func() {
-						expectDeployWithMigrationRepair()
+						expectDeployWithDiskMigrationRepair()
 
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
 

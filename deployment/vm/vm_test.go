@@ -14,6 +14,7 @@ import (
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
@@ -139,6 +140,32 @@ var _ = Describe("VM", func() {
 			fs,
 			logger,
 		)
+	})
+
+	Describe("Exists", func() {
+		It("returns true when the vm exists", func() {
+			fakeCloud.HasVMFound = true
+
+			exists, err := vm.Exists()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exists).To(BeTrue())
+		})
+
+		It("returns false when the vm does not exist", func() {
+			fakeCloud.HasVMFound = false
+
+			exists, err := vm.Exists()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exists).To(BeFalse())
+		})
+
+		It("returns error when checking fails", func() {
+			fakeCloud.HasVMErr = errors.New("fake-has-vm-error")
+
+			_, err := vm.Exists()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-has-vm-error"))
+		})
 	})
 
 	Describe("Apply", func() {
@@ -444,6 +471,40 @@ var _ = Describe("VM", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-delete-vm-error"))
+			})
+		})
+
+		Context("when deleting vm in the cloud fails with VMNotFoundError", func() {
+			var deleteErr = bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
+				Type:    bmcloud.VMNotFoundError,
+				Message: "fake-vm-not-found-message",
+			})
+
+			BeforeEach(func() {
+				fakeCloud.DeleteVMErr = deleteErr
+			})
+
+			It("deletes vm in the cloud", func() {
+				err := vm.Delete()
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(Equal(deleteErr))
+				Expect(fakeCloud.DeleteVMInput).To(Equal(fakebmcloud.DeleteVMInput{
+					VMCID: "fake-vm-cid",
+				}))
+			})
+
+			It("deletes VM in the vm repo", func() {
+				err := vm.Delete()
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(Equal(deleteErr))
+				Expect(fakeVMRepo.ClearCurrentCalled).To(BeTrue())
+			})
+
+			It("clears current stemcell in the stemcell repo", func() {
+				err := vm.Delete()
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(Equal(deleteErr))
+				Expect(fakeStemcellRepo.ClearCurrentCalled).To(BeTrue())
 			})
 		})
 	})

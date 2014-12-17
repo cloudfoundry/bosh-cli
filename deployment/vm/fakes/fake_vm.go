@@ -11,6 +11,10 @@ import (
 type FakeVM struct {
 	cid string
 
+	ExistsCalled int
+	ExistsFound  bool
+	ExistsErr    error
+
 	ApplyInputs []ApplyInput
 	ApplyErr    error
 
@@ -74,6 +78,7 @@ type UnmountDiskInput struct {
 
 func NewFakeVM(cid string) *FakeVM {
 	return &FakeVM{
+		ExistsFound:           true,
 		ApplyInputs:           []ApplyInput{},
 		WaitUntilReadyInputs:  []WaitUntilReadyInput{},
 		WaitToBeRunningInputs: []WaitInput{},
@@ -88,6 +93,11 @@ func NewFakeVM(cid string) *FakeVM {
 
 func (vm *FakeVM) CID() string {
 	return vm.cid
+}
+
+func (vm *FakeVM) Exists() (bool, error) {
+	vm.ExistsCalled++
+	return vm.ExistsFound, vm.ExistsErr
 }
 
 func (vm *FakeVM) WaitUntilReady(timeout time.Duration, delay time.Duration) error {

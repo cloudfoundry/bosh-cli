@@ -152,8 +152,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 func (f *factory) createDeleteCmd() (Cmd, error) {
 	deploymentParser := bmmanifest.NewParser(f.fs, f.logger)
 
-	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
-
 	return NewDeleteCmd(
 		f.ui,
 		f.userConfig,
@@ -164,7 +162,6 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.loadInstanceManagerFactory(),
 		f.loadDiskManagerFactory(),
 		f.loadStemcellManagerFactory(),
-		agentClientFactory,
 		f.loadEventLogger(),
 		f.logger,
 	), nil

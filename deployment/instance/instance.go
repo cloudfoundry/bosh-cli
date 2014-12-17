@@ -7,6 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -112,33 +113,53 @@ func (i *instance) Delete(
 	pingDelay time.Duration,
 	eventLoggerStage bmeventlog.Stage,
 ) error {
+	vmExists, err := i.vm.Exists()
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Checking existance of vm for instance '%s/%d'", i.jobName, i.id)
+	}
+
+	if vmExists {
+		if err = i.shutdown(pingTimeout, pingDelay, eventLoggerStage); err != nil {
+			return err
+		}
+	}
+
+	// non-existent VMs still need to be 'deleted' to clean up related resources owned by the CPI
+	stepName := fmt.Sprintf("Deleting VM '%s'", i.vm.CID())
+	return eventLoggerStage.PerformStep(stepName, func() error {
+		err := i.vm.Delete()
+		cloudErr, ok := err.(bmcloud.Error)
+		if ok && cloudErr.Type() == bmcloud.VMNotFoundError {
+			return bmeventlog.NewStepSkippedError(cloudErr.Error())
+		}
+		return err
+	})
+}
+
+func (i *instance) shutdown(
+	pingTimeout time.Duration,
+	pingDelay time.Duration,
+	eventLoggerStage bmeventlog.Stage,
+) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", i.vm.CID())
 	waitingForAgentErr := eventLoggerStage.PerformStep(stepName, func() error {
-		//TODO: do we need to start an ssh tunnel so that the vm can read from the registry?
 		if err := i.vm.WaitUntilReady(pingTimeout, pingDelay); err != nil {
 			return bosherr.WrapError(err, "Agent unreachable")
 		}
 		return nil
 	})
-	// if agent responds, delete vm, otherwise continue
 	if waitingForAgentErr != nil {
 		i.logger.Warn(i.logTag, "Gave up waiting for agent: %s", waitingForAgentErr.Error())
-	} else {
-		if err := i.stopJobs(eventLoggerStage); err != nil {
-			return err
-		}
-		if err := i.unmountDisks(eventLoggerStage); err != nil {
-			return err
-		}
+		return nil
 	}
 
-	stepName = fmt.Sprintf("Deleting VM '%s'", i.vm.CID())
-	return eventLoggerStage.PerformStep(stepName, func() error {
-		if err := i.vm.Delete(); err != nil {
-			return bosherr.WrapError(err, "Deleting VM")
-		}
-		return nil
-	})
+	if err := i.stopJobs(eventLoggerStage); err != nil {
+		return err
+	}
+	if err := i.unmountDisks(eventLoggerStage); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (i *instance) startJobs(

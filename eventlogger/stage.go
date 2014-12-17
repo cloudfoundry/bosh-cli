@@ -1,8 +1,17 @@
 package eventlogger
 
-type stage struct {
-	name        string
-	eventLogger EventLogger
+type StepSkippedError struct {
+	msg string
+}
+
+func NewStepSkippedError(msg string) StepSkippedError {
+	return StepSkippedError{
+		msg: msg,
+	}
+}
+
+func (e StepSkippedError) Error() string {
+	return e.msg
 }
 
 type Stage interface {
@@ -11,6 +20,11 @@ type Stage interface {
 	Name() string
 	Start()
 	Finish()
+}
+
+type stage struct {
+	name        string
+	eventLogger EventLogger
 }
 
 func NewStage(name string, eventLogger EventLogger) Stage {
@@ -35,6 +49,10 @@ func (s *stage) PerformStep(stepName string, stepFunc func() error) error {
 	step.Start()
 	err := stepFunc()
 	if err != nil {
+		if skippedErr, ok := err.(StepSkippedError); ok {
+			step.Skip(skippedErr.Error())
+			return nil
+		}
 		step.Fail(err.Error())
 		return err
 	}

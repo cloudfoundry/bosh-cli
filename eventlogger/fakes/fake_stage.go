@@ -34,6 +34,10 @@ func (s *FakeStage) PerformStep(stepName string, stepFunc func() error) error {
 	step.Start()
 	err := stepFunc()
 	if err != nil {
+		if skippedErr, ok := err.(bmeventlog.StepSkippedError); ok {
+			step.Skip(skippedErr.Error())
+			return nil
+		}
 		step.Fail(err.Error())
 		return err
 	}

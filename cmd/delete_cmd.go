@@ -11,7 +11,6 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -33,7 +32,6 @@ type deleteCmd struct {
 	instanceManagerFactory bminstance.ManagerFactory
 	diskManagerFactory     bmdisk.ManagerFactory
 	stemcellManagerFactory bmstemcell.ManagerFactory
-	agentClientFactory     bmagentclient.Factory
 	eventLogger            bmeventlog.EventLogger
 	logger                 boshlog.Logger
 	logTag                 string
@@ -48,7 +46,6 @@ func NewDeleteCmd(ui bmui.UI,
 	instanceManagerFactory bminstance.ManagerFactory,
 	diskManagerFactory bmdisk.ManagerFactory,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
-	agentClientFactory bmagentclient.Factory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger) *deleteCmd {
 	return &deleteCmd{
@@ -61,7 +58,6 @@ func NewDeleteCmd(ui bmui.UI,
 		instanceManagerFactory: instanceManagerFactory,
 		diskManagerFactory:     diskManagerFactory,
 		stemcellManagerFactory: stemcellManagerFactory,
-		agentClientFactory:     agentClientFactory,
 		eventLogger:            eventLogger,
 		logger:                 logger,
 		logTag:                 "deleteCmd",
