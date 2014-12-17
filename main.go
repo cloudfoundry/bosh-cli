@@ -6,6 +6,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshlogfile "github.com/cloudfoundry/bosh-agent/logger/file"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
@@ -48,16 +49,36 @@ func main() {
 }
 
 func newLogger() boshlog.Logger {
-	logLevelString := os.Getenv("BOSH_MICRO_LOG")
-	var logger boshlog.Logger
+	logLevelString := os.Getenv("BOSH_MICRO_LOG_LEVEL")
+	level := boshlog.LevelError
 	if logLevelString != "" {
-		logLevel, err := boshlog.Levelify(logLevelString)
+		var err error
+		level, err = boshlog.Levelify(logLevelString)
 		if err != nil {
-			fail(bosherr.WrapError(err, "Invalid BOSH_MICRO_LOG value"), logger)
+			err = bosherr.WrapError(err, "Invalid BOSH_MICRO_LOG_LEVEL value")
+			logger := boshlog.NewLogger(boshlog.LevelError)
+			fail(err, logger)
 		}
-		logger = boshlog.NewLogger(logLevel)
-	} else {
-		logger = boshlog.NewLogger(boshlog.LevelError)
+	}
+
+	logPath := os.Getenv("BOSH_MICRO_LOG_PATH")
+	if logPath != "" {
+		return newFileLogger(logPath, level)
+	}
+
+	return boshlog.NewLogger(level)
+}
+
+func newFileLogger(logPath string, level boshlog.LogLevel) boshlog.Logger {
+	// Log file logger errors to the STDERR logger
+	logger := boshlog.NewLogger(boshlog.LevelError)
+	fileSystem := boshsys.NewOsFileSystem(logger)
+
+	// log file will be closed by process exit
+	// log file readable by all
+	logger, _, err := boshlogfile.New(level, logPath, boshlogfile.DefaultLogFileMode, fileSystem)
+	if err != nil {
+		fail(err, logger)
 	}
 	return logger
 }
@@ -76,6 +97,6 @@ func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, logger
 }
 
 func fail(err error, logger boshlog.Logger) {
-	logger.Error(mainLogTag, "BOSH Micro CLI failed with: %s", err.Error())
+	logger.Error(mainLogTag, "BOSH Micro CLI failed: %s", err.Error())
 	os.Exit(1)
 }

@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"fmt"
-	"os"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -47,7 +46,7 @@ func NewMicroSSH(
 	}
 }
 
-func (s *microSSH) setupSSH() (*os.File, error) {
+func (s *microSSH) setupSSH() (boshsys.File, error) {
 	sshConfigFile, err := s.fileSystem.TempFile("ssh-config")
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating temp ssh-config file")

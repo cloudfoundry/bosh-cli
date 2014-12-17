@@ -3,13 +3,14 @@ package applyspec_test
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -39,7 +40,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		jobProperties          map[string]interface{}
 		fs                     *fakesys.FakeFileSystem
 		logger                 boshlog.Logger
-		tempFile               *os.File
+		tempFile               boshsys.File
 		compileDir             string
 		extractDir             string
 	)

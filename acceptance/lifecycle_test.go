@@ -23,6 +23,7 @@ var _ = Describe("bosh-micro", func() {
 		fileSystem   boshsys.FileSystem
 		sshCmdRunner CmdRunner
 		cmdEnv       map[string]string
+		quietCmdEnv  map[string]string
 		testEnv      Environment
 		config       *Config
 
@@ -32,8 +33,32 @@ var _ = Describe("bosh-micro", func() {
 		microIP       = "10.244.0.42"
 	)
 
+	var readLogFile = func(logPath string) (stdout string) {
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "cat", logPath)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+		return stdout
+	}
+
+	var deleteLogFile = func(logPath string) {
+		_, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "rm", "-f", logPath)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+	}
+
+	var flushLog = func(logPath string) {
+		//TODO: stream command stdout/stderr to GinkgoWriter
+		logString := readLogFile(logPath)
+		_, err := GinkgoWriter.Write([]byte(logString))
+		Expect(err).ToNot(HaveOccurred())
+
+		// only delete after successfully writing to GinkgoWriter
+		deleteLogFile(logPath)
+	}
+
 	BeforeSuite(func() {
-		logger = boshlog.NewLogger(boshlog.LevelDebug)
+		// writing to GinkgoWriter prints on test failure or when using verbose mode (-v)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
 		fileSystem = boshsys.NewOsFileSystem(logger)
 
 		var err error
@@ -58,9 +83,19 @@ var _ = Describe("bosh-micro", func() {
 			logger,
 		)
 		cmdEnv = map[string]string{
-			"TMPDIR":         fmt.Sprintf("/home/%s", config.VMUsername),
-			"BOSH_MICRO_LOG": "DEBUG",
+			"TMPDIR":               testEnv.Home(),
+			"BOSH_MICRO_LOG_LEVEL": "DEBUG",
+			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-micro-cli.log"),
 		}
+		quietCmdEnv = map[string]string{
+			"TMPDIR":               testEnv.Home(),
+			"BOSH_MICRO_LOG_LEVEL": "ERROR",
+			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-micro-cli-cleanup.log"),
+		}
+
+		// clean up from previous failed tests
+		deleteLogFile(cmdEnv["BOSH_MICRO_LOG_PATH"])
+		deleteLogFile(quietCmdEnv["BOSH_MICRO_LOG_PATH"])
 
 		microSSH = NewMicroSSH(
 			config.VMUsername,
@@ -115,7 +150,16 @@ var _ = Describe("bosh-micro", func() {
 	}
 
 	AfterEach(func() {
-		deleteDeployment()
+		flushLog(cmdEnv["BOSH_MICRO_LOG_PATH"])
+
+		// quietly delete the deployment
+		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpiRelease"))
+		if exitCode != 0 || err != nil {
+			// only flush the delete log if the delete failed
+			flushLog(quietCmdEnv["BOSH_MICRO_LOG_PATH"])
+		}
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
 	})
 
 	// parseUserConfig reads & parses the remote bosh-micro user config
@@ -128,7 +172,9 @@ var _ = Describe("bosh-micro", func() {
 
 		tempUserConfigFile, err := fileSystem.TempFile("bosh-micro-user-config")
 		Expect(err).ToNot(HaveOccurred())
-		_, err = tempUserConfigFile.WriteString(stdout)
+		err = tempUserConfigFile.Close()
+		Expect(err).ToNot(HaveOccurred())
+		err = fileSystem.WriteFileString(tempUserConfigFile.Name(), stdout)
 		Expect(err).ToNot(HaveOccurred())
 		defer fileSystem.RemoveAll(tempUserConfigFile.Name())
 

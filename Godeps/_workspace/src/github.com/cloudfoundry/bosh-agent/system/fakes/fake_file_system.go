@@ -59,7 +59,7 @@ type FakeFileSystem struct {
 	ReadLinkError error
 
 	TempFileError  error
-	ReturnTempFile *os.File
+	ReturnTempFile boshsys.File
 
 	TempDirDir   string
 	TempDirError error
@@ -118,6 +118,10 @@ type FakeFile struct {
 
 func NewFakeFile(fs *FakeFileSystem) *FakeFile {
 	return &FakeFile{fs: fs}
+}
+
+func (f *FakeFile) Name() string {
+	return f.path
 }
 
 func (f *FakeFile) Write(contents []byte) (int, error) {
@@ -209,7 +213,7 @@ func (fs *FakeFileSystem) RegisterOpenFile(path string, file *FakeFile) {
 	fs.openFiles[path] = file
 }
 
-func (fs *FakeFileSystem) OpenFile(path string, flag int, perm os.FileMode) (boshsys.ReadWriteCloseStater, error) {
+func (fs *FakeFileSystem) OpenFile(path string, flag int, perm os.FileMode) (boshsys.File, error) {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
@@ -414,7 +418,7 @@ func (fs *FakeFileSystem) CopyFile(srcPath, dstPath string) error {
 	return nil
 }
 
-func (fs *FakeFileSystem) TempFile(prefix string) (file *os.File, err error) {
+func (fs *FakeFileSystem) TempFile(prefix string) (file boshsys.File, err error) {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 

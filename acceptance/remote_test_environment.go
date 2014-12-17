@@ -9,6 +9,7 @@ import (
 )
 
 type Environment interface {
+	Home() string
 	Path(string) string
 	Copy(string, string) error
 	WriteContent(string, []byte) error
@@ -40,8 +41,12 @@ func NewRemoteTestEnvironment(
 	}
 }
 
+func (e remoteTestEnvironment) Home() string {
+	return filepath.Join("/", "home", e.vmUsername)
+}
+
 func (e remoteTestEnvironment) Path(name string) string {
-	return filepath.Join("/", "home", e.vmUsername, name)
+	return filepath.Join(e.Home(), name)
 }
 
 func (e remoteTestEnvironment) Copy(destName, srcPath string) error {

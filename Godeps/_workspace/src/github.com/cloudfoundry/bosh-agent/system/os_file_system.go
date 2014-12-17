@@ -75,7 +75,7 @@ func (fs osFileSystem) Chmod(path string, perm os.FileMode) (err error) {
 	return os.Chmod(path, perm)
 }
 
-func (fs osFileSystem) OpenFile(path string, flag int, perm os.FileMode) (ReadWriteCloseStater, error) {
+func (fs osFileSystem) OpenFile(path string, flag int, perm os.FileMode) (File, error) {
 	return os.OpenFile(path, flag, perm)
 }
 
@@ -243,7 +243,7 @@ func (fs osFileSystem) CopyFile(srcPath, dstPath string) error {
 	return nil
 }
 
-func (fs osFileSystem) TempFile(prefix string) (file *os.File, err error) {
+func (fs osFileSystem) TempFile(prefix string) (file File, err error) {
 	fs.logger.Debug(fs.logTag, "Creating temp file with prefix %s", prefix)
 	return ioutil.TempFile("", prefix)
 }
