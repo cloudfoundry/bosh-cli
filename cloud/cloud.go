@@ -9,6 +9,7 @@ import (
 type Cloud interface {
 	CreateStemcell(cloudProperties map[string]interface{}, imagePath string) (stemcellCID string, err error)
 	DeleteStemcell(stemcellCID string) error
+	HasVM(vmCID string) (bool, error)
 	CreateVM(
 		stemcellCID string,
 		cloudProperties map[string]interface{},
@@ -46,9 +47,14 @@ func NewCloud(
 func (c cloud) CreateStemcell(cloudProperties map[string]interface{}, imagePath string) (string, error) {
 	c.logger.Debug(c.logTag, "Creating stemcell")
 
-	cmdOutput, err := c.cpiCmdRunner.Run("create_stemcell", imagePath, cloudProperties)
+	method := "create_stemcell"
+	cmdOutput, err := c.cpiCmdRunner.Run(method, imagePath, cloudProperties)
 	if err != nil {
 		return "", err
+	}
+
+	if cmdOutput.Error != nil {
+		return "", NewCPIError(method, *cmdOutput.Error)
 	}
 
 	// for create_stemcell, the result is a string of the stemcell cid
@@ -62,12 +68,35 @@ func (c cloud) CreateStemcell(cloudProperties map[string]interface{}, imagePath 
 func (c cloud) DeleteStemcell(stemcellCID string) error {
 	c.logger.Debug(c.logTag, "Deleting stemcell '%s'", stemcellCID)
 
-	_, err := c.cpiCmdRunner.Run("delete_stemcell", stemcellCID)
+	method := "delete_stemcell"
+	cmdOutput, err := c.cpiCmdRunner.Run(method, stemcellCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_stemcell' method")
 	}
 
+	if cmdOutput.Error != nil {
+		return NewCPIError(method, *cmdOutput.Error)
+	}
+
 	return nil
+}
+
+func (c cloud) HasVM(vmCID string) (bool, error) {
+	method := "has_vm"
+	cmdOutput, err := c.cpiCmdRunner.Run(method, vmCID)
+	if err != nil {
+		return false, err
+	}
+
+	if cmdOutput.Error != nil {
+		return false, NewCPIError(method, *cmdOutput.Error)
+	}
+
+	found, ok := cmdOutput.Result.(bool)
+	if !ok {
+		return false, bosherr.Errorf("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
+	}
+	return found, nil
 }
 
 func (c cloud) CreateVM(
@@ -76,9 +105,10 @@ func (c cloud) CreateVM(
 	networksSpec map[string]interface{},
 	env map[string]interface{},
 ) (string, error) {
+	method := "create_vm"
 	diskLocality := []interface{}{} // not used with bosh-micro-cli
 	cmdOutput, err := c.cpiCmdRunner.Run(
-		"create_vm",
+		method,
 		c.deploymentUUID,
 		stemcellCID,
 		cloudProperties,
@@ -88,6 +118,10 @@ func (c cloud) CreateVM(
 	)
 	if err != nil {
 		return "", err
+	}
+
+	if cmdOutput.Error != nil {
+		return "", NewCPIError(method, *cmdOutput.Error)
 	}
 
 	// for create_vm, the result is a string of the vm cid
@@ -105,14 +139,19 @@ func (c cloud) CreateDisk(size int, cloudProperties map[string]interface{}, vmCI
 		cloudProperties,
 		vmCID,
 	)
+	method := "create_disk"
 	cmdOutput, err := c.cpiCmdRunner.Run(
-		"create_disk",
+		method,
 		size,
 		cloudProperties,
 		vmCID,
 	)
 	if err != nil {
 		return "", err
+	}
+
+	if cmdOutput.Error != nil {
+		return "", NewCPIError(method, *cmdOutput.Error)
 	}
 
 	cidString, ok := cmdOutput.Result.(string)
@@ -124,8 +163,9 @@ func (c cloud) CreateDisk(size int, cloudProperties map[string]interface{}, vmCI
 
 func (c cloud) AttachDisk(vmCID, diskCID string) error {
 	c.logger.Debug(c.logTag, "Attaching disk '%s' to vm '%s'", diskCID, vmCID)
-	_, err := c.cpiCmdRunner.Run(
-		"attach_disk",
+	method := "attach_disk"
+	cmdOutput, err := c.cpiCmdRunner.Run(
+		method,
 		vmCID,
 		diskCID,
 	)
@@ -133,13 +173,18 @@ func (c cloud) AttachDisk(vmCID, diskCID string) error {
 		return bosherr.WrapError(err, "Calling CPI 'attach_disk' method")
 	}
 
+	if cmdOutput.Error != nil {
+		return NewCPIError(method, *cmdOutput.Error)
+	}
+
 	return nil
 }
 
 func (c cloud) DetachDisk(vmCID, diskCID string) error {
 	c.logger.Debug(c.logTag, "Detaching disk '%s' from vm '%s'", diskCID, vmCID)
-	_, err := c.cpiCmdRunner.Run(
-		"detach_disk",
+	method := "detach_disk"
+	cmdOutput, err := c.cpiCmdRunner.Run(
+		method,
 		vmCID,
 		diskCID,
 	)
@@ -147,17 +192,23 @@ func (c cloud) DetachDisk(vmCID, diskCID string) error {
 		return bosherr.WrapError(err, "Calling CPI 'detach_disk' method")
 	}
 
+	if cmdOutput.Error != nil {
+		return NewCPIError(method, *cmdOutput.Error)
+	}
+
 	return nil
 }
 
 func (c cloud) DeleteVM(vmCID string) error {
 	c.logger.Debug(c.logTag, "Deleting vm '%s'", vmCID)
-	_, err := c.cpiCmdRunner.Run(
-		"delete_vm",
-		vmCID,
-	)
+	method := "delete_vm"
+	cmdOutput, err := c.cpiCmdRunner.Run(method, vmCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_vm' method")
+	}
+
+	if cmdOutput.Error != nil {
+		return NewCPIError(method, *cmdOutput.Error)
 	}
 
 	return nil
@@ -165,12 +216,14 @@ func (c cloud) DeleteVM(vmCID string) error {
 
 func (c cloud) DeleteDisk(diskCID string) error {
 	c.logger.Debug(c.logTag, "Deleting disk '%s'", diskCID)
-	_, err := c.cpiCmdRunner.Run(
-		"delete_disk",
-		diskCID,
-	)
+	method := "delete_disk"
+	cmdOutput, err := c.cpiCmdRunner.Run(method, diskCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_disk' method")
+	}
+
+	if cmdOutput.Error != nil {
+		return NewCPIError(method, *cmdOutput.Error)
 	}
 
 	return nil

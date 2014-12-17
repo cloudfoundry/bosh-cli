@@ -5,6 +5,10 @@ type FakeCloud struct {
 	CreateStemcellCID    string
 	CreateStemcellErr    error
 
+	HasVMInput HasVMInput
+	HasVMFound bool
+	HasVMErr   error
+
 	CreateVMInput CreateVMInput
 	CreateVMCID   string
 	CreateVMErr   error
@@ -32,6 +36,10 @@ type FakeCloud struct {
 type CreateStemcellInput struct {
 	CloudProperties map[string]interface{}
 	ImagePath       string
+}
+
+type HasVMInput struct {
+	VMCID string
 }
 
 type CreateVMInput struct {
@@ -90,6 +98,13 @@ func (c *FakeCloud) DeleteStemcell(stemcellCID string) error {
 		StemcellCID: stemcellCID,
 	})
 	return c.DeleteStemcellErr
+}
+
+func (c *FakeCloud) HasVM(vmCID string) (bool, error) {
+	c.HasVMInput = HasVMInput{
+		VMCID: vmCID,
+	}
+	return c.HasVMFound, c.HasVMErr
 }
 
 func (c *FakeCloud) CreateVM(
