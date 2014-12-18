@@ -68,51 +68,51 @@ var _ = Describe("DeploymentCmd", func() {
 
 				It("says 'deployment set..' to the UI", func() {
 					err := command.Run([]string{manifestPath})
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 					Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Deployment set to '%s'", manifestPath))))
 				})
 
 				It("saves the deployment manifest to the user config", func() {
 					err := command.Run([]string{manifestPath})
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					userConfigContents, err := fakeFs.ReadFile("/fake-user-config")
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 					userConfig := bmconfig.UserConfig{}
 					err = json.Unmarshal(userConfigContents, &userConfig)
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentFile: manifestPath}))
 				})
 
 				It("saves absolute path to deployment manifest in user config", func() {
 					wd, err := os.Getwd()
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 					manifestAbsolutePath := path.Join(wd, "fake-manifest-file")
 
 					err = fakeFs.WriteFileString(manifestAbsolutePath, "")
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					err = command.Run([]string{"fake-manifest-file"})
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					userConfigContents, err := fakeFs.ReadFile("/fake-user-config")
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 					userConfig := bmconfig.UserConfig{}
 					err = json.Unmarshal(userConfigContents, &userConfig)
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentFile: manifestAbsolutePath}))
 				})
 
 				It("creates a deployment config", func() {
 					err := command.Run([]string{manifestPath})
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					userConfig := bmconfig.UserConfig{DeploymentFile: manifestPath}
 					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(userConfig.DeploymentConfigFilePath(), fakeFs, logger)
 					deploymentConfig, err := deploymentConfigService.Load()
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{UUID: "abc123"}))
 				})
@@ -127,10 +127,10 @@ var _ = Describe("DeploymentCmd", func() {
 					deploymentConfigService.Save(bmconfig.DeploymentFile{UUID: "def456"})
 
 					err := command.Run([]string{manifestPath})
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					deploymentConfig, err := deploymentConfigService.Load()
-					Expect(err).NotTo(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 
 					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{UUID: "def456"}))
 				})
@@ -160,19 +160,35 @@ var _ = Describe("DeploymentCmd", func() {
 					)
 				})
 
-				It("says `Deployment set to '<manifest_path>'`", func() {
-					err := command.Run([]string{})
-					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeUI.Said).To(ContainElement("Current deployment is '/somepath'"))
+				Context("when the manifest file exists", func() {
+					BeforeEach(func() {
+						err := fakeFs.WriteFileString("/somepath", "fake-manifest-contents")
+						Expect(err).ToNot(HaveOccurred())
+					})
+
+					It("prints the manifest path to the ui", func() {
+						err := command.Run([]string{})
+						Expect(err).ToNot(HaveOccurred())
+						Expect(fakeUI.Said).To(ContainElement("Current deployment manifest is '/somepath'"))
+					})
+				})
+
+				Context("when the manifest file does not exist", func() {
+					It("prints to the ui & returns an error", func() {
+						err := command.Run([]string{})
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Running deployment cmd: Deployment manifest does not exist at '/somepath'"))
+						Expect(fakeUI.Errors).To(ContainElement("Deployment manifest does not exist"))
+					})
 				})
 			})
 
-			Context("no deployment manifest is present in the config", func() {
-				It("says `No deployment set`", func() {
+			Context("when no deployment manifest is present in the config", func() {
+				It("prints to the ui & returns an error", func() {
 					err := command.Run([]string{})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("No deployment set"))
-					Expect(fakeUI.Errors).To(ContainElement("No deployment set"))
+					Expect(err.Error()).To(ContainSubstring("Running deployment cmd: No deployment manifest set"))
+					Expect(fakeUI.Errors).To(ContainElement("No deployment manifest set"))
 				})
 			})
 		})

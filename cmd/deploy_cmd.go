@@ -72,6 +72,11 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
+	deploymentManifestPath, err := getDeploymentManifest(c.userConfig, c.ui, c.fs)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Running deploy cmd")
+	}
+
 	validationStage := c.eventLogger.NewStage("validating")
 	validationStage.Start()
 
@@ -81,20 +86,9 @@ func (c *deployCmd) Run(args []string) error {
 	)
 
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		if c.userConfig.DeploymentFile == "" {
-			return bosherr.Error("No deployment set")
-		}
-
-		deploymentFilePath := c.userConfig.DeploymentFile
-
-		c.logger.Info(c.logTag, "Checking for deployment '%s'", deploymentFilePath)
-		if !c.fs.FileExists(deploymentFilePath) {
-			return bosherr.Errorf("Verifying that the deployment '%s' exists", deploymentFilePath)
-		}
-
-		boshDeploymentManifest, cpiDeploymentManifest, err := c.deploymentParser.Parse(deploymentFilePath)
+		boshDeploymentManifest, cpiDeploymentManifest, err := c.deploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentFilePath)
+			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
 		}
 
 		err = c.boshDeploymentValidator.Validate(boshDeploymentManifest)

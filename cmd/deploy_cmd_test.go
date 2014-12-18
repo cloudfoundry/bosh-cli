@@ -520,7 +520,7 @@ version: fake-version
 					})
 				})
 
-				Context("when the deployment manifest is missing", func() {
+				Context("when the deployment manifest file does not exist", func() {
 					BeforeEach(func() {
 						fakeFs.RemoveAll(deploymentManifestPath)
 					})
@@ -528,16 +528,8 @@ version: fake-version
 					It("returns err", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Verifying that the deployment '/some/deployment/file' exists"))
-
-						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-							Name: "Validating deployment manifest",
-							States: []bmeventlog.EventState{
-								bmeventlog.Started,
-								bmeventlog.Failed,
-							},
-							FailMessage: "Verifying that the deployment '/some/deployment/file' exists",
-						}))
+						Expect(err.Error()).To(ContainSubstring("Running deploy cmd: Deployment manifest does not exist at '/some/deployment/file'"))
+						Expect(fakeUI.Errors).To(ContainElement("Deployment manifest does not exist"))
 					})
 				})
 			})
@@ -565,16 +557,8 @@ version: fake-version
 				It("returns err", func() {
 					err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("No deployment set"))
-
-					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-						Name: "Validating deployment manifest",
-						States: []bmeventlog.EventState{
-							bmeventlog.Started,
-							bmeventlog.Failed,
-						},
-						FailMessage: "No deployment set",
-					}))
+					Expect(err.Error()).To(Equal("Running deploy cmd: No deployment manifest set"))
+					Expect(fakeUI.Errors).To(ContainElement("No deployment manifest set"))
 				})
 			})
 		})

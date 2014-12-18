@@ -193,7 +193,8 @@ cloud_provider:
 			It("returns an error", func() {
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("No deployment set"))
+				Expect(err.Error()).To(Equal("Running delete cmd: No deployment manifest set"))
+				Expect(ui.Errors).To(ContainElement("No deployment manifest set"))
 			})
 		})
 
@@ -208,6 +209,8 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Said).To(Equal([]string{
+					"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+					"",
 					"Started validating",
 					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 					"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -216,7 +219,6 @@ cloud_provider:
 					// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
 					"Started deleting deployment",
 					"Done deleting deployment",
-					"",
 				}))
 			})
 		})
@@ -289,6 +291,8 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Said).To(Equal([]string{
+					"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+					"",
 					"Started validating",
 					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 					"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -303,7 +307,6 @@ cloud_provider:
 					"Started deleting deployment > Deleting disk 'fake-disk-cid'...", " done. (00:00:00)",
 					"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
 					"Done deleting deployment",
-					"",
 				}))
 			})
 
@@ -362,6 +365,8 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Said).To(Equal([]string{
+						"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+						"",
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 						"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -370,7 +375,6 @@ cloud_provider:
 						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
 						"Started deleting deployment",
 						"Done deleting deployment",
-						"",
 					}))
 				})
 			})
@@ -403,6 +407,8 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Said).To(Equal([]string{
+						"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+						"",
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 						"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -418,7 +424,6 @@ cloud_provider:
 						"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
 						"Started deleting deployment > Deleting unused disk 'orphan-disk-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
-						"",
 					}))
 				})
 
@@ -451,6 +456,8 @@ cloud_provider:
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(ui.Said).To(Equal([]string{
+							"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+							"",
 							"Started validating",
 							"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 							"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -467,7 +474,6 @@ cloud_provider:
 							"Started deleting deployment > Deleting unused disk 'orphan-disk-cid-2'...",
 							" skipped (CPI 'delete_disk' method responded with error: CmdError{\"type\":\"Bosh::Cloud::DiskNotFound\",\"message\":\"fake-disk-not-found-message\",\"ok_to_retry\":false}). (00:00:00)",
 							"Done deleting deployment",
-							"",
 						}))
 					})
 				})
@@ -501,6 +507,8 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Said).To(Equal([]string{
+						"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+						"",
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 						"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -516,7 +524,6 @@ cloud_provider:
 						"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
 						"Started deleting deployment > Deleting unused stemcell 'orphan-stemcell-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
-						"",
 					}))
 				})
 			})
@@ -558,6 +565,8 @@ cloud_provider:
 
 					Expect(ui.Errors).To(BeEmpty())
 					Expect(ui.Said).To(Equal([]string{
+						"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+						"",
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
 						"Started validating > Validating cpi release...", " done. (00:00:00)",
@@ -569,7 +578,6 @@ cloud_provider:
 						"Started deleting deployment > Deleting unused stemcell 'orphan-stemcell-cid'...", " done. (00:00:00)",
 						"Started deleting deployment > Deleting unused stemcell 'orphan-stemcell-cid-2'...", " done. (00:00:00)",
 						"Done deleting deployment",
-						"",
 					}))
 				})
 			})

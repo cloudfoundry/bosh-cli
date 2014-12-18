@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -52,21 +51,15 @@ func (c *deploymentCmd) Name() string {
 
 func (c *deploymentCmd) Run(args []string) error {
 	if args == nil || len(args) < 1 {
-		return c.showDeploymentStatus()
+		_, err := getDeploymentManifest(c.userConfig, c.ui, c.fs)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Running deployment cmd")
+		}
+		return nil
 	}
 
 	manifestFilePath := args[0]
 	return c.setDeployment(manifestFilePath)
-}
-
-func (c *deploymentCmd) showDeploymentStatus() error {
-	if c.userConfig.DeploymentFile == "" {
-		c.ui.Error("No deployment set")
-		return errors.New("No deployment set")
-	}
-
-	c.ui.Sayln(fmt.Sprintf("Current deployment is '%s'", c.userConfig.DeploymentFile))
-	return nil
 }
 
 func (c *deploymentCmd) setDeployment(manifestFilePath string) error {

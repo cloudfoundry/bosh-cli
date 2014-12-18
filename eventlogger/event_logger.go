@@ -93,9 +93,9 @@ func (e *eventLogger) AddEvent(event Event) error {
 
 func (e *eventLogger) FinishStage(name string) {
 	e.ui.Sayln(fmt.Sprintf("Done %s", name))
-	e.ui.Sayln("")
 }
 
 func (e *eventLogger) StartStage(name string) {
+	e.ui.Sayln("")
 	e.ui.Sayln(fmt.Sprintf("Started %s", name))
 }
