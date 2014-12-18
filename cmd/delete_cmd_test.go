@@ -193,8 +193,8 @@ cloud_provider:
 			It("returns an error", func() {
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Running delete cmd: No deployment manifest set"))
-				Expect(ui.Errors).To(ContainElement("No deployment manifest set"))
+				Expect(err.Error()).To(Equal("Running delete cmd: Deployment manifest not set"))
+				Expect(ui.Errors).To(ContainElement("Deployment manifest not set"))
 			})
 		})
 
@@ -209,7 +209,8 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Said).To(Equal([]string{
-					"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+					"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+					"Deployment state: '/deployment-dir/deployment.json'",
 					"",
 					"Started validating",
 					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
@@ -291,7 +292,8 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Said).To(Equal([]string{
-					"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+					"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+					"Deployment state: '/deployment-dir/deployment.json'",
 					"",
 					"Started validating",
 					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
@@ -365,7 +367,8 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Said).To(Equal([]string{
-						"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+						"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+						"Deployment state: '/deployment-dir/deployment.json'",
 						"",
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
@@ -407,7 +410,8 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Said).To(Equal([]string{
-						"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+						"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+						"Deployment state: '/deployment-dir/deployment.json'",
 						"",
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
@@ -456,7 +460,8 @@ cloud_provider:
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(ui.Said).To(Equal([]string{
-							"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+							"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+							"Deployment state: '/deployment-dir/deployment.json'",
 							"",
 							"Started validating",
 							"Started validating > Validating deployment manifest...", " done. (00:00:00)",
@@ -507,7 +512,8 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Said).To(Equal([]string{
-						"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+						"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+						"Deployment state: '/deployment-dir/deployment.json'",
 						"",
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
@@ -565,7 +571,8 @@ cloud_provider:
 
 					Expect(ui.Errors).To(BeEmpty())
 					Expect(ui.Said).To(Equal([]string{
-						"Current deployment manifest is '/deployment-dir/fake-deployment-manifest.yml'",
+						"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+						"Deployment state: '/deployment-dir/deployment.json'",
 						"",
 						"Started validating",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",

@@ -104,6 +104,6 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		}
 	}
 
-	c.ui.Sayln(fmt.Sprintf("Deployment set to '%s'", manifestAbsFilePath))
+	c.ui.Sayln(fmt.Sprintf("Deployment manifest set to '%s'", manifestAbsFilePath))
 	return nil
 }

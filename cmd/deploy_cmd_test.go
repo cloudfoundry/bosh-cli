@@ -87,7 +87,7 @@ var _ = Describe("DeployCmd", func() {
 	BeforeEach(func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
-		deploymentManifestPath = "/some/deployment/file"
+		deploymentManifestPath = "/path/to/manifest.yml"
 		userConfig = bmconfig.UserConfig{
 			DeploymentFile: deploymentManifestPath,
 		}
@@ -283,6 +283,16 @@ version: fake-version
 						)
 
 						fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, fakeCPIRelease, cloud, nil)
+					})
+
+					It("prints the deployment manifest and state file", func() {
+						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(fakeUI.Said).To(Equal([]string{
+							"Deployment manifest: '/path/to/manifest.yml'",
+							"Deployment state: '/path/to/deployment.json'",
+						}))
 					})
 
 					It("adds a new event logger stage", func() {
@@ -528,7 +538,7 @@ version: fake-version
 					It("returns err", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Running deploy cmd: Deployment manifest does not exist at '/some/deployment/file'"))
+						Expect(err.Error()).To(ContainSubstring("Running deploy cmd: Deployment manifest does not exist at '/path/to/manifest.yml'"))
 						Expect(fakeUI.Errors).To(ContainElement("Deployment manifest does not exist"))
 					})
 				})
@@ -557,8 +567,8 @@ version: fake-version
 				It("returns err", func() {
 					err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Running deploy cmd: No deployment manifest set"))
-					Expect(fakeUI.Errors).To(ContainElement("No deployment manifest set"))
+					Expect(err.Error()).To(Equal("Running deploy cmd: Deployment manifest not set"))
+					Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))
 				})
 			})
 		})

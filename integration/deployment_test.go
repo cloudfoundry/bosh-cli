@@ -66,7 +66,8 @@ var _ = Describe("bosh-micro", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(session.ExitCode()).To(Equal(0))
 				Expect(session.Out.Contents()).To(ContainSubstring(
-					fmt.Sprintf("Current deployment manifest is '%s'", deploymentManifestFilePath)))
+					fmt.Sprintf("Deployment manifest: '%s'", deploymentManifestFilePath),
+				))
 			})
 		})
 
@@ -78,7 +79,7 @@ var _ = Describe("bosh-micro", func() {
 
 				session, err := bmtestutils.RunBoshMicro("deploy", tmpFile.Name(), tmpFile.Name())
 				Expect(err).NotTo(HaveOccurred())
-				Expect(session.Err.Contents()).To(ContainSubstring("No deployment manifest set"))
+				Expect(session.Err.Contents()).To(ContainSubstring("Deployment manifest not set"))
 				Expect(session.ExitCode()).To(Equal(1))
 			})
 		})
@@ -88,7 +89,7 @@ var _ = Describe("bosh-micro", func() {
 		It("says deployment is not set", func() {
 			session, err := bmtestutils.RunBoshMicro("deployment")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(session.Err.Contents()).To(ContainSubstring("No deployment manifest set"))
+			Expect(session.Err.Contents()).To(ContainSubstring("Deployment manifest not set"))
 			Expect(session.ExitCode()).To(Equal(1))
 		})
 	})

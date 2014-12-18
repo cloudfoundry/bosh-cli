@@ -14,18 +14,18 @@ func getDeploymentManifest(userConfig bmconfig.UserConfig, ui bmui.UI, fs boshsy
 	deploymentManifestPath := userConfig.DeploymentFile
 
 	if deploymentManifestPath == "" {
-		ui.Error("No deployment manifest set")
-		return "", bosherr.Error("No deployment manifest set")
+		ui.Error("Deployment manifest not set")
+		return "", bosherr.Error("Deployment manifest not set")
 	}
 
-	ui.Sayln(fmt.Sprintf("Current deployment manifest is '%s'", deploymentManifestPath))
+	ui.Sayln(fmt.Sprintf("Deployment manifest: '%s'", deploymentManifestPath))
 
 	if !fs.FileExists(deploymentManifestPath) {
 		ui.Error("Deployment manifest does not exist")
 		return "", bosherr.Errorf("Deployment manifest does not exist at '%s'", deploymentManifestPath)
 	}
 
-	//TODO: Current deployment is `/vagrant/micro-aws.yml' (associated state file: `/vagrant/deployment.json')
+	ui.Sayln(fmt.Sprintf("Deployment state: '%s'", userConfig.DeploymentConfigFilePath()))
 
 	return deploymentManifestPath, nil
 }

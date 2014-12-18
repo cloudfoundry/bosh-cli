@@ -626,7 +626,7 @@ cloud_provider:
 			It("returns an error", func() {
 				err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("No deployment manifest set"))
+				Expect(err.Error()).To(ContainSubstring("Deployment manifest not set"))
 			})
 		})
 
