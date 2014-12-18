@@ -51,7 +51,7 @@ func (e remoteTestEnvironment) Path(name string) string {
 
 func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 	if srcPath == "" {
-		return fmt.Errorf("Cannot use an empty file for `%s'", destName)
+		return fmt.Errorf("Cannot use an empty file for '%s'", destName)
 	}
 
 	_, _, exitCode, err := e.cmdRunner.RunCommand(
@@ -62,7 +62,7 @@ func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 		fmt.Sprintf("%s@%s:%s", e.vmUsername, e.vmIP, e.Path(destName)),
 	)
 	if exitCode != 0 {
-		return fmt.Errorf("scp of `%s' to `%s' failed", srcPath, destName)
+		return fmt.Errorf("scp of '%s' to '%s' failed", srcPath, destName)
 	}
 	return err
 }
@@ -76,7 +76,7 @@ func (e remoteTestEnvironment) DownloadOrCopy(destName, srcPath, srcURL string) 
 
 func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {
 	if srcURL == "" {
-		return fmt.Errorf("Cannot use an empty file for `%s'", destName)
+		return fmt.Errorf("Cannot use an empty file for '%s'", destName)
 	}
 
 	_, _, exitCode, err := e.cmdRunner.RunCommand(
@@ -87,7 +87,7 @@ func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {
 		fmt.Sprintf("wget -q -O %s %s", destName, srcURL),
 	)
 	if exitCode != 0 {
-		return fmt.Errorf("download of `%s' to `%s' failed", srcURL, destName)
+		return fmt.Errorf("download of '%s' to '%s' failed", srcURL, destName)
 	}
 	return err
 }

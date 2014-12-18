@@ -201,7 +201,7 @@ var _ = Describe("PackageCompiler", func() {
 				It("returns error", func() {
 					err := pc.Compile(pkg)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Packaging script for package `fake-package-1' not found"))
+					Expect(err.Error()).To(ContainSubstring("Packaging script for package 'fake-package-1' not found"))
 				})
 			})
 
@@ -284,7 +284,7 @@ var _ = Describe("PackageCompiler", func() {
 
 			err := pc.Compile(pkg)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Attempting to find compiled package `%s'", pkg.Name)))
+			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Attempting to find compiled package '%s'", pkg.Name)))
 			Expect(err.Error()).To(ContainSubstring("fake-error"))
 		})
 	})

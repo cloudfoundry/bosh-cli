@@ -191,7 +191,7 @@ var _ = Describe("bosh-micro", func() {
 		manifestPath := testEnv.Path("manifest")
 
 		stdout := setDeployment(manifestPath)
-		Expect(stdout).To(ContainSubstring(fmt.Sprintf("Deployment set to `%s'", manifestPath)))
+		Expect(stdout).To(ContainSubstring(fmt.Sprintf("Deployment set to '%s'", manifestPath)))
 
 		Expect(parseUserConfig()).To(Equal(bmconfig.UserConfig{
 			DeploymentFile: manifestPath,

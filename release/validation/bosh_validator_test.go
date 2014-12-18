@@ -83,16 +83,16 @@ var _ = Describe("Validator", func() {
 		Expect(err).To(HaveOccurred())
 
 		Expect(err.Error()).To(ContainSubstring("Job name is missing"))
-		Expect(err.Error()).To(ContainSubstring("Job `' fingerprint is missing"))
-		Expect(err.Error()).To(ContainSubstring("Job `' sha1 is missing"))
-		Expect(err.Error()).To(ContainSubstring("Job `fake-job' fingerprint is missing"))
-		Expect(err.Error()).To(ContainSubstring("Job `fake-job' sha1 is missing"))
+		Expect(err.Error()).To(ContainSubstring("Job '' fingerprint is missing"))
+		Expect(err.Error()).To(ContainSubstring("Job '' sha1 is missing"))
+		Expect(err.Error()).To(ContainSubstring("Job 'fake-job' fingerprint is missing"))
+		Expect(err.Error()).To(ContainSubstring("Job 'fake-job' sha1 is missing"))
 
 		Expect(err.Error()).To(ContainSubstring("Package name is missing"))
-		Expect(err.Error()).To(ContainSubstring("Package `' fingerprint is missing"))
-		Expect(err.Error()).To(ContainSubstring("Package `' sha1 is missing"))
-		Expect(err.Error()).To(ContainSubstring("Package `fake-package' fingerprint is missing"))
-		Expect(err.Error()).To(ContainSubstring("Package `fake-package' sha1 is missing"))
+		Expect(err.Error()).To(ContainSubstring("Package '' fingerprint is missing"))
+		Expect(err.Error()).To(ContainSubstring("Package '' sha1 is missing"))
+		Expect(err.Error()).To(ContainSubstring("Package 'fake-package' fingerprint is missing"))
+		Expect(err.Error()).To(ContainSubstring("Package 'fake-package' sha1 is missing"))
 	})
 
 	Context("when jobs are missing templates", func() {
@@ -123,8 +123,8 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
 
-			Expect(err.Error()).To(ContainSubstring("Job `fake-job' is missing template `templates/fake-template'"))
-			Expect(err.Error()).To(ContainSubstring("Job `fake-job-2' is missing template `templates/fake-template-2'"))
+			Expect(err.Error()).To(ContainSubstring("Job 'fake-job' is missing template 'templates/fake-template'"))
+			Expect(err.Error()).To(ContainSubstring("Job 'fake-job-2' is missing template 'templates/fake-template-2'"))
 		})
 	})
 
@@ -154,8 +154,8 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
 
-			Expect(err.Error()).To(ContainSubstring("Job `fake-job-1' is missing monit file"))
-			Expect(err.Error()).To(ContainSubstring("Job `fake-job-2' is missing monit file"))
+			Expect(err.Error()).To(ContainSubstring("Job 'fake-job-1' is missing monit file"))
+			Expect(err.Error()).To(ContainSubstring("Job 'fake-job-2' is missing monit file"))
 		})
 	})
 
@@ -189,8 +189,8 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
 
-			Expect(err.Error()).To(ContainSubstring("Job `fake-job' requires `fake-package' which is not in the release"))
-			Expect(err.Error()).To(ContainSubstring("Job `fake-job-2' requires `fake-package-2' which is not in the release"))
+			Expect(err.Error()).To(ContainSubstring("Job 'fake-job' requires 'fake-package' which is not in the release"))
+			Expect(err.Error()).To(ContainSubstring("Job 'fake-job-2' requires 'fake-package-2' which is not in the release"))
 		})
 	})
 })

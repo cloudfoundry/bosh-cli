@@ -150,7 +150,7 @@ var _ = Describe("JobInstaller", func() {
 					bmeventlog.Started,
 					bmeventlog.Failed,
 				},
-				FailMessage: "Creating jobs directory `/fake/jobs/cpi': fake-mkdir-error",
+				FailMessage: "Creating jobs directory '/fake/jobs/cpi': fake-mkdir-error",
 			}))
 		})
 

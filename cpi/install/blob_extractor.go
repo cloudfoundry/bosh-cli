@@ -57,7 +57,7 @@ func (e blobExtractor) Extract(blobID string, blobSHA1 string, targetDir string)
 		if !existed {
 			e.cleanUpFile(targetDir)
 		}
-		return bosherr.WrapErrorf(err, "Extracting compiled package: BlobID:`%s', BlobSHA1: `%s'", blobID, blobSHA1)
+		return bosherr.WrapErrorf(err, "Extracting compiled package: BlobID:'%s', BlobSHA1: '%s'", blobID, blobSHA1)
 	}
 	return nil
 }

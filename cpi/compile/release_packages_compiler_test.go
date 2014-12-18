@@ -97,7 +97,7 @@ var _ = Describe("ReleaseCompiler", func() {
 				packageCompiler.CompileError = errors.New("Compilation failed")
 				err := releasePackagesCompiler.Compile(release)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Package `fake-package-1' compilation failed"))
+				Expect(err.Error()).To(ContainSubstring("Package 'fake-package-1' compilation failed"))
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -132,7 +132,7 @@ var _ = Describe("ReleaseCompiler", func() {
 						bmeventlog.Started,
 						bmeventlog.Failed,
 					},
-					FailMessage: "Package `fake-package-1' compilation failed: Compilation failed",
+					FailMessage: "Package 'fake-package-1' compilation failed: Compilation failed",
 				}))
 			})
 

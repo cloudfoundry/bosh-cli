@@ -71,24 +71,24 @@ func (c *cpiInstaller) Extract(releaseTarballPath string) (bmrel.Release, error)
 	releaseReader := bmrel.NewReader(releaseTarballPath, extractedReleasePath, c.fs, c.extractor)
 	release, err := releaseReader.Read()
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("CPI release at `%s' is not a BOSH release", releaseTarballPath))
-		return nil, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from `%s'", releaseTarballPath))
+		c.ui.Error(fmt.Sprintf("CPI release at '%s' is not a BOSH release", releaseTarballPath))
+		return nil, bosherr.WrapError(err, fmt.Sprintf("Reading CPI release from '%s'", releaseTarballPath))
 	}
 
-	c.logger.Info(c.logTag, "Extracted CPI release `%s' to `%s'", release.Name(), extractedReleasePath)
+	c.logger.Info(c.logTag, "Extracted CPI release '%s' to '%s'", release.Name(), extractedReleasePath)
 
-	c.logger.Info(c.logTag, "Validating CPI release `%s'", release.Name())
+	c.logger.Info(c.logTag, "Validating CPI release '%s'", release.Name())
 	err = c.validator.Validate(release)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Validating CPI release `%s'", release.Name())
+		return nil, bosherr.WrapErrorf(err, "Validating CPI release '%s'", release.Name())
 	}
 
 	return release, nil
 }
 
 func (c *cpiInstaller) Install(manifest bmmanifest.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
-	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release `%s'", release.Name()))
-	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release `%s': %#v", release.Name(), release))
+	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release '%s'", release.Name()))
+	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release '%s': %#v", release.Name(), release))
 	err := c.releaseCompiler.Compile(release, manifest)
 	if err != nil {
 		c.ui.Error("Could not compile CPI release")
@@ -118,14 +118,14 @@ func (c *cpiInstaller) installCPIJob(release bmrel.Release) (bmcpiinstall.Instal
 	releaseJob, found := release.FindJobByName(releaseJobName)
 
 	if !found {
-		c.ui.Error(fmt.Sprintf("Could not find CPI job `%s' in release `%s'", releaseJobName, release.Name()))
-		return bmcpiinstall.InstalledJob{}, bosherr.Errorf("Invalid CPI deployment manifest: job `%s' not found in release `%s'", releaseJobName, release.Name())
+		c.ui.Error(fmt.Sprintf("Could not find CPI job '%s' in release '%s'", releaseJobName, release.Name()))
+		return bmcpiinstall.InstalledJob{}, bosherr.Errorf("Invalid CPI deployment manifest: job '%s' not found in release '%s'", releaseJobName, release.Name())
 	}
 
 	installedJob, err := c.jobInstaller.Install(releaseJob)
 	if err != nil {
-		c.ui.Error(fmt.Sprintf("Could not install `%s' job", releaseJobName))
-		return bmcpiinstall.InstalledJob{}, bosherr.WrapErrorf(err, "Installing `%s' job for CPI release", releaseJobName)
+		c.ui.Error(fmt.Sprintf("Could not install '%s' job", releaseJobName))
+		return bmcpiinstall.InstalledJob{}, bosherr.WrapErrorf(err, "Installing '%s' job for CPI release", releaseJobName)
 	}
 
 	return installedJob, nil

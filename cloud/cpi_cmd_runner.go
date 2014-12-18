@@ -106,7 +106,7 @@ func (r *cpiCmdRunner) Run(method string, args ...interface{}) (CmdOutput, error
 	r.logger.Debug(r.logTag, cmdOutput.Log)
 
 	if cmdOutput.Error != nil {
-		return cmdOutput, bosherr.Errorf("External CPI command for method `%s' returned an error: %s", method, cmdOutput.Error)
+		return cmdOutput, bosherr.Errorf("External CPI command for method '%s' returned an error: %s", method, cmdOutput.Error)
 	}
 
 	return cmdOutput, err

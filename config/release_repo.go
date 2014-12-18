@@ -47,7 +47,7 @@ func (r releaseRepo) Save(name, version string) (ReleaseRecord, error) {
 
 	for _, oldRecord := range records {
 		if oldRecord.Name == newRecord.Name && oldRecord.Version == newRecord.Version {
-			return oldRecord, bosherr.Errorf("Failed to save release record `%s' (duplicate name/version), existing record found `%s'", newRecord, oldRecord)
+			return oldRecord, bosherr.Errorf("Failed to save release record '%s' (duplicate name/version), existing record found '%s'", newRecord, oldRecord)
 		}
 	}
 
@@ -113,7 +113,7 @@ func (r releaseRepo) UpdateCurrent(recordID string) error {
 		}
 	}
 	if !found {
-		return bosherr.Errorf("Verifying release record exists with id `%s'", recordID)
+		return bosherr.Errorf("Verifying release record exists with id '%s'", recordID)
 	}
 
 	config.CurrentReleaseID = recordID

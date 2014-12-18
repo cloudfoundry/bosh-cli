@@ -174,7 +174,7 @@ var _ = Describe("EventLogger", func() {
 					State: "fake-state",
 				})
 				Expect(error).To(HaveOccurred())
-				Expect(error.Error()).To(ContainSubstring("Unsupported event state `fake-state'"))
+				Expect(error.Error()).To(ContainSubstring("Unsupported event state 'fake-state'"))
 			})
 		})
 	})

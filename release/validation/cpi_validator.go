@@ -33,12 +33,12 @@ func (v CpiValidator) validateCpiJob(release bmrel.Release) []error {
 
 	job, ok := release.FindJobByName("cpi")
 	if !ok {
-		return append(errs, errors.New("Job `cpi' is missing from release"))
+		return append(errs, errors.New("Job 'cpi' is missing from release"))
 	}
 
 	_, ok = job.FindTemplateByValue("bin/cpi")
 	if !ok {
-		errs = append(errs, errors.New("Job `cpi' is missing bin/cpi target"))
+		errs = append(errs, errors.New("Job 'cpi' is missing bin/cpi target"))
 	}
 
 	return errs

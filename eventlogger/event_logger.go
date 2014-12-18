@@ -86,7 +86,7 @@ func (e *eventLogger) AddEvent(event Event) error {
 		duration := event.Time.Sub(e.startedTasks[key])
 		e.ui.Sayln(fmt.Sprintf(" skipped (%s). (%s)", event.Message, durationfmt.Format(duration)))
 	default:
-		return bosherr.Errorf("Unsupported event state `%s'", event.State)
+		return bosherr.Errorf("Unsupported event state '%s'", event.State)
 	}
 	return nil
 }

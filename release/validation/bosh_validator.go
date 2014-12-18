@@ -74,22 +74,22 @@ func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 		}
 
 		if job.Fingerprint == "" {
-			errs = append(errs, fmt.Errorf("Job `%s' fingerprint is missing", job.Name))
+			errs = append(errs, fmt.Errorf("Job '%s' fingerprint is missing", job.Name))
 		}
 
 		if job.SHA1 == "" {
-			errs = append(errs, fmt.Errorf("Job `%s' sha1 is missing", job.Name))
+			errs = append(errs, fmt.Errorf("Job '%s' sha1 is missing", job.Name))
 		}
 
 		monitPath := path.Join(job.ExtractedPath, "monit")
 		if !v.fs.FileExists(monitPath) {
-			errs = append(errs, fmt.Errorf("Job `%s' is missing monit file", job.Name))
+			errs = append(errs, fmt.Errorf("Job '%s' is missing monit file", job.Name))
 		}
 
 		for template := range job.Templates {
 			templatePath := path.Join(job.ExtractedPath, "templates", template)
 			if !v.fs.FileExists(templatePath) {
-				errs = append(errs, fmt.Errorf("Job `%s' is missing template `%s'", job.Name, templatePath))
+				errs = append(errs, fmt.Errorf("Job '%s' is missing template '%s'", job.Name, templatePath))
 			}
 		}
 
@@ -102,7 +102,7 @@ func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 				}
 			}
 			if !found {
-				errs = append(errs, fmt.Errorf("Job `%s' requires `%s' which is not in the release", job.Name, pkgName))
+				errs = append(errs, fmt.Errorf("Job '%s' requires '%s' which is not in the release", job.Name, pkgName))
 			}
 		}
 	}
@@ -122,11 +122,11 @@ func (v *boshValidator) validateReleasePackages(release bmrel.Release) error {
 		}
 
 		if pkg.Fingerprint == "" {
-			errs = append(errs, fmt.Errorf("Package `%s' fingerprint is missing", pkg.Name))
+			errs = append(errs, fmt.Errorf("Package '%s' fingerprint is missing", pkg.Name))
 		}
 
 		if pkg.SHA1 == "" {
-			errs = append(errs, fmt.Errorf("Package `%s' sha1 is missing", pkg.Name))
+			errs = append(errs, fmt.Errorf("Package '%s' sha1 is missing", pkg.Name))
 		}
 	}
 

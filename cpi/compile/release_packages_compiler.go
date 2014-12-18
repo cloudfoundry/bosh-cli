@@ -51,7 +51,7 @@ func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
 			err = c.packageCompiler.Compile(pkg)
 
 			if err != nil {
-				return bosherr.WrapError(err, fmt.Sprintf("Package `%s' compilation failed", pkg.Name))
+				return bosherr.WrapError(err, fmt.Sprintf("Package '%s' compilation failed", pkg.Name))
 			}
 
 			return nil

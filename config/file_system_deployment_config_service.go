@@ -31,7 +31,7 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {
 
 	deploymentFileContents, err := s.fs.ReadFile(s.configPath)
 	if err != nil {
-		return DeploymentFile{}, bosherr.WrapErrorf(err, "Reading deployment config file `%s'", s.configPath)
+		return DeploymentFile{}, bosherr.WrapErrorf(err, "Reading deployment config file '%s'", s.configPath)
 	}
 	s.logger.Debug(s.logTag, "Deployment File Contents %#s", deploymentFileContents)
 
@@ -39,7 +39,7 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {
 
 	err = json.Unmarshal(deploymentFileContents, &deploymentFile)
 	if err != nil {
-		return DeploymentFile{}, bosherr.WrapErrorf(err, "Unmarshalling deployment config file `%s'", s.configPath)
+		return DeploymentFile{}, bosherr.WrapErrorf(err, "Unmarshalling deployment config file '%s'", s.configPath)
 	}
 
 	return deploymentFile, nil
@@ -53,7 +53,7 @@ func (s fileSystemDeploymentConfigService) Save(deploymentFile DeploymentFile) e
 
 	err = s.fs.WriteFile(s.configPath, jsonContent)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Writing deployment config file `%s'", s.configPath)
+		return bosherr.WrapErrorf(err, "Writing deployment config file '%s'", s.configPath)
 	}
 
 	return nil

@@ -94,7 +94,7 @@ var _ = Describe("fileSystemConfigService", func() {
 				fakeFs.WriteFileString(deploymentFilePath, "some invalid content")
 				config, err := service.Load()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unmarshalling deployment config file `/some/deployment.json'"))
+				Expect(err.Error()).To(ContainSubstring("Unmarshalling deployment config file '/some/deployment.json'"))
 				Expect(config).To(Equal(DeploymentFile{}))
 			})
 		})
@@ -162,7 +162,7 @@ var _ = Describe("fileSystemConfigService", func() {
 				}
 				err := service.Save(config)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Writing deployment config file `/some/deployment.json'"))
+				Expect(err.Error()).To(ContainSubstring("Writing deployment config file '/some/deployment.json'"))
 			})
 		})
 	})

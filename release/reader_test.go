@@ -100,13 +100,13 @@ packages:
 
 					Context("when the package cannot be extracted", func() {
 						BeforeEach(func() {
-							fakeExtractor.SetDecompressBehavior("/some/release.tgz", "/extracted/release", errors.New("Extracting package `fake-package'"))
+							fakeExtractor.SetDecompressBehavior("/some/release.tgz", "/extracted/release", errors.New("Extracting package 'fake-package'"))
 						})
 
 						It("returns errors for each invalid package", func() {
 							_, err := reader.Read()
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Extracting package `fake-package'"))
+							Expect(err.Error()).To(ContainSubstring("Extracting package 'fake-package'"))
 						})
 					})
 				})
@@ -143,8 +143,8 @@ packages:
 					It("returns errors for each invalid job", func() {
 						_, err := reader.Read()
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Reading job `fake-job' from archive"))
-						Expect(err.Error()).To(ContainSubstring("Reading job `fake-job-2' from archive"))
+						Expect(err.Error()).To(ContainSubstring("Reading job 'fake-job' from archive"))
+						Expect(err.Error()).To(ContainSubstring("Reading job 'fake-job-2' from archive"))
 					})
 				})
 

@@ -69,7 +69,7 @@ var _ = Describe("DeploymentCmd", func() {
 				It("says 'deployment set..' to the UI", func() {
 					err := command.Run([]string{manifestPath})
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Deployment set to `%s'", manifestPath))))
+					Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Deployment set to '%s'", manifestPath))))
 				})
 
 				It("saves the deployment manifest to the user config", func() {
@@ -140,8 +140,8 @@ var _ = Describe("DeploymentCmd", func() {
 				It("returns err", func() {
 					err := command.Run([]string{"/fake/manifest/path"})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Verifying that the deployment `/fake/manifest/path' exists"))
-					Expect(fakeUI.Errors).To(ContainElement("Deployment `/fake/manifest/path' does not exist"))
+					Expect(err.Error()).To(ContainSubstring("Verifying that the deployment '/fake/manifest/path' exists"))
+					Expect(fakeUI.Errors).To(ContainElement("Deployment '/fake/manifest/path' does not exist"))
 				})
 			})
 		})
@@ -163,7 +163,7 @@ var _ = Describe("DeploymentCmd", func() {
 				It("says `Deployment set to '<manifest_path>'`", func() {
 					err := command.Run([]string{})
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeUI.Said).To(ContainElement("Current deployment is `/somepath'"))
+					Expect(fakeUI.Said).To(ContainElement("Current deployment is '/somepath'"))
 				})
 			})
 

@@ -32,7 +32,7 @@ func (e *extractor) Extract(tarballPath string) (ExtractedStemcell, error) {
 
 	stemcell, err := e.reader.Read(tarballPath, tmpDir)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "reading extracted stemcell manifest in `%s'", tmpDir)
+		return nil, bosherr.WrapErrorf(err, "reading extracted stemcell manifest in '%s'", tmpDir)
 	}
 
 	return stemcell, nil

@@ -52,7 +52,7 @@ func NewPackageCompiler(
 func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 	_, found, err := pc.compiledPackageRepo.Find(*pkg)
 	if err != nil {
-		return bosherr.WrapError(err, fmt.Sprintf("Attempting to find compiled package `%s'", pkg.Name))
+		return bosherr.WrapError(err, fmt.Sprintf("Attempting to find compiled package '%s'", pkg.Name))
 	}
 	if found {
 		return nil
@@ -61,7 +61,7 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 	for _, pkg := range pkg.Dependencies {
 		err = pc.packageInstaller.Install(pkg, pc.packagesDir)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Installing package `%s' into `%s'", pkg.Name, pc.packagesDir)
+			return bosherr.WrapErrorf(err, "Installing package '%s' into '%s'", pkg.Name, pc.packagesDir)
 		}
 	}
 
@@ -76,7 +76,7 @@ func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
 	defer pc.fileSystem.RemoveAll(pc.packagesDir)
 
 	if !pc.fileSystem.FileExists(path.Join(packageSrcDir, "packaging")) {
-		return bosherr.Errorf("Packaging script for package `%s' not found", pkg.Name)
+		return bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name)
 	}
 
 	cmd := boshsys.Command{

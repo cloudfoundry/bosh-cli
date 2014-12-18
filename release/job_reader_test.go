@@ -87,7 +87,7 @@ properties:
 		It("returns error", func() {
 			_, err := reader.Read()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Extracting job archive `/some/job/archive'"))
+			Expect(err.Error()).To(ContainSubstring("Extracting job archive '/some/job/archive'"))
 		})
 	})
 })

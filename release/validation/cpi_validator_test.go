@@ -71,7 +71,7 @@ var _ = Describe("CpiValidator", func() {
 		It("returns an error that the cpi job is not present", func() {
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Job `cpi' is missing from release"))
+			Expect(err.Error()).To(ContainSubstring("Job 'cpi' is missing from release"))
 		})
 	})
 
@@ -103,7 +103,7 @@ var _ = Describe("CpiValidator", func() {
 		It("returns an error that the bin/cpi template target is missing", func() {
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Job `cpi' is missing bin/cpi target"))
+			Expect(err.Error()).To(ContainSubstring("Job 'cpi' is missing bin/cpi target"))
 		})
 	})
 })

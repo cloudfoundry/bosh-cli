@@ -35,14 +35,14 @@ func (r *jobReader) Read() (Job, error) {
 	err := r.extractor.DecompressFileToDir(r.archivePath, r.extractedJobPath, boshcmd.CompressorOptions{})
 	if err != nil {
 		return Job{}, bosherr.WrapErrorf(err,
-			"Extracting job archive `%s'",
+			"Extracting job archive '%s'",
 			r.archivePath)
 	}
 
 	jobManifestPath := path.Join(r.extractedJobPath, "job.MF")
 	jobManifestBytes, err := r.fs.ReadFile(jobManifestPath)
 	if err != nil {
-		return Job{}, bosherr.WrapErrorf(err, "Reading job manifest `%s'", jobManifestPath)
+		return Job{}, bosherr.WrapErrorf(err, "Reading job manifest '%s'", jobManifestPath)
 	}
 
 	var jobManifest JobManifest

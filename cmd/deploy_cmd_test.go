@@ -485,7 +485,7 @@ version: fake-version
 						It("returns error", func() {
 							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Verifying that the CPI release `/release/tarball/path' exists"))
+							Expect(err.Error()).To(ContainSubstring("Verifying that the CPI release '/release/tarball/path' exists"))
 
 							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 								Name: "Validating cpi release",
@@ -493,7 +493,7 @@ version: fake-version
 									bmeventlog.Started,
 									bmeventlog.Failed,
 								},
-								FailMessage: "Verifying that the CPI release `/release/tarball/path' exists",
+								FailMessage: "Verifying that the CPI release '/release/tarball/path' exists",
 							}))
 						})
 					})
@@ -506,7 +506,7 @@ version: fake-version
 						It("returns error", func() {
 							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell `/stemcell/tarball/path' exists"))
+							Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
 
 							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 								Name: "Validating stemcell",
@@ -514,7 +514,7 @@ version: fake-version
 									bmeventlog.Started,
 									bmeventlog.Failed,
 								},
-								FailMessage: "Verifying that the stemcell `/stemcell/tarball/path' exists",
+								FailMessage: "Verifying that the stemcell '/stemcell/tarball/path' exists",
 							}))
 						})
 					})
@@ -528,7 +528,7 @@ version: fake-version
 					It("returns err", func() {
 						err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Verifying that the deployment `/some/deployment/file' exists"))
+						Expect(err.Error()).To(ContainSubstring("Verifying that the deployment '/some/deployment/file' exists"))
 
 						Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 							Name: "Validating deployment manifest",
@@ -536,7 +536,7 @@ version: fake-version
 								bmeventlog.Started,
 								bmeventlog.Failed,
 							},
-							FailMessage: "Verifying that the deployment `/some/deployment/file' exists",
+							FailMessage: "Verifying that the deployment '/some/deployment/file' exists",
 						}))
 					})
 				})

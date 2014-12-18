@@ -156,7 +156,7 @@ var _ = Describe("StemcellRepo", func() {
 			It("returns an error", func() {
 				err := repo.UpdateCurrent("fake-uuid-2")
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Verifying stemcell record exists with id `fake-uuid-2'"))
+				Expect(err.Error()).To(ContainSubstring("Verifying stemcell record exists with id 'fake-uuid-2'"))
 			})
 		})
 	})
