@@ -1,16 +1,16 @@
 package eventlogger
 
-type StepSkippedError struct {
+type SkippedStepError struct {
 	msg string
 }
 
-func NewStepSkippedError(msg string) StepSkippedError {
-	return StepSkippedError{
+func NewSkippedStepError(msg string) SkippedStepError {
+	return SkippedStepError{
 		msg: msg,
 	}
 }
 
-func (e StepSkippedError) Error() string {
+func (e SkippedStepError) Error() string {
 	return e.msg
 }
 
@@ -49,7 +49,7 @@ func (s *stage) PerformStep(stepName string, stepFunc func() error) error {
 	step.Start()
 	err := stepFunc()
 	if err != nil {
-		if skippedErr, ok := err.(StepSkippedError); ok {
+		if skippedErr, ok := err.(SkippedStepError); ok {
 			step.Skip(skippedErr.Error())
 			return nil
 		}

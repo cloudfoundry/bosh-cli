@@ -53,21 +53,18 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (cloudStemcell Clo
 	eventLoggerStage := m.eventLogger.NewStage("uploading stemcell")
 	eventLoggerStage.Start()
 
-	manifest := extractedStemcell.Manifest()
-	foundStemcellRecord, found, err := m.repo.Find(manifest.Name, manifest.Version)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "finding existing stemcell record in repo")
-	}
-
-	if found {
-		eventStep := eventLoggerStage.NewStep("Uploading")
-		eventStep.Skip("Stemcell already uploaded")
-		cloudStemcell := NewCloudStemcell(foundStemcellRecord, m.repo, m.cloud)
-		eventLoggerStage.Finish()
-		return cloudStemcell, nil
-	}
-
 	err = eventLoggerStage.PerformStep("Uploading", func() error {
+		manifest := extractedStemcell.Manifest()
+		foundStemcellRecord, found, err := m.repo.Find(manifest.Name, manifest.Version)
+		if err != nil {
+			return bosherr.WrapError(err, "Finding existing stemcell record in repo")
+		}
+
+		if found {
+			cloudStemcell = NewCloudStemcell(foundStemcellRecord, m.repo, m.cloud)
+			return bmeventlog.NewSkippedStepError("Stemcell already uploaded")
+		}
+
 		cloudProperties, err := manifest.CloudProperties()
 		if err != nil {
 			return bosherr.WrapError(err, "Getting cloud properties from stemcell manifest")

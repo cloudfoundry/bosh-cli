@@ -375,7 +375,7 @@ cloud_provider:
 				})
 			})
 
-			Context("and orphan disks exist", func() {
+			Context("and orphan disks records exist", func() {
 				BeforeEach(func() {
 					_, err := diskRepo.Save("orphan-disk-cid-2", 100, nil)
 					Expect(err).ToNot(HaveOccurred())
@@ -421,9 +421,59 @@ cloud_provider:
 						"",
 					}))
 				})
+
+				Context("when disks have been deleted manually (in the infrastructure)", func() {
+					It("deletes the unused disks, ignoring DiskNotFoundError", func() {
+						expectNormalFlow()
+
+						mockCloud.EXPECT().DeleteDisk("orphan-disk-cid-2").Return(bmcloud.NewCPIError("delete_disk", bmcloud.CmdError{
+							Type:    bmcloud.DiskNotFoundError,
+							Message: "fake-disk-not-found-message",
+						}))
+
+						err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+						Expect(err).ToNot(HaveOccurred())
+
+						diskRecords, err := diskRepo.All()
+						Expect(err).ToNot(HaveOccurred())
+						Expect(diskRecords).To(BeEmpty(), "expected no disk records")
+					})
+
+					It("logs disk deletion as skipped", func() {
+						expectNormalFlow()
+
+						mockCloud.EXPECT().DeleteDisk("orphan-disk-cid-2").Return(bmcloud.NewCPIError("delete_disk", bmcloud.CmdError{
+							Type:    bmcloud.DiskNotFoundError,
+							Message: "fake-disk-not-found-message",
+						}))
+
+						err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(ui.Said).To(Equal([]string{
+							"Started validating",
+							"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+							"Started validating > Validating cpi release...", " done. (00:00:00)",
+							"Done validating",
+							"",
+							// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
+							"Started deleting deployment",
+							"Started deleting deployment > Waiting for the agent on VM 'fake-vm-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Stopping jobs on instance 'unknown/0'...", " done. (00:00:00)",
+							"Started deleting deployment > Unmounting disk 'fake-disk-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Deleting VM 'fake-vm-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Deleting disk 'fake-disk-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Deleting unused disk 'orphan-disk-cid-2'...",
+							" skipped (CPI 'delete_disk' method responded with error: CmdError{\"type\":\"Bosh::Cloud::DiskNotFound\",\"message\":\"fake-disk-not-found-message\",\"ok_to_retry\":false}). (00:00:00)",
+							"Done deleting deployment",
+							"",
+						}))
+					})
+				})
 			})
 
-			Context("and orphan stemcells exist", func() {
+			Context("and orphan stemcell records exist", func() {
 				BeforeEach(func() {
 					_, err := stemcellRepo.Save("orphan-stemcell-name-2", "orphan-stemcell-version-2", "orphan-stemcell-cid-2")
 					Expect(err).ToNot(HaveOccurred())
@@ -483,7 +533,7 @@ cloud_provider:
 				Expect(ui.Errors).To(BeEmpty())
 			})
 
-			Context("when there are orphans", func() {
+			Context("when there are orphan records", func() {
 				BeforeEach(func() {
 					diskRepo.Save("orphan-disk-cid", 1, nil)
 					stemcellRepo.Save("orphan-stemcell-name", "orphan-stemcell-version", "orphan-stemcell-cid")
@@ -526,14 +576,18 @@ cloud_provider:
 		})
 
 		Context("when VM has been deployed", func() {
+			var (
+				expectHasVM *gomock.Call
+			)
 			BeforeEach(func() {
 				deploymentConfigService.Save(bmconfig.DeploymentFile{})
 				vmRepo.UpdateCurrent("fake-vm-cid")
+
+				expectHasVM = mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil)
 			})
 
 			It("stops the agent and deletes the VM", func() {
 				gomock.InOrder(
-					mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil),
 					mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
 					mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
 					mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
@@ -544,35 +598,28 @@ cloud_provider:
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 			})
-		})
 
-		Context("when VM has been deployed, then deleted manually (outside of bosh)", func() {
-			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{})
-				vmRepo.UpdateCurrent("fake-vm-cid")
-			})
+			Context("when VM has been deleted manually (outside of bosh)", func() {
+				BeforeEach(func() {
+					expectHasVM.Return(false, nil)
+				})
 
-			It("skips agent shutdown & deletes the VM (to ensure related resources are released by the CPI)", func() {
-				gomock.InOrder(
-					mockCloud.EXPECT().HasVM("fake-vm-cid").Return(false, nil),
-					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
-				)
+				It("skips agent shutdown & deletes the VM (to ensure related resources are released by the CPI)", func() {
+					mockCloud.EXPECT().DeleteVM("fake-vm-cid")
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
-				Expect(err).ToNot(HaveOccurred())
-			})
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+				})
 
-			It("ignores VMNotFound errors", func() {
-				gomock.InOrder(
-					mockCloud.EXPECT().HasVM("fake-vm-cid").Return(false, nil),
+				It("ignores VMNotFound errors", func() {
 					mockCloud.EXPECT().DeleteVM("fake-vm-cid").Return(bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
 						Type:    bmcloud.VMNotFoundError,
 						Message: "fake-vm-not-found-message",
-					})),
-				)
+					}))
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
-				Expect(err).ToNot(HaveOccurred())
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+				})
 			})
 		})
 
@@ -589,6 +636,25 @@ cloud_provider:
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
+			})
+
+			Context("when current disk has been deleted manually (outside of bosh)", func() {
+				It("deletes the disk (to ensure related resources are released by the CPI)", func() {
+					mockCloud.EXPECT().DeleteDisk("fake-disk-cid")
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("ignores DiskNotFound errors", func() {
+					mockCloud.EXPECT().DeleteDisk("fake-disk-cid").Return(bmcloud.NewCPIError("delete_disk", bmcloud.CmdError{
+						Type:    bmcloud.DiskNotFoundError,
+						Message: "fake-disk-not-found-message",
+					}))
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+				})
 			})
 		})
 

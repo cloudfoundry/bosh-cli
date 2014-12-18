@@ -9,6 +9,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
@@ -166,7 +167,12 @@ func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
 func (c *deleteCmd) deleteDisk(deleteStage bmeventlog.Stage, disk bmdisk.Disk) error {
 	stepName := fmt.Sprintf("Deleting disk '%s'", disk.CID())
 	return deleteStage.PerformStep(stepName, func() error {
-		return disk.Delete()
+		err := disk.Delete()
+		cloudErr, ok := err.(bmcloud.Error)
+		if ok && cloudErr.Type() == bmcloud.DiskNotFoundError {
+			return bmeventlog.NewSkippedStepError(cloudErr.Error())
+		}
+		return err
 	})
 }
 

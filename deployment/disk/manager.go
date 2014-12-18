@@ -97,11 +97,12 @@ func (m *manager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
 	for _, disk := range disks {
 		stepName := fmt.Sprintf("Deleting unused disk '%s'", disk.CID())
 		err = eventLoggerStage.PerformStep(stepName, func() error {
-			err = disk.Delete()
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Deleting unused disk '%s'", disk.CID())
+			err := disk.Delete()
+			cloudErr, ok := err.(bmcloud.Error)
+			if ok && cloudErr.Type() == bmcloud.DiskNotFoundError {
+				return bmeventlog.NewSkippedStepError(cloudErr.Error())
 			}
-			return nil
+			return err
 		})
 		if err != nil {
 			return err

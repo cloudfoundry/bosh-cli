@@ -164,7 +164,7 @@ var _ = Describe("EventLogger", func() {
 					Message: "fake-skipped-message",
 				})
 				output := uiOut.String()
-				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1... skipped (fake-skipped-message).\n"))
+				Expect(output).To(ContainSubstring("Started fake-stage > fake-task-1... skipped (fake-skipped-message). (00:00:01)\n"))
 			})
 		})
 

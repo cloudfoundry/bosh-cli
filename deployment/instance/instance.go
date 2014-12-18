@@ -130,7 +130,7 @@ func (i *instance) Delete(
 		err := i.vm.Delete()
 		cloudErr, ok := err.(bmcloud.Error)
 		if ok && cloudErr.Type() == bmcloud.VMNotFoundError {
-			return bmeventlog.NewStepSkippedError(cloudErr.Error())
+			return bmeventlog.NewSkippedStepError(cloudErr.Error())
 		}
 		return err
 	})

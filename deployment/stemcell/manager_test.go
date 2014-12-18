@@ -203,6 +203,7 @@ var _ = Describe("Manager", func() {
 				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 					Name: "Uploading",
 					States: []bmeventlog.EventState{
+						bmeventlog.Started,
 						bmeventlog.Skipped,
 					},
 					SkipMessage: "Stemcell already uploaded",

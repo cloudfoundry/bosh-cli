@@ -47,9 +47,13 @@ func (d *disk) NeedsMigration(newSize int, newCloudProperties map[string]interfa
 }
 
 func (d *disk) Delete() error {
-	err := d.cloud.DeleteDisk(d.cid)
-	if err != nil {
-		return bosherr.WrapError(err, "Deleting disk from cloud")
+	deleteErr := d.cloud.DeleteDisk(d.cid)
+	if deleteErr != nil {
+		// allow DiskNotFoundError for idempotency
+		cloudErr, ok := deleteErr.(bmcloud.Error)
+		if !ok || cloudErr.Type() != bmcloud.DiskNotFoundError {
+			return bosherr.WrapError(deleteErr, "Deleting disk in the cloud")
+		}
 	}
 
 	diskRecord, found, err := d.repo.Find(d.cid)
@@ -66,5 +70,6 @@ func (d *disk) Delete() error {
 		return bosherr.WrapError(err, "Deleting disk record")
 	}
 
-	return nil
+	// returns bmcloud.Error only if it is a DiskNotFoundError
+	return deleteErr
 }
