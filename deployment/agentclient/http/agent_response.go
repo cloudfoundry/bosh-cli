@@ -1,4 +1,4 @@
-package agentclient
+package http
 
 import (
 	"encoding/json"
@@ -46,12 +46,8 @@ func (r *ListResponse) Unmarshal(message []byte) error {
 }
 
 type StateResponse struct {
-	Value     State
+	Value     AgentState
 	Exception exceptionResponse
-}
-
-type State struct {
-	JobState string `json:"job_state"`
 }
 
 func (r *StateResponse) GetException() exceptionResponse {
@@ -60,6 +56,10 @@ func (r *StateResponse) GetException() exceptionResponse {
 
 func (r *StateResponse) Unmarshal(message []byte) error {
 	return json.Unmarshal(message, r)
+}
+
+type AgentState struct {
+	JobState string `json:"job_state"`
 }
 
 type TaskResponse struct {

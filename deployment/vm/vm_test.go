@@ -318,9 +318,9 @@ var _ = Describe("VM", func() {
 
 	Describe("WaitToBeRunning", func() {
 		BeforeEach(func() {
-			fakeAgentClient.SetGetStateBehavior(bmagentclient.State{JobState: "pending"}, nil)
-			fakeAgentClient.SetGetStateBehavior(bmagentclient.State{JobState: "pending"}, nil)
-			fakeAgentClient.SetGetStateBehavior(bmagentclient.State{JobState: "running"}, nil)
+			fakeAgentClient.SetGetStateBehavior(bmagentclient.AgentState{JobState: "pending"}, nil)
+			fakeAgentClient.SetGetStateBehavior(bmagentclient.AgentState{JobState: "pending"}, nil)
+			fakeAgentClient.SetGetStateBehavior(bmagentclient.AgentState{JobState: "running"}, nil)
 		})
 
 		It("waits until agent reports state as running", func() {

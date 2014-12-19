@@ -3,9 +3,11 @@ package vm
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 )
 
@@ -17,9 +19,10 @@ type managerFactory struct {
 	vmRepo                 bmconfig.VMRepo
 	stemcellRepo           bmconfig.StemcellRepo
 	diskDeployer           DiskDeployer
-	agentClientFactory     bmagentclient.Factory
+	agentClientFactory     bmhttpagent.AgentClientFactory
 	applySpecFactory       bmas.Factory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
+	uuidGenerator          boshuuid.Generator
 	fs                     boshsys.FileSystem
 	logger                 boshlog.Logger
 }
@@ -28,9 +31,10 @@ func NewManagerFactory(
 	vmRepo bmconfig.VMRepo,
 	stemcellRepo bmconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
-	agentClientFactory bmagentclient.Factory,
+	agentClientFactory bmhttpagent.AgentClientFactory,
 	applySpecFactory bmas.Factory,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
+	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) ManagerFactory {
@@ -41,8 +45,9 @@ func NewManagerFactory(
 		agentClientFactory:     agentClientFactory,
 		applySpecFactory:       applySpecFactory,
 		templatesSpecGenerator: templatesSpecGenerator,
-		fs:     fs,
-		logger: logger,
+		uuidGenerator:          uuidGenerator,
+		fs:                     fs,
+		logger:                 logger,
 	}
 }
 
@@ -56,6 +61,7 @@ func (f *managerFactory) NewManager(cloud bmcloud.Cloud, mbusURL string) Manager
 		f.templatesSpecGenerator,
 		f.applySpecFactory,
 		cloud,
+		f.uuidGenerator,
 		f.fs,
 		f.logger,
 	)

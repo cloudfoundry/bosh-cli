@@ -1,4 +1,4 @@
-package agentclient
+package http
 
 import (
 	"fmt"
@@ -6,22 +6,11 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
 )
-
-type AgentClient interface {
-	Ping() (string, error)
-	Stop() error
-	Apply(bmas.ApplySpec) error
-	Start() error
-	GetState() (State, error)
-	MountDisk(string) error
-	UnmountDisk(string) error
-	ListDisk() ([]string, error)
-	MigrateDisk() error
-}
 
 type agentClient struct {
 	agentRequest agentRequest
@@ -32,19 +21,20 @@ type agentClient struct {
 
 func NewAgentClient(
 	endpoint string,
-	uuid string,
+	directorID string,
 	getTaskDelay time.Duration,
 	httpClient bmhttpclient.HTTPClient,
 	logger boshlog.Logger,
-) AgentClient {
+) bmac.AgentClient {
+	// if this were NATS, we would need the agentID, but since it's http, the endpoint is unique to the agent
 	agentEndpoint := fmt.Sprintf("%s/agent", endpoint)
-	agentRequest := NewAgentRequest(agentEndpoint, httpClient, uuid)
+	agentRequest := NewAgentRequest(agentEndpoint, httpClient, directorID)
 
 	return &agentClient{
 		agentRequest: agentRequest,
 		getTaskDelay: getTaskDelay,
 		logger:       logger,
-		logTag:       "agentClient",
+		logTag:       "httpAgentClient",
 	}
 }
 
@@ -80,14 +70,17 @@ func (c *agentClient) Start() error {
 	return nil
 }
 
-func (c *agentClient) GetState() (State, error) {
+func (c *agentClient) GetState() (bmac.AgentState, error) {
 	var response StateResponse
 	err := c.agentRequest.Send("get_state", []interface{}{}, &response)
 	if err != nil {
-		return State{}, bosherr.WrapError(err, "Sending get_state to the agent")
+		return bmac.AgentState{}, bosherr.WrapError(err, "Sending get_state to the agent")
 	}
 
-	return response.Value, nil
+	agentState := bmac.AgentState{
+		JobState: response.Value.JobState,
+	}
+	return agentState, nil
 }
 
 func (c *agentClient) ListDisk() ([]string, error) {

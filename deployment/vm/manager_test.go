@@ -16,6 +16,7 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
+	fakebmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 
@@ -46,7 +47,7 @@ var _ = Describe("Manager", func() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
-		fakeAgentClientFactory := fakebmagentclient.NewFakeAgentClientFactory()
+		fakeAgentClientFactory := fakebmhttpagent.NewFakeAgentClientFactory()
 		fakeAgentClientFactory.CreateAgentClient = fakeAgentClient
 		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
 		fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
@@ -65,6 +66,7 @@ var _ = Describe("Manager", func() {
 			fakeAgentClientFactory,
 			fakeApplySpecFactory,
 			fakeTemplatesSpecGenerator,
+			fakeUUIDGenerator,
 			fs,
 			logger,
 		).NewManager(fakeCloud, "fake-mbus-url")
@@ -140,6 +142,7 @@ var _ = Describe("Manager", func() {
 
 			Expect(fakeCloud.CreateVMInput).To(Equal(
 				fakebmcloud.CreateVMInput{
+					AgentID:         "fake-uuid-0",
 					StemcellCID:     "fake-stemcell-cid",
 					CloudProperties: expectedCloudProperties,
 					NetworksSpec:    expectedNetworksSpec,

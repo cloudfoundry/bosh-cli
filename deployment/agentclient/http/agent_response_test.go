@@ -1,4 +1,4 @@
-package agentclient_test
+package http_test
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 )
 
 var _ = Describe("AgentResponse", func() {

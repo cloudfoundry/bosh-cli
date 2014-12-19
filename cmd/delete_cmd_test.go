@@ -12,6 +12,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
+	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -64,7 +65,7 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 
 			mockAgentClient        *mock_agentclient.MockAgentClient
-			mockAgentClientFactory *mock_agentclient.MockFactory
+			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockCloud              *mock_cloud.MockCloud
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
@@ -126,6 +127,7 @@ cloud_provider:
 				mockAgentClientFactory,
 				fakeApplySpecFactory,
 				fakeTemplatesSpecGenerator,
+				fakeUUIDGenerator,
 				fs,
 				logger,
 			)
@@ -173,7 +175,7 @@ cloud_provider:
 
 			ui = &fakeui.FakeUI{}
 
-			mockAgentClientFactory = mock_agentclient.NewMockFactory(mockCtrl)
+			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
 			userConfig = bmconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}

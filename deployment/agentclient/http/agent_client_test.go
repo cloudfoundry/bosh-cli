@@ -1,15 +1,16 @@
-package agentclient_test
+package http_test
 
 import (
 	"encoding/json"
 	"net/http"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	fakebmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient/fakes"
 )
@@ -17,7 +18,7 @@ import (
 var _ = Describe("AgentClient", func() {
 	var (
 		fakeHTTPClient *fakebmhttpclient.FakeHTTPClient
-		agentClient    AgentClient
+		agentClient    bmac.AgentClient
 	)
 
 	BeforeEach(func() {
@@ -301,7 +302,7 @@ var _ = Describe("AgentClient", func() {
 			It("makes a POST request to the endpoint", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(stateResponse).To(Equal(State{JobState: "running"}))
+				Expect(stateResponse).To(Equal(bmac.AgentState{JobState: "running"}))
 
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
 				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
@@ -327,7 +328,7 @@ var _ = Describe("AgentClient", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("status code: 500"))
-				Expect(stateResponse).To(Equal(State{}))
+				Expect(stateResponse).To(Equal(bmac.AgentState{}))
 			})
 		})
 
@@ -340,7 +341,7 @@ var _ = Describe("AgentClient", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("bad request"))
-				Expect(stateResponse).To(Equal(State{}))
+				Expect(stateResponse).To(Equal(bmac.AgentState{}))
 			})
 		})
 	})

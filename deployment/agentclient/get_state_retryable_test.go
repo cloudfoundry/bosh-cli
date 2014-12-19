@@ -26,7 +26,7 @@ var _ = Describe("GetStateRetryable", func() {
 
 		Context("when get_state fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetGetStateBehavior(State{}, errors.New("fake-get-state-error"))
+				fakeAgentClient.SetGetStateBehavior(AgentState{}, errors.New("fake-get-state-error"))
 			})
 
 			It("returns an error", func() {
@@ -40,7 +40,7 @@ var _ = Describe("GetStateRetryable", func() {
 
 		Context("when get_state returns state as pending", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetGetStateBehavior(State{JobState: "pending"}, nil)
+				fakeAgentClient.SetGetStateBehavior(AgentState{JobState: "pending"}, nil)
 			})
 
 			It("returns retryable error", func() {
@@ -53,7 +53,7 @@ var _ = Describe("GetStateRetryable", func() {
 
 		Context("when get_state returns state as running", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetGetStateBehavior(State{JobState: "running"}, nil)
+				fakeAgentClient.SetGetStateBehavior(AgentState{JobState: "running"}, nil)
 			})
 
 			It("returns no error", func() {

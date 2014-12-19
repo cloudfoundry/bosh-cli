@@ -70,7 +70,7 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (cloudStemcell Clo
 			return bosherr.WrapError(err, "Getting cloud properties from stemcell manifest")
 		}
 
-		cid, err := m.cloud.CreateStemcell(cloudProperties, manifest.ImagePath)
+		cid, err := m.cloud.CreateStemcell(manifest.ImagePath, cloudProperties)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
 		}

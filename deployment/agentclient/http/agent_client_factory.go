@@ -1,14 +1,15 @@
-package agentclient
+package http
 
 import (
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
 )
 
-type Factory interface {
-	Create(mbusURL string) AgentClient
+type AgentClientFactory interface {
+	Create(mbusURL string) bmac.AgentClient
 }
 
 type agentClientFactory struct {
@@ -21,7 +22,7 @@ func NewAgentClientFactory(
 	deploymentUUID string,
 	getTaskDelay time.Duration,
 	logger boshlog.Logger,
-) Factory {
+) AgentClientFactory {
 	return agentClientFactory{
 		deploymentUUID: deploymentUUID,
 		getTaskDelay:   getTaskDelay,
@@ -29,7 +30,7 @@ func NewAgentClientFactory(
 	}
 }
 
-func (f agentClientFactory) Create(mbusURL string) AgentClient {
+func (f agentClientFactory) Create(mbusURL string) bmac.AgentClient {
 	httpClient := bmhttpclient.NewHTTPClient(f.logger)
 	return NewAgentClient(mbusURL, f.deploymentUUID, f.getTaskDelay, httpClient, f.logger)
 }

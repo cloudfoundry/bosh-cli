@@ -46,7 +46,7 @@ func (f *factory) NewCloud(jobs []bmcpiinstall.InstalledJob) (Cloud, error) {
 		PackagesDir: f.deploymentWorkspace.PackagesPath(),
 	}
 
-	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpiJob, f.deploymentWorkspace.DeploymentUUID(), f.logger)
+	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpiJob, f.logger)
 	return NewCloud(cpiCmdRunner, f.deploymentWorkspace.DeploymentUUID(), f.logger), nil
 }
 

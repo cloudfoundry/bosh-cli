@@ -1,4 +1,4 @@
-package agentclient_test
+package http_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestAgentclient(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "AgentClient Suite")
+	RunSpecs(t, "HTTP AgentClient Suite")
 }

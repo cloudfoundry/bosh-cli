@@ -16,23 +16,23 @@ import (
 
 var _ = Describe("CpiCmdRunner", func() {
 	var (
-		cpiCmdRunner   CPICmdRunner
-		cmdRunner      *fakesys.FakeCmdRunner
-		deploymentUUID string
-		cpiJob         CPIJob
-		cmdInputBytes  []byte
+		cpiCmdRunner  CPICmdRunner
+		context       CmdContext
+		cmdRunner     *fakesys.FakeCmdRunner
+		cpiJob        CPIJob
+		cmdInputBytes []byte
 	)
 
 	BeforeEach(func() {
-		deploymentUUID = "fake-deployment-uuid"
+		context = CmdContext{
+			DirectorID: "fake-director-id",
+		}
 		cmdInput := CmdInput{
-			Method: "fake-method",
+			Context: context,
+			Method:  "fake-method",
 			Arguments: []interface{}{
 				"fake-argument-1",
 				"fake-argument-2",
-			},
-			Context: CmdContext{
-				DirectorUUID: deploymentUUID,
 			},
 		}
 
@@ -48,7 +48,7 @@ var _ = Describe("CpiCmdRunner", func() {
 
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpiJob, deploymentUUID, logger)
+		cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpiJob, logger)
 	})
 
 	Describe("Run", func() {
@@ -63,7 +63,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			}
 			cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 
-			_, err = cpiCmdRunner.Run("fake-method", "fake-argument-1", "fake-argument-2")
+			_, err = cpiCmdRunner.Run(context, "fake-method", "fake-argument-1", "fake-argument-2")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
 
@@ -97,7 +97,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			})
 
 			It("returns the result", func() {
-				cmdOutput, err := cpiCmdRunner.Run("fake-method", "fake-argument")
+				cmdOutput, err := cpiCmdRunner.Run(context, "fake-method", "fake-argument")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cmdOutput).To(Equal(CmdOutput{
 					Result: "fake-cid",
@@ -126,7 +126,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := cpiCmdRunner.Run("fake-method", "fake-argument")
+				_, err := cpiCmdRunner.Run(context, "fake-method", "fake-argument")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
 			})

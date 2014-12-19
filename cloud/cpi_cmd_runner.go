@@ -17,7 +17,15 @@ type CmdInput struct {
 }
 
 type CmdContext struct {
-	DirectorUUID string `json:"director_uuid"`
+	DirectorID string `json:"director_id"`
+}
+
+func (c CmdContext) String() string {
+	bytes, err := json.Marshal(c)
+	if err != nil {
+		panic(fmt.Sprintf("Error stringifying CmdContext %#v: %s", c, err.Error()))
+	}
+	return fmt.Sprintf("CmdContext%s", string(bytes))
 }
 
 type CmdError struct {
@@ -41,39 +49,34 @@ type CmdOutput struct {
 }
 
 type CPICmdRunner interface {
-	Run(string, ...interface{}) (CmdOutput, error)
+	Run(context CmdContext, method string, args ...interface{}) (CmdOutput, error)
 }
 
 type cpiCmdRunner struct {
-	cmdRunner      boshsys.CmdRunner
-	cpiJob         CPIJob
-	deploymentUUID string
-	logger         boshlog.Logger
-	logTag         string
+	cmdRunner boshsys.CmdRunner
+	cpiJob    CPIJob
+	logger    boshlog.Logger
+	logTag    string
 }
 
 func NewCPICmdRunner(
 	cmdRunner boshsys.CmdRunner,
 	cpiJob CPIJob,
-	deploymentUUID string,
 	logger boshlog.Logger,
 ) CPICmdRunner {
 	return &cpiCmdRunner{
-		cmdRunner:      cmdRunner,
-		cpiJob:         cpiJob,
-		deploymentUUID: deploymentUUID,
-		logger:         logger,
-		logTag:         "cpiCmdRunner",
+		cmdRunner: cmdRunner,
+		cpiJob:    cpiJob,
+		logger:    logger,
+		logTag:    "cpiCmdRunner",
 	}
 }
 
-func (r *cpiCmdRunner) Run(method string, args ...interface{}) (CmdOutput, error) {
+func (r *cpiCmdRunner) Run(context CmdContext, method string, args ...interface{}) (CmdOutput, error) {
 	cmdInput := CmdInput{
 		Method:    method,
 		Arguments: args,
-		Context: CmdContext{
-			DirectorUUID: r.deploymentUUID,
-		},
+		Context:   context,
 	}
 	inputBytes, err := json.Marshal(cmdInput)
 	if err != nil {

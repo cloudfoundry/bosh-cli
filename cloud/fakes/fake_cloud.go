@@ -34,8 +34,8 @@ type FakeCloud struct {
 }
 
 type CreateStemcellInput struct {
-	CloudProperties map[string]interface{}
 	ImagePath       string
+	CloudProperties map[string]interface{}
 }
 
 type HasVMInput struct {
@@ -43,6 +43,7 @@ type HasVMInput struct {
 }
 
 type CreateVMInput struct {
+	AgentID         string
 	StemcellCID     string
 	CloudProperties map[string]interface{}
 	NetworksSpec    map[string]interface{}
@@ -84,10 +85,10 @@ func NewFakeCloud() *FakeCloud {
 	}
 }
 
-func (c *FakeCloud) CreateStemcell(cloudProperties map[string]interface{}, imagePath string) (string, error) {
+func (c *FakeCloud) CreateStemcell(imagePath string, cloudProperties map[string]interface{}) (string, error) {
 	c.CreateStemcellInputs = append(c.CreateStemcellInputs, CreateStemcellInput{
-		CloudProperties: cloudProperties,
 		ImagePath:       imagePath,
+		CloudProperties: cloudProperties,
 	})
 
 	return c.CreateStemcellCID, c.CreateStemcellErr
@@ -108,12 +109,14 @@ func (c *FakeCloud) HasVM(vmCID string) (bool, error) {
 }
 
 func (c *FakeCloud) CreateVM(
+	agentID string,
 	stemcellCID string,
 	cloudProperties map[string]interface{},
 	networksSpec map[string]interface{},
 	env map[string]interface{},
 ) (string, error) {
 	c.CreateVMInput = CreateVMInput{
+		AgentID:         agentID,
 		StemcellCID:     stemcellCID,
 		CloudProperties: cloudProperties,
 		NetworksSpec:    networksSpec,

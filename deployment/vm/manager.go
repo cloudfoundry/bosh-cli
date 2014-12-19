@@ -4,9 +4,12 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -22,10 +25,11 @@ type manager struct {
 	stemcellRepo           bmconfig.StemcellRepo
 	diskDeployer           DiskDeployer
 	mbusURL                string
-	agentClientFactory     bmagentclient.Factory
+	agentClientFactory     bmhttpagent.AgentClientFactory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
 	applySpecFactory       bmas.Factory
 	cloud                  bmcloud.Cloud
+	uuidGenerator          boshuuid.Generator
 	fs                     boshsys.FileSystem
 	logger                 boshlog.Logger
 	logTag                 string
@@ -36,10 +40,11 @@ func NewManager(
 	stemcellRepo bmconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
 	mbusURL string,
-	agentClientFactory bmagentclient.Factory,
+	agentClientFactory bmhttpagent.AgentClientFactory,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
 	applySpecFactory bmas.Factory,
 	cloud bmcloud.Cloud,
+	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) Manager {
@@ -52,8 +57,9 @@ func NewManager(
 		agentClientFactory:     agentClientFactory,
 		applySpecFactory:       applySpecFactory,
 		templatesSpecGenerator: templatesSpecGenerator,
-		logger:                 logger,
+		uuidGenerator:          uuidGenerator,
 		fs:                     fs,
+		logger:                 logger,
 		logTag:                 "vmManager",
 	}
 }
@@ -104,7 +110,12 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapError(err, "Getting resource pool env")
 	}
 
-	cid, err := m.cloud.CreateVM(stemcell.CID(), cloudProperties, networksSpec, env)
+	agentID, err := m.uuidGenerator.Generate()
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Generating agent ID")
+	}
+
+	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), cloudProperties, networksSpec, env)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Creating vm with stemcell cid '%s'", stemcell.CID())
 	}

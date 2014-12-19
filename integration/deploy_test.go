@@ -14,6 +14,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
+	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -66,6 +67,7 @@ var _ = Describe("bosh-micro", func() {
 			fakeCPIInstaller        *fakebmcpi.FakeInstaller
 			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
+			fakeAgentIDGenerator    *fakeuuid.FakeGenerator
 			fakeSHA1Calculator      *fakebmcrypto.FakeSha1Calculator
 			deploymentConfigService bmconfig.DeploymentConfigService
 			vmRepo                  bmconfig.VMRepo
@@ -91,7 +93,7 @@ var _ = Describe("bosh-micro", func() {
 			applySpec                  bmas.ApplySpec
 
 			mockAgentClient        *mock_agentclient.MockAgentClient
-			mockAgentClientFactory *mock_agentclient.MockFactory
+			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockCloud              *mock_cloud.MockCloud
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
@@ -107,7 +109,7 @@ var _ = Describe("bosh-micro", func() {
 					"cloud_properties": cloudProperties,
 				},
 			}
-			agentRunningState = bmac.State{JobState: "running"}
+			agentRunningState = bmac.AgentState{JobState: "running"}
 			mbusURL           = "http://fake-mbus-url"
 
 			expectHasVM1    *gomock.Call
@@ -292,13 +294,14 @@ cloud_provider:
 		}
 
 		var expectDeployFlow = func() {
+			agentID := "fake-uuid-0"
 			vmCID := "fake-vm-cid-1"
 			diskCID := "fake-disk-cid-1"
 			diskSize := 1024
 
 			gomock.InOrder(
-				mockCloud.EXPECT().CreateStemcell(cloudProperties, stemcellImagePath).Return(stemcellCID, nil),
-				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(vmCID, nil),
+				mockCloud.EXPECT().CreateStemcell(stemcellImagePath, cloudProperties).Return(stemcellCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(vmCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				mockCloud.EXPECT().CreateDisk(diskSize, cloudProperties, vmCID).Return(diskCID, nil),
@@ -313,6 +316,7 @@ cloud_provider:
 		}
 
 		var expectDeployWithDiskMigration = func() {
+			agentID := "fake-uuid-1"
 			oldVMCID := "fake-vm-cid-1"
 			newVMCID := "fake-vm-cid-2"
 			oldDiskCID := "fake-disk-cid-1"
@@ -332,7 +336,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -354,6 +358,7 @@ cloud_provider:
 		}
 
 		var expectDeployWithDiskMigrationNoVMShutdown = func() {
+			agentID := "fake-uuid-1"
 			oldVMCID := "fake-vm-cid-1"
 			newVMCID := "fake-vm-cid-2"
 			oldDiskCID := "fake-disk-cid-1"
@@ -370,7 +375,7 @@ cloud_provider:
 				expectDeleteVM1,
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -392,6 +397,7 @@ cloud_provider:
 		}
 
 		var expectDeployWithNoDiskToMigrate = func() {
+			agentID := "fake-uuid-1"
 			oldVMCID := "fake-vm-cid-1"
 			newVMCID := "fake-vm-cid-2"
 			oldDiskCID := "fake-disk-cid-1"
@@ -410,7 +416,7 @@ cloud_provider:
 				expectDeleteVM1,
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attaching a missing disk will fail
@@ -422,6 +428,7 @@ cloud_provider:
 		}
 
 		var expectDeployWithDiskMigrationFailure = func() {
+			agentID := "fake-uuid-1"
 			oldVMCID := "fake-vm-cid-1"
 			newVMCID := "fake-vm-cid-2"
 			oldDiskCID := "fake-disk-cid-1"
@@ -442,7 +449,7 @@ cloud_provider:
 				expectDeleteVM1,
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate (with error)
@@ -456,6 +463,7 @@ cloud_provider:
 		}
 
 		var expectDeployWithDiskMigrationRepair = func() {
+			agentID := "fake-uuid-2"
 			oldVMCID := "fake-vm-cid-2"
 			newVMCID := "fake-vm-cid-3"
 			oldDiskCID := "fake-disk-cid-1"
@@ -473,7 +481,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -517,16 +525,17 @@ cloud_provider:
 		}
 
 		var expectDeployFlowWithRegistry = func() {
+			agentID := "fake-uuid-0"
 			vmCID := "fake-vm-cid-1"
 			diskCID := "fake-disk-cid-1"
 			diskSize := 1024
 
 			gomock.InOrder(
-				mockCloud.EXPECT().CreateStemcell(cloudProperties, stemcellImagePath).Do(
+				mockCloud.EXPECT().CreateStemcell(stemcellImagePath, cloudProperties).Do(
 					func(_, _ interface{}) { expectRegistryToWork() },
 				).Return(stemcellCID, nil),
-				mockCloud.EXPECT().CreateVM(stemcellCID, cloudProperties, networksSpec, env).Do(
-					func(_, _, _, _ interface{}) { expectRegistryToWork() },
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Do(
+					func(_, _, _, _, _ interface{}) { expectRegistryToWork() },
 				).Return(vmCID, nil),
 
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
@@ -553,6 +562,7 @@ cloud_provider:
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, logger)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
+			fakeAgentIDGenerator = fakeuuid.NewFakeGenerator()
 
 			fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
 
@@ -585,7 +595,7 @@ cloud_provider:
 			ui = &fakeui.FakeUI{}
 			eventLogger = bmeventlog.NewEventLogger(ui)
 
-			mockAgentClientFactory = mock_agentclient.NewMockFactory(mockCtrl)
+			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
 			stemcellManagerFactory = bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
@@ -600,6 +610,7 @@ cloud_provider:
 				mockAgentClientFactory,
 				fakeApplySpecFactory,
 				fakeTemplatesSpecGenerator,
+				fakeAgentIDGenerator,
 				fs,
 				logger,
 			)

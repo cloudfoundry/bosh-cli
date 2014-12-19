@@ -11,6 +11,7 @@ type FakeCPICmdRunner struct {
 }
 
 type RunInput struct {
+	Context   bmcloud.CmdContext
 	Method    string
 	Arguments []interface{}
 }
@@ -19,8 +20,9 @@ func NewFakeCPICmdRunner() *FakeCPICmdRunner {
 	return &FakeCPICmdRunner{}
 }
 
-func (r *FakeCPICmdRunner) Run(method string, args ...interface{}) (bmcloud.CmdOutput, error) {
+func (r *FakeCPICmdRunner) Run(context bmcloud.CmdContext, method string, args ...interface{}) (bmcloud.CmdOutput, error) {
 	r.RunInputs = append(r.RunInputs, RunInput{
+		Context:   context,
 		Method:    method,
 		Arguments: args,
 	})

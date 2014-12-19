@@ -1,4 +1,4 @@
-package agentclient
+package http
 
 import (
 	"encoding/json"
@@ -16,16 +16,16 @@ type AgentRequestMessage struct {
 }
 
 type agentRequest struct {
-	uuid       string
+	directorID string
 	endpoint   string
 	httpClient bmhttpclient.HTTPClient
 }
 
-func NewAgentRequest(endpoint string, httpClient bmhttpclient.HTTPClient, uuid string) agentRequest {
+func NewAgentRequest(endpoint string, httpClient bmhttpclient.HTTPClient, directorID string) agentRequest {
 	return agentRequest{
 		endpoint:   endpoint,
 		httpClient: httpClient,
-		uuid:       uuid,
+		directorID: directorID,
 	}
 }
 
@@ -33,7 +33,7 @@ func (r agentRequest) Send(method string, arguments []interface{}, response Resp
 	postBody := AgentRequestMessage{
 		Method:    method,
 		Arguments: arguments,
-		ReplyTo:   r.uuid,
+		ReplyTo:   r.directorID,
 	}
 
 	agentRequestJSON, err := json.Marshal(postBody)

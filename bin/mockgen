@@ -11,7 +11,8 @@ srcFiles=(
   cloud/Cloud
 	cpi/Deployment,DeploymentFactory
 	deployment/Deployment,Factory
-	deployment/agentclient/AgentClient,Factory
+	deployment/agentclient/AgentClient
+	deployment/agentclient/http/AgentClientFactory
   registry/Server,ServerManager
 )
 

@@ -49,7 +49,7 @@ func (_mr *_MockCloudRecorder) CreateDisk(arg0, arg1, arg2 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateDisk", arg0, arg1, arg2)
 }
 
-func (_m *MockCloud) CreateStemcell(_param0 map[string]interface{}, _param1 string) (string, error) {
+func (_m *MockCloud) CreateStemcell(_param0 string, _param1 map[string]interface{}) (string, error) {
 	ret := _m.ctrl.Call(_m, "CreateStemcell", _param0, _param1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
@@ -60,15 +60,15 @@ func (_mr *_MockCloudRecorder) CreateStemcell(arg0, arg1 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateStemcell", arg0, arg1)
 }
 
-func (_m *MockCloud) CreateVM(_param0 string, _param1 map[string]interface{}, _param2 map[string]interface{}, _param3 map[string]interface{}) (string, error) {
-	ret := _m.ctrl.Call(_m, "CreateVM", _param0, _param1, _param2, _param3)
+func (_m *MockCloud) CreateVM(_param0 string, _param1 string, _param2 map[string]interface{}, _param3 map[string]interface{}, _param4 map[string]interface{}) (string, error) {
+	ret := _m.ctrl.Call(_m, "CreateVM", _param0, _param1, _param2, _param3, _param4)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockCloudRecorder) CreateVM(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateVM", arg0, arg1, arg2, arg3)
+func (_mr *_MockCloudRecorder) CreateVM(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateVM", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockCloud) DeleteDisk(_param0 string) error {

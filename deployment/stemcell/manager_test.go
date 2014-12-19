@@ -104,10 +104,10 @@ var _ = Describe("Manager", func() {
 
 			Expect(fakeCloud.CreateStemcellInputs).To(Equal([]fakebmcloud.CreateStemcellInput{
 				{
+					ImagePath: "fake-image-path",
 					CloudProperties: map[string]interface{}{
 						"fake-prop-key": "fake-prop-value",
 					},
-					ImagePath: "fake-image-path",
 				},
 			}))
 		})

@@ -20,7 +20,7 @@ import (
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
 	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployment/blobstore"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
@@ -263,7 +263,7 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
 	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
 
-	agentClientFactory := bmagentclient.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
+	agentClientFactory := bmhttpagent.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
 	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
 	applySpecFactory := bmas.NewFactory()
@@ -285,6 +285,7 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 		agentClientFactory,
 		applySpecFactory,
 		templatesSpecGenerator,
+		f.uuidGenerator,
 		f.fs,
 		f.logger,
 	)
