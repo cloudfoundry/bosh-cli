@@ -33,7 +33,15 @@ where `cpi-release.tgz` is a BOSH CPI release and `stemcell.tgz` is a BOSH stemc
 
 Please see the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
 
-To output debug logs to stderr during bosh-micro commands set the `BOSH_MICRO_LOG` environment variable to any value.
+## Logging
+
+To output logs during bosh-micro commands set the `BOSH_MICRO_LOG_LEVEL` environment variable to one of the following values: 
+
+DEBUG, INFO, WARN, ERROR, NONE (default)
+
+To output logs to a file set the `BOSH_MICRO_LOG_PATH` environment variable to the path of the file to create and/or append to. 
+
+By default (when `BOSH_MICRO_LOG_LEVEL` is not NONE) logs write to STDOUT (debug & info) & STDERR (warn & error).
 
 
 ## Contributing

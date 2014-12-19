@@ -50,7 +50,7 @@ func main() {
 
 func newLogger() boshlog.Logger {
 	logLevelString := os.Getenv("BOSH_MICRO_LOG_LEVEL")
-	level := boshlog.LevelError
+	level := boshlog.LevelNone
 	if logLevelString != "" {
 		var err error
 		level, err = boshlog.Levelify(logLevelString)
