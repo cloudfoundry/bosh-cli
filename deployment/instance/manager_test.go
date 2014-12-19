@@ -16,7 +16,6 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
@@ -32,7 +31,7 @@ var _ = Describe("Manager", func() {
 		fakeVMManager        *fakebmvm.FakeManager
 		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
 		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
-		fakeDiskDeployer     *fakebminstance.FakeDiskDeployer
+		fakeDiskDeployer     *fakebmvm.FakeDiskDeployer
 		logger               boshlog.Logger
 		fakeStage            *fakebmlog.FakeStage
 
@@ -49,7 +48,7 @@ var _ = Describe("Manager", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
-		fakeDiskDeployer = fakebminstance.NewFakeDiskDeployer()
+		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -59,7 +58,6 @@ var _ = Describe("Manager", func() {
 			fakeCloud,
 			fakeVMManager,
 			fakeSSHTunnelFactory,
-			fakeDiskDeployer,
 			logger,
 		)
 	})
@@ -140,7 +138,6 @@ var _ = Describe("Manager", func() {
 				"fake-job-name",
 				0,
 				deploymentManifest,
-				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
 				sshTunnelConfig,
@@ -160,7 +157,6 @@ var _ = Describe("Manager", func() {
 				"fake-job-name",
 				0,
 				deploymentManifest,
-				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
 				sshTunnelConfig,
@@ -177,7 +173,6 @@ var _ = Describe("Manager", func() {
 				"fake-job-name",
 				0,
 				deploymentManifest,
-				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
 				sshTunnelConfig,
@@ -205,7 +200,6 @@ var _ = Describe("Manager", func() {
 					"fake-job-name",
 					0,
 					deploymentManifest,
-					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
 					sshTunnelConfig,
@@ -220,7 +214,6 @@ var _ = Describe("Manager", func() {
 				"fake-job-name",
 				0,
 				deploymentManifest,
-				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
 				sshTunnelConfig,
@@ -243,12 +236,11 @@ var _ = Describe("Manager", func() {
 			}))
 		})
 
-		It("deploys the disk", func() {
+		It("updates the disks", func() {
 			_, err := manager.Create(
 				"fake-job-name",
 				0,
 				deploymentManifest,
-				extractedStemcell,
 				fakeCloudStemcell,
 				registry,
 				sshTunnelConfig,
@@ -256,168 +248,12 @@ var _ = Describe("Manager", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebminstance.DiskDeployInput{
+			Expect(fakeVM.UpdateDisksInputs).To(Equal([]fakebmvm.UpdateDisksInput{
 				{
-					DiskPool:         diskPool,
-					Cloud:            fakeCloud,
-					VM:               fakeVM,
-					EventLoggerStage: fakeStage,
+					DiskPool: diskPool,
+					Stage:    fakeStage,
 				},
 			}))
-		})
-
-		It("tells the agent to start the jobs", func() {
-			_, err := manager.Create(
-				"fake-job-name",
-				0,
-				deploymentManifest,
-				extractedStemcell,
-				fakeCloudStemcell,
-				registry,
-				sshTunnelConfig,
-				fakeStage,
-			)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeVM.StartCalled).To(Equal(1))
-		})
-
-		It("waits until agent reports state as running", func() {
-			_, err := manager.Create(
-				"fake-job-name",
-				0,
-				deploymentManifest,
-				extractedStemcell,
-				fakeCloudStemcell,
-				registry,
-				sshTunnelConfig,
-				fakeStage,
-			)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
-				MaxAttempts: 5,
-				Delay:       1 * time.Second,
-			}))
-		})
-
-		It("logs start and stop events to the eventLogger", func() {
-			_, err := manager.Create(
-				"fake-job-name",
-				0,
-				deploymentManifest,
-				extractedStemcell,
-				fakeCloudStemcell,
-				registry,
-				sshTunnelConfig,
-				fakeStage,
-			)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Starting instance 'fake-job-name/0'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Waiting for instance 'fake-job-name/0' to be running",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-		})
-
-		Context("when updating instance state fails", func() {
-			BeforeEach(func() {
-				fakeVM.ApplyErr = errors.New("fake-apply-error")
-			})
-
-			It("logs start and stop events to the eventLogger", func() {
-				_, err := manager.Create(
-					"fake-job-name",
-					0,
-					deploymentManifest,
-					extractedStemcell,
-					fakeCloudStemcell,
-					registry,
-					sshTunnelConfig,
-					fakeStage,
-				)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
-
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Starting instance 'fake-job-name/0'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "Applying the agent state: fake-apply-error",
-				}))
-			})
-		})
-
-		Context("when starting agent services fails", func() {
-			BeforeEach(func() {
-				fakeVM.StartErr = errors.New("fake-start-error")
-			})
-
-			It("logs start and stop events to the eventLogger", func() {
-				_, err := manager.Create(
-					"fake-job-name",
-					0,
-					deploymentManifest,
-					extractedStemcell,
-					fakeCloudStemcell,
-					registry,
-					sshTunnelConfig,
-					fakeStage,
-				)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
-
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Starting instance 'fake-job-name/0'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "Starting the agent: fake-start-error",
-				}))
-			})
-		})
-
-		Context("when waiting for running state fails", func() {
-			BeforeEach(func() {
-				fakeVM.WaitToBeRunningErr = errors.New("fake-wait-running-error")
-			})
-
-			It("logs start and stop events to the eventLogger", func() {
-				_, err := manager.Create(
-					"fake-job-name",
-					0,
-					deploymentManifest,
-					extractedStemcell,
-					fakeCloudStemcell,
-					registry,
-					sshTunnelConfig,
-					fakeStage,
-				)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
-
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Waiting for instance 'fake-job-name/0' to be running",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "fake-wait-running-error",
-				}))
-			})
 		})
 
 		Context("when registry or sshTunnelConfig are not empty", func() {
@@ -442,7 +278,6 @@ var _ = Describe("Manager", func() {
 					"fake-job-name",
 					0,
 					deploymentManifest,
-					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
 					sshTunnelConfig,
@@ -472,7 +307,6 @@ var _ = Describe("Manager", func() {
 						"fake-job-name",
 						0,
 						deploymentManifest,
-						extractedStemcell,
 						fakeCloudStemcell,
 						registry,
 						sshTunnelConfig,
@@ -494,7 +328,6 @@ var _ = Describe("Manager", func() {
 					"fake-job-name",
 					0,
 					deploymentManifest,
-					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
 					sshTunnelConfig,
@@ -516,7 +349,6 @@ var _ = Describe("Manager", func() {
 					"fake-job-name",
 					0,
 					deploymentManifest,
-					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
 					sshTunnelConfig,
@@ -531,7 +363,6 @@ var _ = Describe("Manager", func() {
 					"fake-job-name",
 					0,
 					deploymentManifest,
-					extractedStemcell,
 					fakeCloudStemcell,
 					registry,
 					sshTunnelConfig,

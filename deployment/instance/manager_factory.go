@@ -14,18 +14,15 @@ type ManagerFactory interface {
 
 type managerFactory struct {
 	sshTunnelFactory bmsshtunnel.Factory
-	diskDeployer     DiskDeployer
 	logger           boshlog.Logger
 }
 
 func NewManagerFactory(
 	sshTunnelFactory bmsshtunnel.Factory,
-	diskDeployer DiskDeployer,
 	logger boshlog.Logger,
 ) ManagerFactory {
 	return &managerFactory{
 		sshTunnelFactory: sshTunnelFactory,
-		diskDeployer:     diskDeployer,
 		logger:           logger,
 	}
 }
@@ -35,7 +32,6 @@ func (f *managerFactory) NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager)
 		cloud,
 		vmManager,
 		f.sshTunnelFactory,
-		f.diskDeployer,
 		f.logger,
 	)
 }

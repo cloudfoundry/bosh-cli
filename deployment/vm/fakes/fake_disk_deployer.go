@@ -8,24 +8,24 @@ import (
 )
 
 type FakeDiskDeployer struct {
-	DeployInputs []DiskDeployInput
-	deployOutput diskDeployOutput
+	DeployInputs  []DeployInput
+	deployOutputs deployOutput
 }
 
-type DiskDeployInput struct {
+type DeployInput struct {
 	DiskPool         bmmanifest.DiskPool
 	Cloud            bmcloud.Cloud
 	VM               bmvm.VM
 	EventLoggerStage bmeventlog.Stage
 }
 
-type diskDeployOutput struct {
+type deployOutput struct {
 	err error
 }
 
 func NewFakeDiskDeployer() *FakeDiskDeployer {
 	return &FakeDiskDeployer{
-		DeployInputs: []DiskDeployInput{},
+		DeployInputs: []DeployInput{},
 	}
 }
 
@@ -35,18 +35,18 @@ func (d *FakeDiskDeployer) Deploy(
 	vm bmvm.VM,
 	eventLoggerStage bmeventlog.Stage,
 ) error {
-	d.DeployInputs = append(d.DeployInputs, DiskDeployInput{
+	d.DeployInputs = append(d.DeployInputs, DeployInput{
 		DiskPool:         diskPool,
 		Cloud:            cloud,
 		VM:               vm,
 		EventLoggerStage: eventLoggerStage,
 	})
 
-	return d.deployOutput.err
+	return d.deployOutputs.err
 }
 
 func (d *FakeDiskDeployer) SetDeployBehavior(err error) {
-	d.deployOutput = diskDeployOutput{
+	d.deployOutputs = deployOutput{
 		err: err,
 	}
 }

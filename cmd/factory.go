@@ -63,7 +63,7 @@ type factory struct {
 	diskRepo                bmconfig.DiskRepo
 	registryServerManager   bmregistry.ServerManager
 	sshTunnelFactory        bmsshtunnel.Factory
-	diskDeployer            bminstance.DiskDeployer
+	diskDeployer            bmvm.DiskDeployer
 	diskManagerFactory      bmdisk.ManagerFactory
 	instanceManagerFactory  bminstance.ManagerFactory
 	stemcellManagerFactory  bmstemcell.ManagerFactory
@@ -225,12 +225,12 @@ func (f *factory) loadSSHTunnelFactory() bmsshtunnel.Factory {
 	return f.sshTunnelFactory
 }
 
-func (f *factory) loadDiskDeployer() bminstance.DiskDeployer {
+func (f *factory) loadDiskDeployer() bmvm.DiskDeployer {
 	if f.diskDeployer != nil {
 		return f.diskDeployer
 	}
 
-	f.diskDeployer = bminstance.NewDiskDeployer(f.loadDiskManagerFactory(), f.loadDiskRepo(), f.logger)
+	f.diskDeployer = bmvm.NewDiskDeployer(f.loadDiskManagerFactory(), f.loadDiskRepo(), f.logger)
 	return f.diskDeployer
 }
 
@@ -250,7 +250,6 @@ func (f *factory) loadInstanceManagerFactory() bminstance.ManagerFactory {
 
 	f.instanceManagerFactory = bminstance.NewManagerFactory(
 		f.loadSSHTunnelFactory(),
-		f.loadDiskDeployer(),
 		f.logger,
 	)
 	return f.instanceManagerFactory
@@ -282,6 +281,7 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 	f.vmManagerFactory = bmvm.NewManagerFactory(
 		f.loadVMRepo(),
 		f.loadStemcellRepo(),
+		f.loadDiskDeployer(),
 		agentClientFactory,
 		applySpecFactory,
 		templatesSpecGenerator,
@@ -324,7 +324,6 @@ func (f *factory) loadDeploymentFactory() bmdepl.Factory {
 		f.loadStemcellManagerFactory(),
 		f.loadVMManagerFactory(),
 		f.loadSSHTunnelFactory(),
-		f.loadDiskDeployer(),
 		f.loadEventLogger(),
 		f.logger,
 	)

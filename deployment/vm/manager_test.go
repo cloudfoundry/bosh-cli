@@ -17,6 +17,7 @@ import (
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
@@ -32,6 +33,7 @@ var _ = Describe("Manager", func() {
 		deploymentManifest         bmmanifest.Manifest
 		fakeVMRepo                 *fakebmconfig.FakeVMRepo
 		stemcellRepo               bmconfig.StemcellRepo
+		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
@@ -54,9 +56,12 @@ var _ = Describe("Manager", func() {
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
 		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
 
+		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
+
 		manager = NewManagerFactory(
 			fakeVMRepo,
 			stemcellRepo,
+			fakeDiskDeployer,
 			fakeAgentClientFactory,
 			fakeApplySpecFactory,
 			fakeTemplatesSpecGenerator,
@@ -122,6 +127,7 @@ var _ = Describe("Manager", func() {
 				"fake-vm-cid",
 				fakeVMRepo,
 				stemcellRepo,
+				fakeDiskDeployer,
 				fakeAgentClient,
 				fakeCloud,
 				fakeTemplatesSpecGenerator,

@@ -19,7 +19,6 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/fakes"
 	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
@@ -35,7 +34,7 @@ var _ = Describe("Deployer", func() {
 		fakeVMManager              *fakebmvm.FakeManager
 		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
 		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
-		fakeDiskDeployer           *fakebminstance.FakeDiskDeployer
+		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
 		cloud                      *fakebmcloud.FakeCloud
 		deploymentManifest         bmmanifest.Manifest
 		diskPool                   bmmanifest.DiskPool
@@ -102,7 +101,7 @@ var _ = Describe("Deployer", func() {
 		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
 		fakeVMManager.CreateVM = fakeVM
 
-		fakeDiskDeployer = fakebminstance.NewFakeDiskDeployer()
+		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
@@ -145,7 +144,6 @@ var _ = Describe("Deployer", func() {
 			fakeStemcellManagerFactory,
 			fakeVMManagerFactory,
 			fakeSSHTunnelFactory,
-			fakeDiskDeployer,
 			eventLogger,
 			logger,
 		)
@@ -314,20 +312,6 @@ var _ = Describe("Deployer", func() {
 		Expect(fakeVM.ApplyInputs).To(ContainElement(fakebmvm.ApplyInput{
 			StemcellApplySpec: applySpec,
 			Manifest:          deploymentManifest,
-		}))
-	})
-
-	It("deploys disk", func() {
-		err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, "fake-mbus-url")
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebminstance.DiskDeployInput{
-			{
-				DiskPool:         diskPool,
-				Cloud:            cloud,
-				VM:               fakeVM,
-				EventLoggerStage: fakeStage,
-			},
 		}))
 	})
 

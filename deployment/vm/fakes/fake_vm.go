@@ -6,6 +6,7 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type FakeVM struct {
@@ -14,6 +15,9 @@ type FakeVM struct {
 	ExistsCalled int
 	ExistsFound  bool
 	ExistsErr    error
+
+	UpdateDisksInputs []UpdateDisksInput
+	UpdateDisksErr    error
 
 	ApplyInputs []ApplyInput
 	ApplyErr    error
@@ -47,6 +51,11 @@ type FakeVM struct {
 
 	MigrateDiskCalledTimes int
 	MigrateDiskErr         error
+}
+
+type UpdateDisksInput struct {
+	DiskPool bmmanifest.DiskPool
+	Stage    bmeventlog.Stage
 }
 
 type ApplyInput struct {
@@ -106,6 +115,14 @@ func (vm *FakeVM) WaitUntilReady(timeout time.Duration, delay time.Duration) err
 		Delay:   delay,
 	})
 	return vm.WaitUntilReadyErr
+}
+
+func (vm *FakeVM) UpdateDisks(diskPool bmmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) error {
+	vm.UpdateDisksInputs = append(vm.UpdateDisksInputs, UpdateDisksInput{
+		DiskPool: diskPool,
+		Stage:    eventLoggerStage,
+	})
+	return vm.UpdateDisksErr
 }
 
 func (vm *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmmanifest.Manifest) error {

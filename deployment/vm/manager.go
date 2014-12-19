@@ -20,6 +20,7 @@ type Manager interface {
 type manager struct {
 	vmRepo                 bmconfig.VMRepo
 	stemcellRepo           bmconfig.StemcellRepo
+	diskDeployer           DiskDeployer
 	mbusURL                string
 	agentClientFactory     bmagentclient.Factory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
@@ -28,6 +29,33 @@ type manager struct {
 	fs                     boshsys.FileSystem
 	logger                 boshlog.Logger
 	logTag                 string
+}
+
+func NewManager(
+	vmRepo bmconfig.VMRepo,
+	stemcellRepo bmconfig.StemcellRepo,
+	diskDeployer DiskDeployer,
+	mbusURL string,
+	agentClientFactory bmagentclient.Factory,
+	templatesSpecGenerator bmas.TemplatesSpecGenerator,
+	applySpecFactory bmas.Factory,
+	cloud bmcloud.Cloud,
+	fs boshsys.FileSystem,
+	logger boshlog.Logger,
+) Manager {
+	return &manager{
+		cloud:                  cloud,
+		mbusURL:                mbusURL,
+		vmRepo:                 vmRepo,
+		stemcellRepo:           stemcellRepo,
+		diskDeployer:           diskDeployer,
+		agentClientFactory:     agentClientFactory,
+		applySpecFactory:       applySpecFactory,
+		templatesSpecGenerator: templatesSpecGenerator,
+		logger:                 logger,
+		fs:                     fs,
+		logTag:                 "vmManager",
+	}
 }
 
 func (m *manager) FindCurrent() (VM, bool, error) {
@@ -44,6 +72,7 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 		vmCID,
 		m.vmRepo,
 		m.stemcellRepo,
+		m.diskDeployer,
 		m.agentClient(),
 		m.cloud,
 		m.templatesSpecGenerator,
@@ -89,6 +118,7 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest b
 		cid,
 		m.vmRepo,
 		m.stemcellRepo,
+		m.diskDeployer,
 		m.agentClient(),
 		m.cloud,
 		m.templatesSpecGenerator,

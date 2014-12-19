@@ -12,6 +12,8 @@ import (
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
@@ -30,12 +32,14 @@ var _ = Describe("VM", func() {
 		vm                         VM
 		fakeVMRepo                 *fakebmconfig.FakeVMRepo
 		fakeStemcellRepo           *fakebmconfig.FakeStemcellRepo
+		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeCloud                  *fakebmcloud.FakeCloud
 		applySpec                  bmstemcell.ApplySpec
 		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
 		deploymentManifest         bmmanifest.Manifest
+		diskPool                   bmmanifest.DiskPool
 		deploymentJob              bmmanifest.Job
 		stemcellJob                bmstemcell.Job
 		fs                         *fakesys.FakeFileSystem
@@ -51,6 +55,15 @@ var _ = Describe("VM", func() {
 		}, nil)
 
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
+
+		diskPool = bmmanifest.DiskPool{
+			Name:     "fake-persistent-disk-pool-name",
+			DiskSize: 1024,
+			RawCloudProperties: map[interface{}]interface{}{
+				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
+			},
+		}
+
 		stemcellJob = bmstemcell.Job{
 			Name: "fake-job-name",
 			Templates: []bmstemcell.Blob{
@@ -98,6 +111,7 @@ var _ = Describe("VM", func() {
 				{Name: "first-job-name"},
 				{Name: "third-job-name"},
 			},
+			PersistentDiskPool: "fake-persistent-disk-pool-name",
 			RawProperties: map[interface{}]interface{}{
 				"fake-property-key": "fake-property-value",
 			},
@@ -110,6 +124,9 @@ var _ = Describe("VM", func() {
 		}
 		deploymentManifest = bmmanifest.Manifest{
 			Name: "fake-deployment-name",
+			DiskPools: []bmmanifest.DiskPool{
+				diskPool,
+			},
 			Jobs: []bmmanifest.Job{
 				deploymentJob,
 			},
@@ -128,10 +145,12 @@ var _ = Describe("VM", func() {
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
 		fakeStemcellRepo = fakebmconfig.NewFakeStemcellRepo()
+		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
 		vm = NewVM(
 			"fake-vm-cid",
 			fakeVMRepo,
 			fakeStemcellRepo,
+			fakeDiskDeployer,
 			fakeAgentClient,
 			fakeCloud,
 			fakeTemplatesSpecGenerator,
@@ -165,6 +184,24 @@ var _ = Describe("VM", func() {
 			_, err := vm.Exists()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-has-vm-error"))
+		})
+	})
+
+	Describe("UpdateDisks", func() {
+		It("delegates to DiskDeployer.Deploy", func() {
+			fakeStage := fakebmlog.NewFakeStage()
+
+			err := vm.UpdateDisks(diskPool, fakeStage)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebmvm.DeployInput{
+				{
+					DiskPool:         diskPool,
+					Cloud:            fakeCloud,
+					VM:               vm,
+					EventLoggerStage: fakeStage,
+				},
+			}))
 		})
 	})
 

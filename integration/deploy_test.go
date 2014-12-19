@@ -28,7 +28,6 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
@@ -79,7 +78,7 @@ var _ = Describe("bosh-micro", func() {
 			sshTunnelFactory bmsshtunnel.Factory
 
 			diskManagerFactory bmdisk.ManagerFactory
-			diskDeployer       bminstance.DiskDeployer
+			diskDeployer       bmvm.DiskDeployer
 
 			ui          *fakeui.FakeUI
 			eventLogger bmeventlog.EventLogger
@@ -271,7 +270,6 @@ cloud_provider:
 				stemcellManagerFactory,
 				vmManagerFactory,
 				sshTunnelFactory,
-				diskDeployer,
 				eventLogger,
 				logger,
 			)
@@ -575,7 +573,7 @@ cloud_provider:
 			releaseRepo = bmconfig.NewReleaseRepo(deploymentConfigService, fakeUUIDGenerator)
 
 			diskManagerFactory = bmdisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer = bminstance.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+			diskDeployer = bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
@@ -598,6 +596,7 @@ cloud_provider:
 			vmManagerFactory = bmvm.NewManagerFactory(
 				vmRepo,
 				stemcellRepo,
+				diskDeployer,
 				mockAgentClientFactory,
 				fakeApplySpecFactory,
 				fakeTemplatesSpecGenerator,

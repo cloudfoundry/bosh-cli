@@ -16,6 +16,7 @@ type ManagerFactory interface {
 type managerFactory struct {
 	vmRepo                 bmconfig.VMRepo
 	stemcellRepo           bmconfig.StemcellRepo
+	diskDeployer           DiskDeployer
 	agentClientFactory     bmagentclient.Factory
 	applySpecFactory       bmas.Factory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
@@ -26,6 +27,7 @@ type managerFactory struct {
 func NewManagerFactory(
 	vmRepo bmconfig.VMRepo,
 	stemcellRepo bmconfig.StemcellRepo,
+	diskDeployer DiskDeployer,
 	agentClientFactory bmagentclient.Factory,
 	applySpecFactory bmas.Factory,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
@@ -35,6 +37,7 @@ func NewManagerFactory(
 	return &managerFactory{
 		vmRepo:                 vmRepo,
 		stemcellRepo:           stemcellRepo,
+		diskDeployer:           diskDeployer,
 		agentClientFactory:     agentClientFactory,
 		applySpecFactory:       applySpecFactory,
 		templatesSpecGenerator: templatesSpecGenerator,
@@ -44,16 +47,16 @@ func NewManagerFactory(
 }
 
 func (f *managerFactory) NewManager(cloud bmcloud.Cloud, mbusURL string) Manager {
-	return &manager{
-		cloud:                  cloud,
-		mbusURL:                mbusURL,
-		vmRepo:                 f.vmRepo,
-		stemcellRepo:           f.stemcellRepo,
-		agentClientFactory:     f.agentClientFactory,
-		applySpecFactory:       f.applySpecFactory,
-		templatesSpecGenerator: f.templatesSpecGenerator,
-		logger:                 f.logger,
-		fs:                     f.fs,
-		logTag:                 "vmManager",
-	}
+	return NewManager(
+		f.vmRepo,
+		f.stemcellRepo,
+		f.diskDeployer,
+		mbusURL,
+		f.agentClientFactory,
+		f.templatesSpecGenerator,
+		f.applySpecFactory,
+		cloud,
+		f.fs,
+		f.logger,
+	)
 }

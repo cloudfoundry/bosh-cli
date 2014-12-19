@@ -16,6 +16,7 @@ import (
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type VM interface {
@@ -23,6 +24,7 @@ type VM interface {
 	Exists() (bool, error)
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
 	Apply(bmstemcell.ApplySpec, bmmanifest.Manifest) error
+	UpdateDisks(bmmanifest.DiskPool, bmeventlog.Stage) error
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
@@ -38,6 +40,7 @@ type vm struct {
 	cid                    string
 	vmRepo                 bmconfig.VMRepo
 	stemcellRepo           bmconfig.StemcellRepo
+	diskDeployer           DiskDeployer
 	agentClient            bmagentclient.AgentClient
 	cloud                  bmcloud.Cloud
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
@@ -52,6 +55,7 @@ func NewVM(
 	cid string,
 	vmRepo bmconfig.VMRepo,
 	stemcellRepo bmconfig.StemcellRepo,
+	diskDeployer DiskDeployer,
 	agentClient bmagentclient.AgentClient,
 	cloud bmcloud.Cloud,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
@@ -64,6 +68,7 @@ func NewVM(
 		cid:          cid,
 		vmRepo:       vmRepo,
 		stemcellRepo: stemcellRepo,
+		diskDeployer: diskDeployer,
 		agentClient:  agentClient,
 		cloud:        cloud,
 		templatesSpecGenerator: templatesSpecGenerator,
@@ -148,6 +153,14 @@ func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest b
 		return bosherr.WrapError(err, "Sending apply spec to agent")
 	}
 
+	return nil
+}
+
+func (vm *vm) UpdateDisks(diskPool bmmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) error {
+	err := vm.diskDeployer.Deploy(diskPool, vm.cloud, vm, eventLoggerStage)
+	if err != nil {
+		return bosherr.WrapError(err, "Deploying disk")
+	}
 	return nil
 }
 

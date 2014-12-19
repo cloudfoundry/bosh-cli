@@ -19,6 +19,7 @@ type Instance interface {
 	JobName() string
 	ID() int
 	WaitUntilReady(bmmanifest.Registry, bmmanifest.SSHTunnel, bmeventlog.Stage) error
+	UpdateDisks(bmmanifest.Manifest, bmeventlog.Stage) error
 	StartJobs(newState bmstemcell.ApplySpec, deploymentManifest bmmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error
 	Delete(
 		pingTimeout time.Duration,
@@ -97,6 +98,20 @@ func (i *instance) WaitUntilReady(
 	})
 
 	return err
+}
+
+func (i *instance) UpdateDisks(deploymentManifest bmmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error {
+	diskPool, err := deploymentManifest.DiskPool(i.jobName)
+	if err != nil {
+		return bosherr.WrapError(err, "Getting disk pool")
+	}
+
+	err = i.vm.UpdateDisks(diskPool, eventLoggerStage)
+	if err != nil {
+		return bosherr.WrapError(err, "Updating disks")
+	}
+
+	return nil
 }
 
 // StartJobs sends the agent a new apply spec, restarts the agent, and polls until the agent says the jobs are running

@@ -21,7 +21,6 @@ type Manager interface {
 		jobName string,
 		id int,
 		deploymentManifest bmmanifest.Manifest,
-		extractedStemcell bmstemcell.ExtractedStemcell,
 		cloudStemcell bmstemcell.CloudStemcell,
 		registryConfig bmmanifest.Registry,
 		sshTunnelConfig bmmanifest.SSHTunnel,
@@ -38,7 +37,6 @@ type manager struct {
 	cloud            bmcloud.Cloud
 	vmManager        bmvm.Manager
 	sshTunnelFactory bmsshtunnel.Factory
-	diskDeployer     DiskDeployer
 	logger           boshlog.Logger
 	logTag           string
 }
@@ -47,14 +45,12 @@ func NewManager(
 	cloud bmcloud.Cloud,
 	vmManager bmvm.Manager,
 	sshTunnelFactory bmsshtunnel.Factory,
-	diskDeployer DiskDeployer,
 	logger boshlog.Logger,
 ) Manager {
 	return &manager{
 		cloud:            cloud,
 		vmManager:        vmManager,
 		sshTunnelFactory: sshTunnelFactory,
-		diskDeployer:     diskDeployer,
 		logger:           logger,
 		logTag:           "vmDeployer",
 	}
@@ -84,7 +80,6 @@ func (m *manager) Create(
 	jobName string,
 	id int,
 	deploymentManifest bmmanifest.Manifest,
-	extractedStemcell bmstemcell.ExtractedStemcell,
 	cloudStemcell bmstemcell.CloudStemcell,
 	registryConfig bmmanifest.Registry,
 	sshTunnelConfig bmmanifest.SSHTunnel,
@@ -114,19 +109,8 @@ func (m *manager) Create(
 		return instance, bosherr.WrapError(err, "Waiting until instance is ready")
 	}
 
-	// disk creation requires knowledge of the vm, so we can't use the diskManager.Create pattern
-	diskPool, err := deploymentManifest.DiskPool(jobName)
-	if err != nil {
-		return instance, bosherr.WrapError(err, "Getting disk pool")
-	}
-
-	err = m.diskDeployer.Deploy(diskPool, m.cloud, vm, eventLoggerStage)
-	if err != nil {
-		return instance, bosherr.WrapError(err, "Deploying disk")
-	}
-
-	if err = instance.StartJobs(extractedStemcell.ApplySpec(), deploymentManifest, eventLoggerStage); err != nil {
-		return instance, err
+	if err := instance.UpdateDisks(deploymentManifest, eventLoggerStage); err != nil {
+		return instance, bosherr.WrapError(err, "Updating instance disks")
 	}
 
 	return instance, err

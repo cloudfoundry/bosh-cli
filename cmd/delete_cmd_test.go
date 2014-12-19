@@ -116,10 +116,13 @@ cloud_provider:
 		}
 
 		var newDeleteCmd = func() Cmd {
+			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
+			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 			deploymentParser := bmmanifest.NewParser(fs, logger)
 			vmManagerFactory := bmvm.NewManagerFactory(
 				vmRepo,
 				stemcellRepo,
+				diskDeployer,
 				mockAgentClientFactory,
 				fakeApplySpecFactory,
 				fakeTemplatesSpecGenerator,
@@ -127,11 +130,8 @@ cloud_provider:
 				logger,
 			)
 			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
-			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer := bminstance.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 			instanceManagerFactory := bminstance.NewManagerFactory(
 				sshTunnelFactory,
-				diskDeployer,
 				logger,
 			)
 			eventLogger := bmeventlog.NewEventLogger(ui)

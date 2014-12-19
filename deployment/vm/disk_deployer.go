@@ -1,4 +1,4 @@
-package instance
+package vm
 
 import (
 	"fmt"
@@ -10,13 +10,12 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 // DiskDeployer is in the instance package to avoid a [disk -> vm -> disk] dependency cycle
 type DiskDeployer interface {
-	Deploy(diskPool bmmanifest.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error
+	Deploy(diskPool bmmanifest.DiskPool, cloud bmcloud.Cloud, vm VM, eventLoggerStage bmeventlog.Stage) error
 }
 
 type diskDeployer struct {
@@ -36,7 +35,7 @@ func NewDiskDeployer(diskManagerFactory bmdisk.ManagerFactory, diskRepo bmconfig
 	}
 }
 
-func (d *diskDeployer) Deploy(diskPool bmmanifest.DiskPool, cloud bmcloud.Cloud, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error {
+func (d *diskDeployer) Deploy(diskPool bmmanifest.DiskPool, cloud bmcloud.Cloud, vm VM, eventLoggerStage bmeventlog.Stage) error {
 	if diskPool.DiskSize == 0 {
 		return nil
 	}
@@ -91,7 +90,7 @@ func (d *diskDeployer) Deploy(diskPool bmmanifest.DiskPool, cloud bmcloud.Cloud,
 func (d *diskDeployer) migrateDisk(
 	originalDisk bmdisk.Disk,
 	diskPool bmmanifest.DiskPool,
-	vm bmvm.VM,
+	vm VM,
 	eventLoggerStage bmeventlog.Stage,
 ) (newDisk bmdisk.Disk, err error) {
 	d.logger.Debug(d.logTag, "Migrating disk '%s'", originalDisk.CID())
@@ -162,7 +161,7 @@ func (d *diskDeployer) updateCurrentDiskRecord(disk bmdisk.Disk) error {
 	return nil
 }
 
-func (d *diskDeployer) createDisk(diskPool bmmanifest.DiskPool, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) (disk bmdisk.Disk, err error) {
+func (d *diskDeployer) createDisk(diskPool bmmanifest.DiskPool, vm VM, eventLoggerStage bmeventlog.Stage) (disk bmdisk.Disk, err error) {
 	err = eventLoggerStage.PerformStep("Creating disk", func() error {
 		disk, err = d.diskManager.Create(diskPool, vm.CID())
 		return err
@@ -171,7 +170,7 @@ func (d *diskDeployer) createDisk(diskPool bmmanifest.DiskPool, vm bmvm.VM, even
 	return disk, err
 }
 
-func (d *diskDeployer) attachDisk(disk bmdisk.Disk, vm bmvm.VM, eventLoggerStage bmeventlog.Stage) error {
+func (d *diskDeployer) attachDisk(disk bmdisk.Disk, vm VM, eventLoggerStage bmeventlog.Stage) error {
 	stepName := fmt.Sprintf("Attaching disk '%s' to VM '%s'", disk.CID(), vm.CID())
 	err := eventLoggerStage.PerformStep(stepName, func() error {
 		return vm.AttachDisk(disk)

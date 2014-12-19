@@ -30,7 +30,6 @@ type deployer struct {
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	vmManagerFactory       bmvm.ManagerFactory
 	sshTunnelFactory       bmsshtunnel.Factory
-	diskDeployer           bminstance.DiskDeployer
 	eventLoggerStage       bmeventlog.Stage
 	logger                 boshlog.Logger
 	logTag                 string
@@ -40,7 +39,6 @@ func NewDeployer(
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	sshTunnelFactory bmsshtunnel.Factory,
-	diskDeployer bminstance.DiskDeployer,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
@@ -50,7 +48,6 @@ func NewDeployer(
 		stemcellManagerFactory: stemcellManagerFactory,
 		vmManagerFactory:       vmManagerFactory,
 		sshTunnelFactory:       sshTunnelFactory,
-		diskDeployer:           diskDeployer,
 		eventLoggerStage:       eventLoggerStage,
 		logger:                 logger,
 		logTag:                 "deployer",
@@ -74,7 +71,7 @@ func (m *deployer) Deploy(
 	m.eventLoggerStage.Start()
 
 	vmManager := m.vmManagerFactory.NewManager(cloud, mbusURL)
-	instanceManager := bminstance.NewManager(cloud, vmManager, m.sshTunnelFactory, m.diskDeployer, m.logger)
+	instanceManager := bminstance.NewManager(cloud, vmManager, m.sshTunnelFactory, m.logger)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
@@ -113,11 +110,14 @@ func (m *deployer) createAllInstances(
 			return bosherr.Errorf("Job '%s' must have only one instance, found %d", jobSpec.Name, jobSpec.Instances)
 		}
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
-			_, err := instanceManager.Create(jobSpec.Name, instanceID,
-				deploymentManifest, extractedStemcell, cloudStemcell,
-				registryConfig, sshTunnelConfig, m.eventLoggerStage)
+			instance, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, m.eventLoggerStage)
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)
+			}
+
+			err = instance.StartJobs(extractedStemcell.ApplySpec(), deploymentManifest, m.eventLoggerStage)
+			if err != nil {
+				return err
 			}
 		}
 	}
