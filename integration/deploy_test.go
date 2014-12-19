@@ -604,7 +604,7 @@ cloud_provider:
 				logger,
 			)
 
-			userConfig = bmconfig.UserConfig{DeploymentFile: deploymentManifestPath}
+			userConfig = bmconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
 
 			mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient).AnyTimes()
 
@@ -619,7 +619,7 @@ cloud_provider:
 
 		Context("when the deployment has not been set", func() {
 			BeforeEach(func() {
-				userConfig.DeploymentFile = ""
+				userConfig.DeploymentManifestPath = ""
 			})
 
 			It("returns an error", func() {

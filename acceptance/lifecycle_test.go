@@ -194,7 +194,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(stdout).To(ContainSubstring(fmt.Sprintf("Deployment manifest set to '%s'", manifestPath)))
 
 		Expect(parseUserConfig()).To(Equal(bmconfig.UserConfig{
-			DeploymentFile: manifestPath,
+			DeploymentManifestPath: manifestPath,
 		}))
 	})
 

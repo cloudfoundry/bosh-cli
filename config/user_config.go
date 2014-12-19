@@ -3,9 +3,9 @@ package config
 import "path"
 
 type UserConfig struct {
-	DeploymentFile string `json:"deployment"`
+	DeploymentManifestPath string `json:"deployment"`
 }
 
 func (c UserConfig) DeploymentConfigFilePath() string {
-	return path.Join(path.Dir(c.DeploymentFile), "deployment.json")
+	return path.Join(path.Dir(c.DeploymentManifestPath), "deployment.json")
 }

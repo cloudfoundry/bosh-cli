@@ -74,7 +74,7 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		return bosherr.Errorf("Verifying that the deployment '%s' exists", manifestAbsFilePath)
 	}
 
-	c.userConfig.DeploymentFile = manifestAbsFilePath
+	c.userConfig.DeploymentManifestPath = manifestAbsFilePath
 	err = c.userConfigService.Save(c.userConfig)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving user config")

@@ -146,7 +146,7 @@ func (c *deployCmd) Run(args []string) error {
 	defer extractedStemcell.Delete()
 	defer cpiRelease.Delete()
 
-	isDeployed, err := c.deploymentRecord.IsDeployed(c.userConfig.DeploymentFile, cpiRelease, extractedStemcell)
+	isDeployed, err := c.deploymentRecord.IsDeployed(deploymentManifestPath, cpiRelease, extractedStemcell)
 	if err != nil {
 		return bosherr.WrapError(err, "Checking if deployment has changed")
 	}
@@ -182,7 +182,7 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Deploying Microbosh")
 	}
 
-	err = c.deploymentRecord.Update(c.userConfig.DeploymentFile, cpiRelease)
+	err = c.deploymentRecord.Update(deploymentManifestPath, cpiRelease)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating deployment record")
 	}

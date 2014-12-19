@@ -89,7 +89,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs = fakesys.NewFakeFileSystem()
 		deploymentManifestPath = "/path/to/manifest.yml"
 		userConfig = bmconfig.UserConfig{
-			DeploymentFile: deploymentManifestPath,
+			DeploymentManifestPath: deploymentManifestPath,
 		}
 		fakeFs.WriteFileString(deploymentManifestPath, "")
 
@@ -176,7 +176,7 @@ var _ = Describe("DeployCmd", func() {
 
 			Context("when there is a deployment set", func() {
 				BeforeEach(func() {
-					userConfig.DeploymentFile = deploymentManifestPath
+					userConfig.DeploymentManifestPath = deploymentManifestPath
 
 					// re-create command to update userConfig.DeploymentFile
 					command = bmcmd.NewDeployCmd(
@@ -223,7 +223,7 @@ version: fake-version
 					)
 
 					BeforeEach(func() {
-						fakeFs.WriteFileString(userConfig.DeploymentFile, "")
+						fakeFs.WriteFileString(userConfig.DeploymentManifestPath, "")
 						cpiDeploymentManifest = bmmanifest.CPIDeploymentManifest{
 							Registry: bmmanifest.Registry{},
 							SSHTunnel: bmmanifest.SSHTunnel{
@@ -546,7 +546,7 @@ version: fake-version
 
 			Context("when there is no deployment set", func() {
 				BeforeEach(func() {
-					userConfig.DeploymentFile = ""
+					userConfig.DeploymentManifestPath = ""
 
 					// re-create command to update userConfig.DeploymentFile
 					command = bmcmd.NewDeployCmd(

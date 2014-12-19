@@ -30,7 +30,7 @@ var _ = Describe("cmd.Factory", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		userConfig = bmconfig.UserConfig{DeploymentFile: "/fake-path/manifest.yml"}
+		userConfig = bmconfig.UserConfig{DeploymentManifestPath: "/fake-path/manifest.yml"}
 		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fs, logger)
 		ui = &fakeui.FakeUI{}
 		uuidGenerator = &fakeuuid.FakeGenerator{}

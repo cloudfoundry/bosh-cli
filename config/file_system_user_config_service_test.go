@@ -35,12 +35,12 @@ var _ = Describe("FileSystemUserConfigService", func() {
 
 		config, err := configService.Load()
 		Expect(err).ToNot(HaveOccurred())
-		Expect(config.DeploymentFile).To(Equal("expected-deployment-file"))
+		Expect(config.DeploymentManifestPath).To(Equal("expected-deployment-file"))
 	})
 
 	It("saves the user config to the file system", func() {
 		config := UserConfig{
-			DeploymentFile: "/fake-path",
+			DeploymentManifestPath: "/fake-path",
 		}
 
 		err := configService.Save(config)

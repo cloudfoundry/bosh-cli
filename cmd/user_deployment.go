@@ -11,7 +11,7 @@ import (
 )
 
 func getDeploymentManifest(userConfig bmconfig.UserConfig, ui bmui.UI, fs boshsys.FileSystem) (manifestPath string, err error) {
-	deploymentManifestPath := userConfig.DeploymentFile
+	deploymentManifestPath := userConfig.DeploymentManifestPath
 
 	if deploymentManifestPath == "" {
 		ui.Error("Deployment manifest not set")

@@ -82,7 +82,7 @@ var _ = Describe("DeploymentCmd", func() {
 					err = json.Unmarshal(userConfigContents, &userConfig)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentFile: manifestPath}))
+					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentManifestPath: manifestPath}))
 				})
 
 				It("saves absolute path to deployment manifest in user config", func() {
@@ -102,14 +102,14 @@ var _ = Describe("DeploymentCmd", func() {
 					err = json.Unmarshal(userConfigContents, &userConfig)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentFile: manifestAbsolutePath}))
+					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentManifestPath: manifestAbsolutePath}))
 				})
 
 				It("creates a deployment config", func() {
 					err := command.Run([]string{manifestPath})
 					Expect(err).ToNot(HaveOccurred())
 
-					userConfig := bmconfig.UserConfig{DeploymentFile: manifestPath}
+					userConfig := bmconfig.UserConfig{DeploymentManifestPath: manifestPath}
 					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(userConfig.DeploymentConfigFilePath(), fakeFs, logger)
 					deploymentConfig, err := deploymentConfigService.Load()
 					Expect(err).ToNot(HaveOccurred())
@@ -118,7 +118,7 @@ var _ = Describe("DeploymentCmd", func() {
 				})
 
 				It("reuses the existing deployment config if it exists", func() {
-					userConfig := bmconfig.UserConfig{DeploymentFile: manifestPath}
+					userConfig := bmconfig.UserConfig{DeploymentManifestPath: manifestPath}
 					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(
 						userConfig.DeploymentConfigFilePath(),
 						fakeFs,
@@ -149,7 +149,7 @@ var _ = Describe("DeploymentCmd", func() {
 		Context("ran without args", func() {
 			Context("a deployment manifest is present in the config", func() {
 				BeforeEach(func() {
-					userConfig := bmconfig.UserConfig{DeploymentFile: "/path/to/manifest.yml"}
+					userConfig := bmconfig.UserConfig{DeploymentManifestPath: "/path/to/manifest.yml"}
 					command = NewDeploymentCmd(fakeUI,
 						userConfig,
 						userConfigService,
