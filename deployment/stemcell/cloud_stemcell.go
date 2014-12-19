@@ -67,9 +67,13 @@ func (s *cloudStemcell) PromoteAsCurrent() error {
 }
 
 func (s *cloudStemcell) Delete() error {
-	err := s.cloud.DeleteStemcell(s.cid)
-	if err != nil {
-		return bosherr.WrapError(err, "Deleting stemcell from cloud")
+	deleteErr := s.cloud.DeleteStemcell(s.cid)
+	if deleteErr != nil {
+		// allow StemcellNotFoundError for idempotency
+		cloudErr, ok := deleteErr.(bmcloud.Error)
+		if !ok || cloudErr.Type() != bmcloud.StemcellNotFoundError {
+			return bosherr.WrapError(deleteErr, "Deleting stemcell from cloud")
+		}
 	}
 
 	stemcellRecord, found, err := s.repo.Find(s.name, s.version)
@@ -86,5 +90,5 @@ func (s *cloudStemcell) Delete() error {
 		return bosherr.WrapError(err, "Deleting stemcell record")
 	}
 
-	return nil
+	return deleteErr
 }

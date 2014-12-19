@@ -532,6 +532,58 @@ cloud_provider:
 						"Done deleting deployment",
 					}))
 				})
+
+				Context("when stemcells have been deleted manually (in the infrastructure)", func() {
+					It("deletes the unused stemcells, ignoring StemcellNotFoundError", func() {
+						expectNormalFlow()
+
+						mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid-2").Return(bmcloud.NewCPIError("delete_stemcell", bmcloud.CmdError{
+							Type:    bmcloud.StemcellNotFoundError,
+							Message: "fake-stemcell-not-found-message",
+						}))
+
+						err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+						Expect(err).ToNot(HaveOccurred())
+
+						stemcellRecords, err := diskRepo.All()
+						Expect(err).ToNot(HaveOccurred())
+						Expect(stemcellRecords).To(BeEmpty(), "expected no stemcell records")
+					})
+
+					It("logs stemcell deletion as skipped", func() {
+						expectNormalFlow()
+
+						mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid-2").Return(bmcloud.NewCPIError("delete_stemcell", bmcloud.CmdError{
+							Type:    bmcloud.StemcellNotFoundError,
+							Message: "fake-stemcell-not-found-message",
+						}))
+
+						err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(ui.Said).To(Equal([]string{
+							"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+							"Deployment state: '/deployment-dir/deployment.json'",
+							"",
+							"Started validating",
+							"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+							"Started validating > Validating cpi release...", " done. (00:00:00)",
+							"Done validating",
+							"",
+							// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
+							"Started deleting deployment",
+							"Started deleting deployment > Waiting for the agent on VM 'fake-vm-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Stopping jobs on instance 'unknown/0'...", " done. (00:00:00)",
+							"Started deleting deployment > Unmounting disk 'fake-disk-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Deleting VM 'fake-vm-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Deleting disk 'fake-disk-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Deleting stemcell 'fake-stemcell-cid'...", " done. (00:00:00)",
+							"Started deleting deployment > Deleting unused stemcell 'orphan-stemcell-cid-2'...",
+							" skipped (CPI 'delete_stemcell' method responded with error: CmdError{\"type\":\"Bosh::Cloud::StemcellNotFound\",\"message\":\"fake-stemcell-not-found-message\",\"ok_to_retry\":false}). (00:00:00)",
+							"Done deleting deployment",
+						}))
+					})
+				})
 			})
 		})
 
@@ -686,6 +738,25 @@ cloud_provider:
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
+			})
+
+			Context("when current stemcell has been deleted manually (outside of bosh)", func() {
+				It("deletes the stemcell (to ensure related resources are released by the CPI)", func() {
+					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid")
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("ignores StemcellNotFound errors", func() {
+					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid").Return(bmcloud.NewCPIError("delete_stemcell", bmcloud.CmdError{
+						Type:    bmcloud.StemcellNotFoundError,
+						Message: "fake-stemcell-not-found-message",
+					}))
+
+					err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+					Expect(err).ToNot(HaveOccurred())
+				})
 			})
 		})
 	})

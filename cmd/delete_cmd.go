@@ -173,7 +173,12 @@ func (c *deleteCmd) deleteDisk(deleteStage bmeventlog.Stage, disk bmdisk.Disk) e
 func (c *deleteCmd) deleteStemcell(deleteStage bmeventlog.Stage, stemcell bmstemcell.CloudStemcell) error {
 	stepName := fmt.Sprintf("Deleting stemcell '%s'", stemcell.CID())
 	return deleteStage.PerformStep(stepName, func() error {
-		return stemcell.Delete()
+		err := stemcell.Delete()
+		cloudErr, ok := err.(bmcloud.Error)
+		if ok && cloudErr.Type() == bmcloud.StemcellNotFoundError {
+			return bmeventlog.NewSkippedStepError(cloudErr.Error())
+		}
+		return err
 	})
 }
 

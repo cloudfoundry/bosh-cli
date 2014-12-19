@@ -124,10 +124,12 @@ func (m *manager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
 	for _, stemcell := range stemcells {
 		stepName := fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID())
 		err = eventLoggerStage.PerformStep(stepName, func() error {
-			if err = stemcell.Delete(); err != nil {
-				return bosherr.WrapErrorf(err, "Deleting unused stemcell '%s'", stemcell.CID())
+			err := stemcell.Delete()
+			cloudErr, ok := err.(bmcloud.Error)
+			if ok && cloudErr.Type() == bmcloud.StemcellNotFoundError {
+				return bmeventlog.NewSkippedStepError(cloudErr.Error())
 			}
-			return nil
+			return err
 		})
 		if err != nil {
 			return err
