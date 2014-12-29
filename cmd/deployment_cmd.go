@@ -17,7 +17,6 @@ type deploymentCmd struct {
 	ui                bmui.UI
 	userConfig        bmconfig.UserConfig
 	userConfigService bmconfig.UserConfigService
-	deploymentFile    bmconfig.DeploymentFile
 	fs                boshsys.FileSystem
 	uuidGenerator     boshuuid.Generator
 	logger            boshlog.Logger
@@ -28,7 +27,6 @@ func NewDeploymentCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	userConfigService bmconfig.UserConfigService,
-	deploymentFile bmconfig.DeploymentFile,
 	fs boshsys.FileSystem,
 	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
@@ -37,7 +35,6 @@ func NewDeploymentCmd(
 		ui:                ui,
 		userConfig:        userConfig,
 		userConfigService: userConfigService,
-		deploymentFile:    deploymentFile,
 		fs:                fs,
 		uuidGenerator:     uuidGenerator,
 		logger:            logger,
@@ -80,30 +77,18 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 		return bosherr.WrapError(err, "Saving user config")
 	}
 
-	deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(
-		c.userConfig.DeploymentConfigFilePath(),
-		c.fs,
-		c.logger,
-	)
-	c.deploymentFile, err = deploymentConfigService.Load()
-	if err != nil {
-		return bosherr.WrapError(err, "Reading existing deployment config")
-	}
-
-	if c.deploymentFile.UUID == "" {
-		uuid, err := c.uuidGenerator.Generate()
-		if err != nil {
-			return bosherr.WrapError(err, "UUID Generation failed")
-		}
-		c.deploymentFile.UUID = uuid
-
-		c.logger.Debug(c.logTag, "Config %#v", c.deploymentFile)
-		err = deploymentConfigService.Save(c.deploymentFile)
-		if err != nil {
-			return bosherr.WrapError(err, "Saving deployment config")
-		}
-	}
-
 	c.ui.Sayln(fmt.Sprintf("Deployment manifest set to '%s'", manifestAbsFilePath))
+
+	deploymentConfigPath := c.userConfig.DeploymentConfigPath()
+	deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, c.fs, c.uuidGenerator, c.logger)
+
+	// initialize defaults
+	_, err = deploymentConfigService.Load()
+	if err != nil {
+		return err
+	}
+
+	c.ui.Sayln(fmt.Sprintf("Deployment state set to '%s'", deploymentConfigPath))
+
 	return nil
 }

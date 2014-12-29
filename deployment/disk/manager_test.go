@@ -32,8 +32,8 @@ var _ = Describe("Manager", func() {
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeFs = fakesys.NewFakeFileSystem()
-		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, logger)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, fakeUUIDGenerator, logger)
 		diskRepo = bmconfig.NewDiskRepo(configService, fakeUUIDGenerator)
 		managerFactory := NewManagerFactory(diskRepo, logger)
 		fakeCloud = fakebmcloud.NewFakeCloud()

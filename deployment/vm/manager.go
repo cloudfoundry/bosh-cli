@@ -8,7 +8,7 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -24,6 +24,7 @@ type manager struct {
 	vmRepo                 bmconfig.VMRepo
 	stemcellRepo           bmconfig.StemcellRepo
 	diskDeployer           DiskDeployer
+	agentClient            bmac.AgentClient
 	mbusURL                string
 	agentClientFactory     bmhttpagent.AgentClientFactory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
@@ -39,8 +40,8 @@ func NewManager(
 	vmRepo bmconfig.VMRepo,
 	stemcellRepo bmconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
+	agentClient bmac.AgentClient,
 	mbusURL string,
-	agentClientFactory bmhttpagent.AgentClientFactory,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
 	applySpecFactory bmas.Factory,
 	cloud bmcloud.Cloud,
@@ -50,11 +51,11 @@ func NewManager(
 ) Manager {
 	return &manager{
 		cloud:                  cloud,
+		agentClient:            agentClient,
 		mbusURL:                mbusURL,
 		vmRepo:                 vmRepo,
 		stemcellRepo:           stemcellRepo,
 		diskDeployer:           diskDeployer,
-		agentClientFactory:     agentClientFactory,
 		applySpecFactory:       applySpecFactory,
 		templatesSpecGenerator: templatesSpecGenerator,
 		uuidGenerator:          uuidGenerator,
@@ -79,7 +80,7 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 		m.vmRepo,
 		m.stemcellRepo,
 		m.diskDeployer,
-		m.agentClient(),
+		m.agentClient,
 		m.cloud,
 		m.templatesSpecGenerator,
 		m.applySpecFactory,
@@ -130,7 +131,7 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest b
 		m.vmRepo,
 		m.stemcellRepo,
 		m.diskDeployer,
-		m.agentClient(),
+		m.agentClient,
 		m.cloud,
 		m.templatesSpecGenerator,
 		m.applySpecFactory,
@@ -140,8 +141,4 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest b
 	)
 
 	return vm, nil
-}
-
-func (m *manager) agentClient() bmagentclient.AgentClient {
-	return m.agentClientFactory.Create(m.mbusURL)
 }

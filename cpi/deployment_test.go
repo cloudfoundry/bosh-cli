@@ -12,8 +12,11 @@ import (
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
+	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 )
 
 var _ = Describe("Deployment", func() {
@@ -34,6 +37,8 @@ var _ = Describe("Deployment", func() {
 		fakeInstaller             *fakebmcpi.FakeInstaller
 
 		deployment Deployment
+
+		directorID = "fake-director-id"
 	)
 	BeforeEach(func() {
 		manifest = bmmanifest.CPIDeploymentManifest{}
@@ -43,14 +48,79 @@ var _ = Describe("Deployment", func() {
 
 		fakeInstaller = fakebmcpi.NewFakeInstaller()
 
-		deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller)
+		deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller, directorID)
+	})
+
+	Describe("ExtractRelease & Install", func() {
+		var (
+			fakeCloud *fakebmcloud.FakeCloud
+		)
+
+		BeforeEach(func() {
+			fakeCloud = fakebmcloud.NewFakeCloud()
+		})
+
+		Context("when ExtractRelease has been called", func() {
+			var (
+				releaseTarballPath = "fake-release-tarball-path"
+				fakeRelease        *fakebmrel.FakeRelease
+			)
+
+			BeforeEach(func() {
+				fakeRelease = fakebmrel.NewFakeRelease()
+
+				fakeInstaller.SetExtractBehavior(releaseTarballPath, func(_ string) (bmrel.Release, error) {
+					return fakeRelease, nil
+				})
+
+				release, err := deployment.ExtractRelease(releaseTarballPath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(release).To(Equal(fakeRelease))
+			})
+
+			It("requires extract to be called first & delegates to CPIInstaller.Install", func() {
+				fakeInstaller.SetInstallBehavior(manifest, fakeRelease, directorID, fakeCloud, nil)
+
+				cloud, err := deployment.Install()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cloud).To(Equal(fakeCloud))
+
+				Expect(fakeInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
+					{
+						Deployment: manifest,
+						Release:    fakeRelease,
+						DirectorID: directorID,
+					},
+				}))
+			})
+
+			Context("when the release has already been deleted", func() {
+				BeforeEach(func() {
+					fakeRelease.Delete()
+				})
+
+				It("returns an error", func() {
+					_, err := deployment.Install()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Extracted CPI release not found"))
+
+					Expect(fakeInstaller.InstallInputs).To(HaveLen(0))
+				})
+			})
+		})
+
+		Context("when ExtractRelease has not been called", func() {
+			It("returns an error", func() {
+				_, err := deployment.Install()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("CPI release must be extracted before it can be installed"))
+
+				Expect(fakeInstaller.InstallInputs).To(HaveLen(0))
+			})
+		})
 	})
 
 	Describe("StartJobs", func() {
-		BeforeEach(func() {
-
-		})
-
 		Context("when registry config is not empty", func() {
 			BeforeEach(func() {
 				manifest.Registry = bmmanifest.Registry{
@@ -59,7 +129,7 @@ var _ = Describe("Deployment", func() {
 					Host:     "fake-host",
 					Port:     123,
 				}
-				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller)
+				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller, directorID)
 			})
 
 			It("starts the registry", func() {
@@ -85,7 +155,7 @@ var _ = Describe("Deployment", func() {
 		Context("when registry config is empty", func() {
 			BeforeEach(func() {
 				manifest.Registry = bmmanifest.Registry{}
-				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller)
+				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller, directorID)
 			})
 
 			It("does not start the registry", func() {
@@ -104,7 +174,7 @@ var _ = Describe("Deployment", func() {
 					Host:     "fake-host",
 					Port:     123,
 				}
-				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller)
+				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller, directorID)
 
 				mockRegistryServerManager.EXPECT().Start("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
 				err := deployment.StartJobs()
@@ -127,7 +197,7 @@ var _ = Describe("Deployment", func() {
 					Host:     "fake-host",
 					Port:     123,
 				}
-				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller)
+				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller, directorID)
 			})
 
 			It("returns an error", func() {
@@ -140,7 +210,7 @@ var _ = Describe("Deployment", func() {
 		Context("when registry config is empty", func() {
 			BeforeEach(func() {
 				manifest.Registry = bmmanifest.Registry{}
-				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller)
+				deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller, directorID)
 			})
 
 			It("does not stop the registry", func() {

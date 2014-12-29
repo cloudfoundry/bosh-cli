@@ -67,6 +67,7 @@ var _ = Describe("bosh-micro", func() {
 			fakeCPIInstaller        *fakebmcpi.FakeInstaller
 			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
+			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
 			fakeAgentIDGenerator    *fakeuuid.FakeGenerator
 			fakeSHA1Calculator      *fakebmcrypto.FakeSha1Calculator
 			deploymentConfigService bmconfig.DeploymentConfigService
@@ -94,7 +95,11 @@ var _ = Describe("bosh-micro", func() {
 
 			mockAgentClient        *mock_agentclient.MockAgentClient
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
-			mockCloud              *mock_cloud.MockCloud
+
+			mockCloud *mock_cloud.MockCloud
+
+			directorID string
+
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
 
@@ -213,10 +218,10 @@ cloud_provider:
 					Port:     6301,
 				},
 			}
-			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, cpiRelease, mockCloud, nil)
+			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, cpiRelease, "fake-director-id", mockCloud, nil)
 
-			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, registryServerManager, fakeCPIInstaller)
-			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(cpiDeployment).AnyTimes()
+			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, registryServerManager, fakeCPIInstaller, "fake-director-id")
+			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, gomock.Any(), gomock.Any()).Return(cpiDeployment).AnyTimes()
 		}
 
 		var writeStemcellReleaseTarball = func() {
@@ -283,8 +288,11 @@ cloud_provider:
 				userConfig,
 				fs,
 				deploymentParser,
+				deploymentConfigService,
 				boshDeploymentValidator,
 				mockCPIDeploymentFactory,
+				mockAgentClientFactory,
+				vmManagerFactory,
 				fakeStemcellExtractor,
 				deploymentRecord,
 				deploymentFactory,
@@ -505,7 +513,7 @@ cloud_provider:
 		var expectRegistryToWork = func() {
 			httpClient := bmhttp.NewHTTPClient(logger)
 
-			endpoint := "http://fake-registry-user:fake-registry-password@127.0.0.1:6301/instances/fake-agent-id/settings"
+			endpoint := "http://fake-registry-user:fake-registry-password@127.0.0.1:6301/instances/fake-director-id/settings"
 
 			settingsBytes := []byte("fake-registry-contents") //usually json, but not required to be
 			response, err := httpClient.Put(endpoint, settingsBytes)
@@ -560,8 +568,8 @@ cloud_provider:
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
-			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, logger)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
+			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
 			fakeAgentIDGenerator = fakeuuid.NewFakeGenerator()
 
 			fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
@@ -572,15 +580,14 @@ cloud_provider:
 
 			config, err := deploymentConfigService.Load()
 			Expect(err).ToNot(HaveOccurred())
-			config.UUID = "fake-agent-id"
-			err = deploymentConfigService.Save(config)
-			Expect(err).ToNot(HaveOccurred())
+			directorID = config.DirectorID
 
+			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
 			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeUUIDGenerator)
-			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
+			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
 			deploymentRepo = bmconfig.NewDeploymentRepo(deploymentConfigService)
-			releaseRepo = bmconfig.NewReleaseRepo(deploymentConfigService, fakeUUIDGenerator)
+			releaseRepo = bmconfig.NewReleaseRepo(deploymentConfigService, fakeRepoUUIDGenerator)
 
 			diskManagerFactory = bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer = bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
@@ -607,7 +614,6 @@ cloud_provider:
 				vmRepo,
 				stemcellRepo,
 				diskDeployer,
-				mockAgentClientFactory,
 				fakeApplySpecFactory,
 				fakeTemplatesSpecGenerator,
 				fakeAgentIDGenerator,
@@ -617,7 +623,7 @@ cloud_provider:
 
 			userConfig = bmconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
 
-			mockAgentClientFactory.EXPECT().Create(mbusURL).Return(mockAgentClient).AnyTimes()
+			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL).Return(mockAgentClient).AnyTimes()
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -649,10 +655,17 @@ cloud_provider:
 			It("creates one", func() {
 				expectDeployFlow()
 
+				// new directorID will be generated
+				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
+
 				err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.FileExists(deploymentConfigPath)).To(BeTrue())
+
+				deploymentConfig, err := deploymentConfigService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentConfig.DirectorID).ToNot(Equal(directorID))
 			})
 		})
 

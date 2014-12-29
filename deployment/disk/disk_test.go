@@ -8,11 +8,12 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
@@ -24,6 +25,7 @@ var _ = Describe("Disk", func() {
 		diskCloudProperties map[string]interface{}
 		fakeCloud           *fakebmcloud.FakeCloud
 		diskRepo            bmconfig.DiskRepo
+		fakeUUIDGenerator   *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
@@ -40,8 +42,8 @@ var _ = Describe("Disk", func() {
 
 		fs := fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
-		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
+		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		diskRepo = bmconfig.NewDiskRepo(configService, fakeUUIDGenerator)
 
 		disk = NewDisk(diskRecord, fakeCloud, diskRepo)

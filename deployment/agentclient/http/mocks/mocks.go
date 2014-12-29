@@ -29,12 +29,12 @@ func (_m *MockAgentClientFactory) EXPECT() *_MockAgentClientFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockAgentClientFactory) Create(_param0 string) agentclient.AgentClient {
-	ret := _m.ctrl.Call(_m, "Create", _param0)
+func (_m *MockAgentClientFactory) NewAgentClient(_param0 string, _param1 string) agentclient.AgentClient {
+	ret := _m.ctrl.Call(_m, "NewAgentClient", _param0, _param1)
 	ret0, _ := ret[0].(agentclient.AgentClient)
 	return ret0
 }
 
-func (_mr *_MockAgentClientFactoryRecorder) Create(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Create", arg0)
+func (_mr *_MockAgentClientFactoryRecorder) NewAgentClient(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewAgentClient", arg0, arg1)
 }

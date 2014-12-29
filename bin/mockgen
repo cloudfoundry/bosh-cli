@@ -13,6 +13,7 @@ srcFiles=(
 	deployment/Deployment,Factory
 	deployment/agentclient/AgentClient
 	deployment/agentclient/http/AgentClientFactory
+	deployment/vm/ManagerFactory
   registry/Server,ServerManager
 )
 

@@ -53,6 +53,7 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			mockCPIDeploymentFactory *mock_cpi.MockDeploymentFactory
 			mockCPIDeployment        *mock_cpi.MockDeployment
 			fakeUUIDGenerator        *fakeuuid.FakeGenerator
+			fakeRepoUUIDGenerator    *fakeuuid.FakeGenerator
 			deploymentConfigService  bmconfig.DeploymentConfigService
 			vmRepo                   bmconfig.VMRepo
 			diskRepo                 bmconfig.DiskRepo
@@ -67,6 +68,9 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			mockAgentClient        *mock_agentclient.MockAgentClient
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockCloud              *mock_cloud.MockCloud
+
+			cpiDeploymentManifest bmmanifest.CPIDeploymentManifest
+
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
 
@@ -99,12 +103,13 @@ cloud_provider:
 				fs,
 			)
 
-			cpiDeploymentManifest := bmmanifest.CPIDeploymentManifest{
+			cpiDeploymentManifest = bmmanifest.CPIDeploymentManifest{
 				Name: "test-release",
 				Mbus: "http://fake-mbus-url",
 			}
 
-			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(mockCPIDeployment).AnyTimes()
+			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, "fake-uuid-1", "fake-uuid-0").Return(mockCPIDeployment).AnyTimes()
+
 			var err error
 			expectCPIExtractRelease = mockCPIDeployment.EXPECT().ExtractRelease("/fake-cpi-release.tgz").Do(func(_ string) {
 				err = fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
@@ -124,7 +129,6 @@ cloud_provider:
 				vmRepo,
 				stemcellRepo,
 				diskDeployer,
-				mockAgentClientFactory,
 				fakeApplySpecFactory,
 				fakeTemplatesSpecGenerator,
 				fakeUUIDGenerator,
@@ -139,8 +143,8 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, deploymentParser, mockCPIDeploymentFactory,
-				vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
+				ui, userConfig, fs, deploymentParser, deploymentConfigService, mockCPIDeploymentFactory,
+				mockAgentClientFactory, vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
 				eventLogger, logger,
 			)
 		}
@@ -161,12 +165,13 @@ cloud_provider:
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
-			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, logger)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
+			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
 
+			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
 			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeUUIDGenerator)
-			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
+			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
@@ -180,7 +185,7 @@ cloud_provider:
 
 			userConfig = bmconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
 
-			mockAgentClientFactory.EXPECT().Create("http://fake-mbus-url").Return(mockAgentClient).AnyTimes()
+			mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -230,7 +235,8 @@ cloud_provider:
 			BeforeEach(func() {
 				// create deployment manifest yaml file
 				deploymentConfigService.Save(bmconfig.DeploymentFile{
-					UUID:              "",
+					DirectorID:        "fake-director-id",
+					DeploymentID:      "fake-deployment-id",
 					CurrentVMCID:      "fake-vm-cid",
 					CurrentStemcellID: "fake-stemcell-guid",
 					CurrentDiskID:     "fake-disk-guid",
@@ -248,6 +254,8 @@ cloud_provider:
 						},
 					},
 				})
+
+				mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, "fake-deployment-id", "fake-director-id").Return(mockCPIDeployment).AnyTimes()
 			})
 
 			It("extracts & install CPI release tarball", func() {

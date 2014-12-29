@@ -222,6 +222,8 @@ properties: {}
 			deployment bmmanifest.CPIDeploymentManifest
 			release    bmrel.Release
 			releaseJob bmrel.Job
+
+			directorID = "fake-director-id"
 		)
 		BeforeEach(func() {
 			fakeFs.WriteFileString(deploymentManifestPath, "")
@@ -297,17 +299,17 @@ properties: {}
 
 				installedJobs = []bmcpiinstall.InstalledJob{installedJob}
 				installedCloud = fakebmcloud.NewFakeCloud()
-				fakeCloudFactory.SetNewCloudBehavior(installedJobs, installedCloud, nil)
+				fakeCloudFactory.SetNewCloudBehavior(installedJobs, directorID, installedCloud, nil)
 			})
 
 			It("compiles the release", func() {
-				_, err := cpiInstaller.Install(deployment, release)
+				_, err := cpiInstaller.Install(deployment, release, directorID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeReleaseCompiler.CompileInputs[0].Deployment).To(Equal(deployment))
 			})
 
 			It("installs the deployment jobs", func() {
-				_, err := cpiInstaller.Install(deployment, release)
+				_, err := cpiInstaller.Install(deployment, release, directorID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeJobInstaller.JobInstallInputs).To(Equal(
@@ -320,7 +322,7 @@ properties: {}
 			})
 
 			It("returns a cloud wrapper around the installed CPI", func() {
-				cloud, err := cpiInstaller.Install(deployment, release)
+				cloud, err := cpiInstaller.Install(deployment, release, directorID)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(cloud).To(Equal(installedCloud))
@@ -331,7 +333,7 @@ properties: {}
 			It("returns an error", func() {
 				fakeReleaseCompiler.SetCompileBehavior(release, deployment, errors.New("fake-compile-error"))
 
-				_, err := cpiInstaller.Install(deployment, release)
+				_, err := cpiInstaller.Install(deployment, release, directorID)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
 				Expect(fakeUI.Errors).To(ContainElement("Could not compile CPI release"))

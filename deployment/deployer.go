@@ -22,7 +22,7 @@ type Deployer interface {
 		bmstemcell.ExtractedStemcell,
 		bmmanifest.Registry,
 		bmmanifest.SSHTunnel,
-		string,
+		bmvm.Manager,
 	) error
 }
 
@@ -60,7 +60,7 @@ func (m *deployer) Deploy(
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	registryConfig bmmanifest.Registry,
 	sshTunnelConfig bmmanifest.SSHTunnel,
-	mbusURL string,
+	vmManager bmvm.Manager,
 ) error {
 	stemcellManager := m.stemcellManagerFactory.NewManager(cloud)
 	cloudStemcell, err := stemcellManager.Upload(extractedStemcell)
@@ -70,7 +70,6 @@ func (m *deployer) Deploy(
 
 	m.eventLoggerStage.Start()
 
-	vmManager := m.vmManagerFactory.NewManager(cloud, mbusURL)
 	instanceManager := bminstance.NewManager(cloud, vmManager, m.sshTunnelFactory, m.logger)
 
 	pingTimeout := 10 * time.Second

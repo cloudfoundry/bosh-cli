@@ -12,6 +12,7 @@ import (
 type InstallInput struct {
 	Deployment bmmanifest.CPIDeploymentManifest
 	Release    bmrel.Release
+	DirectorID string
 }
 
 type installOutput struct {
@@ -61,10 +62,11 @@ func (f *FakeInstaller) Extract(releaseTarballPath string) (bmrel.Release, error
 	return nil, fmt.Errorf("Unsupported Extract Input: %s", value)
 }
 
-func (f *FakeInstaller) Install(deployment bmmanifest.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
+func (f *FakeInstaller) Install(deployment bmmanifest.CPIDeploymentManifest, release bmrel.Release, directorID string) (bmcloud.Cloud, error) {
 	input := InstallInput{
 		Deployment: deployment,
 		Release:    release,
+		DirectorID: directorID,
 	}
 	f.InstallInputs = append(f.InstallInputs, input)
 
@@ -83,12 +85,14 @@ func (f *FakeInstaller) Install(deployment bmmanifest.CPIDeploymentManifest, rel
 func (f *FakeInstaller) SetInstallBehavior(
 	deployment bmmanifest.CPIDeploymentManifest,
 	release bmrel.Release,
+	directorID string,
 	cloud bmcloud.Cloud,
 	err error,
 ) error {
 	input := InstallInput{
 		Deployment: deployment,
 		Release:    release,
+		DirectorID: directorID,
 	}
 
 	value, err := bmtestutils.MarshalToString(input)

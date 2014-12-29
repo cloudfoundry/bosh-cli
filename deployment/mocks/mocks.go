@@ -9,6 +9,7 @@ import (
 	deployment "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	stemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
 
 // Mock of Deployment interface
@@ -32,7 +33,7 @@ func (_m *MockDeployment) EXPECT() *_MockDeploymentRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDeployment) Deploy(_param0 cloud.Cloud, _param1 stemcell.ExtractedStemcell, _param2 manifest.Registry, _param3 manifest.SSHTunnel, _param4 string) error {
+func (_m *MockDeployment) Deploy(_param0 cloud.Cloud, _param1 stemcell.ExtractedStemcell, _param2 manifest.Registry, _param3 manifest.SSHTunnel, _param4 vm.Manager) error {
 	ret := _m.ctrl.Call(_m, "Deploy", _param0, _param1, _param2, _param3, _param4)
 	ret0, _ := ret[0].(error)
 	return ret0

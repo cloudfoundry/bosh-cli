@@ -24,7 +24,6 @@ import (
 var _ = Describe("DeploymentCmd", func() {
 	var (
 		command           Cmd
-		deploymentFile    bmconfig.DeploymentFile
 		userConfig        bmconfig.UserConfig
 		userConfigService bmconfig.UserConfigService
 		manifestPath      string
@@ -40,13 +39,11 @@ var _ = Describe("DeploymentCmd", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fakeFs, logger)
 		fakeUUID = &fakeuuid.FakeGenerator{}
-		deploymentFile = bmconfig.DeploymentFile{}
 
 		command = NewDeploymentCmd(
 			fakeUI,
 			userConfig,
 			userConfigService,
-			deploymentFile,
 			fakeFs,
 			fakeUUID,
 			logger,
@@ -57,7 +54,6 @@ var _ = Describe("DeploymentCmd", func() {
 		Context("ran with valid args", func() {
 			Context("when the deployment manifest exists", func() {
 				BeforeEach(func() {
-					fakeUUID.GeneratedUuid = "abc123"
 					manifestDir, err := fakeFs.TempDir("deployment-cmd")
 					Expect(err).ToNot(HaveOccurred())
 
@@ -110,21 +106,28 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					userConfig := bmconfig.UserConfig{DeploymentManifestPath: manifestPath}
-					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(userConfig.DeploymentConfigFilePath(), fakeFs, logger)
+					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(userConfig.DeploymentConfigPath(), fakeFs, fakeUUID, logger)
 					deploymentConfig, err := deploymentConfigService.Load()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{UUID: "abc123"}))
+					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
+						DirectorID:   "fake-uuid-0",
+						DeploymentID: "fake-uuid-1",
+					}))
 				})
 
 				It("reuses the existing deployment config if it exists", func() {
 					userConfig := bmconfig.UserConfig{DeploymentManifestPath: manifestPath}
 					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(
-						userConfig.DeploymentConfigFilePath(),
+						userConfig.DeploymentConfigPath(),
 						fakeFs,
+						fakeUUID,
 						logger,
 					)
-					deploymentConfigService.Save(bmconfig.DeploymentFile{UUID: "def456"})
+					deploymentConfigService.Save(bmconfig.DeploymentFile{
+						DirectorID:   "fake-director-id",
+						DeploymentID: "fake-deployment-id",
+					})
 
 					err := command.Run([]string{manifestPath})
 					Expect(err).ToNot(HaveOccurred())
@@ -132,7 +135,10 @@ var _ = Describe("DeploymentCmd", func() {
 					deploymentConfig, err := deploymentConfigService.Load()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{UUID: "def456"}))
+					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
+						DirectorID:   "fake-director-id",
+						DeploymentID: "fake-deployment-id",
+					}))
 				})
 			})
 
@@ -153,7 +159,6 @@ var _ = Describe("DeploymentCmd", func() {
 					command = NewDeploymentCmd(fakeUI,
 						userConfig,
 						userConfigService,
-						deploymentFile,
 						fakeFs,
 						fakeUUID,
 						logger,

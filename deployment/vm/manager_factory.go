@@ -7,19 +7,18 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
+	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 )
 
 type ManagerFactory interface {
-	NewManager(cloud bmcloud.Cloud, mbusURL string) Manager
+	NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient, mbusURL string) Manager
 }
 
 type managerFactory struct {
 	vmRepo                 bmconfig.VMRepo
 	stemcellRepo           bmconfig.StemcellRepo
 	diskDeployer           DiskDeployer
-	agentClientFactory     bmhttpagent.AgentClientFactory
 	applySpecFactory       bmas.Factory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
 	uuidGenerator          boshuuid.Generator
@@ -31,7 +30,6 @@ func NewManagerFactory(
 	vmRepo bmconfig.VMRepo,
 	stemcellRepo bmconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
-	agentClientFactory bmhttpagent.AgentClientFactory,
 	applySpecFactory bmas.Factory,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
 	uuidGenerator boshuuid.Generator,
@@ -42,7 +40,6 @@ func NewManagerFactory(
 		vmRepo:                 vmRepo,
 		stemcellRepo:           stemcellRepo,
 		diskDeployer:           diskDeployer,
-		agentClientFactory:     agentClientFactory,
 		applySpecFactory:       applySpecFactory,
 		templatesSpecGenerator: templatesSpecGenerator,
 		uuidGenerator:          uuidGenerator,
@@ -51,13 +48,13 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, mbusURL string) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient, mbusURL string) Manager {
 	return NewManager(
 		f.vmRepo,
 		f.stemcellRepo,
 		f.diskDeployer,
+		agentClient,
 		mbusURL,
-		f.agentClientFactory,
 		f.templatesSpecGenerator,
 		f.applySpecFactory,
 		cloud,

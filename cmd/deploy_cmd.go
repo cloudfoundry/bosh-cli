@@ -10,9 +10,11 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -23,8 +25,11 @@ type deployCmd struct {
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
 	deploymentParser        bmmanifest.Parser
+	deploymentConfigService bmconfig.DeploymentConfigService
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
+	agentClientFactory      bmhttpagent.AgentClientFactory
+	vmManagerFactory        bmvm.ManagerFactory
 	stemcellExtractor       bmstemcell.Extractor
 	deploymentRecord        bmdepl.DeploymentRecord
 	deploymentFactory       bmdepl.Factory
@@ -38,8 +43,11 @@ func NewDeployCmd(
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
 	deploymentParser bmmanifest.Parser,
+	deploymentConfigService bmconfig.DeploymentConfigService,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
+	agentClientFactory bmhttpagent.AgentClientFactory,
+	vmManagerFactory bmvm.ManagerFactory,
 	stemcellExtractor bmstemcell.Extractor,
 	deploymentRecord bmdepl.DeploymentRecord,
 	deploymentFactory bmdepl.Factory,
@@ -51,8 +59,11 @@ func NewDeployCmd(
 		userConfig:              userConfig,
 		fs:                      fs,
 		deploymentParser:        deploymentParser,
+		deploymentConfigService: deploymentConfigService,
 		boshDeploymentValidator: boshDeploymentValidator,
 		cpiDeploymentFactory:    cpiDeploymentFactory,
+		agentClientFactory:      agentClientFactory,
+		vmManagerFactory:        vmManagerFactory,
 		stemcellExtractor:       stemcellExtractor,
 		deploymentRecord:        deploymentRecord,
 		deploymentFactory:       deploymentFactory,
@@ -80,6 +91,11 @@ func (c *deployCmd) Run(args []string) error {
 	validationStage := c.eventLogger.NewStage("validating")
 	validationStage.Start()
 
+	deploymentConfig, err := c.deploymentConfigService.Load()
+	if err != nil {
+		return bosherr.WrapError(err, "Loading deployment config")
+	}
+
 	var (
 		boshDeployment bmdepl.Deployment
 		cpiDeployment  bmcpi.Deployment
@@ -91,13 +107,15 @@ func (c *deployCmd) Run(args []string) error {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
 		}
 
+		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
+
 		err = c.boshDeploymentValidator.Validate(boshDeploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
+
 		boshDeployment = c.deploymentFactory.NewDeployment(boshDeploymentManifest)
 
-		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest)
 		return nil
 	})
 	if err != nil {
@@ -170,13 +188,18 @@ func (c *deployCmd) Run(args []string) error {
 		c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
 	}()
 
+	directorID := deploymentConfig.DirectorID
 	cpiDeploymentManifest := cpiDeployment.Manifest()
+	mbusURL := cpiDeploymentManifest.Mbus
+	agentClient := c.agentClientFactory.NewAgentClient(directorID, mbusURL)
+	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, mbusURL)
+
 	err = boshDeployment.Deploy(
 		cloud,
 		extractedStemcell,
 		cpiDeploymentManifest.Registry,
 		cpiDeploymentManifest.SSHTunnel,
-		cpiDeploymentManifest.Mbus,
+		vmManager,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")

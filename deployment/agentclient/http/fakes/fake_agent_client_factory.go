@@ -6,6 +6,7 @@ import (
 
 type FakeAgentClientFactory struct {
 	CreateAgentClient bmagentclient.AgentClient
+	CreateDirectorID  string
 	CreateMbusURL     string
 }
 
@@ -13,7 +14,8 @@ func NewFakeAgentClientFactory() *FakeAgentClientFactory {
 	return &FakeAgentClientFactory{}
 }
 
-func (f *FakeAgentClientFactory) Create(mbusURL string) bmagentclient.AgentClient {
+func (f *FakeAgentClientFactory) NewAgentClient(directorID, mbusURL string) bmagentclient.AgentClient {
+	f.CreateDirectorID = directorID
 	f.CreateMbusURL = mbusURL
 	return f.CreateAgentClient
 }

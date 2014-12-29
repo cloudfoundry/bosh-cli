@@ -4,6 +4,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
 
 type Deployment interface {
@@ -12,7 +13,7 @@ type Deployment interface {
 		extractedStemcell bmstemcell.ExtractedStemcell,
 		registryConfig bmmanifest.Registry,
 		sshTunnelConfig bmmanifest.SSHTunnel,
-		mbusURL string,
+		vmManager bmvm.Manager,
 	) error
 }
 
@@ -37,7 +38,7 @@ func (d deployment) Deploy(
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	registryConfig bmmanifest.Registry,
 	sshTunnelConfig bmmanifest.SSHTunnel,
-	mbusURL string,
+	vmManager bmvm.Manager,
 ) error {
 	return d.deployer.Deploy(
 		cloud,
@@ -45,6 +46,6 @@ func (d deployment) Deploy(
 		extractedStemcell,
 		registryConfig,
 		sshTunnelConfig,
-		mbusURL,
+		vmManager,
 	)
 }

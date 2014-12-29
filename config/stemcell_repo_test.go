@@ -22,9 +22,8 @@ var _ = Describe("StemcellRepo", func() {
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		fakeUUIDGenerator.GeneratedUuid = "fake-uuid"
+		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		repo = NewStemcellRepo(configService, fakeUUIDGenerator)
 	})
 
@@ -37,9 +36,11 @@ var _ = Describe("StemcellRepo", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentFile{
+				DirectorID:   "fake-uuid-0",
+				DeploymentID: "fake-uuid-1",
 				Stemcells: []StemcellRecord{
 					{
-						ID:      "fake-uuid",
+						ID:      "fake-uuid-2",
 						Name:    "fake-name",
 						Version: "fake-version",
 						CID:     "fake-cid",
@@ -110,7 +111,7 @@ var _ = Describe("StemcellRepo", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(foundStemcellRecord).To(Equal(StemcellRecord{
-					ID:      "fake-uuid",
+					ID:      "fake-uuid-2",
 					Name:    "fake-name",
 					Version: "fake-version",
 					CID:     "fake-cid",

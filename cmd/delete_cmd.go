@@ -12,6 +12,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
+	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -24,25 +25,29 @@ import (
 )
 
 type deleteCmd struct {
-	ui                     bmui.UI
-	userConfig             bmconfig.UserConfig
-	fs                     boshsys.FileSystem
-	deploymentParser       bmmanifest.Parser
-	cpiDeploymentFactory   bmcpi.DeploymentFactory
-	vmManagerFactory       bmvm.ManagerFactory
-	instanceManagerFactory bminstance.ManagerFactory
-	diskManagerFactory     bmdisk.ManagerFactory
-	stemcellManagerFactory bmstemcell.ManagerFactory
-	eventLogger            bmeventlog.EventLogger
-	logger                 boshlog.Logger
-	logTag                 string
+	ui                      bmui.UI
+	userConfig              bmconfig.UserConfig
+	fs                      boshsys.FileSystem
+	deploymentParser        bmmanifest.Parser
+	deploymentConfigService bmconfig.DeploymentConfigService
+	cpiDeploymentFactory    bmcpi.DeploymentFactory
+	agentClientFactory      bmhttpagent.AgentClientFactory
+	vmManagerFactory        bmvm.ManagerFactory
+	instanceManagerFactory  bminstance.ManagerFactory
+	diskManagerFactory      bmdisk.ManagerFactory
+	stemcellManagerFactory  bmstemcell.ManagerFactory
+	eventLogger             bmeventlog.EventLogger
+	logger                  boshlog.Logger
+	logTag                  string
 }
 
 func NewDeleteCmd(ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
 	deploymentParser bmmanifest.Parser,
+	deploymentConfigService bmconfig.DeploymentConfigService,
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
+	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,
 	diskManagerFactory bmdisk.ManagerFactory,
@@ -50,18 +55,20 @@ func NewDeleteCmd(ui bmui.UI,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger) *deleteCmd {
 	return &deleteCmd{
-		ui:                     ui,
-		userConfig:             userConfig,
-		fs:                     fs,
-		deploymentParser:       deploymentParser,
-		cpiDeploymentFactory:   cpiDeploymentFactory,
-		vmManagerFactory:       vmManagerFactory,
-		instanceManagerFactory: instanceManagerFactory,
-		diskManagerFactory:     diskManagerFactory,
-		stemcellManagerFactory: stemcellManagerFactory,
-		eventLogger:            eventLogger,
-		logger:                 logger,
-		logTag:                 "deleteCmd",
+		ui:                      ui,
+		userConfig:              userConfig,
+		fs:                      fs,
+		deploymentParser:        deploymentParser,
+		deploymentConfigService: deploymentConfigService,
+		cpiDeploymentFactory:    cpiDeploymentFactory,
+		agentClientFactory:      agentClientFactory,
+		vmManagerFactory:        vmManagerFactory,
+		instanceManagerFactory:  instanceManagerFactory,
+		diskManagerFactory:      diskManagerFactory,
+		stemcellManagerFactory:  stemcellManagerFactory,
+		eventLogger:             eventLogger,
+		logger:                  logger,
+		logTag:                  "deleteCmd",
 	}
 }
 
@@ -83,6 +90,11 @@ func (c *deleteCmd) Run(args []string) error {
 	validationStage := c.eventLogger.NewStage("validating")
 	validationStage.Start()
 
+	deploymentConfig, err := c.deploymentConfigService.Load()
+	if err != nil {
+		return bosherr.WrapError(err, "Loading deployment config")
+	}
+
 	var (
 		cpiDeployment bmcpi.Deployment
 	)
@@ -92,7 +104,7 @@ func (c *deleteCmd) Run(args []string) error {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
 		}
 
-		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest)
+		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
 
 		return nil
 	})
@@ -136,11 +148,15 @@ func (c *deleteCmd) Run(args []string) error {
 		c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
 	}()
 
-	vmManager := c.vmManagerFactory.NewManager(cloud, cpiDeployment.Manifest().Mbus)
+	directorID := deploymentConfig.DirectorID
+	mbusURL := cpiDeployment.Manifest().Mbus
+	agentClient := c.agentClientFactory.NewAgentClient(directorID, mbusURL)
+	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, mbusURL)
 	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
 	diskManager := c.diskManagerFactory.NewManager(cloud)
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
 
+	//TODO: deployment.Delete()
 	return c.deleteDeployment(
 		instanceManager,
 		diskManager,

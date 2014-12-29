@@ -9,28 +9,25 @@ import (
 )
 
 type AgentClientFactory interface {
-	Create(mbusURL string) bmac.AgentClient
+	NewAgentClient(directorID, mbusURL string) bmac.AgentClient
 }
 
 type agentClientFactory struct {
-	deploymentUUID string
-	getTaskDelay   time.Duration
-	logger         boshlog.Logger
+	getTaskDelay time.Duration
+	logger       boshlog.Logger
 }
 
 func NewAgentClientFactory(
-	deploymentUUID string,
 	getTaskDelay time.Duration,
 	logger boshlog.Logger,
 ) AgentClientFactory {
-	return agentClientFactory{
-		deploymentUUID: deploymentUUID,
-		getTaskDelay:   getTaskDelay,
-		logger:         logger,
+	return &agentClientFactory{
+		getTaskDelay: getTaskDelay,
+		logger:       logger,
 	}
 }
 
-func (f agentClientFactory) Create(mbusURL string) bmac.AgentClient {
+func (f *agentClientFactory) NewAgentClient(directorID, mbusURL string) bmac.AgentClient {
 	httpClient := bmhttpclient.NewHTTPClient(f.logger)
-	return NewAgentClient(mbusURL, f.deploymentUUID, f.getTaskDelay, httpClient, f.logger)
+	return NewAgentClient(mbusURL, directorID, f.getTaskDelay, httpClient, f.logger)
 }

@@ -5,19 +5,19 @@ import (
 )
 
 type DeploymentWorkspace struct {
-	containingDir  string
-	deploymentUUID string
+	containingDir string
+	deploymentID  string
 }
 
-func NewDeploymentWorkspace(containingDir, deploymentUUID string) DeploymentWorkspace {
+func NewDeploymentWorkspace(containingDir, deploymentID string) DeploymentWorkspace {
 	return DeploymentWorkspace{
-		containingDir:  containingDir,
-		deploymentUUID: deploymentUUID,
+		containingDir: containingDir,
+		deploymentID:  deploymentID,
 	}
 }
 
-func (w DeploymentWorkspace) DeploymentUUID() string {
-	return w.deploymentUUID
+func (w DeploymentWorkspace) DeploymentID() string {
+	return w.deploymentID
 }
 
 func (w DeploymentWorkspace) BlobstorePath() string {
@@ -41,5 +41,5 @@ func (w DeploymentWorkspace) JobsPath() string {
 }
 
 func (w DeploymentWorkspace) deploymentDir() string {
-	return filepath.Join(w.containingDir, w.deploymentUUID)
+	return filepath.Join(w.containingDir, w.deploymentID)
 }

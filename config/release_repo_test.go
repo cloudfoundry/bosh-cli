@@ -22,9 +22,8 @@ var _ = Describe("ReleaseRepo", func() {
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		fakeUUIDGenerator.GeneratedUuid = "fake-uuid"
+		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		repo = NewReleaseRepo(configService, fakeUUIDGenerator)
 	})
 
@@ -37,9 +36,11 @@ var _ = Describe("ReleaseRepo", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentFile{
+				DirectorID:   "fake-uuid-0",
+				DeploymentID: "fake-uuid-1",
 				Releases: []ReleaseRecord{
 					{
-						ID:      "fake-uuid",
+						ID:      "fake-uuid-2",
 						Name:    "fake-name",
 						Version: "fake-version",
 					},
@@ -84,9 +85,14 @@ var _ = Describe("ReleaseRepo", func() {
 
 	Describe("Find", func() {
 		Context("when a release record with the same name and version exists", func() {
+			var (
+				recordID string
+			)
+
 			BeforeEach(func() {
-				_, err := repo.Save("fake-name", "fake-version")
+				record, err := repo.Save("fake-name", "fake-version")
 				Expect(err).ToNot(HaveOccurred())
+				recordID = record.ID
 			})
 
 			It("finds existing release records", func() {
@@ -94,7 +100,7 @@ var _ = Describe("ReleaseRepo", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(foundRecord).To(Equal(ReleaseRecord{
-					ID:      "fake-uuid",
+					ID:      recordID,
 					Name:    "fake-name",
 					Version: "fake-version",
 				}))

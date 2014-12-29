@@ -6,21 +6,24 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
 var _ = Describe("DeploymentRepo", func() {
 	var (
-		repo          DeploymentRepo
-		configService DeploymentConfigService
-		fs            *fakesys.FakeFileSystem
+		repo              DeploymentRepo
+		configService     DeploymentConfigService
+		fs                *fakesys.FakeFileSystem
+		fakeUUIDGenerator *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
+		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
+		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		repo = NewDeploymentRepo(configService)
 	})
 
@@ -33,6 +36,8 @@ var _ = Describe("DeploymentRepo", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentFile{
+				DirectorID:          "fake-uuid-0",
+				DeploymentID:        "fake-uuid-1",
 				CurrentManifestSHA1: "fake-manifest-sha1",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))

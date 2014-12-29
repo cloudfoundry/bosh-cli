@@ -4,20 +4,14 @@ import (
 	"errors"
 	"time"
 
-	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
-	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
-	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
 	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
@@ -31,9 +25,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
-	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -47,16 +39,15 @@ type factory struct {
 	commands                map[string](func() (Cmd, error))
 	userConfig              bmconfig.UserConfig
 	userConfigService       bmconfig.UserConfigService
-	deploymentFile          bmconfig.DeploymentFile
-	deploymentWorkspace     bmconfig.DeploymentWorkspace
 	deploymentConfigService bmconfig.DeploymentConfigService
 	fs                      boshsys.FileSystem
 	ui                      bmui.UI
 	logger                  boshlog.Logger
 	uuidGenerator           boshuuid.Generator
-	workspace               string
+	workspaceRootPath       string
 	runner                  boshsys.CmdRunner
 	compressor              boshcmd.Compressor
+	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
 	vmRepo                  bmconfig.VMRepo
 	stemcellRepo            bmconfig.StemcellRepo
@@ -81,7 +72,7 @@ func NewFactory(
 	ui bmui.UI,
 	logger boshlog.Logger,
 	uuidGenerator boshuuid.Generator,
-	workspace string,
+	workspaceRootPath string,
 ) Factory {
 	f := &factory{
 		userConfig:        userConfig,
@@ -90,9 +81,8 @@ func NewFactory(
 		ui:                ui,
 		logger:            logger,
 		uuidGenerator:     uuidGenerator,
-		workspace:         workspace,
+		workspaceRootPath: workspaceRootPath,
 	}
-	f.loadDeploymentConfig()
 	f.commands = map[string](func() (Cmd, error)){
 		"deployment": f.createDeploymentCmd,
 		"deploy":     f.createDeployCmd,
@@ -114,7 +104,6 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 		f.ui,
 		f.userConfig,
 		f.userConfigService,
-		f.deploymentFile,
 		f.fs,
 		f.uuidGenerator,
 		f.logger,
@@ -129,8 +118,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	stemcellReader := bmstemcell.NewReader(f.loadCompressor(), f.fs)
 	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)
 
-	deploymentRepo := bmconfig.NewDeploymentRepo(f.deploymentConfigService)
-	releaseRepo := bmconfig.NewReleaseRepo(f.deploymentConfigService, f.uuidGenerator)
+	deploymentRepo := bmconfig.NewDeploymentRepo(f.loadDeploymentConfigService())
+	releaseRepo := bmconfig.NewReleaseRepo(f.loadDeploymentConfigService(), f.uuidGenerator)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
 	deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
 
@@ -139,8 +128,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.userConfig,
 		f.fs,
 		deploymentParser,
+		f.loadDeploymentConfigService(),
 		boshDeploymentValidator,
 		f.loadCPIDeploymentFactory(),
+		f.loadAgentClientFactory(),
+		f.loadVMManagerFactory(),
 		stemcellExtractor,
 		deploymentRecord,
 		f.loadDeploymentFactory(),
@@ -151,13 +143,14 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 func (f *factory) createDeleteCmd() (Cmd, error) {
 	deploymentParser := bmmanifest.NewParser(f.fs, f.logger)
-
 	return NewDeleteCmd(
 		f.ui,
 		f.userConfig,
 		f.fs,
 		deploymentParser,
+		f.loadDeploymentConfigService(),
 		f.loadCPIDeploymentFactory(),
+		f.loadAgentClientFactory(),
 		f.loadVMManagerFactory(),
 		f.loadInstanceManagerFactory(),
 		f.loadDiskManagerFactory(),
@@ -187,7 +180,7 @@ func (f *factory) loadStemcellRepo() bmconfig.StemcellRepo {
 	if f.stemcellRepo != nil {
 		return f.stemcellRepo
 	}
-	f.stemcellRepo = bmconfig.NewStemcellRepo(f.deploymentConfigService, f.uuidGenerator)
+	f.stemcellRepo = bmconfig.NewStemcellRepo(f.loadDeploymentConfigService(), f.uuidGenerator)
 	return f.stemcellRepo
 }
 
@@ -195,7 +188,7 @@ func (f *factory) loadVMRepo() bmconfig.VMRepo {
 	if f.vmRepo != nil {
 		return f.vmRepo
 	}
-	f.vmRepo = bmconfig.NewVMRepo(f.deploymentConfigService)
+	f.vmRepo = bmconfig.NewVMRepo(f.loadDeploymentConfigService())
 	return f.vmRepo
 }
 
@@ -203,7 +196,7 @@ func (f *factory) loadDiskRepo() bmconfig.DiskRepo {
 	if f.diskRepo != nil {
 		return f.diskRepo
 	}
-	f.diskRepo = bmconfig.NewDiskRepo(f.deploymentConfigService, f.uuidGenerator)
+	f.diskRepo = bmconfig.NewDiskRepo(f.loadDeploymentConfigService(), f.uuidGenerator)
 	return f.diskRepo
 }
 
@@ -255,6 +248,15 @@ func (f *factory) loadInstanceManagerFactory() bminstance.ManagerFactory {
 	return f.instanceManagerFactory
 }
 
+func (f *factory) loadAgentClientFactory() bmhttpagent.AgentClientFactory {
+	if f.agentClientFactory != nil {
+		return f.agentClientFactory
+	}
+
+	f.agentClientFactory = bmhttpagent.NewAgentClientFactory(1*time.Second, f.logger)
+	return f.agentClientFactory
+}
+
 func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 	if f.vmManagerFactory != nil {
 		return f.vmManagerFactory
@@ -263,7 +265,6 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
 	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
 
-	agentClientFactory := bmhttpagent.NewAgentClientFactory(f.deploymentWorkspace.DeploymentUUID(), 1*time.Second, f.logger)
 	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
 	applySpecFactory := bmas.NewFactory()
@@ -282,7 +283,6 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 		f.loadVMRepo(),
 		f.loadStemcellRepo(),
 		f.loadDiskDeployer(),
-		agentClientFactory,
 		applySpecFactory,
 		templatesSpecGenerator,
 		f.uuidGenerator,
@@ -301,19 +301,26 @@ func (f *factory) loadStemcellManagerFactory() bmstemcell.ManagerFactory {
 	return f.stemcellManagerFactory
 }
 
-func (f *factory) loadDeploymentConfig() error {
+func (f *factory) loadDeploymentConfigService() bmconfig.DeploymentConfigService {
+	if f.deploymentConfigService != nil {
+		return f.deploymentConfigService
+	}
+
+	deploymentConfigPath := f.userConfig.DeploymentConfigPath()
+	f.logger.Debug("cmdFactory", "DeploymentConfigPath: %s", deploymentConfigPath)
+	if deploymentConfigPath == "" {
+		// no deployment set.
+		// each cmd should handle validation before using deploymentConfigService or deploymentWorkspace
+		return nil
+	}
+
 	f.deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(
-		f.userConfig.DeploymentConfigFilePath(),
+		deploymentConfigPath,
 		f.fs,
+		f.uuidGenerator,
 		f.logger,
 	)
-	var err error
-	f.deploymentFile, err = f.deploymentConfigService.Load()
-	if err != nil {
-		return bosherr.WrapError(err, "Loading deployment config")
-	}
-	f.deploymentWorkspace = bmconfig.NewDeploymentWorkspace(f.workspace, f.deploymentFile.UUID)
-	return nil
+	return f.deploymentConfigService
 }
 
 func (f *factory) loadDeploymentFactory() bmdepl.Factory {
@@ -358,82 +365,13 @@ func (f *factory) loadCPIDeploymentFactory() bmcpi.DeploymentFactory {
 
 	f.cpiDeploymentFactory = bmcpi.NewDeploymentFactory(
 		f.loadRegistryServerManager(),
-		f.loadCPIInstaller(),
-	)
-	return f.cpiDeploymentFactory
-}
-
-func (f *factory) loadCPIInstaller() bmcpi.Installer {
-	if f.cpiInstaller != nil {
-		return f.cpiInstaller
-	}
-
-	runner := boshsys.NewExecCmdRunner(f.logger)
-	extractor := boshcmd.NewTarballCompressor(runner, f.fs)
-
-	boshValidator := bmrelvalidation.NewBoshValidator(f.fs)
-	cpiReleaseValidator := bmrelvalidation.NewCpiValidator()
-	releaseValidator := bmrelvalidation.NewValidator(
-		boshValidator,
-		cpiReleaseValidator,
-		f.ui,
-	)
-
-	compressor := boshcmd.NewTarballCompressor(runner, f.fs)
-	indexFilePath := f.deploymentWorkspace.CompiledPackagedIndexPath()
-	compiledPackageIndex := bmindex.NewFileIndex(indexFilePath, f.fs)
-	compiledPackageRepo := bmpkgs.NewCompiledPackageRepo(compiledPackageIndex)
-
-	options := map[string]interface{}{"blobstore_path": f.deploymentWorkspace.BlobstorePath()}
-	blobstore := boshblob.NewSHA1VerifiableBlobstore(
-		boshblob.NewLocalBlobstore(f.fs, f.uuidGenerator, options),
-	)
-	blobExtractor := bmcpiinstall.NewBlobExtractor(f.fs, compressor, blobstore, f.logger)
-	packageInstaller := bmcpiinstall.NewPackageInstaller(compiledPackageRepo, blobExtractor)
-	packageCompiler := bmcomp.NewPackageCompiler(
-		runner,
-		f.deploymentWorkspace.PackagesPath(),
+		f.workspaceRootPath,
 		f.fs,
-		compressor,
-		blobstore,
-		compiledPackageRepo,
-		packageInstaller,
-	)
-
-	da := bmcomp.NewDependencyAnalysis()
-	releasePackagesCompiler := bmcomp.NewReleasePackagesCompiler(
-		da,
-		packageCompiler,
+		f.ui,
+		f.uuidGenerator,
 		f.loadEventLogger(),
 		f.loadTimeService(),
-	)
-
-	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, runner, f.logger)
-	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
-	templatesIndex := bmindex.NewFileIndex(f.deploymentWorkspace.TemplatesIndexPath(), f.fs)
-	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
-	templatesCompiler := bmtempcomp.NewTemplatesCompiler(jobRenderer, compressor, blobstore, templatesRepo, f.fs, f.logger)
-	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
-	jobInstaller := bmcpiinstall.NewJobInstaller(
-		f.fs,
-		packageInstaller,
-		blobExtractor,
-		templatesRepo,
-		f.deploymentWorkspace.JobsPath(),
-		f.deploymentWorkspace.PackagesPath(),
-		f.loadEventLogger(),
-		f.loadTimeService(),
-	)
-	cloudFactory := bmcloud.NewFactory(f.fs, runner, f.deploymentWorkspace, f.logger)
-	f.cpiInstaller = bmcpi.NewInstaller(
-		f.ui,
-		f.fs,
-		extractor,
-		releaseValidator,
-		releaseCompiler,
-		jobInstaller,
-		cloudFactory,
 		f.logger,
 	)
-	return f.cpiInstaller
+	return f.cpiDeploymentFactory
 }

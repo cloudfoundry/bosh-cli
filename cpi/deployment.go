@@ -21,6 +21,7 @@ type deployment struct {
 	manifest              bmmanifest.CPIDeploymentManifest
 	registryServerManager bmregistry.ServerManager
 	installer             Installer
+	directorID            string
 
 	release        bmrel.Release
 	registryServer bmregistry.Server
@@ -30,11 +31,13 @@ func NewDeployment(
 	manifest bmmanifest.CPIDeploymentManifest,
 	registryServerManager bmregistry.ServerManager,
 	installer Installer,
+	directorID string,
 ) Deployment {
 	return &deployment{
 		manifest:              manifest,
 		registryServerManager: registryServerManager,
 		installer:             installer,
+		directorID:            directorID,
 	}
 }
 
@@ -61,7 +64,7 @@ func (d *deployment) Install() (bmcloud.Cloud, error) {
 	if !d.release.Exists() {
 		return nil, bosherr.Errorf("Extracted CPI release not found")
 	}
-	return d.installer.Install(d.manifest, d.release)
+	return d.installer.Install(d.manifest, d.release, d.directorID)
 }
 
 func (d *deployment) StartJobs() error {

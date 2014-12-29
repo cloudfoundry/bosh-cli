@@ -25,7 +25,7 @@ func getDeploymentManifest(userConfig bmconfig.UserConfig, ui bmui.UI, fs boshsy
 		return "", bosherr.Errorf("Deployment manifest does not exist at '%s'", deploymentManifestPath)
 	}
 
-	ui.Sayln(fmt.Sprintf("Deployment state: '%s'", userConfig.DeploymentConfigFilePath()))
+	ui.Sayln(fmt.Sprintf("Deployment state: '%s'", userConfig.DeploymentConfigPath()))
 
 	return deploymentManifestPath, nil
 }

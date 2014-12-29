@@ -105,12 +105,12 @@ func (_m *MockDeploymentFactory) EXPECT() *_MockDeploymentFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDeploymentFactory) NewDeployment(_param0 manifest.CPIDeploymentManifest) cpi.Deployment {
-	ret := _m.ctrl.Call(_m, "NewDeployment", _param0)
+func (_m *MockDeploymentFactory) NewDeployment(_param0 manifest.CPIDeploymentManifest, _param1 string, _param2 string) cpi.Deployment {
+	ret := _m.ctrl.Call(_m, "NewDeployment", _param0, _param1, _param2)
 	ret0, _ := ret[0].(cpi.Deployment)
 	return ret0
 }
 
-func (_mr *_MockDeploymentFactoryRecorder) NewDeployment(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewDeployment", arg0)
+func (_mr *_MockDeploymentFactoryRecorder) NewDeployment(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewDeployment", arg0, arg1, arg2)
 }

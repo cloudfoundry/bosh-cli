@@ -16,7 +16,6 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
-	fakebmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 
@@ -47,14 +46,12 @@ var _ = Describe("Manager", func() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
-		fakeAgentClientFactory := fakebmhttpagent.NewFakeAgentClientFactory()
-		fakeAgentClientFactory.CreateAgentClient = fakeAgentClient
 		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
 		fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
 		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
 
-		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, logger)
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
+		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
 
 		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
@@ -63,13 +60,12 @@ var _ = Describe("Manager", func() {
 			fakeVMRepo,
 			stemcellRepo,
 			fakeDiskDeployer,
-			fakeAgentClientFactory,
 			fakeApplySpecFactory,
 			fakeTemplatesSpecGenerator,
 			fakeUUIDGenerator,
 			fs,
 			logger,
-		).NewManager(fakeCloud, "fake-mbus-url")
+		).NewManager(fakeCloud, fakeAgentClient, "fake-mbus-url")
 
 		fakeCloud.CreateVMCID = "fake-vm-cid"
 		expectedNetworksSpec = map[string]interface{}{

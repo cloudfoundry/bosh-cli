@@ -19,7 +19,7 @@ import (
 
 type Installer interface {
 	Extract(releaseTarballPath string) (bmrel.Release, error)
-	Install(deployment bmmanifest.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error)
+	Install(deployment bmmanifest.CPIDeploymentManifest, release bmrel.Release, directorID string) (bmcloud.Cloud, error)
 }
 
 type cpiInstaller struct {
@@ -86,7 +86,7 @@ func (c *cpiInstaller) Extract(releaseTarballPath string) (bmrel.Release, error)
 	return release, nil
 }
 
-func (c *cpiInstaller) Install(manifest bmmanifest.CPIDeploymentManifest, release bmrel.Release) (bmcloud.Cloud, error) {
+func (c *cpiInstaller) Install(manifest bmmanifest.CPIDeploymentManifest, release bmrel.Release, directorID string) (bmcloud.Cloud, error) {
 	c.logger.Info(c.logTag, fmt.Sprintf("Compiling CPI release '%s'", release.Name()))
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release '%s': %#v", release.Name(), release))
 	err := c.releaseCompiler.Compile(release, manifest)
@@ -101,9 +101,8 @@ func (c *cpiInstaller) Install(manifest bmmanifest.CPIDeploymentManifest, releas
 		return nil, bosherr.WrapError(err, "Installing CPI deployment job")
 	}
 
-	cloud, err := c.cloudFactory.NewCloud([]bmcpiinstall.InstalledJob{
-		installedJob,
-	})
+	installedJobs := []bmcpiinstall.InstalledJob{installedJob}
+	cloud, err := c.cloudFactory.NewCloud(installedJobs, directorID)
 	if err != nil {
 		c.ui.Error("Invalid CPI deployment")
 		return nil, bosherr.WrapError(err, "Validating CPI deployment job installation")

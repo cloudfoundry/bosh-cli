@@ -8,7 +8,10 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
+	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 	mock_deployer "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
+	mock_vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -31,6 +34,7 @@ import (
 	fakebmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
 	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
@@ -58,17 +62,22 @@ var _ = Describe("DeployCmd", func() {
 		mockCPIDeploymentFactory  *mock_cpi.MockDeploymentFactory
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
+		mockAgentClient           *mock_agentclient.MockAgentClient
+		mockAgentClientFactory    *mock_httpagent.MockAgentClientFactory
 
 		fakeCPIInstaller      *fakebmcpi.FakeInstaller
 		fakeCPIRelease        *fakebmrel.FakeRelease
 		logger                boshlog.Logger
 		release               bmrel.Release
+		mockVMManagerFactory  *mock_vm.MockManagerFactory
+		fakeVMManager         *fakebmvm.FakeManager
 		fakeStemcellExtractor *fakebmstemcell.FakeExtractor
 
 		fakeDeployer         *fakebmdepl.FakeDeployer
 		fakeDeploymentRecord *fakebmdepl.FakeDeploymentRecord
 
 		fakeDeploymentParser    *fakebmmanifest.FakeParser
+		deploymentConfigService bmconfig.DeploymentConfigService
 		fakeDeploymentValidator *fakebmdeplval.FakeValidator
 
 		fakeCompressor    *fakecmd.FakeCompressor
@@ -79,6 +88,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeStage       *fakebmlog.FakeStage
 
 		deploymentManifestPath    string
+		deploymentConfigPath      string
 		cpiReleaseTarballPath     string
 		stemcellTarballPath       string
 		expectedExtractedStemcell bmstemcell.ExtractedStemcell
@@ -88,6 +98,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
 		deploymentManifestPath = "/path/to/manifest.yml"
+		deploymentConfigPath = "/path/to/deployment.json"
 		userConfig = bmconfig.UserConfig{
 			DeploymentManifestPath: deploymentManifestPath,
 		}
@@ -99,12 +110,26 @@ var _ = Describe("DeployCmd", func() {
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
 
+		mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
+		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
+
 		fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
+
+		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
+		fakeVMManager = fakebmvm.NewFakeManager()
+		mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient, gomock.Any()).Return(fakeVMManager).AnyTimes()
+
 		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
 		fakeDeployer = fakebmdepl.NewFakeDeployer()
 
 		fakeDeploymentParser = fakebmmanifest.NewFakeParser()
+
+		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+		logger = boshlog.NewLogger(boshlog.LevelNone)
+		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, fakeUUIDGenerator, logger)
+
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
@@ -113,24 +138,8 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeCompressor = fakecmd.NewFakeCompressor()
 		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
-		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
 		fakeDeploymentRecord = fakebmdepl.NewFakeDeploymentRecord()
-
-		logger = boshlog.NewLogger(boshlog.LevelNone)
-		command = bmcmd.NewDeployCmd(
-			fakeUI,
-			userConfig,
-			fakeFs,
-			fakeDeploymentParser,
-			fakeDeploymentValidator,
-			mockCPIDeploymentFactory,
-			fakeStemcellExtractor,
-			fakeDeploymentRecord,
-			mockDeploymentFactory,
-			fakeEventLogger,
-			logger,
-		)
 
 		cpiReleaseTarballPath = "/release/tarball/path"
 
@@ -146,6 +155,25 @@ var _ = Describe("DeployCmd", func() {
 			bmstemcell.ApplySpec{},
 			"fake-extracted-path",
 			fakeFs,
+		)
+	})
+
+	JustBeforeEach(func() {
+		command = bmcmd.NewDeployCmd(
+			fakeUI,
+			userConfig,
+			fakeFs,
+			fakeDeploymentParser,
+			deploymentConfigService,
+			fakeDeploymentValidator,
+			mockCPIDeploymentFactory,
+			mockAgentClientFactory,
+			mockVMManagerFactory,
+			fakeStemcellExtractor,
+			fakeDeploymentRecord,
+			mockDeploymentFactory,
+			fakeEventLogger,
+			logger,
 		)
 	})
 
@@ -178,21 +206,6 @@ var _ = Describe("DeployCmd", func() {
 				BeforeEach(func() {
 					userConfig.DeploymentManifestPath = deploymentManifestPath
 
-					// re-create command to update userConfig.DeploymentFile
-					command = bmcmd.NewDeployCmd(
-						fakeUI,
-						userConfig,
-						fakeFs,
-						fakeDeploymentParser,
-						fakeDeploymentValidator,
-						mockCPIDeploymentFactory,
-						fakeStemcellExtractor,
-						fakeDeploymentRecord,
-						mockDeploymentFactory,
-						fakeEventLogger,
-						logger,
-					)
-
 					release = bmrel.NewRelease(
 						"fake-release",
 						"fake-version",
@@ -220,6 +233,9 @@ version: fake-version
 						boshDeploymentManifest bmmanifest.Manifest
 						cpiDeploymentManifest  bmmanifest.CPIDeploymentManifest
 						cloud                  *fakebmcloud.FakeCloud
+
+						directorID   = "fake-uuid-0"
+						deploymentID = "fake-uuid-1"
 					)
 
 					BeforeEach(func() {
@@ -269,8 +285,8 @@ version: fake-version
 					JustBeforeEach(func() {
 						fakeDeploymentParser.ParseCPIDeploymentManifest = cpiDeploymentManifest
 
-						cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller)
-						mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest).Return(cpiDeployment).AnyTimes()
+						cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller, directorID)
+						mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, deploymentID, directorID).Return(cpiDeployment).AnyTimes()
 
 						deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
 						mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
@@ -282,7 +298,7 @@ version: fake-version
 							},
 						)
 
-						fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, fakeCPIRelease, cloud, nil)
+						fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, fakeCPIRelease, directorID, cloud, nil)
 					})
 
 					It("prints the deployment manifest and state file", func() {
@@ -363,6 +379,7 @@ version: fake-version
 							{
 								Deployment: cpiDeploymentManifest,
 								Release:    fakeCPIRelease,
+								DirectorID: directorID,
 							},
 						}))
 					})
@@ -410,7 +427,7 @@ version: fake-version
 								Stemcell:        expectedExtractedStemcell,
 								Registry:        cpiDeploymentManifest.Registry,
 								SSHTunnelConfig: cpiDeploymentManifest.SSHTunnel,
-								MbusURL:         cpiDeploymentManifest.Mbus,
+								VMManager:       fakeVMManager,
 							},
 						}))
 					})
@@ -528,6 +545,25 @@ version: fake-version
 							}))
 						})
 					})
+
+					Context("when the deployment config file does not exist", func() {
+						BeforeEach(func() {
+							fakeFs.RemoveAll(deploymentConfigPath)
+						})
+
+						It("creates a deployment config", func() {
+							err := command.Run([]string{cpiReleaseTarballPath, stemcellTarballPath})
+							Expect(err).ToNot(HaveOccurred())
+
+							deploymentConfig, err := deploymentConfigService.Load()
+							Expect(err).ToNot(HaveOccurred())
+
+							Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
+								DirectorID:   "fake-uuid-0",
+								DeploymentID: "fake-uuid-1",
+							}))
+						})
+					})
 				})
 
 				Context("when the deployment manifest file does not exist", func() {
@@ -554,8 +590,11 @@ version: fake-version
 						userConfig,
 						fakeFs,
 						fakeDeploymentParser,
+						deploymentConfigService,
 						fakeDeploymentValidator,
 						mockCPIDeploymentFactory,
+						mockAgentClientFactory,
+						mockVMManagerFactory,
 						fakeStemcellExtractor,
 						fakeDeploymentRecord,
 						mockDeploymentFactory,

@@ -4,6 +4,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
 
 type DeployInput struct {
@@ -12,7 +13,7 @@ type DeployInput struct {
 	Stemcell        bmstemcell.ExtractedStemcell
 	Registry        bmmanifest.Registry
 	SSHTunnelConfig bmmanifest.SSHTunnel
-	MbusURL         string
+	VMManager       bmvm.Manager
 }
 
 type deployOutput struct {
@@ -37,7 +38,7 @@ func (m *FakeDeployer) Deploy(
 	stemcell bmstemcell.ExtractedStemcell,
 	registry bmmanifest.Registry,
 	sshTunnelConfig bmmanifest.SSHTunnel,
-	mbusURL string,
+	vmManager bmvm.Manager,
 ) error {
 	input := DeployInput{
 		Cpi:             cpi,
@@ -45,7 +46,7 @@ func (m *FakeDeployer) Deploy(
 		Stemcell:        stemcell,
 		Registry:        registry,
 		SSHTunnelConfig: sshTunnelConfig,
-		MbusURL:         mbusURL,
+		VMManager:       vmManager,
 	}
 	m.DeployInputs = append(m.DeployInputs, input)
 

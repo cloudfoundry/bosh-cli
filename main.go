@@ -22,7 +22,7 @@ func main() {
 	logger := newLogger()
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
-	workspace := path.Join(os.Getenv("HOME"), ".bosh_micro")
+	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_micro")
 	userConfigPath := path.Join(os.Getenv("HOME"), ".bosh_micro.json")
 	config, configService := loadUserConfig(userConfigPath, fileSystem, logger)
 
@@ -37,7 +37,7 @@ func main() {
 		ui,
 		logger,
 		uuidGenerator,
-		workspace,
+		workspaceRootPath,
 	)
 
 	cmdRunner := bmcmd.NewRunner(cmdFactory)

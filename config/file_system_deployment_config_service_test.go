@@ -6,6 +6,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -17,13 +18,15 @@ var _ = Describe("fileSystemConfigService", func() {
 		service            DeploymentConfigService
 		deploymentFilePath string
 		fakeFs             *fakesys.FakeFileSystem
+		fakeUUIDGenerator  *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
 		fakeFs = fakesys.NewFakeFileSystem()
 		deploymentFilePath = "/some/deployment.json"
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		service = NewFileSystemDeploymentConfigService(deploymentFilePath, fakeFs, logger)
+		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
+		service = NewFileSystemDeploymentConfigService(deploymentFilePath, fakeFs, fakeUUIDGenerator, logger)
 	})
 
 	Describe("Load", func() {
@@ -51,7 +54,8 @@ var _ = Describe("fileSystemConfigService", func() {
 				},
 			}
 			deploymentFileContents, err := json.Marshal(map[string]interface{}{
-				"uuid":            "deadbeef",
+				"director_id":     "fake-director-id",
+				"deployment_id":   "fake-deployment-id",
 				"stemcells":       stemcells,
 				"current_vm_cid":  "fake-vm-cid",
 				"current_disk_id": "fake-disk-id",
@@ -61,7 +65,8 @@ var _ = Describe("fileSystemConfigService", func() {
 
 			deploymentFile, err := service.Load()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(deploymentFile.UUID).To(Equal("deadbeef"))
+			Expect(deploymentFile.DirectorID).To(Equal("fake-director-id"))
+			Expect(deploymentFile.DeploymentID).To(Equal("fake-deployment-id"))
 			Expect(deploymentFile.Stemcells).To(Equal(stemcells))
 			Expect(deploymentFile.CurrentVMCID).To(Equal("fake-vm-cid"))
 			Expect(deploymentFile.CurrentDiskID).To(Equal("fake-disk-id"))
@@ -69,10 +74,15 @@ var _ = Describe("fileSystemConfigService", func() {
 		})
 
 		Context("when the config does not exist", func() {
-			It("returns an empty DeploymentConfig", func() {
+			It("returns a new DeploymentConfig with generated defaults", func() {
 				config, err := service.Load()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(config).To(Equal(DeploymentFile{}))
+				Expect(config).To(Equal(DeploymentFile{
+					DirectorID:   "fake-uuid-0",
+					DeploymentID: "fake-uuid-1",
+				}))
+
+				Expect(fakeFs.FileExists(deploymentFilePath)).To(BeTrue())
 			})
 		})
 
@@ -103,7 +113,7 @@ var _ = Describe("fileSystemConfigService", func() {
 	Describe("Save", func() {
 		It("writes the deployment config to the deployment file", func() {
 			config := DeploymentFile{
-				UUID: "deadbeef",
+				DirectorID: "deadbeef",
 				Stemcells: []StemcellRecord{
 					{
 						Name:    "fake-stemcell-name",
@@ -128,7 +138,7 @@ var _ = Describe("fileSystemConfigService", func() {
 
 			deploymentFileContents, err := fakeFs.ReadFileString(deploymentFilePath)
 			deploymentFile := DeploymentFile{
-				UUID: "deadbeef",
+				DirectorID: "deadbeef",
 				Stemcells: []StemcellRecord{
 					{
 						Name:    "fake-stemcell-name",

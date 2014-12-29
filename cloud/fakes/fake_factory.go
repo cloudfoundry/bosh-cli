@@ -12,6 +12,7 @@ import (
 
 type NewCloudInput struct {
 	InstalledJobs []bmcpiinstall.InstalledJob
+	DirectorID    string
 }
 
 type newCloudOutput struct {
@@ -31,9 +32,10 @@ func NewFakeFactory() *FakeFactory {
 	}
 }
 
-func (f *FakeFactory) NewCloud(installedJobs []bmcpiinstall.InstalledJob) (bmcloud.Cloud, error) {
+func (f *FakeFactory) NewCloud(installedJobs []bmcpiinstall.InstalledJob, directorID string) (bmcloud.Cloud, error) {
 	input := NewCloudInput{
 		InstalledJobs: installedJobs,
+		DirectorID:    directorID,
 	}
 	f.NewCloudInputs = append(f.NewCloudInputs, input)
 
@@ -50,9 +52,10 @@ func (f *FakeFactory) NewCloud(installedJobs []bmcpiinstall.InstalledJob) (bmclo
 	return output.cloud, output.err
 }
 
-func (f *FakeFactory) SetNewCloudBehavior(installedJobs []bmcpiinstall.InstalledJob, cloud bmcloud.Cloud, err error) {
+func (f *FakeFactory) SetNewCloudBehavior(installedJobs []bmcpiinstall.InstalledJob, directorID string, cloud bmcloud.Cloud, err error) {
 	input := NewCloudInput{
 		InstalledJobs: installedJobs,
+		DirectorID:    directorID,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
