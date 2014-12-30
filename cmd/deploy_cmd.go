@@ -185,7 +185,9 @@ func (c *deployCmd) Run(args []string) error {
 	}
 	defer func() {
 		err := cpiDeployment.StopJobs()
-		c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
+		if err != nil {
+			c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
+		}
 	}()
 
 	directorID := deploymentConfig.DirectorID
