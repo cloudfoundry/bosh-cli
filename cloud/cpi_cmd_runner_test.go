@@ -20,25 +20,12 @@ var _ = Describe("CpiCmdRunner", func() {
 		context       CmdContext
 		cmdRunner     *fakesys.FakeCmdRunner
 		cpiJob        CPIJob
-		cmdInputBytes []byte
 	)
 
 	BeforeEach(func() {
 		context = CmdContext{
 			DirectorID: "fake-director-id",
 		}
-		cmdInput := CmdInput{
-			Context: context,
-			Method:  "fake-method",
-			Arguments: []interface{}{
-				"fake-argument-1",
-				"fake-argument-2",
-			},
-		}
-
-		var err error
-		cmdInputBytes, err = json.Marshal(cmdInput)
-		Expect(err).NotTo(HaveOccurred())
 
 		cpiJob = CPIJob{
 			JobPath:     "/jobs/cpi",
@@ -78,7 +65,13 @@ var _ = Describe("CpiCmdRunner", func() {
 			Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
 			bytes, err := ioutil.ReadAll(actualCmd.Stdin)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(bytes)).To(Equal(string(cmdInputBytes)))
+			Expect(string(bytes)).To(Equal(
+			  `{` +
+					`"method":"fake-method",` +
+					`"arguments":["fake-argument-1","fake-argument-2"],` +
+					`"context":{"director_uuid":"fake-director-id"}` +
+				`}`,
+			))
 		})
 
 		Context("when the command succeeds", func() {

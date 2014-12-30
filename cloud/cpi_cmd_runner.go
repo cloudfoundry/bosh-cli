@@ -17,7 +17,7 @@ type CmdInput struct {
 }
 
 type CmdContext struct {
-	DirectorID string `json:"director_id"`
+	DirectorID string `json:"director_uuid"`
 }
 
 func (c CmdContext) String() string {
