@@ -1,0 +1,149 @@
+---
+name: micro-vcloud-dev
+
+networks:
+- name: default
+  type: manual
+  ip: 192.168.112.140
+  netmask: 255.255.255.0
+  gateway: 192.168.112.1
+  dns: ["8.8.8.8"]
+  cloud_properties:
+    name: VDC-BOSH
+
+resources:
+  persistent_disk: 4096,
+  cloud_properties:
+    ram: 2048
+    disk: 8192
+    cpu: 1
+
+disk_pools:
+- name: ssd-disk-pool
+  disk_size: 2048
+
+resource_pools:
+- name: default
+  network: default
+  cloud_properties:
+    ram: 512
+    disk: 2048
+    cpu: 1
+
+env:
+  vapp: bosh-acceptance-vapp
+
+vcloud_config: &vcloud
+  url: https://p3v13-vcd.vchs.vmware.com
+  user: <vcloud-api-username>
+  password: <vcloud-api-password>
+  entities:
+    organization: <vcloud-VDC-org>
+    virtual_datacenter: <vcloud-VDC>
+    vapp_catalog: micro-bosh-catalog
+    media_catalog: micro-bosh-catalog
+    media_storage_profile: "*"
+    vm_metadata_key: micro-bosh-meta
+    description: MicroBosh on vCloudDirector
+    control:
+      wait_max: 900
+
+cloud_provider:
+  mbus: https://admin:<agent-mbus-password>@192.168.112.140:6868
+  properties:
+    blobstore:
+      provider: local
+      path: /var/vcap/micro_bosh/data/cache
+    agent:
+      mbus: https://admin:<agent-mbus-password>@0.0.0.0:6868
+      ntp: ["us.pool.ntp.org", "time1.google.com"]
+    vcd: *vcloud
+    log_file: /bosh-micro-cli/cpi.log
+
+jobs:
+- name: bosh
+  instances: 1
+  templates:
+  - name: nats
+  - name: redis
+  - name: postgres
+  - name: powerdns
+  - name: blobstore
+  - name: director
+  - name: health_monitor
+  - name: registry
+  - name: bosh_vcloud_cpi
+  networks:
+  - name: default
+    static_ips:
+    - 192.168.112.140
+  persistent_disk_pool: ssd-disk-pool
+  properties:
+    vcd: *vcloud
+    registry:
+      address: 192.168.112.140
+      http:
+        user: registry-user
+        password: <registry-password>
+        port: 25777
+      db:
+        user: postgres-user
+        password: <postgres-password>
+        host: 127.0.0.1
+        database: bosh
+        port: 5432
+        adapter: postgres
+    nats:
+      user: nats-user
+      password: <nats-password>
+      auth_timeout: 3
+      address: 127.0.0.1
+    redis:
+      address: 127.0.0.1
+      password: <redis-password>
+      port: 25255
+    postgres:
+      user: postgres-user
+      password: <postgres-password>
+      host: 127.0.0.1
+      database: bosh
+      port: 5432
+    blobstore:
+      address: 127.0.0.1
+      director:
+        user: director-user
+        password: <director-password>
+      agent:
+        user: agent-user
+        password: <agent-password>
+      provider: dav
+    director:
+      address: 127.0.0.1
+      name: micro
+      port: 25555
+      db:
+        user: postgres-user
+        password: <postgres-password>
+        host: 127.0.0.1
+        database: bosh
+        port: 5432
+        adapter: postgres
+      backend_port: 25556
+    hm:
+      http:
+        user: hm-user
+        password: <hm-password>
+      director_account:
+        user: admin
+        password: <director-password>
+    dns:
+      address: 192.168.112.140
+      domain_name: microbosh
+      db:
+        user: postgres-user
+        password: <postgres-password>
+        host: 127.0.0.1
+        database: bosh
+        port: 5432
+        adapter: postgres
+    ntp: []
