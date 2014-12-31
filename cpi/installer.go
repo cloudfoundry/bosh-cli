@@ -19,7 +19,7 @@ import (
 
 type Installer interface {
 	Extract(releaseTarballPath string) (bmrel.Release, error)
-	Install(deployment bmmanifest.CPIDeploymentManifest, release bmrel.Release, directorID string) (bmcloud.Cloud, error)
+	Install(manifest bmmanifest.CPIDeploymentManifest, release bmrel.Release, directorID string) (bmcloud.Cloud, error)
 }
 
 type cpiInstaller struct {

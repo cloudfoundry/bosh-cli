@@ -21,6 +21,9 @@ type Network struct {
 	Type               NetworkType                 `yaml:"type"`
 	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 	IP                 string                      `yaml:"ip"`
+	Netmask            string                      `yaml:"netmask"`
+	Gateway            string                      `yaml:"gateway"`
+	DNS                []string                    `yaml:"dns"`
 }
 
 func (n Network) CloudProperties() (map[string]interface{}, error) {
@@ -37,6 +40,18 @@ func (n Network) Spec() (map[string]interface{}, error) {
 		"type":             n.Type.String(),
 		"ip":               n.IP,
 		"cloud_properties": cloudProperties,
+	}
+
+	if n.Netmask != "" {
+		spec["netmask"] = n.Netmask
+	}
+
+	if n.Gateway != "" {
+		spec["gateway"] = n.Gateway
+	}
+
+	if len(n.DNS) > 0 {
+		spec["dns"] = n.DNS
 	}
 
 	return spec, nil

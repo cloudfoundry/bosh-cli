@@ -16,10 +16,10 @@ import (
 
 var _ = Describe("CpiCmdRunner", func() {
 	var (
-		cpiCmdRunner  CPICmdRunner
-		context       CmdContext
-		cmdRunner     *fakesys.FakeCmdRunner
-		cpiJob        CPIJob
+		cpiCmdRunner CPICmdRunner
+		context      CmdContext
+		cmdRunner    *fakesys.FakeCmdRunner
+		cpiJob       CPIJob
 	)
 
 	BeforeEach(func() {

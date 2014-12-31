@@ -15,6 +15,7 @@ type jobEvaluationContext struct {
 	manifestProperties map[string]interface{}
 	deploymentName     string
 	logger             boshlog.Logger
+	logTag             string
 }
 
 // RootContext is exposed as an open struct in ERB templates.
@@ -40,8 +41,6 @@ type networkContext struct {
 	Gateway string `json:"gateway"`
 }
 
-const logTag = "JobEvaluationContext"
-
 func NewJobEvaluationContext(
 	job bmrel.Job,
 	manifestProperties map[string]interface{},
@@ -53,6 +52,7 @@ func NewJobEvaluationContext(
 		manifestProperties: manifestProperties,
 		deploymentName:     deploymentName,
 		logger:             logger,
+		logTag:             "jobEvaluationContext",
 	}
 }
 
@@ -62,7 +62,12 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 		return []byte{}, bosherr.WrapError(err, "Converting job properties for resolver")
 	}
 
+	ec.logger.Debug(ec.logTag, "Job '%s' properties: %#v", ec.relJob.Name, convertedProperties)
+	ec.logger.Debug(ec.logTag, "Deployment manifest properties: %#v", ec.manifestProperties)
+
 	properties := bmerbrenderer.NewPropertiesResolver(convertedProperties, ec.manifestProperties).Resolve()
+
+	ec.logger.Debug(ec.logTag, "Resolved Job '%s' properties: %#v", ec.relJob.Name, properties)
 
 	context := RootContext{
 		Index:           0,
@@ -72,7 +77,7 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 		Properties:      properties,
 	}
 
-	ec.logger.Debug(logTag, "Marshalling context %#v", context)
+	ec.logger.Debug(ec.logTag, "Marshalling context %#v", context)
 
 	return json.Marshal(context)
 }

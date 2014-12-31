@@ -8,13 +8,13 @@ type factory struct{}
 
 type Factory interface {
 	Create(
-		bmstemcell.ApplySpec,
-		string,
-		string,
-		map[string]interface{},
-		string,
-		string,
-		string,
+		stemcellApplySpec bmstemcell.ApplySpec,
+		deploymentName string,
+		jobName string,
+		networksSpec map[string]interface{},
+		archivedTemplatesBlobID string,
+		archivedTemplatesSha1 string,
+		templatesDirSha1 string,
 	) ApplySpec
 }
 
