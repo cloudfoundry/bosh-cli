@@ -26,7 +26,7 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
 3. Deploy
 
   ```
-  out/bosh-micro deploy cpi-release.tgz stemcell.tgz
+  out/bosh-micro deploy stemcell.tgz cpi-release.tgz
   ```
 
 where `cpi-release.tgz` is a BOSH CPI release and `stemcell.tgz` is a BOSH stemcell appropriate for the CPI release.

@@ -640,7 +640,7 @@ cloud_provider:
 			})
 
 			It("returns an error", func() {
-				err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+				err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Deployment manifest not set"))
 			})
@@ -658,7 +658,7 @@ cloud_provider:
 				// new directorID will be generated
 				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
 
-				err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+				err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.FileExists(deploymentConfigPath)).To(BeTrue())
@@ -673,7 +673,7 @@ cloud_provider:
 			BeforeEach(func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+				err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 
 				// reset output buffer
@@ -691,7 +691,7 @@ cloud_provider:
 					// after cloud.CreateVM, cloud.HasVM should return true
 					expectHasVM1.Return(true, nil)
 
-					err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+					err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -702,7 +702,7 @@ cloud_provider:
 						// after cloud.CreateVM, cloud.HasVM should return true
 						expectHasVM1.Return(false, nil)
 
-						err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 						Expect(err).ToNot(HaveOccurred())
 					})
 
@@ -717,7 +717,7 @@ cloud_provider:
 							Message: "fake-vm-not-found-message",
 						}))
 
-						err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 						Expect(err).ToNot(HaveOccurred())
 					})
 				})
@@ -728,7 +728,7 @@ cloud_provider:
 					It("returns an error when attach_disk fails with a DiskNotFound error", func() {
 						expectDeployWithNoDiskToMigrate()
 
-						err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-disk-not-found-message"))
 					})
@@ -738,7 +738,7 @@ cloud_provider:
 					BeforeEach(func() {
 						expectDeployWithDiskMigrationFailure()
 
-						err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migration-error"))
 
@@ -755,7 +755,7 @@ cloud_provider:
 
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
 
-						err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 						Expect(err).ToNot(HaveOccurred())
 
 						diskRecord, found, err := diskRepo.FindCurrent()
@@ -775,7 +775,7 @@ cloud_provider:
 			It("makes the registry available for all CPI commands", func() {
 				expectDeployFlowWithRegistry()
 
-				err := newDeployCmd().Run([]string{"/fake-cpi-release.tgz", "/fake-stemcell-release.tgz"})
+				err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})

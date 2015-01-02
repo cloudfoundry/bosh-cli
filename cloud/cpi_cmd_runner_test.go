@@ -66,11 +66,11 @@ var _ = Describe("CpiCmdRunner", func() {
 			bytes, err := ioutil.ReadAll(actualCmd.Stdin)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(bytes)).To(Equal(
-			  `{` +
+				`{` +
 					`"method":"fake-method",` +
 					`"arguments":["fake-argument-1","fake-argument-2"],` +
 					`"context":{"director_uuid":"fake-director-id"}` +
-				`}`,
+					`}`,
 			))
 		})
 

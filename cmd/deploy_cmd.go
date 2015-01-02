@@ -78,7 +78,7 @@ func (c *deployCmd) Name() string {
 }
 
 func (c *deployCmd) Run(args []string) error {
-	releaseTarballPath, stemcellTarballPath, err := c.parseCmdInputs(args)
+	stemcellTarballPath, releaseTarballPath, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
 	}
@@ -122,10 +122,30 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 
-	var (
-		cpiRelease        bmrel.Release
-		extractedStemcell bmstemcell.ExtractedStemcell
-	)
+	var extractedStemcell bmstemcell.ExtractedStemcell
+	err = validationStage.PerformStep("Validating stemcell", func() error {
+		if !c.fs.FileExists(stemcellTarballPath) {
+			return bosherr.Errorf("Verifying that the stemcell '%s' exists", stemcellTarballPath)
+		}
+
+		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Extracting stemcell from '%s'", stemcellTarballPath)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	defer func() {
+		deleteErr := extractedStemcell.Delete()
+		if deleteErr != nil {
+			c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
+		}
+	}()
+
+	var cpiRelease bmrel.Release
 	err = validationStage.PerformStep("Validating cpi release", func() error {
 		if !c.fs.FileExists(releaseTarballPath) {
 			return bosherr.Errorf("Verifying that the CPI release '%s' exists", releaseTarballPath)
@@ -141,28 +161,14 @@ func (c *deployCmd) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-
-	err = validationStage.PerformStep("Validating stemcell", func() error {
-		if !c.fs.FileExists(stemcellTarballPath) {
-			return bosherr.Errorf("Verifying that the stemcell '%s' exists", stemcellTarballPath)
+	defer func() {
+		deleteErr := cpiRelease.Delete()
+		if deleteErr != nil {
+			c.logger.Warn(c.logTag, "Failed to delete extracted cpi release: %s", deleteErr.Error())
 		}
-
-		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
-		if err != nil {
-			cpiRelease.Delete()
-			return bosherr.WrapErrorf(err, "Extracting stemcell from '%s'", stemcellTarballPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
+	}()
 
 	validationStage.Finish()
-
-	defer extractedStemcell.Delete()
-	defer cpiRelease.Delete()
 
 	isDeployed, err := c.deploymentRecord.IsDeployed(deploymentManifestPath, cpiRelease, extractedStemcell)
 	if err != nil {
@@ -220,7 +226,7 @@ type Deployment struct{}
 func (c *deployCmd) parseCmdInputs(args []string) (string, string, error) {
 	if len(args) != 2 {
 		c.ui.Error("Invalid usage - deploy command requires exactly 2 arguments")
-		c.ui.Sayln("Expected usage: bosh-micro deploy <cpi-release-tarball> <stemcell-tarball>")
+		c.ui.Sayln("Expected usage: bosh-micro deploy <stemcell-tarball> <cpi-release-tarball>")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
 		return "", "", errors.New("Invalid usage - deploy command requires exactly 2 arguments")
 	}

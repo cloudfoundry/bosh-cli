@@ -115,9 +115,9 @@ var _ = Describe("bosh-micro", func() {
 		Expect(fileSystem.FileExists(boshMicroPath)).To(BeTrue())
 		err = testEnv.Copy("bosh-micro", boshMicroPath)
 		Expect(err).NotTo(HaveOccurred())
-		err = testEnv.DownloadOrCopy("stemcell", config.StemcellPath, config.StemcellURL)
+		err = testEnv.DownloadOrCopy("stemcell.tgz", config.StemcellPath, config.StemcellURL)
 		Expect(err).NotTo(HaveOccurred())
-		err = testEnv.DownloadOrCopy("cpiRelease", config.CpiReleasePath, config.CpiReleaseURL)
+		err = testEnv.DownloadOrCopy("cpi-release.tgz", config.CpiReleasePath, config.CpiReleaseURL)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -136,14 +136,14 @@ var _ = Describe("bosh-micro", func() {
 	}
 
 	var deploy = func() (stdout string) {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("cpiRelease"), testEnv.Path("stemcell"))
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return stdout
 	}
 
 	var deleteDeployment = func() (stdout string) {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpiRelease"))
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpi-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return stdout
@@ -153,7 +153,7 @@ var _ = Describe("bosh-micro", func() {
 		flushLog(cmdEnv["BOSH_MICRO_LOG_PATH"])
 
 		// quietly delete the deployment
-		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpiRelease"))
+		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpi-release.tgz"))
 		if exitCode != 0 || err != nil {
 			// only flush the delete log if the delete failed
 			flushLog(quietCmdEnv["BOSH_MICRO_LOG_PATH"])
@@ -207,8 +207,8 @@ var _ = Describe("bosh-micro", func() {
 
 		Expect(stdout).To(ContainSubstring("Started validating"))
 		Expect(stdout).To(ContainSubstring("Validating deployment manifest"))
-		Expect(stdout).To(ContainSubstring("Validating cpi release"))
 		Expect(stdout).To(ContainSubstring("Validating stemcell"))
+		Expect(stdout).To(ContainSubstring("Validating cpi release"))
 		Expect(stdout).To(ContainSubstring("Done validating"))
 
 		Expect(stdout).To(ContainSubstring("Started compiling packages"))
