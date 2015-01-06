@@ -31,8 +31,13 @@ func (r *FakeRelease) Jobs() []bmrel.Job { return r.ReleaseJobs }
 func (r *FakeRelease) Packages() []*bmrel.Package { return r.ReleasePackages }
 
 func (r *FakeRelease) FindJobByName(jobName string) (bmrel.Job, bool) {
-	r.FindJobByNameName = jobName
-	return r.FindJobByNameJob, r.FindJobByNameFound
+	for _, job := range r.ReleaseJobs {
+		if job.Name == jobName {
+			return job, true
+		}
+	}
+
+	return bmrel.Job{}, false
 }
 
 func (r *FakeRelease) Delete() error {

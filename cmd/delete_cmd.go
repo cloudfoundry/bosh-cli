@@ -12,6 +12,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
+	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -31,6 +32,7 @@ type deleteCmd struct {
 	deploymentParser        bmmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
+	releaseManager          bmrel.Manager
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
 	instanceManagerFactory  bminstance.ManagerFactory
@@ -41,19 +43,22 @@ type deleteCmd struct {
 	logTag                  string
 }
 
-func NewDeleteCmd(ui bmui.UI,
+func NewDeleteCmd(
+	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
 	deploymentParser bmmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
+	releaseManager bmrel.Manager,
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,
 	diskManagerFactory bmdisk.ManagerFactory,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	eventLogger bmeventlog.EventLogger,
-	logger boshlog.Logger) *deleteCmd {
+	logger boshlog.Logger,
+) *deleteCmd {
 	return &deleteCmd{
 		ui:                      ui,
 		userConfig:              userConfig,
@@ -61,6 +66,7 @@ func NewDeleteCmd(ui bmui.UI,
 		deploymentParser:        deploymentParser,
 		deploymentConfigService: deploymentConfigService,
 		cpiDeploymentFactory:    cpiDeploymentFactory,
+		releaseManager:          releaseManager,
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
 		instanceManagerFactory:  instanceManagerFactory,
@@ -95,9 +101,7 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	var (
-		cpiDeployment bmcpi.Deployment
-	)
+	var cpiDeployment bmcpi.Deployment
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
 		_, cpiDeploymentManifest, err := c.deploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
@@ -112,17 +116,21 @@ func (c *deleteCmd) Run(args []string) error {
 		return err
 	}
 
-	var (
-		cpiRelease bmrel.Release
-	)
+	var cpiRelease bmrel.Release
 	err = validationStage.PerformStep("Validating cpi release", func() error {
 		if !c.fs.FileExists(cpiReleaseTarballPath) {
 			return bosherr.Errorf("Verifying that the CPI release '%s' exists", cpiReleaseTarballPath)
 		}
 
-		cpiRelease, err = cpiDeployment.ExtractRelease(cpiReleaseTarballPath)
+		var err error
+		cpiRelease, err = c.releaseManager.Extract(cpiReleaseTarballPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Extracting CPI release '%s'", cpiReleaseTarballPath)
+		}
+
+		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
+		if err != nil {
+			return bosherr.WrapError(err, "Invalid CPI release")
 		}
 
 		return nil
@@ -130,7 +138,12 @@ func (c *deleteCmd) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	defer cpiRelease.Delete()
+	defer func() {
+		err := c.releaseManager.DeleteAll()
+		if err != nil {
+			c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
+		}
+	}()
 
 	validationStage.Finish()
 

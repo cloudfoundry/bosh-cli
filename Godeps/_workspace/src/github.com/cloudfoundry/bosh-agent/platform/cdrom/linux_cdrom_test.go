@@ -3,7 +3,7 @@ package cdrom_test
 import (
 	"errors"
 	. "github.com/cloudfoundry/bosh-agent/platform/cdrom"
-	fakeudev "github.com/cloudfoundry/bosh-agent/platform/cdrom/udevdevice/fakes"
+	fakeudev "github.com/cloudfoundry/bosh-agent/platform/udevdevice/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

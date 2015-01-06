@@ -215,7 +215,7 @@ func (fs osFileSystem) Symlink(oldPath, newPath string) error {
 }
 
 func (fs osFileSystem) ReadLink(symlinkPath string) (targetPath string, err error) {
-	targetPath, err = os.Readlink(symlinkPath)
+	targetPath, err = filepath.EvalSymlinks(symlinkPath)
 	return
 }
 

@@ -1,5 +1,9 @@
 package devicepathresolver
 
+import (
+	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
+)
+
 type DevicePathResolver interface {
-	GetRealDevicePath(devicePath string) (realPath string, timedOut bool, err error)
+	GetRealDevicePath(diskSettings boshsettings.DiskSettings) (realPath string, timedOut bool, err error)
 }

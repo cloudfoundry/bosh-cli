@@ -5,6 +5,7 @@ import (
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
@@ -20,8 +21,10 @@ func NewMappedDevicePathResolver(
 	return mappedDevicePathResolver{fs: fs, diskWaitTimeout: diskWaitTimeout}
 }
 
-func (dpr mappedDevicePathResolver) GetRealDevicePath(devicePath string) (string, bool, error) {
+func (dpr mappedDevicePathResolver) GetRealDevicePath(diskSettings boshsettings.DiskSettings) (string, bool, error) {
 	stopAfter := time.Now().Add(dpr.diskWaitTimeout)
+
+	devicePath := diskSettings.Path
 
 	realPath, found := dpr.findPossibleDevice(devicePath)
 

@@ -62,6 +62,7 @@ type FakeFileSystem struct {
 	ReturnTempFile boshsys.File
 
 	TempDirDir   string
+	TempDirDirs  []string
 	TempDirError error
 
 	GlobErr  error
@@ -453,6 +454,12 @@ func (fs *FakeFileSystem) TempDir(prefix string) (string, error) {
 	var path string
 	if len(fs.TempDirDir) > 0 {
 		path = fs.TempDirDir
+	} else if fs.TempDirDirs != nil {
+		if len(fs.TempDirDirs) == 0 {
+			return "", errors.New("Failed to create new temp dir: TempDirDirs is empty")
+		}
+		path = fs.TempDirDirs[0]
+		fs.TempDirDirs = fs.TempDirDirs[1:]
 	} else {
 		uuid, err := gouuid.NewV4()
 		if err != nil {

@@ -348,7 +348,11 @@ func init() {
 
 			actualFilePath, err := osFs.ReadLink(symlinkPath)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(actualFilePath).To(Equal(filePath))
+
+			// on Mac OS /var -> private/var
+			absPath, err := filepath.EvalSymlinks(filePath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actualFilePath).To(Equal(absPath))
 		})
 
 		It("temp file", func() {

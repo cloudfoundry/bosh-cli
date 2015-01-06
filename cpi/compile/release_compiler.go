@@ -1,7 +1,10 @@
 package compile
 
 import (
+	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -15,19 +18,27 @@ type ReleaseCompiler interface {
 type releaseCompiler struct {
 	packagesCompiler  ReleasePackagesCompiler
 	templatesCompiler bmtemcomp.TemplatesCompiler
+	logger            boshlog.Logger
+	logTag            string
 }
 
 func NewReleaseCompiler(
 	packagesCompiler ReleasePackagesCompiler,
 	templatesCompiler bmtemcomp.TemplatesCompiler,
+	logger boshlog.Logger,
 ) ReleaseCompiler {
 	return &releaseCompiler{
 		packagesCompiler:  packagesCompiler,
 		templatesCompiler: templatesCompiler,
+		logger:            logger,
+		logTag:            "releaseCompiler",
 	}
 }
 
 func (c releaseCompiler) Compile(release bmrel.Release, deployment bmmanifest.CPIDeploymentManifest) error {
+	c.logger.Info(c.logTag, "Compiling CPI release '%s'", release.Name())
+	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release '%s': %#v", release.Name(), release))
+
 	err := c.packagesCompiler.Compile(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release packages")

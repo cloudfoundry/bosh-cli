@@ -14,6 +14,7 @@ import (
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
+	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -52,6 +53,7 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			logger                   boshlog.Logger
 			mockCPIDeploymentFactory *mock_cpi.MockDeploymentFactory
 			mockCPIDeployment        *mock_cpi.MockDeployment
+			mockReleaseManager       *mock_release.MockManager
 			fakeUUIDGenerator        *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator    *fakeuuid.FakeGenerator
 			deploymentConfigService  bmconfig.DeploymentConfigService
@@ -97,7 +99,14 @@ cloud_provider:
 			cpiRelease := bmrel.NewRelease(
 				"fake-cpi-release-name",
 				"fake-cpi-release-version",
-				[]bmrel.Job{},
+				[]bmrel.Job{
+					{
+						Name: "cpi",
+						Templates: map[string]string{
+							"templates/cpi.erb": "bin/cpi",
+						},
+					},
+				},
 				[]*bmrel.Package{},
 				"fake-cpi-extracted-dir",
 				fs,
@@ -110,10 +119,16 @@ cloud_provider:
 
 			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, "fake-uuid-1", "fake-uuid-0").Return(mockCPIDeployment).AnyTimes()
 
-			var err error
-			expectCPIExtractRelease = mockCPIDeployment.EXPECT().ExtractRelease("/fake-cpi-release.tgz").Do(func(_ string) {
-				err = fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
-			}).Return(cpiRelease, err).AnyTimes()
+			expectCPIExtractRelease = mockReleaseManager.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
+				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
+				Expect(err).ToNot(HaveOccurred())
+			}).Return(cpiRelease, nil).AnyTimes()
+
+			mockReleaseManager.EXPECT().DeleteAll().Do(func() {
+				err := cpiRelease.Delete()
+				Expect(err).ToNot(HaveOccurred())
+			}).AnyTimes()
+
 			expectCPIInstall = mockCPIDeployment.EXPECT().Install().Return(mockCloud, nil).AnyTimes()
 			mockCPIDeployment.EXPECT().Manifest().Return(cpiDeploymentManifest).AnyTimes()
 
@@ -143,7 +158,7 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, deploymentParser, deploymentConfigService, mockCPIDeploymentFactory,
+				ui, userConfig, fs, deploymentParser, deploymentConfigService, mockCPIDeploymentFactory, mockReleaseManager,
 				mockAgentClientFactory, vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
 				eventLogger, logger,
 			)
@@ -177,6 +192,8 @@ cloud_provider:
 
 			mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
 			mockCPIDeployment = mock_cpi.NewMockDeployment(mockCtrl)
+
+			mockReleaseManager = mock_release.NewMockManager(mockCtrl)
 
 			ui = &fakeui.FakeUI{}
 

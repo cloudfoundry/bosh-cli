@@ -1,4 +1,4 @@
-package validation_test
+package release_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
+	. "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 )
 
 var _ = Describe("CpiValidator", func() {
@@ -103,7 +103,7 @@ var _ = Describe("CpiValidator", func() {
 		It("returns an error that the bin/cpi template target is missing", func() {
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Job 'cpi' is missing bin/cpi target"))
+			Expect(err.Error()).To(ContainSubstring("Job 'cpi' is missing 'bin/cpi' target"))
 		})
 	})
 })

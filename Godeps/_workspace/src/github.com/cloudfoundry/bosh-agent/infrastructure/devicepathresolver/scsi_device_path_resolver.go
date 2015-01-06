@@ -6,32 +6,35 @@ import (
 	"strings"
 	"time"
 
+	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
 const maxScanRetries = 30
 
-type vsphereDevicePathResolver struct {
+type scsiDevicePathResolver struct {
 	diskWaitTimeout time.Duration
 	fs              boshsys.FileSystem
 }
 
-func NewVsphereDevicePathResolver(
+func NewScsiDevicePathResolver(
 	diskWaitTimeout time.Duration,
 	fs boshsys.FileSystem,
-) (vsphereDevicePathResolver vsphereDevicePathResolver) {
-	vsphereDevicePathResolver.fs = fs
-	vsphereDevicePathResolver.diskWaitTimeout = diskWaitTimeout
+) (scsiDevicePathResolver scsiDevicePathResolver) {
+	scsiDevicePathResolver.fs = fs
+	scsiDevicePathResolver.diskWaitTimeout = diskWaitTimeout
 	return
 }
 
-func (devicePathResolver vsphereDevicePathResolver) GetRealDevicePath(volumeID string) (realPath string, timedOut bool, err error) {
+func (devicePathResolver scsiDevicePathResolver) GetRealDevicePath(diskSettings boshsettings.DiskSettings) (realPath string, timedOut bool, err error) {
 	devicePaths, err := devicePathResolver.fs.Glob("/sys/bus/scsi/devices/*:0:0:0/block/*")
 	if err != nil {
 		return
 	}
 
 	var hostID string
+
+	volumeID := diskSettings.VolumeID
 
 	for _, rootDevicePath := range devicePaths {
 		if path.Base(rootDevicePath) == "sda" {

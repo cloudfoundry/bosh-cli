@@ -59,12 +59,12 @@ type FakePlatform struct {
 	SetupDhcpErr      error
 
 	MountPersistentDiskCalled     bool
-	MountPersistentDiskDevicePath string
+	MountPersistentDiskSettings   boshsettings.DiskSettings
 	MountPersistentDiskMountPoint string
 	MountPersistentDiskErr        error
 
 	UnmountPersistentDiskDidUnmount bool
-	UnmountPersistentDiskDevicePath string
+	UnmountPersistentDiskSettings   boshsettings.DiskSettings
 
 	GetFileContentsFromCDROMPath     string
 	GetFileContentsFromCDROMContents []byte
@@ -75,7 +75,7 @@ type FakePlatform struct {
 	GetFileContentsFromDiskErrs      map[string]error
 
 	NormalizeDiskPathCalled   bool
-	NormalizeDiskPathPath     string
+	NormalizeDiskPathSettings boshsettings.DiskSettings
 	NormalizeDiskPathRealPath string
 
 	ScsiDiskMap map[string]string
@@ -228,22 +228,22 @@ func (p *FakePlatform) SetupTmpDir() error {
 	return p.SetupTmpDirErr
 }
 
-func (p *FakePlatform) MountPersistentDisk(devicePath, mountPoint string) (err error) {
+func (p *FakePlatform) MountPersistentDisk(diskSettings boshsettings.DiskSettings, mountPoint string) (err error) {
 	p.MountPersistentDiskCalled = true
-	p.MountPersistentDiskDevicePath = devicePath
+	p.MountPersistentDiskSettings = diskSettings
 	p.MountPersistentDiskMountPoint = mountPoint
 	return p.MountPersistentDiskErr
 }
 
-func (p *FakePlatform) UnmountPersistentDisk(devicePath string) (didUnmount bool, err error) {
-	p.UnmountPersistentDiskDevicePath = devicePath
+func (p *FakePlatform) UnmountPersistentDisk(diskSettings boshsettings.DiskSettings) (didUnmount bool, err error) {
+	p.UnmountPersistentDiskSettings = diskSettings
 	didUnmount = p.UnmountPersistentDiskDidUnmount
 	return
 }
 
-func (p *FakePlatform) NormalizeDiskPath(devicePath string) string {
+func (p *FakePlatform) NormalizeDiskPath(diskSettings boshsettings.DiskSettings) string {
 	p.NormalizeDiskPathCalled = true
-	p.NormalizeDiskPathPath = devicePath
+	p.NormalizeDiskPathSettings = diskSettings
 	return p.NormalizeDiskPathRealPath
 }
 
@@ -286,9 +286,9 @@ func (p *FakePlatform) IsMountPoint(path string) (bool, error) {
 	return p.IsMountPointResult, p.IsMountPointErr
 }
 
-func (p *FakePlatform) IsPersistentDiskMounted(path string) (result bool, err error) {
+func (p *FakePlatform) IsPersistentDiskMounted(diskSettings boshsettings.DiskSettings) (result bool, err error) {
 	for _, mountedPath := range p.MountedDevicePaths {
-		if mountedPath == path {
+		if mountedPath == diskSettings.Path {
 			return true, nil
 		}
 	}

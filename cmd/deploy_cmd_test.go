@@ -13,6 +13,7 @@ import (
 	mock_deployer "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
 	mock_vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
+	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
@@ -60,6 +61,7 @@ var _ = Describe("DeployCmd", func() {
 
 		mockDeploymentFactory     *mock_deployer.MockFactory
 		mockCPIDeploymentFactory  *mock_cpi.MockDeploymentFactory
+		mockReleaseManager        *mock_release.MockManager
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
 		mockAgentClient           *mock_agentclient.MockAgentClient
@@ -68,7 +70,6 @@ var _ = Describe("DeployCmd", func() {
 		fakeCPIInstaller      *fakebmcpi.FakeInstaller
 		fakeCPIRelease        *fakebmrel.FakeRelease
 		logger                boshlog.Logger
-		release               bmrel.Release
 		mockVMManagerFactory  *mock_vm.MockManagerFactory
 		fakeVMManager         *fakebmvm.FakeManager
 		fakeStemcellExtractor *fakebmstemcell.FakeExtractor
@@ -106,6 +107,8 @@ var _ = Describe("DeployCmd", func() {
 
 		mockDeploymentFactory = mock_deployer.NewMockFactory(mockCtrl)
 		mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
+
+		mockReleaseManager = mock_release.NewMockManager(mockCtrl)
 
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
@@ -167,6 +170,7 @@ var _ = Describe("DeployCmd", func() {
 			deploymentConfigService,
 			fakeDeploymentValidator,
 			mockCPIDeploymentFactory,
+			mockReleaseManager,
 			mockAgentClientFactory,
 			mockVMManagerFactory,
 			fakeStemcellExtractor,
@@ -178,440 +182,504 @@ var _ = Describe("DeployCmd", func() {
 	})
 
 	Describe("Run", func() {
+		var (
+			boshDeploymentManifest bmmanifest.Manifest
+			cpiDeploymentManifest  bmmanifest.CPIDeploymentManifest
+			cloud                  *fakebmcloud.FakeCloud
+
+			directorID   = "fake-uuid-0"
+			deploymentID = "fake-uuid-1"
+
+			expectCPIReleaseExtract *gomock.Call
+		)
+
+		BeforeEach(func() {
+			// create input files
+			fakeFs.WriteFileString(cpiReleaseTarballPath, "")
+			fakeFs.WriteFileString(stemcellTarballPath, "")
+
+			// deployment is set
+			userConfig.DeploymentManifestPath = deploymentManifestPath
+
+			// deployment exists
+			fakeFs.WriteFileString(userConfig.DeploymentManifestPath, "")
+
+			// deployment is valid
+			fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
+				{Err: nil},
+			})
+
+			// stemcell exists
+			fakeFs.WriteFile(stemcellTarballPath, []byte{})
+
+			// parsed CPI deployment manifest
+			cpiDeploymentManifest = bmmanifest.CPIDeploymentManifest{
+				Registry: bmmanifest.Registry{},
+				SSHTunnel: bmmanifest.SSHTunnel{
+					Host: "fake-host",
+				},
+				Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
+			}
+
+			// parsed BOSH deployment manifest
+			boshDeploymentManifest = bmmanifest.Manifest{
+				Name: "fake-deployment-name",
+				Jobs: []bmmanifest.Job{
+					{
+						Name: "fake-job-name",
+					},
+				},
+			}
+			fakeDeploymentParser.ParseDeployment = boshDeploymentManifest
+
+			// parsed/extracted CPI release
+			fakeCPIRelease = fakebmrel.NewFakeRelease()
+			fakeCPIRelease.ReleaseJobs = []bmrel.Job{
+				{
+					Name: "cpi",
+					Templates: map[string]string{
+						"templates/cpi.erb": "bin/cpi",
+					},
+				},
+			}
+
+			cloud = fakebmcloud.NewFakeCloud()
+		})
+
+		// allow return values of mocked methods to be modified by BeforeEach in child contexts
+		JustBeforeEach(func() {
+			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
+
+			fakeDeploymentParser.ParseDeployment = boshDeploymentManifest
+			fakeDeploymentParser.ParseCPIDeploymentManifest = cpiDeploymentManifest
+
+			fakeDeploymentRecord.SetIsDeployedBehavior(
+				deploymentManifestPath,
+				fakeCPIRelease,
+				expectedExtractedStemcell,
+				false,
+				nil,
+			)
+
+			fakeDeploymentRecord.SetUpdateBehavior(
+				deploymentManifestPath,
+				fakeCPIRelease,
+				nil,
+			)
+
+			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller, directorID)
+			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, deploymentID, directorID).Return(cpiDeployment).AnyTimes()
+
+			deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
+			mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
+
+			expectCPIReleaseExtract = mockReleaseManager.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
+			mockReleaseManager.EXPECT().List().Return([]bmrel.Release{fakeCPIRelease}).AnyTimes()
+			mockReleaseManager.EXPECT().DeleteAll().Do(func() {
+				err := fakeCPIRelease.Delete()
+				Expect(err).ToNot(HaveOccurred())
+			}).AnyTimes()
+
+			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, directorID, cloud, nil)
+
+			fakeDeployer.SetDeployBehavior(nil)
+		})
+
+		It("prints the deployment manifest and state file", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeUI.Said).To(Equal([]string{
+				"Deployment manifest: '/path/to/manifest.yml'",
+				"Deployment state: '/path/to/deployment.json'",
+			}))
+		})
+
+		It("adds a new event logger stage", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeEventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
+				{Name: "validating"},
+			}))
+
+			Expect(fakeStage.Started).To(BeTrue())
+			Expect(fakeStage.Finished).To(BeTrue())
+		})
+
+		It("parses the deployment manifest", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
+		})
+
+		It("validates bosh deployment manifest", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
+				{Deployment: boshDeploymentManifest},
+			}))
+		})
+
+		It("logs validation stages", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeStage.Steps).To(Equal([]*fakebmlog.FakeStep{
+				&fakebmlog.FakeStep{
+					Name: "Validating deployment manifest",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				},
+				&fakebmlog.FakeStep{
+					Name: "Validating stemcell",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				},
+				&fakebmlog.FakeStep{
+					Name: "Validating releases",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				},
+			}))
+		})
+
+		It("extracts CPI release tarball", func() {
+			expectCPIReleaseExtract.Times(1)
+
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("installs the CPI locally", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
+				{
+					Deployment: cpiDeploymentManifest,
+					DirectorID: directorID,
+				},
+			}))
+		})
+
+		Context("when the registry is configured", func() {
+			BeforeEach(func() {
+				cpiDeploymentManifest.Registry = bmmanifest.Registry{
+					Username: "fake-username",
+					Password: "fake-password",
+					Host:     "fake-host",
+					Port:     123,
+				}
+			})
+
+			It("starts & stops the registry", func() {
+				mockRegistryServerManager.EXPECT().Start("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
+				mockRegistryServer.EXPECT().Stop()
+
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		It("deletes the extracted CPI release", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeCPIRelease.DeleteCalled).To(BeTrue())
+		})
+
+		It("extracts the stemcell", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeStemcellExtractor.ExtractInputs).To(Equal([]fakebmstemcell.ExtractInput{
+				{TarballPath: stemcellTarballPath},
+			}))
+		})
+
+		It("creates a VM", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeDeployer.DeployInputs).To(Equal([]fakebmdepl.DeployInput{
+				{
+					Cpi:             cloud,
+					Manifest:        boshDeploymentManifest,
+					Stemcell:        expectedExtractedStemcell,
+					Registry:        cpiDeploymentManifest.Registry,
+					SSHTunnelConfig: cpiDeploymentManifest.SSHTunnel,
+					VMManager:       fakeVMManager,
+				},
+			}))
+		})
+
+		It("updates the deployment record", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdepl.UpdateInput{
+				{
+					ManifestPath: deploymentManifestPath,
+					Release:      fakeCPIRelease,
+				},
+			}))
+		})
+
+		Context("when deployment has not changed", func() {
+			JustBeforeEach(func() {
+				fakeDeploymentRecord.SetIsDeployedBehavior(
+					deploymentManifestPath,
+					fakeCPIRelease,
+					expectedExtractedStemcell,
+					true,
+					nil,
+				)
+			})
+
+			It("skips deploy", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeUI.Said).To(ContainElement("No deployment, stemcell or cpi release changes. Skipping deploy."))
+				Expect(fakeDeployer.DeployInputs).To(BeEmpty())
+			})
+		})
+
+		Context("when parsing the cpi deployment manifest fails", func() {
+			BeforeEach(func() {
+				fakeDeploymentParser.ParseErr = errors.New("fake-parse-error")
+			})
+
+			It("returns error", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Parsing deployment manifest"))
+				Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
+				Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
+			})
+		})
+
+		Context("when the cpi release does not contain a 'cpi' job", func() {
+			BeforeEach(func() {
+				fakeCPIRelease.ReleaseJobs = []bmrel.Job{
+					{
+						Name: "not-cpi",
+					},
+				}
+			})
+
+			It("returns error", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("No provided release contains the required 'cpi' job"))
+			})
+		})
+
+		Context("when multiple releases are given", func() {
+			var (
+				otherReleaseTarballPath string
+				fakeOtherRelease        *fakebmrel.FakeRelease
+
+				expectOtherReleaseExtract *gomock.Call
+			)
+			BeforeEach(func() {
+				otherReleaseTarballPath = "/path/to/other-release.tgz"
+
+				fakeFs.WriteFileString(otherReleaseTarballPath, "")
+
+				fakeOtherRelease = fakebmrel.NewFakeRelease()
+				fakeOtherRelease.ReleaseJobs = []bmrel.Job{
+					{
+						Name: "not-cpi",
+					},
+				}
+
+				expectOtherReleaseExtract = mockReleaseManager.EXPECT().Extract(otherReleaseTarballPath).Return(fakeOtherRelease, nil).AnyTimes()
+			})
+
+			It("extracts all the release tarballs", func() {
+				expectCPIReleaseExtract.Times(1)
+				expectOtherReleaseExtract.Times(1)
+
+				err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("installs the CPI release locally", func() {
+				err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
+					{
+						Deployment: cpiDeploymentManifest,
+						DirectorID: directorID,
+					},
+				}))
+			})
+
+			//TODO: test all the normal deploy behavior (with multiple releases)?
+
+			Context("when none of the releases include a 'cpi' job", func() {
+				BeforeEach(func() {
+					fakeCPIRelease.ReleaseJobs = []bmrel.Job{
+						{
+							Name: "not-cpi",
+						},
+					}
+				})
+
+				It("returns error", func() {
+					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("No provided release contains the required 'cpi' job"))
+				})
+			})
+		})
+
+		Context("When the CPI release tarball does not exist", func() {
+			BeforeEach(func() {
+				fakeFs.RemoveAll(cpiReleaseTarballPath)
+			})
+
+			It("returns error", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Verifying that the release '/release/tarball/path' exists"))
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "Validating releases",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Verifying that the release '/release/tarball/path' exists",
+				}))
+			})
+		})
+
+		Context("When the stemcell tarball does not exist", func() {
+			BeforeEach(func() {
+				fakeFs.RemoveAll(stemcellTarballPath)
+			})
+
+			It("returns error", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "Validating stemcell",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Verifying that the stemcell '/stemcell/tarball/path' exists",
+				}))
+			})
+		})
+
+		Context("when the deployment config file does not exist", func() {
+			BeforeEach(func() {
+				fakeFs.RemoveAll(deploymentConfigPath)
+			})
+
+			It("creates a deployment config", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentConfig, err := deploymentConfigService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
+					DirectorID:   "fake-uuid-0",
+					DeploymentID: "fake-uuid-1",
+				}))
+			})
+		})
+
+		Context("when there is no deployment set", func() {
+			BeforeEach(func() {
+				userConfig.DeploymentManifestPath = ""
+
+				// re-create command to update userConfig.DeploymentFile
+				command = bmcmd.NewDeployCmd(
+					fakeUI,
+					userConfig,
+					fakeFs,
+					fakeDeploymentParser,
+					deploymentConfigService,
+					fakeDeploymentValidator,
+					mockCPIDeploymentFactory,
+					mockReleaseManager,
+					mockAgentClientFactory,
+					mockVMManagerFactory,
+					fakeStemcellExtractor,
+					fakeDeploymentRecord,
+					mockDeploymentFactory,
+					fakeEventLogger,
+					logger,
+				)
+			})
+
+			It("returns err", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Running deploy cmd: Deployment manifest not set"))
+				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))
+			})
+		})
+
+		Context("when the deployment manifest does not exist", func() {
+			BeforeEach(func() {
+				fakeFs.RemoveAll(deploymentManifestPath)
+			})
+
+			It("returns err", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Running deploy cmd: Deployment manifest does not exist at '/path/to/manifest.yml'"))
+				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest does not exist"))
+			})
+		})
+
+		Context("when the deployment manifest is invalid", func() {
+			BeforeEach(func() {
+				fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
+					{Err: errors.New("fake-deployment-validation-error")},
+				})
+			})
+
+			It("returns err", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-deployment-validation-error"))
+			})
+
+			It("logs the failed event log", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "Validating deployment manifest",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Validating deployment manifest: fake-deployment-validation-error",
+				}))
+			})
+		})
+
 		It("returns err when no arguments are given", func() {
 			err := command.Run([]string{})
 			Expect(err).To(HaveOccurred())
-			Expect(fakeUI.Errors).To(ContainElement("Invalid usage - deploy command requires exactly 2 arguments"))
+			Expect(fakeUI.Errors).To(ContainElement("Invalid usage - deploy command requires at least 2 arguments"))
 		})
 
 		It("returns err when 1 argument is given", func() {
 			err := command.Run([]string{"something"})
 			Expect(err).To(HaveOccurred())
-			Expect(fakeUI.Errors).To(ContainElement("Invalid usage - deploy command requires exactly 2 arguments"))
-		})
-
-		It("returns err when 3 arguments are given", func() {
-			err := command.Run([]string{"a", "b", "c"})
-			Expect(err).To(HaveOccurred())
-			Expect(fakeUI.Errors).To(ContainElement("Invalid usage - deploy command requires exactly 2 arguments"))
-		})
-
-		Context("when a CPI release is given", func() {
-			BeforeEach(func() {
-				fakeFs.WriteFileString(cpiReleaseTarballPath, "")
-				fakeFs.WriteFileString(stemcellTarballPath, "")
-			})
-
-			Context("when there is a deployment set", func() {
-				BeforeEach(func() {
-					userConfig.DeploymentManifestPath = deploymentManifestPath
-
-					release = bmrel.NewRelease(
-						"fake-release",
-						"fake-version",
-						[]bmrel.Job{},
-						[]*bmrel.Package{},
-						"/some/release/path",
-						fakeFs,
-					)
-
-					releaseContents :=
-						`---
-name: fake-release
-version: fake-version
-`
-					fakeFs.WriteFileString("/some/release/path/release.MF", releaseContents)
-					fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
-						{
-							Err: nil,
-						},
-					})
-				})
-
-				Context("when the deployment manifest exists", func() {
-					var (
-						boshDeploymentManifest bmmanifest.Manifest
-						cpiDeploymentManifest  bmmanifest.CPIDeploymentManifest
-						cloud                  *fakebmcloud.FakeCloud
-
-						directorID   = "fake-uuid-0"
-						deploymentID = "fake-uuid-1"
-					)
-
-					BeforeEach(func() {
-						fakeFs.WriteFileString(userConfig.DeploymentManifestPath, "")
-						cpiDeploymentManifest = bmmanifest.CPIDeploymentManifest{
-							Registry: bmmanifest.Registry{},
-							SSHTunnel: bmmanifest.SSHTunnel{
-								Host: "fake-host",
-							},
-							Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
-						}
-
-						boshDeploymentManifest = bmmanifest.Manifest{
-							Name: "fake-deployment-name",
-							Jobs: []bmmanifest.Job{
-								{
-									Name: "fake-job-name",
-								},
-							},
-						}
-						fakeDeploymentParser.ParseDeployment = boshDeploymentManifest
-
-						cloud = fakebmcloud.NewFakeCloud()
-						fakeCPIRelease = fakebmrel.NewFakeRelease()
-
-						fakeDeployer.SetDeployBehavior(nil)
-						fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
-
-						fakeFs.WriteFile(stemcellTarballPath, []byte{})
-
-						fakeDeploymentRecord.SetIsDeployedBehavior(
-							deploymentManifestPath,
-							fakeCPIRelease,
-							expectedExtractedStemcell,
-							false,
-							nil,
-						)
-
-						fakeDeploymentRecord.SetUpdateBehavior(
-							deploymentManifestPath,
-							fakeCPIRelease,
-							nil,
-						)
-					})
-
-					// allow cpiDeploymentManifest to be modified by child contexts
-					JustBeforeEach(func() {
-						fakeDeploymentParser.ParseCPIDeploymentManifest = cpiDeploymentManifest
-
-						cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller, directorID)
-						mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, deploymentID, directorID).Return(cpiDeployment).AnyTimes()
-
-						deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
-						mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
-
-						fakeCPIInstaller.SetExtractBehavior(
-							cpiReleaseTarballPath,
-							func(releaseTarballPath string) (bmrel.Release, error) {
-								return fakeCPIRelease, nil
-							},
-						)
-
-						fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, fakeCPIRelease, directorID, cloud, nil)
-					})
-
-					It("prints the deployment manifest and state file", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-
-						Expect(fakeUI.Said).To(Equal([]string{
-							"Deployment manifest: '/path/to/manifest.yml'",
-							"Deployment state: '/path/to/deployment.json'",
-						}))
-					})
-
-					It("adds a new event logger stage", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-
-						Expect(fakeEventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-							{Name: "validating"},
-						}))
-
-						Expect(fakeStage.Started).To(BeTrue())
-						Expect(fakeStage.Finished).To(BeTrue())
-					})
-
-					It("parses the deployment manifest", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
-					})
-
-					It("validates bosh deployment manifest", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
-							{Deployment: boshDeploymentManifest},
-						}))
-					})
-
-					It("logs validation stages", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-
-						Expect(fakeStage.Steps).To(Equal([]*fakebmlog.FakeStep{
-							&fakebmlog.FakeStep{
-								Name: "Validating deployment manifest",
-								States: []bmeventlog.EventState{
-									bmeventlog.Started,
-									bmeventlog.Finished,
-								},
-							},
-							&fakebmlog.FakeStep{
-								Name: "Validating stemcell",
-								States: []bmeventlog.EventState{
-									bmeventlog.Started,
-									bmeventlog.Finished,
-								},
-							},
-							&fakebmlog.FakeStep{
-								Name: "Validating cpi release",
-								States: []bmeventlog.EventState{
-									bmeventlog.Started,
-									bmeventlog.Finished,
-								},
-							},
-						}))
-					})
-
-					It("extracts CPI release tarball", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCPIInstaller.ExtractInputs).To(Equal([]fakebmcpi.ExtractInput{
-							{ReleaseTarballPath: cpiReleaseTarballPath},
-						}))
-					})
-
-					It("installs the CPI locally", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
-							{
-								Deployment: cpiDeploymentManifest,
-								Release:    fakeCPIRelease,
-								DirectorID: directorID,
-							},
-						}))
-					})
-
-					Context("when the registry is configured", func() {
-						BeforeEach(func() {
-							cpiDeploymentManifest.Registry = bmmanifest.Registry{
-								Username: "fake-username",
-								Password: "fake-password",
-								Host:     "fake-host",
-								Port:     123,
-							}
-						})
-
-						It("starts & stops the registry", func() {
-							mockRegistryServerManager.EXPECT().Start("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
-							mockRegistryServer.EXPECT().Stop()
-
-							err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-							Expect(err).NotTo(HaveOccurred())
-						})
-					})
-
-					It("deletes the extracted CPI release", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeCPIRelease.DeleteCalled).To(BeTrue())
-					})
-
-					It("extracts the stemcell", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeStemcellExtractor.ExtractInputs).To(Equal([]fakebmstemcell.ExtractInput{
-							{TarballPath: stemcellTarballPath},
-						}))
-					})
-
-					It("creates a VM", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeDeployer.DeployInputs).To(Equal([]fakebmdepl.DeployInput{
-							{
-								Cpi:             cloud,
-								Manifest:        boshDeploymentManifest,
-								Stemcell:        expectedExtractedStemcell,
-								Registry:        cpiDeploymentManifest.Registry,
-								SSHTunnelConfig: cpiDeploymentManifest.SSHTunnel,
-								VMManager:       fakeVMManager,
-							},
-						}))
-					})
-
-					It("updates the deployment record", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).NotTo(HaveOccurred())
-						Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdepl.UpdateInput{
-							{
-								ManifestPath: deploymentManifestPath,
-								Release:      fakeCPIRelease,
-							},
-						}))
-					})
-
-					Context("when deployment has not changed", func() {
-						BeforeEach(func() {
-							fakeDeploymentRecord.SetIsDeployedBehavior(
-								deploymentManifestPath,
-								fakeCPIRelease,
-								expectedExtractedStemcell,
-								true,
-								nil,
-							)
-						})
-
-						It("skips deploy", func() {
-							err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-							Expect(err).NotTo(HaveOccurred())
-							Expect(fakeUI.Said).To(ContainElement("No deployment, stemcell or cpi release changes. Skipping deploy."))
-							Expect(fakeDeployer.DeployInputs).To(BeEmpty())
-						})
-					})
-
-					Context("when parsing the cpi deployment manifest fails", func() {
-						BeforeEach(func() {
-							fakeDeploymentParser.ParseErr = errors.New("fake-parse-error")
-						})
-
-						It("returns error", func() {
-							err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Parsing deployment manifest"))
-							Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
-							Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
-						})
-					})
-
-					Context("when deployment validation fails", func() {
-						BeforeEach(func() {
-							fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
-								{Err: errors.New("fake-validation-error")},
-							})
-						})
-
-						It("returns an error", func() {
-							err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("fake-validation-error"))
-						})
-
-						It("logs the failed event log", func() {
-							err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-							Expect(err).To(HaveOccurred())
-
-							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-								Name: "Validating deployment manifest",
-								States: []bmeventlog.EventState{
-									bmeventlog.Started,
-									bmeventlog.Failed,
-								},
-								FailMessage: "Validating deployment manifest: fake-validation-error",
-							}))
-						})
-					})
-
-					Context("When the CPI release tarball does not exist", func() {
-						BeforeEach(func() {
-							fakeFs.RemoveAll(cpiReleaseTarballPath)
-						})
-
-						It("returns error", func() {
-							err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Verifying that the CPI release '/release/tarball/path' exists"))
-
-							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-								Name: "Validating cpi release",
-								States: []bmeventlog.EventState{
-									bmeventlog.Started,
-									bmeventlog.Failed,
-								},
-								FailMessage: "Verifying that the CPI release '/release/tarball/path' exists",
-							}))
-						})
-					})
-
-					Context("When the stemcell tarball does not exist", func() {
-						BeforeEach(func() {
-							fakeFs.RemoveAll(stemcellTarballPath)
-						})
-
-						It("returns error", func() {
-							err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
-
-							Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-								Name: "Validating stemcell",
-								States: []bmeventlog.EventState{
-									bmeventlog.Started,
-									bmeventlog.Failed,
-								},
-								FailMessage: "Verifying that the stemcell '/stemcell/tarball/path' exists",
-							}))
-						})
-					})
-
-					Context("when the deployment config file does not exist", func() {
-						BeforeEach(func() {
-							fakeFs.RemoveAll(deploymentConfigPath)
-						})
-
-						It("creates a deployment config", func() {
-							err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-							Expect(err).ToNot(HaveOccurred())
-
-							deploymentConfig, err := deploymentConfigService.Load()
-							Expect(err).ToNot(HaveOccurred())
-
-							Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
-								DirectorID:   "fake-uuid-0",
-								DeploymentID: "fake-uuid-1",
-							}))
-						})
-					})
-				})
-
-				Context("when the deployment manifest file does not exist", func() {
-					BeforeEach(func() {
-						fakeFs.RemoveAll(deploymentManifestPath)
-					})
-
-					It("returns err", func() {
-						err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Running deploy cmd: Deployment manifest does not exist at '/path/to/manifest.yml'"))
-						Expect(fakeUI.Errors).To(ContainElement("Deployment manifest does not exist"))
-					})
-				})
-			})
-
-			Context("when there is no deployment set", func() {
-				BeforeEach(func() {
-					userConfig.DeploymentManifestPath = ""
-
-					// re-create command to update userConfig.DeploymentFile
-					command = bmcmd.NewDeployCmd(
-						fakeUI,
-						userConfig,
-						fakeFs,
-						fakeDeploymentParser,
-						deploymentConfigService,
-						fakeDeploymentValidator,
-						mockCPIDeploymentFactory,
-						mockAgentClientFactory,
-						mockVMManagerFactory,
-						fakeStemcellExtractor,
-						fakeDeploymentRecord,
-						mockDeploymentFactory,
-						fakeEventLogger,
-						logger,
-					)
-				})
-
-				It("returns err", func() {
-					err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Running deploy cmd: Deployment manifest not set"))
-					Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))
-				})
-			})
+			Expect(fakeUI.Errors).To(ContainElement("Invalid usage - deploy command requires at least 2 arguments"))
 		})
 	})
 })

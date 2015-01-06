@@ -135,15 +135,15 @@ func (p dummyPlatform) SetupTmpDir() error {
 	return nil
 }
 
-func (p dummyPlatform) MountPersistentDisk(devicePath, mountPoint string) (err error) {
+func (p dummyPlatform) MountPersistentDisk(diskSettings boshsettings.DiskSettings, mountPoint string) (err error) {
 	return
 }
 
-func (p dummyPlatform) UnmountPersistentDisk(devicePath string) (didUnmount bool, err error) {
+func (p dummyPlatform) UnmountPersistentDisk(diskSettings boshsettings.DiskSettings) (didUnmount bool, err error) {
 	return
 }
 
-func (p dummyPlatform) NormalizeDiskPath(attachment string) string {
+func (p dummyPlatform) NormalizeDiskPath(diskSettings boshsettings.DiskSettings) string {
 	return "/dev/sdb"
 }
 
@@ -163,7 +163,7 @@ func (p dummyPlatform) IsMountPoint(path string) (result bool, err error) {
 	return
 }
 
-func (p dummyPlatform) IsPersistentDiskMounted(path string) (bool, error) {
+func (p dummyPlatform) IsPersistentDiskMounted(diskSettings boshsettings.DiskSettings) (bool, error) {
 	return true, nil
 }
 

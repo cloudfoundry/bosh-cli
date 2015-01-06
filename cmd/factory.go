@@ -26,6 +26,8 @@ import (
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -63,6 +65,7 @@ type factory struct {
 	timeService             boshtime.Service
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
 	cpiInstaller            bmcpi.Installer
+	releaseManager          bmrel.Manager
 }
 
 func NewFactory(
@@ -131,6 +134,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadDeploymentConfigService(),
 		boshDeploymentValidator,
 		f.loadCPIDeploymentFactory(),
+		f.loadReleaseManager(),
 		f.loadAgentClientFactory(),
 		f.loadVMManagerFactory(),
 		stemcellExtractor,
@@ -150,6 +154,7 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		deploymentParser,
 		f.loadDeploymentConfigService(),
 		f.loadCPIDeploymentFactory(),
+		f.loadReleaseManager(),
 		f.loadAgentClientFactory(),
 		f.loadVMManagerFactory(),
 		f.loadInstanceManagerFactory(),
@@ -358,12 +363,23 @@ func (f *factory) loadTimeService() boshtime.Service {
 	return f.timeService
 }
 
+func (f *factory) loadReleaseManager() bmrel.Manager {
+	if f.releaseManager != nil {
+		return f.releaseManager
+	}
+
+	boshReleaseValidator := bmrelvalidation.NewBoshValidator(f.fs)
+	f.releaseManager = bmrel.NewManager(f.fs, f.loadCompressor(), boshReleaseValidator, f.logger)
+	return f.releaseManager
+}
+
 func (f *factory) loadCPIDeploymentFactory() bmcpi.DeploymentFactory {
 	if f.cpiDeploymentFactory != nil {
 		return f.cpiDeploymentFactory
 	}
 
 	f.cpiDeploymentFactory = bmcpi.NewDeploymentFactory(
+		f.loadReleaseManager(),
 		f.loadRegistryServerManager(),
 		f.workspaceRootPath,
 		f.fs,

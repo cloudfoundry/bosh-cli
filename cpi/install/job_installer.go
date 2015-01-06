@@ -39,7 +39,7 @@ func (i jobInstaller) Install(job bmrel.Job) (installedJob InstalledJob, err err
 	eventLoggerStage.Start()
 	defer eventLoggerStage.Finish()
 
-	err = eventLoggerStage.PerformStep("cpi", func() error {
+	err = eventLoggerStage.PerformStep(job.Name, func() error {
 		installedJob, err = i.install(job)
 		return err
 	})
@@ -54,7 +54,7 @@ func (i jobInstaller) install(job bmrel.Job) (InstalledJob, error) {
 	jobDir := filepath.Join(i.jobsPath, job.Name)
 	err := i.fs.MkdirAll(jobDir, os.ModePerm)
 	if err != nil {
-		return InstalledJob{}, bosherr.WrapErrorf(err, "Creating jobs directory '%s'", jobDir)
+		return InstalledJob{}, bosherr.WrapErrorf(err, "Creating job directory '%s'", jobDir)
 	}
 
 	err = i.fs.MkdirAll(i.packagesPath, os.ModePerm)

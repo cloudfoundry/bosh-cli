@@ -12,20 +12,17 @@ type JobInstallInput struct {
 	Job bmrel.Job
 }
 
-type jobInstallOutput struct {
-	installedJob bmcpiinstall.InstalledJob
-	err          error
-}
+type jobInstallCallback func(job bmrel.Job) (bmcpiinstall.InstalledJob, error)
 
 type FakeJobInstaller struct {
 	JobInstallInputs []JobInstallInput
-	installBehavior  map[string]jobInstallOutput
+	installBehavior  map[string]jobInstallCallback
 }
 
 func NewFakeJobInstaller() *FakeJobInstaller {
 	return &FakeJobInstaller{
 		JobInstallInputs: []JobInstallInput{},
-		installBehavior:  map[string]jobInstallOutput{},
+		installBehavior:  map[string]jobInstallCallback{},
 	}
 }
 
@@ -36,15 +33,15 @@ func (f *FakeJobInstaller) Install(job bmrel.Job) (bmcpiinstall.InstalledJob, er
 	if err != nil {
 		return bmcpiinstall.InstalledJob{}, fmt.Errorf("Could not serialize input %#v", input)
 	}
-	output, found := f.installBehavior[value]
+	callback, found := f.installBehavior[value]
 
 	if found {
-		return output.installedJob, output.err
+		return callback(job)
 	}
-	return bmcpiinstall.InstalledJob{}, fmt.Errorf("Unsupported Input: %s\nAvailible Behaviors: %s", value, f.installBehavior)
+	return bmcpiinstall.InstalledJob{}, fmt.Errorf("Unsupported Input: %s\nAvailible Behaviors: %#v", value, f.installBehavior)
 }
 
-func (f *FakeJobInstaller) SetInstallBehavior(job bmrel.Job, installedJob bmcpiinstall.InstalledJob, err error) error {
+func (f *FakeJobInstaller) SetInstallBehavior(job bmrel.Job, callback jobInstallCallback) error {
 	input := JobInstallInput{
 		Job: job,
 	}
@@ -52,6 +49,6 @@ func (f *FakeJobInstaller) SetInstallBehavior(job bmrel.Job, installedJob bmcpii
 	if err != nil {
 		return fmt.Errorf("Could not serialize input %#v", input)
 	}
-	f.installBehavior[value] = jobInstallOutput{installedJob: installedJob, err: err}
+	f.installBehavior[value] = callback
 	return nil
 }

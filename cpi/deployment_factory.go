@@ -17,7 +17,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
-	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -28,6 +28,7 @@ type DeploymentFactory interface {
 }
 
 type deploymentFactory struct {
+	releaseManager        bmrel.Manager
 	registryServerManager bmregistry.ServerManager
 	workspaceRootPath     string
 	fs                    boshsys.FileSystem
@@ -40,6 +41,7 @@ type deploymentFactory struct {
 }
 
 func NewDeploymentFactory(
+	releaseManager bmrel.Manager,
 	registryServerManager bmregistry.ServerManager,
 	workspaceRootPath string,
 	fs boshsys.FileSystem,
@@ -50,6 +52,7 @@ func NewDeploymentFactory(
 	logger boshlog.Logger,
 ) DeploymentFactory {
 	return &deploymentFactory{
+		releaseManager:        releaseManager,
 		registryServerManager: registryServerManager,
 		workspaceRootPath:     workspaceRootPath,
 		fs:                    fs,
@@ -76,14 +79,6 @@ func (f *deploymentFactory) newCPIInstaller(deploymentID string) Installer {
 
 	runner := boshsys.NewExecCmdRunner(f.logger)
 	extractor := boshcmd.NewTarballCompressor(runner, f.fs)
-
-	boshValidator := bmrelvalidation.NewBoshValidator(f.fs)
-	cpiReleaseValidator := bmrelvalidation.NewCpiValidator()
-	releaseValidator := bmrelvalidation.NewValidator(
-		boshValidator,
-		cpiReleaseValidator,
-		f.ui,
-	)
 
 	compressor := boshcmd.NewTarballCompressor(runner, f.fs)
 	indexFilePath := deploymentWorkspace.CompiledPackagedIndexPath()
@@ -118,7 +113,7 @@ func (f *deploymentFactory) newCPIInstaller(deploymentID string) Installer {
 	templatesIndex := bmindex.NewFileIndex(deploymentWorkspace.TemplatesIndexPath(), f.fs)
 	templatesRepo := bmtempcomp.NewTemplatesRepo(templatesIndex)
 	templatesCompiler := bmtempcomp.NewTemplatesCompiler(jobRenderer, compressor, blobstore, templatesRepo, f.fs, f.logger)
-	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler)
+	releaseCompiler := bmcomp.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler, f.logger)
 	jobInstaller := bmcpiinstall.NewJobInstaller(
 		f.fs,
 		packageInstaller,
@@ -135,7 +130,7 @@ func (f *deploymentFactory) newCPIInstaller(deploymentID string) Installer {
 		f.ui,
 		f.fs,
 		extractor,
-		releaseValidator,
+		f.releaseManager,
 		releaseCompiler,
 		jobInstaller,
 		cloudFactory,

@@ -1,8 +1,6 @@
-package validation
+package release
 
 import (
-	"errors"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
@@ -31,14 +29,14 @@ func (v CpiValidator) Validate(release bmrel.Release) error {
 func (v CpiValidator) validateCpiJob(release bmrel.Release) []error {
 	errs := []error{}
 
-	job, ok := release.FindJobByName("cpi")
+	job, ok := release.FindJobByName(ReleaseJobName)
 	if !ok {
-		return append(errs, errors.New("Job 'cpi' is missing from release"))
+		return append(errs, bosherr.Errorf("Job '%s' is missing from release", ReleaseJobName))
 	}
 
-	_, ok = job.FindTemplateByValue("bin/cpi")
+	_, ok = job.FindTemplateByValue(ReleaseBinaryName)
 	if !ok {
-		errs = append(errs, errors.New("Job 'cpi' is missing bin/cpi target"))
+		errs = append(errs, bosherr.Errorf("Job '%s' is missing '%s' target", ReleaseJobName, ReleaseBinaryName))
 	}
 
 	return errs

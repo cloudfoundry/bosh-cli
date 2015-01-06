@@ -41,12 +41,12 @@ type Platform interface {
 	SetupRuntimeConfiguration() (err error)
 
 	// Disk management
-	MountPersistentDisk(devicePath, mountPoint string) error
-	UnmountPersistentDisk(devicePath string) (didUnmount bool, err error)
+	MountPersistentDisk(diskSettings boshsettings.DiskSettings, mountPoint string) error
+	UnmountPersistentDisk(diskSettings boshsettings.DiskSettings) (didUnmount bool, err error)
 	MigratePersistentDisk(fromMountPoint, toMountPoint string) (err error)
-	NormalizeDiskPath(devicePath string) string
+	NormalizeDiskPath(diskSettings boshsettings.DiskSettings) string
 	IsMountPoint(path string) (result bool, err error)
-	IsPersistentDiskMounted(path string) (result bool, err error)
+	IsPersistentDiskMounted(diskSettings boshsettings.DiskSettings) (result bool, err error)
 
 	GetFileContentsFromCDROM(filePath string) (contents []byte, err error)
 	GetFilesContentsFromDisk(diskPath string, fileNames []string) (contents [][]byte, err error)

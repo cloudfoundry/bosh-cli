@@ -9,6 +9,7 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
+	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -28,6 +29,7 @@ type deployCmd struct {
 	deploymentConfigService bmconfig.DeploymentConfigService
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
+	releaseManager          bmrel.Manager
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
 	stemcellExtractor       bmstemcell.Extractor
@@ -46,6 +48,7 @@ func NewDeployCmd(
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
+	releaseManager bmrel.Manager,
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	stemcellExtractor bmstemcell.Extractor,
@@ -62,6 +65,7 @@ func NewDeployCmd(
 		deploymentConfigService: deploymentConfigService,
 		boshDeploymentValidator: boshDeploymentValidator,
 		cpiDeploymentFactory:    cpiDeploymentFactory,
+		releaseManager:          releaseManager,
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
 		stemcellExtractor:       stemcellExtractor,
@@ -78,7 +82,7 @@ func (c *deployCmd) Name() string {
 }
 
 func (c *deployCmd) Run(args []string) error {
-	stemcellTarballPath, releaseTarballPath, err := c.parseCmdInputs(args)
+	stemcellTarballPath, releaseTarballPaths, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
 	}
@@ -146,14 +150,27 @@ func (c *deployCmd) Run(args []string) error {
 	}()
 
 	var cpiRelease bmrel.Release
-	err = validationStage.PerformStep("Validating cpi release", func() error {
-		if !c.fs.FileExists(releaseTarballPath) {
-			return bosherr.Errorf("Verifying that the CPI release '%s' exists", releaseTarballPath)
+	err = validationStage.PerformStep("Validating releases", func() error {
+		for _, releaseTarballPath := range releaseTarballPaths {
+			if !c.fs.FileExists(releaseTarballPath) {
+				return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
+			}
+
+			_, err := c.releaseManager.Extract(releaseTarballPath)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
+			}
 		}
 
-		cpiRelease, err = cpiDeployment.ExtractRelease(releaseTarballPath)
+		var found bool
+		cpiRelease, found = bmcpirel.FindCPIRelease(c.releaseManager.List())
+		if !found {
+			return bosherr.Errorf("No provided release contains the required '%s' job", bmcpirel.ReleaseJobName)
+		}
+
+		err := bmcpirel.NewCpiValidator().Validate(cpiRelease)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting CPI release '%s'", releaseTarballPath)
+			return bosherr.WrapError(err, "Invalid CPI release")
 		}
 
 		return nil
@@ -162,9 +179,9 @@ func (c *deployCmd) Run(args []string) error {
 		return err
 	}
 	defer func() {
-		deleteErr := cpiRelease.Delete()
-		if deleteErr != nil {
-			c.logger.Warn(c.logTag, "Failed to delete extracted cpi release: %s", deleteErr.Error())
+		err := c.releaseManager.DeleteAll()
+		if err != nil {
+			c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
 		}
 	}()
 
@@ -223,12 +240,12 @@ func (c *deployCmd) Run(args []string) error {
 
 type Deployment struct{}
 
-func (c *deployCmd) parseCmdInputs(args []string) (string, string, error) {
-	if len(args) != 2 {
-		c.ui.Error("Invalid usage - deploy command requires exactly 2 arguments")
-		c.ui.Sayln("Expected usage: bosh-micro deploy <stemcell-tarball> <cpi-release-tarball>")
+func (c *deployCmd) parseCmdInputs(args []string) (string, []string, error) {
+	if len(args) < 2 {
+		c.ui.Error("Invalid usage - deploy command requires at least 2 arguments")
+		c.ui.Sayln("Expected usage: bosh-micro deploy <stemcell-tarball> <cpi-release-tarball> [release-2-tarball [release-3-tarball...]]")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
-		return "", "", errors.New("Invalid usage - deploy command requires exactly 2 arguments")
+		return "", []string{}, errors.New("Invalid usage - deploy command requires at least 2 arguments")
 	}
-	return args[0], args[1], nil
+	return args[0], args[1:], nil
 }

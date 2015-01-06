@@ -581,15 +581,15 @@ func (p linux) changeTmpDirPermissions(path string) error {
 	return nil
 }
 
-func (p linux) MountPersistentDisk(devicePath, mountPoint string) error {
-	p.logger.Debug(logTag, "Mounting persistent disk %s at %s", devicePath, mountPoint)
+func (p linux) MountPersistentDisk(diskSetting boshsettings.DiskSettings, mountPoint string) error {
+	p.logger.Debug(logTag, "Mounting persistent disk %s at %s", diskSetting.Path, mountPoint)
 
 	err := p.fs.MkdirAll(mountPoint, persistentDiskPermissions)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Creating directory %s", mountPoint)
 	}
 
-	realPath, _, err := p.devicePathResolver.GetRealDevicePath(devicePath)
+	realPath, _, err := p.devicePathResolver.GetRealDevicePath(diskSetting)
 	if err != nil {
 		return bosherr.WrapError(err, "Getting real device path")
 	}
@@ -622,10 +622,10 @@ func (p linux) MountPersistentDisk(devicePath, mountPoint string) error {
 	return nil
 }
 
-func (p linux) UnmountPersistentDisk(devicePath string) (bool, error) {
-	p.logger.Debug(logTag, "Unmounting persistent disk %s", devicePath)
+func (p linux) UnmountPersistentDisk(diskSettings boshsettings.DiskSettings) (bool, error) {
+	p.logger.Debug(logTag, "Unmounting persistent disk %s", diskSettings.Path)
 
-	realPath, timedOut, err := p.devicePathResolver.GetRealDevicePath(devicePath)
+	realPath, timedOut, err := p.devicePathResolver.GetRealDevicePath(diskSettings)
 	if timedOut {
 		return false, nil
 	}
@@ -640,8 +640,8 @@ func (p linux) UnmountPersistentDisk(devicePath string) (bool, error) {
 	return p.diskManager.GetMounter().Unmount(realPath)
 }
 
-func (p linux) NormalizeDiskPath(devicePath string) string {
-	realPath, _, err := p.devicePathResolver.GetRealDevicePath(devicePath)
+func (p linux) NormalizeDiskPath(diskSettings boshsettings.DiskSettings) string {
+	realPath, _, err := p.devicePathResolver.GetRealDevicePath(diskSettings)
 	if err != nil {
 		return ""
 	}
@@ -684,11 +684,11 @@ func (p linux) MigratePersistentDisk(fromMountPoint, toMountPoint string) (err e
 	return
 }
 
-func (p linux) IsPersistentDiskMounted(path string) (bool, error) {
-	p.logger.Debug(logTag, "Checking whether persistent disk %s is mounted", path)
-	realPath, timedOut, err := p.devicePathResolver.GetRealDevicePath(path)
+func (p linux) IsPersistentDiskMounted(diskSettings boshsettings.DiskSettings) (bool, error) {
+	p.logger.Debug(logTag, "Checking whether persistent disk %s is mounted", diskSettings.Path)
+	realPath, timedOut, err := p.devicePathResolver.GetRealDevicePath(diskSettings)
 	if timedOut {
-		p.logger.Debug(logTag, "Timed out resolving device path %s, ignoring", path)
+		p.logger.Debug(logTag, "Timed out resolving device path %s, ignoring", diskSettings.Path)
 		return false, nil
 	}
 	if err != nil {

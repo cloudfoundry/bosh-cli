@@ -1,4 +1,4 @@
-package validation_test
+package release_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestValidation(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Release Validation Suite")
+	RunSpecs(t, "CPI Release Suite")
 }

@@ -15,6 +15,7 @@ srcFiles=(
 	deployment/agentclient/http/AgentClientFactory
 	deployment/vm/ManagerFactory
   registry/Server,ServerManager
+  release/Manager
 )
 
 for srcFile in ${srcFiles[*]}; do

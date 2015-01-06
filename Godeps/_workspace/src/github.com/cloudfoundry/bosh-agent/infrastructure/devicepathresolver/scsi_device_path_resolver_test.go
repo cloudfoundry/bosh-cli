@@ -6,21 +6,24 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
+	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	. "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 )
 
 var _ = Describe("VSphere Path Resolver", func() {
 	var (
-		fs       *fakesys.FakeFileSystem
-		resolver DevicePathResolver
+		fs           *fakesys.FakeFileSystem
+		resolver     DevicePathResolver
+		diskSettings boshsettings.DiskSettings
 	)
 
 	const sleepInterval = time.Millisecond * 1
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		resolver = NewVsphereDevicePathResolver(sleepInterval, fs)
+		resolver = NewScsiDevicePathResolver(sleepInterval, fs)
 
 		fs.SetGlob("/sys/bus/scsi/devices/*:0:0:0/block/*", []string{
 			"/sys/bus/scsi/devices/0:0:0:0/block/sr0",
@@ -31,11 +34,15 @@ var _ = Describe("VSphere Path Resolver", func() {
 		fs.SetGlob("/sys/bus/scsi/devices/fake-host-id:0:fake-disk-id:0/block/*", []string{
 			"/sys/bus/scsi/devices/fake-host-id:0:fake-disk-id:0/block/sdf",
 		})
+
+		diskSettings = boshsettings.DiskSettings{
+			VolumeID: "fake-disk-id",
+		}
 	})
 
 	Describe("GetRealDevicePath", func() {
 		It("rescans the devices attached to the root disks scsi controller", func() {
-			resolver.GetRealDevicePath("fake-disk-id")
+			resolver.GetRealDevicePath(diskSettings)
 
 			scanContents, err := fs.ReadFileString("/sys/class/scsi_host/hostfake-host-id/scan")
 			Expect(err).NotTo(HaveOccurred())
@@ -43,7 +50,7 @@ var _ = Describe("VSphere Path Resolver", func() {
 		})
 
 		It("detects device", func() {
-			devicePath, timedOut, err := resolver.GetRealDevicePath("fake-disk-id")
+			devicePath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(timedOut).To(BeFalse())
 			Expect(devicePath).To(Equal("/dev/sdf"))
@@ -61,7 +68,7 @@ var _ = Describe("VSphere Path Resolver", func() {
 				)
 
 				startTime := time.Now()
-				devicePath, timedOut, err := resolver.GetRealDevicePath("fake-disk-id")
+				devicePath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
 				runningTime := time.Since(startTime)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(timedOut).To(BeFalse())
@@ -81,7 +88,7 @@ var _ = Describe("VSphere Path Resolver", func() {
 					[]string{"/sys/bus/scsi/devices/fake-host-id:0:fake-disk-id:0/block/bla"},
 				)
 
-				devicePath, timedOut, err := resolver.GetRealDevicePath("fake-disk-id")
+				devicePath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(timedOut).To(BeFalse())
 				Expect(devicePath).To(Equal("/dev/sdf"))
@@ -91,7 +98,7 @@ var _ = Describe("VSphere Path Resolver", func() {
 		Context("when device never appears", func() {
 			It("returns not err", func() {
 				fs.SetGlob("/sys/bus/scsi/devices/fake-host-id:0:fake-disk-id:0/block/*", []string{})
-				_, _, err := resolver.GetRealDevicePath("fake-disk-id")
+				_, _, err := resolver.GetRealDevicePath(diskSettings)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})

@@ -16,6 +16,7 @@ import (
 	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
+	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -93,6 +94,10 @@ var _ = Describe("bosh-micro", func() {
 			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 			applySpec                  bmas.ApplySpec
 
+			mockReleaseManager       *mock_release.MockManager
+			managedReleases          []bmrel.Release
+			expectManagedReleaseList *gomock.Call
+
 			mockAgentClient        *mock_agentclient.MockAgentClient
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 
@@ -100,6 +105,8 @@ var _ = Describe("bosh-micro", func() {
 
 			directorID string
 
+			stemcellTarballPath    = "/fake-stemcell-release.tgz"
+			cpiReleaseTarballPath  = "/fake-cpi-release.tgz"
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
 
@@ -190,7 +197,7 @@ cloud_provider:
 		}
 
 		var writeCPIReleaseTarball = func() {
-			err := fs.WriteFileString("/fake-cpi-release.tgz", "fake-tgz-content")
+			err := fs.WriteFileString(cpiReleaseTarballPath, "fake-tgz-content")
 			Expect(err).ToNot(HaveOccurred())
 		}
 
@@ -198,15 +205,24 @@ cloud_provider:
 			cpiRelease := bmrel.NewRelease(
 				"fake-cpi-release-name",
 				"fake-cpi-release-version",
-				[]bmrel.Job{},
+				[]bmrel.Job{
+					{
+						Name: "cpi",
+						Templates: map[string]string{
+							"cpi.erb": "bin/cpi",
+						},
+					},
+				},
 				[]*bmrel.Package{},
 				"fake-cpi-extracted-dir",
 				fs,
 			)
-			fakeCPIInstaller.SetExtractBehavior("/fake-cpi-release.tgz", func(releaseTarballPath string) (bmrel.Release, error) {
+			mockReleaseManager.EXPECT().Extract(cpiReleaseTarballPath).Do(func(_ string) {
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
-				return cpiRelease, err
-			})
+				Expect(err).ToNot(HaveOccurred())
+				managedReleases = append(managedReleases, cpiRelease)
+				expectManagedReleaseList.Return(managedReleases)
+			}).Return(cpiRelease, nil).AnyTimes()
 
 			cpiDeploymentManifest := bmmanifest.CPIDeploymentManifest{
 				Name: "test-release",
@@ -218,14 +234,14 @@ cloud_provider:
 					Port:     6301,
 				},
 			}
-			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, cpiRelease, "fake-director-id", mockCloud, nil)
+			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, "fake-director-id", mockCloud, nil)
 
 			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, registryServerManager, fakeCPIInstaller, "fake-director-id")
 			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, gomock.Any(), gomock.Any()).Return(cpiDeployment).AnyTimes()
 		}
 
 		var writeStemcellReleaseTarball = func() {
-			err := fs.WriteFileString("/fake-stemcell-release.tgz", "fake-tgz-content")
+			err := fs.WriteFileString(stemcellTarballPath, "fake-tgz-content")
 			Expect(err).ToNot(HaveOccurred())
 		}
 
@@ -250,7 +266,7 @@ cloud_provider:
 				"fake-stemcell-extracted-dir",
 				fs,
 			)
-			fakeStemcellExtractor.SetExtractBehavior("/fake-stemcell-release.tgz", extractedStemcell, nil)
+			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
 		}
 
 		var allowApplySpecToBeCreated = func() {
@@ -291,6 +307,7 @@ cloud_provider:
 				deploymentConfigService,
 				boshDeploymentValidator,
 				mockCPIDeploymentFactory,
+				mockReleaseManager,
 				mockAgentClientFactory,
 				vmManagerFactory,
 				fakeStemcellExtractor,
@@ -597,6 +614,10 @@ cloud_provider:
 			registryServerManager = bmregistry.NewServerManager(logger)
 
 			fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
+
+			mockReleaseManager = mock_release.NewMockManager(mockCtrl)
+			managedReleases = []bmrel.Release{}
+
 			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
 			ui = &fakeui.FakeUI{}
@@ -625,6 +646,9 @@ cloud_provider:
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL).Return(mockAgentClient).AnyTimes()
 
+			expectManagedReleaseList = mockReleaseManager.EXPECT().List().Return(managedReleases).AnyTimes()
+			mockReleaseManager.EXPECT().DeleteAll().AnyTimes()
+
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
 			allowCPIToBeInstalled()
@@ -634,13 +658,60 @@ cloud_provider:
 			allowApplySpecToBeCreated()
 		})
 
+		It("executes the cloud & agent client calls in the expected order", func() {
+			expectDeployFlow()
+
+			err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		Context("when multiple releases are provided", func() {
+			var (
+				otherReleaseTarballPath = "/fake-other-release.tgz"
+			)
+
+			BeforeEach(func() {
+				err := fs.WriteFileString(otherReleaseTarballPath, "fake-other-tgz-content")
+				Expect(err).ToNot(HaveOccurred())
+
+				otherRelease := bmrel.NewRelease(
+					"fake-other-release-name",
+					"fake-other-release-version",
+					[]bmrel.Job{
+						{
+							Name: "other",
+							Templates: map[string]string{
+								"other.erb": "bin/other",
+							},
+						},
+					},
+					[]*bmrel.Package{},
+					"fake-other-extracted-dir",
+					fs,
+				)
+				mockReleaseManager.EXPECT().Extract(otherReleaseTarballPath).Do(func(_ string) {
+					err := fs.MkdirAll("fake-other-extracted-dir", os.ModePerm)
+					Expect(err).ToNot(HaveOccurred())
+					managedReleases = append(managedReleases, otherRelease)
+					expectManagedReleaseList.Return(managedReleases)
+				}).Return(otherRelease, nil).AnyTimes()
+			})
+
+			It("extracts all provided releases & finds the cpi release before executing the expected cloud & agent client commands", func() {
+				expectDeployFlow()
+
+				err := newDeployCmd().Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
 		Context("when the deployment has not been set", func() {
 			BeforeEach(func() {
 				userConfig.DeploymentManifestPath = ""
 			})
 
 			It("returns an error", func() {
-				err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Deployment manifest not set"))
 			})
@@ -658,7 +729,7 @@ cloud_provider:
 				// new directorID will be generated
 				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
 
-				err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.FileExists(deploymentConfigPath)).To(BeTrue())
@@ -673,7 +744,7 @@ cloud_provider:
 			BeforeEach(func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				// reset output buffer
@@ -691,7 +762,7 @@ cloud_provider:
 					// after cloud.CreateVM, cloud.HasVM should return true
 					expectHasVM1.Return(true, nil)
 
-					err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+					err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -702,7 +773,7 @@ cloud_provider:
 						// after cloud.CreateVM, cloud.HasVM should return true
 						expectHasVM1.Return(false, nil)
 
-						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 
@@ -717,7 +788,7 @@ cloud_provider:
 							Message: "fake-vm-not-found-message",
 						}))
 
-						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 				})
@@ -728,7 +799,7 @@ cloud_provider:
 					It("returns an error when attach_disk fails with a DiskNotFound error", func() {
 						expectDeployWithNoDiskToMigrate()
 
-						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-disk-not-found-message"))
 					})
@@ -738,7 +809,7 @@ cloud_provider:
 					BeforeEach(func() {
 						expectDeployWithDiskMigrationFailure()
 
-						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migration-error"))
 
@@ -755,7 +826,7 @@ cloud_provider:
 
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
 
-						err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 
 						diskRecord, found, err := diskRepo.FindCurrent()
@@ -775,7 +846,7 @@ cloud_provider:
 			It("makes the registry available for all CPI commands", func() {
 				expectDeployFlowWithRegistry()
 
-				err := newDeployCmd().Run([]string{"/fake-stemcell-release.tgz", "/fake-cpi-release.tgz"})
+				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})

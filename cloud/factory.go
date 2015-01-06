@@ -9,12 +9,8 @@ import (
 	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 )
 
-const (
-	cpiJobName = "cpi"
-)
-
 type Factory interface {
-	NewCloud(jobs []bmcpiinstall.InstalledJob, directorID string) (Cloud, error)
+	NewCloud(installedCPIJob bmcpiinstall.InstalledJob, directorID string) (Cloud, error)
 }
 
 type factory struct {
@@ -38,28 +34,18 @@ func NewFactory(
 	}
 }
 
-func (f *factory) NewCloud(jobs []bmcpiinstall.InstalledJob, directorID string) (Cloud, error) {
-	// for now, the installed job must be named "cpi"
-	installedCPIJob, found := f.findCPIJob(jobs)
-	if !found {
-		return nil, bosherr.Errorf("No '%s' release job found in the CPI deployment", cpiJobName)
-	}
-
+func (f *factory) NewCloud(installedCPIJob bmcpiinstall.InstalledJob, directorID string) (Cloud, error) {
 	cpiJob := CPIJob{
 		JobPath:     installedCPIJob.Path,
 		JobsDir:     f.deploymentWorkspace.JobsPath(),
 		PackagesDir: f.deploymentWorkspace.PackagesPath(),
 	}
 
+	cmdPath := cpiJob.ExecutablePath()
+	if !f.fs.FileExists(cmdPath) {
+		return nil, bosherr.Errorf("Installed CPI job '%s' does not contain the required executable '%s'", installedCPIJob.Name, cmdPath)
+	}
+
 	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpiJob, f.logger)
 	return NewCloud(cpiCmdRunner, directorID, f.logger), nil
-}
-
-func (f *factory) findCPIJob(jobs []bmcpiinstall.InstalledJob) (cpiJob bmcpiinstall.InstalledJob, found bool) {
-	for _, job := range jobs {
-		if job.Name == cpiJobName {
-			return job, true
-		}
-	}
-	return cpiJob, false
 }

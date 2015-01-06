@@ -11,7 +11,94 @@ import (
 )
 
 func init() {
-	Describe("Networks", func() {
+	Describe("Settings", func() {
+		var settings Settings
+
+		Describe("PersistentDiskSettings", func() {
+			Context("when the disk settings are hash", func() {
+				BeforeEach(func() {
+					settings = Settings{
+						Disks: Disks{
+							Persistent: map[string]interface{}{
+								"fake-disk-id": map[string]interface{}{
+									"volume_id": "fake-disk-volume-id",
+									"path":      "fake-disk-path",
+								},
+							},
+						},
+					}
+				})
+
+				It("returns disk settings", func() {
+					diskSettings, found := settings.PersistentDiskSettings("fake-disk-id")
+					Expect(found).To(BeTrue())
+					Expect(diskSettings).To(Equal(DiskSettings{
+						ID:       "fake-disk-id",
+						VolumeID: "fake-disk-volume-id",
+						Path:     "fake-disk-path",
+					}))
+				})
+			})
+
+			Context("when the disk settings is a string", func() {
+				BeforeEach(func() {
+					settings = Settings{
+						Disks: Disks{
+							Persistent: map[string]interface{}{
+								"fake-disk-id": "fake-disk-value",
+							},
+						},
+					}
+				})
+
+				It("converts it to disk settings", func() {
+					diskSettings, found := settings.PersistentDiskSettings("fake-disk-id")
+					Expect(found).To(BeTrue())
+					Expect(diskSettings).To(Equal(DiskSettings{
+						ID:       "fake-disk-id",
+						VolumeID: "fake-disk-value",
+						Path:     "fake-disk-value",
+					}))
+				})
+			})
+
+			Context("when disk with requested disk ID is not present", func() {
+				BeforeEach(func() {
+					settings = Settings{
+						Disks: Disks{
+							Persistent: map[string]interface{}{
+								"fake-disk-id": "fake-disk-path",
+							},
+						},
+					}
+				})
+
+				It("returns false", func() {
+					diskSettings, found := settings.PersistentDiskSettings("fake-non-existent-disk-id")
+					Expect(found).To(BeFalse())
+					Expect(diskSettings).To(Equal(DiskSettings{}))
+				})
+			})
+		})
+
+		Describe("EphemeralDiskSettings", func() {
+			BeforeEach(func() {
+				settings = Settings{
+					Disks: Disks{
+						Ephemeral: "fake-disk-value",
+					},
+				}
+			})
+
+			It("converts disk settings", func() {
+				Expect(settings.EphemeralDiskSettings()).To(Equal(DiskSettings{
+					ID:       "",
+					VolumeID: "fake-disk-value",
+					Path:     "fake-disk-value",
+				}))
+			})
+		})
+
 		Describe("DefaultNetworkFor", func() {
 			It("when networks is empty", func() {
 				networks := Networks{}

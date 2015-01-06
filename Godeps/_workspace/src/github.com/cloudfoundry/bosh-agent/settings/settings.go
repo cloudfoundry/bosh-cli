@@ -29,20 +29,59 @@ type Blobstore struct {
 }
 
 type Disks struct {
-	System     string            `json:"system"`
-	Ephemeral  string            `json:"ephemeral"`
-	Persistent map[string]string `json:"persistent"`
+	// e.g "/dev/sda", "1"
+	System string `json:"system"`
+
+	// e.g "/dev/sdb", "2"
+	Ephemeral string `json:"ephemeral"`
+
+	// Older CPIs returned disk settings as strings
+	// e.g {"disk-3845-43758-7243-38754" => "/dev/sdc"}
+	//     {"disk-3845-43758-7243-38754" => "3"}
+	// Newer CPIs will populate it in a hash:
+	// e.g {"disk-3845-43758-7243-38754" => {"path" => "/dev/sdc"}}
+	//     {"disk-3845-43758-7243-38754" => {"volume_id" => "3"}}
+	Persistent map[string]interface{} `json:"persistent"`
+}
+
+type DiskSettings struct {
+	ID       string
+	VolumeID string
+	Path     string
 }
 
 type VM struct {
 	Name string `json:"name"`
 }
 
-func (d Disks) PersistentDiskPath() (path string) {
-	for _, path = range d.Persistent {
-		return
+func (s Settings) PersistentDiskSettings(diskID string) (DiskSettings, bool) {
+	diskSettings := DiskSettings{}
+
+	for id, settings := range s.Disks.Persistent {
+		if id == diskID {
+			diskSettings.ID = diskID
+
+			if hashSettings, ok := settings.(map[string]interface{}); ok {
+				diskSettings.Path = hashSettings["path"].(string)
+				diskSettings.VolumeID = hashSettings["volume_id"].(string)
+			} else {
+				// Old CPIs return disk path (string) or volume id (string) as disk settings
+				diskSettings.Path = settings.(string)
+				diskSettings.VolumeID = settings.(string)
+			}
+
+			return diskSettings, true
+		}
 	}
-	return
+
+	return diskSettings, false
+}
+
+func (s Settings) EphemeralDiskSettings() DiskSettings {
+	return DiskSettings{
+		VolumeID: s.Disks.Ephemeral,
+		Path:     s.Disks.Ephemeral,
+	}
 }
 
 type Env struct {

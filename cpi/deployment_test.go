@@ -12,11 +12,9 @@ import (
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 
 	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
-	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 )
 
 var _ = Describe("Deployment", func() {
@@ -40,6 +38,7 @@ var _ = Describe("Deployment", func() {
 
 		directorID = "fake-director-id"
 	)
+
 	BeforeEach(func() {
 		manifest = bmmanifest.CPIDeploymentManifest{}
 
@@ -51,7 +50,7 @@ var _ = Describe("Deployment", func() {
 		deployment = NewDeployment(manifest, mockRegistryServerManager, fakeInstaller, directorID)
 	})
 
-	Describe("ExtractRelease & Install", func() {
+	Describe("Install", func() {
 		var (
 			fakeCloud *fakebmcloud.FakeCloud
 		)
@@ -60,63 +59,19 @@ var _ = Describe("Deployment", func() {
 			fakeCloud = fakebmcloud.NewFakeCloud()
 		})
 
-		Context("when ExtractRelease has been called", func() {
-			var (
-				releaseTarballPath = "fake-release-tarball-path"
-				fakeRelease        *fakebmrel.FakeRelease
-			)
+		It("delegates to CPIInstaller.Install", func() {
+			fakeInstaller.SetInstallBehavior(manifest, directorID, fakeCloud, nil)
 
-			BeforeEach(func() {
-				fakeRelease = fakebmrel.NewFakeRelease()
+			cloud, err := deployment.Install()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(cloud).To(Equal(fakeCloud))
 
-				fakeInstaller.SetExtractBehavior(releaseTarballPath, func(_ string) (bmrel.Release, error) {
-					return fakeRelease, nil
-				})
-
-				release, err := deployment.ExtractRelease(releaseTarballPath)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(release).To(Equal(fakeRelease))
-			})
-
-			It("requires extract to be called first & delegates to CPIInstaller.Install", func() {
-				fakeInstaller.SetInstallBehavior(manifest, fakeRelease, directorID, fakeCloud, nil)
-
-				cloud, err := deployment.Install()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(cloud).To(Equal(fakeCloud))
-
-				Expect(fakeInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
-					{
-						Deployment: manifest,
-						Release:    fakeRelease,
-						DirectorID: directorID,
-					},
-				}))
-			})
-
-			Context("when the release has already been deleted", func() {
-				BeforeEach(func() {
-					fakeRelease.Delete()
-				})
-
-				It("returns an error", func() {
-					_, err := deployment.Install()
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Extracted CPI release not found"))
-
-					Expect(fakeInstaller.InstallInputs).To(HaveLen(0))
-				})
-			})
-		})
-
-		Context("when ExtractRelease has not been called", func() {
-			It("returns an error", func() {
-				_, err := deployment.Install()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("CPI release must be extracted before it can be installed"))
-
-				Expect(fakeInstaller.InstallInputs).To(HaveLen(0))
-			})
+			Expect(fakeInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
+				{
+					Deployment: manifest,
+					DirectorID: directorID,
+				},
+			}))
 		})
 	})
 

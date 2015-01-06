@@ -6,6 +6,7 @@ import (
 
 type CPIDeploymentManifest struct {
 	Name            string
+	Release         Release
 	RawProperties   map[interface{}]interface{}
 	Mbus            string
 	Registry        Registry

@@ -52,6 +52,19 @@ func (udev ConcreteUdevDevice) Settle() (err error) {
 	return
 }
 
+func (udev ConcreteUdevDevice) Trigger() (err error) {
+	udev.logger.Debug(udev.logtag, "Triggering UdevDevice")
+	switch {
+	case udev.runner.CommandExists("udevadm"):
+		_, _, _, err = udev.runner.RunCommand("udevadm", "trigger")
+	case udev.runner.CommandExists("udevtrigger"):
+		_, _, _, err = udev.runner.RunCommand("udevtrigger")
+	default:
+		err = bosherr.Error("can not find udevadm or udevtrigger commands")
+	}
+	return
+}
+
 func (udev ConcreteUdevDevice) EnsureDeviceReadable(filePath string) error {
 	maxTries := 5
 	for i := 0; i < maxTries; i++ {

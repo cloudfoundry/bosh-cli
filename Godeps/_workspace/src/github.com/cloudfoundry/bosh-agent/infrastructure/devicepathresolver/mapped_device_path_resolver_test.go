@@ -7,19 +7,24 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
+	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
 var _ = Describe("mappedDevicePathResolver", func() {
 	var (
-		fs       boshsys.FileSystem
-		resolver DevicePathResolver
+		fs           boshsys.FileSystem
+		diskSettings boshsettings.DiskSettings
+		resolver     DevicePathResolver
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		resolver = NewMappedDevicePathResolver(time.Second, fs)
+		diskSettings = boshsettings.DiskSettings{
+			Path: "/dev/sda",
+		}
 	})
 
 	Context("when a matching /dev/xvdX device is found", func() {
@@ -30,7 +35,7 @@ var _ = Describe("mappedDevicePathResolver", func() {
 		})
 
 		It("returns the match", func() {
-			realPath, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
+			realPath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(timedOut).To(BeFalse())
 			Expect(realPath).To(Equal("/dev/xvda"))
@@ -44,7 +49,7 @@ var _ = Describe("mappedDevicePathResolver", func() {
 		})
 
 		It("returns the match", func() {
-			realPath, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
+			realPath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(timedOut).To(BeFalse())
 			Expect(realPath).To(Equal("/dev/vda"))
@@ -57,7 +62,7 @@ var _ = Describe("mappedDevicePathResolver", func() {
 		})
 
 		It("returns the match", func() {
-			realPath, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
+			realPath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(timedOut).To(BeFalse())
 			Expect(realPath).To(Equal("/dev/sda"))
@@ -73,7 +78,7 @@ var _ = Describe("mappedDevicePathResolver", func() {
 			})
 
 			It("returns the match", func() {
-				realPath, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
+				realPath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(timedOut).To(BeFalse())
 				Expect(realPath).To(Equal("/dev/xvda"))
@@ -82,7 +87,7 @@ var _ = Describe("mappedDevicePathResolver", func() {
 
 		Context("when the timeout has expired", func() {
 			It("errs", func() {
-				_, timedOut, err := resolver.GetRealDevicePath("/dev/sda")
+				_, timedOut, err := resolver.GetRealDevicePath(diskSettings)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Timed out getting real device path for /dev/sda"))
 				Expect(timedOut).To(BeTrue())
@@ -93,7 +98,10 @@ var _ = Describe("mappedDevicePathResolver", func() {
 	Context("when an invalid device name is passed in", func() {
 		It("panics", func() {
 			Expect(func() {
-				resolver.GetRealDevicePath("not even a device")
+				diskSettings = boshsettings.DiskSettings{
+					Path: "not even a device",
+				}
+				resolver.GetRealDevicePath(diskSettings)
 			}).To(Panic())
 		})
 	})

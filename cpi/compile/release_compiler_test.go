@@ -6,6 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
@@ -23,15 +25,19 @@ var _ = Describe("ReleaseCompiler", func() {
 		fakeFS                      *fakesys.FakeFileSystem
 		releaseCompiler             ReleaseCompiler
 		release                     bmrel.Release
+		logger                      boshlog.Logger
 	)
 
 	BeforeEach(func() {
 		fakeReleasePackagesCompiler = fakebmcomp.NewFakeReleasePackagesCompiler()
 		fakeTemplatesCompiler = fakebmtemp.NewFakeTemplatesCompiler()
 
+		logger = boshlog.NewLogger(boshlog.LevelNone)
+
 		releaseCompiler = NewReleaseCompiler(
 			fakeReleasePackagesCompiler,
 			fakeTemplatesCompiler,
+			logger,
 		)
 
 		fakeFS = fakesys.NewFakeFileSystem()

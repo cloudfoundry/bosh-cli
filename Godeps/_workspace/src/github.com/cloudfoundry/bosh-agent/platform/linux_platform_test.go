@@ -939,7 +939,12 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 	})
 
 	Describe("MountPersistentDisk", func() {
-		act := func() error { return platform.MountPersistentDisk("fake-volume-id", "/mnt/point") }
+		act := func() error {
+			return platform.MountPersistentDisk(
+				boshsettings.DiskSettings{Path: "fake-volume-id"},
+				"/mnt/point",
+			)
+		}
 
 		var (
 			partitioner *fakedisk.FakePartitioner
@@ -954,7 +959,7 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 
 		Context("when device path is successfully resolved", func() {
 			BeforeEach(func() {
-				devicePathResolver.RegisterRealDevicePath("fake-volume-id", "fake-real-device-path")
+				devicePathResolver.RealDevicePath = "fake-real-device-path"
 			})
 
 			Context("when UsePreformattedPersistentDisk set to false", func() {
@@ -1066,7 +1071,9 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 	})
 
 	Describe("UnmountPersistentDisk", func() {
-		act := func() (bool, error) { return platform.UnmountPersistentDisk("fake-device-path") }
+		act := func() (bool, error) {
+			return platform.UnmountPersistentDisk(boshsettings.DiskSettings{Path: "fake-device-path"})
+		}
 
 		var mounter *fakedisk.FakeMounter
 		BeforeEach(func() {
@@ -1075,7 +1082,7 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 
 		Context("when device path can be resolved", func() {
 			BeforeEach(func() {
-				devicePathResolver.RegisterRealDevicePath("fake-device-path", "fake-real-device-path")
+				devicePathResolver.RealDevicePath = "fake-real-device-path"
 			})
 
 			ItUnmountsPersistentDisk := func(expectedUnmountMountPoint string) {
@@ -1187,15 +1194,17 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 	Describe("NormalizeDiskPath", func() {
 		Context("when real device path was resolved without an error", func() {
 			It("returns real device path and true", func() {
-				devicePathResolver.RegisterRealDevicePath("fake-device-path", "fake-real-device-path")
-				Expect(platform.NormalizeDiskPath("fake-device-path")).To(Equal("fake-real-device-path"))
+				devicePathResolver.RealDevicePath = "fake-real-device-path"
+				realPath := platform.NormalizeDiskPath(boshsettings.DiskSettings{Path: "fake-device-path"})
+				Expect(realPath).To(Equal("fake-real-device-path"))
 			})
 		})
 
 		Context("when real device path was not resolved without an error", func() {
 			It("returns real device path and true", func() {
 				devicePathResolver.GetRealDevicePathErr = errors.New("fake-get-real-device-path-err")
-				Expect(platform.NormalizeDiskPath("fake-device-path")).To(Equal(""))
+				realPath := platform.NormalizeDiskPath(boshsettings.DiskSettings{Path: "fake-device-path"})
+				Expect(realPath).To(Equal(""))
 			})
 		})
 	})
@@ -1222,7 +1231,9 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 	})
 
 	Describe("IsPersistentDiskMounted", func() {
-		act := func() (bool, error) { return platform.IsPersistentDiskMounted("fake-device-path") }
+		act := func() (bool, error) {
+			return platform.IsPersistentDiskMounted(boshsettings.DiskSettings{Path: "fake-device-path"})
+		}
 
 		var mounter *fakedisk.FakeMounter
 		BeforeEach(func() {
@@ -1231,7 +1242,7 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 
 		Context("when device path can be resolved", func() {
 			BeforeEach(func() {
-				devicePathResolver.RegisterRealDevicePath("fake-device-path", "fake-real-device-path")
+				devicePathResolver.RealDevicePath = "fake-real-device-path"
 			})
 
 			ItChecksPersistentDiskMountPoint := func(expectedCheckedMountPoint string) {

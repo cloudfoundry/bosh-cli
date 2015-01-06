@@ -2,7 +2,7 @@ package cdrom
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshudev "github.com/cloudfoundry/bosh-agent/platform/cdrom/udevdevice"
+	boshudev "github.com/cloudfoundry/bosh-agent/platform/udevdevice"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 

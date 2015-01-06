@@ -8,7 +8,6 @@ import (
 	cloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	cpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	release "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 // Mock of Deployment interface
@@ -30,17 +29,6 @@ func NewMockDeployment(ctrl *gomock.Controller) *MockDeployment {
 
 func (_m *MockDeployment) EXPECT() *_MockDeploymentRecorder {
 	return _m.recorder
-}
-
-func (_m *MockDeployment) ExtractRelease(_param0 string) (release.Release, error) {
-	ret := _m.ctrl.Call(_m, "ExtractRelease", _param0)
-	ret0, _ := ret[0].(release.Release)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockDeploymentRecorder) ExtractRelease(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ExtractRelease", arg0)
 }
 
 func (_m *MockDeployment) Install() (cloud.Cloud, error) {
