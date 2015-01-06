@@ -64,7 +64,7 @@ type factory struct {
 	deploymentFactory       bmdepl.Factory
 	eventLogger             bmeventlog.EventLogger
 	timeService             boshtime.Service
-	cpiDeploymentFactory    bmcpi.DeploymentFactory
+	installationFactory     bmcpi.InstallationFactory
 	cpiInstaller            bmcpi.Installer
 	releaseManager          bmrel.Manager
 	installationParser      bminstallmanifest.Parser
@@ -135,7 +135,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadDeploymentParser(),
 		f.loadDeploymentConfigService(),
 		boshDeploymentValidator,
-		f.loadCPIDeploymentFactory(),
+		f.loadInstallationFactory(),
 		f.loadReleaseManager(),
 		f.loadAgentClientFactory(),
 		f.loadVMManagerFactory(),
@@ -154,7 +154,7 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.fs,
 		f.loadInstallationParser(),
 		f.loadDeploymentConfigService(),
-		f.loadCPIDeploymentFactory(),
+		f.loadInstallationFactory(),
 		f.loadReleaseManager(),
 		f.loadAgentClientFactory(),
 		f.loadVMManagerFactory(),
@@ -374,12 +374,12 @@ func (f *factory) loadReleaseManager() bmrel.Manager {
 	return f.releaseManager
 }
 
-func (f *factory) loadCPIDeploymentFactory() bmcpi.DeploymentFactory {
-	if f.cpiDeploymentFactory != nil {
-		return f.cpiDeploymentFactory
+func (f *factory) loadInstallationFactory() bmcpi.InstallationFactory {
+	if f.installationFactory != nil {
+		return f.installationFactory
 	}
 
-	f.cpiDeploymentFactory = bmcpi.NewDeploymentFactory(
+	f.installationFactory = bmcpi.NewInstallationFactory(
 		f.loadReleaseManager(),
 		f.loadRegistryServerManager(),
 		f.workspaceRootPath,
@@ -390,7 +390,7 @@ func (f *factory) loadCPIDeploymentFactory() bmcpi.DeploymentFactory {
 		f.loadTimeService(),
 		f.logger,
 	)
-	return f.cpiDeploymentFactory
+	return f.installationFactory
 }
 
 func (f *factory) loadInstallationParser() bminstallmanifest.Parser {

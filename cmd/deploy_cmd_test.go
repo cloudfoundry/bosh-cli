@@ -62,7 +62,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeUI     *fakeui.FakeUI
 
 		mockDeploymentFactory     *mock_deployer.MockFactory
-		mockCPIDeploymentFactory  *mock_cpi.MockDeploymentFactory
+		mockInstallationFactory   *mock_cpi.MockInstallationFactory
 		mockReleaseManager        *mock_release.MockManager
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
@@ -109,7 +109,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs.WriteFileString(deploymentManifestPath, "")
 
 		mockDeploymentFactory = mock_deployer.NewMockFactory(mockCtrl)
-		mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
+		mockInstallationFactory = mock_cpi.NewMockInstallationFactory(mockCtrl)
 
 		mockReleaseManager = mock_release.NewMockManager(mockCtrl)
 
@@ -174,7 +174,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeDeploymentParser,
 			deploymentConfigService,
 			fakeDeploymentValidator,
-			mockCPIDeploymentFactory,
+			mockInstallationFactory,
 			mockReleaseManager,
 			mockAgentClientFactory,
 			mockVMManagerFactory,
@@ -272,8 +272,8 @@ var _ = Describe("DeployCmd", func() {
 				nil,
 			)
 
-			cpiDeployment := bmcpi.NewDeployment(installationManifest, mockRegistryServerManager, fakeCPIInstaller, directorID)
-			mockCPIDeploymentFactory.EXPECT().NewDeployment(installationManifest, deploymentID, directorID).Return(cpiDeployment).AnyTimes()
+			installation := bmcpi.NewInstallation(installationManifest, mockRegistryServerManager, fakeCPIInstaller, directorID)
+			mockInstallationFactory.EXPECT().NewInstallation(installationManifest, deploymentID, directorID).Return(installation).AnyTimes()
 
 			deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
 			mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
@@ -621,7 +621,7 @@ var _ = Describe("DeployCmd", func() {
 					fakeDeploymentParser,
 					deploymentConfigService,
 					fakeDeploymentValidator,
-					mockCPIDeploymentFactory,
+					mockInstallationFactory,
 					mockReleaseManager,
 					mockAgentClientFactory,
 					mockVMManagerFactory,

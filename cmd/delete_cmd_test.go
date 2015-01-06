@@ -49,18 +49,18 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			fs                       boshsys.FileSystem
-			logger                   boshlog.Logger
-			mockCPIDeploymentFactory *mock_cpi.MockDeploymentFactory
-			mockCPIDeployment        *mock_cpi.MockDeployment
-			mockReleaseManager       *mock_release.MockManager
-			fakeUUIDGenerator        *fakeuuid.FakeGenerator
-			fakeRepoUUIDGenerator    *fakeuuid.FakeGenerator
-			deploymentConfigService  bmconfig.DeploymentConfigService
-			vmRepo                   bmconfig.VMRepo
-			diskRepo                 bmconfig.DiskRepo
-			stemcellRepo             bmconfig.StemcellRepo
-			userConfig               bmconfig.UserConfig
+			fs                      boshsys.FileSystem
+			logger                  boshlog.Logger
+			mockInstallationFactory *mock_cpi.MockInstallationFactory
+			mockInstallation        *mock_cpi.MockInstallation
+			mockReleaseManager      *mock_release.MockManager
+			fakeUUIDGenerator       *fakeuuid.FakeGenerator
+			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
+			deploymentConfigService bmconfig.DeploymentConfigService
+			vmRepo                  bmconfig.VMRepo
+			diskRepo                bmconfig.DiskRepo
+			stemcellRepo            bmconfig.StemcellRepo
+			userConfig              bmconfig.UserConfig
 
 			ui *fakeui.FakeUI
 
@@ -117,7 +117,7 @@ cloud_provider:
 				Mbus: "http://fake-mbus-url",
 			}
 
-			mockCPIDeploymentFactory.EXPECT().NewDeployment(installationManifest, "fake-uuid-1", "fake-uuid-0").Return(mockCPIDeployment).AnyTimes()
+			mockInstallationFactory.EXPECT().NewInstallation(installationManifest, "fake-uuid-1", "fake-uuid-0").Return(mockInstallation).AnyTimes()
 
 			expectCPIExtractRelease = mockReleaseManager.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
@@ -129,11 +129,11 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 			}).AnyTimes()
 
-			expectCPIInstall = mockCPIDeployment.EXPECT().Install().Return(mockCloud, nil).AnyTimes()
-			mockCPIDeployment.EXPECT().Manifest().Return(installationManifest).AnyTimes()
+			expectCPIInstall = mockInstallation.EXPECT().Install().Return(mockCloud, nil).AnyTimes()
+			mockInstallation.EXPECT().Manifest().Return(installationManifest).AnyTimes()
 
-			expectCPIStartJobs = mockCPIDeployment.EXPECT().StartJobs().AnyTimes()
-			expectCPIStopJobs = mockCPIDeployment.EXPECT().StopJobs().AnyTimes()
+			expectCPIStartJobs = mockInstallation.EXPECT().StartJobs().AnyTimes()
+			expectCPIStopJobs = mockInstallation.EXPECT().StopJobs().AnyTimes()
 		}
 
 		var newDeleteCmd = func() Cmd {
@@ -158,7 +158,7 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, installationParser, deploymentConfigService, mockCPIDeploymentFactory, mockReleaseManager,
+				ui, userConfig, fs, installationParser, deploymentConfigService, mockInstallationFactory, mockReleaseManager,
 				mockAgentClientFactory, vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
 				eventLogger, logger,
 			)
@@ -190,8 +190,8 @@ cloud_provider:
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
-			mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
-			mockCPIDeployment = mock_cpi.NewMockDeployment(mockCtrl)
+			mockInstallationFactory = mock_cpi.NewMockInstallationFactory(mockCtrl)
+			mockInstallation = mock_cpi.NewMockInstallation(mockCtrl)
 
 			mockReleaseManager = mock_release.NewMockManager(mockCtrl)
 
@@ -272,7 +272,7 @@ cloud_provider:
 					},
 				})
 
-				mockCPIDeploymentFactory.EXPECT().NewDeployment(installationManifest, "fake-deployment-id", "fake-director-id").Return(mockCPIDeployment).AnyTimes()
+				mockInstallationFactory.EXPECT().NewInstallation(installationManifest, "fake-deployment-id", "fake-director-id").Return(mockInstallation).AnyTimes()
 			})
 
 			It("extracts & install CPI release tarball", func() {

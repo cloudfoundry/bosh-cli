@@ -63,8 +63,8 @@ var _ = Describe("bosh-micro", func() {
 			fs     *fakesys.FakeFileSystem
 			logger boshlog.Logger
 
-			mockCPIDeploymentFactory *mock_cpi.MockDeploymentFactory
-			registryServerManager    bmregistry.ServerManager
+			mockInstallationFactory *mock_cpi.MockInstallationFactory
+			registryServerManager   bmregistry.ServerManager
 
 			fakeCPIInstaller        *fakebmcpi.FakeInstaller
 			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
@@ -237,8 +237,8 @@ cloud_provider:
 			}
 			fakeCPIInstaller.SetInstallBehavior(installationManifest, "fake-director-id", mockCloud, nil)
 
-			cpiDeployment := bmcpi.NewDeployment(installationManifest, registryServerManager, fakeCPIInstaller, "fake-director-id")
-			mockCPIDeploymentFactory.EXPECT().NewDeployment(installationManifest, gomock.Any(), gomock.Any()).Return(cpiDeployment).AnyTimes()
+			installation := bmcpi.NewInstallation(installationManifest, registryServerManager, fakeCPIInstaller, "fake-director-id")
+			mockInstallationFactory.EXPECT().NewInstallation(installationManifest, gomock.Any(), gomock.Any()).Return(installation).AnyTimes()
 		}
 
 		var writeStemcellReleaseTarball = func() {
@@ -309,7 +309,7 @@ cloud_provider:
 				deploymentParser,
 				deploymentConfigService,
 				boshDeploymentValidator,
-				mockCPIDeploymentFactory,
+				mockInstallationFactory,
 				mockReleaseManager,
 				mockAgentClientFactory,
 				vmManagerFactory,
@@ -594,7 +594,7 @@ cloud_provider:
 
 			fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
 
-			mockCPIDeploymentFactory = mock_cpi.NewMockDeploymentFactory(mockCtrl)
+			mockInstallationFactory = mock_cpi.NewMockInstallationFactory(mockCtrl)
 
 			sshTunnelFactory = bmsshtunnel.NewFactory(logger)
 

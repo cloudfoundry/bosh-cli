@@ -31,7 +31,7 @@ type deleteCmd struct {
 	fs                      boshsys.FileSystem
 	installationParser      bminstallmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
-	cpiDeploymentFactory    bmcpi.DeploymentFactory
+	installationFactory     bmcpi.InstallationFactory
 	releaseManager          bmrel.Manager
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
@@ -49,7 +49,7 @@ func NewDeleteCmd(
 	fs boshsys.FileSystem,
 	installationParser bminstallmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
-	cpiDeploymentFactory bmcpi.DeploymentFactory,
+	installationFactory bmcpi.InstallationFactory,
 	releaseManager bmrel.Manager,
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
@@ -65,7 +65,7 @@ func NewDeleteCmd(
 		fs:                      fs,
 		installationParser:      installationParser,
 		deploymentConfigService: deploymentConfigService,
-		cpiDeploymentFactory:    cpiDeploymentFactory,
+		installationFactory:     installationFactory,
 		releaseManager:          releaseManager,
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
@@ -101,14 +101,14 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	var cpiDeployment bmcpi.Deployment
+	var installation bmcpi.Installation
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
 		installationManifest, err := c.installationParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
 
-		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(installationManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
+		installation = c.installationFactory.NewInstallation(installationManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
 
 		return nil
 	})
@@ -147,24 +147,24 @@ func (c *deleteCmd) Run(args []string) error {
 
 	validationStage.Finish()
 
-	cloud, err := cpiDeployment.Install()
+	cloud, err := installation.Install()
 	if err != nil {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
-	err = cpiDeployment.StartJobs()
+	err = installation.StartJobs()
 	if err != nil {
 		return bosherr.WrapError(err, "Starting CPI jobs")
 	}
 	defer func() {
-		err := cpiDeployment.StopJobs()
+		err := installation.StopJobs()
 		if err != nil {
 			c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
 		}
 	}()
 
 	directorID := deploymentConfig.DirectorID
-	mbusURL := cpiDeployment.Manifest().Mbus
+	mbusURL := installation.Manifest().Mbus
 	agentClient := c.agentClientFactory.NewAgentClient(directorID, mbusURL)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, mbusURL)
 	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)

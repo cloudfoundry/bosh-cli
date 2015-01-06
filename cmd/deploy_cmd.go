@@ -30,7 +30,7 @@ type deployCmd struct {
 	deploymentParser        bmdeplmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	boshDeploymentValidator bmdeplval.DeploymentValidator
-	cpiDeploymentFactory    bmcpi.DeploymentFactory
+	installationFactory     bmcpi.InstallationFactory
 	releaseManager          bmrel.Manager
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
@@ -50,7 +50,7 @@ func NewDeployCmd(
 	deploymentParser bmdeplmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
-	cpiDeploymentFactory bmcpi.DeploymentFactory,
+	installationFactory bmcpi.InstallationFactory,
 	releaseManager bmrel.Manager,
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
@@ -68,7 +68,7 @@ func NewDeployCmd(
 		deploymentParser:        deploymentParser,
 		deploymentConfigService: deploymentConfigService,
 		boshDeploymentValidator: boshDeploymentValidator,
-		cpiDeploymentFactory:    cpiDeploymentFactory,
+		installationFactory:     installationFactory,
 		releaseManager:          releaseManager,
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
@@ -106,7 +106,7 @@ func (c *deployCmd) Run(args []string) error {
 
 	var (
 		boshDeployment bmdepl.Deployment
-		cpiDeployment  bmcpi.Deployment
+		installation   bmcpi.Installation
 	)
 
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
@@ -120,7 +120,7 @@ func (c *deployCmd) Run(args []string) error {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
 		}
 
-		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(installationManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
+		installation = c.installationFactory.NewInstallation(installationManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
 
 		err = c.boshDeploymentValidator.Validate(deploymentManifest)
 		if err != nil {
@@ -206,24 +206,24 @@ func (c *deployCmd) Run(args []string) error {
 		return nil
 	}
 
-	cloud, err := cpiDeployment.Install()
+	cloud, err := installation.Install()
 	if err != nil {
 		return bosherr.WrapError(err, "Installing CPI deployment")
 	}
 
-	err = cpiDeployment.StartJobs()
+	err = installation.StartJobs()
 	if err != nil {
 		return bosherr.WrapError(err, "Starting CPI jobs")
 	}
 	defer func() {
-		err := cpiDeployment.StopJobs()
+		err := installation.StopJobs()
 		if err != nil {
 			c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
 		}
 	}()
 
 	directorID := deploymentConfig.DirectorID
-	installationManifest := cpiDeployment.Manifest()
+	installationManifest := installation.Manifest()
 	mbusURL := installationManifest.Mbus
 	agentClient := c.agentClientFactory.NewAgentClient(directorID, mbusURL)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, mbusURL)

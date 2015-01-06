@@ -23,11 +23,11 @@ import (
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
-type DeploymentFactory interface {
-	NewDeployment(manifest bminstallmanifest.Manifest, deploymentID, directorID string) Deployment
+type InstallationFactory interface {
+	NewInstallation(manifest bminstallmanifest.Manifest, deploymentID, directorID string) Installation
 }
 
-type deploymentFactory struct {
+type installationFactory struct {
 	releaseManager        bmrel.Manager
 	registryServerManager bmregistry.ServerManager
 	workspaceRootPath     string
@@ -40,7 +40,7 @@ type deploymentFactory struct {
 	logTag                string
 }
 
-func NewDeploymentFactory(
+func NewInstallationFactory(
 	releaseManager bmrel.Manager,
 	registryServerManager bmregistry.ServerManager,
 	workspaceRootPath string,
@@ -50,8 +50,8 @@ func NewDeploymentFactory(
 	eventLogger bmeventlog.EventLogger,
 	timeService boshtime.Service,
 	logger boshlog.Logger,
-) DeploymentFactory {
-	return &deploymentFactory{
+) InstallationFactory {
+	return &installationFactory{
 		releaseManager:        releaseManager,
 		registryServerManager: registryServerManager,
 		workspaceRootPath:     workspaceRootPath,
@@ -61,12 +61,12 @@ func NewDeploymentFactory(
 		eventLogger:           eventLogger,
 		timeService:           timeService,
 		logger:                logger,
-		logTag:                "deploymentFactory",
+		logTag:                "installationFactory",
 	}
 }
 
-func (f *deploymentFactory) NewDeployment(manifest bminstallmanifest.Manifest, deploymentID, directorID string) Deployment {
-	return NewDeployment(
+func (f *installationFactory) NewInstallation(manifest bminstallmanifest.Manifest, deploymentID, directorID string) Installation {
+	return NewInstallation(
 		manifest,
 		f.registryServerManager,
 		f.newCPIInstaller(deploymentID),
@@ -74,7 +74,7 @@ func (f *deploymentFactory) NewDeployment(manifest bminstallmanifest.Manifest, d
 	)
 }
 
-func (f *deploymentFactory) newCPIInstaller(deploymentID string) Installer {
+func (f *installationFactory) newCPIInstaller(deploymentID string) Installer {
 	deploymentWorkspace := bmconfig.NewDeploymentWorkspace(f.workspaceRootPath, deploymentID)
 
 	runner := boshsys.NewExecCmdRunner(f.logger)
