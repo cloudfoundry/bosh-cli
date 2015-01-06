@@ -6,13 +6,13 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
 type ReleaseCompiler interface {
-	Compile(release bmrel.Release, deployment bmmanifest.CPIDeploymentManifest) error
+	Compile(release bmrel.Release, deployment bminstallmanifest.Manifest) error
 }
 
 type releaseCompiler struct {
@@ -35,7 +35,7 @@ func NewReleaseCompiler(
 	}
 }
 
-func (c releaseCompiler) Compile(release bmrel.Release, deployment bmmanifest.CPIDeploymentManifest) error {
+func (c releaseCompiler) Compile(release bmrel.Release, deployment bminstallmanifest.Manifest) error {
 	c.logger.Info(c.logTag, "Compiling CPI release '%s'", release.Name())
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release '%s': %#v", release.Name(), release))
 

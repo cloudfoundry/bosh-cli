@@ -14,7 +14,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
@@ -43,12 +43,12 @@ var _ = Describe("Manager", func() {
 
 	Describe("Create", func() {
 		var (
-			diskPool bmmanifest.DiskPool
+			diskPool bmdeplmanifest.DiskPool
 		)
 
 		BeforeEach(func() {
 
-			diskPool = bmmanifest.DiskPool{
+			diskPool = bmdeplmanifest.DiskPool{
 				Name:     "fake-disk-pool-name",
 				DiskSize: 1024,
 				RawCloudProperties: map[interface{}]interface{}{

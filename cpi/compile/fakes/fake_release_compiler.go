@@ -5,14 +5,14 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type compileInput struct {
 	Release    bmrel.Release
-	Deployment bmmanifest.CPIDeploymentManifest
+	Deployment bminstallmanifest.Manifest
 }
 
 type compileOutput struct {
@@ -31,7 +31,7 @@ func NewFakeReleaseCompiler() *FakeReleaseCompiler {
 	}
 }
 
-func (f *FakeReleaseCompiler) Compile(release bmrel.Release, deployment bmmanifest.CPIDeploymentManifest) error {
+func (f *FakeReleaseCompiler) Compile(release bmrel.Release, deployment bminstallmanifest.Manifest) error {
 	input := compileInput{Release: release, Deployment: deployment}
 	f.CompileInputs = append(f.CompileInputs, input)
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
@@ -48,7 +48,7 @@ func (f *FakeReleaseCompiler) Compile(release bmrel.Release, deployment bmmanife
 	return fmt.Errorf("Unsupported Compile Input: %s\nAvailable inputs: %s", inputString, f.compileBehavior)
 }
 
-func (f *FakeReleaseCompiler) SetCompileBehavior(release bmrel.Release, deployment bmmanifest.CPIDeploymentManifest, err error) error {
+func (f *FakeReleaseCompiler) SetCompileBehavior(release bmrel.Release, deployment bminstallmanifest.Manifest, err error) error {
 	input := compileInput{Release: release, Deployment: deployment}
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {

@@ -1,12 +1,12 @@
 package fakes
 
 import (
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 type FakeParser struct {
 	ParsePath     string
-	ParseManifest bmdeplmanifest.Manifest
+	ParseManifest bminstallmanifest.Manifest
 	ParseErr      error
 }
 
@@ -14,7 +14,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string) (bmdeplmanifest.Manifest, error) {
+func (p *FakeParser) Parse(path string) (bminstallmanifest.Manifest, error) {
 	p.ParsePath = path
 	return p.ParseManifest, p.ParseErr
 }

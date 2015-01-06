@@ -21,9 +21,10 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
@@ -32,11 +33,12 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
-	fakebmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
+	fakebmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
 	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -77,7 +79,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeployer         *fakebmdepl.FakeDeployer
 		fakeDeploymentRecord *fakebmdepl.FakeDeploymentRecord
 
-		fakeDeploymentParser    *fakebmmanifest.FakeParser
+		fakeInstallationParser  *fakebminstallmanifest.FakeParser
+		fakeDeploymentParser    *fakebmdeplmanifest.FakeParser
 		deploymentConfigService bmconfig.DeploymentConfigService
 		fakeDeploymentValidator *fakebmdeplval.FakeValidator
 
@@ -127,7 +130,8 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeDeployer = fakebmdepl.NewFakeDeployer()
 
-		fakeDeploymentParser = fakebmmanifest.NewFakeParser()
+		fakeInstallationParser = fakebminstallmanifest.NewFakeParser()
+		fakeDeploymentParser = fakebmdeplmanifest.NewFakeParser()
 
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		logger = boshlog.NewLogger(boshlog.LevelNone)
@@ -166,6 +170,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeUI,
 			userConfig,
 			fakeFs,
+			fakeInstallationParser,
 			fakeDeploymentParser,
 			deploymentConfigService,
 			fakeDeploymentValidator,
@@ -183,8 +188,8 @@ var _ = Describe("DeployCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			boshDeploymentManifest bmmanifest.Manifest
-			cpiDeploymentManifest  bmmanifest.CPIDeploymentManifest
+			boshDeploymentManifest bmdeplmanifest.Manifest
+			installationManifest   bminstallmanifest.Manifest
 			cloud                  *fakebmcloud.FakeCloud
 
 			directorID   = "fake-uuid-0"
@@ -213,24 +218,24 @@ var _ = Describe("DeployCmd", func() {
 			fakeFs.WriteFile(stemcellTarballPath, []byte{})
 
 			// parsed CPI deployment manifest
-			cpiDeploymentManifest = bmmanifest.CPIDeploymentManifest{
-				Registry: bmmanifest.Registry{},
-				SSHTunnel: bmmanifest.SSHTunnel{
+			installationManifest = bminstallmanifest.Manifest{
+				Registry: bminstallmanifest.Registry{},
+				SSHTunnel: bminstallmanifest.SSHTunnel{
 					Host: "fake-host",
 				},
 				Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
 			}
 
 			// parsed BOSH deployment manifest
-			boshDeploymentManifest = bmmanifest.Manifest{
+			boshDeploymentManifest = bmdeplmanifest.Manifest{
 				Name: "fake-deployment-name",
-				Jobs: []bmmanifest.Job{
+				Jobs: []bmdeplmanifest.Job{
 					{
 						Name: "fake-job-name",
 					},
 				},
 			}
-			fakeDeploymentParser.ParseDeployment = boshDeploymentManifest
+			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
 
 			// parsed/extracted CPI release
 			fakeCPIRelease = fakebmrel.NewFakeRelease()
@@ -250,8 +255,8 @@ var _ = Describe("DeployCmd", func() {
 		JustBeforeEach(func() {
 			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
 
-			fakeDeploymentParser.ParseDeployment = boshDeploymentManifest
-			fakeDeploymentParser.ParseCPIDeploymentManifest = cpiDeploymentManifest
+			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
+			fakeInstallationParser.ParseManifest = installationManifest
 
 			fakeDeploymentRecord.SetIsDeployedBehavior(
 				deploymentManifestPath,
@@ -267,8 +272,8 @@ var _ = Describe("DeployCmd", func() {
 				nil,
 			)
 
-			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, mockRegistryServerManager, fakeCPIInstaller, directorID)
-			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, deploymentID, directorID).Return(cpiDeployment).AnyTimes()
+			cpiDeployment := bmcpi.NewDeployment(installationManifest, mockRegistryServerManager, fakeCPIInstaller, directorID)
+			mockCPIDeploymentFactory.EXPECT().NewDeployment(installationManifest, deploymentID, directorID).Return(cpiDeployment).AnyTimes()
 
 			deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
 			mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
@@ -280,7 +285,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 			}).AnyTimes()
 
-			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, directorID, cloud, nil)
+			fakeCPIInstaller.SetInstallBehavior(installationManifest, directorID, cloud, nil)
 
 			fakeDeployer.SetDeployBehavior(nil)
 		})
@@ -305,6 +310,12 @@ var _ = Describe("DeployCmd", func() {
 
 			Expect(fakeStage.Started).To(BeTrue())
 			Expect(fakeStage.Finished).To(BeTrue())
+		})
+
+		It("parses the installation manifest", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
 		It("parses the deployment manifest", func() {
@@ -362,7 +373,7 @@ var _ = Describe("DeployCmd", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
 				{
-					Deployment: cpiDeploymentManifest,
+					Deployment: installationManifest,
 					DirectorID: directorID,
 				},
 			}))
@@ -370,7 +381,7 @@ var _ = Describe("DeployCmd", func() {
 
 		Context("when the registry is configured", func() {
 			BeforeEach(func() {
-				cpiDeploymentManifest.Registry = bmmanifest.Registry{
+				installationManifest.Registry = bminstallmanifest.Registry{
 					Username: "fake-username",
 					Password: "fake-password",
 					Host:     "fake-host",
@@ -409,8 +420,8 @@ var _ = Describe("DeployCmd", func() {
 					Cpi:             cloud,
 					Manifest:        boshDeploymentManifest,
 					Stemcell:        expectedExtractedStemcell,
-					Registry:        cpiDeploymentManifest.Registry,
-					SSHTunnelConfig: cpiDeploymentManifest.SSHTunnel,
+					Registry:        installationManifest.Registry,
+					SSHTunnelConfig: installationManifest.SSHTunnel,
 					VMManager:       fakeVMManager,
 				},
 			}))
@@ -511,7 +522,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
 					{
-						Deployment: cpiDeploymentManifest,
+						Deployment: installationManifest,
 						DirectorID: directorID,
 					},
 				}))
@@ -606,6 +617,7 @@ var _ = Describe("DeployCmd", func() {
 					fakeUI,
 					userConfig,
 					fakeFs,
+					fakeInstallationParser,
 					fakeDeploymentParser,
 					deploymentConfigService,
 					fakeDeploymentValidator,

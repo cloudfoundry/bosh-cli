@@ -7,9 +7,10 @@ import (
 	gomock "code.google.com/p/gomock/gomock"
 	cloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	deployment "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	manifest0 "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	stemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	manifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 // Mock of Deployment interface
@@ -64,7 +65,7 @@ func (_m *MockFactory) EXPECT() *_MockFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockFactory) NewDeployment(_param0 manifest.Manifest) deployment.Deployment {
+func (_m *MockFactory) NewDeployment(_param0 manifest0.Manifest) deployment.Deployment {
 	ret := _m.ctrl.Call(_m, "NewDeployment", _param0)
 	ret0, _ := ret[0].(deployment.Deployment)
 	return ret0

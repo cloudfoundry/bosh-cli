@@ -25,11 +25,11 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
@@ -71,7 +71,7 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockCloud              *mock_cloud.MockCloud
 
-			cpiDeploymentManifest bmmanifest.CPIDeploymentManifest
+			installationManifest bminstallmanifest.Manifest
 
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
@@ -112,12 +112,12 @@ cloud_provider:
 				fs,
 			)
 
-			cpiDeploymentManifest = bmmanifest.CPIDeploymentManifest{
+			installationManifest = bminstallmanifest.Manifest{
 				Name: "test-release",
 				Mbus: "http://fake-mbus-url",
 			}
 
-			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, "fake-uuid-1", "fake-uuid-0").Return(mockCPIDeployment).AnyTimes()
+			mockCPIDeploymentFactory.EXPECT().NewDeployment(installationManifest, "fake-uuid-1", "fake-uuid-0").Return(mockCPIDeployment).AnyTimes()
 
 			expectCPIExtractRelease = mockReleaseManager.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
@@ -130,7 +130,7 @@ cloud_provider:
 			}).AnyTimes()
 
 			expectCPIInstall = mockCPIDeployment.EXPECT().Install().Return(mockCloud, nil).AnyTimes()
-			mockCPIDeployment.EXPECT().Manifest().Return(cpiDeploymentManifest).AnyTimes()
+			mockCPIDeployment.EXPECT().Manifest().Return(installationManifest).AnyTimes()
 
 			expectCPIStartJobs = mockCPIDeployment.EXPECT().StartJobs().AnyTimes()
 			expectCPIStopJobs = mockCPIDeployment.EXPECT().StopJobs().AnyTimes()
@@ -139,7 +139,7 @@ cloud_provider:
 		var newDeleteCmd = func() Cmd {
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
-			deploymentParser := bmmanifest.NewParser(fs, logger)
+			installationParser := bminstallmanifest.NewParser(fs, logger)
 			vmManagerFactory := bmvm.NewManagerFactory(
 				vmRepo,
 				stemcellRepo,
@@ -158,7 +158,7 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, deploymentParser, deploymentConfigService, mockCPIDeploymentFactory, mockReleaseManager,
+				ui, userConfig, fs, installationParser, deploymentConfigService, mockCPIDeploymentFactory, mockReleaseManager,
 				mockAgentClientFactory, vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
 				eventLogger, logger,
 			)
@@ -272,7 +272,7 @@ cloud_provider:
 					},
 				})
 
-				mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, "fake-deployment-id", "fake-director-id").Return(mockCPIDeployment).AnyTimes()
+				mockCPIDeploymentFactory.EXPECT().NewDeployment(installationManifest, "fake-deployment-id", "fake-director-id").Return(mockCPIDeployment).AnyTimes()
 			})
 
 			It("extracts & install CPI release tarball", func() {

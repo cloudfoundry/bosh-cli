@@ -15,40 +15,43 @@ import (
 
 var _ = Describe("Parser", func() {
 	var (
-		deploymentPath string
-		fakeFs         *fakesys.FakeFileSystem
-		parser         Parser
+		comboManifestPath string
+		fakeFs            *fakesys.FakeFileSystem
+		parser            Parser
 	)
 
 	BeforeEach(func() {
-		deploymentPath = "fake-deployment-path"
+		comboManifestPath = "fake-deployment-path"
 		fakeFs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		parser = NewParser(fakeFs, logger)
 	})
 
-	Context("when deployment path does not exist", func() {
+	Context("when combo manifest path does not exist", func() {
+		BeforeEach(func() {
+			err := fakeFs.RemoveAll(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("returns an error", func() {
-			_, _, err := parser.Parse(deploymentPath)
+			_, err := parser.Parse(comboManifestPath)
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
-	Context("when deployment path exists", func() {
-		Context("when parser fails to read the deployment file", func() {
-			BeforeEach(func() {
-				fakeFs.ReadFileError = errors.New("fake-read-file-error")
-			})
-
-			It("returns an error", func() {
-				_, _, err := parser.Parse(deploymentPath)
-				Expect(err).To(HaveOccurred())
-			})
+	Context("when parser fails to read the combo manifest file", func() {
+		BeforeEach(func() {
+			fakeFs.ReadFileError = errors.New("fake-read-file-error")
 		})
 
-		Context("when parser successfully reads the deployment file", func() {
-			BeforeEach(func() {
-				contents := `
+		It("returns an error", func() {
+			_, err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	BeforeEach(func() {
+		contents := `
 ---
 name: fake-deployment-name
 update:
@@ -82,140 +85,94 @@ jobs:
   properties:
     fake-prop-key:
       nested-prop-key: fake-prop-value
-cloud_provider:
-  ssh_tunnel:
-    host: 54.34.56.8
-    port: 22
-    user: fake-ssh-user
-    private_key: /tmp/fake-ssh-key.pem
-  agent_env_service: registry
-  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
-  registry:
-    username: fake-registry-username
-    password: fake-registry-password
-    host: fake-registry-host
-    port: 123
-  properties:
-    fake-property-name:
-      nested-property: fake-property-value
 `
-				fakeFs.WriteFileString(deploymentPath, contents)
-			})
+		fakeFs.WriteFileString(comboManifestPath, contents)
+	})
 
-			It("parses deployment from manifest", func() {
-				deploymentManifest, _, err := parser.Parse(deploymentPath)
-				Expect(err).ToNot(HaveOccurred())
+	It("parses deployment manifest from combo manifest file", func() {
+		deploymentManifest, err := parser.Parse(comboManifestPath)
+		Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentManifest).To(Equal(Manifest{
-					Name: "fake-deployment-name",
-					Update: Update{
-						UpdateWatchTime: WatchTime{
-							Start: 2000,
-							End:   7000,
+		Expect(deploymentManifest).To(Equal(Manifest{
+			Name: "fake-deployment-name",
+			Update: Update{
+				UpdateWatchTime: WatchTime{
+					Start: 2000,
+					End:   7000,
+				},
+			},
+			Networks: []Network{
+				{
+					Name: "fake-network-name",
+					Type: Dynamic,
+					RawCloudProperties: map[interface{}]interface{}{
+						"subnet": "fake-subnet",
+						"a": map[interface{}]interface{}{
+							"b": "value",
 						},
 					},
-					Networks: []Network{
+				},
+				{
+					Name: "vip",
+					Type: VIP,
+				},
+			},
+			ResourcePools: []ResourcePool{
+				{
+					Name: "fake-resource-pool-name",
+					RawEnv: map[interface{}]interface{}{
+						"bosh": map[interface{}]interface{}{
+							"password": "secret",
+						},
+					},
+				},
+			},
+			DiskPools: []DiskPool{
+				{
+					Name:     "fake-disk-pool-name",
+					DiskSize: 2048,
+					RawCloudProperties: map[interface{}]interface{}{
+						"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
+					},
+				},
+			},
+			Jobs: []Job{
+				{
+					Name: "bosh",
+					Networks: []JobNetwork{
 						{
-							Name: "fake-network-name",
-							Type: Dynamic,
-							RawCloudProperties: map[interface{}]interface{}{
-								"subnet": "fake-subnet",
-								"a": map[interface{}]interface{}{
-									"b": "value",
-								},
-							},
-						},
-						{
-							Name: "vip",
-							Type: VIP,
+							Name:      "vip",
+							StaticIPs: []string{"1.2.3.4"},
 						},
 					},
-					ResourcePools: []ResourcePool{
-						{
-							Name: "fake-resource-pool-name",
-							RawEnv: map[interface{}]interface{}{
-								"bosh": map[interface{}]interface{}{
-									"password": "secret",
-								},
-							},
-						},
-					},
-					DiskPools: []DiskPool{
-						{
-							Name:     "fake-disk-pool-name",
-							DiskSize: 2048,
-							RawCloudProperties: map[interface{}]interface{}{
-								"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
-							},
-						},
-					},
-					Jobs: []Job{
-						{
-							Name: "bosh",
-							Networks: []JobNetwork{
-								{
-									Name:      "vip",
-									StaticIPs: []string{"1.2.3.4"},
-								},
-							},
-							PersistentDisk:     1024,
-							PersistentDiskPool: "fake-disk-pool-name",
-							RawProperties: map[interface{}]interface{}{
-								"fake-prop-key": map[interface{}]interface{}{
-									"nested-prop-key": "fake-prop-value",
-								},
-							},
-						},
-					},
-				}))
-			})
-
-			It("parses cpi deployment from manifest", func() {
-				_, cpiDeploymentManifest, err := parser.Parse(deploymentPath)
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(cpiDeploymentManifest).To(Equal(CPIDeploymentManifest{
-					Name: "fake-deployment-name",
-					Registry: Registry{
-						Username: "fake-registry-username",
-						Password: "fake-registry-password",
-						Host:     "fake-registry-host",
-						Port:     123,
-					},
-					AgentEnvService: "registry",
+					PersistentDisk:     1024,
+					PersistentDiskPool: "fake-disk-pool-name",
 					RawProperties: map[interface{}]interface{}{
-						"fake-property-name": map[interface{}]interface{}{
-							"nested-property": "fake-property-value",
+						"fake-prop-key": map[interface{}]interface{}{
+							"nested-prop-key": "fake-prop-value",
 						},
 					},
-					SSHTunnel: SSHTunnel{
-						Host:       "54.34.56.8",
-						Port:       22,
-						User:       "fake-ssh-user",
-						PrivateKey: "/tmp/fake-ssh-key.pem",
-					},
-					Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
-				}))
-			})
+				},
+			},
+		}))
+	})
 
-			Context("when update watch time is not set", func() {
-				BeforeEach(func() {
-					contents := `
+	Context("when update watch time is not set", func() {
+		BeforeEach(func() {
+			contents := `
 ---
 name: fake-deployment-name
 `
-					fakeFs.WriteFileString(deploymentPath, contents)
-				})
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
 
-				It("uses default values", func() {
-					deployment, _, err := parser.Parse(deploymentPath)
-					Expect(err).ToNot(HaveOccurred())
+		It("uses default values", func() {
+			deploymentManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
 
-					Expect(deployment.Name).To(Equal("fake-deployment-name"))
-					Expect(deployment.Update.UpdateWatchTime.Start).To(Equal(0))
-					Expect(deployment.Update.UpdateWatchTime.End).To(Equal(300000))
-				})
-			})
+			Expect(deploymentManifest.Name).To(Equal("fake-deployment-name"))
+			Expect(deploymentManifest.Update.UpdateWatchTime.Start).To(Equal(0))
+			Expect(deploymentManifest.Update.UpdateWatchTime.End).To(Equal(300000))
 		})
 	})
 })

@@ -10,7 +10,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
@@ -24,7 +24,7 @@ var _ = Describe("DiskDeployer", func() {
 	var (
 		diskDeployer    DiskDeployer
 		fakeDiskManager *fakebmdisk.FakeManager
-		diskPool        bmmanifest.DiskPool
+		diskPool        bmdeplmanifest.DiskPool
 		cloud           *fakebmcloud.FakeCloud
 		fakeStage       *fakebmlog.FakeStage
 		fakeVM          *fakebmvm.FakeVM
@@ -61,7 +61,7 @@ var _ = Describe("DiskDeployer", func() {
 
 	Context("when the disk pool size is > 0", func() {
 		BeforeEach(func() {
-			diskPool = bmmanifest.DiskPool{
+			diskPool = bmdeplmanifest.DiskPool{
 				Name:     "fake-persistent-disk-pool-name",
 				DiskSize: 1024,
 				RawCloudProperties: map[interface{}]interface{}{
@@ -416,7 +416,7 @@ var _ = Describe("DiskDeployer", func() {
 
 	Context("when the disk pool size is 0", func() {
 		BeforeEach(func() {
-			diskPool = bmmanifest.DiskPool{}
+			diskPool = bmdeplmanifest.DiskPool{}
 		})
 
 		It("does not create a persistent disk", func() {

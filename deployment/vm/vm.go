@@ -13,7 +13,7 @@ import (
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -23,8 +23,8 @@ type VM interface {
 	CID() string
 	Exists() (bool, error)
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
-	Apply(bmstemcell.ApplySpec, bmmanifest.Manifest) error
-	UpdateDisks(bmmanifest.DiskPool, bmeventlog.Stage) error
+	Apply(bmstemcell.ApplySpec, bmdeplmanifest.Manifest) error
+	UpdateDisks(bmdeplmanifest.DiskPool, bmeventlog.Stage) error
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
@@ -99,7 +99,7 @@ func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
 	return agentPingRetryStrategy.Try()
 }
 
-func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmmanifest.Manifest) error {
+func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmdeplmanifest.Manifest) error {
 	vm.logger.Debug(vm.logTag, "Stopping agent")
 
 	err := vm.agentClient.Stop()
@@ -156,7 +156,7 @@ func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest b
 	return nil
 }
 
-func (vm *vm) UpdateDisks(diskPool bmmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) error {
+func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) error {
 	err := vm.diskDeployer.Deploy(diskPool, vm.cloud, vm, eventLoggerStage)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying disk")

@@ -2,7 +2,7 @@ package fakes
 
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
@@ -13,7 +13,7 @@ type FakeDiskDeployer struct {
 }
 
 type DeployInput struct {
-	DiskPool         bmmanifest.DiskPool
+	DiskPool         bmdeplmanifest.DiskPool
 	Cloud            bmcloud.Cloud
 	VM               bmvm.VM
 	EventLoggerStage bmeventlog.Stage
@@ -30,7 +30,7 @@ func NewFakeDiskDeployer() *FakeDiskDeployer {
 }
 
 func (d *FakeDiskDeployer) Deploy(
-	diskPool bmmanifest.DiskPool,
+	diskPool bmdeplmanifest.DiskPool,
 	cloud bmcloud.Cloud,
 	vm bmvm.VM,
 	eventLoggerStage bmeventlog.Stage,

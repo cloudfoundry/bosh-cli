@@ -12,13 +12,13 @@ import (
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
 	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Installer interface {
-	Install(manifest bmmanifest.CPIDeploymentManifest, directorID string) (bmcloud.Cloud, error)
+	Install(manifest bminstallmanifest.Manifest, directorID string) (bmcloud.Cloud, error)
 }
 
 type cpiInstaller struct {
@@ -56,7 +56,7 @@ func NewInstaller(
 	}
 }
 
-func (c *cpiInstaller) Install(manifest bmmanifest.CPIDeploymentManifest, directorID string) (bmcloud.Cloud, error) {
+func (c *cpiInstaller) Install(manifest bminstallmanifest.Manifest, directorID string) (bmcloud.Cloud, error) {
 	c.logger.Info(c.logTag, "Installing CPI deployment '%s'", manifest.Name)
 	c.logger.Debug(c.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 

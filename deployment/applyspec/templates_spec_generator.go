@@ -11,7 +11,7 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployment/blobstore"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
@@ -19,7 +19,7 @@ import (
 
 type TemplatesSpecGenerator interface {
 	Create(
-		deploymentJob bmmanifest.Job,
+		deploymentJob bmdeplmanifest.Job,
 		stemcellJob bmstemcell.Job,
 		deploymentName string,
 		properties map[string]interface{},
@@ -66,7 +66,7 @@ func NewTemplatesSpecGenerator(
 }
 
 func (g *templatesSpecGenerator) Create(
-	deploymentJob bmmanifest.Job,
+	deploymentJob bmdeplmanifest.Job,
 	stemcellJob bmstemcell.Job,
 	deploymentName string,
 	properties map[string]interface{},
@@ -131,7 +131,7 @@ func (g *templatesSpecGenerator) Create(
 }
 
 func (g *templatesSpecGenerator) renderTemplates(
-	deploymentTemplates []bmmanifest.ReleaseJobRef,
+	deploymentTemplates []bmdeplmanifest.ReleaseJobRef,
 	stemcellTemplates []bmstemcell.Blob,
 	blobstore bmblobstore.Blobstore,
 	jobProperties map[string]interface{},

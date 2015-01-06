@@ -2,42 +2,43 @@ package deployer
 
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 type Deployment interface {
 	Deploy(
 		cloud bmcloud.Cloud,
 		extractedStemcell bmstemcell.ExtractedStemcell,
-		registryConfig bmmanifest.Registry,
-		sshTunnelConfig bmmanifest.SSHTunnel,
+		registryConfig bminstallmanifest.Registry,
+		sshTunnelConfig bminstallmanifest.SSHTunnel,
 		vmManager bmvm.Manager,
 	) error
 }
 
 type deployment struct {
-	manifest bmmanifest.Manifest
+	manifest bmdeplmanifest.Manifest
 	deployer Deployer
 }
 
-func NewDeployment(manifest bmmanifest.Manifest, deployer Deployer) Deployment {
+func NewDeployment(manifest bmdeplmanifest.Manifest, deployer Deployer) Deployment {
 	return &deployment{
 		manifest: manifest,
 		deployer: deployer,
 	}
 }
 
-func (d *deployment) Manifest() bmmanifest.Manifest {
+func (d *deployment) Manifest() bmdeplmanifest.Manifest {
 	return d.manifest
 }
 
 func (d deployment) Deploy(
 	cloud bmcloud.Cloud,
 	extractedStemcell bmstemcell.ExtractedStemcell,
-	registryConfig bmmanifest.Registry,
-	sshTunnelConfig bmmanifest.SSHTunnel,
+	registryConfig bminstallmanifest.Registry,
+	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
 ) error {
 	return d.deployer.Deploy(

@@ -2,17 +2,18 @@ package fakes
 
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 type DeployInput struct {
 	Cpi             bmcloud.Cloud
-	Manifest        bmmanifest.Manifest
+	Manifest        bmdeplmanifest.Manifest
 	Stemcell        bmstemcell.ExtractedStemcell
-	Registry        bmmanifest.Registry
-	SSHTunnelConfig bmmanifest.SSHTunnel
+	Registry        bminstallmanifest.Registry
+	SSHTunnelConfig bminstallmanifest.SSHTunnel
 	VMManager       bmvm.Manager
 }
 
@@ -34,10 +35,10 @@ func NewFakeDeployer() *FakeDeployer {
 
 func (m *FakeDeployer) Deploy(
 	cpi bmcloud.Cloud,
-	deploymentManifest bmmanifest.Manifest,
+	deploymentManifest bmdeplmanifest.Manifest,
 	stemcell bmstemcell.ExtractedStemcell,
-	registry bmmanifest.Registry,
-	sshTunnelConfig bmmanifest.SSHTunnel,
+	registry bminstallmanifest.Registry,
+	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
 ) error {
 	input := DeployInput{

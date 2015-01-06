@@ -8,7 +8,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -30,7 +30,7 @@ var _ = Describe("Manager", func() {
 		expectedNetworksSpec       map[string]interface{}
 		expectedCloudProperties    map[string]interface{}
 		expectedEnv                map[string]interface{}
-		deploymentManifest         bmmanifest.Manifest
+		deploymentManifest         bmdeplmanifest.Manifest
 		fakeVMRepo                 *fakebmconfig.FakeVMRepo
 		stemcellRepo               bmconfig.StemcellRepo
 		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
@@ -81,15 +81,15 @@ var _ = Describe("Manager", func() {
 		expectedEnv = map[string]interface{}{
 			"fake-env-key": "fake-env-value",
 		}
-		deploymentManifest = bmmanifest.Manifest{
+		deploymentManifest = bmdeplmanifest.Manifest{
 			Name: "fake-deployment",
-			Networks: []bmmanifest.Network{
+			Networks: []bmdeplmanifest.Network{
 				{
 					Name: "fake-network-name",
 					Type: "dynamic",
 				},
 			},
-			ResourcePools: []bmmanifest.ResourcePool{
+			ResourcePools: []bmdeplmanifest.ResourcePool{
 				{
 					Name: "fake-resource-pool-name",
 					RawCloudProperties: map[interface{}]interface{}{
@@ -100,10 +100,10 @@ var _ = Describe("Manager", func() {
 					},
 				},
 			},
-			Jobs: []bmmanifest.Job{
+			Jobs: []bmdeplmanifest.Job{
 				{
 					Name: "fake-job",
-					Networks: []bmmanifest.JobNetwork{
+					Networks: []bmdeplmanifest.JobNetwork{
 						{
 							Name:      "fake-network-name",
 							StaticIPs: []string{"fake-micro-ip"},

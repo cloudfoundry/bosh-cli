@@ -2,7 +2,7 @@ package fakes
 
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
@@ -19,7 +19,7 @@ type FakeVMDeployer struct {
 
 type VMDeployInput struct {
 	Cloud            bmcloud.Cloud
-	Manifest         bmmanifest.Manifest
+	Manifest         bmdeplmanifest.Manifest
 	Stemcell         bmstemcell.CloudStemcell
 	MbusURL          string
 	EventLoggerStage bmeventlog.Stage
@@ -45,7 +45,7 @@ func NewFakeVMDeployer() *FakeVMDeployer {
 
 func (m *FakeVMDeployer) Deploy(
 	cloud bmcloud.Cloud,
-	deploymentManifest bmmanifest.Manifest,
+	deploymentManifest bmdeplmanifest.Manifest,
 	stemcell bmstemcell.CloudStemcell,
 	mbusURL string,
 	eventLoggerStage bmeventlog.Stage,

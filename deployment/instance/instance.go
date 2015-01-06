@@ -8,19 +8,20 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 type Instance interface {
 	JobName() string
 	ID() int
-	WaitUntilReady(bmmanifest.Registry, bmmanifest.SSHTunnel, bmeventlog.Stage) error
-	UpdateDisks(bmmanifest.Manifest, bmeventlog.Stage) error
-	StartJobs(newState bmstemcell.ApplySpec, deploymentManifest bmmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error
+	WaitUntilReady(bminstallmanifest.Registry, bminstallmanifest.SSHTunnel, bmeventlog.Stage) error
+	UpdateDisks(bmdeplmanifest.Manifest, bmeventlog.Stage) error
+	StartJobs(newState bmstemcell.ApplySpec, deploymentManifest bmdeplmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error
 	Delete(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
@@ -66,8 +67,8 @@ func (i *instance) ID() int {
 }
 
 func (i *instance) WaitUntilReady(
-	registryConfig bmmanifest.Registry,
-	sshTunnelConfig bmmanifest.SSHTunnel,
+	registryConfig bminstallmanifest.Registry,
+	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	eventLoggerStage bmeventlog.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s' to be ready", i.vm.CID())
@@ -100,7 +101,7 @@ func (i *instance) WaitUntilReady(
 	return err
 }
 
-func (i *instance) UpdateDisks(deploymentManifest bmmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error {
+func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error {
 	diskPool, err := deploymentManifest.DiskPool(i.jobName)
 	if err != nil {
 		return bosherr.WrapError(err, "Getting disk pool")
@@ -115,7 +116,7 @@ func (i *instance) UpdateDisks(deploymentManifest bmmanifest.Manifest, eventLogg
 }
 
 // StartJobs sends the agent a new apply spec, restarts the agent, and polls until the agent says the jobs are running
-func (i *instance) StartJobs(newState bmstemcell.ApplySpec, deploymentManifest bmmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error {
+func (i *instance) StartJobs(newState bmstemcell.ApplySpec, deploymentManifest bmdeplmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error {
 	if err := i.startJobs(i.vm, newState, deploymentManifest, eventLoggerStage); err != nil {
 		return err
 	}
@@ -180,7 +181,7 @@ func (i *instance) shutdown(
 func (i *instance) startJobs(
 	vm bmvm.VM,
 	stemcellApplySpec bmstemcell.ApplySpec,
-	deploymentManifest bmmanifest.Manifest,
+	deploymentManifest bmdeplmanifest.Manifest,
 	eventLoggerStage bmeventlog.Stage,
 ) error {
 	stepName := fmt.Sprintf("Starting instance '%s/%d'", i.jobName, i.id)
@@ -200,7 +201,7 @@ func (i *instance) startJobs(
 	})
 }
 
-func (i *instance) waitUntilJobsAreRunning(deploymentManifest bmmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error {
+func (i *instance) waitUntilJobsAreRunning(deploymentManifest bmdeplmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error {
 	updateWatchTime := deploymentManifest.Update.UpdateWatchTime
 	start := time.Duration(updateWatchTime.Start) * time.Millisecond
 	end := time.Duration(updateWatchTime.End) * time.Millisecond

@@ -1,6 +1,6 @@
 package manifest
 
-type Release struct {
+type ReleaseRef struct {
 	Name    string
 	Version string
 }

@@ -8,11 +8,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 type Manager interface {
@@ -20,10 +21,10 @@ type Manager interface {
 	Create(
 		jobName string,
 		id int,
-		deploymentManifest bmmanifest.Manifest,
+		deploymentManifest bmdeplmanifest.Manifest,
 		cloudStemcell bmstemcell.CloudStemcell,
-		registryConfig bmmanifest.Registry,
-		sshTunnelConfig bmmanifest.SSHTunnel,
+		registryConfig bminstallmanifest.Registry,
+		sshTunnelConfig bminstallmanifest.SSHTunnel,
 		eventLoggerStage bmeventlog.Stage,
 	) (instance Instance, err error)
 	DeleteAll(
@@ -79,10 +80,10 @@ func (m *manager) FindCurrent() ([]Instance, error) {
 func (m *manager) Create(
 	jobName string,
 	id int,
-	deploymentManifest bmmanifest.Manifest,
+	deploymentManifest bmdeplmanifest.Manifest,
 	cloudStemcell bmstemcell.CloudStemcell,
-	registryConfig bmmanifest.Registry,
-	sshTunnelConfig bmmanifest.SSHTunnel,
+	registryConfig bminstallmanifest.Registry,
+	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	eventLoggerStage bmeventlog.Stage,
 ) (instance Instance, err error) {
 	var vm bmvm.VM

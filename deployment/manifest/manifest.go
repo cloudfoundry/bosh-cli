@@ -7,7 +7,7 @@ import (
 
 type Manifest struct {
 	Name          string
-	Releases      []Release
+	Releases      []ReleaseRef
 	RawProperties map[interface{}]interface{}
 	Jobs          []Job
 	Networks      []Network

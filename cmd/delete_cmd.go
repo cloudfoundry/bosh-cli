@@ -15,9 +15,9 @@ import (
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
@@ -29,7 +29,7 @@ type deleteCmd struct {
 	ui                      bmui.UI
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
-	deploymentParser        bmmanifest.Parser
+	installationParser      bminstallmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
 	releaseManager          bmrel.Manager
@@ -47,7 +47,7 @@ func NewDeleteCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
-	deploymentParser bmmanifest.Parser,
+	installationParser bminstallmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
 	releaseManager bmrel.Manager,
@@ -63,7 +63,7 @@ func NewDeleteCmd(
 		ui:                      ui,
 		userConfig:              userConfig,
 		fs:                      fs,
-		deploymentParser:        deploymentParser,
+		installationParser:      installationParser,
 		deploymentConfigService: deploymentConfigService,
 		cpiDeploymentFactory:    cpiDeploymentFactory,
 		releaseManager:          releaseManager,
@@ -103,12 +103,12 @@ func (c *deleteCmd) Run(args []string) error {
 
 	var cpiDeployment bmcpi.Deployment
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		_, cpiDeploymentManifest, err := c.deploymentParser.Parse(deploymentManifestPath)
+		installationManifest, err := c.installationParser.Parse(deploymentManifestPath)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
 
-		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
+		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(installationManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
 
 		return nil
 	})

@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type InstallInput struct {
-	Deployment bmmanifest.CPIDeploymentManifest
+	Deployment bminstallmanifest.Manifest
 	DirectorID string
 }
 
@@ -37,7 +37,7 @@ func NewFakeInstaller() *FakeInstaller {
 	}
 }
 
-func (f *FakeInstaller) Install(deployment bmmanifest.CPIDeploymentManifest, directorID string) (bmcloud.Cloud, error) {
+func (f *FakeInstaller) Install(deployment bminstallmanifest.Manifest, directorID string) (bmcloud.Cloud, error) {
 	input := InstallInput{
 		Deployment: deployment,
 		DirectorID: directorID,
@@ -57,7 +57,7 @@ func (f *FakeInstaller) Install(deployment bmmanifest.CPIDeploymentManifest, dir
 }
 
 func (f *FakeInstaller) SetInstallBehavior(
-	deployment bmmanifest.CPIDeploymentManifest,
+	deployment bminstallmanifest.Manifest,
 	directorID string,
 	cloud bmcloud.Cloud,
 	err error,

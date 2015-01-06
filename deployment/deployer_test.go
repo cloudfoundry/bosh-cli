@@ -16,10 +16,11 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
@@ -52,12 +53,12 @@ var _ = Describe("Deployer", func() {
 		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
 		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
 		cloud                      *fakebmcloud.FakeCloud
-		deploymentManifest         bmmanifest.Manifest
-		diskPool                   bmmanifest.DiskPool
-		registryConfig             bmmanifest.Registry
+		deploymentManifest         bmdeplmanifest.Manifest
+		diskPool                   bmdeplmanifest.DiskPool
+		registryConfig             bminstallmanifest.Registry
 		eventLogger                *fakebmlog.FakeEventLogger
 		fakeStage                  *fakebmlog.FakeStage
-		sshTunnelConfig            bmmanifest.SSHTunnel
+		sshTunnelConfig            bminstallmanifest.SSHTunnel
 		fakeAgentPingRetryStrategy *fakebmretry.FakeRetryStrategy
 		fakeVM                     *fakebmvm.FakeVM
 		fakeStemcellManager        *fakebmstemcell.FakeManager
@@ -69,24 +70,24 @@ var _ = Describe("Deployer", func() {
 	)
 
 	BeforeEach(func() {
-		diskPool = bmmanifest.DiskPool{
+		diskPool = bmdeplmanifest.DiskPool{
 			Name:     "fake-persistent-disk-pool-name",
 			DiskSize: 1024,
 			RawCloudProperties: map[interface{}]interface{}{
 				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 			},
 		}
-		deploymentManifest = bmmanifest.Manifest{
-			Update: bmmanifest.Update{
-				UpdateWatchTime: bmmanifest.WatchTime{
+		deploymentManifest = bmdeplmanifest.Manifest{
+			Update: bmdeplmanifest.Update{
+				UpdateWatchTime: bmdeplmanifest.WatchTime{
 					Start: 0,
 					End:   5478,
 				},
 			},
-			DiskPools: []bmmanifest.DiskPool{
+			DiskPools: []bmdeplmanifest.DiskPool{
 				diskPool,
 			},
-			Jobs: []bmmanifest.Job{
+			Jobs: []bmdeplmanifest.Job{
 				{
 					Name:               "fake-job-name",
 					PersistentDiskPool: "fake-persistent-disk-pool-name",
@@ -94,8 +95,8 @@ var _ = Describe("Deployer", func() {
 				},
 			},
 		}
-		registryConfig = bmmanifest.Registry{}
-		sshTunnelConfig = bmmanifest.SSHTunnel{
+		registryConfig = bminstallmanifest.Registry{}
+		sshTunnelConfig = bminstallmanifest.SSHTunnel{
 			User:       "fake-ssh-username",
 			PrivateKey: "fake-private-key-path",
 			Password:   "fake-password",
@@ -239,13 +240,13 @@ var _ = Describe("Deployer", func() {
 
 	Context("when registry & ssh tunnel configs are not empty", func() {
 		BeforeEach(func() {
-			registryConfig = bmmanifest.Registry{
+			registryConfig = bminstallmanifest.Registry{
 				Username: "fake-username",
 				Password: "fake-password",
 				Host:     "fake-host",
 				Port:     123,
 			}
-			sshTunnelConfig = bmmanifest.SSHTunnel{
+			sshTunnelConfig = bminstallmanifest.SSHTunnel{
 				User:       "fake-ssh-username",
 				PrivateKey: "fake-private-key-path",
 				Password:   "fake-password",

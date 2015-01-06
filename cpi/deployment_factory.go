@@ -13,9 +13,9 @@ import (
 	bmcomp "github.com/cloudfoundry/bosh-micro-cli/cpi/compile"
 	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/cpi/packages"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
@@ -24,7 +24,7 @@ import (
 )
 
 type DeploymentFactory interface {
-	NewDeployment(manifest bmmanifest.CPIDeploymentManifest, deploymentID, directorID string) Deployment
+	NewDeployment(manifest bminstallmanifest.Manifest, deploymentID, directorID string) Deployment
 }
 
 type deploymentFactory struct {
@@ -65,7 +65,7 @@ func NewDeploymentFactory(
 	}
 }
 
-func (f *deploymentFactory) NewDeployment(manifest bmmanifest.CPIDeploymentManifest, deploymentID, directorID string) Deployment {
+func (f *deploymentFactory) NewDeployment(manifest bminstallmanifest.Manifest, deploymentID, directorID string) Deployment {
 	return NewDeployment(
 		manifest,
 		f.registryServerManager,

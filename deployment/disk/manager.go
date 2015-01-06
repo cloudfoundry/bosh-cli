@@ -7,13 +7,13 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
 type Manager interface {
 	FindCurrent() (Disk, bool, error)
-	Create(bmmanifest.DiskPool, string) (Disk, error)
+	Create(bmdeplmanifest.DiskPool, string) (Disk, error)
 	FindUnused() ([]Disk, error)
 	DeleteUnused(bmeventlog.Stage) error
 }
@@ -40,7 +40,7 @@ func (m *manager) FindCurrent() (Disk, bool, error) {
 	return disk, true, err
 }
 
-func (m *manager) Create(diskPool bmmanifest.DiskPool, vmCID string) (Disk, error) {
+func (m *manager) Create(diskPool bmdeplmanifest.DiskPool, vmCID string) (Disk, error) {
 	diskCloudProperties, err := diskPool.CloudProperties()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Reading existing deployment config")

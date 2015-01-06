@@ -15,7 +15,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -68,7 +69,7 @@ var _ = Describe("Installer", func() {
 
 	Describe("Install", func() {
 		var (
-			deployment bmmanifest.CPIDeploymentManifest
+			deployment bminstallmanifest.Manifest
 			release    bmrel.Release
 			releaseJob bmrel.Job
 
@@ -83,18 +84,18 @@ var _ = Describe("Installer", func() {
 		BeforeEach(func() {
 			fakeFS.WriteFileString(deploymentManifestPath, "")
 
-			deployment = bmmanifest.CPIDeploymentManifest{
+			deployment = bminstallmanifest.Manifest{
 				Name: "fake-deployment-name",
-				Release: bmmanifest.Release{
+				Release: bmdeplmanifest.ReleaseRef{
 					Name:    "fake-release-name",
 					Version: "fake-release-version",
 				},
 				RawProperties: map[interface{}]interface{}{},
-				Jobs: []bmmanifest.Job{
+				Jobs: []bmdeplmanifest.Job{
 					{
 						Name:      "cpi",
 						Instances: 1,
-						Templates: []bmmanifest.ReleaseJobRef{
+						Templates: []bmdeplmanifest.ReleaseJobRef{
 							{
 								Name:    "cpi",
 								Release: "fake-release-name",

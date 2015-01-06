@@ -8,20 +8,21 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 type Deployer interface {
 	Deploy(
 		bmcloud.Cloud,
-		bmmanifest.Manifest,
+		bmdeplmanifest.Manifest,
 		bmstemcell.ExtractedStemcell,
-		bmmanifest.Registry,
-		bmmanifest.SSHTunnel,
+		bminstallmanifest.Registry,
+		bminstallmanifest.SSHTunnel,
 		bmvm.Manager,
 	) error
 }
@@ -56,10 +57,10 @@ func NewDeployer(
 
 func (m *deployer) Deploy(
 	cloud bmcloud.Cloud,
-	deploymentManifest bmmanifest.Manifest,
+	deploymentManifest bmdeplmanifest.Manifest,
 	extractedStemcell bmstemcell.ExtractedStemcell,
-	registryConfig bmmanifest.Registry,
-	sshTunnelConfig bmmanifest.SSHTunnel,
+	registryConfig bminstallmanifest.Registry,
+	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
 ) error {
 	stemcellManager := m.stemcellManagerFactory.NewManager(cloud)
@@ -93,12 +94,12 @@ func (m *deployer) Deploy(
 }
 
 func (m *deployer) createAllInstances(
-	deploymentManifest bmmanifest.Manifest,
+	deploymentManifest bmdeplmanifest.Manifest,
 	instanceManager bminstance.Manager,
 	extractedStemcell bmstemcell.ExtractedStemcell,
 	cloudStemcell bmstemcell.CloudStemcell,
-	registryConfig bmmanifest.Registry,
-	sshTunnelConfig bmmanifest.SSHTunnel,
+	registryConfig bminstallmanifest.Registry,
+	sshTunnelConfig bminstallmanifest.SSHTunnel,
 ) error {
 	if len(deploymentManifest.Jobs) != 1 {
 		return bosherr.Errorf("There must only be one job, found %d", len(deploymentManifest.Jobs))

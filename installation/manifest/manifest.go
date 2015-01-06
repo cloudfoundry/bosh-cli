@@ -1,18 +1,19 @@
 package manifest
 
 import (
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
 )
 
-type CPIDeploymentManifest struct {
+type Manifest struct {
 	Name            string
-	Release         Release
+	Release         bmdeplmanifest.ReleaseRef
 	RawProperties   map[interface{}]interface{}
 	Mbus            string
 	Registry        Registry
 	AgentEnvService string
 	SSHTunnel       SSHTunnel
-	Jobs            []Job
+	Jobs            []bmdeplmanifest.Job
 }
 
 type Registry struct {
@@ -38,6 +39,6 @@ func (o SSHTunnel) IsEmpty() bool {
 	return o == SSHTunnel{}
 }
 
-func (d CPIDeploymentManifest) Properties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(d.RawProperties)
+func (m Manifest) Properties() (map[string]interface{}, error) {
+	return bmkeystr.NewKeyStringifier().ConvertMap(m.RawProperties)
 }

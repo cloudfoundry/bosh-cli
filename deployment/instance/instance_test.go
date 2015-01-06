@@ -13,10 +13,11 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
@@ -282,7 +283,7 @@ var _ = Describe("Instance", func() {
 	Describe("StartJobs", func() {
 		var (
 			applySpec          bmstemcell.ApplySpec
-			deploymentManifest bmmanifest.Manifest
+			deploymentManifest bmdeplmanifest.Manifest
 		)
 
 		BeforeEach(func() {
@@ -292,14 +293,14 @@ var _ = Describe("Instance", func() {
 				},
 			}
 
-			deploymentManifest = bmmanifest.Manifest{
-				Update: bmmanifest.Update{
-					UpdateWatchTime: bmmanifest.WatchTime{
+			deploymentManifest = bmdeplmanifest.Manifest{
+				Update: bmdeplmanifest.Update{
+					UpdateWatchTime: bmdeplmanifest.WatchTime{
 						Start: 0,
 						End:   5478,
 					},
 				},
-				Jobs: []bmmanifest.Job{
+				Jobs: []bmdeplmanifest.Job{
 					{
 						Name:               "fake-job-name",
 						PersistentDiskPool: "fake-persistent-disk-pool-name",
@@ -412,15 +413,15 @@ var _ = Describe("Instance", func() {
 
 	Describe("WaitUntilReady", func() {
 		var (
-			registryConfig  bmmanifest.Registry
-			sshTunnelConfig bmmanifest.SSHTunnel
+			registryConfig  bminstallmanifest.Registry
+			sshTunnelConfig bminstallmanifest.SSHTunnel
 		)
 
 		BeforeEach(func() {
-			registryConfig = bmmanifest.Registry{
+			registryConfig = bminstallmanifest.Registry{
 				Port: 125,
 			}
-			sshTunnelConfig = bmmanifest.SSHTunnel{
+			sshTunnelConfig = bminstallmanifest.SSHTunnel{
 				Host:       "fake-ssh-host",
 				Port:       124,
 				User:       "fake-ssh-username",
@@ -469,7 +470,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when ssh tunnel config is empty", func() {
 			BeforeEach(func() {
-				sshTunnelConfig = bmmanifest.SSHTunnel{}
+				sshTunnelConfig = bminstallmanifest.SSHTunnel{}
 			})
 
 			It("does not start ssh tunnel", func() {
@@ -481,7 +482,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when registry config is empty", func() {
 			BeforeEach(func() {
-				registryConfig = bmmanifest.Registry{}
+				registryConfig = bminstallmanifest.Registry{}
 			})
 
 			It("does not start ssh tunnel", func() {

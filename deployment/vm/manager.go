@@ -11,13 +11,13 @@ import (
 	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 )
 
 type Manager interface {
 	FindCurrent() (VM, bool, error)
-	Create(bmstemcell.CloudStemcell, bmmanifest.Manifest) (VM, error)
+	Create(bmstemcell.CloudStemcell, bmdeplmanifest.Manifest) (VM, error)
 }
 
 type manager struct {
@@ -92,7 +92,7 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 	return vm, true, err
 }
 
-func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmmanifest.Manifest) (VM, error) {
+func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmdeplmanifest.Manifest) (VM, error) {
 	microBoshJobName := deploymentManifest.Jobs[0].Name
 	networksSpec, err := deploymentManifest.NetworksSpec(microBoshJobName)
 	m.logger.Debug(m.logTag, "Creating VM with network spec: %#v", networksSpec)

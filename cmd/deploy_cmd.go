@@ -12,11 +12,12 @@ import (
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
@@ -25,7 +26,8 @@ type deployCmd struct {
 	ui                      bmui.UI
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
-	deploymentParser        bmmanifest.Parser
+	installationParser      bminstallmanifest.Parser
+	deploymentParser        bmdeplmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
@@ -44,7 +46,8 @@ func NewDeployCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
-	deploymentParser bmmanifest.Parser,
+	installationParser bminstallmanifest.Parser,
+	deploymentParser bmdeplmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	cpiDeploymentFactory bmcpi.DeploymentFactory,
@@ -61,6 +64,7 @@ func NewDeployCmd(
 		ui:                      ui,
 		userConfig:              userConfig,
 		fs:                      fs,
+		installationParser:      installationParser,
 		deploymentParser:        deploymentParser,
 		deploymentConfigService: deploymentConfigService,
 		boshDeploymentValidator: boshDeploymentValidator,
@@ -106,19 +110,24 @@ func (c *deployCmd) Run(args []string) error {
 	)
 
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		boshDeploymentManifest, cpiDeploymentManifest, err := c.deploymentParser.Parse(deploymentManifestPath)
+		installationManifest, err := c.installationParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+		}
+
+		deploymentManifest, err := c.deploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
 		}
 
-		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(cpiDeploymentManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
+		cpiDeployment = c.cpiDeploymentFactory.NewDeployment(installationManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
 
-		err = c.boshDeploymentValidator.Validate(boshDeploymentManifest)
+		err = c.boshDeploymentValidator.Validate(deploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
 
-		boshDeployment = c.deploymentFactory.NewDeployment(boshDeploymentManifest)
+		boshDeployment = c.deploymentFactory.NewDeployment(deploymentManifest)
 
 		return nil
 	})
@@ -214,16 +223,16 @@ func (c *deployCmd) Run(args []string) error {
 	}()
 
 	directorID := deploymentConfig.DirectorID
-	cpiDeploymentManifest := cpiDeployment.Manifest()
-	mbusURL := cpiDeploymentManifest.Mbus
+	installationManifest := cpiDeployment.Manifest()
+	mbusURL := installationManifest.Mbus
 	agentClient := c.agentClientFactory.NewAgentClient(directorID, mbusURL)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, mbusURL)
 
 	err = boshDeployment.Deploy(
 		cloud,
 		extractedStemcell,
-		cpiDeploymentManifest.Registry,
-		cpiDeploymentManifest.SSHTunnel,
+		installationManifest.Registry,
+		installationManifest.SSHTunnel,
 		vmManager,
 	)
 	if err != nil {

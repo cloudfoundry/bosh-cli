@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
@@ -16,7 +16,7 @@ func NewBoshDeploymentValidator() DeploymentValidator {
 	return &boshDeploymentValidator{}
 }
 
-func (v *boshDeploymentValidator) Validate(deploymentManifest bmmanifest.Manifest) error {
+func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Manifest) error {
 	errs := []error{}
 	if v.isBlank(deploymentManifest.Name) {
 		errs = append(errs, bosherr.Error("name must not be empty or blank"))
@@ -26,7 +26,7 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmmanifest.Manifes
 		if v.isBlank(network.Name) {
 			errs = append(errs, bosherr.Errorf("networks[%d].name must not be empty or blank", idx))
 		}
-		if network.Type != bmmanifest.Dynamic && network.Type != bmmanifest.Manual && network.Type != bmmanifest.VIP {
+		if network.Type != bmdeplmanifest.Dynamic && network.Type != bmdeplmanifest.Manual && network.Type != bmdeplmanifest.VIP {
 			errs = append(errs, bosherr.Errorf("networks[%d].type must be 'manual', 'dynamic', or 'vip'", idx))
 		}
 		if _, err := network.CloudProperties(); err != nil {
@@ -101,13 +101,13 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmmanifest.Manifes
 			}
 
 			for defaultIdx, value := range jobNetwork.Default {
-				if value != bmmanifest.NetworkDefaultDNS && value != bmmanifest.NetworkDefaultGateway {
+				if value != bmdeplmanifest.NetworkDefaultDNS && value != bmdeplmanifest.NetworkDefaultGateway {
 					errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].default[%d] must be 'dns' or 'gateway'", idx, networkIdx, defaultIdx))
 				}
 			}
 		}
 
-		if job.Lifecycle != "" && job.Lifecycle != bmmanifest.JobLifecycleService {
+		if job.Lifecycle != "" && job.Lifecycle != bmdeplmanifest.JobLifecycleService {
 			errs = append(errs, bosherr.Errorf("jobs[%d].lifecycle must be 'service' ('%s' not supported)", idx, job.Lifecycle))
 		}
 
@@ -131,7 +131,7 @@ func (v *boshDeploymentValidator) isBlank(str string) bool {
 	return str == "" || strings.TrimSpace(str) == ""
 }
 
-func (v *boshDeploymentValidator) networkNames(deploymentManifest bmmanifest.Manifest) map[string]struct{} {
+func (v *boshDeploymentValidator) networkNames(deploymentManifest bmdeplmanifest.Manifest) map[string]struct{} {
 	names := make(map[string]struct{})
 	for _, network := range deploymentManifest.Networks {
 		names[network.Name] = struct{}{}
@@ -139,7 +139,7 @@ func (v *boshDeploymentValidator) networkNames(deploymentManifest bmmanifest.Man
 	return names
 }
 
-func (v *boshDeploymentValidator) diskPoolNames(deploymentManifest bmmanifest.Manifest) map[string]struct{} {
+func (v *boshDeploymentValidator) diskPoolNames(deploymentManifest bmdeplmanifest.Manifest) map[string]struct{} {
 	names := make(map[string]struct{})
 	for _, diskPool := range deploymentManifest.DiskPools {
 		names[diskPool.Name] = struct{}{}

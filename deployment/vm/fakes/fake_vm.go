@@ -4,7 +4,7 @@ import (
 	"time"
 
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
@@ -54,13 +54,13 @@ type FakeVM struct {
 }
 
 type UpdateDisksInput struct {
-	DiskPool bmmanifest.DiskPool
+	DiskPool bmdeplmanifest.DiskPool
 	Stage    bmeventlog.Stage
 }
 
 type ApplyInput struct {
 	StemcellApplySpec bmstemcell.ApplySpec
-	Manifest          bmmanifest.Manifest
+	Manifest          bmdeplmanifest.Manifest
 }
 
 type WaitUntilReadyInput struct {
@@ -117,7 +117,7 @@ func (vm *FakeVM) WaitUntilReady(timeout time.Duration, delay time.Duration) err
 	return vm.WaitUntilReadyErr
 }
 
-func (vm *FakeVM) UpdateDisks(diskPool bmmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) error {
+func (vm *FakeVM) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) error {
 	vm.UpdateDisksInputs = append(vm.UpdateDisksInputs, UpdateDisksInput{
 		DiskPool: diskPool,
 		Stage:    eventLoggerStage,
@@ -125,7 +125,7 @@ func (vm *FakeVM) UpdateDisks(diskPool bmmanifest.DiskPool, eventLoggerStage bme
 	return vm.UpdateDisksErr
 }
 
-func (vm *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmmanifest.Manifest) error {
+func (vm *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmdeplmanifest.Manifest) error {
 	vm.ApplyInputs = append(vm.ApplyInputs, ApplyInput{
 		StemcellApplySpec: stemcellApplySpec,
 		Manifest:          deploymentManifest,

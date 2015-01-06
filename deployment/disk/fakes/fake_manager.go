@@ -2,7 +2,7 @@ package fakes
 
 import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
@@ -20,7 +20,7 @@ type FakeManager struct {
 }
 
 type CreateInput struct {
-	DiskPool   bmmanifest.DiskPool
+	DiskPool   bmdeplmanifest.DiskPool
 	InstanceID string
 }
 
@@ -39,7 +39,7 @@ func NewFakeManager() *FakeManager {
 	return &FakeManager{}
 }
 
-func (m *FakeManager) Create(diskPool bmmanifest.DiskPool, instanceID string) (bmdisk.Disk, error) {
+func (m *FakeManager) Create(diskPool bmdeplmanifest.DiskPool, instanceID string) (bmdisk.Disk, error) {
 	input := CreateInput{
 		DiskPool:   diskPool,
 		InstanceID: instanceID,

@@ -1,14 +1,14 @@
 package fakes
 
 import (
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
 
 type CreateInput struct {
 	Stemcell bmstemcell.CloudStemcell
-	Manifest bmmanifest.Manifest
+	Manifest bmdeplmanifest.Manifest
 }
 
 type FakeManager struct {
@@ -33,7 +33,7 @@ func (m *FakeManager) FindCurrent() (bmvm.VM, bool, error) {
 	return m.findCurrentBehaviour.vm, m.findCurrentBehaviour.found, m.findCurrentBehaviour.err
 }
 
-func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmmanifest.Manifest) (bmvm.VM, error) {
+func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmdeplmanifest.Manifest) (bmvm.VM, error) {
 	input := CreateInput{
 		Stemcell: stemcell,
 		Manifest: deploymentManifest,

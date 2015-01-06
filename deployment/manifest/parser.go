@@ -9,7 +9,7 @@ import (
 )
 
 type Parser interface {
-	Parse(path string) (Manifest, CPIDeploymentManifest, error)
+	Parse(path string) (Manifest, error)
 }
 
 type parser struct {
@@ -25,19 +25,10 @@ type manifest struct {
 	ResourcePools []ResourcePool `yaml:"resource_pools"`
 	DiskPools     []DiskPool     `yaml:"disk_pools"`
 	Jobs          []Job
-	CloudProvider cloudProviderProperties `yaml:"cloud_provider"`
 }
 
 type UpdateSpec struct {
 	UpdateWatchTime *string `yaml:"update_watch_time"`
-}
-
-type cloudProviderProperties struct {
-	Properties      map[interface{}]interface{}
-	Registry        Registry
-	AgentEnvService string    `yaml:"agent_env_service"`
-	SSHTunnel       SSHTunnel `yaml:"ssh_tunnel"`
-	Mbus            string
 }
 
 var boshDeploymentDefaults = Manifest{
@@ -57,30 +48,28 @@ func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {
 	}
 }
 
-func (p *parser) Parse(path string) (Manifest, CPIDeploymentManifest, error) {
+func (p *parser) Parse(path string) (Manifest, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
-		return Manifest{}, CPIDeploymentManifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
+		return Manifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
 	}
 
-	depManifest := manifest{}
-	err = candiedyaml.Unmarshal(contents, &depManifest)
+	comboManifest := manifest{}
+	err = candiedyaml.Unmarshal(contents, &comboManifest)
 	if err != nil {
-		return Manifest{}, CPIDeploymentManifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
+		return Manifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
-	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest: %#v", depManifest)
+	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest: %#v", comboManifest)
 
-	deployment, err := p.parseBoshDeployment(depManifest)
+	deploymentManifest, err := p.parseDeploymentManifest(comboManifest)
 	if err != nil {
-		return Manifest{}, CPIDeploymentManifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
+		return Manifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
 
-	cpiDeploymentManifest := p.parseCPIDeploymentManifest(depManifest)
-
-	return deployment, cpiDeploymentManifest, nil
+	return deploymentManifest, nil
 }
 
-func (p *parser) parseBoshDeployment(depManifest manifest) (Manifest, error) {
+func (p *parser) parseDeploymentManifest(depManifest manifest) (Manifest, error) {
 	deployment := boshDeploymentDefaults
 	deployment.Name = depManifest.Name
 	deployment.Networks = depManifest.Networks
@@ -100,15 +89,4 @@ func (p *parser) parseBoshDeployment(depManifest manifest) (Manifest, error) {
 	}
 
 	return deployment, nil
-}
-
-func (p *parser) parseCPIDeploymentManifest(depManifest manifest) CPIDeploymentManifest {
-	return CPIDeploymentManifest{
-		Name:            depManifest.Name,
-		Registry:        depManifest.CloudProvider.Registry,
-		AgentEnvService: depManifest.CloudProvider.AgentEnvService,
-		SSHTunnel:       depManifest.CloudProvider.SSHTunnel,
-		Mbus:            depManifest.CloudProvider.Mbus,
-		RawProperties:   depManifest.CloudProvider.Properties,
-	}
 }

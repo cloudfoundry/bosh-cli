@@ -21,7 +21,7 @@ import (
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
@@ -38,9 +38,9 @@ var _ = Describe("VM", func() {
 		applySpec                  bmstemcell.ApplySpec
 		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
-		deploymentManifest         bmmanifest.Manifest
-		diskPool                   bmmanifest.DiskPool
-		deploymentJob              bmmanifest.Job
+		deploymentManifest         bmdeplmanifest.Manifest
+		diskPool                   bmdeplmanifest.DiskPool
+		deploymentJob              bmdeplmanifest.Job
 		stemcellJob                bmstemcell.Job
 		fs                         *fakesys.FakeFileSystem
 		logger                     boshlog.Logger
@@ -56,7 +56,7 @@ var _ = Describe("VM", func() {
 
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
 
-		diskPool = bmmanifest.DiskPool{
+		diskPool = bmdeplmanifest.DiskPool{
 			Name:     "fake-persistent-disk-pool-name",
 			DiskSize: 1024,
 			RawCloudProperties: map[interface{}]interface{}{
@@ -105,9 +105,9 @@ var _ = Describe("VM", func() {
 			Job: stemcellJob,
 		}
 
-		deploymentJob = bmmanifest.Job{
+		deploymentJob = bmdeplmanifest.Job{
 			Name: "fake-manifest-job-name",
-			Templates: []bmmanifest.ReleaseJobRef{
+			Templates: []bmdeplmanifest.ReleaseJobRef{
 				{Name: "first-job-name"},
 				{Name: "third-job-name"},
 			},
@@ -115,22 +115,22 @@ var _ = Describe("VM", func() {
 			RawProperties: map[interface{}]interface{}{
 				"fake-property-key": "fake-property-value",
 			},
-			Networks: []bmmanifest.JobNetwork{
+			Networks: []bmdeplmanifest.JobNetwork{
 				{
 					Name:      "fake-network-name",
 					StaticIPs: []string{"fake-network-ip"},
 				},
 			},
 		}
-		deploymentManifest = bmmanifest.Manifest{
+		deploymentManifest = bmdeplmanifest.Manifest{
 			Name: "fake-deployment-name",
-			DiskPools: []bmmanifest.DiskPool{
+			DiskPools: []bmdeplmanifest.DiskPool{
 				diskPool,
 			},
-			Jobs: []bmmanifest.Job{
+			Jobs: []bmdeplmanifest.Job{
 				deploymentJob,
 			},
-			Networks: []bmmanifest.Network{
+			Networks: []bmdeplmanifest.Network{
 				{
 					Name: "fake-network-name",
 					Type: "fake-network-type",

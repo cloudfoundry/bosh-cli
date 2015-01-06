@@ -10,10 +10,11 @@ import (
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
@@ -65,18 +66,18 @@ var _ = Describe("Manager", func() {
 	Describe("Create", func() {
 		var (
 			fakeVM             *fakebmvm.FakeVM
-			diskPool           bmmanifest.DiskPool
-			deploymentManifest bmmanifest.Manifest
+			diskPool           bmdeplmanifest.DiskPool
+			deploymentManifest bmdeplmanifest.Manifest
 			extractedStemcell  bmstemcell.ExtractedStemcell
 			fakeCloudStemcell  *fakebmstemcell.FakeCloudStemcell
-			registry           bmmanifest.Registry
-			sshTunnelConfig    bmmanifest.SSHTunnel
+			registry           bminstallmanifest.Registry
+			sshTunnelConfig    bminstallmanifest.SSHTunnel
 
 			expectedInstance Instance
 		)
 
 		BeforeEach(func() {
-			diskPool = bmmanifest.DiskPool{
+			diskPool = bmdeplmanifest.DiskPool{
 				Name:     "fake-persistent-disk-pool-name",
 				DiskSize: 1024,
 				RawCloudProperties: map[interface{}]interface{}{
@@ -84,17 +85,17 @@ var _ = Describe("Manager", func() {
 				},
 			}
 
-			deploymentManifest = bmmanifest.Manifest{
-				Update: bmmanifest.Update{
-					UpdateWatchTime: bmmanifest.WatchTime{
+			deploymentManifest = bmdeplmanifest.Manifest{
+				Update: bmdeplmanifest.Update{
+					UpdateWatchTime: bmdeplmanifest.WatchTime{
 						Start: 0,
 						End:   5478,
 					},
 				},
-				DiskPools: []bmmanifest.DiskPool{
+				DiskPools: []bmdeplmanifest.DiskPool{
 					diskPool,
 				},
-				Jobs: []bmmanifest.Job{
+				Jobs: []bmdeplmanifest.Job{
 					{
 						Name:               "fake-job-name",
 						PersistentDiskPool: "fake-persistent-disk-pool-name",
@@ -117,8 +118,8 @@ var _ = Describe("Manager", func() {
 			)
 
 			fakeCloudStemcell = fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
-			registry = bmmanifest.Registry{}
-			sshTunnelConfig = bmmanifest.SSHTunnel{}
+			registry = bminstallmanifest.Registry{}
+			sshTunnelConfig = bminstallmanifest.SSHTunnel{}
 
 			fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
 			fakeVMManager.CreateVM = fakeVM
@@ -192,7 +193,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when registry settings are empty", func() {
 			BeforeEach(func() {
-				registry = bmmanifest.Registry{}
+				registry = bminstallmanifest.Registry{}
 			})
 
 			It("does not start the registry", func() {
@@ -258,13 +259,13 @@ var _ = Describe("Manager", func() {
 
 		Context("when registry or sshTunnelConfig are not empty", func() {
 			BeforeEach(func() {
-				registry = bmmanifest.Registry{
+				registry = bminstallmanifest.Registry{
 					Username: "fake-registry-username",
 					Password: "fake-registry-password",
 					Host:     "fake-registry-host",
 					Port:     124,
 				}
-				sshTunnelConfig = bmmanifest.SSHTunnel{
+				sshTunnelConfig = bminstallmanifest.SSHTunnel{
 					User:       "fake-ssh-user",
 					Host:       "fake-ssh-host",
 					Port:       123,
@@ -320,7 +321,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when ssh tunnel conifg is empty", func() {
 			BeforeEach(func() {
-				sshTunnelConfig = bmmanifest.SSHTunnel{}
+				sshTunnelConfig = bminstallmanifest.SSHTunnel{}
 			})
 
 			It("does not start the ssh tunnel", func() {

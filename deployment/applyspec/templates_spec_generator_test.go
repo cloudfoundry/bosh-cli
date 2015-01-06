@@ -11,7 +11,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
@@ -34,7 +34,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		fakeBlobstoreFactory   *fakebmblobstore.FakeBlobstoreFactory
 		fakeUUIDGenerator      *fakeuuid.FakeGenerator
 		fakeSha1Calculator     *fakebmcrypto.FakeSha1Calculator
-		deploymentJob          bmmanifest.Job
+		deploymentJob          bmdeplmanifest.Job
 		stemcellJob            bmstemcell.Job
 		extractedJob           bmrel.Job
 		jobProperties          map[string]interface{}
@@ -97,8 +97,8 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		// fake file system only supports one temp dir
 		compileDir = "/fake-tmp-dir"
 		extractDir = "/fake-tmp-dir"
-		deploymentJob = bmmanifest.Job{
-			Templates: []bmmanifest.ReleaseJobRef{
+		deploymentJob = bmdeplmanifest.Job{
+			Templates: []bmdeplmanifest.ReleaseJobRef{
 				{
 					Name: "first-job-name",
 				},

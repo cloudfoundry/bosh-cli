@@ -19,12 +19,13 @@ import (
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployment/blobstore"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
@@ -66,6 +67,8 @@ type factory struct {
 	cpiDeploymentFactory    bmcpi.DeploymentFactory
 	cpiInstaller            bmcpi.Installer
 	releaseManager          bmrel.Manager
+	installationParser      bminstallmanifest.Parser
+	deploymentParser        bmdeplmanifest.Parser
 }
 
 func NewFactory(
@@ -114,8 +117,6 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
-	deploymentParser := bmmanifest.NewParser(f.fs, f.logger)
-
 	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
 
 	stemcellReader := bmstemcell.NewReader(f.loadCompressor(), f.fs)
@@ -130,7 +131,8 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.ui,
 		f.userConfig,
 		f.fs,
-		deploymentParser,
+		f.loadInstallationParser(),
+		f.loadDeploymentParser(),
 		f.loadDeploymentConfigService(),
 		boshDeploymentValidator,
 		f.loadCPIDeploymentFactory(),
@@ -146,12 +148,11 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 }
 
 func (f *factory) createDeleteCmd() (Cmd, error) {
-	deploymentParser := bmmanifest.NewParser(f.fs, f.logger)
 	return NewDeleteCmd(
 		f.ui,
 		f.userConfig,
 		f.fs,
-		deploymentParser,
+		f.loadInstallationParser(),
 		f.loadDeploymentConfigService(),
 		f.loadCPIDeploymentFactory(),
 		f.loadReleaseManager(),
@@ -390,4 +391,22 @@ func (f *factory) loadCPIDeploymentFactory() bmcpi.DeploymentFactory {
 		f.logger,
 	)
 	return f.cpiDeploymentFactory
+}
+
+func (f *factory) loadInstallationParser() bminstallmanifest.Parser {
+	if f.installationParser != nil {
+		return f.installationParser
+	}
+
+	f.installationParser = bminstallmanifest.NewParser(f.fs, f.logger)
+	return f.installationParser
+}
+
+func (f *factory) loadDeploymentParser() bmdeplmanifest.Parser {
+	if f.deploymentParser != nil {
+		return f.deploymentParser
+	}
+
+	f.deploymentParser = bmdeplmanifest.NewParser(f.fs, f.logger)
+	return f.deploymentParser
 }

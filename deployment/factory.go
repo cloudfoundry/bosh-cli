@@ -1,11 +1,11 @@
 package deployer
 
 import (
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 )
 
 type Factory interface {
-	NewDeployment(bmmanifest.Manifest) Deployment
+	NewDeployment(bmdeplmanifest.Manifest) Deployment
 }
 
 type factory struct {
@@ -20,7 +20,7 @@ func NewFactory(
 	}
 }
 
-func (f *factory) NewDeployment(manifest bmmanifest.Manifest) Deployment {
+func (f *factory) NewDeployment(manifest bmdeplmanifest.Manifest) Deployment {
 	return NewDeployment(
 		manifest,
 		f.deployer,

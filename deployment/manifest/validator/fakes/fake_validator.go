@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 )
 
 type FakeValidator struct {
@@ -17,14 +17,14 @@ func NewFakeValidator() *FakeValidator {
 }
 
 type ValidateInput struct {
-	Deployment bmmanifest.Manifest
+	Deployment bmdeplmanifest.Manifest
 }
 
 type ValidateOutput struct {
 	Err error
 }
 
-func (v *FakeValidator) Validate(deployment bmmanifest.Manifest) error {
+func (v *FakeValidator) Validate(deployment bmdeplmanifest.Manifest) error {
 	v.ValidateInputs = append(v.ValidateInputs, ValidateInput{
 		Deployment: deployment,
 	})

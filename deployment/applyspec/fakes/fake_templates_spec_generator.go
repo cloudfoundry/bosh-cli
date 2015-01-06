@@ -2,7 +2,7 @@ package fakes
 
 import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 )
 
@@ -14,7 +14,7 @@ type FakeTemplatesSpecGenerator struct {
 }
 
 type CreateTemplatesSpecInput struct {
-	DeploymentJob  bmmanifest.Job
+	DeploymentJob  bmdeplmanifest.Job
 	StemcellJob    bmstemcell.Job
 	DeploymentName string
 	Properties     map[string]interface{}
@@ -28,7 +28,7 @@ func NewFakeTemplatesSpecGenerator() *FakeTemplatesSpecGenerator {
 }
 
 func (g *FakeTemplatesSpecGenerator) Create(
-	deploymentJob bmmanifest.Job,
+	deploymentJob bmdeplmanifest.Job,
 	stemcellJob bmstemcell.Job,
 	deploymentName string,
 	properties map[string]interface{},

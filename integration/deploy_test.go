@@ -30,12 +30,13 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
-	bmmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
@@ -224,20 +225,20 @@ cloud_provider:
 				expectManagedReleaseList.Return(managedReleases)
 			}).Return(cpiRelease, nil).AnyTimes()
 
-			cpiDeploymentManifest := bmmanifest.CPIDeploymentManifest{
+			installationManifest := bminstallmanifest.Manifest{
 				Name: "test-release",
 				Mbus: mbusURL,
-				Registry: bmmanifest.Registry{
+				Registry: bminstallmanifest.Registry{
 					Username: "fake-registry-user",
 					Password: "fake-registry-password",
 					Host:     "127.0.0.1",
 					Port:     6301,
 				},
 			}
-			fakeCPIInstaller.SetInstallBehavior(cpiDeploymentManifest, "fake-director-id", mockCloud, nil)
+			fakeCPIInstaller.SetInstallBehavior(installationManifest, "fake-director-id", mockCloud, nil)
 
-			cpiDeployment := bmcpi.NewDeployment(cpiDeploymentManifest, registryServerManager, fakeCPIInstaller, "fake-director-id")
-			mockCPIDeploymentFactory.EXPECT().NewDeployment(cpiDeploymentManifest, gomock.Any(), gomock.Any()).Return(cpiDeployment).AnyTimes()
+			cpiDeployment := bmcpi.NewDeployment(installationManifest, registryServerManager, fakeCPIInstaller, "fake-director-id")
+			mockCPIDeploymentFactory.EXPECT().NewDeployment(installationManifest, gomock.Any(), gomock.Any()).Return(cpiDeployment).AnyTimes()
 		}
 
 		var writeStemcellReleaseTarball = func() {
@@ -283,7 +284,8 @@ cloud_provider:
 		}
 
 		var newDeployCmd = func() Cmd {
-			deploymentParser := bmmanifest.NewParser(fs, logger)
+			deploymentParser := bmdeplmanifest.NewParser(fs, logger)
+			installationParser := bminstallmanifest.NewParser(fs, logger)
 
 			boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator()
 
@@ -303,6 +305,7 @@ cloud_provider:
 				ui,
 				userConfig,
 				fs,
+				installationParser,
 				deploymentParser,
 				deploymentConfigService,
 				boshDeploymentValidator,
