@@ -8,8 +8,8 @@ rootPackage=github.com/cloudfoundry/bosh-micro-cli
 $bin/go install code.google.com/p/gomock/mockgen
 
 srcFiles=(
-  cloud/Cloud
-	cpi/Installation,InstallationFactory
+  cloud/Cloud,Factory
+	installation/Installation,Installer,InstallerFactory
 	deployment/Deployment,Factory
 	deployment/agentclient/AgentClient
 	deployment/agentclient/http/AgentClientFactory

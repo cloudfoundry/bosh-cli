@@ -11,12 +11,12 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -31,8 +31,9 @@ type deleteCmd struct {
 	fs                      boshsys.FileSystem
 	installationParser      bminstallmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
-	installationFactory     bmcpi.InstallationFactory
+	installerFactory        bminstall.InstallerFactory
 	releaseManager          bmrel.Manager
+	cloudFactory            bmcloud.Factory
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
 	instanceManagerFactory  bminstance.ManagerFactory
@@ -49,8 +50,9 @@ func NewDeleteCmd(
 	fs boshsys.FileSystem,
 	installationParser bminstallmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
-	installationFactory bmcpi.InstallationFactory,
+	installerFactory bminstall.InstallerFactory,
 	releaseManager bmrel.Manager,
+	cloudFactory bmcloud.Factory,
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,
@@ -65,8 +67,9 @@ func NewDeleteCmd(
 		fs:                      fs,
 		installationParser:      installationParser,
 		deploymentConfigService: deploymentConfigService,
-		installationFactory:     installationFactory,
+		installerFactory:        installerFactory,
 		releaseManager:          releaseManager,
+		cloudFactory:            cloudFactory,
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
 		instanceManagerFactory:  instanceManagerFactory,
@@ -101,14 +104,13 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	var installation bmcpi.Installation
+	var installationManifest bminstallmanifest.Manifest
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		installationManifest, err := c.installationParser.Parse(deploymentManifestPath)
+		var err error
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
-
-		installation = c.installationFactory.NewInstallation(installationManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
 
 		return nil
 	})
@@ -147,26 +149,34 @@ func (c *deleteCmd) Run(args []string) error {
 
 	validationStage.Finish()
 
-	cloud, err := installation.Install()
+	installer, err := c.installerFactory.NewInstaller()
 	if err != nil {
-		return bosherr.WrapError(err, "Installing CPI deployment")
+		return bosherr.WrapError(err, "Creating CPI Installer")
 	}
 
-	err = installation.StartJobs()
+	installation, err := installer.Install(installationManifest)
 	if err != nil {
-		return bosherr.WrapError(err, "Starting CPI jobs")
+		return bosherr.WrapError(err, "Installing CPI")
+	}
+
+	err = installation.StartRegistry()
+	if err != nil {
+		return bosherr.WrapError(err, "Starting Registry")
 	}
 	defer func() {
-		err := installation.StopJobs()
+		err := installation.StopRegistry()
 		if err != nil {
-			c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
+			c.logger.Warn(c.logTag, "Registry failed to stop: %s", err)
 		}
 	}()
 
-	directorID := deploymentConfig.DirectorID
-	mbusURL := installation.Manifest().Mbus
-	agentClient := c.agentClientFactory.NewAgentClient(directorID, mbusURL)
-	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, mbusURL)
+	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
+	}
+
+	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
+	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, installationManifest.Mbus)
 	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
 	diskManager := c.diskManagerFactory.NewManager(cloud)
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)

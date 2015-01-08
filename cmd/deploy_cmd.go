@@ -7,8 +7,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
@@ -17,6 +17,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -30,8 +31,9 @@ type deployCmd struct {
 	deploymentParser        bmdeplmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	boshDeploymentValidator bmdeplval.DeploymentValidator
-	installationFactory     bmcpi.InstallationFactory
+	installerFactory        bminstall.InstallerFactory
 	releaseManager          bmrel.Manager
+	cloudFactory            bmcloud.Factory
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
 	stemcellExtractor       bmstemcell.Extractor
@@ -50,8 +52,9 @@ func NewDeployCmd(
 	deploymentParser bmdeplmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
-	installationFactory bmcpi.InstallationFactory,
+	installerFactory bminstall.InstallerFactory,
 	releaseManager bmrel.Manager,
+	cloudFactory bmcloud.Factory,
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	stemcellExtractor bmstemcell.Extractor,
@@ -68,8 +71,9 @@ func NewDeployCmd(
 		deploymentParser:        deploymentParser,
 		deploymentConfigService: deploymentConfigService,
 		boshDeploymentValidator: boshDeploymentValidator,
-		installationFactory:     installationFactory,
+		installerFactory:        installerFactory,
 		releaseManager:          releaseManager,
+		cloudFactory:            cloudFactory,
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
 		stemcellExtractor:       stemcellExtractor,
@@ -105,29 +109,26 @@ func (c *deployCmd) Run(args []string) error {
 	}
 
 	var (
-		boshDeployment bmdepl.Deployment
-		installation   bmcpi.Installation
+		deploymentManifest   bmdeplmanifest.Manifest
+		installationManifest bminstallmanifest.Manifest
 	)
 
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		installationManifest, err := c.installationParser.Parse(deploymentManifestPath)
+		var err error
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
 
-		deploymentManifest, err := c.deploymentParser.Parse(deploymentManifestPath)
+		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
 		}
-
-		installation = c.installationFactory.NewInstallation(installationManifest, deploymentConfig.DeploymentID, deploymentConfig.DirectorID)
 
 		err = c.boshDeploymentValidator.Validate(deploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
-
-		boshDeployment = c.deploymentFactory.NewDeployment(deploymentManifest)
 
 		return nil
 	})
@@ -206,28 +207,37 @@ func (c *deployCmd) Run(args []string) error {
 		return nil
 	}
 
-	cloud, err := installation.Install()
+	installer, err := c.installerFactory.NewInstaller()
 	if err != nil {
-		return bosherr.WrapError(err, "Installing CPI deployment")
+		return bosherr.WrapError(err, "Creating CPI Installer")
 	}
 
-	err = installation.StartJobs()
+	installation, err := installer.Install(installationManifest)
 	if err != nil {
-		return bosherr.WrapError(err, "Starting CPI jobs")
+		return bosherr.WrapError(err, "Installing CPI")
+	}
+
+	err = installation.StartRegistry()
+	if err != nil {
+		return bosherr.WrapError(err, "Starting Registry")
 	}
 	defer func() {
-		err := installation.StopJobs()
+		err := installation.StopRegistry()
 		if err != nil {
-			c.logger.Warn(c.logTag, "CPI jobs failed to stop: %s", err)
+			c.logger.Warn(c.logTag, "Registry failed to stop: %s", err)
 		}
 	}()
 
-	directorID := deploymentConfig.DirectorID
-	installationManifest := installation.Manifest()
-	mbusURL := installationManifest.Mbus
-	agentClient := c.agentClientFactory.NewAgentClient(directorID, mbusURL)
-	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, mbusURL)
+	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
+	}
 
+	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
+	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, installationManifest.Mbus)
+
+	//TODO: deployer.Deploy(deploymentManifest) -> deployment
+	boshDeployment := c.deploymentFactory.NewDeployment(deploymentManifest)
 	err = boshDeployment.Deploy(
 		cloud,
 		extractedStemcell,

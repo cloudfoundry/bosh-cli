@@ -5,47 +5,45 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpiinstall "github.com/cloudfoundry/bosh-micro-cli/cpi/install"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 )
 
 type Factory interface {
-	NewCloud(installedCPIJob bmcpiinstall.InstalledJob, directorID string) (Cloud, error)
+	NewCloud(installation bminstall.Installation, directorID string) (Cloud, error)
 }
 
 type factory struct {
-	fs                  boshsys.FileSystem
-	cmdRunner           boshsys.CmdRunner
-	deploymentWorkspace bmconfig.DeploymentWorkspace
-	logger              boshlog.Logger
+	fs        boshsys.FileSystem
+	cmdRunner boshsys.CmdRunner
+	logger    boshlog.Logger
 }
 
 func NewFactory(
 	fs boshsys.FileSystem,
 	cmdRunner boshsys.CmdRunner,
-	deploymentWorkspace bmconfig.DeploymentWorkspace,
 	logger boshlog.Logger,
 ) Factory {
 	return &factory{
-		fs:                  fs,
-		cmdRunner:           cmdRunner,
-		deploymentWorkspace: deploymentWorkspace,
-		logger:              logger,
+		fs:        fs,
+		cmdRunner: cmdRunner,
+		logger:    logger,
 	}
 }
 
-func (f *factory) NewCloud(installedCPIJob bmcpiinstall.InstalledJob, directorID string) (Cloud, error) {
-	cpiJob := CPIJob{
-		JobPath:     installedCPIJob.Path,
-		JobsDir:     f.deploymentWorkspace.JobsPath(),
-		PackagesDir: f.deploymentWorkspace.PackagesPath(),
+func (f *factory) NewCloud(installation bminstall.Installation, directorID string) (Cloud, error) {
+	cpiJob := installation.Job()
+	target := installation.Target()
+	cpi := CPI{
+		JobPath:     cpiJob.Path,
+		JobsDir:     target.JobsPath(),
+		PackagesDir: target.PackagesPath(),
 	}
 
-	cmdPath := cpiJob.ExecutablePath()
+	cmdPath := cpi.ExecutablePath()
 	if !f.fs.FileExists(cmdPath) {
-		return nil, bosherr.Errorf("Installed CPI job '%s' does not contain the required executable '%s'", installedCPIJob.Name, cmdPath)
+		return nil, bosherr.Errorf("Installed CPI job '%s' does not contain the required executable '%s'", cpiJob.Name, cmdPath)
 	}
 
-	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpiJob, f.logger)
+	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpi, f.logger)
 	return NewCloud(cpiCmdRunner, directorID, f.logger), nil
 }

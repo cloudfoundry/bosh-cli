@@ -10,7 +10,7 @@ import (
 type Manager interface {
 	Extract(releaseTarballPath string) (Release, error)
 	List() []Release
-	Find(name, version string) (release Release, found bool)
+	Find(name string) (release Release, found bool)
 	DeleteAll() error
 }
 
@@ -72,9 +72,9 @@ func (m *manager) List() []Release {
 	return append([]Release(nil), m.releases...)
 }
 
-func (m *manager) Find(name, version string) (release Release, found bool) {
+func (m *manager) Find(name string) (release Release, found bool) {
 	for _, release := range m.releases {
-		if release.Name() == name && release.Version() == version {
+		if release.Name() == name {
 			return release, true
 		}
 	}

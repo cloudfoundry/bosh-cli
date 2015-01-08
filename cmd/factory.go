@@ -10,8 +10,8 @@ import (
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
+	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
@@ -25,6 +25,7 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -64,11 +65,11 @@ type factory struct {
 	deploymentFactory       bmdepl.Factory
 	eventLogger             bmeventlog.EventLogger
 	timeService             boshtime.Service
-	installationFactory     bmcpi.InstallationFactory
-	cpiInstaller            bmcpi.Installer
+	installerFactory        bminstall.InstallerFactory
 	releaseManager          bmrel.Manager
 	installationParser      bminstallmanifest.Parser
 	deploymentParser        bmdeplmanifest.Parser
+	cloudFactory            bmcloud.Factory
 }
 
 func NewFactory(
@@ -135,8 +136,9 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadDeploymentParser(),
 		f.loadDeploymentConfigService(),
 		boshDeploymentValidator,
-		f.loadInstallationFactory(),
+		f.loadInstallerFactory(),
 		f.loadReleaseManager(),
+		f.loadCloudFactory(),
 		f.loadAgentClientFactory(),
 		f.loadVMManagerFactory(),
 		stemcellExtractor,
@@ -154,8 +156,9 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.fs,
 		f.loadInstallationParser(),
 		f.loadDeploymentConfigService(),
-		f.loadInstallationFactory(),
+		f.loadInstallerFactory(),
 		f.loadReleaseManager(),
+		f.loadCloudFactory(),
 		f.loadAgentClientFactory(),
 		f.loadVMManagerFactory(),
 		f.loadInstanceManagerFactory(),
@@ -374,25 +377,6 @@ func (f *factory) loadReleaseManager() bmrel.Manager {
 	return f.releaseManager
 }
 
-func (f *factory) loadInstallationFactory() bmcpi.InstallationFactory {
-	if f.installationFactory != nil {
-		return f.installationFactory
-	}
-
-	f.installationFactory = bmcpi.NewInstallationFactory(
-		f.loadReleaseManager(),
-		f.loadRegistryServerManager(),
-		f.workspaceRootPath,
-		f.fs,
-		f.ui,
-		f.uuidGenerator,
-		f.loadEventLogger(),
-		f.loadTimeService(),
-		f.logger,
-	)
-	return f.installationFactory
-}
-
 func (f *factory) loadInstallationParser() bminstallmanifest.Parser {
 	if f.installationParser != nil {
 		return f.installationParser
@@ -409,4 +393,35 @@ func (f *factory) loadDeploymentParser() bmdeplmanifest.Parser {
 
 	f.deploymentParser = bmdeplmanifest.NewParser(f.fs, f.logger)
 	return f.deploymentParser
+}
+
+func (f *factory) loadCloudFactory() bmcloud.Factory {
+	if f.cloudFactory != nil {
+		return f.cloudFactory
+	}
+
+	f.cloudFactory = bmcloud.NewFactory(f.fs, f.loadCMDRunner(), f.logger)
+	return f.cloudFactory
+}
+
+func (f *factory) loadInstallerFactory() bminstall.InstallerFactory {
+	if f.installerFactory != nil {
+		return f.installerFactory
+	}
+
+	f.installerFactory = bminstall.NewInstallerFactory(
+		f.ui,
+		f.fs,
+		f.loadCMDRunner(),
+		f.loadCompressor(),
+		f.loadDeploymentConfigService(),
+		f.loadReleaseManager(),
+		f.workspaceRootPath,
+		f.uuidGenerator,
+		f.loadTimeService(),
+		f.loadRegistryServerManager(),
+		f.loadEventLogger(),
+		f.logger,
+	)
+	return f.installerFactory
 }

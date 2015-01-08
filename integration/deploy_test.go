@@ -10,12 +10,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
-	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
+	mock_install "github.com/cloudfoundry/bosh-micro-cli/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -24,7 +25,6 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
@@ -36,11 +36,12 @@ import (
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
+	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
@@ -63,10 +64,16 @@ var _ = Describe("bosh-micro", func() {
 			fs     *fakesys.FakeFileSystem
 			logger boshlog.Logger
 
-			mockInstallationFactory *mock_cpi.MockInstallationFactory
-			registryServerManager   bmregistry.ServerManager
+			registryServerManager bmregistry.ServerManager
 
-			fakeCPIInstaller        *fakebmcpi.FakeInstaller
+			mockInstaller          *mock_install.MockInstaller
+			mockInstallerFactory   *mock_install.MockInstallerFactory
+			mockCloudFactory       *mock_cloud.MockFactory
+			mockCloud              *mock_cloud.MockCloud
+			mockAgentClient        *mock_agentclient.MockAgentClient
+			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
+			mockReleaseManager     *mock_release.MockManager
+
 			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
@@ -95,14 +102,8 @@ var _ = Describe("bosh-micro", func() {
 			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 			applySpec                  bmas.ApplySpec
 
-			mockReleaseManager       *mock_release.MockManager
 			managedReleases          []bmrel.Release
 			expectManagedReleaseList *gomock.Call
-
-			mockAgentClient        *mock_agentclient.MockAgentClient
-			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
-
-			mockCloud *mock_cloud.MockCloud
 
 			directorID string
 
@@ -235,10 +236,21 @@ cloud_provider:
 					Port:     6301,
 				},
 			}
-			fakeCPIInstaller.SetInstallBehavior(installationManifest, "fake-director-id", mockCloud, nil)
 
-			installation := bmcpi.NewInstallation(installationManifest, registryServerManager, fakeCPIInstaller, "fake-director-id")
-			mockInstallationFactory.EXPECT().NewInstallation(installationManifest, gomock.Any(), gomock.Any()).Return(installation).AnyTimes()
+			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
+			target := bminstall.NewTarget(installationPath)
+
+			installedJob := bminstalljob.InstalledJob{
+				Name: "cpi",
+				Path: filepath.Join(target.JobsPath(), "cpi"),
+			}
+
+			installation := bminstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
+
+			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+			mockInstaller.EXPECT().Install(installationManifest).Return(installation, nil).AnyTimes()
+
+			mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(mockCloud, nil).AnyTimes()
 		}
 
 		var writeStemcellReleaseTarball = func() {
@@ -309,8 +321,9 @@ cloud_provider:
 				deploymentParser,
 				deploymentConfigService,
 				boshDeploymentValidator,
-				mockInstallationFactory,
+				mockInstallerFactory,
 				mockReleaseManager,
+				mockCloudFactory,
 				mockAgentClientFactory,
 				vmManagerFactory,
 				fakeStemcellExtractor,
@@ -385,7 +398,7 @@ cloud_provider:
 			)
 		}
 
-		var expectDeployWithDiskMigrationNoVMShutdown = func() {
+		var expectDeployWithDiskMigrationMissingVM = func() {
 			agentID := "fake-uuid-1"
 			oldVMCID := "fake-vm-cid-1"
 			newVMCID := "fake-vm-cid-2"
@@ -393,13 +406,12 @@ cloud_provider:
 			newDiskCID := "fake-disk-cid-2"
 			newDiskSize := 2048
 
-			expectHasVM1 = mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil)
 			expectDeleteVM1 = mockCloud.EXPECT().DeleteVM(oldVMCID)
 
 			gomock.InOrder(
-				expectHasVM1,
+				mockCloud.EXPECT().HasVM(oldVMCID).Return(false, nil),
 
-				// delete old vm (without talking to agent)
+				// delete old vm (without talking to agent) so that the cpi can clean up related resources
 				expectDeleteVM1,
 
 				// create new vm
@@ -430,18 +442,15 @@ cloud_provider:
 			newVMCID := "fake-vm-cid-2"
 			oldDiskCID := "fake-disk-cid-1"
 
-			expectHasVM1 = mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil)
-			expectDeleteVM1 = mockCloud.EXPECT().DeleteVM(oldVMCID)
-
 			gomock.InOrder(
-				expectHasVM1,
+				mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil),
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
-				expectDeleteVM1,
+				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
@@ -463,18 +472,15 @@ cloud_provider:
 			newDiskCID := "fake-disk-cid-2"
 			newDiskSize := 2048
 
-			expectHasVM1 = mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil)
-			expectDeleteVM1 = mockCloud.EXPECT().DeleteVM(oldVMCID)
-
 			gomock.InOrder(
-				expectHasVM1,
+				mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil),
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
-				expectDeleteVM1,
+				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
@@ -594,7 +600,9 @@ cloud_provider:
 
 			fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
 
-			mockInstallationFactory = mock_cpi.NewMockInstallationFactory(mockCtrl)
+			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
+			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
+			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
 
 			sshTunnelFactory = bmsshtunnel.NewFactory(logger)
 
@@ -615,8 +623,6 @@ cloud_provider:
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
 			registryServerManager = bmregistry.NewServerManager(logger)
-
-			fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
 
 			mockReleaseManager = mock_release.NewMockManager(mockCtrl)
 			managedReleases = []bmrel.Release{}
@@ -654,10 +660,12 @@ cloud_provider:
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
-			allowCPIToBeInstalled()
-
 			writeStemcellReleaseTarball()
+		})
+
+		JustBeforeEach(func() {
 			allowStemcellToBeExtracted()
+			allowCPIToBeInstalled()
 			allowApplySpecToBeCreated()
 		})
 
@@ -724,6 +732,8 @@ cloud_provider:
 			BeforeEach(func() {
 				err := fs.RemoveAll(deploymentConfigPath)
 				Expect(err).ToNot(HaveOccurred())
+
+				directorID = "fake-uuid-2"
 			})
 
 			It("creates one", func() {
@@ -739,12 +749,12 @@ cloud_provider:
 
 				deploymentConfig, err := deploymentConfigService.Load()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(deploymentConfig.DirectorID).ToNot(Equal(directorID))
+				Expect(deploymentConfig.DirectorID).To(Equal(directorID))
 			})
 		})
 
 		Context("when the deployment has been deployed", func() {
-			BeforeEach(func() {
+			JustBeforeEach(func() {
 				expectDeployFlow()
 
 				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
@@ -755,15 +765,12 @@ cloud_provider:
 			})
 
 			Context("when persistent disk size is increased", func() {
-				BeforeEach(func() {
+				JustBeforeEach(func() {
 					writeDeploymentManifestWithLargerDisk()
 				})
 
 				It("migrates the disk content", func() {
 					expectDeployWithDiskMigration()
-
-					// after cloud.CreateVM, cloud.HasVM should return true
-					expectHasVM1.Return(true, nil)
 
 					err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 					Expect(err).ToNot(HaveOccurred())
@@ -771,20 +778,14 @@ cloud_provider:
 
 				Context("when current VM has been deleted manually (outside of bosh)", func() {
 					It("migrates the disk content, but does not shutdown the old VM", func() {
-						expectDeployWithDiskMigrationNoVMShutdown()
-
-						// after cloud.CreateVM, cloud.HasVM should return true
-						expectHasVM1.Return(false, nil)
+						expectDeployWithDiskMigrationMissingVM()
 
 						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 
 					It("ignores DiskNotFound errors", func() {
-						expectDeployWithDiskMigrationNoVMShutdown()
-
-						// after cloud.CreateVM, cloud.HasVM should return true
-						expectHasVM1.Return(false, nil)
+						expectDeployWithDiskMigrationMissingVM()
 
 						expectDeleteVM1.Return(bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
 							Type:    bmcloud.VMNotFoundError,
@@ -809,7 +810,7 @@ cloud_provider:
 				})
 
 				Context("after migration has failed", func() {
-					BeforeEach(func() {
+					JustBeforeEach(func() {
 						expectDeployWithDiskMigrationFailure()
 
 						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})

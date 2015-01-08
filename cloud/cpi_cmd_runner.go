@@ -54,19 +54,19 @@ type CPICmdRunner interface {
 
 type cpiCmdRunner struct {
 	cmdRunner boshsys.CmdRunner
-	cpiJob    CPIJob
+	cpi       CPI
 	logger    boshlog.Logger
 	logTag    string
 }
 
 func NewCPICmdRunner(
 	cmdRunner boshsys.CmdRunner,
-	cpiJob CPIJob,
+	cpi CPI,
 	logger boshlog.Logger,
 ) CPICmdRunner {
 	return &cpiCmdRunner{
 		cmdRunner: cmdRunner,
-		cpiJob:    cpiJob,
+		cpi:       cpi,
 		logger:    logger,
 		logTag:    "cpiCmdRunner",
 	}
@@ -83,12 +83,12 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, args ...interface{
 		return CmdOutput{}, bosherr.WrapErrorf(err, "Marshalling external CPI command input %#v", cmdInput)
 	}
 
-	cmdPath := r.cpiJob.ExecutablePath()
+	cmdPath := r.cpi.ExecutablePath()
 	cmd := boshsys.Command{
 		Name: cmdPath,
 		Env: map[string]string{
-			"BOSH_PACKAGES_DIR": r.cpiJob.PackagesDir,
-			"BOSH_JOBS_DIR":     r.cpiJob.JobsDir,
+			"BOSH_PACKAGES_DIR": r.cpi.PackagesDir,
+			"BOSH_JOBS_DIR":     r.cpi.JobsDir,
 			"PATH":              "/usr/local/bin:/usr/bin:/bin",
 		},
 		UseIsolatedEnv: true,

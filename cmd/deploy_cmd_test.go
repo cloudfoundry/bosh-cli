@@ -2,16 +2,18 @@ package cmd_test
 
 import (
 	"errors"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
-	mock_cpi "github.com/cloudfoundry/bosh-micro-cli/cpi/mocks"
+	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 	mock_deployer "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
 	mock_vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/mocks"
+	mock_install "github.com/cloudfoundry/bosh-micro-cli/installation/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
 	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
 
@@ -19,11 +21,12 @@ import (
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
+	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
@@ -31,7 +34,6 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmcpi "github.com/cloudfoundry/bosh-micro-cli/cpi/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
 	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator/fakes"
@@ -62,14 +64,15 @@ var _ = Describe("DeployCmd", func() {
 		fakeUI     *fakeui.FakeUI
 
 		mockDeploymentFactory     *mock_deployer.MockFactory
-		mockInstallationFactory   *mock_cpi.MockInstallationFactory
+		mockInstaller             *mock_install.MockInstaller
+		mockInstallerFactory      *mock_install.MockInstallerFactory
 		mockReleaseManager        *mock_release.MockManager
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
 		mockAgentClient           *mock_agentclient.MockAgentClient
 		mockAgentClientFactory    *mock_httpagent.MockAgentClientFactory
+		mockCloudFactory          *mock_cloud.MockFactory
 
-		fakeCPIInstaller      *fakebmcpi.FakeInstaller
 		fakeCPIRelease        *fakebmrel.FakeRelease
 		logger                boshlog.Logger
 		mockVMManagerFactory  *mock_vm.MockManagerFactory
@@ -109,7 +112,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs.WriteFileString(deploymentManifestPath, "")
 
 		mockDeploymentFactory = mock_deployer.NewMockFactory(mockCtrl)
-		mockInstallationFactory = mock_cpi.NewMockInstallationFactory(mockCtrl)
+		mockInstaller = mock_install.NewMockInstaller(mockCtrl)
+		mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 
 		mockReleaseManager = mock_release.NewMockManager(mockCtrl)
 
@@ -120,7 +124,7 @@ var _ = Describe("DeployCmd", func() {
 		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
 
-		fakeCPIInstaller = fakebmcpi.NewFakeInstaller()
+		mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
 
 		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
 		fakeVMManager = fakebmvm.NewFakeManager()
@@ -174,8 +178,9 @@ var _ = Describe("DeployCmd", func() {
 			fakeDeploymentParser,
 			deploymentConfigService,
 			fakeDeploymentValidator,
-			mockInstallationFactory,
+			mockInstallerFactory,
 			mockReleaseManager,
+			mockCloudFactory,
 			mockAgentClientFactory,
 			mockVMManagerFactory,
 			fakeStemcellExtractor,
@@ -196,6 +201,8 @@ var _ = Describe("DeployCmd", func() {
 			deploymentID = "fake-uuid-1"
 
 			expectCPIReleaseExtract *gomock.Call
+			expectInstall           *gomock.Call
+			expectNewCloud          *gomock.Call
 		)
 
 		BeforeEach(func() {
@@ -219,6 +226,7 @@ var _ = Describe("DeployCmd", func() {
 
 			// parsed CPI deployment manifest
 			installationManifest = bminstallmanifest.Manifest{
+				Release:  "fake-cpi-release-name",
 				Registry: bminstallmanifest.Registry{},
 				SSHTunnel: bminstallmanifest.SSHTunnel{
 					Host: "fake-host",
@@ -272,8 +280,19 @@ var _ = Describe("DeployCmd", func() {
 				nil,
 			)
 
-			installation := bmcpi.NewInstallation(installationManifest, mockRegistryServerManager, fakeCPIInstaller, directorID)
-			mockInstallationFactory.EXPECT().NewInstallation(installationManifest, deploymentID, directorID).Return(installation).AnyTimes()
+			installationPath := filepath.Join("fake-install-dir", deploymentID)
+			target := bminstall.NewTarget(installationPath)
+
+			installedJob := bminstalljob.InstalledJob{
+				Name: "cpi",
+				Path: filepath.Join(target.JobsPath(), "cpi"),
+			}
+
+			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+
+			installation := bminstall.NewInstallation(target, installedJob, installationManifest, mockRegistryServerManager)
+
+			expectInstall = mockInstaller.EXPECT().Install(installationManifest).Return(installation, nil).AnyTimes()
 
 			deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
 			mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
@@ -285,7 +304,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 			}).AnyTimes()
 
-			fakeCPIInstaller.SetInstallBehavior(installationManifest, directorID, cloud, nil)
+			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(cloud, nil).AnyTimes()
 
 			fakeDeployer.SetDeployBehavior(nil)
 		})
@@ -369,14 +388,11 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("installs the CPI locally", func() {
+			expectInstall.Times(1)
+			expectNewCloud.Times(1)
+
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
-				{
-					Deployment: installationManifest,
-					DirectorID: directorID,
-				},
-			}))
 		})
 
 		Context("when the registry is configured", func() {
@@ -518,17 +534,12 @@ var _ = Describe("DeployCmd", func() {
 			})
 
 			It("installs the CPI release locally", func() {
+				expectInstall.Times(1)
+				expectNewCloud.Times(1)
+
 				err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPIInstaller.InstallInputs).To(Equal([]fakebmcpi.InstallInput{
-					{
-						Deployment: installationManifest,
-						DirectorID: directorID,
-					},
-				}))
 			})
-
-			//TODO: test all the normal deploy behavior (with multiple releases)?
 
 			Context("when none of the releases include a 'cpi' job", func() {
 				BeforeEach(func() {
@@ -621,8 +632,9 @@ var _ = Describe("DeployCmd", func() {
 					fakeDeploymentParser,
 					deploymentConfigService,
 					fakeDeploymentValidator,
-					mockInstallationFactory,
+					mockInstallerFactory,
 					mockReleaseManager,
+					mockCloudFactory,
 					mockAgentClientFactory,
 					mockVMManagerFactory,
 					fakeStemcellExtractor,

@@ -24,6 +24,7 @@ type manifest struct {
 }
 
 type installation struct {
+	Release         string
 	Properties      map[interface{}]interface{}
 	Registry        Registry
 	AgentEnvService string    `yaml:"agent_env_service"`
@@ -60,6 +61,7 @@ func (p *parser) Parse(path string) (Manifest, error) {
 func (p *parser) parseInstallationManifest(comboManifest manifest) Manifest {
 	return Manifest{
 		Name:            comboManifest.Name,
+		Release:         comboManifest.CloudProvider.Release,
 		Registry:        comboManifest.CloudProvider.Registry,
 		AgentEnvService: comboManifest.CloudProvider.AgentEnvService,
 		SSHTunnel:       comboManifest.CloudProvider.SSHTunnel,

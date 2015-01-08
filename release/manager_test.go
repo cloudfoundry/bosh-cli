@@ -245,7 +245,7 @@ properties: {}
 
 	Describe("Find", func() {
 		It("returns false when no releases have been extracted", func() {
-			_, found := releaseManager.Find("release-a", "1.0")
+			_, found := releaseManager.Find("release-a")
 			Expect(found).To(BeFalse())
 		})
 
@@ -261,35 +261,27 @@ properties: {}
 				allowReleaseToBeExtracted("release-b", "1.1", releaseTarballPathB)
 			})
 
-			It("returns true and the release with the requested name & version", func() {
+			It("returns true and the release with the requested name", func() {
 				releaseA, err := releaseManager.Extract(releaseTarballPathA)
 				Expect(err).NotTo(HaveOccurred())
 
 				releaseB, err := releaseManager.Extract(releaseTarballPathB)
 				Expect(err).NotTo(HaveOccurred())
 
-				releaseAFound, found := releaseManager.Find("release-a", "1.0")
+				releaseAFound, found := releaseManager.Find("release-a")
 				Expect(found).To(BeTrue())
 				Expect(releaseAFound).To(Equal(releaseA))
 
-				releaseBFound, found := releaseManager.Find("release-b", "1.1")
+				releaseBFound, found := releaseManager.Find("release-b")
 				Expect(found).To(BeTrue())
 				Expect(releaseBFound).To(Equal(releaseB))
-			})
-
-			It("returns false when the requested version has not been extracted", func() {
-				_, err := releaseManager.Extract(releaseTarballPathA)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, found := releaseManager.Find("release-a", "1.1")
-				Expect(found).To(BeFalse())
 			})
 
 			It("returns false when the requested release has not been extracted", func() {
 				_, err := releaseManager.Extract(releaseTarballPathA)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, found := releaseManager.Find("release-c", "1.0")
+				_, found := releaseManager.Find("release-c")
 				Expect(found).To(BeFalse())
 			})
 		})

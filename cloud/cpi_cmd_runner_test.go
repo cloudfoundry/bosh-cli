@@ -19,7 +19,7 @@ var _ = Describe("CpiCmdRunner", func() {
 		cpiCmdRunner CPICmdRunner
 		context      CmdContext
 		cmdRunner    *fakesys.FakeCmdRunner
-		cpiJob       CPIJob
+		cpi          CPI
 	)
 
 	BeforeEach(func() {
@@ -27,7 +27,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			DirectorID: "fake-director-id",
 		}
 
-		cpiJob = CPIJob{
+		cpi = CPI{
 			JobPath:     "/jobs/cpi",
 			JobsDir:     "/jobs",
 			PackagesDir: "/packages",
@@ -35,7 +35,7 @@ var _ = Describe("CpiCmdRunner", func() {
 
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpiJob, logger)
+		cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpi, logger)
 	})
 
 	Describe("Run", func() {
@@ -58,8 +58,8 @@ var _ = Describe("CpiCmdRunner", func() {
 			Expect(actualCmd.Name).To(Equal("/jobs/cpi/bin/cpi"))
 			Expect(actualCmd.Args).To(BeNil())
 			Expect(actualCmd.Env).To(Equal(map[string]string{
-				"BOSH_PACKAGES_DIR": cpiJob.PackagesDir,
-				"BOSH_JOBS_DIR":     cpiJob.JobsDir,
+				"BOSH_PACKAGES_DIR": cpi.PackagesDir,
+				"BOSH_JOBS_DIR":     cpi.JobsDir,
 				"PATH":              "/usr/local/bin:/usr/bin:/bin",
 			}))
 			Expect(actualCmd.UseIsolatedEnv).To(BeTrue())

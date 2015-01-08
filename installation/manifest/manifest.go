@@ -1,19 +1,22 @@
 package manifest
 
 import (
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
 )
 
 type Manifest struct {
 	Name            string
-	Release         bmdeplmanifest.ReleaseRef
+	Release         string
 	RawProperties   map[interface{}]interface{}
 	Mbus            string
 	Registry        Registry
 	AgentEnvService string
 	SSHTunnel       SSHTunnel
-	Jobs            []bmdeplmanifest.Job
+}
+
+type ReleaseJobRef struct {
+	Name    string
+	Release string
 }
 
 type Registry struct {

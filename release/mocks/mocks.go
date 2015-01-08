@@ -50,15 +50,15 @@ func (_mr *_MockManagerRecorder) Extract(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Extract", arg0)
 }
 
-func (_m *MockManager) Find(_param0 string, _param1 string) (release.Release, bool) {
-	ret := _m.ctrl.Call(_m, "Find", _param0, _param1)
+func (_m *MockManager) Find(_param0 string) (release.Release, bool) {
+	ret := _m.ctrl.Call(_m, "Find", _param0)
 	ret0, _ := ret[0].(release.Release)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
-func (_mr *_MockManagerRecorder) Find(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Find", arg0, arg1)
+func (_mr *_MockManagerRecorder) Find(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Find", arg0)
 }
 
 func (_m *MockManager) List() []release.Release {
