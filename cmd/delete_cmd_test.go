@@ -51,11 +51,12 @@ var _ = Describe("Cmd/DeleteCmd", func() {
 		var (
 			fs                      boshsys.FileSystem
 			logger                  boshlog.Logger
+			releaseManager          bmrel.Manager
 			mockInstaller           *mock_install.MockInstaller
 			mockInstallerFactory    *mock_install.MockInstallerFactory
 			mockInstallation        *mock_install.MockInstallation
 			mockCloudFactory        *mock_cloud.MockFactory
-			mockReleaseManager      *mock_release.MockManager
+			mockReleaseExtractor    *mock_release.MockExtractor
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
 			deploymentConfigService bmconfig.DeploymentConfigService
@@ -116,15 +117,10 @@ cloud_provider:
 				fs,
 			)
 
-			expectCPIExtractRelease = mockReleaseManager.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
+			expectCPIExtractRelease = mockReleaseExtractor.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
 				Expect(err).ToNot(HaveOccurred())
 			}).Return(cpiRelease, nil).AnyTimes()
-
-			mockReleaseManager.EXPECT().DeleteAll().Do(func() {
-				err := cpiRelease.Delete()
-				Expect(err).ToNot(HaveOccurred())
-			}).AnyTimes()
 		}
 
 		var allowCPIToBeInstalled = func() {
@@ -166,7 +162,7 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, installationParser, deploymentConfigService, mockInstallerFactory, mockReleaseManager,
+				ui, userConfig, fs, installationParser, deploymentConfigService, mockInstallerFactory, mockReleaseExtractor, releaseManager,
 				mockCloudFactory, mockAgentClientFactory, vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
 				eventLogger, logger,
 			)
@@ -203,7 +199,8 @@ cloud_provider:
 			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 			mockInstallation = mock_install.NewMockInstallation(mockCtrl)
 
-			mockReleaseManager = mock_release.NewMockManager(mockCtrl)
+			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
+			releaseManager = bmrel.NewManager(logger)
 
 			ui = &fakeui.FakeUI{}
 

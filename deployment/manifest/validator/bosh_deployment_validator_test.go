@@ -24,7 +24,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				Name: "fake-deployment-name",
 				Releases: []bmdeplmanifest.ReleaseRef{
 					{
-						Name: "fake-release-name",
+						Name:    "fake-release-name",
 						Version: "fake-release-version",
 					},
 				},
@@ -60,10 +60,10 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 				Jobs: []bmdeplmanifest.Job{
 					{
-						Name:           "fake-job-name",
+						Name: "fake-job-name",
 						Templates: []bmdeplmanifest.ReleaseJobRef{
 							{
-								Name: "fake-release-job-name",
+								Name:    "fake-release-job-name",
 								Release: "fake-release-name",
 							},
 						},
@@ -118,7 +118,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates releases have names", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
-				Releases: []bmdeplmanifest.ReleaseRef{ { } },
+				Releases: []bmdeplmanifest.ReleaseRef{{}},
 			}
 
 			err := validator.Validate(deploymentManifest)
@@ -128,7 +128,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates releases have versions", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
-				Releases: []bmdeplmanifest.ReleaseRef{ { } },
+				Releases: []bmdeplmanifest.ReleaseRef{{}},
 			}
 
 			err := validator.Validate(deploymentManifest)
@@ -569,7 +569,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
 				Releases: []bmdeplmanifest.ReleaseRef{
 					{
-						Name: "fake-release-name",
+						Name:    "fake-release-name",
 						Version: "fake-release-version",
 					},
 				},
@@ -577,7 +577,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 					{
 						Templates: []bmdeplmanifest.ReleaseJobRef{
 							{
-								Name: "fake-release-job-name",
+								Name:    "fake-release-job-name",
 								Release: "fake-missing-release-name",
 							},
 						},
@@ -594,7 +594,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
 				Jobs: []bmdeplmanifest.Job{
 					{
-						Templates: []bmdeplmanifest.ReleaseJobRef{ {} },
+						Templates: []bmdeplmanifest.ReleaseJobRef{{}},
 					},
 				},
 			}

@@ -32,6 +32,7 @@ type deployCmd struct {
 	deploymentConfigService bmconfig.DeploymentConfigService
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	installerFactory        bminstall.InstallerFactory
+	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
 	cloudFactory            bmcloud.Factory
 	agentClientFactory      bmhttpagent.AgentClientFactory
@@ -53,6 +54,7 @@ func NewDeployCmd(
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	installerFactory bminstall.InstallerFactory,
+	releaseExtractor bmrel.Extractor,
 	releaseManager bmrel.Manager,
 	cloudFactory bmcloud.Factory,
 	agentClientFactory bmhttpagent.AgentClientFactory,
@@ -72,6 +74,7 @@ func NewDeployCmd(
 		deploymentConfigService: deploymentConfigService,
 		boshDeploymentValidator: boshDeploymentValidator,
 		installerFactory:        installerFactory,
+		releaseExtractor:        releaseExtractor,
 		releaseManager:          releaseManager,
 		cloudFactory:            cloudFactory,
 		agentClientFactory:      agentClientFactory,
@@ -166,10 +169,12 @@ func (c *deployCmd) Run(args []string) error {
 				return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
 			}
 
-			_, err := c.releaseManager.Extract(releaseTarballPath)
+			var err error
+			cpiRelease, err = c.releaseExtractor.Extract(releaseTarballPath)
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
 			}
+			c.releaseManager.Add(cpiRelease)
 		}
 
 		var found bool

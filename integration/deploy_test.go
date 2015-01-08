@@ -65,6 +65,7 @@ var _ = Describe("bosh-micro", func() {
 			logger boshlog.Logger
 
 			registryServerManager bmregistry.ServerManager
+			releaseManager        bmrel.Manager
 
 			mockInstaller          *mock_install.MockInstaller
 			mockInstallerFactory   *mock_install.MockInstallerFactory
@@ -72,7 +73,7 @@ var _ = Describe("bosh-micro", func() {
 			mockCloud              *mock_cloud.MockCloud
 			mockAgentClient        *mock_agentclient.MockAgentClient
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
-			mockReleaseManager     *mock_release.MockManager
+			mockReleaseExtractor   *mock_release.MockExtractor
 
 			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
@@ -101,9 +102,6 @@ var _ = Describe("bosh-micro", func() {
 			fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
 			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 			applySpec                  bmas.ApplySpec
-
-			managedReleases          []bmrel.Release
-			expectManagedReleaseList *gomock.Call
 
 			directorID string
 
@@ -219,11 +217,9 @@ cloud_provider:
 				"fake-cpi-extracted-dir",
 				fs,
 			)
-			mockReleaseManager.EXPECT().Extract(cpiReleaseTarballPath).Do(func(_ string) {
+			mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Do(func(_ string) {
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
 				Expect(err).ToNot(HaveOccurred())
-				managedReleases = append(managedReleases, cpiRelease)
-				expectManagedReleaseList.Return(managedReleases)
 			}).Return(cpiRelease, nil).AnyTimes()
 
 			installationManifest := bminstallmanifest.Manifest{
@@ -322,7 +318,8 @@ cloud_provider:
 				deploymentConfigService,
 				boshDeploymentValidator,
 				mockInstallerFactory,
-				mockReleaseManager,
+				mockReleaseExtractor,
+				releaseManager,
 				mockCloudFactory,
 				mockAgentClientFactory,
 				vmManagerFactory,
@@ -624,8 +621,8 @@ cloud_provider:
 
 			registryServerManager = bmregistry.NewServerManager(logger)
 
-			mockReleaseManager = mock_release.NewMockManager(mockCtrl)
-			managedReleases = []bmrel.Release{}
+			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
+			releaseManager = bmrel.NewManager(logger)
 
 			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
@@ -654,9 +651,6 @@ cloud_provider:
 			userConfig = bmconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL).Return(mockAgentClient).AnyTimes()
-
-			expectManagedReleaseList = mockReleaseManager.EXPECT().List().Return(managedReleases).AnyTimes()
-			mockReleaseManager.EXPECT().DeleteAll().AnyTimes()
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -700,11 +694,9 @@ cloud_provider:
 					"fake-other-extracted-dir",
 					fs,
 				)
-				mockReleaseManager.EXPECT().Extract(otherReleaseTarballPath).Do(func(_ string) {
+				mockReleaseExtractor.EXPECT().Extract(otherReleaseTarballPath).Do(func(_ string) {
 					err := fs.MkdirAll("fake-other-extracted-dir", os.ModePerm)
 					Expect(err).ToNot(HaveOccurred())
-					managedReleases = append(managedReleases, otherRelease)
-					expectManagedReleaseList.Return(managedReleases)
 				}).Return(otherRelease, nil).AnyTimes()
 			})
 

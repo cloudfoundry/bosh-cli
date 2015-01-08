@@ -32,6 +32,7 @@ type deleteCmd struct {
 	installationParser      bminstallmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	installerFactory        bminstall.InstallerFactory
+	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
 	cloudFactory            bmcloud.Factory
 	agentClientFactory      bmhttpagent.AgentClientFactory
@@ -51,6 +52,7 @@ func NewDeleteCmd(
 	installationParser bminstallmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	installerFactory bminstall.InstallerFactory,
+	releaseExtractor bmrel.Extractor,
 	releaseManager bmrel.Manager,
 	cloudFactory bmcloud.Factory,
 	agentClientFactory bmhttpagent.AgentClientFactory,
@@ -68,6 +70,7 @@ func NewDeleteCmd(
 		installationParser:      installationParser,
 		deploymentConfigService: deploymentConfigService,
 		installerFactory:        installerFactory,
+		releaseExtractor:        releaseExtractor,
 		releaseManager:          releaseManager,
 		cloudFactory:            cloudFactory,
 		agentClientFactory:      agentClientFactory,
@@ -125,10 +128,11 @@ func (c *deleteCmd) Run(args []string) error {
 		}
 
 		var err error
-		cpiRelease, err = c.releaseManager.Extract(cpiReleaseTarballPath)
+		cpiRelease, err = c.releaseExtractor.Extract(cpiReleaseTarballPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Extracting CPI release '%s'", cpiReleaseTarballPath)
 		}
+		c.releaseManager.Add(cpiRelease)
 
 		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
 		if err != nil {

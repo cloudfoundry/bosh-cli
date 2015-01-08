@@ -66,6 +66,7 @@ type factory struct {
 	eventLogger             bmeventlog.EventLogger
 	timeService             boshtime.Service
 	installerFactory        bminstall.InstallerFactory
+	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
 	installationParser      bminstallmanifest.Parser
 	deploymentParser        bmdeplmanifest.Parser
@@ -137,6 +138,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadDeploymentConfigService(),
 		boshDeploymentValidator,
 		f.loadInstallerFactory(),
+		f.loadReleaseExtractor(),
 		f.loadReleaseManager(),
 		f.loadCloudFactory(),
 		f.loadAgentClientFactory(),
@@ -157,6 +159,7 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.loadInstallationParser(),
 		f.loadDeploymentConfigService(),
 		f.loadInstallerFactory(),
+		f.loadReleaseExtractor(),
 		f.loadReleaseManager(),
 		f.loadCloudFactory(),
 		f.loadAgentClientFactory(),
@@ -367,13 +370,22 @@ func (f *factory) loadTimeService() boshtime.Service {
 	return f.timeService
 }
 
+func (f *factory) loadReleaseExtractor() bmrel.Extractor {
+	if f.releaseExtractor != nil {
+		return f.releaseExtractor
+	}
+
+	boshReleaseValidator := bmrelvalidation.NewBoshValidator(f.fs)
+	f.releaseExtractor = bmrel.NewExtractor(f.fs, f.loadCompressor(), boshReleaseValidator, f.logger)
+	return f.releaseExtractor
+}
+
 func (f *factory) loadReleaseManager() bmrel.Manager {
 	if f.releaseManager != nil {
 		return f.releaseManager
 	}
 
-	boshReleaseValidator := bmrelvalidation.NewBoshValidator(f.fs)
-	f.releaseManager = bmrel.NewManager(f.fs, f.loadCompressor(), boshReleaseValidator, f.logger)
+	f.releaseManager = bmrel.NewManager(f.logger)
 	return f.releaseManager
 }
 

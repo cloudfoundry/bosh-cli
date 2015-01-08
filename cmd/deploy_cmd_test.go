@@ -66,7 +66,8 @@ var _ = Describe("DeployCmd", func() {
 		mockDeploymentFactory     *mock_deployer.MockFactory
 		mockInstaller             *mock_install.MockInstaller
 		mockInstallerFactory      *mock_install.MockInstallerFactory
-		mockReleaseManager        *mock_release.MockManager
+		mockReleaseExtractor      *mock_release.MockExtractor
+		releaseManager            bmrel.Manager
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
 		mockAgentClient           *mock_agentclient.MockAgentClient
@@ -102,6 +103,7 @@ var _ = Describe("DeployCmd", func() {
 	)
 
 	BeforeEach(func() {
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fakeUI = &fakeui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
 		deploymentManifestPath = "/path/to/manifest.yml"
@@ -115,7 +117,8 @@ var _ = Describe("DeployCmd", func() {
 		mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 		mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 
-		mockReleaseManager = mock_release.NewMockManager(mockCtrl)
+		mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
+		releaseManager = bmrel.NewManager(logger)
 
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
@@ -138,7 +141,6 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeploymentParser = fakebmdeplmanifest.NewFakeParser()
 
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		logger = boshlog.NewLogger(boshlog.LevelNone)
 		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, fakeUUIDGenerator, logger)
 
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
@@ -179,7 +181,8 @@ var _ = Describe("DeployCmd", func() {
 			deploymentConfigService,
 			fakeDeploymentValidator,
 			mockInstallerFactory,
-			mockReleaseManager,
+			mockReleaseExtractor,
+			releaseManager,
 			mockCloudFactory,
 			mockAgentClientFactory,
 			mockVMManagerFactory,
@@ -297,12 +300,7 @@ var _ = Describe("DeployCmd", func() {
 			deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
 			mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
 
-			expectCPIReleaseExtract = mockReleaseManager.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
-			mockReleaseManager.EXPECT().List().Return([]bmrel.Release{fakeCPIRelease}).AnyTimes()
-			mockReleaseManager.EXPECT().DeleteAll().Do(func() {
-				err := fakeCPIRelease.Delete()
-				Expect(err).ToNot(HaveOccurred())
-			}).AnyTimes()
+			expectCPIReleaseExtract = mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
 
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(cloud, nil).AnyTimes()
 
@@ -522,7 +520,7 @@ var _ = Describe("DeployCmd", func() {
 					},
 				}
 
-				expectOtherReleaseExtract = mockReleaseManager.EXPECT().Extract(otherReleaseTarballPath).Return(fakeOtherRelease, nil).AnyTimes()
+				expectOtherReleaseExtract = mockReleaseExtractor.EXPECT().Extract(otherReleaseTarballPath).Return(fakeOtherRelease, nil).AnyTimes()
 			})
 
 			It("extracts all the release tarballs", func() {
@@ -632,7 +630,8 @@ var _ = Describe("DeployCmd", func() {
 					deploymentConfigService,
 					fakeDeploymentValidator,
 					mockInstallerFactory,
-					mockReleaseManager,
+					mockReleaseExtractor,
+					releaseManager,
 					mockCloudFactory,
 					mockAgentClientFactory,
 					mockVMManagerFactory,
