@@ -111,34 +111,6 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	var (
-		deploymentManifest   bmdeplmanifest.Manifest
-		installationManifest bminstallmanifest.Manifest
-	)
-
-	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		var err error
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-
-		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.boshDeploymentValidator.Validate(deploymentManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating deployment manifest")
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
 	var extractedStemcell bmstemcell.ExtractedStemcell
 	err = validationStage.PerformStep("Validating stemcell", func() error {
 		if !c.fs.FileExists(stemcellTarballPath) {
@@ -177,17 +149,6 @@ func (c *deployCmd) Run(args []string) error {
 			c.releaseManager.Add(cpiRelease)
 		}
 
-		var found bool
-		cpiRelease, found = bmcpirel.FindCPIRelease(c.releaseManager.List())
-		if !found {
-			return bosherr.Errorf("No provided release contains the required '%s' job", bmcpirel.ReleaseJobName)
-		}
-
-		err := bmcpirel.NewCpiValidator().Validate(cpiRelease)
-		if err != nil {
-			return bosherr.WrapError(err, "Invalid CPI release")
-		}
-
 		return nil
 	})
 	if err != nil {
@@ -199,6 +160,46 @@ func (c *deployCmd) Run(args []string) error {
 			c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
 		}
 	}()
+
+	var (
+		deploymentManifest   bmdeplmanifest.Manifest
+		installationManifest bminstallmanifest.Manifest
+	)
+	err = validationStage.PerformStep("Validating deployment manifest", func() error {
+		var err error
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+		}
+
+		//TODO: installationManifest validation
+
+		var found bool
+		cpiRelease, found = c.releaseManager.Find(installationManifest.Release)
+		if !found {
+			return bosherr.Errorf("No such CPI release '%s' was provided", installationManifest.Release)
+		}
+
+		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
+		}
+
+		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.boshDeploymentValidator.Validate(deploymentManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating deployment manifest")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 
 	validationStage.Finish()
 

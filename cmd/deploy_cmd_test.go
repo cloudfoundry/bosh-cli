@@ -250,6 +250,7 @@ var _ = Describe("DeployCmd", func() {
 
 			// parsed/extracted CPI release
 			fakeCPIRelease = fakebmrel.NewFakeRelease()
+			fakeCPIRelease.ReleaseName = "fake-cpi-release-name"
 			fakeCPIRelease.ReleaseJobs = []bmrel.Job{
 				{
 					Name: "cpi",
@@ -355,13 +356,6 @@ var _ = Describe("DeployCmd", func() {
 
 			Expect(fakeStage.Steps).To(Equal([]*fakebmlog.FakeStep{
 				&fakebmlog.FakeStep{
-					Name: "Validating deployment manifest",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
-				},
-				&fakebmlog.FakeStep{
 					Name: "Validating stemcell",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -370,6 +364,13 @@ var _ = Describe("DeployCmd", func() {
 				},
 				&fakebmlog.FakeStep{
 					Name: "Validating releases",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				},
+				&fakebmlog.FakeStep{
+					Name: "Validating deployment manifest",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Finished,
@@ -497,7 +498,7 @@ var _ = Describe("DeployCmd", func() {
 			It("returns error", func() {
 				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("No provided release contains the required 'cpi' job"))
+				Expect(err.Error()).To(Equal("Invalid CPI release 'fake-cpi-release-name': Job 'cpi' is missing from release"))
 			})
 		})
 
@@ -539,21 +540,22 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			Context("when none of the releases include a 'cpi' job", func() {
-				BeforeEach(func() {
-					fakeCPIRelease.ReleaseJobs = []bmrel.Job{
-						{
-							Name: "not-cpi",
-						},
-					}
-				})
-
-				It("returns error", func() {
-					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("No provided release contains the required 'cpi' job"))
-				})
-			})
+			//			Context("when cloud_provider.release is not specified", func() {
+			//				BeforeEach(func() {
+			//					installationManifest.Release = ""
+			//					fakeCPIRelease.ReleaseJobs = []bmrel.Job{
+			//						{
+			//							Name: "not-cpi",
+			//						},
+			//					}
+			//				})
+			//
+			//				It("returns error", func() {
+			//					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+			//					Expect(err).To(HaveOccurred())
+			//					Expect(err.Error()).To(Equal("No provided release contains the required 'cpi' job"))
+			//				})
+			//			})
 		})
 
 		Context("When the CPI release tarball does not exist", func() {

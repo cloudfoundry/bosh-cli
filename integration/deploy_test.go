@@ -132,6 +132,10 @@ var _ = Describe("bosh-micro", func() {
 			err := fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
 
+releases:
+- name: fake-cpi-release-name
+  version: fake-cpi-release-version
+
 networks:
 - name: network-1
   type: dynamic
@@ -148,6 +152,7 @@ jobs:
   - name: network-1
 
 cloud_provider:
+  release: fake-cpi-release-name
   mbus: http://fake-mbus-url
   registry:
     host: 127.0.0.1
@@ -166,6 +171,10 @@ cloud_provider:
 			err := fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
 
+releases:
+- name: fake-cpi-release-name
+  version: fake-cpi-release-version
+
 networks:
 - name: network-1
   type: dynamic
@@ -182,6 +191,7 @@ jobs:
   - name: network-1
 
 cloud_provider:
+  release: fake-cpi-release-name
   mbus: http://fake-mbus-url
   registry:
     host: 127.0.0.1
@@ -223,8 +233,9 @@ cloud_provider:
 			}).Return(cpiRelease, nil).AnyTimes()
 
 			installationManifest := bminstallmanifest.Manifest{
-				Name: "test-release",
-				Mbus: mbusURL,
+				Name:    "test-release",
+				Release: "fake-cpi-release-name",
+				Mbus:    mbusURL,
 				Registry: bminstallmanifest.Registry{
 					Username: "fake-registry-user",
 					Password: "fake-registry-password",
