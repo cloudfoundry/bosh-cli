@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -167,24 +168,6 @@ func (c *deployCmd) Run(args []string) error {
 	)
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
 		var err error
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-
-		//TODO: installationManifest validation
-
-		var found bool
-		cpiRelease, found = c.releaseManager.Find(installationManifest.Release)
-		if !found {
-			return bosherr.Errorf("No such CPI release '%s' was provided", installationManifest.Release)
-		}
-
-		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
-		}
-
 		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
@@ -193,6 +176,32 @@ func (c *deployCmd) Run(args []string) error {
 		err = c.boshDeploymentValidator.Validate(deploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment manifest")
+		}
+
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+		}
+
+		cpiReleaseName := installationManifest.Release
+		if c.isBlank(cpiReleaseName) {
+			return bosherr.Error("cloud_provider.release must be provided")
+		}
+
+		releaseNames := deploymentManifest.ReleasesByName()
+		if _, found := releaseNames[cpiReleaseName]; !found {
+			return bosherr.Errorf("cloud_provider.release '%s' must refer to a provided release", cpiReleaseName)
+		}
+
+		var found bool
+		cpiRelease, found = c.releaseManager.Find(cpiReleaseName)
+		if !found {
+			return bosherr.Errorf("No such CPI release '%s' was provided", cpiReleaseName)
+		}
+
+		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
 		}
 
 		return nil
@@ -273,4 +282,8 @@ func (c *deployCmd) parseCmdInputs(args []string) (string, []string, error) {
 		return "", []string{}, errors.New("Invalid usage - deploy command requires at least 2 arguments")
 	}
 	return args[0], args[1:], nil
+}
+
+func (c *deployCmd) isBlank(str string) bool {
+	return str == "" || strings.TrimSpace(str) == ""
 }

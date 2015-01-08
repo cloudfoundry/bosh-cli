@@ -20,6 +20,7 @@ type parser struct {
 
 type manifest struct {
 	Name          string
+	Releases      []ReleaseRef
 	Update        UpdateSpec
 	Networks      []Network
 	ResourcePools []ResourcePool `yaml:"resource_pools"`
@@ -72,6 +73,7 @@ func (p *parser) Parse(path string) (Manifest, error) {
 func (p *parser) parseDeploymentManifest(depManifest manifest) (Manifest, error) {
 	deployment := boshDeploymentDefaults
 	deployment.Name = depManifest.Name
+	deployment.Releases = depManifest.Releases
 	deployment.Networks = depManifest.Networks
 	deployment.ResourcePools = depManifest.ResourcePools
 	deployment.DiskPools = depManifest.DiskPools

@@ -76,6 +76,14 @@ func (d Manifest) DiskPool(jobName string) (DiskPool, error) {
 	return DiskPool{}, nil
 }
 
+func (d Manifest) ReleasesByName() map[string]ReleaseRef {
+	releasesByName := map[string]ReleaseRef{}
+	for _, release := range d.Releases {
+		releasesByName[release.Name] = release
+	}
+	return releasesByName
+}
+
 func (d Manifest) networksToMap() map[string]Network {
 	result := map[string]Network{}
 	for _, network := range d.Networks {

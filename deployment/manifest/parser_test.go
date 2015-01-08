@@ -54,6 +54,9 @@ var _ = Describe("Parser", func() {
 		contents := `
 ---
 name: fake-deployment-name
+releases:
+- name: fake-release-name
+  version: fake-release-version
 update:
   update_watch_time: 2000-7000
 resource_pools:
@@ -95,6 +98,12 @@ jobs:
 
 		Expect(deploymentManifest).To(Equal(Manifest{
 			Name: "fake-deployment-name",
+			Releases: []ReleaseRef{
+				{
+					Name:    "fake-release-name",
+					Version: "fake-release-version",
+				},
+			},
 			Update: Update{
 				UpdateWatchTime: WatchTime{
 					Start: 2000,

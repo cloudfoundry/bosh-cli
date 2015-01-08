@@ -240,6 +240,9 @@ var _ = Describe("DeployCmd", func() {
 			// parsed BOSH deployment manifest
 			boshDeploymentManifest = bmdeplmanifest.Manifest{
 				Name: "fake-deployment-name",
+				Releases: []bmdeplmanifest.ReleaseRef{
+					{Name: "fake-cpi-release-name", Version: "fake-cpi-release-version"},
+				},
 				Jobs: []bmdeplmanifest.Job{
 					{
 						Name: "fake-job-name",
@@ -540,22 +543,29 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			//			Context("when cloud_provider.release is not specified", func() {
-			//				BeforeEach(func() {
-			//					installationManifest.Release = ""
-			//					fakeCPIRelease.ReleaseJobs = []bmrel.Job{
-			//						{
-			//							Name: "not-cpi",
-			//						},
-			//					}
-			//				})
-			//
-			//				It("returns error", func() {
-			//					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
-			//					Expect(err).To(HaveOccurred())
-			//					Expect(err.Error()).To(Equal("No provided release contains the required 'cpi' job"))
-			//				})
-			//			})
+			Context("when cloud_provider.release is not specified", func() {
+				BeforeEach(func() {
+					installationManifest.Release = ""
+				})
+
+				It("returns error", func() {
+					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("cloud_provider.release must be provided"))
+				})
+			})
+
+			Context("when cloud_provider.release is not a provided release", func() {
+				BeforeEach(func() {
+					installationManifest.Release = "missing-release"
+				})
+
+				It("returns error", func() {
+					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("cloud_provider.release 'missing-release' must refer to a provided release"))
+				})
+			})
 		})
 
 		Context("When the CPI release tarball does not exist", func() {
