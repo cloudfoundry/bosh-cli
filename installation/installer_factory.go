@@ -81,21 +81,19 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 		return nil, bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	//TODO: rename DeploymentID to InstallationID?
-	//TODO: remove creation of DeploymentID from deploymentConfigService
-	installationID := deploymentConfig.DeploymentID
-	//	if installationID != "" {
-	//		installationID, err = f.uuidGenerator.Generate()
-	//		if err != nil {
-	//			return nil, bosherr.WrapError(err, "Generating installation ID")
-	//		}
-	//
-	//		deploymentConfig.DeploymentID = installationID
-	//		err := f.deploymentConfigService.Save(deploymentConfig)
-	//		if err != nil {
-	//			return nil, bosherr.WrapError(err, "Saving deployment config")
-	//		}
-	//	}
+	installationID := deploymentConfig.InstallationID
+	if installationID != "" {
+		installationID, err = f.uuidGenerator.Generate()
+		if err != nil {
+			return nil, bosherr.WrapError(err, "Generating installation ID")
+		}
+
+		deploymentConfig.InstallationID = installationID
+		err := f.deploymentConfigService.Save(deploymentConfig)
+		if err != nil {
+			return nil, bosherr.WrapError(err, "Saving deployment config")
+		}
+	}
 
 	target := NewTarget(filepath.Join(f.workspaceRootPath, installationID))
 

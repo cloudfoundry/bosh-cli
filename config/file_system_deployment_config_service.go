@@ -70,27 +70,14 @@ func (s fileSystemDeploymentConfigService) Save(deploymentFile DeploymentFile) e
 }
 
 func (s fileSystemDeploymentConfigService) initDefaults(deploymentFile *DeploymentFile) error {
-	var updated bool
 	if deploymentFile.DirectorID == "" {
 		uuid, err := s.uuidGenerator.Generate()
 		if err != nil {
 			return bosherr.WrapError(err, "Generating DirectorID")
 		}
 		deploymentFile.DirectorID = uuid
-		updated = true
-	}
 
-	if deploymentFile.DeploymentID == "" {
-		uuid, err := s.uuidGenerator.Generate()
-		if err != nil {
-			return bosherr.WrapError(err, "Generating DeploymentID")
-		}
-		deploymentFile.DeploymentID = uuid
-		updated = true
-	}
-
-	if updated {
-		err := s.Save(*deploymentFile)
+		err = s.Save(*deploymentFile)
 		if err != nil {
 			return bosherr.WrapError(err, "Saving deployment config")
 		}

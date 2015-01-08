@@ -111,8 +111,7 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
-						DirectorID:   "fake-uuid-0",
-						DeploymentID: "fake-uuid-1",
+						DirectorID: "fake-uuid-0",
 					}))
 				})
 
@@ -125,8 +124,8 @@ var _ = Describe("DeploymentCmd", func() {
 						logger,
 					)
 					deploymentConfigService.Save(bmconfig.DeploymentFile{
-						DirectorID:   "fake-director-id",
-						DeploymentID: "fake-deployment-id",
+						DirectorID:     "fake-director-id",
+						InstallationID: "fake-installation-id",
 					})
 
 					err := command.Run([]string{manifestPath})
@@ -136,8 +135,8 @@ var _ = Describe("DeploymentCmd", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
-						DirectorID:   "fake-director-id",
-						DeploymentID: "fake-deployment-id",
+						DirectorID:     "fake-director-id",
+						InstallationID: "fake-installation-id",
 					}))
 				})
 			})

@@ -36,11 +36,10 @@ var _ = Describe("StemcellRepo", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentFile{
-				DirectorID:   "fake-uuid-0",
-				DeploymentID: "fake-uuid-1",
+				DirectorID: "fake-uuid-0",
 				Stemcells: []StemcellRecord{
 					{
-						ID:      "fake-uuid-2",
+						ID:      "fake-uuid-1",
 						Name:    "fake-name",
 						Version: "fake-version",
 						CID:     "fake-cid",
@@ -111,7 +110,7 @@ var _ = Describe("StemcellRepo", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(foundStemcellRecord).To(Equal(StemcellRecord{
-					ID:      "fake-uuid-2",
+					ID:      "fake-uuid-1",
 					Name:    "fake-name",
 					Version: "fake-version",
 					CID:     "fake-cid",

@@ -66,7 +66,6 @@ var _ = Describe("fileSystemConfigService", func() {
 			deploymentFile, err := service.Load()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deploymentFile.DirectorID).To(Equal("fake-director-id"))
-			Expect(deploymentFile.DeploymentID).To(Equal("fake-deployment-id"))
 			Expect(deploymentFile.Stemcells).To(Equal(stemcells))
 			Expect(deploymentFile.CurrentVMCID).To(Equal("fake-vm-cid"))
 			Expect(deploymentFile.CurrentDiskID).To(Equal("fake-disk-id"))
@@ -78,8 +77,7 @@ var _ = Describe("fileSystemConfigService", func() {
 				config, err := service.Load()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(config).To(Equal(DeploymentFile{
-					DirectorID:   "fake-uuid-0",
-					DeploymentID: "fake-uuid-1",
+					DirectorID: "fake-uuid-0",
 				}))
 
 				Expect(fakeFs.FileExists(deploymentFilePath)).To(BeTrue())

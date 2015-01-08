@@ -271,7 +271,7 @@ cloud_provider:
 				// create deployment manifest yaml file
 				deploymentConfigService.Save(bmconfig.DeploymentFile{
 					DirectorID:        directorID,
-					DeploymentID:      "fake-deployment-id",
+					InstallationID:    "fake-installation-id",
 					CurrentVMCID:      "fake-vm-cid",
 					CurrentStemcellID: "fake-stemcell-guid",
 					CurrentDiskID:     "fake-disk-guid",

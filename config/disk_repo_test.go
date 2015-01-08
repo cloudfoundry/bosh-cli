@@ -36,7 +36,7 @@ var _ = Describe("DiskRepo", func() {
 			record, err := repo.Save("fake-cid", 1024, cloudProperties)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(record).To(Equal(DiskRecord{
-				ID:              "fake-uuid-2",
+				ID:              "fake-uuid-1",
 				CID:             "fake-cid",
 				Size:            1024,
 				CloudProperties: cloudProperties,
@@ -46,11 +46,10 @@ var _ = Describe("DiskRepo", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentFile{
-				DirectorID:   "fake-uuid-0",
-				DeploymentID: "fake-uuid-1",
+				DirectorID: "fake-uuid-0",
 				Disks: []DiskRecord{
 					{
-						ID:              "fake-uuid-2",
+						ID:              "fake-uuid-1",
 						CID:             "fake-cid",
 						Size:            1024,
 						CloudProperties: cloudProperties,
@@ -255,7 +254,6 @@ var _ = Describe("DiskRepo", func() {
 
 			expectedConfig := DeploymentFile{
 				DirectorID:    "fake-uuid-0",
-				DeploymentID:  "fake-uuid-1",
 				CurrentDiskID: "",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))

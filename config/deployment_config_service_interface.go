@@ -2,7 +2,7 @@ package config
 
 type DeploymentFile struct {
 	DirectorID          string           `json:"director_id"`
-	DeploymentID        string           `json:"deployment_id"`
+	InstallationID      string           `json:"installation_id"`
 	CurrentVMCID        string           `json:"current_vm_cid"`
 	CurrentStemcellID   string           `json:"current_stemcell_id"`
 	CurrentDiskID       string           `json:"current_disk_id"`

@@ -613,8 +613,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
-					DirectorID:   "fake-uuid-0",
-					DeploymentID: "fake-uuid-1",
+					DirectorID: "fake-uuid-0",
 				}))
 			})
 		})

@@ -61,7 +61,6 @@ var _ = Describe("VMRepo", func() {
 
 			expectedConfig := DeploymentFile{
 				DirectorID:   "fake-uuid-0",
-				DeploymentID: "fake-uuid-1",
 				CurrentVMCID: "fake-vm-cid",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))
@@ -78,7 +77,6 @@ var _ = Describe("VMRepo", func() {
 
 			expectedConfig := DeploymentFile{
 				DirectorID:   "fake-uuid-0",
-				DeploymentID: "fake-uuid-1",
 				CurrentVMCID: "",
 			}
 			Expect(deploymentConfig).To(Equal(expectedConfig))

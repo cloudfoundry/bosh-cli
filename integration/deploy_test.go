@@ -733,7 +733,7 @@ cloud_provider:
 				err := fs.RemoveAll(deploymentConfigPath)
 				Expect(err).ToNot(HaveOccurred())
 
-				directorID = "fake-uuid-2"
+				directorID = "fake-uuid-1"
 			})
 
 			It("creates one", func() {

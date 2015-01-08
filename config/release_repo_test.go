@@ -36,11 +36,10 @@ var _ = Describe("ReleaseRepo", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentFile{
-				DirectorID:   "fake-uuid-0",
-				DeploymentID: "fake-uuid-1",
+				DirectorID: "fake-uuid-0",
 				Releases: []ReleaseRecord{
 					{
-						ID:      "fake-uuid-2",
+						ID:      "fake-uuid-1",
 						Name:    "fake-name",
 						Version: "fake-version",
 					},
