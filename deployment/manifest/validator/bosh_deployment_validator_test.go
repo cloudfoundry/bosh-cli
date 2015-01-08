@@ -22,6 +22,12 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		It("does not error if deployment is valid", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
 				Name: "fake-deployment-name",
+				Releases: []bmdeplmanifest.ReleaseRef{
+					{
+						Name: "fake-release-name",
+						Version: "fake-release-version",
+					},
+				},
 				Networks: []bmdeplmanifest.Network{
 					{
 						Name: "fake-network-name",
@@ -55,6 +61,12 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				Jobs: []bmdeplmanifest.Job{
 					{
 						Name:           "fake-job-name",
+						Templates: []bmdeplmanifest.ReleaseJobRef{
+							{
+								Name: "fake-release-job-name",
+								Release: "fake-release-name",
+							},
+						},
 						PersistentDisk: 1024,
 						Networks: []bmdeplmanifest.JobNetwork{
 							{
@@ -91,7 +103,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("name must be provided"))
 		})
 
 		It("validates name is not blank", func() {
@@ -101,7 +113,44 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("name must be provided"))
+		})
+
+		It("validates releases have names", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Releases: []bmdeplmanifest.ReleaseRef{ { } },
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[0].name must be provided"))
+		})
+
+		It("validates releases have versions", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Releases: []bmdeplmanifest.ReleaseRef{ { } },
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[0].version must be provided"))
+		})
+
+		It("validates releases are unique", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Releases: []bmdeplmanifest.ReleaseRef{
+					{
+						Name: "fake-release-name",
+					},
+					{
+						Name: "fake-release-name",
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[1].name 'fake-release-name' must be unique"))
 		})
 
 		It("validates that there is only one resource pool", func() {
@@ -128,7 +177,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("resource_pools[0].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("resource_pools[0].name must be provided"))
 
 			deploymentManifest = bmdeplmanifest.Manifest{
 				ResourcePools: []bmdeplmanifest.ResourcePool{
@@ -143,7 +192,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("resource_pools[1].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("resource_pools[1].name must be provided"))
 		})
 
 		It("validates resource pool network", func() {
@@ -157,7 +206,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must be provided"))
 
 			deploymentManifest = bmdeplmanifest.Manifest{
 				Networks: []bmdeplmanifest.Network{
@@ -220,7 +269,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("disk_pools[0].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("disk_pools[0].name must be provided"))
 
 			deploymentManifest = bmdeplmanifest.Manifest{
 				DiskPools: []bmdeplmanifest.DiskPool{
@@ -235,7 +284,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("disk_pools[1].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("disk_pools[1].name must be provided"))
 		})
 
 		It("validates disk pool size", func() {
@@ -279,7 +328,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("networks[0].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("networks[0].name must be provided"))
 
 			deploymentManifest = bmdeplmanifest.Manifest{
 				Networks: []bmdeplmanifest.Network{
@@ -294,7 +343,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("networks[1].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("networks[1].name must be provided"))
 		})
 
 		It("validates network type", func() {
@@ -351,7 +400,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("jobs[0].name must be provided"))
 
 			deploymentManifest = bmdeplmanifest.Manifest{
 				Jobs: []bmdeplmanifest.Job{
@@ -366,7 +415,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[1].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("jobs[1].name must be provided"))
 		})
 
 		It("validates job persistent_disk", func() {
@@ -445,7 +494,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].name must not be empty or blank"))
+			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].name must be provided"))
 		})
 
 		It("validates job network static ips", func() {
@@ -514,6 +563,84 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].properties must have only string keys"))
+		})
+
+		It("validates job templates reference an existing release", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Releases: []bmdeplmanifest.ReleaseRef{
+					{
+						Name: "fake-release-name",
+						Version: "fake-release-version",
+					},
+				},
+				Jobs: []bmdeplmanifest.Job{
+					{
+						Templates: []bmdeplmanifest.ReleaseJobRef{
+							{
+								Name: "fake-release-job-name",
+								Release: "fake-missing-release-name",
+							},
+						},
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release 'fake-missing-release-name' must refer to a provided release"))
+		})
+
+		It("validates job templates have a job name", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Jobs: []bmdeplmanifest.Job{
+					{
+						Templates: []bmdeplmanifest.ReleaseJobRef{ {} },
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].name must be provided"))
+		})
+
+		It("validates job templates have uniqe job names", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Jobs: []bmdeplmanifest.Job{
+					{
+						Templates: []bmdeplmanifest.ReleaseJobRef{
+							{
+								Name: "fake-job-name",
+							},
+							{
+								Name: "fake-job-name",
+							},
+						},
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[1].name 'fake-job-name' must be unique"))
+		})
+
+		It("validates job templates reference a release", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Jobs: []bmdeplmanifest.Job{
+					{
+						Templates: []bmdeplmanifest.ReleaseJobRef{
+							{
+								Name: "fake-release-job-name",
+							},
+						},
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release must be provided"))
 		})
 
 		It("validates deployment properties", func() {

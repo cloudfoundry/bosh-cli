@@ -19,12 +19,28 @@ func NewBoshDeploymentValidator() DeploymentValidator {
 func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Manifest) error {
 	errs := []error{}
 	if v.isBlank(deploymentManifest.Name) {
-		errs = append(errs, bosherr.Error("name must not be empty or blank"))
+		errs = append(errs, bosherr.Error("name must be provided"))
+	}
+
+	releaseNames := map[string]struct{}{}
+	for releaseIdx, release := range deploymentManifest.Releases {
+		if v.isBlank(release.Name) {
+			errs = append(errs, bosherr.Errorf("releases[%d].name must be provided", releaseIdx))
+		}
+
+		if v.isBlank(release.Version) {
+			errs = append(errs, bosherr.Errorf("releases[%d].version must be provided", releaseIdx))
+		}
+
+		if _, found := releaseNames[release.Name]; found {
+			errs = append(errs, bosherr.Errorf("releases[%d].name '%s' must be unique", releaseIdx, release.Name))
+		}
+		releaseNames[release.Name] = struct{}{}
 	}
 
 	for idx, network := range deploymentManifest.Networks {
 		if v.isBlank(network.Name) {
-			errs = append(errs, bosherr.Errorf("networks[%d].name must not be empty or blank", idx))
+			errs = append(errs, bosherr.Errorf("networks[%d].name must be provided", idx))
 		}
 		if network.Type != bmdeplmanifest.Dynamic && network.Type != bmdeplmanifest.Manual && network.Type != bmdeplmanifest.VIP {
 			errs = append(errs, bosherr.Errorf("networks[%d].type must be 'manual', 'dynamic', or 'vip'", idx))
@@ -40,10 +56,10 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 
 	for idx, resourcePool := range deploymentManifest.ResourcePools {
 		if v.isBlank(resourcePool.Name) {
-			errs = append(errs, bosherr.Errorf("resource_pools[%d].name must not be empty or blank", idx))
+			errs = append(errs, bosherr.Errorf("resource_pools[%d].name must be provided", idx))
 		}
 		if v.isBlank(resourcePool.Network) {
-			errs = append(errs, bosherr.Errorf("resource_pools[%d].network must not be empty or blank", idx))
+			errs = append(errs, bosherr.Errorf("resource_pools[%d].network must be provided", idx))
 		} else if _, ok := v.networkNames(deploymentManifest)[resourcePool.Network]; !ok {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].network must be the name of a network", idx))
 		}
@@ -57,7 +73,7 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 
 	for idx, diskPool := range deploymentManifest.DiskPools {
 		if v.isBlank(diskPool.Name) {
-			errs = append(errs, bosherr.Errorf("disk_pools[%d].name must not be empty or blank", idx))
+			errs = append(errs, bosherr.Errorf("disk_pools[%d].name must be provided", idx))
 		}
 		if diskPool.DiskSize <= 0 {
 			errs = append(errs, bosherr.Errorf("disk_pools[%d].disk_size must be > 0", idx))
@@ -73,7 +89,7 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 
 	for idx, job := range deploymentManifest.Jobs {
 		if v.isBlank(job.Name) {
-			errs = append(errs, bosherr.Errorf("jobs[%d].name must not be empty or blank", idx))
+			errs = append(errs, bosherr.Errorf("jobs[%d].name must be provided", idx))
 		}
 		if job.PersistentDisk < 0 {
 			errs = append(errs, bosherr.Errorf("jobs[%d].persistent_disk must be >= 0", idx))
@@ -91,7 +107,7 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 		}
 		for networkIdx, jobNetwork := range job.Networks {
 			if v.isBlank(jobNetwork.Name) {
-				errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].name must not be empty or blank", idx, networkIdx))
+				errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].name must be provided", idx, networkIdx))
 			}
 
 			for ipIdx, ip := range jobNetwork.StaticIPs {
@@ -113,6 +129,25 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 
 		if _, err := job.Properties(); err != nil {
 			errs = append(errs, bosherr.Errorf("jobs[%d].properties must have only string keys", idx))
+		}
+
+		templateNames := map[string]struct{}{}
+		for templateIdx, template := range job.Templates {
+			if v.isBlank(template.Name) {
+				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].name must be provided", idx, templateIdx))
+			}
+			if _, found := templateNames[template.Name]; found {
+				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].name '%s' must be unique", idx, templateIdx, template.Name))
+			}
+			templateNames[template.Name] = struct{}{}
+
+			if v.isBlank(template.Release) {
+				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release must be provided", idx, templateIdx))
+			} else {
+				if _, found := releaseNames[template.Release]; !found {
+					errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release '%s' must refer to a provided release", idx, templateIdx, template.Release))
+				}
+			}
 		}
 	}
 
