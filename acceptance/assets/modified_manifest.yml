@@ -20,6 +20,7 @@ networks:
     - 10.244.0.42
 
 cloud_provider:
+  release: bosh-warden-cpi
   ssh_tunnel:
     host: 10.244.0.42
     port: 22
@@ -53,12 +54,19 @@ jobs:
   instances: 1
   templates:
   - name: nats
+    release: bosh
   - name: redis
+    release: bosh
   - name: postgres
+    release: bosh
   - name: powerdns
+    release: bosh
   - name: blobstore
+    release: bosh
   - name: director
+    release: bosh
   - name: health_monitor
+    release: bosh
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name

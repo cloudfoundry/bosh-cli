@@ -130,7 +130,7 @@ cloud_provider:
 				Release: "fake-cpi-release-name",
 			}
 
-			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+			mockInstallerFactory.EXPECT().NewInstaller(gomock.Any()).Return(mockInstaller, nil).AnyTimes()
 
 			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest).Return(mockInstallation, nil).AnyTimes()
 

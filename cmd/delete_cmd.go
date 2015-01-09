@@ -14,6 +14,7 @@ import (
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
@@ -153,7 +154,8 @@ func (c *deleteCmd) Run(args []string) error {
 
 	validationStage.Finish()
 
-	installer, err := c.installerFactory.NewInstaller()
+	releaseResolver := bmrel.NewResolver(c.logger, c.releaseManager, []bmdeplmanifest.ReleaseRef{})
+	installer, err := c.installerFactory.NewInstaller(releaseResolver)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}

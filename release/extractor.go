@@ -56,5 +56,7 @@ func (e *extractor) Extract(releaseTarballPath string) (Release, error) {
 		return nil, bosherr.WrapErrorf(err, "Validating release '%s-%s'", release.Name(), release.Version())
 	}
 
+	e.logger.Info(e.logTag, "Extracted release %s version %s", release.Name(), release.Version())
+
 	return release, nil
 }

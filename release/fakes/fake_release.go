@@ -22,6 +22,13 @@ func NewFakeRelease() *FakeRelease {
 	return &FakeRelease{}
 }
 
+func New(name, version string) *FakeRelease {
+	return &FakeRelease{
+		ReleaseName:    name,
+		ReleaseVersion: version,
+	}
+}
+
 func (r *FakeRelease) Name() string { return r.ReleaseName }
 
 func (r *FakeRelease) Version() string { return r.ReleaseVersion }

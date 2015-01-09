@@ -243,7 +243,7 @@ var _ = Describe("DeployCmd", func() {
 				Releases: []bmdeplmanifest.ReleaseRef{
 					{
 						Name:    "fake-cpi-release-name",
-						Version: "fake-cpi-release-version",
+						Version: "1.0",
 					},
 				},
 				Jobs: []bmdeplmanifest.Job{
@@ -257,7 +257,7 @@ var _ = Describe("DeployCmd", func() {
 			// parsed/extracted CPI release
 			fakeCPIRelease = fakebmrel.NewFakeRelease()
 			fakeCPIRelease.ReleaseName = "fake-cpi-release-name"
-			fakeCPIRelease.ReleaseVersion = "fake-cpi-release-version"
+			fakeCPIRelease.ReleaseVersion = "1.0"
 			fakeCPIRelease.ReleaseJobs = []bmrel.Job{
 				{
 					Name: "cpi",
@@ -299,7 +299,7 @@ var _ = Describe("DeployCmd", func() {
 				Path: filepath.Join(target.JobsPath(), "cpi"),
 			}
 
-			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+			mockInstallerFactory.EXPECT().NewInstaller(gomock.Any()).Return(mockInstaller, nil).AnyTimes()
 
 			installation := bminstall.NewInstallation(target, installedJob, installationManifest, mockRegistryServerManager)
 
@@ -559,6 +559,39 @@ var _ = Describe("DeployCmd", func() {
 				})
 			})
 
+			Context("when cloud_provider.release refers to an undeclared release", func() {
+				BeforeEach(func() {
+					boshDeploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{}
+				})
+
+				It("uses the latest version of that release that is available", func() {
+					expectInstall.Times(1)
+					expectNewCloud.Times(1)
+
+					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			Context("when cloud_provider.release refers to an release declared with version 'latest'", func() {
+				BeforeEach(func() {
+					boshDeploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{
+						{
+							Name:    "fake-cpi-release-name",
+							Version: "latest",
+						},
+					}
+				})
+
+				It("uses the latest version of that release that is available", func() {
+					expectInstall.Times(1)
+					expectNewCloud.Times(1)
+
+					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
 			Context("when cloud_provider.release is not a provided release", func() {
 				BeforeEach(func() {
 					installationManifest.Release = "missing-release"
@@ -567,7 +600,7 @@ var _ = Describe("DeployCmd", func() {
 				It("returns error", func() {
 					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("cloud_provider.release 'missing-release' must refer to a provided release"))
+					Expect(err.Error()).To(ContainSubstring("cloud_provider.release 'missing-release' must refer to a provided release"))
 				})
 			})
 		})

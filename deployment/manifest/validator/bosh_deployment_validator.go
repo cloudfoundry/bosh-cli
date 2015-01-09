@@ -37,14 +37,16 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 			errs = append(errs, bosherr.Errorf("releases[%d].version must be provided", releaseIdx))
 		}
 
+		if !release.IsLatest() {
+			if _, err := release.VersionConstraints(); err != nil {
+				errs = append(errs, bosherr.WrapErrorf(err, "releases[%d].version must be a semantic version", releaseIdx))
+			}
+		}
+
 		if _, found := releaseNames[release.Name]; found {
 			errs = append(errs, bosherr.Errorf("releases[%d].name '%s' must be unique", releaseIdx, release.Name))
 		}
 		releaseNames[release.Name] = struct{}{}
-
-		if _, found := v.releaseManager.Find(release.Name, release.Version); !found {
-			errs = append(errs, bosherr.Errorf("releases[%d] '%s/%s' must be provided as a tarball", releaseIdx, release.Name, release.Version))
-		}
 	}
 
 	for idx, network := range deploymentManifest.Networks {
@@ -152,10 +154,6 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 
 			if v.isBlank(template.Release) {
 				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release must be provided", idx, templateIdx))
-			} else {
-				if _, found := releaseNames[template.Release]; !found {
-					errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release '%s' must refer to a provided release", idx, templateIdx, template.Release))
-				}
 			}
 		}
 	}

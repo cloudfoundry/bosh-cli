@@ -22,7 +22,7 @@ type Installer interface {
 type installer struct {
 	target                Target
 	ui                    bmui.UI
-	releaseManager        bmrel.Manager
+	releaseResolver       bmrel.Resolver
 	releaseCompiler       bminstallpkg.ReleaseCompiler
 	jobInstaller          bminstalljob.Installer
 	registryServerManager bmregistry.ServerManager
@@ -33,7 +33,7 @@ type installer struct {
 func NewInstaller(
 	target Target,
 	ui bmui.UI,
-	releaseManager bmrel.Manager,
+	releaseResolver bmrel.Resolver,
 	releaseCompiler bminstallpkg.ReleaseCompiler,
 	jobInstaller bminstalljob.Installer,
 	registryServerManager bmregistry.ServerManager,
@@ -42,7 +42,7 @@ func NewInstaller(
 	return &installer{
 		target:                target,
 		ui:                    ui,
-		releaseManager:        releaseManager,
+		releaseResolver:       releaseResolver,
 		releaseCompiler:       releaseCompiler,
 		jobInstaller:          jobInstaller,
 		registryServerManager: registryServerManager,
@@ -56,10 +56,10 @@ func (i *installer) Install(manifest bminstallmanifest.Manifest) (Installation, 
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
 	releaseName := manifest.Release
-	release, found := i.releaseManager.FindByName(releaseName)
-	if !found {
+	release, err := i.releaseResolver.Find(releaseName)
+	if err != nil {
 		i.ui.Error(fmt.Sprintf("Could not find CPI release '%s'", releaseName))
-		return nil, bosherr.Errorf("CPI release '%s' not found", releaseName)
+		return nil, bosherr.WrapErrorf(err, "CPI release '%s' not found", releaseName)
 	}
 
 	if !release.Exists() {
@@ -67,7 +67,7 @@ func (i *installer) Install(manifest bminstallmanifest.Manifest) (Installation, 
 		return nil, bosherr.Errorf("Extracted CPI release does not exist")
 	}
 
-	err := i.releaseCompiler.Compile(release, manifest)
+	err = i.releaseCompiler.Compile(release, manifest)
 	if err != nil {
 		i.ui.Error("Could not compile CPI release")
 		return nil, bosherr.WrapError(err, "Compiling CPI release")

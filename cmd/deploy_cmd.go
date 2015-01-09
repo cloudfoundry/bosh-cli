@@ -165,6 +165,7 @@ func (c *deployCmd) Run(args []string) error {
 	var (
 		deploymentManifest   bmdeplmanifest.Manifest
 		installationManifest bminstallmanifest.Manifest
+		releaseResolver      bmrel.Resolver
 	)
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
 		var err error
@@ -188,16 +189,11 @@ func (c *deployCmd) Run(args []string) error {
 			return bosherr.Error("cloud_provider.release must be provided")
 		}
 
-		releaseNames := deploymentManifest.ReleasesByName()
-		if _, found := releaseNames[cpiReleaseName]; !found {
-			return bosherr.Errorf("cloud_provider.release '%s' must refer to a provided release", cpiReleaseName)
-		}
-		cpiReleaseRef := releaseNames[cpiReleaseName]
+		releaseResolver = bmrel.NewResolver(c.logger, c.releaseManager, deploymentManifest.Releases)
 
-		var found bool
-		cpiRelease, found = c.releaseManager.Find(cpiReleaseRef.Name, cpiReleaseRef.Version)
-		if !found {
-			return bosherr.Errorf("No such CPI release '%s/%s' was provided", cpiReleaseRef.Name, cpiReleaseRef.Version)
+		cpiRelease, err := releaseResolver.Find(cpiReleaseName)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "cloud_provider.release '%s' must refer to a provided release", cpiReleaseName)
 		}
 
 		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
@@ -223,7 +219,7 @@ func (c *deployCmd) Run(args []string) error {
 		return nil
 	}
 
-	installer, err := c.installerFactory.NewInstaller()
+	installer, err := c.installerFactory.NewInstaller(releaseResolver)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}

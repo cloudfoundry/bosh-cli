@@ -134,7 +134,7 @@ name: test-release
 
 releases:
 - name: fake-cpi-release-name
-  version: fake-cpi-release-version
+  version: 1.1
 
 networks:
 - name: network-1
@@ -173,7 +173,7 @@ name: test-release
 
 releases:
 - name: fake-cpi-release-name
-  version: fake-cpi-release-version
+  version: 1.1
 
 networks:
 - name: network-1
@@ -214,7 +214,7 @@ cloud_provider:
 		var allowCPIToBeInstalled = func() {
 			cpiRelease := bmrel.NewRelease(
 				"fake-cpi-release-name",
-				"fake-cpi-release-version",
+				"1.1",
 				[]bmrel.Job{
 					{
 						Name: "cpi",
@@ -254,7 +254,7 @@ cloud_provider:
 
 			installation := bminstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
 
-			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+			mockInstallerFactory.EXPECT().NewInstaller(gomock.Any()).Return(mockInstaller, nil).AnyTimes()
 			mockInstaller.EXPECT().Install(installationManifest).Return(installation, nil).AnyTimes()
 
 			mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(mockCloud, nil).AnyTimes()
@@ -692,7 +692,7 @@ cloud_provider:
 
 				otherRelease := bmrel.NewRelease(
 					"fake-other-release-name",
-					"fake-other-release-version",
+					"1.2",
 					[]bmrel.Job{
 						{
 							Name: "other",

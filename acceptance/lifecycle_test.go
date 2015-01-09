@@ -208,7 +208,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(stdout).To(ContainSubstring("Started validating"))
 		Expect(stdout).To(ContainSubstring("Validating deployment manifest"))
 		Expect(stdout).To(ContainSubstring("Validating stemcell"))
-		Expect(stdout).To(ContainSubstring("Validating cpi release"))
+		Expect(stdout).To(ContainSubstring("Validating releases"))
 		Expect(stdout).To(ContainSubstring("Done validating"))
 
 		Expect(stdout).To(ContainSubstring("Started compiling packages"))

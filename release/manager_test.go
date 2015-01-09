@@ -8,7 +8,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fake_release "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 )
 
 var _ = Describe("Manager", func() {
@@ -16,8 +16,8 @@ var _ = Describe("Manager", func() {
 	var (
 		releaseManager Manager
 
-		releaseA = &fakebmrel.FakeRelease{ReleaseName: "release-a", ReleaseVersion: "version-a"}
-		releaseB = &fakebmrel.FakeRelease{ReleaseName: "release-b", ReleaseVersion: "version-b"}
+		releaseA = fake_release.New("release-a", "version-a")
+		releaseB = fake_release.New("release-b", "version-b")
 	)
 
 	BeforeEach(func() {
@@ -48,11 +48,26 @@ var _ = Describe("Manager", func() {
 
 				releaseAFound, found := releaseManager.FindByName("release-a")
 				Expect(found).To(BeTrue())
-				Expect(releaseAFound).To(Equal(releaseA))
+				Expect(releaseAFound).To(Equal([]Release{releaseA}))
 
 				releaseBFound, found := releaseManager.FindByName("release-b")
 				Expect(found).To(BeTrue())
-				Expect(releaseBFound).To(Equal(releaseB))
+				Expect(releaseBFound).To(Equal([]Release{releaseB}))
+			})
+
+			Context("when multiple versions of the same release have been added", func() {
+				It("returns true and the release with the requested name", func() {
+					releaseA10 := fake_release.New("release-a", "1.0")
+					releaseA11 := fake_release.New("release-a", "1.1")
+					releaseB10 := fake_release.New("release-b", "1.0")
+					releaseManager.Add(releaseA10)
+					releaseManager.Add(releaseA11)
+					releaseManager.Add(releaseB10)
+
+					releaseAFound, found := releaseManager.FindByName("release-a")
+					Expect(found).To(BeTrue())
+					Expect(releaseAFound).To(Equal([]Release{releaseA10, releaseA11}))
+				})
 			})
 
 			It("returns false when the requested release has not been added", func() {

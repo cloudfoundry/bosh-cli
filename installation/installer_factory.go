@@ -25,7 +25,7 @@ import (
 )
 
 type InstallerFactory interface {
-	NewInstaller() (Installer, error)
+	NewInstaller(releaseResolver bmrel.Resolver) (Installer, error)
 }
 
 type installerFactory struct {
@@ -75,7 +75,7 @@ func NewInstallerFactory(
 	}
 }
 
-func (f *installerFactory) NewInstaller() (Installer, error) {
+func (f *installerFactory) NewInstaller(releaseResolver bmrel.Resolver) (Installer, error) {
 	deploymentConfig, err := f.deploymentConfigService.Load()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Loading deployment config")
@@ -111,7 +111,7 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 	return NewInstaller(
 		target,
 		f.ui,
-		f.releaseManager,
+		releaseResolver,
 		context.ReleaseCompiler(),
 		context.JobInstaller(),
 		f.registryServerManager,

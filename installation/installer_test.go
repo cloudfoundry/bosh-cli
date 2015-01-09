@@ -44,7 +44,7 @@ var _ = Describe("Installer", func() {
 		fakeJobInstaller    *fakebminstalljob.FakeInstaller
 		fakeUI              *fakebmui.FakeUI
 
-		mockReleaseManager        *mock_release.MockManager
+		mockReleaseResolver       *mock_release.MockResolver
 		mockRegistryServerManager *mock_registry.MockServerManager
 
 		logger boshlog.Logger
@@ -63,7 +63,7 @@ var _ = Describe("Installer", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		mockReleaseManager = mock_release.NewMockManager(mockCtrl)
+		mockReleaseResolver = mock_release.NewMockResolver(mockCtrl)
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 
 		deploymentManifestPath = "/path/to/manifest.yml"
@@ -74,7 +74,7 @@ var _ = Describe("Installer", func() {
 		installer = NewInstaller(
 			target,
 			fakeUI,
-			mockReleaseManager,
+			mockReleaseResolver,
 			fakeReleaseCompiler,
 			fakeJobInstaller,
 			mockRegistryServerManager,
@@ -88,9 +88,9 @@ var _ = Describe("Installer", func() {
 			release              bmrel.Release
 			releaseJob           bmrel.Job
 
-			installedJob bminstalljob.InstalledJob
+			installedJob         bminstalljob.InstalledJob
 
-			expectFindByName *gomock.Call
+			expectFind           *gomock.Call
 		)
 
 		BeforeEach(func() {
@@ -150,7 +150,7 @@ var _ = Describe("Installer", func() {
 
 			fakeFS.MkdirAll("/extracted-release-path", os.FileMode(0750))
 
-			expectFindByName = mockReleaseManager.EXPECT().FindByName("fake-release-name").Return(release, true)
+			expectFind = mockReleaseResolver.EXPECT().Find("fake-release-name").Return(release, nil)
 		})
 
 		It("compiles the release", func() {
@@ -211,7 +211,7 @@ var _ = Describe("Installer", func() {
 
 		Context("when the release specified in the manifest cannot be found", func() {
 			JustBeforeEach(func() {
-				expectFindByName.Return(nil, false)
+				expectFind.Return(nil, errors.New("kaboom"))
 			})
 
 			It("returns an error", func() {
