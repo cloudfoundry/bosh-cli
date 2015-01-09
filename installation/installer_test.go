@@ -90,7 +90,7 @@ var _ = Describe("Installer", func() {
 
 			installedJob bminstalljob.InstalledJob
 
-			expectFindRelease *gomock.Call
+			expectFindByName *gomock.Call
 		)
 
 		BeforeEach(func() {
@@ -150,7 +150,7 @@ var _ = Describe("Installer", func() {
 
 			fakeFS.MkdirAll("/extracted-release-path", os.FileMode(0750))
 
-			expectFindRelease = mockReleaseManager.EXPECT().Find("fake-release-name").Return(release, true)
+			expectFindByName = mockReleaseManager.EXPECT().FindByName("fake-release-name").Return(release, true)
 		})
 
 		It("compiles the release", func() {
@@ -211,7 +211,7 @@ var _ = Describe("Installer", func() {
 
 		Context("when the release specified in the manifest cannot be found", func() {
 			JustBeforeEach(func() {
-				expectFindRelease.Return(nil, false)
+				expectFindByName.Return(nil, false)
 			})
 
 			It("returns an error", func() {

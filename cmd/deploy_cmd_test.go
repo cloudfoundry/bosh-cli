@@ -241,7 +241,10 @@ var _ = Describe("DeployCmd", func() {
 			boshDeploymentManifest = bmdeplmanifest.Manifest{
 				Name: "fake-deployment-name",
 				Releases: []bmdeplmanifest.ReleaseRef{
-					{Name: "fake-cpi-release-name", Version: "fake-cpi-release-version"},
+					{
+						Name:    "fake-cpi-release-name",
+						Version: "fake-cpi-release-version",
+					},
 				},
 				Jobs: []bmdeplmanifest.Job{
 					{
@@ -254,6 +257,7 @@ var _ = Describe("DeployCmd", func() {
 			// parsed/extracted CPI release
 			fakeCPIRelease = fakebmrel.NewFakeRelease()
 			fakeCPIRelease.ReleaseName = "fake-cpi-release-name"
+			fakeCPIRelease.ReleaseVersion = "fake-cpi-release-version"
 			fakeCPIRelease.ReleaseJobs = []bmrel.Job{
 				{
 					Name: "cpi",

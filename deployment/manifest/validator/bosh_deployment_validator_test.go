@@ -5,17 +5,25 @@ import (
 	. "github.com/onsi/gomega"
 
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
+	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 )
 
 var _ = Describe("BoshDeploymentValidator", func() {
 	var (
-		validator DeploymentValidator
+		releaseManager bmrel.Manager
+		validator      DeploymentValidator
 	)
 
 	BeforeEach(func() {
-		validator = NewBoshDeploymentValidator()
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		releaseManager = bmrel.NewManager(logger)
+		validator = NewBoshDeploymentValidator(releaseManager)
 	})
 
 	Describe("Validate", func() {
@@ -92,6 +100,11 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				},
 			}
 
+			releaseManager.Add(&fakebmrel.FakeRelease{
+				ReleaseName:    "fake-release-name",
+				ReleaseVersion: "fake-release-version",
+			})
+
 			err := validator.Validate(deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -151,6 +164,36 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("releases[1].name 'fake-release-name' must be unique"))
+		})
+
+		It("validates releases (name/version) are managed", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Releases: []bmdeplmanifest.ReleaseRef{
+					{
+						Name:    "fake-missing-release-name",
+						Version: "fake-missing-release-version",
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[0] 'fake-missing-release-name/fake-missing-release-version' must be provided as a tarball"))
+		})
+
+		It("validates releases (version) are managed", func() {
+			deploymentManifest := bmdeplmanifest.Manifest{
+				Releases: []bmdeplmanifest.ReleaseRef{
+					{
+						Name:    "fake-release-name",
+						Version: "fake-missing-release-version",
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[0] 'fake-release-name/fake-missing-release-version' must be provided as a tarball"))
 		})
 
 		It("validates that there is only one resource pool", func() {

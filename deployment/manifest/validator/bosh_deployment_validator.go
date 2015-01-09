@@ -5,15 +5,20 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
 type boshDeploymentValidator struct {
+	releaseManager bmrel.Manager
 }
 
-func NewBoshDeploymentValidator() DeploymentValidator {
-	return &boshDeploymentValidator{}
+func NewBoshDeploymentValidator(releaseManager bmrel.Manager) DeploymentValidator {
+	return &boshDeploymentValidator{
+		releaseManager: releaseManager,
+	}
 }
 
 func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Manifest) error {
@@ -36,6 +41,10 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 			errs = append(errs, bosherr.Errorf("releases[%d].name '%s' must be unique", releaseIdx, release.Name))
 		}
 		releaseNames[release.Name] = struct{}{}
+
+		if _, found := v.releaseManager.Find(release.Name, release.Version); !found {
+			errs = append(errs, bosherr.Errorf("releases[%d] '%s/%s' must be provided as a tarball", releaseIdx, release.Name, release.Version))
+		}
 	}
 
 	for idx, network := range deploymentManifest.Networks {

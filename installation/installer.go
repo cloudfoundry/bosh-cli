@@ -56,7 +56,7 @@ func (i *installer) Install(manifest bminstallmanifest.Manifest) (Installation, 
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
 	releaseName := manifest.Release
-	release, found := i.releaseManager.Find(releaseName)
+	release, found := i.releaseManager.FindByName(releaseName)
 	if !found {
 		i.ui.Error(fmt.Sprintf("Could not find CPI release '%s'", releaseName))
 		return nil, bosherr.Errorf("CPI release '%s' not found", releaseName)

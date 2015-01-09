@@ -192,11 +192,12 @@ func (c *deployCmd) Run(args []string) error {
 		if _, found := releaseNames[cpiReleaseName]; !found {
 			return bosherr.Errorf("cloud_provider.release '%s' must refer to a provided release", cpiReleaseName)
 		}
+		cpiReleaseRef := releaseNames[cpiReleaseName]
 
 		var found bool
-		cpiRelease, found = c.releaseManager.Find(cpiReleaseName)
+		cpiRelease, found = c.releaseManager.Find(cpiReleaseRef.Name, cpiReleaseRef.Version)
 		if !found {
-			return bosherr.Errorf("No such CPI release '%s' was provided", cpiReleaseName)
+			return bosherr.Errorf("No such CPI release '%s/%s' was provided", cpiReleaseRef.Name, cpiReleaseRef.Version)
 		}
 
 		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
