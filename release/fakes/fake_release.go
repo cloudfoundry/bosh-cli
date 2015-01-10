@@ -10,10 +10,6 @@ type FakeRelease struct {
 	ReleaseJobs     []bmrel.Job
 	ReleasePackages []*bmrel.Package
 
-	FindJobByNameName  string
-	FindJobByNameJob   bmrel.Job
-	FindJobByNameFound bool
-
 	DeleteCalled bool
 	DeleteErr    error
 }

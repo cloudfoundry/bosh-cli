@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -12,11 +13,13 @@ import (
 )
 
 type boshDeploymentValidator struct {
+	logger         boshlog.Logger
 	releaseManager bmrel.Manager
 }
 
-func NewBoshDeploymentValidator(releaseManager bmrel.Manager) DeploymentValidator {
+func NewBoshDeploymentValidator(logger boshlog.Logger, releaseManager bmrel.Manager) DeploymentValidator {
 	return &boshDeploymentValidator{
+		logger:         logger,
 		releaseManager: releaseManager,
 	}
 }
@@ -47,6 +50,14 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 			errs = append(errs, bosherr.Errorf("releases[%d].name '%s' must be unique", releaseIdx, release.Name))
 		}
 		releaseNames[release.Name] = struct{}{}
+	}
+
+	releaseResolver := bmrel.NewResolver(v.logger, v.releaseManager, deploymentManifest.Releases)
+	for releaseIdx, release := range deploymentManifest.Releases {
+		_, err := releaseResolver.Find(release.Name)
+		if err != nil {
+			errs = append(errs, bosherr.WrapErrorf(err, "releases[%d] must refer to an available release", releaseIdx))
+		}
 	}
 
 	for idx, network := range deploymentManifest.Networks {
@@ -154,6 +165,16 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 
 			if v.isBlank(template.Release) {
 				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release must be provided", idx, templateIdx))
+			} else {
+				release, err := releaseResolver.Find(template.Release)
+				if err != nil {
+					errs = append(errs, bosherr.WrapErrorf(err, "jobs[%d].templates[%d].release must refer to an available release", idx, templateIdx))
+				} else {
+					_, found := release.FindJobByName(template.Name)
+					if !found {
+						errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d] must refer to a job in '%s', but there is no job named '%s'", idx, templateIdx, release.Name(), template.Name))
+					}
+				}
 			}
 		}
 	}

@@ -306,7 +306,7 @@ cloud_provider:
 			deploymentParser := bmdeplmanifest.NewParser(fs, logger)
 			installationParser := bminstallmanifest.NewParser(fs, logger)
 
-			boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(releaseManager)
+			boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(logger, releaseManager)
 
 			deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 

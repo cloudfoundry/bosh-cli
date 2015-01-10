@@ -88,9 +88,9 @@ var _ = Describe("Installer", func() {
 			release              bmrel.Release
 			releaseJob           bmrel.Job
 
-			installedJob         bminstalljob.InstalledJob
+			installedJob bminstalljob.InstalledJob
 
-			expectFind           *gomock.Call
+			expectFind *gomock.Call
 		)
 
 		BeforeEach(func() {

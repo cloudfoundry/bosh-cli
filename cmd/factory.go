@@ -119,7 +119,7 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
-	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(f.loadReleaseManager())
+	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(f.logger, f.loadReleaseManager())
 
 	stemcellReader := bmstemcell.NewReader(f.loadCompressor(), f.fs)
 	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)

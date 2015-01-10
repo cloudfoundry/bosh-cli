@@ -19,97 +19,95 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		releaseManager bmrel.Manager
 		validator      DeploymentValidator
 
-		validNetworks      []bmdeplmanifest.Network
-		validResourcePools []bmdeplmanifest.ResourcePool
+		validManifest bmdeplmanifest.Manifest
+		fakeRelease   *fakebmrel.FakeRelease
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		releaseManager = bmrel.NewManager(logger)
-		validator = NewBoshDeploymentValidator(releaseManager)
+		validator = NewBoshDeploymentValidator(logger, releaseManager)
 
-		validNetworks = []bmdeplmanifest.Network{{Name: "fake-network-name", Type: "dynamic"}}
-		validResourcePools = []bmdeplmanifest.ResourcePool{{Name: "resource-pool-name", Network: "fake-network-name"}}
+		validManifest = bmdeplmanifest.Manifest{
+			Name: "fake-deployment-name",
+			Releases: []bmdeplmanifest.ReleaseRef{
+				{
+					Name:    "fake-release-name",
+					Version: "1.0",
+				},
+			},
+			Networks: []bmdeplmanifest.Network{
+				{
+					Name: "fake-network-name",
+					Type: "dynamic",
+				},
+			},
+			ResourcePools: []bmdeplmanifest.ResourcePool{
+				{
+					Name:    "fake-resource-pool-name",
+					Network: "fake-network-name",
+					RawCloudProperties: map[interface{}]interface{}{
+						"fake-prop-key": "fake-prop-value",
+						"fake-prop-map-key": map[interface{}]interface{}{
+							"fake-prop-key": "fake-prop-value",
+						},
+					},
+				},
+			},
+			DiskPools: []bmdeplmanifest.DiskPool{
+				{
+					Name:     "fake-disk-pool-name",
+					DiskSize: 1024,
+					RawCloudProperties: map[interface{}]interface{}{
+						"fake-prop-key": "fake-prop-value",
+						"fake-prop-map-key": map[interface{}]interface{}{
+							"fake-prop-key": "fake-prop-value",
+						},
+					},
+				},
+			},
+			Jobs: []bmdeplmanifest.Job{
+				{
+					Name: "fake-job-name",
+					Templates: []bmdeplmanifest.ReleaseJobRef{
+						{
+							Name:    "fake-job-name",
+							Release: "fake-release-name",
+						},
+					},
+					PersistentDisk: 1024,
+					Networks: []bmdeplmanifest.JobNetwork{
+						{
+							Name:      "fake-network-name",
+							StaticIPs: []string{"127.0.0.1"},
+							Default:   []bmdeplmanifest.NetworkDefault{"dns", "gateway"},
+						},
+					},
+					Lifecycle: "service",
+					RawProperties: map[interface{}]interface{}{
+						"fake-prop-key": "fake-prop-value",
+						"fake-prop-map-key": map[interface{}]interface{}{
+							"fake-prop-key": "fake-prop-value",
+						},
+					},
+				},
+			},
+			RawProperties: map[interface{}]interface{}{
+				"fake-prop-key": "fake-prop-value",
+				"fake-prop-map-key": map[interface{}]interface{}{
+					"fake-prop-key": "fake-prop-value",
+				},
+			},
+		}
+
+		fakeRelease = fakebmrel.New("fake-release-name", "1.0")
+		fakeRelease.ReleaseJobs = []bmrel.Job{{Name: "fake-job-name"}}
+		releaseManager.Add(fakeRelease)
 	})
 
 	Describe("Validate", func() {
 		It("does not error if deployment is valid", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Name: "fake-deployment-name",
-				Releases: []bmdeplmanifest.ReleaseRef{
-					{
-						Name:    "fake-release-name",
-						Version: "1.0",
-					},
-				},
-				Networks: []bmdeplmanifest.Network{
-					{
-						Name: "fake-network-name",
-						Type: "dynamic",
-					},
-				},
-				ResourcePools: []bmdeplmanifest.ResourcePool{
-					{
-						Name:    "fake-resource-pool-name",
-						Network: "fake-network-name",
-						RawCloudProperties: map[interface{}]interface{}{
-							"fake-prop-key": "fake-prop-value",
-							"fake-prop-map-key": map[interface{}]interface{}{
-								"fake-prop-key": "fake-prop-value",
-							},
-						},
-					},
-				},
-				DiskPools: []bmdeplmanifest.DiskPool{
-					{
-						Name:     "fake-disk-pool-name",
-						DiskSize: 1024,
-						RawCloudProperties: map[interface{}]interface{}{
-							"fake-prop-key": "fake-prop-value",
-							"fake-prop-map-key": map[interface{}]interface{}{
-								"fake-prop-key": "fake-prop-value",
-							},
-						},
-					},
-				},
-				Jobs: []bmdeplmanifest.Job{
-					{
-						Name: "fake-job-name",
-						Templates: []bmdeplmanifest.ReleaseJobRef{
-							{
-								Name:    "fake-release-job-name",
-								Release: "fake-release-name",
-							},
-						},
-						PersistentDisk: 1024,
-						Networks: []bmdeplmanifest.JobNetwork{
-							{
-								Name:      "fake-network-name",
-								StaticIPs: []string{"127.0.0.1"},
-								Default:   []bmdeplmanifest.NetworkDefault{"dns", "gateway"},
-							},
-						},
-						Lifecycle: "service",
-						RawProperties: map[interface{}]interface{}{
-							"fake-prop-key": "fake-prop-value",
-							"fake-prop-map-key": map[interface{}]interface{}{
-								"fake-prop-key": "fake-prop-value",
-							},
-						},
-					},
-				},
-				RawProperties: map[interface{}]interface{}{
-					"fake-prop-key": "fake-prop-value",
-					"fake-prop-map-key": map[interface{}]interface{}{
-						"fake-prop-key": "fake-prop-value",
-					},
-				},
-			}
-
-			releaseManager.Add(&fakebmrel.FakeRelease{
-				ReleaseName:    "fake-release-name",
-				ReleaseVersion: "1.0",
-			})
+			deploymentManifest := validManifest
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
@@ -167,15 +165,23 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			Expect(err.Error()).To(ContainSubstring("releases[0].version must be a semantic version"))
 		})
 
-		It("allows version to be 'latest'", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Releases: []bmdeplmanifest.ReleaseRef{
-					{Name: "fake-release-name", Version: "latest"},
-				},
-				Name:          "name",
-				Networks:      validNetworks,
-				ResourcePools: validResourcePools,
+		It("validates release is available", func() {
+			deploymentManifest := validManifest
+			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{
+				{Name: "fake-other-release-name", Version: "1.0"},
 			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[0] must refer to an available release"))
+		})
+
+		It("allows version to be 'latest'", func() {
+			deploymentManifest := validManifest
+			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{
+				{Name: "fake-release-name", Version: "latest"},
+			}
+			releaseManager.Add(fakebmrel.New("fake-release-name", "1.0"))
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).NotTo(HaveOccurred())
@@ -607,23 +613,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("permits job templates to reference an undeclared release", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Releases: []bmdeplmanifest.ReleaseRef{{Name: "fake-release-name", Version: "1.0"}},
-				Jobs: []bmdeplmanifest.Job{
-					{
-						Name: "fake-job-name",
-						Templates: []bmdeplmanifest.ReleaseJobRef{
-							{
-								Name:    "fake-release-job-name",
-								Release: "fake-missing-release-name",
-							},
-						},
-						Networks: []bmdeplmanifest.JobNetwork{{Name: "name", StaticIPs: []string{"1.1.1.1"}}},
-					},
+			deploymentManifest := validManifest
+			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{}
+			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
+				{
+					Name:    "fake-job-name",
+					Release: "fake-release-name",
 				},
-				Name:          "name",
-				Networks:      validNetworks,
-				ResourcePools: validResourcePools,
 			}
 
 			err := validator.Validate(deploymentManifest)
@@ -631,11 +627,10 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job templates have a job name", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
-					{
-						Templates: []bmdeplmanifest.ReleaseJobRef{{}},
-					},
+			deploymentManifest := validManifest
+			deploymentManifest.Jobs = []bmdeplmanifest.Job{
+				{
+					Templates: []bmdeplmanifest.ReleaseJobRef{{}},
 				},
 			}
 
@@ -644,18 +639,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].name must be provided"))
 		})
 
-		It("validates job templates have uniqe job names", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
-					{
-						Templates: []bmdeplmanifest.ReleaseJobRef{
-							{
-								Name: "fake-job-name",
-							},
-							{
-								Name: "fake-job-name",
-							},
-						},
+		It("validates job templates have unique job names", func() {
+			deploymentManifest := validManifest
+			deploymentManifest.Jobs = []bmdeplmanifest.Job{
+				{
+					Templates: []bmdeplmanifest.ReleaseJobRef{
+						{Name: "fake-job-name"},
+						{Name: "fake-job-name"},
 					},
 				},
 			}
@@ -670,9 +660,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 				Jobs: []bmdeplmanifest.Job{
 					{
 						Templates: []bmdeplmanifest.ReleaseJobRef{
-							{
-								Name: "fake-release-job-name",
-							},
+							{Name: "fake-job-name"},
 						},
 					},
 				},
@@ -681,6 +669,31 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release must be provided"))
+		})
+
+		It("validates job templates reference an available release", func() {
+			deploymentManifest := validManifest
+			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{}
+			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
+				{Name: "fake-job-name", Release: "fake-other-release-name"},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release must refer to an available release"))
+		})
+
+		It("validates job templates reference a job declared within the release", func() {
+			deploymentManifest := validManifest
+
+			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{}
+			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
+				{Name: "fake-other-job-name", Release: "fake-release-name"},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0] must refer to a job in 'fake-release-name', but there is no job named 'fake-other-job-name'"))
 		})
 
 		It("validates deployment properties", func() {
