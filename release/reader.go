@@ -10,7 +10,7 @@ import (
 
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
-	bmrelman "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
 type reader struct {
@@ -50,7 +50,7 @@ func (r *reader) Read() (Release, error) {
 		return nil, bosherr.WrapErrorf(err, "Reading release manifest '%s'", releaseManifestPath)
 	}
 
-	var manifest bmrelman.Release
+	var manifest bmrelmanifest.Release
 	err = candiedyaml.Unmarshal(releaseManifestBytes, &manifest)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Parsing release manifest")
@@ -64,7 +64,7 @@ func (r *reader) Read() (Release, error) {
 	return release, nil
 }
 
-func (r *reader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Release, error) {
+func (r *reader) newReleaseFromManifest(releaseManifest bmrelmanifest.Release) (Release, error) {
 	errors := []error{}
 	packages, err := r.newPackagesFromManifestPackages(releaseManifest.Packages)
 	if err != nil {
@@ -94,7 +94,7 @@ func (r *reader) newReleaseFromManifest(releaseManifest bmrelman.Release) (Relea
 	return release, nil
 }
 
-func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmrelman.Job) ([]Job, error) {
+func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmrelmanifest.Job) ([]Job, error) {
 	jobs := []Job{}
 	errors := []error{}
 	for _, manifestJob := range manifestJobs {
@@ -142,7 +142,7 @@ func (r *reader) findPackageByName(packages []*Package, pkgName string) (*Packag
 	return nil, false
 }
 
-func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelman.Package) ([]*Package, error) {
+func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelmanifest.Package) ([]*Package, error) {
 	packages := []*Package{}
 	errors := []error{}
 	packageRepo := NewPackageRepo()

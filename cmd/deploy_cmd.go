@@ -21,6 +21,7 @@ import (
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
@@ -28,9 +29,11 @@ type deployCmd struct {
 	ui                      bmui.UI
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
+	releaseSetParser        bmrelsetmanifest.Parser
 	installationParser      bminstallmanifest.Parser
 	deploymentParser        bmdeplmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
+	releaseSetValidator     bmrelsetmanifest.Validator
 	boshDeploymentValidator bmdeplval.DeploymentValidator
 	installerFactory        bminstall.InstallerFactory
 	releaseExtractor        bmrel.Extractor
@@ -50,9 +53,11 @@ func NewDeployCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
+	releaseSetParser bmrelsetmanifest.Parser,
 	installationParser bminstallmanifest.Parser,
 	deploymentParser bmdeplmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
+	releaseSetValidator bmrelsetmanifest.Validator,
 	boshDeploymentValidator bmdeplval.DeploymentValidator,
 	installerFactory bminstall.InstallerFactory,
 	releaseExtractor bmrel.Extractor,
@@ -70,9 +75,11 @@ func NewDeployCmd(
 		ui:                      ui,
 		userConfig:              userConfig,
 		fs:                      fs,
+		releaseSetParser:        releaseSetParser,
 		installationParser:      installationParser,
 		deploymentParser:        deploymentParser,
 		deploymentConfigService: deploymentConfigService,
+		releaseSetValidator:     releaseSetValidator,
 		boshDeploymentValidator: boshDeploymentValidator,
 		installerFactory:        installerFactory,
 		releaseExtractor:        releaseExtractor,
@@ -168,7 +175,16 @@ func (c *deployCmd) Run(args []string) error {
 		releaseResolver      bmrel.Resolver
 	)
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		var err error
+		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.releaseSetValidator.Validate(releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating release set manifest")
+		}
+
 		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)

@@ -10,16 +10,10 @@ type ReleaseRef struct {
 	Version string
 }
 
-func NewReleaseRef(name, version string) ReleaseRef {
-	return ReleaseRef{
-		Name:    name,
-		Version: version,
-	}
-}
-
 func (r *ReleaseRef) VersionConstraints() (constraints version.Constraints, err error) {
+	// todo: desmellify
 	if r.IsLatest() {
-		return nil, errors.WrapErrorf(err, "Don't ask a 'latest' ReleaseRef for VersionConstraints", r.Name)
+		return nil, errors.WrapError(err, "Don't ask a 'latest' ReleaseRef for VersionConstraints")
 	}
 
 	constraints, err = version.NewConstraint(r.Version)

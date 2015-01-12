@@ -6,6 +6,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
 type Parser interface {
@@ -20,7 +22,7 @@ type parser struct {
 
 type manifest struct {
 	Name          string
-	Releases      []ReleaseRef
+	Releases      []bmrelmanifest.ReleaseRef
 	Update        UpdateSpec
 	Networks      []Network
 	ResourcePools []ResourcePool `yaml:"resource_pools"`

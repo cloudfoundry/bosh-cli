@@ -29,6 +29,7 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
@@ -68,8 +69,11 @@ type factory struct {
 	installerFactory        bminstall.InstallerFactory
 	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
+	releaseSetParser        bmrelsetmanifest.Parser
 	installationParser      bminstallmanifest.Parser
 	deploymentParser        bmdeplmanifest.Parser
+	releaseSetValidator     bmrelsetmanifest.Validator
+	deploymentValidator     bmdeplval.DeploymentValidator
 	cloudFactory            bmcloud.Factory
 }
 
@@ -119,8 +123,6 @@ func (f *factory) createDeploymentCmd() (Cmd, error) {
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
-	boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(f.logger, f.loadReleaseManager())
-
 	stemcellReader := bmstemcell.NewReader(f.loadCompressor(), f.fs)
 	stemcellExtractor := bmstemcell.NewExtractor(stemcellReader, f.fs)
 
@@ -133,10 +135,12 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.ui,
 		f.userConfig,
 		f.fs,
+		f.loadReleaseSetParser(),
 		f.loadInstallationParser(),
 		f.loadDeploymentParser(),
 		f.loadDeploymentConfigService(),
-		boshDeploymentValidator,
+		f.loadReleaseSetValidator(),
+		f.loadDeploymentValidator(),
 		f.loadInstallerFactory(),
 		f.loadReleaseExtractor(),
 		f.loadReleaseManager(),
@@ -156,8 +160,10 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.ui,
 		f.userConfig,
 		f.fs,
+		f.loadReleaseSetParser(),
 		f.loadInstallationParser(),
 		f.loadDeploymentConfigService(),
+		f.loadReleaseSetValidator(),
 		f.loadInstallerFactory(),
 		f.loadReleaseExtractor(),
 		f.loadReleaseManager(),
@@ -389,6 +395,15 @@ func (f *factory) loadReleaseManager() bmrel.Manager {
 	return f.releaseManager
 }
 
+func (f *factory) loadReleaseSetParser() bmrelsetmanifest.Parser {
+	if f.releaseSetParser != nil {
+		return f.releaseSetParser
+	}
+
+	f.releaseSetParser = bmrelsetmanifest.NewParser(f.fs, f.logger)
+	return f.releaseSetParser
+}
+
 func (f *factory) loadInstallationParser() bminstallmanifest.Parser {
 	if f.installationParser != nil {
 		return f.installationParser
@@ -405,6 +420,24 @@ func (f *factory) loadDeploymentParser() bmdeplmanifest.Parser {
 
 	f.deploymentParser = bmdeplmanifest.NewParser(f.fs, f.logger)
 	return f.deploymentParser
+}
+
+func (f *factory) loadDeploymentValidator() bmdeplval.DeploymentValidator {
+	if f.deploymentValidator != nil {
+		return f.deploymentValidator
+	}
+
+	f.deploymentValidator = bmdeplval.NewBoshDeploymentValidator(f.logger, f.loadReleaseManager())
+	return f.deploymentValidator
+}
+
+func (f *factory) loadReleaseSetValidator() bmrelsetmanifest.Validator {
+	if f.releaseSetValidator != nil {
+		return f.releaseSetValidator
+	}
+
+	f.releaseSetValidator = bmrelsetmanifest.NewValidator(f.logger, f.loadReleaseManager())
+	return f.releaseSetValidator
 }
 
 func (f *factory) loadCloudFactory() bmcloud.Factory {

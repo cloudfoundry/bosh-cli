@@ -31,12 +31,13 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
-var _ = Describe("Cmd/DeleteCmd", func() {
+var _ = Describe("DeleteCmd", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {
@@ -143,6 +144,8 @@ cloud_provider:
 		var newDeleteCmd = func() Cmd {
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+			releaseSetParser := bmrelsetmanifest.NewParser(fs, logger)
+			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseManager)
 			installationParser := bminstallmanifest.NewParser(fs, logger)
 			vmManagerFactory := bmvm.NewManagerFactory(
 				vmRepo,
@@ -162,7 +165,7 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, installationParser, deploymentConfigService, mockInstallerFactory, mockReleaseExtractor, releaseManager,
+				ui, userConfig, fs, releaseSetParser, installationParser, deploymentConfigService, releaseSetValidator, mockInstallerFactory, mockReleaseExtractor, releaseManager,
 				mockCloudFactory, mockAgentClientFactory, vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
 				eventLogger, logger,
 			)

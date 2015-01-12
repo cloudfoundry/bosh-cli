@@ -41,6 +41,7 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
 	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
@@ -304,8 +305,10 @@ cloud_provider:
 
 		var newDeployCmd = func() Cmd {
 			deploymentParser := bmdeplmanifest.NewParser(fs, logger)
+			releaseSetParser := bmrelsetmanifest.NewParser(fs, logger)
 			installationParser := bminstallmanifest.NewParser(fs, logger)
 
+			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseManager)
 			boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(logger, releaseManager)
 
 			deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
@@ -324,9 +327,11 @@ cloud_provider:
 				ui,
 				userConfig,
 				fs,
+				releaseSetParser,
 				installationParser,
 				deploymentParser,
 				deploymentConfigService,
+				releaseSetValidator,
 				boshDeploymentValidator,
 				mockInstallerFactory,
 				mockReleaseExtractor,

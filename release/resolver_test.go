@@ -7,9 +7,9 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	"github.com/cloudfoundry/bosh-agent/logger"
-	"github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 
 	fake_release "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
 var _ = Describe("Resolver", func() {
@@ -17,7 +17,7 @@ var _ = Describe("Resolver", func() {
 	var (
 		myLogger        logger.Logger
 		releaseManager  Manager
-		releaseVersions []manifest.ReleaseRef
+		releaseVersions []bmrelmanifest.ReleaseRef
 
 		releaseA10 = fake_release.New("release-a", "1.0")
 	)
@@ -25,7 +25,7 @@ var _ = Describe("Resolver", func() {
 	BeforeEach(func() {
 		logger := logger.NewLogger(logger.LevelNone)
 
-		releaseVersions = []manifest.ReleaseRef{}
+		releaseVersions = []bmrelmanifest.ReleaseRef{}
 		releaseManager = NewManager(logger)
 	})
 
@@ -33,7 +33,7 @@ var _ = Describe("Resolver", func() {
 		return NewResolver(myLogger, releaseManager, releaseVersions)
 	}
 	addReleaseVersionRule := func(name, version string) {
-		releaseVersions = append(releaseVersions, manifest.NewReleaseRef(name, version))
+		releaseVersions = append(releaseVersions, bmrelmanifest.ReleaseRef{Name: name, Version: version})
 	}
 
 	Context("when a release version has not been specified", func() {

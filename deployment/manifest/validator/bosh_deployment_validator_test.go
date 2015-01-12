@@ -4,10 +4,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
@@ -30,7 +31,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		validManifest = bmdeplmanifest.Manifest{
 			Name: "fake-deployment-name",
-			Releases: []bmdeplmanifest.ReleaseRef{
+			Releases: []bmrelmanifest.ReleaseRef{
 				{
 					Name:    "fake-release-name",
 					Version: "1.0",
@@ -135,7 +136,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates releases have names", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
-				Releases: []bmdeplmanifest.ReleaseRef{{}},
+				Releases: []bmrelmanifest.ReleaseRef{{}},
 			}
 
 			err := validator.Validate(deploymentManifest)
@@ -145,7 +146,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates releases have versions", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
-				Releases: []bmdeplmanifest.ReleaseRef{{}},
+				Releases: []bmrelmanifest.ReleaseRef{{}},
 			}
 
 			err := validator.Validate(deploymentManifest)
@@ -155,7 +156,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates version is a SemVer", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
-				Releases: []bmdeplmanifest.ReleaseRef{
+				Releases: []bmrelmanifest.ReleaseRef{
 					{Name: "fake-release-name", Version: "not-a-semver"},
 				},
 			}
@@ -167,7 +168,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates release is available", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{
+			deploymentManifest.Releases = []bmrelmanifest.ReleaseRef{
 				{Name: "fake-other-release-name", Version: "1.0"},
 			}
 
@@ -178,7 +179,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("allows version to be 'latest'", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{
+			deploymentManifest.Releases = []bmrelmanifest.ReleaseRef{
 				{Name: "fake-release-name", Version: "latest"},
 			}
 			releaseManager.Add(fakebmrel.New("fake-release-name", "1.0"))
@@ -189,7 +190,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates releases are unique", func() {
 			deploymentManifest := bmdeplmanifest.Manifest{
-				Releases: []bmdeplmanifest.ReleaseRef{
+				Releases: []bmrelmanifest.ReleaseRef{
 					{Name: "fake-release-name"},
 					{Name: "fake-release-name"},
 				},
@@ -614,7 +615,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("permits job templates to reference an undeclared release", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{}
+			deploymentManifest.Releases = []bmrelmanifest.ReleaseRef{}
 			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
 				{
 					Name:    "fake-job-name",
@@ -673,7 +674,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates job templates reference an available release", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{}
+			deploymentManifest.Releases = []bmrelmanifest.ReleaseRef{}
 			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
 				{Name: "fake-job-name", Release: "fake-other-release-name"},
 			}
@@ -686,7 +687,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		It("validates job templates reference a job declared within the release", func() {
 			deploymentManifest := validManifest
 
-			deploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{}
+			deploymentManifest.Releases = []bmrelmanifest.ReleaseRef{}
 			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
 				{Name: "fake-other-job-name", Release: "fake-release-name"},
 			}

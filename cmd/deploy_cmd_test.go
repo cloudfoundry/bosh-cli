@@ -29,6 +29,8 @@ import (
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -42,6 +44,7 @@ import (
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -83,9 +86,11 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeployer         *fakebmdepl.FakeDeployer
 		fakeDeploymentRecord *fakebmdepl.FakeDeploymentRecord
 
+		fakeReleaseSetParser    *fakebmrelsetmanifest.FakeParser
 		fakeInstallationParser  *fakebminstallmanifest.FakeParser
 		fakeDeploymentParser    *fakebmdeplmanifest.FakeParser
 		deploymentConfigService bmconfig.DeploymentConfigService
+		fakeReleaseSetValidator *fakebmrelsetmanifest.FakeValidator
 		fakeDeploymentValidator *fakebmdeplval.FakeValidator
 
 		fakeCompressor    *fakecmd.FakeCompressor
@@ -137,12 +142,14 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeDeployer = fakebmdepl.NewFakeDeployer()
 
+		fakeReleaseSetParser = fakebmrelsetmanifest.NewFakeParser()
 		fakeInstallationParser = fakebminstallmanifest.NewFakeParser()
 		fakeDeploymentParser = fakebmdeplmanifest.NewFakeParser()
 
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, fakeUUIDGenerator, logger)
 
+		fakeReleaseSetValidator = fakebmrelsetmanifest.NewFakeValidator()
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
@@ -176,9 +183,11 @@ var _ = Describe("DeployCmd", func() {
 			fakeUI,
 			userConfig,
 			fakeFs,
+			fakeReleaseSetParser,
 			fakeInstallationParser,
 			fakeDeploymentParser,
 			deploymentConfigService,
+			fakeReleaseSetValidator,
 			fakeDeploymentValidator,
 			mockInstallerFactory,
 			mockReleaseExtractor,
@@ -196,6 +205,7 @@ var _ = Describe("DeployCmd", func() {
 
 	Describe("Run", func() {
 		var (
+			releaseSetManifest     bmrelsetmanifest.Manifest
 			boshDeploymentManifest bmdeplmanifest.Manifest
 			installationManifest   bminstallmanifest.Manifest
 			cloud                  *fakebmcloud.FakeCloud
@@ -219,6 +229,11 @@ var _ = Describe("DeployCmd", func() {
 			// deployment exists
 			fakeFs.WriteFileString(userConfig.DeploymentManifestPath, "")
 
+			// release set is valid
+			fakeReleaseSetValidator.SetValidateBehavior([]fakebmrelsetmanifest.ValidateOutput{
+				{Err: nil},
+			})
+
 			// deployment is valid
 			fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
 				{Err: nil},
@@ -226,6 +241,15 @@ var _ = Describe("DeployCmd", func() {
 
 			// stemcell exists
 			fakeFs.WriteFile(stemcellTarballPath, []byte{})
+
+			releaseSetManifest = bmrelsetmanifest.Manifest{
+				Releases: []bmrelmanifest.ReleaseRef{
+					{
+						Name:    "fake-cpi-release-name",
+						Version: "1.0",
+					},
+				},
+			}
 
 			// parsed CPI deployment manifest
 			installationManifest = bminstallmanifest.Manifest{
@@ -240,7 +264,7 @@ var _ = Describe("DeployCmd", func() {
 			// parsed BOSH deployment manifest
 			boshDeploymentManifest = bmdeplmanifest.Manifest{
 				Name: "fake-deployment-name",
-				Releases: []bmdeplmanifest.ReleaseRef{
+				Releases: []bmrelmanifest.ReleaseRef{
 					{
 						Name:    "fake-cpi-release-name",
 						Version: "1.0",
@@ -274,6 +298,7 @@ var _ = Describe("DeployCmd", func() {
 		JustBeforeEach(func() {
 			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
 
+			fakeReleaseSetParser.ParseManifest = releaseSetManifest
 			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
 			fakeInstallationParser.ParseManifest = installationManifest
 
@@ -349,11 +374,19 @@ var _ = Describe("DeployCmd", func() {
 			Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
+		It("validates release set manifest", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeReleaseSetValidator.ValidateInputs).To(Equal([]fakebmrelsetmanifest.ValidateInput{
+				{Manifest: releaseSetManifest},
+			}))
+		})
+
 		It("validates bosh deployment manifest", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
-				{Deployment: boshDeploymentManifest},
+				{Manifest: boshDeploymentManifest},
 			}))
 		})
 
@@ -561,7 +594,7 @@ var _ = Describe("DeployCmd", func() {
 
 			Context("when cloud_provider.release refers to an undeclared release", func() {
 				BeforeEach(func() {
-					boshDeploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{}
+					boshDeploymentManifest.Releases = []bmrelmanifest.ReleaseRef{}
 				})
 
 				It("uses the latest version of that release that is available", func() {
@@ -575,7 +608,7 @@ var _ = Describe("DeployCmd", func() {
 
 			Context("when cloud_provider.release refers to an release declared with version 'latest'", func() {
 				BeforeEach(func() {
-					boshDeploymentManifest.Releases = []bmdeplmanifest.ReleaseRef{
+					boshDeploymentManifest.Releases = []bmrelmanifest.ReleaseRef{
 						{
 							Name:    "fake-cpi-release-name",
 							Version: "latest",
@@ -674,9 +707,11 @@ var _ = Describe("DeployCmd", func() {
 					fakeUI,
 					userConfig,
 					fakeFs,
+					fakeReleaseSetParser,
 					fakeInstallationParser,
 					fakeDeploymentParser,
 					deploymentConfigService,
+					fakeReleaseSetValidator,
 					fakeDeploymentValidator,
 					mockInstallerFactory,
 					mockReleaseExtractor,

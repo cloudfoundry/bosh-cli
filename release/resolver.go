@@ -2,15 +2,15 @@ package release
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	"github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 
 	"github.com/cloudfoundry/bosh-agent/errors"
 	version "github.com/hashicorp/go-version"
+
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
 type Resolver interface {
 	Find(name string) (release Release, err error)
-	Verify() error
 }
 
 type resolver struct {
@@ -18,15 +18,15 @@ type resolver struct {
 	logTag string
 
 	manager             Manager
-	releaseVersions     []manifest.ReleaseRef
-	releaseMap          map[string]manifest.ReleaseRef
+	releaseVersions     []bmrelmanifest.ReleaseRef
+	releaseMap          map[string]bmrelmanifest.ReleaseRef
 	releaseMapPopulated bool
 }
 
 func NewResolver(
 	logger boshlog.Logger,
 	manager Manager,
-	releaseVersions []manifest.ReleaseRef,
+	releaseVersions []bmrelmanifest.ReleaseRef,
 ) Resolver {
 	return &resolver{
 		logger:          logger,
@@ -82,13 +82,9 @@ func (r *resolver) Find(name string) (release Release, err error) {
 	return release, nil
 }
 
-func (r *resolver) Verify() (err error) {
-	return nil
-}
-
 func (r *resolver) populateReleaseMap() error {
 	if !r.releaseMapPopulated {
-		r.releaseMap = map[string]manifest.ReleaseRef{}
+		r.releaseMap = map[string]bmrelmanifest.ReleaseRef{}
 		for _, releaseRef := range r.releaseVersions {
 			_, found := r.releaseMap[releaseRef.Name]
 			if found {

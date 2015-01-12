@@ -10,6 +10,8 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 )
 
@@ -98,7 +100,7 @@ jobs:
 
 		Expect(deploymentManifest).To(Equal(Manifest{
 			Name: "fake-deployment-name",
-			Releases: []ReleaseRef{
+			Releases: []bmrelmanifest.ReleaseRef{
 				{
 					Name:    "fake-release-name",
 					Version: "fake-release-version",

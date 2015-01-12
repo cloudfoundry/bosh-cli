@@ -14,12 +14,13 @@ import (
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
@@ -30,8 +31,10 @@ type deleteCmd struct {
 	ui                      bmui.UI
 	userConfig              bmconfig.UserConfig
 	fs                      boshsys.FileSystem
+	releaseSetParser        bmrelsetmanifest.Parser
 	installationParser      bminstallmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
+	releaseSetValidator     bmrelsetmanifest.Validator
 	installerFactory        bminstall.InstallerFactory
 	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
@@ -50,8 +53,10 @@ func NewDeleteCmd(
 	ui bmui.UI,
 	userConfig bmconfig.UserConfig,
 	fs boshsys.FileSystem,
+	releaseSetParser bmrelsetmanifest.Parser,
 	installationParser bminstallmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
+	releaseSetValidator bmrelsetmanifest.Validator,
 	installerFactory bminstall.InstallerFactory,
 	releaseExtractor bmrel.Extractor,
 	releaseManager bmrel.Manager,
@@ -68,8 +73,10 @@ func NewDeleteCmd(
 		ui:                      ui,
 		userConfig:              userConfig,
 		fs:                      fs,
+		releaseSetParser:        releaseSetParser,
 		installationParser:      installationParser,
 		deploymentConfigService: deploymentConfigService,
+		releaseSetValidator:     releaseSetValidator,
 		installerFactory:        installerFactory,
 		releaseExtractor:        releaseExtractor,
 		releaseManager:          releaseManager,
@@ -110,7 +117,16 @@ func (c *deleteCmd) Run(args []string) error {
 
 	var installationManifest bminstallmanifest.Manifest
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		var err error
+		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.releaseSetValidator.Validate(releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating release set manifest")
+		}
+
 		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
@@ -154,7 +170,7 @@ func (c *deleteCmd) Run(args []string) error {
 
 	validationStage.Finish()
 
-	releaseResolver := bmrel.NewResolver(c.logger, c.releaseManager, []bmdeplmanifest.ReleaseRef{})
+	releaseResolver := bmrel.NewResolver(c.logger, c.releaseManager, []bmrelmanifest.ReleaseRef{})
 	installer, err := c.installerFactory.NewInstaller(releaseResolver)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI Installer")
