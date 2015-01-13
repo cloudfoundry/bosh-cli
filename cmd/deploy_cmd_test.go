@@ -215,7 +215,6 @@ var _ = Describe("DeployCmd", func() {
 			cloud                  *fakebmcloud.FakeCloud
 
 			directorID   = "fake-uuid-0"
-			deploymentID = "fake-uuid-1"
 
 			expectCPIReleaseExtract *gomock.Call
 			expectInstall           *gomock.Call
@@ -314,7 +313,7 @@ var _ = Describe("DeployCmd", func() {
 				nil,
 			)
 
-			installationPath := filepath.Join("fake-install-dir", deploymentID)
+			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := bminstall.NewTarget(installationPath)
 
 			installedJob := bminstalljob.InstalledJob{
@@ -691,7 +690,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
-					DirectorID: "fake-uuid-0",
+					DirectorID: directorID,
 				}))
 			})
 		})
