@@ -8,6 +8,7 @@ import (
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
@@ -16,6 +17,7 @@ import (
 
 var _ = Describe("Validator", func() {
 	var (
+		logger         boshlog.Logger
 		releaseManager bmrel.Manager
 		validator      Validator
 
@@ -24,9 +26,8 @@ var _ = Describe("Validator", func() {
 	)
 
 	BeforeEach(func() {
-		logger := boshlog.NewLogger(boshlog.LevelNone)
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 		releaseManager = bmrel.NewManager(logger)
-		validator = NewValidator(logger, releaseManager)
 
 		validManifest = Manifest{
 			Releases: []bmrelmanifest.ReleaseRef{
@@ -40,6 +41,11 @@ var _ = Describe("Validator", func() {
 		fakeRelease = fakebmrel.New("fake-release-name", "1.0")
 		fakeRelease.ReleaseJobs = []bmrel.Job{{Name: "fake-job-name"}}
 		releaseManager.Add(fakeRelease)
+	})
+
+	JustBeforeEach(func() {
+		releaseResolver := bmrelset.NewResolver(releaseManager, logger)
+		validator = NewValidator(logger, releaseResolver)
 	})
 
 	Describe("Validate", func() {
@@ -79,7 +85,7 @@ var _ = Describe("Validator", func() {
 
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("releases[0].version must be a semantic version"))
+			Expect(err.Error()).To(ContainSubstring("releases[0].version 'not-a-semver' must be a semantic version (name: 'fake-release-name')"))
 		})
 
 		It("validates release is available", func() {

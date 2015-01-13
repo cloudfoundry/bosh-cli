@@ -19,7 +19,7 @@ import (
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
@@ -38,6 +38,7 @@ type deleteCmd struct {
 	installerFactory        bminstall.InstallerFactory
 	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
+	releaseResolver         bmrelset.Resolver
 	cloudFactory            bmcloud.Factory
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
@@ -60,6 +61,7 @@ func NewDeleteCmd(
 	installerFactory bminstall.InstallerFactory,
 	releaseExtractor bmrel.Extractor,
 	releaseManager bmrel.Manager,
+	releaseResolver bmrelset.Resolver,
 	cloudFactory bmcloud.Factory,
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
@@ -80,6 +82,7 @@ func NewDeleteCmd(
 		installerFactory:        installerFactory,
 		releaseExtractor:        releaseExtractor,
 		releaseManager:          releaseManager,
+		releaseResolver:         releaseResolver,
 		cloudFactory:            cloudFactory,
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
@@ -115,29 +118,6 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	var installationManifest bminstallmanifest.Manifest
-	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.releaseSetValidator.Validate(releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating release set manifest")
-		}
-
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
 	var cpiRelease bmrel.Release
 	err = validationStage.PerformStep("Validating cpi release", func() error {
 		if !c.fs.FileExists(cpiReleaseTarballPath) {
@@ -168,10 +148,34 @@ func (c *deleteCmd) Run(args []string) error {
 		}
 	}()
 
+	var installationManifest bminstallmanifest.Manifest
+	err = validationStage.PerformStep("Validating deployment manifest", func() error {
+		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.releaseSetValidator.Validate(releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating release set manifest")
+		}
+
+		c.releaseResolver.Filter(releaseSetManifest.Releases)
+
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
 	validationStage.Finish()
 
-	releaseResolver := bmrel.NewResolver(c.logger, c.releaseManager, []bmrelmanifest.ReleaseRef{})
-	installer, err := c.installerFactory.NewInstaller(releaseResolver)
+	installer, err := c.installerFactory.NewInstaller()
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}

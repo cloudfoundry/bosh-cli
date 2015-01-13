@@ -11,7 +11,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
-	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
+	mock_release_set "github.com/cloudfoundry/bosh-micro-cli/release/set/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
@@ -44,7 +44,7 @@ var _ = Describe("Installer", func() {
 		fakeJobInstaller    *fakebminstalljob.FakeInstaller
 		fakeUI              *fakebmui.FakeUI
 
-		mockReleaseResolver       *mock_release.MockResolver
+		mockReleaseResolver       *mock_release_set.MockResolver
 		mockRegistryServerManager *mock_registry.MockServerManager
 
 		logger boshlog.Logger
@@ -63,7 +63,7 @@ var _ = Describe("Installer", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		mockReleaseResolver = mock_release.NewMockResolver(mockCtrl)
+		mockReleaseResolver = mock_release_set.NewMockResolver(mockCtrl)
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 
 		deploymentManifestPath = "/path/to/manifest.yml"

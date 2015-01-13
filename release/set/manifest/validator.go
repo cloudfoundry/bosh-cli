@@ -3,11 +3,13 @@ package manifest
 import (
 	"strings"
 
+	version "github.com/hashicorp/go-version"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
+	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 )
 
 type Validator interface {
@@ -15,14 +17,14 @@ type Validator interface {
 }
 
 type validator struct {
-	logger         boshlog.Logger
-	releaseManager bmrel.Manager
+	logger          boshlog.Logger
+	releaseResolver bmrelset.Resolver
 }
 
-func NewValidator(logger boshlog.Logger, releaseManager bmrel.Manager) Validator {
+func NewValidator(logger boshlog.Logger, releaseResolver bmrelset.Resolver) Validator {
 	return &validator{
-		logger:         logger,
-		releaseManager: releaseManager,
+		logger:          logger,
+		releaseResolver: releaseResolver,
 	}
 }
 
@@ -39,8 +41,8 @@ func (v *validator) Validate(manifest Manifest) error {
 		}
 
 		if !release.IsLatest() {
-			if _, err := release.VersionConstraints(); err != nil {
-				errs = append(errs, bosherr.WrapErrorf(err, "releases[%d].version must be a semantic version", releaseIdx))
+			if _, err := version.NewVersion(release.Version); err != nil {
+				errs = append(errs, bosherr.WrapErrorf(err, "releases[%d].version '%s' must be a semantic version (name: '%s')", releaseIdx, release.Version, release.Name))
 			}
 		}
 
@@ -50,9 +52,8 @@ func (v *validator) Validate(manifest Manifest) error {
 		releaseNames[release.Name] = struct{}{}
 	}
 
-	releaseResolver := bmrel.NewResolver(v.logger, v.releaseManager, manifest.Releases)
 	for releaseIdx, release := range manifest.Releases {
-		_, err := releaseResolver.Find(release.Name)
+		_, err := v.releaseResolver.Find(release.Name)
 		if err != nil {
 			errs = append(errs, bosherr.WrapErrorf(err, "releases[%d] must refer to an available release", releaseIdx))
 		}

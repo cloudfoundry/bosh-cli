@@ -1,45 +1,45 @@
-package release_test
+package set_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/set"
 
-	"github.com/cloudfoundry/bosh-agent/logger"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 
 	fake_release "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
 var _ = Describe("Resolver", func() {
 
 	var (
-		myLogger        logger.Logger
-		releaseManager  Manager
-		releaseVersions []bmrelmanifest.ReleaseRef
+		logger         boshlog.Logger
+		releaseManager bmrel.Manager
+		releases       []bmrelmanifest.ReleaseRef
 
 		releaseA10 = fake_release.New("release-a", "1.0")
+		resolver   Resolver
 	)
 
 	BeforeEach(func() {
-		logger := logger.NewLogger(logger.LevelNone)
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		releaseVersions = []bmrelmanifest.ReleaseRef{}
-		releaseManager = NewManager(logger)
+		releases = []bmrelmanifest.ReleaseRef{}
+		releaseManager = bmrel.NewManager(logger)
 	})
 
-	createResolver := func() Resolver {
-		return NewResolver(myLogger, releaseManager, releaseVersions)
-	}
-	addReleaseVersionRule := func(name, version string) {
-		releaseVersions = append(releaseVersions, bmrelmanifest.ReleaseRef{Name: name, Version: version})
-	}
+	JustBeforeEach(func() {
+		resolver = NewResolver(releaseManager, logger)
+	})
 
 	Context("when a release version has not been specified", func() {
 		Context("when no release is available with that name", func() {
 			It("returns an error", func() {
-				_, err := createResolver().Find("release-a")
+				_, err := resolver.Find("release-a")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Release 'release-a' is not available"))
 			})
@@ -47,7 +47,7 @@ var _ = Describe("Resolver", func() {
 
 		It("resolves releases using the latest available version", func() {
 			releaseManager.Add(releaseA10)
-			release, err := createResolver().Find("release-a")
+			release, err := resolver.Find("release-a")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(release).To(Equal(releaseA10))
 		})
@@ -60,12 +60,12 @@ var _ = Describe("Resolver", func() {
 			})
 
 			It("resolves releases using the latest available version", func() {
-				release, err := createResolver().Find("release-a")
+				release, err := resolver.Find("release-a")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(release.Version()).To(Equal("1.2"))
 
 				releaseManager.Add(fake_release.New("release-a", "1.3-alpha"))
-				release, err = createResolver().Find("release-a")
+				release, err = resolver.Find("release-a")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(release.Version()).To(Equal("1.3-alpha"))
 			})
@@ -73,17 +73,21 @@ var _ = Describe("Resolver", func() {
 	})
 
 	Context("when a release version has been specified", func() {
-		BeforeEach(func() {
-			addReleaseVersionRule("release-a", "1.1")
+		JustBeforeEach(func() {
+			resolver.Filter([]bmrelmanifest.ReleaseRef{
+				{Name: "release-a", Version: "1.1"},
+			})
 		})
 
-		Context("when no release is available with that name", func() {
-			It("returns an error", func() {
+		Context("when no release is available with the specified version", func() {
+			BeforeEach(func() {
 				releaseManager.Add(fake_release.New("release-a", "1.0"))
+			})
 
-				_, err := createResolver().Find("release-a")
+			It("returns an error", func() {
+				_, err := resolver.Find("release-a")
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("No version of 'release-a' matches '1.1"))
+				Expect(err.Error()).To(ContainSubstring("No version of 'release-a' matches '1.1'"))
 			})
 		})
 
@@ -95,7 +99,7 @@ var _ = Describe("Resolver", func() {
 			})
 
 			It("returns that release", func() {
-				release, err := createResolver().Find("release-a")
+				release, err := resolver.Find("release-a")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(release.Version()).To(Equal("1.1"))
 			})
@@ -107,35 +111,42 @@ var _ = Describe("Resolver", func() {
 			releaseManager.Add(fake_release.New("release-a", "1.0"))
 			releaseManager.Add(fake_release.New("release-a", "1.2"))
 			releaseManager.Add(fake_release.New("release-a", "1.1"))
-			addReleaseVersionRule("release-a", "latest")
+			resolver.Filter([]bmrelmanifest.ReleaseRef{
+				{Name: "release-a", Version: "latest"},
+			})
 		})
 
 		It("returns the release with the greatest version", func() {
-			release, err := createResolver().Find("release-a")
+			release, err := resolver.Find("release-a")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(release.Version()).To(Equal("1.2"))
 		})
 	})
 
-	It("reports problems with version constraints", func() {
+	It("reports problems with parsing manifest versions", func() {
 		releaseManager.Add(fake_release.New("release-a", "1.0"))
-		addReleaseVersionRule("release-a", "_")
-		_, err := createResolver().Find("release-a")
-		Expect(err.Error()).To(ContainSubstring("Parsing requested version for 'release-a': Malformed constraint: _"))
+		resolver.Filter([]bmrelmanifest.ReleaseRef{
+			{Name: "release-a", Version: "_"},
+		})
+		_, err := resolver.Find("release-a")
+		Expect(err.Error()).To(ContainSubstring("Parsing version '_' of release 'release-a' from manifest: Malformed constraint: _"))
 	})
 
-	It("reports problems with versions", func() {
+	It("reports problems with parsing managed release versions", func() {
 		releaseManager.Add(fake_release.New("release-a", "_"))
-		_, err := createResolver().Find("release-a")
+		resolver.Filter([]bmrelmanifest.ReleaseRef{
+			{Name: "release-a", Version: "1.0"},
+		})
+		_, err := resolver.Find("release-a")
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("Parsing version of 'release-a': Malformed version: _"))
+		Expect(err.Error()).To(ContainSubstring("Parsing version '_' of release 'release-a': Malformed version: _"))
 	})
 
-	It("reports problems if a release version is specified more than once", func() {
-		releaseManager.Add(fake_release.New("release-a", "_"))
-		addReleaseVersionRule("release-a", "1.0")
-		addReleaseVersionRule("release-a", "1.1")
-		_, err := createResolver().Find("release-a")
+	It("reports problems if a release name is specified more than once", func() {
+		err := resolver.Filter([]bmrelmanifest.ReleaseRef{
+			{Name: "release-a", Version: "1.0"},
+			{Name: "release-a", Version: "1.1"},
+		})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("Duplicate release 'release-a'"))
 	})

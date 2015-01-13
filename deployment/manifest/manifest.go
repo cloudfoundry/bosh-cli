@@ -3,12 +3,10 @@ package manifest
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 )
 
 type Manifest struct {
 	Name          string
-	Releases      []bmrelmanifest.ReleaseRef
 	RawProperties map[interface{}]interface{}
 	Jobs          []Job
 	Networks      []Network

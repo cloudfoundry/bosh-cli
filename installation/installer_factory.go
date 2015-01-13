@@ -18,14 +18,14 @@ import (
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type InstallerFactory interface {
-	NewInstaller(releaseResolver bmrel.Resolver) (Installer, error)
+	NewInstaller() (Installer, error)
 }
 
 type installerFactory struct {
@@ -34,7 +34,7 @@ type installerFactory struct {
 	runner                  boshsys.CmdRunner
 	extractor               boshcmd.Compressor
 	deploymentConfigService bmconfig.DeploymentConfigService
-	releaseManager          bmrel.Manager
+	releaseResolver         bmrelset.Resolver
 	workspaceRootPath       string
 	uuidGenerator           boshuuid.Generator
 	timeService             boshtime.Service
@@ -50,7 +50,7 @@ func NewInstallerFactory(
 	runner boshsys.CmdRunner,
 	extractor boshcmd.Compressor,
 	deploymentConfigService bmconfig.DeploymentConfigService,
-	releaseManager bmrel.Manager,
+	releaseResolver bmrelset.Resolver,
 	workspaceRootPath string,
 	uuidGenerator boshuuid.Generator,
 	timeService boshtime.Service,
@@ -64,7 +64,7 @@ func NewInstallerFactory(
 		runner:                  runner,
 		extractor:               extractor,
 		deploymentConfigService: deploymentConfigService,
-		releaseManager:          releaseManager,
+		releaseResolver:         releaseResolver,
 		workspaceRootPath:       workspaceRootPath,
 		uuidGenerator:           uuidGenerator,
 		timeService:             timeService,
@@ -75,7 +75,7 @@ func NewInstallerFactory(
 	}
 }
 
-func (f *installerFactory) NewInstaller(releaseResolver bmrel.Resolver) (Installer, error) {
+func (f *installerFactory) NewInstaller() (Installer, error) {
 	deploymentConfig, err := f.deploymentConfigService.Load()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Loading deployment config")
@@ -111,7 +111,7 @@ func (f *installerFactory) NewInstaller(releaseResolver bmrel.Resolver) (Install
 	return NewInstaller(
 		target,
 		f.ui,
-		releaseResolver,
+		f.releaseResolver,
 		context.ReleaseCompiler(),
 		context.JobInstaller(),
 		f.registryServerManager,

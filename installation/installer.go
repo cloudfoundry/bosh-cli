@@ -11,7 +11,7 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
@@ -22,7 +22,7 @@ type Installer interface {
 type installer struct {
 	target                Target
 	ui                    bmui.UI
-	releaseResolver       bmrel.Resolver
+	releaseResolver       bmrelset.Resolver
 	releaseCompiler       bminstallpkg.ReleaseCompiler
 	jobInstaller          bminstalljob.Installer
 	registryServerManager bmregistry.ServerManager
@@ -33,7 +33,7 @@ type installer struct {
 func NewInstaller(
 	target Target,
 	ui bmui.UI,
-	releaseResolver bmrel.Resolver,
+	releaseResolver bmrelset.Resolver,
 	releaseCompiler bminstallpkg.ReleaseCompiler,
 	jobInstaller bminstalljob.Installer,
 	registryServerManager bmregistry.ServerManager,

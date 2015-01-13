@@ -30,6 +30,7 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
@@ -71,6 +72,7 @@ var _ = Describe("DeployCmd", func() {
 		mockInstallerFactory      *mock_install.MockInstallerFactory
 		mockReleaseExtractor      *mock_release.MockExtractor
 		releaseManager            bmrel.Manager
+		releaseSetResolver        bmrelset.Resolver
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
 		mockAgentClient           *mock_agentclient.MockAgentClient
@@ -124,6 +126,7 @@ var _ = Describe("DeployCmd", func() {
 
 		mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
 		releaseManager = bmrel.NewManager(logger)
+		releaseSetResolver = bmrelset.NewResolver(releaseManager, logger)
 
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
@@ -192,6 +195,7 @@ var _ = Describe("DeployCmd", func() {
 			mockInstallerFactory,
 			mockReleaseExtractor,
 			releaseManager,
+			releaseSetResolver,
 			mockCloudFactory,
 			mockAgentClientFactory,
 			mockVMManagerFactory,
@@ -264,12 +268,6 @@ var _ = Describe("DeployCmd", func() {
 			// parsed BOSH deployment manifest
 			boshDeploymentManifest = bmdeplmanifest.Manifest{
 				Name: "fake-deployment-name",
-				Releases: []bmrelmanifest.ReleaseRef{
-					{
-						Name:    "fake-cpi-release-name",
-						Version: "1.0",
-					},
-				},
 				Jobs: []bmdeplmanifest.Job{
 					{
 						Name: "fake-job-name",
@@ -324,7 +322,7 @@ var _ = Describe("DeployCmd", func() {
 				Path: filepath.Join(target.JobsPath(), "cpi"),
 			}
 
-			mockInstallerFactory.EXPECT().NewInstaller(gomock.Any()).Return(mockInstaller, nil).AnyTimes()
+			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 
 			installation := bminstall.NewInstallation(target, installedJob, installationManifest, mockRegistryServerManager)
 
@@ -594,7 +592,7 @@ var _ = Describe("DeployCmd", func() {
 
 			Context("when cloud_provider.release refers to an undeclared release", func() {
 				BeforeEach(func() {
-					boshDeploymentManifest.Releases = []bmrelmanifest.ReleaseRef{}
+					releaseSetManifest.Releases = []bmrelmanifest.ReleaseRef{}
 				})
 
 				It("uses the latest version of that release that is available", func() {
@@ -608,7 +606,7 @@ var _ = Describe("DeployCmd", func() {
 
 			Context("when cloud_provider.release refers to an release declared with version 'latest'", func() {
 				BeforeEach(func() {
-					boshDeploymentManifest.Releases = []bmrelmanifest.ReleaseRef{
+					releaseSetManifest.Releases = []bmrelmanifest.ReleaseRef{
 						{
 							Name:    "fake-cpi-release-name",
 							Version: "latest",
@@ -716,6 +714,7 @@ var _ = Describe("DeployCmd", func() {
 					mockInstallerFactory,
 					mockReleaseExtractor,
 					releaseManager,
+					releaseSetResolver,
 					mockCloudFactory,
 					mockAgentClientFactory,
 					mockVMManagerFactory,

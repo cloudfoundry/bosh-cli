@@ -119,6 +119,8 @@ var _ = Describe("bosh-micro", func() {
 		Expect(err).NotTo(HaveOccurred())
 		err = testEnv.DownloadOrCopy("cpi-release.tgz", config.CpiReleasePath, config.CpiReleaseURL)
 		Expect(err).NotTo(HaveOccurred())
+		err = testEnv.DownloadOrCopy("bosh-release.tgz", config.BoshReleasePath, config.BoshReleaseURL)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
@@ -136,7 +138,7 @@ var _ = Describe("bosh-micro", func() {
 	}
 
 	var deploy = func() (stdout string) {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"))
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return stdout
@@ -297,7 +299,7 @@ var _ = Describe("bosh-micro", func() {
 				Expect(exitCode).To(Equal(0))
 			})
 
-			It("re-deploys if the agent is unresponsive", func() {
+			It("re-deploying deletes the vm", func() {
 				updateDeploymentManifest("./assets/modified_manifest.yml")
 
 				stdout := deploy()
@@ -308,7 +310,7 @@ var _ = Describe("bosh-micro", func() {
 				Expect(stdout).To(ContainSubstring("Done deploying"))
 			})
 
-			It("deletes if the agent is unresponsive", func() {
+			FIt("delete deletes the vm", func() {
 				stdout := deleteDeployment()
 
 				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. failed."))

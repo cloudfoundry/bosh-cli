@@ -16,6 +16,8 @@ type Config struct {
 	StemcellPath   string `json:"stemcell_path"`
 	CpiReleaseURL  string `json:"cpi_release_url"`
 	CpiReleasePath string `json:"cpi_release_path"`
+	BoshReleaseURL  string `json:"bosh_release_url"`
+	BoshReleasePath string `json:"bosh_release_path"`
 }
 
 func NewConfig(fs boshsys.FileSystem) (*Config, error) {

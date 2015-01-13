@@ -41,6 +41,7 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
@@ -67,6 +68,7 @@ var _ = Describe("bosh-micro", func() {
 
 			registryServerManager bmregistry.ServerManager
 			releaseManager        bmrel.Manager
+			releaseResolver       bmrelset.Resolver
 
 			mockInstaller          *mock_install.MockInstaller
 			mockInstallerFactory   *mock_install.MockInstallerFactory
@@ -255,7 +257,7 @@ cloud_provider:
 
 			installation := bminstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
 
-			mockInstallerFactory.EXPECT().NewInstaller(gomock.Any()).Return(mockInstaller, nil).AnyTimes()
+			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 			mockInstaller.EXPECT().Install(installationManifest).Return(installation, nil).AnyTimes()
 
 			mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(mockCloud, nil).AnyTimes()
@@ -308,8 +310,8 @@ cloud_provider:
 			releaseSetParser := bmrelsetmanifest.NewParser(fs, logger)
 			installationParser := bminstallmanifest.NewParser(fs, logger)
 
-			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseManager)
-			boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(logger, releaseManager)
+			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseResolver)
+			boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(logger, releaseResolver)
 
 			deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 
@@ -336,6 +338,7 @@ cloud_provider:
 				mockInstallerFactory,
 				mockReleaseExtractor,
 				releaseManager,
+				releaseResolver,
 				mockCloudFactory,
 				mockAgentClientFactory,
 				vmManagerFactory,
@@ -639,6 +642,7 @@ cloud_provider:
 
 			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
 			releaseManager = bmrel.NewManager(logger)
+			releaseResolver = bmrelset.NewResolver(releaseManager, logger)
 
 			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 

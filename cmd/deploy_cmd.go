@@ -21,6 +21,7 @@ import (
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
@@ -38,6 +39,7 @@ type deployCmd struct {
 	installerFactory        bminstall.InstallerFactory
 	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
+	releaseResolver         bmrelset.Resolver
 	cloudFactory            bmcloud.Factory
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
@@ -62,6 +64,7 @@ func NewDeployCmd(
 	installerFactory bminstall.InstallerFactory,
 	releaseExtractor bmrel.Extractor,
 	releaseManager bmrel.Manager,
+	releaseResolver bmrelset.Resolver,
 	cloudFactory bmcloud.Factory,
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
@@ -84,6 +87,7 @@ func NewDeployCmd(
 		installerFactory:        installerFactory,
 		releaseExtractor:        releaseExtractor,
 		releaseManager:          releaseManager,
+		releaseResolver:         releaseResolver,
 		cloudFactory:            cloudFactory,
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
@@ -172,7 +176,6 @@ func (c *deployCmd) Run(args []string) error {
 	var (
 		deploymentManifest   bmdeplmanifest.Manifest
 		installationManifest bminstallmanifest.Manifest
-		releaseResolver      bmrel.Resolver
 	)
 	err = validationStage.PerformStep("Validating deployment manifest", func() error {
 		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
@@ -184,6 +187,9 @@ func (c *deployCmd) Run(args []string) error {
 		if err != nil {
 			return bosherr.WrapError(err, "Validating release set manifest")
 		}
+
+		//TODO: this seems to be a naming smell indicating a deeper issue
+		c.releaseResolver.Filter(releaseSetManifest.Releases)
 
 		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
@@ -200,14 +206,13 @@ func (c *deployCmd) Run(args []string) error {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
 
+		//TODO: CPIInstallationValidator
 		cpiReleaseName := installationManifest.Release
 		if c.isBlank(cpiReleaseName) {
 			return bosherr.Error("cloud_provider.release must be provided")
 		}
 
-		releaseResolver = bmrel.NewResolver(c.logger, c.releaseManager, deploymentManifest.Releases)
-
-		cpiRelease, err := releaseResolver.Find(cpiReleaseName)
+		cpiRelease, err := c.releaseResolver.Find(cpiReleaseName)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "cloud_provider.release '%s' must refer to a provided release", cpiReleaseName)
 		}
@@ -235,7 +240,7 @@ func (c *deployCmd) Run(args []string) error {
 		return nil
 	}
 
-	installer, err := c.installerFactory.NewInstaller(releaseResolver)
+	installer, err := c.installerFactory.NewInstaller()
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}
