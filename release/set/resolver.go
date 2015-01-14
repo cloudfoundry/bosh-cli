@@ -20,7 +20,7 @@ type resolver struct {
 	logger  boshlog.Logger
 	logTag  string
 
-	releaseMap          map[string]bmrelmanifest.ReleaseRef
+	releaseMap map[string]bmrelmanifest.ReleaseRef
 }
 
 func NewResolver(
