@@ -88,12 +88,13 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeployer         *fakebmdepl.FakeDeployer
 		fakeDeploymentRecord *fakebmdepl.FakeDeploymentRecord
 
-		fakeReleaseSetParser    *fakebmrelsetmanifest.FakeParser
-		fakeInstallationParser  *fakebminstallmanifest.FakeParser
-		fakeDeploymentParser    *fakebmdeplmanifest.FakeParser
-		deploymentConfigService bmconfig.DeploymentConfigService
-		fakeReleaseSetValidator *fakebmrelsetmanifest.FakeValidator
-		fakeValidator           *fakebmdeplval.FakeValidator
+		fakeReleaseSetParser      *fakebmrelsetmanifest.FakeParser
+		fakeInstallationParser    *fakebminstallmanifest.FakeParser
+		fakeDeploymentParser      *fakebmdeplmanifest.FakeParser
+		deploymentConfigService   bmconfig.DeploymentConfigService
+		fakeReleaseSetValidator   *fakebmrelsetmanifest.FakeValidator
+		fakeInstallationValidator *fakebminstallmanifest.FakeValidator
+		fakeDeploymentValidator   *fakebmdeplval.FakeValidator
 
 		fakeCompressor    *fakecmd.FakeCompressor
 		fakeJobRenderer   *fakebmtemp.FakeJobRenderer
@@ -153,7 +154,8 @@ var _ = Describe("DeployCmd", func() {
 		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, fakeUUIDGenerator, logger)
 
 		fakeReleaseSetValidator = fakebmrelsetmanifest.NewFakeValidator()
-		fakeValidator = fakebmdeplval.NewFakeValidator()
+		fakeInstallationValidator = fakebminstallmanifest.NewFakeValidator()
+		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
@@ -191,7 +193,8 @@ var _ = Describe("DeployCmd", func() {
 			fakeDeploymentParser,
 			deploymentConfigService,
 			fakeReleaseSetValidator,
-			fakeValidator,
+			fakeInstallationValidator,
+			fakeDeploymentValidator,
 			mockInstallerFactory,
 			mockReleaseExtractor,
 			releaseManager,
@@ -237,8 +240,12 @@ var _ = Describe("DeployCmd", func() {
 				{Err: nil},
 			})
 
+			fakeInstallationValidator.SetValidateBehavior([]fakebminstallmanifest.ValidateOutput{
+				{Err: nil},
+			})
+
 			// deployment is valid
-			fakeValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
+			fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
 				{Err: nil},
 			})
 
@@ -379,10 +386,18 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
+		It("validates installation manifest", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeInstallationValidator.ValidateInputs).To(Equal([]fakebminstallmanifest.ValidateInput{
+				{Manifest: installationManifest},
+			}))
+		})
+
 		It("validates bosh deployment manifest", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
+			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
 				{Manifest: boshDeploymentManifest},
 			}))
 		})
@@ -408,6 +423,13 @@ var _ = Describe("DeployCmd", func() {
 				},
 				&fakebmlog.FakeStep{
 					Name: "Validating deployment manifest",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				},
+				&fakebmlog.FakeStep{
+					Name: "Validating cpi release",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Finished,
@@ -577,32 +599,6 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			Context("when cloud_provider.release is not specified", func() {
-				BeforeEach(func() {
-					installationManifest.Release = ""
-				})
-
-				It("returns error", func() {
-					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("cloud_provider.release must be provided"))
-				})
-			})
-
-			Context("when cloud_provider.release refers to an undeclared release", func() {
-				BeforeEach(func() {
-					releaseSetManifest.Releases = []bmrelmanifest.ReleaseRef{}
-				})
-
-				It("uses the latest version of that release that is available", func() {
-					expectInstall.Times(1)
-					expectNewCloud.Times(1)
-
-					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
-					Expect(err).NotTo(HaveOccurred())
-				})
-			})
-
 			Context("when cloud_provider.release refers to an release declared with version 'latest'", func() {
 				BeforeEach(func() {
 					releaseSetManifest.Releases = []bmrelmanifest.ReleaseRef{
@@ -619,18 +615,6 @@ var _ = Describe("DeployCmd", func() {
 
 					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
 					Expect(err).NotTo(HaveOccurred())
-				})
-			})
-
-			Context("when cloud_provider.release is not a provided release", func() {
-				BeforeEach(func() {
-					installationManifest.Release = "missing-release"
-				})
-
-				It("returns error", func() {
-					err := command.Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("cloud_provider.release 'missing-release' must refer to a provided release"))
 				})
 			})
 		})
@@ -709,7 +693,8 @@ var _ = Describe("DeployCmd", func() {
 					fakeDeploymentParser,
 					deploymentConfigService,
 					fakeReleaseSetValidator,
-					fakeValidator,
+					fakeInstallationValidator,
+					fakeDeploymentValidator,
 					mockInstallerFactory,
 					mockReleaseExtractor,
 					releaseManager,
@@ -746,9 +731,37 @@ var _ = Describe("DeployCmd", func() {
 			})
 		})
 
+		Context("when the installation manifest is invalid", func() {
+			BeforeEach(func() {
+				fakeInstallationValidator.SetValidateBehavior([]fakebminstallmanifest.ValidateOutput{
+					{Err: errors.New("fake-installation-validation-error")},
+				})
+			})
+
+			It("returns err", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-installation-validation-error"))
+			})
+
+			It("logs the failed event log", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "Validating deployment manifest",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Validating installation manifest: fake-installation-validation-error",
+				}))
+			})
+		})
+
 		Context("when the deployment manifest is invalid", func() {
 			BeforeEach(func() {
-				fakeValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
+				fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
 					{Err: errors.New("fake-deployment-validation-error")},
 				})
 			})

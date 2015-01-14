@@ -34,6 +34,7 @@ type deployCmd struct {
 	deploymentParser        bmdeplmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	releaseSetValidator     bmrelsetmanifest.Validator
+	installationValidator   bminstallmanifest.Validator
 	deploymentValidator     bmdeplmanifest.Validator
 	installerFactory        bminstall.InstallerFactory
 	releaseExtractor        bmrel.Extractor
@@ -59,6 +60,7 @@ func NewDeployCmd(
 	deploymentParser bmdeplmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	releaseSetValidator bmrelsetmanifest.Validator,
+	installationValidator bminstallmanifest.Validator,
 	deploymentValidator bmdeplmanifest.Validator,
 	installerFactory bminstall.InstallerFactory,
 	releaseExtractor bmrel.Extractor,
@@ -82,6 +84,7 @@ func NewDeployCmd(
 		deploymentParser:        deploymentParser,
 		deploymentConfigService: deploymentConfigService,
 		releaseSetValidator:     releaseSetValidator,
+		installationValidator:   installationValidator,
 		deploymentValidator:     deploymentValidator,
 		installerFactory:        installerFactory,
 		releaseExtractor:        releaseExtractor,
@@ -205,15 +208,22 @@ func (c *deployCmd) Run(args []string) error {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
 
-		//TODO: CPIInstallationValidator
-		cpiReleaseName := installationManifest.Release
-		if c.isBlank(cpiReleaseName) {
-			return bosherr.Error("cloud_provider.release must be provided")
+		err = c.installationValidator.Validate(installationManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating installation manifest")
 		}
 
-		cpiRelease, err := c.releaseResolver.Find(cpiReleaseName)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	err = validationStage.PerformStep("Validating cpi release", func() error {
+		cpiRelease, err := c.releaseResolver.Find(installationManifest.Release)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "cloud_provider.release '%s' must refer to a provided release", cpiReleaseName)
+			// should never happen, due to prior manifest validation
+			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", installationManifest.Release)
 		}
 
 		err = bmcpirel.NewValidator().Validate(cpiRelease)

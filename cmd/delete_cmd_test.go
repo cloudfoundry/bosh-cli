@@ -148,6 +148,7 @@ cloud_provider:
 			releaseSetParser := bmrelsetmanifest.NewParser(fs, logger)
 			releaseSetResolver := bmrelset.NewResolver(releaseManager, logger)
 			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseSetResolver)
+			installationValidator := bminstallmanifest.NewValidator(logger, releaseSetResolver)
 			installationParser := bminstallmanifest.NewParser(fs, logger)
 			vmManagerFactory := bmvm.NewManagerFactory(
 				vmRepo,
@@ -167,9 +168,26 @@ cloud_provider:
 			eventLogger := bmeventlog.NewEventLogger(ui)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
 			return NewDeleteCmd(
-				ui, userConfig, fs, releaseSetParser, installationParser, deploymentConfigService, releaseSetValidator, mockInstallerFactory, mockReleaseExtractor, releaseManager, releaseSetResolver,
-				mockCloudFactory, mockAgentClientFactory, vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory,
-				eventLogger, logger,
+				ui,
+				userConfig,
+				fs,
+				releaseSetParser,
+				installationParser,
+				deploymentConfigService,
+				releaseSetValidator,
+				installationValidator,
+				mockInstallerFactory,
+				mockReleaseExtractor,
+				releaseManager,
+				releaseSetResolver,
+				mockCloudFactory,
+				mockAgentClientFactory,
+				vmManagerFactory,
+				instanceManagerFactory,
+				diskManagerFactory,
+				stemcellManagerFactory,
+				eventLogger,
+				logger,
 			)
 		}
 
@@ -255,8 +273,9 @@ cloud_provider:
 					"Deployment state: '/deployment-dir/deployment.json'",
 					"",
 					"Started validating",
-					"Started validating > Validating cpi release...", " done. (00:00:00)",
+					"Started validating > Validating releases...", " done. (00:00:00)",
 					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+					"Started validating > Validating cpi release...", " done. (00:00:00)",
 					"Done validating",
 					"",
 					// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
@@ -344,8 +363,9 @@ cloud_provider:
 					"Deployment state: '/deployment-dir/deployment.json'",
 					"",
 					"Started validating",
-					"Started validating > Validating cpi release...", " done. (00:00:00)",
+					"Started validating > Validating releases...", " done. (00:00:00)",
 					"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+					"Started validating > Validating cpi release...", " done. (00:00:00)",
 					"Done validating",
 					"",
 					// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
@@ -419,8 +439,9 @@ cloud_provider:
 						"Deployment state: '/deployment-dir/deployment.json'",
 						"",
 						"Started validating",
-						"Started validating > Validating cpi release...", " done. (00:00:00)",
+						"Started validating > Validating releases...", " done. (00:00:00)",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+						"Started validating > Validating cpi release...", " done. (00:00:00)",
 						"Done validating",
 						"",
 						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
@@ -462,8 +483,9 @@ cloud_provider:
 						"Deployment state: '/deployment-dir/deployment.json'",
 						"",
 						"Started validating",
-						"Started validating > Validating cpi release...", " done. (00:00:00)",
+						"Started validating > Validating releases...", " done. (00:00:00)",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+						"Started validating > Validating cpi release...", " done. (00:00:00)",
 						"Done validating",
 						"",
 						// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
@@ -512,8 +534,9 @@ cloud_provider:
 							"Deployment state: '/deployment-dir/deployment.json'",
 							"",
 							"Started validating",
-							"Started validating > Validating cpi release...", " done. (00:00:00)",
+							"Started validating > Validating releases...", " done. (00:00:00)",
 							"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+							"Started validating > Validating cpi release...", " done. (00:00:00)",
 							"Done validating",
 							"",
 							// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
@@ -564,8 +587,9 @@ cloud_provider:
 						"Deployment state: '/deployment-dir/deployment.json'",
 						"",
 						"Started validating",
-						"Started validating > Validating cpi release...", " done. (00:00:00)",
+						"Started validating > Validating releases...", " done. (00:00:00)",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+						"Started validating > Validating cpi release...", " done. (00:00:00)",
 						"Done validating",
 						"",
 						// if cpiInstaller were not mocked, it would print the compilation and installation stages here.
@@ -614,8 +638,9 @@ cloud_provider:
 							"Deployment state: '/deployment-dir/deployment.json'",
 							"",
 							"Started validating",
-							"Started validating > Validating cpi release...", " done. (00:00:00)",
+							"Started validating > Validating releases...", " done. (00:00:00)",
 							"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+							"Started validating > Validating cpi release...", " done. (00:00:00)",
 							"Done validating",
 							"",
 							// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
@@ -677,8 +702,9 @@ cloud_provider:
 						"Deployment state: '/deployment-dir/deployment.json'",
 						"",
 						"Started validating",
-						"Started validating > Validating cpi release...", " done. (00:00:00)",
+						"Started validating > Validating releases...", " done. (00:00:00)",
 						"Started validating > Validating deployment manifest...", " done. (00:00:00)",
+						"Started validating > Validating cpi release...", " done. (00:00:00)",
 						"Done validating",
 						"",
 						// if cpiInstaller were not mocked, it would print the compilation and installation stages here.

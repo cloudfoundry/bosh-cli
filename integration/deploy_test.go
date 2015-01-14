@@ -310,6 +310,7 @@ cloud_provider:
 			installationParser := bminstallmanifest.NewParser(fs, logger)
 
 			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseResolver)
+			installationValidator := bminstallmanifest.NewValidator(logger, releaseResolver)
 			deploymentValidator := bmdeplmanifest.NewValidator(logger, releaseResolver)
 
 			deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
@@ -333,6 +334,7 @@ cloud_provider:
 				deploymentParser,
 				deploymentConfigService,
 				releaseSetValidator,
+				installationValidator,
 				deploymentValidator,
 				mockInstallerFactory,
 				mockReleaseExtractor,

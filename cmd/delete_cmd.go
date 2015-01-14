@@ -35,6 +35,7 @@ type deleteCmd struct {
 	installationParser      bminstallmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	releaseSetValidator     bmrelsetmanifest.Validator
+	installationValidator   bminstallmanifest.Validator
 	installerFactory        bminstall.InstallerFactory
 	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
@@ -58,6 +59,7 @@ func NewDeleteCmd(
 	installationParser bminstallmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	releaseSetValidator bmrelsetmanifest.Validator,
+	installationValidator bminstallmanifest.Validator,
 	installerFactory bminstall.InstallerFactory,
 	releaseExtractor bmrel.Extractor,
 	releaseManager bmrel.Manager,
@@ -79,6 +81,7 @@ func NewDeleteCmd(
 		installationParser:      installationParser,
 		deploymentConfigService: deploymentConfigService,
 		releaseSetValidator:     releaseSetValidator,
+		installationValidator:   installationValidator,
 		installerFactory:        installerFactory,
 		releaseExtractor:        releaseExtractor,
 		releaseManager:          releaseManager,
@@ -100,7 +103,7 @@ func (c *deleteCmd) Name() string {
 }
 
 func (c *deleteCmd) Run(args []string) error {
-	cpiReleaseTarballPath, err := c.parseCmdInputs(args)
+	releaseTarballPath, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
 	}
@@ -118,23 +121,16 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	var cpiRelease bmrel.Release
-	err = validationStage.PerformStep("Validating cpi release", func() error {
-		if !c.fs.FileExists(cpiReleaseTarballPath) {
-			return bosherr.Errorf("Verifying that the CPI release '%s' exists", cpiReleaseTarballPath)
+	err = validationStage.PerformStep("Validating releases", func() error {
+		if !c.fs.FileExists(releaseTarballPath) {
+			return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
 		}
 
-		var err error
-		cpiRelease, err = c.releaseExtractor.Extract(cpiReleaseTarballPath)
+		release, err := c.releaseExtractor.Extract(releaseTarballPath)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting CPI release '%s'", cpiReleaseTarballPath)
+			return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
 		}
-		c.releaseManager.Add(cpiRelease)
-
-		err = bmcpirel.NewValidator().Validate(cpiRelease)
-		if err != nil {
-			return bosherr.WrapError(err, "Invalid CPI release")
-		}
+		c.releaseManager.Add(release)
 
 		return nil
 	})
@@ -165,6 +161,29 @@ func (c *deleteCmd) Run(args []string) error {
 		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.installationValidator.Validate(installationManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating installation manifest")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	err = validationStage.PerformStep("Validating cpi release", func() error {
+		cpiRelease, err := c.releaseResolver.Find(installationManifest.Release)
+		if err != nil {
+			// should never happen, due to prior manifest validation
+			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", installationManifest.Release)
+		}
+
+		err = bmcpirel.NewValidator().Validate(cpiRelease)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
 		}
 
 		return nil

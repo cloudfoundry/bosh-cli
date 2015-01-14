@@ -73,6 +73,7 @@ type factory struct {
 	installationParser      bminstallmanifest.Parser
 	deploymentParser        bmdeplmanifest.Parser
 	releaseSetValidator     bmrelsetmanifest.Validator
+	installationValidator   bminstallmanifest.Validator
 	deploymentValidator     bmdeplmanifest.Validator
 	cloudFactory            bmcloud.Factory
 }
@@ -140,6 +141,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadDeploymentParser(),
 		f.loadDeploymentConfigService(),
 		f.loadReleaseSetValidator(),
+		f.loadInstallationValidator(),
 		f.loadDeploymentValidator(),
 		f.loadInstallerFactory(),
 		f.loadReleaseExtractor(),
@@ -165,6 +167,7 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.loadInstallationParser(),
 		f.loadDeploymentConfigService(),
 		f.loadReleaseSetValidator(),
+		f.loadInstallationValidator(),
 		f.loadInstallerFactory(),
 		f.loadReleaseExtractor(),
 		f.loadReleaseManager(),
@@ -431,6 +434,15 @@ func (f *factory) loadDeploymentParser() bmdeplmanifest.Parser {
 
 	f.deploymentParser = bmdeplmanifest.NewParser(f.fs, f.logger)
 	return f.deploymentParser
+}
+
+func (f *factory) loadInstallationValidator() bminstallmanifest.Validator {
+	if f.installationValidator != nil {
+		return f.installationValidator
+	}
+
+	f.installationValidator = bminstallmanifest.NewValidator(f.logger, f.loadReleaseResolver())
+	return f.installationValidator
 }
 
 func (f *factory) loadDeploymentValidator() bmdeplmanifest.Validator {
