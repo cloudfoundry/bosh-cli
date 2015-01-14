@@ -131,7 +131,7 @@ func (c *deleteCmd) Run(args []string) error {
 		}
 		c.releaseManager.Add(cpiRelease)
 
-		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
+		err = bmcpirel.NewValidator().Validate(cpiRelease)
 		if err != nil {
 			return bosherr.WrapError(err, "Invalid CPI release")
 		}

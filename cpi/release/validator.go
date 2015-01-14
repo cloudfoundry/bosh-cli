@@ -6,14 +6,14 @@ import (
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
-type CpiValidator struct {
+type Validator struct {
 }
 
-func NewCpiValidator() CpiValidator {
-	return CpiValidator{}
+func NewValidator() Validator {
+	return Validator{}
 }
 
-func (v CpiValidator) Validate(release bmrel.Release) error {
+func (v Validator) Validate(release bmrel.Release) error {
 	errs := v.validateCpiJob(release)
 	if len(errs) > 0 {
 		wrappedErrs := []error{}
@@ -26,7 +26,7 @@ func (v CpiValidator) Validate(release bmrel.Release) error {
 	return nil
 }
 
-func (v CpiValidator) validateCpiJob(release bmrel.Release) []error {
+func (v Validator) validateCpiJob(release bmrel.Release) []error {
 	errs := []error{}
 
 	job, ok := release.FindJobByName(ReleaseJobName)

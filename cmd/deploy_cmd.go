@@ -216,7 +216,7 @@ func (c *deployCmd) Run(args []string) error {
 			return bosherr.WrapErrorf(err, "cloud_provider.release '%s' must refer to a provided release", cpiReleaseName)
 		}
 
-		err = bmcpirel.NewCpiValidator().Validate(cpiRelease)
+		err = bmcpirel.NewValidator().Validate(cpiRelease)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
 		}

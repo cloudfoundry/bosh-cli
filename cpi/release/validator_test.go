@@ -10,7 +10,7 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 )
 
-var _ = Describe("CpiValidator", func() {
+var _ = Describe("Validator", func() {
 	var (
 		fakeFs *fakesys.FakeFileSystem
 	)
@@ -37,14 +37,14 @@ var _ = Describe("CpiValidator", func() {
 			"/some/release/path",
 			fakeFs,
 		)
-		validator := NewCpiValidator()
+		validator := NewValidator()
 
 		err := validator.Validate(release)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Context("when the cpi job is not present", func() {
-		var validator CpiValidator
+		var validator Validator
 		var release bmrel.Release
 
 		BeforeEach(func() {
@@ -65,7 +65,7 @@ var _ = Describe("CpiValidator", func() {
 				"/some/release/path",
 				fakeFs,
 			)
-			validator = NewCpiValidator()
+			validator = NewValidator()
 		})
 
 		It("returns an error that the cpi job is not present", func() {
@@ -76,7 +76,7 @@ var _ = Describe("CpiValidator", func() {
 	})
 
 	Context("when the templates are missing a bin/cpi target", func() {
-		var validator CpiValidator
+		var validator Validator
 		var release bmrel.Release
 
 		BeforeEach(func() {
@@ -97,7 +97,7 @@ var _ = Describe("CpiValidator", func() {
 				"/some/release/path",
 				fakeFs,
 			)
-			validator = NewCpiValidator()
+			validator = NewValidator()
 		})
 
 		It("returns an error that the bin/cpi template target is missing", func() {
