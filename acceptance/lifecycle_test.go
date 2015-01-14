@@ -310,7 +310,7 @@ var _ = Describe("bosh-micro", func() {
 				Expect(stdout).To(ContainSubstring("Done deploying"))
 			})
 
-			FIt("delete deletes the vm", func() {
+			It("delete deletes the vm", func() {
 				stdout := deleteDeployment()
 
 				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. failed."))
