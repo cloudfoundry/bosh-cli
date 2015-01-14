@@ -30,7 +30,6 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
-	bmrelvalidation "github.com/cloudfoundry/bosh-micro-cli/release/validation"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -384,8 +383,8 @@ func (f *factory) loadReleaseExtractor() bmrel.Extractor {
 		return f.releaseExtractor
 	}
 
-	boshReleaseValidator := bmrelvalidation.NewBoshValidator(f.fs)
-	f.releaseExtractor = bmrel.NewExtractor(f.fs, f.loadCompressor(), boshReleaseValidator, f.logger)
+	releaseValidator := bmrel.NewValidator(f.fs)
+	f.releaseExtractor = bmrel.NewExtractor(f.fs, f.loadCompressor(), releaseValidator, f.logger)
 	return f.releaseExtractor
 }
 

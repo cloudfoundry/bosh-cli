@@ -1,4 +1,4 @@
-package validation
+package release
 
 import (
 	"errors"
@@ -8,19 +8,22 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
-type boshValidator struct {
+type Validator interface {
+	Validate(release Release) error
+}
+
+type validator struct {
 	fs boshsys.FileSystem
 }
 
-func NewBoshValidator(fs boshsys.FileSystem) bmrel.Validator {
-	return &boshValidator{fs: fs}
+func NewValidator(fs boshsys.FileSystem) Validator {
+	return &validator{fs: fs}
 }
 
-func (v *boshValidator) Validate(release bmrel.Release) error {
+func (v *validator) Validate(release Release) error {
 	errs := []error{}
 
 	err := v.validateReleaseName(release)
@@ -50,7 +53,7 @@ func (v *boshValidator) Validate(release bmrel.Release) error {
 	return nil
 }
 
-func (v *boshValidator) validateReleaseName(release bmrel.Release) error {
+func (v *validator) validateReleaseName(release Release) error {
 	if release.Name() == "" {
 		return errors.New("Release name is missing")
 	}
@@ -58,7 +61,7 @@ func (v *boshValidator) validateReleaseName(release bmrel.Release) error {
 	return nil
 }
 
-func (v *boshValidator) validateReleaseVersion(release bmrel.Release) error {
+func (v *validator) validateReleaseVersion(release Release) error {
 	if release.Version() == "" {
 		return errors.New("Release version is missing")
 	}
@@ -66,7 +69,7 @@ func (v *boshValidator) validateReleaseVersion(release bmrel.Release) error {
 	return nil
 }
 
-func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
+func (v *validator) validateReleaseJobs(release Release) error {
 	errs := []error{}
 	for _, job := range release.Jobs() {
 		if job.Name == "" {
@@ -114,7 +117,7 @@ func (v *boshValidator) validateReleaseJobs(release bmrel.Release) error {
 	return nil
 }
 
-func (v *boshValidator) validateReleasePackages(release bmrel.Release) error {
+func (v *validator) validateReleasePackages(release Release) error {
 	errs := []error{}
 	for _, pkg := range release.Packages() {
 		if pkg.Name == "" {

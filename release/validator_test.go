@@ -1,13 +1,12 @@
-package validation_test
+package release_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/validation"
+	. "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 var _ = Describe("Validator", func() {
@@ -20,10 +19,10 @@ var _ = Describe("Validator", func() {
 	It("validates a valid release without error", func() {
 		fakeFs.WriteFileString("/some/job/path/monit", "")
 		fakeFs.WriteFileString("/some/job/path/templates/fake-job-1-template", "")
-		release := bmrel.NewRelease(
+		release := NewRelease(
 			"fake-release-name",
 			"fake-release-version",
-			[]bmrel.Job{
+			[]Job{
 				{
 					Name:          "fake-job-1-name",
 					Fingerprint:   "fake-job-1-fingerprint",
@@ -32,33 +31,33 @@ var _ = Describe("Validator", func() {
 					ExtractedPath: "/some/job/path",
 				},
 			},
-			[]*bmrel.Package{
+			[]*Package{
 				{
 					Name:        "fake-package-1-name",
 					Fingerprint: "fake-package-1-fingerprint",
 					SHA1:        "fake-package-1-sha",
-					Dependencies: []*bmrel.Package{
-						&bmrel.Package{Name: "fake-package-1-dependency-1"},
-						&bmrel.Package{Name: "fake-package-1-dependency-2"},
+					Dependencies: []*Package{
+						&Package{Name: "fake-package-1-dependency-1"},
+						&Package{Name: "fake-package-1-dependency-2"},
 					},
 				},
 			},
 			"/some/release/path",
 			fakeFs,
 		)
-		validator := NewBoshValidator(fakeFs)
+		validator := NewValidator(fakeFs)
 
 		err := validator.Validate(release)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("returns all errors with an empty release", func() {
-		validator := NewBoshValidator(fakeFs)
-		release := bmrel.NewRelease(
+		validator := NewValidator(fakeFs)
+		release := NewRelease(
 			"",
 			"",
-			[]bmrel.Job{},
-			[]*bmrel.Package{},
+			[]Job{},
+			[]*Package{},
 			"",
 			fakeFs,
 		)
@@ -69,15 +68,15 @@ var _ = Describe("Validator", func() {
 	})
 
 	It("returns all errors with jobs and packages in a release", func() {
-		release := bmrel.NewRelease(
+		release := NewRelease(
 			"fake-release-name",
 			"fake-release-version",
-			[]bmrel.Job{{}, {Name: "fake-job"}},
-			[]*bmrel.Package{{}, {Name: "fake-package"}},
+			[]Job{{}, {Name: "fake-job"}},
+			[]*Package{{}, {Name: "fake-package"}},
 			"/some/release/path",
 			fakeFs,
 		)
-		validator := NewBoshValidator(fakeFs)
+		validator := NewValidator(fakeFs)
 
 		err := validator.Validate(release)
 		Expect(err).To(HaveOccurred())
@@ -97,10 +96,10 @@ var _ = Describe("Validator", func() {
 
 	Context("when jobs are missing templates", func() {
 		It("returns errors with each job that is missing templates", func() {
-			release := bmrel.NewRelease(
+			release := NewRelease(
 				"fake-release",
 				"fake-version",
-				[]bmrel.Job{
+				[]Job{
 					{
 						Name:        "fake-job",
 						Fingerprint: "fake-fingerprint",
@@ -114,11 +113,11 @@ var _ = Describe("Validator", func() {
 						Templates:   map[string]string{"fake-template-2": "fake-file-2"},
 					},
 				},
-				[]*bmrel.Package{},
+				[]*Package{},
 				"/some/release/path",
 				fakeFs,
 			)
-			validator := NewBoshValidator(fakeFs)
+			validator := NewValidator(fakeFs)
 
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
@@ -130,10 +129,10 @@ var _ = Describe("Validator", func() {
 
 	Context("when jobs are missing monit", func() {
 		It("returns erros with each job that is missing monit", func() {
-			release := bmrel.NewRelease(
+			release := NewRelease(
 				"fake-release-name",
 				"fake-release-version",
-				[]bmrel.Job{
+				[]Job{
 					{
 						Name:        "fake-job-1",
 						Fingerprint: "fake-finger-print-1",
@@ -145,11 +144,11 @@ var _ = Describe("Validator", func() {
 						SHA1:        "fake-sha-2",
 					},
 				},
-				[]*bmrel.Package{{}, {Name: "fake-package"}},
+				[]*Package{{}, {Name: "fake-package"}},
 				"/some/release/path",
 				fakeFs,
 			)
-			validator := NewBoshValidator(fakeFs)
+			validator := NewValidator(fakeFs)
 
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
@@ -161,10 +160,10 @@ var _ = Describe("Validator", func() {
 
 	Context("when jobs have package dependencies that are not in the release", func() {
 		It("returns errors with each job that is missing packages", func() {
-			release := bmrel.NewRelease(
+			release := NewRelease(
 				"fake-release-name",
 				"fake-release-version",
-				[]bmrel.Job{
+				[]Job{
 					{
 						Name:         "fake-job",
 						Fingerprint:  "fake-fingerprint",
@@ -180,11 +179,11 @@ var _ = Describe("Validator", func() {
 						PackageNames: []string{"fake-package-2"},
 					},
 				},
-				[]*bmrel.Package{},
+				[]*Package{},
 				"/some/release/path",
 				fakeFs,
 			)
-			validator := NewBoshValidator(fakeFs)
+			validator := NewValidator(fakeFs)
 
 			err := validator.Validate(release)
 			Expect(err).To(HaveOccurred())
