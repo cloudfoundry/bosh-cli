@@ -67,7 +67,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs     *fakesys.FakeFileSystem
 		fakeUI     *fakeui.FakeUI
 
-		mockDeploymentFactory     *mock_deployer.MockFactory
+		mockDeployer              *mock_deployer.MockDeployer
 		mockInstaller             *mock_install.MockInstaller
 		mockInstallerFactory      *mock_install.MockInstallerFactory
 		mockReleaseExtractor      *mock_release.MockExtractor
@@ -85,8 +85,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeVMManager         *fakebmvm.FakeManager
 		fakeStemcellExtractor *fakebmstemcell.FakeExtractor
 
-		fakeDeployer         *fakebmdepl.FakeDeployer
-		fakeDeploymentRecord *fakebmdepl.FakeDeploymentRecord
+		fakeDeploymentRecord *fakebmdepl.FakeRecord
 
 		fakeReleaseSetParser      *fakebmrelsetmanifest.FakeParser
 		fakeInstallationParser    *fakebminstallmanifest.FakeParser
@@ -108,6 +107,8 @@ var _ = Describe("DeployCmd", func() {
 		cpiReleaseTarballPath     string
 		stemcellTarballPath       string
 		expectedExtractedStemcell bmstemcell.ExtractedStemcell
+
+		expectDeploy *gomock.Call
 	)
 
 	BeforeEach(func() {
@@ -121,7 +122,7 @@ var _ = Describe("DeployCmd", func() {
 		}
 		fakeFs.WriteFileString(deploymentManifestPath, "")
 
-		mockDeploymentFactory = mock_deployer.NewMockFactory(mockCtrl)
+		mockDeployer = mock_deployer.NewMockDeployer(mockCtrl)
 		mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 		mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 
@@ -144,8 +145,6 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
-		fakeDeployer = fakebmdepl.NewFakeDeployer()
-
 		fakeReleaseSetParser = fakebmrelsetmanifest.NewFakeParser()
 		fakeInstallationParser = fakebminstallmanifest.NewFakeParser()
 		fakeDeploymentParser = fakebmdeplmanifest.NewFakeParser()
@@ -164,7 +163,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeCompressor = fakecmd.NewFakeCompressor()
 		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
 
-		fakeDeploymentRecord = fakebmdepl.NewFakeDeploymentRecord()
+		fakeDeploymentRecord = fakebmdepl.NewFakeRecord()
 
 		cpiReleaseTarballPath = "/release/tarball/path"
 
@@ -204,7 +203,7 @@ var _ = Describe("DeployCmd", func() {
 			mockVMManagerFactory,
 			fakeStemcellExtractor,
 			fakeDeploymentRecord,
-			mockDeploymentFactory,
+			mockDeployer,
 			fakeEventLogger,
 			logger,
 		)
@@ -334,14 +333,19 @@ var _ = Describe("DeployCmd", func() {
 
 			expectInstall = mockInstaller.EXPECT().Install(installationManifest).Return(installation, nil).AnyTimes()
 
-			deployment := bmdepl.NewDeployment(boshDeploymentManifest, fakeDeployer)
-			mockDeploymentFactory.EXPECT().NewDeployment(boshDeploymentManifest).Return(deployment).AnyTimes()
+			deployment := bmdepl.NewDeployment(boshDeploymentManifest)
+			expectDeploy = mockDeployer.EXPECT().Deploy(
+				cloud,
+				boshDeploymentManifest,
+				expectedExtractedStemcell,
+				installationManifest.Registry,
+				installationManifest.SSHTunnel,
+				fakeVMManager,
+			).Return(deployment, nil).AnyTimes()
 
 			expectCPIReleaseExtract = mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
 
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(cloud, nil).AnyTimes()
-
-			fakeDeployer.SetDeployBehavior(nil)
 		})
 
 		It("prints the deployment manifest and state file", func() {
@@ -486,19 +490,11 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
-		It("creates a VM", func() {
+		It("deploys", func() {
+			expectDeploy.Times(1)
+
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeDeployer.DeployInputs).To(Equal([]fakebmdepl.DeployInput{
-				{
-					Cpi:             cloud,
-					Manifest:        boshDeploymentManifest,
-					Stemcell:        expectedExtractedStemcell,
-					Registry:        installationManifest.Registry,
-					SSHTunnelConfig: installationManifest.SSHTunnel,
-					VMManager:       fakeVMManager,
-				},
-			}))
 		})
 
 		It("updates the deployment record", func() {
@@ -524,10 +520,11 @@ var _ = Describe("DeployCmd", func() {
 			})
 
 			It("skips deploy", func() {
+				expectDeploy.Times(0)
+
 				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeUI.Said).To(ContainElement("No deployment, stemcell or cpi release changes. Skipping deploy."))
-				Expect(fakeDeployer.DeployInputs).To(BeEmpty())
 			})
 		})
 
@@ -704,7 +701,7 @@ var _ = Describe("DeployCmd", func() {
 					mockVMManagerFactory,
 					fakeStemcellExtractor,
 					fakeDeploymentRecord,
-					mockDeploymentFactory,
+					mockDeployer,
 					fakeEventLogger,
 					logger,
 				)

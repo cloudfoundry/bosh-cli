@@ -1,4 +1,4 @@
-package deployer_test
+package deployment_test
 
 import (
 	. "github.com/onsi/ginkgo"

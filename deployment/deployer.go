@@ -1,4 +1,4 @@
-package deployer
+package deployment
 
 import (
 	"time"
@@ -24,7 +24,7 @@ type Deployer interface {
 		bminstallmanifest.Registry,
 		bminstallmanifest.SSHTunnel,
 		bmvm.Manager,
-	) error
+	) (Deployment, error)
 }
 
 type deployer struct {
@@ -43,6 +43,7 @@ func NewDeployer(
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
+	//TODO: handle stage construction outside of this class
 	eventLoggerStage := eventLogger.NewStage("deploying")
 
 	return &deployer{
@@ -62,11 +63,11 @@ func (m *deployer) Deploy(
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
-) error {
+) (Deployment, error) {
 	stemcellManager := m.stemcellManagerFactory.NewManager(cloud)
 	cloudStemcell, err := stemcellManager.Upload(extractedStemcell)
 	if err != nil {
-		return bosherr.WrapError(err, "Uploading stemcell")
+		return nil, bosherr.WrapError(err, "Uploading stemcell")
 	}
 
 	m.eventLoggerStage.Start()
@@ -76,21 +77,22 @@ func (m *deployer) Deploy(
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
 	if err = instanceManager.DeleteAll(pingTimeout, pingDelay, m.eventLoggerStage); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err = m.createAllInstances(deploymentManifest, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig); err != nil {
-		return err
+		return nil, err
 	}
 
 	// TODO: cleanup unused disks?
 
 	if err = stemcellManager.DeleteUnused(m.eventLoggerStage); err != nil {
-		return err
+		return nil, err
 	}
 
 	m.eventLoggerStage.Finish()
-	return nil
+
+	return NewDeployment(deploymentManifest), nil
 }
 
 func (m *deployer) createAllInstances(

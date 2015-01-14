@@ -44,8 +44,8 @@ type deployCmd struct {
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
 	stemcellExtractor       bmstemcell.Extractor
-	deploymentRecord        bmdepl.DeploymentRecord
-	deploymentFactory       bmdepl.Factory
+	deploymentRecord        bmdepl.Record
+	deployer                bmdepl.Deployer
 	eventLogger             bmeventlog.EventLogger
 	logger                  boshlog.Logger
 	logTag                  string
@@ -70,8 +70,8 @@ func NewDeployCmd(
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	stemcellExtractor bmstemcell.Extractor,
-	deploymentRecord bmdepl.DeploymentRecord,
-	deploymentFactory bmdepl.Factory,
+	deploymentRecord bmdepl.Record,
+	deployer bmdepl.Deployer,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) Cmd {
@@ -95,7 +95,7 @@ func NewDeployCmd(
 		vmManagerFactory:        vmManagerFactory,
 		stemcellExtractor:       stemcellExtractor,
 		deploymentRecord:        deploymentRecord,
-		deploymentFactory:       deploymentFactory,
+		deployer:                deployer,
 		eventLogger:             eventLogger,
 		logger:                  logger,
 		logTag:                  "deployCmd",
@@ -278,10 +278,9 @@ func (c *deployCmd) Run(args []string) error {
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, installationManifest.Mbus)
 
-	//TODO: deployer.Deploy(deploymentManifest) -> deployment
-	boshDeployment := c.deploymentFactory.NewDeployment(deploymentManifest)
-	err = boshDeployment.Deploy(
+	_, err = c.deployer.Deploy(
 		cloud,
+		deploymentManifest,
 		extractedStemcell,
 		installationManifest.Registry,
 		installationManifest.SSHTunnel,

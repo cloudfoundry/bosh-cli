@@ -313,7 +313,7 @@ cloud_provider:
 			installationValidator := bminstallmanifest.NewValidator(logger, releaseResolver)
 			deploymentValidator := bmdeplmanifest.NewValidator(logger, releaseResolver)
 
-			deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
+			deploymentRecord := bmdepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 
 			deployer := bmdepl.NewDeployer(
 				stemcellManagerFactory,
@@ -322,8 +322,6 @@ cloud_provider:
 				eventLogger,
 				logger,
 			)
-
-			deploymentFactory := bmdepl.NewFactory(deployer)
 
 			return NewDeployCmd(
 				ui,
@@ -345,7 +343,7 @@ cloud_provider:
 				vmManagerFactory,
 				fakeStemcellExtractor,
 				deploymentRecord,
-				deploymentFactory,
+				deployer,
 				eventLogger,
 				logger,
 			)

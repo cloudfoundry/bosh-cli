@@ -1,4 +1,4 @@
-package deployer
+package deployment
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -9,7 +9,7 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
-type DeploymentRecord interface {
+type Record interface {
 	IsDeployed(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error)
 	Update(manifestPath string, release bmrel.Release) error
 }
@@ -21,12 +21,12 @@ type deploymentRecord struct {
 	sha1Calculator bmcrypto.SHA1Calculator
 }
 
-func NewDeploymentRecord(
+func NewRecord(
 	deploymentRepo bmconfig.DeploymentRepo,
 	releaseRepo bmconfig.ReleaseRepo,
 	stemcellRepo bmconfig.StemcellRepo,
 	sha1Calculator bmcrypto.SHA1Calculator,
-) DeploymentRecord {
+) Record {
 	return &deploymentRecord{
 		deploymentRepo: deploymentRepo,
 		releaseRepo:    releaseRepo,

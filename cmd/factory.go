@@ -62,7 +62,7 @@ type factory struct {
 	diskManagerFactory      bmdisk.ManagerFactory
 	instanceManagerFactory  bminstance.ManagerFactory
 	stemcellManagerFactory  bmstemcell.ManagerFactory
-	deploymentFactory       bmdepl.Factory
+	deployer                bmdepl.Deployer
 	eventLogger             bmeventlog.EventLogger
 	timeService             boshtime.Service
 	installerFactory        bminstall.InstallerFactory
@@ -130,7 +130,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 	deploymentRepo := bmconfig.NewDeploymentRepo(f.loadDeploymentConfigService())
 	releaseRepo := bmconfig.NewReleaseRepo(f.loadDeploymentConfigService(), f.uuidGenerator)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
-	deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
+	deploymentRecord := bmdepl.NewRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
 
 	return NewDeployCmd(
 		f.ui,
@@ -152,7 +152,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadVMManagerFactory(),
 		stemcellExtractor,
 		deploymentRecord,
-		f.loadDeploymentFactory(),
+		f.loadDeployer(),
 		f.loadEventLogger(),
 		f.logger,
 	), nil
@@ -346,20 +346,19 @@ func (f *factory) loadDeploymentConfigService() bmconfig.DeploymentConfigService
 	return f.deploymentConfigService
 }
 
-func (f *factory) loadDeploymentFactory() bmdepl.Factory {
-	if f.deploymentFactory != nil {
-		return f.deploymentFactory
+func (f *factory) loadDeployer() bmdepl.Deployer {
+	if f.deployer != nil {
+		return f.deployer
 	}
 
-	deployer := bmdepl.NewDeployer(
+	f.deployer = bmdepl.NewDeployer(
 		f.loadStemcellManagerFactory(),
 		f.loadVMManagerFactory(),
 		f.loadSSHTunnelFactory(),
 		f.loadEventLogger(),
 		f.logger,
 	)
-	f.deploymentFactory = bmdepl.NewFactory(deployer)
-	return f.deploymentFactory
+	return f.deployer
 }
 
 func (f *factory) loadEventLogger() bmeventlog.EventLogger {

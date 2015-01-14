@@ -1,4 +1,4 @@
-package deployer_test
+package deployment_test
 
 import (
 	"errors"
@@ -17,7 +17,7 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
 
-var _ = Describe("DeploymentRecord", func() {
+var _ = Describe("Record", func() {
 	var (
 		fakeRelease        *fakebmrel.FakeRelease
 		stemcell           bmstemcell.ExtractedStemcell
@@ -25,7 +25,7 @@ var _ = Describe("DeploymentRecord", func() {
 		releaseRepo        *fakebmconfig.FakeReleaseRepo
 		stemcellRepo       *fakebmconfig.FakeStemcellRepo
 		fakeSHA1Calculator *fakebmcrypto.FakeSha1Calculator
-		deploymentRecord   DeploymentRecord
+		deploymentRecord   Record
 	)
 
 	BeforeEach(func() {
@@ -47,7 +47,7 @@ var _ = Describe("DeploymentRecord", func() {
 		releaseRepo = fakebmconfig.NewFakeReleaseRepo()
 		stemcellRepo = fakebmconfig.NewFakeStemcellRepo()
 		fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
-		deploymentRecord = NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
+		deploymentRecord = NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 	})
 
 	Describe("IsDeployed", func() {

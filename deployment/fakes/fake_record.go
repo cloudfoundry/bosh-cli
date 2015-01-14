@@ -10,7 +10,7 @@ import (
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
-type FakeDeploymentRecord struct {
+type FakeRecord struct {
 	IsDeployedInputs   []IsDeployedInput
 	isDeployedBehavior map[string]isDeployedOutput
 
@@ -38,14 +38,14 @@ type updateOutput struct {
 	err error
 }
 
-func NewFakeDeploymentRecord() *FakeDeploymentRecord {
-	return &FakeDeploymentRecord{
+func NewFakeRecord() *FakeRecord {
+	return &FakeRecord{
 		isDeployedBehavior: make(map[string]isDeployedOutput),
 		updateBehavior:     make(map[string]updateOutput),
 	}
 }
 
-func (r *FakeDeploymentRecord) IsDeployed(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error) {
+func (r *FakeRecord) IsDeployed(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error) {
 	input := IsDeployedInput{
 		ManifestPath: manifestPath,
 		Release:      release,
@@ -66,7 +66,7 @@ func (r *FakeDeploymentRecord) IsDeployed(manifestPath string, release bmrel.Rel
 	return output.isDeployed, output.err
 }
 
-func (r *FakeDeploymentRecord) Update(manifestPath string, release bmrel.Release) error {
+func (r *FakeRecord) Update(manifestPath string, release bmrel.Release) error {
 	input := UpdateInput{
 		ManifestPath: manifestPath,
 		Release:      release,
@@ -86,7 +86,7 @@ func (r *FakeDeploymentRecord) Update(manifestPath string, release bmrel.Release
 	return output.err
 }
 
-func (r *FakeDeploymentRecord) SetIsDeployedBehavior(
+func (r *FakeRecord) SetIsDeployedBehavior(
 	manifestPath string,
 	release bmrel.Release,
 	stemcell bmstemcell.ExtractedStemcell,
@@ -112,7 +112,7 @@ func (r *FakeDeploymentRecord) SetIsDeployedBehavior(
 	return nil
 }
 
-func (r *FakeDeploymentRecord) SetUpdateBehavior(
+func (r *FakeRecord) SetUpdateBehavior(
 	manifestPath string,
 	release bmrel.Release,
 	err error,
