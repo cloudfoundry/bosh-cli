@@ -72,7 +72,7 @@ func NewDeleteCmd(
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
-) *deleteCmd {
+) Cmd {
 	return &deleteCmd{
 		ui:                      ui,
 		userConfig:              userConfig,

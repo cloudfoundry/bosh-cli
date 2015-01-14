@@ -30,7 +30,7 @@ func NewDeploymentCmd(
 	fs boshsys.FileSystem,
 	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
-) *deploymentCmd {
+) Cmd {
 	return &deploymentCmd{
 		ui:                ui,
 		userConfig:        userConfig,

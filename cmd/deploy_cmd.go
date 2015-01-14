@@ -74,7 +74,7 @@ func NewDeployCmd(
 	deploymentFactory bmdepl.Factory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
-) *deployCmd {
+) Cmd {
 	return &deployCmd{
 		ui:                      ui,
 		userConfig:              userConfig,
