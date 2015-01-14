@@ -31,7 +31,6 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
@@ -311,7 +310,7 @@ cloud_provider:
 			installationParser := bminstallmanifest.NewParser(fs, logger)
 
 			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseResolver)
-			boshDeploymentValidator := bmdeplval.NewBoshDeploymentValidator(logger, releaseResolver)
+			deploymentValidator := bmdeplmanifest.NewValidator(logger, releaseResolver)
 
 			deploymentRecord := bmdepl.NewDeploymentRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 
@@ -334,7 +333,7 @@ cloud_provider:
 				deploymentParser,
 				deploymentConfigService,
 				releaseSetValidator,
-				boshDeploymentValidator,
+				deploymentValidator,
 				mockInstallerFactory,
 				mockReleaseExtractor,
 				releaseManager,

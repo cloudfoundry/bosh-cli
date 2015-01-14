@@ -20,7 +20,6 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
@@ -75,7 +74,7 @@ type factory struct {
 	installationParser      bminstallmanifest.Parser
 	deploymentParser        bmdeplmanifest.Parser
 	releaseSetValidator     bmrelsetmanifest.Validator
-	deploymentValidator     bmdeplval.DeploymentValidator
+	deploymentValidator     bmdeplmanifest.Validator
 	cloudFactory            bmcloud.Factory
 }
 
@@ -435,12 +434,12 @@ func (f *factory) loadDeploymentParser() bmdeplmanifest.Parser {
 	return f.deploymentParser
 }
 
-func (f *factory) loadDeploymentValidator() bmdeplval.DeploymentValidator {
+func (f *factory) loadDeploymentValidator() bmdeplmanifest.Validator {
 	if f.deploymentValidator != nil {
 		return f.deploymentValidator
 	}
 
-	f.deploymentValidator = bmdeplval.NewBoshDeploymentValidator(f.logger, f.loadReleaseResolver())
+	f.deploymentValidator = bmdeplmanifest.NewValidator(f.logger, f.loadReleaseResolver())
 	return f.deploymentValidator
 }
 

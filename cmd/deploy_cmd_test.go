@@ -39,7 +39,7 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
-	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator/fakes"
+	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
@@ -93,7 +93,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeploymentParser    *fakebmdeplmanifest.FakeParser
 		deploymentConfigService bmconfig.DeploymentConfigService
 		fakeReleaseSetValidator *fakebmrelsetmanifest.FakeValidator
-		fakeDeploymentValidator *fakebmdeplval.FakeValidator
+		fakeValidator           *fakebmdeplval.FakeValidator
 
 		fakeCompressor    *fakecmd.FakeCompressor
 		fakeJobRenderer   *fakebmtemp.FakeJobRenderer
@@ -153,7 +153,7 @@ var _ = Describe("DeployCmd", func() {
 		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, fakeUUIDGenerator, logger)
 
 		fakeReleaseSetValidator = fakebmrelsetmanifest.NewFakeValidator()
-		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
+		fakeValidator = fakebmdeplval.NewFakeValidator()
 
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
@@ -191,7 +191,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeDeploymentParser,
 			deploymentConfigService,
 			fakeReleaseSetValidator,
-			fakeDeploymentValidator,
+			fakeValidator,
 			mockInstallerFactory,
 			mockReleaseExtractor,
 			releaseManager,
@@ -214,7 +214,7 @@ var _ = Describe("DeployCmd", func() {
 			installationManifest   bminstallmanifest.Manifest
 			cloud                  *fakebmcloud.FakeCloud
 
-			directorID   = "fake-uuid-0"
+			directorID = "fake-uuid-0"
 
 			expectCPIReleaseExtract *gomock.Call
 			expectInstall           *gomock.Call
@@ -238,7 +238,7 @@ var _ = Describe("DeployCmd", func() {
 			})
 
 			// deployment is valid
-			fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
+			fakeValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
 				{Err: nil},
 			})
 
@@ -382,7 +382,7 @@ var _ = Describe("DeployCmd", func() {
 		It("validates bosh deployment manifest", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
+			Expect(fakeValidator.ValidateInputs).To(Equal([]fakebmdeplval.ValidateInput{
 				{Manifest: boshDeploymentManifest},
 			}))
 		})
@@ -709,7 +709,7 @@ var _ = Describe("DeployCmd", func() {
 					fakeDeploymentParser,
 					deploymentConfigService,
 					fakeReleaseSetValidator,
-					fakeDeploymentValidator,
+					fakeValidator,
 					mockInstallerFactory,
 					mockReleaseExtractor,
 					releaseManager,
@@ -748,7 +748,7 @@ var _ = Describe("DeployCmd", func() {
 
 		Context("when the deployment manifest is invalid", func() {
 			BeforeEach(func() {
-				fakeDeploymentValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
+				fakeValidator.SetValidateBehavior([]fakebmdeplval.ValidateOutput{
 					{Err: errors.New("fake-deployment-validation-error")},
 				})
 			})

@@ -14,7 +14,6 @@ import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -35,7 +34,7 @@ type deployCmd struct {
 	deploymentParser        bmdeplmanifest.Parser
 	deploymentConfigService bmconfig.DeploymentConfigService
 	releaseSetValidator     bmrelsetmanifest.Validator
-	boshDeploymentValidator bmdeplval.DeploymentValidator
+	deploymentValidator     bmdeplmanifest.Validator
 	installerFactory        bminstall.InstallerFactory
 	releaseExtractor        bmrel.Extractor
 	releaseManager          bmrel.Manager
@@ -60,7 +59,7 @@ func NewDeployCmd(
 	deploymentParser bmdeplmanifest.Parser,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	releaseSetValidator bmrelsetmanifest.Validator,
-	boshDeploymentValidator bmdeplval.DeploymentValidator,
+	deploymentValidator bmdeplmanifest.Validator,
 	installerFactory bminstall.InstallerFactory,
 	releaseExtractor bmrel.Extractor,
 	releaseManager bmrel.Manager,
@@ -83,7 +82,7 @@ func NewDeployCmd(
 		deploymentParser:        deploymentParser,
 		deploymentConfigService: deploymentConfigService,
 		releaseSetValidator:     releaseSetValidator,
-		boshDeploymentValidator: boshDeploymentValidator,
+		deploymentValidator:     deploymentValidator,
 		installerFactory:        installerFactory,
 		releaseExtractor:        releaseExtractor,
 		releaseManager:          releaseManager,
@@ -196,7 +195,7 @@ func (c *deployCmd) Run(args []string) error {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
 		}
 
-		err = c.boshDeploymentValidator.Validate(deploymentManifest)
+		err = c.deploymentValidator.Validate(deploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}

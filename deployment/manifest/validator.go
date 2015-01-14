@@ -1,4 +1,4 @@
-package validator
+package manifest
 
 import (
 	"net"
@@ -7,24 +7,27 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 )
 
-type boshDeploymentValidator struct {
+type Validator interface {
+	Validate(Manifest) error
+}
+
+type validator struct {
 	logger          boshlog.Logger
 	releaseResolver bmrelset.Resolver
 }
 
-func NewBoshDeploymentValidator(logger boshlog.Logger, releaseResolver bmrelset.Resolver) DeploymentValidator {
-	return &boshDeploymentValidator{
+func NewValidator(logger boshlog.Logger, releaseResolver bmrelset.Resolver) Validator {
+	return &validator{
 		logger:          logger,
 		releaseResolver: releaseResolver,
 	}
 }
 
-func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Manifest) error {
+func (v *validator) Validate(deploymentManifest Manifest) error {
 	errs := []error{}
 	if v.isBlank(deploymentManifest.Name) {
 		errs = append(errs, bosherr.Error("name must be provided"))
@@ -34,7 +37,7 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 		if v.isBlank(network.Name) {
 			errs = append(errs, bosherr.Errorf("networks[%d].name must be provided", idx))
 		}
-		if network.Type != bmdeplmanifest.Dynamic && network.Type != bmdeplmanifest.Manual && network.Type != bmdeplmanifest.VIP {
+		if network.Type != Dynamic && network.Type != Manual && network.Type != VIP {
 			errs = append(errs, bosherr.Errorf("networks[%d].type must be 'manual', 'dynamic', or 'vip'", idx))
 		}
 		if _, err := network.CloudProperties(); err != nil {
@@ -109,13 +112,13 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 			}
 
 			for defaultIdx, value := range jobNetwork.Default {
-				if value != bmdeplmanifest.NetworkDefaultDNS && value != bmdeplmanifest.NetworkDefaultGateway {
+				if value != NetworkDefaultDNS && value != NetworkDefaultGateway {
 					errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].default[%d] must be 'dns' or 'gateway'", idx, networkIdx, defaultIdx))
 				}
 			}
 		}
 
-		if job.Lifecycle != "" && job.Lifecycle != bmdeplmanifest.JobLifecycleService {
+		if job.Lifecycle != "" && job.Lifecycle != JobLifecycleService {
 			errs = append(errs, bosherr.Errorf("jobs[%d].lifecycle must be 'service' ('%s' not supported)", idx, job.Lifecycle))
 		}
 
@@ -160,11 +163,11 @@ func (v *boshDeploymentValidator) Validate(deploymentManifest bmdeplmanifest.Man
 	return nil
 }
 
-func (v *boshDeploymentValidator) isBlank(str string) bool {
+func (v *validator) isBlank(str string) bool {
 	return str == "" || strings.TrimSpace(str) == ""
 }
 
-func (v *boshDeploymentValidator) networkNames(deploymentManifest bmdeplmanifest.Manifest) map[string]struct{} {
+func (v *validator) networkNames(deploymentManifest Manifest) map[string]struct{} {
 	names := make(map[string]struct{})
 	for _, network := range deploymentManifest.Networks {
 		names[network.Name] = struct{}{}
@@ -172,7 +175,7 @@ func (v *boshDeploymentValidator) networkNames(deploymentManifest bmdeplmanifest
 	return names
 }
 
-func (v *boshDeploymentValidator) diskPoolNames(deploymentManifest bmdeplmanifest.Manifest) map[string]struct{} {
+func (v *validator) diskPoolNames(deploymentManifest Manifest) map[string]struct{} {
 	names := make(map[string]struct{})
 	for _, diskPool := range deploymentManifest.DiskPools {
 		names[diskPool.Name] = struct{}{}
@@ -180,7 +183,7 @@ func (v *boshDeploymentValidator) diskPoolNames(deploymentManifest bmdeplmanifes
 	return names
 }
 
-func (v *boshDeploymentValidator) isValidIP(ip string) bool {
+func (v *validator) isValidIP(ip string) bool {
 	parsedIP := net.ParseIP(ip)
 	return parsedIP != nil
 }

@@ -1,4 +1,4 @@
-package validator_test
+package manifest_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -6,24 +6,23 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/validator"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 )
 
-var _ = Describe("BoshDeploymentValidator", func() {
+var _ = Describe("Validator", func() {
 	var (
 		logger         boshlog.Logger
 		releaseManager bmrel.Manager
-		validator      DeploymentValidator
+		validator      Validator
 
 		releases      []bmrelmanifest.ReleaseRef
-		validManifest bmdeplmanifest.Manifest
+		validManifest Manifest
 		fakeRelease   *fakebmrel.FakeRelease
 	)
 
@@ -38,15 +37,15 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			},
 		}
 
-		validManifest = bmdeplmanifest.Manifest{
+		validManifest = Manifest{
 			Name: "fake-deployment-name",
-			Networks: []bmdeplmanifest.Network{
+			Networks: []Network{
 				{
 					Name: "fake-network-name",
 					Type: "dynamic",
 				},
 			},
-			ResourcePools: []bmdeplmanifest.ResourcePool{
+			ResourcePools: []ResourcePool{
 				{
 					Name:    "fake-resource-pool-name",
 					Network: "fake-network-name",
@@ -58,7 +57,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 					},
 				},
 			},
-			DiskPools: []bmdeplmanifest.DiskPool{
+			DiskPools: []DiskPool{
 				{
 					Name:     "fake-disk-pool-name",
 					DiskSize: 1024,
@@ -70,21 +69,21 @@ var _ = Describe("BoshDeploymentValidator", func() {
 					},
 				},
 			},
-			Jobs: []bmdeplmanifest.Job{
+			Jobs: []Job{
 				{
 					Name: "fake-job-name",
-					Templates: []bmdeplmanifest.ReleaseJobRef{
+					Templates: []ReleaseJobRef{
 						{
 							Name:    "fake-job-name",
 							Release: "fake-release-name",
 						},
 					},
 					PersistentDisk: 1024,
-					Networks: []bmdeplmanifest.JobNetwork{
+					Networks: []JobNetwork{
 						{
 							Name:      "fake-network-name",
 							StaticIPs: []string{"127.0.0.1"},
-							Default:   []bmdeplmanifest.NetworkDefault{"dns", "gateway"},
+							Default:   []NetworkDefault{"dns", "gateway"},
 						},
 					},
 					Lifecycle: "service",
@@ -113,7 +112,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		releaseResolver := bmrelset.NewResolver(releaseManager, logger)
 		err := releaseResolver.Filter(releases)
 		Expect(err).ToNot(HaveOccurred())
-		validator = NewBoshDeploymentValidator(logger, releaseResolver)
+		validator = NewValidator(logger, releaseResolver)
 	})
 
 	Describe("Validate", func() {
@@ -125,7 +124,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates name is not empty", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
+			deploymentManifest := Manifest{
 				Name: "",
 			}
 
@@ -135,7 +134,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates name is not blank", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
+			deploymentManifest := Manifest{
 				Name: "   \t",
 			}
 
@@ -145,8 +144,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates that there is only one resource pool", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				ResourcePools: []bmdeplmanifest.ResourcePool{
+			deploymentManifest := Manifest{
+				ResourcePools: []ResourcePool{
 					{},
 					{},
 				},
@@ -158,8 +157,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates resource pool name", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				ResourcePools: []bmdeplmanifest.ResourcePool{
+			deploymentManifest := Manifest{
+				ResourcePools: []ResourcePool{
 					{
 						Name: "",
 					},
@@ -170,8 +169,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].name must be provided"))
 
-			deploymentManifest = bmdeplmanifest.Manifest{
-				ResourcePools: []bmdeplmanifest.ResourcePool{
+			deploymentManifest = Manifest{
+				ResourcePools: []ResourcePool{
 					{
 						Name: "not-blank",
 					},
@@ -187,8 +186,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates resource pool network", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				ResourcePools: []bmdeplmanifest.ResourcePool{
+			deploymentManifest := Manifest{
+				ResourcePools: []ResourcePool{
 					{
 						Network: "",
 					},
@@ -199,13 +198,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must be provided"))
 
-			deploymentManifest = bmdeplmanifest.Manifest{
-				Networks: []bmdeplmanifest.Network{
+			deploymentManifest = Manifest{
+				Networks: []Network{
 					{
 						Name: "fake-network",
 					},
 				},
-				ResourcePools: []bmdeplmanifest.ResourcePool{
+				ResourcePools: []ResourcePool{
 					{
 						Network: "other-network",
 					},
@@ -218,8 +217,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates resource pool cloud_properties", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				ResourcePools: []bmdeplmanifest.ResourcePool{
+			deploymentManifest := Manifest{
+				ResourcePools: []ResourcePool{
 					{
 						RawCloudProperties: map[interface{}]interface{}{
 							123: "fake-property-value",
@@ -234,8 +233,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates resource pool env", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				ResourcePools: []bmdeplmanifest.ResourcePool{
+			deploymentManifest := Manifest{
+				ResourcePools: []ResourcePool{
 					{
 						RawEnv: map[interface{}]interface{}{
 							123: "fake-env-value",
@@ -250,8 +249,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates disk pool name", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				DiskPools: []bmdeplmanifest.DiskPool{
+			deploymentManifest := Manifest{
+				DiskPools: []DiskPool{
 					{
 						Name: "",
 					},
@@ -262,8 +261,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("disk_pools[0].name must be provided"))
 
-			deploymentManifest = bmdeplmanifest.Manifest{
-				DiskPools: []bmdeplmanifest.DiskPool{
+			deploymentManifest = Manifest{
+				DiskPools: []DiskPool{
 					{
 						Name: "not-blank",
 					},
@@ -279,8 +278,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates disk pool size", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				DiskPools: []bmdeplmanifest.DiskPool{
+			deploymentManifest := Manifest{
+				DiskPools: []DiskPool{
 					{
 						Name: "fake-disk",
 					},
@@ -293,8 +292,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates disk pool cloud_properties", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				DiskPools: []bmdeplmanifest.DiskPool{
+			deploymentManifest := Manifest{
+				DiskPools: []DiskPool{
 					{
 						RawCloudProperties: map[interface{}]interface{}{
 							123: "fake-property-value",
@@ -309,8 +308,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates network name", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Networks: []bmdeplmanifest.Network{
+			deploymentManifest := Manifest{
+				Networks: []Network{
 					{
 						Name: "",
 					},
@@ -321,8 +320,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[0].name must be provided"))
 
-			deploymentManifest = bmdeplmanifest.Manifest{
-				Networks: []bmdeplmanifest.Network{
+			deploymentManifest = Manifest{
+				Networks: []Network{
 					{
 						Name: "not-blank",
 					},
@@ -338,8 +337,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates network type", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Networks: []bmdeplmanifest.Network{
+			deploymentManifest := Manifest{
+				Networks: []Network{
 					{
 						Type: "unknown-type",
 					},
@@ -352,8 +351,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates disk pool cloud_properties", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Networks: []bmdeplmanifest.Network{
+			deploymentManifest := Manifest{
+				Networks: []Network{
 					{
 						RawCloudProperties: map[interface{}]interface{}{
 							123: "fake-property-value",
@@ -368,8 +367,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates that there is only one job", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{},
 					{},
 				},
@@ -381,8 +380,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job name", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
 						Name: "",
 					},
@@ -393,8 +392,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].name must be provided"))
 
-			deploymentManifest = bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest = Manifest{
+				Jobs: []Job{
 					{
 						Name: "not-blank",
 					},
@@ -410,8 +409,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job persistent_disk", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
 						PersistentDisk: -1234,
 					},
@@ -424,13 +423,13 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job persistent_disk_pool", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
 						PersistentDiskPool: "non-existent-disk-pool",
 					},
 				},
-				DiskPools: []bmdeplmanifest.DiskPool{
+				DiskPools: []DiskPool{
 					{
 						Name: "fake-disk-pool",
 					},
@@ -443,8 +442,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job instances", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
 						Instances: -1234,
 					},
@@ -457,10 +456,10 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job networks", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
-						Networks: []bmdeplmanifest.JobNetwork{},
+						Networks: []JobNetwork{},
 					},
 				},
 			}
@@ -471,10 +470,10 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job network name", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
-						Networks: []bmdeplmanifest.JobNetwork{
+						Networks: []JobNetwork{
 							{
 								Name: "",
 							},
@@ -489,10 +488,10 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job network static ips", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
-						Networks: []bmdeplmanifest.JobNetwork{
+						Networks: []JobNetwork{
 							{
 								StaticIPs: []string{"non-ip"},
 							},
@@ -507,12 +506,12 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job network default", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
-						Networks: []bmdeplmanifest.JobNetwork{
+						Networks: []JobNetwork{
 							{
-								Default: []bmdeplmanifest.NetworkDefault{
+								Default: []NetworkDefault{
 									"non-dns-or-gateway",
 								},
 							},
@@ -527,8 +526,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job lifecycle", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
 						Lifecycle: "errand",
 					},
@@ -541,8 +540,8 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job properties", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
 						RawProperties: map[interface{}]interface{}{
 							123: "fake-property-value",
@@ -558,7 +557,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("permits job templates to reference an undeclared release", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
+			deploymentManifest.Jobs[0].Templates = []ReleaseJobRef{
 				{
 					Name:    "fake-job-name",
 					Release: "fake-release-name",
@@ -571,9 +570,9 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates job templates have a job name", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Jobs = []bmdeplmanifest.Job{
+			deploymentManifest.Jobs = []Job{
 				{
-					Templates: []bmdeplmanifest.ReleaseJobRef{{}},
+					Templates: []ReleaseJobRef{{}},
 				},
 			}
 
@@ -584,9 +583,9 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates job templates have unique job names", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Jobs = []bmdeplmanifest.Job{
+			deploymentManifest.Jobs = []Job{
 				{
-					Templates: []bmdeplmanifest.ReleaseJobRef{
+					Templates: []ReleaseJobRef{
 						{Name: "fake-job-name"},
 						{Name: "fake-job-name"},
 					},
@@ -599,10 +598,10 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates job templates reference a release", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
-				Jobs: []bmdeplmanifest.Job{
+			deploymentManifest := Manifest{
+				Jobs: []Job{
 					{
-						Templates: []bmdeplmanifest.ReleaseJobRef{
+						Templates: []ReleaseJobRef{
 							{Name: "fake-job-name"},
 						},
 					},
@@ -616,7 +615,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates job templates reference an available release", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
+			deploymentManifest.Jobs[0].Templates = []ReleaseJobRef{
 				{Name: "fake-job-name", Release: "fake-other-release-name"},
 			}
 
@@ -627,7 +626,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates job templates reference an available release", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
+			deploymentManifest.Jobs[0].Templates = []ReleaseJobRef{
 				{Name: "fake-job-name", Release: "fake-other-release-name"},
 			}
 
@@ -638,7 +637,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 
 		It("validates job templates reference a job declared within the release", func() {
 			deploymentManifest := validManifest
-			deploymentManifest.Jobs[0].Templates = []bmdeplmanifest.ReleaseJobRef{
+			deploymentManifest.Jobs[0].Templates = []ReleaseJobRef{
 				{Name: "fake-other-job-name", Release: "fake-release-name"},
 			}
 
@@ -648,7 +647,7 @@ var _ = Describe("BoshDeploymentValidator", func() {
 		})
 
 		It("validates deployment properties", func() {
-			deploymentManifest := bmdeplmanifest.Manifest{
+			deploymentManifest := Manifest{
 				RawProperties: map[interface{}]interface{}{
 					123: "fake-property-value",
 				},
