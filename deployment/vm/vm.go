@@ -24,7 +24,7 @@ type VM interface {
 	Exists() (bool, error)
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
 	Apply(bmstemcell.ApplySpec, bmdeplmanifest.Manifest) error
-	UpdateDisks(bmdeplmanifest.DiskPool, bmeventlog.Stage) error
+	UpdateDisks(bmdeplmanifest.DiskPool, bmeventlog.Stage) ([]bmdisk.Disk, error)
 	Start() error
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
@@ -156,12 +156,12 @@ func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest b
 	return nil
 }
 
-func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) error {
-	err := vm.diskDeployer.Deploy(diskPool, vm.cloud, vm, eventLoggerStage)
+func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
+	disks, err := vm.diskDeployer.Deploy(diskPool, vm.cloud, vm, eventLoggerStage)
 	if err != nil {
-		return bosherr.WrapError(err, "Deploying disk")
+		return disks, bosherr.WrapError(err, "Deploying disk")
 	}
-	return nil
+	return disks, nil
 }
 
 func (vm *vm) Start() error {

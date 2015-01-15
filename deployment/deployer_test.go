@@ -16,6 +16,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -161,10 +162,12 @@ var _ = Describe("Deployer", func() {
 		fakeStemcellManager.SetUploadBehavior(extractedStemcell, cloudStemcell, nil)
 		fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
+		instanceManagerFactory := bminstance.NewManagerFactory(fakeSSHTunnelFactory, logger)
+
 		deployer = NewDeployer(
 			fakeStemcellManagerFactory,
 			mockVMManagerFactory,
-			fakeSSHTunnelFactory,
+			instanceManagerFactory,
 			eventLogger,
 			logger,
 		)

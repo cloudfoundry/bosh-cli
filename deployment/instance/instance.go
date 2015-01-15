@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -19,8 +20,9 @@ import (
 type Instance interface {
 	JobName() string
 	ID() int
+	Disks() ([]bmdisk.Disk, error)
 	WaitUntilReady(bminstallmanifest.Registry, bminstallmanifest.SSHTunnel, bmeventlog.Stage) error
-	UpdateDisks(bmdeplmanifest.Manifest, bmeventlog.Stage) error
+	UpdateDisks(bmdeplmanifest.Manifest, bmeventlog.Stage) ([]bmdisk.Disk, error)
 	StartJobs(newState bmstemcell.ApplySpec, deploymentManifest bmdeplmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error
 	Delete(
 		pingTimeout time.Duration,
@@ -66,6 +68,14 @@ func (i *instance) ID() int {
 	return i.id
 }
 
+func (i *instance) Disks() ([]bmdisk.Disk, error) {
+	disks, err := i.vm.Disks()
+	if err != nil {
+		return disks, bosherr.WrapError(err, "Listing instance disks")
+	}
+	return disks, nil
+}
+
 func (i *instance) WaitUntilReady(
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
@@ -101,18 +111,18 @@ func (i *instance) WaitUntilReady(
 	return err
 }
 
-func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, eventLoggerStage bmeventlog.Stage) error {
+func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
 	diskPool, err := deploymentManifest.DiskPool(i.jobName)
 	if err != nil {
-		return bosherr.WrapError(err, "Getting disk pool")
+		return []bmdisk.Disk{}, bosherr.WrapError(err, "Getting disk pool")
 	}
 
-	err = i.vm.UpdateDisks(diskPool, eventLoggerStage)
+	disks, err := i.vm.UpdateDisks(diskPool, eventLoggerStage)
 	if err != nil {
-		return bosherr.WrapError(err, "Updating disks")
+		return disks, bosherr.WrapError(err, "Updating disks")
 	}
 
-	return nil
+	return disks, nil
 }
 
 // StartJobs sends the agent a new apply spec, restarts the agent, and polls until the agent says the jobs are running

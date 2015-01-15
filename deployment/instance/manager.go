@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -26,7 +27,7 @@ type Manager interface {
 		registryConfig bminstallmanifest.Registry,
 		sshTunnelConfig bminstallmanifest.SSHTunnel,
 		eventLoggerStage bmeventlog.Stage,
-	) (instance Instance, err error)
+	) (Instance, []bmdisk.Disk, error)
 	DeleteAll(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
@@ -83,10 +84,11 @@ func (m *manager) Create(
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	eventLoggerStage bmeventlog.Stage,
-) (instance Instance, err error) {
+) (Instance, []bmdisk.Disk, error) {
 	var vm bmvm.VM
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
-	err = eventLoggerStage.PerformStep(stepName, func() error {
+	err := eventLoggerStage.PerformStep(stepName, func() error {
+		var err error
 		vm, err = m.vmManager.Create(cloudStemcell, deploymentManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Creating VM")
@@ -99,20 +101,21 @@ func (m *manager) Create(
 		return nil
 	})
 	if err != nil {
-		return instance, err
+		return nil, []bmdisk.Disk{}, err
 	}
 
-	instance = NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.logger)
+	instance := NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.logger)
 
 	if err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, eventLoggerStage); err != nil {
-		return instance, bosherr.WrapError(err, "Waiting until instance is ready")
+		return instance, []bmdisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")
 	}
 
-	if err := instance.UpdateDisks(deploymentManifest, eventLoggerStage); err != nil {
-		return instance, bosherr.WrapError(err, "Updating instance disks")
+	disks, err := instance.UpdateDisks(deploymentManifest, eventLoggerStage)
+	if err != nil {
+		return instance, disks, bosherr.WrapError(err, "Updating instance disks")
 	}
 
-	return instance, err
+	return instance, disks, err
 }
 
 func (m *manager) DeleteAll(

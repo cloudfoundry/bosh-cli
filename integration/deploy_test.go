@@ -30,6 +30,7 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
+	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -315,10 +316,12 @@ cloud_provider:
 
 			deploymentRecord := bmdepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 
+			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, logger)
+
 			deployer := bmdepl.NewDeployer(
 				stemcellManagerFactory,
 				vmManagerFactory,
-				sshTunnelFactory,
+				instanceManagerFactory,
 				eventLogger,
 				logger,
 			)

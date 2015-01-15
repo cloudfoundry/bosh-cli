@@ -354,7 +354,7 @@ func (f *factory) loadDeployer() bmdepl.Deployer {
 	f.deployer = bmdepl.NewDeployer(
 		f.loadStemcellManagerFactory(),
 		f.loadVMManagerFactory(),
-		f.loadSSHTunnelFactory(),
+		f.loadInstanceManagerFactory(),
 		f.loadEventLogger(),
 		f.logger,
 	)

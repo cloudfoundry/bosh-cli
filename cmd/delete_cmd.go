@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
-	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -12,6 +10,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
+	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -221,60 +220,11 @@ func (c *deleteCmd) Run(args []string) error {
 	}
 
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
+
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, installationManifest.Mbus)
 	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
 	diskManager := c.diskManagerFactory.NewManager(cloud)
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-
-	//TODO: deployment.Delete()
-	return c.deleteDeployment(
-		instanceManager,
-		diskManager,
-		stemcellManager,
-	)
-}
-
-func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
-	if len(args) != 1 {
-		c.ui.Error("Invalid usage - delete command requires exactly 1 argument")
-		c.ui.Sayln("Expected usage: bosh-micro delete <cpi-release-tarball>")
-		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
-		return "", errors.New("Invalid usage - delete command requires exactly 1 argument")
-	}
-	return args[0], nil
-}
-
-func (c *deleteCmd) deleteDisk(deleteStage bmeventlog.Stage, disk bmdisk.Disk) error {
-	stepName := fmt.Sprintf("Deleting disk '%s'", disk.CID())
-	return deleteStage.PerformStep(stepName, func() error {
-		err := disk.Delete()
-		cloudErr, ok := err.(bmcloud.Error)
-		if ok && cloudErr.Type() == bmcloud.DiskNotFoundError {
-			return bmeventlog.NewSkippedStepError(cloudErr.Error())
-		}
-		return err
-	})
-}
-
-func (c *deleteCmd) deleteStemcell(deleteStage bmeventlog.Stage, stemcell bmstemcell.CloudStemcell) error {
-	stepName := fmt.Sprintf("Deleting stemcell '%s'", stemcell.CID())
-	return deleteStage.PerformStep(stepName, func() error {
-		err := stemcell.Delete()
-		cloudErr, ok := err.(bmcloud.Error)
-		if ok && cloudErr.Type() == bmcloud.StemcellNotFoundError {
-			return bmeventlog.NewSkippedStepError(cloudErr.Error())
-		}
-		return err
-	})
-}
-
-func (c *deleteCmd) deleteDeployment(
-	instanceManager bminstance.Manager,
-	diskManager bmdisk.Manager,
-	stemcellManager bmstemcell.Manager,
-) error {
-	deleteStage := c.eventLogger.NewStage("deleting deployment")
-	deleteStage.Start()
 
 	instances, err := instanceManager.FindCurrent()
 	if err != nil {
@@ -283,32 +233,21 @@ func (c *deleteCmd) deleteDeployment(
 
 	disks, err := diskManager.FindCurrent()
 	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment disk")
+		return bosherr.WrapError(err, "Finding current deployment disks")
 	}
 
 	stemcells, err := stemcellManager.FindCurrent()
 	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment stemcell")
+		return bosherr.WrapError(err, "Finding current deployment stemcells")
 	}
 
-	pingTimeout := 10 * time.Second
-	pingDelay := 500 * time.Millisecond
-	for _, instance := range instances {
-		if err = instance.Delete(pingTimeout, pingDelay, deleteStage); err != nil {
-			return err
-		}
-	}
+	deleteStage := c.eventLogger.NewStage("deleting deployment")
+	deleteStage.Start()
 
-	for _, disk := range disks {
-		if err = c.deleteDisk(deleteStage, disk); err != nil {
-			return err
-		}
-	}
-
-	for _, stemcell := range stemcells {
-		if err = c.deleteStemcell(deleteStage, stemcell); err != nil {
-			return err
-		}
+	deployment := bmdepl.NewDeployment(instances, disks, stemcells)
+	err = deployment.Delete(deleteStage)
+	if err != nil {
+		return bosherr.WrapError(err, "Deleting deployment")
 	}
 
 	if err = diskManager.DeleteUnused(deleteStage); err != nil {
@@ -322,4 +261,14 @@ func (c *deleteCmd) deleteDeployment(
 	deleteStage.Finish()
 
 	return nil
+}
+
+func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
+	if len(args) != 1 {
+		c.ui.Error("Invalid usage - delete command requires exactly 1 argument")
+		c.ui.Sayln("Expected usage: bosh-micro delete <cpi-release-tarball>")
+		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
+		return "", errors.New("Invalid usage - delete command requires exactly 1 argument")
+	}
+	return args[0], nil
 }

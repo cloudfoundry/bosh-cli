@@ -7,10 +7,11 @@ import (
 	gomock "code.google.com/p/gomock/gomock"
 	cloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	deployment "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	manifest0 "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	stemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	manifest0 "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	manifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 // Mock of Deployment interface
@@ -34,6 +35,16 @@ func (_m *MockDeployment) EXPECT() *_MockDeploymentRecorder {
 	return _m.recorder
 }
 
+func (_m *MockDeployment) Delete(_param0 eventlogger.Stage) error {
+	ret := _m.ctrl.Call(_m, "Delete", _param0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDeploymentRecorder) Delete(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0)
+}
+
 // Mock of Deployer interface
 type MockDeployer struct {
 	ctrl     *gomock.Controller
@@ -55,7 +66,7 @@ func (_m *MockDeployer) EXPECT() *_MockDeployerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest.Manifest, _param2 stemcell.ExtractedStemcell, _param3 manifest0.Registry, _param4 manifest0.SSHTunnel, _param5 vm.Manager) (deployment.Deployment, error) {
+func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest0.Manifest, _param2 stemcell.ExtractedStemcell, _param3 manifest.Registry, _param4 manifest.SSHTunnel, _param5 vm.Manager) (deployment.Deployment, error) {
 	ret := _m.ctrl.Call(_m, "Deploy", _param0, _param1, _param2, _param3, _param4, _param5)
 	ret0, _ := ret[0].(deployment.Deployment)
 	ret1, _ := ret[1].(error)

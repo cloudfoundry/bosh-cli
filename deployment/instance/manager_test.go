@@ -10,6 +10,8 @@ import (
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -17,6 +19,7 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
@@ -32,7 +35,6 @@ var _ = Describe("Manager", func() {
 		fakeVMManager        *fakebmvm.FakeManager
 		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
 		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
-		fakeDiskDeployer     *fakebmvm.FakeDiskDeployer
 		logger               boshlog.Logger
 		fakeStage            *fakebmlog.FakeStage
 
@@ -48,8 +50,6 @@ var _ = Describe("Manager", func() {
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
-
-		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -74,6 +74,7 @@ var _ = Describe("Manager", func() {
 			sshTunnelConfig    bminstallmanifest.SSHTunnel
 
 			expectedInstance Instance
+			expectedDisk     *fakebmdisk.FakeDisk
 		)
 
 		BeforeEach(func() {
@@ -132,10 +133,13 @@ var _ = Describe("Manager", func() {
 				fakeSSHTunnelFactory,
 				logger,
 			)
+
+			expectedDisk = fakebmdisk.NewFakeDisk("fake-disk-cid")
+			fakeVM.UpdateDisksDisks = []bmdisk.Disk{expectedDisk}
 		})
 
 		It("creates a VM", func() {
-			instance, err := manager.Create(
+			instance, _, err := manager.Create(
 				"fake-job-name",
 				0,
 				deploymentManifest,
@@ -154,7 +158,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("updates the current stemcell", func() {
-			instance, err := manager.Create(
+			instance, _, err := manager.Create(
 				"fake-job-name",
 				0,
 				deploymentManifest,
@@ -170,7 +174,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			instance, err := manager.Create(
+			instance, _, err := manager.Create(
 				"fake-job-name",
 				0,
 				deploymentManifest,
@@ -197,7 +201,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("does not start the registry", func() {
-				_, err := manager.Create(
+				_, _, err := manager.Create(
 					"fake-job-name",
 					0,
 					deploymentManifest,
@@ -211,7 +215,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("waits for the vm", func() {
-			_, err := manager.Create(
+			_, _, err := manager.Create(
 				"fake-job-name",
 				0,
 				deploymentManifest,
@@ -238,7 +242,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("updates the disks", func() {
-			_, err := manager.Create(
+			_, disks, err := manager.Create(
 				"fake-job-name",
 				0,
 				deploymentManifest,
@@ -248,6 +252,7 @@ var _ = Describe("Manager", func() {
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(disks).To(Equal([]bmdisk.Disk{expectedDisk}))
 
 			Expect(fakeVM.UpdateDisksInputs).To(Equal([]fakebmvm.UpdateDisksInput{
 				{
@@ -275,7 +280,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("starts & stops the ssh tunnel", func() {
-				_, err := manager.Create(
+				_, _, err := manager.Create(
 					"fake-job-name",
 					0,
 					deploymentManifest,
@@ -304,7 +309,7 @@ var _ = Describe("Manager", func() {
 				})
 
 				It("returns an error", func() {
-					_, err := manager.Create(
+					_, _, err := manager.Create(
 						"fake-job-name",
 						0,
 						deploymentManifest,
@@ -325,7 +330,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("does not start the ssh tunnel", func() {
-				_, err := manager.Create(
+				_, _, err := manager.Create(
 					"fake-job-name",
 					0,
 					deploymentManifest,
@@ -346,7 +351,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create(
+				_, _, err := manager.Create(
 					"fake-job-name",
 					0,
 					deploymentManifest,
@@ -360,7 +365,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				_, err := manager.Create(
+				_, _, err := manager.Create(
 					"fake-job-name",
 					0,
 					deploymentManifest,

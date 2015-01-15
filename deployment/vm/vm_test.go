@@ -188,11 +188,20 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("UpdateDisks", func() {
+		var expectedDisks []bmdisk.Disk
+
+		BeforeEach(func() {
+			fakeDisk := fakebmdisk.NewFakeDisk("fake-disk-cid")
+			expectedDisks = []bmdisk.Disk{fakeDisk}
+			fakeDiskDeployer.SetDeployBehavior(expectedDisks, nil)
+		})
+
 		It("delegates to DiskDeployer.Deploy", func() {
 			fakeStage := fakebmlog.NewFakeStage()
 
-			err := vm.UpdateDisks(diskPool, fakeStage)
+			disks, err := vm.UpdateDisks(diskPool, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(disks).To(Equal(expectedDisks))
 
 			Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebmvm.DeployInput{
 				{

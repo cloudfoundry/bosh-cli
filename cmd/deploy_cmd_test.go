@@ -11,7 +11,7 @@ import (
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
-	mock_deployer "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
+	mock_deployment "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
 	mock_vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/mocks"
 	mock_install "github.com/cloudfoundry/bosh-micro-cli/installation/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
@@ -21,7 +21,6 @@ import (
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -67,7 +66,7 @@ var _ = Describe("DeployCmd", func() {
 		fakeFs     *fakesys.FakeFileSystem
 		fakeUI     *fakeui.FakeUI
 
-		mockDeployer              *mock_deployer.MockDeployer
+		mockDeployer              *mock_deployment.MockDeployer
 		mockInstaller             *mock_install.MockInstaller
 		mockInstallerFactory      *mock_install.MockInstallerFactory
 		mockReleaseExtractor      *mock_release.MockExtractor
@@ -122,7 +121,7 @@ var _ = Describe("DeployCmd", func() {
 		}
 		fakeFs.WriteFileString(deploymentManifestPath, "")
 
-		mockDeployer = mock_deployer.NewMockDeployer(mockCtrl)
+		mockDeployer = mock_deployment.NewMockDeployer(mockCtrl)
 		mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 		mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 
@@ -333,7 +332,8 @@ var _ = Describe("DeployCmd", func() {
 
 			expectInstall = mockInstaller.EXPECT().Install(installationManifest).Return(installation, nil).AnyTimes()
 
-			deployment := bmdepl.NewDeployment(boshDeploymentManifest)
+			mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
+
 			expectDeploy = mockDeployer.EXPECT().Deploy(
 				cloud,
 				boshDeploymentManifest,
@@ -341,7 +341,7 @@ var _ = Describe("DeployCmd", func() {
 				installationManifest.Registry,
 				installationManifest.SSHTunnel,
 				fakeVMManager,
-			).Return(deployment, nil).AnyTimes()
+			).Return(mockDeployment, nil).AnyTimes()
 
 			expectCPIReleaseExtract = mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
 

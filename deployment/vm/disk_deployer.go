@@ -15,7 +15,7 @@ import (
 
 // DiskDeployer is in the instance package to avoid a [disk -> vm -> disk] dependency cycle
 type DiskDeployer interface {
-	Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cloud, vm VM, eventLoggerStage bmeventlog.Stage) error
+	Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cloud, vm VM, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error)
 }
 
 type diskDeployer struct {
@@ -35,79 +35,93 @@ func NewDiskDeployer(diskManagerFactory bmdisk.ManagerFactory, diskRepo bmconfig
 	}
 }
 
-func (d *diskDeployer) Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cloud, vm VM, eventLoggerStage bmeventlog.Stage) error {
+func (d *diskDeployer) Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cloud, vm VM, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
 	if diskPool.DiskSize == 0 {
-		return nil
+		return []bmdisk.Disk{}, nil
 	}
 
 	d.diskManager = d.diskManagerFactory.NewManager(cloud)
 	disks, err := d.diskManager.FindCurrent()
 	if err != nil {
-		return bosherr.WrapError(err, "Finding existing disk")
+		return disks, bosherr.WrapError(err, "Finding existing disk")
 	}
 
 	if len(disks) > 1 {
-		return bosherr.WrapError(err, "Multiple current disks not supported")
+		return disks, bosherr.WrapError(err, "Multiple current disks not supported")
 
 	} else if len(disks) == 1 {
-		err = d.deployExistingDisk(disks[0], diskPool, vm, eventLoggerStage)
+		disks, err = d.deployExistingDisk(disks[0], diskPool, vm, eventLoggerStage)
 		if err != nil {
-			return err
+			return disks, err
 		}
 
 	} else {
-		err = d.deployNewDisk(diskPool, vm, eventLoggerStage)
+		disks, err = d.deployNewDisk(diskPool, vm, eventLoggerStage)
 		if err != nil {
-			return err
+			return disks, err
 		}
 	}
 
 	err = d.diskManager.DeleteUnused(eventLoggerStage)
 	if err != nil {
-		return err
+		return disks, err
 	}
 
-	return nil
+	return disks, nil
 }
 
-func (d *diskDeployer) deployExistingDisk(disk bmdisk.Disk, diskPool bmdeplmanifest.DiskPool, vm VM, eventLoggerStage bmeventlog.Stage) error {
+func (d *diskDeployer) deployExistingDisk(disk bmdisk.Disk, diskPool bmdeplmanifest.DiskPool, vm VM, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
+	disks := []bmdisk.Disk{}
+
+	// the disk is already part of the deployment, and should already be attached
+	disks = append(disks, disk)
+
+	// attach is idempotent
 	err := d.attachDisk(disk, vm, eventLoggerStage)
 	if err != nil {
-		return err
+		return disks, err
 	}
 
 	diskCloudProperties, err := diskPool.CloudProperties()
 	if err != nil {
-		return bosherr.WrapError(err, "Getting disk pool cloud properties")
+		return disks, bosherr.WrapError(err, "Getting disk pool cloud properties")
 	}
 
 	if disk.NeedsMigration(diskPool.DiskSize, diskCloudProperties) {
 		disk, err = d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
 		if err != nil {
-			return err
+			return disks, err
 		}
+
+		// after migration, only the new disk is part of the deployment
+		disks[0] = disk
 	}
 
-	return nil
+	return disks, nil
 }
 
-func (d *diskDeployer) deployNewDisk(diskPool bmdeplmanifest.DiskPool, vm VM, eventLoggerStage bmeventlog.Stage) error {
+func (d *diskDeployer) deployNewDisk(diskPool bmdeplmanifest.DiskPool, vm VM, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
+	disks := []bmdisk.Disk{}
+
 	disk, err := d.createDisk(diskPool, vm, eventLoggerStage)
 	if err != nil {
-		return err
+		return disks, err
 	}
 
 	err = d.attachDisk(disk, vm, eventLoggerStage)
 	if err != nil {
-		return err
+		return disks, err
 	}
+
+	// once attached, the disk is part of the deployment
+	disks = append(disks, disk)
 
 	err = d.updateCurrentDiskRecord(disk)
 	if err != nil {
-		return err
+		return disks, err
 	}
 
-	return nil
+	return disks, nil
 }
 
 func (d *diskDeployer) migrateDisk(

@@ -17,6 +17,7 @@ type FakeVM struct {
 	ExistsErr    error
 
 	UpdateDisksInputs []UpdateDisksInput
+	UpdateDisksDisks  []bmdisk.Disk
 	UpdateDisksErr    error
 
 	ApplyInputs []ApplyInput
@@ -117,12 +118,12 @@ func (vm *FakeVM) WaitUntilReady(timeout time.Duration, delay time.Duration) err
 	return vm.WaitUntilReadyErr
 }
 
-func (vm *FakeVM) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) error {
+func (vm *FakeVM) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
 	vm.UpdateDisksInputs = append(vm.UpdateDisksInputs, UpdateDisksInput{
 		DiskPool: diskPool,
 		Stage:    eventLoggerStage,
 	})
-	return vm.UpdateDisksErr
+	return vm.UpdateDisksDisks, vm.UpdateDisksErr
 }
 
 func (vm *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmdeplmanifest.Manifest) error {

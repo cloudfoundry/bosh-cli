@@ -2,6 +2,7 @@ package fakes
 
 import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -20,7 +21,8 @@ type DeployInput struct {
 }
 
 type deployOutput struct {
-	err error
+	disks []bmdisk.Disk
+	err   error
 }
 
 func NewFakeDiskDeployer() *FakeDiskDeployer {
@@ -34,7 +36,7 @@ func (d *FakeDiskDeployer) Deploy(
 	cloud bmcloud.Cloud,
 	vm bmvm.VM,
 	eventLoggerStage bmeventlog.Stage,
-) error {
+) ([]bmdisk.Disk, error) {
 	d.DeployInputs = append(d.DeployInputs, DeployInput{
 		DiskPool:         diskPool,
 		Cloud:            cloud,
@@ -42,11 +44,12 @@ func (d *FakeDiskDeployer) Deploy(
 		EventLoggerStage: eventLoggerStage,
 	})
 
-	return d.deployOutputs.err
+	return d.deployOutputs.disks, d.deployOutputs.err
 }
 
-func (d *FakeDiskDeployer) SetDeployBehavior(err error) {
+func (d *FakeDiskDeployer) SetDeployBehavior(disks []bmdisk.Disk, err error) {
 	d.deployOutputs = deployOutput{
-		err: err,
+		disks: disks,
+		err:   err,
 	}
 }
