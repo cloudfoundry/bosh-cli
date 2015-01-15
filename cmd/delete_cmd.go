@@ -281,7 +281,7 @@ func (c *deleteCmd) deleteDeployment(
 		return bosherr.WrapError(err, "Finding current deployment instances")
 	}
 
-	disk, diskFound, err := diskManager.FindCurrent()
+	disks, err := diskManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding current deployment disk")
 	}
@@ -299,7 +299,7 @@ func (c *deleteCmd) deleteDeployment(
 		}
 	}
 
-	if diskFound {
+	for _, disk := range disks {
 		if err = c.deleteDisk(deleteStage, disk); err != nil {
 			return err
 		}

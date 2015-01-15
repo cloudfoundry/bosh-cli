@@ -123,18 +123,18 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns the existing disk", func() {
-				disk, found, err := manager.FindCurrent()
+				disks, err := manager.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeTrue())
-				Expect(disk.CID()).To(Equal("fake-existing-disk-cid"))
+				Expect(disks).To(HaveLen(1))
+				Expect(disks[0].CID()).To(Equal("fake-existing-disk-cid"))
 			})
 		})
 
 		Context("when disk does not exists in disk repo", func() {
-			It("returns false", func() {
-				_, found, err := manager.FindCurrent()
+			It("returns an empty array", func() {
+				disks, err := manager.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
+				Expect(disks).To(BeEmpty())
 			})
 		})
 
@@ -145,8 +145,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, found, err := manager.FindCurrent()
-				Expect(found).To(BeFalse())
+				_, err := manager.FindCurrent()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-read-error"))
 			})

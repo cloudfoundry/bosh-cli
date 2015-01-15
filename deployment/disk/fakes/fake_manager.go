@@ -25,8 +25,7 @@ type CreateInput struct {
 }
 
 type findCurrentOutput struct {
-	Disk  bmdisk.Disk
-	Found bool
+	Disks []bmdisk.Disk
 	Err   error
 }
 
@@ -49,8 +48,8 @@ func (m *FakeManager) Create(diskPool bmdeplmanifest.DiskPool, instanceID string
 	return m.CreateDisk, m.CreateErr
 }
 
-func (m *FakeManager) FindCurrent() (bmdisk.Disk, bool, error) {
-	return m.findCurrentOutput.Disk, m.findCurrentOutput.Found, m.findCurrentOutput.Err
+func (m *FakeManager) FindCurrent() ([]bmdisk.Disk, error) {
+	return m.findCurrentOutput.Disks, m.findCurrentOutput.Err
 }
 
 func (m *FakeManager) FindUnused() ([]bmdisk.Disk, error) {
@@ -62,10 +61,9 @@ func (m *FakeManager) DeleteUnused(eventLogStage bmeventlog.Stage) error {
 	return m.DeleteUnusedErr
 }
 
-func (m *FakeManager) SetFindCurrentBehavior(disk bmdisk.Disk, found bool, err error) {
+func (m *FakeManager) SetFindCurrentBehavior(disks []bmdisk.Disk, err error) {
 	m.findCurrentOutput = findCurrentOutput{
-		Disk:  disk,
-		Found: found,
+		Disks: disks,
 		Err:   err,
 	}
 }

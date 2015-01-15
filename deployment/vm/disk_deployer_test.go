@@ -9,7 +9,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
@@ -51,7 +53,7 @@ var _ = Describe("DiskDeployer", func() {
 			logger,
 		)
 
-		fakeDiskManager.SetFindCurrentBehavior(nil, false, nil)
+		fakeDiskManager.SetFindCurrentBehavior([]bmdisk.Disk{}, nil)
 		fakeVM.SetAttachDiskBehavior(fakeDisk, nil)
 		newDiskRecord := bmconfig.DiskRecord{
 			ID: "fake-new-disk-id",
@@ -75,7 +77,7 @@ var _ = Describe("DiskDeployer", func() {
 
 			BeforeEach(func() {
 				existingDisk = fakebmdisk.NewFakeDisk("fake-existing-disk-cid")
-				fakeDiskManager.SetFindCurrentBehavior(existingDisk, true, nil)
+				fakeDiskManager.SetFindCurrentBehavior([]bmdisk.Disk{existingDisk}, nil)
 				fakeVM.SetAttachDiskBehavior(existingDisk, nil)
 				existingDiskRecord := bmconfig.DiskRecord{
 					ID: "fake-existing-disk-id",

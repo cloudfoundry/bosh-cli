@@ -66,15 +66,13 @@ func (m *manager) FindCurrent() ([]Instance, error) {
 		return instances, bosherr.WrapError(err, "Finding currently deployed instances")
 	}
 
-	if !found {
-		return instances, nil
+	if found {
+		// TODO: store the name of the job for each instance in the repo, so that we can print it when deleting
+		instance := NewInstance("unknown", 0, vm, m.vmManager, m.sshTunnelFactory, m.logger)
+		instances = append(instances, instance)
 	}
 
-	// the job name is not stored (yet)
-	instance := NewInstance("unknown", 0, vm, m.vmManager, m.sshTunnelFactory, m.logger)
-	instances = append(instances, instance)
-
-	return instances, err
+	return instances, nil
 }
 
 func (m *manager) Create(

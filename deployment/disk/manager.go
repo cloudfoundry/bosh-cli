@@ -12,10 +12,23 @@ import (
 )
 
 type Manager interface {
-	FindCurrent() (Disk, bool, error)
+	FindCurrent() ([]Disk, error)
 	Create(bmdeplmanifest.DiskPool, string) (Disk, error)
 	FindUnused() ([]Disk, error)
 	DeleteUnused(bmeventlog.Stage) error
+}
+
+func NewManager(
+	cloud bmcloud.Cloud,
+	diskRepo bmconfig.DiskRepo,
+	logger boshlog.Logger,
+) Manager {
+	return &manager{
+		cloud:    cloud,
+		diskRepo: diskRepo,
+		logger:   logger,
+		logTag:   "diskManager",
+	}
 }
 
 type manager struct {
@@ -25,19 +38,20 @@ type manager struct {
 	logTag   string
 }
 
-func (m *manager) FindCurrent() (Disk, bool, error) {
+func (m *manager) FindCurrent() ([]Disk, error) {
+	disks := []Disk{}
+
 	diskRecord, found, err := m.diskRepo.FindCurrent()
 	if err != nil {
-		return nil, false, bosherr.WrapError(err, "Reading disk record")
+		return disks, bosherr.WrapError(err, "Reading disk record")
 	}
 
-	if !found {
-		return nil, false, nil
+	if found {
+		disk := NewDisk(diskRecord, m.cloud, m.diskRepo)
+		disks = append(disks, disk)
 	}
 
-	disk := NewDisk(diskRecord, m.cloud, m.diskRepo)
-
-	return disk, true, err
+	return disks, nil
 }
 
 func (m *manager) Create(diskPool bmdeplmanifest.DiskPool, vmCID string) (Disk, error) {

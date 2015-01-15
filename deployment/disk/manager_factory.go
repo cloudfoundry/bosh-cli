@@ -26,10 +26,5 @@ func NewManagerFactory(
 }
 
 func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
-	return &manager{
-		cloud:    cloud,
-		diskRepo: f.diskRepo,
-		logger:   f.logger,
-		logTag:   "diskManager",
-	}
+	return NewManager(cloud, f.diskRepo, f.logger)
 }

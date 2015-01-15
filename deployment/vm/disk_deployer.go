@@ -41,16 +41,60 @@ func (d *diskDeployer) Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cl
 	}
 
 	d.diskManager = d.diskManagerFactory.NewManager(cloud)
-	disk, diskFound, err := d.diskManager.FindCurrent()
+	disks, err := d.diskManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding existing disk")
 	}
 
-	if !diskFound {
-		disk, err = d.createDisk(diskPool, vm, eventLoggerStage)
+	if len(disks) > 1 {
+		return bosherr.WrapError(err, "Multiple current disks not supported")
+
+	} else if len(disks) == 1 {
+		err = d.deployExistingDisk(disks[0], diskPool, vm, eventLoggerStage)
 		if err != nil {
 			return err
 		}
+
+	} else {
+		err = d.deployNewDisk(diskPool, vm, eventLoggerStage)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = d.diskManager.DeleteUnused(eventLoggerStage)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *diskDeployer) deployExistingDisk(disk bmdisk.Disk, diskPool bmdeplmanifest.DiskPool, vm VM, eventLoggerStage bmeventlog.Stage) error {
+	err := d.attachDisk(disk, vm, eventLoggerStage)
+	if err != nil {
+		return err
+	}
+
+	diskCloudProperties, err := diskPool.CloudProperties()
+	if err != nil {
+		return bosherr.WrapError(err, "Getting disk pool cloud properties")
+	}
+
+	if disk.NeedsMigration(diskPool.DiskSize, diskCloudProperties) {
+		disk, err = d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (d *diskDeployer) deployNewDisk(diskPool bmdeplmanifest.DiskPool, vm VM, eventLoggerStage bmeventlog.Stage) error {
+	disk, err := d.createDisk(diskPool, vm, eventLoggerStage)
+	if err != nil {
+		return err
 	}
 
 	err = d.attachDisk(disk, vm, eventLoggerStage)
@@ -58,28 +102,7 @@ func (d *diskDeployer) Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cl
 		return err
 	}
 
-	if !diskFound {
-		err = d.updateCurrentDiskRecord(disk)
-		if err != nil {
-			return err
-		}
-	}
-
-	if diskFound {
-		diskCloudProperties, err := diskPool.CloudProperties()
-		if err != nil {
-			return bosherr.WrapError(err, "Getting disk pool cloud properties")
-		}
-
-		if disk.NeedsMigration(diskPool.DiskSize, diskCloudProperties) {
-			disk, err = d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	err = d.diskManager.DeleteUnused(eventLoggerStage)
+	err = d.updateCurrentDiskRecord(disk)
 	if err != nil {
 		return err
 	}
