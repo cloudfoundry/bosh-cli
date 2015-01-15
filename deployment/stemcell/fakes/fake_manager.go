@@ -3,6 +3,8 @@ package fakes
 import (
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
@@ -38,8 +40,8 @@ func NewFakeManager() *FakeManager {
 	}
 }
 
-func (m *FakeManager) FindCurrent() (bmstemcell.CloudStemcell, bool, error) {
-	return nil, false, nil
+func (m *FakeManager) FindCurrent() ([]bmstemcell.CloudStemcell, error) {
+	return []bmstemcell.CloudStemcell{}, bosherr.Error("FakeManager.FindCurrent() not implemented (yet)")
 }
 
 func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell) (bmstemcell.CloudStemcell, error) {

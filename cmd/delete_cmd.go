@@ -286,7 +286,7 @@ func (c *deleteCmd) deleteDeployment(
 		return bosherr.WrapError(err, "Finding current deployment disk")
 	}
 
-	stemcell, stemcellFound, err := stemcellManager.FindCurrent()
+	stemcells, err := stemcellManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding current deployment stemcell")
 	}
@@ -305,7 +305,7 @@ func (c *deleteCmd) deleteDeployment(
 		}
 	}
 
-	if stemcellFound {
+	for _, stemcell := range stemcells {
 		if err = c.deleteStemcell(deleteStage, stemcell); err != nil {
 			return err
 		}

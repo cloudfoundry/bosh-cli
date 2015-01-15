@@ -225,18 +225,18 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns the existing stemcell", func() {
-				stemcell, found, err := manager.FindCurrent()
+				stemcells, err := manager.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeTrue())
-				Expect(stemcell.CID()).To(Equal("fake-existing-stemcell-cid"))
+				Expect(stemcells).To(HaveLen(1))
+				Expect(stemcells[0].CID()).To(Equal("fake-existing-stemcell-cid"))
 			})
 		})
 
 		Context("when stemcell does not exists in stemcell repo", func() {
 			It("returns false", func() {
-				_, found, err := manager.FindCurrent()
+				stemcells, err := manager.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
+				Expect(stemcells).To(BeEmpty())
 			})
 		})
 
@@ -247,8 +247,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, found, err := manager.FindCurrent()
-				Expect(found).To(BeFalse())
+				_, err := manager.FindCurrent()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-read-error"))
 			})
