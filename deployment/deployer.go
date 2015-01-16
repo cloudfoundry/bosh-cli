@@ -31,7 +31,7 @@ type deployer struct {
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	vmManagerFactory       bmvm.ManagerFactory
 	instanceManagerFactory bminstance.ManagerFactory
-	eventLoggerStage       bmeventlog.Stage
+	eventLogger            bmeventlog.EventLogger
 	logger                 boshlog.Logger
 	logTag                 string
 }
@@ -43,14 +43,11 @@ func NewDeployer(
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
-	//TODO: handle stage construction outside of this class
-	eventLoggerStage := eventLogger.NewStage("deploying")
-
 	return &deployer{
 		stemcellManagerFactory: stemcellManagerFactory,
 		vmManagerFactory:       vmManagerFactory,
 		instanceManagerFactory: instanceManagerFactory,
-		eventLoggerStage:       eventLoggerStage,
+		eventLogger:            eventLogger,
 		logger:                 logger,
 		logTag:                 "deployer",
 	}
@@ -64,35 +61,43 @@ func (m *deployer) Deploy(
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
 ) (Deployment, error) {
+
+	//TODO: handle stage construction outside of this class
+	uploadStemcellStage := m.eventLogger.NewStage("uploading stemcell")
+	uploadStemcellStage.Start()
+
 	stemcellManager := m.stemcellManagerFactory.NewManager(cloud)
-	cloudStemcell, err := stemcellManager.Upload(extractedStemcell)
+	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, uploadStemcellStage)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Uploading stemcell")
 	}
 	stemcells := []bmstemcell.CloudStemcell{cloudStemcell}
 
-	m.eventLoggerStage.Start()
+	uploadStemcellStage.Finish()
+
+	deployStage := m.eventLogger.NewStage("deploying")
+	deployStage.Start()
 
 	instanceManager := m.instanceManagerFactory.NewManager(cloud, vmManager)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
-	if err = instanceManager.DeleteAll(pingTimeout, pingDelay, m.eventLoggerStage); err != nil {
+	if err = instanceManager.DeleteAll(pingTimeout, pingDelay, deployStage); err != nil {
 		return nil, err
 	}
 
-	instances, disks, err := m.createAllInstances(deploymentManifest, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig)
+	instances, disks, err := m.createAllInstances(deploymentManifest, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig, deployStage)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: cleanup unused disks?
 
-	if err = stemcellManager.DeleteUnused(m.eventLoggerStage); err != nil {
+	if err = stemcellManager.DeleteUnused(deployStage); err != nil {
 		return nil, err
 	}
 
-	m.eventLoggerStage.Finish()
+	deployStage.Finish()
 
 	return NewDeployment(instances, disks, stemcells), nil
 }
@@ -104,6 +109,7 @@ func (m *deployer) createAllInstances(
 	cloudStemcell bmstemcell.CloudStemcell,
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
+	deployStage bmeventlog.Stage,
 ) ([]bminstance.Instance, []bmdisk.Disk, error) {
 	instances := []bminstance.Instance{}
 	disks := []bmdisk.Disk{}
@@ -117,14 +123,14 @@ func (m *deployer) createAllInstances(
 			return instances, disks, bosherr.Errorf("Job '%s' must have only one instance, found %d", jobSpec.Name, jobSpec.Instances)
 		}
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
-			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, m.eventLoggerStage)
+			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, deployStage)
 			if err != nil {
 				return instances, disks, bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)
 			}
 			instances = append(instances, instance)
 			disks = append(disks, instanceDisks...)
 
-			err = instance.StartJobs(extractedStemcell.ApplySpec(), deploymentManifest, m.eventLoggerStage)
+			err = instance.StartJobs(extractedStemcell.ApplySpec(), deploymentManifest, deployStage)
 			if err != nil {
 				return instances, disks, err
 			}

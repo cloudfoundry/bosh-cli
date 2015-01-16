@@ -40,42 +40,43 @@ type Factory interface {
 }
 
 type factory struct {
-	commands                map[string](func() (Cmd, error))
-	userConfig              bmconfig.UserConfig
-	userConfigService       bmconfig.UserConfigService
-	deploymentConfigService bmconfig.DeploymentConfigService
-	fs                      boshsys.FileSystem
-	ui                      bmui.UI
-	logger                  boshlog.Logger
-	uuidGenerator           boshuuid.Generator
-	workspaceRootPath       string
-	runner                  boshsys.CmdRunner
-	compressor              boshcmd.Compressor
-	agentClientFactory      bmhttpagent.AgentClientFactory
-	vmManagerFactory        bmvm.ManagerFactory
-	vmRepo                  bmconfig.VMRepo
-	stemcellRepo            bmconfig.StemcellRepo
-	diskRepo                bmconfig.DiskRepo
-	registryServerManager   bmregistry.ServerManager
-	sshTunnelFactory        bmsshtunnel.Factory
-	diskDeployer            bmvm.DiskDeployer
-	diskManagerFactory      bmdisk.ManagerFactory
-	instanceManagerFactory  bminstance.ManagerFactory
-	stemcellManagerFactory  bmstemcell.ManagerFactory
-	deployer                bmdepl.Deployer
-	eventLogger             bmeventlog.EventLogger
-	timeService             boshtime.Service
-	installerFactory        bminstall.InstallerFactory
-	releaseExtractor        bmrel.Extractor
-	releaseManager          bmrel.Manager
-	releaseResolver         bmrelset.Resolver
-	releaseSetParser        bmrelsetmanifest.Parser
-	installationParser      bminstallmanifest.Parser
-	deploymentParser        bmdeplmanifest.Parser
-	releaseSetValidator     bmrelsetmanifest.Validator
-	installationValidator   bminstallmanifest.Validator
-	deploymentValidator     bmdeplmanifest.Validator
-	cloudFactory            bmcloud.Factory
+	commands                 map[string](func() (Cmd, error))
+	userConfig               bmconfig.UserConfig
+	userConfigService        bmconfig.UserConfigService
+	deploymentConfigService  bmconfig.DeploymentConfigService
+	fs                       boshsys.FileSystem
+	ui                       bmui.UI
+	logger                   boshlog.Logger
+	uuidGenerator            boshuuid.Generator
+	workspaceRootPath        string
+	runner                   boshsys.CmdRunner
+	compressor               boshcmd.Compressor
+	agentClientFactory       bmhttpagent.AgentClientFactory
+	vmManagerFactory         bmvm.ManagerFactory
+	vmRepo                   bmconfig.VMRepo
+	stemcellRepo             bmconfig.StemcellRepo
+	diskRepo                 bmconfig.DiskRepo
+	registryServerManager    bmregistry.ServerManager
+	sshTunnelFactory         bmsshtunnel.Factory
+	diskDeployer             bmvm.DiskDeployer
+	diskManagerFactory       bmdisk.ManagerFactory
+	instanceManagerFactory   bminstance.ManagerFactory
+	stemcellManagerFactory   bmstemcell.ManagerFactory
+	deploymentManagerFactory bmdepl.ManagerFactory
+	deployer                 bmdepl.Deployer
+	eventLogger              bmeventlog.EventLogger
+	timeService              boshtime.Service
+	installerFactory         bminstall.InstallerFactory
+	releaseExtractor         bmrel.Extractor
+	releaseManager           bmrel.Manager
+	releaseResolver          bmrelset.Resolver
+	releaseSetParser         bmrelsetmanifest.Parser
+	installationParser       bminstallmanifest.Parser
+	deploymentParser         bmdeplmanifest.Parser
+	releaseSetValidator      bmrelsetmanifest.Validator
+	installationValidator    bminstallmanifest.Validator
+	deploymentValidator      bmdeplmanifest.Validator
+	cloudFactory             bmcloud.Factory
 }
 
 func NewFactory(
@@ -174,10 +175,7 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.loadReleaseResolver(),
 		f.loadCloudFactory(),
 		f.loadAgentClientFactory(),
-		f.loadVMManagerFactory(),
-		f.loadInstanceManagerFactory(),
-		f.loadDiskManagerFactory(),
-		f.loadStemcellManagerFactory(),
+		f.loadDeploymentManagerFactory(),
 		f.loadEventLogger(),
 		f.logger,
 	), nil
@@ -271,6 +269,20 @@ func (f *factory) loadInstanceManagerFactory() bminstance.ManagerFactory {
 	return f.instanceManagerFactory
 }
 
+func (f *factory) loadDeploymentManagerFactory() bmdepl.ManagerFactory {
+	if f.deploymentManagerFactory != nil {
+		return f.deploymentManagerFactory
+	}
+
+	f.deploymentManagerFactory = bmdepl.NewManagerFactory(
+		f.loadVMManagerFactory(),
+		f.loadInstanceManagerFactory(),
+		f.loadDiskManagerFactory(),
+		f.loadStemcellManagerFactory(),
+	)
+	return f.deploymentManagerFactory
+}
+
 func (f *factory) loadAgentClientFactory() bmhttpagent.AgentClientFactory {
 	if f.agentClientFactory != nil {
 		return f.agentClientFactory
@@ -320,7 +332,7 @@ func (f *factory) loadStemcellManagerFactory() bmstemcell.ManagerFactory {
 		return f.stemcellManagerFactory
 	}
 
-	f.stemcellManagerFactory = bmstemcell.NewManagerFactory(f.loadStemcellRepo(), f.loadEventLogger())
+	f.stemcellManagerFactory = bmstemcell.NewManagerFactory(f.loadStemcellRepo())
 	return f.stemcellManagerFactory
 }
 

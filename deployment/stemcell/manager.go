@@ -12,22 +12,20 @@ import (
 
 type Manager interface {
 	FindCurrent() ([]CloudStemcell, error)
-	Upload(ExtractedStemcell) (CloudStemcell, error)
+	Upload(ExtractedStemcell, bmeventlog.Stage) (CloudStemcell, error)
 	FindUnused() ([]CloudStemcell, error)
 	DeleteUnused(bmeventlog.Stage) error
 }
 
 type manager struct {
-	repo        bmconfig.StemcellRepo
-	cloud       bmcloud.Cloud
-	eventLogger bmeventlog.EventLogger
+	repo  bmconfig.StemcellRepo
+	cloud bmcloud.Cloud
 }
 
-func NewManager(repo bmconfig.StemcellRepo, cloud bmcloud.Cloud, eventLogger bmeventlog.EventLogger) Manager {
+func NewManager(repo bmconfig.StemcellRepo, cloud bmcloud.Cloud) Manager {
 	return &manager{
-		repo:        repo,
-		cloud:       cloud,
-		eventLogger: eventLogger,
+		repo:  repo,
+		cloud: cloud,
 	}
 }
 
@@ -50,11 +48,8 @@ func (m *manager) FindCurrent() ([]CloudStemcell, error) {
 // Upload stemcell to an IAAS. It does the following steps:
 // 1) uploads the stemcell to the cloud (if needed),
 // 2) saves a record of the uploaded stemcell in the repo
-func (m *manager) Upload(extractedStemcell ExtractedStemcell) (cloudStemcell CloudStemcell, err error) {
-	eventLoggerStage := m.eventLogger.NewStage("uploading stemcell")
-	eventLoggerStage.Start()
-
-	err = eventLoggerStage.PerformStep("Uploading", func() error {
+func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage bmeventlog.Stage) (cloudStemcell CloudStemcell, err error) {
+	err = uploadStage.PerformStep("Uploading", func() error {
 		manifest := extractedStemcell.Manifest()
 		foundStemcellRecord, found, err := m.repo.Find(manifest.Name, manifest.Version)
 		if err != nil {
@@ -89,7 +84,6 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell) (cloudStemcell Clo
 		return cloudStemcell, err
 	}
 
-	eventLoggerStage.Finish()
 	return cloudStemcell, nil
 }
 
@@ -116,7 +110,7 @@ func (m *manager) FindUnused() ([]CloudStemcell, error) {
 	return unusedStemcells, nil
 }
 
-func (m *manager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
+func (m *manager) DeleteUnused(deleteStage bmeventlog.Stage) error {
 	stemcells, err := m.FindUnused()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding unused stemcells")
@@ -124,7 +118,7 @@ func (m *manager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
 
 	for _, stemcell := range stemcells {
 		stepName := fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID())
-		err = eventLoggerStage.PerformStep(stepName, func() error {
+		err = deleteStage.PerformStep(stepName, func() error {
 			err := stemcell.Delete()
 			cloudErr, ok := err.(bmcloud.Error)
 			if ok && cloudErr.Type() == bmcloud.StemcellNotFoundError {

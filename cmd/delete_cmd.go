@@ -12,8 +12,6 @@ import (
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
@@ -21,33 +19,27 @@ import (
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
-
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
 
 type deleteCmd struct {
-	ui                      bmui.UI
-	userConfig              bmconfig.UserConfig
-	fs                      boshsys.FileSystem
-	releaseSetParser        bmrelsetmanifest.Parser
-	installationParser      bminstallmanifest.Parser
-	deploymentConfigService bmconfig.DeploymentConfigService
-	releaseSetValidator     bmrelsetmanifest.Validator
-	installationValidator   bminstallmanifest.Validator
-	installerFactory        bminstall.InstallerFactory
-	releaseExtractor        bmrel.Extractor
-	releaseManager          bmrel.Manager
-	releaseResolver         bmrelset.Resolver
-	cloudFactory            bmcloud.Factory
-	agentClientFactory      bmhttpagent.AgentClientFactory
-	vmManagerFactory        bmvm.ManagerFactory
-	instanceManagerFactory  bminstance.ManagerFactory
-	diskManagerFactory      bmdisk.ManagerFactory
-	stemcellManagerFactory  bmstemcell.ManagerFactory
-	eventLogger             bmeventlog.EventLogger
-	logger                  boshlog.Logger
-	logTag                  string
+	ui                       bmui.UI
+	userConfig               bmconfig.UserConfig
+	fs                       boshsys.FileSystem
+	releaseSetParser         bmrelsetmanifest.Parser
+	installationParser       bminstallmanifest.Parser
+	deploymentConfigService  bmconfig.DeploymentConfigService
+	releaseSetValidator      bmrelsetmanifest.Validator
+	installationValidator    bminstallmanifest.Validator
+	installerFactory         bminstall.InstallerFactory
+	releaseExtractor         bmrel.Extractor
+	releaseManager           bmrel.Manager
+	releaseResolver          bmrelset.Resolver
+	cloudFactory             bmcloud.Factory
+	agentClientFactory       bmhttpagent.AgentClientFactory
+	deploymentManagerFactory bmdepl.ManagerFactory
+	eventLogger              bmeventlog.EventLogger
+	logger                   boshlog.Logger
+	logTag                   string
 }
 
 func NewDeleteCmd(
@@ -65,35 +57,29 @@ func NewDeleteCmd(
 	releaseResolver bmrelset.Resolver,
 	cloudFactory bmcloud.Factory,
 	agentClientFactory bmhttpagent.AgentClientFactory,
-	vmManagerFactory bmvm.ManagerFactory,
-	instanceManagerFactory bminstance.ManagerFactory,
-	diskManagerFactory bmdisk.ManagerFactory,
-	stemcellManagerFactory bmstemcell.ManagerFactory,
+	deploymentManagerFactory bmdepl.ManagerFactory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) Cmd {
 	return &deleteCmd{
-		ui:                      ui,
-		userConfig:              userConfig,
-		fs:                      fs,
-		releaseSetParser:        releaseSetParser,
-		installationParser:      installationParser,
-		deploymentConfigService: deploymentConfigService,
-		releaseSetValidator:     releaseSetValidator,
-		installationValidator:   installationValidator,
-		installerFactory:        installerFactory,
-		releaseExtractor:        releaseExtractor,
-		releaseManager:          releaseManager,
-		releaseResolver:         releaseResolver,
-		cloudFactory:            cloudFactory,
-		agentClientFactory:      agentClientFactory,
-		vmManagerFactory:        vmManagerFactory,
-		instanceManagerFactory:  instanceManagerFactory,
-		diskManagerFactory:      diskManagerFactory,
-		stemcellManagerFactory:  stemcellManagerFactory,
-		eventLogger:             eventLogger,
-		logger:                  logger,
-		logTag:                  "deleteCmd",
+		ui:                       ui,
+		userConfig:               userConfig,
+		fs:                       fs,
+		releaseSetParser:         releaseSetParser,
+		installationParser:       installationParser,
+		deploymentConfigService:  deploymentConfigService,
+		releaseSetValidator:      releaseSetValidator,
+		installationValidator:    installationValidator,
+		installerFactory:         installerFactory,
+		releaseExtractor:         releaseExtractor,
+		releaseManager:           releaseManager,
+		releaseResolver:          releaseResolver,
+		cloudFactory:             cloudFactory,
+		agentClientFactory:       agentClientFactory,
+		deploymentManagerFactory: deploymentManagerFactory,
+		eventLogger:              eventLogger,
+		logger:                   logger,
+		logTag:                   "deleteCmd",
 	}
 }
 
@@ -221,40 +207,24 @@ func (c *deleteCmd) Run(args []string) error {
 
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
 
-	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, installationManifest.Mbus)
-	instanceManager := c.instanceManagerFactory.NewManager(cloud, vmManager)
-	diskManager := c.diskManagerFactory.NewManager(cloud)
-	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
+	deploymentManager := c.deploymentManagerFactory.NewManager(cloud, agentClient, installationManifest.Mbus)
 
-	instances, err := instanceManager.FindCurrent()
+	deployment, found, err := deploymentManager.FindCurrent()
 	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment instances")
-	}
-
-	disks, err := diskManager.FindCurrent()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment disks")
-	}
-
-	stemcells, err := stemcellManager.FindCurrent()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment stemcells")
+		return bosherr.WrapError(err, "Finding current deployment")
 	}
 
 	deleteStage := c.eventLogger.NewStage("deleting deployment")
 	deleteStage.Start()
 
-	deployment := bmdepl.NewDeployment(instances, disks, stemcells)
-	err = deployment.Delete(deleteStage)
-	if err != nil {
-		return bosherr.WrapError(err, "Deleting deployment")
+	if found {
+		err = deployment.Delete(deleteStage)
+		if err != nil {
+			return bosherr.WrapError(err, "Deleting deployment")
+		}
 	}
 
-	if err = diskManager.DeleteUnused(deleteStage); err != nil {
-		return err
-	}
-
-	if err = stemcellManager.DeleteUnused(deleteStage); err != nil {
+	if err = deploymentManager.Cleanup(deleteStage); err != nil {
 		return err
 	}
 

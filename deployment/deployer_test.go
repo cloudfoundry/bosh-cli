@@ -159,7 +159,7 @@ var _ = Describe("Deployer", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		cloudStemcell = bmstemcell.NewCloudStemcell(stemcellRecord, fakeStemcellRepo, cloud)
-		fakeStemcellManager.SetUploadBehavior(extractedStemcell, cloudStemcell, nil)
+		fakeStemcellManager.SetUploadBehavior(extractedStemcell, fakeStage, cloudStemcell, nil)
 		fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
 		instanceManagerFactory := bminstance.NewManagerFactory(fakeSSHTunnelFactory, logger)
@@ -177,15 +177,16 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(fakeStemcellManager.UploadInputs).To(Equal([]fakebmstemcell.UploadInput{
-			{Stemcell: extractedStemcell},
+			{Stemcell: extractedStemcell, Stage: fakeStage},
 		}))
 	})
 
-	It("adds a new event logger stage", func() {
+	It("adds new event logger stages", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
+			{Name: "uploading stemcell"},
 			{Name: "deploying"},
 		}))
 
@@ -389,7 +390,7 @@ var _ = Describe("Deployer", func() {
 
 	Context("when uploading stemcell fails", func() {
 		BeforeEach(func() {
-			fakeStemcellManager.SetUploadBehavior(extractedStemcell, nil, errors.New("fake-upload-error"))
+			fakeStemcellManager.SetUploadBehavior(extractedStemcell, fakeStage, nil, errors.New("fake-upload-error"))
 		})
 
 		It("returns an error", func() {

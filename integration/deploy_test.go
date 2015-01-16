@@ -654,7 +654,7 @@ cloud_provider:
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			stemcellManagerFactory = bmstemcell.NewManagerFactory(stemcellRepo, eventLogger)
+			stemcellManagerFactory = bmstemcell.NewManagerFactory(stemcellRepo)
 
 			fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
 			fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()

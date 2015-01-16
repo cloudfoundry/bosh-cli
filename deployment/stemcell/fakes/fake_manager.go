@@ -21,6 +21,7 @@ type FakeManager struct {
 
 type UploadInput struct {
 	Stemcell bmstemcell.ExtractedStemcell
+	Stage    bmeventlog.Stage
 }
 
 type uploadOutput struct {
@@ -44,9 +45,10 @@ func (m *FakeManager) FindCurrent() ([]bmstemcell.CloudStemcell, error) {
 	return []bmstemcell.CloudStemcell{}, bosherr.Error("FakeManager.FindCurrent() not implemented (yet)")
 }
 
-func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell) (bmstemcell.CloudStemcell, error) {
+func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell, stage bmeventlog.Stage) (bmstemcell.CloudStemcell, error) {
 	input := UploadInput{
 		Stemcell: stemcell,
+		Stage:    stage,
 	}
 	m.UploadInputs = append(m.UploadInputs, input)
 	output, found := m.uploadBehavior[input]
@@ -68,11 +70,13 @@ func (m *FakeManager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
 
 func (m *FakeManager) SetUploadBehavior(
 	extractedStemcell bmstemcell.ExtractedStemcell,
+	stage bmeventlog.Stage,
 	cloudStemcell bmstemcell.CloudStemcell,
 	err error,
 ) {
 	input := UploadInput{
 		Stemcell: extractedStemcell,
+		Stage:    stage,
 	}
 	m.uploadBehavior[input] = uploadOutput{stemcell: cloudStemcell, err: err}
 }

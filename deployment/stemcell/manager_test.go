@@ -47,7 +47,7 @@ var _ = Describe("Manager", func() {
 		fakeStage = fakebmlog.NewFakeStage()
 		eventLogger.SetNewStageBehavior(fakeStage)
 		fakeCloud = fakebmcloud.NewFakeCloud()
-		manager = NewManager(stemcellRepo, fakeCloud, eventLogger)
+		manager = NewManager(stemcellRepo, fakeCloud)
 		stemcellTarballPath = "/stemcell/tarball/path"
 		tempExtractionDir = "/path/to/dest"
 		fs.TempDirDir = tempExtractionDir
@@ -83,22 +83,8 @@ var _ = Describe("Manager", func() {
 			expectedCloudStemcell = NewCloudStemcell(stemcellRecord, stemcellRepo, fakeCloud)
 		})
 
-		It("starts a new event logger stage", func() {
-			_, err := manager.Upload(expectedExtractedStemcell)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-				{
-					Name: "uploading stemcell",
-				},
-			}))
-
-			Expect(fakeStage.Started).To(BeTrue())
-			Expect(fakeStage.Finished).To(BeTrue())
-		})
-
 		It("uploads the stemcell to the infrastructure and returns the cid", func() {
-			cloudStemcell, err := manager.Upload(expectedExtractedStemcell)
+			cloudStemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
@@ -113,7 +99,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("saves the stemcell record in the stemcellRepo", func() {
-			cloudStemcell, err := manager.Upload(expectedExtractedStemcell)
+			cloudStemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
@@ -129,7 +115,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("logs uploading start and stop events to the eventLogger", func() {
-			_, err := manager.Upload(expectedExtractedStemcell)
+			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -143,7 +129,7 @@ var _ = Describe("Manager", func() {
 
 		It("when the upload fails, logs uploading start and failure events to the eventLogger", func() {
 			fakeCloud.CreateStemcellErr = errors.New("fake-create-error")
-			_, err := manager.Upload(expectedExtractedStemcell)
+			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 
@@ -159,7 +145,7 @@ var _ = Describe("Manager", func() {
 
 		It("when the stemcellRepo save fails, logs uploading start and failure events to the eventLogger", func() {
 			fs.WriteToFileError = errors.New("fake-save-error")
-			_, err := manager.Upload(expectedExtractedStemcell)
+			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-save-error"))
 			Expect(fakeStage.Steps).To(HaveLen(1))
@@ -184,20 +170,20 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns the existing cloud stemcell", func() {
-				stemcell, err := manager.Upload(expectedExtractedStemcell)
+				stemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				foundStemcell := NewCloudStemcell(foundStemcellRecord, stemcellRepo, fakeCloud)
 				Expect(stemcell).To(Equal(foundStemcell))
 			})
 
 			It("does not re-upload the stemcell to the infrastructure", func() {
-				_, err := manager.Upload(expectedExtractedStemcell)
+				_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeCloud.CreateStemcellInputs).To(HaveLen(0))
 			})
 
 			It("logs skipping uploading events to the eventLogger", func() {
-				_, err := manager.Upload(expectedExtractedStemcell)
+				_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -208,8 +194,6 @@ var _ = Describe("Manager", func() {
 					},
 					SkipMessage: "Stemcell already uploaded",
 				}))
-
-				Expect(fakeStage.Finished).To(BeTrue())
 			})
 		})
 	})
