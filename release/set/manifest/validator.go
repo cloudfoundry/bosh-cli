@@ -36,20 +36,16 @@ func (v *validator) Validate(manifest Manifest) error {
 			errs = append(errs, bosherr.Errorf("releases[%d].name must be provided", releaseIdx))
 		}
 
-		if v.isBlank(release.Version) {
-			errs = append(errs, bosherr.Errorf("releases[%d].version must be provided", releaseIdx))
-		}
-
-		if !release.IsLatest() {
-			if _, err := version.NewVersion(release.Version); err != nil {
-				errs = append(errs, bosherr.WrapErrorf(err, "releases[%d].version '%s' must be a semantic version (name: '%s')", releaseIdx, release.Version, release.Name))
-			}
-		}
-
 		if _, found := releaseNames[release.Name]; found {
 			errs = append(errs, bosherr.Errorf("releases[%d].name '%s' must be unique", releaseIdx, release.Name))
 		}
 		releaseNames[release.Name] = struct{}{}
+
+		if !v.isBlank(release.Version) && !release.IsLatest() {
+			if _, err := version.NewVersion(release.Version); err != nil {
+				errs = append(errs, bosherr.WrapErrorf(err, "releases[%d].version '%s' must be a semantic version (name: '%s')", releaseIdx, release.Version, release.Name))
+			}
+		}
 	}
 
 	for releaseIdx, release := range manifest.Releases {

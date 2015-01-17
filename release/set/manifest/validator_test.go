@@ -66,14 +66,17 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("releases[0].name must be provided"))
 		})
 
-		It("validates releases have versions", func() {
+		It("validates releases are unique", func() {
 			manifest := Manifest{
-				Releases: []bmrelmanifest.ReleaseRef{{}},
+				Releases: []bmrelmanifest.ReleaseRef{
+					{Name: "fake-release-name"},
+					{Name: "fake-release-name"},
+				},
 			}
 
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("releases[0].version must be provided"))
+			Expect(err.Error()).To(ContainSubstring("releases[1].name 'fake-release-name' must be unique"))
 		})
 
 		It("validates release version is a SemVer", func() {
@@ -108,19 +111,6 @@ var _ = Describe("Validator", func() {
 
 			err := validator.Validate(manifest)
 			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("validates releases are unique", func() {
-			manifest := Manifest{
-				Releases: []bmrelmanifest.ReleaseRef{
-					{Name: "fake-release-name"},
-					{Name: "fake-release-name"},
-				},
-			}
-
-			err := validator.Validate(manifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("releases[1].name 'fake-release-name' must be unique"))
 		})
 	})
 })

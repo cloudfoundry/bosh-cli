@@ -6,5 +6,5 @@ type ReleaseRef struct {
 }
 
 func (r *ReleaseRef) IsLatest() bool {
-	return r.Version == "latest"
+	return r.Version == "" || r.Version == "latest"
 }
