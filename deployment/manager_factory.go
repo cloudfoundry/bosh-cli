@@ -18,6 +18,7 @@ type managerFactory struct {
 	instanceManagerFactory bminstance.ManagerFactory
 	diskManagerFactory     bmdisk.ManagerFactory
 	stemcellManagerFactory bmstemcell.ManagerFactory
+	deploymentFactory      Factory
 }
 
 func NewManagerFactory(
@@ -25,12 +26,14 @@ func NewManagerFactory(
 	instanceManagerFactory bminstance.ManagerFactory,
 	diskManagerFactory bmdisk.ManagerFactory,
 	stemcellManagerFactory bmstemcell.ManagerFactory,
+	deploymentFactory Factory,
 ) ManagerFactory {
 	return &managerFactory{
 		vmManagerFactory:       vmManagerFactory,
 		instanceManagerFactory: instanceManagerFactory,
 		diskManagerFactory:     diskManagerFactory,
 		stemcellManagerFactory: stemcellManagerFactory,
+		deploymentFactory:      deploymentFactory,
 	}
 }
 
@@ -40,5 +43,5 @@ func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentC
 	diskManager := f.diskManagerFactory.NewManager(cloud)
 	stemcellManager := f.stemcellManagerFactory.NewManager(cloud)
 
-	return NewManager(instanceManager, diskManager, stemcellManager)
+	return NewManager(instanceManager, diskManager, stemcellManager, f.deploymentFactory)
 }

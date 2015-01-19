@@ -15,20 +15,23 @@ type Manager interface {
 }
 
 type manager struct {
-	instanceManager bminstance.Manager
-	diskManager     bmdisk.Manager
-	stemcellManager bmstemcell.Manager
+	instanceManager   bminstance.Manager
+	diskManager       bmdisk.Manager
+	stemcellManager   bmstemcell.Manager
+	deploymentFactory Factory
 }
 
 func NewManager(
 	instanceManager bminstance.Manager,
 	diskManager bmdisk.Manager,
 	stemcellManager bmstemcell.Manager,
+	deploymentFactory Factory,
 ) Manager {
 	return &manager{
-		instanceManager: instanceManager,
-		diskManager:     diskManager,
-		stemcellManager: stemcellManager,
+		instanceManager:   instanceManager,
+		diskManager:       diskManager,
+		stemcellManager:   stemcellManager,
+		deploymentFactory: deploymentFactory,
 	}
 }
 
@@ -52,7 +55,7 @@ func (m *manager) FindCurrent() (deployment Deployment, found bool, err error) {
 		return nil, false, nil
 	}
 
-	return NewDeployment(instances, disks, stemcells), true, nil
+	return m.deploymentFactory.NewDeployment(instances, disks, stemcells), true, nil
 }
 
 func (m *manager) Cleanup(stage bmeventlog.Stage) error {

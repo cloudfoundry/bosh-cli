@@ -6,6 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"time"
+
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
@@ -64,6 +66,8 @@ var _ = Describe("Deployment", func() {
 
 			fakeStage *fakebmeventlog.FakeStage
 
+			deploymentFactory Factory
+
 			deployment Deployment
 		)
 
@@ -106,9 +110,14 @@ var _ = Describe("Deployment", func() {
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
 			fakeStage = fakebmeventlog.NewFakeStage()
+
+			pingTimeout := 10 * time.Second
+			pingDelay := 500 * time.Millisecond
+			deploymentFactory = NewFactory(pingTimeout, pingDelay)
 		})
 
 		JustBeforeEach(func() {
+			// all these local factories & managers are just used to construct a Deployment based on the deployment config
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
@@ -117,16 +126,13 @@ var _ = Describe("Deployment", func() {
 			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, logger)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo)
 
-			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory)
+			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, deploymentFactory)
 			deploymentManager := deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mbusURL)
 
 			var err error
-			var found bool
-			deployment, found, err = deploymentManager.FindCurrent()
+			deployment, _, err = deploymentManager.FindCurrent()
 			Expect(err).ToNot(HaveOccurred())
-			if !found {
-				deployment = NewDeployment([]bminstance.Instance{}, []bmdisk.Disk{}, []bmstemcell.CloudStemcell{})
-			}
+			//Note: deployment will be nil if the config has no vms, disks, or stemcells
 		})
 
 		Context("when the deployment has been deployed", func() {
@@ -201,7 +207,15 @@ var _ = Describe("Deployment", func() {
 				Expect(stemcellRecords).To(BeEmpty(), "expected no stemcell records")
 			})
 
+			//TODO: It'd be nice to test recovering after agent was responsive, before timeout (hard to do with gomock)
 			Context("when agent is unresponsive", func() {
+				BeforeEach(func() {
+					// reduce timout & delay to reduce test duration
+					pingTimeout := 1 * time.Second
+					pingDelay := 100 * time.Millisecond
+					deploymentFactory = NewFactory(pingTimeout, pingDelay)
+				})
+
 				It("times out pinging agent, deletes vm, deletes disk, deletes stemcell", func() {
 					gomock.InOrder(
 						mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil),
@@ -239,6 +253,13 @@ var _ = Describe("Deployment", func() {
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
 				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+			})
+
+			JustBeforeEach(func() {
+				// A previous JustBeforeEach uses FindCurrent to define deployment,
+				// which would return a nil if the config is empty.
+				// So we have to make a fake empty deployment to test it.
+				deployment = deploymentFactory.NewDeployment([]bminstance.Instance{}, []bmdisk.Disk{}, []bmstemcell.CloudStemcell{})
 			})
 
 			It("does not delete anything", func() {

@@ -16,33 +16,36 @@ type Deployment interface {
 }
 
 type deployment struct {
-	instances []bminstance.Instance
-	disks     []bmdisk.Disk
-	stemcells []bmstemcell.CloudStemcell
+	instances   []bminstance.Instance
+	disks       []bmdisk.Disk
+	stemcells   []bmstemcell.CloudStemcell
+	pingTimeout time.Duration
+	pingDelay   time.Duration
 }
 
 func NewDeployment(
 	instances []bminstance.Instance,
 	disks []bmdisk.Disk,
 	stemcells []bmstemcell.CloudStemcell,
+	pingTimeout time.Duration,
+	pingDelay time.Duration,
 ) Deployment {
 	return &deployment{
-		instances: instances,
-		disks:     disks,
-		stemcells: stemcells,
+		instances:   instances,
+		disks:       disks,
+		stemcells:   stemcells,
+		pingTimeout: pingTimeout,
+		pingDelay:   pingDelay,
 	}
 }
 
 func (d *deployment) Delete(deleteStage bmeventlog.Stage) error {
-	pingTimeout := 10 * time.Second
-	pingDelay := 500 * time.Millisecond
-
 	// le sigh... consuming from an array sucks without generics
 	for len(d.instances) > 0 {
 		lastIdx := len(d.instances) - 1
 		instance := d.instances[lastIdx]
 
-		if err := instance.Delete(pingTimeout, pingDelay, deleteStage); err != nil {
+		if err := instance.Delete(d.pingTimeout, d.pingDelay, deleteStage); err != nil {
 			return err
 		}
 

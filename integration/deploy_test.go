@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"code.google.com/p/gomock/gomock"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
@@ -318,10 +319,15 @@ cloud_provider:
 
 			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, logger)
 
+			pingTimeout := 1 * time.Second
+			pingDelay := 100 * time.Millisecond
+			deploymentFactory := bmdepl.NewFactory(pingTimeout, pingDelay)
+
 			deployer := bmdepl.NewDeployer(
 				stemcellManagerFactory,
 				vmManagerFactory,
 				instanceManagerFactory,
+				deploymentFactory,
 				eventLogger,
 				logger,
 			)

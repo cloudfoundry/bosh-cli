@@ -31,6 +31,7 @@ type deployer struct {
 	stemcellManagerFactory bmstemcell.ManagerFactory
 	vmManagerFactory       bmvm.ManagerFactory
 	instanceManagerFactory bminstance.ManagerFactory
+	deploymentFactory      Factory
 	eventLogger            bmeventlog.EventLogger
 	logger                 boshlog.Logger
 	logTag                 string
@@ -40,6 +41,7 @@ func NewDeployer(
 	stemcellManagerFactory bmstemcell.ManagerFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,
+	deploymentFactory Factory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
@@ -47,13 +49,14 @@ func NewDeployer(
 		stemcellManagerFactory: stemcellManagerFactory,
 		vmManagerFactory:       vmManagerFactory,
 		instanceManagerFactory: instanceManagerFactory,
+		deploymentFactory:      deploymentFactory,
 		eventLogger:            eventLogger,
 		logger:                 logger,
 		logTag:                 "deployer",
 	}
 }
 
-func (m *deployer) Deploy(
+func (d *deployer) Deploy(
 	cloud bmcloud.Cloud,
 	deploymentManifest bmdeplmanifest.Manifest,
 	extractedStemcell bmstemcell.ExtractedStemcell,
@@ -63,10 +66,10 @@ func (m *deployer) Deploy(
 ) (Deployment, error) {
 
 	//TODO: handle stage construction outside of this class
-	uploadStemcellStage := m.eventLogger.NewStage("uploading stemcell")
+	uploadStemcellStage := d.eventLogger.NewStage("uploading stemcell")
 	uploadStemcellStage.Start()
 
-	stemcellManager := m.stemcellManagerFactory.NewManager(cloud)
+	stemcellManager := d.stemcellManagerFactory.NewManager(cloud)
 	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, uploadStemcellStage)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Uploading stemcell")
@@ -75,10 +78,10 @@ func (m *deployer) Deploy(
 
 	uploadStemcellStage.Finish()
 
-	deployStage := m.eventLogger.NewStage("deploying")
+	deployStage := d.eventLogger.NewStage("deploying")
 	deployStage.Start()
 
-	instanceManager := m.instanceManagerFactory.NewManager(cloud, vmManager)
+	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
@@ -86,7 +89,7 @@ func (m *deployer) Deploy(
 		return nil, err
 	}
 
-	instances, disks, err := m.createAllInstances(deploymentManifest, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig, deployStage)
+	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig, deployStage)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +102,10 @@ func (m *deployer) Deploy(
 
 	deployStage.Finish()
 
-	return NewDeployment(instances, disks, stemcells), nil
+	return d.deploymentFactory.NewDeployment(instances, disks, stemcells), nil
 }
 
-func (m *deployer) createAllInstances(
+func (d *deployer) createAllInstances(
 	deploymentManifest bmdeplmanifest.Manifest,
 	instanceManager bminstance.Manager,
 	extractedStemcell bmstemcell.ExtractedStemcell,

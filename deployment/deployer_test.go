@@ -164,10 +164,15 @@ var _ = Describe("Deployer", func() {
 
 		instanceManagerFactory := bminstance.NewManagerFactory(fakeSSHTunnelFactory, logger)
 
+		pingTimeout := 10 * time.Second
+		pingDelay := 500 * time.Millisecond
+		deploymentFactory := NewFactory(pingTimeout, pingDelay)
+
 		deployer = NewDeployer(
 			fakeStemcellManagerFactory,
 			mockVMManagerFactory,
 			instanceManagerFactory,
+			deploymentFactory,
 			eventLogger,
 			logger,
 		)

@@ -11,6 +11,7 @@ import (
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 	mock_disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/mocks"
 	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
+	mock_deployment "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
 	mock_stemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -45,21 +46,27 @@ var _ = Describe("Manager", func() {
 
 	Describe("FindCurrent", func() {
 		var (
-			mockInstanceManager *mock_instance.MockManager
-			mockDiskManager     *mock_disk.MockManager
-			mockStemcellManager *mock_stemcell.MockManager
+			mockInstanceManager   *mock_instance.MockManager
+			mockDiskManager       *mock_disk.MockManager
+			mockStemcellManager   *mock_stemcell.MockManager
+			mockDeploymentFactory *mock_deployment.MockFactory
+			mockDeployment        *mock_deployment.MockDeployment
 
 			deploymentManager Manager
 
 			expectedInstances []bminstance.Instance
 			expectedDisks     []bmdisk.Disk
 			expectedStemcells []bmstemcell.CloudStemcell
+
+			expectNewDeployment *gomock.Call
 		)
 
 		BeforeEach(func() {
 			mockInstanceManager = mock_instance.NewMockManager(mockCtrl)
 			mockDiskManager = mock_disk.NewMockManager(mockCtrl)
 			mockStemcellManager = mock_stemcell.NewMockManager(mockCtrl)
+			mockDeploymentFactory = mock_deployment.NewMockFactory(mockCtrl)
+			mockDeployment = mock_deployment.NewMockDeployment(mockCtrl)
 
 			expectedInstances = []bminstance.Instance{}
 			expectedDisks = []bmdisk.Disk{}
@@ -71,7 +78,9 @@ var _ = Describe("Manager", func() {
 			mockDiskManager.EXPECT().FindCurrent().Return(expectedDisks, nil)
 			mockStemcellManager.EXPECT().FindCurrent().Return(expectedStemcells, nil)
 
-			deploymentManager = NewManager(mockInstanceManager, mockDiskManager, mockStemcellManager)
+			expectNewDeployment = mockDeploymentFactory.EXPECT().NewDeployment(expectedInstances, expectedDisks, expectedStemcells).Return(mockDeployment).AnyTimes()
+
+			deploymentManager = NewManager(mockInstanceManager, mockDiskManager, mockStemcellManager, mockDeploymentFactory)
 		})
 
 		Context("when no current instances, disks, or stemcells exist", func() {
@@ -89,10 +98,12 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns a deployment that wraps the current instances, disks, & stemcells", func() {
+				expectNewDeployment.Times(1)
+
 				deployment, found, err := deploymentManager.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
-				Expect(deployment).To(Equal(NewDeployment(expectedInstances, expectedDisks, expectedStemcells)))
+				Expect(deployment).To(Equal(mockDeployment))
 			})
 		})
 
@@ -103,10 +114,12 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns a deployment that wraps the current instances, disks, & stemcells", func() {
+				expectNewDeployment.Times(1)
+
 				deployment, found, err := deploymentManager.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
-				Expect(deployment).To(Equal(NewDeployment(expectedInstances, expectedDisks, expectedStemcells)))
+				Expect(deployment).To(Equal(mockDeployment))
 			})
 		})
 
@@ -117,10 +130,12 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns a deployment that wraps the current instances, disks, & stemcells", func() {
+				expectNewDeployment.Times(1)
+
 				deployment, found, err := deploymentManager.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
-				Expect(deployment).To(Equal(NewDeployment(expectedInstances, expectedDisks, expectedStemcells)))
+				Expect(deployment).To(Equal(mockDeployment))
 			})
 		})
 	})
@@ -129,6 +144,8 @@ var _ = Describe("Manager", func() {
 		var (
 			logger boshlog.Logger
 			fs     boshsys.FileSystem
+
+			mockDeploymentFactory *mock_deployment.MockFactory
 
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
@@ -155,6 +172,8 @@ var _ = Describe("Manager", func() {
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fs = fakesys.NewFakeFileSystem()
 
+			mockDeploymentFactory = mock_deployment.NewMockFactory(mockCtrl)
+
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
 
@@ -178,7 +197,7 @@ var _ = Describe("Manager", func() {
 			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, logger)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo)
 
-			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory)
+			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, mockDeploymentFactory)
 			deploymentManager = deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mbusURL)
 		})
 

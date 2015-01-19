@@ -63,6 +63,7 @@ type factory struct {
 	instanceManagerFactory   bminstance.ManagerFactory
 	stemcellManagerFactory   bmstemcell.ManagerFactory
 	deploymentManagerFactory bmdepl.ManagerFactory
+	deploymentFactory        bmdepl.Factory
 	deployer                 bmdepl.Deployer
 	eventLogger              bmeventlog.EventLogger
 	timeService              boshtime.Service
@@ -279,8 +280,24 @@ func (f *factory) loadDeploymentManagerFactory() bmdepl.ManagerFactory {
 		f.loadInstanceManagerFactory(),
 		f.loadDiskManagerFactory(),
 		f.loadStemcellManagerFactory(),
+		f.loadDeploymentFactory(),
 	)
 	return f.deploymentManagerFactory
+}
+
+func (f *factory) loadDeploymentFactory() bmdepl.Factory {
+	if f.deploymentFactory != nil {
+		return f.deploymentFactory
+	}
+
+	pingTimeout := 10 * time.Second
+	pingDelay := 500 * time.Millisecond
+
+	f.deploymentFactory = bmdepl.NewFactory(
+		pingTimeout,
+		pingDelay,
+	)
+	return f.deploymentFactory
 }
 
 func (f *factory) loadAgentClientFactory() bmhttpagent.AgentClientFactory {
@@ -367,6 +384,7 @@ func (f *factory) loadDeployer() bmdepl.Deployer {
 		f.loadStemcellManagerFactory(),
 		f.loadVMManagerFactory(),
 		f.loadInstanceManagerFactory(),
+		f.loadDeploymentFactory(),
 		f.loadEventLogger(),
 		f.logger,
 	)
