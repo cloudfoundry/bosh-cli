@@ -148,7 +148,6 @@ var _ = Describe("VM", func() {
 			fakeAgentClient,
 			fakeCloud,
 			fakeTemplatesSpecGenerator,
-			"fake-mbus-url",
 			fs,
 			logger,
 		)

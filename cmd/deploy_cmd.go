@@ -276,7 +276,7 @@ func (c *deployCmd) Run(args []string) error {
 	}
 
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
-	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient, installationManifest.Mbus)
+	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
 	_, err = c.deployer.Deploy(
 		cloud,

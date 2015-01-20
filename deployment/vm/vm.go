@@ -43,7 +43,6 @@ type vm struct {
 	agentClient            bmagentclient.AgentClient
 	cloud                  bmcloud.Cloud
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
-	mbusURL                string
 	fs                     boshsys.FileSystem
 	logger                 boshlog.Logger
 	logTag                 string
@@ -57,7 +56,6 @@ func NewVM(
 	agentClient bmagentclient.AgentClient,
 	cloud bmcloud.Cloud,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
-	mbusURL string,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) VM {
@@ -69,10 +67,9 @@ func NewVM(
 		agentClient:  agentClient,
 		cloud:        cloud,
 		templatesSpecGenerator: templatesSpecGenerator,
-		mbusURL:                mbusURL,
-		fs:                     fs,
-		logger:                 logger,
-		logTag:                 "vm",
+		fs:     fs,
+		logger: logger,
+		logTag: "vm",
 	}
 }
 

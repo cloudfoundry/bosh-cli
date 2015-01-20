@@ -12,7 +12,7 @@ import (
 )
 
 type ManagerFactory interface {
-	NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient, mbusURL string) Manager
+	NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient) Manager
 }
 
 type managerFactory struct {
@@ -45,13 +45,12 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient, mbusURL string) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient) Manager {
 	return NewManager(
 		f.vmRepo,
 		f.stemcellRepo,
 		f.diskDeployer,
 		agentClient,
-		mbusURL,
 		f.templatesSpecGenerator,
 		cloud,
 		f.uuidGenerator,

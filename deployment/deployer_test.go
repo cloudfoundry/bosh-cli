@@ -117,7 +117,7 @@ var _ = Describe("Deployer", func() {
 
 		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
 		fakeVMManager = fakebmvm.NewFakeManager()
-		mockVMManagerFactory.EXPECT().NewManager(cloud, mockAgentClient, gomock.Any()).Return(fakeVMManager).AnyTimes()
+		mockVMManagerFactory.EXPECT().NewManager(cloud, mockAgentClient).Return(fakeVMManager).AnyTimes()
 
 		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
 		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()

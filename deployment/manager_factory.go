@@ -38,7 +38,7 @@ func NewManagerFactory(
 }
 
 func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient, blobstoreURL string) Manager {
-	vmManager := f.vmManagerFactory.NewManager(cloud, agentClient, blobstoreURL)
+	vmManager := f.vmManagerFactory.NewManager(cloud, agentClient)
 	instanceManager := f.instanceManagerFactory.NewManager(cloud, vmManager, blobstoreURL)
 	diskManager := f.diskManagerFactory.NewManager(cloud)
 	stemcellManager := f.stemcellManagerFactory.NewManager(cloud)

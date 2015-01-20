@@ -140,7 +140,7 @@ var _ = Describe("DeployCmd", func() {
 
 		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
 		fakeVMManager = fakebmvm.NewFakeManager()
-		mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient, gomock.Any()).Return(fakeVMManager).AnyTimes()
+		mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient).Return(fakeVMManager).AnyTimes()
 
 		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 

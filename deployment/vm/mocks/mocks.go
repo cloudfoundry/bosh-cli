@@ -31,12 +31,12 @@ func (_m *MockManagerFactory) EXPECT() *_MockManagerFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockManagerFactory) NewManager(_param0 cloud.Cloud, _param1 agentclient.AgentClient, _param2 string) vm.Manager {
-	ret := _m.ctrl.Call(_m, "NewManager", _param0, _param1, _param2)
+func (_m *MockManagerFactory) NewManager(_param0 cloud.Cloud, _param1 agentclient.AgentClient) vm.Manager {
+	ret := _m.ctrl.Call(_m, "NewManager", _param0, _param1)
 	ret0, _ := ret[0].(vm.Manager)
 	return ret0
 }
 
-func (_mr *_MockManagerFactoryRecorder) NewManager(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewManager", arg0, arg1, arg2)
+func (_mr *_MockManagerFactoryRecorder) NewManager(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewManager", arg0, arg1)
 }

@@ -62,7 +62,7 @@ var _ = Describe("Manager", func() {
 			fakeUUIDGenerator,
 			fs,
 			logger,
-		).NewManager(fakeCloud, fakeAgentClient, "fake-mbus-url")
+		).NewManager(fakeCloud, fakeAgentClient)
 
 		fakeCloud.CreateVMCID = "fake-vm-cid"
 		expectedNetworksSpec = map[string]interface{}{
@@ -126,7 +126,6 @@ var _ = Describe("Manager", func() {
 				fakeAgentClient,
 				fakeCloud,
 				fakeTemplatesSpecGenerator,
-				"fake-mbus-url",
 				fs,
 				logger,
 			)
