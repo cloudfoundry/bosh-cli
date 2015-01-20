@@ -216,6 +216,7 @@ var _ = Describe("DeployCmd", func() {
 			cloud                  *fakebmcloud.FakeCloud
 
 			directorID = "fake-uuid-0"
+			mbusURL    = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 
 			expectCPIReleaseExtract *gomock.Call
 			expectInstall           *gomock.Call
@@ -266,7 +267,7 @@ var _ = Describe("DeployCmd", func() {
 				SSHTunnel: bminstallmanifest.SSHTunnel{
 					Host: "fake-host",
 				},
-				Mbus: "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
+				Mbus: mbusURL,
 			}
 
 			// parsed BOSH deployment manifest
@@ -341,6 +342,7 @@ var _ = Describe("DeployCmd", func() {
 				installationManifest.Registry,
 				installationManifest.SSHTunnel,
 				fakeVMManager,
+				mbusURL,
 			).Return(mockDeployment, nil).AnyTimes()
 
 			expectCPIReleaseExtract = mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()

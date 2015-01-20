@@ -9,29 +9,34 @@ import (
 )
 
 type ManagerFactory interface {
-	NewManager(bmcloud.Cloud, bmvm.Manager) Manager
+	NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager, blobstoreURL string) Manager
 }
 
 type managerFactory struct {
 	sshTunnelFactory bmsshtunnel.Factory
+	instanceFactory  Factory
 	logger           boshlog.Logger
 }
 
 func NewManagerFactory(
 	sshTunnelFactory bmsshtunnel.Factory,
+	instanceFactory Factory,
 	logger boshlog.Logger,
 ) ManagerFactory {
 	return &managerFactory{
 		sshTunnelFactory: sshTunnelFactory,
+		instanceFactory:  instanceFactory,
 		logger:           logger,
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager, blobstoreURL string) Manager {
 	return NewManager(
 		cloud,
 		vmManager,
+		blobstoreURL,
 		f.sshTunnelFactory,
+		f.instanceFactory,
 		f.logger,
 	)
 }

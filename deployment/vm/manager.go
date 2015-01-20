@@ -28,7 +28,6 @@ type manager struct {
 	mbusURL                string
 	agentClientFactory     bmhttpagent.AgentClientFactory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
-	applySpecFactory       bmas.Factory
 	cloud                  bmcloud.Cloud
 	uuidGenerator          boshuuid.Generator
 	fs                     boshsys.FileSystem
@@ -43,7 +42,6 @@ func NewManager(
 	agentClient bmac.AgentClient,
 	mbusURL string,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
-	applySpecFactory bmas.Factory,
 	cloud bmcloud.Cloud,
 	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
@@ -56,7 +54,6 @@ func NewManager(
 		vmRepo:                 vmRepo,
 		stemcellRepo:           stemcellRepo,
 		diskDeployer:           diskDeployer,
-		applySpecFactory:       applySpecFactory,
 		templatesSpecGenerator: templatesSpecGenerator,
 		uuidGenerator:          uuidGenerator,
 		fs:                     fs,
@@ -83,7 +80,6 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 		m.agentClient,
 		m.cloud,
 		m.templatesSpecGenerator,
-		m.applySpecFactory,
 		m.mbusURL,
 		m.fs,
 		m.logger,
@@ -134,7 +130,6 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest b
 		m.agentClient,
 		m.cloud,
 		m.templatesSpecGenerator,
-		m.applySpecFactory,
 		m.mbusURL,
 		m.fs,
 		m.logger,

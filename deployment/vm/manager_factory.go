@@ -19,7 +19,6 @@ type managerFactory struct {
 	vmRepo                 bmconfig.VMRepo
 	stemcellRepo           bmconfig.StemcellRepo
 	diskDeployer           DiskDeployer
-	applySpecFactory       bmas.Factory
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
 	uuidGenerator          boshuuid.Generator
 	fs                     boshsys.FileSystem
@@ -30,7 +29,6 @@ func NewManagerFactory(
 	vmRepo bmconfig.VMRepo,
 	stemcellRepo bmconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
-	applySpecFactory bmas.Factory,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
 	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
@@ -40,7 +38,6 @@ func NewManagerFactory(
 		vmRepo:                 vmRepo,
 		stemcellRepo:           stemcellRepo,
 		diskDeployer:           diskDeployer,
-		applySpecFactory:       applySpecFactory,
 		templatesSpecGenerator: templatesSpecGenerator,
 		uuidGenerator:          uuidGenerator,
 		fs:                     fs,
@@ -56,7 +53,6 @@ func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentC
 		agentClient,
 		mbusURL,
 		f.templatesSpecGenerator,
-		f.applySpecFactory,
 		cloud,
 		f.uuidGenerator,
 		f.fs,

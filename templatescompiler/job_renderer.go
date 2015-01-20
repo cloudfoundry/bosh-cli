@@ -12,7 +12,7 @@ import (
 )
 
 type JobRenderer interface {
-	Render(string, string, bmrel.Job, map[string]interface{}, string) error
+	Render(sourcePath string, destinationPath string, job bmrel.Job, properties map[string]interface{}, deploymentName string) error
 }
 
 type jobRenderer struct {

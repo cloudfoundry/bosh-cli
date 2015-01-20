@@ -100,15 +100,15 @@ func (_m *MockDeployer) EXPECT() *_MockDeployerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest0.Manifest, _param2 stemcell.ExtractedStemcell, _param3 manifest.Registry, _param4 manifest.SSHTunnel, _param5 vm.Manager) (deployment.Deployment, error) {
-	ret := _m.ctrl.Call(_m, "Deploy", _param0, _param1, _param2, _param3, _param4, _param5)
+func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest0.Manifest, _param2 stemcell.ExtractedStemcell, _param3 manifest.Registry, _param4 manifest.SSHTunnel, _param5 vm.Manager, _param6 string) (deployment.Deployment, error) {
+	ret := _m.ctrl.Call(_m, "Deploy", _param0, _param1, _param2, _param3, _param4, _param5, _param6)
 	ret0, _ := ret[0].(deployment.Deployment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockDeployerRecorder) Deploy(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Deploy", arg0, arg1, arg2, arg3, arg4, arg5)
+func (_mr *_MockDeployerRecorder) Deploy(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Deploy", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
 // Mock of Manager interface

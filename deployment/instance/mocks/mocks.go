@@ -76,16 +76,6 @@ func (_mr *_MockInstanceRecorder) JobName() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "JobName")
 }
 
-func (_m *MockInstance) StartJobs(_param0 stemcell.ApplySpec, _param1 manifest.Manifest, _param2 eventlogger.Stage) error {
-	ret := _m.ctrl.Call(_m, "StartJobs", _param0, _param1, _param2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockInstanceRecorder) StartJobs(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "StartJobs", arg0, arg1, arg2)
-}
-
 func (_m *MockInstance) UpdateDisks(_param0 manifest.Manifest, _param1 eventlogger.Stage) ([]disk.Disk, error) {
 	ret := _m.ctrl.Call(_m, "UpdateDisks", _param0, _param1)
 	ret0, _ := ret[0].([]disk.Disk)
@@ -95,6 +85,16 @@ func (_m *MockInstance) UpdateDisks(_param0 manifest.Manifest, _param1 eventlogg
 
 func (_mr *_MockInstanceRecorder) UpdateDisks(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateDisks", arg0, arg1)
+}
+
+func (_m *MockInstance) UpdateJobs(_param0 manifest.Manifest, _param1 stemcell.ApplySpec, _param2 eventlogger.Stage) error {
+	ret := _m.ctrl.Call(_m, "UpdateJobs", _param0, _param1, _param2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockInstanceRecorder) UpdateJobs(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateJobs", arg0, arg1, arg2)
 }
 
 func (_m *MockInstance) WaitUntilReady(_param0 manifest0.Registry, _param1 manifest0.SSHTunnel, _param2 eventlogger.Stage) error {

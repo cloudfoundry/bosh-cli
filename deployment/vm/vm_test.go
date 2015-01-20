@@ -22,7 +22,6 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
@@ -35,13 +34,11 @@ var _ = Describe("VM", func() {
 		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeCloud                  *fakebmcloud.FakeCloud
-		applySpec                  bmstemcell.ApplySpec
+		applySpec                  bmas.ApplySpec
 		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
-		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
 		deploymentManifest         bmdeplmanifest.Manifest
 		diskPool                   bmdeplmanifest.DiskPool
 		deploymentJob              bmdeplmanifest.Job
-		jobBlobs                   []bmstemcell.Blob
 		fs                         *fakesys.FakeFileSystem
 		logger                     boshlog.Logger
 	)
@@ -56,6 +53,47 @@ var _ = Describe("VM", func() {
 
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
 
+		applySpec = bmas.ApplySpec{
+			Deployment: "fake-deployment-name",
+			Index:      0,
+			Packages:   map[string]bmas.Blob{},
+			Networks: map[string]interface{}{
+				"fake-network-name": map[string]interface{}{
+					"type":             "fake-network-type",
+					"ip":               "fake-network-ip",
+					"cloud_properties": map[string]interface{}{},
+				},
+			},
+			Job: bmas.Job{
+				Name: "fake-job-name",
+				Templates: []bmas.Blob{
+					{
+						Name:        "first-job-name",
+						Version:     "first-job-version",
+						SHA1:        "first-job-sha1",
+						BlobstoreID: "first-job-blobstore-id",
+					},
+					{
+						Name:        "second-job-name",
+						Version:     "second-job-version",
+						SHA1:        "second-job-sha1",
+						BlobstoreID: "second-job-blobstore-id",
+					},
+					{
+						Name:        "third-job-name",
+						Version:     "third-job-version",
+						SHA1:        "third-job-sha1",
+						BlobstoreID: "third-job-blobstore-id",
+					},
+				},
+			},
+			RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
+				BlobstoreID: "fake-blob-id",
+				SHA1:        "fake-archive-sha1",
+			},
+			ConfigurationHash: "fake-configuration-hash",
+		}
+
 		diskPool = bmdeplmanifest.DiskPool{
 			Name:     "fake-persistent-disk-pool-name",
 			DiskSize: 1024,
@@ -63,48 +101,6 @@ var _ = Describe("VM", func() {
 				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 			},
 		}
-
-		jobBlobs = []bmstemcell.Blob{
-			{
-				Name:        "first-job-name",
-				Version:     "first-job-version",
-				SHA1:        "first-job-sha1",
-				BlobstoreID: "first-job-blobstore-id",
-			},
-			{
-				Name:        "second-job-name",
-				Version:     "second-job-version",
-				SHA1:        "second-job-sha1",
-				BlobstoreID: "second-job-blobstore-id",
-			},
-			{
-				Name:        "third-job-name",
-				Version:     "third-job-version",
-				SHA1:        "third-job-sha1",
-				BlobstoreID: "third-job-blobstore-id",
-			},
-		}
-		applySpec = bmstemcell.ApplySpec{
-			Packages: map[string]bmstemcell.Blob{
-				"first-package-name": bmstemcell.Blob{
-					Name:        "first-package-name",
-					Version:     "first-package-version",
-					SHA1:        "first-package-sha1",
-					BlobstoreID: "first-package-blobstore-id",
-				},
-				"second-package-name": bmstemcell.Blob{
-					Name:        "second-package-name",
-					Version:     "second-package-version",
-					SHA1:        "second-package-sha1",
-					BlobstoreID: "second-package-blobstore-id",
-				},
-			},
-			Job: bmstemcell.Job{
-				Name:      "fake-job-name",
-				Templates: jobBlobs,
-			},
-		}
-
 		deploymentJob = bmdeplmanifest.Job{
 			Name: "fake-manifest-job-name",
 			Templates: []bmdeplmanifest.ReleaseJobRef{
@@ -138,8 +134,6 @@ var _ = Describe("VM", func() {
 			},
 		}
 
-		fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
-
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebmcloud.NewFakeCloud()
@@ -154,7 +148,6 @@ var _ = Describe("VM", func() {
 			fakeAgentClient,
 			fakeCloud,
 			fakeTemplatesSpecGenerator,
-			fakeApplySpecFactory,
 			"fake-mbus-url",
 			fs,
 			logger,
@@ -214,82 +207,11 @@ var _ = Describe("VM", func() {
 		})
 	})
 
-	Describe("Apply", func() {
-		It("stops the agent", func() {
-			err := vm.Apply(applySpec, deploymentManifest)
+	Describe("Stop", func() {
+		It("stops agent services", func() {
+			err := vm.Stop()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.StopCalled).To(BeTrue())
-		})
-
-		It("generates templates spec", func() {
-			err := vm.Apply(applySpec, deploymentManifest)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeTemplatesSpecGenerator.CreateTemplatesSpecInputs).To(ContainElement(fakebmas.CreateTemplatesSpecInput{
-				DeploymentJob:  deploymentJob,
-				JobBlobs:       jobBlobs,
-				DeploymentName: "fake-deployment-name",
-				Properties: map[string]interface{}{
-					"fake-property-key": "fake-property-value",
-				},
-				MbusURL: "fake-mbus-url",
-			}))
-		})
-
-		It("creates apply spec", func() {
-			err := vm.Apply(applySpec, deploymentManifest)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(fakeApplySpecFactory.CreateInput).To(Equal(
-				fakebmas.CreateInput{
-					ApplySpec:      applySpec,
-					DeploymentName: "fake-deployment-name",
-					JobName:        "fake-manifest-job-name",
-					NetworksSpec: map[string]interface{}{
-						"fake-network-name": map[string]interface{}{
-							"type":             "fake-network-type",
-							"ip":               "fake-network-ip",
-							"cloud_properties": map[string]interface{}{},
-						},
-					},
-					ArchivedTemplatesBlobID: "fake-blob-id",
-					ArchivedTemplatesSha1:   "fake-archive-sha1",
-					TemplatesDirSha1:        "fake-configuration-hash",
-				},
-			))
-		})
-
-		It("sends apply spec to the agent", func() {
-			agentApplySpec := bmas.ApplySpec{
-				Deployment: "fake-deployment-name",
-			}
-			fakeApplySpecFactory.CreateApplySpec = agentApplySpec
-			err := vm.Apply(applySpec, deploymentManifest)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.ApplyApplySpec).To(Equal(agentApplySpec))
-		})
-
-		Context("when creating templates spec fails", func() {
-			BeforeEach(func() {
-				fakeTemplatesSpecGenerator.CreateErr = errors.New("fake-template-err")
-			})
-
-			It("returns an error", func() {
-				err := vm.Apply(applySpec, deploymentManifest)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-template-err"))
-			})
-		})
-
-		Context("when sending apply spec to the agent fails", func() {
-			BeforeEach(func() {
-				fakeAgentClient.ApplyErr = errors.New("fake-agent-apply-err")
-			})
-
-			It("returns an error", func() {
-				err := vm.Apply(applySpec, deploymentManifest)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-agent-apply-err"))
-			})
 		})
 
 		Context("when stopping an agent fails", func() {
@@ -298,9 +220,29 @@ var _ = Describe("VM", func() {
 			})
 
 			It("returns an error", func() {
-				err := vm.Apply(applySpec, deploymentManifest)
+				err := vm.Stop()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
+			})
+		})
+	})
+
+	Describe("Apply", func() {
+		It("sends apply spec to the agent", func() {
+			err := vm.Apply(applySpec)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.ApplyApplySpec).To(Equal(applySpec))
+		})
+
+		Context("when sending apply spec to the agent fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.ApplyErr = errors.New("fake-agent-apply-err")
+			})
+
+			It("returns an error", func() {
+				err := vm.Apply(applySpec)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-agent-apply-err"))
 			})
 		})
 	})
@@ -437,26 +379,6 @@ var _ = Describe("VM", func() {
 				err := vm.UnmountDisk(disk)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-unmount-error"))
-			})
-		})
-	})
-
-	Describe("Stop", func() {
-		It("stops agent services", func() {
-			err := vm.Stop()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.StopCalled).To(BeTrue())
-		})
-
-		Context("when stopping an agent fails", func() {
-			BeforeEach(func() {
-				fakeAgentClient.SetStopBehavior(errors.New("fake-stop-error"))
-			})
-
-			It("returns an error", func() {
-				err := vm.Stop()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 			})
 		})
 	})

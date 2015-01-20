@@ -24,7 +24,7 @@ func (d Manifest) Properties() (map[string]interface{}, error) {
 }
 
 func (d Manifest) NetworksSpec(jobName string) (map[string]interface{}, error) {
-	job, found := d.findJobByName(jobName)
+	job, found := d.FindJobByName(jobName)
 	if !found {
 		return map[string]interface{}{}, bosherr.Errorf("Could not find job with name: %s", jobName)
 	}
@@ -49,7 +49,7 @@ func (d Manifest) NetworksSpec(jobName string) (map[string]interface{}, error) {
 }
 
 func (d Manifest) DiskPool(jobName string) (DiskPool, error) {
-	job, found := d.findJobByName(jobName)
+	job, found := d.FindJobByName(jobName)
 	if !found {
 		return DiskPool{}, bosherr.Errorf("Could not find job with name: %s", jobName)
 	}
@@ -83,7 +83,7 @@ func (d Manifest) networksToMap() map[string]Network {
 	return result
 }
 
-func (d Manifest) findJobByName(jobName string) (Job, bool) {
+func (d Manifest) FindJobByName(jobName string) (Job, bool) {
 	for _, job := range d.Jobs {
 		if job.Name == jobName {
 			return job, true

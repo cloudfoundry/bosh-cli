@@ -15,7 +15,6 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
@@ -23,13 +22,13 @@ type VM interface {
 	CID() string
 	Exists() (bool, error)
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
-	Apply(bmstemcell.ApplySpec, bmdeplmanifest.Manifest) error
-	UpdateDisks(bmdeplmanifest.DiskPool, bmeventlog.Stage) ([]bmdisk.Disk, error)
 	Start() error
+	Stop() error
+	Apply(bmas.ApplySpec) error
+	UpdateDisks(bmdeplmanifest.DiskPool, bmeventlog.Stage) ([]bmdisk.Disk, error)
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
 	DetachDisk(bmdisk.Disk) error
-	Stop() error
 	Disks() ([]bmdisk.Disk, error)
 	UnmountDisk(bmdisk.Disk) error
 	MigrateDisk() error
@@ -44,7 +43,6 @@ type vm struct {
 	agentClient            bmagentclient.AgentClient
 	cloud                  bmcloud.Cloud
 	templatesSpecGenerator bmas.TemplatesSpecGenerator
-	applySpecFactory       bmas.Factory
 	mbusURL                string
 	fs                     boshsys.FileSystem
 	logger                 boshlog.Logger
@@ -59,7 +57,6 @@ func NewVM(
 	agentClient bmagentclient.AgentClient,
 	cloud bmcloud.Cloud,
 	templatesSpecGenerator bmas.TemplatesSpecGenerator,
-	applySpecFactory bmas.Factory,
 	mbusURL string,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
@@ -72,7 +69,6 @@ func NewVM(
 		agentClient:  agentClient,
 		cloud:        cloud,
 		templatesSpecGenerator: templatesSpecGenerator,
-		applySpecFactory:       applySpecFactory,
 		mbusURL:                mbusURL,
 		fs:                     fs,
 		logger:                 logger,
@@ -99,56 +95,29 @@ func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
 	return agentPingRetryStrategy.Try()
 }
 
-func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmdeplmanifest.Manifest) error {
-	vm.logger.Debug(vm.logTag, "Stopping agent")
+func (vm *vm) Start() error {
+	vm.logger.Debug(vm.logTag, "Starting agent")
+	err := vm.agentClient.Start()
+	if err != nil {
+		return bosherr.WrapError(err, "Starting agent")
+	}
 
+	return nil
+}
+
+func (vm *vm) Stop() error {
+	vm.logger.Debug(vm.logTag, "Stopping agent")
 	err := vm.agentClient.Stop()
 	if err != nil {
 		return bosherr.WrapError(err, "Stopping agent")
 	}
 
-	vm.logger.Debug(vm.logTag, "Rendering job templates")
-	renderedJobDir, err := vm.fs.TempDir("instance-updater-render-job")
-	if err != nil {
-		return bosherr.WrapError(err, "Creating rendered job directory")
-	}
-	defer vm.fs.RemoveAll(renderedJobDir)
+	return nil
+}
 
-	deploymentJob := deploymentManifest.Jobs[0]
-	jobProperties, err := deploymentJob.Properties()
-	if err != nil {
-		return bosherr.WrapError(err, "Stringifying job properties")
-	}
-
-	networksSpec, err := deploymentManifest.NetworksSpec(deploymentJob.Name)
-	if err != nil {
-		return bosherr.WrapError(err, "Stringifying job properties")
-	}
-
-	templatesSpec, err := vm.templatesSpecGenerator.Create(
-		deploymentJob,
-		stemcellApplySpec.Job.Templates,
-		deploymentManifest.Name,
-		jobProperties,
-		vm.mbusURL,
-	)
-	if err != nil {
-		return bosherr.WrapError(err, "Generating templates spec")
-	}
-
-	vm.logger.Debug(vm.logTag, "Creating apply spec")
-	agentApplySpec := vm.applySpecFactory.Create(
-		stemcellApplySpec,
-		deploymentManifest.Name,
-		deploymentJob.Name,
-		networksSpec,
-		templatesSpec.BlobID,
-		templatesSpec.ArchiveSha1,
-		templatesSpec.ConfigurationHash,
-	)
-
-	vm.logger.Debug(vm.logTag, "Sending apply message to the agent with '%#v'", agentApplySpec)
-	err = vm.agentClient.Apply(agentApplySpec)
+func (vm *vm) Apply(newState bmas.ApplySpec) error {
+	vm.logger.Debug(vm.logTag, "Sending apply message to the agent with '%#v'", newState)
+	err := vm.agentClient.Apply(newState)
 	if err != nil {
 		return bosherr.WrapError(err, "Sending apply spec to agent")
 	}
@@ -162,10 +131,6 @@ func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bme
 		return disks, bosherr.WrapError(err, "Deploying disk")
 	}
 	return disks, nil
-}
-
-func (vm *vm) Start() error {
-	return vm.agentClient.Start()
 }
 
 func (vm *vm) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
@@ -195,10 +160,6 @@ func (vm *vm) DetachDisk(disk bmdisk.Disk) error {
 	}
 
 	return nil
-}
-
-func (vm *vm) Stop() error {
-	return vm.agentClient.Stop()
 }
 
 func (vm *vm) Disks() ([]bmdisk.Disk, error) {

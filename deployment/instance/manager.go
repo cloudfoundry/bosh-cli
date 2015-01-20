@@ -38,7 +38,9 @@ type Manager interface {
 type manager struct {
 	cloud            bmcloud.Cloud
 	vmManager        bmvm.Manager
+	blobstoreURL     string
 	sshTunnelFactory bmsshtunnel.Factory
+	instanceFactory  Factory
 	logger           boshlog.Logger
 	logTag           string
 }
@@ -46,13 +48,17 @@ type manager struct {
 func NewManager(
 	cloud bmcloud.Cloud,
 	vmManager bmvm.Manager,
+	blobstoreURL string,
 	sshTunnelFactory bmsshtunnel.Factory,
+	instanceFactory Factory,
 	logger boshlog.Logger,
 ) Manager {
 	return &manager{
 		cloud:            cloud,
 		vmManager:        vmManager,
+		blobstoreURL:     blobstoreURL,
 		sshTunnelFactory: sshTunnelFactory,
+		instanceFactory:  instanceFactory,
 		logger:           logger,
 		logTag:           "vmDeployer",
 	}
@@ -69,7 +75,18 @@ func (m *manager) FindCurrent() ([]Instance, error) {
 
 	if found {
 		// TODO: store the name of the job for each instance in the repo, so that we can print it when deleting
-		instance := NewInstance("unknown", 0, vm, m.vmManager, m.sshTunnelFactory, m.logger)
+		jobName := "unknown"
+		instanceID := 0
+
+		instance := m.instanceFactory.NewInstance(
+			jobName,
+			instanceID,
+			vm,
+			m.vmManager,
+			m.sshTunnelFactory,
+			m.blobstoreURL,
+			m.logger,
+		)
 		instances = append(instances, instance)
 	}
 
@@ -104,7 +121,7 @@ func (m *manager) Create(
 		return nil, []bmdisk.Disk{}, err
 	}
 
-	instance := NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.logger)
+	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.blobstoreURL, m.logger)
 
 	if err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, eventLoggerStage); err != nil {
 		return instance, []bmdisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")

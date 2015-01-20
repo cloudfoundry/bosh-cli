@@ -103,7 +103,6 @@ var _ = Describe("bosh-micro", func() {
 			stemcellManagerFactory bmstemcell.ManagerFactory
 			vmManagerFactory       bmvm.ManagerFactory
 
-			fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
 			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
 			applySpec                  bmas.ApplySpec
 
@@ -295,15 +294,23 @@ cloud_provider:
 
 		var allowApplySpecToBeCreated = func() {
 			applySpec = bmas.ApplySpec{
-				Deployment: "",
+				Deployment: "test-release",
 				Index:      0,
 				Packages:   map[string]bmas.Blob{},
-				Networks:   map[string]interface{}{},
-				Job:        bmas.Job{},
+				Networks: map[string]interface{}{
+					"network-1": map[string]interface{}{
+						"cloud_properties": map[string]interface{}{},
+						"type":             "dynamic",
+						"ip":               "",
+					},
+				},
+				Job: bmas.Job{
+					Name:      "cpi",
+					Templates: []bmas.Blob{},
+				},
 				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
 				ConfigurationHash:        "",
 			}
-			fakeApplySpecFactory.CreateApplySpec = applySpec
 		}
 
 		var newDeployCmd = func() Cmd {
@@ -317,7 +324,8 @@ cloud_provider:
 
 			deploymentRecord := bmdepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 
-			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, logger)
+			instanceFactory := bminstance.NewFactory(fakeTemplatesSpecGenerator)
+			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
 
 			pingTimeout := 1 * time.Second
 			pingDelay := 100 * time.Millisecond
@@ -662,14 +670,12 @@ cloud_provider:
 
 			stemcellManagerFactory = bmstemcell.NewManagerFactory(stemcellRepo)
 
-			fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
 			fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
 
 			vmManagerFactory = bmvm.NewManagerFactory(
 				vmRepo,
 				stemcellRepo,
 				diskDeployer,
-				fakeApplySpecFactory,
 				fakeTemplatesSpecGenerator,
 				fakeAgentIDGenerator,
 				fs,

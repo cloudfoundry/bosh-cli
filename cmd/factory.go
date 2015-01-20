@@ -60,7 +60,9 @@ type factory struct {
 	sshTunnelFactory         bmsshtunnel.Factory
 	diskDeployer             bmvm.DiskDeployer
 	diskManagerFactory       bmdisk.ManagerFactory
+	instanceFactory          bminstance.Factory
 	instanceManagerFactory   bminstance.ManagerFactory
+	templatesSpecGenerator   bmas.TemplatesSpecGenerator
 	stemcellManagerFactory   bmstemcell.ManagerFactory
 	deploymentManagerFactory bmdepl.ManagerFactory
 	deploymentFactory        bmdepl.Factory
@@ -265,9 +267,21 @@ func (f *factory) loadInstanceManagerFactory() bminstance.ManagerFactory {
 
 	f.instanceManagerFactory = bminstance.NewManagerFactory(
 		f.loadSSHTunnelFactory(),
+		f.loadInstanceFactory(),
 		f.logger,
 	)
 	return f.instanceManagerFactory
+}
+
+func (f *factory) loadInstanceFactory() bminstance.Factory {
+	if f.instanceFactory != nil {
+		return f.instanceFactory
+	}
+
+	f.instanceFactory = bminstance.NewFactory(
+		f.loadTemplatesSpecGenerator(),
+	)
+	return f.instanceFactory
 }
 
 func (f *factory) loadDeploymentManagerFactory() bmdepl.ManagerFactory {
@@ -314,14 +328,29 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 		return f.vmManagerFactory
 	}
 
-	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
-	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
+	f.vmManagerFactory = bmvm.NewManagerFactory(
+		f.loadVMRepo(),
+		f.loadStemcellRepo(),
+		f.loadDiskDeployer(),
+		f.loadTemplatesSpecGenerator(),
+		f.uuidGenerator,
+		f.fs,
+		f.logger,
+	)
+	return f.vmManagerFactory
+}
+
+func (f *factory) loadTemplatesSpecGenerator() bmas.TemplatesSpecGenerator {
+	if f.templatesSpecGenerator != nil {
+		return f.templatesSpecGenerator
+	}
 
 	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
+	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
+	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
 	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
-	applySpecFactory := bmas.NewFactory()
 
-	templatesSpecGenerator := bmas.NewTemplatesSpecGenerator(
+	f.templatesSpecGenerator = bmas.NewTemplatesSpecGenerator(
 		blobstoreFactory,
 		f.loadCompressor(),
 		jobRenderer,
@@ -330,18 +359,7 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 		f.fs,
 		f.logger,
 	)
-
-	f.vmManagerFactory = bmvm.NewManagerFactory(
-		f.loadVMRepo(),
-		f.loadStemcellRepo(),
-		f.loadDiskDeployer(),
-		applySpecFactory,
-		templatesSpecGenerator,
-		f.uuidGenerator,
-		f.fs,
-		f.logger,
-	)
-	return f.vmManagerFactory
+	return f.templatesSpecGenerator
 }
 
 func (f *factory) loadStemcellManagerFactory() bmstemcell.ManagerFactory {

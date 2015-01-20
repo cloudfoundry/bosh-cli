@@ -12,6 +12,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
@@ -19,6 +20,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
@@ -27,11 +29,14 @@ import (
 
 var _ = Describe("Instance", func() {
 	var (
-		fakeVMManager        *fakebmvm.FakeManager
-		fakeVM               *fakebmvm.FakeVM
-		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
-		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
-		fakeStage            *fakebmlog.FakeStage
+		fakeVMManager              *fakebmvm.FakeManager
+		fakeVM                     *fakebmvm.FakeVM
+		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
+		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
+		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
+		fakeStage                  *fakebmlog.FakeStage
+
+		blobstoreURL = "https://fake-blobstore-url"
 
 		instance Instance
 
@@ -48,9 +53,20 @@ var _ = Describe("Instance", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
+		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
+
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		instance = NewInstance("fake-job-name", 0, fakeVM, fakeVMManager, fakeSSHTunnelFactory, logger)
+		instance = NewInstance(
+			"fake-job-name",
+			0,
+			fakeVM,
+			fakeVMManager,
+			fakeSSHTunnelFactory,
+			fakeTemplatesSpecGenerator,
+			blobstoreURL,
+			logger,
+		)
 
 		fakeStage = fakebmlog.NewFakeStage()
 	})
@@ -280,20 +296,89 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Describe("StartJobs", func() {
+	Describe("UpdateJobs", func() {
 		var (
+			jobBlobs           []bmstemcell.Blob
 			applySpec          bmstemcell.ApplySpec
+			deploymentJob      bmdeplmanifest.Job
 			deploymentManifest bmdeplmanifest.Manifest
 		)
 
 		BeforeEach(func() {
+			jobBlobs = []bmstemcell.Blob{
+				{
+					Name:        "first-job-name",
+					Version:     "first-job-version",
+					SHA1:        "first-job-sha1",
+					BlobstoreID: "first-job-blobstore-id",
+				},
+				{
+					Name:        "second-job-name",
+					Version:     "second-job-version",
+					SHA1:        "second-job-sha1",
+					BlobstoreID: "second-job-blobstore-id",
+				},
+				{
+					Name:        "third-job-name",
+					Version:     "third-job-version",
+					SHA1:        "third-job-sha1",
+					BlobstoreID: "third-job-blobstore-id",
+				},
+			}
+
+			//TODO: compile packages too
 			applySpec = bmstemcell.ApplySpec{
+				//				Packages: map[string]bmstemcell.Blob{
+				//					"first-package-name": bmstemcell.Blob{
+				//						Name:        "first-package-name",
+				//						Version:     "first-package-version",
+				//						SHA1:        "first-package-sha1",
+				//						BlobstoreID: "first-package-blobstore-id",
+				//					},
+				//					"second-package-name": bmstemcell.Blob{
+				//						Name:        "second-package-name",
+				//						Version:     "second-package-version",
+				//						SHA1:        "second-package-sha1",
+				//						BlobstoreID: "second-package-blobstore-id",
+				//					},
+				//				},
 				Job: bmstemcell.Job{
-					Name: "fake-job-name",
+					Name:      "fake-job-name",
+					Templates: jobBlobs,
+				},
+			}
+
+			deploymentJob = bmdeplmanifest.Job{
+				Name: "fake-job-name",
+				Templates: []bmdeplmanifest.ReleaseJobRef{
+					{Name: "first-job-name"},
+					{Name: "third-job-name"},
+				},
+				PersistentDiskPool: "fake-persistent-disk-pool-name",
+				RawProperties: map[interface{}]interface{}{
+					"fake-property-key": "fake-property-value",
+				},
+				Networks: []bmdeplmanifest.JobNetwork{
+					{
+						Name:      "fake-network-name",
+						StaticIPs: []string{"fake-network-ip"},
+					},
 				},
 			}
 
 			deploymentManifest = bmdeplmanifest.Manifest{
+				Name: "fake-deployment-name",
+				Networks: []bmdeplmanifest.Network{
+					{
+						Name:               "fake-network-name",
+						Type:               bmdeplmanifest.NetworkType("fake-network-type"),
+						RawCloudProperties: map[interface{}]interface{}{},
+						//						IP: "",
+						//						Netmask: "",
+						//						Gateway: "",
+						//						DNS: []string{},
+					},
+				},
 				Update: bmdeplmanifest.Update{
 					UpdateWatchTime: bmdeplmanifest.WatchTime{
 						Start: 0,
@@ -301,24 +386,89 @@ var _ = Describe("Instance", func() {
 					},
 				},
 				Jobs: []bmdeplmanifest.Job{
-					{
-						Name:               "fake-job-name",
-						PersistentDiskPool: "fake-persistent-disk-pool-name",
-						Instances:          1,
-					},
+					deploymentJob,
 				},
 			}
 		})
 
-		It("tells the agent to start the jobs", func() {
-			err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
+		JustBeforeEach(func() {
+			fakeTemplatesSpecGenerator.CreateTemplatesSpec = bmas.TemplatesSpec{
+				BlobID:            "fake-blob-id",
+				ArchiveSha1:       "fake-archive-sha1",
+				ConfigurationHash: "fake-configuration-hash",
+			}
+		})
+
+		It("renders jobs templates (multiple jobs with multiple templates each)", func() {
+			err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeTemplatesSpecGenerator.CreateTemplatesSpecInputs).To(ContainElement(fakebmas.CreateTemplatesSpecInput{
+				DeploymentJob:  deploymentJob,
+				JobBlobs:       jobBlobs,
+				DeploymentName: "fake-deployment-name",
+				Properties: map[string]interface{}{
+					"fake-property-key": "fake-property-value",
+				},
+				MbusURL: blobstoreURL,
+			}))
+		})
+
+		It("tells agent to stop jobs, apply a new spec (with new rendered jobs templates), and start jobs", func() {
+			err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.StartCalled).To(Equal(1))
+			//TODO: test compiled packages too
+			expectedApplySpec := bmas.ApplySpec{
+				Deployment: "fake-deployment-name",
+				Index:      0,
+				Packages:   map[string]bmas.Blob{},
+				Networks: map[string]interface{}{
+					"fake-network-name": map[string]interface{}{
+						"type":             "fake-network-type",
+						"ip":               "fake-network-ip",
+						"cloud_properties": map[string]interface{}{},
+					},
+				},
+				Job: bmas.Job{
+					Name: "fake-job-name",
+					Templates: []bmas.Blob{
+						{
+							Name:        "first-job-name",
+							Version:     "first-job-version",
+							SHA1:        "first-job-sha1",
+							BlobstoreID: "first-job-blobstore-id",
+						},
+						// TODO: remove second-job, because the deployment job doesn't reference it
+						{
+							Name:        "second-job-name",
+							Version:     "second-job-version",
+							SHA1:        "second-job-sha1",
+							BlobstoreID: "second-job-blobstore-id",
+						},
+						{
+							Name:        "third-job-name",
+							Version:     "third-job-version",
+							SHA1:        "third-job-sha1",
+							BlobstoreID: "third-job-blobstore-id",
+						},
+					},
+				},
+				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
+					BlobstoreID: "fake-blob-id",
+					SHA1:        "fake-archive-sha1",
+				},
+				ConfigurationHash: "fake-configuration-hash",
+			}
+			Expect(fakeVM.ApplyInputs).To(Equal([]fakebmvm.ApplyInput{
+				{ApplySpec: expectedApplySpec},
+			}))
+			Expect(fakeVM.StopCalled).To(Equal(1))
 		})
 
 		It("waits until agent reports state as running", func() {
-			err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
@@ -328,11 +478,11 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Starting instance 'fake-job-name/0'",
+				Name: "Updating instance 'fake-job-name/0'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Finished,
@@ -347,18 +497,51 @@ var _ = Describe("Instance", func() {
 			}))
 		})
 
-		Context("when updating instance state fails", func() {
+		Context("when rendering jobs templates fails", func() {
+			BeforeEach(func() {
+				fakeTemplatesSpecGenerator.CreateErr = errors.New("fake-template-err")
+			})
+
+			It("returns an error", func() {
+				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-template-err"))
+			})
+		})
+
+		Context("when stopping vm fails", func() {
+			BeforeEach(func() {
+				fakeVM.StopErr = errors.New("fake-stop-error")
+			})
+
+			It("logs start and stop events to the eventLogger", func() {
+				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+					Name: "Updating instance 'fake-job-name/0'",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Stopping the agent: fake-stop-error",
+				}))
+			})
+		})
+
+		Context("when applying a new vm state fails", func() {
 			BeforeEach(func() {
 				fakeVM.ApplyErr = errors.New("fake-apply-error")
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
 				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Starting instance 'fake-job-name/0'",
+					Name: "Updating instance 'fake-job-name/0'",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Failed,
@@ -368,18 +551,18 @@ var _ = Describe("Instance", func() {
 			})
 		})
 
-		Context("when starting agent services fails", func() {
+		Context("when starting vm fails", func() {
 			BeforeEach(func() {
 				fakeVM.StartErr = errors.New("fake-start-error")
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
 				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Starting instance 'fake-job-name/0'",
+					Name: "Updating instance 'fake-job-name/0'",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Failed,
@@ -395,7 +578,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.StartJobs(applySpec, deploymentManifest, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 

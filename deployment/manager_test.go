@@ -30,6 +30,7 @@ import (
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
 
@@ -158,7 +159,6 @@ var _ = Describe("Manager", func() {
 			mockAgentClient *mock_agentclient.MockAgentClient
 
 			templatesSpecGenerator bmas.TemplatesSpecGenerator
-			applySpecFactory       bmas.Factory
 
 			deploymentConfigPath = "/deployment.json"
 			mbusURL              = "http://fake-mbus-url"
@@ -192,9 +192,12 @@ var _ = Describe("Manager", func() {
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
-			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, applySpecFactory, templatesSpecGenerator, fakeUUIDGenerator, fs, logger)
+			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, templatesSpecGenerator, fakeUUIDGenerator, fs, logger)
 			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
-			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, logger)
+
+			fakeTemplatesSpecGenerator := fakebmas.NewFakeTemplatesSpecGenerator()
+			instanceFactory := bminstance.NewFactory(fakeTemplatesSpecGenerator)
+			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo)
 
 			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, mockDeploymentFactory)

@@ -3,9 +3,9 @@ package fakes
 import (
 	"time"
 
+	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
@@ -60,8 +60,7 @@ type UpdateDisksInput struct {
 }
 
 type ApplyInput struct {
-	StemcellApplySpec bmstemcell.ApplySpec
-	Manifest          bmdeplmanifest.Manifest
+	ApplySpec bmas.ApplySpec
 }
 
 type WaitUntilReadyInput struct {
@@ -126,10 +125,9 @@ func (vm *FakeVM) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage
 	return vm.UpdateDisksDisks, vm.UpdateDisksErr
 }
 
-func (vm *FakeVM) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest bmdeplmanifest.Manifest) error {
+func (vm *FakeVM) Apply(applySpec bmas.ApplySpec) error {
 	vm.ApplyInputs = append(vm.ApplyInputs, ApplyInput{
-		StemcellApplySpec: stemcellApplySpec,
-		Manifest:          deploymentManifest,
+		ApplySpec: applySpec,
 	})
 
 	return vm.ApplyErr

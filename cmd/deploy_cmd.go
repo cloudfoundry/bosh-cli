@@ -285,6 +285,7 @@ func (c *deployCmd) Run(args []string) error {
 		installationManifest.Registry,
 		installationManifest.SSHTunnel,
 		vmManager,
+		installationManifest.Mbus,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")

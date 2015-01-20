@@ -19,6 +19,7 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
@@ -32,11 +33,15 @@ var _ = Describe("Manager", func() {
 	var (
 		fakeCloud *fakebmcloud.FakeCloud
 
-		fakeVMManager        *fakebmvm.FakeManager
-		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
-		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
-		logger               boshlog.Logger
-		fakeStage            *fakebmlog.FakeStage
+		fakeVMManager              *fakebmvm.FakeManager
+		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
+		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
+		instanceFactory            Factory
+		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
+		logger                     boshlog.Logger
+		fakeStage                  *fakebmlog.FakeStage
+
+		blobstoreURL = "https://fake-blobstore-url"
 
 		manager Manager
 	)
@@ -51,6 +56,10 @@ var _ = Describe("Manager", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
+		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
+
+		instanceFactory = NewFactory(fakeTemplatesSpecGenerator)
+
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		fakeStage = fakebmlog.NewFakeStage()
@@ -58,7 +67,9 @@ var _ = Describe("Manager", func() {
 		manager = NewManager(
 			fakeCloud,
 			fakeVMManager,
+			blobstoreURL,
 			fakeSSHTunnelFactory,
+			instanceFactory,
 			logger,
 		)
 	})
@@ -131,6 +142,8 @@ var _ = Describe("Manager", func() {
 				fakeVM,
 				fakeVMManager,
 				fakeSSHTunnelFactory,
+				fakeTemplatesSpecGenerator,
+				blobstoreURL,
 				logger,
 			)
 
@@ -138,7 +151,7 @@ var _ = Describe("Manager", func() {
 			fakeVM.UpdateDisksDisks = []bmdisk.Disk{expectedDisk}
 		})
 
-		It("creates a VM", func() {
+		It("returns an Instance that wraps a newly created VM", func() {
 			instance, _, err := manager.Create(
 				"fake-job-name",
 				0,
@@ -158,7 +171,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("updates the current stemcell", func() {
-			instance, _, err := manager.Create(
+			_, _, err := manager.Create(
 				"fake-job-name",
 				0,
 				deploymentManifest,
@@ -168,13 +181,12 @@ var _ = Describe("Manager", func() {
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(instance).To(Equal(expectedInstance))
 
 			Expect(fakeCloudStemcell.PromoteAsCurrentCalledTimes).To(Equal(1))
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			instance, _, err := manager.Create(
+			_, _, err := manager.Create(
 				"fake-job-name",
 				0,
 				deploymentManifest,
@@ -184,7 +196,6 @@ var _ = Describe("Manager", func() {
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(instance).To(Equal(expectedInstance))
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 				Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'",
@@ -241,7 +252,7 @@ var _ = Describe("Manager", func() {
 			}))
 		})
 
-		It("updates the disks", func() {
+		It("returns the 'updated' disks", func() {
 			_, disks, err := manager.Create(
 				"fake-job-name",
 				0,

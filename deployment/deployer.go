@@ -18,12 +18,13 @@ import (
 
 type Deployer interface {
 	Deploy(
-		bmcloud.Cloud,
-		bmdeplmanifest.Manifest,
-		bmstemcell.ExtractedStemcell,
-		bminstallmanifest.Registry,
-		bminstallmanifest.SSHTunnel,
-		bmvm.Manager,
+		cloud bmcloud.Cloud,
+		deploymentManifest bmdeplmanifest.Manifest,
+		extractedStemcell bmstemcell.ExtractedStemcell,
+		registryConfig bminstallmanifest.Registry,
+		sshTunnelConfig bminstallmanifest.SSHTunnel,
+		vmManager bmvm.Manager,
+		blobstoreURL string,
 	) (Deployment, error)
 }
 
@@ -63,6 +64,7 @@ func (d *deployer) Deploy(
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
+	blobstoreURL string,
 ) (Deployment, error) {
 
 	//TODO: handle stage construction outside of this class
@@ -81,7 +83,7 @@ func (d *deployer) Deploy(
 	deployStage := d.eventLogger.NewStage("deploying")
 	deployStage.Start()
 
-	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager)
+	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstoreURL)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
@@ -133,7 +135,10 @@ func (d *deployer) createAllInstances(
 			instances = append(instances, instance)
 			disks = append(disks, instanceDisks...)
 
-			err = instance.StartJobs(extractedStemcell.ApplySpec(), deploymentManifest, deployStage)
+			//TODO: compile packages (on the vm), upload compiled packages (to the blobstore)
+			// instance.CompilePackages
+
+			err = instance.UpdateJobs(deploymentManifest, extractedStemcell.ApplySpec(), deployStage)
 			if err != nil {
 				return instances, disks, err
 			}

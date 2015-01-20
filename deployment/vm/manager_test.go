@@ -36,7 +36,6 @@ var _ = Describe("Manager", func() {
 		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
 		fakeAgentClient            *fakebmagentclient.FakeAgentClient
 		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
-		fakeApplySpecFactory       *fakebmas.FakeApplySpecFactory
 		stemcell                   bmstemcell.CloudStemcell
 		fs                         *fakesys.FakeFileSystem
 	)
@@ -47,7 +46,6 @@ var _ = Describe("Manager", func() {
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
 		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
-		fakeApplySpecFactory = fakebmas.NewFakeApplySpecFactory()
 		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
 
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
@@ -60,7 +58,6 @@ var _ = Describe("Manager", func() {
 			fakeVMRepo,
 			stemcellRepo,
 			fakeDiskDeployer,
-			fakeApplySpecFactory,
 			fakeTemplatesSpecGenerator,
 			fakeUUIDGenerator,
 			fs,
@@ -129,7 +126,6 @@ var _ = Describe("Manager", func() {
 				fakeAgentClient,
 				fakeCloud,
 				fakeTemplatesSpecGenerator,
-				fakeApplySpecFactory,
 				"fake-mbus-url",
 				fs,
 				logger,
