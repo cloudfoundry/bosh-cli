@@ -41,7 +41,7 @@ var _ = Describe("VM", func() {
 		deploymentManifest         bmdeplmanifest.Manifest
 		diskPool                   bmdeplmanifest.DiskPool
 		deploymentJob              bmdeplmanifest.Job
-		stemcellJob                bmstemcell.Job
+		jobBlobs                   []bmstemcell.Blob
 		fs                         *fakesys.FakeFileSystem
 		logger                     boshlog.Logger
 	)
@@ -64,27 +64,24 @@ var _ = Describe("VM", func() {
 			},
 		}
 
-		stemcellJob = bmstemcell.Job{
-			Name: "fake-job-name",
-			Templates: []bmstemcell.Blob{
-				{
-					Name:        "first-job-name",
-					Version:     "first-job-version",
-					SHA1:        "first-job-sha1",
-					BlobstoreID: "first-job-blobstore-id",
-				},
-				{
-					Name:        "second-job-name",
-					Version:     "second-job-version",
-					SHA1:        "second-job-sha1",
-					BlobstoreID: "second-job-blobstore-id",
-				},
-				{
-					Name:        "third-job-name",
-					Version:     "third-job-version",
-					SHA1:        "third-job-sha1",
-					BlobstoreID: "third-job-blobstore-id",
-				},
+		jobBlobs = []bmstemcell.Blob{
+			{
+				Name:        "first-job-name",
+				Version:     "first-job-version",
+				SHA1:        "first-job-sha1",
+				BlobstoreID: "first-job-blobstore-id",
+			},
+			{
+				Name:        "second-job-name",
+				Version:     "second-job-version",
+				SHA1:        "second-job-sha1",
+				BlobstoreID: "second-job-blobstore-id",
+			},
+			{
+				Name:        "third-job-name",
+				Version:     "third-job-version",
+				SHA1:        "third-job-sha1",
+				BlobstoreID: "third-job-blobstore-id",
 			},
 		}
 		applySpec = bmstemcell.ApplySpec{
@@ -102,7 +99,10 @@ var _ = Describe("VM", func() {
 					BlobstoreID: "second-package-blobstore-id",
 				},
 			},
-			Job: stemcellJob,
+			Job: bmstemcell.Job{
+				Name:      "fake-job-name",
+				Templates: jobBlobs,
+			},
 		}
 
 		deploymentJob = bmdeplmanifest.Job{
@@ -226,7 +226,7 @@ var _ = Describe("VM", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeTemplatesSpecGenerator.CreateTemplatesSpecInputs).To(ContainElement(fakebmas.CreateTemplatesSpecInput{
 				DeploymentJob:  deploymentJob,
-				StemcellJob:    stemcellJob,
+				JobBlobs:       jobBlobs,
 				DeploymentName: "fake-deployment-name",
 				Properties: map[string]interface{}{
 					"fake-property-key": "fake-property-value",

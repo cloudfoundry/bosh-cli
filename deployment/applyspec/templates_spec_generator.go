@@ -20,7 +20,7 @@ import (
 type TemplatesSpecGenerator interface {
 	Create(
 		deploymentJob bmdeplmanifest.Job,
-		stemcellJob bmstemcell.Job,
+		jobBlobs []bmstemcell.Blob,
 		deploymentName string,
 		properties map[string]interface{},
 		blobstoreURL string,
@@ -67,7 +67,7 @@ func NewTemplatesSpecGenerator(
 
 func (g *templatesSpecGenerator) Create(
 	deploymentJob bmdeplmanifest.Job,
-	stemcellJob bmstemcell.Job,
+	jobBlobs []bmstemcell.Blob,
 	deploymentName string,
 	properties map[string]interface{},
 	blobstoreURL string,
@@ -90,7 +90,7 @@ func (g *templatesSpecGenerator) Create(
 	}
 
 	g.logger.Debug(g.logTag, "Rendering job templates")
-	err = g.renderTemplates(deploymentJob.Templates, stemcellJob.Templates, blobstore, jobProperties, renderedJobDir, deploymentName)
+	err = g.renderTemplates(deploymentJob.Templates, jobBlobs, blobstore, jobProperties, renderedJobDir, deploymentName)
 	if err != nil {
 		return TemplatesSpec{}, err
 	}

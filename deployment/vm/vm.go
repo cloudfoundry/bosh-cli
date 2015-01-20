@@ -127,7 +127,7 @@ func (vm *vm) Apply(stemcellApplySpec bmstemcell.ApplySpec, deploymentManifest b
 
 	templatesSpec, err := vm.templatesSpecGenerator.Create(
 		deploymentJob,
-		stemcellApplySpec.Job,
+		stemcellApplySpec.Job.Templates,
 		deploymentManifest.Name,
 		jobProperties,
 		vm.mbusURL,

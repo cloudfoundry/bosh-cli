@@ -35,7 +35,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		fakeUUIDGenerator      *fakeuuid.FakeGenerator
 		fakeSha1Calculator     *fakebmcrypto.FakeSha1Calculator
 		deploymentJob          bmdeplmanifest.Job
-		stemcellJob            bmstemcell.Job
+		jobBlobs               []bmstemcell.Blob
 		extractedJob           bmrel.Job
 		jobProperties          map[string]interface{}
 		fs                     *fakesys.FakeFileSystem
@@ -49,27 +49,24 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
 		fakeCompressor = fakecmd.NewFakeCompressor()
 		fakeCompressor.CompressFilesInDirTarballPath = "fake-tarball-path"
-		stemcellJob = bmstemcell.Job{
-			Name: "fake-job-name",
-			Templates: []bmstemcell.Blob{
-				{
-					Name:        "first-job-name",
-					Version:     "first-job-version",
-					SHA1:        "first-job-sha1",
-					BlobstoreID: "first-job-blobstore-id",
-				},
-				{
-					Name:        "second-job-name",
-					Version:     "second-job-version",
-					SHA1:        "second-job-sha1",
-					BlobstoreID: "second-job-blobstore-id",
-				},
-				{
-					Name:        "third-job-name",
-					Version:     "third-job-version",
-					SHA1:        "third-job-sha1",
-					BlobstoreID: "third-job-blobstore-id",
-				},
+		jobBlobs = []bmstemcell.Blob{
+			{
+				Name:        "first-job-name",
+				Version:     "first-job-version",
+				SHA1:        "first-job-sha1",
+				BlobstoreID: "first-job-blobstore-id",
+			},
+			{
+				Name:        "second-job-name",
+				Version:     "second-job-version",
+				SHA1:        "second-job-sha1",
+				BlobstoreID: "second-job-blobstore-id",
+			},
+			{
+				Name:        "third-job-name",
+				Version:     "third-job-version",
+				SHA1:        "third-job-sha1",
+				BlobstoreID: "third-job-blobstore-id",
 			},
 		}
 
@@ -150,7 +147,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 
 	Describe("Create", func() {
 		It("downloads only job template blobs from the blobstore that are specified in the manifest", func() {
-			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templatesSpec).To(Equal(TemplatesSpec{
 				BlobID:            "fake-blob-id",
@@ -174,7 +171,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			fs.ReturnTempFile = tempFile
-			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templatesSpec).To(Equal(TemplatesSpec{
 				BlobID:            "fake-blob-id",
@@ -186,7 +183,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		})
 
 		It("decompressed job templates", func() {
-			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templatesSpec).To(Equal(TemplatesSpec{
 				BlobID:            "fake-blob-id",
@@ -199,7 +196,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		})
 
 		It("renders job templates", func() {
-			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templatesSpec).To(Equal(TemplatesSpec{
 				BlobID:            "fake-blob-id",
@@ -230,7 +227,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		})
 
 		It("compresses rendered templates", func() {
-			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templatesSpec).To(Equal(TemplatesSpec{
 				BlobID:            "fake-blob-id",
@@ -242,7 +239,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		})
 
 		It("cleans up rendered tarball", func() {
-			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templatesSpec).To(Equal(TemplatesSpec{
 				BlobID:            "fake-blob-id",
@@ -254,7 +251,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		})
 
 		It("uploads rendered jobs to the blobstore", func() {
-			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+			templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templatesSpec).To(Equal(TemplatesSpec{
 				BlobID:            "fake-blob-id",
@@ -275,7 +272,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		Context("when creating temp directory fails", func() {
 			It("returns an error", func() {
 				fs.TempDirError = errors.New("fake-temp-dir-error")
-				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-temp-dir-error"))
 				Expect(templatesSpec).To(Equal(TemplatesSpec{}))
@@ -285,7 +282,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		Context("when creating blobstore fails", func() {
 			It("returns an error", func() {
 				fakeBlobstoreFactory.CreateErr = errors.New("fake-blobstore-factory-create-error")
-				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-blobstore-factory-create-error"))
 				Expect(templatesSpec).To(Equal(TemplatesSpec{}))
@@ -295,7 +292,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		Context("when getting blob from blobstore fails", func() {
 			It("returns an error", func() {
 				fakeBlobstore.GetErr = errors.New("fake-blobstore-get-error")
-				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-blobstore-get-error"))
 				Expect(templatesSpec).To(Equal(TemplatesSpec{}))
@@ -305,7 +302,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		Context("when rendering job fails", func() {
 			It("returns an error", func() {
 				fakeJobRenderer.SetRenderBehavior("/fake-tmp-dir", errors.New("fake-render-error"))
-				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
 				Expect(templatesSpec).To(Equal(TemplatesSpec{}))
@@ -315,7 +312,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 		Context("when compressing rendered templates fails", func() {
 			It("returns an error", func() {
 				fakeJobRenderer.SetRenderBehavior("/fake-tmp-dir", errors.New("fake-render-error"))
-				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
 				Expect(templatesSpec).To(Equal(TemplatesSpec{}))
@@ -330,7 +327,7 @@ var _ = Describe("TemplatesSpecGenerator", func() {
 						Err:  errors.New("fake-sha1-error"),
 					},
 				})
-				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, stemcellJob, "fake-deployment-name", jobProperties, "fake-blobstore-url")
+				templatesSpec, err := templatesSpecGenerator.Create(deploymentJob, jobBlobs, "fake-deployment-name", jobProperties, "fake-blobstore-url")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-sha1-error"))
 				Expect(templatesSpec).To(Equal(TemplatesSpec{}))

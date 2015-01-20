@@ -15,7 +15,7 @@ type FakeTemplatesSpecGenerator struct {
 
 type CreateTemplatesSpecInput struct {
 	DeploymentJob  bmdeplmanifest.Job
-	StemcellJob    bmstemcell.Job
+	JobBlobs       []bmstemcell.Blob
 	DeploymentName string
 	Properties     map[string]interface{}
 	MbusURL        string
@@ -29,14 +29,14 @@ func NewFakeTemplatesSpecGenerator() *FakeTemplatesSpecGenerator {
 
 func (g *FakeTemplatesSpecGenerator) Create(
 	deploymentJob bmdeplmanifest.Job,
-	stemcellJob bmstemcell.Job,
+	jobBlobs []bmstemcell.Blob,
 	deploymentName string,
 	properties map[string]interface{},
 	mbusURL string,
 ) (bmas.TemplatesSpec, error) {
 	g.CreateTemplatesSpecInputs = append(g.CreateTemplatesSpecInputs, CreateTemplatesSpecInput{
 		DeploymentJob:  deploymentJob,
-		StemcellJob:    stemcellJob,
+		JobBlobs:       jobBlobs,
 		DeploymentName: deploymentName,
 		Properties:     properties,
 		MbusURL:        mbusURL,
