@@ -32,7 +32,6 @@ import (
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
-	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
@@ -45,7 +44,6 @@ import (
 	fakebminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakebmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest/fakes"
-	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
@@ -94,8 +92,6 @@ var _ = Describe("DeployCmd", func() {
 		fakeInstallationValidator *fakebminstallmanifest.FakeValidator
 		fakeDeploymentValidator   *fakebmdeplval.FakeValidator
 
-		fakeCompressor    *fakecmd.FakeCompressor
-		fakeJobRenderer   *fakebmtemp.FakeJobRenderer
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 
 		fakeEventLogger *fakebmlog.FakeEventLogger
@@ -158,9 +154,6 @@ var _ = Describe("DeployCmd", func() {
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
 		fakeEventLogger.SetNewStageBehavior(fakeStage)
-
-		fakeCompressor = fakecmd.NewFakeCompressor()
-		fakeJobRenderer = fakebmtemp.NewFakeJobRenderer()
 
 		fakeDeploymentRecord = fakebmdepl.NewFakeRecord()
 
