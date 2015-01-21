@@ -12,7 +12,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/blobstore"
+	. "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 )
 
 var _ = Describe("BlobstoreFactory", func() {

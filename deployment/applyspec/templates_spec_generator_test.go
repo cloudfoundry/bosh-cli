@@ -18,8 +18,8 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+	fakebmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/fakes"
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
-	fakebmblobstore "github.com/cloudfoundry/bosh-micro-cli/deployment/blobstore/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
