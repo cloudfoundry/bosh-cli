@@ -220,7 +220,7 @@ func (fs osFileSystem) ReadLink(symlinkPath string) (targetPath string, err erro
 }
 
 func (fs osFileSystem) CopyFile(srcPath, dstPath string) error {
-	fs.logger.Debug(fs.logTag, "Copying %s to %s", srcPath, dstPath)
+	fs.logger.Debug(fs.logTag, "Copying file '%s' to '%s'", srcPath, dstPath)
 	srcFile, err := os.Open(srcPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Opening source path")
@@ -241,6 +241,60 @@ func (fs osFileSystem) CopyFile(srcPath, dstPath string) error {
 	}
 
 	return nil
+}
+
+func (fs osFileSystem) CopyDir(srcPath, dstPath string) error {
+	fs.logger.Debug(fs.logTag, "Copying dir '%s' to '%s'", srcPath, dstPath)
+
+	sourceInfo, err := os.Stat(srcPath)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Reading dir stats for '%s'", srcPath)
+	}
+
+	// create destination dir with same permissions as source dir
+	err = os.MkdirAll(dstPath, sourceInfo.Mode())
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Making destination dir '%s'", dstPath)
+	}
+
+	files, err := fs.listDirContents(srcPath)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Listing contents of source dir '%s", srcPath)
+	}
+
+	for _, file := range files {
+		fileSrcPath := filepath.Join(srcPath, file.Name())
+		fileDstPath := filepath.Join(dstPath, file.Name())
+
+		if file.IsDir() {
+			err = fs.CopyDir(fileSrcPath, fileDstPath)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Copying sub-dir '%s' to '%s'", fileSrcPath, fileDstPath)
+			}
+		} else {
+			err = fs.CopyFile(fileSrcPath, fileDstPath)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Copying file '%s' to '%s'", fileSrcPath, fileDstPath)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (fs osFileSystem) listDirContents(dirPath string) ([]os.FileInfo, error) {
+	directory, err := os.Open(dirPath)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Openning dir '%s' for reading", dirPath)
+	}
+	defer directory.Close()
+
+	files, err := directory.Readdir(-1)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Reading dir '%s' contents", dirPath)
+	}
+
+	return files, nil
 }
 
 func (fs osFileSystem) TempFile(prefix string) (file File, err error) {

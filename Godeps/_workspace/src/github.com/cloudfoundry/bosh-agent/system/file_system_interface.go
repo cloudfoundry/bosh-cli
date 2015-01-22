@@ -19,16 +19,16 @@ type FileSystem interface {
 
 	// MkdirAll will not change existing dir permissions
 	// if dir exists and has different permissions
-	MkdirAll(path string, perm os.FileMode) (err error)
-	RemoveAll(fileOrDir string) (err error)
+	MkdirAll(path string, perm os.FileMode) error
+	RemoveAll(fileOrDir string) error
 
-	Chown(path, username string) (err error)
-	Chmod(path string, perm os.FileMode) (err error)
+	Chown(path, username string) error
+	Chmod(path string, perm os.FileMode) error
 
 	OpenFile(path string, flag int, perm os.FileMode) (File, error)
 
-	WriteFileString(path, content string) (err error)
-	WriteFile(path string, content []byte) (err error)
+	WriteFileString(path, content string) error
+	WriteFile(path string, content []byte) error
 	ConvergeFileContents(path string, content []byte) (written bool, err error)
 
 	ReadFileString(path string) (content string, err error)
@@ -36,15 +36,16 @@ type FileSystem interface {
 
 	FileExists(path string) bool
 
-	Rename(oldPath, newPath string) (err error)
+	Rename(oldPath, newPath string) error
 
 	// After Symlink file at newPath will be pointing to file at oldPath.
 	// Symlink call will remove file at newPath if one exists
 	// to make newPath a symlink to the file at oldPath.
-	Symlink(oldPath, newPath string) (err error)
+	Symlink(oldPath, newPath string) error
 	ReadLink(symlinkPath string) (targetPath string, err error)
 
-	CopyFile(srcPath, dstPath string) (err error)
+	CopyFile(srcPath, dstPath string) error
+	CopyDir(srcPath, dstPath string) error
 
 	// Returns *unique* temporary file/dir with a custom prefix
 	TempFile(prefix string) (file File, err error)
