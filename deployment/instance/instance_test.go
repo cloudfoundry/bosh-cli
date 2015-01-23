@@ -9,6 +9,9 @@ import (
 	"errors"
 	"time"
 
+	"code.google.com/p/gomock/gomock"
+	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
@@ -20,7 +23,6 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
@@ -28,15 +30,25 @@ import (
 )
 
 var _ = Describe("Instance", func() {
-	var (
-		fakeVMManager              *fakebmvm.FakeManager
-		fakeVM                     *fakebmvm.FakeVM
-		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
-		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
-		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
-		fakeStage                  *fakebmlog.FakeStage
+	var mockCtrl *gomock.Controller
 
-		blobstoreURL = "https://fake-blobstore-url"
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
+
+	var (
+		mockStateBuilder *mock_instance.MockStateBuilder
+		mockState        *mock_instance.MockState
+
+		fakeVMManager        *fakebmvm.FakeManager
+		fakeVM               *fakebmvm.FakeVM
+		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
+		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
+		fakeStage            *fakebmlog.FakeStage
 
 		instance Instance
 
@@ -53,7 +65,8 @@ var _ = Describe("Instance", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
-		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
+		mockStateBuilder = mock_instance.NewMockStateBuilder(mockCtrl)
+		mockState = mock_instance.NewMockState(mockCtrl)
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
@@ -63,8 +76,7 @@ var _ = Describe("Instance", func() {
 			fakeVM,
 			fakeVMManager,
 			fakeSSHTunnelFactory,
-			fakeTemplatesSpecGenerator,
-			blobstoreURL,
+			mockStateBuilder,
 			logger,
 		)
 
@@ -298,54 +310,47 @@ var _ = Describe("Instance", func() {
 
 	Describe("UpdateJobs", func() {
 		var (
-			jobBlobs           []bmstemcell.Blob
-			applySpec          bmstemcell.ApplySpec
+			stemcellApplySpec  bmstemcell.ApplySpec
 			deploymentJob      bmdeplmanifest.Job
 			deploymentManifest bmdeplmanifest.Manifest
+
+			applySpec bmas.ApplySpec
+
+			expectStateBuild *gomock.Call
 		)
 
-		BeforeEach(func() {
-			jobBlobs = []bmstemcell.Blob{
-				{
-					Name:        "first-job-name",
-					Version:     "first-job-version",
-					SHA1:        "first-job-sha1",
-					BlobstoreID: "first-job-blobstore-id",
+		var allowApplySpecToBeCreated = func() {
+			jobName := "fake-job-name"
+			jobIndex := 0
+
+			applySpec = bmas.ApplySpec{
+				Deployment: "fake-deployment-name",
+				Index:      jobIndex,
+				Packages:   map[string]bmas.Blob{},
+				Networks: map[string]interface{}{
+					"fake-network-name": map[string]interface{}{
+						"cloud_properties": map[string]interface{}{},
+						"type":             "dynamic",
+						"ip":               "fake-network-ip",
+					},
 				},
-				{
-					Name:        "second-job-name",
-					Version:     "second-job-version",
-					SHA1:        "second-job-sha1",
-					BlobstoreID: "second-job-blobstore-id",
+				Job: bmas.Job{
+					Name:      jobName,
+					Templates: []bmas.Blob{},
 				},
-				{
-					Name:        "third-job-name",
-					Version:     "third-job-version",
-					SHA1:        "third-job-sha1",
-					BlobstoreID: "third-job-blobstore-id",
-				},
+				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
+				ConfigurationHash:        "",
 			}
 
-			//TODO: compile packages too
-			applySpec = bmstemcell.ApplySpec{
-				//				Packages: map[string]bmstemcell.Blob{
-				//					"first-package-name": bmstemcell.Blob{
-				//						Name:        "first-package-name",
-				//						Version:     "first-package-version",
-				//						SHA1:        "first-package-sha1",
-				//						BlobstoreID: "first-package-blobstore-id",
-				//					},
-				//					"second-package-name": bmstemcell.Blob{
-				//						Name:        "second-package-name",
-				//						Version:     "second-package-version",
-				//						SHA1:        "second-package-sha1",
-				//						BlobstoreID: "second-package-blobstore-id",
-				//					},
-				//				},
-				Job: bmstemcell.Job{
-					Name:      "fake-job-name",
-					Templates: jobBlobs,
-				},
+			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, stemcellApplySpec).Return(mockState, nil).AnyTimes()
+			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+		}
+
+		BeforeEach(func() {
+			//TODO: once we compile packages locally, we can ignore the stemcell apply spec
+			// stemcell apply spec is being ignored except for the packages
+			stemcellApplySpec = bmstemcell.ApplySpec{
+				Packages: map[string]bmstemcell.Blob{},
 			}
 
 			deploymentJob = bmdeplmanifest.Job{
@@ -366,6 +371,8 @@ var _ = Describe("Instance", func() {
 				},
 			}
 
+			//TODO: gut the manifest to only what we are testing?
+			// manifest is only being used for the Update.UpdateWatchTime, otherwise it's just being passed to the StateBuilder
 			deploymentManifest = bmdeplmanifest.Manifest{
 				Name: "fake-deployment-name",
 				Networks: []bmdeplmanifest.Network{
@@ -392,83 +399,29 @@ var _ = Describe("Instance", func() {
 		})
 
 		JustBeforeEach(func() {
-			fakeTemplatesSpecGenerator.CreateTemplatesSpec = bmas.TemplatesSpec{
-				BlobID:            "fake-blob-id",
-				ArchiveSha1:       "fake-archive-sha1",
-				ConfigurationHash: "fake-configuration-hash",
-			}
+			allowApplySpecToBeCreated()
 		})
 
-		It("renders jobs templates (multiple jobs with multiple templates each)", func() {
-			err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
-			Expect(err).ToNot(HaveOccurred())
+		It("builds a new instance state", func() {
+			expectStateBuild.Times(1)
 
-			Expect(fakeTemplatesSpecGenerator.CreateTemplatesSpecInputs).To(ContainElement(fakebmas.CreateTemplatesSpecInput{
-				DeploymentJob:  deploymentJob,
-				JobBlobs:       jobBlobs,
-				DeploymentName: "fake-deployment-name",
-				Properties: map[string]interface{}{
-					"fake-property-key": "fake-property-value",
-				},
-				MbusURL: blobstoreURL,
-			}))
+			err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("tells agent to stop jobs, apply a new spec (with new rendered jobs templates), and start jobs", func() {
-			err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.StartCalled).To(Equal(1))
-			//TODO: test compiled packages too
-			expectedApplySpec := bmas.ApplySpec{
-				Deployment: "fake-deployment-name",
-				Index:      0,
-				Packages:   map[string]bmas.Blob{},
-				Networks: map[string]interface{}{
-					"fake-network-name": map[string]interface{}{
-						"type":             "fake-network-type",
-						"ip":               "fake-network-ip",
-						"cloud_properties": map[string]interface{}{},
-					},
-				},
-				Job: bmas.Job{
-					Name: "fake-job-name",
-					Templates: []bmas.Blob{
-						{
-							Name:        "first-job-name",
-							Version:     "first-job-version",
-							SHA1:        "first-job-sha1",
-							BlobstoreID: "first-job-blobstore-id",
-						},
-						// TODO: remove second-job, because the deployment job doesn't reference it
-						{
-							Name:        "second-job-name",
-							Version:     "second-job-version",
-							SHA1:        "second-job-sha1",
-							BlobstoreID: "second-job-blobstore-id",
-						},
-						{
-							Name:        "third-job-name",
-							Version:     "third-job-version",
-							SHA1:        "third-job-sha1",
-							BlobstoreID: "third-job-blobstore-id",
-						},
-					},
-				},
-				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
-					BlobstoreID: "fake-blob-id",
-					SHA1:        "fake-archive-sha1",
-				},
-				ConfigurationHash: "fake-configuration-hash",
-			}
-			Expect(fakeVM.ApplyInputs).To(Equal([]fakebmvm.ApplyInput{
-				{ApplySpec: expectedApplySpec},
-			}))
 			Expect(fakeVM.StopCalled).To(Equal(1))
+			Expect(fakeVM.ApplyInputs).To(Equal([]fakebmvm.ApplyInput{
+				{ApplySpec: applySpec},
+			}))
+			Expect(fakeVM.StartCalled).To(Equal(1))
 		})
 
 		It("waits until agent reports state as running", func() {
-			err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
@@ -478,7 +431,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -497,13 +450,13 @@ var _ = Describe("Instance", func() {
 			}))
 		})
 
-		Context("when rendering jobs templates fails", func() {
-			BeforeEach(func() {
-				fakeTemplatesSpecGenerator.CreateErr = errors.New("fake-template-err")
+		Context("when instance state building fails", func() {
+			JustBeforeEach(func() {
+				expectStateBuild.Return(nil, errors.New("fake-template-err")).Times(1)
 			})
 
 			It("returns an error", func() {
-				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-err"))
 			})
@@ -515,7 +468,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 
@@ -536,7 +489,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
@@ -557,7 +510,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
@@ -578,7 +531,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.UpdateJobs(deploymentManifest, applySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 

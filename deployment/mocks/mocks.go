@@ -5,6 +5,7 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
+	blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	cloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	deployment "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
@@ -100,7 +101,7 @@ func (_m *MockDeployer) EXPECT() *_MockDeployerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest.Manifest, _param2 stemcell.ExtractedStemcell, _param3 manifest0.Registry, _param4 manifest0.SSHTunnel, _param5 vm.Manager, _param6 string) (deployment.Deployment, error) {
+func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest.Manifest, _param2 stemcell.ExtractedStemcell, _param3 manifest0.Registry, _param4 manifest0.SSHTunnel, _param5 vm.Manager, _param6 blobstore.Blobstore) (deployment.Deployment, error) {
 	ret := _m.ctrl.Call(_m, "Deploy", _param0, _param1, _param2, _param3, _param4, _param5, _param6)
 	ret0, _ := ret[0].(deployment.Deployment)
 	ret1, _ := ret[1].(error)
@@ -175,7 +176,7 @@ func (_m *MockManagerFactory) EXPECT() *_MockManagerFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockManagerFactory) NewManager(_param0 cloud.Cloud, _param1 agentclient.AgentClient, _param2 string) deployment.Manager {
+func (_m *MockManagerFactory) NewManager(_param0 cloud.Cloud, _param1 agentclient.AgentClient, _param2 blobstore.Blobstore) deployment.Manager {
 	ret := _m.ctrl.Call(_m, "NewManager", _param0, _param1, _param2)
 	ret0, _ := ret[0].(deployment.Manager)
 	return ret0

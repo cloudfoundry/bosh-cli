@@ -16,7 +16,6 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
@@ -24,20 +23,19 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		fakeCloud                  *fakebmcloud.FakeCloud
-		manager                    Manager
-		logger                     boshlog.Logger
-		expectedNetworksSpec       map[string]interface{}
-		expectedCloudProperties    map[string]interface{}
-		expectedEnv                map[string]interface{}
-		deploymentManifest         bmdeplmanifest.Manifest
-		fakeVMRepo                 *fakebmconfig.FakeVMRepo
-		stemcellRepo               bmconfig.StemcellRepo
-		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
-		fakeAgentClient            *fakebmagentclient.FakeAgentClient
-		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
-		stemcell                   bmstemcell.CloudStemcell
-		fs                         *fakesys.FakeFileSystem
+		fakeCloud               *fakebmcloud.FakeCloud
+		manager                 Manager
+		logger                  boshlog.Logger
+		expectedNetworksSpec    map[string]interface{}
+		expectedCloudProperties map[string]interface{}
+		expectedEnv             map[string]interface{}
+		deploymentManifest      bmdeplmanifest.Manifest
+		fakeVMRepo              *fakebmconfig.FakeVMRepo
+		stemcellRepo            bmconfig.StemcellRepo
+		fakeDiskDeployer        *fakebmvm.FakeDiskDeployer
+		fakeAgentClient         *fakebmagentclient.FakeAgentClient
+		stemcell                bmstemcell.CloudStemcell
+		fs                      *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
@@ -45,7 +43,6 @@ var _ = Describe("Manager", func() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
-		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
 		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
 
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
@@ -58,7 +55,6 @@ var _ = Describe("Manager", func() {
 			fakeVMRepo,
 			stemcellRepo,
 			fakeDiskDeployer,
-			fakeTemplatesSpecGenerator,
 			fakeUUIDGenerator,
 			fs,
 			logger,
@@ -125,7 +121,6 @@ var _ = Describe("Manager", func() {
 				fakeDiskDeployer,
 				fakeAgentClient,
 				fakeCloud,
-				fakeTemplatesSpecGenerator,
 				fs,
 				logger,
 			)

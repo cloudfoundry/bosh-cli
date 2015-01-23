@@ -6,6 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
@@ -18,13 +19,13 @@ import (
 
 type Deployer interface {
 	Deploy(
-		cloud bmcloud.Cloud,
-		deploymentManifest bmdeplmanifest.Manifest,
-		extractedStemcell bmstemcell.ExtractedStemcell,
-		registryConfig bminstallmanifest.Registry,
-		sshTunnelConfig bminstallmanifest.SSHTunnel,
-		vmManager bmvm.Manager,
-		blobstoreURL string,
+		bmcloud.Cloud,
+		bmdeplmanifest.Manifest,
+		bmstemcell.ExtractedStemcell,
+		bminstallmanifest.Registry,
+		bminstallmanifest.SSHTunnel,
+		bmvm.Manager,
+		bmblobstore.Blobstore,
 	) (Deployment, error)
 }
 
@@ -64,7 +65,7 @@ func (d *deployer) Deploy(
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
-	blobstoreURL string,
+	blobstore bmblobstore.Blobstore,
 ) (Deployment, error) {
 
 	//TODO: handle stage construction outside of this class
@@ -83,7 +84,7 @@ func (d *deployer) Deploy(
 	deployStage := d.eventLogger.NewStage("deploying")
 	deployStage.Start()
 
-	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstoreURL)
+	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond

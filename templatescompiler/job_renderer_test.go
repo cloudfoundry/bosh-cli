@@ -6,10 +6,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
+
 	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
@@ -38,7 +42,7 @@ var _ = Describe("JobRenderer", func() {
 			Templates: map[string]string{
 				"director.yml.erb": "config/director.yml",
 			},
-			ExtractedPath: "fake-src-path",
+			ExtractedPath: srcPath,
 		}
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
@@ -62,30 +66,48 @@ var _ = Describe("JobRenderer", func() {
 			context,
 			nil,
 		)
+
+		fs.TempDirDir = dstPath
+	})
+
+	AfterEach(func() {
+		err := fs.RemoveAll(dstPath)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Describe("Render", func() {
 		It("renders job templates", func() {
-			err := jobRenderer.Render(srcPath, dstPath, job, renderProperties, "fake-deployment-name")
+			renderedjob, err := jobRenderer.Render(job, renderProperties, "fake-deployment-name")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebmrender.RenderInput{
 				{
 					SrcPath: filepath.Join(srcPath, "templates/director.yml.erb"),
-					DstPath: filepath.Join(dstPath, "config/director.yml"),
+					DstPath: filepath.Join(renderedjob.Path(), "config/director.yml"),
 					Context: context,
 				},
 				{
 					SrcPath: filepath.Join(srcPath, "monit"),
-					DstPath: filepath.Join(dstPath, "monit"),
+					DstPath: filepath.Join(renderedjob.Path(), "monit"),
 					Context: context,
 				},
 			}))
 		})
 
 		Context("when rendering fails", func() {
-			It("returns an error", func() {
+			BeforeEach(func() {
+				fakeERBRenderer.SetRenderBehavior(
+					filepath.Join(srcPath, "templates/director.yml.erb"),
+					filepath.Join(dstPath, "config/director.yml"),
+					context,
+					bosherr.Error("fake-template-render-error"),
+				)
+			})
 
+			It("returns an error", func() {
+				_, err := jobRenderer.Render(job, renderProperties, "fake-deployment-name")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-template-render-error"))
 			})
 		})
 	})

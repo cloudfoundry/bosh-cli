@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"code.google.com/p/gomock/gomock"
+	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
+	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -29,7 +31,6 @@ import (
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
 
@@ -59,10 +60,13 @@ var _ = Describe("Deployment", func() {
 			mockCloud       *mock_cloud.MockCloud
 			mockAgentClient *mock_agentclient.MockAgentClient
 
-			templatesSpecGenerator bmas.TemplatesSpecGenerator
+			mockStateBuilderFactory *mock_instance.MockStateBuilderFactory
+			mockStateBuilder        *mock_instance.MockStateBuilder
+			mockState               *mock_instance.MockState
+
+			mockBlobstore *mock_blobstore.MockBlobstore
 
 			deploymentConfigPath = "/deployment.json"
-			mbusURL              = "http://fake-mbus-url"
 
 			fakeStage *fakebmeventlog.FakeStage
 
@@ -94,6 +98,34 @@ var _ = Describe("Deployment", func() {
 			}
 		}
 
+		var allowApplySpecToBeCreated = func() {
+			jobName := "fake-job-name"
+			jobIndex := 0
+
+			applySpec := bmas.ApplySpec{
+				Deployment: "test-release",
+				Index:      jobIndex,
+				Packages:   map[string]bmas.Blob{},
+				Networks: map[string]interface{}{
+					"network-1": map[string]interface{}{
+						"cloud_properties": map[string]interface{}{},
+						"type":             "dynamic",
+						"ip":               "",
+					},
+				},
+				Job: bmas.Job{
+					Name:      jobName,
+					Templates: []bmas.Blob{},
+				},
+				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
+				ConfigurationHash:        "",
+			}
+
+			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore).Return(mockStateBuilder).AnyTimes()
+			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+		}
+
 		BeforeEach(func() {
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fs = fakesys.NewFakeFileSystem()
@@ -121,16 +153,23 @@ var _ = Describe("Deployment", func() {
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
-			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, templatesSpecGenerator, fakeUUIDGenerator, fs, logger)
+			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
 			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
 
-			fakeTemplatesSpecGenerator := fakebmas.NewFakeTemplatesSpecGenerator()
-			instanceFactory := bminstance.NewFactory(fakeTemplatesSpecGenerator)
+			mockStateBuilderFactory = mock_instance.NewMockStateBuilderFactory(mockCtrl)
+			mockStateBuilder = mock_instance.NewMockStateBuilder(mockCtrl)
+			mockState = mock_instance.NewMockState(mockCtrl)
+
+			instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
 			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo)
 
+			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+
 			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, deploymentFactory)
-			deploymentManager := deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mbusURL)
+			deploymentManager := deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mockBlobstore)
+
+			allowApplySpecToBeCreated()
 
 			var err error
 			deployment, _, err = deploymentManager.FindCurrent()

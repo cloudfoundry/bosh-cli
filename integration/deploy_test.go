@@ -14,9 +14,11 @@ import (
 	"time"
 
 	"code.google.com/p/gomock/gomock"
+	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
+	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
 	mock_install "github.com/cloudfoundry/bosh-micro-cli/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
 
@@ -46,7 +48,6 @@ import (
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -79,6 +80,13 @@ var _ = Describe("bosh-micro", func() {
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockReleaseExtractor   *mock_release.MockExtractor
 
+			mockStateBuilderFactory *mock_instance.MockStateBuilderFactory
+			mockStateBuilder        *mock_instance.MockStateBuilder
+			mockState               *mock_instance.MockState
+
+			mockBlobstoreFactory *mock_blobstore.MockFactory
+			mockBlobstore        *mock_blobstore.MockBlobstore
+
 			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
@@ -103,8 +111,7 @@ var _ = Describe("bosh-micro", func() {
 			stemcellManagerFactory bmstemcell.ManagerFactory
 			vmManagerFactory       bmvm.ManagerFactory
 
-			fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
-			applySpec                  bmas.ApplySpec
+			applySpec bmas.ApplySpec
 
 			directorID string
 
@@ -293,9 +300,12 @@ cloud_provider:
 		}
 
 		var allowApplySpecToBeCreated = func() {
+			jobName := "cpi"
+			jobIndex := 0
+
 			applySpec = bmas.ApplySpec{
 				Deployment: "test-release",
-				Index:      0,
+				Index:      jobIndex,
 				Packages:   map[string]bmas.Blob{},
 				Networks: map[string]interface{}{
 					"network-1": map[string]interface{}{
@@ -305,12 +315,16 @@ cloud_provider:
 					},
 				},
 				Job: bmas.Job{
-					Name:      "cpi",
+					Name:      jobName,
 					Templates: []bmas.Blob{},
 				},
 				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
 				ConfigurationHash:        "",
 			}
+
+			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore).Return(mockStateBuilder).AnyTimes()
+			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 
 		var newDeployCmd = func() Cmd {
@@ -324,7 +338,7 @@ cloud_provider:
 
 			deploymentRecord := bmdepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 
-			instanceFactory := bminstance.NewFactory(fakeTemplatesSpecGenerator)
+			instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
 			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
 
 			pingTimeout := 1 * time.Second
@@ -360,6 +374,7 @@ cloud_provider:
 				vmManagerFactory,
 				fakeStemcellExtractor,
 				deploymentRecord,
+				mockBlobstoreFactory,
 				deployer,
 				eventLogger,
 				logger,
@@ -660,6 +675,14 @@ cloud_provider:
 			releaseManager = bmrel.NewManager(logger)
 			releaseResolver = bmrelset.NewResolver(releaseManager, logger)
 
+			mockStateBuilderFactory = mock_instance.NewMockStateBuilderFactory(mockCtrl)
+			mockStateBuilder = mock_instance.NewMockStateBuilder(mockCtrl)
+			mockState = mock_instance.NewMockState(mockCtrl)
+
+			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
+			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+			mockBlobstoreFactory.EXPECT().Create(mbusURL).Return(mockBlobstore, nil).AnyTimes()
+
 			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
 			ui = &fakeui.FakeUI{}
@@ -670,13 +693,10 @@ cloud_provider:
 
 			stemcellManagerFactory = bmstemcell.NewManagerFactory(stemcellRepo)
 
-			fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
-
 			vmManagerFactory = bmvm.NewManagerFactory(
 				vmRepo,
 				stemcellRepo,
 				diskDeployer,
-				fakeTemplatesSpecGenerator,
 				fakeAgentIDGenerator,
 				fs,
 				logger,

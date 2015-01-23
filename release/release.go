@@ -18,7 +18,7 @@ type Release interface {
 	Version() string
 	Jobs() []Job
 	Packages() []*Package
-	FindJobByName(jobName string) (Job, bool)
+	FindJobByName(jobName string) (job Job, found bool)
 	Delete() error
 	Exists() bool
 }

@@ -7,6 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
@@ -36,6 +37,7 @@ type deleteCmd struct {
 	releaseResolver          bmrelset.Resolver
 	cloudFactory             bmcloud.Factory
 	agentClientFactory       bmhttpagent.AgentClientFactory
+	blobstoreFactory         bmblobstore.Factory
 	deploymentManagerFactory bmdepl.ManagerFactory
 	eventLogger              bmeventlog.EventLogger
 	logger                   boshlog.Logger
@@ -57,6 +59,7 @@ func NewDeleteCmd(
 	releaseResolver bmrelset.Resolver,
 	cloudFactory bmcloud.Factory,
 	agentClientFactory bmhttpagent.AgentClientFactory,
+	blobstoreFactory bmblobstore.Factory,
 	deploymentManagerFactory bmdepl.ManagerFactory,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
@@ -76,6 +79,7 @@ func NewDeleteCmd(
 		releaseResolver:          releaseResolver,
 		cloudFactory:             cloudFactory,
 		agentClientFactory:       agentClientFactory,
+		blobstoreFactory:         blobstoreFactory,
 		deploymentManagerFactory: deploymentManagerFactory,
 		eventLogger:              eventLogger,
 		logger:                   logger,
@@ -184,11 +188,13 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}
 
+	c.logger.Debug(c.logTag, "Installing CPI...")
 	installation, err := installer.Install(installationManifest)
 	if err != nil {
 		return bosherr.WrapError(err, "Installing CPI")
 	}
 
+	c.logger.Debug(c.logTag, "Starting Registry...")
 	err = installation.StartRegistry()
 	if err != nil {
 		return bosherr.WrapError(err, "Starting Registry")
@@ -200,15 +206,25 @@ func (c *deleteCmd) Run(args []string) error {
 		}
 	}()
 
+	c.logger.Debug(c.logTag, "Creating cloud client...")
 	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
 	}
 
+	c.logger.Debug(c.logTag, "Creating agent client...")
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
 
-	deploymentManager := c.deploymentManagerFactory.NewManager(cloud, agentClient, installationManifest.Mbus)
+	c.logger.Debug(c.logTag, "Creating blobstore client...")
+	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating blobstore client")
+	}
 
+	c.logger.Debug(c.logTag, "Creating deployment manager...")
+	deploymentManager := c.deploymentManagerFactory.NewManager(cloud, agentClient, blobstore)
+
+	c.logger.Debug(c.logTag, "Finding current deployment...")
 	deployment, found, err := deploymentManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding current deployment")
@@ -218,12 +234,16 @@ func (c *deleteCmd) Run(args []string) error {
 	deleteStage.Start()
 
 	if found {
+		c.logger.Debug(c.logTag, "Deleting deployment...")
 		err = deployment.Delete(deleteStage)
 		if err != nil {
 			return bosherr.WrapError(err, "Deleting deployment")
 		}
+	} else {
+		c.logger.Debug(c.logTag, "No current deployment found...")
 	}
 
+	c.logger.Debug(c.logTag, "Cleaning up...")
 	if err = deploymentManager.Cleanup(deleteStage); err != nil {
 		return err
 	}

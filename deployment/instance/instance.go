@@ -8,7 +8,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
@@ -33,15 +32,14 @@ type Instance interface {
 }
 
 type instance struct {
-	jobName                string
-	id                     int
-	vm                     bmvm.VM
-	vmManager              bmvm.Manager
-	sshTunnelFactory       bmsshtunnel.Factory
-	templatesSpecGenerator bmas.TemplatesSpecGenerator
-	blobstoreURL           string
-	logger                 boshlog.Logger
-	logTag                 string
+	jobName              string
+	id                   int
+	vm                   bmvm.VM
+	vmManager            bmvm.Manager
+	sshTunnelFactory     bmsshtunnel.Factory
+	instanceStateBuilder StateBuilder
+	logger               boshlog.Logger
+	logTag               string
 }
 
 func NewInstance(
@@ -50,20 +48,18 @@ func NewInstance(
 	vm bmvm.VM,
 	vmManager bmvm.Manager,
 	sshTunnelFactory bmsshtunnel.Factory,
-	templatesSpecGenerator bmas.TemplatesSpecGenerator,
-	blobstoreURL string,
+	instanceStateBuilder StateBuilder,
 	logger boshlog.Logger,
 ) Instance {
 	return &instance{
-		jobName:                jobName,
-		id:                     id,
-		vm:                     vm,
-		vmManager:              vmManager,
-		sshTunnelFactory:       sshTunnelFactory,
-		templatesSpecGenerator: templatesSpecGenerator,
-		blobstoreURL:           blobstoreURL,
-		logger:                 logger,
-		logTag:                 "instance",
+		jobName:              jobName,
+		id:                   id,
+		vm:                   vm,
+		vmManager:            vmManager,
+		sshTunnelFactory:     sshTunnelFactory,
+		instanceStateBuilder: instanceStateBuilder,
+		logger:               logger,
+		logTag:               "instance",
 	}
 }
 
@@ -137,36 +133,10 @@ func (i *instance) UpdateJobs(
 	stemcellApplySpec bmstemcell.ApplySpec,
 	eventLoggerStage bmeventlog.Stage,
 ) error {
-	deploymentJob, found := deploymentManifest.FindJobByName(i.JobName())
-	if !found {
-		return bosherr.Errorf("Job '%s' not found in deployment manifest", i.JobName())
-	}
-
-	// TODO: upload job tarballs from release that correspond to deploymentJob.Templates (to the blobstore)
-	// TODO: update stemcellApplySpec.Job.Templates with uplaoded job blob details
-
-	renderedTemplatesArchive, err := i.renderJobTemplates(
-		deploymentJob,
-		deploymentManifest.Name,
-		stemcellApplySpec,
-	)
+	instanceState, err := i.instanceStateBuilder.Build(i.jobName, i.id, deploymentManifest, stemcellApplySpec)
 	if err != nil {
-		return err
+		return bosherr.WrapErrorf(err, "Builing state for instance '%s/%d'", i.jobName, i.id)
 	}
-
-	networksSpec, err := deploymentManifest.NetworksSpec(deploymentJob.Name)
-	if err != nil {
-		return bosherr.WrapError(err, "Stringifying job properties")
-	}
-
-	i.logger.Debug(i.logTag, "Creating apply spec")
-	applySpec := bmas.NewApplySpec(
-		deploymentManifest.Name,
-		networksSpec,
-		renderedTemplatesArchive,
-	)
-	applySpec.Job = bmas.NewJob(deploymentJob.Name, stemcellApplySpec.Job.Templates)
-	applySpec.Packages = bmas.NewPackageMap(stemcellApplySpec.Packages)
 
 	stepName := fmt.Sprintf("Updating instance '%s/%d'", i.jobName, i.id)
 	err = eventLoggerStage.PerformStep(stepName, func() error {
@@ -175,7 +145,7 @@ func (i *instance) UpdateJobs(
 			return bosherr.WrapError(err, "Stopping the agent")
 		}
 
-		err = i.vm.Apply(applySpec)
+		err = i.vm.Apply(instanceState.ToApplySpec())
 		if err != nil {
 			return bosherr.WrapError(err, "Applying the agent state")
 		}
@@ -192,45 +162,6 @@ func (i *instance) UpdateJobs(
 	}
 
 	return i.waitUntilJobsAreRunning(deploymentManifest.Update.UpdateWatchTime, eventLoggerStage)
-}
-
-func (i *instance) renderJobTemplates(
-	deploymentJob bmdeplmanifest.Job,
-	deploymentName string,
-	stemcellApplySpec bmstemcell.ApplySpec,
-) (bmas.TemplatesSpec, error) {
-	jobProperties, err := deploymentJob.Properties()
-	if err != nil {
-		return bmas.TemplatesSpec{}, bosherr.WrapError(err, "Stringifying job properties")
-	}
-
-	//TODO: upload release job blob to blobstore
-	//	jobsBlobs := []bmstemcell.Blob{}
-	//	for _, jobRef := range deploymentJob.Templates {
-	//		blobstore.Save()
-	//		jobBlob := bmstemcell.Blob{
-	//			Name: jobRef.Name,
-	//			Version: "",
-	//			SHA1: "",
-	//			BlobstoreID: "",
-	//		}
-	//		jobsBlobs = append(jobsBlobs, jobBlob)
-	//	}
-
-	jobsBlobRefs := stemcellApplySpec.Job.Templates
-
-	renderedTemplatesArchive, err := i.templatesSpecGenerator.Create(
-		deploymentJob,
-		jobsBlobRefs,
-		deploymentName,
-		jobProperties,
-		i.blobstoreURL,
-	)
-	if err != nil {
-		return renderedTemplatesArchive, bosherr.WrapError(err, "Generating templates spec")
-	}
-
-	return renderedTemplatesArchive, nil
 }
 
 func (i *instance) Delete(

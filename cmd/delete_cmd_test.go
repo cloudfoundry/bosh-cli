@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"code.google.com/p/gomock/gomock"
+	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
@@ -58,6 +59,9 @@ var _ = Describe("DeleteCmd", func() {
 
 			ui *fakeui.FakeUI
 
+			mockBlobstoreFactory *mock_blobstore.MockFactory
+			mockBlobstore        *mock_blobstore.MockBlobstore
+
 			mockDeploymentManagerFactory *mock_deployment.MockManagerFactory
 			mockDeploymentManager        *mock_deployment.MockManager
 			mockDeployment               *mock_deployment.MockDeployment
@@ -76,6 +80,8 @@ var _ = Describe("DeleteCmd", func() {
 			expectNewCloud          *gomock.Call
 			expectStartRegistry     *gomock.Call
 			expectStopRegistry      *gomock.Call
+
+			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 		)
 
 		var writeDeploymentManifest = func() {
@@ -84,7 +90,7 @@ name: test-release
 
 cloud_provider:
   release: fake-cpi-release-name
-  mbus: http://fake-mbus-url
+  mbus: http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint
 `)
 		}
 
@@ -118,7 +124,7 @@ cloud_provider:
 		var allowCPIToBeInstalled = func() {
 			installationManifest := bminstallmanifest.Manifest{
 				Name:    "test-release",
-				Mbus:    "http://fake-mbus-url",
+				Mbus:    mbusURL,
 				Release: "fake-cpi-release-name",
 			}
 
@@ -156,6 +162,7 @@ cloud_provider:
 				releaseSetResolver,
 				mockCloudFactory,
 				mockAgentClientFactory,
+				mockBlobstoreFactory,
 				mockDeploymentManagerFactory,
 				eventLogger,
 				logger,
@@ -163,8 +170,8 @@ cloud_provider:
 		}
 
 		var expectDeleteAndCleanup = func() {
-			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, "http://fake-mbus-url").Return(mockDeploymentManager).AnyTimes()
-			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil).AnyTimes()
+			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
+			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			//TODO: can we check that the stage is "deleting deployment"?
 			gomock.InOrder(
@@ -174,7 +181,7 @@ cloud_provider:
 		}
 
 		var expectCleanup = func() {
-			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, "http://fake-mbus-url").Return(mockDeploymentManager).AnyTimes()
+			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager).AnyTimes()
 			mockDeploymentManager.EXPECT().FindCurrent().Return(nil, false, nil).AnyTimes()
 
 			//TODO: can we check that the stage is "deleting deployment"?
@@ -211,6 +218,10 @@ cloud_provider:
 			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 			mockInstallation = mock_install.NewMockInstallation(mockCtrl)
+
+			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
+			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+			mockBlobstoreFactory.EXPECT().Create(mbusURL).Return(mockBlobstore, nil).AnyTimes()
 
 			mockDeploymentManagerFactory = mock_deployment.NewMockManagerFactory(mockCtrl)
 			mockDeploymentManager = mock_deployment.NewMockManager(mockCtrl)

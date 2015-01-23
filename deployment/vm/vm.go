@@ -36,16 +36,15 @@ type VM interface {
 }
 
 type vm struct {
-	cid                    string
-	vmRepo                 bmconfig.VMRepo
-	stemcellRepo           bmconfig.StemcellRepo
-	diskDeployer           DiskDeployer
-	agentClient            bmagentclient.AgentClient
-	cloud                  bmcloud.Cloud
-	templatesSpecGenerator bmas.TemplatesSpecGenerator
-	fs                     boshsys.FileSystem
-	logger                 boshlog.Logger
-	logTag                 string
+	cid          string
+	vmRepo       bmconfig.VMRepo
+	stemcellRepo bmconfig.StemcellRepo
+	diskDeployer DiskDeployer
+	agentClient  bmagentclient.AgentClient
+	cloud        bmcloud.Cloud
+	fs           boshsys.FileSystem
+	logger       boshlog.Logger
+	logTag       string
 }
 
 func NewVM(
@@ -55,7 +54,6 @@ func NewVM(
 	diskDeployer DiskDeployer,
 	agentClient bmagentclient.AgentClient,
 	cloud bmcloud.Cloud,
-	templatesSpecGenerator bmas.TemplatesSpecGenerator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) VM {
@@ -66,10 +64,9 @@ func NewVM(
 		diskDeployer: diskDeployer,
 		agentClient:  agentClient,
 		cloud:        cloud,
-		templatesSpecGenerator: templatesSpecGenerator,
-		fs:     fs,
-		logger: logger,
-		logTag: "vm",
+		fs:           fs,
+		logger:       logger,
+		logTag:       "vm",
 	}
 }
 

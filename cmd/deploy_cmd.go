@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
@@ -45,6 +46,7 @@ type deployCmd struct {
 	vmManagerFactory        bmvm.ManagerFactory
 	stemcellExtractor       bmstemcell.Extractor
 	deploymentRecord        bmdepl.Record
+	blobstoreFactory        bmblobstore.Factory
 	deployer                bmdepl.Deployer
 	eventLogger             bmeventlog.EventLogger
 	logger                  boshlog.Logger
@@ -71,6 +73,7 @@ func NewDeployCmd(
 	vmManagerFactory bmvm.ManagerFactory,
 	stemcellExtractor bmstemcell.Extractor,
 	deploymentRecord bmdepl.Record,
+	blobstoreFactory bmblobstore.Factory,
 	deployer bmdepl.Deployer,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
@@ -95,6 +98,7 @@ func NewDeployCmd(
 		vmManagerFactory:        vmManagerFactory,
 		stemcellExtractor:       stemcellExtractor,
 		deploymentRecord:        deploymentRecord,
+		blobstoreFactory:        blobstoreFactory,
 		deployer:                deployer,
 		eventLogger:             eventLogger,
 		logger:                  logger,
@@ -278,6 +282,11 @@ func (c *deployCmd) Run(args []string) error {
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
+	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating blobstore client")
+	}
+
 	_, err = c.deployer.Deploy(
 		cloud,
 		deploymentManifest,
@@ -285,7 +294,7 @@ func (c *deployCmd) Run(args []string) error {
 		installationManifest.Registry,
 		installationManifest.SSHTunnel,
 		vmManager,
-		installationManifest.Mbus,
+		blobstore,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")

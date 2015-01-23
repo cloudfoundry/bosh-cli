@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
+	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 	mock_disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/mocks"
@@ -22,7 +23,6 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
@@ -30,7 +30,6 @@ import (
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
 
@@ -148,6 +147,10 @@ var _ = Describe("Manager", func() {
 
 			mockDeploymentFactory *mock_deployment.MockFactory
 
+			mockStateBuilderFactory *mock_instance.MockStateBuilderFactory
+
+			mockBlobstore *mock_blobstore.MockBlobstore
+
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
 			deploymentConfigService bmconfig.DeploymentConfigService
@@ -158,10 +161,7 @@ var _ = Describe("Manager", func() {
 			mockCloud       *mock_cloud.MockCloud
 			mockAgentClient *mock_agentclient.MockAgentClient
 
-			templatesSpecGenerator bmas.TemplatesSpecGenerator
-
 			deploymentConfigPath = "/deployment.json"
-			mbusURL              = "http://fake-mbus-url"
 
 			fakeStage *fakebmeventlog.FakeStage
 
@@ -192,16 +192,19 @@ var _ = Describe("Manager", func() {
 			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
-			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, templatesSpecGenerator, fakeUUIDGenerator, fs, logger)
+			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
 			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
 
-			fakeTemplatesSpecGenerator := fakebmas.NewFakeTemplatesSpecGenerator()
-			instanceFactory := bminstance.NewFactory(fakeTemplatesSpecGenerator)
+			mockStateBuilderFactory = mock_instance.NewMockStateBuilderFactory(mockCtrl)
+
+			instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
 			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
 			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo)
 
+			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+
 			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, mockDeploymentFactory)
-			deploymentManager = deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mbusURL)
+			deploymentManager = deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mockBlobstore)
 		})
 
 		Context("no orphan disk or stemcell records exist", func() {

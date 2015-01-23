@@ -10,7 +10,6 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 )
@@ -21,17 +20,16 @@ type Manager interface {
 }
 
 type manager struct {
-	vmRepo                 bmconfig.VMRepo
-	stemcellRepo           bmconfig.StemcellRepo
-	diskDeployer           DiskDeployer
-	agentClient            bmac.AgentClient
-	agentClientFactory     bmhttpagent.AgentClientFactory
-	templatesSpecGenerator bmas.TemplatesSpecGenerator
-	cloud                  bmcloud.Cloud
-	uuidGenerator          boshuuid.Generator
-	fs                     boshsys.FileSystem
-	logger                 boshlog.Logger
-	logTag                 string
+	vmRepo             bmconfig.VMRepo
+	stemcellRepo       bmconfig.StemcellRepo
+	diskDeployer       DiskDeployer
+	agentClient        bmac.AgentClient
+	agentClientFactory bmhttpagent.AgentClientFactory
+	cloud              bmcloud.Cloud
+	uuidGenerator      boshuuid.Generator
+	fs                 boshsys.FileSystem
+	logger             boshlog.Logger
+	logTag             string
 }
 
 func NewManager(
@@ -39,23 +37,21 @@ func NewManager(
 	stemcellRepo bmconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
 	agentClient bmac.AgentClient,
-	templatesSpecGenerator bmas.TemplatesSpecGenerator,
 	cloud bmcloud.Cloud,
 	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) Manager {
 	return &manager{
-		cloud:                  cloud,
-		agentClient:            agentClient,
-		vmRepo:                 vmRepo,
-		stemcellRepo:           stemcellRepo,
-		diskDeployer:           diskDeployer,
-		templatesSpecGenerator: templatesSpecGenerator,
-		uuidGenerator:          uuidGenerator,
-		fs:                     fs,
-		logger:                 logger,
-		logTag:                 "vmManager",
+		cloud:         cloud,
+		agentClient:   agentClient,
+		vmRepo:        vmRepo,
+		stemcellRepo:  stemcellRepo,
+		diskDeployer:  diskDeployer,
+		uuidGenerator: uuidGenerator,
+		fs:            fs,
+		logger:        logger,
+		logTag:        "vmManager",
 	}
 }
 
@@ -76,7 +72,6 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 		m.diskDeployer,
 		m.agentClient,
 		m.cloud,
-		m.templatesSpecGenerator,
 		m.fs,
 		m.logger,
 	)
@@ -125,7 +120,6 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest b
 		m.diskDeployer,
 		m.agentClient,
 		m.cloud,
-		m.templatesSpecGenerator,
 		m.fs,
 		m.logger,
 	)

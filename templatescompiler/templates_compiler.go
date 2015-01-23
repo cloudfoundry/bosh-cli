@@ -52,25 +52,19 @@ func (tc templatesCompiler) Compile(jobs []bmrel.Job, deploymentName string, dep
 }
 
 func (tc templatesCompiler) compileJob(job bmrel.Job, deploymentName string, deploymentProperties map[string]interface{}) error {
-	jobSrcDir := job.ExtractedPath
-	jobCompileDir, err := tc.fs.TempDir("templates-compiler")
+	renderedJob, err := tc.jobRenderer.Render(job, deploymentProperties, deploymentName)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating compilation directory")
+		return bosherr.WrapErrorf(err, "Rendering templates for job '%s'", job.Name)
 	}
-	defer tc.fs.RemoveAll(jobCompileDir)
+	defer renderedJob.DeleteSilently()
 
-	err = tc.jobRenderer.Render(jobSrcDir, jobCompileDir, job, deploymentProperties, deploymentName)
-	if err != nil {
-		return bosherr.WrapError(err, "Rendering templates")
-	}
-
-	tarball, err := tc.compressor.CompressFilesInDir(jobCompileDir)
+	tarballPath, err := tc.compressor.CompressFilesInDir(renderedJob.Path())
 	if err != nil {
 		return bosherr.WrapError(err, "Compressing rendered job templates")
 	}
-	defer tc.compressor.CleanUp(tarball)
+	defer tc.compressor.CleanUp(tarballPath)
 
-	blobID, blobSHA1, err := tc.blobstore.Create(tarball)
+	blobID, blobSHA1, err := tc.blobstore.Create(tarballPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blob")
 	}

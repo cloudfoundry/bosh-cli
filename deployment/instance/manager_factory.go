@@ -3,13 +3,14 @@ package instance
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
 
 type ManagerFactory interface {
-	NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager, blobstoreURL string) Manager
+	NewManager(bmcloud.Cloud, bmvm.Manager, bmblobstore.Blobstore) Manager
 }
 
 type managerFactory struct {
@@ -30,11 +31,11 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager, blobstoreURL string) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager, blobstore bmblobstore.Blobstore) Manager {
 	return NewManager(
 		cloud,
 		vmManager,
-		blobstoreURL,
+		blobstore,
 		f.sshTunnelFactory,
 		f.instanceFactory,
 		f.logger,

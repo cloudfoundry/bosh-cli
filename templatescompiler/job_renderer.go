@@ -12,13 +12,14 @@ import (
 )
 
 type JobRenderer interface {
-	Render(sourcePath string, destinationPath string, job bmrel.Job, properties map[string]interface{}, deploymentName string) error
+	Render(job bmrel.Job, properties map[string]interface{}, deploymentName string) (RenderedJob, error)
 }
 
 type jobRenderer struct {
 	erbRenderer bmerbrenderer.ERBRenderer
 	fs          boshsys.FileSystem
 	logger      boshlog.Logger
+	logTag      string
 }
 
 func NewJobRenderer(
@@ -30,11 +31,22 @@ func NewJobRenderer(
 		erbRenderer: erbRenderer,
 		fs:          fs,
 		logger:      logger,
+		logTag:      "jobRenderer",
 	}
 }
 
-func (r *jobRenderer) Render(sourcePath string, destinationPath string, job bmrel.Job, properties map[string]interface{}, deploymentName string) error {
+//TODO: test me
+func (r *jobRenderer) Render(job bmrel.Job, properties map[string]interface{}, deploymentName string) (RenderedJob, error) {
 	context := NewJobEvaluationContext(job, properties, deploymentName, r.logger)
+
+	sourcePath := job.ExtractedPath
+
+	destinationPath, err := r.fs.TempDir("rendered-jobs")
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Creating rendered job directory")
+	}
+
+	renderedJob := NewRenderedJob(job, destinationPath, r.fs, r.logger)
 
 	for src, dst := range job.Templates {
 		err := r.renderFile(
@@ -42,22 +54,23 @@ func (r *jobRenderer) Render(sourcePath string, destinationPath string, job bmre
 			filepath.Join(destinationPath, dst),
 			context,
 		)
-
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Rendering template src: %s, dst: %s", src, dst)
+			defer renderedJob.DeleteSilently()
+			return nil, bosherr.WrapErrorf(err, "Rendering template src: %s, dst: %s", src, dst)
 		}
 	}
 
-	err := r.renderFile(
+	err = r.renderFile(
 		filepath.Join(sourcePath, "monit"),
 		filepath.Join(destinationPath, "monit"),
 		context,
 	)
 	if err != nil {
-		return bosherr.WrapError(err, "Rendering monit file")
+		defer renderedJob.DeleteSilently()
+		return nil, bosherr.WrapError(err, "Rendering monit file")
 	}
 
-	return nil
+	return renderedJob, nil
 }
 
 func (r *jobRenderer) renderFile(sourcePath, destinationPath string, context bmerbrenderer.TemplateEvaluationContext) error {

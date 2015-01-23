@@ -1,6 +1,7 @@
 package deployment
 
 import (
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
@@ -10,7 +11,7 @@ import (
 )
 
 type ManagerFactory interface {
-	NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient, blobstoreURL string) Manager
+	NewManager(bmcloud.Cloud, bmac.AgentClient, bmblobstore.Blobstore) Manager
 }
 
 type managerFactory struct {
@@ -37,9 +38,9 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient, blobstoreURL string) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient, blobstore bmblobstore.Blobstore) Manager {
 	vmManager := f.vmManagerFactory.NewManager(cloud, agentClient)
-	instanceManager := f.instanceManagerFactory.NewManager(cloud, vmManager, blobstoreURL)
+	instanceManager := f.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
 	diskManager := f.diskManagerFactory.NewManager(cloud)
 	stemcellManager := f.stemcellManagerFactory.NewManager(cloud)
 

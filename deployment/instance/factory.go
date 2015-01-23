@@ -3,7 +3,7 @@ package instance
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
@@ -15,20 +15,20 @@ type Factory interface {
 		vm bmvm.VM,
 		vmManager bmvm.Manager,
 		sshTunnelFactory bmsshtunnel.Factory,
-		blobstoreURL string,
+		blobstore bmblobstore.Blobstore,
 		logger boshlog.Logger,
 	) Instance
 }
 
 type factory struct {
-	templatesSpecGenerator bmas.TemplatesSpecGenerator
+	instanceStateBuilderFactory StateBuilderFactory
 }
 
 func NewFactory(
-	templatesSpecGenerator bmas.TemplatesSpecGenerator,
+	instanceStateBuilderFactory StateBuilderFactory,
 ) Factory {
 	return &factory{
-		templatesSpecGenerator: templatesSpecGenerator,
+		instanceStateBuilderFactory: instanceStateBuilderFactory,
 	}
 }
 
@@ -38,17 +38,18 @@ func (f *factory) NewInstance(
 	vm bmvm.VM,
 	vmManager bmvm.Manager,
 	sshTunnelFactory bmsshtunnel.Factory,
-	blobstoreURL string,
+	blobstore bmblobstore.Blobstore,
 	logger boshlog.Logger,
 ) Instance {
+	instanceStateBuilder := f.instanceStateBuilderFactory.NewStateBuilder(blobstore)
+
 	return NewInstance(
 		jobName,
 		id,
 		vm,
 		vmManager,
 		sshTunnelFactory,
-		f.templatesSpecGenerator,
-		blobstoreURL,
+		instanceStateBuilder,
 		logger,
 	)
 }

@@ -10,8 +10,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
+	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
+	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
 	mock_vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -27,8 +29,6 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
-	fakebmretry "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
@@ -54,7 +54,6 @@ var _ = Describe("Deployer", func() {
 		mockAgentClientFactory     *mock_httpagent.MockAgentClientFactory
 		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
 		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
-		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
 		cloud                      *fakebmcloud.FakeCloud
 		deploymentManifest         bmdeplmanifest.Manifest
 		diskPool                   bmdeplmanifest.DiskPool
@@ -62,16 +61,21 @@ var _ = Describe("Deployer", func() {
 		eventLogger                *fakebmlog.FakeEventLogger
 		fakeStage                  *fakebmlog.FakeStage
 		sshTunnelConfig            bminstallmanifest.SSHTunnel
-		fakeAgentPingRetryStrategy *fakebmretry.FakeRetryStrategy
 		fakeVM                     *fakebmvm.FakeVM
 		fakeStemcellManager        *fakebmstemcell.FakeManager
 		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
 		extractedStemcell          bmstemcell.ExtractedStemcell
 
-		applySpec     bmstemcell.ApplySpec
-		cloudStemcell bmstemcell.CloudStemcell
+		stemcellApplySpec bmstemcell.ApplySpec
+		cloudStemcell     bmstemcell.CloudStemcell
 
-		blobstoreURL = "https://fake-blobstore-url"
+		applySpec bmas.ApplySpec
+
+		mockStateBuilderFactory *mock_instance.MockStateBuilderFactory
+		mockStateBuilder        *mock_instance.MockStateBuilder
+		mockState               *mock_instance.MockState
+
+		mockBlobstore *mock_blobstore.MockBlobstore
 	)
 
 	BeforeEach(func() {
@@ -127,16 +131,12 @@ var _ = Describe("Deployer", func() {
 		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
 		fakeVMManager.CreateVM = fakeVM
 
-		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
-
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
 		eventLogger.SetNewStageBehavior(fakeStage)
 
-		fakeAgentPingRetryStrategy = fakebmretry.NewFakeRetryStrategy()
-
-		applySpec = bmstemcell.ApplySpec{
+		stemcellApplySpec = bmstemcell.ApplySpec{
 			Job: bmstemcell.Job{
 				Name: "fake-job-name",
 			},
@@ -145,7 +145,7 @@ var _ = Describe("Deployer", func() {
 		fakeFs := fakesys.NewFakeFileSystem()
 		extractedStemcell = bmstemcell.NewExtractedStemcell(
 			bmstemcell.Manifest{},
-			applySpec,
+			stemcellApplySpec,
 			"fake-extracted-path",
 			fakeFs,
 		)
@@ -166,9 +166,14 @@ var _ = Describe("Deployer", func() {
 		fakeStemcellManager.SetUploadBehavior(extractedStemcell, fakeStage, cloudStemcell, nil)
 		fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, fakeStemcellManager)
 
-		fakeTemplatesSpecGenerator := fakebmas.NewFakeTemplatesSpecGenerator()
-		instanceFactory := bminstance.NewFactory(fakeTemplatesSpecGenerator)
+		mockStateBuilderFactory = mock_instance.NewMockStateBuilderFactory(mockCtrl)
+		mockStateBuilder = mock_instance.NewMockStateBuilder(mockCtrl)
+		mockState = mock_instance.NewMockState(mockCtrl)
+
+		instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
 		instanceManagerFactory := bminstance.NewManagerFactory(fakeSSHTunnelFactory, instanceFactory, logger)
+
+		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 
 		pingTimeout := 10 * time.Second
 		pingDelay := 500 * time.Millisecond
@@ -184,8 +189,22 @@ var _ = Describe("Deployer", func() {
 		)
 	})
 
+	JustBeforeEach(func() {
+		jobName := "fake-job-name"
+		jobIndex := 0
+
+		// since we're just passing this from State.ToApplySpec() to VM.Apply(), it doesn't need to be filled out
+		applySpec = bmas.ApplySpec{
+			Deployment: "fake-deployment-name",
+		}
+
+		mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore).Return(mockStateBuilder).AnyTimes()
+		mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+	})
+
 	It("uploads the stemcell", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(fakeStemcellManager.UploadInputs).To(Equal([]fakebmstemcell.UploadInput{
 			{Stemcell: extractedStemcell, Stage: fakeStage},
@@ -193,7 +212,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("adds new event logger stages", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
@@ -214,7 +233,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("deletes existing vm", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
@@ -237,7 +256,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("creates a vm", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVMManager.CreateInput).To(Equal(fakebmvm.CreateInput{
@@ -247,7 +266,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("deletes unused stemcells", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStemcellManager.DeleteUnusedCalledTimes).To(Equal(1))
@@ -271,7 +290,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("starts the SSH tunnel", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeSSHTunnel.Started).To(BeTrue())
 			Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bmsshtunnel.Options{
@@ -291,7 +310,7 @@ var _ = Describe("Deployer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+				_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-ssh-tunnel-start-error"))
 			})
@@ -299,7 +318,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("waits for the vm", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebmvm.WaitUntilReadyInput{
 			Timeout: 10 * time.Minute,
@@ -308,7 +327,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("logs start and stop events to the eventLogger", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -326,7 +345,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
@@ -342,33 +361,23 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("updates the vm", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).NotTo(HaveOccurred())
 
-		//TODO: why is this apply spec empty??
 		Expect(fakeVM.ApplyInputs).To(Equal([]fakebmvm.ApplyInput{
-			{
-				ApplySpec: bmas.ApplySpec{
-					Packages: map[string]bmas.Blob{},
-					Networks: map[string]interface{}{},
-					Job: bmas.Job{
-						Name:      "fake-job-name",
-						Templates: []bmas.Blob{},
-					},
-				},
-			},
+			{ApplySpec: applySpec},
 		}))
 	})
 
 	It("starts the agent", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVM.StartCalled).To(Equal(1))
 	})
 
 	It("waits until agent reports state as running", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
@@ -383,13 +392,13 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("returns an error", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	It("logs start and stop events to the eventLogger", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+		_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -414,7 +423,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("returns an error", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-upload-error"))
 		})
@@ -426,7 +435,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
@@ -447,7 +456,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
@@ -468,7 +477,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, blobstoreURL)
+			_, err := deployer.Deploy(cloud, deploymentManifest, extractedStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 

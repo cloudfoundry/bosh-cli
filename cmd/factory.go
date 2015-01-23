@@ -16,7 +16,6 @@ import (
 	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -28,10 +27,11 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
-	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
+	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmtemplateerb "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
@@ -62,11 +62,11 @@ type factory struct {
 	diskManagerFactory       bmdisk.ManagerFactory
 	instanceFactory          bminstance.Factory
 	instanceManagerFactory   bminstance.ManagerFactory
-	templatesSpecGenerator   bmas.TemplatesSpecGenerator
 	stemcellManagerFactory   bmstemcell.ManagerFactory
 	deploymentManagerFactory bmdepl.ManagerFactory
 	deploymentFactory        bmdepl.Factory
 	deployer                 bmdepl.Deployer
+	blobstoreFactory         bmblobstore.Factory
 	eventLogger              bmeventlog.EventLogger
 	timeService              boshtime.Service
 	installerFactory         bminstall.InstallerFactory
@@ -80,6 +80,7 @@ type factory struct {
 	installationValidator    bminstallmanifest.Validator
 	deploymentValidator      bmdeplmanifest.Validator
 	cloudFactory             bmcloud.Factory
+	stateBuilderFactory      bminstance.StateBuilderFactory
 }
 
 func NewFactory(
@@ -156,6 +157,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadVMManagerFactory(),
 		stemcellExtractor,
 		deploymentRecord,
+		f.loadBlobstoreFactory(),
 		f.loadDeployer(),
 		f.loadEventLogger(),
 		f.logger,
@@ -178,6 +180,7 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.loadReleaseResolver(),
 		f.loadCloudFactory(),
 		f.loadAgentClientFactory(),
+		f.loadBlobstoreFactory(),
 		f.loadDeploymentManagerFactory(),
 		f.loadEventLogger(),
 		f.logger,
@@ -279,9 +282,40 @@ func (f *factory) loadInstanceFactory() bminstance.Factory {
 	}
 
 	f.instanceFactory = bminstance.NewFactory(
-		f.loadTemplatesSpecGenerator(),
+		f.loadStateBuilderFactory(),
 	)
 	return f.instanceFactory
+}
+
+func (f *factory) loadStateBuilderFactory() bminstance.StateBuilderFactory {
+	if f.stateBuilderFactory != nil {
+		return f.stateBuilderFactory
+	}
+
+	releaseSetResolver := bmrelset.NewResolver(f.loadReleaseManager(), f.logger)
+	releaseJobResolver := bmreljob.NewResolver(releaseSetResolver)
+
+	erbRenderer := bmtemplateerb.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
+	jobRenderer := bmtemplate.NewJobRenderer(erbRenderer, f.fs, f.logger)
+	jobListRenderer := bmtemplate.NewJobListRenderer(jobRenderer, f.logger)
+
+	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
+
+	renderedJobListCompressor := bmtemplate.NewRenderedJobListCompressor(
+		f.fs,
+		f.loadCompressor(),
+		sha1Calculator,
+		f.logger,
+	)
+
+	f.stateBuilderFactory = bminstance.NewStateBuilderFactory(
+		releaseJobResolver,
+		jobListRenderer,
+		renderedJobListCompressor,
+		f.uuidGenerator,
+		f.logger,
+	)
+	return f.stateBuilderFactory
 }
 
 func (f *factory) loadDeploymentManagerFactory() bmdepl.ManagerFactory {
@@ -332,34 +366,11 @@ func (f *factory) loadVMManagerFactory() bmvm.ManagerFactory {
 		f.loadVMRepo(),
 		f.loadStemcellRepo(),
 		f.loadDiskDeployer(),
-		f.loadTemplatesSpecGenerator(),
 		f.uuidGenerator,
 		f.fs,
 		f.logger,
 	)
 	return f.vmManagerFactory
-}
-
-func (f *factory) loadTemplatesSpecGenerator() bmas.TemplatesSpecGenerator {
-	if f.templatesSpecGenerator != nil {
-		return f.templatesSpecGenerator
-	}
-
-	blobstoreFactory := bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
-	erbRenderer := bmerbrenderer.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
-	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, f.fs, f.logger)
-	sha1Calculator := bmcrypto.NewSha1Calculator(f.fs)
-
-	f.templatesSpecGenerator = bmas.NewTemplatesSpecGenerator(
-		blobstoreFactory,
-		f.loadCompressor(),
-		jobRenderer,
-		f.uuidGenerator,
-		sha1Calculator,
-		f.fs,
-		f.logger,
-	)
-	return f.templatesSpecGenerator
 }
 
 func (f *factory) loadStemcellManagerFactory() bmstemcell.ManagerFactory {
@@ -407,6 +418,15 @@ func (f *factory) loadDeployer() bmdepl.Deployer {
 		f.logger,
 	)
 	return f.deployer
+}
+
+func (f *factory) loadBlobstoreFactory() bmblobstore.Factory {
+	if f.blobstoreFactory != nil {
+		return f.blobstoreFactory
+	}
+
+	f.blobstoreFactory = bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
+	return f.blobstoreFactory
 }
 
 func (f *factory) loadEventLogger() bmeventlog.EventLogger {

@@ -13,13 +13,15 @@ srcFiles=(
 	deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
 	deployment/agentclient/AgentClient
 	deployment/agentclient/http/AgentClientFactory
-	deployment/instance/Instance,Manager
+	deployment/instance/Instance,Manager,StateBuilderFactory,StateBuilder,State
 	deployment/disk/Disk,Manager
 	deployment/stemcell/CloudStemcell,Manager
 	deployment/vm/ManagerFactory
   registry/Server,ServerManager
   release/Manager,Extractor
   release/set/Resolver
+  templatescompiler/JobRenderer,RenderedJob,RenderedJobList
+  blobstore/Factory,Blobstore
 )
 
 for srcFile in ${srcFiles[*]}; do

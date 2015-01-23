@@ -9,42 +9,84 @@ import (
 	"errors"
 	"time"
 
+	"code.google.com/p/gomock/gomock"
+	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
+	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
 var _ = Describe("Manager", func() {
+	var mockCtrl *gomock.Controller
+
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
+
 	var (
 		fakeCloud *fakebmcloud.FakeCloud
 
-		fakeVMManager              *fakebmvm.FakeManager
-		fakeSSHTunnelFactory       *fakebmsshtunnel.FakeFactory
-		fakeSSHTunnel              *fakebmsshtunnel.FakeTunnel
-		instanceFactory            Factory
-		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
-		logger                     boshlog.Logger
-		fakeStage                  *fakebmlog.FakeStage
+		mockStateBuilderFactory *mock_instance.MockStateBuilderFactory
+		mockStateBuilder        *mock_instance.MockStateBuilder
+		mockState               *mock_instance.MockState
 
-		blobstoreURL = "https://fake-blobstore-url"
+		mockBlobstore *mock_blobstore.MockBlobstore
+
+		fakeVMManager        *fakebmvm.FakeManager
+		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
+		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
+		instanceFactory      Factory
+		logger               boshlog.Logger
+		fakeStage            *fakebmlog.FakeStage
 
 		manager Manager
 	)
+
+	var allowApplySpecToBeCreated = func() {
+		jobName := "cpi"
+		jobIndex := 0
+
+		applySpec := bmas.ApplySpec{
+			Deployment: "test-release",
+			Index:      jobIndex,
+			Packages:   map[string]bmas.Blob{},
+			Networks: map[string]interface{}{
+				"network-1": map[string]interface{}{
+					"cloud_properties": map[string]interface{}{},
+					"type":             "dynamic",
+					"ip":               "",
+				},
+			},
+			Job: bmas.Job{
+				Name:      jobName,
+				Templates: []bmas.Blob{},
+			},
+			RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
+			ConfigurationHash:        "",
+		}
+
+		mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore).Return(mockStateBuilder).AnyTimes()
+		mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+	}
 
 	BeforeEach(func() {
 		fakeCloud = fakebmcloud.NewFakeCloud()
@@ -56,9 +98,13 @@ var _ = Describe("Manager", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
-		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
+		mockStateBuilderFactory = mock_instance.NewMockStateBuilderFactory(mockCtrl)
+		mockStateBuilder = mock_instance.NewMockStateBuilder(mockCtrl)
+		mockState = mock_instance.NewMockState(mockCtrl)
 
-		instanceFactory = NewFactory(fakeTemplatesSpecGenerator)
+		instanceFactory = NewFactory(mockStateBuilderFactory)
+
+		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -67,11 +113,15 @@ var _ = Describe("Manager", func() {
 		manager = NewManager(
 			fakeCloud,
 			fakeVMManager,
-			blobstoreURL,
+			mockBlobstore,
 			fakeSSHTunnelFactory,
 			instanceFactory,
 			logger,
 		)
+	})
+
+	JustBeforeEach(func() {
+		allowApplySpecToBeCreated()
 	})
 
 	Describe("Create", func() {
@@ -79,7 +129,6 @@ var _ = Describe("Manager", func() {
 			fakeVM             *fakebmvm.FakeVM
 			diskPool           bmdeplmanifest.DiskPool
 			deploymentManifest bmdeplmanifest.Manifest
-			extractedStemcell  bmstemcell.ExtractedStemcell
 			fakeCloudStemcell  *fakebmstemcell.FakeCloudStemcell
 			registry           bminstallmanifest.Registry
 			sshTunnelConfig    bminstallmanifest.SSHTunnel
@@ -116,19 +165,6 @@ var _ = Describe("Manager", func() {
 				},
 			}
 
-			applySpec := bmstemcell.ApplySpec{
-				Job: bmstemcell.Job{
-					Name: "fake-job-name",
-				},
-			}
-			fakeFs := fakesys.NewFakeFileSystem()
-			extractedStemcell = bmstemcell.NewExtractedStemcell(
-				bmstemcell.Manifest{},
-				applySpec,
-				"fake-extracted-path",
-				fakeFs,
-			)
-
 			fakeCloudStemcell = fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
 			registry = bminstallmanifest.Registry{}
 			sshTunnelConfig = bminstallmanifest.SSHTunnel{}
@@ -142,8 +178,7 @@ var _ = Describe("Manager", func() {
 				fakeVM,
 				fakeVMManager,
 				fakeSSHTunnelFactory,
-				fakeTemplatesSpecGenerator,
-				blobstoreURL,
+				mockStateBuilder,
 				logger,
 			)
 

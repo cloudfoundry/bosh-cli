@@ -7,6 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -38,7 +39,7 @@ type Manager interface {
 type manager struct {
 	cloud            bmcloud.Cloud
 	vmManager        bmvm.Manager
-	blobstoreURL     string
+	blobstore        bmblobstore.Blobstore
 	sshTunnelFactory bmsshtunnel.Factory
 	instanceFactory  Factory
 	logger           boshlog.Logger
@@ -48,7 +49,7 @@ type manager struct {
 func NewManager(
 	cloud bmcloud.Cloud,
 	vmManager bmvm.Manager,
-	blobstoreURL string,
+	blobstore bmblobstore.Blobstore,
 	sshTunnelFactory bmsshtunnel.Factory,
 	instanceFactory Factory,
 	logger boshlog.Logger,
@@ -56,7 +57,7 @@ func NewManager(
 	return &manager{
 		cloud:            cloud,
 		vmManager:        vmManager,
-		blobstoreURL:     blobstoreURL,
+		blobstore:        blobstore,
 		sshTunnelFactory: sshTunnelFactory,
 		instanceFactory:  instanceFactory,
 		logger:           logger,
@@ -84,7 +85,7 @@ func (m *manager) FindCurrent() ([]Instance, error) {
 			vm,
 			m.vmManager,
 			m.sshTunnelFactory,
-			m.blobstoreURL,
+			m.blobstore,
 			m.logger,
 		)
 		instances = append(instances, instance)
@@ -121,7 +122,7 @@ func (m *manager) Create(
 		return nil, []bmdisk.Disk{}, err
 	}
 
-	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.blobstoreURL, m.logger)
+	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.blobstore, m.logger)
 
 	if err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, eventLoggerStage); err != nil {
 		return instance, []bmdisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")

@@ -11,8 +11,8 @@ import (
 )
 
 type Blobstore interface {
-	Get(string, string) error
-	Save(string, string) error
+	Get(blobID, destinationPath string) error
+	Save(sourcePath, blobID string) error
 }
 
 type Config struct {
@@ -37,7 +37,7 @@ func NewBlobstore(davClient boshdavcli.Client, fs boshsys.FileSystem, logger bos
 	}
 }
 
-func (b *blobstore) Get(blobID string, destinationPath string) error {
+func (b *blobstore) Get(blobID, destinationPath string) error {
 	b.logger.Debug(b.logTag, "Downloading blob %s to %s", blobID, destinationPath)
 
 	readCloser, err := b.davClient.Get(blobID)
@@ -59,7 +59,7 @@ func (b *blobstore) Get(blobID string, destinationPath string) error {
 	return nil
 }
 
-func (b *blobstore) Save(sourcePath string, blobID string) error {
+func (b *blobstore) Save(sourcePath, blobID string) error {
 	b.logger.Debug(b.logTag, "Uploading blob %s from %s", blobID, sourcePath)
 
 	file, err := b.fs.OpenFile(sourcePath, os.O_RDONLY, 0)

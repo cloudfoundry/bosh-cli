@@ -40,7 +40,7 @@ func (c releaseCompiler) Compile(release bmrel.Release, manifest bminstallmanife
 	c.logger.Info(c.logTag, "Compiling CPI release '%s'", release.Name())
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release '%s': %#v", release.Name(), release))
 
-	//TODO: should only be compiling the packages required by the cpi job
+	//TODO: should only be compiling the packages required by the cpi job [#85719162]
 	err := c.packagesCompiler.Compile(release)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release packages")

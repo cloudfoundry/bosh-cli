@@ -26,20 +26,3 @@ type RenderedTemplatesArchiveSpec struct {
 	BlobstoreID string `json:"blobstore_id"`
 	SHA1        string `json:"sha1"`
 }
-
-func NewApplySpec(
-	deploymentName string,
-	networksSpec map[string]interface{},
-	renderedTemplatesArchive TemplatesSpec,
-) ApplySpec {
-	return ApplySpec{
-		Deployment: deploymentName,
-		Index:      0,
-		Networks:   networksSpec,
-		RenderedTemplatesArchive: RenderedTemplatesArchiveSpec{
-			BlobstoreID: renderedTemplatesArchive.BlobID,
-			SHA1:        renderedTemplatesArchive.ArchiveSha1,
-		},
-		ConfigurationHash: renderedTemplatesArchive.ConfigurationHash,
-	}
-}

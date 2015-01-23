@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
+	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
@@ -76,8 +77,12 @@ var _ = Describe("DeployCmd", func() {
 		mockAgentClientFactory    *mock_httpagent.MockAgentClientFactory
 		mockCloudFactory          *mock_cloud.MockFactory
 
-		fakeCPIRelease        *fakebmrel.FakeRelease
-		logger                boshlog.Logger
+		fakeCPIRelease *fakebmrel.FakeRelease
+		logger         boshlog.Logger
+
+		mockBlobstoreFactory *mock_blobstore.MockFactory
+		mockBlobstore        *mock_blobstore.MockBlobstore
+
 		mockVMManagerFactory  *mock_vm.MockManagerFactory
 		fakeVMManager         *fakebmvm.FakeManager
 		fakeStemcellExtractor *fakebmstemcell.FakeExtractor
@@ -104,6 +109,8 @@ var _ = Describe("DeployCmd", func() {
 		expectedExtractedStemcell bmstemcell.ExtractedStemcell
 
 		expectDeploy *gomock.Call
+
+		mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 	)
 
 	BeforeEach(func() {
@@ -133,6 +140,10 @@ var _ = Describe("DeployCmd", func() {
 		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
 
 		mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
+
+		mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
+		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+		mockBlobstoreFactory.EXPECT().Create(mbusURL).Return(mockBlobstore, nil).AnyTimes()
 
 		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
 		fakeVMManager = fakebmvm.NewFakeManager()
@@ -195,6 +206,7 @@ var _ = Describe("DeployCmd", func() {
 			mockVMManagerFactory,
 			fakeStemcellExtractor,
 			fakeDeploymentRecord,
+			mockBlobstoreFactory,
 			mockDeployer,
 			fakeEventLogger,
 			logger,
@@ -209,7 +221,6 @@ var _ = Describe("DeployCmd", func() {
 			cloud                  *fakebmcloud.FakeCloud
 
 			directorID = "fake-uuid-0"
-			mbusURL    = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 
 			expectCPIReleaseExtract *gomock.Call
 			expectInstall           *gomock.Call
@@ -335,7 +346,7 @@ var _ = Describe("DeployCmd", func() {
 				installationManifest.Registry,
 				installationManifest.SSHTunnel,
 				fakeVMManager,
-				mbusURL,
+				mockBlobstore,
 			).Return(mockDeployment, nil).AnyTimes()
 
 			expectCPIReleaseExtract = mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
@@ -696,6 +707,7 @@ var _ = Describe("DeployCmd", func() {
 					mockVMManagerFactory,
 					fakeStemcellExtractor,
 					fakeDeploymentRecord,
+					mockBlobstoreFactory,
 					mockDeployer,
 					fakeEventLogger,
 					logger,

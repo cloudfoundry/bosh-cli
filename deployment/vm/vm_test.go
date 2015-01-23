@@ -10,7 +10,6 @@ import (
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
-	fakebmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
@@ -28,70 +27,70 @@ import (
 
 var _ = Describe("VM", func() {
 	var (
-		vm                         VM
-		fakeVMRepo                 *fakebmconfig.FakeVMRepo
-		fakeStemcellRepo           *fakebmconfig.FakeStemcellRepo
-		fakeDiskDeployer           *fakebmvm.FakeDiskDeployer
-		fakeAgentClient            *fakebmagentclient.FakeAgentClient
-		fakeCloud                  *fakebmcloud.FakeCloud
-		applySpec                  bmas.ApplySpec
-		fakeTemplatesSpecGenerator *fakebmas.FakeTemplatesSpecGenerator
-		deploymentManifest         bmdeplmanifest.Manifest
-		diskPool                   bmdeplmanifest.DiskPool
-		deploymentJob              bmdeplmanifest.Job
-		fs                         *fakesys.FakeFileSystem
-		logger                     boshlog.Logger
+		vm                 VM
+		fakeVMRepo         *fakebmconfig.FakeVMRepo
+		fakeStemcellRepo   *fakebmconfig.FakeStemcellRepo
+		fakeDiskDeployer   *fakebmvm.FakeDiskDeployer
+		fakeAgentClient    *fakebmagentclient.FakeAgentClient
+		fakeCloud          *fakebmcloud.FakeCloud
+		applySpec          bmas.ApplySpec
+		deploymentManifest bmdeplmanifest.Manifest
+		diskPool           bmdeplmanifest.DiskPool
+		deploymentJob      bmdeplmanifest.Job
+		fs                 *fakesys.FakeFileSystem
+		logger             boshlog.Logger
 	)
 
 	BeforeEach(func() {
-		fakeTemplatesSpecGenerator = fakebmas.NewFakeTemplatesSpecGenerator()
-		fakeTemplatesSpecGenerator.SetCreateBehavior(bmas.TemplatesSpec{
-			BlobID:            "fake-blob-id",
-			ArchiveSha1:       "fake-archive-sha1",
-			ConfigurationHash: "fake-configuration-hash",
-		}, nil)
+		//		fakeTemplatesSpecGenerator.SetCreateBehavior(bmas.TemplatesSpec{
+		//			BlobID:            "fake-blob-id",
+		//			ArchiveSha1:       "fake-archive-sha1",
+		//			ConfigurationHash: "fake-configuration-hash",
+		//		}, nil)
 
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
 
+		//TODO: test instance.State.ToApplySpec with a full ApplySpec
+		// apply spec is only being passed to the agent client, so it doesn't need much content for testing
 		applySpec = bmas.ApplySpec{
 			Deployment: "fake-deployment-name",
-			Index:      0,
-			Packages:   map[string]bmas.Blob{},
-			Networks: map[string]interface{}{
-				"fake-network-name": map[string]interface{}{
-					"type":             "fake-network-type",
-					"ip":               "fake-network-ip",
-					"cloud_properties": map[string]interface{}{},
-				},
-			},
-			Job: bmas.Job{
-				Name: "fake-job-name",
-				Templates: []bmas.Blob{
-					{
-						Name:        "first-job-name",
-						Version:     "first-job-version",
-						SHA1:        "first-job-sha1",
-						BlobstoreID: "first-job-blobstore-id",
-					},
-					{
-						Name:        "second-job-name",
-						Version:     "second-job-version",
-						SHA1:        "second-job-sha1",
-						BlobstoreID: "second-job-blobstore-id",
-					},
-					{
-						Name:        "third-job-name",
-						Version:     "third-job-version",
-						SHA1:        "third-job-sha1",
-						BlobstoreID: "third-job-blobstore-id",
-					},
-				},
-			},
-			RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
-				BlobstoreID: "fake-blob-id",
-				SHA1:        "fake-archive-sha1",
-			},
-			ConfigurationHash: "fake-configuration-hash",
+			//			Index:      0,
+			//			Packages:   map[string]bmas.Blob{},
+			//			Networks: map[string]interface{}{
+			//				"fake-network-name": map[string]interface{}{
+			//					"type":             "fake-network-type",
+			//					"ip":               "fake-network-ip",
+			//					"cloud_properties": map[string]interface{}{},
+			//				},
+			//			},
+			//			Job: bmas.Job{
+			//				Name: "fake-job-name",
+			//				Templates: []bmas.Blob{
+			//					{
+			//						Name:        "first-job-name",
+			//						Version:     "first-job-version",
+			//						SHA1:        "first-job-sha1",
+			//						BlobstoreID: "first-job-blobstore-id",
+			//					},
+			//					{
+			//						Name:        "second-job-name",
+			//						Version:     "second-job-version",
+			//						SHA1:        "second-job-sha1",
+			//						BlobstoreID: "second-job-blobstore-id",
+			//					},
+			//					{
+			//						Name:        "third-job-name",
+			//						Version:     "third-job-version",
+			//						SHA1:        "third-job-sha1",
+			//						BlobstoreID: "third-job-blobstore-id",
+			//					},
+			//				},
+			//			},
+			//			RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
+			//				BlobstoreID: "fake-blob-id",
+			//				SHA1:        "fake-archive-sha1",
+			//			},
+			//			ConfigurationHash: "fake-configuration-hash",
 		}
 
 		diskPool = bmdeplmanifest.DiskPool{
@@ -147,7 +146,6 @@ var _ = Describe("VM", func() {
 			fakeDiskDeployer,
 			fakeAgentClient,
 			fakeCloud,
-			fakeTemplatesSpecGenerator,
 			fs,
 			logger,
 		)

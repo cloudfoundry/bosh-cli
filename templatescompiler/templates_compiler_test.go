@@ -2,9 +2,13 @@ package templatescompiler_test
 
 import (
 	"errors"
+	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"code.google.com/p/gomock/gomock"
+	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
@@ -18,9 +22,20 @@ import (
 )
 
 var _ = Describe("TemplatesCompiler", func() {
+	var mockCtrl *gomock.Controller
+
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
+
 	var (
+		mockJobRenderer *mock_template.MockJobRenderer
+
 		templatesCompiler    TemplatesCompiler
-		jobRenderer          *fakebmtemp.FakeJobRenderer
 		compressor           *fakecmd.FakeCompressor
 		blobstore            *fakeblobs.FakeBlobstore
 		templatesRepo        *fakebmtemp.FakeTemplatesRepo
@@ -29,10 +44,16 @@ var _ = Describe("TemplatesCompiler", func() {
 		jobs                 []bmrel.Job
 		deploymentProperties map[string]interface{}
 		logger               boshlog.Logger
+
+		expectJobRender *gomock.Call
+
+		renderedPath         = "/fake-temp-dir"
+		renderedTemplatePath = "/fake-temp-dir/bin/cpi"
 	)
 
 	BeforeEach(func() {
-		jobRenderer = fakebmtemp.NewFakeJobRenderer()
+		mockJobRenderer = mock_template.NewMockJobRenderer(mockCtrl)
+
 		compressor = fakecmd.NewFakeCompressor()
 		compressor.CompressFilesInDirTarballPath = "fake-tarball-path"
 
@@ -48,7 +69,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		templatesCompiler = NewTemplatesCompiler(
-			jobRenderer,
+			mockJobRenderer,
 			compressor,
 			blobstore,
 			templatesRepo,
@@ -60,6 +81,36 @@ var _ = Describe("TemplatesCompiler", func() {
 		compileDir, err = fs.TempDir("bosh-micro-cli-tests")
 		Expect(err).ToNot(HaveOccurred())
 		fs.TempDirDir = compileDir
+	})
+
+	JustBeforeEach(func() {
+		job := bmrel.Job{
+			Name:          "fake-job-1",
+			Fingerprint:   "",
+			SHA1:          "",
+			ExtractedPath: "fake-extracted-path",
+			Templates: map[string]string{
+				"cpi.erb": "/bin/cpi",
+			},
+			PackageNames: nil,
+			Packages:     nil,
+			Properties:   nil,
+		}
+
+		jobProperties := map[string]interface{}{
+			"fake-property-key": "fake-property-value",
+		}
+
+		deploymentName := "fake-deployment-name"
+
+		renderedJob := NewRenderedJob(job, renderedPath, fs, logger)
+
+		expectJobRender = mockJobRenderer.EXPECT().Render(job, jobProperties, deploymentName).Do(func(_, _, _ interface{}) {
+			err := fs.MkdirAll(renderedPath, os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(renderedTemplatePath, "fake-bin/cpi-content")
+			Expect(err).ToNot(HaveOccurred())
+		}).Return(renderedJob, nil).AnyTimes()
 	})
 
 	Context("with a job", func() {
@@ -84,43 +135,24 @@ var _ = Describe("TemplatesCompiler", func() {
 		})
 
 		It("renders job templates", func() {
+			expectJobRender.Times(1)
+
 			fs.TempDirDir = "/fake-temp-dir"
 			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(jobRenderer.RenderInputs).To(ContainElement(
-				fakebmtemp.RenderInput{
-					SourcePath:      "fake-extracted-path",
-					DestinationPath: "/fake-temp-dir",
-					Job: bmrel.Job{
-						Name:          "fake-job-1",
-						Fingerprint:   "",
-						SHA1:          "",
-						ExtractedPath: "fake-extracted-path",
-						Templates: map[string]string{
-							"cpi.erb": "/bin/cpi",
-						},
-						PackageNames: nil,
-						Packages:     nil,
-						Properties:   nil,
-					},
-					Properties: map[string]interface{}{
-						"fake-property-key": "fake-property-value",
-					},
-					DeploymentName: "fake-deployment-name",
-				}),
-			)
 		})
 
 		It("cleans the temp folder to hold the compile result for job", func() {
 			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fs.FileExists(compileDir)).To(BeFalse())
+			Expect(fs.FileExists(renderedPath)).To(BeFalse())
+			Expect(fs.FileExists(renderedTemplatePath)).To(BeFalse())
 		})
 
 		It("generates templates archive", func() {
 			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(compressor.CompressFilesInDirDir).To(Equal(compileDir))
+			Expect(compressor.CompressFilesInDirDir).To(Equal(renderedPath))
 			Expect(compressor.CleanUpTarballPath).To(Equal("fake-tarball-path"))
 		})
 
@@ -144,24 +176,9 @@ var _ = Describe("TemplatesCompiler", func() {
 			))
 		})
 
-		Context("when creating compilation directory fails", func() {
-			BeforeEach(func() {
-				fs.TempDirError = errors.New("fake-tempdir-error")
-			})
-
-			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-tempdir-error"))
-			})
-		})
-
 		Context("when rendering fails", func() {
-			BeforeEach(func() {
-				jobRenderer.SetRenderBehavior(
-					"fake-extracted-path",
-					errors.New("fake-render-error"),
-				)
+			JustBeforeEach(func() {
+				expectJobRender.Return(nil, errors.New("fake-render-error")).Times(1)
 			})
 
 			It("returns an error", func() {
@@ -239,15 +256,16 @@ var _ = Describe("TemplatesCompiler", func() {
 					},
 				}
 
-				jobRenderer.SetRenderBehavior(
-					"fake-extracted-path-1",
-					nil,
-				)
+				jobProperties := map[string]interface{}{
+					"fake-property-key": "fake-property-value",
+				}
 
-				jobRenderer.SetRenderBehavior(
-					"fake-extracted-path-2",
-					errors.New("fake-render-2-error"),
-				)
+				deploymentName := "fake-deployment-name"
+
+				renderedJob := NewRenderedJob(jobs[0], renderedPath, fs, logger)
+				mockJobRenderer.EXPECT().Render(jobs[0], jobProperties, deploymentName).Return(renderedJob, nil)
+
+				mockJobRenderer.EXPECT().Render(jobs[1], jobProperties, deploymentName).Return(nil, errors.New("fake-render-2-error"))
 
 				record := TemplateRecord{
 					BlobID:   "fake-blob-id",
