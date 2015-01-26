@@ -20,7 +20,8 @@ srcFiles=(
   registry/Server,ServerManager
   release/Manager,Extractor
   release/set/Resolver
-  templatescompiler/JobRenderer,RenderedJob,RenderedJobList
+  release/job/Resolver
+  templatescompiler/JobRenderer,JobListRenderer,RenderedJob,RenderedJobList,RenderedJobListArchive,RenderedJobListCompressor
   blobstore/Factory,Blobstore
 )
 

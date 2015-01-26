@@ -10,6 +10,8 @@ func (n NetworkType) String() string {
 	return string(n)
 }
 
+type NetworkInterface map[string]interface{}
+
 const (
 	Dynamic NetworkType = "dynamic"
 	Manual  NetworkType = "manual"
@@ -30,29 +32,29 @@ func (n Network) CloudProperties() (map[string]interface{}, error) {
 	return bmkeystr.NewKeyStringifier().ConvertMap(n.RawCloudProperties)
 }
 
-func (n Network) Spec() (map[string]interface{}, error) {
+func (n Network) Interface() (NetworkInterface, error) {
 	cloudProperties, err := n.CloudProperties()
 	if err != nil {
-		return map[string]interface{}{}, err
+		return NetworkInterface{}, err
 	}
 
-	spec := map[string]interface{}{
+	iface := NetworkInterface{
 		"type":             n.Type.String(),
 		"ip":               n.IP,
 		"cloud_properties": cloudProperties,
 	}
 
 	if n.Netmask != "" {
-		spec["netmask"] = n.Netmask
+		iface["netmask"] = n.Netmask
 	}
 
 	if n.Gateway != "" {
-		spec["gateway"] = n.Gateway
+		iface["gateway"] = n.Gateway
 	}
 
 	if len(n.DNS) > 0 {
-		spec["dns"] = n.DNS
+		iface["dns"] = n.DNS
 	}
 
-	return spec, nil
+	return iface, nil
 }

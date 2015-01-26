@@ -81,8 +81,8 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 
 func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmdeplmanifest.Manifest) (VM, error) {
 	microBoshJobName := deploymentManifest.Jobs[0].Name
-	networksSpec, err := deploymentManifest.NetworksSpec(microBoshJobName)
-	m.logger.Debug(m.logTag, "Creating VM with network spec: %#v", networksSpec)
+	networkInterfaces, err := deploymentManifest.NetworkInterfaces(microBoshJobName)
+	m.logger.Debug(m.logTag, "Creating VM with network interfaces: %#v", networkInterfaces)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Getting network spec")
 	}
@@ -103,7 +103,7 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapError(err, "Generating agent ID")
 	}
 
-	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), cloudProperties, networksSpec, env)
+	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), cloudProperties, networkInterfaces, env)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Creating vm with stemcell cid '%s'", stemcell.CID())
 	}

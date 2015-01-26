@@ -124,7 +124,7 @@ var _ = Describe("bosh-micro", func() {
 			stemcellImagePath = "fake-stemcell-image-path"
 			stemcellCID       = "fake-stemcell-cid"
 			env               = map[string]interface{}{}
-			networksSpec      = map[string]interface{}{
+			networkInterfaces = map[string]map[string]interface{}{
 				"network-1": map[string]interface{}{
 					"type":             "dynamic",
 					"ip":               "",
@@ -389,7 +389,7 @@ cloud_provider:
 
 			gomock.InOrder(
 				mockCloud.EXPECT().CreateStemcell(stemcellImagePath, cloudProperties).Return(stemcellCID, nil),
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(vmCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env).Return(vmCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				mockCloud.EXPECT().CreateDisk(diskSize, cloudProperties, vmCID).Return(diskCID, nil),
@@ -424,7 +424,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -462,7 +462,7 @@ cloud_provider:
 				expectDeleteVM1,
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -500,7 +500,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attaching a missing disk will fail
@@ -530,7 +530,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate (with error)
@@ -562,7 +562,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env).Return(newVMCID, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -615,7 +615,7 @@ cloud_provider:
 				mockCloud.EXPECT().CreateStemcell(stemcellImagePath, cloudProperties).Do(
 					func(_, _ interface{}) { expectRegistryToWork() },
 				).Return(stemcellCID, nil),
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networksSpec, env).Do(
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env).Do(
 					func(_, _, _, _, _ interface{}) { expectRegistryToWork() },
 				).Return(vmCID, nil),
 

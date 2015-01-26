@@ -7,15 +7,15 @@ import (
 	. "github.com/onsi/gomega"
 
 	"bytes"
-	"path/filepath"
 	"os"
+	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeboshcmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
+	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
@@ -49,8 +49,8 @@ var _ = Describe("RenderedJobListCompressor", func() {
 
 		Context("with a real fs & compressor", func() {
 			var (
-				fs        boshsys.FileSystem
-				cmdRunner boshsys.CmdRunner
+				fs         boshsys.FileSystem
+				cmdRunner  boshsys.CmdRunner
 				compressor boshcmd.Compressor
 			)
 
@@ -113,7 +113,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 
 		Context("with a fake fs & compressor", func() {
 			var (
-				fakeFS        *fakeboshsys.FakeFileSystem
+				fakeFS         *fakeboshsys.FakeFileSystem
 				fakeCompressor *fakeboshcmd.FakeCompressor
 			)
 
@@ -129,7 +129,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				fakeFS.TempDirDir = "fake-rendered-job-list-path"
 
 				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
-					"fake-rendered-job-list-path": fakebmcrypto.CalculateInput{ Sha1: "fake-sha1" },
+					"fake-rendered-job-list-path": fakebmcrypto.CalculateInput{Sha1: "fake-sha1"},
 				})
 
 				archive, err := renderedJobListCompressor.Compress(renderedJobList)
@@ -142,7 +142,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				fakeCompressor.CompressFilesInDirTarballPath = "fake-archive-path"
 
 				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
-					"fake-archive-path": fakebmcrypto.CalculateInput{ Sha1: "fake-sha1" },
+					"fake-archive-path": fakebmcrypto.CalculateInput{Sha1: "fake-sha1"},
 				})
 
 				archive, err := renderedJobListCompressor.Compress(renderedJobList)

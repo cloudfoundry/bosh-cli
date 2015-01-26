@@ -14,7 +14,7 @@ type Cloud interface {
 		agentID string,
 		stemcellCID string,
 		cloudProperties map[string]interface{},
-		networksSpec map[string]interface{},
+		networksInterfaces map[string]map[string]interface{},
 		env map[string]interface{},
 	) (vmCID string, err error)
 	DeleteVM(vmCID string) error
@@ -104,7 +104,7 @@ func (c cloud) CreateVM(
 	agentID string,
 	stemcellCID string,
 	cloudProperties map[string]interface{},
-	networksSpec map[string]interface{},
+	networksInterfaces map[string]map[string]interface{},
 	env map[string]interface{},
 ) (string, error) {
 	method := "create_vm"
@@ -115,7 +115,7 @@ func (c cloud) CreateVM(
 		agentID,
 		stemcellCID,
 		cloudProperties,
-		networksSpec,
+		networksInterfaces,
 		diskLocality,
 		env,
 	)

@@ -23,29 +23,31 @@ func (d Manifest) Properties() (map[string]interface{}, error) {
 	return bmkeystr.NewKeyStringifier().ConvertMap(d.RawProperties)
 }
 
-func (d Manifest) NetworksSpec(jobName string) (map[string]interface{}, error) {
+// NetworkInterfaces returns a map of network names to network interfaces.
+// We can't use map[string]NetworkInterface, because it's impossible to down-cast to what the cloud client requires.
+func (d Manifest) NetworkInterfaces(jobName string) (map[string]map[string]interface{}, error) {
 	job, found := d.FindJobByName(jobName)
 	if !found {
-		return map[string]interface{}{}, bosherr.Errorf("Could not find job with name: %s", jobName)
+		return map[string]map[string]interface{}{}, bosherr.Errorf("Could not find job with name: %s", jobName)
 	}
 
-	networksMap := d.networksToMap()
+	networkMap := d.networkMap()
 
-	result := map[string]interface{}{}
+	ifaceMap := map[string]map[string]interface{}{}
 	var err error
 	for _, jobNetwork := range job.Networks {
-		network := networksMap[jobNetwork.Name]
+		network := networkMap[jobNetwork.Name]
 		staticIPs := jobNetwork.StaticIPs
 		if len(staticIPs) > 0 {
 			network.IP = staticIPs[0]
 		}
-		result[jobNetwork.Name], err = network.Spec()
+		ifaceMap[jobNetwork.Name], err = network.Interface()
 		if err != nil {
-			return map[string]interface{}{}, bosherr.WrapError(err, "Building network spec")
+			return map[string]map[string]interface{}{}, bosherr.WrapError(err, "Building network spec")
 		}
 	}
 
-	return result, nil
+	return ifaceMap, nil
 }
 
 func (d Manifest) DiskPool(jobName string) (DiskPool, error) {
@@ -75,7 +77,7 @@ func (d Manifest) DiskPool(jobName string) (DiskPool, error) {
 	return DiskPool{}, nil
 }
 
-func (d Manifest) networksToMap() map[string]Network {
+func (d Manifest) networkMap() map[string]Network {
 	result := map[string]Network{}
 	for _, network := range d.Networks {
 		result[network.Name] = network

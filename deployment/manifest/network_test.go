@@ -28,11 +28,11 @@ var _ = Describe("Network", func() {
 		}
 	})
 
-	Describe("Spec", func() {
-		It("returns a map of the network's spec", func() {
-			spec, err := network.Spec()
+	Describe("Interface", func() {
+		It("returns an interface that can be used to connect to the network", func() {
+			iface, err := network.Interface()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(spec).To(Equal(map[string]interface{}{
+			Expect(iface).To(Equal(NetworkInterface{
 				"type":    "dynamic",
 				"ip":      "1.2.3.4",
 				"netmask": "255.255.255.0",
@@ -51,9 +51,9 @@ var _ = Describe("Network", func() {
 			network.Gateway = ""
 			network.DNS = []string{}
 
-			spec, err := network.Spec()
+			iface, err := network.Interface()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(spec).To(Equal(map[string]interface{}{
+			Expect(iface).To(Equal(NetworkInterface{
 				"type": "dynamic",
 				"ip":   "1.2.3.4",
 				"cloud_properties": map[string]interface{}{

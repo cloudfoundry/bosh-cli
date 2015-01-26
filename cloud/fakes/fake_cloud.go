@@ -43,11 +43,11 @@ type HasVMInput struct {
 }
 
 type CreateVMInput struct {
-	AgentID         string
-	StemcellCID     string
-	CloudProperties map[string]interface{}
-	NetworksSpec    map[string]interface{}
-	Env             map[string]interface{}
+	AgentID            string
+	StemcellCID        string
+	CloudProperties    map[string]interface{}
+	NetworksInterfaces map[string]map[string]interface{}
+	Env                map[string]interface{}
 }
 
 type CreateDiskInput struct {
@@ -112,15 +112,15 @@ func (c *FakeCloud) CreateVM(
 	agentID string,
 	stemcellCID string,
 	cloudProperties map[string]interface{},
-	networksSpec map[string]interface{},
+	networksInterfaces map[string]map[string]interface{},
 	env map[string]interface{},
 ) (string, error) {
 	c.CreateVMInput = CreateVMInput{
-		AgentID:         agentID,
-		StemcellCID:     stemcellCID,
-		CloudProperties: cloudProperties,
-		NetworksSpec:    networksSpec,
-		Env:             env,
+		AgentID:            agentID,
+		StemcellCID:        stemcellCID,
+		CloudProperties:    cloudProperties,
+		NetworksInterfaces: networksInterfaces,
+		Env:                env,
 	}
 
 	return c.CreateVMCID, c.CreateVMErr

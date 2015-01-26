@@ -12,7 +12,7 @@ var _ = Describe("Manifest", func() {
 		deploymentManifest Manifest
 	)
 
-	Describe("NetworksSpec", func() {
+	Describe("NetworksInterfaces", func() {
 		Context("when the deployment has networks", func() {
 			BeforeEach(func() {
 				deploymentManifest = Manifest{
@@ -56,8 +56,8 @@ var _ = Describe("Manifest", func() {
 				}
 			})
 
-			It("is a map of the networks in spec form", func() {
-				Expect(deploymentManifest.NetworksSpec("fake-job-name")).To(Equal(map[string]interface{}{
+			It("is a map of the network names to network interfaces", func() {
+				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]map[string]interface{}{
 					"fake-network-name": map[string]interface{}{
 						"type":             "dynamic",
 						"ip":               "5.6.7.8",
@@ -90,7 +90,7 @@ var _ = Describe("Manifest", func() {
 			})
 
 			It("is an empty map", func() {
-				Expect(deploymentManifest.NetworksSpec("fake-job-name")).To(Equal(map[string]interface{}{}))
+				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]map[string]interface{}{}))
 			})
 		})
 
@@ -100,8 +100,8 @@ var _ = Describe("Manifest", func() {
 			})
 
 			It("returns an error", func() {
-				networksSpec, err := deploymentManifest.NetworksSpec("fake-job-name")
-				Expect(networksSpec).To(Equal(map[string]interface{}{}))
+				networkInterfaces, err := deploymentManifest.NetworkInterfaces("fake-job-name")
+				Expect(networkInterfaces).To(Equal(map[string]map[string]interface{}{}))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Could not find job with name: fake-job-name"))
 			})

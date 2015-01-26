@@ -23,19 +23,19 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		fakeCloud               *fakebmcloud.FakeCloud
-		manager                 Manager
-		logger                  boshlog.Logger
-		expectedNetworksSpec    map[string]interface{}
-		expectedCloudProperties map[string]interface{}
-		expectedEnv             map[string]interface{}
-		deploymentManifest      bmdeplmanifest.Manifest
-		fakeVMRepo              *fakebmconfig.FakeVMRepo
-		stemcellRepo            bmconfig.StemcellRepo
-		fakeDiskDeployer        *fakebmvm.FakeDiskDeployer
-		fakeAgentClient         *fakebmagentclient.FakeAgentClient
-		stemcell                bmstemcell.CloudStemcell
-		fs                      *fakesys.FakeFileSystem
+		fakeCloud                 *fakebmcloud.FakeCloud
+		manager                   Manager
+		logger                    boshlog.Logger
+		expectedNetworkInterfaces map[string]map[string]interface{}
+		expectedCloudProperties   map[string]interface{}
+		expectedEnv               map[string]interface{}
+		deploymentManifest        bmdeplmanifest.Manifest
+		fakeVMRepo                *fakebmconfig.FakeVMRepo
+		stemcellRepo              bmconfig.StemcellRepo
+		fakeDiskDeployer          *fakebmvm.FakeDiskDeployer
+		fakeAgentClient           *fakebmagentclient.FakeAgentClient
+		stemcell                  bmstemcell.CloudStemcell
+		fs                        *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
@@ -61,7 +61,7 @@ var _ = Describe("Manager", func() {
 		).NewManager(fakeCloud, fakeAgentClient)
 
 		fakeCloud.CreateVMCID = "fake-vm-cid"
-		expectedNetworksSpec = map[string]interface{}{
+		expectedNetworkInterfaces = map[string]map[string]interface{}{
 			"fake-network-name": map[string]interface{}{
 				"type":             "dynamic",
 				"ip":               "fake-micro-ip",
@@ -128,11 +128,11 @@ var _ = Describe("Manager", func() {
 
 			Expect(fakeCloud.CreateVMInput).To(Equal(
 				fakebmcloud.CreateVMInput{
-					AgentID:         "fake-uuid-0",
-					StemcellCID:     "fake-stemcell-cid",
-					CloudProperties: expectedCloudProperties,
-					NetworksSpec:    expectedNetworksSpec,
-					Env:             expectedEnv,
+					AgentID:            "fake-uuid-0",
+					StemcellCID:        "fake-stemcell-cid",
+					CloudProperties:    expectedCloudProperties,
+					NetworksInterfaces: expectedNetworkInterfaces,
+					Env:                expectedEnv,
 				},
 			))
 		})

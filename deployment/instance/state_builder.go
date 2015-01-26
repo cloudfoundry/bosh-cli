@@ -13,12 +13,12 @@ import (
 )
 
 type StateBuilder interface {
-	Build(jobName string, jobID int, deploymentManifest bmdeplmanifest.Manifest, stemcellApplySpec bmstemcell.ApplySpec) (State, error)
+	Build(jobName string, instanceID int, deploymentManifest bmdeplmanifest.Manifest, stemcellApplySpec bmstemcell.ApplySpec) (State, error)
 }
 
 type stateBuilder struct {
 	releaseJobResolver        bmreljob.Resolver
-	jobRenderer               bmtemplate.JobListRenderer
+	jobListRenderer           bmtemplate.JobListRenderer
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
 	blobstore                 bmblobstore.Blobstore
 	uuidGenerator             boshuuid.Generator
@@ -28,7 +28,7 @@ type stateBuilder struct {
 
 func NewStateBuilder(
 	releaseJobResolver bmreljob.Resolver,
-	jobRenderer bmtemplate.JobListRenderer,
+	jobListRenderer bmtemplate.JobListRenderer,
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
 	blobstore bmblobstore.Blobstore,
 	uuidGenerator boshuuid.Generator,
@@ -36,7 +36,7 @@ func NewStateBuilder(
 ) StateBuilder {
 	return &stateBuilder{
 		releaseJobResolver:        releaseJobResolver,
-		jobRenderer:               jobRenderer,
+		jobListRenderer:           jobListRenderer,
 		renderedJobListCompressor: renderedJobListCompressor,
 		blobstore:                 blobstore,
 		uuidGenerator:             uuidGenerator,
@@ -45,7 +45,7 @@ func NewStateBuilder(
 	}
 }
 
-func (b *stateBuilder) Build(jobName string, jobID int, deploymentManifest bmdeplmanifest.Manifest, stemcellApplySpec bmstemcell.ApplySpec) (State, error) {
+func (b *stateBuilder) Build(jobName string, instanceID int, deploymentManifest bmdeplmanifest.Manifest, stemcellApplySpec bmstemcell.ApplySpec) (State, error) {
 	deploymentJob, found := deploymentManifest.FindJobByName(jobName)
 	if !found {
 		return nil, bosherr.Errorf("Job '%s' not found in deployment manifest", jobName)
@@ -61,7 +61,7 @@ func (b *stateBuilder) Build(jobName string, jobID int, deploymentManifest bmdep
 		return nil, bosherr.WrapError(err, "Stringifying job properties")
 	}
 
-	renderedJobList, err := b.jobRenderer.Render(releaseJobs, jobProperties, deploymentManifest.Name)
+	renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, deploymentManifest.Name)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Rendering templates for job '%s'", jobName)
 	}
@@ -78,35 +78,57 @@ func (b *stateBuilder) Build(jobName string, jobID int, deploymentManifest bmdep
 		return nil, err
 	}
 
-	networks, err := deploymentManifest.NetworksSpec(deploymentJob.Name)
+	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Finding networks for job '%s", jobName)
 	}
 
-	packageBlobs := []PackageBlob{}
-	for _, packageBlob := range stemcellApplySpec.Packages {
-		packageBlobs = append(packageBlobs, PackageBlob{
-			Name:        packageBlob.Name,
-			Version:     packageBlob.Version,
-			SHA1:        packageBlob.SHA1,
-			BlobstoreID: packageBlob.BlobstoreID,
+	// convert map to array
+	networks := make([]NetworkRef, 0, len(networkInterfaces))
+	for networkName, networkInterface := range networkInterfaces {
+		networks = append(networks, NetworkRef{
+			Name:      networkName,
+			Interface: networkInterface,
 		})
 	}
 
-	renderedJobListBlob := RenderedJobListBlob{
+	// convert array to array
+	renderedJobs := make([]JobRef, len(releaseJobs), len(releaseJobs))
+	for i, releaseJob := range releaseJobs {
+		renderedJobs[i] = JobRef{
+			Name:    releaseJob.Name,
+			Version: releaseJob.Fingerprint,
+		}
+	}
+
+	// convert map to array
+	stemcellPackages := stemcellApplySpec.Packages
+	compiledPackages := make([]PackageRef, 0, len(stemcellPackages))
+	for _, stemcellPackage := range stemcellPackages {
+		compiledPackages = append(compiledPackages, PackageRef{
+			Name:    stemcellPackage.Name,
+			Version: stemcellPackage.Version,
+			Archive: BlobRef{
+				SHA1:        stemcellPackage.SHA1,
+				BlobstoreID: stemcellPackage.BlobstoreID,
+			},
+		})
+	}
+
+	renderedJobListArchiveBlobRef := BlobRef{
 		BlobstoreID: blobID,
 		SHA1:        renderedJobListArchive.SHA1(),
 	}
 
 	return &state{
-		deploymentName:      deploymentManifest.Name,
-		name:                jobName,
-		id:                  jobID,
-		networks:            networks,
-		jobs:                releaseJobs,
-		packageBlobs:        packageBlobs,
-		renderedJobListBlob: renderedJobListBlob,
-		stateHash:           renderedJobListArchive.Fingerprint(),
+		deploymentName:         deploymentManifest.Name,
+		name:                   jobName,
+		id:                     instanceID,
+		networks:               networks,
+		renderedJobs:           renderedJobs,
+		compiledPackages:       compiledPackages,
+		renderedJobListArchive: renderedJobListArchiveBlobRef,
+		hash: renderedJobListArchive.Fingerprint(),
 	}, nil
 }
 
