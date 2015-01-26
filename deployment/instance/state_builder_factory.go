@@ -5,7 +5,7 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -14,7 +14,7 @@ type StateBuilderFactory interface {
 }
 
 type stateBuilderFactory struct {
-	releaseJobResolver        bmreljob.Resolver
+	releaseJobResolver        bmdeplrel.JobResolver
 	jobRenderer               bmtemplate.JobListRenderer
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
 	uuidGenerator             boshuuid.Generator
@@ -22,7 +22,7 @@ type stateBuilderFactory struct {
 }
 
 func NewStateBuilderFactory(
-	releaseJobResolver bmreljob.Resolver,
+	releaseJobResolver bmdeplrel.JobResolver,
 	jobRenderer bmtemplate.JobListRenderer,
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
 	uuidGenerator boshuuid.Generator,

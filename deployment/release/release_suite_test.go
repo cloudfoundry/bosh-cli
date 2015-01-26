@@ -1,4 +1,4 @@
-package job_test
+package release_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestAction(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Release Job Suite")
+	RunSpecs(t, "Deployment Release Suite")
 }

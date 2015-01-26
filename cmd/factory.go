@@ -19,6 +19,7 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
@@ -27,7 +28,6 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
@@ -293,7 +293,7 @@ func (f *factory) loadStateBuilderFactory() bminstance.StateBuilderFactory {
 	}
 
 	releaseSetResolver := bmrelset.NewResolver(f.loadReleaseManager(), f.logger)
-	releaseJobResolver := bmreljob.NewResolver(releaseSetResolver)
+	releaseJobResolver := bmdeplrel.NewJobResolver(releaseSetResolver)
 
 	erbRenderer := bmtemplateerb.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
 	jobRenderer := bmtemplate.NewJobRenderer(erbRenderer, f.fs, f.logger)

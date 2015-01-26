@@ -7,8 +7,8 @@ import (
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -17,7 +17,7 @@ type StateBuilder interface {
 }
 
 type stateBuilder struct {
-	releaseJobResolver        bmreljob.Resolver
+	releaseJobResolver        bmdeplrel.JobResolver
 	jobListRenderer           bmtemplate.JobListRenderer
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
 	blobstore                 bmblobstore.Blobstore
@@ -27,7 +27,7 @@ type stateBuilder struct {
 }
 
 func NewStateBuilder(
-	releaseJobResolver bmreljob.Resolver,
+	releaseJobResolver bmdeplrel.JobResolver,
 	jobListRenderer bmtemplate.JobListRenderer,
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
 	blobstore bmblobstore.Blobstore,
@@ -51,7 +51,7 @@ func (b *stateBuilder) Build(jobName string, instanceID int, deploymentManifest 
 		return nil, bosherr.Errorf("Job '%s' not found in deployment manifest", jobName)
 	}
 
-	releaseJobs, err := b.releaseJobResolver.ResolveEach(deploymentJob.ReleaseJobReferences())
+	releaseJobs, err := b.releaseJobResolver.ResolveEach(deploymentJob.Templates)
 	if err != nil {
 		return nil, err
 	}

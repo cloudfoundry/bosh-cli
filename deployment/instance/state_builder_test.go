@@ -9,7 +9,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
-	mock_release_job "github.com/cloudfoundry/bosh-micro-cli/release/job/mocks"
+	mock_deployment_release "github.com/cloudfoundry/bosh-micro-cli/deployment/release/mocks"
 	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -20,7 +20,6 @@ import (
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 )
 
 var _ = Describe("StateBuilder", func() {
@@ -37,7 +36,7 @@ var _ = Describe("StateBuilder", func() {
 	var (
 		logger boshlog.Logger
 
-		mockReleaseJobResolver *mock_release_job.MockResolver
+		mockReleaseJobResolver *mock_deployment_release.MockJobResolver
 		mockJobListRenderer    *mock_template.MockJobListRenderer
 		mockCompressor         *mock_template.MockRenderedJobListCompressor
 		mockBlobstore          *mock_blobstore.MockBlobstore
@@ -52,7 +51,7 @@ var _ = Describe("StateBuilder", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		mockReleaseJobResolver = mock_release_job.NewMockResolver(mockCtrl)
+		mockReleaseJobResolver = mock_deployment_release.NewMockJobResolver(mockCtrl)
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		mockCompressor = mock_template.NewMockRenderedJobListCompressor(mockCtrl)
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
@@ -142,7 +141,7 @@ var _ = Describe("StateBuilder", func() {
 		})
 
 		JustBeforeEach(func() {
-			releaseJobRefs := []bmreljob.Reference{
+			releaseJobRefs := []bmdeplmanifest.ReleaseJobRef{
 				{
 					Name:    "fake-release-job-name",
 					Release: "fake-release-name",

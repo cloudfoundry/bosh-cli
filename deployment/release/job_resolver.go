@@ -1,28 +1,29 @@
-package job
+package release
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
+	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 )
 
-type Resolver interface {
-	Resolve(Reference) (bmrel.Job, error)
-	ResolveEach([]Reference) ([]bmrel.Job, error)
+type JobResolver interface {
+	Resolve(bmdeplmanifest.ReleaseJobRef) (bmrel.Job, error)
+	ResolveEach([]bmdeplmanifest.ReleaseJobRef) ([]bmrel.Job, error)
 }
 
 type resolver struct {
 	releaseSetResolver bmrelset.Resolver
 }
 
-func NewResolver(releaseSetResolver bmrelset.Resolver) Resolver {
+func NewJobResolver(releaseSetResolver bmrelset.Resolver) JobResolver {
 	return &resolver{
 		releaseSetResolver: releaseSetResolver,
 	}
 }
 
-func (r *resolver) Resolve(jobRef Reference) (bmrel.Job, error) {
+func (r *resolver) Resolve(jobRef bmdeplmanifest.ReleaseJobRef) (bmrel.Job, error) {
 	release, err := r.releaseSetResolver.Find(jobRef.Release)
 	if err != nil {
 		return bmrel.Job{}, bosherr.WrapErrorf(err, "Resolving release '%s'", jobRef.Release)
@@ -36,7 +37,7 @@ func (r *resolver) Resolve(jobRef Reference) (bmrel.Job, error) {
 	return releaseJob, nil
 }
 
-func (r *resolver) ResolveEach(jobRefs []Reference) ([]bmrel.Job, error) {
+func (r *resolver) ResolveEach(jobRefs []bmdeplmanifest.ReleaseJobRef) ([]bmrel.Job, error) {
 	releaseJobs := make([]bmrel.Job, len(jobRefs), len(jobRefs))
 	for i, jobRef := range jobRefs {
 		archive, err := r.Resolve(jobRef)
