@@ -22,7 +22,6 @@ func NewResolver(releaseSetResolver bmrelset.Resolver) Resolver {
 	}
 }
 
-//TODO: test me
 func (r *resolver) Resolve(jobRef Reference) (bmrel.Job, error) {
 	release, err := r.releaseSetResolver.Find(jobRef.Release)
 	if err != nil {
@@ -37,7 +36,6 @@ func (r *resolver) Resolve(jobRef Reference) (bmrel.Job, error) {
 	return releaseJob, nil
 }
 
-//TODO: test me
 func (r *resolver) ResolveEach(jobRefs []Reference) ([]bmrel.Job, error) {
 	releaseJobs := make([]bmrel.Job, len(jobRefs), len(jobRefs))
 	for i, jobRef := range jobRefs {
