@@ -3,6 +3,7 @@ package acceptance_test
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -200,37 +201,76 @@ var _ = Describe("bosh-micro", func() {
 		}))
 	})
 
-	It("can deploy", func() {
+	var findStage = func(outputLines []string, stageName string, zeroIndex int) (steps []string, stopIndex int) {
+		startLine := fmt.Sprintf("Started %s", stageName)
+		startIndex := -1
+		for i, line := range outputLines[zeroIndex:] {
+			if line == startLine {
+				startIndex = zeroIndex + i
+				break
+			}
+		}
+		if startIndex < 0 {
+			Fail("Failed to find stage start: " + stageName)
+		}
+
+		stopLine := fmt.Sprintf("Done %s", stageName)
+		stopIndex = -1
+		for i, line := range outputLines[startIndex:] {
+			if line == stopLine {
+				stopIndex = startIndex + i
+				break
+			}
+		}
+		if stopIndex < 0 {
+			Fail("Failed to find stage stop: " + stageName)
+		}
+
+		return outputLines[startIndex+1 : stopIndex], stopIndex
+	}
+
+	FIt("can deploy", func() {
 		updateDeploymentManifest("./assets/manifest.yml")
 
 		setDeployment(testEnv.Path("manifest"))
 
 		stdout := deploy()
 
-		Expect(stdout).To(ContainSubstring("Started validating"))
-		Expect(stdout).To(ContainSubstring("Validating stemcell"))
-		Expect(stdout).To(ContainSubstring("Validating releases"))
-		Expect(stdout).To(ContainSubstring("Validating deployment manifest"))
-		Expect(stdout).To(ContainSubstring("Validating cpi release"))
-		Expect(stdout).To(ContainSubstring("Done validating"))
+		outputLines := strings.Split(stdout, "\n")
 
-		Expect(stdout).To(ContainSubstring("Started compiling packages"))
-		Expect(stdout).To(ContainSubstring("Done compiling packages"))
+		donePattern := "\\.\\.\\. done\\. \\(\\d{2}:\\d{2}:\\d{2}\\)$"
 
-		Expect(stdout).To(ContainSubstring("Started installing CPI jobs"))
-		Expect(stdout).To(ContainSubstring("Done installing CPI jobs"))
+		doneIndex := 0
 
-		Expect(stdout).To(ContainSubstring("Started uploading stemcell"))
-		Expect(stdout).To(ContainSubstring("Done uploading stemcell"))
+		validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
+		Expect(validatingSteps[0]).To(MatchRegexp("^Started validating > Validating stemcell" + donePattern))
+		Expect(validatingSteps[1]).To(MatchRegexp("^Started validating > Validating releases" + donePattern))
+		Expect(validatingSteps[2]).To(MatchRegexp("^Started validating > Validating deployment manifest" + donePattern))
+		Expect(validatingSteps[3]).To(MatchRegexp("^Started validating > Validating cpi release" + donePattern))
+		Expect(validatingSteps).To(HaveLen(4))
 
-		Expect(stdout).To(ContainSubstring("Started deploying"))
-		Expect(stdout).To(ContainSubstring("Creating VM for instance 'bosh/0' from stemcell"))
-		Expect(stdout).To(ContainSubstring("Waiting for the agent on VM"))
-		Expect(stdout).To(ContainSubstring("Creating disk"))
-		Expect(stdout).To(ContainSubstring("Attaching disk"))
-		Expect(stdout).To(ContainSubstring("Starting instance 'bosh/0'"))
-		Expect(stdout).To(ContainSubstring("Waiting for instance 'bosh/0' to be running"))
-		Expect(stdout).To(ContainSubstring("Done deploying"))
+		compilingSteps, doneIndex := findStage(outputLines, "compiling packages", doneIndex+1)
+		for _, line := range compilingSteps {
+			Expect(line).To(MatchRegexp("^Started compiling packages > .*/.*" + donePattern))
+		}
+		Expect(len(compilingSteps)).To(BeNumerically(">", 0))
+
+		installingSteps, doneIndex := findStage(outputLines, "installing CPI jobs", doneIndex+1)
+		Expect(installingSteps[0]).To(MatchRegexp("^Started installing CPI jobs > cpi" + donePattern))
+		Expect(installingSteps).To(HaveLen(1))
+
+		uploadingSteps, doneIndex := findStage(outputLines, "uploading stemcell", doneIndex+1)
+		Expect(uploadingSteps[0]).To(MatchRegexp("^Started uploading stemcell > Uploading" + donePattern))
+		Expect(uploadingSteps).To(HaveLen(1))
+
+		deployingSteps, doneIndex := findStage(outputLines, "deploying", doneIndex+1)
+		Expect(deployingSteps[0]).To(MatchRegexp("^Started deploying > Creating VM for instance 'bosh/0' from stemcell '.*'" + donePattern))
+		Expect(deployingSteps[1]).To(MatchRegexp("^Started deploying > Waiting for the agent on VM '.*' to be ready" + donePattern))
+		Expect(deployingSteps[2]).To(MatchRegexp("^Started deploying > Creating disk" + donePattern))
+		Expect(deployingSteps[3]).To(MatchRegexp("^Started deploying > Attaching disk '.*' to VM '.*'" + donePattern))
+		Expect(deployingSteps[4]).To(MatchRegexp("^Started deploying > Updating instance 'bosh/0'" + donePattern))
+		Expect(deployingSteps[5]).To(MatchRegexp("^Started deploying > Waiting for instance 'bosh/0' to be running" + donePattern))
+		Expect(deployingSteps).To(HaveLen(6))
 	})
 
 	Context("when microbosh has been previously deployed", func() {
