@@ -229,7 +229,7 @@ var _ = Describe("bosh-micro", func() {
 		return outputLines[startIndex+1 : stopIndex], stopIndex
 	}
 
-	FIt("can deploy", func() {
+	It("can deploy", func() {
 		updateDeploymentManifest("./assets/manifest.yml")
 
 		setDeployment(testEnv.Path("manifest"))
