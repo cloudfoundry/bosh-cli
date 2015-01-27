@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 )
@@ -16,7 +16,7 @@ var _ = Describe("PingRetryable", func() {
 	Describe("Attempt", func() {
 		var (
 			fakeAgentClient *fakebmagentclient.FakeAgentClient
-			pingRetryable   bmretrystrategy.Retryable
+			pingRetryable   boshretry.Retryable
 		)
 
 		BeforeEach(func() {

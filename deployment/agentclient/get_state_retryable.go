@@ -2,14 +2,14 @@ package agentclient
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
+	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 )
 
 type getStateRetryable struct {
 	agentClient AgentClient
 }
 
-func NewGetStateRetryable(agentClient AgentClient) bmretrystrategy.Retryable {
+func NewGetStateRetryable(agentClient AgentClient) boshretry.Retryable {
 	return &getStateRetryable{
 		agentClient: agentClient,
 	}

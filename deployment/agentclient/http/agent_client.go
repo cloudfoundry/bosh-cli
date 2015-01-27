@@ -6,10 +6,10 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
 )
 
 type agentClient struct {
@@ -117,7 +117,7 @@ func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{
 		return bosherr.WrapError(err, "Getting agent task id")
 	}
 
-	getTaskRetryable := bmretrystrategy.NewRetryable(func() (bool, error) {
+	getTaskRetryable := boshretry.NewRetryable(func() (bool, error) {
 		var response TaskResponse
 		err = c.agentRequest.Send("get_task", []interface{}{agentTaskID}, &response)
 		if err != nil {
@@ -136,6 +136,6 @@ func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{
 		return true, bosherr.Errorf("Task %s is still running", method)
 	})
 
-	getTaskRetryStrategy := bmretrystrategy.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)
+	getTaskRetryStrategy := boshretry.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)
 	return getTaskRetryStrategy.Try()
 }

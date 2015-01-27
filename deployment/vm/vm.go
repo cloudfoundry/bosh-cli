@@ -8,13 +8,13 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
+	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmretrystrategy "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
@@ -85,7 +85,7 @@ func (vm *vm) Exists() (bool, error) {
 func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
 	agentPingRetryable := bmagentclient.NewPingRetryable(vm.agentClient)
 	timeService := boshtime.NewConcreteService()
-	agentPingRetryStrategy := bmretrystrategy.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, timeService, vm.logger)
+	agentPingRetryStrategy := boshretry.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, timeService, vm.logger)
 	return agentPingRetryStrategy.Try()
 }
 
@@ -129,7 +129,7 @@ func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bme
 
 func (vm *vm) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
 	agentGetStateRetryable := bmagentclient.NewGetStateRetryable(vm.agentClient)
-	agentGetStateRetryStrategy := bmretrystrategy.NewAttemptRetryStrategy(maxAttempts, delay, agentGetStateRetryable, vm.logger)
+	agentGetStateRetryStrategy := boshretry.NewAttemptRetryStrategy(maxAttempts, delay, agentGetStateRetryable, vm.logger)
 	return agentGetStateRetryStrategy.Try()
 }
 
