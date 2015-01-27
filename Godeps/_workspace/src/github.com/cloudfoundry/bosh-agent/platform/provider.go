@@ -16,6 +16,7 @@ import (
 	boshstats "github.com/cloudfoundry/bosh-agent/platform/stats"
 	boshudev "github.com/cloudfoundry/bosh-agent/platform/udevdevice"
 	boshvitals "github.com/cloudfoundry/bosh-agent/platform/vitals"
+	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 	boshdirs "github.com/cloudfoundry/bosh-agent/settings/directories"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
@@ -67,6 +68,9 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options P
 	centosNetManager := boshnet.NewCentosNetManager(fs, runner, defaultNetworkResolver, ipResolver, arping, logger)
 	ubuntuNetManager := boshnet.NewUbuntuNetManager(fs, runner, defaultNetworkResolver, ipResolver, arping, logger)
 
+	monitRetryable := NewMonitRetryable(runner)
+	monitRetryStrategy := boshretry.NewAttemptRetryStrategy(10, 1*time.Second, monitRetryable, logger)
+
 	centos := NewLinuxPlatform(
 		fs,
 		runner,
@@ -78,6 +82,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options P
 		linuxCdutil,
 		linuxDiskManager,
 		centosNetManager,
+		monitRetryStrategy,
 		500*time.Millisecond,
 		options.Linux,
 		logger,
@@ -94,6 +99,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options P
 		linuxCdutil,
 		linuxDiskManager,
 		ubuntuNetManager,
+		monitRetryStrategy,
 		500*time.Millisecond,
 		options.Linux,
 		logger,

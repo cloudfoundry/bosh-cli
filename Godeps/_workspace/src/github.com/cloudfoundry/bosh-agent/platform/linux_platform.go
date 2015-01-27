@@ -20,6 +20,7 @@ import (
 	boshnet "github.com/cloudfoundry/bosh-agent/platform/net"
 	boshstats "github.com/cloudfoundry/bosh-agent/platform/stats"
 	boshvitals "github.com/cloudfoundry/bosh-agent/platform/vitals"
+	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshdir "github.com/cloudfoundry/bosh-agent/settings/directories"
 	boshdirs "github.com/cloudfoundry/bosh-agent/settings/directories"
@@ -70,6 +71,7 @@ type linux struct {
 	cdutil             boshdevutil.DeviceUtil
 	diskManager        boshdisk.Manager
 	netManager         boshnet.Manager
+	monitRetryStrategy boshretry.RetryStrategy
 	diskScanDuration   time.Duration
 	devicePathResolver boshdpresolv.DevicePathResolver
 	options            LinuxOptions
@@ -87,24 +89,26 @@ func NewLinuxPlatform(
 	cdutil boshdevutil.DeviceUtil,
 	diskManager boshdisk.Manager,
 	netManager boshnet.Manager,
+	monitRetryStrategy boshretry.RetryStrategy,
 	diskScanDuration time.Duration,
 	options LinuxOptions,
 	logger boshlog.Logger,
 ) (platform *linux) {
 	platform = &linux{
-		fs:               fs,
-		cmdRunner:        cmdRunner,
-		collector:        collector,
-		compressor:       compressor,
-		copier:           copier,
-		dirProvider:      dirProvider,
-		vitalsService:    vitalsService,
-		cdutil:           cdutil,
-		diskManager:      diskManager,
-		netManager:       netManager,
-		diskScanDuration: diskScanDuration,
-		options:          options,
-		logger:           logger,
+		fs:                 fs,
+		cmdRunner:          cmdRunner,
+		collector:          collector,
+		compressor:         compressor,
+		copier:             copier,
+		dirProvider:        dirProvider,
+		vitalsService:      vitalsService,
+		cdutil:             cdutil,
+		diskManager:        diskManager,
+		netManager:         netManager,
+		monitRetryStrategy: monitRetryStrategy,
+		diskScanDuration:   diskScanDuration,
+		options:            options,
+		logger:             logger,
 	}
 	return
 }
@@ -450,17 +454,17 @@ func (p linux) SetupEphemeralDiskWithPath(realPath string) error {
 func (p linux) SetupDataDir() error {
 	dataDir := p.dirProvider.DataDir()
 
-	sysDir := filepath.Join(dataDir, "sys")
+	sysDataDir := filepath.Join(dataDir, "sys")
 
-	logDir := filepath.Join(sysDir, "log")
+	logDir := filepath.Join(sysDataDir, "log")
 	err := p.fs.MkdirAll(logDir, logDirPermissions)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Making %s dir", logDir)
 	}
 
-	_, _, _, err = p.cmdRunner.RunCommand("chown", "root:vcap", sysDir)
+	_, _, _, err = p.cmdRunner.RunCommand("chown", "root:vcap", sysDataDir)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "chown %s", sysDir)
+		return bosherr.WrapErrorf(err, "chown %s", sysDataDir)
 	}
 
 	_, _, _, err = p.cmdRunner.RunCommand("chown", "root:vcap", logDir)
@@ -468,9 +472,15 @@ func (p linux) SetupDataDir() error {
 		return bosherr.WrapErrorf(err, "chown %s", logDir)
 	}
 
-	err = p.setupRunDir(sysDir)
+	err = p.setupRunDir(sysDataDir)
 	if err != nil {
 		return err
+	}
+
+	sysDir := filepath.Join(filepath.Dir(dataDir), "sys")
+	err = p.fs.Symlink(sysDataDir, sysDir)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Symlinking '%s' to '%s'", sysDir, sysDataDir)
 	}
 
 	return nil
@@ -712,9 +722,9 @@ func (p linux) StartMonit() error {
 		return bosherr.WrapError(err, "Symlinking /etc/service/monit to /etc/sv/monit")
 	}
 
-	_, _, _, err = p.cmdRunner.RunCommand("sv", "start", "monit")
+	err = p.monitRetryStrategy.Try()
 	if err != nil {
-		return bosherr.WrapError(err, "Shelling out to sv")
+		return bosherr.WrapError(err, "Retrying to start monit")
 	}
 
 	return nil
