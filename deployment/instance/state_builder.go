@@ -9,6 +9,7 @@ import (
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -51,25 +52,25 @@ func (b *stateBuilder) Build(jobName string, instanceID int, deploymentManifest 
 		return nil, bosherr.Errorf("Job '%s' not found in deployment manifest", jobName)
 	}
 
-	releaseJobs, err := b.releaseJobResolver.ResolveEach(deploymentJob.Templates)
+	releaseJobs, err := b.resolveJobs(deploymentJob.Templates)
 	if err != nil {
-		return nil, err
+		return nil, bosherr.Errorf("Resolving jobs for instance '%s/%d'", jobName, instanceID)
 	}
 
 	jobProperties, err := deploymentJob.Properties()
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Stringifying job properties")
+		return nil, bosherr.WrapErrorf(err, "Stringifying job properties for instance '%s/%d'", jobName, instanceID)
 	}
 
 	renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, deploymentManifest.Name)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Rendering templates for job '%s'", jobName)
+		return nil, bosherr.WrapErrorf(err, "Rendering job templates for instance '%s/%d'", jobName, instanceID)
 	}
 	defer renderedJobList.DeleteSilently()
 
 	renderedJobListArchive, err := b.renderedJobListCompressor.Compress(renderedJobList)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Compressing templates for job '%s'", jobName)
+		return nil, bosherr.WrapErrorf(err, "Compressing rendered job templates for instance '%s/%d'", jobName, instanceID)
 	}
 	defer renderedJobListArchive.DeleteSilently()
 
@@ -148,4 +149,16 @@ func (b *stateBuilder) uploadJobTemplateListArchive(
 	}
 
 	return blobID, nil
+}
+
+func (b *stateBuilder) resolveJobs(jobRefs []bmdeplmanifest.ReleaseJobRef) ([]bmrel.Job, error) {
+	releaseJobs := make([]bmrel.Job, len(jobRefs), len(jobRefs))
+	for i, jobRef := range jobRefs {
+		archive, err := b.releaseJobResolver.Resolve(jobRef.Name, jobRef.Release)
+		if err != nil {
+			return releaseJobs, bosherr.Errorf("Resolving job '%s' in release '%s'", jobRef.Name, jobRef.Release)
+		}
+		releaseJobs[i] = archive
+	}
+	return releaseJobs, nil
 }

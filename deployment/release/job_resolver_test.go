@@ -11,7 +11,6 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fake_release "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
@@ -63,10 +62,7 @@ var _ = Describe("JobResolver", func() {
 		It("Returns the matching release job", func() {
 			mockReleaseSetResolver.EXPECT().Find("fake-release-name").Return(fakeRelease, nil)
 
-			releaseJob, err := jobResolver.Resolve(bmdeplmanifest.ReleaseJobRef{
-				Name:    "fake-release-job-name-0",
-				Release: "fake-release-name",
-			})
+			releaseJob, err := jobResolver.Resolve("fake-release-job-name-0", "fake-release-name")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseJob).To(Equal(fakeReleaseJob0))
 		})
@@ -74,10 +70,7 @@ var _ = Describe("JobResolver", func() {
 		It("Returns an error, when the job is not in the release", func() {
 			mockReleaseSetResolver.EXPECT().Find("fake-release-name").Return(fakeRelease, nil)
 
-			_, err := jobResolver.Resolve(bmdeplmanifest.ReleaseJobRef{
-				Name:    "fake-missing-release-job-name",
-				Release: "fake-release-name",
-			})
+			_, err := jobResolver.Resolve("fake-missing-release-job-name", "fake-release-name")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Finding job 'fake-missing-release-job-name' in release 'fake-release-name'"))
 		})
@@ -85,44 +78,7 @@ var _ = Describe("JobResolver", func() {
 		It("Returns an error, when the release is not in resolvable", func() {
 			mockReleaseSetResolver.EXPECT().Find("fake-missing-release-name").Return(nil, bosherr.Error("fake-release-resolver-find-error"))
 
-			_, err := jobResolver.Resolve(bmdeplmanifest.ReleaseJobRef{
-				Name:    "fake-release-job-name-0",
-				Release: "fake-missing-release-name",
-			})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Resolving release 'fake-missing-release-name'"))
-			Expect(err.Error()).To(ContainSubstring("fake-release-resolver-find-error"))
-		})
-	})
-
-	Describe("ResolveEach", func() {
-		It("Returns the matching release jobs", func() {
-			mockReleaseSetResolver.EXPECT().Find("fake-release-name").Return(fakeRelease, nil).Times(2)
-
-			releaseJobs, err := jobResolver.ResolveEach([]bmdeplmanifest.ReleaseJobRef{
-				{Name: "fake-release-job-name-0", Release: "fake-release-name"},
-				{Name: "fake-release-job-name-1", Release: "fake-release-name"},
-			})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(releaseJobs).To(Equal([]bmrel.Job{fakeReleaseJob0, fakeReleaseJob1}))
-		})
-
-		It("Returns an error, when one of the jobs is not in the release", func() {
-			mockReleaseSetResolver.EXPECT().Find("fake-release-name").Return(fakeRelease, nil)
-
-			_, err := jobResolver.ResolveEach([]bmdeplmanifest.ReleaseJobRef{
-				{Name: "fake-missing-release-job-name", Release: "fake-release-name"},
-			})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Finding job 'fake-missing-release-job-name' in release 'fake-release-name'"))
-		})
-
-		It("Returns an error, when one of the releases is not in resolvable", func() {
-			mockReleaseSetResolver.EXPECT().Find("fake-missing-release-name").Return(nil, bosherr.Error("fake-release-resolver-find-error"))
-
-			_, err := jobResolver.ResolveEach([]bmdeplmanifest.ReleaseJobRef{
-				{Name: "fake-release-job-name-0", Release: "fake-missing-release-name"},
-			})
+			_, err := jobResolver.Resolve("fake-release-job-name-0", "fake-missing-release-name")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Resolving release 'fake-missing-release-name'"))
 			Expect(err.Error()).To(ContainSubstring("fake-release-resolver-find-error"))

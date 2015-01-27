@@ -141,20 +141,13 @@ var _ = Describe("StateBuilder", func() {
 		})
 
 		JustBeforeEach(func() {
-			releaseJobRefs := []bmdeplmanifest.ReleaseJobRef{
-				{
-					Name:    "fake-release-job-name",
-					Release: "fake-release-name",
-				},
+			releaseJob := bmrel.Job{
+				Name:        "fake-release-job-name",
+				Fingerprint: "fake-release-job-fingerprint",
 			}
-			releaseJobs := []bmrel.Job{
-				{
-					Name:        "fake-release-job-name",
-					Fingerprint: "fake-release-job-fingerprint",
-				},
-			}
-			mockReleaseJobResolver.EXPECT().ResolveEach(releaseJobRefs).Return(releaseJobs, nil)
+			mockReleaseJobResolver.EXPECT().Resolve("fake-release-job-name", "fake-release-name").Return(releaseJob, nil)
 
+			releaseJobs := []bmrel.Job{releaseJob}
 			jobProperties := map[string]interface{}{
 				"fake-job-property": "fake-job-property-value",
 			}
