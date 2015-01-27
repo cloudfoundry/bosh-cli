@@ -14,10 +14,8 @@ networks:
   cloud_properties:
     subnet: fake-subnet
     range: 10.244.0.40/30
-    reserved:
-    - 10.244.0.41
-    static:
-    - 10.244.0.42
+    reserved: [10.244.0.41]
+    static: [10.244.0.42]
 
 cloud_provider:
   release: bosh-warden-cpi
@@ -53,87 +51,63 @@ jobs:
 - name: bosh
   instances: 1
   templates:
-  - name: nats
-    release: bosh
-  - name: redis
-    release: bosh
-  - name: postgres
-    release: bosh
-  - name: powerdns
-    release: bosh
-  - name: blobstore
-    release: bosh
-  - name: director
-    release: bosh
-  - name: health_monitor
-    release: bosh
+  - {name: nats, release: bosh}
+  - {name: redis, release: bosh}
+  - {name: postgres, release: bosh}
+  - {name: powerdns, release: bosh}
+  - {name: blobstore, release: bosh}
+  - {name: director, release: bosh}
+  - {name: health_monitor, release: bosh}
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name
-    static_ips:
-    - 10.244.0.42
+    static_ips: [10.244.0.42]
   persistent_disk: 2048
   properties:
     external_cpi:
-      enabled: true
+      enabled: false
     micro: true
     nats:
-      user: "nats"
-      password: "nats"
+      address: 127.0.0.1
+      user: nats
+      password: nats
       auth_timeout: 3
-      address: "127.0.0.1"
     redis:
-      address: "127.0.0.1"
-      password: "redis"
-      port: 25255
+      address: 127.0.0.1
+      password: redis
     postgres:
-      user: "postgres"
-      password: "postges"
-      host: "127.0.0.1"
-      database: "bosh"
-      port: 5432
+      password: postges
+      host: 127.0.0.1
     blobstore:
-      address: "127.0.0.1"
+      address: 127.0.0.1
       director:
-        user: "director"
-        password: "director"
+        user: director
+        password: director
       agent:
-        user: "agent"
-        password: "agent"
-      provider: "dav"
+        user: agent
+        password: agent
     director:
-      address: "127.0.0.1"
-      name: "micro"
-      port: 25555
+      address: 127.0.0.1
+      name: bosh-collocated
       db:
-        user: "postgres"
-        password: "postges"
-        host: "127.0.0.1"
-        database: "bosh"
-        port: 5432
-        adapter: "postgres"
-      backend_port: 25556
+        password: postges
+        host: 127.0.0.1
     hm:
       http:
-        user: "hm"
-        password: "hm"
+        user: hm
+        password: hm
       director_account:
-        user: "admin"
-        password: "admin"
+        user: admin
+        password: admin
       intervals:
         log_stats: 300
         agent_timeout: 180
         rogue_agent_alert: 180
     dns:
-      address: "127.0.0.1"
-      domain_name: "microbosh"
+      address: 127.0.0.1
       db:
-        user: "postgres"
-        password: "postges"
-        host: "127.0.0.1"
-        database: "bosh"
-        port: 5432
-        adapter: "postgres"
+        password: postges
+        host: 127.0.0.1
     ntp: []
     # Control some remote vCenter
     vcenter:

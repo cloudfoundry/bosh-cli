@@ -30,7 +30,7 @@ var _ = Describe("bosh-micro", func() {
 
 		microSSH      MicroSSH
 		microUsername = "vcap"
-		microPassword = "sshpassword"
+		microPassword = "sshpassword" // encrypted value must be in the manifest: resource_pool.env.bosh.password
 		microIP       = "10.244.0.42"
 	)
 

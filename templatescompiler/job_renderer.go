@@ -35,7 +35,6 @@ func NewJobRenderer(
 	}
 }
 
-//TODO: test me
 func (r *jobRenderer) Render(job bmrel.Job, properties map[string]interface{}, deploymentName string) (RenderedJob, error) {
 	context := NewJobEvaluationContext(job, properties, deploymentName, r.logger)
 

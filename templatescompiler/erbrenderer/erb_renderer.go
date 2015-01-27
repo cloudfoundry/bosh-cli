@@ -31,7 +31,7 @@ func NewERBRenderer(
 		fs:     fs,
 		runner: runner,
 		logger: logger,
-		logTag: "ERBRenderer",
+		logTag: "erbRenderer",
 
 		rendererScript: templateEvaluationContextRb,
 	}
