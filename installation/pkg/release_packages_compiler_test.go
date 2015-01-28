@@ -14,8 +14,7 @@ import (
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
 
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
-	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
-	fakebmreal "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 )
@@ -24,16 +23,16 @@ var _ = Describe("ReleaseCompiler", func() {
 	var (
 		release                 bmrel.Release
 		releasePackagesCompiler ReleasePackagesCompiler
-		da                      *fakebmreal.FakeDependencyAnalysis
-		packageCompiler         *fakebmcomp.FakePackageCompiler
+		da                      *fakebminstallpkg.FakeDependencyAnalysis
+		packageCompiler         *fakebminstallpkg.FakePackageCompiler
 		eventLogger             *fakebmlog.FakeEventLogger
 		fakeStage               *fakebmlog.FakeStage
 		timeService             *faketime.FakeService
 	)
 
 	BeforeEach(func() {
-		da = fakebmreal.NewFakeDependencyAnalysis()
-		packageCompiler = fakebmcomp.NewFakePackageCompiler()
+		da = fakebminstallpkg.NewFakeDependencyAnalysis()
+		packageCompiler = fakebminstallpkg.NewFakePackageCompiler()
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
 		eventLogger.SetNewStageBehavior(fakeStage)
@@ -84,7 +83,7 @@ var _ = Describe("ReleaseCompiler", func() {
 			It("determines the order to compile packages", func() {
 				err := releasePackagesCompiler.Compile(release)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(da.DeterminePackageCompilationOrderRelease).To(Equal(release))
+				Expect(da.DeterminePackageCompilationOrderSource).To(Equal(release.Packages()))
 			})
 
 			It("compiles each package", func() {

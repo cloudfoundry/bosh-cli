@@ -40,7 +40,7 @@ func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
 	eventLoggerStage.Start()
 	defer eventLoggerStage.Finish()
 
-	packages, err := c.dependencyAnalysis.DeterminePackageCompilationOrder(release)
+	packages, err := c.dependencyAnalysis.DeterminePackageCompilationOrder(release.Packages())
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release")
 	}

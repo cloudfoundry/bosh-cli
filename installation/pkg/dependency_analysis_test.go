@@ -8,7 +8,6 @@ import (
 
 	gomegafmt "github.com/onsi/gomega/format"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
@@ -16,9 +15,8 @@ import (
 
 var _ = Describe("NewDependencyAnalylis", func() {
 	var (
-		release bmrel.Release
-		da      DependencyAnalysis
-		fakeFS  *fakesys.FakeFileSystem
+		packages []*bmrel.Package
+		da       DependencyAnalysis
 	)
 
 	gomegafmt.UseStringerRepresentation = true
@@ -32,21 +30,13 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			package2 = bmrel.Package{
 				Name: "fake-package-name-2",
 			}
-			fakeFS = fakesys.NewFakeFileSystem()
-			release = bmrel.NewRelease(
-				"fake-release",
-				"fake-version",
-				[]bmrel.Job{},
-				[]*bmrel.Package{&package1, &package2},
-				"/some/release/path",
-				fakeFS,
-			)
+			packages = []*bmrel.Package{&package1, &package2}
 
 			da = NewDependencyAnalysis()
 		})
 		Context("disjoint packages have a valid compilation sequence", func() {
 			It("returns an ordered set of package compilation", func() {
-				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
+				compilationOrder, err := da.DeterminePackageCompilationOrder(packages)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(compilationOrder).To(ContainElement(&package1))
 				Expect(compilationOrder).To(ContainElement(&package2))
@@ -59,7 +49,7 @@ var _ = Describe("NewDependencyAnalylis", func() {
 			})
 
 			It("returns an ordered set of package compilation", func() {
-				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
+				compilationOrder, err := da.DeterminePackageCompilationOrder(packages)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(compilationOrder).To(ContainElement(&package1))
 				Expect(compilationOrder).To(ContainElement(&package2))
@@ -77,20 +67,13 @@ var _ = Describe("NewDependencyAnalylis", func() {
 					Name:         "fake-package-name-4",
 					Dependencies: []*bmrel.Package{&package3, &package2},
 				}
-				release = bmrel.NewRelease(
-					"fake-release",
-					"fake-version",
-					[]bmrel.Job{},
-					[]*bmrel.Package{&package1, &package2, &package3, &package4},
-					"/some/release/path",
-					fakeFS,
-				)
+				packages = []*bmrel.Package{&package1, &package2, &package3, &package4}
 			})
 
 			It("returns an ordered set of package compilation", func() {
-				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
+				compilationOrder, err := da.DeterminePackageCompilationOrder(packages)
 				Expect(err).NotTo(HaveOccurred())
-				for _, pkg := range release.Packages() {
+				for _, pkg := range packages {
 					compileOrder := indexOf(compilationOrder, pkg)
 					for _, dependencyPkg := range pkg.Dependencies {
 						errorMessage := fmt.Sprintf("Package '%s' should be compiled later than package '%s'", pkg.Name, dependencyPkg.Name)
@@ -139,7 +122,7 @@ var _ = Describe("NewDependencyAnalylis", func() {
 					Dependencies: []*bmrel.Package{&ruby},
 				}
 
-				packages := []*bmrel.Package{
+				packages = []*bmrel.Package{
 					&nginx,
 					&genisoimage,
 					&powerdns,
@@ -156,19 +139,10 @@ var _ = Describe("NewDependencyAnalylis", func() {
 					&healthMonitor, // after ruby, libpq, postgres
 				}
 
-				release = bmrel.NewRelease(
-					"fake-release",
-					"fake-version",
-					[]bmrel.Job{},
-					packages,
-					"/some/release/path",
-					fakeFS,
-				)
-
-				compilationOrder, err := da.DeterminePackageCompilationOrder(release)
+				compilationOrder, err := da.DeterminePackageCompilationOrder(packages)
 				Expect(err).NotTo(HaveOccurred())
 
-				for _, pkg := range release.Packages() {
+				for _, pkg := range packages {
 					compileOrder := indexOf(compilationOrder, pkg)
 					for _, dependencyPkg := range pkg.Dependencies {
 						errorMessage := fmt.Sprintf("Package '%s' should be compiled later than package '%s'", pkg.Name, dependencyPkg.Name)
@@ -182,7 +156,7 @@ var _ = Describe("NewDependencyAnalylis", func() {
 		// 	It("fails with error", func() {
 		// 		package1.Dependencies = []*Package{&package2}
 		// 		package2.Dependencies = []*Package{&package1}
-		// 		_, err := da.DeterminePackageCompilationOrder(release)
+		// 		_, err := da.DeterminePackageCompilationOrder(packages)
 		// 		Expect(err).To(HaveOccurred())
 		// 	})
 
@@ -194,7 +168,7 @@ var _ = Describe("NewDependencyAnalylis", func() {
 		// 		}
 		// 		package2.Dependencies = []*Package{&package3}
 
-		// 		_, err := da.DeterminePackageCompilationOrder(release)
+		// 		_, err := da.DeterminePackageCompilationOrder(packages)
 		// 		Expect(err).To(HaveOccurred())
 		// 	})
 		// })

@@ -4,8 +4,12 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
+type PackageSorter interface {
+	Sort([]*bmrel.Package) ([]*bmrel.Package, error)
+}
+
 type DependencyAnalysis interface {
-	DeterminePackageCompilationOrder(release bmrel.Release) ([]*bmrel.Package, error)
+	DeterminePackageCompilationOrder([]*bmrel.Package) ([]*bmrel.Package, error)
 }
 
 type dependencyAnalysis struct {
@@ -22,9 +26,9 @@ func NewDependencyAnalysis() DependencyAnalysis {
 	}
 }
 
-func (da *dependencyAnalysis) DeterminePackageCompilationOrder(release bmrel.Release) ([]*bmrel.Package, error) {
+func (da *dependencyAnalysis) DeterminePackageCompilationOrder(packages []*bmrel.Package) ([]*bmrel.Package, error) {
 	// Implementation of the topological sort alg outlined here http://en.wikipedia.org/wiki/Topological_sort
-	for _, pkg := range release.Packages() {
+	for _, pkg := range packages {
 		da.markedPkgs[pkg] = false
 	}
 
