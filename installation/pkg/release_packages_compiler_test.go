@@ -23,22 +23,21 @@ var _ = Describe("ReleaseCompiler", func() {
 	var (
 		release                 bmrel.Release
 		releasePackagesCompiler ReleasePackagesCompiler
-		da                      *fakebminstallpkg.FakeDependencyAnalysis
 		packageCompiler         *fakebminstallpkg.FakePackageCompiler
 		eventLogger             *fakebmlog.FakeEventLogger
 		fakeStage               *fakebmlog.FakeStage
 		timeService             *faketime.FakeService
+		fakeFS                  *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
-		da = fakebminstallpkg.NewFakeDependencyAnalysis()
 		packageCompiler = fakebminstallpkg.NewFakePackageCompiler()
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
 		eventLogger.SetNewStageBehavior(fakeStage)
 		timeService = &faketime.FakeService{}
-		releasePackagesCompiler = NewReleasePackagesCompiler(da, packageCompiler, eventLogger, timeService)
-		fakeFS := fakesys.NewFakeFileSystem()
+		releasePackagesCompiler = NewReleasePackagesCompiler(packageCompiler, eventLogger, timeService)
+		fakeFS = fakesys.NewFakeFileSystem()
 		release = bmrel.NewRelease(
 			"fake-release",
 			"fake-version",
@@ -69,21 +68,19 @@ var _ = Describe("ReleaseCompiler", func() {
 			var package1, package2 bmrel.Package
 
 			BeforeEach(func() {
-				package1 = bmrel.Package{Name: "fake-package-1", Fingerprint: "fake-fingerprint-1"}
-				package2 = bmrel.Package{Name: "fake-package-2", Fingerprint: "fake-fingerprint-2"}
+				package1 = bmrel.Package{Name: "fake-package-1", Fingerprint: "fake-fingerprint-1", Dependencies: []*bmrel.Package{}}
+				package2 = bmrel.Package{Name: "fake-package-2", Fingerprint: "fake-fingerprint-2", Dependencies: []*bmrel.Package{&package1}}
 
 				expectedPackages = []*bmrel.Package{&package1, &package2}
 
-				da.DeterminePackageCompilationOrderResult = []*bmrel.Package{
-					&package1,
-					&package2,
-				}
-			})
-
-			It("determines the order to compile packages", func() {
-				err := releasePackagesCompiler.Compile(release)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(da.DeterminePackageCompilationOrderSource).To(Equal(release.Packages()))
+				release = bmrel.NewRelease(
+					"fake-release",
+					"fake-version",
+					[]bmrel.Job{},
+					[]*bmrel.Package{&package2, &package1},
+					"/some/release/path",
+					fakeFS,
+				)
 			})
 
 			It("compiles each package", func() {

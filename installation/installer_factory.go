@@ -144,9 +144,7 @@ func (c *installerFactoryContext) ReleaseCompiler() bminstallpkg.ReleaseCompiler
 		return c.releaseCompiler
 	}
 
-	da := bminstallpkg.NewDependencyAnalysis()
 	releasePackagesCompiler := bminstallpkg.NewReleasePackagesCompiler(
-		da,
 		c.PackageCompiler(),
 		c.eventLogger,
 		c.timeService,

@@ -15,23 +15,20 @@ type ReleasePackagesCompiler interface {
 }
 
 type releasePackagesCompiler struct {
-	dependencyAnalysis DependencyAnalysis
-	packageCompiler    PackageCompiler
-	eventLogger        bmeventlog.EventLogger
-	timeService        boshtime.Service
+	packageCompiler PackageCompiler
+	eventLogger     bmeventlog.EventLogger
+	timeService     boshtime.Service
 }
 
 func NewReleasePackagesCompiler(
-	da DependencyAnalysis,
 	packageCompiler PackageCompiler,
 	eventLogger bmeventlog.EventLogger,
 	timeService boshtime.Service,
 ) ReleasePackagesCompiler {
 	return &releasePackagesCompiler{
-		dependencyAnalysis: da,
-		packageCompiler:    packageCompiler,
-		eventLogger:        eventLogger,
-		timeService:        timeService,
+		packageCompiler: packageCompiler,
+		eventLogger:     eventLogger,
+		timeService:     timeService,
 	}
 }
 
@@ -40,15 +37,12 @@ func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
 	eventLoggerStage.Start()
 	defer eventLoggerStage.Finish()
 
-	packages, err := c.dependencyAnalysis.DeterminePackageCompilationOrder(release.Packages())
-	if err != nil {
-		return bosherr.WrapError(err, "Compiling release")
-	}
+	packages := Sort(release.Packages())
 
 	for _, pkg := range packages {
 		stepName := fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint)
 		err := eventLoggerStage.PerformStep(stepName, func() error {
-			err = c.packageCompiler.Compile(pkg)
+			err := c.packageCompiler.Compile(pkg)
 
 			if err != nil {
 				return bosherr.WrapError(err, fmt.Sprintf("Package '%s' compilation failed", pkg.Name))
