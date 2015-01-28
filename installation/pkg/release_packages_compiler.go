@@ -8,6 +8,7 @@ import (
 
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type ReleasePackagesCompiler interface {
@@ -37,7 +38,7 @@ func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
 	eventLoggerStage.Start()
 	defer eventLoggerStage.Finish()
 
-	packages := Sort(release.Packages())
+	packages := bmrelpkg.Sort(release.Packages())
 
 	for _, pkg := range packages {
 		stepName := fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint)

@@ -10,7 +10,7 @@ import (
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 var _ = Describe("Sort", func() {
