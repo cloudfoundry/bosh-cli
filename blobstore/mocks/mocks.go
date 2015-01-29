@@ -72,22 +72,13 @@ func (_mr *_MockBlobstoreRecorder) Add(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Add", arg0)
 }
 
-func (_m *MockBlobstore) Get(_param0 string, _param1 string) error {
-	ret := _m.ctrl.Call(_m, "Get", _param0, _param1)
-	ret0, _ := ret[0].(error)
-	return ret0
+func (_m *MockBlobstore) Get(_param0 string) (blobstore.LocalBlob, error) {
+	ret := _m.ctrl.Call(_m, "Get", _param0)
+	ret0, _ := ret[0].(blobstore.LocalBlob)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockBlobstoreRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
-}
-
-func (_m *MockBlobstore) Save(_param0 string, _param1 string) error {
-	ret := _m.ctrl.Call(_m, "Save", _param0, _param1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockBlobstoreRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Save", arg0, arg1)
+func (_mr *_MockBlobstoreRecorder) Get(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }

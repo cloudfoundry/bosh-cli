@@ -119,8 +119,11 @@ type FakeFile struct {
 	StatErr error
 }
 
-func NewFakeFile(fs *FakeFileSystem) *FakeFile {
-	return &FakeFile{fs: fs}
+func NewFakeFile(path string, fs *FakeFileSystem) *FakeFile {
+	return &FakeFile{
+		path: path,
+		fs:   fs,
+	}
 }
 
 func (f *FakeFile) Name() string {
@@ -600,7 +603,7 @@ func (fs *FakeFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
 	for _, path := range paths {
 		fileStats := fs.files[path]
 		if strings.HasPrefix(path, root) {
-			fakeFile := NewFakeFile(fs)
+			fakeFile := NewFakeFile(path, fs)
 			fakeFile.Stats = fileStats
 			fileInfo, _ := fakeFile.Stat()
 			err := walkFunc(path, fileInfo, nil)

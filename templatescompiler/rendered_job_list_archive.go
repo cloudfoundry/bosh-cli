@@ -62,7 +62,6 @@ func (a *renderedJobListArchive) SHA1() string {
 	return a.sha1
 }
 
-//TODO: test me
 // Delete removes the archive file (does not delete the rendered jobs in the list)
 func (a *renderedJobListArchive) Delete() error {
 	err := a.fs.RemoveAll(a.path)
@@ -72,7 +71,6 @@ func (a *renderedJobListArchive) Delete() error {
 	return nil
 }
 
-//TODO: test me
 // DeleteSilently removes the archive file (does not delete the rendered jobs in the list),
 // logging instead of returning an error.
 func (a *renderedJobListArchive) DeleteSilently() {

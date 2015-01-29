@@ -8,7 +8,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
+	. "github.com/cloudfoundry/bosh-agent/retrystrategy"
 )
 
 var _ = Describe("AttemptRetryStrategy", func() {

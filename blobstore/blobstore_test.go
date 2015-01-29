@@ -35,19 +35,32 @@ var _ = Describe("Blobstore", func() {
 	})
 
 	Describe("Get", func() {
+		BeforeEach(func() {
+			fakeFile := fakesys.NewFakeFile("fake-destination-path", fs)
+			fs.ReturnTempFile = fakeFile
+		})
+
 		It("gets the blob from the blobstore", func() {
 			fakeDavClient.GetContents = ioutil.NopCloser(strings.NewReader("fake-content"))
 
-			err := blobstore.Get("fake-blob-id", "fake-destination-path")
+			localBlob, err := blobstore.Get("fake-blob-id")
 			Expect(err).ToNot(HaveOccurred())
+			defer localBlob.DeleteSilently()
+
 			Expect(fakeDavClient.GetPath).To(Equal("fake-blob-id"))
 		})
 
 		It("saves the blob to the destination path", func() {
 			fakeDavClient.GetContents = ioutil.NopCloser(strings.NewReader("fake-content"))
 
-			err := blobstore.Get("fake-blob-id", "fake-destination-path")
+			localBlob, err := blobstore.Get("fake-blob-id")
 			Expect(err).ToNot(HaveOccurred())
+			defer func() {
+				err := localBlob.Delete()
+				Expect(err).ToNot(HaveOccurred())
+			}()
+
+			Expect(localBlob.Path()).To(Equal("fake-destination-path"))
 
 			contents, err := fs.ReadFileString("fake-destination-path")
 			Expect(err).ToNot(HaveOccurred())
@@ -57,7 +70,8 @@ var _ = Describe("Blobstore", func() {
 		Context("when getting from blobstore fails", func() {
 			It("returns an error", func() {
 				fakeDavClient.GetErr = errors.New("fake-get-error")
-				err := blobstore.Get("fake-blob-id", "fake-destination-path")
+
+				_, err := blobstore.Get("fake-blob-id")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-get-error"))
 			})

@@ -10,7 +10,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/retrystrategy"
+	. "github.com/cloudfoundry/bosh-agent/retrystrategy"
 )
 
 var _ = Describe("TimeoutRetryStrategy", func() {

@@ -12,7 +12,7 @@ import (
 )
 
 type Blobstore interface {
-	Get(blobID, destinationPath string) error
+	Get(blobID string) (LocalBlob, error)
 	Add(sourcePath string) (blobID string, err error)
 }
 
@@ -40,26 +40,33 @@ func NewBlobstore(davClient boshdavcli.Client, uuidGenerator boshuuid.Generator,
 	}
 }
 
-func (b *blobstore) Get(blobID, destinationPath string) error {
+func (b *blobstore) Get(blobID string) (LocalBlob, error) {
+	file, err := b.fs.TempFile("bosh-micro-local-blob")
+	destinationPath := file.Name()
+	err = file.Close()
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Closing new temp file '%s'", destinationPath)
+	}
+
 	b.logger.Debug(b.logTag, "Downloading blob %s to %s", blobID, destinationPath)
 
 	readCloser, err := b.davClient.Get(blobID)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Getting blob %s from blobstore", blobID)
+		return nil, bosherr.WrapErrorf(err, "Getting blob %s from blobstore", blobID)
 	}
 	defer readCloser.Close()
 
 	targetFile, err := b.fs.OpenFile(destinationPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Opening file for blob at %s", destinationPath)
+		return nil, bosherr.WrapErrorf(err, "Opening file for blob at %s", destinationPath)
 	}
 
 	_, err = io.Copy(targetFile, readCloser)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Saving blob to %s", destinationPath)
+		return nil, bosherr.WrapErrorf(err, "Saving blob to %s", destinationPath)
 	}
 
-	return nil
+	return NewLocalBlob(destinationPath, b.fs, b.logger), nil
 }
 
 func (b *blobstore) Add(sourcePath string) (blobID string, err error) {
