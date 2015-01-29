@@ -566,4 +566,66 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 	})
+
+	Describe("CompilePackage", func() {
+		BeforeEach(func() {
+			fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+			fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+			fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+			fakeHTTPClient.SetPostBehavior(`{
+	"value": {
+		"result": {
+			"sha1": "fake-compiled-package-sha1",
+			"blobstore_id": "fake-compiled-package-blobstore-id"
+		}
+	}
+}
+`, 200, nil)
+		})
+
+		It("makes a compile_package request and waits for the task to be done", func() {
+			packageSource := bmac.BlobRef{
+				Name:        "fake-package-name",
+				Version:     "fake-package-version",
+				SHA1:        "fake-package-sha1",
+				BlobstoreID: "fake-package-blobstore-id",
+			}
+			dependencies := []bmac.BlobRef{
+				{
+					Name:        "fake-compiled-package-dep-name",
+					Version:     "fake-compiled-package-dep-version",
+					SHA1:        "fake-compiled-package-dep-sha1",
+					BlobstoreID: "fake-compiled-package-dep-blobstore-id",
+				},
+			}
+			_, err := agentClient.CompilePackage(packageSource, dependencies)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+			Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+			var request AgentRequestMessage
+			err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(request).To(Equal(AgentRequestMessage{
+				Method: "compile_package",
+				Arguments: []interface{}{
+					"fake-package-blobstore-id",
+					"fake-package-sha1",
+					"fake-package-name",
+					"fake-package-version",
+					map[string]interface{}{
+						"fake-compiled-package-dep-name": map[string]interface{}{
+							"name":         "fake-compiled-package-dep-name",
+							"version":      "fake-compiled-package-dep-version",
+							"sha1":         "fake-compiled-package-dep-sha1",
+							"blobstore_id": "fake-compiled-package-dep-blobstore-id",
+						},
+					},
+				},
+				ReplyTo: "fake-uuid",
+			}))
+		})
+	})
 })

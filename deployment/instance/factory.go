@@ -41,7 +41,7 @@ func (f *factory) NewInstance(
 	blobstore bmblobstore.Blobstore,
 	logger boshlog.Logger,
 ) Instance {
-	instanceStateBuilder := f.instanceStateBuilderFactory.NewStateBuilder(blobstore)
+	instanceStateBuilder := f.instanceStateBuilderFactory.NewStateBuilder(blobstore, vm.AgentClient())
 
 	return NewInstance(
 		jobName,

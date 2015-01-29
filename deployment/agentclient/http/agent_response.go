@@ -45,6 +45,26 @@ func (r *ListResponse) Unmarshal(message []byte) error {
 	return json.Unmarshal(message, r)
 }
 
+type BlobRef struct {
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	SHA1        string `json:"sha1"`
+	BlobstoreID string `json:"blobstore_id"`
+}
+
+type BlobResponse struct {
+	Value     map[string]string
+	Exception exceptionResponse
+}
+
+func (r *BlobResponse) GetException() exceptionResponse {
+	return r.Exception
+}
+
+func (r *BlobResponse) Unmarshal(message []byte) error {
+	return json.Unmarshal(message, r)
+}
+
 type StateResponse struct {
 	Value     AgentState
 	Exception exceptionResponse

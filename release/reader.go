@@ -166,6 +166,7 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelmanifes
 		pkg.Fingerprint = manifestPackage.Fingerprint
 		pkg.SHA1 = manifestPackage.SHA1
 		pkg.ExtractedPath = extractedPackagePath
+		pkg.ArchivePath = packageArchivePath
 
 		pkg.Dependencies = []*Package{}
 		for _, manifestPackageName := range manifestPackage.Dependencies {

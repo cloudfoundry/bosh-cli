@@ -80,6 +80,7 @@ packages:
 								SHA1:          "fake-package-sha",
 								Dependencies:  []*Package{&Package{Name: "fake-package-1"}},
 								ExtractedPath: "/extracted/release/extracted_packages/fake-package",
+								ArchivePath:   "/extracted/release/packages/fake-package.tgz",
 							}
 							Expect(release.Name()).To(Equal("fake-release"))
 							Expect(release.Version()).To(Equal("fake-version"))

@@ -49,11 +49,13 @@ func (c *agentClient) Ping() (string, error) {
 }
 
 func (c *agentClient) Stop() error {
-	return c.sendAsyncTaskMessage("stop", []interface{}{})
+	_, err := c.sendAsyncTaskMessage("stop", []interface{}{})
+	return err
 }
 
 func (c *agentClient) Apply(spec bmas.ApplySpec) error {
-	return c.sendAsyncTaskMessage("apply", []interface{}{spec})
+	_, err := c.sendAsyncTaskMessage("apply", []interface{}{spec})
+	return err
 }
 
 func (c *agentClient) Start() error {
@@ -94,27 +96,30 @@ func (c *agentClient) ListDisk() ([]string, error) {
 }
 
 func (c *agentClient) MountDisk(diskCID string) error {
-	return c.sendAsyncTaskMessage("mount_disk", []interface{}{diskCID})
+	_, err := c.sendAsyncTaskMessage("mount_disk", []interface{}{diskCID})
+	return err
 }
 
 func (c *agentClient) UnmountDisk(diskCID string) error {
-	return c.sendAsyncTaskMessage("unmount_disk", []interface{}{diskCID})
+	_, err := c.sendAsyncTaskMessage("unmount_disk", []interface{}{diskCID})
+	return err
 }
 
 func (c *agentClient) MigrateDisk() error {
-	return c.sendAsyncTaskMessage("migrate_disk", []interface{}{})
+	_, err := c.sendAsyncTaskMessage("migrate_disk", []interface{}{})
+	return err
 }
 
-func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) error {
+func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) (value map[string]interface{}, err error) {
 	var response TaskResponse
-	err := c.agentRequest.Send(method, arguments, &response)
+	err = c.agentRequest.Send(method, arguments, &response)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Sending '%s' to the agent", method)
+		return value, bosherr.WrapErrorf(err, "Sending '%s' to the agent", method)
 	}
 
 	agentTaskID, err := response.TaskID()
 	if err != nil {
-		return bosherr.WrapError(err, "Getting agent task id")
+		return value, bosherr.WrapError(err, "Getting agent task id")
 	}
 
 	getTaskRetryable := boshretry.NewRetryable(func() (bool, error) {
@@ -124,12 +129,19 @@ func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{
 			return false, bosherr.WrapError(err, "Sending 'get_task' to the agent")
 		}
 
+		c.logger.Debug(c.logTag, "get_task response value: %#v", response.Value)
+
 		taskState, err := response.TaskState()
 		if err != nil {
 			return false, bosherr.WrapError(err, "Getting task state")
 		}
 
 		if taskState != "running" {
+			var ok bool
+			value, ok = response.Value.(map[string]interface{})
+			if !ok {
+				c.logger.Warn(c.logTag, "Unable to parse get_task response value: %#v", response.Value)
+			}
 			return true, nil
 		}
 
@@ -137,5 +149,54 @@ func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{
 	})
 
 	getTaskRetryStrategy := boshretry.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)
-	return getTaskRetryStrategy.Try()
+	return value, getTaskRetryStrategy.Try()
+}
+
+func (c *agentClient) CompilePackage(packageSource bmac.BlobRef, compiledPackageDependencies []bmac.BlobRef) (compiledPackageRef bmac.BlobRef, err error) {
+	dependencies := make(map[string]BlobRef, len(compiledPackageDependencies))
+	for _, dependency := range compiledPackageDependencies {
+		dependencies[dependency.Name] = BlobRef{
+			Name:        dependency.Name,
+			Version:     dependency.Version,
+			SHA1:        dependency.SHA1,
+			BlobstoreID: dependency.BlobstoreID,
+		}
+	}
+
+	args := []interface{}{
+		packageSource.BlobstoreID,
+		packageSource.SHA1,
+		packageSource.Name,
+		packageSource.Version,
+		dependencies,
+	}
+
+	responseValue, err := c.sendAsyncTaskMessage("compile_package", args)
+	if err != nil {
+		return bmac.BlobRef{}, bosherr.WrapError(err, "Sending 'compile_package' to the agent")
+	}
+
+	result, ok := responseValue["result"].(map[string]interface{})
+	if !ok {
+		return bmac.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
+	}
+
+	sha1, ok := result["sha1"].(string)
+	if !ok {
+		return bmac.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
+	}
+
+	blobstoreID, ok := result["blobstore_id"].(string)
+	if !ok {
+		return bmac.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
+	}
+
+	compiledPackageRef = bmac.BlobRef{
+		Name:        packageSource.Name,
+		Version:     packageSource.Version,
+		SHA1:        sha1,
+		BlobstoreID: blobstoreID,
+	}
+
+	return compiledPackageRef, nil
 }

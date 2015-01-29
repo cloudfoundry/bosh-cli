@@ -14,8 +14,16 @@ type AgentClient interface {
 	UnmountDisk(string) error
 	ListDisk() ([]string, error)
 	MigrateDisk() error
+	CompilePackage(packageSource BlobRef, compiledPackageDependencies []BlobRef) (compiledPackageRef BlobRef, err error)
 }
 
 type AgentState struct {
 	JobState string
+}
+
+type BlobRef struct {
+	Name        string
+	Version     string
+	BlobstoreID string
+	SHA1        string
 }

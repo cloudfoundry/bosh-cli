@@ -131,6 +131,8 @@ var _ = Describe("Deployer", func() {
 		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
 		fakeVMManager.CreateVM = fakeVM
 
+		fakeVM.AgentClientReturn = mockAgentClient
+
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
@@ -198,8 +200,8 @@ var _ = Describe("Deployer", func() {
 			Deployment: "fake-deployment-name",
 		}
 
-		mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore).Return(mockStateBuilder).AnyTimes()
-		mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+		mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
+		mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
 		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 	})
 
@@ -230,6 +232,7 @@ var _ = Describe("Deployer", func() {
 		BeforeEach(func() {
 			fakeExistingVM = fakebmvm.NewFakeVM("existing-vm-cid")
 			fakeVMManager.SetFindCurrentBehavior(fakeExistingVM, true, nil)
+			fakeExistingVM.AgentClientReturn = mockAgentClient
 		})
 
 		It("deletes existing vm", func() {

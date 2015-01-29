@@ -13,7 +13,7 @@ srcFiles=(
 	deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
 	deployment/agentclient/AgentClient
 	deployment/agentclient/http/AgentClientFactory
-	deployment/instance/Instance,Manager,StateBuilderFactory,StateBuilder,State
+	deployment/instance/Instance,Manager,StateBuilderFactory,StateBuilder,State,PackageCompiler
 	deployment/disk/Disk,Manager
 	deployment/stemcell/CloudStemcell,Manager
 	deployment/vm/ManagerFactory

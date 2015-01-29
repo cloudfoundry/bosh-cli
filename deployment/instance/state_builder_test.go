@@ -16,7 +16,6 @@ import (
 
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
@@ -34,6 +33,7 @@ var _ = Describe("StateBuilder", func() {
 	var (
 		logger boshlog.Logger
 
+		mockPackageCompiler    *mock_instance.MockPackageCompiler
 		mockReleaseJobResolver *mock_deployment_release.MockJobResolver
 		mockJobListRenderer    *mock_template.MockJobListRenderer
 		mockCompressor         *mock_template.MockRenderedJobListCompressor
@@ -47,6 +47,7 @@ var _ = Describe("StateBuilder", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
+		mockPackageCompiler = mock_instance.NewMockPackageCompiler(mockCtrl)
 		mockReleaseJobResolver = mock_deployment_release.NewMockJobResolver(mockCtrl)
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		mockCompressor = mock_template.NewMockRenderedJobListCompressor(mockCtrl)
@@ -64,7 +65,6 @@ var _ = Describe("StateBuilder", func() {
 			jobName            string
 			instanceID         int
 			deploymentManifest bmdeplmanifest.Manifest
-			stemcellApplySpec  bmstemcell.ApplySpec
 		)
 
 		BeforeEach(func() {
@@ -107,24 +107,8 @@ var _ = Describe("StateBuilder", func() {
 				},
 			}
 
-			stemcellApplySpec = bmstemcell.ApplySpec{
-				Packages: map[string]bmstemcell.Blob{
-					"cpi": bmstemcell.Blob{
-						Name:        "cpi",
-						Version:     "fake-fingerprint-cpi",
-						SHA1:        "fake-sha1-cpi",
-						BlobstoreID: "fake-package-blob-id-cpi",
-					},
-					"ruby": bmstemcell.Blob{
-						Name:        "ruby",
-						Version:     "fake-fingerprint-ruby",
-						SHA1:        "fake-sha1-ruby",
-						BlobstoreID: "fake-package-blob-id-ruby",
-					},
-				},
-			}
-
 			stateBuilder = NewStateBuilder(
+				mockPackageCompiler,
 				mockReleaseJobResolver,
 				mockJobListRenderer,
 				mockCompressor,
@@ -134,11 +118,67 @@ var _ = Describe("StateBuilder", func() {
 		})
 
 		JustBeforeEach(func() {
+			releasePackageLibyaml := bmrel.Package{
+				Name:         "libyaml",
+				Fingerprint:  "fake-package-source-fingerprint-libyaml",
+				SHA1:         "fake-package-source-sha1-libyaml",
+				Dependencies: []*bmrel.Package{},
+				ArchivePath:  "fake-package-archive-path-libyaml", //TODO: required by compiler...
+			}
+			releasePackageRuby := bmrel.Package{
+				Name:         "ruby",
+				Fingerprint:  "fake-package-source-fingerprint-ruby",
+				SHA1:         "fake-package-source-sha1-ruby",
+				Dependencies: []*bmrel.Package{&releasePackageLibyaml},
+				ArchivePath:  "fake-package-archive-path-ruby", //TODO: required by compiler...
+			}
+			releasePackageCPI := bmrel.Package{
+				Name:         "cpi",
+				Fingerprint:  "fake-package-source-fingerprint-cpi",
+				SHA1:         "fake-package-source-sha1-cpi",
+				Dependencies: []*bmrel.Package{&releasePackageRuby},
+				ArchivePath:  "fake-package-archive-path-cpi", //TODO: required by compiler...
+			}
 			releaseJob := bmrel.Job{
 				Name:        "fake-release-job-name",
-				Fingerprint: "fake-release-job-fingerprint",
+				Fingerprint: "fake-release-job-source-fingerprint",
+				Packages:    []*bmrel.Package{&releasePackageCPI, &releasePackageRuby}, //TODO: test transitive package resolution
 			}
 			mockReleaseJobResolver.EXPECT().Resolve("fake-release-job-name", "fake-release-name").Return(releaseJob, nil)
+
+			compiledPackageLibyaml := PackageRef{
+				Name:    "libyaml",
+				Version: "fake-package-source-fingerprint-libyaml",
+				Archive: BlobRef{
+					SHA1:        "fake-package-compiled-archive-sha1-libyaml",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
+				},
+			}
+			compiledPackageRuby := PackageRef{
+				Name:    "ruby",
+				Version: "fake-package-source-fingerprint-ruby",
+				Archive: BlobRef{
+					SHA1:        "fake-package-compiled-archive-sha1-ruby",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
+				},
+			}
+			compiledPackageCPI := PackageRef{
+				Name:    "cpi",
+				Version: "fake-package-source-fingerprint-cpi",
+				Archive: BlobRef{
+					SHA1:        "fake-package-compiled-archive-sha1-cpi",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
+				},
+			}
+
+			compiledLibyamlDeps := map[string]PackageRef{}
+			compiledRubyDeps := map[string]PackageRef{"libyaml": compiledPackageLibyaml}
+			compiledCPIDeps := map[string]PackageRef{"libyaml": compiledPackageLibyaml, "ruby": compiledPackageRuby}
+			gomock.InOrder(
+				mockPackageCompiler.EXPECT().Compile(&releasePackageLibyaml, compiledLibyamlDeps).Return(compiledPackageLibyaml, nil),
+				mockPackageCompiler.EXPECT().Compile(&releasePackageRuby, compiledRubyDeps).Return(compiledPackageRuby, nil),
+				mockPackageCompiler.EXPECT().Compile(&releasePackageCPI, compiledCPIDeps).Return(compiledPackageCPI, nil),
+			)
 
 			releaseJobs := []bmrel.Job{releaseJob}
 			jobProperties := map[string]interface{}{
@@ -160,10 +200,9 @@ var _ = Describe("StateBuilder", func() {
 		})
 
 		It("builds a new instance state with zero-to-many networks", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, stemcellApplySpec)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(state.NetworkInterfaces()).To(HaveLen(1))
 			Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
 				Name: "fake-network-name",
 				Interface: map[string]interface{}{
@@ -174,16 +213,16 @@ var _ = Describe("StateBuilder", func() {
 					},
 				},
 			}))
+			Expect(state.NetworkInterfaces()).To(HaveLen(1))
 		})
 
 		It("builds a new instance state with zero-to-many rendered jobs from one or more releases", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, stemcellApplySpec)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(state.RenderedJobs()).To(HaveLen(1))
 			Expect(state.RenderedJobs()).To(ContainElement(JobRef{
 				Name:    "fake-release-job-name",
-				Version: "fake-release-job-fingerprint",
+				Version: "fake-release-job-source-fingerprint",
 			}))
 
 			// multiple jobs are rendered in a single archive
@@ -191,33 +230,64 @@ var _ = Describe("StateBuilder", func() {
 				BlobstoreID: "fake-rendered-job-list-archive-blob-id",
 				SHA1:        "fake-rendered-job-list-archive-sha1",
 			}))
+			Expect(state.RenderedJobs()).To(HaveLen(1))
 		})
 
-		It("builds a new instance state with zero-to-many compiled packages from one or more releases", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, stemcellApplySpec)
+		It("builds a new instance state with the compiled packages required by the release jobs", func() {
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(state.CompiledPackages()).To(HaveLen(2))
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 				Name:    "cpi",
-				Version: "fake-fingerprint-cpi",
+				Version: "fake-package-source-fingerprint-cpi",
 				Archive: BlobRef{
-					SHA1:        "fake-sha1-cpi",
-					BlobstoreID: "fake-package-blob-id-cpi",
+					SHA1:        "fake-package-compiled-archive-sha1-cpi",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
 				},
 			}))
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 				Name:    "ruby",
-				Version: "fake-fingerprint-ruby",
+				Version: "fake-package-source-fingerprint-ruby",
 				Archive: BlobRef{
-					SHA1:        "fake-sha1-ruby",
-					BlobstoreID: "fake-package-blob-id-ruby",
+					SHA1:        "fake-package-compiled-archive-sha1-ruby",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
 				},
 			}))
 		})
 
+		It("builds a new instance state that includes transitively dependent compiled packages", func() {
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
+				Name:    "cpi",
+				Version: "fake-package-source-fingerprint-cpi",
+				Archive: BlobRef{
+					SHA1:        "fake-package-compiled-archive-sha1-cpi",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
+				},
+			}))
+			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
+				Name:    "ruby",
+				Version: "fake-package-source-fingerprint-ruby",
+				Archive: BlobRef{
+					SHA1:        "fake-package-compiled-archive-sha1-ruby",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
+				},
+			}))
+			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
+				Name:    "libyaml",
+				Version: "fake-package-source-fingerprint-libyaml",
+				Archive: BlobRef{
+					SHA1:        "fake-package-compiled-archive-sha1-libyaml",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
+				},
+			}))
+			Expect(state.CompiledPackages()).To(HaveLen(3))
+		})
+
 		It("builds an instance state that can be converted to an ApplySpec", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, stemcellApplySpec)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bmas.ApplySpec{
@@ -237,22 +307,28 @@ var _ = Describe("StateBuilder", func() {
 					Templates: []bmas.Blob{
 						{
 							Name:    "fake-release-job-name",
-							Version: "fake-release-job-fingerprint",
+							Version: "fake-release-job-source-fingerprint",
 						},
 					},
 				},
 				Packages: map[string]bmas.Blob{
 					"cpi": bmas.Blob{
 						Name:        "cpi",
-						Version:     "fake-fingerprint-cpi",
-						SHA1:        "fake-sha1-cpi",
-						BlobstoreID: "fake-package-blob-id-cpi",
+						Version:     "fake-package-source-fingerprint-cpi",
+						SHA1:        "fake-package-compiled-archive-sha1-cpi",
+						BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
 					},
 					"ruby": bmas.Blob{
 						Name:        "ruby",
-						Version:     "fake-fingerprint-ruby",
-						SHA1:        "fake-sha1-ruby",
-						BlobstoreID: "fake-package-blob-id-ruby",
+						Version:     "fake-package-source-fingerprint-ruby",
+						SHA1:        "fake-package-compiled-archive-sha1-ruby",
+						BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
+					},
+					"libyaml": bmas.Blob{
+						Name:        "libyaml",
+						Version:     "fake-package-source-fingerprint-libyaml",
+						SHA1:        "fake-package-compiled-archive-sha1-libyaml",
+						BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
 					},
 				},
 				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{

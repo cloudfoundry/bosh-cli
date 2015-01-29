@@ -11,7 +11,6 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
@@ -23,7 +22,7 @@ type Instance interface {
 	Disks() ([]bmdisk.Disk, error)
 	WaitUntilReady(bminstallmanifest.Registry, bminstallmanifest.SSHTunnel, bmeventlog.Stage) error
 	UpdateDisks(bmdeplmanifest.Manifest, bmeventlog.Stage) ([]bmdisk.Disk, error)
-	UpdateJobs(bmdeplmanifest.Manifest, bmstemcell.ApplySpec, bmeventlog.Stage) error
+	UpdateJobs(bmdeplmanifest.Manifest, bmeventlog.Stage) error
 	Delete(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
@@ -130,10 +129,9 @@ func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, event
 
 func (i *instance) UpdateJobs(
 	deploymentManifest bmdeplmanifest.Manifest,
-	stemcellApplySpec bmstemcell.ApplySpec,
 	eventLoggerStage bmeventlog.Stage,
 ) error {
-	instanceState, err := i.instanceStateBuilder.Build(i.jobName, i.id, deploymentManifest, stemcellApplySpec)
+	instanceState, err := i.instanceStateBuilder.Build(i.jobName, i.id, deploymentManifest)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Builing state for instance '%s/%d'", i.jobName, i.id)
 	}

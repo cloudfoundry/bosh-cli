@@ -160,6 +160,8 @@ jobs:
   persistent_disk: 1024
   networks:
   - name: network-1
+  templates:
+  - {name: cpi, release: fake-cpi-release-name}
 
 cloud_provider:
   release: fake-cpi-release-name
@@ -199,6 +201,8 @@ jobs:
   persistent_disk: 2048
   networks:
   - name: network-1
+  templates:
+  - {name: cpi, release: fake-cpi-release-name}
 
 cloud_provider:
   release: fake-cpi-release-name
@@ -222,6 +226,14 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
+			cpiPackage := bmrel.Package{
+				Name:          "cpi",
+				Fingerprint:   "fake-package-fingerprint-cpi",
+				SHA1:          "fake-package-sha1-cpi",
+				Dependencies:  []*bmrel.Package{},
+				ExtractedPath: "fake-package-extracted-path-cpi",
+				ArchivePath:   "fake-package-archive-path-cpi",
+			}
 			cpiRelease := bmrel.NewRelease(
 				"fake-cpi-release-name",
 				"1.1",
@@ -231,9 +243,10 @@ cloud_provider:
 						Templates: map[string]string{
 							"cpi.erb": "bin/cpi",
 						},
+						Packages: []*bmrel.Package{&cpiPackage},
 					},
 				},
-				[]*bmrel.Package{},
+				[]*bmrel.Package{&cpiPackage},
 				"fake-cpi-extracted-dir",
 				fs,
 			)
@@ -306,7 +319,6 @@ cloud_provider:
 			applySpec = bmas.ApplySpec{
 				Deployment: "test-release",
 				Index:      jobIndex,
-				Packages:   map[string]bmas.Blob{},
 				Networks: map[string]interface{}{
 					"network-1": map[string]interface{}{
 						"cloud_properties": map[string]interface{}{},
@@ -318,12 +330,20 @@ cloud_provider:
 					Name:      jobName,
 					Templates: []bmas.Blob{},
 				},
+				Packages: map[string]bmas.Blob{
+					"cpi": bmas.Blob{
+						Name:        "cpi",
+						Version:     "fake-package-fingerprint-cpi",
+						SHA1:        "fake-compiled-package-sha1-cpi",
+						BlobstoreID: "fake-compiled-package-blob-id-cpi",
+					},
+				},
 				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
 				ConfigurationHash:        "",
 			}
 
-			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore).Return(mockStateBuilder).AnyTimes()
-			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
+			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 
@@ -386,6 +406,8 @@ cloud_provider:
 			vmCID := "fake-vm-cid-1"
 			diskCID := "fake-disk-cid-1"
 			diskSize := 1024
+
+			//TODO: use a real StateBuilder and test mockBlobstore.Add & mockAgentClient.CompilePackage
 
 			gomock.InOrder(
 				mockCloud.EXPECT().CreateStemcell(stemcellImagePath, cloudProperties).Return(stemcellCID, nil),

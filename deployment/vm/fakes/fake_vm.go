@@ -3,6 +3,7 @@ package fakes
 import (
 	"time"
 
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -15,6 +16,8 @@ type FakeVM struct {
 	ExistsCalled int
 	ExistsFound  bool
 	ExistsErr    error
+
+	AgentClientReturn bmagentclient.AgentClient
 
 	UpdateDisksInputs []UpdateDisksInput
 	UpdateDisksDisks  []bmdisk.Disk
@@ -107,6 +110,10 @@ func (vm *FakeVM) CID() string {
 func (vm *FakeVM) Exists() (bool, error) {
 	vm.ExistsCalled++
 	return vm.ExistsFound, vm.ExistsErr
+}
+
+func (vm *FakeVM) AgentClient() bmagentclient.AgentClient {
+	return vm.AgentClientReturn
 }
 
 func (vm *FakeVM) WaitUntilReady(timeout time.Duration, delay time.Duration) error {

@@ -45,6 +45,11 @@ type getStateOutput struct {
 	err   error
 }
 
+type compilePackageOutput struct {
+	blobRef bmagentclient.BlobRef
+	err     error
+}
+
 func NewFakeAgentClient() *FakeAgentClient {
 	return &FakeAgentClient{
 		getStateOutputs: []getStateOutput{},
@@ -107,6 +112,16 @@ func (c *FakeAgentClient) UnmountDisk(diskCID string) error {
 func (c *FakeAgentClient) MigrateDisk() error {
 	c.MigrateDiskCalledTimes++
 	return c.migrateDiskErr
+}
+
+func (c *FakeAgentClient) CompilePackage(
+	packageSource bmagentclient.BlobRef,
+	compiledPackageDependencies []bmagentclient.BlobRef,
+) (
+	compiledPackageRef bmagentclient.BlobRef,
+	err error,
+) {
+	return bmagentclient.BlobRef{}, nil
 }
 
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {

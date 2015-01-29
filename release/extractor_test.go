@@ -129,6 +129,7 @@ properties: {}
 						Fingerprint:   "fake-release-package-fingerprint",
 						SHA1:          "fake-release-package-sha1",
 						ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name",
+						ArchivePath:   "/extracted-release-path/packages/fake-release-package-name.tgz",
 						Dependencies:  []*Package{},
 					}
 					expectedRelease := NewRelease(

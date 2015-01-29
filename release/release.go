@@ -76,6 +76,7 @@ type Package struct {
 	SHA1          string
 	Dependencies  []*Package
 	ExtractedPath string
+	ArchivePath   string
 }
 
 func (p Package) String() string {

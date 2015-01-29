@@ -21,6 +21,7 @@ import (
 type VM interface {
 	CID() string
 	Exists() (bool, error)
+	AgentClient() bmagentclient.AgentClient
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
 	Start() error
 	Stop() error
@@ -80,6 +81,10 @@ func (vm *vm) Exists() (bool, error) {
 		return false, bosherr.WrapErrorf(err, "Checking existance of VM '%s'", vm.cid)
 	}
 	return exists, nil
+}
+
+func (vm *vm) AgentClient() bmagentclient.AgentClient {
+	return vm.agentClient
 }
 
 func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {

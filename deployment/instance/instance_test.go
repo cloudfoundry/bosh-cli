@@ -19,7 +19,6 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
@@ -310,7 +309,6 @@ var _ = Describe("Instance", func() {
 
 	Describe("UpdateJobs", func() {
 		var (
-			stemcellApplySpec  bmstemcell.ApplySpec
 			deploymentJob      bmdeplmanifest.Job
 			deploymentManifest bmdeplmanifest.Manifest
 
@@ -342,17 +340,11 @@ var _ = Describe("Instance", func() {
 				ConfigurationHash:        "",
 			}
 
-			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, stemcellApplySpec).Return(mockState, nil).AnyTimes()
+			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 
 		BeforeEach(func() {
-			//TODO: once we compile packages locally, we can ignore the stemcell apply spec
-			// stemcell apply spec is being ignored except for the packages
-			stemcellApplySpec = bmstemcell.ApplySpec{
-				Packages: map[string]bmstemcell.Blob{},
-			}
-
 			deploymentJob = bmdeplmanifest.Job{
 				Name: "fake-job-name",
 				Templates: []bmdeplmanifest.ReleaseJobRef{
@@ -405,12 +397,12 @@ var _ = Describe("Instance", func() {
 		It("builds a new instance state", func() {
 			expectStateBuild.Times(1)
 
-			err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("tells agent to stop jobs, apply a new spec (with new rendered jobs templates), and start jobs", func() {
-			err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.StopCalled).To(Equal(1))
@@ -421,7 +413,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("waits until agent reports state as running", func() {
-			err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
@@ -431,7 +423,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
@@ -456,7 +448,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-err"))
 			})
@@ -468,7 +460,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 
@@ -489,7 +481,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
@@ -510,7 +502,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
@@ -531,7 +523,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.UpdateJobs(deploymentManifest, stemcellApplySpec, fakeStage)
+				err := instance.UpdateJobs(deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 

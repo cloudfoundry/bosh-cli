@@ -121,8 +121,8 @@ var _ = Describe("Deployment", func() {
 				ConfigurationHash:        "",
 			}
 
-			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore).Return(mockStateBuilder).AnyTimes()
-			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
+			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 

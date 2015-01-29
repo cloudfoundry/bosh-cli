@@ -92,7 +92,7 @@ func (d *deployer) Deploy(
 		return nil, err
 	}
 
-	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, extractedStemcell, cloudStemcell, registryConfig, sshTunnelConfig, deployStage)
+	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, cloudStemcell, registryConfig, sshTunnelConfig, deployStage)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,6 @@ func (d *deployer) Deploy(
 func (d *deployer) createAllInstances(
 	deploymentManifest bmdeplmanifest.Manifest,
 	instanceManager bminstance.Manager,
-	extractedStemcell bmstemcell.ExtractedStemcell,
 	cloudStemcell bmstemcell.CloudStemcell,
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
@@ -136,10 +135,7 @@ func (d *deployer) createAllInstances(
 			instances = append(instances, instance)
 			disks = append(disks, instanceDisks...)
 
-			//TODO: compile packages (on the vm), upload compiled packages (to the blobstore)
-			// instance.CompilePackages
-
-			err = instance.UpdateJobs(deploymentManifest, extractedStemcell.ApplySpec(), deployStage)
+			err = instance.UpdateJobs(deploymentManifest, deployStage)
 			if err != nil {
 				return instances, disks, err
 			}

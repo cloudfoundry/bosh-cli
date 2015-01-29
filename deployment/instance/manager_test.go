@@ -11,6 +11,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -60,34 +61,6 @@ var _ = Describe("Manager", func() {
 		manager Manager
 	)
 
-	var allowApplySpecToBeCreated = func() {
-		jobName := "cpi"
-		jobIndex := 0
-
-		applySpec := bmas.ApplySpec{
-			Deployment: "test-release",
-			Index:      jobIndex,
-			Packages:   map[string]bmas.Blob{},
-			Networks: map[string]interface{}{
-				"network-1": map[string]interface{}{
-					"cloud_properties": map[string]interface{}{},
-					"type":             "dynamic",
-					"ip":               "",
-				},
-			},
-			Job: bmas.Job{
-				Name:      jobName,
-				Templates: []bmas.Blob{},
-			},
-			RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
-			ConfigurationHash:        "",
-		}
-
-		mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore).Return(mockStateBuilder).AnyTimes()
-		mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
-		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
-	}
-
 	BeforeEach(func() {
 		fakeCloud = fakebmcloud.NewFakeCloud()
 
@@ -120,12 +93,9 @@ var _ = Describe("Manager", func() {
 		)
 	})
 
-	JustBeforeEach(func() {
-		allowApplySpecToBeCreated()
-	})
-
 	Describe("Create", func() {
 		var (
+			mockAgentClient    *mock_agentclient.MockAgentClient
 			fakeVM             *fakebmvm.FakeVM
 			diskPool           bmdeplmanifest.DiskPool
 			deploymentManifest bmdeplmanifest.Manifest
@@ -136,6 +106,34 @@ var _ = Describe("Manager", func() {
 			expectedInstance Instance
 			expectedDisk     *fakebmdisk.FakeDisk
 		)
+
+		var allowApplySpecToBeCreated = func() {
+			jobName := "cpi"
+			jobIndex := 0
+
+			applySpec := bmas.ApplySpec{
+				Deployment: "test-release",
+				Index:      jobIndex,
+				Packages:   map[string]bmas.Blob{},
+				Networks: map[string]interface{}{
+					"network-1": map[string]interface{}{
+						"cloud_properties": map[string]interface{}{},
+						"type":             "dynamic",
+						"ip":               "",
+					},
+				},
+				Job: bmas.Job{
+					Name:      jobName,
+					Templates: []bmas.Blob{},
+				},
+				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
+				ConfigurationHash:        "",
+			}
+
+			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
+			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
+			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+		}
 
 		BeforeEach(func() {
 			diskPool = bmdeplmanifest.DiskPool{
@@ -172,6 +170,9 @@ var _ = Describe("Manager", func() {
 			fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
 			fakeVMManager.CreateVM = fakeVM
 
+			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+			fakeVM.AgentClientReturn = mockAgentClient
+
 			expectedInstance = NewInstance(
 				"fake-job-name",
 				0,
@@ -184,6 +185,10 @@ var _ = Describe("Manager", func() {
 
 			expectedDisk = fakebmdisk.NewFakeDisk("fake-disk-cid")
 			fakeVM.UpdateDisksDisks = []bmdisk.Disk{expectedDisk}
+		})
+
+		JustBeforeEach(func() {
+			allowApplySpecToBeCreated()
 		})
 
 		It("returns an Instance that wraps a newly created VM", func() {

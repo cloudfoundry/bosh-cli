@@ -40,6 +40,17 @@ func (_mr *_MockAgentClientRecorder) Apply(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Apply", arg0)
 }
 
+func (_m *MockAgentClient) CompilePackage(_param0 agentclient.BlobRef, _param1 []agentclient.BlobRef) (agentclient.BlobRef, error) {
+	ret := _m.ctrl.Call(_m, "CompilePackage", _param0, _param1)
+	ret0, _ := ret[0].(agentclient.BlobRef)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockAgentClientRecorder) CompilePackage(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CompilePackage", arg0, arg1)
+}
+
 func (_m *MockAgentClient) GetState() (agentclient.AgentState, error) {
 	ret := _m.ctrl.Call(_m, "GetState")
 	ret0, _ := ret[0].(agentclient.AgentState)
