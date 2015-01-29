@@ -1,33 +1,38 @@
 package blobstore_test
 
 import (
-	"net/http"
+	. "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"net/http"
+
 	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
 	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/blobstore"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 )
 
 var _ = Describe("BlobstoreFactory", func() {
 	var (
-		httpClient       http.Client
-		fs               *fakesys.FakeFileSystem
-		logger           boshlog.Logger
-		blobstoreFactory Factory
+		fakeUUIDGenerator *fakeuuid.FakeGenerator
+		httpClient        http.Client
+		fs                *fakesys.FakeFileSystem
+		logger            boshlog.Logger
+		blobstoreFactory  Factory
 	)
+
 	BeforeEach(func() {
+		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 		fs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		httpClient = bmhttpclient.DefaultClient
 
-		blobstoreFactory = NewBlobstoreFactory(fs, logger)
+		blobstoreFactory = NewBlobstoreFactory(fakeUUIDGenerator, fs, logger)
 	})
 
 	Describe("Create", func() {
@@ -40,7 +45,7 @@ var _ = Describe("BlobstoreFactory", func() {
 					User:     "fake-user",
 					Password: "fake-password",
 				}, &httpClient)
-				expectedBlobstore := NewBlobstore(davClient, fs, logger)
+				expectedBlobstore := NewBlobstore(davClient, fakeUUIDGenerator, fs, logger)
 				Expect(blobstore).To(Equal(expectedBlobstore))
 			})
 		})
@@ -53,7 +58,7 @@ var _ = Describe("BlobstoreFactory", func() {
 					User:     "",
 					Password: "",
 				}, &httpClient)
-				expectedBlobstore := NewBlobstore(davClient, fs, logger)
+				expectedBlobstore := NewBlobstore(davClient, fakeUUIDGenerator, fs, logger)
 
 				blobstore, err := blobstoreFactory.Create("https://fake-host:1234")
 				Expect(err).ToNot(HaveOccurred())

@@ -312,7 +312,6 @@ func (f *factory) loadStateBuilderFactory() bminstance.StateBuilderFactory {
 		releaseJobResolver,
 		jobListRenderer,
 		renderedJobListCompressor,
-		f.uuidGenerator,
 		f.logger,
 	)
 	return f.stateBuilderFactory
@@ -425,7 +424,7 @@ func (f *factory) loadBlobstoreFactory() bmblobstore.Factory {
 		return f.blobstoreFactory
 	}
 
-	f.blobstoreFactory = bmblobstore.NewBlobstoreFactory(f.fs, f.logger)
+	f.blobstoreFactory = bmblobstore.NewBlobstoreFactory(f.uuidGenerator, f.fs, f.logger)
 	return f.blobstoreFactory
 }
 

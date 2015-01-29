@@ -14,8 +14,6 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	fakeboshuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -41,8 +39,6 @@ var _ = Describe("StateBuilder", func() {
 		mockCompressor         *mock_template.MockRenderedJobListCompressor
 		mockBlobstore          *mock_blobstore.MockBlobstore
 
-		fakeUUIDGenerator *fakeboshuuid.FakeGenerator
-
 		mockState *mock_instance.MockState
 
 		stateBuilder StateBuilder
@@ -55,8 +51,6 @@ var _ = Describe("StateBuilder", func() {
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		mockCompressor = mock_template.NewMockRenderedJobListCompressor(mockCtrl)
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
-
-		fakeUUIDGenerator = fakeboshuuid.NewFakeGenerator()
 
 		mockState = mock_instance.NewMockState(mockCtrl)
 
@@ -135,7 +129,6 @@ var _ = Describe("StateBuilder", func() {
 				mockJobListRenderer,
 				mockCompressor,
 				mockBlobstore,
-				fakeUUIDGenerator,
 				logger,
 			)
 		})
@@ -159,13 +152,11 @@ var _ = Describe("StateBuilder", func() {
 
 			mockRenderedJobListArchive.EXPECT().DeleteSilently()
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-rendered-job-list-archive-blob-id"
-
 			mockRenderedJobListArchive.EXPECT().Path().Return("fake-rendered-job-list-archive-path")
 			mockRenderedJobListArchive.EXPECT().SHA1().Return("fake-rendered-job-list-archive-sha1")
 			mockRenderedJobListArchive.EXPECT().Fingerprint().Return("fake-rendered-job-list-fingerprint")
 
-			mockBlobstore.EXPECT().Save("fake-rendered-job-list-archive-path", "fake-rendered-job-list-archive-blob-id")
+			mockBlobstore.EXPECT().Add("fake-rendered-job-list-archive-path").Return("fake-rendered-job-list-archive-blob-id", nil)
 		})
 
 		It("builds a new instance state with zero-to-many networks", func() {

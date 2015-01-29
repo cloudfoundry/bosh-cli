@@ -8,25 +8,30 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakeboshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
+	fakeboshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 )
 
 var _ = Describe("Blobstore", func() {
 	var (
-		blobstore     Blobstore
-		fakeDavClient *fakeboshdavcli.FakeClient
-		fs            *fakesys.FakeFileSystem
+		fakeDavClient     *fakeboshdavcli.FakeClient
+		fakeUUIDGenerator *fakeuuid.FakeGenerator
+		fs                *fakesys.FakeFileSystem
+		blobstore         Blobstore
 	)
 
 	BeforeEach(func() {
 		fakeDavClient = fakeboshdavcli.NewFakeClient()
+		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		blobstore = NewBlobstore(fakeDavClient, fs, logger)
+
+		blobstore = NewBlobstore(fakeDavClient, fakeUUIDGenerator, fs, logger)
 	})
 
 	Describe("Get", func() {
@@ -59,16 +64,19 @@ var _ = Describe("Blobstore", func() {
 		})
 	})
 
-	Describe("Save", func() {
+	Describe("Add", func() {
 		BeforeEach(func() {
 			fs.RegisterOpenFile("fake-source-path", &fakesys.FakeFile{
 				Contents: []byte("fake-contents"),
 			})
 		})
 
-		It("saves blob to blobstore", func() {
-			err := blobstore.Save("fake-source-path", "fake-blob-id")
+		It("adds file to blobstore and returns its blob ID", func() {
+			fakeUUIDGenerator.GeneratedUuid = "fake-blob-id"
+
+			blobID, err := blobstore.Add("fake-source-path")
 			Expect(err).ToNot(HaveOccurred())
+			Expect(blobID).To(Equal("fake-blob-id"))
 			Expect(fakeDavClient.PutPath).To(Equal("fake-blob-id"))
 			Expect(fakeDavClient.PutContents).To(Equal("fake-contents"))
 		})

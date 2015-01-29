@@ -3,7 +3,6 @@ package instance
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -22,7 +21,6 @@ type stateBuilder struct {
 	jobListRenderer           bmtemplate.JobListRenderer
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
 	blobstore                 bmblobstore.Blobstore
-	uuidGenerator             boshuuid.Generator
 	logger                    boshlog.Logger
 	logTag                    string
 }
@@ -32,7 +30,6 @@ func NewStateBuilder(
 	jobListRenderer bmtemplate.JobListRenderer,
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
 	blobstore bmblobstore.Blobstore,
-	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
 ) StateBuilder {
 	return &stateBuilder{
@@ -40,7 +37,6 @@ func NewStateBuilder(
 		jobListRenderer:           jobListRenderer,
 		renderedJobListCompressor: renderedJobListCompressor,
 		blobstore:                 blobstore,
-		uuidGenerator:             uuidGenerator,
 		logger:                    logger,
 		logTag:                    "stateBuilder",
 	}
@@ -138,12 +134,7 @@ func (b *stateBuilder) uploadJobTemplateListArchive(
 ) (blobID string, err error) {
 	b.logger.Debug(b.logTag, "Saving job template list archive to blobstore")
 
-	blobID, err = b.uuidGenerator.Generate()
-	if err != nil {
-		return "", bosherr.WrapError(err, "Generating Blob ID")
-	}
-
-	err = b.blobstore.Save(renderedJobListArchive.Path(), blobID)
+	blobID, err = b.blobstore.Add(renderedJobListArchive.Path())
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Uploading blob at '%s'", renderedJobListArchive.Path())
 	}

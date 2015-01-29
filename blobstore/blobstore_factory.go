@@ -9,6 +9,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+
 	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
 )
 
@@ -17,17 +19,20 @@ type Factory interface {
 }
 
 type blobstoreFactory struct {
-	fs     boshsys.FileSystem
-	logger boshlog.Logger
+	uuidGenerator boshuuid.Generator
+	fs            boshsys.FileSystem
+	logger        boshlog.Logger
 }
 
-func NewBlobstoreFactory(fs boshsys.FileSystem, logger boshlog.Logger) Factory {
+func NewBlobstoreFactory(uuidGenerator boshuuid.Generator, fs boshsys.FileSystem, logger boshlog.Logger) Factory {
 	return blobstoreFactory{
-		fs:     fs,
-		logger: logger,
+		uuidGenerator: uuidGenerator,
+		fs:            fs,
+		logger:        logger,
 	}
 }
 
+//TODO: rename NewBlobstore
 func (f blobstoreFactory) Create(blobstoreURL string) (Blobstore, error) {
 	blobstoreConfig, err := f.parseBlobstoreURL(blobstoreURL)
 	if err != nil {
@@ -42,7 +47,7 @@ func (f blobstoreFactory) Create(blobstoreURL string) (Blobstore, error) {
 		Password: blobstoreConfig.Password,
 	}, &httpClient)
 
-	return NewBlobstore(davClient, f.fs, f.logger), nil
+	return NewBlobstore(davClient, f.uuidGenerator, f.fs, f.logger), nil
 }
 
 func (f blobstoreFactory) parseBlobstoreURL(blobstoreURL string) (Config, error) {

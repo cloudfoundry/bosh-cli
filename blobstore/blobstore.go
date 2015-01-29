@@ -8,11 +8,12 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 )
 
 type Blobstore interface {
 	Get(blobID, destinationPath string) error
-	Save(sourcePath, blobID string) error
+	Add(sourcePath string) (blobID string, err error)
 }
 
 type Config struct {
@@ -22,18 +23,20 @@ type Config struct {
 }
 
 type blobstore struct {
-	davClient boshdavcli.Client
-	fs        boshsys.FileSystem
-	logger    boshlog.Logger
-	logTag    string
+	davClient     boshdavcli.Client
+	uuidGenerator boshuuid.Generator
+	fs            boshsys.FileSystem
+	logger        boshlog.Logger
+	logTag        string
 }
 
-func NewBlobstore(davClient boshdavcli.Client, fs boshsys.FileSystem, logger boshlog.Logger) Blobstore {
+func NewBlobstore(davClient boshdavcli.Client, uuidGenerator boshuuid.Generator, fs boshsys.FileSystem, logger boshlog.Logger) Blobstore {
 	return &blobstore{
-		davClient: davClient,
-		fs:        fs,
-		logger:    logger,
-		logTag:    "blobstore",
+		davClient:     davClient,
+		uuidGenerator: uuidGenerator,
+		fs:            fs,
+		logger:        logger,
+		logTag:        "blobstore",
 	}
 }
 
@@ -59,19 +62,29 @@ func (b *blobstore) Get(blobID, destinationPath string) error {
 	return nil
 }
 
-func (b *blobstore) Save(sourcePath, blobID string) error {
+func (b *blobstore) Add(sourcePath string) (blobID string, err error) {
+	blobID, err = b.uuidGenerator.Generate()
+	if err != nil {
+		return "", bosherr.WrapError(err, "Generating Blob ID")
+	}
+
 	b.logger.Debug(b.logTag, "Uploading blob %s from %s", blobID, sourcePath)
 
 	file, err := b.fs.OpenFile(sourcePath, os.O_RDONLY, 0)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Opening file for reading %s", sourcePath)
+		return "", bosherr.WrapErrorf(err, "Opening file for reading %s", sourcePath)
 	}
 	defer file.Close()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Getting fileInfo from %s", sourcePath)
+		return "", bosherr.WrapErrorf(err, "Getting fileInfo from %s", sourcePath)
 	}
 
-	return b.davClient.Put(blobID, file, fileInfo.Size())
+	err = b.davClient.Put(blobID, file, fileInfo.Size())
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Putting file '%s' into blobstore (via DAVClient) as blobID '%s'", sourcePath, blobID)
+	}
+
+	return blobID, nil
 }

@@ -4,8 +4,9 @@ type FakeBlobstore struct {
 	GetInputs []GetInput
 	GetErr    error
 
-	SaveInputs []SaveInput
-	SaveErr    error
+	AddInputs []AddInput
+	AddBlobID string
+	AddErr    error
 }
 
 type GetInput struct {
@@ -13,8 +14,7 @@ type GetInput struct {
 	DestinationPath string
 }
 
-type SaveInput struct {
-	BlobID     string
+type AddInput struct {
 	SourcePath string
 }
 
@@ -31,11 +31,10 @@ func (b *FakeBlobstore) Get(blobID string, destinationPath string) error {
 	return b.GetErr
 }
 
-func (b *FakeBlobstore) Save(sourcePath string, blobID string) error {
-	b.SaveInputs = append(b.SaveInputs, SaveInput{
-		BlobID:     blobID,
+func (b *FakeBlobstore) Add(sourcePath string) (blobID string, err error) {
+	b.AddInputs = append(b.AddInputs, AddInput{
 		SourcePath: sourcePath,
 	})
 
-	return b.SaveErr
+	return b.AddBlobID, b.AddErr
 }

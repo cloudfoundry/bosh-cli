@@ -61,6 +61,17 @@ func (_m *MockBlobstore) EXPECT() *_MockBlobstoreRecorder {
 	return _m.recorder
 }
 
+func (_m *MockBlobstore) Add(_param0 string) (string, error) {
+	ret := _m.ctrl.Call(_m, "Add", _param0)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBlobstoreRecorder) Add(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Add", arg0)
+}
+
 func (_m *MockBlobstore) Get(_param0 string, _param1 string) error {
 	ret := _m.ctrl.Call(_m, "Get", _param0, _param1)
 	ret0, _ := ret[0].(error)
