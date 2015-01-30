@@ -9,5 +9,5 @@ import (
 
 func TestMicrodeployer(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Deployer Suite")
+	RunSpecs(t, "Deployment Suite")
 }

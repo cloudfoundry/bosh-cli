@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"os"
+	"bytes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -132,24 +134,33 @@ var _ = Describe("bosh-micro", func() {
 	}
 
 	var setDeployment = func(manifestPath string) (stdout string) {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "deployment", manifestPath)
+		os.Stdout.WriteString("\n---DEPLOYMENT---\n")
+		outBuffer := bytes.NewBufferString("")
+		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deployment", manifestPath)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		return stdout
+		return outBuffer.String()
 	}
 
 	var deploy = func() (stdout string) {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
+		os.Stdout.WriteString("\n---DEPLOY---\n")
+		outBuffer := bytes.NewBufferString("")
+		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		return stdout
+		return outBuffer.String()
 	}
 
 	var deleteDeployment = func() (stdout string) {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpi-release.tgz"))
+		os.Stdout.WriteString("\n---DELETE---\n")
+		outBuffer := bytes.NewBufferString("")
+		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpi-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		return stdout
+		return outBuffer.String()
 	}
 
 	AfterEach(func() {
@@ -264,13 +275,17 @@ var _ = Describe("bosh-micro", func() {
 		Expect(uploadingSteps).To(HaveLen(1))
 
 		deployingSteps, doneIndex := findStage(outputLines, "deploying", doneIndex+1)
+		numDeployingSteps := len(deployingSteps)
 		Expect(deployingSteps[0]).To(MatchRegexp("^Started deploying > Creating VM for instance 'bosh/0' from stemcell '.*'" + donePattern))
 		Expect(deployingSteps[1]).To(MatchRegexp("^Started deploying > Waiting for the agent on VM '.*' to be ready" + donePattern))
 		Expect(deployingSteps[2]).To(MatchRegexp("^Started deploying > Creating disk" + donePattern))
 		Expect(deployingSteps[3]).To(MatchRegexp("^Started deploying > Attaching disk '.*' to VM '.*'" + donePattern))
-		Expect(deployingSteps[4]).To(MatchRegexp("^Started deploying > Updating instance 'bosh/0'" + donePattern))
-		Expect(deployingSteps[5]).To(MatchRegexp("^Started deploying > Waiting for instance 'bosh/0' to be running" + donePattern))
-		Expect(deployingSteps).To(HaveLen(6))
+		for _, line := range deployingSteps[4:numDeployingSteps-3] {
+			Expect(line).To(MatchRegexp("^Started deploying > Compiling package '.*/.*'" + donePattern))
+		}
+		Expect(deployingSteps[numDeployingSteps-3]).To(MatchRegexp("^Started deploying > Rendering job templates" + donePattern))
+		Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^Started deploying > Updating instance 'bosh/0'" + donePattern))
+		Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^Started deploying > Waiting for instance 'bosh/0' to be running" + donePattern))
 	})
 
 	Context("when microbosh has been previously deployed", func() {

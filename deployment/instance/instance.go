@@ -27,7 +27,7 @@ type Instance interface {
 	Delete(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
-		eventLoggerStage bmeventlog.Stage,
+		stage bmeventlog.Stage,
 	) error
 }
 
@@ -82,10 +82,10 @@ func (i *instance) Disks() ([]bmdisk.Disk, error) {
 func (i *instance) WaitUntilReady(
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
-	eventLoggerStage bmeventlog.Stage,
+	stage bmeventlog.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s' to be ready", i.vm.CID())
-	err := eventLoggerStage.PerformStep(stepName, func() error {
+	err := stage.PerformStep(stepName, func() error {
 		if !registryConfig.IsEmpty() && !sshTunnelConfig.IsEmpty() {
 			sshTunnelOptions := bmsshtunnel.Options{
 				Host:              sshTunnelConfig.Host,
@@ -114,13 +114,13 @@ func (i *instance) WaitUntilReady(
 	return err
 }
 
-func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
+func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, stage bmeventlog.Stage) ([]bmdisk.Disk, error) {
 	diskPool, err := deploymentManifest.DiskPool(i.jobName)
 	if err != nil {
 		return []bmdisk.Disk{}, bosherr.WrapError(err, "Getting disk pool")
 	}
 
-	disks, err := i.vm.UpdateDisks(diskPool, eventLoggerStage)
+	disks, err := i.vm.UpdateDisks(diskPool, stage)
 	if err != nil {
 		return disks, bosherr.WrapError(err, "Updating disks")
 	}
@@ -130,15 +130,15 @@ func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, event
 
 func (i *instance) UpdateJobs(
 	deploymentManifest bmdeplmanifest.Manifest,
-	eventLoggerStage bmeventlog.Stage,
+	stage bmeventlog.Stage,
 ) error {
-	newState, err := i.stateBuilder.Build(i.jobName, i.id, deploymentManifest)
+	newState, err := i.stateBuilder.Build(i.jobName, i.id, deploymentManifest, stage)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Builing state for instance '%s/%d'", i.jobName, i.id)
 	}
 
 	stepName := fmt.Sprintf("Updating instance '%s/%d'", i.jobName, i.id)
-	err = eventLoggerStage.PerformStep(stepName, func() error {
+	err = stage.PerformStep(stepName, func() error {
 		err := i.vm.Stop()
 		if err != nil {
 			return bosherr.WrapError(err, "Stopping the agent")
@@ -160,13 +160,13 @@ func (i *instance) UpdateJobs(
 		return err
 	}
 
-	return i.waitUntilJobsAreRunning(deploymentManifest.Update.UpdateWatchTime, eventLoggerStage)
+	return i.waitUntilJobsAreRunning(deploymentManifest.Update.UpdateWatchTime, stage)
 }
 
 func (i *instance) Delete(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
-	eventLoggerStage bmeventlog.Stage,
+	stage bmeventlog.Stage,
 ) error {
 	vmExists, err := i.vm.Exists()
 	if err != nil {
@@ -174,14 +174,14 @@ func (i *instance) Delete(
 	}
 
 	if vmExists {
-		if err = i.shutdown(pingTimeout, pingDelay, eventLoggerStage); err != nil {
+		if err = i.shutdown(pingTimeout, pingDelay, stage); err != nil {
 			return err
 		}
 	}
 
 	// non-existent VMs still need to be 'deleted' to clean up related resources owned by the CPI
 	stepName := fmt.Sprintf("Deleting VM '%s'", i.vm.CID())
-	return eventLoggerStage.PerformStep(stepName, func() error {
+	return stage.PerformStep(stepName, func() error {
 		err := i.vm.Delete()
 		cloudErr, ok := err.(bmcloud.Error)
 		if ok && cloudErr.Type() == bmcloud.VMNotFoundError {
@@ -194,10 +194,10 @@ func (i *instance) Delete(
 func (i *instance) shutdown(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
-	eventLoggerStage bmeventlog.Stage,
+	stage bmeventlog.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", i.vm.CID())
-	waitingForAgentErr := eventLoggerStage.PerformStep(stepName, func() error {
+	waitingForAgentErr := stage.PerformStep(stepName, func() error {
 		if err := i.vm.WaitUntilReady(pingTimeout, pingDelay); err != nil {
 			return bosherr.WrapError(err, "Agent unreachable")
 		}
@@ -208,36 +208,36 @@ func (i *instance) shutdown(
 		return nil
 	}
 
-	if err := i.stopJobs(eventLoggerStage); err != nil {
+	if err := i.stopJobs(stage); err != nil {
 		return err
 	}
-	if err := i.unmountDisks(eventLoggerStage); err != nil {
+	if err := i.unmountDisks(stage); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (i *instance) waitUntilJobsAreRunning(updateWatchTime bmdeplmanifest.WatchTime, eventLoggerStage bmeventlog.Stage) error {
+func (i *instance) waitUntilJobsAreRunning(updateWatchTime bmdeplmanifest.WatchTime, stage bmeventlog.Stage) error {
 	start := time.Duration(updateWatchTime.Start) * time.Millisecond
 	end := time.Duration(updateWatchTime.End) * time.Millisecond
 	delayBetweenAttempts := 1 * time.Second
 	maxAttempts := int((end - start) / delayBetweenAttempts)
 
 	stepName := fmt.Sprintf("Waiting for instance '%s/%d' to be running", i.jobName, i.id)
-	return eventLoggerStage.PerformStep(stepName, func() error {
+	return stage.PerformStep(stepName, func() error {
 		time.Sleep(start)
 		return i.vm.WaitToBeRunning(maxAttempts, delayBetweenAttempts)
 	})
 }
 
-func (i *instance) stopJobs(eventLoggerStage bmeventlog.Stage) error {
+func (i *instance) stopJobs(stage bmeventlog.Stage) error {
 	stepName := fmt.Sprintf("Stopping jobs on instance '%s/%d'", i.jobName, i.id)
-	return eventLoggerStage.PerformStep(stepName, func() error {
+	return stage.PerformStep(stepName, func() error {
 		return i.vm.Stop()
 	})
 }
 
-func (i *instance) unmountDisks(eventLoggerStage bmeventlog.Stage) error {
+func (i *instance) unmountDisks(stage bmeventlog.Stage) error {
 	disks, err := i.vm.Disks()
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Getting VM '%s' disks", i.vm.CID())
@@ -245,7 +245,7 @@ func (i *instance) unmountDisks(eventLoggerStage bmeventlog.Stage) error {
 
 	for _, disk := range disks {
 		stepName := fmt.Sprintf("Unmounting disk '%s'", disk.CID())
-		err = eventLoggerStage.PerformStep(stepName, func() error {
+		err = stage.PerformStep(stepName, func() error {
 			if err := i.vm.UnmountDisk(disk); err != nil {
 				return bosherr.WrapErrorf(err, "Unmounting disk '%s' from VM '%s'", disk.CID(), i.vm.CID())
 			}

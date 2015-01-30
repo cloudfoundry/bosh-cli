@@ -1,19 +1,22 @@
 package state
 
 import (
+	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
 type Builder interface {
-	Build(jobName string, instanceID int, deploymentManifest bmdeplmanifest.Manifest) (State, error)
+	Build(jobName string, instanceID int, deploymentManifest bmdeplmanifest.Manifest, stage bmeventlog.Stage) (State, error)
 }
 
 type builder struct {
@@ -50,7 +53,7 @@ type renderedJobs struct {
 	Archive     bmtemplate.RenderedJobListArchive
 }
 
-func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdeplmanifest.Manifest) (State, error) {
+func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdeplmanifest.Manifest, stage bmeventlog.Stage) (State, error) {
 	deploymentJob, found := deploymentManifest.FindJobByName(jobName)
 	if !found {
 		return nil, bosherr.Errorf("Job '%s' not found in deployment manifest", jobName)
@@ -61,12 +64,12 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 		return nil, bosherr.WrapErrorf(err, "Resolving jobs for instance '%s/%d'", jobName, instanceID)
 	}
 
-	compiledPackageRefs, err := b.compileJobDependencies(releaseJobs)
+	compiledPackageRefs, err := b.compileJobDependencies(releaseJobs, stage)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Resolving job package dependencies for instance '%s/%d'", jobName, instanceID)
 	}
 
-	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob, deploymentManifest.Name)
+	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob, deploymentManifest.Name, stage)
 	if err != nil {
 		return nil, bosherr.Errorf("Rendering job templates for instance '%s/%d'", jobName, instanceID)
 	}
@@ -111,13 +114,13 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 	}, nil
 }
 
-func (b *builder) compileJobDependencies(releaseJobs []bmrel.Job) ([]PackageRef, error) {
+func (b *builder) compileJobDependencies(releaseJobs []bmrel.Job, stage bmeventlog.Stage) ([]PackageRef, error) {
 	compileOrderReleasePackages, err := b.resolveJobDependencies(releaseJobs)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Resolving job package dependencies")
 	}
 
-	compiledPackageRefs, err := b.compilePackages(compileOrderReleasePackages)
+	compiledPackageRefs, err := b.compilePackages(compileOrderReleasePackages, stage)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Compiling job package dependencies")
 	}
@@ -158,14 +161,22 @@ func (b *builder) resolvePackageDependencies(releasePackage *bmrel.Package, name
 }
 
 // compilePackages compiles the specified packages, in the order specified, uploads them to the Blobstore, and returns the blob references
-func (b *builder) compilePackages(requiredPackages []*bmrel.Package) ([]PackageRef, error) {
+func (b *builder) compilePackages(requiredPackages []*bmrel.Package, stage bmeventlog.Stage) ([]PackageRef, error) {
 	packageNamesToRefs := make(map[string]PackageRef, len(requiredPackages))
+
 	for _, pkg := range requiredPackages {
-		packageRef, err := b.packageCompiler.Compile(pkg, packageNamesToRefs)
+		stepName := fmt.Sprintf("Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
+		err := stage.PerformStep(stepName, func() error {
+			packageRef, err := b.packageCompiler.Compile(pkg, packageNamesToRefs)
+			if err != nil {
+				return err
+			}
+			packageNamesToRefs[packageRef.Name] = packageRef
+			return nil
+		})
 		if err != nil {
-			return []PackageRef{}, bosherr.WrapErrorf(err, "Compiling package '%s'", pkg.Name)
+			return nil, err
 		}
-		packageNamesToRefs[packageRef.Name] = packageRef
 	}
 
 	// flatten map values to array
@@ -177,25 +188,36 @@ func (b *builder) compilePackages(requiredPackages []*bmrel.Package) ([]PackageR
 	return packageRefs, nil
 }
 
-func (b *builder) renderJobTemplates(releaseJobs []bmrel.Job, deploymentJob bmdeplmanifest.Job, deploymentName string) (renderedJobs, error) {
-	jobProperties, err := deploymentJob.Properties()
-	if err != nil {
-		return renderedJobs{}, bosherr.WrapError(err, "Stringifying job properties")
-	}
+func (b *builder) renderJobTemplates(releaseJobs []bmrel.Job, deploymentJob bmdeplmanifest.Job, deploymentName string, stage bmeventlog.Stage) (renderedJobs, error) {
+	var (
+		renderedJobListArchive bmtemplate.RenderedJobListArchive
+		blobID                 string
+	)
+	err := stage.PerformStep("Rendering job templates", func() error {
+		jobProperties, err := deploymentJob.Properties()
+		if err != nil {
+			return bosherr.WrapError(err, "Stringifying job properties")
+		}
 
-	renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, deploymentName)
-	if err != nil {
-		return renderedJobs{}, bosherr.WrapError(err, "Rendering job templates")
-	}
-	defer renderedJobList.DeleteSilently()
+		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, deploymentName)
+		if err != nil {
+			return bosherr.WrapError(err, "Rendering job templates")
+		}
+		defer renderedJobList.DeleteSilently()
 
-	renderedJobListArchive, err := b.renderedJobListCompressor.Compress(renderedJobList)
-	if err != nil {
-		return renderedJobs{}, bosherr.WrapError(err, "Compressing rendered job templates")
-	}
-	defer renderedJobListArchive.DeleteSilently()
+		renderedJobListArchive, err = b.renderedJobListCompressor.Compress(renderedJobList)
+		if err != nil {
+			return bosherr.WrapError(err, "Compressing rendered job templates")
+		}
+		defer renderedJobListArchive.DeleteSilently()
 
-	blobID, err := b.uploadJobTemplateListArchive(renderedJobListArchive)
+		blobID, err = b.blobstore.Add(renderedJobListArchive.Path())
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Uploading rendered job template archive '%s' to the blobstore", renderedJobListArchive.Path())
+		}
+
+		return nil
+	})
 	if err != nil {
 		return renderedJobs{}, err
 	}
@@ -204,19 +226,6 @@ func (b *builder) renderJobTemplates(releaseJobs []bmrel.Job, deploymentJob bmde
 		BlobstoreID: blobID,
 		Archive:     renderedJobListArchive,
 	}, nil
-}
-
-func (b *builder) uploadJobTemplateListArchive(
-	renderedJobListArchive bmtemplate.RenderedJobListArchive,
-) (blobID string, err error) {
-	b.logger.Debug(b.logTag, "Saving job template list archive to blobstore")
-
-	blobID, err = b.blobstore.Add(renderedJobListArchive.Path())
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Uploading blob at '%s'", renderedJobListArchive.Path())
-	}
-
-	return blobID, nil
 }
 
 func (b *builder) resolveJobs(jobRefs []bmdeplmanifest.ReleaseJobRef) ([]bmrel.Job, error) {

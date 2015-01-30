@@ -10,6 +10,7 @@ import (
 	applyspec "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	release "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
@@ -65,15 +66,15 @@ func (_m *MockBuilder) EXPECT() *_MockBuilderRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBuilder) Build(_param0 string, _param1 int, _param2 manifest.Manifest) (state.State, error) {
-	ret := _m.ctrl.Call(_m, "Build", _param0, _param1, _param2)
+func (_m *MockBuilder) Build(_param0 string, _param1 int, _param2 manifest.Manifest, _param3 eventlogger.Stage) (state.State, error) {
+	ret := _m.ctrl.Call(_m, "Build", _param0, _param1, _param2, _param3)
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockBuilderRecorder) Build(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Build", arg0, arg1, arg2)
+func (_mr *_MockBuilderRecorder) Build(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Build", arg0, arg1, arg2, arg3)
 }
 
 // Mock of State interface

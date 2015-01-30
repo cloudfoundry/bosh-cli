@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"strings"
+	"io"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -10,6 +11,7 @@ import (
 
 type CmdRunner interface {
 	RunCommand(env map[string]string, args ...string) (string, string, int, error)
+	RunStreamingCommand(out io.Writer, env map[string]string, args ...string) (string, string, int, error)
 }
 
 type sshCmdRunner struct {
@@ -48,3 +50,31 @@ func (r *sshCmdRunner) RunCommand(env map[string]string, args ...string) (string
 		strings.Join(argsWithEnv, " "),
 	)
 }
+
+func (r *sshCmdRunner) RunStreamingCommand(out io.Writer, env map[string]string, args ...string) (string, string, int, error) {
+	exports := make([]string, len(env))
+	for k, v := range env {
+		exports = append(exports, fmt.Sprintf("%s=%s", k, v))
+	}
+
+	argsWithEnv := append(exports, args...)
+
+	cmd := boshsys.Command{
+		Name: "ssh",
+		Args: []string{
+			"-o", "StrictHostKeyChecking=no",
+			"-i", r.privateKeyPath,
+			fmt.Sprintf("%s@%s", r.vmUsername, r.vmIP),
+			strings.Join(argsWithEnv, " "),
+		},
+		Stdout: out,
+		Stderr: out,
+	}
+
+	// write command being run
+	cmdString := fmt.Sprintf("> %s %s\n", cmd.Name, strings.Join(cmd.Args, " "))
+	out.Write([]byte(cmdString))
+
+	return r.runner.RunComplexCommand(cmd)
+}
+

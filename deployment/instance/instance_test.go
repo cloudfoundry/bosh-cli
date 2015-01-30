@@ -340,7 +340,7 @@ var _ = Describe("Instance", func() {
 				ConfigurationHash:        "",
 			}
 
-			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest).Return(mockState, nil).AnyTimes()
+			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 

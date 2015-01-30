@@ -342,8 +342,10 @@ cloud_provider:
 				ConfigurationHash:        "",
 			}
 
+			//TODO: use a real state builder
+
 			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
+			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 

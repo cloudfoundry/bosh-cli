@@ -201,7 +201,7 @@ var _ = Describe("Deployer", func() {
 		}
 
 		mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-		mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
+		mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage).Return(mockState, nil).AnyTimes()
 		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 	})
 

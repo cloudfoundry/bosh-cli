@@ -16,7 +16,10 @@ import (
 
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+
+	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
 
 var _ = Describe("Builder", func() {
@@ -54,7 +57,6 @@ var _ = Describe("Builder", func() {
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 
 		mockState = mock_instance_state.NewMockState(mockCtrl)
-
 	})
 
 	Describe("Build", func() {
@@ -65,6 +67,7 @@ var _ = Describe("Builder", func() {
 			jobName            string
 			instanceID         int
 			deploymentManifest bmdeplmanifest.Manifest
+			fakeStage          *fakebmeventlog.FakeStage
 		)
 
 		BeforeEach(func() {
@@ -106,6 +109,8 @@ var _ = Describe("Builder", func() {
 					},
 				},
 			}
+
+			fakeStage = fakebmeventlog.NewFakeStage()
 
 			stateBuilder = NewBuilder(
 				mockPackageCompiler,
@@ -200,7 +205,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("builds a new instance state with zero-to-many networks", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
@@ -217,7 +222,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("builds a new instance state with zero-to-many rendered jobs from one or more releases", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.RenderedJobs()).To(ContainElement(JobRef{
@@ -233,8 +238,21 @@ var _ = Describe("Builder", func() {
 			Expect(state.RenderedJobs()).To(HaveLen(1))
 		})
 
+		It("prints event logs when rendering job templates", func() {
+			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+				Name: "Rendering job templates",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+		})
+
 		It("builds a new instance state with the compiled packages required by the release jobs", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
@@ -255,8 +273,35 @@ var _ = Describe("Builder", func() {
 			}))
 		})
 
+		It("prints event logs when compiles packages", func() {
+			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+				Name: "Compiling package 'libyaml/fake-package-source-fingerprint-libyaml'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+				Name: "Compiling package 'ruby/fake-package-source-fingerprint-ruby'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+				Name: "Compiling package 'cpi/fake-package-source-fingerprint-cpi'",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+		})
+
 		It("builds a new instance state that includes transitively dependent compiled packages", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
@@ -287,7 +332,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("builds an instance state that can be converted to an ApplySpec", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bmas.ApplySpec{
