@@ -49,7 +49,7 @@ var _ = Describe("Installer", func() {
 			packagesPath = "/fake/packages"
 			eventLogger = fakebmlog.NewFakeEventLogger()
 			fakeStage = fakebmlog.NewFakeStage()
-			eventLogger.SetNewStageBehavior(fakeStage)
+			eventLogger.SetNewStageBehavior("installing CPI jobs", fakeStage)
 			timeService = &faketime.FakeService{}
 
 			jobInstaller = NewInstaller(fs, packageInstaller, blobExtractor, templateRepo, jobsPath, packagesPath, eventLogger, timeService)
@@ -66,9 +66,7 @@ var _ = Describe("Installer", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-				{
-					Name: "installing CPI jobs",
-				},
+				{Name: "installing CPI jobs"},
 			}))
 
 			Expect(fakeStage.Started).To(BeTrue())

@@ -34,7 +34,7 @@ var _ = Describe("ReleaseCompiler", func() {
 		packageCompiler = fakebminstallpkg.NewFakePackageCompiler()
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
-		eventLogger.SetNewStageBehavior(fakeStage)
+		eventLogger.SetNewStageBehavior("compiling packages", fakeStage)
 		timeService = &faketime.FakeService{}
 		releasePackagesCompiler = NewReleasePackagesCompiler(packageCompiler, eventLogger, timeService)
 		fakeFS = fakesys.NewFakeFileSystem()
@@ -54,9 +54,7 @@ var _ = Describe("ReleaseCompiler", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-				{
-					Name: "compiling packages",
-				},
+				{Name: "compiling packages"},
 			}))
 
 			Expect(fakeStage.Started).To(BeTrue())

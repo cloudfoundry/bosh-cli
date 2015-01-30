@@ -2,8 +2,8 @@ package acceptance
 
 import (
 	"fmt"
-	"strings"
 	"io"
+	"strings"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -77,4 +77,3 @@ func (r *sshCmdRunner) RunStreamingCommand(out io.Writer, env map[string]string,
 
 	return r.runner.RunComplexCommand(cmd)
 }
-

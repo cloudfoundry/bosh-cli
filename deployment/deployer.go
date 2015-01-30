@@ -21,16 +21,16 @@ type Deployer interface {
 	Deploy(
 		bmcloud.Cloud,
 		bmdeplmanifest.Manifest,
-		bmstemcell.ExtractedStemcell,
+		bmstemcell.CloudStemcell,
 		bminstallmanifest.Registry,
 		bminstallmanifest.SSHTunnel,
 		bmvm.Manager,
 		bmblobstore.Blobstore,
+		bmeventlog.Stage,
 	) (Deployment, error)
 }
 
 type deployer struct {
-	stemcellManagerFactory bmstemcell.ManagerFactory
 	vmManagerFactory       bmvm.ManagerFactory
 	instanceManagerFactory bminstance.ManagerFactory
 	deploymentFactory      Factory
@@ -40,7 +40,6 @@ type deployer struct {
 }
 
 func NewDeployer(
-	stemcellManagerFactory bmstemcell.ManagerFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,
 	deploymentFactory Factory,
@@ -48,7 +47,6 @@ func NewDeployer(
 	logger boshlog.Logger,
 ) *deployer {
 	return &deployer{
-		stemcellManagerFactory: stemcellManagerFactory,
 		vmManagerFactory:       vmManagerFactory,
 		instanceManagerFactory: instanceManagerFactory,
 		deploymentFactory:      deploymentFactory,
@@ -61,34 +59,18 @@ func NewDeployer(
 func (d *deployer) Deploy(
 	cloud bmcloud.Cloud,
 	deploymentManifest bmdeplmanifest.Manifest,
-	extractedStemcell bmstemcell.ExtractedStemcell,
+	cloudStemcell bmstemcell.CloudStemcell,
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
 	blobstore bmblobstore.Blobstore,
+	deployStage bmeventlog.Stage,
 ) (Deployment, error) {
-
-	//TODO: handle stage construction outside of this class
-	uploadStemcellStage := d.eventLogger.NewStage("uploading stemcell")
-	uploadStemcellStage.Start()
-
-	stemcellManager := d.stemcellManagerFactory.NewManager(cloud)
-	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, uploadStemcellStage)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Uploading stemcell")
-	}
-	stemcells := []bmstemcell.CloudStemcell{cloudStemcell}
-
-	uploadStemcellStage.Finish()
-
-	deployStage := d.eventLogger.NewStage("deploying")
-	deployStage.Start()
-
 	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
-	if err = instanceManager.DeleteAll(pingTimeout, pingDelay, deployStage); err != nil {
+	if err := instanceManager.DeleteAll(pingTimeout, pingDelay, deployStage); err != nil {
 		return nil, err
 	}
 
@@ -97,14 +79,7 @@ func (d *deployer) Deploy(
 		return nil, err
 	}
 
-	// TODO: cleanup unused disks?
-
-	if err = stemcellManager.DeleteUnused(deployStage); err != nil {
-		return nil, err
-	}
-
-	deployStage.Finish()
-
+	stemcells := []bmstemcell.CloudStemcell{cloudStemcell}
 	return d.deploymentFactory.NewDeployment(instances, disks, stemcells), nil
 }
 

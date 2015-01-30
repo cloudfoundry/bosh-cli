@@ -11,11 +11,11 @@ import (
 	agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	manifest0 "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	stemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	manifest0 "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	manifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 // Mock of Deployment interface
@@ -101,15 +101,15 @@ func (_m *MockDeployer) EXPECT() *_MockDeployerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest.Manifest, _param2 stemcell.ExtractedStemcell, _param3 manifest0.Registry, _param4 manifest0.SSHTunnel, _param5 vm.Manager, _param6 blobstore.Blobstore) (deployment.Deployment, error) {
-	ret := _m.ctrl.Call(_m, "Deploy", _param0, _param1, _param2, _param3, _param4, _param5, _param6)
+func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest0.Manifest, _param2 stemcell.CloudStemcell, _param3 manifest.Registry, _param4 manifest.SSHTunnel, _param5 vm.Manager, _param6 blobstore.Blobstore, _param7 eventlogger.Stage) (deployment.Deployment, error) {
+	ret := _m.ctrl.Call(_m, "Deploy", _param0, _param1, _param2, _param3, _param4, _param5, _param6, _param7)
 	ret0, _ := ret[0].(deployment.Deployment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockDeployerRecorder) Deploy(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Deploy", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+func (_mr *_MockDeployerRecorder) Deploy(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Deploy", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 }
 
 // Mock of Manager interface

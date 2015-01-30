@@ -157,6 +157,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadAgentClientFactory(),
 		f.loadVMManagerFactory(),
 		stemcellExtractor,
+		f.loadStemcellManagerFactory(),
 		deploymentRecord,
 		f.loadBlobstoreFactory(),
 		f.loadDeployer(),
@@ -410,7 +411,6 @@ func (f *factory) loadDeployer() bmdepl.Deployer {
 	}
 
 	f.deployer = bmdepl.NewDeployer(
-		f.loadStemcellManagerFactory(),
 		f.loadVMManagerFactory(),
 		f.loadInstanceManagerFactory(),
 		f.loadDeploymentFactory(),

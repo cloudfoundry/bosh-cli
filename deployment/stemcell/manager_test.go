@@ -28,7 +28,6 @@ var _ = Describe("Manager", func() {
 		reader              *fakebmstemcell.FakeStemcellReader
 		fakeCloud           *fakebmcloud.FakeCloud
 		fakeStage           *fakebmlog.FakeStage
-		eventLogger         *fakebmlog.FakeEventLogger
 		stemcellTarballPath string
 		tempExtractionDir   string
 
@@ -43,9 +42,7 @@ var _ = Describe("Manager", func() {
 		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-1"
 		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
-		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
-		eventLogger.SetNewStageBehavior(fakeStage)
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		manager = NewManager(stemcellRepo, fakeCloud)
 		stemcellTarballPath = "/stemcell/tarball/path"

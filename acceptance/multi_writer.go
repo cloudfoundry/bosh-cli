@@ -6,13 +6,13 @@ import (
 
 // MultiWriter implements mirrored writes to multiple io.Writer objects.
 type MultiWriter struct {
-	err error
-	n   int
-	writers  []io.Writer
+	err     error
+	n       int
+	writers []io.Writer
 }
 
 // NewMultiWriter returns a new MultiWriter that proxies writes to multiple io.Writer objects.
-func NewMultiWriter(writers... io.Writer) *MultiWriter {
+func NewMultiWriter(writers ...io.Writer) *MultiWriter {
 	return &MultiWriter{
 		writers: writers,
 	}

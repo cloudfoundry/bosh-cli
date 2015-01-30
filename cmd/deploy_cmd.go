@@ -45,6 +45,7 @@ type deployCmd struct {
 	agentClientFactory      bmhttpagent.AgentClientFactory
 	vmManagerFactory        bmvm.ManagerFactory
 	stemcellExtractor       bmstemcell.Extractor
+	stemcellManagerFactory  bmstemcell.ManagerFactory
 	deploymentRecord        bmdepl.Record
 	blobstoreFactory        bmblobstore.Factory
 	deployer                bmdepl.Deployer
@@ -72,6 +73,7 @@ func NewDeployCmd(
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	vmManagerFactory bmvm.ManagerFactory,
 	stemcellExtractor bmstemcell.Extractor,
+	stemcellManagerFactory bmstemcell.ManagerFactory,
 	deploymentRecord bmdepl.Record,
 	blobstoreFactory bmblobstore.Factory,
 	deployer bmdepl.Deployer,
@@ -97,6 +99,7 @@ func NewDeployCmd(
 		agentClientFactory:      agentClientFactory,
 		vmManagerFactory:        vmManagerFactory,
 		stemcellExtractor:       stemcellExtractor,
+		stemcellManagerFactory:  stemcellManagerFactory,
 		deploymentRecord:        deploymentRecord,
 		blobstoreFactory:        blobstoreFactory,
 		deployer:                deployer,
@@ -279,6 +282,17 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
 	}
 
+	uploadStemcellStage := c.eventLogger.NewStage("uploading stemcell")
+	uploadStemcellStage.Start()
+
+	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
+	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, uploadStemcellStage)
+	if err != nil {
+		return bosherr.WrapError(err, "Uploading stemcell")
+	}
+
+	uploadStemcellStage.Finish()
+
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
@@ -287,14 +301,18 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Creating blobstore client")
 	}
 
+	deployStage := c.eventLogger.NewStage("deploying")
+	deployStage.Start()
+
 	_, err = c.deployer.Deploy(
 		cloud,
 		deploymentManifest,
-		extractedStemcell,
+		cloudStemcell,
 		installationManifest.Registry,
 		installationManifest.SSHTunnel,
 		vmManager,
 		blobstore,
+		deployStage,
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Deploying Microbosh")
@@ -304,6 +322,14 @@ func (c *deployCmd) Run(args []string) error {
 	if err != nil {
 		return bosherr.WrapError(err, "Updating deployment record")
 	}
+
+	// TODO: cleanup unused disks here?
+
+	if err = stemcellManager.DeleteUnused(deployStage); err != nil {
+		return err
+	}
+
+	deployStage.Finish()
 
 	return nil
 }

@@ -368,7 +368,6 @@ cloud_provider:
 			deploymentFactory := bmdepl.NewFactory(pingTimeout, pingDelay)
 
 			deployer := bmdepl.NewDeployer(
-				stemcellManagerFactory,
 				vmManagerFactory,
 				instanceManagerFactory,
 				deploymentFactory,
@@ -395,6 +394,7 @@ cloud_provider:
 				mockAgentClientFactory,
 				vmManagerFactory,
 				fakeStemcellExtractor,
+				stemcellManagerFactory,
 				deploymentRecord,
 				mockBlobstoreFactory,
 				deployer,

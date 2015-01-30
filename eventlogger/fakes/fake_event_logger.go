@@ -1,6 +1,7 @@
 package fakes
 
 import (
+	"fmt"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 )
 
@@ -8,8 +9,8 @@ type FakeEventLogger struct {
 	LoggedEvents   []bmeventlog.Event
 	AddEventErrors map[bmeventlog.EventState]error
 
-	NewStageInputs []NewStageInput
-	newStageStage  bmeventlog.Stage
+	NewStageInputs     []NewStageInput
+	stageStageBehavior map[string]bmeventlog.Stage
 
 	StartStageInputs  []string
 	FinishStageInputs []string
@@ -21,7 +22,8 @@ type NewStageInput struct {
 
 func NewFakeEventLogger() *FakeEventLogger {
 	return &FakeEventLogger{
-		AddEventErrors: map[bmeventlog.EventState]error{},
+		AddEventErrors:     map[bmeventlog.EventState]error{},
+		stageStageBehavior: map[string]bmeventlog.Stage{},
 	}
 }
 
@@ -39,7 +41,11 @@ func (fl *FakeEventLogger) NewStage(name string) bmeventlog.Stage {
 		Name: name,
 	})
 
-	return fl.newStageStage
+	stage, found := fl.stageStageBehavior[name]
+	if !found {
+		panic(fmt.Sprintf("Recieved unexpected NewStage('%s')", name))
+	}
+	return stage
 }
 
 func (fl *FakeEventLogger) StartStage(name string) {
@@ -50,6 +56,6 @@ func (fl *FakeEventLogger) FinishStage(name string) {
 	fl.FinishStageInputs = append(fl.FinishStageInputs, name)
 }
 
-func (fl *FakeEventLogger) SetNewStageBehavior(stage bmeventlog.Stage) {
-	fl.newStageStage = stage
+func (fl *FakeEventLogger) SetNewStageBehavior(name string, stage bmeventlog.Stage) {
+	fl.stageStageBehavior[name] = stage
 }

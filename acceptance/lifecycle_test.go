@@ -1,11 +1,11 @@
 package acceptance_test
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
-	"strings"
 	"os"
-	"bytes"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -280,7 +280,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(deployingSteps[1]).To(MatchRegexp("^Started deploying > Waiting for the agent on VM '.*' to be ready" + donePattern))
 		Expect(deployingSteps[2]).To(MatchRegexp("^Started deploying > Creating disk" + donePattern))
 		Expect(deployingSteps[3]).To(MatchRegexp("^Started deploying > Attaching disk '.*' to VM '.*'" + donePattern))
-		for _, line := range deployingSteps[4:numDeployingSteps-3] {
+		for _, line := range deployingSteps[4 : numDeployingSteps-3] {
 			Expect(line).To(MatchRegexp("^Started deploying > Compiling package '.*/.*'" + donePattern))
 		}
 		Expect(deployingSteps[numDeployingSteps-3]).To(MatchRegexp("^Started deploying > Rendering job templates" + donePattern))

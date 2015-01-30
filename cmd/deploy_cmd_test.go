@@ -83,9 +83,11 @@ var _ = Describe("DeployCmd", func() {
 		mockBlobstoreFactory *mock_blobstore.MockFactory
 		mockBlobstore        *mock_blobstore.MockBlobstore
 
-		mockVMManagerFactory  *mock_vm.MockManagerFactory
-		fakeVMManager         *fakebmvm.FakeManager
-		fakeStemcellExtractor *fakebmstemcell.FakeExtractor
+		mockVMManagerFactory       *mock_vm.MockManagerFactory
+		fakeVMManager              *fakebmvm.FakeManager
+		fakeStemcellExtractor      *fakebmstemcell.FakeExtractor
+		fakeStemcellManager        *fakebmstemcell.FakeManager
+		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
 
 		fakeDeploymentRecord *fakebmdepl.FakeRecord
 
@@ -99,14 +101,16 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 
-		fakeEventLogger *fakebmlog.FakeEventLogger
-		fakeStage       *fakebmlog.FakeStage
+		fakeEventLogger     *fakebmlog.FakeEventLogger
+		fakeValidatingStage *fakebmlog.FakeStage
+		fakeUploadingStage  *fakebmlog.FakeStage
+		fakeDeployingStage  *fakebmlog.FakeStage
 
-		deploymentManifestPath    string
-		deploymentConfigPath      string
-		cpiReleaseTarballPath     string
-		stemcellTarballPath       string
-		expectedExtractedStemcell bmstemcell.ExtractedStemcell
+		deploymentManifestPath string
+		deploymentConfigPath   string
+		cpiReleaseTarballPath  string
+		stemcellTarballPath    string
+		extractedStemcell      bmstemcell.ExtractedStemcell
 
 		expectDeploy *gomock.Call
 
@@ -150,6 +154,8 @@ var _ = Describe("DeployCmd", func() {
 		mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient).Return(fakeVMManager).AnyTimes()
 
 		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
+		fakeStemcellManager = fakebmstemcell.NewFakeManager()
+		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
 
 		fakeReleaseSetParser = fakebmrelsetmanifest.NewFakeParser()
 		fakeInstallationParser = fakebminstallmanifest.NewFakeParser()
@@ -163,15 +169,19 @@ var _ = Describe("DeployCmd", func() {
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
 		fakeEventLogger = fakebmlog.NewFakeEventLogger()
-		fakeStage = fakebmlog.NewFakeStage()
-		fakeEventLogger.SetNewStageBehavior(fakeStage)
+		fakeValidatingStage = fakebmlog.NewFakeStage()
+		fakeEventLogger.SetNewStageBehavior("validating", fakeValidatingStage)
+		fakeUploadingStage = fakebmlog.NewFakeStage()
+		fakeEventLogger.SetNewStageBehavior("uploading stemcell", fakeUploadingStage)
+		fakeDeployingStage = fakebmlog.NewFakeStage()
+		fakeEventLogger.SetNewStageBehavior("deploying", fakeDeployingStage)
 
 		fakeDeploymentRecord = fakebmdepl.NewFakeRecord()
 
 		cpiReleaseTarballPath = "/release/tarball/path"
 
 		stemcellTarballPath = "/stemcell/tarball/path"
-		expectedExtractedStemcell = bmstemcell.NewExtractedStemcell(
+		extractedStemcell = bmstemcell.NewExtractedStemcell(
 			bmstemcell.Manifest{
 				ImagePath:          "/stemcell/image/path",
 				Name:               "fake-stemcell-name",
@@ -205,6 +215,7 @@ var _ = Describe("DeployCmd", func() {
 			mockAgentClientFactory,
 			mockVMManagerFactory,
 			fakeStemcellExtractor,
+			fakeStemcellManagerFactory,
 			fakeDeploymentRecord,
 			mockBlobstoreFactory,
 			mockDeployer,
@@ -218,7 +229,9 @@ var _ = Describe("DeployCmd", func() {
 			releaseSetManifest     bmrelsetmanifest.Manifest
 			boshDeploymentManifest bmdeplmanifest.Manifest
 			installationManifest   bminstallmanifest.Manifest
-			cloud                  *fakebmcloud.FakeCloud
+			fakeCloud              *fakebmcloud.FakeCloud
+
+			cloudStemcell bmstemcell.CloudStemcell
 
 			directorID = "fake-uuid-0"
 
@@ -298,12 +311,17 @@ var _ = Describe("DeployCmd", func() {
 				},
 			}
 
-			cloud = fakebmcloud.NewFakeCloud()
+			fakeCloud = fakebmcloud.NewFakeCloud()
+
+			cloudStemcell = fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
 		})
 
 		// allow return values of mocked methods to be modified by BeforeEach in child contexts
 		JustBeforeEach(func() {
-			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, expectedExtractedStemcell, nil)
+			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
+
+			fakeStemcellManagerFactory.SetNewManagerBehavior(fakeCloud, fakeStemcellManager)
+			fakeStemcellManager.SetUploadBehavior(extractedStemcell, fakeUploadingStage, cloudStemcell, nil)
 
 			fakeReleaseSetParser.ParseManifest = releaseSetManifest
 			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
@@ -312,7 +330,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeDeploymentRecord.SetIsDeployedBehavior(
 				deploymentManifestPath,
 				fakeCPIRelease,
-				expectedExtractedStemcell,
+				extractedStemcell,
 				false,
 				nil,
 			)
@@ -340,18 +358,19 @@ var _ = Describe("DeployCmd", func() {
 			mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
 
 			expectDeploy = mockDeployer.EXPECT().Deploy(
-				cloud,
+				fakeCloud,
 				boshDeploymentManifest,
-				expectedExtractedStemcell,
+				cloudStemcell,
 				installationManifest.Registry,
 				installationManifest.SSHTunnel,
 				fakeVMManager,
 				mockBlobstore,
+				fakeDeployingStage,
 			).Return(mockDeployment, nil).AnyTimes()
 
 			expectCPIReleaseExtract = mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
 
-			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(cloud, nil).AnyTimes()
+			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(fakeCloud, nil).AnyTimes()
 		})
 
 		It("prints the deployment manifest and state file", func() {
@@ -364,16 +383,16 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
-		It("adds a new event logger stage", func() {
+		It("adds a new 'validating' event logger stage", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-				{Name: "validating"},
+			Expect(fakeEventLogger.NewStageInputs[0]).To(Equal(fakebmlog.NewStageInput{
+				Name: "validating",
 			}))
 
-			Expect(fakeStage.Started).To(BeTrue())
-			Expect(fakeStage.Finished).To(BeTrue())
+			Expect(fakeValidatingStage.Started).To(BeTrue())
+			Expect(fakeValidatingStage.Finished).To(BeTrue())
 		})
 
 		It("parses the installation manifest", func() {
@@ -416,7 +435,7 @@ var _ = Describe("DeployCmd", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(Equal([]*fakebmlog.FakeStep{
+			Expect(fakeValidatingStage.Steps).To(Equal([]*fakebmlog.FakeStep{
 				&fakebmlog.FakeStep{
 					Name: "Validating stemcell",
 					States: []bmeventlog.EventState{
@@ -496,6 +515,38 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
+		It("adds a new 'uploading stemcell' event logger stage", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeEventLogger.NewStageInputs[1]).To(Equal(fakebmlog.NewStageInput{
+				Name: "uploading stemcell",
+			}))
+
+			Expect(fakeUploadingStage.Started).To(BeTrue())
+			Expect(fakeUploadingStage.Finished).To(BeTrue())
+		})
+
+		It("uploads the stemcell", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeStemcellManager.UploadInputs).To(Equal([]fakebmstemcell.UploadInput{
+				{Stemcell: extractedStemcell, Stage: fakeUploadingStage},
+			}))
+		})
+
+		It("adds a new 'deploying' event logger stage", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeEventLogger.NewStageInputs[2]).To(Equal(fakebmlog.NewStageInput{
+				Name: "deploying",
+			}))
+
+			Expect(fakeDeployingStage.Started).To(BeTrue())
+			Expect(fakeDeployingStage.Finished).To(BeTrue())
+		})
+
 		It("deploys", func() {
 			expectDeploy.Times(1)
 
@@ -514,12 +565,19 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
+		It("deletes unused stemcells", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeStemcellManager.DeleteUnusedCalledTimes).To(Equal(1))
+		})
+
 		Context("when deployment has not changed", func() {
 			JustBeforeEach(func() {
 				fakeDeploymentRecord.SetIsDeployedBehavior(
 					deploymentManifestPath,
 					fakeCPIRelease,
-					expectedExtractedStemcell,
+					extractedStemcell,
 					true,
 					nil,
 				)
@@ -632,7 +690,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the release '/release/tarball/path' exists"))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 					Name: "Validating releases",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -653,7 +711,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 					Name: "Validating stemcell",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -706,6 +764,7 @@ var _ = Describe("DeployCmd", func() {
 					mockAgentClientFactory,
 					mockVMManagerFactory,
 					fakeStemcellExtractor,
+					fakeStemcellManagerFactory,
 					fakeDeploymentRecord,
 					mockBlobstoreFactory,
 					mockDeployer,
@@ -752,7 +811,7 @@ var _ = Describe("DeployCmd", func() {
 				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 					Name: "Validating deployment manifest",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -780,7 +839,7 @@ var _ = Describe("DeployCmd", func() {
 				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
 					Name: "Validating deployment manifest",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -801,6 +860,18 @@ var _ = Describe("DeployCmd", func() {
 			err := command.Run([]string{"something"})
 			Expect(err).To(HaveOccurred())
 			Expect(fakeUI.Errors).To(ContainElement("Invalid usage - deploy command requires at least 2 arguments"))
+		})
+
+		Context("when uploading stemcell fails", func() {
+			JustBeforeEach(func() {
+				fakeStemcellManager.SetUploadBehavior(extractedStemcell, fakeUploadingStage, nil, errors.New("fake-upload-error"))
+			})
+
+			It("returns an error", func() {
+				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-upload-error"))
+			})
 		})
 	})
 })
