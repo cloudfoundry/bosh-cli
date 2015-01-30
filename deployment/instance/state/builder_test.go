@@ -1,14 +1,14 @@
-package instance_test
+package state_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
-	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
 	mock_deployment_release "github.com/cloudfoundry/bosh-micro-cli/deployment/release/mocks"
 	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
 
@@ -19,7 +19,7 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
-var _ = Describe("StateBuilder", func() {
+var _ = Describe("Builder", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {
@@ -33,27 +33,27 @@ var _ = Describe("StateBuilder", func() {
 	var (
 		logger boshlog.Logger
 
-		mockPackageCompiler    *mock_instance.MockPackageCompiler
+		mockPackageCompiler    *mock_instance_state.MockPackageCompiler
 		mockReleaseJobResolver *mock_deployment_release.MockJobResolver
 		mockJobListRenderer    *mock_template.MockJobListRenderer
 		mockCompressor         *mock_template.MockRenderedJobListCompressor
 		mockBlobstore          *mock_blobstore.MockBlobstore
 
-		mockState *mock_instance.MockState
+		mockState *mock_instance_state.MockState
 
-		stateBuilder StateBuilder
+		stateBuilder Builder
 	)
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		mockPackageCompiler = mock_instance.NewMockPackageCompiler(mockCtrl)
+		mockPackageCompiler = mock_instance_state.NewMockPackageCompiler(mockCtrl)
 		mockReleaseJobResolver = mock_deployment_release.NewMockJobResolver(mockCtrl)
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		mockCompressor = mock_template.NewMockRenderedJobListCompressor(mockCtrl)
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 
-		mockState = mock_instance.NewMockState(mockCtrl)
+		mockState = mock_instance_state.NewMockState(mockCtrl)
 
 	})
 
@@ -107,7 +107,7 @@ var _ = Describe("StateBuilder", func() {
 				},
 			}
 
-			stateBuilder = NewStateBuilder(
+			stateBuilder = NewBuilder(
 				mockPackageCompiler,
 				mockReleaseJobResolver,
 				mockJobListRenderer,
@@ -123,26 +123,26 @@ var _ = Describe("StateBuilder", func() {
 				Fingerprint:  "fake-package-source-fingerprint-libyaml",
 				SHA1:         "fake-package-source-sha1-libyaml",
 				Dependencies: []*bmrel.Package{},
-				ArchivePath:  "fake-package-archive-path-libyaml", //TODO: required by compiler...
+				ArchivePath:  "fake-package-archive-path-libyaml", // only required by compiler...
 			}
 			releasePackageRuby := bmrel.Package{
 				Name:         "ruby",
 				Fingerprint:  "fake-package-source-fingerprint-ruby",
 				SHA1:         "fake-package-source-sha1-ruby",
 				Dependencies: []*bmrel.Package{&releasePackageLibyaml},
-				ArchivePath:  "fake-package-archive-path-ruby", //TODO: required by compiler...
+				ArchivePath:  "fake-package-archive-path-ruby", // only required by compiler...
 			}
 			releasePackageCPI := bmrel.Package{
 				Name:         "cpi",
 				Fingerprint:  "fake-package-source-fingerprint-cpi",
 				SHA1:         "fake-package-source-sha1-cpi",
 				Dependencies: []*bmrel.Package{&releasePackageRuby},
-				ArchivePath:  "fake-package-archive-path-cpi", //TODO: required by compiler...
+				ArchivePath:  "fake-package-archive-path-cpi", // only required by compiler...
 			}
 			releaseJob := bmrel.Job{
 				Name:        "fake-release-job-name",
 				Fingerprint: "fake-release-job-source-fingerprint",
-				Packages:    []*bmrel.Package{&releasePackageCPI, &releasePackageRuby}, //TODO: test transitive package resolution
+				Packages:    []*bmrel.Package{&releasePackageCPI, &releasePackageRuby},
 			}
 			mockReleaseJobResolver.EXPECT().Resolve("fake-release-job-name", "fake-release-name").Return(releaseJob, nil)
 

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"code.google.com/p/gomock/gomock"
-	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
@@ -40,8 +40,8 @@ var _ = Describe("Instance", func() {
 	})
 
 	var (
-		mockStateBuilder *mock_instance.MockStateBuilder
-		mockState        *mock_instance.MockState
+		mockStateBuilder *mock_instance_state.MockBuilder
+		mockState        *mock_instance_state.MockState
 
 		fakeVMManager        *fakebmvm.FakeManager
 		fakeVM               *fakebmvm.FakeVM
@@ -64,8 +64,8 @@ var _ = Describe("Instance", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
-		mockStateBuilder = mock_instance.NewMockStateBuilder(mockCtrl)
-		mockState = mock_instance.NewMockState(mockCtrl)
+		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
+		mockState = mock_instance_state.NewMockState(mockCtrl)
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 

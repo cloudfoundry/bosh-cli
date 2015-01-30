@@ -1,4 +1,4 @@
-package instance
+package state
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"

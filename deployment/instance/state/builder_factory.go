@@ -1,4 +1,4 @@
-package instance
+package state
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -9,24 +9,24 @@ import (
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
-type StateBuilderFactory interface {
-	NewStateBuilder(bmblobstore.Blobstore, bmagentclient.AgentClient) StateBuilder
+type BuilderFactory interface {
+	NewBuilder(bmblobstore.Blobstore, bmagentclient.AgentClient) Builder
 }
 
-type stateBuilderFactory struct {
+type builderFactory struct {
 	releaseJobResolver        bmdeplrel.JobResolver
 	jobRenderer               bmtemplate.JobListRenderer
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
 	logger                    boshlog.Logger
 }
 
-func NewStateBuilderFactory(
+func NewBuilderFactory(
 	releaseJobResolver bmdeplrel.JobResolver,
 	jobRenderer bmtemplate.JobListRenderer,
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
 	logger boshlog.Logger,
-) StateBuilderFactory {
-	return &stateBuilderFactory{
+) BuilderFactory {
+	return &builderFactory{
 		releaseJobResolver:        releaseJobResolver,
 		jobRenderer:               jobRenderer,
 		renderedJobListCompressor: renderedJobListCompressor,
@@ -34,9 +34,9 @@ func NewStateBuilderFactory(
 	}
 }
 
-func (f *stateBuilderFactory) NewStateBuilder(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient) StateBuilder {
+func (f *builderFactory) NewBuilder(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient) Builder {
 	packageCompiler := NewRemotePackageCompiler(blobstore, agentClient)
-	return NewStateBuilder(
+	return NewBuilder(
 		packageCompiler,
 		f.releaseJobResolver,
 		f.jobRenderer,

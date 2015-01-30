@@ -12,6 +12,7 @@ import (
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 	mock_disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/mocks"
 	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
 	mock_deployment "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
 	mock_stemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/mocks"
 
@@ -147,7 +148,7 @@ var _ = Describe("Manager", func() {
 
 			mockDeploymentFactory *mock_deployment.MockFactory
 
-			mockStateBuilderFactory *mock_instance.MockStateBuilderFactory
+			mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
 
 			mockBlobstore *mock_blobstore.MockBlobstore
 
@@ -195,7 +196,7 @@ var _ = Describe("Manager", func() {
 			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
 			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
 
-			mockStateBuilderFactory = mock_instance.NewMockStateBuilderFactory(mockCtrl)
+			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
 
 			instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
 			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)

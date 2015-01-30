@@ -1,7 +1,7 @@
-package instance_test
+package state_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

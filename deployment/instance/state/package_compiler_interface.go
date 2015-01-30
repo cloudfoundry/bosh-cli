@@ -1,4 +1,4 @@
-package instance
+package state
 
 import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"

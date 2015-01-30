@@ -12,7 +12,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
-	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
@@ -45,9 +45,9 @@ var _ = Describe("Manager", func() {
 	var (
 		fakeCloud *fakebmcloud.FakeCloud
 
-		mockStateBuilderFactory *mock_instance.MockStateBuilderFactory
-		mockStateBuilder        *mock_instance.MockStateBuilder
-		mockState               *mock_instance.MockState
+		mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
+		mockStateBuilder        *mock_instance_state.MockBuilder
+		mockState               *mock_instance_state.MockState
 
 		mockBlobstore *mock_blobstore.MockBlobstore
 
@@ -71,9 +71,9 @@ var _ = Describe("Manager", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
-		mockStateBuilderFactory = mock_instance.NewMockStateBuilderFactory(mockCtrl)
-		mockStateBuilder = mock_instance.NewMockStateBuilder(mockCtrl)
-		mockState = mock_instance.NewMockState(mockCtrl)
+		mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
+		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
+		mockState = mock_instance_state.NewMockState(mockCtrl)
 
 		instanceFactory = NewFactory(mockStateBuilderFactory)
 
@@ -130,7 +130,7 @@ var _ = Describe("Manager", func() {
 				ConfigurationHash:        "",
 			}
 
-			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
+			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
 			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}

@@ -4,6 +4,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
+	bminstancestate "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 )
@@ -21,14 +22,14 @@ type Factory interface {
 }
 
 type factory struct {
-	instanceStateBuilderFactory StateBuilderFactory
+	stateBuilderFactory bminstancestate.BuilderFactory
 }
 
 func NewFactory(
-	instanceStateBuilderFactory StateBuilderFactory,
+	stateBuilderFactory bminstancestate.BuilderFactory,
 ) Factory {
 	return &factory{
-		instanceStateBuilderFactory: instanceStateBuilderFactory,
+		stateBuilderFactory: stateBuilderFactory,
 	}
 }
 
@@ -41,7 +42,7 @@ func (f *factory) NewInstance(
 	blobstore bmblobstore.Blobstore,
 	logger boshlog.Logger,
 ) Instance {
-	instanceStateBuilder := f.instanceStateBuilderFactory.NewStateBuilder(blobstore, vm.AgentClient())
+	stateBuilder := f.stateBuilderFactory.NewBuilder(blobstore, vm.AgentClient())
 
 	return NewInstance(
 		jobName,
@@ -49,7 +50,7 @@ func (f *factory) NewInstance(
 		vm,
 		vmManager,
 		sshTunnelFactory,
-		instanceStateBuilder,
+		stateBuilder,
 		logger,
 	)
 }

@@ -9,6 +9,7 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
+	bminstancestate "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
@@ -31,14 +32,14 @@ type Instance interface {
 }
 
 type instance struct {
-	jobName              string
-	id                   int
-	vm                   bmvm.VM
-	vmManager            bmvm.Manager
-	sshTunnelFactory     bmsshtunnel.Factory
-	instanceStateBuilder StateBuilder
-	logger               boshlog.Logger
-	logTag               string
+	jobName          string
+	id               int
+	vm               bmvm.VM
+	vmManager        bmvm.Manager
+	sshTunnelFactory bmsshtunnel.Factory
+	stateBuilder     bminstancestate.Builder
+	logger           boshlog.Logger
+	logTag           string
 }
 
 func NewInstance(
@@ -47,18 +48,18 @@ func NewInstance(
 	vm bmvm.VM,
 	vmManager bmvm.Manager,
 	sshTunnelFactory bmsshtunnel.Factory,
-	instanceStateBuilder StateBuilder,
+	stateBuilder bminstancestate.Builder,
 	logger boshlog.Logger,
 ) Instance {
 	return &instance{
-		jobName:              jobName,
-		id:                   id,
-		vm:                   vm,
-		vmManager:            vmManager,
-		sshTunnelFactory:     sshTunnelFactory,
-		instanceStateBuilder: instanceStateBuilder,
-		logger:               logger,
-		logTag:               "instance",
+		jobName:          jobName,
+		id:               id,
+		vm:               vm,
+		vmManager:        vmManager,
+		sshTunnelFactory: sshTunnelFactory,
+		stateBuilder:     stateBuilder,
+		logger:           logger,
+		logTag:           "instance",
 	}
 }
 
@@ -131,7 +132,7 @@ func (i *instance) UpdateJobs(
 	deploymentManifest bmdeplmanifest.Manifest,
 	eventLoggerStage bmeventlog.Stage,
 ) error {
-	instanceState, err := i.instanceStateBuilder.Build(i.jobName, i.id, deploymentManifest)
+	newState, err := i.stateBuilder.Build(i.jobName, i.id, deploymentManifest)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Builing state for instance '%s/%d'", i.jobName, i.id)
 	}
@@ -143,7 +144,7 @@ func (i *instance) UpdateJobs(
 			return bosherr.WrapError(err, "Stopping the agent")
 		}
 
-		err = i.vm.Apply(instanceState.ToApplySpec())
+		err = i.vm.Apply(newState.ToApplySpec())
 		if err != nil {
 			return bosherr.WrapError(err, "Applying the agent state")
 		}

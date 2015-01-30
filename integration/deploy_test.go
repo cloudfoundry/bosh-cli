@@ -18,7 +18,7 @@ import (
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
-	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
 	mock_install "github.com/cloudfoundry/bosh-micro-cli/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
 
@@ -80,9 +80,9 @@ var _ = Describe("bosh-micro", func() {
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockReleaseExtractor   *mock_release.MockExtractor
 
-			mockStateBuilderFactory *mock_instance.MockStateBuilderFactory
-			mockStateBuilder        *mock_instance.MockStateBuilder
-			mockState               *mock_instance.MockState
+			mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
+			mockStateBuilder        *mock_instance_state.MockBuilder
+			mockState               *mock_instance_state.MockState
 
 			mockBlobstoreFactory *mock_blobstore.MockFactory
 			mockBlobstore        *mock_blobstore.MockBlobstore
@@ -342,7 +342,7 @@ cloud_provider:
 				ConfigurationHash:        "",
 			}
 
-			mockStateBuilderFactory.EXPECT().NewStateBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
+			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
 			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
@@ -697,9 +697,9 @@ cloud_provider:
 			releaseManager = bmrel.NewManager(logger)
 			releaseResolver = bmrelset.NewResolver(releaseManager, logger)
 
-			mockStateBuilderFactory = mock_instance.NewMockStateBuilderFactory(mockCtrl)
-			mockStateBuilder = mock_instance.NewMockStateBuilder(mockCtrl)
-			mockState = mock_instance.NewMockState(mockCtrl)
+			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
+			mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
+			mockState = mock_instance_state.NewMockState(mockCtrl)
 
 			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
 			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)

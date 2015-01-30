@@ -18,6 +18,7 @@ import (
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
+	bminstancestate "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
@@ -80,7 +81,7 @@ type factory struct {
 	installationValidator    bminstallmanifest.Validator
 	deploymentValidator      bmdeplmanifest.Validator
 	cloudFactory             bmcloud.Factory
-	stateBuilderFactory      bminstance.StateBuilderFactory
+	stateBuilderFactory      bminstancestate.BuilderFactory
 }
 
 func NewFactory(
@@ -282,12 +283,12 @@ func (f *factory) loadInstanceFactory() bminstance.Factory {
 	}
 
 	f.instanceFactory = bminstance.NewFactory(
-		f.loadStateBuilderFactory(),
+		f.loadBuilderFactory(),
 	)
 	return f.instanceFactory
 }
 
-func (f *factory) loadStateBuilderFactory() bminstance.StateBuilderFactory {
+func (f *factory) loadBuilderFactory() bminstancestate.BuilderFactory {
 	if f.stateBuilderFactory != nil {
 		return f.stateBuilderFactory
 	}
@@ -308,7 +309,7 @@ func (f *factory) loadStateBuilderFactory() bminstance.StateBuilderFactory {
 		f.logger,
 	)
 
-	f.stateBuilderFactory = bminstance.NewStateBuilderFactory(
+	f.stateBuilderFactory = bminstancestate.NewBuilderFactory(
 		releaseJobResolver,
 		jobListRenderer,
 		renderedJobListCompressor,

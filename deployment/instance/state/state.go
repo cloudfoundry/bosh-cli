@@ -1,4 +1,4 @@
-package instance
+package state
 
 import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
@@ -88,7 +88,6 @@ func (s *state) ToApplySpec() bmas.ApplySpec {
 		}
 	}
 
-	//TODO: once packages are being compiled, create package map based on deployment + releases
 	packageMap := make(map[string]bmas.Blob, len(s.compiledPackages))
 	for _, compiledPackage := range s.compiledPackages {
 		packageMap[compiledPackage.Name] = bmas.Blob{
