@@ -8,7 +8,7 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -23,7 +23,7 @@ type manager struct {
 	vmRepo             bmconfig.VMRepo
 	stemcellRepo       bmconfig.StemcellRepo
 	diskDeployer       DiskDeployer
-	agentClient        bmac.AgentClient
+	agentClient        bmagentclient.AgentClient
 	agentClientFactory bmhttpagent.AgentClientFactory
 	cloud              bmcloud.Cloud
 	uuidGenerator      boshuuid.Generator
@@ -36,7 +36,7 @@ func NewManager(
 	vmRepo bmconfig.VMRepo,
 	stemcellRepo bmconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
-	agentClient bmac.AgentClient,
+	agentClient bmagentclient.AgentClient,
 	cloud bmcloud.Cloud,
 	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,

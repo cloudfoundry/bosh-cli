@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	fakebmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient/fakes"
 )
@@ -18,7 +18,7 @@ import (
 var _ = Describe("AgentClient", func() {
 	var (
 		fakeHTTPClient *fakebmhttpclient.FakeHTTPClient
-		agentClient    bmac.AgentClient
+		agentClient    bmagentclient.AgentClient
 	)
 
 	BeforeEach(func() {
@@ -302,7 +302,7 @@ var _ = Describe("AgentClient", func() {
 			It("makes a POST request to the endpoint", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(stateResponse).To(Equal(bmac.AgentState{JobState: "running"}))
+				Expect(stateResponse).To(Equal(bmagentclient.AgentState{JobState: "running"}))
 
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
 				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
@@ -328,7 +328,7 @@ var _ = Describe("AgentClient", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("status code: 500"))
-				Expect(stateResponse).To(Equal(bmac.AgentState{}))
+				Expect(stateResponse).To(Equal(bmagentclient.AgentState{}))
 			})
 		})
 
@@ -341,7 +341,7 @@ var _ = Describe("AgentClient", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("bad request"))
-				Expect(stateResponse).To(Equal(bmac.AgentState{}))
+				Expect(stateResponse).To(Equal(bmagentclient.AgentState{}))
 			})
 		})
 	})
@@ -584,13 +584,13 @@ var _ = Describe("AgentClient", func() {
 		})
 
 		It("makes a compile_package request and waits for the task to be done", func() {
-			packageSource := bmac.BlobRef{
+			packageSource := bmagentclient.BlobRef{
 				Name:        "fake-package-name",
 				Version:     "fake-package-version",
 				SHA1:        "fake-package-sha1",
 				BlobstoreID: "fake-package-blobstore-id",
 			}
-			dependencies := []bmac.BlobRef{
+			dependencies := []bmagentclient.BlobRef{
 				{
 					Name:        "fake-compiled-package-dep-name",
 					Version:     "fake-compiled-package-dep-version",

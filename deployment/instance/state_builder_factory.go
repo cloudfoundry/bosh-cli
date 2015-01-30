@@ -4,13 +4,13 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
 type StateBuilderFactory interface {
-	NewStateBuilder(bmblobstore.Blobstore, bmac.AgentClient) StateBuilder
+	NewStateBuilder(bmblobstore.Blobstore, bmagentclient.AgentClient) StateBuilder
 }
 
 type stateBuilderFactory struct {
@@ -34,7 +34,7 @@ func NewStateBuilderFactory(
 	}
 }
 
-func (f *stateBuilderFactory) NewStateBuilder(blobstore bmblobstore.Blobstore, agentClient bmac.AgentClient) StateBuilder {
+func (f *stateBuilderFactory) NewStateBuilder(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient) StateBuilder {
 	packageCompiler := NewRemotePackageCompiler(blobstore, agentClient)
 	return NewStateBuilder(
 		packageCompiler,

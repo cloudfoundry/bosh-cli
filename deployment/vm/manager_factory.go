@@ -7,11 +7,11 @@ import (
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 )
 
 type ManagerFactory interface {
-	NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient) Manager
+	NewManager(cloud bmcloud.Cloud, agentClient bmagentclient.AgentClient) Manager
 }
 
 type managerFactory struct {
@@ -41,7 +41,7 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmac.AgentClient) Manager {
+func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmagentclient.AgentClient) Manager {
 	return NewManager(
 		f.vmRepo,
 		f.stemcellRepo,

@@ -29,7 +29,7 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
@@ -131,7 +131,7 @@ var _ = Describe("bosh-micro", func() {
 					"cloud_properties": cloudProperties,
 				},
 			}
-			agentRunningState = bmac.AgentState{JobState: "running"}
+			agentRunningState = bmagentclient.AgentState{JobState: "running"}
 			mbusURL           = "http://fake-mbus-url"
 
 			expectHasVM1    *gomock.Call

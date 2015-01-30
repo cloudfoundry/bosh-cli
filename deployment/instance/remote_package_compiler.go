@@ -4,16 +4,16 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type remotePackageCompiler struct {
 	blobstore   bmblobstore.Blobstore
-	agentClient bmac.AgentClient
+	agentClient bmagentclient.AgentClient
 }
 
-func NewRemotePackageCompiler(blobstore bmblobstore.Blobstore, agentClient bmac.AgentClient) PackageCompiler {
+func NewRemotePackageCompiler(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient) PackageCompiler {
 	return &remotePackageCompiler{
 		blobstore:   blobstore,
 		agentClient: agentClient,
@@ -27,7 +27,7 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrel.Package, compiledP
 		return PackageRef{}, bosherr.WrapErrorf(err, "Adding release package archive '%s' to blobstore", releasePackage.ArchivePath)
 	}
 
-	packageSource := bmac.BlobRef{
+	packageSource := bmagentclient.BlobRef{
 		Name:        releasePackage.Name,
 		Version:     releasePackage.Fingerprint,
 		SHA1:        releasePackage.SHA1,
@@ -36,13 +36,13 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrel.Package, compiledP
 
 	// Resolve dependencies from map of previously compiled packages.
 	// Only install the package's immediate dependencies when compiling (not all transitive dependencies).
-	packageDependencies := make([]bmac.BlobRef, len(releasePackage.Dependencies), len(releasePackage.Dependencies))
+	packageDependencies := make([]bmagentclient.BlobRef, len(releasePackage.Dependencies), len(releasePackage.Dependencies))
 	for i, dependency := range releasePackage.Dependencies {
 		packageRef, found := compiledPackageRefs[dependency.Name]
 		if !found {
 			return PackageRef{}, bosherr.Errorf("Remote compilation failure: Package '%s' requires package '%s', but it has not been compiled", releasePackage.Name, dependency.Name)
 		}
-		packageDependencies[i] = bmac.BlobRef{
+		packageDependencies[i] = bmagentclient.BlobRef{
 			Name:        packageRef.Name,
 			Version:     packageRef.Version,
 			SHA1:        packageRef.Archive.SHA1,

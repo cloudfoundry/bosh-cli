@@ -7,7 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
-	bmac "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
 )
@@ -25,7 +25,7 @@ func NewAgentClient(
 	getTaskDelay time.Duration,
 	httpClient bmhttpclient.HTTPClient,
 	logger boshlog.Logger,
-) bmac.AgentClient {
+) bmagentclient.AgentClient {
 	// if this were NATS, we would need the agentID, but since it's http, the endpoint is unique to the agent
 	agentEndpoint := fmt.Sprintf("%s/agent", endpoint)
 	agentRequest := NewAgentRequest(agentEndpoint, httpClient, directorID)
@@ -72,14 +72,14 @@ func (c *agentClient) Start() error {
 	return nil
 }
 
-func (c *agentClient) GetState() (bmac.AgentState, error) {
+func (c *agentClient) GetState() (bmagentclient.AgentState, error) {
 	var response StateResponse
 	err := c.agentRequest.Send("get_state", []interface{}{}, &response)
 	if err != nil {
-		return bmac.AgentState{}, bosherr.WrapError(err, "Sending get_state to the agent")
+		return bmagentclient.AgentState{}, bosherr.WrapError(err, "Sending get_state to the agent")
 	}
 
-	agentState := bmac.AgentState{
+	agentState := bmagentclient.AgentState{
 		JobState: response.Value.JobState,
 	}
 	return agentState, nil
@@ -152,7 +152,7 @@ func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{
 	return value, getTaskRetryStrategy.Try()
 }
 
-func (c *agentClient) CompilePackage(packageSource bmac.BlobRef, compiledPackageDependencies []bmac.BlobRef) (compiledPackageRef bmac.BlobRef, err error) {
+func (c *agentClient) CompilePackage(packageSource bmagentclient.BlobRef, compiledPackageDependencies []bmagentclient.BlobRef) (compiledPackageRef bmagentclient.BlobRef, err error) {
 	dependencies := make(map[string]BlobRef, len(compiledPackageDependencies))
 	for _, dependency := range compiledPackageDependencies {
 		dependencies[dependency.Name] = BlobRef{
@@ -173,25 +173,25 @@ func (c *agentClient) CompilePackage(packageSource bmac.BlobRef, compiledPackage
 
 	responseValue, err := c.sendAsyncTaskMessage("compile_package", args)
 	if err != nil {
-		return bmac.BlobRef{}, bosherr.WrapError(err, "Sending 'compile_package' to the agent")
+		return bmagentclient.BlobRef{}, bosherr.WrapError(err, "Sending 'compile_package' to the agent")
 	}
 
 	result, ok := responseValue["result"].(map[string]interface{})
 	if !ok {
-		return bmac.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
+		return bmagentclient.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
 	}
 
 	sha1, ok := result["sha1"].(string)
 	if !ok {
-		return bmac.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
+		return bmagentclient.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
 	}
 
 	blobstoreID, ok := result["blobstore_id"].(string)
 	if !ok {
-		return bmac.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
+		return bmagentclient.BlobRef{}, bosherr.Errorf("Unable to parse 'compile_package' response from the agent: %#v", responseValue)
 	}
 
-	compiledPackageRef = bmac.BlobRef{
+	compiledPackageRef = bmagentclient.BlobRef{
 		Name:        packageSource.Name,
 		Version:     packageSource.Version,
 		SHA1:        sha1,
