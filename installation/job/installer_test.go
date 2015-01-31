@@ -33,7 +33,6 @@ var _ = Describe("Installer", func() {
 		templateRepo     *fakebmtemcomp.FakeTemplatesRepo
 		jobsPath         string
 		packagesPath     string
-		eventLogger      *fakebmlog.FakeEventLogger
 		fakeStage        *fakebmlog.FakeStage
 		timeService      *faketime.FakeService
 	)
@@ -47,12 +46,10 @@ var _ = Describe("Installer", func() {
 
 			jobsPath = "/fake/jobs"
 			packagesPath = "/fake/packages"
-			eventLogger = fakebmlog.NewFakeEventLogger()
 			fakeStage = fakebmlog.NewFakeStage()
-			eventLogger.SetNewStageBehavior("installing CPI jobs", fakeStage)
 			timeService = &faketime.FakeService{}
 
-			jobInstaller = NewInstaller(fs, packageInstaller, blobExtractor, templateRepo, jobsPath, packagesPath, eventLogger, timeService)
+			jobInstaller = NewInstaller(fs, packageInstaller, blobExtractor, templateRepo, jobsPath, packagesPath, timeService)
 			job = bmrel.Job{
 				Name: "cpi",
 			}
@@ -61,29 +58,17 @@ var _ = Describe("Installer", func() {
 			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-sha1", "/fake/jobs/cpi", nil)
 		})
 
-		It("adds a new event logger stage", func() {
-			_, err := jobInstaller.Install(job)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-				{Name: "installing CPI jobs"},
-			}))
-
-			Expect(fakeStage.Started).To(BeTrue())
-			Expect(fakeStage.Finished).To(BeTrue())
-		})
-
 		It("makes the files in the job's bin directory executable", func() {
 			cpiExecutablePath := "/fake/jobs/cpi/bin/cpi"
 			fs.SetGlob("/fake/jobs/cpi/bin/*", []string{cpiExecutablePath})
 			fs.WriteFileString(cpiExecutablePath, "contents")
-			_, err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.GetFileTestStat(cpiExecutablePath).FileMode).To(Equal(os.FileMode(0755)))
 		})
 
 		It("returns a record of the installed job", func() {
-			installedJob, err := jobInstaller.Install(job)
+			installedJob, err := jobInstaller.Install(job, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(installedJob).To(Equal(
 				InstalledJob{
@@ -94,20 +79,20 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("creates basic job layout", func() {
-			_, err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.FileExists(filepath.Join(jobsPath, job.Name))).To(BeTrue())
 			Expect(fs.FileExists(packagesPath)).To(BeTrue())
 		})
 
 		It("finds the rendered templates for the job from the repo", func() {
-			_, err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(templateRepo.FindInputs).To(ContainElement(fakebmtemcomp.FindInput{Job: job}))
 		})
 
 		It("tells the blobExtractor to extract the templates into the installed job dir", func() {
-			_, err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstallblob.ExtractInput{
 				BlobID:    "fake-blob-id",
@@ -121,11 +106,11 @@ var _ = Describe("Installer", func() {
 			installFinish := installStart.Add(1 * time.Second)
 			timeService.NowTimes = []time.Time{installStart, installFinish}
 
-			_, err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "cpi",
+				Name: "Installing job 'cpi'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Finished,
@@ -140,11 +125,11 @@ var _ = Describe("Installer", func() {
 			installFail := installStart.Add(1 * time.Second)
 			timeService.NowTimes = []time.Time{installStart, installFail}
 
-			_, err := jobInstaller.Install(job)
+			_, err := jobInstaller.Install(job, fakeStage)
 			Expect(err).To(HaveOccurred())
 
 			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "cpi",
+				Name: "Installing job 'cpi'",
 				States: []bmeventlog.EventState{
 					bmeventlog.Started,
 					bmeventlog.Failed,
@@ -164,7 +149,7 @@ var _ = Describe("Installer", func() {
 			})
 
 			It("install packages correctly", func() {
-				_, err := jobInstaller.Install(job)
+				_, err := jobInstaller.Install(job, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(packageInstaller.InstallInputs).To(ContainElement(
 					fakebminstallpkg.InstallInput{Package: &pkg1, Target: packagesPath},
@@ -177,7 +162,7 @@ var _ = Describe("Installer", func() {
 					packagesPath,
 					errors.New("Installation failed, yo"),
 				)
-				_, err := jobInstaller.Install(job)
+				_, err := jobInstaller.Install(job, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Installation failed"))
 			})

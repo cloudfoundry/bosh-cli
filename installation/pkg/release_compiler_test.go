@@ -9,11 +9,13 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
-	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+
+	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
+	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 )
@@ -59,6 +61,7 @@ var _ = Describe("ReleaseCompiler", func() {
 		var (
 			manifest            bminstallmanifest.Manifest
 			deploymentProperies map[string]interface{}
+			fakeStage           *fakebmeventlog.FakeStage
 		)
 
 		BeforeEach(func() {
@@ -72,30 +75,35 @@ var _ = Describe("ReleaseCompiler", func() {
 					"fake-property-key": "fake-property-value",
 				},
 			}
-			fakeTemplatesCompiler.SetCompileBehavior([]bmrel.Job{cpiJob}, "fake-deployment-name", deploymentProperies, nil)
+
+			fakeStage = fakebmeventlog.NewFakeStage()
+
+			fakeTemplatesCompiler.SetCompileBehavior([]bmrel.Job{cpiJob}, "fake-deployment-name", deploymentProperies, fakeStage, nil)
 		})
 
 		It("compiles the release", func() {
-			err := releaseCompiler.Compile(release, manifest)
+			err := releaseCompiler.Compile(release, manifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeReleasePackagesCompiler.CompileRelease.Name()).To(Equal("fake-release-name"))
+			Expect(fakeReleasePackagesCompiler.CompileStage).To(Equal(fakeStage))
 		})
 
 		It("compiles templates", func() {
-			err := releaseCompiler.Compile(release, manifest)
+			err := releaseCompiler.Compile(release, manifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeTemplatesCompiler.CompileInputs).To(HaveLen(1))
 			Expect(fakeTemplatesCompiler.CompileInputs[0]).To(Equal(fakebmtemp.CompileInput{
 				Jobs:                 release.Jobs(),
 				DeploymentName:       "fake-deployment-name",
 				DeploymentProperties: deploymentProperies,
+				Stage:                fakeStage,
 			}))
 		})
 
 		Context("when packages compilation fails", func() {
 			It("returns error", func() {
 				fakeReleasePackagesCompiler.CompileError = errors.New("fake-compile-error")
-				err := releaseCompiler.Compile(release, manifest)
+				err := releaseCompiler.Compile(release, manifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
 			})
@@ -104,7 +112,7 @@ var _ = Describe("ReleaseCompiler", func() {
 		Context("when cpi release has no job named 'cpi'", func() {
 			It("returns error", func() {
 				release.Jobs()[0].Name = "not-the-cpi"
-				err := releaseCompiler.Compile(release, manifest)
+				err := releaseCompiler.Compile(release, manifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Job 'cpi' not found in release 'fake-release-name'"))
 			})
@@ -113,11 +121,11 @@ var _ = Describe("ReleaseCompiler", func() {
 		Context("when compiling templates fails", func() {
 			BeforeEach(func() {
 				err := errors.New("fake-compiling-templates-error")
-				fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), "fake-deployment-name", deploymentProperies, err)
+				fakeTemplatesCompiler.SetCompileBehavior(release.Jobs(), "fake-deployment-name", deploymentProperies, fakeStage, err)
 			})
 
 			It("returns an error", func() {
-				err := releaseCompiler.Compile(release, manifest)
+				err := releaseCompiler.Compile(release, manifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compiling-templates-error"))
 			})
@@ -131,7 +139,7 @@ var _ = Describe("ReleaseCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := releaseCompiler.Compile(release, manifest)
+				err := releaseCompiler.Compile(release, manifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Getting installation manifest properties"))
 			})

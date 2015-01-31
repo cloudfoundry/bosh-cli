@@ -260,15 +260,15 @@ var _ = Describe("bosh-micro", func() {
 		Expect(validatingSteps[3]).To(MatchRegexp("^Started validating > Validating cpi release" + donePattern))
 		Expect(validatingSteps).To(HaveLen(4))
 
-		compilingSteps, doneIndex := findStage(outputLines, "compiling packages", doneIndex+1)
-		for _, line := range compilingSteps {
-			Expect(line).To(MatchRegexp("^Started compiling packages > .*/.*" + donePattern))
+		installingSteps, doneIndex := findStage(outputLines, "installing CPI", doneIndex+1)
+		numInstallingSteps := len(installingSteps)
+		for _, line := range installingSteps[:numInstallingSteps-3] {
+			Expect(line).To(MatchRegexp("^Started installing CPI > Compiling package '.*/.*'" + donePattern))
 		}
-		Expect(len(compilingSteps)).To(BeNumerically(">", 0))
+		Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^Started installing CPI > Rendering job templates" + donePattern))
+		Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^Started installing CPI > Installing job 'cpi'" + donePattern))
+		Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^Started installing CPI > Starting registry" + donePattern))
 
-		installingSteps, doneIndex := findStage(outputLines, "installing CPI jobs", doneIndex+1)
-		Expect(installingSteps[0]).To(MatchRegexp("^Started installing CPI jobs > cpi" + donePattern))
-		Expect(installingSteps).To(HaveLen(1))
 
 		uploadingSteps, doneIndex := findStage(outputLines, "uploading stemcell", doneIndex+1)
 		Expect(uploadingSteps[0]).To(MatchRegexp("^Started uploading stemcell > Uploading" + donePattern))

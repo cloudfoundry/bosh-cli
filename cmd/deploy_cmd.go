@@ -261,14 +261,19 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}
 
-	installation, err := installer.Install(installationManifest)
+	installStage := c.eventLogger.NewStage("installing CPI")
+	installStage.Start()
+
+	installation, err := installer.Install(installationManifest, installStage)
 	if err != nil {
 		return bosherr.WrapError(err, "Installing CPI")
 	}
 
-	err = installation.StartRegistry()
+	err = installStage.PerformStep("Starting registry", func() error {
+		return installation.StartRegistry()
+	})
 	if err != nil {
-		return bosherr.WrapError(err, "Starting Registry")
+		return err
 	}
 	defer func() {
 		err := installation.StopRegistry()
@@ -276,6 +281,8 @@ func (c *deployCmd) Run(args []string) error {
 			c.logger.Warn(c.logTag, "Registry failed to stop: %s", err)
 		}
 	}()
+
+	installStage.Finish()
 
 	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
 	if err != nil {

@@ -41,7 +41,7 @@ import (
 	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest/fakes"
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	fakebmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest/fakes"
@@ -101,10 +101,11 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 
-		fakeEventLogger     *fakebmlog.FakeEventLogger
-		fakeValidatingStage *fakebmlog.FakeStage
-		fakeUploadingStage  *fakebmlog.FakeStage
-		fakeDeployingStage  *fakebmlog.FakeStage
+		fakeEventLogger     *fakebmeventlog.FakeEventLogger
+		fakeValidatingStage *fakebmeventlog.FakeStage
+		fakeInstallingStage *fakebmeventlog.FakeStage
+		fakeUploadingStage  *fakebmeventlog.FakeStage
+		fakeDeployingStage  *fakebmeventlog.FakeStage
 
 		deploymentManifestPath string
 		deploymentConfigPath   string
@@ -168,12 +169,14 @@ var _ = Describe("DeployCmd", func() {
 		fakeInstallationValidator = fakebminstallmanifest.NewFakeValidator()
 		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
 
-		fakeEventLogger = fakebmlog.NewFakeEventLogger()
-		fakeValidatingStage = fakebmlog.NewFakeStage()
+		fakeEventLogger = fakebmeventlog.NewFakeEventLogger()
+		fakeValidatingStage = fakebmeventlog.NewFakeStage()
 		fakeEventLogger.SetNewStageBehavior("validating", fakeValidatingStage)
-		fakeUploadingStage = fakebmlog.NewFakeStage()
+		fakeInstallingStage = fakebmeventlog.NewFakeStage()
+		fakeEventLogger.SetNewStageBehavior("installing CPI", fakeInstallingStage)
+		fakeUploadingStage = fakebmeventlog.NewFakeStage()
 		fakeEventLogger.SetNewStageBehavior("uploading stemcell", fakeUploadingStage)
-		fakeDeployingStage = fakebmlog.NewFakeStage()
+		fakeDeployingStage = fakebmeventlog.NewFakeStage()
 		fakeEventLogger.SetNewStageBehavior("deploying", fakeDeployingStage)
 
 		fakeDeploymentRecord = fakebmdepl.NewFakeRecord()
@@ -353,7 +356,7 @@ var _ = Describe("DeployCmd", func() {
 
 			installation := bminstall.NewInstallation(target, installedJob, installationManifest, mockRegistryServerManager)
 
-			expectInstall = mockInstaller.EXPECT().Install(installationManifest).Return(installation, nil).AnyTimes()
+			expectInstall = mockInstaller.EXPECT().Install(installationManifest, fakeInstallingStage).Return(installation, nil).AnyTimes()
 
 			mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
 
@@ -387,7 +390,7 @@ var _ = Describe("DeployCmd", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEventLogger.NewStageInputs[0]).To(Equal(fakebmlog.NewStageInput{
+			Expect(fakeEventLogger.NewStageInputs[0]).To(Equal(fakebmeventlog.NewStageInput{
 				Name: "validating",
 			}))
 
@@ -431,33 +434,33 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
-		It("logs validation stages", func() {
+		It("logs validating stages", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeValidatingStage.Steps).To(Equal([]*fakebmlog.FakeStep{
-				&fakebmlog.FakeStep{
+			Expect(fakeValidatingStage.Steps).To(Equal([]*fakebmeventlog.FakeStep{
+				&fakebmeventlog.FakeStep{
 					Name: "Validating stemcell",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Finished,
 					},
 				},
-				&fakebmlog.FakeStep{
+				&fakebmeventlog.FakeStep{
 					Name: "Validating releases",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Finished,
 					},
 				},
-				&fakebmlog.FakeStep{
+				&fakebmeventlog.FakeStep{
 					Name: "Validating deployment manifest",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Finished,
 					},
 				},
-				&fakebmlog.FakeStep{
+				&fakebmeventlog.FakeStep{
 					Name: "Validating cpi release",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -480,6 +483,18 @@ var _ = Describe("DeployCmd", func() {
 
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("adds a new 'installing CPI' event logger stage", func() {
+			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeEventLogger.NewStageInputs[1]).To(Equal(fakebmeventlog.NewStageInput{
+				Name: "installing CPI",
+			}))
+
+			Expect(fakeInstallingStage.Started).To(BeTrue())
+			Expect(fakeInstallingStage.Finished).To(BeTrue())
 		})
 
 		Context("when the registry is configured", func() {
@@ -519,7 +534,7 @@ var _ = Describe("DeployCmd", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEventLogger.NewStageInputs[1]).To(Equal(fakebmlog.NewStageInput{
+			Expect(fakeEventLogger.NewStageInputs[2]).To(Equal(fakebmeventlog.NewStageInput{
 				Name: "uploading stemcell",
 			}))
 
@@ -539,7 +554,7 @@ var _ = Describe("DeployCmd", func() {
 			err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEventLogger.NewStageInputs[2]).To(Equal(fakebmlog.NewStageInput{
+			Expect(fakeEventLogger.NewStageInputs[3]).To(Equal(fakebmeventlog.NewStageInput{
 				Name: "deploying",
 			}))
 
@@ -690,7 +705,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the release '/release/tarball/path' exists"))
 
-				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
 					Name: "Validating releases",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -711,7 +726,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
 
-				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
 					Name: "Validating stemcell",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -811,7 +826,7 @@ var _ = Describe("DeployCmd", func() {
 				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
 					Name: "Validating deployment manifest",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
@@ -839,7 +854,7 @@ var _ = Describe("DeployCmd", func() {
 				err := command.Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeValidatingStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
 					Name: "Validating deployment manifest",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,

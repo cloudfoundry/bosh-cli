@@ -278,7 +278,8 @@ cloud_provider:
 			installation := bminstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
-			mockInstaller.EXPECT().Install(installationManifest).Return(installation, nil).AnyTimes()
+			//TODO: check installing stage?
+			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Return(installation, nil).AnyTimes()
 
 			mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(mockCloud, nil).AnyTimes()
 		}

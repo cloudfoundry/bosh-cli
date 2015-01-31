@@ -5,6 +5,7 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
+	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	installation "github.com/cloudfoundry/bosh-micro-cli/installation"
 	job "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
@@ -92,15 +93,15 @@ func (_m *MockInstaller) EXPECT() *_MockInstallerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockInstaller) Install(_param0 manifest.Manifest) (installation.Installation, error) {
-	ret := _m.ctrl.Call(_m, "Install", _param0)
+func (_m *MockInstaller) Install(_param0 manifest.Manifest, _param1 eventlogger.Stage) (installation.Installation, error) {
+	ret := _m.ctrl.Call(_m, "Install", _param0, _param1)
 	ret0, _ := ret[0].(installation.Installation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockInstallerRecorder) Install(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Install", arg0)
+func (_mr *_MockInstallerRecorder) Install(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Install", arg0, arg1)
 }
 
 // Mock of InstallerFactory interface

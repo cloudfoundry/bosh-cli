@@ -1,11 +1,13 @@
 package templatescompiler_test
 
 import (
-	"errors"
-	"os"
+	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"errors"
+	"os"
 
 	"code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
@@ -15,10 +17,12 @@ import (
 	fakeblobs "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+
+	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
 )
 
 var _ = Describe("TemplatesCompiler", func() {
@@ -44,6 +48,8 @@ var _ = Describe("TemplatesCompiler", func() {
 		jobs                 []bmrel.Job
 		deploymentProperties map[string]interface{}
 		logger               boshlog.Logger
+
+		fakeStage *fakebmeventlog.FakeStage
 
 		expectJobRender *gomock.Call
 
@@ -103,6 +109,8 @@ var _ = Describe("TemplatesCompiler", func() {
 
 		deploymentName := "fake-deployment-name"
 
+		fakeStage = fakebmeventlog.NewFakeStage()
+
 		renderedJob := NewRenderedJob(job, renderedPath, fs, logger)
 
 		expectJobRender = mockJobRenderer.EXPECT().Render(job, jobProperties, deploymentName).Do(func(_, _, _ interface{}) {
@@ -138,32 +146,45 @@ var _ = Describe("TemplatesCompiler", func() {
 			expectJobRender.Times(1)
 
 			fs.TempDirDir = "/fake-temp-dir"
-			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It("logs an event step", func() {
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+				Name: "Rendering job templates",
+				States: []bmeventlog.EventState{
+					bmeventlog.Started,
+					bmeventlog.Finished,
+				},
+			}))
+		})
+
 		It("cleans the temp folder to hold the compile result for job", func() {
-			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.FileExists(renderedPath)).To(BeFalse())
 			Expect(fs.FileExists(renderedTemplatePath)).To(BeFalse())
 		})
 
 		It("generates templates archive", func() {
-			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(compressor.CompressFilesInDirDir).To(Equal(renderedPath))
 			Expect(compressor.CleanUpTarballPath).To(Equal("fake-tarball-path"))
 		})
 
 		It("saves archive in blobstore", func() {
-			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobstore.CreateFileNames).To(Equal([]string{"fake-tarball-path"}))
 		})
 
 		It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
-			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+			err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
 			record := TemplateRecord{
@@ -182,9 +203,23 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
+			})
+
+			It("logs an event step", func() {
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+					Name: "Rendering job templates",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Rendering templates for job 'fake-job-1': fake-render-error",
+				}))
 			})
 		})
 
@@ -194,9 +229,23 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compress-error"))
+			})
+
+			It("logs an event step", func() {
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+					Name: "Rendering job templates",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Compressing rendered job templates: fake-compress-error",
+				}))
 			})
 		})
 
@@ -206,9 +255,23 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-blobstore-error"))
+			})
+
+			It("logs an event step", func() {
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+					Name: "Rendering job templates",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Creating blob: fake-blobstore-error",
+				}))
 			})
 		})
 
@@ -224,9 +287,23 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-error"))
+			})
+
+			It("logs an event step", func() {
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+					Name: "Rendering job templates",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Saving job to templates repo: fake-template-error",
+				}))
 			})
 		})
 
@@ -276,9 +353,23 @@ var _ = Describe("TemplatesCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties)
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-2-error"))
+			})
+
+			It("logs an event step", func() {
+				err := templatesCompiler.Compile(jobs, "fake-deployment-name", deploymentProperties, fakeStage)
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
+					Name: "Rendering job templates",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Failed,
+					},
+					FailMessage: "Rendering templates for job 'fake-job-2': fake-render-2-error",
+				}))
 			})
 		})
 	})

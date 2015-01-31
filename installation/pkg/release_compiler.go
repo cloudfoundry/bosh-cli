@@ -7,13 +7,14 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
 type ReleaseCompiler interface {
-	Compile(release bmrel.Release, manifest bminstallmanifest.Manifest) error
+	Compile(bmrel.Release, bminstallmanifest.Manifest, bmeventlog.Stage) error
 }
 
 type releaseCompiler struct {
@@ -36,12 +37,12 @@ func NewReleaseCompiler(
 	}
 }
 
-func (c releaseCompiler) Compile(release bmrel.Release, manifest bminstallmanifest.Manifest) error {
+func (c releaseCompiler) Compile(release bmrel.Release, manifest bminstallmanifest.Manifest, stage bmeventlog.Stage) error {
 	c.logger.Info(c.logTag, "Compiling CPI release '%s'", release.Name())
 	c.logger.Debug(c.logTag, fmt.Sprintf("Compiling CPI release '%s': %#v", release.Name(), release))
 
 	//TODO: should only be compiling the packages required by the cpi job [#85719162]
-	err := c.packagesCompiler.Compile(release)
+	err := c.packagesCompiler.Compile(release, stage)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling release packages")
 	}
@@ -56,7 +57,7 @@ func (c releaseCompiler) Compile(release bmrel.Release, manifest bminstallmanife
 		return bosherr.WrapErrorf(err, "Job '%s' not found in release '%s'", bmcpirel.ReleaseJobName, release.Name())
 	}
 
-	err = c.templatesCompiler.Compile([]bmrel.Job{cpiJob}, manifest.Name, manifestProperties)
+	err = c.templatesCompiler.Compile([]bmrel.Job{cpiJob}, manifest.Name, manifestProperties, stage)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling job templates")
 	}

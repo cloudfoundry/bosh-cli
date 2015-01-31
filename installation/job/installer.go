@@ -1,6 +1,7 @@
 package job
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,7 +23,7 @@ type InstalledJob struct {
 }
 
 type Installer interface {
-	Install(bmrel.Job) (InstalledJob, error)
+	Install(bmrel.Job, bmeventlog.Stage) (InstalledJob, error)
 }
 
 type jobInstaller struct {
@@ -32,24 +33,16 @@ type jobInstaller struct {
 	templateRepo      bmtemcomp.TemplatesRepo
 	jobsPath          string
 	packagesPath      string
-	eventLogger       bmeventlog.EventLogger
 	timeService       boshtime.Service
 }
 
-func (i jobInstaller) Install(job bmrel.Job) (installedJob InstalledJob, err error) {
-	eventLoggerStage := i.eventLogger.NewStage("installing CPI jobs")
-	eventLoggerStage.Start()
-	defer eventLoggerStage.Finish()
-
-	err = eventLoggerStage.PerformStep(job.Name, func() error {
+func (i jobInstaller) Install(job bmrel.Job, stage bmeventlog.Stage) (installedJob InstalledJob, err error) {
+	stageName := fmt.Sprintf("Installing job '%s'", job.Name)
+	err = stage.PerformStep(stageName, func() error {
 		installedJob, err = i.install(job)
 		return err
 	})
-	if err != nil {
-		return InstalledJob{}, err
-	}
-
-	return installedJob, nil
+	return installedJob, err
 }
 
 func (i jobInstaller) install(job bmrel.Job) (InstalledJob, error) {
@@ -107,7 +100,6 @@ func NewInstaller(
 	templateRepo bmtemcomp.TemplatesRepo,
 	jobsPath,
 	packagesPath string,
-	eventLogger bmeventlog.EventLogger,
 	timeService boshtime.Service,
 ) Installer {
 	return jobInstaller{
@@ -117,7 +109,6 @@ func NewInstaller(
 		templateRepo:      templateRepo,
 		jobsPath:          jobsPath,
 		packagesPath:      packagesPath,
-		eventLogger:       eventLogger,
 		timeService:       timeService,
 	}
 }

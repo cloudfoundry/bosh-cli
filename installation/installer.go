@@ -7,6 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
@@ -16,7 +17,7 @@ import (
 )
 
 type Installer interface {
-	Install(manifest bminstallmanifest.Manifest) (Installation, error)
+	Install(bminstallmanifest.Manifest, bmeventlog.Stage) (Installation, error)
 }
 
 type installer struct {
@@ -51,7 +52,7 @@ func NewInstaller(
 	}
 }
 
-func (i *installer) Install(manifest bminstallmanifest.Manifest) (Installation, error) {
+func (i *installer) Install(manifest bminstallmanifest.Manifest, stage bmeventlog.Stage) (Installation, error) {
 	i.logger.Info(i.logTag, "Installing CPI deployment '%s'", manifest.Name)
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
@@ -67,7 +68,7 @@ func (i *installer) Install(manifest bminstallmanifest.Manifest) (Installation, 
 		return nil, bosherr.Errorf("Extracted CPI release does not exist")
 	}
 
-	err = i.releaseCompiler.Compile(release, manifest)
+	err = i.releaseCompiler.Compile(release, manifest, stage)
 	if err != nil {
 		i.ui.Error("Could not compile CPI release")
 		return nil, bosherr.WrapError(err, "Compiling CPI release")
@@ -81,7 +82,7 @@ func (i *installer) Install(manifest bminstallmanifest.Manifest) (Installation, 
 		return nil, bosherr.Errorf("Invalid CPI release: job '%s' not found in release '%s'", cpiJobName, release.Name())
 	}
 
-	installedJob, err := i.jobInstaller.Install(releaseJob)
+	installedJob, err := i.jobInstaller.Install(releaseJob, stage)
 	if err != nil {
 		i.ui.Error(fmt.Sprintf("Could not install job '%s'", releaseJob.Name))
 		return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", releaseJob.Name)

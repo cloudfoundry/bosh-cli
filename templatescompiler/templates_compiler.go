@@ -7,11 +7,12 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type TemplatesCompiler interface {
-	Compile(jobs []bmrel.Job, deploymentName string, deploymentProperties map[string]interface{}) error
+	Compile(jobs []bmrel.Job, deploymentName string, deploymentProperties map[string]interface{}, stage bmeventlog.Stage) error
 }
 
 type templatesCompiler struct {
@@ -41,14 +42,16 @@ func NewTemplatesCompiler(
 	}
 }
 
-func (tc templatesCompiler) Compile(jobs []bmrel.Job, deploymentName string, deploymentProperties map[string]interface{}) error {
-	for _, job := range jobs {
-		err := tc.compileJob(job, deploymentName, deploymentProperties)
-		if err != nil {
-			return err
+func (tc templatesCompiler) Compile(jobs []bmrel.Job, deploymentName string, deploymentProperties map[string]interface{}, stage bmeventlog.Stage) error {
+	return stage.PerformStep("Rendering job templates", func() error {
+		for _, job := range jobs {
+			err := tc.compileJob(job, deploymentName, deploymentProperties)
+			if err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
 }
 
 func (tc templatesCompiler) compileJob(job bmrel.Job, deploymentName string, deploymentProperties map[string]interface{}) error {

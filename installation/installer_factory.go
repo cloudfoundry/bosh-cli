@@ -188,7 +188,6 @@ func (c *installerFactoryContext) JobInstaller() bminstalljob.Installer {
 		c.TemplatesRepo(),
 		c.target.JobsPath(),
 		c.target.PackagesPath(),
-		c.eventLogger,
 		c.timeService,
 	)
 	return c.jobInstaller

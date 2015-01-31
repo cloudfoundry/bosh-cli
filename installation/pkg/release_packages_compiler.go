@@ -3,7 +3,6 @@ package pkg
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -12,7 +11,7 @@ import (
 )
 
 type ReleasePackagesCompiler interface {
-	Compile(bmrel.Release) error
+	Compile(bmrel.Release, bmeventlog.Stage) error
 }
 
 type releasePackagesCompiler struct {
@@ -33,23 +32,15 @@ func NewReleasePackagesCompiler(
 	}
 }
 
-func (c releasePackagesCompiler) Compile(release bmrel.Release) error {
-	eventLoggerStage := c.eventLogger.NewStage("compiling packages")
-	eventLoggerStage.Start()
-	defer eventLoggerStage.Finish()
-
+func (c releasePackagesCompiler) Compile(release bmrel.Release, stage bmeventlog.Stage) error {
+	//TODO: should just take a list of packages, not a whole release [#85719162]
+	// sort release packages in compilation order
 	packages := bmrelpkg.Sort(release.Packages())
 
 	for _, pkg := range packages {
-		stepName := fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint)
-		err := eventLoggerStage.PerformStep(stepName, func() error {
-			err := c.packageCompiler.Compile(pkg)
-
-			if err != nil {
-				return bosherr.WrapError(err, fmt.Sprintf("Package '%s' compilation failed", pkg.Name))
-			}
-
-			return nil
+		stepName := fmt.Sprintf("Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
+		err := stage.PerformStep(stepName, func() error {
+			return c.packageCompiler.Compile(pkg)
 		})
 		if err != nil {
 			return err

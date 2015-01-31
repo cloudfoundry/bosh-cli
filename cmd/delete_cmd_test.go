@@ -19,6 +19,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
@@ -29,6 +30,7 @@ import (
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
+	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
@@ -57,7 +59,7 @@ var _ = Describe("DeleteCmd", func() {
 			deploymentConfigService bmconfig.DeploymentConfigService
 			userConfig              bmconfig.UserConfig
 
-			ui *fakeui.FakeUI
+			fakeUI *fakeui.FakeUI
 
 			mockBlobstoreFactory *mock_blobstore.MockFactory
 			mockBlobstore        *mock_blobstore.MockBlobstore
@@ -69,6 +71,11 @@ var _ = Describe("DeleteCmd", func() {
 			mockAgentClient        *mock_agentclient.MockAgentClient
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockCloud              *mock_cloud.MockCloud
+
+			fakeEventLogger     *fakebmeventlog.FakeEventLogger
+			fakeValidatingStage *fakebmeventlog.FakeStage
+			fakeInstallingStage *fakebmeventlog.FakeStage
+			fakeDeletingStage   *fakebmeventlog.FakeStage
 
 			directorID string
 
@@ -130,7 +137,7 @@ cloud_provider:
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 
-			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest).Return(mockInstallation, nil).AnyTimes()
+			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, fakeInstallingStage).Return(mockInstallation, nil).AnyTimes()
 
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(mockInstallation, directorID).Return(mockCloud, nil).AnyTimes()
 
@@ -145,10 +152,8 @@ cloud_provider:
 			installationValidator := bminstallmanifest.NewValidator(logger, releaseSetResolver)
 			installationParser := bminstallmanifest.NewParser(fs, logger)
 
-			eventLogger := bmeventlog.NewEventLogger(ui)
-
 			return NewDeleteCmd(
-				ui,
+				fakeUI,
 				userConfig,
 				fs,
 				releaseSetParser,
@@ -164,7 +169,7 @@ cloud_provider:
 				mockAgentClientFactory,
 				mockBlobstoreFactory,
 				mockDeploymentManagerFactory,
-				eventLogger,
+				fakeEventLogger,
 				logger,
 			)
 		}
@@ -189,21 +194,43 @@ cloud_provider:
 		}
 
 		var expectValidationInstallationDeletionEvents = func() {
-			Expect(ui.Said).To(Equal([]string{
+			Expect(fakeUI.Said).To(Equal([]string{
 				"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
 				"Deployment state: '/deployment-dir/deployment.json'",
-				"",
-				"Started validating",
-				"Started validating > Validating releases...", " done. (00:00:00)",
-				"Started validating > Validating deployment manifest...", " done. (00:00:00)",
-				"Started validating > Validating cpi release...", " done. (00:00:00)",
-				"Done validating",
-				"",
-				// if cpiInstaller were not mocked, it would print the "installing CPI jobs" stage here.
-				"Started deleting deployment",
-				// if deployment & deploymentManager were not mocked, several stages would be here.
-				"Done deleting deployment",
 			}))
+
+			Expect(fakeEventLogger.NewStageInputs).To(Equal([]fakebmeventlog.NewStageInput{
+				{Name: "validating"},
+				{Name: "installing CPI"},
+				{Name: "deleting deployment"},
+			}))
+
+			Expect(fakeValidatingStage.Steps).To(Equal([]*fakebmeventlog.FakeStep{
+				&fakebmeventlog.FakeStep{
+					Name: "Validating releases",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				},
+				&fakebmeventlog.FakeStep{
+					Name: "Validating deployment manifest",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				},
+				&fakebmeventlog.FakeStep{
+					Name: "Validating cpi release",
+					States: []bmeventlog.EventState{
+						bmeventlog.Started,
+						bmeventlog.Finished,
+					},
+				},
+			}))
+
+			// installing steps handled by installer.Install()
+			// deleting steps handled by deployment.Delete()
 		}
 
 		BeforeEach(func() {
@@ -211,6 +238,16 @@ cloud_provider:
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+
+			fakeUI = &fakeui.FakeUI{}
+
+			fakeEventLogger = fakebmeventlog.NewFakeEventLogger()
+			fakeValidatingStage = fakebmeventlog.NewFakeStage()
+			fakeEventLogger.SetNewStageBehavior("validating", fakeValidatingStage)
+			fakeInstallingStage = fakebmeventlog.NewFakeStage()
+			fakeEventLogger.SetNewStageBehavior("installing CPI", fakeInstallingStage)
+			fakeDeletingStage = fakebmeventlog.NewFakeStage()
+			fakeEventLogger.SetNewStageBehavior("deleting deployment", fakeDeletingStage)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
@@ -229,8 +266,6 @@ cloud_provider:
 
 			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
 			releaseManager = bmrel.NewManager(logger)
-
-			ui = &fakeui.FakeUI{}
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
@@ -259,7 +294,7 @@ cloud_provider:
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Running delete cmd: Deployment manifest not set"))
-				Expect(ui.Errors).To(ContainElement("Deployment manifest not set"))
+				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))
 			})
 		})
 
@@ -327,7 +362,7 @@ cloud_provider:
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(ui.Errors).To(BeEmpty())
+				Expect(fakeUI.Errors).To(BeEmpty())
 			})
 
 			It("logs validating & deleting stages", func() {
@@ -352,7 +387,7 @@ cloud_provider:
 
 				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(ui.Errors).To(BeEmpty())
+				Expect(fakeUI.Errors).To(BeEmpty())
 			})
 		})
 	})

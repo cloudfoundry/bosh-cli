@@ -1,17 +1,18 @@
 package pkg_test
 
 import (
-	"errors"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
+
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
@@ -34,7 +35,6 @@ var _ = Describe("ReleaseCompiler", func() {
 		packageCompiler = fakebminstallpkg.NewFakePackageCompiler()
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
-		eventLogger.SetNewStageBehavior("compiling packages", fakeStage)
 		timeService = &faketime.FakeService{}
 		releasePackagesCompiler = NewReleasePackagesCompiler(packageCompiler, eventLogger, timeService)
 		fakeFS = fakesys.NewFakeFileSystem()
@@ -49,18 +49,6 @@ var _ = Describe("ReleaseCompiler", func() {
 	})
 
 	Context("Compile", func() {
-		It("adds a new event logger stage", func() {
-			err := releasePackagesCompiler.Compile(release)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(eventLogger.NewStageInputs).To(Equal([]fakebmlog.NewStageInput{
-				{Name: "compiling packages"},
-			}))
-
-			Expect(fakeStage.Started).To(BeTrue())
-			Expect(fakeStage.Finished).To(BeTrue())
-		})
-
 		Context("when there is a release", func() {
 			var expectedPackages []*bmrel.Package
 			var package1, package2 bmrel.Package
@@ -82,16 +70,16 @@ var _ = Describe("ReleaseCompiler", func() {
 			})
 
 			It("compiles each package", func() {
-				err := releasePackagesCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(packageCompiler.CompilePackages).To(Equal(expectedPackages))
 			})
 
 			It("compiles each package and returns error for first package", func() {
-				packageCompiler.CompileError = errors.New("Compilation failed")
-				err := releasePackagesCompiler.Compile(release)
+				packageCompiler.CompileError = bosherr.Error("fake-compilation-error")
+				err := releasePackagesCompiler.Compile(release, fakeStage)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Package 'fake-package-1' compilation failed"))
+				Expect(err.Error()).To(ContainSubstring("fake-compilation-error"))
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -99,11 +87,11 @@ var _ = Describe("ReleaseCompiler", func() {
 				pkg1Finish := pkg1Start.Add(1 * time.Second)
 				timeService.NowTimes = []time.Time{pkg1Start, pkg1Finish}
 
-				err := releasePackagesCompiler.Compile(release)
+				err := releasePackagesCompiler.Compile(release, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "fake-package-1/fake-fingerprint-1",
+					Name: "Compiling package 'fake-package-1/fake-fingerprint-1'",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Finished,
@@ -116,23 +104,23 @@ var _ = Describe("ReleaseCompiler", func() {
 				pkg1Fail := pkg1Start.Add(1 * time.Second)
 				timeService.NowTimes = []time.Time{pkg1Start, pkg1Fail}
 
-				packageCompiler.CompileError = errors.New("Compilation failed")
-				err := releasePackagesCompiler.Compile(release)
+				packageCompiler.CompileError = bosherr.Error("fake-compilation-error")
+				err := releasePackagesCompiler.Compile(release, fakeStage)
 				Expect(err).To(HaveOccurred())
 
 				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "fake-package-1/fake-fingerprint-1",
+					Name: "Compiling package 'fake-package-1/fake-fingerprint-1'",
 					States: []bmeventlog.EventState{
 						bmeventlog.Started,
 						bmeventlog.Failed,
 					},
-					FailMessage: "Package 'fake-package-1' compilation failed: Compilation failed",
+					FailMessage: "fake-compilation-error",
 				}))
 			})
 
 			It("stops compiling after the first failure", func() {
-				packageCompiler.CompileError = errors.New("Compilation failed")
-				err := releasePackagesCompiler.Compile(release)
+				packageCompiler.CompileError = bosherr.Error("fake-compilation-error")
+				err := releasePackagesCompiler.Compile(release, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(len(packageCompiler.CompilePackages)).To(Equal(1))
 			})

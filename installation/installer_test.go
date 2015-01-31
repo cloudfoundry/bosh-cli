@@ -15,11 +15,13 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
@@ -87,6 +89,7 @@ var _ = Describe("Installer", func() {
 			installationManifest bminstallmanifest.Manifest
 			release              bmrel.Release
 			releaseJob           bmrel.Job
+			fakeStage            *fakebmeventlog.FakeStage
 
 			installedJob bminstalljob.InstalledJob
 
@@ -101,6 +104,8 @@ var _ = Describe("Installer", func() {
 				Release:       "fake-release-name",
 				RawProperties: map[interface{}]interface{}{},
 			}
+
+			fakeStage = fakebmeventlog.NewFakeStage()
 
 			releasePackage := &bmrel.Package{
 				Name:          "fake-release-package-name",
@@ -142,11 +147,11 @@ var _ = Describe("Installer", func() {
 				fakeFS,
 			)
 
-			fakeJobInstaller.SetInstallBehavior(releaseJob, func(_ bmrel.Job) (bminstalljob.InstalledJob, error) {
+			fakeJobInstaller.SetInstallBehavior(releaseJob, fakeStage, func(_ bmrel.Job, _ bmeventlog.Stage) (bminstalljob.InstalledJob, error) {
 				return installedJob, nil
 			})
 
-			fakeReleaseCompiler.SetCompileBehavior(release, installationManifest, nil)
+			fakeReleaseCompiler.SetCompileBehavior(release, installationManifest, fakeStage, nil)
 
 			fakeFS.MkdirAll("/extracted-release-path", os.FileMode(0750))
 
@@ -154,24 +159,27 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("compiles the release", func() {
-			_, err := installer.Install(installationManifest)
+			_, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeReleaseCompiler.CompileInputs[0].Deployment).To(Equal(installationManifest))
 		})
 
 		It("installs the deployment jobs", func() {
-			_, err := installer.Install(installationManifest)
+			_, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeJobInstaller.JobInstallInputs).To(Equal(
 				[]fakebminstalljob.JobInstallInput{
-					{Job: releaseJob},
+					{
+						Job:   releaseJob,
+						Stage: fakeStage,
+					},
 				},
 			))
 		})
 
 		It("returns the installation", func() {
-			installation, err := installer.Install(installationManifest)
+			installation, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedInstallation := NewInstallation(
@@ -190,7 +198,7 @@ var _ = Describe("Installer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := installer.Install(installationManifest)
+				_, err := installer.Install(installationManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Invalid CPI release: job 'cpi' not found in release 'fake-release-name'"))
 			})
@@ -198,11 +206,11 @@ var _ = Describe("Installer", func() {
 
 		Context("when compilation fails", func() {
 			JustBeforeEach(func() {
-				fakeReleaseCompiler.SetCompileBehavior(release, installationManifest, errors.New("fake-compile-error"))
+				fakeReleaseCompiler.SetCompileBehavior(release, installationManifest, fakeStage, errors.New("fake-compile-error"))
 			})
 
 			It("returns an error", func() {
-				_, err := installer.Install(installationManifest)
+				_, err := installer.Install(installationManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
 				Expect(fakeUI.Errors).To(ContainElement("Could not compile CPI release"))
@@ -215,7 +223,7 @@ var _ = Describe("Installer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := installer.Install(installationManifest)
+				_, err := installer.Install(installationManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("CPI release 'fake-release-name' not found"))
 				Expect(fakeUI.Errors).To(ContainElement("Could not find CPI release 'fake-release-name'"))
