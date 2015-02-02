@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type Job struct {
@@ -40,6 +40,6 @@ const (
 	NetworkDefaultGateway NetworkDefault = "gateway"
 )
 
-func (j *Job) Properties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(j.RawProperties)
+func (j *Job) Properties() (bmproperty.Map, error) {
+	return bmproperty.BuildMap(j.RawProperties)
 }

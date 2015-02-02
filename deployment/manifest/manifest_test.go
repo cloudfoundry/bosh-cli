@@ -5,6 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("Manifest", func() {
@@ -57,21 +59,21 @@ var _ = Describe("Manifest", func() {
 			})
 
 			It("is a map of the network names to network interfaces", func() {
-				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]map[string]interface{}{
-					"fake-network-name": map[string]interface{}{
+				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]bmproperty.Map{
+					"fake-network-name": bmproperty.Map{
 						"type":             "dynamic",
 						"ip":               "5.6.7.8",
-						"cloud_properties": map[string]interface{}{},
+						"cloud_properties": bmproperty.Map{},
 					},
-					"fake-manual-network-name": map[string]interface{}{
+					"fake-manual-network-name": bmproperty.Map{
 						"type":             "manual",
 						"ip":               "5.6.7.9",
-						"cloud_properties": map[string]interface{}{},
+						"cloud_properties": bmproperty.Map{},
 					},
-					"vip": map[string]interface{}{
+					"vip": bmproperty.Map{
 						"type":             "vip",
 						"ip":               "1.2.3.4",
-						"cloud_properties": map[string]interface{}{},
+						"cloud_properties": bmproperty.Map{},
 					},
 				}))
 			})
@@ -90,7 +92,7 @@ var _ = Describe("Manifest", func() {
 			})
 
 			It("is an empty map", func() {
-				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]map[string]interface{}{}))
+				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]bmproperty.Map{}))
 			})
 		})
 
@@ -101,7 +103,7 @@ var _ = Describe("Manifest", func() {
 
 			It("returns an error", func() {
 				networkInterfaces, err := deploymentManifest.NetworkInterfaces("fake-job-name")
-				Expect(networkInterfaces).To(Equal(map[string]map[string]interface{}{}))
+				Expect(networkInterfaces).To(Equal(map[string]bmproperty.Map{}))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Could not find job with name: fake-job-name"))
 			})

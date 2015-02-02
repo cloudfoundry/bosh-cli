@@ -6,13 +6,14 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 )
 
 type jobEvaluationContext struct {
 	relJob             bmrel.Job
-	manifestProperties map[string]interface{}
+	manifestProperties bmproperty.Map
 	deploymentName     string
 	logger             boshlog.Logger
 	logTag             string
@@ -28,7 +29,7 @@ type RootContext struct {
 	// Usually is accessed with <%= spec.networks.default.ip %>
 	NetworkContexts map[string]networkContext `json:"networks"`
 
-	Properties map[string]interface{} `json:"properties"`
+	Properties bmproperty.Map `json:"properties"`
 }
 
 type jobContext struct {
@@ -43,7 +44,7 @@ type networkContext struct {
 
 func NewJobEvaluationContext(
 	job bmrel.Job,
-	manifestProperties map[string]interface{},
+	manifestProperties bmproperty.Map,
 	deploymentName string,
 	logger boshlog.Logger,
 ) bmerbrenderer.TemplateEvaluationContext {
@@ -82,14 +83,14 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 	return json.Marshal(context)
 }
 
-func (ec jobEvaluationContext) convertForPropertyResolver(properties map[string]bmrel.PropertyDefinition) (map[string]interface{}, error) {
-	result := map[string]interface{}{}
+func (ec jobEvaluationContext) convertForPropertyResolver(properties map[string]bmrel.PropertyDefinition) (bmproperty.Map, error) {
+	result := bmproperty.Map{}
 	for propertyKey, property := range properties {
-		defaultValue, err := property.Default()
+		defaultPropertyValue, err := property.Default()
 		if err != nil {
 			return result, bosherr.WrapErrorf(err, "Retrieving default for property '%s'", propertyKey)
 		}
-		result[propertyKey] = defaultValue
+		result[propertyKey] = defaultPropertyValue
 	}
 
 	return result, nil

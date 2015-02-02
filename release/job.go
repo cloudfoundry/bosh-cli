@@ -1,9 +1,7 @@
 package release
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
-	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type Job struct {
@@ -29,16 +27,8 @@ type PropertyDefinition struct {
 	RawDefault  interface{} `yaml:"default"`
 }
 
-func (d PropertyDefinition) Default() (interface{}, error) {
-	defaultMap, ok := d.RawDefault.(map[interface{}]interface{})
-	if ok {
-		stringifiedMap, err := bmkeystr.NewKeyStringifier().ConvertMap(defaultMap)
-		if err != nil {
-			return nil, bosherr.WrapError(err, "Converting job manifest properties")
-		}
-		return stringifiedMap, nil
-	}
-	return d.RawDefault, nil
+func (d PropertyDefinition) Default() (bmproperty.Property, error) {
+	return bmproperty.Build(d.RawDefault)
 }
 
 func (j Job) FindTemplateByValue(value string) (string, bool) {

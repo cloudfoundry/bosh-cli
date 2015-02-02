@@ -12,6 +12,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
@@ -32,7 +33,7 @@ var _ = Describe("JobListRenderer", func() {
 		mockJobRenderer *mock_template.MockJobRenderer
 
 		releaseJobs    []bmrel.Job
-		jobProperties  map[string]interface{}
+		jobProperties  bmproperty.Map
 		deploymentName string
 
 		renderedJobs []*mock_template.MockRenderedJob
@@ -53,7 +54,7 @@ var _ = Describe("JobListRenderer", func() {
 			{Name: "fake-release-job-name-1"},
 		}
 
-		jobProperties = map[string]interface{}{
+		jobProperties = bmproperty.Map{
 			"fake-key": "fake-value",
 		}
 

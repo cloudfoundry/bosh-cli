@@ -5,6 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("Network", func() {
@@ -32,14 +34,14 @@ var _ = Describe("Network", func() {
 		It("returns an interface that can be used to connect to the network", func() {
 			iface, err := network.Interface()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(iface).To(Equal(NetworkInterface{
+			Expect(iface).To(Equal(bmproperty.Map{
 				"type":    "dynamic",
 				"ip":      "1.2.3.4",
 				"netmask": "255.255.255.0",
 				"gateway": "1.2.3.1",
 				"dns":     []string{"1.1.1.1"},
-				"cloud_properties": map[string]interface{}{
-					"subnet": map[string]interface{}{
+				"cloud_properties": bmproperty.Map{
+					"subnet": bmproperty.Map{
 						"name": "sg-1234",
 					},
 				},
@@ -53,11 +55,11 @@ var _ = Describe("Network", func() {
 
 			iface, err := network.Interface()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(iface).To(Equal(NetworkInterface{
+			Expect(iface).To(Equal(bmproperty.Map{
 				"type": "dynamic",
 				"ip":   "1.2.3.4",
-				"cloud_properties": map[string]interface{}{
-					"subnet": map[string]interface{}{
+				"cloud_properties": bmproperty.Map{
+					"subnet": bmproperty.Map{
 						"name": "sg-1234",
 					},
 				},

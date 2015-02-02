@@ -27,6 +27,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
@@ -120,12 +121,12 @@ var _ = Describe("bosh-micro", func() {
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentConfigPath   = "/fake-bosh-deployments.json"
 
-			cloudProperties   = map[string]interface{}{}
+			cloudProperties   = bmproperty.Map{}
 			stemcellImagePath = "fake-stemcell-image-path"
 			stemcellCID       = "fake-stemcell-cid"
-			env               = map[string]interface{}{}
-			networkInterfaces = map[string]map[string]interface{}{
-				"network-1": map[string]interface{}{
+			env               = bmproperty.Map{}
+			networkInterfaces = map[string]bmproperty.Map{
+				"network-1": bmproperty.Map{
 					"type":             "dynamic",
 					"ip":               "",
 					"cloud_properties": cloudProperties,
@@ -302,7 +303,7 @@ cloud_provider:
 					Templates: []bmstemcell.Blob{},
 				},
 				Packages: map[string]bmstemcell.Blob{},
-				Networks: map[string]interface{}{},
+				Networks: map[string]bmproperty.Map{},
 			}
 			extractedStemcell := bmstemcell.NewExtractedStemcell(
 				stemcellManifest,
@@ -320,9 +321,9 @@ cloud_provider:
 			applySpec = bmas.ApplySpec{
 				Deployment: "test-release",
 				Index:      jobIndex,
-				Networks: map[string]interface{}{
-					"network-1": map[string]interface{}{
-						"cloud_properties": map[string]interface{}{},
+				Networks: map[string]bmproperty.Map{
+					"network-1": bmproperty.Map{
+						"cloud_properties": bmproperty.Map{},
 						"type":             "dynamic",
 						"ip":               "",
 					},

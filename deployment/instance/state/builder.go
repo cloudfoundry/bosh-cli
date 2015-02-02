@@ -114,8 +114,9 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 	}, nil
 }
 
+// compileJobDependencies resolves and compiles all transitive dependencies of multiple release jobs
 func (b *builder) compileJobDependencies(releaseJobs []bmrel.Job, stage bmeventlog.Stage) ([]PackageRef, error) {
-	compileOrderReleasePackages, err := b.resolveJobDependencies(releaseJobs)
+	compileOrderReleasePackages, err := b.resolveJobCompilationDependencies(releaseJobs)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Resolving job package dependencies")
 	}
@@ -128,8 +129,8 @@ func (b *builder) compileJobDependencies(releaseJobs []bmrel.Job, stage bmeventl
 	return compiledPackageRefs, nil
 }
 
-// resolveJobPackageDependencies returns all packages required by all specified jobs, in reverse dependency order (compilation order)
-func (b *builder) resolveJobDependencies(releaseJobs []bmrel.Job) ([]*bmrel.Package, error) {
+// resolveJobPackageCompilationDependencies returns all packages required by all specified jobs, in compilation order (reverse dependency order)
+func (b *builder) resolveJobCompilationDependencies(releaseJobs []bmrel.Job) ([]*bmrel.Package, error) {
 	// collect and de-dupe all required packages (dependencies of jobs)
 	nameToPackageMap := map[string]*bmrel.Package{}
 	for _, releaseJob := range releaseJobs {
@@ -151,8 +152,10 @@ func (b *builder) resolveJobDependencies(releaseJobs []bmrel.Job) ([]*bmrel.Pack
 	return sortedPackages, nil
 }
 
+// resolvePackageDependencies adds the releasePackage's dependencies to the nameToPackageMap recursively
 func (b *builder) resolvePackageDependencies(releasePackage *bmrel.Package, nameToPackageMap map[string]*bmrel.Package) {
 	for _, dependency := range releasePackage.Dependencies {
+		// only add un-added packages, to avoid endless looping in case of cycles
 		if _, found := nameToPackageMap[dependency.Name]; !found {
 			nameToPackageMap[dependency.Name] = dependency
 			b.resolvePackageDependencies(releasePackage, nameToPackageMap)
@@ -188,6 +191,7 @@ func (b *builder) compilePackages(requiredPackages []*bmrel.Package, stage bmeve
 	return packageRefs, nil
 }
 
+// renderJobTemplates renders all the release job templates for multiple release jobs specified by a deployment job
 func (b *builder) renderJobTemplates(releaseJobs []bmrel.Job, deploymentJob bmdeplmanifest.Job, deploymentName string, stage bmeventlog.Stage) (renderedJobs, error) {
 	var (
 		renderedJobListArchive bmtemplate.RenderedJobListArchive

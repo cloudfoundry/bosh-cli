@@ -5,6 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("ResourcePool", func() {
@@ -30,8 +32,8 @@ var _ = Describe("ResourcePool", func() {
 		It("returns a map of the resource pool's env", func() {
 			env, err := resourcePool.Env()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(env).To(Equal(map[string]interface{}{
-				"bosh": map[string]interface{}{
+			Expect(env).To(Equal(bmproperty.Map{
+				"bosh": bmproperty.Map{
 					"password": "secret",
 				},
 			}))
@@ -42,7 +44,7 @@ var _ = Describe("ResourcePool", func() {
 		It("returns a map of the resource pool's cloud properties", func() {
 			cloudProperties, err := resourcePool.CloudProperties()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cloudProperties).To(Equal(map[string]interface{}{
+			Expect(cloudProperties).To(Equal(bmproperty.Map{
 				"fake-cloud-property-key": "fake-cloud-property-value",
 			}))
 		})

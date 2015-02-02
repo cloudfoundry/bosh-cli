@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
@@ -26,8 +27,8 @@ var _ = Describe("JobEvaluationContext", func() {
 			},
 		}
 
-		manifestProperties := map[string]interface{}{
-			"first-level-manifest-property": map[string]interface{}{
+		manifestProperties := bmproperty.Map{
+			"first-level-manifest-property": bmproperty.Map{
 				"second-level-manifest-property": "manifest-property-value",
 			},
 		}
@@ -51,17 +52,13 @@ var _ = Describe("JobEvaluationContext", func() {
 		Expect(generatedContext.Index).To(Equal(0))
 		Expect(generatedContext.JobContext.Name).To(Equal("fake-job-name"))
 		Expect(generatedContext.Deployment).To(Equal("fake-deployment-name"))
-		Expect(generatedContext.Properties["first-level-prop"]).To(Equal(
-			map[string]interface{}{
-				"second-level-prop": "fake-default",
-			},
-		))
+		Expect(generatedContext.Properties["first-level-prop"]).To(Equal(map[string]interface{}{
+			"second-level-prop": "fake-default",
+		}))
 
-		Expect(generatedContext.Properties["first-level-manifest-property"]).To(Equal(
-			map[string]interface{}{
-				"second-level-manifest-property": "manifest-property-value",
-			},
-		))
+		Expect(generatedContext.Properties["first-level-manifest-property"]).To(Equal(map[string]interface{}{
+			"second-level-manifest-property": "manifest-property-value",
+		}))
 	})
 
 	It("it has a network context section with empty IP", func() {

@@ -1,5 +1,9 @@
 package fakes
 
+import (
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+)
+
 type FakeCloud struct {
 	CreateStemcellInputs []CreateStemcellInput
 	CreateStemcellCID    string
@@ -35,7 +39,7 @@ type FakeCloud struct {
 
 type CreateStemcellInput struct {
 	ImagePath       string
-	CloudProperties map[string]interface{}
+	CloudProperties bmproperty.Map
 }
 
 type HasVMInput struct {
@@ -45,14 +49,14 @@ type HasVMInput struct {
 type CreateVMInput struct {
 	AgentID            string
 	StemcellCID        string
-	CloudProperties    map[string]interface{}
-	NetworksInterfaces map[string]map[string]interface{}
-	Env                map[string]interface{}
+	CloudProperties    bmproperty.Map
+	NetworksInterfaces map[string]bmproperty.Map
+	Env                bmproperty.Map
 }
 
 type CreateDiskInput struct {
 	Size            int
-	CloudProperties map[string]interface{}
+	CloudProperties bmproperty.Map
 	InstanceID      string
 }
 
@@ -85,7 +89,7 @@ func NewFakeCloud() *FakeCloud {
 	}
 }
 
-func (c *FakeCloud) CreateStemcell(imagePath string, cloudProperties map[string]interface{}) (string, error) {
+func (c *FakeCloud) CreateStemcell(imagePath string, cloudProperties bmproperty.Map) (string, error) {
 	c.CreateStemcellInputs = append(c.CreateStemcellInputs, CreateStemcellInput{
 		ImagePath:       imagePath,
 		CloudProperties: cloudProperties,
@@ -111,9 +115,9 @@ func (c *FakeCloud) HasVM(vmCID string) (bool, error) {
 func (c *FakeCloud) CreateVM(
 	agentID string,
 	stemcellCID string,
-	cloudProperties map[string]interface{},
-	networksInterfaces map[string]map[string]interface{},
-	env map[string]interface{},
+	cloudProperties bmproperty.Map,
+	networksInterfaces map[string]bmproperty.Map,
+	env bmproperty.Map,
 ) (string, error) {
 	c.CreateVMInput = CreateVMInput{
 		AgentID:            agentID,
@@ -128,7 +132,7 @@ func (c *FakeCloud) CreateVM(
 
 func (c *FakeCloud) CreateDisk(
 	size int,
-	cloudProperties map[string]interface{},
+	cloudProperties bmproperty.Map,
 	instanceID string,
 ) (string, error) {
 	c.CreateDiskInput = CreateDiskInput{

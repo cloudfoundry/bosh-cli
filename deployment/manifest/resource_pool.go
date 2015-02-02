@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type ResourcePool struct {
@@ -11,10 +11,10 @@ type ResourcePool struct {
 	RawEnv             map[interface{}]interface{} `yaml:"env"`
 }
 
-func (rp ResourcePool) Env() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(rp.RawEnv)
+func (rp ResourcePool) Env() (bmproperty.Map, error) {
+	return bmproperty.BuildMap(rp.RawEnv)
 }
 
-func (rp ResourcePool) CloudProperties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(rp.RawCloudProperties)
+func (rp ResourcePool) CloudProperties() (bmproperty.Map, error) {
+	return bmproperty.BuildMap(rp.RawCloudProperties)
 }

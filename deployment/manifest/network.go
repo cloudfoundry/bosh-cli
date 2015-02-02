@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type NetworkType string
@@ -9,8 +9,6 @@ type NetworkType string
 func (n NetworkType) String() string {
 	return string(n)
 }
-
-type NetworkInterface map[string]interface{}
 
 const (
 	Dynamic NetworkType = "dynamic"
@@ -28,17 +26,20 @@ type Network struct {
 	DNS                []string                    `yaml:"dns"`
 }
 
-func (n Network) CloudProperties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(n.RawCloudProperties)
+func (n Network) CloudProperties() (bmproperty.Map, error) {
+	return bmproperty.BuildMap(n.RawCloudProperties)
 }
 
-func (n Network) Interface() (NetworkInterface, error) {
+// Interface returns a property map representing a generic network interface.
+// Expected Keys: ip, type, cloud properties.
+// Optional Keys: netmask, gateway, dns
+func (n Network) Interface() (bmproperty.Map, error) {
 	cloudProperties, err := n.CloudProperties()
 	if err != nil {
-		return NetworkInterface{}, err
+		return bmproperty.Map{}, err
 	}
 
-	iface := NetworkInterface{
+	iface := bmproperty.Map{
 		"type":             n.Type.String(),
 		"ip":               n.IP,
 		"cloud_properties": cloudProperties,

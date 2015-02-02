@@ -12,6 +12,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
@@ -22,14 +23,14 @@ import (
 var _ = Describe("Disk", func() {
 	var (
 		disk                Disk
-		diskCloudProperties map[string]interface{}
+		diskCloudProperties bmproperty.Map
 		fakeCloud           *fakebmcloud.FakeCloud
 		diskRepo            bmconfig.DiskRepo
 		fakeUUIDGenerator   *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
-		diskCloudProperties = map[string]interface{}{
+		diskCloudProperties = bmproperty.Map{
 			"fake-cloud-property-key": "fake-cloud-property-value",
 		}
 		fakeCloud = fakebmcloud.NewFakeCloud()
@@ -59,7 +60,7 @@ var _ = Describe("Disk", func() {
 
 		Context("when cloud properties are different", func() {
 			It("returns true", func() {
-				newDiskCloudProperties := map[string]interface{}{
+				newDiskCloudProperties := bmproperty.Map{
 					"fake-cloud-property-key": "new-fake-cloud-property-value",
 				}
 

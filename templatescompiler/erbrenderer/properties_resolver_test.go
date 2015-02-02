@@ -5,23 +5,25 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("PropertiesResolver", func() {
 	var (
 		propertiesResolver PropertiesResolver
-		defaults           map[string]interface{}
-		values             map[string]interface{}
+		defaults           bmproperty.Map
+		values             bmproperty.Map
 	)
 
 	Context("when value is specified for nested property", func() {
 		BeforeEach(func() {
-			values = map[string]interface{}{
-				"first-level-prop": map[string]interface{}{
+			values = bmproperty.Map{
+				"first-level-prop": bmproperty.Map{
 					"second-level-prop": "original-value",
 				},
 			}
-			defaults = map[string]interface{}{
+			defaults = bmproperty.Map{
 				"first-level-prop.second-level-prop": "default-value",
 			}
 
@@ -30,8 +32,8 @@ var _ = Describe("PropertiesResolver", func() {
 
 		It("returns the specified value", func() {
 			properties := propertiesResolver.Resolve()
-			Expect(properties).To(Equal(map[string]interface{}{
-				"first-level-prop": map[string]interface{}{
+			Expect(properties).To(Equal(bmproperty.Map{
+				"first-level-prop": bmproperty.Map{
 					"second-level-prop": "original-value",
 				},
 			}))
@@ -40,12 +42,12 @@ var _ = Describe("PropertiesResolver", func() {
 
 	Context("when value is not specified for nested property", func() {
 		BeforeEach(func() {
-			values = map[string]interface{}{}
+			values = bmproperty.Map{}
 		})
 
 		Context("when default property is specified", func() {
 			BeforeEach(func() {
-				defaults = map[string]interface{}{
+				defaults = bmproperty.Map{
 					"first-level-prop.second-level-prop": "default-value",
 				}
 
@@ -54,8 +56,8 @@ var _ = Describe("PropertiesResolver", func() {
 
 			It("uses default property", func() {
 				properties := propertiesResolver.Resolve()
-				Expect(properties).To(Equal(map[string]interface{}{
-					"first-level-prop": map[string]interface{}{
+				Expect(properties).To(Equal(bmproperty.Map{
+					"first-level-prop": bmproperty.Map{
 						"second-level-prop": "default-value",
 					},
 				}))
@@ -64,7 +66,7 @@ var _ = Describe("PropertiesResolver", func() {
 
 		Context("when default property is nil", func() {
 			BeforeEach(func() {
-				defaults = map[string]interface{}{
+				defaults = bmproperty.Map{
 					"first-level-prop.second-level-prop": nil,
 				}
 
@@ -73,8 +75,8 @@ var _ = Describe("PropertiesResolver", func() {
 
 			It("uses default property", func() {
 				properties := propertiesResolver.Resolve()
-				Expect(properties).To(Equal(map[string]interface{}{
-					"first-level-prop": map[string]interface{}{
+				Expect(properties).To(Equal(bmproperty.Map{
+					"first-level-prop": bmproperty.Map{
 						"second-level-prop": nil,
 					},
 				}))
@@ -83,7 +85,7 @@ var _ = Describe("PropertiesResolver", func() {
 
 		Context("when default property is empty string", func() {
 			BeforeEach(func() {
-				defaults = map[string]interface{}{
+				defaults = bmproperty.Map{
 					"first-level-prop.second-level-prop": "",
 				}
 
@@ -92,8 +94,8 @@ var _ = Describe("PropertiesResolver", func() {
 
 			It("uses default property", func() {
 				properties := propertiesResolver.Resolve()
-				Expect(properties).To(Equal(map[string]interface{}{
-					"first-level-prop": map[string]interface{}{
+				Expect(properties).To(Equal(bmproperty.Map{
+					"first-level-prop": bmproperty.Map{
 						"second-level-prop": "",
 					},
 				}))

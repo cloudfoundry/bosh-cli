@@ -15,6 +15,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -325,9 +326,9 @@ var _ = Describe("Instance", func() {
 				Deployment: "fake-deployment-name",
 				Index:      jobIndex,
 				Packages:   map[string]bmas.Blob{},
-				Networks: map[string]interface{}{
-					"fake-network-name": map[string]interface{}{
-						"cloud_properties": map[string]interface{}{},
+				Networks: map[string]bmproperty.Map{
+					"fake-network-name": bmproperty.Map{
+						"cloud_properties": bmproperty.Map{},
 						"type":             "dynamic",
 						"ip":               "fake-network-ip",
 					},

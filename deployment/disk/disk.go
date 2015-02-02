@@ -6,19 +6,20 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
 type Disk interface {
 	CID() string
-	NeedsMigration(newSize int, newCloudProperties map[string]interface{}) bool
+	NeedsMigration(newSize int, newCloudProperties bmproperty.Map) bool
 	Delete() error
 }
 
 type disk struct {
 	cid             string
 	size            int
-	cloudProperties map[string]interface{}
+	cloudProperties bmproperty.Map
 
 	cloud bmcloud.Cloud
 	repo  bmconfig.DiskRepo
@@ -42,7 +43,7 @@ func (d *disk) CID() string {
 	return d.cid
 }
 
-func (d *disk) NeedsMigration(newSize int, newCloudProperties map[string]interface{}) bool {
+func (d *disk) NeedsMigration(newSize int, newCloudProperties bmproperty.Map) bool {
 	return d.size != newSize || !reflect.DeepEqual(d.cloudProperties, newCloudProperties)
 }
 

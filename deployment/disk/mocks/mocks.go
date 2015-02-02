@@ -5,6 +5,7 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -51,7 +52,7 @@ func (_mr *_MockDiskRecorder) Delete() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete")
 }
 
-func (_m *MockDisk) NeedsMigration(_param0 int, _param1 map[string]interface{}) bool {
+func (_m *MockDisk) NeedsMigration(_param0 int, _param1 bmproperty.Map) bool {
 	ret := _m.ctrl.Call(_m, "NeedsMigration", _param0, _param1)
 	ret0, _ := ret[0].(bool)
 	return ret0

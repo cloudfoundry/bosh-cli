@@ -4,13 +4,14 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
 type JobListRenderer interface {
 	Render(
 		releaseJobs []bmrel.Job,
-		jobProperties map[string]interface{},
+		jobProperties bmproperty.Map,
 		deploymentName string,
 	) (RenderedJobList, error)
 }
@@ -34,7 +35,7 @@ func NewJobListRenderer(
 
 func (r *jobListRenderer) Render(
 	releaseJobs []bmrel.Job,
-	jobProperties map[string]interface{},
+	jobProperties bmproperty.Map,
 	deploymentName string,
 ) (RenderedJobList, error) {
 	r.logger.Debug(r.logTag, "Rendering job list: deploymentName='%s' jobProperties=%#v", deploymentName, jobProperties)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type ExtractedStemcell interface {
@@ -58,7 +58,7 @@ type Manifest struct {
 type ApplySpec struct {
 	Job      Job
 	Packages map[string]Blob
-	Networks map[string]interface{}
+	Networks map[string]bmproperty.Map
 }
 
 type Job struct {
@@ -73,6 +73,6 @@ type Blob struct {
 	BlobstoreID string `json:"blobstore_id"`
 }
 
-func (m Manifest) CloudProperties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(m.RawCloudProperties)
+func (m Manifest) CloudProperties() (bmproperty.Map, error) {
+	return bmproperty.BuildMap(m.RawCloudProperties)
 }

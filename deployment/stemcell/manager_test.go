@@ -1,22 +1,25 @@
 package stemcell_test
 
 import (
-	"errors"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+
+	"errors"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
-
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 )
 
 var _ = Describe("Manager", func() {
@@ -88,7 +91,7 @@ var _ = Describe("Manager", func() {
 			Expect(fakeCloud.CreateStemcellInputs).To(Equal([]fakebmcloud.CreateStemcellInput{
 				{
 					ImagePath: "fake-image-path",
-					CloudProperties: map[string]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-prop-key": "fake-prop-value",
 					},
 				},

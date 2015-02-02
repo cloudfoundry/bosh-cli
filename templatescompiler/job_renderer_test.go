@@ -11,6 +11,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 
@@ -26,7 +27,7 @@ var _ = Describe("JobRenderer", func() {
 		job              bmrel.Job
 		context          bmerbrenderer.TemplateEvaluationContext
 		fs               *fakesys.FakeFileSystem
-		renderProperties map[string]interface{}
+		renderProperties bmproperty.Map
 		srcPath          string
 		dstPath          string
 	)
@@ -34,7 +35,7 @@ var _ = Describe("JobRenderer", func() {
 	BeforeEach(func() {
 		srcPath = "fake-src-path"
 		dstPath = "fake-dst-path"
-		renderProperties = map[string]interface{}{
+		renderProperties = bmproperty.Map{
 			"fake-property-key": "fake-property-value",
 		}
 

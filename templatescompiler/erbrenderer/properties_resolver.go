@@ -2,20 +2,22 @@ package erbrenderer
 
 import (
 	"strings"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type PropertiesResolver interface {
-	Resolve() map[string]interface{}
+	Resolve() bmproperty.Map
 }
 
 type propertiesResolver struct {
-	defaultProperties    map[string]interface{}
-	propertiesWithValues map[string]interface{}
+	defaultProperties    bmproperty.Map
+	propertiesWithValues bmproperty.Map
 }
 
 func NewPropertiesResolver(
-	defaultProperties map[string]interface{},
-	propertiesWithValues map[string]interface{},
+	defaultProperties bmproperty.Map,
+	propertiesWithValues bmproperty.Map,
 ) PropertiesResolver {
 	return propertiesResolver{
 		defaultProperties:    defaultProperties,
@@ -23,7 +25,7 @@ func NewPropertiesResolver(
 	}
 }
 
-func (p propertiesResolver) Resolve() map[string]interface{} {
+func (p propertiesResolver) Resolve() bmproperty.Map {
 	result := p.propertiesWithValues
 	for propertyKey, defaultPropertyValue := range p.defaultProperties {
 		propertyKeyParts := strings.Split(propertyKey, ".")
@@ -33,7 +35,7 @@ func (p propertiesResolver) Resolve() map[string]interface{} {
 	return result
 }
 
-func (p propertiesResolver) copyDefault(valuesMap map[string]interface{}, keyPath []string, defaultValue interface{}) {
+func (p propertiesResolver) copyDefault(valuesMap bmproperty.Map, keyPath []string, defaultValue bmproperty.Property) {
 	keyName := keyPath[0]
 
 	if len(keyPath) == 1 {
@@ -43,16 +45,16 @@ func (p propertiesResolver) copyDefault(valuesMap map[string]interface{}, keyPat
 		return
 	}
 
-	var innerValuesMap map[string]interface{}
+	var innerValuesMap bmproperty.Map
 
 	if innerValues, ok := valuesMap[keyName]; ok {
-		if innerValuesMap, ok = innerValues.(map[string]interface{}); !ok {
+		if innerValuesMap, ok = innerValues.(bmproperty.Map); !ok {
 			// Value is set already
 			return
 		}
 	} else {
 		// Value is missing, initialize map for the default value
-		innerValuesMap = map[string]interface{}{}
+		innerValuesMap = bmproperty.Map{}
 		valuesMap[keyName] = innerValuesMap
 	}
 

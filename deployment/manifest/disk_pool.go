@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type DiskPool struct {
@@ -10,6 +10,6 @@ type DiskPool struct {
 	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 }
 
-func (dp DiskPool) CloudProperties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(dp.RawCloudProperties)
+func (dp DiskPool) CloudProperties() (bmproperty.Map, error) {
+	return bmproperty.BuildMap(dp.RawCloudProperties)
 }

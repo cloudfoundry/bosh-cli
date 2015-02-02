@@ -18,6 +18,7 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
@@ -46,7 +47,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		fs                   *fakesys.FakeFileSystem
 		compileDir           string
 		jobs                 []bmrel.Job
-		deploymentProperties map[string]interface{}
+		deploymentProperties bmproperty.Map
 		logger               boshlog.Logger
 
 		fakeStage *fakebmeventlog.FakeStage
@@ -68,7 +69,7 @@ var _ = Describe("TemplatesCompiler", func() {
 
 		templatesRepo = fakebmtemp.NewFakeTemplatesRepo()
 
-		deploymentProperties = map[string]interface{}{
+		deploymentProperties = bmproperty.Map{
 			"fake-property-key": "fake-property-value",
 		}
 
@@ -103,7 +104,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			Properties:   nil,
 		}
 
-		jobProperties := map[string]interface{}{
+		jobProperties := bmproperty.Map{
 			"fake-property-key": "fake-property-value",
 		}
 
@@ -333,7 +334,7 @@ var _ = Describe("TemplatesCompiler", func() {
 					},
 				}
 
-				jobProperties := map[string]interface{}{
+				jobProperties := bmproperty.Map{
 					"fake-property-key": "fake-property-value",
 				}
 

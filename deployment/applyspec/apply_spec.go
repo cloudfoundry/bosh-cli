@@ -1,12 +1,19 @@
 package applyspec
 
+import (
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+)
+
 // ApplySpec is the transport layer model for communicating instance state to the bosh-agent.
 // The format is suboptimal for its current usage. :(
 type ApplySpec struct {
-	Deployment               string                       `json:"deployment"`
-	Index                    int                          `json:"index"`
-	Packages                 map[string]Blob              `json:"packages"`
-	Networks                 map[string]interface{}       `json:"networks"`
+	Deployment string `json:"deployment"`
+	Index      int    `json:"index"`
+	// Packages is a map of package names to compiled package blob references
+	Packages map[string]Blob `json:"packages"`
+	// Networks is a map of network names to network interfaces.
+	// The value type would ideally be a struct with IP, Type & CloudProperties, but the agent supports arbitrary key/value pairs. :(
+	Networks                 map[string]bmproperty.Map    `json:"networks"`
 	Job                      Job                          `json:"job"`
 	RenderedTemplatesArchive RenderedTemplatesArchiveSpec `json:"rendered_templates_archive"`
 	ConfigurationHash        string                       `json:"configuration_hash"`
@@ -22,12 +29,12 @@ type Blob struct {
 
 // Job is a description of an instance, and the 'jobs' running on it.
 // Naming uses the historical Job/Templates pattern for reverse compatibility.
-// The Templates refer to release jobs to run on this instance, rendered specifically for this instance.
-// The SHA/BlobstoreID of the 'Templates' are currently being ignored by the bosh-agent,
-// because the RenderedTemplatesArchive contains the aggregate of all rendered jobs' templates.
-// If we get to a v2 ApplySpec format, this should be flattened into the ApplySpec, with 'Templates' renamed to 'Jobs'.
+// If/When we added support for future format versions, this should be flattened into the ApplySpec, with 'Templates' renamed to 'Jobs'.
 type Job struct {
-	Name      string `json:"name"`
+	Name string `json:"name"`
+	// Templates refer to release jobs, rendered specifically for this instance.
+	// The SHA/BlobstoreID of the 'Templates' are currently being ignored by the bosh-agent,
+	// because the RenderedTemplatesArchive contains the aggregate of all rendered jobs' templates.
 	Templates []Blob `json:"templates"`
 }
 

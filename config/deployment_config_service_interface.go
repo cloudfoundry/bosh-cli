@@ -1,5 +1,9 @@
 package config
 
+import (
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+)
+
 type DeploymentFile struct {
 	DirectorID          string           `json:"director_id"`
 	InstallationID      string           `json:"installation_id"`
@@ -21,10 +25,10 @@ type StemcellRecord struct {
 }
 
 type DiskRecord struct {
-	ID              string                 `json:"id"`
-	CID             string                 `json:"cid"`
-	Size            int                    `json:"size"`
-	CloudProperties map[string]interface{} `json:"cloud_properties"`
+	ID              string         `json:"id"`
+	CID             string         `json:"cid"`
+	Size            int            `json:"size"`
+	CloudProperties bmproperty.Map `json:"cloud_properties"`
 }
 
 type ReleaseRecord struct {

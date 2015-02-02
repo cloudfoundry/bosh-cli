@@ -14,6 +14,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -186,7 +187,7 @@ var _ = Describe("Builder", func() {
 			)
 
 			releaseJobs := []bmrel.Job{releaseJob}
-			jobProperties := map[string]interface{}{
+			jobProperties := bmproperty.Map{
 				"fake-job-property": "fake-job-property-value",
 			}
 			mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, "fake-deployment-name").Return(mockRenderedJobList, nil)
@@ -210,10 +211,10 @@ var _ = Describe("Builder", func() {
 
 			Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
 				Name: "fake-network-name",
-				Interface: map[string]interface{}{
+				Interface: bmproperty.Map{
 					"ip":   "fake-network-ip",
 					"type": "fake-network-type",
-					"cloud_properties": map[string]interface{}{
+					"cloud_properties": bmproperty.Map{
 						"fake-network-cloud-property": "fake-network-cloud-property-value",
 					},
 				},
@@ -338,11 +339,11 @@ var _ = Describe("Builder", func() {
 			Expect(state.ToApplySpec()).To(Equal(bmas.ApplySpec{
 				Deployment: "fake-deployment-name",
 				Index:      0,
-				Networks: map[string]interface{}{
-					"fake-network-name": map[string]interface{}{
+				Networks: map[string]bmproperty.Map{
+					"fake-network-name": bmproperty.Map{
 						"ip":   "fake-network-ip",
 						"type": "fake-network-type",
-						"cloud_properties": map[string]interface{}{
+						"cloud_properties": bmproperty.Map{
 							"fake-network-cloud-property": "fake-network-cloud-property-value",
 						},
 					},

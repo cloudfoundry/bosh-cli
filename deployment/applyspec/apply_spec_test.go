@@ -7,6 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("ApplySpec", func() {
@@ -26,8 +28,8 @@ var _ = Describe("ApplySpec", func() {
 					BlobstoreID: "first-package-blobstore-id",
 				},
 			},
-			Networks: map[string]interface{}{
-				"fake-network-name": map[string]interface{}{
+			Networks: map[string]bmproperty.Map{
+				"fake-network-name": bmproperty.Map{
 					"fake-network-key": "fake-network-value",
 				},
 			},

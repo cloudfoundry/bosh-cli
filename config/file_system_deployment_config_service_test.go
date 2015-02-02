@@ -1,16 +1,20 @@
 package config_test
 
 import (
-	"encoding/json"
-	"errors"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/config"
+
+	"encoding/json"
+	"errors"
+
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("fileSystemConfigService", func() {
@@ -48,12 +52,12 @@ var _ = Describe("fileSystemConfigService", func() {
 					ID:   "fake-disk-id",
 					CID:  "fake-disk-cid",
 					Size: 1024,
-					CloudProperties: map[string]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-disk-property-key": "fake-disk-property-value",
 					},
 				},
 			}
-			deploymentFileContents, err := json.Marshal(map[string]interface{}{
+			deploymentFileContents, err := json.Marshal(bmproperty.Map{
 				"director_id":     "fake-director-id",
 				"deployment_id":   "fake-deployment-id",
 				"stemcells":       stemcells,
@@ -124,7 +128,7 @@ var _ = Describe("fileSystemConfigService", func() {
 					{
 						CID:  "fake-disk-cid",
 						Size: 1024,
-						CloudProperties: map[string]interface{}{
+						CloudProperties: bmproperty.Map{
 							"fake-disk-property-key": "fake-disk-property-value",
 						},
 					},
@@ -149,7 +153,7 @@ var _ = Describe("fileSystemConfigService", func() {
 					{
 						CID:  "fake-disk-cid",
 						Size: 1024,
-						CloudProperties: map[string]interface{}{
+						CloudProperties: bmproperty.Map{
 							"fake-disk-property-key": "fake-disk-property-value",
 						},
 					},

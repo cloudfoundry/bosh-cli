@@ -2,7 +2,7 @@ package manifest
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type Manifest struct {
@@ -19,21 +19,21 @@ type Update struct {
 	UpdateWatchTime WatchTime
 }
 
-func (d Manifest) Properties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(d.RawProperties)
+func (d Manifest) Properties() (bmproperty.Map, error) {
+	return bmproperty.BuildMap(d.RawProperties)
 }
 
 // NetworkInterfaces returns a map of network names to network interfaces.
 // We can't use map[string]NetworkInterface, because it's impossible to down-cast to what the cloud client requires.
-func (d Manifest) NetworkInterfaces(jobName string) (map[string]map[string]interface{}, error) {
+func (d Manifest) NetworkInterfaces(jobName string) (map[string]bmproperty.Map, error) {
 	job, found := d.FindJobByName(jobName)
 	if !found {
-		return map[string]map[string]interface{}{}, bosherr.Errorf("Could not find job with name: %s", jobName)
+		return map[string]bmproperty.Map{}, bosherr.Errorf("Could not find job with name: %s", jobName)
 	}
 
 	networkMap := d.networkMap()
 
-	ifaceMap := map[string]map[string]interface{}{}
+	ifaceMap := map[string]bmproperty.Map{}
 	var err error
 	for _, jobNetwork := range job.Networks {
 		network := networkMap[jobNetwork.Name]
@@ -43,7 +43,7 @@ func (d Manifest) NetworkInterfaces(jobName string) (map[string]map[string]inter
 		}
 		ifaceMap[jobNetwork.Name], err = network.Interface()
 		if err != nil {
-			return map[string]map[string]interface{}{}, bosherr.WrapError(err, "Building network spec")
+			return map[string]bmproperty.Map{}, bosherr.WrapError(err, "Building network spec")
 		}
 	}
 

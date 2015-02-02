@@ -1,6 +1,7 @@
 package fakes
 
 import (
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
@@ -34,7 +35,7 @@ type diskRepoFindCurrentOutput struct {
 type DiskRepoSaveInput struct {
 	CID             string
 	Size            int
-	CloudProperties map[string]interface{}
+	CloudProperties bmproperty.Map
 }
 
 type diskRepoSaveOutput struct {
@@ -81,7 +82,7 @@ func (r *FakeDiskRepo) ClearCurrent() error {
 	return nil
 }
 
-func (r *FakeDiskRepo) Save(cid string, size int, cloudProperties map[string]interface{}) (bmconfig.DiskRecord, error) {
+func (r *FakeDiskRepo) Save(cid string, size int, cloudProperties bmproperty.Map) (bmconfig.DiskRecord, error) {
 	r.SaveInputs = append(r.SaveInputs, DiskRepoSaveInput{
 		CID:             cid,
 		Size:            size,

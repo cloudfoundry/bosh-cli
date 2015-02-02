@@ -8,6 +8,8 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cloud"
@@ -52,12 +54,12 @@ var _ = Describe("Cloud", func() {
 	Describe("CreateStemcell", func() {
 		var (
 			stemcellImagePath string
-			cloudProperties   map[string]interface{}
+			cloudProperties   bmproperty.Map
 		)
 
 		BeforeEach(func() {
 			stemcellImagePath = "/stemcell/path"
-			cloudProperties = map[string]interface{}{
+			cloudProperties = bmproperty.Map{
 				"fake-key": "fake-value",
 			}
 		})
@@ -204,26 +206,26 @@ var _ = Describe("Cloud", func() {
 		var (
 			agentID           string
 			stemcellCID       string
-			cloudProperties   map[string]interface{}
-			networkInterfaces map[string]map[string]interface{}
-			env               map[string]interface{}
+			cloudProperties   bmproperty.Map
+			networkInterfaces map[string]bmproperty.Map
+			env               bmproperty.Map
 		)
 
 		BeforeEach(func() {
 			agentID = "fake-agent-id"
 			stemcellCID = "fake-stemcell-cid"
-			networkInterfaces = map[string]map[string]interface{}{
-				"bosh": map[string]interface{}{
+			networkInterfaces = map[string]bmproperty.Map{
+				"bosh": bmproperty.Map{
 					"type": "dynamic",
-					"cloud_properties": map[string]interface{}{
+					"cloud_properties": bmproperty.Map{
 						"a": "b",
 					},
 				},
 			}
-			cloudProperties = map[string]interface{}{
+			cloudProperties = bmproperty.Map{
 				"fake-cloud-property-key": "fake-cloud-property-value",
 			}
-			env = map[string]interface{}{
+			env = bmproperty.Map{
 				"fake-env-key": "fake-env-value",
 			}
 		})
@@ -295,13 +297,13 @@ var _ = Describe("Cloud", func() {
 	Describe("CreateDisk", func() {
 		var (
 			size            int
-			cloudProperties map[string]interface{}
+			cloudProperties bmproperty.Map
 			instanceID      string
 		)
 
 		BeforeEach(func() {
 			size = 1024
-			cloudProperties = map[string]interface{}{
+			cloudProperties = bmproperty.Map{
 				"fake-cloud-property-key": "fake-cloud-property-value",
 			}
 			instanceID = "fake-instance-id"

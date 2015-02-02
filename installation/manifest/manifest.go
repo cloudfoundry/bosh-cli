@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	bmkeystr "github.com/cloudfoundry/bosh-micro-cli/keystringifier"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 type Manifest struct {
@@ -42,6 +42,6 @@ func (o SSHTunnel) IsEmpty() bool {
 	return o == SSHTunnel{}
 }
 
-func (m Manifest) Properties() (map[string]interface{}, error) {
-	return bmkeystr.NewKeyStringifier().ConvertMap(m.RawProperties)
+func (m Manifest) Properties() (bmproperty.Map, error) {
+	return bmproperty.BuildMap(m.RawProperties)
 }

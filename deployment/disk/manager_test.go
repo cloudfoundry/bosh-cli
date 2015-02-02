@@ -12,6 +12,7 @@ import (
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -80,7 +81,7 @@ var _ = Describe("Manager", func() {
 					ID:   "fake-uuid",
 					CID:  "fake-disk-cid",
 					Size: 1024,
-					CloudProperties: map[string]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-cloud-property-key": "fake-cloud-property-value",
 					},
 				}))
@@ -115,7 +116,7 @@ var _ = Describe("Manager", func() {
 	Describe("FindCurrent", func() {
 		Context("when disk already exists in disk repo", func() {
 			BeforeEach(func() {
-				diskRecord, err := diskRepo.Save("fake-existing-disk-cid", 1024, map[string]interface{}{})
+				diskRecord, err := diskRepo.Save("fake-existing-disk-cid", 1024, bmproperty.Map{})
 				Expect(err).ToNot(HaveOccurred())
 
 				err = diskRepo.UpdateCurrent(diskRecord.ID)
@@ -160,18 +161,18 @@ var _ = Describe("Manager", func() {
 
 		BeforeEach(func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
-			firstDiskRecord, err := diskRepo.Save("fake-disk-cid-1", 1024, map[string]interface{}{})
+			firstDiskRecord, err := diskRepo.Save("fake-disk-cid-1", 1024, bmproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			firstDisk = NewDisk(firstDiskRecord, fakeCloud, diskRepo)
 
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
-			_, err = diskRepo.Save("fake-disk-cid-2", 1024, map[string]interface{}{})
+			_, err = diskRepo.Save("fake-disk-cid-2", 1024, bmproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			err = diskRepo.UpdateCurrent("fake-guid-2")
 			Expect(err).ToNot(HaveOccurred())
 
 			fakeUUIDGenerator.GeneratedUuid = "fake-guid-3"
-			thirdDiskRecord, err := diskRepo.Save("fake-disk-cid-3", 1024, map[string]interface{}{})
+			thirdDiskRecord, err := diskRepo.Save("fake-disk-cid-3", 1024, bmproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			thirdDisk = NewDisk(thirdDiskRecord, fakeCloud, diskRepo)
 		})

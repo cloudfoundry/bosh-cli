@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -26,9 +27,9 @@ var _ = Describe("Manager", func() {
 		fakeCloud                 *fakebmcloud.FakeCloud
 		manager                   Manager
 		logger                    boshlog.Logger
-		expectedNetworkInterfaces map[string]map[string]interface{}
-		expectedCloudProperties   map[string]interface{}
-		expectedEnv               map[string]interface{}
+		expectedNetworkInterfaces map[string]bmproperty.Map
+		expectedCloudProperties   bmproperty.Map
+		expectedEnv               bmproperty.Map
 		deploymentManifest        bmdeplmanifest.Manifest
 		fakeVMRepo                *fakebmconfig.FakeVMRepo
 		stemcellRepo              bmconfig.StemcellRepo
@@ -61,17 +62,17 @@ var _ = Describe("Manager", func() {
 		).NewManager(fakeCloud, fakeAgentClient)
 
 		fakeCloud.CreateVMCID = "fake-vm-cid"
-		expectedNetworkInterfaces = map[string]map[string]interface{}{
-			"fake-network-name": map[string]interface{}{
+		expectedNetworkInterfaces = map[string]bmproperty.Map{
+			"fake-network-name": bmproperty.Map{
 				"type":             "dynamic",
 				"ip":               "fake-micro-ip",
-				"cloud_properties": map[string]interface{}{},
+				"cloud_properties": bmproperty.Map{},
 			},
 		}
-		expectedCloudProperties = map[string]interface{}{
+		expectedCloudProperties = bmproperty.Map{
 			"fake-cloud-property-key": "fake-cloud-property-value",
 		}
-		expectedEnv = map[string]interface{}{
+		expectedEnv = bmproperty.Map{
 			"fake-env-key": "fake-env-value",
 		}
 		deploymentManifest = bmdeplmanifest.Manifest{

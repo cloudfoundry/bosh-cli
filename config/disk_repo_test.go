@@ -4,11 +4,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-micro-cli/config"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("DiskRepo", func() {
@@ -17,7 +20,7 @@ var _ = Describe("DiskRepo", func() {
 		repo              DiskRepo
 		fs                *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
-		cloudProperties   map[string]interface{}
+		cloudProperties   bmproperty.Map
 	)
 
 	BeforeEach(func() {
@@ -26,7 +29,7 @@ var _ = Describe("DiskRepo", func() {
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		repo = NewDiskRepo(configService, fakeUUIDGenerator)
-		cloudProperties = map[string]interface{}{
+		cloudProperties = bmproperty.Map{
 			"fake-cloud_property-key": "fake-cloud-property-value",
 		}
 	})

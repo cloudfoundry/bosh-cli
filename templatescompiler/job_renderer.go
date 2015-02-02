@@ -7,12 +7,13 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 )
 
 type JobRenderer interface {
-	Render(job bmrel.Job, properties map[string]interface{}, deploymentName string) (RenderedJob, error)
+	Render(job bmrel.Job, properties bmproperty.Map, deploymentName string) (RenderedJob, error)
 }
 
 type jobRenderer struct {
@@ -35,7 +36,7 @@ func NewJobRenderer(
 	}
 }
 
-func (r *jobRenderer) Render(job bmrel.Job, properties map[string]interface{}, deploymentName string) (RenderedJob, error) {
+func (r *jobRenderer) Render(job bmrel.Job, properties bmproperty.Map, deploymentName string) (RenderedJob, error) {
 	context := NewJobEvaluationContext(job, properties, deploymentName, r.logger)
 
 	sourcePath := job.ExtractedPath

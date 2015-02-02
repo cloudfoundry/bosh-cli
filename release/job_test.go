@@ -5,6 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/release"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("Job", func() {
@@ -54,8 +56,8 @@ var _ = Describe("Job", func() {
 					},
 				},
 			}
-			Expect(pd.Default()).To(Equal(map[string]interface{}{
-				"key": map[string]interface{}{
+			Expect(pd.Default()).To(Equal(bmproperty.Map{
+				"key": bmproperty.Map{
 					"nested-key": "value",
 				},
 			}))

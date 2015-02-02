@@ -22,6 +22,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
@@ -106,9 +107,9 @@ var _ = Describe("Deployment", func() {
 				Deployment: "test-release",
 				Index:      jobIndex,
 				Packages:   map[string]bmas.Blob{},
-				Networks: map[string]interface{}{
-					"network-1": map[string]interface{}{
-						"cloud_properties": map[string]interface{}{},
+				Networks: map[string]bmproperty.Map{
+					"network-1": bmproperty.Map{
+						"cloud_properties": bmproperty.Map{},
 						"type":             "dynamic",
 						"ip":               "",
 					},

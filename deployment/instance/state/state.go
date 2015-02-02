@@ -1,6 +1,7 @@
 package state
 
 import (
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 )
 
@@ -14,8 +15,9 @@ type State interface {
 
 // NetworkRef is a reference to a deployment network, with the interface the instance should use to connect to it.
 type NetworkRef struct {
-	Name      string
-	Interface map[string]interface{}
+	Name string
+	// Interface would ideally be a struct with IP, Type & CloudProperties, but the agent supports arbitrary key/value pairs. :(
+	Interface bmproperty.Map
 }
 
 // JobRef is a reference to a rendered job.
@@ -98,7 +100,7 @@ func (s *state) ToApplySpec() bmas.ApplySpec {
 		}
 	}
 
-	networkMap := make(map[string]interface{}, len(s.networks))
+	networkMap := make(map[string]bmproperty.Map, len(s.networks))
 	for _, network := range s.networks {
 		networkMap[network.Name] = network.Interface
 	}

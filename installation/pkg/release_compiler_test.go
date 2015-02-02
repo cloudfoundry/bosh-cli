@@ -6,18 +6,19 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
-
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 )
 
 var _ = Describe("ReleaseCompiler", func() {
@@ -60,12 +61,12 @@ var _ = Describe("ReleaseCompiler", func() {
 	Describe("Compile", func() {
 		var (
 			manifest            bminstallmanifest.Manifest
-			deploymentProperies map[string]interface{}
+			deploymentProperies bmproperty.Map
 			fakeStage           *fakebmeventlog.FakeStage
 		)
 
 		BeforeEach(func() {
-			deploymentProperies = map[string]interface{}{
+			deploymentProperies = bmproperty.Map{
 				"fake-property-key": "fake-property-value",
 			}
 

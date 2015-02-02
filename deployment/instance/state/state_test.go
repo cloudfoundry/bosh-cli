@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 )
 
@@ -15,7 +16,7 @@ var _ = Describe("State", func() {
 			networkInterfaces := []NetworkRef{
 				{
 					Name: "fake-network-name",
-					Interface: map[string]interface{}{
+					Interface: bmproperty.Map{
 						"ip":   "fake-ip",
 						"type": "dynamic",
 					},
@@ -65,8 +66,8 @@ var _ = Describe("State", func() {
 			Expect(applySpec).To(Equal(bmas.ApplySpec{
 				Deployment: "fake-deployment-name",
 				Index:      0,
-				Networks: map[string]interface{}{
-					"fake-network-name": map[string]interface{}{
+				Networks: map[string]bmproperty.Map{
+					"fake-network-name": bmproperty.Map{
 						"ip":   "fake-ip",
 						"type": "dynamic",
 					},
