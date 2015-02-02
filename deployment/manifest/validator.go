@@ -41,7 +41,7 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 			errs = append(errs, bosherr.Errorf("networks[%d].type must be 'manual', 'dynamic', or 'vip'", idx))
 		}
 		if _, err := network.CloudProperties(); err != nil {
-			errs = append(errs, bosherr.Errorf("networks[%d].cloud_properties must have only string keys", idx))
+			errs = append(errs, bosherr.WrapErrorf(err, "networks[%d].cloud_properties must have only string keys", idx))
 		}
 	}
 
@@ -59,10 +59,10 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].network must be the name of a network", idx))
 		}
 		if _, err := resourcePool.CloudProperties(); err != nil {
-			errs = append(errs, bosherr.Errorf("resource_pools[%d].cloud_properties must have only string keys", idx))
+			errs = append(errs, bosherr.WrapErrorf(err, "resource_pools[%d].cloud_properties must have only string keys", idx))
 		}
 		if _, err := resourcePool.Env(); err != nil {
-			errs = append(errs, bosherr.Errorf("resource_pools[%d].env must have only string keys", idx))
+			errs = append(errs, bosherr.WrapErrorf(err, "resource_pools[%d].env must have only string keys", idx))
 		}
 	}
 
@@ -74,7 +74,7 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 			errs = append(errs, bosherr.Errorf("disk_pools[%d].disk_size must be > 0", idx))
 		}
 		if _, err := diskPool.CloudProperties(); err != nil {
-			errs = append(errs, bosherr.Errorf("disk_pools[%d].cloud_properties must have only string keys", idx))
+			errs = append(errs, bosherr.WrapErrorf(err, "disk_pools[%d].cloud_properties must have only string keys", idx))
 		}
 	}
 
@@ -123,7 +123,7 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 		}
 
 		if _, err := job.Properties(); err != nil {
-			errs = append(errs, bosherr.Errorf("jobs[%d].properties must have only string keys", idx))
+			errs = append(errs, bosherr.WrapErrorf(err, "jobs[%d].properties must have only string keys", idx))
 		}
 
 		templateNames := map[string]struct{}{}
@@ -153,7 +153,7 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 	}
 
 	if _, err := deploymentManifest.Properties(); err != nil {
-		errs = append(errs, bosherr.Error("properties must have only string keys"))
+		errs = append(errs, bosherr.WrapError(err, "properties must have only string keys"))
 	}
 
 	if len(errs) > 0 {
