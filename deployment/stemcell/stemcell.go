@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
@@ -48,11 +49,11 @@ func (s *extractedStemcell) String() string {
 }
 
 type Manifest struct {
-	ImagePath          string
-	Name               string
-	Version            string
-	SHA1               string
-	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
+	ImagePath       string
+	Name            string
+	Version         string
+	SHA1            string
+	CloudProperties bmproperty.Map
 }
 
 type ApplySpec struct {
@@ -70,9 +71,5 @@ type Blob struct {
 	Name        string
 	Version     string
 	SHA1        string
-	BlobstoreID string `json:"blobstore_id"`
-}
-
-func (m Manifest) CloudProperties() (bmproperty.Map, error) {
-	return bmproperty.BuildMap(m.RawCloudProperties)
+	BlobstoreID string
 }

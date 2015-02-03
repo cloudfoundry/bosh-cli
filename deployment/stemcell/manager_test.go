@@ -57,7 +57,7 @@ var _ = Describe("Manager", func() {
 				Name:      "fake-stemcell-name",
 				Version:   "fake-stemcell-version",
 				ImagePath: "fake-image-path",
-				RawCloudProperties: map[interface{}]interface{}{
+				CloudProperties: bmproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},

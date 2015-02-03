@@ -21,6 +21,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
@@ -186,11 +187,11 @@ var _ = Describe("DeployCmd", func() {
 		stemcellTarballPath = "/stemcell/tarball/path"
 		extractedStemcell = bmstemcell.NewExtractedStemcell(
 			bmstemcell.Manifest{
-				ImagePath:          "/stemcell/image/path",
-				Name:               "fake-stemcell-name",
-				Version:            "fake-stemcell-version",
-				SHA1:               "fake-stemcell-sha1",
-				RawCloudProperties: map[interface{}]interface{}{},
+				ImagePath:       "/stemcell/image/path",
+				Name:            "fake-stemcell-name",
+				Version:         "fake-stemcell-version",
+				SHA1:            "fake-stemcell-sha1",
+				CloudProperties: bmproperty.Map{},
 			},
 			bmstemcell.ApplySpec{},
 			"fake-extracted-path",

@@ -61,12 +61,7 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage bmeven
 			return bmeventlog.NewSkippedStepError("Stemcell already uploaded")
 		}
 
-		cloudProperties, err := manifest.CloudProperties()
-		if err != nil {
-			return bosherr.WrapError(err, "Getting cloud properties from stemcell manifest")
-		}
-
-		cid, err := m.cloud.CreateStemcell(manifest.ImagePath, cloudProperties)
+		cid, err := m.cloud.CreateStemcell(manifest.ImagePath, manifest.CloudProperties)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
 		}

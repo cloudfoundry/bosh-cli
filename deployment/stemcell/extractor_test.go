@@ -6,12 +6,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
-
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 )
 
 var _ = Describe("Manager", func() {
@@ -40,7 +42,7 @@ var _ = Describe("Manager", func() {
 			Manifest{
 				Name:      "fake-stemcell-name",
 				ImagePath: "fake-image-path",
-				RawCloudProperties: map[interface{}]interface{}{
+				CloudProperties: bmproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},

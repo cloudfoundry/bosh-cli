@@ -6,10 +6,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("Reader", func() {
@@ -84,9 +86,9 @@ cloud_properties:
 				Name:      "fake-stemcell-name",
 				Version:   "2690",
 				ImagePath: "fake-extracted-path/image",
-				RawCloudProperties: map[interface{}]interface{}{
+				CloudProperties: bmproperty.Map{
 					"infrastructure": "aws",
-					"ami": map[interface{}]interface{}{
+					"ami": bmproperty.Map{
 						"us-east-1": "fake-ami-version",
 					},
 				},
