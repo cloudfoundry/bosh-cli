@@ -1,7 +1,7 @@
 package applyspec
 
 import (
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 // NewJob creates an applyspec job from a stemcell apply spec

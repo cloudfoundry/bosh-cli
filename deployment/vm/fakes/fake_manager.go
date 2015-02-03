@@ -2,8 +2,8 @@ package fakes
 
 import (
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type CreateInput struct {

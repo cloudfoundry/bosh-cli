@@ -6,8 +6,8 @@ import (
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type ManagerFactory interface {

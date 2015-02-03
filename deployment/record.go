@@ -5,8 +5,8 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type Record interface {

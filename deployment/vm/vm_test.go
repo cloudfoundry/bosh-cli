@@ -30,18 +30,16 @@ import (
 
 var _ = Describe("VM", func() {
 	var (
-		vm                 VM
-		fakeVMRepo         *fakebmconfig.FakeVMRepo
-		fakeStemcellRepo   *fakebmconfig.FakeStemcellRepo
-		fakeDiskDeployer   *fakebmvm.FakeDiskDeployer
-		fakeAgentClient    *fakebmagentclient.FakeAgentClient
-		fakeCloud          *fakebmcloud.FakeCloud
-		applySpec          bmas.ApplySpec
-		deploymentManifest bmdeplmanifest.Manifest
-		diskPool           bmdeplmanifest.DiskPool
-		deploymentJob      bmdeplmanifest.Job
-		fs                 *fakesys.FakeFileSystem
-		logger             boshlog.Logger
+		vm               VM
+		fakeVMRepo       *fakebmconfig.FakeVMRepo
+		fakeStemcellRepo *fakebmconfig.FakeStemcellRepo
+		fakeDiskDeployer *fakebmvm.FakeDiskDeployer
+		fakeAgentClient  *fakebmagentclient.FakeAgentClient
+		fakeCloud        *fakebmcloud.FakeCloud
+		applySpec        bmas.ApplySpec
+		diskPool         bmdeplmanifest.DiskPool
+		fs               *fakesys.FakeFileSystem
+		logger           boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -57,38 +55,6 @@ var _ = Describe("VM", func() {
 			DiskSize: 1024,
 			CloudProperties: bmproperty.Map{
 				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
-			},
-		}
-		deploymentJob = bmdeplmanifest.Job{
-			Name: "fake-manifest-job-name",
-			Templates: []bmdeplmanifest.ReleaseJobRef{
-				{Name: "first-job-name"},
-				{Name: "third-job-name"},
-			},
-			PersistentDiskPool: "fake-persistent-disk-pool-name",
-			Properties: bmproperty.Map{
-				"fake-property-key": "fake-property-value",
-			},
-			Networks: []bmdeplmanifest.JobNetwork{
-				{
-					Name:      "fake-network-name",
-					StaticIPs: []string{"fake-network-ip"},
-				},
-			},
-		}
-		deploymentManifest = bmdeplmanifest.Manifest{
-			Name: "fake-deployment-name",
-			DiskPools: []bmdeplmanifest.DiskPool{
-				diskPool,
-			},
-			Jobs: []bmdeplmanifest.Job{
-				deploymentJob,
-			},
-			Networks: []bmdeplmanifest.Network{
-				{
-					Name: "fake-network-name",
-					Type: "fake-network-type",
-				},
 			},
 		}
 

@@ -28,9 +28,9 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )

@@ -12,7 +12,7 @@ import (
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )

@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	. "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	"errors"
 
@@ -18,8 +18,8 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 )
 
 var _ = Describe("Manager", func() {

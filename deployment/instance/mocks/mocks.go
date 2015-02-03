@@ -8,9 +8,9 @@ import (
 	disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	stemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	manifest0 "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	stemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	time "time"
 )
 

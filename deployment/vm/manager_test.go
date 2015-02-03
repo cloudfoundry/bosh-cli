@@ -10,7 +10,7 @@ import (
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"

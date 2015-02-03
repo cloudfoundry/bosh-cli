@@ -5,8 +5,8 @@ import (
 
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type Manager interface {

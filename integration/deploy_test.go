@@ -37,7 +37,6 @@ import (
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
@@ -49,9 +48,10 @@ import (
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 

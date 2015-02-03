@@ -16,12 +16,12 @@ srcFiles=(
 	deployment/instance/Instance,Manager
 	deployment/instance/state/BuilderFactory,Builder,State,PackageCompiler
 	deployment/disk/Disk,Manager
-	deployment/stemcell/CloudStemcell,Manager
 	deployment/vm/ManagerFactory
 	deployment/release/JobResolver
   registry/Server,ServerManager
   release/Manager,Extractor
   release/set/Resolver
+	stemcell/CloudStemcell,Manager
   templatescompiler/JobRenderer,JobListRenderer,RenderedJob,RenderedJobList,RenderedJobListArchive,RenderedJobListCompressor
   blobstore/Factory,Blobstore
 )

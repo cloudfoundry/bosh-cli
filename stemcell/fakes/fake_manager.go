@@ -5,8 +5,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 )
 
 type FakeManager struct {

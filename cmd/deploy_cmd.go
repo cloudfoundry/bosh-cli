@@ -15,7 +15,6 @@ import (
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
@@ -23,6 +22,7 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 

@@ -23,11 +23,10 @@ import (
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
@@ -62,10 +61,8 @@ var _ = Describe("Deployer", func() {
 		fakeStage              *fakebmlog.FakeStage
 		sshTunnelConfig        bminstallmanifest.SSHTunnel
 		fakeVM                 *fakebmvm.FakeVM
-		extractedStemcell      bmstemcell.ExtractedStemcell
 
-		stemcellApplySpec bmstemcell.ApplySpec
-		cloudStemcell     bmstemcell.CloudStemcell
+		cloudStemcell bmstemcell.CloudStemcell
 
 		applySpec bmas.ApplySpec
 
@@ -134,20 +131,6 @@ var _ = Describe("Deployer", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		eventLogger = fakebmlog.NewFakeEventLogger()
 		fakeStage = fakebmlog.NewFakeStage()
-
-		stemcellApplySpec = bmstemcell.ApplySpec{
-			Job: bmstemcell.Job{
-				Name: "fake-job-name",
-			},
-		}
-
-		fakeFs := fakesys.NewFakeFileSystem()
-		extractedStemcell = bmstemcell.NewExtractedStemcell(
-			bmstemcell.Manifest{},
-			stemcellApplySpec,
-			"fake-extracted-path",
-			fakeFs,
-		)
 
 		fakeStemcellRepo := fakebmconfig.NewFakeStemcellRepo()
 		stemcellRecord := bmconfig.StemcellRecord{

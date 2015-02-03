@@ -4,6 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+
 	"errors"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -13,8 +15,6 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 )
 
 var _ = Describe("CloudStemcell", func() {

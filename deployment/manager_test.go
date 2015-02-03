@@ -14,7 +14,7 @@ import (
 	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
 	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
 	mock_deployment "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
-	mock_stemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell/mocks"
+	mock_stemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -27,9 +27,9 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/deployment/stemcell"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
