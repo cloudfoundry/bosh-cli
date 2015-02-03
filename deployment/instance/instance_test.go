@@ -15,7 +15,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
@@ -54,6 +53,9 @@ var _ = Describe("Instance", func() {
 
 		pingTimeout = 1 * time.Second
 		pingDelay   = 500 * time.Millisecond
+
+		jobName  = "fake-job-name"
+		jobIndex = 0
 	)
 
 	BeforeEach(func() {
@@ -71,8 +73,8 @@ var _ = Describe("Instance", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
 		instance = NewInstance(
-			"fake-job-name",
-			0,
+			jobName,
+			jobIndex,
 			fakeVM,
 			fakeVMManager,
 			fakeSSHTunnelFactory,
@@ -310,7 +312,6 @@ var _ = Describe("Instance", func() {
 
 	Describe("UpdateJobs", func() {
 		var (
-			deploymentJob      bmdeplmanifest.Job
 			deploymentManifest bmdeplmanifest.Manifest
 
 			applySpec bmas.ApplySpec
@@ -318,81 +319,27 @@ var _ = Describe("Instance", func() {
 			expectStateBuild *gomock.Call
 		)
 
-		var allowApplySpecToBeCreated = func() {
-			jobName := "fake-job-name"
-			jobIndex := 0
-
-			applySpec = bmas.ApplySpec{
-				Deployment: "fake-deployment-name",
-				Index:      jobIndex,
-				Packages:   map[string]bmas.Blob{},
-				Networks: map[string]bmproperty.Map{
-					"fake-network-name": bmproperty.Map{
-						"cloud_properties": bmproperty.Map{},
-						"type":             "dynamic",
-						"ip":               "fake-network-ip",
-					},
-				},
-				Job: bmas.Job{
-					Name:      jobName,
-					Templates: []bmas.Blob{},
-				},
-				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
-				ConfigurationHash:        "",
-			}
-
-			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage).Return(mockState, nil).AnyTimes()
-			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
-		}
-
 		BeforeEach(func() {
-			deploymentJob = bmdeplmanifest.Job{
-				Name: "fake-job-name",
-				Templates: []bmdeplmanifest.ReleaseJobRef{
-					{Name: "first-job-name"},
-					{Name: "third-job-name"},
-				},
-				PersistentDiskPool: "fake-persistent-disk-pool-name",
-				Properties: bmproperty.Map{
-					"fake-property-key": "fake-property-value",
-				},
-				Networks: []bmdeplmanifest.JobNetwork{
-					{
-						Name:      "fake-network-name",
-						StaticIPs: []string{"fake-network-ip"},
-					},
-				},
-			}
-
-			//TODO: gut the manifest to only what we are testing?
-			// manifest is only being used for the Update.UpdateWatchTime, otherwise it's just being passed to the StateBuilder
+			// manifest is only being used for the Update.UpdateWatchTime, otherwise it's just being passed through to the StateBuilder
 			deploymentManifest = bmdeplmanifest.Manifest{
 				Name: "fake-deployment-name",
-				Networks: []bmdeplmanifest.Network{
-					{
-						Name:            "fake-network-name",
-						Type:            bmdeplmanifest.NetworkType("fake-network-type"),
-						CloudProperties: bmproperty.Map{},
-						//						IP: "",
-						//						Netmask: "",
-						//						Gateway: "",
-						//						DNS: []string{},
-					},
-				},
 				Update: bmdeplmanifest.Update{
 					UpdateWatchTime: bmdeplmanifest.WatchTime{
 						Start: 0,
 						End:   5478,
 					},
 				},
-				Jobs: []bmdeplmanifest.Job{
-					deploymentJob,
-				},
+			}
+
+			// apply spec is just returned from instance.State.ToApplySpec() and passed to agentClient.Apply()
+			applySpec = bmas.ApplySpec{
+				Deployment: "fake-deployment-name",
 			}
 		})
 
 		JustBeforeEach(func() {
-			allowApplySpecToBeCreated()
+			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage).Return(mockState, nil).AnyTimes()
+			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		})
 
 		It("builds a new instance state", func() {
