@@ -45,55 +45,11 @@ var _ = Describe("VM", func() {
 	)
 
 	BeforeEach(func() {
-		//		fakeTemplatesSpecGenerator.SetCreateBehavior(bmas.TemplatesSpec{
-		//			BlobID:            "fake-blob-id",
-		//			ArchiveSha1:       "fake-archive-sha1",
-		//			ConfigurationHash: "fake-configuration-hash",
-		//		}, nil)
-
 		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
 
-		//TODO: test instance.State.ToApplySpec with a full ApplySpec
 		// apply spec is only being passed to the agent client, so it doesn't need much content for testing
 		applySpec = bmas.ApplySpec{
 			Deployment: "fake-deployment-name",
-			//			Index:      0,
-			//			Packages:   map[string]bmas.Blob{},
-			//			Networks: map[string]interface{}{
-			//				"fake-network-name": map[string]interface{}{
-			//					"type":             "fake-network-type",
-			//					"ip":               "fake-network-ip",
-			//					"cloud_properties": map[string]interface{}{},
-			//				},
-			//			},
-			//			Job: bmas.Job{
-			//				Name: "fake-job-name",
-			//				Templates: []bmas.Blob{
-			//					{
-			//						Name:        "first-job-name",
-			//						Version:     "first-job-version",
-			//						SHA1:        "first-job-sha1",
-			//						BlobstoreID: "first-job-blobstore-id",
-			//					},
-			//					{
-			//						Name:        "second-job-name",
-			//						Version:     "second-job-version",
-			//						SHA1:        "second-job-sha1",
-			//						BlobstoreID: "second-job-blobstore-id",
-			//					},
-			//					{
-			//						Name:        "third-job-name",
-			//						Version:     "third-job-version",
-			//						SHA1:        "third-job-sha1",
-			//						BlobstoreID: "third-job-blobstore-id",
-			//					},
-			//				},
-			//			},
-			//			RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
-			//				BlobstoreID: "fake-blob-id",
-			//				SHA1:        "fake-archive-sha1",
-			//			},
-			//			ConfigurationHash: "fake-configuration-hash",
 		}
 
 		diskPool = bmdeplmanifest.DiskPool{
