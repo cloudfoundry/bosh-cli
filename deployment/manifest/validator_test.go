@@ -6,6 +6,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
@@ -49,9 +50,9 @@ var _ = Describe("Validator", func() {
 				{
 					Name:    "fake-resource-pool-name",
 					Network: "fake-network-name",
-					RawCloudProperties: map[interface{}]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-prop-key": "fake-prop-value",
-						"fake-prop-map-key": map[interface{}]interface{}{
+						"fake-prop-map-key": bmproperty.Map{
 							"fake-prop-key": "fake-prop-value",
 						},
 					},
@@ -61,9 +62,9 @@ var _ = Describe("Validator", func() {
 				{
 					Name:     "fake-disk-pool-name",
 					DiskSize: 1024,
-					RawCloudProperties: map[interface{}]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-prop-key": "fake-prop-value",
-						"fake-prop-map-key": map[interface{}]interface{}{
+						"fake-prop-map-key": bmproperty.Map{
 							"fake-prop-key": "fake-prop-value",
 						},
 					},
@@ -87,17 +88,17 @@ var _ = Describe("Validator", func() {
 						},
 					},
 					Lifecycle: "service",
-					RawProperties: map[interface{}]interface{}{
+					Properties: bmproperty.Map{
 						"fake-prop-key": "fake-prop-value",
-						"fake-prop-map-key": map[interface{}]interface{}{
+						"fake-prop-map-key": bmproperty.Map{
 							"fake-prop-key": "fake-prop-value",
 						},
 					},
 				},
 			},
-			RawProperties: map[interface{}]interface{}{
+			Properties: bmproperty.Map{
 				"fake-prop-key": "fake-prop-value",
-				"fake-prop-map-key": map[interface{}]interface{}{
+				"fake-prop-map-key": bmproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},
@@ -216,38 +217,6 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must be the name of a network"))
 		})
 
-		It("validates resource pool cloud_properties", func() {
-			deploymentManifest := Manifest{
-				ResourcePools: []ResourcePool{
-					{
-						RawCloudProperties: map[interface{}]interface{}{
-							123: "fake-property-value",
-						},
-					},
-				},
-			}
-
-			err := validator.Validate(deploymentManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("resource_pools[0].cloud_properties must have only string keys"))
-		})
-
-		It("validates resource pool env", func() {
-			deploymentManifest := Manifest{
-				ResourcePools: []ResourcePool{
-					{
-						RawEnv: map[interface{}]interface{}{
-							123: "fake-env-value",
-						},
-					},
-				},
-			}
-
-			err := validator.Validate(deploymentManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("resource_pools[0].env must have only string keys"))
-		})
-
 		It("validates disk pool name", func() {
 			deploymentManifest := Manifest{
 				DiskPools: []DiskPool{
@@ -291,22 +260,6 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("disk_pools[0].disk_size must be > 0"))
 		})
 
-		It("validates disk pool cloud_properties", func() {
-			deploymentManifest := Manifest{
-				DiskPools: []DiskPool{
-					{
-						RawCloudProperties: map[interface{}]interface{}{
-							123: "fake-property-value",
-						},
-					},
-				},
-			}
-
-			err := validator.Validate(deploymentManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("disk_pools[0].cloud_properties must have only string keys"))
-		})
-
 		It("validates network name", func() {
 			deploymentManifest := Manifest{
 				Networks: []Network{
@@ -348,22 +301,6 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[0].type must be 'manual', 'dynamic', or 'vip'"))
-		})
-
-		It("validates disk pool cloud_properties", func() {
-			deploymentManifest := Manifest{
-				Networks: []Network{
-					{
-						RawCloudProperties: map[interface{}]interface{}{
-							123: "fake-property-value",
-						},
-					},
-				},
-			}
-
-			err := validator.Validate(deploymentManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("networks[0].cloud_properties must have only string keys"))
 		})
 
 		It("validates that there is only one job", func() {
@@ -539,22 +476,6 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("jobs[0].lifecycle must be 'service' ('errand' not supported)"))
 		})
 
-		It("validates job properties", func() {
-			deploymentManifest := Manifest{
-				Jobs: []Job{
-					{
-						RawProperties: map[interface{}]interface{}{
-							123: "fake-property-value",
-						},
-					},
-				},
-			}
-
-			err := validator.Validate(deploymentManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].properties must have only string keys"))
-		})
-
 		It("permits job templates to reference an undeclared release", func() {
 			deploymentManifest := validManifest
 			deploymentManifest.Jobs[0].Templates = []ReleaseJobRef{
@@ -644,18 +565,6 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0] must refer to a job in 'fake-release-name', but there is no job named 'fake-other-job-name'"))
-		})
-
-		It("validates deployment properties", func() {
-			deploymentManifest := Manifest{
-				RawProperties: map[interface{}]interface{}{
-					123: "fake-property-value",
-				},
-			}
-
-			err := validator.Validate(deploymentManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("properties must have only string keys"))
 		})
 	})
 })

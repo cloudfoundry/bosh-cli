@@ -20,20 +20,24 @@ var _ = Describe("Manifest", func() {
 				deploymentManifest = Manifest{
 					Networks: []Network{
 						{
-							Name: "fake-network-name",
-							Type: "dynamic",
+							Name:            "fake-network-name",
+							Type:            "dynamic",
+							CloudProperties: bmproperty.Map{},
 						},
 						{
-							Name: "fake-manual-network-name",
-							Type: "manual",
+							Name:            "fake-manual-network-name",
+							Type:            "manual",
+							CloudProperties: bmproperty.Map{},
 						},
 						{
-							Name: "vip",
-							Type: "vip",
+							Name:            "vip",
+							Type:            "vip",
+							CloudProperties: bmproperty.Map{},
 						},
 						{
-							Name: "fake",
-							Type: "dynamic",
+							Name:            "fake",
+							Type:            "dynamic",
+							CloudProperties: bmproperty.Map{},
 						},
 					},
 					Jobs: []Job{
@@ -118,14 +122,14 @@ var _ = Describe("Manifest", func() {
 						{
 							Name:     "fake-disk-pool-name-1",
 							DiskSize: 1024,
-							RawCloudProperties: map[interface{}]interface{}{
+							CloudProperties: bmproperty.Map{
 								"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 							},
 						},
 						{
 							Name:     "fake-disk-pool-name-2",
 							DiskSize: 2048,
-							RawCloudProperties: map[interface{}]interface{}{
+							CloudProperties: bmproperty.Map{
 								"fake-disk-prop-key-2": "fake-disk-prop-value-1",
 							},
 						},
@@ -146,7 +150,7 @@ var _ = Describe("Manifest", func() {
 				Expect(diskPool).To(Equal(DiskPool{
 					Name:     "fake-disk-pool-name-2",
 					DiskSize: 2048,
-					RawCloudProperties: map[interface{}]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-disk-prop-key-2": "fake-disk-prop-value-1",
 					},
 				}))
@@ -170,9 +174,9 @@ var _ = Describe("Manifest", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(diskPool).To(Equal(DiskPool{
-					Name:               "",
-					DiskSize:           1024,
-					RawCloudProperties: map[interface{}]interface{}{},
+					Name:            "",
+					DiskSize:        1024,
+					CloudProperties: bmproperty.Map{},
 				}))
 			})
 		})
@@ -184,7 +188,7 @@ var _ = Describe("Manifest", func() {
 						{
 							Name:     "fake-disk-pool-name-1",
 							DiskSize: 1024,
-							RawCloudProperties: map[interface{}]interface{}{
+							CloudProperties: bmproperty.Map{
 								"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 							},
 						},
@@ -206,7 +210,7 @@ var _ = Describe("Manifest", func() {
 				Expect(diskPool).To(Equal(DiskPool{
 					Name:     "fake-disk-pool-name-1",
 					DiskSize: 1024,
-					RawCloudProperties: map[interface{}]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 					},
 				}))

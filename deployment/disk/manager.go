@@ -55,10 +55,7 @@ func (m *manager) FindCurrent() ([]Disk, error) {
 }
 
 func (m *manager) Create(diskPool bmdeplmanifest.DiskPool, vmCID string) (Disk, error) {
-	diskCloudProperties, err := diskPool.CloudProperties()
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Reading existing deployment config")
-	}
+	diskCloudProperties := diskPool.CloudProperties
 
 	m.logger.Debug(m.logTag, "Creating disk")
 	cid, err := m.cloud.CreateDisk(diskPool.DiskSize, diskCloudProperties, vmCID)

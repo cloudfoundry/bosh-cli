@@ -52,7 +52,7 @@ var _ = Describe("Manager", func() {
 			diskPool = bmdeplmanifest.DiskPool{
 				Name:     "fake-disk-pool-name",
 				DiskSize: 1024,
-				RawCloudProperties: map[interface{}]interface{}{
+				CloudProperties: bmproperty.Map{
 					"fake-cloud-property-key": "fake-cloud-property-value",
 				},
 			}

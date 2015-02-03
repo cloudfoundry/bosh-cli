@@ -6,23 +6,26 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
-	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
+	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
+	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
+	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
 
 var _ = Describe("VM", func() {
@@ -96,7 +99,7 @@ var _ = Describe("VM", func() {
 		diskPool = bmdeplmanifest.DiskPool{
 			Name:     "fake-persistent-disk-pool-name",
 			DiskSize: 1024,
-			RawCloudProperties: map[interface{}]interface{}{
+			CloudProperties: bmproperty.Map{
 				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 			},
 		}
@@ -107,7 +110,7 @@ var _ = Describe("VM", func() {
 				{Name: "third-job-name"},
 			},
 			PersistentDiskPool: "fake-persistent-disk-pool-name",
-			RawProperties: map[interface{}]interface{}{
+			Properties: bmproperty.Map{
 				"fake-property-key": "fake-property-value",
 			},
 			Networks: []bmdeplmanifest.JobNetwork{

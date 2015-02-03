@@ -198,12 +198,7 @@ func (b *builder) renderJobTemplates(releaseJobs []bmrel.Job, deploymentJob bmde
 		blobID                 string
 	)
 	err := stage.PerformStep("Rendering job templates", func() error {
-		jobProperties, err := deploymentJob.Properties()
-		if err != nil {
-			return bosherr.WrapError(err, "Stringifying job properties")
-		}
-
-		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, deploymentName)
+		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, deploymentJob.Properties, deploymentName)
 		if err != nil {
 			return bosherr.WrapError(err, "Rendering job templates")
 		}

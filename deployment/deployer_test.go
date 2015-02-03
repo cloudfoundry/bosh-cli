@@ -17,6 +17,7 @@ import (
 	mock_vm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
@@ -79,7 +80,7 @@ var _ = Describe("Deployer", func() {
 		diskPool = bmdeplmanifest.DiskPool{
 			Name:     "fake-persistent-disk-pool-name",
 			DiskSize: 1024,
-			RawCloudProperties: map[interface{}]interface{}{
+			CloudProperties: bmproperty.Map{
 				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 			},
 		}

@@ -1,6 +1,7 @@
 package fakes
 
 import (
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 )
 
@@ -21,8 +22,8 @@ func NewFakeJob() bmdeplmanifest.Job {
 
 func NewFakeDeployment() bmdeplmanifest.Manifest {
 	return bmdeplmanifest.Manifest{
-		Name:          "fake-deployment-name",
-		RawProperties: map[interface{}]interface{}{},
-		Jobs:          []bmdeplmanifest.Job{NewFakeJob()},
+		Name:       "fake-deployment-name",
+		Properties: bmproperty.Map{},
+		Jobs:       []bmdeplmanifest.Job{NewFakeJob()},
 	}
 }

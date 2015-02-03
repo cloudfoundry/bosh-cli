@@ -7,7 +7,7 @@ import (
 
 type Manifest struct {
 	Name          string
-	RawProperties map[interface{}]interface{}
+	Properties    bmproperty.Map
 	Jobs          []Job
 	Networks      []Network
 	DiskPools     []DiskPool
@@ -19,12 +19,9 @@ type Update struct {
 	UpdateWatchTime WatchTime
 }
 
-func (d Manifest) Properties() (bmproperty.Map, error) {
-	return bmproperty.BuildMap(d.RawProperties)
-}
-
 // NetworkInterfaces returns a map of network names to network interfaces.
 // We can't use map[string]NetworkInterface, because it's impossible to down-cast to what the cloud client requires.
+//TODO: refactor to NetworkInterfaces(Job) and use FindJobByName before using (then remove error)
 func (d Manifest) NetworkInterfaces(jobName string) (map[string]bmproperty.Map, error) {
 	job, found := d.FindJobByName(jobName)
 	if !found {
@@ -34,17 +31,13 @@ func (d Manifest) NetworkInterfaces(jobName string) (map[string]bmproperty.Map, 
 	networkMap := d.networkMap()
 
 	ifaceMap := map[string]bmproperty.Map{}
-	var err error
 	for _, jobNetwork := range job.Networks {
 		network := networkMap[jobNetwork.Name]
 		staticIPs := jobNetwork.StaticIPs
 		if len(staticIPs) > 0 {
 			network.IP = staticIPs[0]
 		}
-		ifaceMap[jobNetwork.Name], err = network.Interface()
-		if err != nil {
-			return map[string]bmproperty.Map{}, bosherr.WrapError(err, "Building network spec")
-		}
+		ifaceMap[jobNetwork.Name] = network.Interface()
 	}
 
 	return ifaceMap, nil
@@ -68,8 +61,8 @@ func (d Manifest) DiskPool(jobName string) (DiskPool, error) {
 
 	if job.PersistentDisk > 0 {
 		diskPool := DiskPool{
-			DiskSize:           job.PersistentDisk,
-			RawCloudProperties: map[interface{}]interface{}{},
+			DiskSize:        job.PersistentDisk,
+			CloudProperties: bmproperty.Map{},
 		}
 		return diskPool, nil
 	}

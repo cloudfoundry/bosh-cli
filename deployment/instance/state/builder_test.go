@@ -94,7 +94,7 @@ var _ = Describe("Builder", func() {
 								Release: "fake-release-name",
 							},
 						},
-						RawProperties: map[interface{}]interface{}{
+						Properties: bmproperty.Map{
 							"fake-job-property": "fake-job-property-value",
 						},
 					},
@@ -104,7 +104,7 @@ var _ = Describe("Builder", func() {
 						Name: "fake-network-name",
 						IP:   "fake-network-ip",
 						Type: "fake-network-type",
-						RawCloudProperties: map[interface{}]interface{}{
+						CloudProperties: bmproperty.Map{
 							"fake-network-cloud-property": "fake-network-cloud-property-value",
 						},
 					},

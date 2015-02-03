@@ -79,17 +79,18 @@ var _ = Describe("Manager", func() {
 			Name: "fake-deployment",
 			Networks: []bmdeplmanifest.Network{
 				{
-					Name: "fake-network-name",
-					Type: "dynamic",
+					Name:            "fake-network-name",
+					Type:            "dynamic",
+					CloudProperties: bmproperty.Map{},
 				},
 			},
 			ResourcePools: []bmdeplmanifest.ResourcePool{
 				{
 					Name: "fake-resource-pool-name",
-					RawCloudProperties: map[interface{}]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-cloud-property-key": "fake-cloud-property-value",
 					},
-					RawEnv: map[interface{}]interface{}{
+					Env: bmproperty.Map{
 						"fake-env-key": "fake-env-value",
 					},
 				},

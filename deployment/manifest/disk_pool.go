@@ -5,11 +5,7 @@ import (
 )
 
 type DiskPool struct {
-	Name               string                      `yaml:"name"`
-	DiskSize           int                         `yaml:"disk_size"`
-	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
-}
-
-func (dp DiskPool) CloudProperties() (bmproperty.Map, error) {
-	return bmproperty.BuildMap(dp.RawCloudProperties)
+	Name            string
+	DiskSize        int
+	CloudProperties bmproperty.Map
 }

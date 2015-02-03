@@ -88,22 +88,13 @@ func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest b
 	}
 
 	resourcePool := deploymentManifest.ResourcePools[0]
-	cloudProperties, err := resourcePool.CloudProperties()
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Getting cloud properties")
-	}
-
-	env, err := resourcePool.Env()
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Getting resource pool env")
-	}
 
 	agentID, err := m.uuidGenerator.Generate()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Generating agent ID")
 	}
 
-	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), cloudProperties, networkInterfaces, env)
+	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), resourcePool.CloudProperties, networkInterfaces, resourcePool.Env)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Creating vm with stemcell cid '%s'", stemcell.CID())
 	}

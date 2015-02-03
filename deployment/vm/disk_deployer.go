@@ -82,12 +82,7 @@ func (d *diskDeployer) deployExistingDisk(disk bmdisk.Disk, diskPool bmdeplmanif
 		return disks, err
 	}
 
-	diskCloudProperties, err := diskPool.CloudProperties()
-	if err != nil {
-		return disks, bosherr.WrapError(err, "Getting disk pool cloud properties")
-	}
-
-	if disk.NeedsMigration(diskPool.DiskSize, diskCloudProperties) {
+	if disk.NeedsMigration(diskPool.DiskSize, diskPool.CloudProperties) {
 		disk, err = d.migrateDisk(disk, diskPool, vm, eventLoggerStage)
 		if err != nil {
 			return disks, err

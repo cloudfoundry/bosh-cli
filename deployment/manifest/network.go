@@ -17,32 +17,23 @@ const (
 )
 
 type Network struct {
-	Name               string                      `yaml:"name"`
-	Type               NetworkType                 `yaml:"type"`
-	RawCloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
-	IP                 string                      `yaml:"ip"`
-	Netmask            string                      `yaml:"netmask"`
-	Gateway            string                      `yaml:"gateway"`
-	DNS                []string                    `yaml:"dns"`
-}
-
-func (n Network) CloudProperties() (bmproperty.Map, error) {
-	return bmproperty.BuildMap(n.RawCloudProperties)
+	Name            string
+	Type            NetworkType
+	CloudProperties bmproperty.Map
+	IP              string
+	Netmask         string
+	Gateway         string
+	DNS             []string
 }
 
 // Interface returns a property map representing a generic network interface.
 // Expected Keys: ip, type, cloud properties.
 // Optional Keys: netmask, gateway, dns
-func (n Network) Interface() (bmproperty.Map, error) {
-	cloudProperties, err := n.CloudProperties()
-	if err != nil {
-		return bmproperty.Map{}, err
-	}
-
+func (n Network) Interface() bmproperty.Map {
 	iface := bmproperty.Map{
 		"type":             n.Type.String(),
 		"ip":               n.IP,
-		"cloud_properties": cloudProperties,
+		"cloud_properties": n.CloudProperties,
 	}
 
 	if n.Netmask != "" {
@@ -57,5 +48,5 @@ func (n Network) Interface() (bmproperty.Map, error) {
 		iface["dns"] = n.DNS
 	}
 
-	return iface, nil
+	return iface
 }

@@ -353,7 +353,7 @@ var _ = Describe("Instance", func() {
 					{Name: "third-job-name"},
 				},
 				PersistentDiskPool: "fake-persistent-disk-pool-name",
-				RawProperties: map[interface{}]interface{}{
+				Properties: bmproperty.Map{
 					"fake-property-key": "fake-property-value",
 				},
 				Networks: []bmdeplmanifest.JobNetwork{
@@ -370,9 +370,9 @@ var _ = Describe("Instance", func() {
 				Name: "fake-deployment-name",
 				Networks: []bmdeplmanifest.Network{
 					{
-						Name:               "fake-network-name",
-						Type:               bmdeplmanifest.NetworkType("fake-network-type"),
-						RawCloudProperties: map[interface{}]interface{}{},
+						Name:            "fake-network-name",
+						Type:            bmdeplmanifest.NetworkType("fake-network-type"),
+						CloudProperties: bmproperty.Map{},
 						//						IP: "",
 						//						Netmask: "",
 						//						Gateway: "",

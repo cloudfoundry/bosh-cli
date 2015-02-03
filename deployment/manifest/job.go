@@ -10,9 +10,9 @@ type Job struct {
 	Lifecycle          JobLifecycle
 	Templates          []ReleaseJobRef
 	Networks           []JobNetwork
-	PersistentDisk     int                         `yaml:"persistent_disk"`
-	PersistentDiskPool string                      `yaml:"persistent_disk_pool"`
-	RawProperties      map[interface{}]interface{} `yaml:"properties"`
+	PersistentDisk     int
+	PersistentDiskPool string
+	Properties         bmproperty.Map
 }
 
 type JobLifecycle string
@@ -30,7 +30,7 @@ type ReleaseJobRef struct {
 type JobNetwork struct {
 	Name      string
 	Default   []NetworkDefault
-	StaticIPs []string `yaml:"static_ips"`
+	StaticIPs []string
 }
 
 type NetworkDefault string
@@ -39,7 +39,3 @@ const (
 	NetworkDefaultDNS     NetworkDefault = "dns"
 	NetworkDefaultGateway NetworkDefault = "gateway"
 )
-
-func (j *Job) Properties() (bmproperty.Map, error) {
-	return bmproperty.BuildMap(j.RawProperties)
-}

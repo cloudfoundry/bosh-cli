@@ -18,8 +18,8 @@ var _ = Describe("Network", func() {
 		network = Network{
 			Name: "fake-name",
 			Type: Dynamic,
-			RawCloudProperties: map[interface{}]interface{}{
-				"subnet": map[interface{}]interface{}{
+			CloudProperties: bmproperty.Map{
+				"subnet": bmproperty.Map{
 					"name": "sg-1234",
 				},
 			},
@@ -32,9 +32,7 @@ var _ = Describe("Network", func() {
 
 	Describe("Interface", func() {
 		It("returns an interface that can be used to connect to the network", func() {
-			iface, err := network.Interface()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(iface).To(Equal(bmproperty.Map{
+			Expect(network.Interface()).To(Equal(bmproperty.Map{
 				"type":    "dynamic",
 				"ip":      "1.2.3.4",
 				"netmask": "255.255.255.0",
@@ -53,9 +51,7 @@ var _ = Describe("Network", func() {
 			network.Gateway = ""
 			network.DNS = []string{}
 
-			iface, err := network.Interface()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(iface).To(Equal(bmproperty.Map{
+			Expect(network.Interface()).To(Equal(bmproperty.Map{
 				"type": "dynamic",
 				"ip":   "1.2.3.4",
 				"cloud_properties": bmproperty.Map{

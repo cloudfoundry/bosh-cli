@@ -6,11 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("Parser", func() {
@@ -58,6 +60,8 @@ update:
   update_watch_time: 2000-7000
 resource_pools:
 - name: fake-resource-pool-name
+  cloud_properties:
+    fake-property: fake-property-value
   env:
     bosh:
       password: secret
@@ -85,6 +89,9 @@ jobs:
   properties:
     fake-prop-key:
       nested-prop-key: fake-prop-value
+properties:
+  foo:
+    bar: baz
 `
 		fakeFs.WriteFileString(comboManifestPath, contents)
 	})
@@ -105,23 +112,27 @@ jobs:
 				{
 					Name: "fake-network-name",
 					Type: Dynamic,
-					RawCloudProperties: map[interface{}]interface{}{
+					CloudProperties: bmproperty.Map{
 						"subnet": "fake-subnet",
-						"a": map[interface{}]interface{}{
+						"a": bmproperty.Map{
 							"b": "value",
 						},
 					},
 				},
 				{
-					Name: "vip",
-					Type: VIP,
+					Name:            "vip",
+					Type:            VIP,
+					CloudProperties: bmproperty.Map{},
 				},
 			},
 			ResourcePools: []ResourcePool{
 				{
 					Name: "fake-resource-pool-name",
-					RawEnv: map[interface{}]interface{}{
-						"bosh": map[interface{}]interface{}{
+					CloudProperties: bmproperty.Map{
+						"fake-property": "fake-property-value",
+					},
+					Env: bmproperty.Map{
+						"bosh": bmproperty.Map{
 							"password": "secret",
 						},
 					},
@@ -131,7 +142,7 @@ jobs:
 				{
 					Name:     "fake-disk-pool-name",
 					DiskSize: 2048,
-					RawCloudProperties: map[interface{}]interface{}{
+					CloudProperties: bmproperty.Map{
 						"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 					},
 				},
@@ -147,14 +158,131 @@ jobs:
 					},
 					PersistentDisk:     1024,
 					PersistentDiskPool: "fake-disk-pool-name",
-					RawProperties: map[interface{}]interface{}{
-						"fake-prop-key": map[interface{}]interface{}{
+					Properties: bmproperty.Map{
+						"fake-prop-key": bmproperty.Map{
 							"nested-prop-key": "fake-prop-value",
 						},
 					},
 				},
 			},
+			Properties: bmproperty.Map{
+				"foo": bmproperty.Map{
+					"bar": "baz",
+				},
+			},
 		}))
+	})
+
+	Context("when global property keys are not strings", func() {
+		BeforeEach(func() {
+			contents := `
+---
+properties:
+  1: foo
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("returns an error", func() {
+			_, err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Parsing global manifest properties"))
+		})
+	})
+
+	Context("when job property keys are not strings", func() {
+		BeforeEach(func() {
+			contents := `
+---
+jobs:
+- name: fake-deployment-job
+  properties:
+    1: foo
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("returns an error", func() {
+			_, err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Parsing job 'fake-deployment-job' properties"))
+		})
+	})
+
+	Context("when network cloud_properties keys are not strings", func() {
+		BeforeEach(func() {
+			contents := `
+---
+networks:
+- name: fake-network
+  cloud_properties:
+    123: fake-property-value
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("returns an error", func() {
+			_, err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Parsing network 'fake-network' cloud_properties"))
+		})
+	})
+
+	Context("when resource_pool cloud_properties keys are not strings", func() {
+		BeforeEach(func() {
+			contents := `
+---
+resource_pools:
+- name: fake-resource-pool
+  cloud_properties:
+    123: fake-property-value
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("returns an error", func() {
+			_, err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Parsing resource_pool 'fake-resource-pool' cloud_properties"))
+		})
+	})
+
+	Context("when resource_pool env keys are not strings", func() {
+		BeforeEach(func() {
+			contents := `
+---
+resource_pools:
+- name: fake-resource-pool
+  env:
+    123: fake-property-value
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("returns an error", func() {
+			_, err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Parsing resource_pool 'fake-resource-pool' env"))
+		})
+	})
+
+	Context("when disk_pool cloud_properties keys are not strings", func() {
+		BeforeEach(func() {
+			contents := `
+---
+disk_pools:
+- name: fake-disk-pool
+  cloud_properties:
+    123: fake-property-value
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("returns an error", func() {
+			_, err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Parsing disk_pool 'fake-disk-pool' cloud_properties"))
+		})
 	})
 
 	Context("when update watch time is not set", func() {
