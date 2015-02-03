@@ -9,11 +9,11 @@ import (
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 )
 
 type TemplatesCompiler interface {
-	Compile(jobs []bmrel.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage) error
+	Compile(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage) error
 }
 
 type templatesCompiler struct {
@@ -43,7 +43,7 @@ func NewTemplatesCompiler(
 	}
 }
 
-func (tc templatesCompiler) Compile(jobs []bmrel.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage) error {
+func (tc templatesCompiler) Compile(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage) error {
 	return stage.PerformStep("Rendering job templates", func() error {
 		for _, job := range jobs {
 			err := tc.compileJob(job, deploymentName, deploymentProperties)
@@ -55,7 +55,7 @@ func (tc templatesCompiler) Compile(jobs []bmrel.Job, deploymentName string, dep
 	})
 }
 
-func (tc templatesCompiler) compileJob(job bmrel.Job, deploymentName string, deploymentProperties bmproperty.Map) error {
+func (tc templatesCompiler) compileJob(job bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map) error {
 	renderedJob, err := tc.jobRenderer.Render(job, deploymentProperties, deploymentName)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Rendering templates for job '%s'", job.Name)

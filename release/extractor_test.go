@@ -10,6 +10,10 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 )
@@ -47,21 +51,21 @@ var _ = Describe("Extractor", func() {
 		Context("when a extracted release directory can be created", func() {
 			var (
 				release    Release
-				releaseJob Job
+				releaseJob bmreljob.Job
 			)
 
 			BeforeEach(func() {
 				fakeFS.TempDirDirs = []string{"/extracted-release-path"}
 
-				releasePackage := &Package{
+				releasePackage := &bmrelpkg.Package{
 					Name:          "fake-release-package-name",
 					Fingerprint:   "fake-release-package-fingerprint",
 					SHA1:          "fake-release-package-sha1",
-					Dependencies:  []*Package{},
+					Dependencies:  []*bmrelpkg.Package{},
 					ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name",
 				}
 
-				releaseJob = Job{
+				releaseJob = bmreljob.Job{
 					Name:          "cpi",
 					Fingerprint:   "fake-release-job-fingerprint",
 					SHA1:          "fake-release-job-sha1",
@@ -71,8 +75,8 @@ var _ = Describe("Extractor", func() {
 						"cpi.yml.erb": "config/cpi.yml",
 					},
 					PackageNames: []string{releasePackage.Name},
-					Packages:     []*Package{releasePackage},
-					Properties:   map[string]PropertyDefinition{},
+					Packages:     []*bmrelpkg.Package{releasePackage},
+					Properties:   map[string]bmreljob.PropertyDefinition{},
 				}
 
 				releaseContents := `---
@@ -107,8 +111,8 @@ properties: {}
 			})
 
 			JustBeforeEach(func() {
-				releaseJobs := []Job{releaseJob}
-				releasePackages := append([]*Package(nil), releaseJob.Packages...)
+				releaseJobs := []bmreljob.Job{releaseJob}
+				releasePackages := append([]*bmrelpkg.Package(nil), releaseJob.Packages...)
 				release = NewRelease(
 					"fake-release-name",
 					"fake-release-version",
@@ -124,18 +128,18 @@ properties: {}
 					release, err := releaseExtractor.Extract(releaseTarballPath)
 					Expect(err).NotTo(HaveOccurred())
 
-					expectedPackage := &Package{
+					expectedPackage := &bmrelpkg.Package{
 						Name:          "fake-release-package-name",
 						Fingerprint:   "fake-release-package-fingerprint",
 						SHA1:          "fake-release-package-sha1",
 						ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name",
 						ArchivePath:   "/extracted-release-path/packages/fake-release-package-name.tgz",
-						Dependencies:  []*Package{},
+						Dependencies:  []*bmrelpkg.Package{},
 					}
 					expectedRelease := NewRelease(
 						"fake-release-name",
 						"fake-release-version",
-						[]Job{
+						[]bmreljob.Job{
 							{
 								Name:          "cpi",
 								Fingerprint:   "fake-release-job-fingerprint",
@@ -148,11 +152,11 @@ properties: {}
 								PackageNames: []string{
 									"fake-release-package-name",
 								},
-								Packages:   []*Package{expectedPackage},
-								Properties: map[string]PropertyDefinition{},
+								Packages:   []*bmrelpkg.Package{expectedPackage},
+								Properties: map[string]bmreljob.PropertyDefinition{},
 							},
 						},
-						[]*Package{expectedPackage},
+						[]*bmrelpkg.Package{expectedPackage},
 						"/extracted-release-path",
 						fakeFS,
 					)

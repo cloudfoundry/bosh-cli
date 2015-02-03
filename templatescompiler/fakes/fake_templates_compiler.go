@@ -9,11 +9,11 @@ import (
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 )
 
 type CompileInput struct {
-	Jobs                 []bmrel.Job
+	Jobs                 []bmreljob.Job
 	DeploymentName       string
 	DeploymentProperties bmproperty.Map
 	Stage                bmeventlog.Stage
@@ -36,7 +36,7 @@ func NewFakeTemplatesCompiler() *FakeTemplatesCompiler {
 	}
 }
 
-func (f *FakeTemplatesCompiler) Compile(jobs []bmrel.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage) error {
+func (f *FakeTemplatesCompiler) Compile(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage) error {
 	input := CompileInput{
 		Jobs:                 jobs,
 		DeploymentName:       deploymentName,
@@ -57,7 +57,7 @@ func (f *FakeTemplatesCompiler) Compile(jobs []bmrel.Job, deploymentName string,
 	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v', '%#v')", jobs, deploymentName, deploymentProperties)
 }
 
-func (f *FakeTemplatesCompiler) SetCompileBehavior(jobs []bmrel.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage, err error) error {
+func (f *FakeTemplatesCompiler) SetCompileBehavior(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage, err error) error {
 	input := CompileInput{
 		Jobs:                 jobs,
 		DeploymentName:       deploymentName,

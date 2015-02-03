@@ -1,9 +1,9 @@
 package state
 
 import (
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type PackageCompiler interface {
-	Compile(releasePackage *bmrel.Package, compiledPackageRefs map[string]PackageRef) (PackageRef, error)
+	Compile(releasePackage *bmrelpkg.Package, compiledPackageRefs map[string]PackageRef) (PackageRef, error)
 }

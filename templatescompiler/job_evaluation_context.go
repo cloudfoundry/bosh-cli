@@ -7,12 +7,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 )
 
 type jobEvaluationContext struct {
-	relJob             bmrel.Job
+	relJob             bmreljob.Job
 	manifestProperties bmproperty.Map
 	deploymentName     string
 	logger             boshlog.Logger
@@ -43,7 +43,7 @@ type networkContext struct {
 }
 
 func NewJobEvaluationContext(
-	job bmrel.Job,
+	job bmreljob.Job,
 	manifestProperties bmproperty.Map,
 	deploymentName string,
 	logger boshlog.Logger,
@@ -58,15 +58,12 @@ func NewJobEvaluationContext(
 }
 
 func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
-	convertedProperties, err := ec.convertForPropertyResolver(ec.relJob.Properties)
-	if err != nil {
-		return []byte{}, bosherr.WrapError(err, "Converting job properties for resolver")
-	}
+	propertyDefaults := ec.propertyDefaults(ec.relJob.Properties)
 
-	ec.logger.Debug(ec.logTag, "Job '%s' properties: %#v", ec.relJob.Name, convertedProperties)
+	ec.logger.Debug(ec.logTag, "Job '%s' properties: %#v", ec.relJob.Name, propertyDefaults)
 	ec.logger.Debug(ec.logTag, "Deployment manifest properties: %#v", ec.manifestProperties)
 
-	properties := bmerbrenderer.NewPropertiesResolver(convertedProperties, ec.manifestProperties).Resolve()
+	properties := bmerbrenderer.NewPropertiesResolver(propertyDefaults, ec.manifestProperties).Resolve()
 
 	ec.logger.Debug(ec.logTag, "Resolved Job '%s' properties: %#v", ec.relJob.Name, properties)
 
@@ -80,20 +77,20 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 
 	ec.logger.Debug(ec.logTag, "Marshalling context %#v", context)
 
-	return json.Marshal(context)
-}
-
-func (ec jobEvaluationContext) convertForPropertyResolver(properties map[string]bmrel.PropertyDefinition) (bmproperty.Map, error) {
-	result := bmproperty.Map{}
-	for propertyKey, property := range properties {
-		defaultPropertyValue, err := property.Default()
-		if err != nil {
-			return result, bosherr.WrapErrorf(err, "Retrieving default for property '%s'", propertyKey)
-		}
-		result[propertyKey] = defaultPropertyValue
+	jsonBytes, err := json.Marshal(context)
+	if err != nil {
+		return []byte{}, bosherr.WrapErrorf(err, "Marshalling job eval context: %#v", context)
 	}
 
-	return result, nil
+	return jsonBytes, nil
+}
+
+func (ec jobEvaluationContext) propertyDefaults(properties map[string]bmreljob.PropertyDefinition) bmproperty.Map {
+	result := bmproperty.Map{}
+	for propertyKey, property := range properties {
+		result[propertyKey] = property.Default
+	}
+	return result
 }
 
 func (ec jobEvaluationContext) buildNetworkContexts() map[string]networkContext {

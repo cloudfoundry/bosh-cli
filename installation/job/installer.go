@@ -13,7 +13,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -23,7 +23,7 @@ type InstalledJob struct {
 }
 
 type Installer interface {
-	Install(bmrel.Job, bmeventlog.Stage) (InstalledJob, error)
+	Install(bmreljob.Job, bmeventlog.Stage) (InstalledJob, error)
 }
 
 type jobInstaller struct {
@@ -36,7 +36,7 @@ type jobInstaller struct {
 	timeService       boshtime.Service
 }
 
-func (i jobInstaller) Install(job bmrel.Job, stage bmeventlog.Stage) (installedJob InstalledJob, err error) {
+func (i jobInstaller) Install(job bmreljob.Job, stage bmeventlog.Stage) (installedJob InstalledJob, err error) {
 	stageName := fmt.Sprintf("Installing job '%s'", job.Name)
 	err = stage.PerformStep(stageName, func() error {
 		installedJob, err = i.install(job)
@@ -45,7 +45,7 @@ func (i jobInstaller) Install(job bmrel.Job, stage bmeventlog.Stage) (installedJ
 	return installedJob, err
 }
 
-func (i jobInstaller) install(job bmrel.Job) (InstalledJob, error) {
+func (i jobInstaller) install(job bmreljob.Job) (InstalledJob, error) {
 	jobDir := filepath.Join(i.jobsPath, job.Name)
 	err := i.fs.MkdirAll(jobDir, os.ModePerm)
 	if err != nil {

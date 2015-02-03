@@ -11,7 +11,7 @@ import (
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 var _ = Describe("RemotePackageCompiler", func() {
@@ -26,7 +26,7 @@ var _ = Describe("RemotePackageCompiler", func() {
 	})
 
 	var (
-		pkg              *bmrel.Package
+		pkg              *bmrelpkg.Package
 		pkgDependencyRef PackageRef
 
 		mockBlobstore   *mock_blobstore.MockBlobstore
@@ -42,17 +42,17 @@ var _ = Describe("RemotePackageCompiler", func() {
 		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 		remotePackageCompiler = NewRemotePackageCompiler(mockBlobstore, mockAgentClient)
 
-		pkgDependency := &bmrel.Package{
+		pkgDependency := &bmrelpkg.Package{
 			Name:        "fake-package-name-dep",
 			Fingerprint: "fake-package-fingerprint-dep",
 		}
 
-		pkg = &bmrel.Package{
+		pkg = &bmrelpkg.Package{
 			Name:         "fake-package-name",
 			Fingerprint:  "fake-package-fingerprint",
 			SHA1:         "fake-source-package-sha1",
 			ArchivePath:  archivePath,
-			Dependencies: []*bmrel.Package{pkgDependency},
+			Dependencies: []*bmrelpkg.Package{pkgDependency},
 		}
 
 		pkgDependencyRef = PackageRef{

@@ -5,11 +5,11 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type PackageInstaller interface {
-	Install(pkg *bmrel.Package, targetDir string) error
+	Install(pkg *bmrelpkg.Package, targetDir string) error
 }
 
 type packageInstaller struct {
@@ -24,7 +24,7 @@ func NewPackageInstaller(repo CompiledPackageRepo, blobExtractor bminstallblob.E
 	}
 }
 
-func (pi *packageInstaller) Install(pkg *bmrel.Package, parentDir string) error {
+func (pi *packageInstaller) Install(pkg *bmrelpkg.Package, parentDir string) error {
 	pkgRecord, found, err := pi.repo.Find(*pkg)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Finding compiled package record: %#v", pkg)

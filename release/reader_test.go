@@ -6,10 +6,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
-
 	. "github.com/cloudfoundry/bosh-micro-cli/release"
+
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+
+	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 )
 
 var _ = Describe("tarReader", func() {
@@ -74,17 +78,17 @@ packages:
 							release, err := reader.Read()
 							Expect(err).NotTo(HaveOccurred())
 
-							expectedPackage := &Package{
+							expectedPackage := &bmrelpkg.Package{
 								Name:          "fake-package",
 								Fingerprint:   "fake-package-fingerprint",
 								SHA1:          "fake-package-sha",
-								Dependencies:  []*Package{&Package{Name: "fake-package-1"}},
+								Dependencies:  []*bmrelpkg.Package{&bmrelpkg.Package{Name: "fake-package-1"}},
 								ExtractedPath: "/extracted/release/extracted_packages/fake-package",
 								ArchivePath:   "/extracted/release/packages/fake-package.tgz",
 							}
 							Expect(release.Name()).To(Equal("fake-release"))
 							Expect(release.Version()).To(Equal("fake-version"))
-							Expect(release.Jobs()).To(Equal([]Job{
+							Expect(release.Jobs()).To(Equal([]bmreljob.Job{
 								{
 									Name:          "fake-job",
 									Fingerprint:   "fake-job-fingerprint",
@@ -92,10 +96,11 @@ packages:
 									ExtractedPath: "/extracted/release/extracted_jobs/fake-job",
 									Templates:     map[string]string{"some_template": "some_file"},
 									PackageNames:  []string{"fake-package"},
-									Packages:      []*Package{expectedPackage},
+									Packages:      []*bmrelpkg.Package{expectedPackage},
+									Properties:    map[string]bmreljob.PropertyDefinition{},
 								},
 							}))
-							Expect(release.Packages()).To(Equal([]*Package{expectedPackage}))
+							Expect(release.Packages()).To(Equal([]*bmrelpkg.Package{expectedPackage}))
 						})
 					})
 

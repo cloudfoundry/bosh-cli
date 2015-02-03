@@ -12,7 +12,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 
 	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
@@ -24,7 +24,7 @@ var _ = Describe("RenderedJobList", func() {
 		logger    boshlog.Logger
 		fs        *fakeboshsys.FakeFileSystem
 
-		releaseJob bmrel.Job
+		releaseJob bmreljob.Job
 
 		renderedJobPath string
 
@@ -38,7 +38,7 @@ var _ = Describe("RenderedJobList", func() {
 
 		fs = fakeboshsys.NewFakeFileSystem()
 
-		releaseJob = bmrel.Job{
+		releaseJob = bmreljob.Job{
 			Name: "fake-job-name",
 		}
 
@@ -49,8 +49,8 @@ var _ = Describe("RenderedJobList", func() {
 
 	Describe("All", func() {
 		It("returns the added rendered jobs", func() {
-			renderedJob0 := NewRenderedJob(bmrel.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
-			renderedJob1 := NewRenderedJob(bmrel.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
+			renderedJob0 := NewRenderedJob(bmreljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
+			renderedJob1 := NewRenderedJob(bmreljob.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
 			renderedJobList.Add(renderedJob0)
 			renderedJobList.Add(renderedJob1)
 
@@ -69,8 +69,8 @@ var _ = Describe("RenderedJobList", func() {
 			err = fs.MkdirAll("fake-path-1", os.ModePerm)
 			Expect(err).ToNot(HaveOccurred())
 
-			renderedJob0 := NewRenderedJob(bmrel.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
-			renderedJob1 := NewRenderedJob(bmrel.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
+			renderedJob0 := NewRenderedJob(bmreljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
+			renderedJob1 := NewRenderedJob(bmreljob.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
 			renderedJobList.Add(renderedJob0)
 			renderedJobList.Add(renderedJob1)
 
@@ -87,7 +87,7 @@ var _ = Describe("RenderedJobList", func() {
 			})
 
 			It("returns an error", func() {
-				renderedJob0 := NewRenderedJob(bmrel.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
+				renderedJob0 := NewRenderedJob(bmreljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
 				renderedJobList.Add(renderedJob0)
 
 				err := renderedJobList.Delete()
@@ -105,8 +105,8 @@ var _ = Describe("RenderedJobList", func() {
 			err = fs.MkdirAll("fake-path-1", os.ModePerm)
 			Expect(err).ToNot(HaveOccurred())
 
-			renderedJob0 := NewRenderedJob(bmrel.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
-			renderedJob1 := NewRenderedJob(bmrel.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
+			renderedJob0 := NewRenderedJob(bmreljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
+			renderedJob1 := NewRenderedJob(bmreljob.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
 			renderedJobList.Add(renderedJob0)
 			renderedJobList.Add(renderedJob1)
 
@@ -122,8 +122,8 @@ var _ = Describe("RenderedJobList", func() {
 			})
 
 			It("logs all the errors", func() {
-				renderedJob0 := NewRenderedJob(bmrel.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
-				renderedJob1 := NewRenderedJob(bmrel.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
+				renderedJob0 := NewRenderedJob(bmreljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
+				renderedJob1 := NewRenderedJob(bmreljob.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
 				renderedJobList.Add(renderedJob0)
 				renderedJobList.Add(renderedJob1)
 

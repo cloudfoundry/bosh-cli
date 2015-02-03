@@ -13,6 +13,8 @@ import (
 
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
@@ -41,8 +43,8 @@ var _ = Describe("ReleaseCompiler", func() {
 		release = bmrel.NewRelease(
 			"fake-release",
 			"fake-version",
-			[]bmrel.Job{},
-			[]*bmrel.Package{},
+			[]bmreljob.Job{},
+			[]*bmrelpkg.Package{},
 			"/some/release/path",
 			fakeFS,
 		)
@@ -50,20 +52,20 @@ var _ = Describe("ReleaseCompiler", func() {
 
 	Context("Compile", func() {
 		Context("when there is a release", func() {
-			var expectedPackages []*bmrel.Package
-			var package1, package2 bmrel.Package
+			var expectedPackages []*bmrelpkg.Package
+			var package1, package2 bmrelpkg.Package
 
 			BeforeEach(func() {
-				package1 = bmrel.Package{Name: "fake-package-1", Fingerprint: "fake-fingerprint-1", Dependencies: []*bmrel.Package{}}
-				package2 = bmrel.Package{Name: "fake-package-2", Fingerprint: "fake-fingerprint-2", Dependencies: []*bmrel.Package{&package1}}
+				package1 = bmrelpkg.Package{Name: "fake-package-1", Fingerprint: "fake-fingerprint-1", Dependencies: []*bmrelpkg.Package{}}
+				package2 = bmrelpkg.Package{Name: "fake-package-2", Fingerprint: "fake-fingerprint-2", Dependencies: []*bmrelpkg.Package{&package1}}
 
-				expectedPackages = []*bmrel.Package{&package1, &package2}
+				expectedPackages = []*bmrelpkg.Package{&package1, &package2}
 
 				release = bmrel.NewRelease(
 					"fake-release",
 					"fake-version",
-					[]bmrel.Job{},
-					[]*bmrel.Package{&package2, &package1},
+					[]bmreljob.Job{},
+					[]*bmrelpkg.Package{&package2, &package1},
 					"/some/release/path",
 					fakeFS,
 				)

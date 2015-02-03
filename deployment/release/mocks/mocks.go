@@ -5,7 +5,7 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	release "github.com/cloudfoundry/bosh-micro-cli/release"
+	job "github.com/cloudfoundry/bosh-micro-cli/release/job"
 )
 
 // Mock of JobResolver interface
@@ -29,9 +29,9 @@ func (_m *MockJobResolver) EXPECT() *_MockJobResolverRecorder {
 	return _m.recorder
 }
 
-func (_m *MockJobResolver) Resolve(_param0 string, _param1 string) (release.Job, error) {
+func (_m *MockJobResolver) Resolve(_param0 string, _param1 string) (job.Job, error) {
 	ret := _m.ctrl.Call(_m, "Resolve", _param0, _param1)
-	ret0, _ := ret[0].(release.Job)
+	ret0, _ := ret[0].(job.Job)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

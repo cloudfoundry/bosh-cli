@@ -5,12 +5,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 )
 
 type JobListRenderer interface {
 	Render(
-		releaseJobs []bmrel.Job,
+		releaseJobs []bmreljob.Job,
 		jobProperties bmproperty.Map,
 		deploymentName string,
 	) (RenderedJobList, error)
@@ -34,7 +34,7 @@ func NewJobListRenderer(
 }
 
 func (r *jobListRenderer) Render(
-	releaseJobs []bmrel.Job,
+	releaseJobs []bmreljob.Job,
 	jobProperties bmproperty.Map,
 	deploymentName string,
 ) (RenderedJobList, error) {

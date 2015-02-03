@@ -15,6 +15,8 @@ import (
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
@@ -27,7 +29,7 @@ var _ = Describe("ReleaseCompiler", func() {
 		fakeTemplatesCompiler       *fakebmtemp.FakeTemplatesCompiler
 		fakeFS                      *fakesys.FakeFileSystem
 		releaseCompiler             ReleaseCompiler
-		cpiJob                      bmrel.Job
+		cpiJob                      bmreljob.Job
 		release                     bmrel.Release
 		logger                      boshlog.Logger
 	)
@@ -45,14 +47,14 @@ var _ = Describe("ReleaseCompiler", func() {
 		)
 
 		fakeFS = fakesys.NewFakeFileSystem()
-		cpiJob = bmrel.Job{
+		cpiJob = bmreljob.Job{
 			Name: "cpi",
 		}
 		release = bmrel.NewRelease(
 			"fake-release-name",
 			"fake-version",
-			[]bmrel.Job{cpiJob},
-			[]*bmrel.Package{},
+			[]bmreljob.Job{cpiJob},
+			[]*bmrelpkg.Package{},
 			"/some/release/path",
 			fakeFS,
 		)
@@ -79,7 +81,7 @@ var _ = Describe("ReleaseCompiler", func() {
 
 			fakeStage = fakebmeventlog.NewFakeStage()
 
-			fakeTemplatesCompiler.SetCompileBehavior([]bmrel.Job{cpiJob}, "fake-deployment-name", deploymentProperies, fakeStage, nil)
+			fakeTemplatesCompiler.SetCompileBehavior([]bmreljob.Job{cpiJob}, "fake-deployment-name", deploymentProperies, fakeStage, nil)
 		})
 
 		It("compiles the release", func() {

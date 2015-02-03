@@ -7,6 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 
@@ -39,7 +40,7 @@ var _ = Describe("Validator", func() {
 		}
 
 		fakeRelease = fakebmrel.New("fake-release-name", "1.0")
-		fakeRelease.ReleaseJobs = []bmrel.Job{{Name: "fake-job-name"}}
+		fakeRelease.ReleaseJobs = []bmreljob.Job{{Name: "fake-job-name"}}
 		releaseManager.Add(fakeRelease)
 	})
 

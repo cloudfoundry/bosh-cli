@@ -11,7 +11,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 )
 
 var _ = Describe("TemplatesRepo", func() {
@@ -30,12 +30,12 @@ var _ = Describe("TemplatesRepo", func() {
 	Context("Save and Find", func() {
 		var (
 			record TemplateRecord
-			job    bmrel.Job
+			job    bmreljob.Job
 		)
 
 		BeforeEach(func() {
 			record = TemplateRecord{}
-			job = bmrel.Job{
+			job = bmreljob.Job{
 				Name:        "fake-job-name",
 				Fingerprint: "fake-job-fingerprint",
 			}

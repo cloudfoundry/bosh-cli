@@ -18,7 +18,8 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 )
@@ -124,31 +125,31 @@ var _ = Describe("Builder", func() {
 		})
 
 		JustBeforeEach(func() {
-			releasePackageLibyaml := bmrel.Package{
+			releasePackageLibyaml := bmrelpkg.Package{
 				Name:         "libyaml",
 				Fingerprint:  "fake-package-source-fingerprint-libyaml",
 				SHA1:         "fake-package-source-sha1-libyaml",
-				Dependencies: []*bmrel.Package{},
+				Dependencies: []*bmrelpkg.Package{},
 				ArchivePath:  "fake-package-archive-path-libyaml", // only required by compiler...
 			}
-			releasePackageRuby := bmrel.Package{
+			releasePackageRuby := bmrelpkg.Package{
 				Name:         "ruby",
 				Fingerprint:  "fake-package-source-fingerprint-ruby",
 				SHA1:         "fake-package-source-sha1-ruby",
-				Dependencies: []*bmrel.Package{&releasePackageLibyaml},
+				Dependencies: []*bmrelpkg.Package{&releasePackageLibyaml},
 				ArchivePath:  "fake-package-archive-path-ruby", // only required by compiler...
 			}
-			releasePackageCPI := bmrel.Package{
+			releasePackageCPI := bmrelpkg.Package{
 				Name:         "cpi",
 				Fingerprint:  "fake-package-source-fingerprint-cpi",
 				SHA1:         "fake-package-source-sha1-cpi",
-				Dependencies: []*bmrel.Package{&releasePackageRuby},
+				Dependencies: []*bmrelpkg.Package{&releasePackageRuby},
 				ArchivePath:  "fake-package-archive-path-cpi", // only required by compiler...
 			}
-			releaseJob := bmrel.Job{
+			releaseJob := bmreljob.Job{
 				Name:        "fake-release-job-name",
 				Fingerprint: "fake-release-job-source-fingerprint",
-				Packages:    []*bmrel.Package{&releasePackageCPI, &releasePackageRuby},
+				Packages:    []*bmrelpkg.Package{&releasePackageCPI, &releasePackageRuby},
 			}
 			mockReleaseJobResolver.EXPECT().Resolve("fake-release-job-name", "fake-release-name").Return(releaseJob, nil)
 
@@ -186,7 +187,7 @@ var _ = Describe("Builder", func() {
 				mockPackageCompiler.EXPECT().Compile(&releasePackageCPI, compiledCPIDeps).Return(compiledPackageCPI, nil),
 			)
 
-			releaseJobs := []bmrel.Job{releaseJob}
+			releaseJobs := []bmreljob.Job{releaseJob}
 			jobProperties := bmproperty.Map{
 				"fake-job-property": "fake-job-property-value",
 			}

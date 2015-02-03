@@ -30,6 +30,7 @@ import (
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
@@ -306,7 +307,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeCPIRelease = fakebmrel.NewFakeRelease()
 			fakeCPIRelease.ReleaseName = "fake-cpi-release-name"
 			fakeCPIRelease.ReleaseVersion = "1.0"
-			fakeCPIRelease.ReleaseJobs = []bmrel.Job{
+			fakeCPIRelease.ReleaseJobs = []bmreljob.Job{
 				{
 					Name: "cpi",
 					Templates: map[string]string{
@@ -624,7 +625,7 @@ var _ = Describe("DeployCmd", func() {
 
 		Context("when the cpi release does not contain a 'cpi' job", func() {
 			BeforeEach(func() {
-				fakeCPIRelease.ReleaseJobs = []bmrel.Job{
+				fakeCPIRelease.ReleaseJobs = []bmreljob.Job{
 					{
 						Name: "not-cpi",
 					},
@@ -651,7 +652,7 @@ var _ = Describe("DeployCmd", func() {
 				fakeFs.WriteFileString(otherReleaseTarballPath, "")
 
 				fakeOtherRelease = fakebmrel.NewFakeRelease()
-				fakeOtherRelease.ReleaseJobs = []bmrel.Job{
+				fakeOtherRelease.ReleaseJobs = []bmreljob.Job{
 					{
 						Name: "not-cpi",
 					},

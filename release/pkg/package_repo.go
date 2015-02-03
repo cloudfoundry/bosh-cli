@@ -1,4 +1,4 @@
-package release
+package pkg
 
 type packageRepo struct {
 	repo map[string]*Package

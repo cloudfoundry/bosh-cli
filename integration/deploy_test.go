@@ -45,6 +45,8 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
@@ -233,27 +235,27 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
-			cpiPackage := bmrel.Package{
+			cpiPackage := bmrelpkg.Package{
 				Name:          "cpi",
 				Fingerprint:   "fake-package-fingerprint-cpi",
 				SHA1:          "fake-package-sha1-cpi",
-				Dependencies:  []*bmrel.Package{},
+				Dependencies:  []*bmrelpkg.Package{},
 				ExtractedPath: "fake-package-extracted-path-cpi",
 				ArchivePath:   "fake-package-archive-path-cpi",
 			}
 			cpiRelease := bmrel.NewRelease(
 				"fake-cpi-release-name",
 				"1.1",
-				[]bmrel.Job{
+				[]bmreljob.Job{
 					{
 						Name: "cpi",
 						Templates: map[string]string{
 							"cpi.erb": "bin/cpi",
 						},
-						Packages: []*bmrel.Package{&cpiPackage},
+						Packages: []*bmrelpkg.Package{&cpiPackage},
 					},
 				},
-				[]*bmrel.Package{&cpiPackage},
+				[]*bmrelpkg.Package{&cpiPackage},
 				"fake-cpi-extracted-dir",
 				fs,
 			)
@@ -769,7 +771,7 @@ cloud_provider:
 				otherRelease := bmrel.NewRelease(
 					"fake-other-release-name",
 					"1.2",
-					[]bmrel.Job{
+					[]bmreljob.Job{
 						{
 							Name: "other",
 							Templates: map[string]string{
@@ -777,7 +779,7 @@ cloud_provider:
 							},
 						},
 					},
-					[]*bmrel.Package{},
+					[]*bmrelpkg.Package{},
 					"fake-other-extracted-dir",
 					fs,
 				)

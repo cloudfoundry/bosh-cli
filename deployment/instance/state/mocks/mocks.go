@@ -11,7 +11,7 @@ import (
 	state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	release "github.com/cloudfoundry/bosh-micro-cli/release"
+	pkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 // Mock of BuilderFactory interface
@@ -169,7 +169,7 @@ func (_m *MockPackageCompiler) EXPECT() *_MockPackageCompilerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockPackageCompiler) Compile(_param0 *release.Package, _param1 map[string]state.PackageRef) (state.PackageRef, error) {
+func (_m *MockPackageCompiler) Compile(_param0 *pkg.Package, _param1 map[string]state.PackageRef) (state.PackageRef, error) {
 	ret := _m.ctrl.Call(_m, "Compile", _param0, _param1)
 	ret0, _ := ret[0].(state.PackageRef)
 	ret1, _ := ret[1].(error)

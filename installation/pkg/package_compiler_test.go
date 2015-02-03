@@ -18,7 +18,7 @@ import (
 	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
 
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 )
@@ -27,15 +27,15 @@ var _ = Describe("PackageCompiler", func() {
 	var (
 		pc                  PackageCompiler
 		runner              *fakesys.FakeCmdRunner
-		pkg                 *bmrel.Package
+		pkg                 *bmrelpkg.Package
 		fs                  *fakesys.FakeFileSystem
 		compressor          *fakecmd.FakeCompressor
 		packagesDir         string
 		blobstore           *fakeblobstore.FakeBlobstore
 		compiledPackageRepo *fakebmpkgs.FakeCompiledPackageRepo
 		packageInstaller    *fakebminstallpkg.FakePackageInstaller
-		dependency1         *bmrel.Package
-		dependency2         *bmrel.Package
+		dependency1         *bmrelpkg.Package
+		dependency2         *bmrelpkg.Package
 	)
 
 	BeforeEach(func() {
@@ -51,10 +51,10 @@ var _ = Describe("PackageCompiler", func() {
 
 		compiledPackageRepo = fakebmpkgs.NewFakeCompiledPackageRepo()
 
-		dependency1 = &bmrel.Package{
+		dependency1 = &bmrelpkg.Package{
 			Name: "fake-dependency-1",
 		}
-		dependency2 = &bmrel.Package{
+		dependency2 = &bmrelpkg.Package{
 			Name: "fake-dependency-1",
 		}
 
@@ -67,10 +67,10 @@ var _ = Describe("PackageCompiler", func() {
 			compiledPackageRepo,
 			packageInstaller,
 		)
-		pkg = &bmrel.Package{
+		pkg = &bmrelpkg.Package{
 			Name:          "fake-package-1",
 			ExtractedPath: "/fake/path",
-			Dependencies:  []*bmrel.Package{dependency1, dependency2},
+			Dependencies:  []*bmrelpkg.Package{dependency1, dependency2},
 		}
 	})
 

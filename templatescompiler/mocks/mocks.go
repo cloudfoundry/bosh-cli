@@ -6,7 +6,7 @@ package mocks
 import (
 	gomock "code.google.com/p/gomock/gomock"
 	property "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	release "github.com/cloudfoundry/bosh-micro-cli/release"
+	job "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	templatescompiler "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -31,7 +31,7 @@ func (_m *MockJobRenderer) EXPECT() *_MockJobRendererRecorder {
 	return _m.recorder
 }
 
-func (_m *MockJobRenderer) Render(_param0 release.Job, _param1 property.Map, _param2 string) (templatescompiler.RenderedJob, error) {
+func (_m *MockJobRenderer) Render(_param0 job.Job, _param1 property.Map, _param2 string) (templatescompiler.RenderedJob, error) {
 	ret := _m.ctrl.Call(_m, "Render", _param0, _param1, _param2)
 	ret0, _ := ret[0].(templatescompiler.RenderedJob)
 	ret1, _ := ret[1].(error)
@@ -63,7 +63,7 @@ func (_m *MockJobListRenderer) EXPECT() *_MockJobListRendererRecorder {
 	return _m.recorder
 }
 
-func (_m *MockJobListRenderer) Render(_param0 []release.Job, _param1 property.Map, _param2 string) (templatescompiler.RenderedJobList, error) {
+func (_m *MockJobListRenderer) Render(_param0 []job.Job, _param1 property.Map, _param2 string) (templatescompiler.RenderedJobList, error) {
 	ret := _m.ctrl.Call(_m, "Render", _param0, _param1, _param2)
 	ret0, _ := ret[0].(templatescompiler.RenderedJobList)
 	ret1, _ := ret[1].(error)
@@ -113,9 +113,9 @@ func (_mr *_MockRenderedJobRecorder) DeleteSilently() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteSilently")
 }
 
-func (_m *MockRenderedJob) Job() release.Job {
+func (_m *MockRenderedJob) Job() job.Job {
 	ret := _m.ctrl.Call(_m, "Job")
-	ret0, _ := ret[0].(release.Job)
+	ret0, _ := ret[0].(job.Job)
 	return ret0
 }
 

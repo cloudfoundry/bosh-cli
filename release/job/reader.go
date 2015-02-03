@@ -1,4 +1,4 @@
-package release
+package job
 
 import (
 	"path"
@@ -8,22 +8,29 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmreljobmanifest "github.com/cloudfoundry/bosh-micro-cli/release/job/manifest"
 )
 
-type jobReader struct {
+type Reader interface {
+	Read() (Job, error)
+}
+
+type reader struct {
 	archivePath      string
 	extractedJobPath string
 	extractor        boshcmd.Compressor
 	fs               boshsys.FileSystem
 }
 
-func NewJobReader(
+func NewReader(
 	archivePath string,
 	extractedJobPath string,
 	extractor boshcmd.Compressor,
 	fs boshsys.FileSystem,
-) *jobReader {
-	return &jobReader{
+) Reader {
+	return &reader{
 		archivePath:      archivePath,
 		extractedJobPath: extractedJobPath,
 		extractor:        extractor,
@@ -31,7 +38,7 @@ func NewJobReader(
 	}
 }
 
-func (r *jobReader) Read() (Job, error) {
+func (r *reader) Read() (Job, error) {
 	err := r.extractor.DecompressFileToDir(r.archivePath, r.extractedJobPath, boshcmd.CompressorOptions{})
 	if err != nil {
 		return Job{}, bosherr.WrapErrorf(err,
@@ -45,17 +52,31 @@ func (r *jobReader) Read() (Job, error) {
 		return Job{}, bosherr.WrapErrorf(err, "Reading job manifest '%s'", jobManifestPath)
 	}
 
-	var jobManifest JobManifest
+	var jobManifest bmreljobmanifest.Manifest
 	err = candiedyaml.Unmarshal(jobManifestBytes, &jobManifest)
 	if err != nil {
 		return Job{}, bosherr.WrapError(err, "Parsing job manifest")
 	}
 
-	return Job{
+	job := Job{
 		Name:          jobManifest.Name,
 		Templates:     jobManifest.Templates,
 		PackageNames:  jobManifest.Packages,
 		ExtractedPath: r.extractedJobPath,
-		Properties:    jobManifest.Properties,
-	}, nil
+	}
+
+	jobProperties := make(map[string]PropertyDefinition, len(jobManifest.Properties))
+	for propertyName, rawPropertyDef := range jobManifest.Properties {
+		defaultValue, err := bmproperty.Build(rawPropertyDef.Default)
+		if err != nil {
+			return Job{}, bosherr.WrapErrorf(err, "Parsing job '%s' property '%s' default: %#v", job.Name, propertyName, rawPropertyDef.Default)
+		}
+		jobProperties[propertyName] = PropertyDefinition{
+			Description: rawPropertyDef.Description,
+			Default:     defaultValue,
+		}
+	}
+	job.Properties = jobProperties
+
+	return job, nil
 }

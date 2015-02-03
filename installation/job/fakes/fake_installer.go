@@ -5,16 +5,16 @@ import (
 
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type JobInstallInput struct {
-	Job   bmrel.Job
+	Job   bmreljob.Job
 	Stage bmeventlog.Stage
 }
 
-type jobInstallCallback func(job bmrel.Job, stage bmeventlog.Stage) (bminstalljob.InstalledJob, error)
+type jobInstallCallback func(job bmreljob.Job, stage bmeventlog.Stage) (bminstalljob.InstalledJob, error)
 
 type FakeInstaller struct {
 	JobInstallInputs []JobInstallInput
@@ -28,7 +28,7 @@ func NewFakeInstaller() *FakeInstaller {
 	}
 }
 
-func (f *FakeInstaller) Install(job bmrel.Job, stage bmeventlog.Stage) (bminstalljob.InstalledJob, error) {
+func (f *FakeInstaller) Install(job bmreljob.Job, stage bmeventlog.Stage) (bminstalljob.InstalledJob, error) {
 	input := JobInstallInput{
 		Job:   job,
 		Stage: stage,
@@ -46,7 +46,7 @@ func (f *FakeInstaller) Install(job bmrel.Job, stage bmeventlog.Stage) (bminstal
 	return bminstalljob.InstalledJob{}, fmt.Errorf("Unsupported Input: %s\nAvailible Behaviors: %#v", value, f.installBehavior)
 }
 
-func (f *FakeInstaller) SetInstallBehavior(job bmrel.Job, stage bmeventlog.Stage, callback jobInstallCallback) error {
+func (f *FakeInstaller) SetInstallBehavior(job bmreljob.Job, stage bmeventlog.Stage, callback jobInstallCallback) error {
 	input := JobInstallInput{
 		Job:   job,
 		Stage: stage,

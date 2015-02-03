@@ -1,14 +1,15 @@
 package fakes
 
 import (
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type FakeRelease struct {
 	ReleaseName     string
 	ReleaseVersion  string
-	ReleaseJobs     []bmrel.Job
-	ReleasePackages []*bmrel.Package
+	ReleaseJobs     []bmreljob.Job
+	ReleasePackages []*bmrelpkg.Package
 
 	DeleteCalled bool
 	DeleteErr    error
@@ -29,18 +30,18 @@ func (r *FakeRelease) Name() string { return r.ReleaseName }
 
 func (r *FakeRelease) Version() string { return r.ReleaseVersion }
 
-func (r *FakeRelease) Jobs() []bmrel.Job { return r.ReleaseJobs }
+func (r *FakeRelease) Jobs() []bmreljob.Job { return r.ReleaseJobs }
 
-func (r *FakeRelease) Packages() []*bmrel.Package { return r.ReleasePackages }
+func (r *FakeRelease) Packages() []*bmrelpkg.Package { return r.ReleasePackages }
 
-func (r *FakeRelease) FindJobByName(jobName string) (bmrel.Job, bool) {
+func (r *FakeRelease) FindJobByName(jobName string) (bmreljob.Job, bool) {
 	for _, job := range r.ReleaseJobs {
 		if job.Name == jobName {
 			return job, true
 		}
 	}
 
-	return bmrel.Job{}, false
+	return bmreljob.Job{}, false
 }
 
 func (r *FakeRelease) Delete() error {

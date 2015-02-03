@@ -12,7 +12,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 
 	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer/fakes"
@@ -24,7 +24,7 @@ var _ = Describe("JobRenderer", func() {
 	var (
 		jobRenderer      JobRenderer
 		fakeERBRenderer  *fakebmrender.FakeERBRenderer
-		job              bmrel.Job
+		job              bmreljob.Job
 		context          bmerbrenderer.TemplateEvaluationContext
 		fs               *fakesys.FakeFileSystem
 		renderProperties bmproperty.Map
@@ -39,7 +39,7 @@ var _ = Describe("JobRenderer", func() {
 			"fake-property-key": "fake-property-value",
 		}
 
-		job = bmrel.Job{
+		job = bmreljob.Job{
 			Templates: map[string]string{
 				"director.yml.erb": "config/director.yml",
 			},

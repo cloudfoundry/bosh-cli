@@ -10,7 +10,9 @@ import (
 
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type reader struct {
@@ -50,7 +52,7 @@ func (r *reader) Read() (Release, error) {
 		return nil, bosherr.WrapErrorf(err, "Reading release manifest '%s'", releaseManifestPath)
 	}
 
-	var manifest bmrelmanifest.Release
+	var manifest bmrelmanifest.Manifest
 	err = candiedyaml.Unmarshal(releaseManifestBytes, &manifest)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Parsing release manifest")
@@ -64,7 +66,7 @@ func (r *reader) Read() (Release, error) {
 	return release, nil
 }
 
-func (r *reader) newReleaseFromManifest(releaseManifest bmrelmanifest.Release) (Release, error) {
+func (r *reader) newReleaseFromManifest(releaseManifest bmrelmanifest.Manifest) (Release, error) {
 	errors := []error{}
 	packages, err := r.newPackagesFromManifestPackages(releaseManifest.Packages)
 	if err != nil {
@@ -94,8 +96,8 @@ func (r *reader) newReleaseFromManifest(releaseManifest bmrelmanifest.Release) (
 	return release, nil
 }
 
-func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmrelmanifest.Job) ([]Job, error) {
-	jobs := []Job{}
+func (r *reader) newJobsFromManifestJobs(packages []*bmrelpkg.Package, manifestJobs []bmrelmanifest.JobRef) ([]bmreljob.Job, error) {
+	jobs := []bmreljob.Job{}
 	errors := []error{}
 	for _, manifestJob := range manifestJobs {
 		extractedJobPath := path.Join(r.extractedReleasePath, "extracted_jobs", manifestJob.Name)
@@ -106,7 +108,7 @@ func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmr
 		}
 
 		jobArchivePath := path.Join(r.extractedReleasePath, "jobs", manifestJob.Name+".tgz")
-		jobReader := NewJobReader(jobArchivePath, extractedJobPath, r.extractor, r.fs)
+		jobReader := bmreljob.NewReader(jobArchivePath, extractedJobPath, r.extractor, r.fs)
 		job, err := jobReader.Read()
 		if err != nil {
 			errors = append(errors, bosherr.WrapErrorf(err, "Reading job '%s' from archive", manifestJob.Name))
@@ -118,7 +120,7 @@ func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmr
 		for _, pkgName := range job.PackageNames {
 			pkg, found := r.findPackageByName(packages, pkgName)
 			if !found {
-				return []Job{}, bosherr.Errorf("Package not found: '%s'", pkgName)
+				return []bmreljob.Job{}, bosherr.Errorf("Package not found: '%s'", pkgName)
 			}
 			job.Packages = append(job.Packages, pkg)
 		}
@@ -127,13 +129,13 @@ func (r *reader) newJobsFromManifestJobs(packages []*Package, manifestJobs []bmr
 	}
 
 	if len(errors) > 0 {
-		return []Job{}, bmerr.NewExplainableError(errors)
+		return []bmreljob.Job{}, bmerr.NewExplainableError(errors)
 	}
 
 	return jobs, nil
 }
 
-func (r *reader) findPackageByName(packages []*Package, pkgName string) (*Package, bool) {
+func (r *reader) findPackageByName(packages []*bmrelpkg.Package, pkgName string) (*bmrelpkg.Package, bool) {
 	for _, pkg := range packages {
 		if pkg.Name == pkgName {
 			return pkg, true
@@ -142,10 +144,10 @@ func (r *reader) findPackageByName(packages []*Package, pkgName string) (*Packag
 	return nil, false
 }
 
-func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelmanifest.Package) ([]*Package, error) {
-	packages := []*Package{}
+func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelmanifest.PackageRef) ([]*bmrelpkg.Package, error) {
+	packages := []*bmrelpkg.Package{}
 	errors := []error{}
-	packageRepo := NewPackageRepo()
+	packageRepo := bmrelpkg.NewPackageRepo()
 
 	for _, manifestPackage := range manifestPackages {
 		pkg := packageRepo.FindOrCreatePackage(manifestPackage.Name)
@@ -168,7 +170,7 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelmanifes
 		pkg.ExtractedPath = extractedPackagePath
 		pkg.ArchivePath = packageArchivePath
 
-		pkg.Dependencies = []*Package{}
+		pkg.Dependencies = []*bmrelpkg.Package{}
 		for _, manifestPackageName := range manifestPackage.Dependencies {
 			pkg.Dependencies = append(pkg.Dependencies, packageRepo.FindOrCreatePackage(manifestPackageName))
 		}
@@ -177,7 +179,7 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelmanifes
 	}
 
 	if len(errors) > 0 {
-		return []*Package{}, bmerr.NewExplainableError(errors)
+		return []*bmrelpkg.Package{}, bmerr.NewExplainableError(errors)
 	}
 
 	return packages, nil

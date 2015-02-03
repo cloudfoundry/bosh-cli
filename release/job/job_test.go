@@ -1,12 +1,10 @@
-package release_test
+package job_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
-
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/job"
 )
 
 var _ = Describe("Job", func() {
@@ -37,30 +35,6 @@ var _ = Describe("Job", func() {
 				_, ok := job.FindTemplateByValue("nonsense")
 				Expect(ok).To(BeFalse())
 			})
-		})
-	})
-
-	Describe("property definition", func() {
-		It("return correct primitive default value", func() {
-			pd := PropertyDefinition{
-				RawDefault: "a value",
-			}
-			Expect(pd.Default()).To(Equal("a value"))
-		})
-
-		It("returns correct values for nested default values", func() {
-			pd := PropertyDefinition{
-				RawDefault: map[interface{}]interface{}{
-					"key": map[interface{}]interface{}{
-						"nested-key": "value",
-					},
-				},
-			}
-			Expect(pd.Default()).To(Equal(bmproperty.Map{
-				"key": bmproperty.Map{
-					"nested-key": "value",
-				},
-			}))
 		})
 	})
 })

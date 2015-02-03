@@ -2,13 +2,16 @@ package release
 
 import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type release struct {
 	name          string
 	version       string
-	jobs          []Job
-	packages      []*Package
+	jobs          []bmreljob.Job
+	packages      []*bmrelpkg.Package
 	extractedPath string
 	fs            boshsys.FileSystem
 }
@@ -16,9 +19,9 @@ type release struct {
 type Release interface {
 	Name() string
 	Version() string
-	Jobs() []Job
-	Packages() []*Package
-	FindJobByName(jobName string) (job Job, found bool)
+	Jobs() []bmreljob.Job
+	Packages() []*bmrelpkg.Package
+	FindJobByName(jobName string) (job bmreljob.Job, found bool)
 	Delete() error
 	Exists() bool
 }
@@ -26,8 +29,8 @@ type Release interface {
 func NewRelease(
 	name string,
 	version string,
-	jobs []Job,
-	packages []*Package,
+	jobs []bmreljob.Job,
+	packages []*bmrelpkg.Package,
 	extractedPath string,
 	fs boshsys.FileSystem,
 ) Release {
@@ -45,18 +48,18 @@ func (r *release) Name() string { return r.name }
 
 func (r *release) Version() string { return r.version }
 
-func (r *release) Jobs() []Job { return r.jobs }
+func (r *release) Jobs() []bmreljob.Job { return r.jobs }
 
-func (r *release) Packages() []*Package { return r.packages }
+func (r *release) Packages() []*bmrelpkg.Package { return r.packages }
 
-func (r *release) FindJobByName(jobName string) (Job, bool) {
+func (r *release) FindJobByName(jobName string) (bmreljob.Job, bool) {
 	for _, job := range r.jobs {
 		if job.Name == jobName {
 			return job, true
 		}
 	}
 
-	return Job{}, false
+	return bmreljob.Job{}, false
 }
 
 // Delete removes the extracted release code.
@@ -68,17 +71,4 @@ func (r *release) Delete() error {
 // Exists returns false after Delete (or if extractedPath does not exist)
 func (r *release) Exists() bool {
 	return r.fs.FileExists(r.extractedPath)
-}
-
-type Package struct {
-	Name          string
-	Fingerprint   string
-	SHA1          string
-	Dependencies  []*Package
-	ExtractedPath string
-	ArchivePath   string
-}
-
-func (p Package) String() string {
-	return p.Name
 }

@@ -2,14 +2,12 @@ package pkg
 
 import (
 	"sort"
-
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
-type compilablePackages []*bmrel.Package
+type compilablePackages []*Package
 
 // Sort returns a sorted shallow copy of an array of packages, in compilation order
-func Sort(releasePackages []*bmrel.Package) []*bmrel.Package {
+func Sort(releasePackages []*Package) []*Package {
 	sortedPackages := make(compilablePackages, len(releasePackages), len(releasePackages))
 	copy(sortedPackages, releasePackages)
 	sort.Sort(sortedPackages)

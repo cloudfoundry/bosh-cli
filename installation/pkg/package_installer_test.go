@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakebminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob/fakes"
 	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
@@ -21,7 +21,7 @@ var _ = Describe("Install", func() {
 		blobExtractor *fakebminstallblob.FakeExtractor
 		repo          *fakebmpkgs.FakeCompiledPackageRepo
 		targetDir     string
-		pkg           *bmrel.Package
+		pkg           *bmrelpkg.Package
 	)
 	BeforeEach(func() {
 		repo = fakebmpkgs.NewFakeCompiledPackageRepo()
@@ -29,11 +29,11 @@ var _ = Describe("Install", func() {
 		targetDir = "fake-target-dir"
 		installer = NewPackageInstaller(repo, blobExtractor)
 
-		pkg = &bmrel.Package{
+		pkg = &bmrelpkg.Package{
 			Name:         "fake-package-name",
 			Fingerprint:  "fake-package-fingerprint",
 			SHA1:         "fake-package-sha1",
-			Dependencies: []*bmrel.Package{},
+			Dependencies: []*bmrelpkg.Package{},
 		}
 	})
 

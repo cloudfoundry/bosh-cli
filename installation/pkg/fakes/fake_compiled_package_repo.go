@@ -6,19 +6,19 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type SaveInput struct {
-	Package bmrel.Package
+	Package bmrelpkg.Package
 	Record  bmpkgs.CompiledPackageRecord
 }
 type saveOutput struct {
 	err error
 }
 type FindInput struct {
-	Package bmrel.Package
+	Package bmrelpkg.Package
 }
 type findOutput struct {
 	record bmpkgs.CompiledPackageRecord
@@ -43,7 +43,7 @@ func NewFakeCompiledPackageRepo() *FakeCompiledPackageRepo {
 	}
 }
 
-func (cpr *FakeCompiledPackageRepo) Save(pkg bmrel.Package, record bmpkgs.CompiledPackageRecord) error {
+func (cpr *FakeCompiledPackageRepo) Save(pkg bmrelpkg.Package, record bmpkgs.CompiledPackageRecord) error {
 	input := SaveInput{Package: pkg, Record: record}
 	cpr.SaveInputs = append(cpr.SaveInputs, input)
 
@@ -59,7 +59,7 @@ func (cpr *FakeCompiledPackageRepo) Save(pkg bmrel.Package, record bmpkgs.Compil
 	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v')", pkg, record)
 }
 
-func (cpr *FakeCompiledPackageRepo) SetSaveBehavior(pkg bmrel.Package, record bmpkgs.CompiledPackageRecord, err error) error {
+func (cpr *FakeCompiledPackageRepo) SetSaveBehavior(pkg bmrelpkg.Package, record bmpkgs.CompiledPackageRecord, err error) error {
 	input := SaveInput{Package: pkg, Record: record}
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
@@ -69,7 +69,7 @@ func (cpr *FakeCompiledPackageRepo) SetSaveBehavior(pkg bmrel.Package, record bm
 	return nil
 }
 
-func (cpr *FakeCompiledPackageRepo) Find(pkg bmrel.Package) (bmpkgs.CompiledPackageRecord, bool, error) {
+func (cpr *FakeCompiledPackageRepo) Find(pkg bmrelpkg.Package) (bmpkgs.CompiledPackageRecord, bool, error) {
 	input := FindInput{Package: pkg}
 	cpr.FindInputs = append(cpr.FindInputs, input)
 
@@ -85,7 +85,7 @@ func (cpr *FakeCompiledPackageRepo) Find(pkg bmrel.Package) (bmpkgs.CompiledPack
 	return bmpkgs.CompiledPackageRecord{}, false, fmt.Errorf("Unsupported input: Find('%#v')", pkg)
 }
 
-func (cpr *FakeCompiledPackageRepo) SetFindBehavior(pkg bmrel.Package, record bmpkgs.CompiledPackageRecord, found bool, err error) error {
+func (cpr *FakeCompiledPackageRepo) SetFindBehavior(pkg bmrelpkg.Package, record bmpkgs.CompiledPackageRecord, found bool, err error) error {
 	input := FindInput{Package: pkg}
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {

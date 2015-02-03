@@ -6,21 +6,19 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	gomegafmt "github.com/onsi/gomega/format"
-
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-
 	. "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+
+	gomegafmt "github.com/onsi/gomega/format"
 )
 
 var _ = Describe("Sort", func() {
 	var (
-		packages []*bmrel.Package
+		packages []*Package
 	)
 
 	gomegafmt.UseStringerRepresentation = true
 
-	var indexOf = func(packages []*bmrel.Package, pkg *bmrel.Package) int {
+	var indexOf = func(packages []*Package, pkg *Package) int {
 		for index, currentPkg := range packages {
 			if currentPkg == pkg {
 				return index
@@ -29,7 +27,7 @@ var _ = Describe("Sort", func() {
 		return -1
 	}
 
-	var expectSorted = func(sortedPackages []*bmrel.Package) {
+	var expectSorted = func(sortedPackages []*Package) {
 		for _, pkg := range packages {
 			sortedIndex := indexOf(sortedPackages, pkg)
 			for _, dependencyPkg := range pkg.Dependencies {
@@ -39,16 +37,16 @@ var _ = Describe("Sort", func() {
 		}
 	}
 
-	var package1, package2 bmrel.Package
+	var package1, package2 Package
 
 	BeforeEach(func() {
-		package1 = bmrel.Package{
+		package1 = Package{
 			Name: "fake-package-name-1",
 		}
-		package2 = bmrel.Package{
+		package2 = Package{
 			Name: "fake-package-name-2",
 		}
-		packages = []*bmrel.Package{&package1, &package2}
+		packages = []*Package{&package1, &package2}
 	})
 
 	Context("disjoint packages have a valid compilation sequence", func() {
@@ -62,29 +60,29 @@ var _ = Describe("Sort", func() {
 
 	Context("dependent packages", func() {
 		BeforeEach(func() {
-			package1.Dependencies = []*bmrel.Package{&package2}
+			package1.Dependencies = []*Package{&package2}
 		})
 
 		It("returns an ordered set of package compilation", func() {
 			sortedPackages := Sort(packages)
 
-			Expect(sortedPackages).To(Equal([]*bmrel.Package{&package2, &package1}))
+			Expect(sortedPackages).To(Equal([]*Package{&package2, &package1}))
 		})
 	})
 
 	Context("complex graph of dependent packages", func() {
-		var package3, package4 bmrel.Package
+		var package3, package4 Package
 
 		BeforeEach(func() {
-			package1.Dependencies = []*bmrel.Package{&package2, &package3}
-			package3 = bmrel.Package{
+			package1.Dependencies = []*Package{&package2, &package3}
+			package3 = Package{
 				Name: "fake-package-name-3",
 			}
-			package4 = bmrel.Package{
+			package4 = Package{
 				Name:         "fake-package-name-4",
-				Dependencies: []*bmrel.Package{&package3, &package2},
+				Dependencies: []*Package{&package3, &package2},
 			}
-			packages = []*bmrel.Package{&package1, &package2, &package3, &package4}
+			packages = []*Package{&package1, &package2, &package3, &package4}
 		})
 
 		It("returns an ordered set of package compilation", func() {
@@ -95,25 +93,25 @@ var _ = Describe("Sort", func() {
 	})
 
 	Context("graph with transitively dependent packages", func() {
-		var package3, package4, package5 bmrel.Package
+		var package3, package4, package5 Package
 
 		BeforeEach(func() {
-			package3 = bmrel.Package{
+			package3 = Package{
 				Name: "fake-package-name-3",
 			}
-			package4 = bmrel.Package{
+			package4 = Package{
 				Name: "fake-package-name-4",
 			}
-			package5 = bmrel.Package{
+			package5 = Package{
 				Name: "fake-package-name-5",
 			}
 
-			package3.Dependencies = []*bmrel.Package{&package2}
-			package2.Dependencies = []*bmrel.Package{&package1}
+			package3.Dependencies = []*Package{&package2}
+			package2.Dependencies = []*Package{&package1}
 
-			package5.Dependencies = []*bmrel.Package{&package2}
+			package5.Dependencies = []*Package{&package2}
 
-			packages = []*bmrel.Package{&package1, &package2, &package3, &package4, &package5}
+			packages = []*Package{&package1, &package2, &package3, &package4, &package5}
 		})
 
 		It("returns an ordered set of package compilation", func() {
@@ -125,44 +123,44 @@ var _ = Describe("Sort", func() {
 
 	Context("graph from a BOSH release", func() {
 		BeforeEach(func() {
-			nginx := bmrel.Package{Name: "nginx"}
-			genisoimage := bmrel.Package{Name: "genisoimage"}
-			powerdns := bmrel.Package{Name: "powerdns"}
-			ruby := bmrel.Package{Name: "ruby"}
+			nginx := Package{Name: "nginx"}
+			genisoimage := Package{Name: "genisoimage"}
+			powerdns := Package{Name: "powerdns"}
+			ruby := Package{Name: "ruby"}
 
-			blobstore := bmrel.Package{
+			blobstore := Package{
 				Name:         "blobstore",
-				Dependencies: []*bmrel.Package{&ruby},
+				Dependencies: []*Package{&ruby},
 			}
 
-			mysql := bmrel.Package{Name: "mysql"}
+			mysql := Package{Name: "mysql"}
 
-			nats := bmrel.Package{
+			nats := Package{
 				Name:         "nats",
-				Dependencies: []*bmrel.Package{&ruby},
+				Dependencies: []*Package{&ruby},
 			}
 
-			common := bmrel.Package{Name: "common"}
-			redis := bmrel.Package{Name: "redis"}
-			libpq := bmrel.Package{Name: "libpq"}
-			postgres := bmrel.Package{Name: "postgres"}
+			common := Package{Name: "common"}
+			redis := Package{Name: "redis"}
+			libpq := Package{Name: "libpq"}
+			postgres := Package{Name: "postgres"}
 
-			registry := bmrel.Package{
+			registry := Package{
 				Name:         "registry",
-				Dependencies: []*bmrel.Package{&libpq, &mysql, &ruby},
+				Dependencies: []*Package{&libpq, &mysql, &ruby},
 			}
 
-			director := bmrel.Package{
+			director := Package{
 				Name:         "director",
-				Dependencies: []*bmrel.Package{&libpq, &mysql, &ruby},
+				Dependencies: []*Package{&libpq, &mysql, &ruby},
 			}
 
-			healthMonitor := bmrel.Package{
+			healthMonitor := Package{
 				Name:         "health_monitor",
-				Dependencies: []*bmrel.Package{&ruby},
+				Dependencies: []*Package{&ruby},
 			}
 
-			packages = []*bmrel.Package{
+			packages = []*Package{
 				&nginx,
 				&genisoimage,
 				&powerdns,
@@ -186,24 +184,4 @@ var _ = Describe("Sort", func() {
 			expectSorted(sortedPackages)
 		})
 	})
-
-	//	Context("when having a cyclic dependency", func() {
-	//		It("fails with error", func() {
-	//			package1.Dependencies = []*bmrel.Package{&package2}
-	//			package2.Dependencies = []*bmrel.Package{&package1}
-	//
-	//			sort.Sort(packages)
-	//		})
-	//
-	//		It("fails with more cyclic", func() {
-	//			package1.Dependencies = []*bmrel.Package{&package2}
-	//			package3 := bmrel.Package{
-	//				Name:         "fake-package-name-3",
-	//				Dependencies: []*bmrel.Package{&package1},
-	//			}
-	//			package2.Dependencies = []*bmrel.Package{&package3}
-	//
-	//			sort.Sort(packages)
-	//		})
-	//	})
 })

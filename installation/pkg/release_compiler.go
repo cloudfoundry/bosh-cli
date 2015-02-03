@@ -10,6 +10,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -57,7 +58,7 @@ func (c releaseCompiler) Compile(release bmrel.Release, manifest bminstallmanife
 		return bosherr.WrapErrorf(err, "Job '%s' not found in release '%s'", bmcpirel.ReleaseJobName, release.Name())
 	}
 
-	err = c.templatesCompiler.Compile([]bmrel.Job{cpiJob}, manifest.Name, manifestProperties, stage)
+	err = c.templatesCompiler.Compile([]bmreljob.Job{cpiJob}, manifest.Name, manifestProperties, stage)
 	if err != nil {
 		return bosherr.WrapError(err, "Compiling job templates")
 	}

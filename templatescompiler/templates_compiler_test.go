@@ -20,7 +20,7 @@ import (
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
@@ -46,7 +46,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		templatesRepo        *fakebmtemp.FakeTemplatesRepo
 		fs                   *fakesys.FakeFileSystem
 		compileDir           string
-		jobs                 []bmrel.Job
+		jobs                 []bmreljob.Job
 		deploymentProperties bmproperty.Map
 		logger               boshlog.Logger
 
@@ -91,7 +91,7 @@ var _ = Describe("TemplatesCompiler", func() {
 	})
 
 	JustBeforeEach(func() {
-		job := bmrel.Job{
+		job := bmreljob.Job{
 			Name:          "fake-job-1",
 			Fingerprint:   "",
 			SHA1:          "",
@@ -124,8 +124,8 @@ var _ = Describe("TemplatesCompiler", func() {
 
 	Context("with a job", func() {
 		BeforeEach(func() {
-			jobs = []bmrel.Job{
-				bmrel.Job{
+			jobs = []bmreljob.Job{
+				bmreljob.Job{
 					Name:          "fake-job-1",
 					ExtractedPath: "fake-extracted-path",
 					Templates: map[string]string{
@@ -310,22 +310,22 @@ var _ = Describe("TemplatesCompiler", func() {
 
 		Context("when one of the job fails to compile", func() {
 			BeforeEach(func() {
-				jobs = []bmrel.Job{
-					bmrel.Job{
+				jobs = []bmreljob.Job{
+					bmreljob.Job{
 						Name:          "fake-job-1",
 						ExtractedPath: "fake-extracted-path-1",
 						Templates: map[string]string{
 							"cpi.erb": "/bin/cpi",
 						},
 					},
-					bmrel.Job{
+					bmreljob.Job{
 						Name:          "fake-job-2",
 						ExtractedPath: "fake-extracted-path-2",
 						Templates: map[string]string{
 							"cpi.erb": "/bin/cpi",
 						},
 					},
-					bmrel.Job{
+					bmreljob.Job{
 						Name:          "fake-job-3",
 						ExtractedPath: "fake-extracted-path-3",
 						Templates: map[string]string{

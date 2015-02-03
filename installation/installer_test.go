@@ -19,6 +19,8 @@ import (
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
@@ -88,7 +90,7 @@ var _ = Describe("Installer", func() {
 		var (
 			installationManifest bminstallmanifest.Manifest
 			release              bmrel.Release
-			releaseJob           bmrel.Job
+			releaseJob           bmreljob.Job
 			fakeStage            *fakebmeventlog.FakeStage
 
 			installedJob bminstalljob.InstalledJob
@@ -107,15 +109,15 @@ var _ = Describe("Installer", func() {
 
 			fakeStage = fakebmeventlog.NewFakeStage()
 
-			releasePackage := &bmrel.Package{
+			releasePackage := &bmrelpkg.Package{
 				Name:          "fake-release-package-name",
 				Fingerprint:   "fake-release-package-fingerprint",
 				SHA1:          "fake-release-package-sha1",
-				Dependencies:  []*bmrel.Package{},
+				Dependencies:  []*bmrelpkg.Package{},
 				ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name",
 			}
 
-			releaseJob = bmrel.Job{
+			releaseJob = bmreljob.Job{
 				Name:          "cpi",
 				Fingerprint:   "fake-release-job-fingerprint",
 				SHA1:          "fake-release-job-sha1",
@@ -125,8 +127,8 @@ var _ = Describe("Installer", func() {
 					"cpi.yml.erb": "config/cpi.yml",
 				},
 				PackageNames: []string{releasePackage.Name},
-				Packages:     []*bmrel.Package{releasePackage},
-				Properties:   map[string]bmrel.PropertyDefinition{},
+				Packages:     []*bmrelpkg.Package{releasePackage},
+				Properties:   map[string]bmreljob.PropertyDefinition{},
 			}
 
 			installedJob = bminstalljob.InstalledJob{
@@ -136,8 +138,8 @@ var _ = Describe("Installer", func() {
 		})
 
 		JustBeforeEach(func() {
-			releaseJobs := []bmrel.Job{releaseJob}
-			releasePackages := append([]*bmrel.Package(nil), releaseJob.Packages...)
+			releaseJobs := []bmreljob.Job{releaseJob}
+			releasePackages := append([]*bmrelpkg.Package(nil), releaseJob.Packages...)
 			release = bmrel.NewRelease(
 				"fake-release-name",
 				"fake-release-version",
@@ -147,7 +149,7 @@ var _ = Describe("Installer", func() {
 				fakeFS,
 			)
 
-			fakeJobInstaller.SetInstallBehavior(releaseJob, fakeStage, func(_ bmrel.Job, _ bmeventlog.Stage) (bminstalljob.InstalledJob, error) {
+			fakeJobInstaller.SetInstallBehavior(releaseJob, fakeStage, func(_ bmreljob.Job, _ bmeventlog.Stage) (bminstalljob.InstalledJob, error) {
 				return installedJob, nil
 			})
 

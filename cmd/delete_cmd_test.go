@@ -27,6 +27,8 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 
@@ -109,7 +111,7 @@ cloud_provider:
 			cpiRelease := bmrel.NewRelease(
 				"fake-cpi-release-name",
 				"fake-cpi-release-version",
-				[]bmrel.Job{
+				[]bmreljob.Job{
 					{
 						Name: "cpi",
 						Templates: map[string]string{
@@ -117,7 +119,7 @@ cloud_provider:
 						},
 					},
 				},
-				[]*bmrel.Package{},
+				[]*bmrelpkg.Package{},
 				"fake-cpi-extracted-dir",
 				fs,
 			)

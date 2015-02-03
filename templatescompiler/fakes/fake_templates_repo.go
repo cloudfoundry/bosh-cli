@@ -5,13 +5,13 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 )
 
 type SaveInput struct {
-	Job    bmrel.Job
+	Job    bmreljob.Job
 	Record bmtempcomp.TemplateRecord
 }
 
@@ -20,7 +20,7 @@ type saveOutput struct {
 }
 
 type FindInput struct {
-	Job bmrel.Job
+	Job bmreljob.Job
 }
 
 type findOutput struct {
@@ -46,7 +46,7 @@ func NewFakeTemplatesRepo() *FakeTemplatesRepo {
 	}
 }
 
-func (f *FakeTemplatesRepo) Save(job bmrel.Job, record bmtempcomp.TemplateRecord) error {
+func (f *FakeTemplatesRepo) Save(job bmreljob.Job, record bmtempcomp.TemplateRecord) error {
 	input := SaveInput{Job: job, Record: record}
 	f.SaveInputs = append(f.SaveInputs, input)
 
@@ -62,7 +62,7 @@ func (f *FakeTemplatesRepo) Save(job bmrel.Job, record bmtempcomp.TemplateRecord
 	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v')", job, record)
 }
 
-func (f *FakeTemplatesRepo) SetSaveBehavior(job bmrel.Job, record bmtempcomp.TemplateRecord, err error) error {
+func (f *FakeTemplatesRepo) SetSaveBehavior(job bmreljob.Job, record bmtempcomp.TemplateRecord, err error) error {
 	input := SaveInput{Job: job, Record: record}
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {
@@ -72,7 +72,7 @@ func (f *FakeTemplatesRepo) SetSaveBehavior(job bmrel.Job, record bmtempcomp.Tem
 	return nil
 }
 
-func (f *FakeTemplatesRepo) Find(job bmrel.Job) (bmtempcomp.TemplateRecord, bool, error) {
+func (f *FakeTemplatesRepo) Find(job bmreljob.Job) (bmtempcomp.TemplateRecord, bool, error) {
 	input := FindInput{Job: job}
 	f.FindInputs = append(f.FindInputs, input)
 
@@ -88,7 +88,7 @@ func (f *FakeTemplatesRepo) Find(job bmrel.Job) (bmtempcomp.TemplateRecord, bool
 	return bmtempcomp.TemplateRecord{}, false, fmt.Errorf("Unsupported input: Find('%#v')", job)
 }
 
-func (f *FakeTemplatesRepo) SetFindBehavior(job bmrel.Job, record bmtempcomp.TemplateRecord, found bool, err error) error {
+func (f *FakeTemplatesRepo) SetFindBehavior(job bmreljob.Job, record bmtempcomp.TemplateRecord, found bool, err error) error {
 	input := FindInput{Job: job}
 	inputString, marshalErr := bmtestutils.MarshalToString(input)
 	if marshalErr != nil {

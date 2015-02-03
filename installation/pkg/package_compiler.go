@@ -10,11 +10,11 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type PackageCompiler interface {
-	Compile(*bmrel.Package) error
+	Compile(*bmrelpkg.Package) error
 }
 
 type packageCompiler struct {
@@ -47,7 +47,7 @@ func NewPackageCompiler(
 	}
 }
 
-func (pc *packageCompiler) Compile(pkg *bmrel.Package) error {
+func (pc *packageCompiler) Compile(pkg *bmrelpkg.Package) error {
 	_, found, err := pc.compiledPackageRepo.Find(*pkg)
 	if err != nil {
 		return bosherr.WrapError(err, fmt.Sprintf("Attempting to find compiled package '%s'", pkg.Name))

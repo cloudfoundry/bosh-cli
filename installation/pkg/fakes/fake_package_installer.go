@@ -3,11 +3,11 @@ package fakes
 import (
 	"fmt"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type InstallInput struct {
-	Package *bmrel.Package
+	Package *bmrelpkg.Package
 	Target  string
 }
 type installOutput struct {
@@ -26,7 +26,7 @@ func NewFakePackageInstaller() *FakePackageInstaller {
 	}
 }
 
-func (f *FakePackageInstaller) Install(pkg *bmrel.Package, targetDir string) error {
+func (f *FakePackageInstaller) Install(pkg *bmrelpkg.Package, targetDir string) error {
 	input := InstallInput{Package: pkg, Target: targetDir}
 	f.InstallInputs = append(f.InstallInputs, input)
 	output, found := f.installBehavior[input]
@@ -37,6 +37,6 @@ func (f *FakePackageInstaller) Install(pkg *bmrel.Package, targetDir string) err
 	return fmt.Errorf("Unsupported Input: Install(%#v, '%s')", pkg, targetDir)
 }
 
-func (f *FakePackageInstaller) SetInstallBehavior(pkg *bmrel.Package, targetDir string, err error) {
+func (f *FakePackageInstaller) SetInstallBehavior(pkg *bmrelpkg.Package, targetDir string, err error) {
 	f.installBehavior[InstallInput{Package: pkg, Target: targetDir}] = installOutput{err: err}
 }

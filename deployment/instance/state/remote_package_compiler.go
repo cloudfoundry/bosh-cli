@@ -5,7 +5,7 @@ import (
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type remotePackageCompiler struct {
@@ -20,7 +20,7 @@ func NewRemotePackageCompiler(blobstore bmblobstore.Blobstore, agentClient bmage
 	}
 }
 
-func (c *remotePackageCompiler) Compile(releasePackage *bmrel.Package, compiledPackageRefs map[string]PackageRef) (PackageRef, error) {
+func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package, compiledPackageRefs map[string]PackageRef) (PackageRef, error) {
 
 	blobID, err := c.blobstore.Add(releasePackage.ArchivePath)
 	if err != nil {

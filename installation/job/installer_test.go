@@ -10,8 +10,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
@@ -27,7 +28,7 @@ var _ = Describe("Installer", func() {
 	var (
 		fs               *fakesys.FakeFileSystem
 		jobInstaller     Installer
-		job              bmrel.Job
+		job              bmreljob.Job
 		packageInstaller *fakebminstallpkg.FakePackageInstaller
 		blobExtractor    *fakebminstallblob.FakeExtractor
 		templateRepo     *fakebmtemcomp.FakeTemplatesRepo
@@ -50,11 +51,11 @@ var _ = Describe("Installer", func() {
 			timeService = &faketime.FakeService{}
 
 			jobInstaller = NewInstaller(fs, packageInstaller, blobExtractor, templateRepo, jobsPath, packagesPath, timeService)
-			job = bmrel.Job{
+			job = bmreljob.Job{
 				Name: "cpi",
 			}
 
-			templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSHA1: "fake-sha1"}, true, nil)
+			templateRepo.SetFindBehavior(job, bmtemplate.TemplateRecord{BlobID: "fake-blob-id", BlobSHA1: "fake-sha1"}, true, nil)
 			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-sha1", "/fake/jobs/cpi", nil)
 		})
 
@@ -139,13 +140,13 @@ var _ = Describe("Installer", func() {
 		})
 
 		Context("when the job has packages", func() {
-			var pkg1 bmrel.Package
+			var pkg1 bmrelpkg.Package
 
 			BeforeEach(func() {
-				pkg1 = bmrel.Package{Name: "fake-pkg-name"}
-				job.Packages = []*bmrel.Package{&pkg1}
+				pkg1 = bmrelpkg.Package{Name: "fake-pkg-name"}
+				job.Packages = []*bmrelpkg.Package{&pkg1}
 				packageInstaller.SetInstallBehavior(&pkg1, packagesPath, nil)
-				templateRepo.SetFindBehavior(job, bmtempcomp.TemplateRecord{BlobID: "fake-blob-id", BlobSHA1: "fake-sha1"}, true, nil)
+				templateRepo.SetFindBehavior(job, bmtemplate.TemplateRecord{BlobID: "fake-blob-id", BlobSHA1: "fake-sha1"}, true, nil)
 			})
 
 			It("install packages correctly", func() {

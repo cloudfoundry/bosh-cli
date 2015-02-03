@@ -1,27 +1,30 @@
-package release_test
+package job_test
 
 import (
-	"errors"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/job"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+
+	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 )
 
-var _ = Describe("JobReader", func() {
+var _ = Describe("Reader", func() {
 	var (
 		fakeExtractor *testfakes.FakeMultiResponseExtractor
 		fakeFs        *fakesys.FakeFileSystem
-		reader        JobReader
+		reader        Reader
 	)
 	BeforeEach(func() {
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeFs = fakesys.NewFakeFileSystem()
-		reader = NewJobReader("/some/job/archive", "/extracted/job", fakeExtractor, fakeFs)
+		reader = NewReader("/some/job/archive", "/extracted/job", fakeExtractor, fakeFs)
 	})
 
 	Context("when the job archive is a valid tar", func() {
@@ -55,7 +58,7 @@ properties:
 						Properties: map[string]PropertyDefinition{
 							"fake-property": PropertyDefinition{
 								Description: "Fake description",
-								RawDefault:  "fake-default",
+								Default:     bmproperty.Property("fake-default"),
 							},
 						},
 					},
@@ -81,7 +84,7 @@ properties:
 
 	Context("when the job archive is not a valid tar", func() {
 		BeforeEach(func() {
-			fakeExtractor.SetDecompressBehavior("/some/job/archive", "/extracted/job", errors.New("fake-error"))
+			fakeExtractor.SetDecompressBehavior("/some/job/archive", "/extracted/job", bosherr.Error("fake-error"))
 		})
 
 		It("returns error", func() {

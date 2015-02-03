@@ -1,15 +1,15 @@
 package pkg
 
 import (
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
-func ResolveDependencies(pkg *bmrel.Package) []*bmrel.Package {
-	return resolveInner(pkg, []*bmrel.Package{})
+func ResolveDependencies(pkg *bmrelpkg.Package) []*bmrelpkg.Package {
+	return resolveInner(pkg, []*bmrelpkg.Package{})
 }
 
-func resolveInner(pkg *bmrel.Package, noFollow []*bmrel.Package) []*bmrel.Package {
-	all := []*bmrel.Package{}
+func resolveInner(pkg *bmrelpkg.Package, noFollow []*bmrelpkg.Package) []*bmrelpkg.Package {
+	all := []*bmrelpkg.Package{}
 	for _, depPkg := range pkg.Dependencies {
 		if !contains(all, depPkg) && !contains(noFollow, depPkg) {
 			all = append(all, depPkg)
@@ -29,7 +29,7 @@ func resolveInner(pkg *bmrel.Package, noFollow []*bmrel.Package) []*bmrel.Packag
 	return all
 }
 
-func contains(list []*bmrel.Package, element *bmrel.Package) bool {
+func contains(list []*bmrelpkg.Package, element *bmrelpkg.Package) bool {
 	for _, pkg := range list {
 		if element == pkg {
 			return true
@@ -38,8 +38,8 @@ func contains(list []*bmrel.Package, element *bmrel.Package) bool {
 	return false
 }
 
-func joinUnique(a []*bmrel.Package, b []*bmrel.Package) []*bmrel.Package {
-	joined := []*bmrel.Package{}
+func joinUnique(a []*bmrelpkg.Package, b []*bmrelpkg.Package) []*bmrelpkg.Package {
+	joined := []*bmrelpkg.Package{}
 	joined = append(joined, a...)
 	for _, pkg := range b {
 		if !contains(a, pkg) {

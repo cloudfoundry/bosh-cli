@@ -1,7 +1,8 @@
-package release
+package job
 
 import (
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type Job struct {
@@ -11,24 +12,13 @@ type Job struct {
 	ExtractedPath string
 	Templates     map[string]string
 	PackageNames  []string
-	Packages      []*Package
+	Packages      []*bmrelpkg.Package
 	Properties    map[string]PropertyDefinition
 }
 
-type JobManifest struct {
-	Name       string                        `yaml:"name"`
-	Templates  map[string]string             `yaml:"templates"`
-	Packages   []string                      `yaml:"packages"`
-	Properties map[string]PropertyDefinition `yaml:"properties"`
-}
-
 type PropertyDefinition struct {
-	Description string      `yaml:"description"`
-	RawDefault  interface{} `yaml:"default"`
-}
-
-func (d PropertyDefinition) Default() (bmproperty.Property, error) {
-	return bmproperty.Build(d.RawDefault)
+	Description string
+	Default     bmproperty.Property
 }
 
 func (j Job) FindTemplateByValue(value string) (string, bool) {

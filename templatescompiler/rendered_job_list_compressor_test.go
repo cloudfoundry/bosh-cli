@@ -17,7 +17,7 @@ import (
 	fakeboshcmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
 )
@@ -67,7 +67,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				// create rendered job with 2 rendered scripts
 				renderedJobDir0, err := fs.TempDir("RenderedJobListCompressorTest")
 				Expect(err).ToNot(HaveOccurred())
-				renderedJob0 := NewRenderedJob(bmrel.Job{Name: "fake-job-name-0"}, renderedJobDir0, fs, logger)
+				renderedJob0 := NewRenderedJob(bmreljob.Job{Name: "fake-job-name-0"}, renderedJobDir0, fs, logger)
 				defer func() { err := renderedJob0.Delete(); Expect(err).ToNot(HaveOccurred()) }()
 				err = fs.WriteFileString(filepath.Join(renderedJobDir0, "script-0"), "fake-rendered-job-0-script-0-content")
 				Expect(err).ToNot(HaveOccurred())
@@ -78,7 +78,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				// create another rendered job with 1 rendered script
 				renderedJobDir1, err := fs.TempDir("RenderedJobListCompressorTest")
 				Expect(err).ToNot(HaveOccurred())
-				renderedJob1 := NewRenderedJob(bmrel.Job{Name: "fake-job-name-1"}, renderedJobDir1, fs, logger)
+				renderedJob1 := NewRenderedJob(bmreljob.Job{Name: "fake-job-name-1"}, renderedJobDir1, fs, logger)
 				defer func() { err := renderedJob1.Delete(); Expect(err).ToNot(HaveOccurred()) }()
 				err = fs.WriteFileString(filepath.Join(renderedJobDir1, "script-0"), "fake-rendered-job-1-script-0-content")
 				Expect(err).ToNot(HaveOccurred())

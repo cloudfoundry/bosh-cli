@@ -8,7 +8,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
@@ -18,11 +18,11 @@ var _ = Describe("JobEvaluationContext", func() {
 		generatedContext RootContext
 	)
 	BeforeEach(func() {
-		job := bmrel.Job{
+		job := bmreljob.Job{
 			Name: "fake-job-name",
-			Properties: map[string]bmrel.PropertyDefinition{
-				"first-level-prop.second-level-prop": bmrel.PropertyDefinition{
-					RawDefault: "fake-default",
+			Properties: map[string]bmreljob.PropertyDefinition{
+				"first-level-prop.second-level-prop": bmreljob.PropertyDefinition{
+					Default: "fake-default",
 				},
 			},
 		}

@@ -6,6 +6,8 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 )
@@ -23,7 +25,7 @@ var _ = Describe("Validator", func() {
 		release := bmrel.NewRelease(
 			"fake-release-name",
 			"fake-release-version",
-			[]bmrel.Job{
+			[]bmreljob.Job{
 				{
 					Name:        "cpi",
 					Fingerprint: "fake-job-1-fingerprint",
@@ -33,7 +35,7 @@ var _ = Describe("Validator", func() {
 					},
 				},
 			},
-			[]*bmrel.Package{},
+			[]*bmrelpkg.Package{},
 			"/some/release/path",
 			fakeFs,
 		)
@@ -51,7 +53,7 @@ var _ = Describe("Validator", func() {
 			release = bmrel.NewRelease(
 				"fake-release-name",
 				"fake-release-version",
-				[]bmrel.Job{
+				[]bmreljob.Job{
 					{
 						Name:        "non-cpi-job",
 						Fingerprint: "fake-job-1-fingerprint",
@@ -61,7 +63,7 @@ var _ = Describe("Validator", func() {
 						},
 					},
 				},
-				[]*bmrel.Package{},
+				[]*bmrelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
 			)
@@ -83,7 +85,7 @@ var _ = Describe("Validator", func() {
 			release = bmrel.NewRelease(
 				"fake-release-name",
 				"fake-release-version",
-				[]bmrel.Job{
+				[]bmreljob.Job{
 					{
 						Name:        "cpi",
 						Fingerprint: "fake-job-1-fingerprint",
@@ -93,7 +95,7 @@ var _ = Describe("Validator", func() {
 						},
 					},
 				},
-				[]*bmrel.Package{},
+				[]*bmrelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
 			)

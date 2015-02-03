@@ -7,18 +7,18 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 )
 
 type RenderedJob interface {
-	Job() bmrel.Job
+	Job() bmreljob.Job
 	Path() string // dir of multiple rendered files
 	Delete() error
 	DeleteSilently()
 }
 
 type renderedJob struct {
-	job    bmrel.Job
+	job    bmreljob.Job
 	path   string
 	fs     boshsys.FileSystem
 	logger boshlog.Logger
@@ -26,7 +26,7 @@ type renderedJob struct {
 }
 
 func NewRenderedJob(
-	job bmrel.Job,
+	job bmreljob.Job,
 	path string,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
@@ -40,7 +40,7 @@ func NewRenderedJob(
 	}
 }
 
-func (j *renderedJob) Job() bmrel.Job { return j.job }
+func (j *renderedJob) Job() bmreljob.Job { return j.job }
 
 // Path returns a parent directory with one or more sub-dirs for each job, each with one or more rendered template files
 func (j *renderedJob) Path() string { return j.path }

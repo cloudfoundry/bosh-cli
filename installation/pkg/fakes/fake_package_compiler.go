@@ -1,21 +1,21 @@
 package fakes
 
 import (
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 type FakePackageCompiler struct {
 	CompileError    error
-	CompilePackages []*bmrel.Package
+	CompilePackages []*bmrelpkg.Package
 }
 
 func NewFakePackageCompiler() *FakePackageCompiler {
 	return &FakePackageCompiler{
-		CompilePackages: []*bmrel.Package{},
+		CompilePackages: []*bmrelpkg.Package{},
 	}
 }
 
-func (c *FakePackageCompiler) Compile(pkg *bmrel.Package) error {
+func (c *FakePackageCompiler) Compile(pkg *bmrelpkg.Package) error {
 	c.CompilePackages = append(c.CompilePackages, pkg)
 	return c.CompileError
 }

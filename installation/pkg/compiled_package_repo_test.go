@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
@@ -30,20 +30,20 @@ var _ = Describe("CompiledPackageRepo", func() {
 	Context("Save and Find", func() {
 		var (
 			record     CompiledPackageRecord
-			dependency bmrel.Package
-			pkg        bmrel.Package
+			dependency bmrelpkg.Package
+			pkg        bmrelpkg.Package
 		)
 
 		BeforeEach(func() {
 			record = CompiledPackageRecord{}
-			dependency = bmrel.Package{
+			dependency = bmrelpkg.Package{
 				Name:        "fake-dependency-package",
 				Fingerprint: "fake-dependency-fingerprint",
 			}
-			pkg = bmrel.Package{
+			pkg = bmrelpkg.Package{
 				Name:         "fake-package-name",
 				Fingerprint:  "fake-package-fingerprint",
-				Dependencies: []*bmrel.Package{&dependency},
+				Dependencies: []*bmrelpkg.Package{&dependency},
 			}
 		})
 
@@ -58,7 +58,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 		})
 
 		It("returns false when finding before saving", func() {
-			pkg := bmrel.Package{
+			pkg := bmrelpkg.Package{
 				Name: "fake-package-name",
 			}
 			_, found, err := compiledPackageRepo.Find(pkg)
@@ -82,21 +82,21 @@ var _ = Describe("CompiledPackageRepo", func() {
 		})
 
 		It("returns true if dependency order changed", func() {
-			dependency1 := bmrel.Package{
+			dependency1 := bmrelpkg.Package{
 				Name:        "fake-package-1",
 				Fingerprint: "fake-dependency-fingerprint-1",
 			}
-			dependency2 := bmrel.Package{
+			dependency2 := bmrelpkg.Package{
 				Name:        "fake-package-2",
 				Fingerprint: "fake-dependency-fingerprint-2",
 			}
 
-			pkg.Dependencies = []*bmrel.Package{&dependency1, &dependency2}
+			pkg.Dependencies = []*bmrelpkg.Package{&dependency1, &dependency2}
 
 			err := compiledPackageRepo.Save(pkg, record)
 			Expect(err).ToNot(HaveOccurred())
 
-			pkg.Dependencies = []*bmrel.Package{&dependency2, &dependency1}
+			pkg.Dependencies = []*bmrelpkg.Package{&dependency2, &dependency1}
 
 			result, found, err := compiledPackageRepo.Find(pkg)
 			Expect(err).ToNot(HaveOccurred())
@@ -105,11 +105,11 @@ var _ = Describe("CompiledPackageRepo", func() {
 		})
 
 		It("returns false if a transitive dependency has changed after saving", func() {
-			transitive := bmrel.Package{
+			transitive := bmrelpkg.Package{
 				Name:        "fake-transitive-package",
 				Fingerprint: "fake-transitive-fingerprint",
 			}
-			dependency.Dependencies = []*bmrel.Package{&transitive}
+			dependency.Dependencies = []*bmrelpkg.Package{&transitive}
 
 			err := compiledPackageRepo.Save(pkg, record)
 			Expect(err).ToNot(HaveOccurred())
@@ -133,7 +133,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 					BlobSHA1: "fake-sha1",
 				}
 
-				pkg := bmrel.Package{
+				pkg := bmrelpkg.Package{
 					Name: "fake-package-name",
 				}
 

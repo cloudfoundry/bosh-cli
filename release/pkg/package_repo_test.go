@@ -1,10 +1,10 @@
-package release_test
+package pkg_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
+	. "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 )
 
 var _ = Describe("PackageRepo", func() {
