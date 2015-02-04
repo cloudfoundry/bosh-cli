@@ -2,12 +2,13 @@
 
 This is the BOSH Micro CLI rewritten to support external CPIs.
 
-* Documentation: [docs.cloudfoundry.org/bosh](http://docs.cloudfoundry.org/bosh)
+* Documentation: [bosh.io/docs](https://bosh.io/docs)
 * IRC: `#bosh` on freenode
 * Google groups:
   [bosh-users](https://groups.google.com/a/cloudfoundry.org/group/bosh-users/topics) &
   [bosh-dev](https://groups.google.com/a/cloudfoundry.org/group/bosh-dev/topics) &
   [vcap-dev](https://groups.google.com/a/cloudfoundry.org/group/vcap-dev/topics) (for CF)
+* Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1133984)
 
 ## Usage
 
