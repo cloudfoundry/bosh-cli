@@ -7,6 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
@@ -69,7 +70,7 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 		return nil, bosherr.WrapErrorf(err, "Resolving job package dependencies for instance '%s/%d'", jobName, instanceID)
 	}
 
-	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob, deploymentManifest.Name, stage)
+	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, stage)
 	if err != nil {
 		return nil, bosherr.Errorf("Rendering job templates for instance '%s/%d'", jobName, instanceID)
 	}
@@ -191,14 +192,15 @@ func (b *builder) compilePackages(requiredPackages []*bmrelpkg.Package, stage bm
 	return packageRefs, nil
 }
 
+//TODO: abstract this to a class so it can also be used by installation (to replace templates compiler)
 // renderJobTemplates renders all the release job templates for multiple release jobs specified by a deployment job
-func (b *builder) renderJobTemplates(releaseJobs []bmreljob.Job, deploymentJob bmdeplmanifest.Job, deploymentName string, stage bmeventlog.Stage) (renderedJobs, error) {
+func (b *builder) renderJobTemplates(releaseJobs []bmreljob.Job, jobProperties, globalProperties bmproperty.Map, deploymentName string, stage bmeventlog.Stage) (renderedJobs, error) {
 	var (
 		renderedJobListArchive bmtemplate.RenderedJobListArchive
 		blobID                 string
 	)
 	err := stage.PerformStep("Rendering job templates", func() error {
-		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, deploymentJob.Properties, deploymentName)
+		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 		if err != nil {
 			return bosherr.WrapError(err, "Rendering job templates")
 		}

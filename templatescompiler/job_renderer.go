@@ -13,7 +13,7 @@ import (
 )
 
 type JobRenderer interface {
-	Render(job bmreljob.Job, properties bmproperty.Map, deploymentName string) (RenderedJob, error)
+	Render(releaseJob bmreljob.Job, jobProperties, globalProperties bmproperty.Map, deploymentName string) (RenderedJob, error)
 }
 
 type jobRenderer struct {
@@ -36,19 +36,19 @@ func NewJobRenderer(
 	}
 }
 
-func (r *jobRenderer) Render(job bmreljob.Job, properties bmproperty.Map, deploymentName string) (RenderedJob, error) {
-	context := NewJobEvaluationContext(job, properties, deploymentName, r.logger)
+func (r *jobRenderer) Render(releaseJob bmreljob.Job, jobProperties, globalProperties bmproperty.Map, deploymentName string) (RenderedJob, error) {
+	context := NewJobEvaluationContext(releaseJob, jobProperties, globalProperties, deploymentName, r.logger)
 
-	sourcePath := job.ExtractedPath
+	sourcePath := releaseJob.ExtractedPath
 
 	destinationPath, err := r.fs.TempDir("rendered-jobs")
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating rendered job directory")
 	}
 
-	renderedJob := NewRenderedJob(job, destinationPath, r.fs, r.logger)
+	renderedJob := NewRenderedJob(releaseJob, destinationPath, r.fs, r.logger)
 
-	for src, dst := range job.Templates {
+	for src, dst := range releaseJob.Templates {
 		err := r.renderFile(
 			filepath.Join(sourcePath, "templates", src),
 			filepath.Join(destinationPath, dst),

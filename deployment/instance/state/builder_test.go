@@ -110,6 +110,9 @@ var _ = Describe("Builder", func() {
 						},
 					},
 				},
+				Properties: bmproperty.Map{
+					"fake-job-property": "fake-global-property-value", //overridden by job property value
+				},
 			}
 
 			fakeStage = fakebmeventlog.NewFakeStage()
@@ -191,7 +194,10 @@ var _ = Describe("Builder", func() {
 			jobProperties := bmproperty.Map{
 				"fake-job-property": "fake-job-property-value",
 			}
-			mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, "fake-deployment-name").Return(mockRenderedJobList, nil)
+			globalProperties := bmproperty.Map{
+				"fake-job-property": "fake-global-property-value",
+			}
+			mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, "fake-deployment-name").Return(mockRenderedJobList, nil)
 
 			mockRenderedJobList.EXPECT().DeleteSilently()
 

@@ -12,6 +12,7 @@ type JobListRenderer interface {
 	Render(
 		releaseJobs []bmreljob.Job,
 		jobProperties bmproperty.Map,
+		globalProperties bmproperty.Map,
 		deploymentName string,
 	) (RenderedJobList, error)
 }
@@ -36,14 +37,15 @@ func NewJobListRenderer(
 func (r *jobListRenderer) Render(
 	releaseJobs []bmreljob.Job,
 	jobProperties bmproperty.Map,
+	globalProperties bmproperty.Map,
 	deploymentName string,
 ) (RenderedJobList, error) {
-	r.logger.Debug(r.logTag, "Rendering job list: deploymentName='%s' jobProperties=%#v", deploymentName, jobProperties)
+	r.logger.Debug(r.logTag, "Rendering job list: deploymentName='%s' jobProperties=%#v globalProperties=%#v", deploymentName, jobProperties, globalProperties)
 	renderedJobList := NewRenderedJobList()
 
 	// render all the jobs' templates
 	for _, releaseJob := range releaseJobs {
-		renderedJob, err := r.jobRenderer.Render(releaseJob, jobProperties, deploymentName)
+		renderedJob, err := r.jobRenderer.Render(releaseJob, jobProperties, globalProperties, deploymentName)
 		if err != nil {
 			defer renderedJobList.DeleteSilently()
 			return renderedJobList, bosherr.WrapErrorf(err, "Rendering templates for job %#v", releaseJob)

@@ -12,11 +12,12 @@ import (
 )
 
 type jobEvaluationContext struct {
-	relJob             bmreljob.Job
-	manifestProperties bmproperty.Map
-	deploymentName     string
-	logger             boshlog.Logger
-	logTag             string
+	releaseJob       bmreljob.Job
+	jobProperties    bmproperty.Map
+	globalProperties bmproperty.Map
+	deploymentName   string
+	logger           boshlog.Logger
+	logTag           string
 }
 
 // RootContext is exposed as an open struct in ERB templates.
@@ -29,6 +30,7 @@ type RootContext struct {
 	// Usually is accessed with <%= spec.networks.default.ip %>
 	NetworkContexts map[string]networkContext `json:"networks"`
 
+	//TODO: this should be a map[string]interface{}
 	Properties bmproperty.Map `json:"properties"`
 }
 
@@ -43,33 +45,50 @@ type networkContext struct {
 }
 
 func NewJobEvaluationContext(
-	job bmreljob.Job,
-	manifestProperties bmproperty.Map,
+	releaseJob bmreljob.Job,
+	jobProperties bmproperty.Map,
+	globalProperties bmproperty.Map,
 	deploymentName string,
 	logger boshlog.Logger,
 ) bmerbrenderer.TemplateEvaluationContext {
 	return jobEvaluationContext{
-		relJob:             job,
-		manifestProperties: manifestProperties,
-		deploymentName:     deploymentName,
-		logger:             logger,
-		logTag:             "jobEvaluationContext",
+		releaseJob:       releaseJob,
+		jobProperties:    jobProperties,
+		globalProperties: globalProperties,
+		deploymentName:   deploymentName,
+		logger:           logger,
+		logTag:           "jobEvaluationContext",
 	}
 }
 
 func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
-	propertyDefaults := ec.propertyDefaults(ec.relJob.Properties)
+	defaultProperties := ec.propertyDefaults(ec.releaseJob.Properties)
 
-	ec.logger.Debug(ec.logTag, "Job '%s' properties: %#v", ec.relJob.Name, propertyDefaults)
-	ec.logger.Debug(ec.logTag, "Deployment manifest properties: %#v", ec.manifestProperties)
+	ec.logger.Debug(ec.logTag, "Original job '%s' property defaults: %#v", ec.releaseJob.Name, defaultProperties)
 
-	properties := bmerbrenderer.NewPropertiesResolver(propertyDefaults, ec.manifestProperties).Resolve()
+	properties, err := bmproperty.Unfurl(defaultProperties)
+	if err != nil {
+		return []byte{}, bosherr.WrapErrorf(err, "Unfurling job '%s' property defaults: %#v", ec.releaseJob.Name, defaultProperties)
+	}
+	ec.logger.Debug(ec.logTag, "Unfurled job '%s' property defaults: %#v", ec.releaseJob.Name, properties)
 
-	ec.logger.Debug(ec.logTag, "Resolved Job '%s' properties: %#v", ec.relJob.Name, properties)
+	ec.logger.Debug(ec.logTag, "Global properties: %#v", ec.globalProperties)
+	err = bmproperty.Merge(properties, ec.globalProperties)
+	if err != nil {
+		return []byte{}, bosherr.WrapErrorf(err, "Merging global properties for job '%s'", ec.releaseJob.Name)
+	}
+
+	ec.logger.Debug(ec.logTag, "Job '%s' properties: %#v", ec.releaseJob.Name, ec.jobProperties)
+	err = bmproperty.Merge(properties, ec.jobProperties)
+	if err != nil {
+		return []byte{}, bosherr.WrapErrorf(err, "Merging job properties for job '%s'", ec.releaseJob.Name)
+	}
+
+	ec.logger.Debug(ec.logTag, "Merged job '%s' properties: %#v", ec.releaseJob.Name, properties)
 
 	context := RootContext{
 		Index:           0,
-		JobContext:      jobContext{Name: ec.relJob.Name},
+		JobContext:      jobContext{Name: ec.releaseJob.Name},
 		Deployment:      ec.deploymentName,
 		NetworkContexts: ec.buildNetworkContexts(),
 		Properties:      properties,

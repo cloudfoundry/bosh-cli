@@ -32,9 +32,10 @@ var _ = Describe("JobListRenderer", func() {
 
 		mockJobRenderer *mock_template.MockJobRenderer
 
-		releaseJobs    []bmreljob.Job
-		jobProperties  bmproperty.Map
-		deploymentName string
+		releaseJobs      []bmreljob.Job
+		jobProperties    bmproperty.Map
+		globalProperties bmproperty.Map
+		deploymentName   string
 
 		renderedJobs []*mock_template.MockRenderedJob
 
@@ -55,7 +56,11 @@ var _ = Describe("JobListRenderer", func() {
 		}
 
 		jobProperties = bmproperty.Map{
-			"fake-key": "fake-value",
+			"fake-key": "fake-job-value",
+		}
+
+		globalProperties = bmproperty.Map{
+			"fake-key": "fake-global-value",
 		}
 
 		deploymentName = "fake-deployment-name"
@@ -69,13 +74,13 @@ var _ = Describe("JobListRenderer", func() {
 	})
 
 	JustBeforeEach(func() {
-		expectRender0 = mockJobRenderer.EXPECT().Render(releaseJobs[0], jobProperties, deploymentName).Return(renderedJobs[0], nil)
-		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], jobProperties, deploymentName).Return(renderedJobs[1], nil)
+		expectRender0 = mockJobRenderer.EXPECT().Render(releaseJobs[0], jobProperties, globalProperties, deploymentName).Return(renderedJobs[0], nil)
+		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], jobProperties, globalProperties, deploymentName).Return(renderedJobs[1], nil)
 	})
 
 	Describe("Render", func() {
 		It("returns a new RenderedJobList with all the RenderedJobs", func() {
-			renderedJobList, err := jobListRenderer.Render(releaseJobs, jobProperties, deploymentName)
+			renderedJobList, err := jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(renderedJobList.All()).To(Equal([]RenderedJob{
 				renderedJobs[0],
@@ -91,7 +96,7 @@ var _ = Describe("JobListRenderer", func() {
 			It("returns an error and cleans up any sucessfully rendered jobs", func() {
 				renderedJobs[0].EXPECT().DeleteSilently()
 
-				_, err := jobListRenderer.Render(releaseJobs, jobProperties, deploymentName)
+				_, err := jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
 			})

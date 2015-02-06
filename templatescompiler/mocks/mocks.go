@@ -31,15 +31,15 @@ func (_m *MockJobRenderer) EXPECT() *_MockJobRendererRecorder {
 	return _m.recorder
 }
 
-func (_m *MockJobRenderer) Render(_param0 job.Job, _param1 property.Map, _param2 string) (templatescompiler.RenderedJob, error) {
-	ret := _m.ctrl.Call(_m, "Render", _param0, _param1, _param2)
+func (_m *MockJobRenderer) Render(_param0 job.Job, _param1 property.Map, _param2 property.Map, _param3 string) (templatescompiler.RenderedJob, error) {
+	ret := _m.ctrl.Call(_m, "Render", _param0, _param1, _param2, _param3)
 	ret0, _ := ret[0].(templatescompiler.RenderedJob)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockJobRendererRecorder) Render(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Render", arg0, arg1, arg2)
+func (_mr *_MockJobRendererRecorder) Render(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Render", arg0, arg1, arg2, arg3)
 }
 
 // Mock of JobListRenderer interface
@@ -63,15 +63,15 @@ func (_m *MockJobListRenderer) EXPECT() *_MockJobListRendererRecorder {
 	return _m.recorder
 }
 
-func (_m *MockJobListRenderer) Render(_param0 []job.Job, _param1 property.Map, _param2 string) (templatescompiler.RenderedJobList, error) {
-	ret := _m.ctrl.Call(_m, "Render", _param0, _param1, _param2)
+func (_m *MockJobListRenderer) Render(_param0 []job.Job, _param1 property.Map, _param2 property.Map, _param3 string) (templatescompiler.RenderedJobList, error) {
+	ret := _m.ctrl.Call(_m, "Render", _param0, _param1, _param2, _param3)
 	ret0, _ := ret[0].(templatescompiler.RenderedJobList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockJobListRendererRecorder) Render(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Render", arg0, arg1, arg2)
+func (_mr *_MockJobListRendererRecorder) Render(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Render", arg0, arg1, arg2, arg3)
 }
 
 // Mock of RenderedJob interface

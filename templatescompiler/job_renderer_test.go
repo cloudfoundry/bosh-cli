@@ -27,7 +27,8 @@ var _ = Describe("JobRenderer", func() {
 		job              bmreljob.Job
 		context          bmerbrenderer.TemplateEvaluationContext
 		fs               *fakesys.FakeFileSystem
-		renderProperties bmproperty.Map
+		jobProperties    bmproperty.Map
+		globalProperties bmproperty.Map
 		srcPath          string
 		dstPath          string
 	)
@@ -35,8 +36,12 @@ var _ = Describe("JobRenderer", func() {
 	BeforeEach(func() {
 		srcPath = "fake-src-path"
 		dstPath = "fake-dst-path"
-		renderProperties = bmproperty.Map{
-			"fake-property-key": "fake-property-value",
+		jobProperties = bmproperty.Map{
+			"fake-property-key": "fake-job-property-value",
+		}
+
+		globalProperties = bmproperty.Map{
+			"fake-property-key": "fake-global-property-value",
 		}
 
 		job = bmreljob.Job{
@@ -47,7 +52,8 @@ var _ = Describe("JobRenderer", func() {
 		}
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		context = NewJobEvaluationContext(job, renderProperties, "fake-deployment-name", logger)
+
+		context = NewJobEvaluationContext(job, jobProperties, globalProperties, "fake-deployment-name", logger)
 
 		fakeERBRenderer = fakebmrender.NewFakeERBRender()
 
@@ -78,7 +84,7 @@ var _ = Describe("JobRenderer", func() {
 
 	Describe("Render", func() {
 		It("renders job templates", func() {
-			renderedjob, err := jobRenderer.Render(job, renderProperties, "fake-deployment-name")
+			renderedjob, err := jobRenderer.Render(job, jobProperties, globalProperties, "fake-deployment-name")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebmrender.RenderInput{
@@ -106,7 +112,7 @@ var _ = Describe("JobRenderer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := jobRenderer.Render(job, renderProperties, "fake-deployment-name")
+				_, err := jobRenderer.Render(job, jobProperties, globalProperties, "fake-deployment-name")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-render-error"))
 			})

@@ -55,8 +55,10 @@ func (tc templatesCompiler) Compile(jobs []bmreljob.Job, deploymentName string, 
 	})
 }
 
-func (tc templatesCompiler) compileJob(job bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map) error {
-	renderedJob, err := tc.jobRenderer.Render(job, deploymentProperties, deploymentName)
+func (tc templatesCompiler) compileJob(job bmreljob.Job, deploymentName string, cpiProperties bmproperty.Map) error {
+	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
+	globalProperties := bmproperty.Map{}
+	renderedJob, err := tc.jobRenderer.Render(job, cpiProperties, globalProperties, deploymentName)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Rendering templates for job '%s'", job.Name)
 	}
