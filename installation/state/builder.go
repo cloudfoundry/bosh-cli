@@ -73,7 +73,7 @@ func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage b
 		return nil, bosherr.WrapErrorf(err, "Resolving installation properties")
 	}
 
-	//TODO: bellow is similar to instance/state.Builder - abstract?
+	//TODO: bellow is similar to deployment/instance/state.Builder - abstract?
 	releaseJobs, err := b.resolveJobs(releaseJobRefs)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Resolving jobs for installation")
@@ -96,7 +96,7 @@ func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage b
 	return NewState(renderedJobRefs[0], compiledPackageRefs), nil
 }
 
-//TODO: similar to instance/state.Builder - abstract?
+//TODO: similar to deployment/instance/state.Builder - abstract?
 func (b *builder) resolveJobs(jobRefs []ReleaseJobRef) ([]bmreljob.Job, error) {
 	releaseJobs := make([]bmreljob.Job, len(jobRefs), len(jobRefs))
 	for i, jobRef := range jobRefs {
@@ -109,7 +109,7 @@ func (b *builder) resolveJobs(jobRefs []ReleaseJobRef) ([]bmreljob.Job, error) {
 	return releaseJobs, nil
 }
 
-//TODO: same as instance/state.Builder - abstract
+//TODO: same as deployment/instance/state.Builder - abstract
 // compileJobDependencies resolves and compiles all transitive dependencies of multiple release jobs
 func (b *builder) compileJobDependencies(releaseJobs []bmreljob.Job, stage bmeventlog.Stage) ([]bminstallpkg.CompiledPackageRef, error) {
 	compileOrderReleasePackages, err := b.resolveJobCompilationDependencies(releaseJobs)
@@ -125,7 +125,7 @@ func (b *builder) compileJobDependencies(releaseJobs []bmreljob.Job, stage bmeve
 	return compiledPackageRefs, nil
 }
 
-//TODO: same as instance/state.Builder - abstract
+//TODO: same as deployment/instance/state.Builder - abstract
 // resolveJobPackageCompilationDependencies returns all packages required by all specified jobs, in compilation order (reverse dependency order)
 func (b *builder) resolveJobCompilationDependencies(releaseJobs []bmreljob.Job) ([]*bmrelpkg.Package, error) {
 	// collect and de-dupe all required packages (dependencies of jobs)
@@ -149,7 +149,7 @@ func (b *builder) resolveJobCompilationDependencies(releaseJobs []bmreljob.Job) 
 	return sortedPackages, nil
 }
 
-//TODO: same as instance/state.Builder - abstract
+//TODO: same as deployment/instance/state.Builder - abstract
 // resolvePackageDependencies adds the releasePackage's dependencies to the nameToPackageMap recursively
 func (b *builder) resolvePackageDependencies(releasePackage *bmrelpkg.Package, nameToPackageMap map[string]*bmrelpkg.Package) {
 	for _, dependency := range releasePackage.Dependencies {
@@ -246,11 +246,11 @@ func (b *builder) compressAndUpload(renderedJob bmtemplate.RenderedJob) (record 
 		return record, bosherr.WrapError(err, "Creating blob")
 	}
 
-	//TODO: do these templates even need to be in a repo? we can't re-use them, because the properties may change...
 	record = bmtemplate.TemplateRecord{
 		BlobID:   blobID,
 		BlobSHA1: blobSHA1,
 	}
+	//TODO: move TemplatesRepo to state/job.TemplatesRepo and reuse in deployment/instance/state.Builder
 	err = b.templatesRepo.Save(renderedJob.Job(), record)
 	if err != nil {
 		return record, bosherr.WrapError(err, "Saving job to templates repo")

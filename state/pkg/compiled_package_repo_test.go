@@ -18,12 +18,12 @@ var _ = Describe("CompiledPackageRepo", func() {
 	var (
 		index               bmindex.Index
 		compiledPackageRepo CompiledPackageRepo
-		fs                  *fakesys.FakeFileSystem
+		fakeFS              *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
-		fs = fakesys.NewFakeFileSystem()
-		index = bmindex.NewFileIndex("/index_file", fs)
+		fakeFS = fakesys.NewFakeFileSystem()
+		index = bmindex.NewFileIndex("/index_file", fakeFS)
 		compiledPackageRepo = NewCompiledPackageRepo(index)
 	})
 
@@ -127,7 +127,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 
 		Context("when saving to index fails", func() {
 			It("returns error", func() {
-				fs.WriteToFileError = errors.New("Could not save")
+				fakeFS.WriteToFileError = errors.New("Could not save")
 				record := CompiledPackageRecord{
 					BlobID:   "fake-blob-id",
 					BlobSHA1: "fake-sha1",
@@ -146,7 +146,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 		Context("when reading from index fails", func() {
 			It("returns error", func() {
 				err := compiledPackageRepo.Save(pkg, record)
-				fs.ReadFileError = errors.New("fake-error")
+				fakeFS.ReadFileError = errors.New("fake-error")
 
 				_, _, err = compiledPackageRepo.Find(pkg)
 				Expect(err).To(HaveOccurred())

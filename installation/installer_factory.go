@@ -241,8 +241,7 @@ func (c *installerFactoryContext) CompiledPackageRepo() bmstatepkg.CompiledPacka
 		return c.compiledPackageRepo
 	}
 
-	indexFilePath := c.target.CompiledPackagedIndexPath()
-	compiledPackageIndex := bmindex.NewFileIndex(indexFilePath, c.fs)
+	compiledPackageIndex := bmindex.NewFileIndex(c.target.CompiledPackagedIndexPath(), c.fs)
 	c.compiledPackageRepo = bmstatepkg.NewCompiledPackageRepo(compiledPackageIndex)
 
 	return c.compiledPackageRepo

@@ -9,40 +9,34 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/index"
 )
 
-type Key struct {
-	Key string
-}
-
-type Value struct {
-	Name  string
-	Count float64
-}
-
-type ArrayValue struct{ Names []string }
-
-type StructValue struct{ Name Name }
-
-type Name struct {
-	First string
-	Last  string
-}
-
 var _ = Describe("FileIndex", func() {
 	var (
-		index FileIndex
+		fs            boshsys.FileSystem
+		indexFilePath string
+		index         FileIndex
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		fs := boshsys.NewOsFileSystem(logger)
+		fs = boshsys.NewOsFileSystem(logger)
 
 		file, err := fs.TempFile("file-index")
 		Expect(err).ToNot(HaveOccurred())
 
-		err = fs.RemoveAll(file.Name())
+		indexFilePath = file.Name()
+
+		err = file.Close()
 		Expect(err).ToNot(HaveOccurred())
 
-		index = NewFileIndex(file.Name(), fs)
+		err = fs.RemoveAll(indexFilePath)
+		Expect(err).ToNot(HaveOccurred())
+
+		index = NewFileIndex(indexFilePath, fs)
+	})
+
+	AfterEach(func() {
+		err := fs.RemoveAll(indexFilePath)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Describe("Save/Find", func() {
@@ -76,7 +70,7 @@ var _ = Describe("FileIndex", func() {
 			Expect(value).To(Equal(Value{}))
 		})
 
-		Describe("array values", func() {
+		Context("when the values include arrays", func() {
 			It("returns true and correctly deserializes item with nil", func() {
 				k1 := Key{Key: "key-1"}
 				v1 := ArrayValue{} // nil
@@ -123,7 +117,7 @@ var _ = Describe("FileIndex", func() {
 			})
 		})
 
-		Describe("struct values", func() {
+		Context("when the values include structs", func() {
 			It("returns true and correctly deserializes item with zero value", func() {
 				k1 := Key{Key: "key-1"}
 				v1 := StructValue{} // zero value
@@ -152,6 +146,29 @@ var _ = Describe("FileIndex", func() {
 				Expect(err).ToNot(Equal(ErrNotFound))
 
 				Expect(value).To(Equal(v1))
+			})
+		})
+
+		Context("when a new FileIndex is constructed backed by the same file", func() {
+			var (
+				index2 FileIndex
+			)
+
+			BeforeEach(func() {
+				index2 = NewFileIndex(indexFilePath, fs)
+			})
+
+			It("returns the value saved by the original FileIndex", func() {
+				err := index.Save(Key{Key: "key-1"}, Value{Name: "value-1", Count: 1})
+				Expect(err).ToNot(HaveOccurred())
+
+				var value Value
+
+				err = index2.Find(Key{Key: "key-1"}, &value)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(err).ToNot(Equal(ErrNotFound))
+
+				Expect(value).To(Equal(Value{Name: "value-1", Count: 1}))
 			})
 		})
 	})

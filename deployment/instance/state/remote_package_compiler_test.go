@@ -10,10 +10,6 @@ import (
 	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
@@ -34,7 +30,6 @@ func describeRemotePackageCompiler() {
 	})
 
 	var (
-		fakeFS      boshsys.FileSystem
 		packageRepo bmstatepkg.CompiledPackageRepo
 
 		pkgDependency    *bmrelpkg.Package
@@ -58,8 +53,7 @@ func describeRemotePackageCompiler() {
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-		fakeFS = fakeboshsys.NewFakeFileSystem()
-		index := bmindex.NewFileIndex("/compiled-packages.json", fakeFS)
+		index := bmindex.NewInMemoryIndex()
 		packageRepo = bmstatepkg.NewCompiledPackageRepo(index)
 		remotePackageCompiler = NewRemotePackageCompiler(mockBlobstore, mockAgentClient, packageRepo)
 

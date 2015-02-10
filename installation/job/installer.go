@@ -85,7 +85,5 @@ func (i jobInstaller) install(renderedJobRef RenderedJobRef) (InstalledJob, erro
 		}
 	}
 
-	//TODO: remove from templates repo? we can't reuse them because properties may change...
-
 	return InstalledJob{Name: renderedJobRef.Name, Path: jobDir}, nil
 }

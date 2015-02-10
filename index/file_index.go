@@ -2,21 +2,11 @@ package index
 
 import (
 	"encoding/json"
-	"errors"
 	"reflect"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
-
-var (
-	ErrNotFound = errors.New("Record is not found")
-)
-
-type Index interface {
-	Find(interface{}, interface{}) error
-	Save(interface{}, interface{}) error
-}
 
 type FileIndex struct {
 	path string
@@ -32,7 +22,7 @@ func NewFileIndex(path string, fs boshsys.FileSystem) FileIndex {
 	return FileIndex{path: path, fs: fs}
 }
 
-func (ri FileIndex) Find(key interface{}, entry interface{}) error {
+func (ri FileIndex) Find(key interface{}, value interface{}) error {
 	rawEntries, err := ri.readRawEntries()
 	if err != nil {
 		return err
@@ -45,7 +35,7 @@ func (ri FileIndex) Find(key interface{}, entry interface{}) error {
 
 	for _, rawEntry := range rawEntries {
 		if reflect.DeepEqual(rawEntry.Key, rawKey) {
-			err := json.Unmarshal(rawEntry.Value, entry)
+			err := json.Unmarshal(rawEntry.Value, value)
 			if err != nil {
 				return err
 			}
@@ -57,7 +47,7 @@ func (ri FileIndex) Find(key interface{}, entry interface{}) error {
 	return ErrNotFound
 }
 
-func (ri FileIndex) Save(key interface{}, entry interface{}) error {
+func (ri FileIndex) Save(key interface{}, value interface{}) error {
 	rawEntries, err := ri.readRawEntries()
 	if err != nil {
 		return err
@@ -68,7 +58,7 @@ func (ri FileIndex) Save(key interface{}, entry interface{}) error {
 		return err
 	}
 
-	rawValue, err := json.Marshal(entry)
+	rawValue, err := json.Marshal(value)
 	if err != nil {
 		return err
 	}

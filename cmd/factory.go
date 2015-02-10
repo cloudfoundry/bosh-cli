@@ -36,8 +36,6 @@ import (
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmtemplateerb "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
-
-	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
 type Factory interface {
@@ -240,9 +238,7 @@ func (f *factory) loadCompiledPackageRepo() bmstatepkg.CompiledPackageRepo {
 		return f.compiledPackageRepo
 	}
 
-	//TODO: replace with in-memory Index impl to avoid using a fake in prod
-	fakeFS := fakeboshsys.NewFakeFileSystem()
-	index := bmindex.NewFileIndex("/in-memory-compiled-packages.json", fakeFS)
+	index := bmindex.NewInMemoryIndex()
 	f.compiledPackageRepo = bmstatepkg.NewCompiledPackageRepo(index)
 	return f.compiledPackageRepo
 }

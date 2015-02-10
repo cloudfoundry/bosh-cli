@@ -18,12 +18,12 @@ var _ = Describe("TemplatesRepo", func() {
 	var (
 		index         bmindex.Index
 		templatesRepo TemplatesRepo
-		fs            *fakesys.FakeFileSystem
+		fakeFS        *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
-		fs = fakesys.NewFakeFileSystem()
-		index = bmindex.NewFileIndex("/index_file", fs)
+		fakeFS = fakesys.NewFakeFileSystem()
+		index = bmindex.NewFileIndex("/index_file", fakeFS)
 		templatesRepo = NewTemplatesRepo(index)
 	})
 
@@ -74,7 +74,7 @@ var _ = Describe("TemplatesRepo", func() {
 
 		Context("when saving to index fails", func() {
 			It("returns error", func() {
-				fs.WriteToFileError = errors.New("fake-write-error")
+				fakeFS.WriteToFileError = errors.New("fake-write-error")
 				record := TemplateRecord{
 					BlobID:   "fake-blob-id",
 					BlobSHA1: "fake-sha1",
@@ -89,7 +89,7 @@ var _ = Describe("TemplatesRepo", func() {
 		Context("when reading from index fails", func() {
 			It("returns error", func() {
 				err := templatesRepo.Save(job, record)
-				fs.ReadFileError = errors.New("fake-read-error")
+				fakeFS.ReadFileError = errors.New("fake-read-error")
 
 				_, _, err = templatesRepo.Find(job)
 				Expect(err).To(HaveOccurred())

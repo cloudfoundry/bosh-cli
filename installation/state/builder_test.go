@@ -79,7 +79,7 @@ var _ = Describe("Builder", func() {
 		fakeBlobstore = fakeboshblob.NewFakeBlobstore()
 
 		fakeFS = fakeboshsys.NewFakeFileSystem()
-		index := bmindex.NewFileIndex("/template-index.json", fakeFS)
+		index := bmindex.NewInMemoryIndex()
 		templatesRepo = bmtemplate.NewTemplatesRepo(index)
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
