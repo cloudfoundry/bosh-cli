@@ -8,9 +8,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"code.google.com/p/gomock/gomock"
-	mock_install_pkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/mocks"
-
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
@@ -22,31 +19,19 @@ import (
 )
 
 var _ = Describe("Installer", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
-		fs                   *fakesys.FakeFileSystem
-		jobInstaller         Installer
-		renderedJobRef       RenderedJobRef
-		mockPackageInstaller *mock_install_pkg.MockPackageInstaller
-		blobExtractor        *fakebminstallblob.FakeExtractor
-		templateRepo         *fakebmtemplate.FakeTemplatesRepo
-		jobsPath             string
-		fakeStage            *fakebmlog.FakeStage
+		fs             *fakesys.FakeFileSystem
+		jobInstaller   Installer
+		renderedJobRef RenderedJobRef
+		blobExtractor  *fakebminstallblob.FakeExtractor
+		templateRepo   *fakebmtemplate.FakeTemplatesRepo
+		jobsPath       string
+		fakeStage      *fakebmlog.FakeStage
 	)
 
 	Context("Installing the job", func() {
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
-			mockPackageInstaller = mock_install_pkg.NewMockPackageInstaller(mockCtrl)
 			blobExtractor = fakebminstallblob.NewFakeExtractor()
 			templateRepo = fakebmtemplate.NewFakeTemplatesRepo()
 

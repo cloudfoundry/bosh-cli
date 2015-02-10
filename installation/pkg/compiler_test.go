@@ -39,7 +39,7 @@ var _ = Describe("PackageCompiler", func() {
 
 	var (
 		logger              boshlog.Logger
-		compiler            PackageCompiler
+		compiler            Compiler
 		runner              *fakesys.FakeCmdRunner
 		pkg                 *bmrelpkg.Package
 		fs                  *fakesys.FakeFileSystem
@@ -48,7 +48,7 @@ var _ = Describe("PackageCompiler", func() {
 		blobstore           *fakeblobstore.FakeBlobstore
 		compiledPackageRepo *fakebmpkgs.FakeCompiledPackageRepo
 
-		mockPackageInstaller *mock_install_pkg.MockPackageInstaller
+		mockPackageInstaller *mock_install_pkg.MockInstaller
 
 		dependency1 *bmrelpkg.Package
 		dependency2 *bmrelpkg.Package
@@ -61,7 +61,7 @@ var _ = Describe("PackageCompiler", func() {
 		fs = fakesys.NewFakeFileSystem()
 		compressor = fakecmd.NewFakeCompressor()
 
-		mockPackageInstaller = mock_install_pkg.NewMockPackageInstaller(mockCtrl)
+		mockPackageInstaller = mock_install_pkg.NewMockInstaller(mockCtrl)
 
 		blobstore = fakeblobstore.NewFakeBlobstore()
 		blobstore.CreateFingerprint = "fake-fingerprint"

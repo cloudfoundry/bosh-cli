@@ -6,8 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-
 	fakebminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
@@ -15,23 +13,15 @@ import (
 
 var _ = Describe("PackageInstaller", func() {
 	var (
-		installer     PackageInstaller
+		installer     Installer
 		blobExtractor *fakebminstallblob.FakeExtractor
 		targetDir     string
-		pkg           *bmrelpkg.Package
 	)
 
 	BeforeEach(func() {
 		blobExtractor = fakebminstallblob.NewFakeExtractor()
 		targetDir = "fake-target-dir"
 		installer = NewPackageInstaller(blobExtractor)
-
-		pkg = &bmrelpkg.Package{
-			Name:         "fake-package-name",
-			Fingerprint:  "fake-package-fingerprint",
-			SHA1:         "fake-package-sha1",
-			Dependencies: []*bmrelpkg.Package{},
-		}
 	})
 
 	Describe("Install", func() {

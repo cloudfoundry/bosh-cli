@@ -30,7 +30,7 @@ type Builder interface {
 
 type builder struct {
 	releaseJobResolver bmdeplrel.JobResolver
-	packageCompiler    bminstallpkg.PackageCompiler
+	packageCompiler    bminstallpkg.Compiler
 	jobListRenderer    bmtemplate.JobListRenderer
 	compressor         boshcmd.Compressor
 	blobstore          boshblob.Blobstore
@@ -39,7 +39,7 @@ type builder struct {
 
 func NewBuilder(
 	releaseJobResolver bmdeplrel.JobResolver,
-	packageCompiler bminstallpkg.PackageCompiler,
+	packageCompiler bminstallpkg.Compiler,
 	jobListRenderer bmtemplate.JobListRenderer,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,

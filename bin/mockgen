@@ -11,7 +11,7 @@ srcFiles=(
   cloud/Cloud,Factory
 	installation/Installation,Installer,InstallerFactory
 	installation/state/Builder
-	installation/pkg/PackageCompiler,PackageInstaller
+	installation/pkg/Compiler,Installer
 	installation/job/Installer
 	deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
 	deployment/agentclient/AgentClient

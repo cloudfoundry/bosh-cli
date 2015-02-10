@@ -13,22 +13,20 @@ type CompiledPackageRef struct {
 	SHA1        string
 }
 
-//TODO: rename PackageInstaller to Installer to avoid stuttering
-
-type PackageInstaller interface {
+type Installer interface {
 	Install(pkg CompiledPackageRef, targetDir string) error
 }
 
-type packageInstaller struct {
+type installer struct {
 	blobExtractor bminstallblob.Extractor
 }
 
-func NewPackageInstaller(blobExtractor bminstallblob.Extractor) PackageInstaller {
-	return &packageInstaller{
+func NewPackageInstaller(blobExtractor bminstallblob.Extractor) Installer {
+	return &installer{
 		blobExtractor: blobExtractor,
 	}
 }
 
-func (pi *packageInstaller) Install(pkg CompiledPackageRef, parentDir string) error {
+func (pi *installer) Install(pkg CompiledPackageRef, parentDir string) error {
 	return pi.blobExtractor.Extract(pkg.BlobstoreID, pkg.SHA1, filepath.Join(parentDir, pkg.Name))
 }

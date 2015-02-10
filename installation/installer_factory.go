@@ -132,10 +132,10 @@ type installerFactoryContext struct {
 	releaseJobResolver bmdeplrel.JobResolver
 
 	stateBuilder        bminstallstate.Builder
-	packageCompiler     bminstallpkg.PackageCompiler
+	packageCompiler     bminstallpkg.Compiler
 	jobInstaller        bminstalljob.Installer
 	templatesRepo       bmtemplate.TemplatesRepo
-	packageInstaller    bminstallpkg.PackageInstaller
+	packageInstaller    bminstallpkg.Installer
 	blobstore           boshblob.Blobstore
 	blobExtractor       bminstallblob.Extractor
 	compiledPackageRepo bminstallpkg.CompiledPackageRepo
@@ -161,7 +161,7 @@ func (c *installerFactoryContext) StateBuilder() bminstallstate.Builder {
 	return c.stateBuilder
 }
 
-func (c *installerFactoryContext) PackageCompiler() bminstallpkg.PackageCompiler {
+func (c *installerFactoryContext) PackageCompiler() bminstallpkg.Compiler {
 	if c.packageCompiler != nil {
 		return c.packageCompiler
 	}
@@ -204,7 +204,7 @@ func (c *installerFactoryContext) TemplatesRepo() bmtemplate.TemplatesRepo {
 	return c.templatesRepo
 }
 
-func (c *installerFactoryContext) PackageInstaller() bminstallpkg.PackageInstaller {
+func (c *installerFactoryContext) PackageInstaller() bminstallpkg.Installer {
 	if c.packageInstaller != nil {
 		return c.packageInstaller
 	}

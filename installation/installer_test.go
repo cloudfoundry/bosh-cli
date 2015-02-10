@@ -20,14 +20,9 @@ import (
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
-	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Installer", func() {
@@ -42,12 +37,10 @@ var _ = Describe("Installer", func() {
 	})
 
 	var (
-		fakeFS        *fakesys.FakeFileSystem
-		fakeExtractor *testfakes.FakeMultiResponseExtractor
-		fakeUI        *fakebmui.FakeUI
+		fakeFS *fakesys.FakeFileSystem
 
 		mockStateBuilder     *mock_install_state.MockBuilder
-		mockPackageInstaller *mock_install_pkg.MockPackageInstaller
+		mockPackageInstaller *mock_install_pkg.MockInstaller
 		mockJobInstaller     *mock_install_job.MockInstaller
 
 		mockRegistryServerManager *mock_registry.MockServerManager
@@ -62,13 +55,11 @@ var _ = Describe("Installer", func() {
 
 	BeforeEach(func() {
 		fakeFS = fakesys.NewFakeFileSystem()
-		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
-		fakeUI = &fakebmui.FakeUI{}
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		mockStateBuilder = mock_install_state.NewMockBuilder(mockCtrl)
-		mockPackageInstaller = mock_install_pkg.NewMockPackageInstaller(mockCtrl)
+		mockPackageInstaller = mock_install_pkg.NewMockInstaller(mockCtrl)
 		mockJobInstaller = mock_install_job.NewMockInstaller(mockCtrl)
 
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
@@ -94,8 +85,6 @@ var _ = Describe("Installer", func() {
 	Describe("Install", func() {
 		var (
 			installationManifest bminstallmanifest.Manifest
-			release              bmrel.Release
-			releaseJob           bmreljob.Job
 			fakeStage            *fakebmeventlog.FakeStage
 
 			installedJob bminstalljob.InstalledJob
@@ -116,8 +105,6 @@ var _ = Describe("Installer", func() {
 
 			fakeStage = fakebmeventlog.NewFakeStage()
 
-			releaseJob = bmreljob.Job{Name: "cpi"}
-
 			installedJob = bminstalljob.InstalledJob{
 				Name: "cpi",
 				Path: "/extracted-release-path/cpi",
@@ -125,17 +112,6 @@ var _ = Describe("Installer", func() {
 		})
 
 		JustBeforeEach(func() {
-			releaseJobs := []bmreljob.Job{releaseJob}
-			releasePackages := append([]*bmrelpkg.Package(nil), releaseJob.Packages...)
-			release = bmrel.NewRelease(
-				"fake-release-name",
-				"fake-release-version",
-				releaseJobs,
-				releasePackages,
-				"/extracted-release-path",
-				fakeFS,
-			)
-
 			renderedCPIJob := bminstalljob.RenderedJobRef{
 				Name:        "cpi",
 				Version:     "fake-release-job-fingerprint",

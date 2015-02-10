@@ -44,7 +44,7 @@ var _ = Describe("Builder", func() {
 
 	var (
 		mockReleaseJobResolver *mock_deployment_release.MockJobResolver
-		mockPackageCompiler    *mock_installation_pkg.MockPackageCompiler
+		mockPackageCompiler    *mock_installation_pkg.MockCompiler
 		mockJobListRenderer    *mock_template.MockJobListRenderer
 		fakeCompressor         *fakeboshcmd.FakeCompressor
 		fakeBlobstore          *fakeboshblob.FakeBlobstore
@@ -72,7 +72,7 @@ var _ = Describe("Builder", func() {
 
 	BeforeEach(func() {
 		mockReleaseJobResolver = mock_deployment_release.NewMockJobResolver(mockCtrl)
-		mockPackageCompiler = mock_installation_pkg.NewMockPackageCompiler(mockCtrl)
+		mockPackageCompiler = mock_installation_pkg.NewMockCompiler(mockCtrl)
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		fakeCompressor = fakeboshcmd.NewFakeCompressor()
 		fakeBlobstore = fakeboshblob.NewFakeBlobstore()

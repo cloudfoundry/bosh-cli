@@ -24,7 +24,7 @@ type installer struct {
 	fs                    boshsys.FileSystem
 	stateBuilder          bminstallstate.Builder
 	packagesPath          string
-	packageInstaller      bminstallpkg.PackageInstaller
+	packageInstaller      bminstallpkg.Installer
 	jobInstaller          bminstalljob.Installer
 	registryServerManager bmregistry.ServerManager
 	logger                boshlog.Logger
@@ -36,7 +36,7 @@ func NewInstaller(
 	fs boshsys.FileSystem,
 	stateBuilder bminstallstate.Builder,
 	packagesPath string,
-	packageInstaller bminstallpkg.PackageInstaller,
+	packageInstaller bminstallpkg.Installer,
 	jobInstaller bminstalljob.Installer,
 	registryServerManager bmregistry.ServerManager,
 	logger boshlog.Logger,

@@ -44,8 +44,6 @@ var _ = Describe("Builder", func() {
 		mockCompressor         *mock_template.MockRenderedJobListCompressor
 		mockBlobstore          *mock_blobstore.MockBlobstore
 
-		mockState *mock_instance_state.MockState
-
 		stateBuilder Builder
 	)
 
@@ -57,8 +55,6 @@ var _ = Describe("Builder", func() {
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		mockCompressor = mock_template.NewMockRenderedJobListCompressor(mockCtrl)
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
-
-		mockState = mock_instance_state.NewMockState(mockCtrl)
 	})
 
 	Describe("Build", func() {
