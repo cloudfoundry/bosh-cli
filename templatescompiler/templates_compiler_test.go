@@ -38,7 +38,7 @@ var _ = Describe("TemplatesCompiler", func() {
 	})
 
 	var (
-		mockJobRenderer *mock_template.MockJobRenderer
+		mockJobListRenderer *mock_template.MockJobListRenderer
 
 		templatesCompiler TemplatesCompiler
 		compressor        *fakecmd.FakeCompressor
@@ -62,7 +62,7 @@ var _ = Describe("TemplatesCompiler", func() {
 	)
 
 	BeforeEach(func() {
-		mockJobRenderer = mock_template.NewMockJobRenderer(mockCtrl)
+		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 
 		compressor = fakecmd.NewFakeCompressor()
 		compressor.CompressFilesInDirTarballPath = "fake-tarball-path"
@@ -84,7 +84,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		templatesCompiler = NewTemplatesCompiler(
-			mockJobRenderer,
+			mockJobListRenderer,
 			compressor,
 			blobstore,
 			templatesRepo,
@@ -111,17 +111,20 @@ var _ = Describe("TemplatesCompiler", func() {
 			Packages:     nil,
 			Properties:   nil,
 		}
+		jobs := []bmreljob.Job{job}
 
 		fakeStage = fakebmeventlog.NewFakeStage()
 
 		renderedJob := NewRenderedJob(job, renderedPath, fs, logger)
+		renderedJobList := NewRenderedJobList()
+		renderedJobList.Add(renderedJob)
 
-		expectJobRender = mockJobRenderer.EXPECT().Render(job, jobProperties, globalProperties, deploymentName).Do(func(_, _, _, _ interface{}) {
+		expectJobRender = mockJobListRenderer.EXPECT().Render(jobs, jobProperties, globalProperties, deploymentName).Do(func(_, _, _, _ interface{}) {
 			err := fs.MkdirAll(renderedPath, os.ModePerm)
 			Expect(err).ToNot(HaveOccurred())
 			err = fs.WriteFileString(renderedTemplatePath, "fake-bin/cpi-content")
 			Expect(err).ToNot(HaveOccurred())
-		}).Return(renderedJob, nil).AnyTimes()
+		}).Return(renderedJobList, nil).AnyTimes()
 	})
 
 	Context("with a job", func() {
@@ -221,7 +224,7 @@ var _ = Describe("TemplatesCompiler", func() {
 						bmeventlog.Started,
 						bmeventlog.Failed,
 					},
-					FailMessage: "Rendering templates for job 'fake-job-1': fake-render-error",
+					FailMessage: "fake-render-error",
 				}))
 			})
 		})
@@ -336,10 +339,7 @@ var _ = Describe("TemplatesCompiler", func() {
 					},
 				}
 
-				renderedJob := NewRenderedJob(jobs[0], renderedPath, fs, logger)
-				mockJobRenderer.EXPECT().Render(jobs[0], jobProperties, globalProperties, deploymentName).Return(renderedJob, nil)
-
-				mockJobRenderer.EXPECT().Render(jobs[1], jobProperties, globalProperties, deploymentName).Return(nil, errors.New("fake-render-2-error"))
+				mockJobListRenderer.EXPECT().Render(jobs, jobProperties, globalProperties, deploymentName).Return(nil, errors.New("fake-render-2-error"))
 
 				record := TemplateRecord{
 					BlobID:   "fake-blob-id",
@@ -365,7 +365,7 @@ var _ = Describe("TemplatesCompiler", func() {
 						bmeventlog.Started,
 						bmeventlog.Failed,
 					},
-					FailMessage: "Rendering templates for job 'fake-job-2': fake-render-2-error",
+					FailMessage: "fake-render-2-error",
 				}))
 			})
 		})

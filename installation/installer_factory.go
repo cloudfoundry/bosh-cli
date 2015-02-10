@@ -8,18 +8,19 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
+	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
-	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
@@ -35,9 +36,9 @@ type installerFactory struct {
 	extractor               boshcmd.Compressor
 	deploymentConfigService bmconfig.DeploymentConfigService
 	releaseResolver         bmrelset.Resolver
+	releaseJobResolver      bmdeplrel.JobResolver
 	workspaceRootPath       string
 	uuidGenerator           boshuuid.Generator
-	timeService             boshtime.Service
 	registryServerManager   bmregistry.ServerManager
 	eventLogger             bmeventlog.EventLogger
 	logger                  boshlog.Logger
@@ -51,9 +52,9 @@ func NewInstallerFactory(
 	extractor boshcmd.Compressor,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	releaseResolver bmrelset.Resolver,
+	releaseJobResolver bmdeplrel.JobResolver,
 	workspaceRootPath string,
 	uuidGenerator boshuuid.Generator,
-	timeService boshtime.Service,
 	registryServerManager bmregistry.ServerManager,
 	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
@@ -65,9 +66,9 @@ func NewInstallerFactory(
 		extractor:               extractor,
 		deploymentConfigService: deploymentConfigService,
 		releaseResolver:         releaseResolver,
+		releaseJobResolver:      releaseJobResolver,
 		workspaceRootPath:       workspaceRootPath,
 		uuidGenerator:           uuidGenerator,
-		timeService:             timeService,
 		registryServerManager:   registryServerManager,
 		eventLogger:             eventLogger,
 		logger:                  logger,
@@ -98,21 +99,22 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 	target := NewTarget(filepath.Join(f.workspaceRootPath, installationID))
 
 	context := &installerFactoryContext{
-		target:        target,
-		eventLogger:   f.eventLogger,
-		timeService:   f.timeService,
-		fs:            f.fs,
-		runner:        f.runner,
-		logger:        f.logger,
-		extractor:     f.extractor,
-		uuidGenerator: f.uuidGenerator,
+		target:             target,
+		eventLogger:        f.eventLogger,
+		fs:                 f.fs,
+		runner:             f.runner,
+		logger:             f.logger,
+		extractor:          f.extractor,
+		uuidGenerator:      f.uuidGenerator,
+		releaseJobResolver: f.releaseJobResolver,
 	}
 
 	return NewInstaller(
 		target,
-		f.ui,
-		f.releaseResolver,
-		context.ReleaseCompiler(),
+		f.fs,
+		context.StateBuilder(),
+		target.PackagesPath(),
+		context.PackageInstaller(),
 		context.JobInstaller(),
 		f.registryServerManager,
 		f.logger,
@@ -120,42 +122,43 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 }
 
 type installerFactoryContext struct {
-	target        Target
-	eventLogger   bmeventlog.EventLogger
-	timeService   boshtime.Service
-	fs            boshsys.FileSystem
-	runner        boshsys.CmdRunner
-	logger        boshlog.Logger
-	extractor     boshcmd.Compressor
-	uuidGenerator boshuuid.Generator
+	target             Target
+	eventLogger        bmeventlog.EventLogger
+	fs                 boshsys.FileSystem
+	runner             boshsys.CmdRunner
+	logger             boshlog.Logger
+	extractor          boshcmd.Compressor
+	uuidGenerator      boshuuid.Generator
+	releaseJobResolver bmdeplrel.JobResolver
 
-	releaseCompiler     bminstallpkg.ReleaseCompiler
+	stateBuilder        bminstallstate.Builder
 	packageCompiler     bminstallpkg.PackageCompiler
 	jobInstaller        bminstalljob.Installer
-	templatesRepo       bmtempcomp.TemplatesRepo
+	templatesRepo       bmtemplate.TemplatesRepo
 	packageInstaller    bminstallpkg.PackageInstaller
 	blobstore           boshblob.Blobstore
 	blobExtractor       bminstallblob.Extractor
 	compiledPackageRepo bminstallpkg.CompiledPackageRepo
 }
 
-func (c *installerFactoryContext) ReleaseCompiler() bminstallpkg.ReleaseCompiler {
-	if c.releaseCompiler != nil {
-		return c.releaseCompiler
+func (c *installerFactoryContext) StateBuilder() bminstallstate.Builder {
+	if c.stateBuilder != nil {
+		return c.stateBuilder
 	}
 
-	releasePackagesCompiler := bminstallpkg.NewReleasePackagesCompiler(
-		c.PackageCompiler(),
-		c.eventLogger,
-		c.timeService,
-	)
-
 	erbRenderer := bmerbrenderer.NewERBRenderer(c.fs, c.runner, c.logger)
-	jobRenderer := bmtempcomp.NewJobRenderer(erbRenderer, c.fs, c.logger)
+	jobRenderer := bmtemplate.NewJobRenderer(erbRenderer, c.fs, c.logger)
+	jobListRenderer := bmtemplate.NewJobListRenderer(jobRenderer, c.logger)
 
-	templatesCompiler := bmtempcomp.NewTemplatesCompiler(jobRenderer, c.extractor, c.Blobstore(), c.TemplatesRepo(), c.fs, c.logger)
-	c.releaseCompiler = bminstallpkg.NewReleaseCompiler(releasePackagesCompiler, templatesCompiler, c.logger)
-	return c.releaseCompiler
+	c.stateBuilder = bminstallstate.NewBuilder(
+		c.releaseJobResolver,
+		c.PackageCompiler(),
+		jobListRenderer,
+		c.extractor,
+		c.Blobstore(),
+		c.TemplatesRepo(),
+	)
+	return c.stateBuilder
 }
 
 func (c *installerFactoryContext) PackageCompiler() bminstallpkg.PackageCompiler {
@@ -171,6 +174,7 @@ func (c *installerFactoryContext) PackageCompiler() bminstallpkg.PackageCompiler
 		c.Blobstore(),
 		c.CompiledPackageRepo(),
 		c.PackageInstaller(),
+		c.logger,
 	)
 
 	return c.packageCompiler
@@ -183,23 +187,20 @@ func (c *installerFactoryContext) JobInstaller() bminstalljob.Installer {
 
 	c.jobInstaller = bminstalljob.NewInstaller(
 		c.fs,
-		c.PackageInstaller(),
 		c.BlobExtractor(),
 		c.TemplatesRepo(),
 		c.target.JobsPath(),
-		c.target.PackagesPath(),
-		c.timeService,
 	)
 	return c.jobInstaller
 }
 
-func (c *installerFactoryContext) TemplatesRepo() bmtempcomp.TemplatesRepo {
+func (c *installerFactoryContext) TemplatesRepo() bmtemplate.TemplatesRepo {
 	if c.templatesRepo != nil {
 		return c.templatesRepo
 	}
 
 	templatesIndex := bmindex.NewFileIndex(c.target.TemplatesIndexPath(), c.fs)
-	c.templatesRepo = bmtempcomp.NewTemplatesRepo(templatesIndex)
+	c.templatesRepo = bmtemplate.NewTemplatesRepo(templatesIndex)
 	return c.templatesRepo
 }
 
@@ -208,7 +209,7 @@ func (c *installerFactoryContext) PackageInstaller() bminstallpkg.PackageInstall
 		return c.packageInstaller
 	}
 
-	c.packageInstaller = bminstallpkg.NewPackageInstaller(c.CompiledPackageRepo(), c.BlobExtractor())
+	c.packageInstaller = bminstallpkg.NewPackageInstaller(c.BlobExtractor())
 	return c.packageInstaller
 }
 

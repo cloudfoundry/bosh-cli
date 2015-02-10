@@ -17,16 +17,16 @@ type TemplatesCompiler interface {
 }
 
 type templatesCompiler struct {
-	jobRenderer   JobRenderer
-	compressor    boshcmd.Compressor
-	blobstore     boshblob.Blobstore
-	templatesRepo TemplatesRepo
-	fs            boshsys.FileSystem
-	logger        boshlog.Logger
+	jobListRenderer JobListRenderer
+	compressor      boshcmd.Compressor
+	blobstore       boshblob.Blobstore
+	templatesRepo   TemplatesRepo
+	fs              boshsys.FileSystem
+	logger          boshlog.Logger
 }
 
 func NewTemplatesCompiler(
-	jobRenderer JobRenderer,
+	jobListRenderer JobListRenderer,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
 	templatesRepo TemplatesRepo,
@@ -34,19 +34,28 @@ func NewTemplatesCompiler(
 	logger boshlog.Logger,
 ) TemplatesCompiler {
 	return templatesCompiler{
-		jobRenderer:   jobRenderer,
-		compressor:    compressor,
-		blobstore:     blobstore,
-		templatesRepo: templatesRepo,
-		fs:            fs,
-		logger:        logger,
+		jobListRenderer: jobListRenderer,
+		compressor:      compressor,
+		blobstore:       blobstore,
+		templatesRepo:   templatesRepo,
+		fs:              fs,
+		logger:          logger,
 	}
 }
 
-func (tc templatesCompiler) Compile(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage) error {
+func (tc templatesCompiler) Compile(releaseJobs []bmreljob.Job, deploymentName string, jobProperties bmproperty.Map, stage bmeventlog.Stage) error {
+	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
+	globalProperties := bmproperty.Map{}
+
 	return stage.PerformStep("Rendering job templates", func() error {
-		for _, job := range jobs {
-			err := tc.compileJob(job, deploymentName, deploymentProperties)
+		renderedJobList, err := tc.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
+		if err != nil {
+			return err
+		}
+		defer renderedJobList.DeleteSilently()
+
+		for _, renderedJob := range renderedJobList.All() {
+			err := tc.compressAndUpload(renderedJob)
 			if err != nil {
 				return err
 			}
@@ -55,15 +64,7 @@ func (tc templatesCompiler) Compile(jobs []bmreljob.Job, deploymentName string, 
 	})
 }
 
-func (tc templatesCompiler) compileJob(job bmreljob.Job, deploymentName string, cpiProperties bmproperty.Map) error {
-	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
-	globalProperties := bmproperty.Map{}
-	renderedJob, err := tc.jobRenderer.Render(job, cpiProperties, globalProperties, deploymentName)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Rendering templates for job '%s'", job.Name)
-	}
-	defer renderedJob.DeleteSilently()
-
+func (tc templatesCompiler) compressAndUpload(renderedJob RenderedJob) error {
 	tarballPath, err := tc.compressor.CompressFilesInDir(renderedJob.Path())
 	if err != nil {
 		return bosherr.WrapError(err, "Compressing rendered job templates")
@@ -79,7 +80,7 @@ func (tc templatesCompiler) compileJob(job bmreljob.Job, deploymentName string, 
 		BlobID:   blobID,
 		BlobSHA1: blobSHA1,
 	}
-	err = tc.templatesRepo.Save(job, record)
+	err = tc.templatesRepo.Save(renderedJob.Job(), record)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving job to templates repo")
 	}

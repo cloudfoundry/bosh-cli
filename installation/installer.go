@@ -1,19 +1,18 @@
 package installation
 
 import (
-	"fmt"
+	"os"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
+	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Installer interface {
@@ -22,9 +21,10 @@ type Installer interface {
 
 type installer struct {
 	target                Target
-	ui                    bmui.UI
-	releaseResolver       bmrelset.Resolver
-	releaseCompiler       bminstallpkg.ReleaseCompiler
+	fs                    boshsys.FileSystem
+	stateBuilder          bminstallstate.Builder
+	packagesPath          string
+	packageInstaller      bminstallpkg.PackageInstaller
 	jobInstaller          bminstalljob.Installer
 	registryServerManager bmregistry.ServerManager
 	logger                boshlog.Logger
@@ -33,18 +33,20 @@ type installer struct {
 
 func NewInstaller(
 	target Target,
-	ui bmui.UI,
-	releaseResolver bmrelset.Resolver,
-	releaseCompiler bminstallpkg.ReleaseCompiler,
+	fs boshsys.FileSystem,
+	stateBuilder bminstallstate.Builder,
+	packagesPath string,
+	packageInstaller bminstallpkg.PackageInstaller,
 	jobInstaller bminstalljob.Installer,
 	registryServerManager bmregistry.ServerManager,
 	logger boshlog.Logger,
 ) Installer {
 	return &installer{
 		target:                target,
-		ui:                    ui,
-		releaseResolver:       releaseResolver,
-		releaseCompiler:       releaseCompiler,
+		fs:                    fs,
+		stateBuilder:          stateBuilder,
+		packagesPath:          packagesPath,
+		packageInstaller:      packageInstaller,
 		jobInstaller:          jobInstaller,
 		registryServerManager: registryServerManager,
 		logger:                logger,
@@ -56,36 +58,33 @@ func (i *installer) Install(manifest bminstallmanifest.Manifest, stage bmeventlo
 	i.logger.Info(i.logTag, "Installing CPI deployment '%s'", manifest.Name)
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
-	releaseName := manifest.Release
-	release, err := i.releaseResolver.Find(releaseName)
+	state, err := i.stateBuilder.Build(manifest, stage)
 	if err != nil {
-		i.ui.Error(fmt.Sprintf("Could not find CPI release '%s'", releaseName))
-		return nil, bosherr.WrapErrorf(err, "CPI release '%s' not found", releaseName)
+		return nil, bosherr.WrapError(err, "Building installation state")
 	}
 
-	if !release.Exists() {
-		i.ui.Error("Could not find extracted CPI release")
-		return nil, bosherr.Errorf("Extracted CPI release does not exist")
-	}
+	err = stage.PerformStep("Installing packages", func() error {
+		err = i.fs.MkdirAll(i.packagesPath, os.ModePerm)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Creating packages directory '%s'", i.packagesPath)
+		}
 
-	err = i.releaseCompiler.Compile(release, manifest, stage)
+		for _, compiledPackageRef := range state.CompiledPackages() {
+			err = i.packageInstaller.Install(compiledPackageRef, i.packagesPath)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Installing package '%s'", compiledPackageRef.Name)
+			}
+		}
+		return nil
+	})
 	if err != nil {
-		i.ui.Error("Could not compile CPI release")
-		return nil, bosherr.WrapError(err, "Compiling CPI release")
+		return nil, err
 	}
 
-	cpiJobName := bmcpirel.ReleaseJobName
-	releaseJob, found := release.FindJobByName(cpiJobName)
-
-	if !found {
-		i.ui.Error(fmt.Sprintf("Could not find CPI job '%s' in release '%s'", cpiJobName, release.Name()))
-		return nil, bosherr.Errorf("Invalid CPI release: job '%s' not found in release '%s'", cpiJobName, release.Name())
-	}
-
-	installedJob, err := i.jobInstaller.Install(releaseJob, stage)
+	renderedCPIJob := state.RenderedCPIJob()
+	installedJob, err := i.jobInstaller.Install(renderedCPIJob, stage)
 	if err != nil {
-		i.ui.Error(fmt.Sprintf("Could not install job '%s'", releaseJob.Name))
-		return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", releaseJob.Name)
+		return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", renderedCPIJob.Name)
 	}
 
 	return NewInstallation(

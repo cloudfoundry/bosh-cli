@@ -10,6 +10,9 @@ $bin/go install code.google.com/p/gomock/mockgen
 srcFiles=(
   cloud/Cloud,Factory
 	installation/Installation,Installer,InstallerFactory
+	installation/state/Builder
+	installation/pkg/PackageCompiler,PackageInstaller
+	installation/job/Installer
 	deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
 	deployment/agentclient/AgentClient
 	deployment/agentclient/http/AgentClientFactory

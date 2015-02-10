@@ -43,5 +43,6 @@ func (o SSHTunnel) IsEmpty() bool {
 }
 
 func (m Manifest) Properties() (bmproperty.Map, error) {
+	//TODO: move into installation manifest parser #87955136
 	return bmproperty.BuildMap(m.RawProperties)
 }

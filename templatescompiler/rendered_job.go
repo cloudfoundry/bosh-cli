@@ -45,7 +45,6 @@ func (j *renderedJob) Job() bmreljob.Job { return j.job }
 // Path returns a parent directory with one or more sub-dirs for each job, each with one or more rendered template files
 func (j *renderedJob) Path() string { return j.path }
 
-//TODO: test me
 func (j *renderedJob) Delete() error {
 	err := j.fs.RemoveAll(j.path)
 	if err != nil {
@@ -54,7 +53,6 @@ func (j *renderedJob) Delete() error {
 	return nil
 }
 
-//TODO: test me
 func (j *renderedJob) DeleteSilently() {
 	err := j.Delete()
 	if err != nil {

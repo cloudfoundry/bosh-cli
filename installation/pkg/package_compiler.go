@@ -1,12 +1,12 @@
 package pkg
 
 import (
-	"fmt"
 	"os"
 	"path"
 
 	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
@@ -14,7 +14,7 @@ import (
 )
 
 type PackageCompiler interface {
-	Compile(*bmrelpkg.Package) error
+	Compile(*bmrelpkg.Package) (CompiledPackageRecord, error)
 }
 
 type packageCompiler struct {
@@ -25,6 +25,8 @@ type packageCompiler struct {
 	blobstore           boshblob.Blobstore
 	compiledPackageRepo CompiledPackageRepo
 	packageInstaller    PackageInstaller
+	logger              boshlog.Logger
+	logTag              string
 }
 
 func NewPackageCompiler(
@@ -35,6 +37,7 @@ func NewPackageCompiler(
 	blobstore boshblob.Blobstore,
 	compiledPackageRepo CompiledPackageRepo,
 	packageInstaller PackageInstaller,
+	logger boshlog.Logger,
 ) PackageCompiler {
 	return &packageCompiler{
 		runner:              runner,
@@ -44,37 +47,38 @@ func NewPackageCompiler(
 		blobstore:           blobstore,
 		compiledPackageRepo: compiledPackageRepo,
 		packageInstaller:    packageInstaller,
+		logger:              logger,
+		logTag:              "packageCompiler",
 	}
 }
 
-func (pc *packageCompiler) Compile(pkg *bmrelpkg.Package) error {
-	_, found, err := pc.compiledPackageRepo.Find(*pkg)
+func (pc *packageCompiler) Compile(pkg *bmrelpkg.Package) (record CompiledPackageRecord, err error) {
+	pc.logger.Debug(pc.logTag, "Checking for compiled package '%s/%s'", pkg.Name, pkg.Fingerprint)
+	record, found, err := pc.compiledPackageRepo.Find(*pkg)
 	if err != nil {
-		return bosherr.WrapError(err, fmt.Sprintf("Attempting to find compiled package '%s'", pkg.Name))
+		return record, bosherr.WrapErrorf(err, "Attempting to find compiled package '%s'", pkg.Name)
 	}
 	if found {
-		return nil
+		return record, nil
 	}
 
-	for _, pkg := range pkg.Dependencies {
-		err = pc.packageInstaller.Install(pkg, pc.packagesDir)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Installing package '%s' into '%s'", pkg.Name, pc.packagesDir)
-		}
+	pc.logger.Debug(pc.logTag, "Installing dependencies of package '%s/%s'", pkg.Name, pkg.Fingerprint)
+	err = pc.installPackages(pkg.Dependencies)
+	if err != nil {
+		return record, bosherr.WrapErrorf(err, "Installing dependencies of package '%s'", pkg.Name)
 	}
+	defer pc.fileSystem.RemoveAll(pc.packagesDir)
 
-	packageSrcDir := pkg.ExtractedPath
-
+	pc.logger.Debug(pc.logTag, "Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
 	installDir := path.Join(pc.packagesDir, pkg.Name)
 	err = pc.fileSystem.MkdirAll(installDir, os.ModePerm)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating package install dir")
+		return record, bosherr.WrapError(err, "Creating package install dir")
 	}
 
-	defer pc.fileSystem.RemoveAll(pc.packagesDir)
-
+	packageSrcDir := pkg.ExtractedPath
 	if !pc.fileSystem.FileExists(path.Join(packageSrcDir, "packaging")) {
-		return bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name)
+		return record, bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name)
 	}
 
 	cmd := boshsys.Command{
@@ -93,27 +97,55 @@ func (pc *packageCompiler) Compile(pkg *bmrelpkg.Package) error {
 
 	_, _, _, err = pc.runner.RunComplexCommand(cmd)
 	if err != nil {
-		return bosherr.WrapError(err, "Compiling package")
+		return record, bosherr.WrapError(err, "Compiling package")
 	}
 
 	tarball, err := pc.compressor.CompressFilesInDir(installDir)
 	if err != nil {
-		return bosherr.WrapError(err, "Compressing compiled package")
+		return record, bosherr.WrapError(err, "Compressing compiled package")
 	}
 	defer pc.compressor.CleanUp(tarball)
 
 	blobID, blobSHA1, err := pc.blobstore.Create(tarball)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating blob")
+		return record, bosherr.WrapError(err, "Creating blob")
 	}
 
-	record := CompiledPackageRecord{
+	record = CompiledPackageRecord{
 		BlobID:   blobID,
 		BlobSHA1: blobSHA1,
 	}
 	err = pc.compiledPackageRepo.Save(*pkg, record)
 	if err != nil {
-		return bosherr.WrapError(err, "Saving compiled package")
+		return record, bosherr.WrapError(err, "Saving compiled package")
+	}
+
+	return record, nil
+}
+
+func (pc *packageCompiler) installPackages(packages []*bmrelpkg.Package) error {
+	for _, pkg := range packages {
+		pc.logger.Debug(pc.logTag, "Checking for compiled package '%s/%s'", pkg.Name, pkg.Fingerprint)
+		record, found, err := pc.compiledPackageRepo.Find(*pkg)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Attempting to find compiled package '%s'", pkg.Name)
+		}
+		if !found {
+			return bosherr.Errorf("Finding compiled package '%s'", pkg.Name)
+		}
+
+		pc.logger.Debug(pc.logTag, "Installing package '%s/%s'", pkg.Name, pkg.Fingerprint)
+		compiledPackageRef := CompiledPackageRef{
+			Name:        pkg.Name,
+			Version:     pkg.Fingerprint,
+			BlobstoreID: record.BlobID,
+			SHA1:        record.BlobSHA1,
+		}
+
+		err = pc.packageInstaller.Install(compiledPackageRef, pc.packagesDir)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Installing package '%s' into '%s'", pkg.Name, pc.packagesDir)
+		}
 	}
 
 	return nil

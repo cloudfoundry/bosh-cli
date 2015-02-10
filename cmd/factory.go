@@ -75,6 +75,7 @@ type factory struct {
 	releaseManager           bmrel.Manager
 	releaseResolver          bmrelset.Resolver
 	releaseSetParser         bmrelsetmanifest.Parser
+	releaseJobResolver       bmdeplrel.JobResolver
 	installationParser       bminstallmanifest.Parser
 	deploymentParser         bmdeplmanifest.Parser
 	releaseSetValidator      bmrelsetmanifest.Validator
@@ -289,13 +290,20 @@ func (f *factory) loadInstanceFactory() bminstance.Factory {
 	return f.instanceFactory
 }
 
+func (f *factory) loadReleaseJobResolver() bmdeplrel.JobResolver {
+	if f.releaseJobResolver != nil {
+		return f.releaseJobResolver
+	}
+
+	releaseSetResolver := bmrelset.NewResolver(f.loadReleaseManager(), f.logger)
+	f.releaseJobResolver = bmdeplrel.NewJobResolver(releaseSetResolver)
+	return f.releaseJobResolver
+}
+
 func (f *factory) loadBuilderFactory() bminstancestate.BuilderFactory {
 	if f.stateBuilderFactory != nil {
 		return f.stateBuilderFactory
 	}
-
-	releaseSetResolver := bmrelset.NewResolver(f.loadReleaseManager(), f.logger)
-	releaseJobResolver := bmdeplrel.NewJobResolver(releaseSetResolver)
 
 	erbRenderer := bmtemplateerb.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
 	jobRenderer := bmtemplate.NewJobRenderer(erbRenderer, f.fs, f.logger)
@@ -311,7 +319,7 @@ func (f *factory) loadBuilderFactory() bminstancestate.BuilderFactory {
 	)
 
 	f.stateBuilderFactory = bminstancestate.NewBuilderFactory(
-		releaseJobResolver,
+		f.loadReleaseJobResolver(),
 		jobListRenderer,
 		renderedJobListCompressor,
 		f.logger,
@@ -551,9 +559,9 @@ func (f *factory) loadInstallerFactory() bminstall.InstallerFactory {
 		f.loadCompressor(),
 		f.loadDeploymentConfigService(),
 		f.loadReleaseResolver(),
+		f.loadReleaseJobResolver(),
 		f.workspaceRootPath,
 		f.uuidGenerator,
-		f.loadTimeService(),
 		f.loadRegistryServerManager(),
 		f.loadEventLogger(),
 		f.logger,

@@ -1,7 +1,6 @@
 package installation_test
 
 import (
-	"errors"
 	"os"
 
 	. "github.com/onsi/ginkgo"
@@ -10,22 +9,23 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/installation"
 
 	"code.google.com/p/gomock/gomock"
+	mock_install_job "github.com/cloudfoundry/bosh-micro-cli/installation/job/mocks"
+	mock_install_pkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/mocks"
+	mock_install_state "github.com/cloudfoundry/bosh-micro-cli/installation/state/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
-	mock_release_set "github.com/cloudfoundry/bosh-micro-cli/release/set/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
+	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
-	fakebminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job/fakes"
-	fakebmcomp "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
 	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -42,17 +42,19 @@ var _ = Describe("Installer", func() {
 	})
 
 	var (
-		fakeFS              *fakesys.FakeFileSystem
-		fakeExtractor       *testfakes.FakeMultiResponseExtractor
-		fakeReleaseCompiler *fakebmcomp.FakeReleaseCompiler
-		fakeJobInstaller    *fakebminstalljob.FakeInstaller
-		fakeUI              *fakebmui.FakeUI
+		fakeFS        *fakesys.FakeFileSystem
+		fakeExtractor *testfakes.FakeMultiResponseExtractor
+		fakeUI        *fakebmui.FakeUI
 
-		mockReleaseResolver       *mock_release_set.MockResolver
+		mockStateBuilder     *mock_install_state.MockBuilder
+		mockPackageInstaller *mock_install_pkg.MockPackageInstaller
+		mockJobInstaller     *mock_install_job.MockInstaller
+
 		mockRegistryServerManager *mock_registry.MockServerManager
 
 		logger boshlog.Logger
 
+		packagesPath           string
 		deploymentManifestPath string
 		installer              Installer
 		target                 Target
@@ -61,15 +63,17 @@ var _ = Describe("Installer", func() {
 	BeforeEach(func() {
 		fakeFS = fakesys.NewFakeFileSystem()
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
-		fakeReleaseCompiler = fakebmcomp.NewFakeReleaseCompiler()
-		fakeJobInstaller = fakebminstalljob.NewFakeInstaller()
 		fakeUI = &fakebmui.FakeUI{}
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		mockReleaseResolver = mock_release_set.NewMockResolver(mockCtrl)
+		mockStateBuilder = mock_install_state.NewMockBuilder(mockCtrl)
+		mockPackageInstaller = mock_install_pkg.NewMockPackageInstaller(mockCtrl)
+		mockJobInstaller = mock_install_job.NewMockInstaller(mockCtrl)
+
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 
+		packagesPath = "/path/to/installed/packages"
 		deploymentManifestPath = "/path/to/manifest.yml"
 		target = NewTarget("fake-installation-path")
 	})
@@ -77,10 +81,11 @@ var _ = Describe("Installer", func() {
 	JustBeforeEach(func() {
 		installer = NewInstaller(
 			target,
-			fakeUI,
-			mockReleaseResolver,
-			fakeReleaseCompiler,
-			fakeJobInstaller,
+			fakeFS,
+			mockStateBuilder,
+			packagesPath,
+			mockPackageInstaller,
+			mockJobInstaller,
 			mockRegistryServerManager,
 			logger,
 		)
@@ -95,7 +100,9 @@ var _ = Describe("Installer", func() {
 
 			installedJob bminstalljob.InstalledJob
 
-			expectFind *gomock.Call
+			expectStateBuild     *gomock.Call
+			expectPackageInstall *gomock.Call
+			expectJobInstall     *gomock.Call
 		)
 
 		BeforeEach(func() {
@@ -109,27 +116,7 @@ var _ = Describe("Installer", func() {
 
 			fakeStage = fakebmeventlog.NewFakeStage()
 
-			releasePackage := &bmrelpkg.Package{
-				Name:          "fake-release-package-name",
-				Fingerprint:   "fake-release-package-fingerprint",
-				SHA1:          "fake-release-package-sha1",
-				Dependencies:  []*bmrelpkg.Package{},
-				ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name",
-			}
-
-			releaseJob = bmreljob.Job{
-				Name:          "cpi",
-				Fingerprint:   "fake-release-job-fingerprint",
-				SHA1:          "fake-release-job-sha1",
-				ExtractedPath: "/extracted-release-path/extracted_jobs/cpi",
-				Templates: map[string]string{
-					"cpi.erb":     "bin/cpi",
-					"cpi.yml.erb": "config/cpi.yml",
-				},
-				PackageNames: []string{releasePackage.Name},
-				Packages:     []*bmrelpkg.Package{releasePackage},
-				Properties:   map[string]bmreljob.PropertyDefinition{},
-			}
+			releaseJob = bmreljob.Job{Name: "cpi"}
 
 			installedJob = bminstalljob.InstalledJob{
 				Name: "cpi",
@@ -149,35 +136,51 @@ var _ = Describe("Installer", func() {
 				fakeFS,
 			)
 
-			fakeJobInstaller.SetInstallBehavior(releaseJob, fakeStage, func(_ bmreljob.Job, _ bmeventlog.Stage) (bminstalljob.InstalledJob, error) {
-				return installedJob, nil
-			})
+			renderedCPIJob := bminstalljob.RenderedJobRef{
+				Name:        "cpi",
+				Version:     "fake-release-job-fingerprint",
+				BlobstoreID: "fake-rendered-job-blobstore-id",
+				SHA1:        "fake-rendered-job-blobstore-id",
+			}
 
-			fakeReleaseCompiler.SetCompileBehavior(release, installationManifest, fakeStage, nil)
+			compiledPackageRef := bminstallpkg.CompiledPackageRef{
+				Name:        "fake-release-package-name",
+				Version:     "fake-release-package-fingerprint",
+				BlobstoreID: "fake-compiled-package-blobstore-id",
+				SHA1:        "fake-compiled-package-blobstore-id",
+			}
+			compiledPackages := []bminstallpkg.CompiledPackageRef{compiledPackageRef}
+
+			state := bminstallstate.NewState(renderedCPIJob, compiledPackages)
+
+			expectStateBuild = mockStateBuilder.EXPECT().Build(installationManifest, fakeStage).Return(state, nil).AnyTimes()
+
+			expectPackageInstall = mockPackageInstaller.EXPECT().Install(compiledPackageRef, packagesPath).AnyTimes()
+
+			expectJobInstall = mockJobInstaller.EXPECT().Install(renderedCPIJob, fakeStage).Return(installedJob, nil).AnyTimes()
 
 			fakeFS.MkdirAll("/extracted-release-path", os.FileMode(0750))
-
-			expectFind = mockReleaseResolver.EXPECT().Find("fake-release-name").Return(release, nil)
 		})
 
-		It("compiles the release", func() {
+		It("builds a new installation state", func() {
+			expectStateBuild.Times(1)
+
 			_, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeReleaseCompiler.CompileInputs[0].Deployment).To(Equal(installationManifest))
 		})
 
-		It("installs the deployment jobs", func() {
+		It("installs the compiled packages specified by the state", func() {
+			expectPackageInstall.Times(1)
+
 			_, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
+		})
 
-			Expect(fakeJobInstaller.JobInstallInputs).To(Equal(
-				[]fakebminstalljob.JobInstallInput{
-					{
-						Job:   releaseJob,
-						Stage: fakeStage,
-					},
-				},
-			))
+		It("installs the rendered jobs specified by the state", func() {
+			expectJobInstall.Times(1)
+
+			_, err := installer.Install(installationManifest, fakeStage)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns the installation", func() {
@@ -192,44 +195,6 @@ var _ = Describe("Installer", func() {
 			)
 
 			Expect(installation).To(Equal(expectedInstallation))
-		})
-
-		Context("when the release does not contain a 'cpi' job", func() {
-			BeforeEach(func() {
-				releaseJob.Name = "not-cpi"
-			})
-
-			It("returns an error", func() {
-				_, err := installer.Install(installationManifest, fakeStage)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Invalid CPI release: job 'cpi' not found in release 'fake-release-name'"))
-			})
-		})
-
-		Context("when compilation fails", func() {
-			JustBeforeEach(func() {
-				fakeReleaseCompiler.SetCompileBehavior(release, installationManifest, fakeStage, errors.New("fake-compile-error"))
-			})
-
-			It("returns an error", func() {
-				_, err := installer.Install(installationManifest, fakeStage)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-compile-error"))
-				Expect(fakeUI.Errors).To(ContainElement("Could not compile CPI release"))
-			})
-		})
-
-		Context("when the release specified in the manifest cannot be found", func() {
-			JustBeforeEach(func() {
-				expectFind.Return(nil, errors.New("kaboom"))
-			})
-
-			It("returns an error", func() {
-				_, err := installer.Install(installationManifest, fakeStage)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("CPI release 'fake-release-name' not found"))
-				Expect(fakeUI.Errors).To(ContainElement("Could not find CPI release 'fake-release-name'"))
-			})
 		})
 	})
 })

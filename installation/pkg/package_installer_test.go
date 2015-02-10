@@ -6,28 +6,25 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmpkgs "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
 	fakebminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob/fakes"
-	fakebmpkgs "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 )
 
-var _ = Describe("Install", func() {
+var _ = Describe("PackageInstaller", func() {
 	var (
 		installer     PackageInstaller
 		blobExtractor *fakebminstallblob.FakeExtractor
-		repo          *fakebmpkgs.FakeCompiledPackageRepo
 		targetDir     string
 		pkg           *bmrelpkg.Package
 	)
+
 	BeforeEach(func() {
-		repo = fakebmpkgs.NewFakeCompiledPackageRepo()
 		blobExtractor = fakebminstallblob.NewFakeExtractor()
 		targetDir = "fake-target-dir"
-		installer = NewPackageInstaller(repo, blobExtractor)
+		installer = NewPackageInstaller(blobExtractor)
 
 		pkg = &bmrelpkg.Package{
 			Name:         "fake-package-name",
@@ -37,23 +34,23 @@ var _ = Describe("Install", func() {
 		}
 	})
 
-	Context("when the package exists in the repo", func() {
+	Describe("Install", func() {
+		var (
+			compiledPackageRef CompiledPackageRef
+		)
+
 		BeforeEach(func() {
-			record := bmpkgs.CompiledPackageRecord{
-				BlobID:   "fake-blob-id",
-				BlobSHA1: "fake-package-fingerprint",
+			compiledPackageRef = CompiledPackageRef{
+				Name:        "fake-package-name",
+				Version:     "fake-package-version", // unused
+				BlobstoreID: "fake-blob-id",
+				SHA1:        "fake-package-fingerprint",
 			}
-			repo.SetFindBehavior(*pkg, record, true, nil)
 			blobExtractor.SetExtractBehavior("fake-blob-id", "fake-package-fingerprint", "fake-target-dir/fake-package-name", nil)
 		})
 
-		It("gets the package record from the repo", func() {
-			err := installer.Install(pkg, targetDir)
-			Expect(err).ToNot(HaveOccurred())
-		})
-
 		It("extracts the blob into the target dir", func() {
-			err := installer.Install(pkg, targetDir)
+			err := installer.Install(compiledPackageRef, targetDir)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstallblob.ExtractInput{
 				BlobID:    "fake-blob-id",
@@ -62,29 +59,16 @@ var _ = Describe("Install", func() {
 			}))
 		})
 
-		Context("when finding the package in the repo errors", func() {
+		Context("when extracting errors", func() {
 			BeforeEach(func() {
-				repo.SetFindBehavior(*pkg, bmpkgs.CompiledPackageRecord{}, false, errors.New("fake-error"))
+				blobExtractor.SetExtractBehavior("fake-blob-id", "fake-package-fingerprint", "fake-target-dir/fake-package-name", errors.New("fake-extract-error"))
 			})
 
 			It("returns an error", func() {
-				err := installer.Install(pkg, targetDir)
+				err := installer.Install(compiledPackageRef, targetDir)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Finding compiled package record"))
-				Expect(err.Error()).To(ContainSubstring("fake-error"))
+				Expect(err.Error()).To(ContainSubstring("fake-extract-error"))
 			})
-		})
-	})
-
-	Context("when the package does not exist in the repo", func() {
-		BeforeEach(func() {
-			repo.SetFindBehavior(*pkg, bmpkgs.CompiledPackageRecord{}, false, nil)
-		})
-
-		It("returns an error", func() {
-			err := installer.Install(pkg, targetDir)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Compiled package record not found"))
 		})
 	})
 })

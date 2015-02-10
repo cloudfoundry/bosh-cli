@@ -50,7 +50,6 @@ var _ = Describe("bosh-micro", func() {
 	}
 
 	var flushLog = func(logPath string) {
-		//TODO: stream command stdout/stderr to GinkgoWriter
 		logString := readLogFile(logPath)
 		_, err := GinkgoWriter.Write([]byte(logString))
 		Expect(err).ToNot(HaveOccurred())
@@ -262,13 +261,13 @@ var _ = Describe("bosh-micro", func() {
 
 		installingSteps, doneIndex := findStage(outputLines, "installing CPI", doneIndex+1)
 		numInstallingSteps := len(installingSteps)
-		for _, line := range installingSteps[:numInstallingSteps-3] {
+		for _, line := range installingSteps[:numInstallingSteps-4] {
 			Expect(line).To(MatchRegexp("^Started installing CPI > Compiling package '.*/.*'" + donePattern))
 		}
-		Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^Started installing CPI > Rendering job templates" + donePattern))
+		Expect(installingSteps[numInstallingSteps-4]).To(MatchRegexp("^Started installing CPI > Rendering job templates" + donePattern))
+		Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^Started installing CPI > Installing packages" + donePattern))
 		Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^Started installing CPI > Installing job 'cpi'" + donePattern))
 		Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^Started installing CPI > Starting registry" + donePattern))
-
 
 		uploadingSteps, doneIndex := findStage(outputLines, "uploading stemcell", doneIndex+1)
 		Expect(uploadingSteps[0]).To(MatchRegexp("^Started uploading stemcell > Uploading" + donePattern))

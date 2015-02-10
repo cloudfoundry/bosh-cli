@@ -192,9 +192,14 @@ func (b *builder) compilePackages(requiredPackages []*bmrelpkg.Package, stage bm
 	return packageRefs, nil
 }
 
-//TODO: abstract this to a class so it can also be used by installation (to replace templates compiler)
 // renderJobTemplates renders all the release job templates for multiple release jobs specified by a deployment job
-func (b *builder) renderJobTemplates(releaseJobs []bmreljob.Job, jobProperties, globalProperties bmproperty.Map, deploymentName string, stage bmeventlog.Stage) (renderedJobs, error) {
+func (b *builder) renderJobTemplates(
+	releaseJobs []bmreljob.Job,
+	jobProperties bmproperty.Map,
+	globalProperties bmproperty.Map,
+	deploymentName string,
+	stage bmeventlog.Stage,
+) (renderedJobs, error) {
 	var (
 		renderedJobListArchive bmtemplate.RenderedJobListArchive
 		blobID                 string
@@ -202,7 +207,7 @@ func (b *builder) renderJobTemplates(releaseJobs []bmreljob.Job, jobProperties, 
 	err := stage.PerformStep("Rendering job templates", func() error {
 		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 		if err != nil {
-			return bosherr.WrapError(err, "Rendering job templates")
+			return err
 		}
 		defer renderedJobList.DeleteSilently()
 
