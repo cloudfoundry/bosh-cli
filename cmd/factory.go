@@ -24,16 +24,20 @@ import (
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
+	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmtemplateerb "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+
+	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
 type Factory interface {
@@ -83,6 +87,7 @@ type factory struct {
 	deploymentValidator      bmdeplmanifest.Validator
 	cloudFactory             bmcloud.Factory
 	stateBuilderFactory      bminstancestate.BuilderFactory
+	compiledPackageRepo      bmstatepkg.CompiledPackageRepo
 }
 
 func NewFactory(
@@ -230,6 +235,18 @@ func (f *factory) loadDiskRepo() bmconfig.DiskRepo {
 	return f.diskRepo
 }
 
+func (f *factory) loadCompiledPackageRepo() bmstatepkg.CompiledPackageRepo {
+	if f.compiledPackageRepo != nil {
+		return f.compiledPackageRepo
+	}
+
+	//TODO: replace with in-memory Index impl to avoid using a fake in prod
+	fakeFS := fakeboshsys.NewFakeFileSystem()
+	index := bmindex.NewFileIndex("/in-memory-compiled-packages.json", fakeFS)
+	f.compiledPackageRepo = bmstatepkg.NewCompiledPackageRepo(index)
+	return f.compiledPackageRepo
+}
+
 func (f *factory) loadRegistryServerManager() bmregistry.ServerManager {
 	if f.registryServerManager != nil {
 		return f.registryServerManager
@@ -319,6 +336,7 @@ func (f *factory) loadBuilderFactory() bminstancestate.BuilderFactory {
 	)
 
 	f.stateBuilderFactory = bminstancestate.NewBuilderFactory(
+		f.loadCompiledPackageRepo(),
 		f.loadReleaseJobResolver(),
 		jobListRenderer,
 		renderedJobListCompressor,

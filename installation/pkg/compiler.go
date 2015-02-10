@@ -11,11 +11,8 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 )
-
-type Compiler interface {
-	Compile(*bmrelpkg.Package) (CompiledPackageRecord, error)
-}
 
 type compiler struct {
 	runner              boshsys.CmdRunner
@@ -23,7 +20,7 @@ type compiler struct {
 	fileSystem          boshsys.FileSystem
 	compressor          boshcmd.Compressor
 	blobstore           boshblob.Blobstore
-	compiledPackageRepo CompiledPackageRepo
+	compiledPackageRepo bmstatepkg.CompiledPackageRepo
 	packageInstaller    Installer
 	logger              boshlog.Logger
 	logTag              string
@@ -35,10 +32,10 @@ func NewPackageCompiler(
 	fileSystem boshsys.FileSystem,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
-	compiledPackageRepo CompiledPackageRepo,
+	compiledPackageRepo bmstatepkg.CompiledPackageRepo,
 	packageInstaller Installer,
 	logger boshlog.Logger,
-) Compiler {
+) bmstatepkg.Compiler {
 	return &compiler{
 		runner:              runner,
 		packagesDir:         packagesDir,
@@ -52,7 +49,7 @@ func NewPackageCompiler(
 	}
 }
 
-func (c *compiler) Compile(pkg *bmrelpkg.Package) (record CompiledPackageRecord, err error) {
+func (c *compiler) Compile(pkg *bmrelpkg.Package) (record bmstatepkg.CompiledPackageRecord, err error) {
 	c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name, pkg.Fingerprint)
 	record, found, err := c.compiledPackageRepo.Find(*pkg)
 	if err != nil {
@@ -111,7 +108,7 @@ func (c *compiler) Compile(pkg *bmrelpkg.Package) (record CompiledPackageRecord,
 		return record, bosherr.WrapError(err, "Creating blob")
 	}
 
-	record = CompiledPackageRecord{
+	record = bmstatepkg.CompiledPackageRecord{
 		BlobID:   blobID,
 		BlobSHA1: blobSHA1,
 	}

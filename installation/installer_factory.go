@@ -20,6 +20,7 @@ import (
 	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
+	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
@@ -132,13 +133,13 @@ type installerFactoryContext struct {
 	releaseJobResolver bmdeplrel.JobResolver
 
 	stateBuilder        bminstallstate.Builder
-	packageCompiler     bminstallpkg.Compiler
+	packageCompiler     bmstatepkg.Compiler
 	jobInstaller        bminstalljob.Installer
 	templatesRepo       bmtemplate.TemplatesRepo
 	packageInstaller    bminstallpkg.Installer
 	blobstore           boshblob.Blobstore
 	blobExtractor       bminstallblob.Extractor
-	compiledPackageRepo bminstallpkg.CompiledPackageRepo
+	compiledPackageRepo bmstatepkg.CompiledPackageRepo
 }
 
 func (c *installerFactoryContext) StateBuilder() bminstallstate.Builder {
@@ -161,7 +162,7 @@ func (c *installerFactoryContext) StateBuilder() bminstallstate.Builder {
 	return c.stateBuilder
 }
 
-func (c *installerFactoryContext) PackageCompiler() bminstallpkg.Compiler {
+func (c *installerFactoryContext) PackageCompiler() bmstatepkg.Compiler {
 	if c.packageCompiler != nil {
 		return c.packageCompiler
 	}
@@ -235,14 +236,14 @@ func (c *installerFactoryContext) BlobExtractor() bminstallblob.Extractor {
 	return c.blobExtractor
 }
 
-func (c *installerFactoryContext) CompiledPackageRepo() bminstallpkg.CompiledPackageRepo {
+func (c *installerFactoryContext) CompiledPackageRepo() bmstatepkg.CompiledPackageRepo {
 	if c.compiledPackageRepo != nil {
 		return c.compiledPackageRepo
 	}
 
 	indexFilePath := c.target.CompiledPackagedIndexPath()
 	compiledPackageIndex := bmindex.NewFileIndex(indexFilePath, c.fs)
-	c.compiledPackageRepo = bminstallpkg.NewCompiledPackageRepo(compiledPackageIndex)
+	c.compiledPackageRepo = bmstatepkg.NewCompiledPackageRepo(compiledPackageIndex)
 
 	return c.compiledPackageRepo
 }

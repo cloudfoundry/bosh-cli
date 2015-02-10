@@ -16,6 +16,7 @@ import (
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -30,7 +31,7 @@ type Builder interface {
 
 type builder struct {
 	releaseJobResolver bmdeplrel.JobResolver
-	packageCompiler    bminstallpkg.Compiler
+	packageCompiler    bmstatepkg.Compiler
 	jobListRenderer    bmtemplate.JobListRenderer
 	compressor         boshcmd.Compressor
 	blobstore          boshblob.Blobstore
@@ -39,7 +40,7 @@ type builder struct {
 
 func NewBuilder(
 	releaseJobResolver bmdeplrel.JobResolver,
-	packageCompiler bminstallpkg.Compiler,
+	packageCompiler bmstatepkg.Compiler,
 	jobListRenderer bmtemplate.JobListRenderer,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,

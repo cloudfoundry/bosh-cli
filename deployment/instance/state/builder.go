@@ -13,6 +13,7 @@ import (
 	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
 
@@ -21,7 +22,7 @@ type Builder interface {
 }
 
 type builder struct {
-	packageCompiler           PackageCompiler
+	packageCompiler           bmstatepkg.Compiler
 	releaseJobResolver        bmdeplrel.JobResolver
 	jobListRenderer           bmtemplate.JobListRenderer
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
@@ -31,7 +32,7 @@ type builder struct {
 }
 
 func NewBuilder(
-	packageCompiler PackageCompiler,
+	packageCompiler bmstatepkg.Compiler,
 	releaseJobResolver bmdeplrel.JobResolver,
 	jobListRenderer bmtemplate.JobListRenderer,
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
@@ -166,27 +167,31 @@ func (b *builder) resolvePackageDependencies(releasePackage *bmrelpkg.Package, n
 
 // compilePackages compiles the specified packages, in the order specified, uploads them to the Blobstore, and returns the blob references
 func (b *builder) compilePackages(requiredPackages []*bmrelpkg.Package, stage bmeventlog.Stage) ([]PackageRef, error) {
-	packageNamesToRefs := make(map[string]PackageRef, len(requiredPackages))
+	packageRefs := make([]PackageRef, 0, len(requiredPackages))
 
 	for _, pkg := range requiredPackages {
 		stepName := fmt.Sprintf("Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
 		err := stage.PerformStep(stepName, func() error {
-			packageRef, err := b.packageCompiler.Compile(pkg, packageNamesToRefs)
+			compiledPackageRef, err := b.packageCompiler.Compile(pkg)
 			if err != nil {
 				return err
 			}
-			packageNamesToRefs[packageRef.Name] = packageRef
+
+			packageRef := PackageRef{
+				Name:    pkg.Name,
+				Version: pkg.Fingerprint,
+				Archive: BlobRef{
+					BlobstoreID: compiledPackageRef.BlobID,
+					SHA1:        compiledPackageRef.BlobSHA1,
+				},
+			}
+
+			packageRefs = append(packageRefs, packageRef)
 			return nil
 		})
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	// flatten map values to array
-	packageRefs := make([]PackageRef, 0, len(packageNamesToRefs))
-	for _, packageRef := range packageNamesToRefs {
-		packageRefs = append(packageRefs, packageRef)
 	}
 
 	return packageRefs, nil

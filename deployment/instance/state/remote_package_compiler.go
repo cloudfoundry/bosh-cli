@@ -6,25 +6,28 @@ import (
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 )
 
 type remotePackageCompiler struct {
 	blobstore   bmblobstore.Blobstore
 	agentClient bmagentclient.AgentClient
+	packageRepo bmstatepkg.CompiledPackageRepo
 }
 
-func NewRemotePackageCompiler(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient) PackageCompiler {
+func NewRemotePackageCompiler(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient, packageRepo bmstatepkg.CompiledPackageRepo) bmstatepkg.Compiler {
 	return &remotePackageCompiler{
 		blobstore:   blobstore,
 		agentClient: agentClient,
+		packageRepo: packageRepo,
 	}
 }
 
-func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package, compiledPackageRefs map[string]PackageRef) (PackageRef, error) {
+func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (bmstatepkg.CompiledPackageRecord, error) {
 
 	blobID, err := c.blobstore.Add(releasePackage.ArchivePath)
 	if err != nil {
-		return PackageRef{}, bosherr.WrapErrorf(err, "Adding release package archive '%s' to blobstore", releasePackage.ArchivePath)
+		return bmstatepkg.CompiledPackageRecord{}, bosherr.WrapErrorf(err, "Adding release package archive '%s' to blobstore", releasePackage.ArchivePath)
 	}
 
 	packageSource := bmagentclient.BlobRef{
@@ -38,29 +41,39 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package, compil
 	// Only install the package's immediate dependencies when compiling (not all transitive dependencies).
 	packageDependencies := make([]bmagentclient.BlobRef, len(releasePackage.Dependencies), len(releasePackage.Dependencies))
 	for i, dependency := range releasePackage.Dependencies {
-		packageRef, found := compiledPackageRefs[dependency.Name]
+		compiledPackageRecord, found, err := c.packageRepo.Find(*dependency)
+		if err != nil {
+			return bmstatepkg.CompiledPackageRecord{}, bosherr.WrapErrorf(
+				err,
+				"Finding compiled package '%s/%s' as dependency for '%s/%s'",
+				dependency.Name,
+				dependency.Fingerprint,
+				releasePackage.Name,
+				releasePackage.Fingerprint,
+			)
+		}
 		if !found {
-			return PackageRef{}, bosherr.Errorf("Remote compilation failure: Package '%s' requires package '%s', but it has not been compiled", releasePackage.Name, dependency.Name)
+			return bmstatepkg.CompiledPackageRecord{}, bosherr.Errorf(
+				"Remote compilation failure: Package '%s' requires package '%s', but it has not been compiled",
+				releasePackage.Name,
+				dependency.Name,
+			)
 		}
 		packageDependencies[i] = bmagentclient.BlobRef{
-			Name:        packageRef.Name,
-			Version:     packageRef.Version,
-			SHA1:        packageRef.Archive.SHA1,
-			BlobstoreID: packageRef.Archive.BlobstoreID,
+			Name:        dependency.Name,
+			Version:     dependency.Fingerprint,
+			BlobstoreID: compiledPackageRecord.BlobID,
+			SHA1:        compiledPackageRecord.BlobSHA1,
 		}
 	}
 
 	compiledPackageRef, err := c.agentClient.CompilePackage(packageSource, packageDependencies)
 	if err != nil {
-		return PackageRef{}, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", releasePackage.Name)
+		return bmstatepkg.CompiledPackageRecord{}, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", releasePackage.Name)
 	}
 
-	return PackageRef{
-		Name:    compiledPackageRef.Name,
-		Version: compiledPackageRef.Version,
-		Archive: BlobRef{
-			BlobstoreID: compiledPackageRef.BlobstoreID,
-			SHA1:        compiledPackageRef.SHA1,
-		},
+	return bmstatepkg.CompiledPackageRecord{
+		BlobID:   compiledPackageRef.BlobstoreID,
+		BlobSHA1: compiledPackageRef.SHA1,
 	}, nil
 }
