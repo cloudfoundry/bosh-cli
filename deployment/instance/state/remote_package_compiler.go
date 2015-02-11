@@ -23,7 +23,7 @@ func NewRemotePackageCompiler(blobstore bmblobstore.Blobstore, agentClient bmage
 	}
 }
 
-func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (bmstatepkg.CompiledPackageRecord, error) {
+func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (record bmstatepkg.CompiledPackageRecord, err error) {
 
 	blobID, err := c.blobstore.Add(releasePackage.ArchivePath)
 	if err != nil {
@@ -43,7 +43,7 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (bmsta
 	for i, dependency := range releasePackage.Dependencies {
 		compiledPackageRecord, found, err := c.packageRepo.Find(*dependency)
 		if err != nil {
-			return bmstatepkg.CompiledPackageRecord{}, bosherr.WrapErrorf(
+			return record, bosherr.WrapErrorf(
 				err,
 				"Finding compiled package '%s/%s' as dependency for '%s/%s'",
 				dependency.Name,
@@ -53,7 +53,7 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (bmsta
 			)
 		}
 		if !found {
-			return bmstatepkg.CompiledPackageRecord{}, bosherr.Errorf(
+			return record, bosherr.Errorf(
 				"Remote compilation failure: Package '%s' requires package '%s', but it has not been compiled",
 				releasePackage.Name,
 				dependency.Name,
@@ -69,11 +69,18 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (bmsta
 
 	compiledPackageRef, err := c.agentClient.CompilePackage(packageSource, packageDependencies)
 	if err != nil {
-		return bmstatepkg.CompiledPackageRecord{}, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", releasePackage.Name)
+		return record, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", releasePackage.Name)
 	}
 
-	return bmstatepkg.CompiledPackageRecord{
+	record = bmstatepkg.CompiledPackageRecord{
 		BlobID:   compiledPackageRef.BlobstoreID,
 		BlobSHA1: compiledPackageRef.SHA1,
-	}, nil
+	}
+
+	err = c.packageRepo.Save(*releasePackage, record)
+	if err != nil {
+		return record, bosherr.WrapErrorf(err, "Saving compiled package record %#v of package %#v", record, releasePackage)
+	}
+
+	return record, nil
 }

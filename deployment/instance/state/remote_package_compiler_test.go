@@ -128,12 +128,22 @@ func describeRemotePackageCompiler() {
 				expectAgentCompile.Times(1),
 			)
 
-			packageRef, err := remotePackageCompiler.Compile(pkg)
+			compiledPackageRecord, err := remotePackageCompiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(packageRef).To(Equal(bmstatepkg.CompiledPackageRecord{
+			Expect(compiledPackageRecord).To(Equal(bmstatepkg.CompiledPackageRecord{
 				BlobID:   "fake-compiled-package-blob-id",
 				BlobSHA1: "fake-compiled-package-sha1",
 			}))
+		})
+
+		It("saves the compiled package ref in the package repo", func() {
+			compiledPackageRecord, err := remotePackageCompiler.Compile(pkg)
+			Expect(err).ToNot(HaveOccurred())
+
+			record, found, err := packageRepo.Find(*pkg)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
+			Expect(record).To(Equal(compiledPackageRecord))
 		})
 
 		Context("when the dependencies are not in the repo", func() {
