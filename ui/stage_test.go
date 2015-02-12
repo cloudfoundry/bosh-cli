@@ -20,9 +20,9 @@ var _ = Describe("Stage", func() {
 		logOutBuffer, logErrBuffer *bytes.Buffer
 		logger                     boshlog.Logger
 
-		stage       Stage
-		ui          UI
-		timeService *faketime.FakeService
+		stage           Stage
+		ui              UI
+		fakeTimeService *faketime.FakeService
 
 		uiOut, uiErr *bytes.Buffer
 	)
@@ -36,18 +36,16 @@ var _ = Describe("Stage", func() {
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, logOutBuffer, logErrBuffer)
 
 		ui = NewWriterUI(uiOut, uiErr, logger)
-		timeService = &faketime.FakeService{
-			NowTimes: []time.Time{},
-		}
+		fakeTimeService = &faketime.FakeService{}
 
-		stage = NewStage(ui, timeService, logger)
+		stage = NewStage(ui, fakeTimeService, logger)
 	})
 
 	Describe("Perform", func() {
 		It("prints a single-line stage", func() {
 			actionsPerformed := []string{}
 			now := time.Now()
-			timeService.NowTimes = []time.Time{
+			fakeTimeService.NowTimes = []time.Time{
 				now, // start stage 1
 				now.Add(1 * time.Minute), // stop stage 1
 			}
@@ -68,7 +66,7 @@ var _ = Describe("Stage", func() {
 		It("fails on error", func() {
 			actionsPerformed := []string{}
 			now := time.Now()
-			timeService.NowTimes = []time.Time{
+			fakeTimeService.NowTimes = []time.Time{
 				now, // start stage 1
 				now.Add(1 * time.Minute), // stop stage 1
 			}
@@ -90,7 +88,7 @@ var _ = Describe("Stage", func() {
 		It("logs skip errors", func() {
 			actionsPerformed := []string{}
 			now := time.Now()
-			timeService.NowTimes = []time.Time{
+			fakeTimeService.NowTimes = []time.Time{
 				now, // start stage 1
 				now.Add(1 * time.Minute), // stop stage 1
 			}
@@ -116,7 +114,7 @@ var _ = Describe("Stage", func() {
 		It("prints a multi-line stage (depth: 1)", func() {
 			actionsPerformed := []string{}
 			now := time.Now()
-			timeService.NowTimes = []time.Time{
+			fakeTimeService.NowTimes = []time.Time{
 				now, // start stage 1
 				now, // start stage A
 				now.Add(1 * time.Minute), // stop stage A
@@ -161,7 +159,7 @@ Finished Complex stage 1 (00:02:00)
 		It("prints a multi-line stage (depth: >1)", func() {
 			actionsPerformed := []string{}
 			now := time.Now()
-			timeService.NowTimes = []time.Time{
+			fakeTimeService.NowTimes = []time.Time{
 				now, // start stage 1
 				now, // start stage A
 				now.Add(1 * time.Minute), // stop stage A
@@ -229,7 +227,7 @@ Finished Complex stage 1 (00:03:00)
 		It("fails on error", func() {
 			actionsPerformed := []string{}
 			now := time.Now()
-			timeService.NowTimes = []time.Time{
+			fakeTimeService.NowTimes = []time.Time{
 				now, // start stage 1
 				now.Add(1 * time.Minute), // stop stage 1
 			}

@@ -1,19 +1,20 @@
 package cmd_test
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
-
-	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
+
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshtime "github.com/cloudfoundry/bosh-agent/time"
+
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+
+	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -25,7 +26,6 @@ var _ = Describe("cmd.Factory", func() {
 		userConfigService bmconfig.UserConfigService
 		fs                boshsys.FileSystem
 		ui                bmui.UI
-		fakeTimeService   *faketime.FakeService
 		logger            boshlog.Logger
 		uuidGenerator     *fakeuuid.FakeGenerator
 	)
@@ -36,7 +36,6 @@ var _ = Describe("cmd.Factory", func() {
 		userConfig = bmconfig.UserConfig{DeploymentManifestPath: "/fake-path/manifest.yml"}
 		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fs, logger)
 		ui = &fakebmui.FakeUI{}
-		fakeTimeService = &faketime.FakeService{}
 		uuidGenerator = &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(
@@ -44,7 +43,7 @@ var _ = Describe("cmd.Factory", func() {
 			userConfigService,
 			fs,
 			ui,
-			fakeTimeService,
+			boshtime.NewConcreteService(),
 			logger,
 			uuidGenerator,
 			"/fake-path",
