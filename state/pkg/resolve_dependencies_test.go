@@ -6,7 +6,7 @@ import (
 
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/state"
+	. "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 )
 
 var _ = Describe("DependencyResolver", func() {

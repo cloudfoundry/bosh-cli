@@ -11,7 +11,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/state"
+	. "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 )
 
 var _ = Describe("CompiledPackageRepo", func() {
