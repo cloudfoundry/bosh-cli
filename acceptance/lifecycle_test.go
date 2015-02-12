@@ -369,7 +369,7 @@ var _ = Describe("bosh-micro", func() {
 
 				stdout := deploy()
 
-				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'%s", stageFinishedPattern))
+				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
 				Expect(stdout).To(ContainSubstring("Deleting VM"))
 				Expect(stdout).To(ContainSubstring("Creating VM for instance 'bosh/0' from stemcell"))
 				Expect(stdout).To(ContainSubstring("Finished deploying"))
@@ -378,7 +378,7 @@ var _ = Describe("bosh-micro", func() {
 			It("delete deletes the vm", func() {
 				stdout := deleteDeployment()
 
-				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'%s", stageFinishedPattern))
+				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
 				Expect(stdout).To(ContainSubstring("Deleting VM"))
 				Expect(stdout).To(ContainSubstring("Deleting disk"))
 				Expect(stdout).To(ContainSubstring("Deleting stemcell"))
