@@ -67,11 +67,7 @@ func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage b
 
 	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
 	globalProperties := bmproperty.Map{}
-
-	jobProperties, err := installationManifest.Properties()
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Resolving installation properties")
-	}
+	jobProperties := installationManifest.Properties
 
 	//TODO: bellow is similar to deployment/instance/state.Builder - abstract?
 	releaseJobs, err := b.resolveJobs(releaseJobRefs)

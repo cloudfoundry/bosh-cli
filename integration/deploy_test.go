@@ -275,6 +275,7 @@ cloud_provider:
 					Host:     "127.0.0.1",
 					Port:     6301,
 				},
+				Properties: bmproperty.Map{},
 			}
 
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")

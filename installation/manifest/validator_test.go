@@ -4,16 +4,17 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
-
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 )
 
 var _ = Describe("Validator", func() {
@@ -41,9 +42,9 @@ var _ = Describe("Validator", func() {
 		validManifest = Manifest{
 			Name:    "fake-installation-name",
 			Release: "provided-valid-release-name",
-			RawProperties: map[interface{}]interface{}{
+			Properties: bmproperty.Map{
 				"fake-prop-key": "fake-prop-value",
-				"fake-prop-map-key": map[interface{}]interface{}{
+				"fake-prop-map-key": bmproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},

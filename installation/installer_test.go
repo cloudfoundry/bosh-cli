@@ -16,6 +16,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
@@ -98,9 +99,9 @@ var _ = Describe("Installer", func() {
 			fakeFS.WriteFileString(deploymentManifestPath, "")
 
 			installationManifest = bminstallmanifest.Manifest{
-				Name:          "fake-installation-name",
-				Release:       "fake-release-name",
-				RawProperties: map[interface{}]interface{}{},
+				Name:       "fake-installation-name",
+				Release:    "fake-release-name",
+				Properties: bmproperty.Map{},
 			}
 
 			fakeStage = fakebmui.NewFakeStage()

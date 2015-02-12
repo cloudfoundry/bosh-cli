@@ -7,7 +7,7 @@ import (
 type Manifest struct {
 	Name            string
 	Release         string
-	RawProperties   map[interface{}]interface{}
+	Properties      bmproperty.Map
 	Mbus            string
 	Registry        Registry
 	AgentEnvService string
@@ -40,9 +40,4 @@ type SSHTunnel struct {
 
 func (o SSHTunnel) IsEmpty() bool {
 	return o == SSHTunnel{}
-}
-
-func (m Manifest) Properties() (bmproperty.Map, error) {
-	//TODO: move into installation manifest parser #87955136
-	return bmproperty.BuildMap(m.RawProperties)
 }

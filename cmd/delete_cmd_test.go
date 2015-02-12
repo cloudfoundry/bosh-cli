@@ -23,6 +23,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -129,9 +130,10 @@ cloud_provider:
 
 		var allowCPIToBeInstalled = func() {
 			installationManifest := bminstallmanifest.Manifest{
-				Name:    "test-release",
-				Mbus:    mbusURL,
-				Release: "fake-cpi-release-name",
+				Name:       "test-release",
+				Mbus:       mbusURL,
+				Release:    "fake-cpi-release-name",
+				Properties: bmproperty.Map{},
 			}
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()

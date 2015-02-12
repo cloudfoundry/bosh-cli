@@ -6,11 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	. "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+
+	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 )
 
 var _ = Describe("Parser", func() {
@@ -85,8 +87,8 @@ cloud_provider:
 				Port:     123,
 			},
 			AgentEnvService: "registry",
-			RawProperties: map[interface{}]interface{}{
-				"fake-property-name": map[interface{}]interface{}{
+			Properties: bmproperty.Map{
+				"fake-property-name": bmproperty.Map{
 					"nested-property": "fake-property-value",
 				},
 			},

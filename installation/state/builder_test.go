@@ -88,7 +88,7 @@ var _ = Describe("Builder", func() {
 		manifest = bminstallmanifest.Manifest{
 			Name:    "fake-installation-name",
 			Release: "fake-release-name",
-			RawProperties: map[interface{}]interface{}{
+			Properties: bmproperty.Map{
 				"fake-installation-property": "fake-installation-property-value",
 			},
 		}
