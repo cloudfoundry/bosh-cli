@@ -13,8 +13,9 @@ type diskUtil struct {
 	diskPath string
 	mounter  Mounter
 	fs       boshsys.FileSystem
-	logger   boshlog.Logger
-	logTag   string
+
+	logTag string
+	logger boshlog.Logger
 }
 
 func NewDiskUtil(diskPath string, mounter Mounter, fs boshsys.FileSystem, logger boshlog.Logger) boshdevutil.DeviceUtil {
@@ -22,8 +23,9 @@ func NewDiskUtil(diskPath string, mounter Mounter, fs boshsys.FileSystem, logger
 		diskPath: diskPath,
 		mounter:  mounter,
 		fs:       fs,
-		logger:   logger,
-		logTag:   "diskUtil",
+
+		logTag: "diskUtil",
+		logger: logger,
 	}
 }
 
@@ -36,31 +38,50 @@ func (util diskUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 	if err != nil {
 		return [][]byte{}, bosherr.WrapError(err, "Creating temporary disk mount point")
 	}
+
 	defer util.fs.RemoveAll(tempDir)
 
 	err = util.mounter.Mount(util.diskPath, tempDir)
 	if err != nil {
-		return [][]byte{}, bosherr.WrapErrorf(err, "Mounting disk path %s to %s", util.diskPath, tempDir)
+		return [][]byte{}, bosherr.WrapErrorf(err, "Mounting disk path '%s' to '%s'", util.diskPath, tempDir)
 	}
-	util.logger.Debug(util.logTag, "Mounted disk path %s to %s", util.diskPath, tempDir)
+
+	util.logger.Debug(util.logTag, "Mounted disk path '%s' to '%s'", util.diskPath, tempDir)
 
 	contents := [][]byte{}
+
 	for _, fileName := range fileNames {
 		diskFilePath := filepath.Join(tempDir, fileName)
-		util.logger.Debug(util.logTag, "Reading contents of %s", diskFilePath)
+
+		util.logger.Debug(util.logTag, "Reading contents of '%s'", diskFilePath)
+
 		content, err := util.fs.ReadFile(diskFilePath)
 		if err != nil {
-			return [][]byte{}, bosherr.WrapErrorf(err, "Reading from disk file %s", diskFilePath)
+			// todo unmount before removing
+			util.unmount(tempDir)
+			return [][]byte{}, bosherr.WrapErrorf(err, "Reading from disk file '%s'", diskFilePath)
 		}
+
 		util.logger.Debug(util.logTag, "Got contents of %s: %s", diskFilePath, string(content))
+
 		contents = append(contents, content)
 	}
 
-	_, err = util.mounter.Unmount(tempDir)
-	util.logger.Debug(util.logTag, "Unmounting disk path %s", tempDir)
+	err = util.unmount(tempDir)
 	if err != nil {
-		return [][]byte{}, bosherr.WrapErrorf(err, "Unmounting path %s", tempDir)
+		return [][]byte{}, err
 	}
 
 	return contents, nil
+}
+
+func (util diskUtil) unmount(tempDir string) error {
+	util.logger.Debug(util.logTag, "Unmounting disk path '%s'", tempDir)
+
+	_, err := util.mounter.Unmount(tempDir)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Unmounting '%s'", tempDir)
+	}
+
+	return nil
 }

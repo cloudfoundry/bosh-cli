@@ -158,6 +158,16 @@ var _ = Describe("bosh-micro", func() {
 		return outBuffer.String()
 	}
 
+	var expectDeployToError = func() (stdout string) {
+		os.Stdout.WriteString("\n---DEPLOY---\n")
+		outBuffer := bytes.NewBufferString("")
+		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
+		Expect(err).To(HaveOccurred())
+		Expect(exitCode).To(Equal(1))
+		return outBuffer.String()
+	}
+
 	var deleteDeployment = func() (stdout string) {
 		os.Stdout.WriteString("\n---DELETE---\n")
 		outBuffer := bytes.NewBufferString("")
@@ -397,5 +407,24 @@ var _ = Describe("bosh-micro", func() {
 
 		stdout = deleteDeployment()
 		Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
+	})
+
+	It("prints multiple validation errors at the same time", func() {
+		updateDeploymentManifest("./assets/invalid_manifest.yml")
+
+		setDeployment(testEnv.Path("manifest"))
+
+		stdout := expectDeployToError()
+
+		Expect(stdout).To(ContainSubstring("Validating deployment manifest... Failed"))
+		Expect(stdout).To(ContainSubstring("Failed validating"))
+
+		Expect(stdout).To(ContainSubstring(`
+Command 'deploy' failed:
+  Validating deployment manifest:
+    jobs[0].templates[0].release must refer to an available release:
+      Release 'unknown-release' is not available
+    jobs[0].templates[5].release must refer to an available release:
+      Release 'unknown-release' is not available`))
 	})
 })

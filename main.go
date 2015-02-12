@@ -15,6 +15,7 @@ import (
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmuifmt "github.com/cloudfoundry/bosh-micro-cli/ui/fmt"
 )
 
 const mainLogTag = "main"
@@ -104,6 +105,7 @@ func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, ui bmu
 
 func fail(err error, ui bmui.UI, logger boshlog.Logger) {
 	logger.Error(mainLogTag, err.Error())
-	ui.ErrorLinef(err.Error())
+	ui.ErrorLinef("")
+	ui.ErrorLinef(bmuifmt.MultilineError(err))
 	os.Exit(1)
 }

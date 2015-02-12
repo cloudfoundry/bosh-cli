@@ -1,0 +1,66 @@
+---
+name: test-release
+
+resource_pools:
+- name: fake-resource-pool-name
+  network: fake-network-name
+  env:
+    bosh:
+      password: pjF0EjcwDTvyQ # openssl passwd -crypt sshpassword
+
+networks:
+- name: fake-network-name
+  type: manual
+  cloud_properties:
+    subnet: fake-subnet
+    range: 10.244.0.40/30
+    reserved: [10.244.0.41]
+    static: [10.244.0.42]
+
+cloud_provider:
+  release: bosh-warden-cpi
+  ssh_tunnel:
+    host: 10.244.0.42
+    port: 22
+    user: vcap
+    password: c1oudc0w
+  registry: &registry
+    host: 127.0.0.1
+    port: 6301
+    username: fake-registry-user
+    password: fake-registry-password
+  mbus: https://admin:admin@10.244.0.42:6868
+  properties:
+    cpi:
+      warden:
+        connect_network: tcp
+        connect_address: 0.0.0.0:7777
+        network_pool: 10.244.0.0/16
+        host_ip: 192.168.54.4
+      actions:
+        agent_env_service: registry
+        registry: *registry
+      agent:
+        mbus: https://admin:admin@0.0.0.0:6868
+        blobstore:
+          provider: local
+          options:
+            blobstore_path: /var/vcap/micro_bosh/data/cache
+
+jobs:
+- name: bosh
+  instances: 1
+  templates:
+  - {name: nats, release: unknown-release}
+  - {name: redis, release: bosh}
+  - {name: postgres, release: bosh}
+  - {name: powerdns, release: bosh}
+  - {name: blobstore, release: bosh}
+  - {name: director, release: unknown-release}
+  - {name: health_monitor, release: bosh}
+  resource_pool: fake-resource-pool-name
+  networks:
+  - name: fake-network-name
+    static_ips: [10.244.0.42]
+  persistent_disk: 1024
+  properties: {}

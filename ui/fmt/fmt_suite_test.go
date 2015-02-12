@@ -1,4 +1,4 @@
-package errors_test
+package fmt_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestErrors(t *testing.T) {
+func TestTime(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Errors Suite")
+	RunSpecs(t, "UI Format Suite")
 }

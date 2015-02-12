@@ -7,7 +7,6 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 )
 
@@ -137,7 +136,7 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 	}
 
 	if len(errs) > 0 {
-		return bmerr.NewExplainableError(errs)
+		return bosherr.NewMultiError(errs...)
 	}
 
 	return nil

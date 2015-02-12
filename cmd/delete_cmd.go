@@ -128,6 +128,9 @@ func (c *deleteCmd) Run(stage bmui.Stage, args []string) error {
 		installation, err = installer.Install(installationManifest, installStage)
 		return err
 	})
+	if err != nil {
+		return err
+	}
 
 	err = stage.Perform("Starting registry", func() error {
 		return installation.StartRegistry()

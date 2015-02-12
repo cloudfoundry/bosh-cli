@@ -1,6 +1,7 @@
 package ip_test
 
 import (
+	"errors"
 	gonet "net"
 
 	. "github.com/onsi/ginkgo"
@@ -17,44 +18,19 @@ func (i NotIPNet) Network() string { return "" }
 var _ = Describe("ipResolver", func() {
 	var (
 		ipResolver Resolver
+		addrs      []gonet.Addr
+		funcError  error
 	)
 
 	BeforeEach(func() {
-		ipResolver = NewResolver(NetworkInterfaceToAddrsFunc)
+		addrs = []gonet.Addr{}
+		funcError = nil
+		ifaceToAddrs := func(_ string) ([]gonet.Addr, error) { return addrs, funcError }
+		ipResolver = NewResolver(ifaceToAddrs)
 	})
 
 	Describe("GetPrimaryIPv4", func() {
-		findInterfaceName := func() string {
-			if _, err := gonet.InterfaceByName("en0"); err == nil {
-				return "en0"
-			} else if _, err := gonet.InterfaceByName("eth0"); err == nil {
-				return "eth0"
-			} else if _, err := gonet.InterfaceByName("venet0"); err == nil {
-				// Travis CI uses venet0 as primary network interface
-				return "venet0"
-			}
-
-			panic("Not sure which interface name to use: en0 and eth0 are not found")
-		}
-
-		It("returns primary IPv4 for an interface", func() {
-			ip, err := ipResolver.GetPrimaryIPv4(findInterfaceName())
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(ip.IP).ToNot(BeNil())
-			Expect(ip.IP).ToNot(Equal(gonet.ParseIP("0.0.0.0")))
-		})
-
 		Context("when interface exists", func() {
-			var (
-				addrs []gonet.Addr
-			)
-
-			BeforeEach(func() {
-				ifaceToAddrs := func(_ string) ([]gonet.Addr, error) { return addrs, nil }
-				ipResolver = NewResolver(ifaceToAddrs)
-			})
-
 			It("returns first ipv4 address from associated interface", func() {
 				addrs = []gonet.Addr{
 					NotIPNet{},
@@ -97,12 +73,13 @@ var _ = Describe("ipResolver", func() {
 		})
 
 		Context("when interface does not exist", func() {
-			// using NetworkInterfaceToAddrsFunc so fake-iface-name is not going to be found
-
 			It("returns error", func() {
-				ip, err := ipResolver.GetPrimaryIPv4("fake-iface-name")
+				funcError = errors.New("fake-network-func-error")
+
+				ip, err := ipResolver.GetPrimaryIPv4("whatever")
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(MatchRegexp("no such( network)? interface")) // error comes from net (stdlib)
+				Expect(err.Error()).To(ContainSubstring("fake-network-func-error"))
+				Expect(err.Error()).To(ContainSubstring("Looking up addresses for interface"))
 				Expect(ip).To(BeNil())
 			})
 		})

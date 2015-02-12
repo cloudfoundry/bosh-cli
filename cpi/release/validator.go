@@ -3,7 +3,6 @@ package release
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
 type Validator struct {
@@ -20,7 +19,7 @@ func (v Validator) Validate(release bmrel.Release) error {
 		for _, err := range errs {
 			wrappedErrs = append(wrappedErrs, bosherr.WrapError(err, "Validating CPI release"))
 		}
-		return bmerr.NewExplainableError(errs)
+		return bosherr.NewMultiError(errs...)
 	}
 
 	return nil

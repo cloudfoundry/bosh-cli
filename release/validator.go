@@ -7,8 +7,6 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 )
 
 type Validator interface {
@@ -47,7 +45,7 @@ func (v *validator) Validate(release Release) error {
 	}
 
 	if len(errs) > 0 {
-		return bmerr.NewExplainableError(errs)
+		return bosherr.NewMultiError(errs...)
 	}
 
 	return nil
@@ -111,7 +109,7 @@ func (v *validator) validateReleaseJobs(release Release) error {
 	}
 
 	if len(errs) > 0 {
-		return bmerr.NewExplainableError(errs)
+		return bosherr.NewMultiError(errs...)
 	}
 
 	return nil
@@ -134,7 +132,7 @@ func (v *validator) validateReleasePackages(release Release) error {
 	}
 
 	if len(errs) > 0 {
-		return bmerr.NewExplainableError(errs)
+		return bosherr.NewMultiError(errs...)
 	}
 
 	return nil

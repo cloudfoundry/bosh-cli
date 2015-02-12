@@ -5,11 +5,11 @@ import (
 	"path"
 
 	"github.com/cloudfoundry-incubator/candiedyaml"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	bmerr "github.com/cloudfoundry/bosh-micro-cli/release/errors"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
@@ -79,7 +79,7 @@ func (r *reader) newReleaseFromManifest(releaseManifest bmrelmanifest.Manifest) 
 	}
 
 	if len(errors) > 0 {
-		return nil, bmerr.NewExplainableError(errors)
+		return nil, bosherr.NewMultiError(errors...)
 	}
 
 	release := &release{
@@ -129,7 +129,7 @@ func (r *reader) newJobsFromManifestJobs(packages []*bmrelpkg.Package, manifestJ
 	}
 
 	if len(errors) > 0 {
-		return []bmreljob.Job{}, bmerr.NewExplainableError(errors)
+		return []bmreljob.Job{}, bosherr.NewMultiError(errors...)
 	}
 
 	return jobs, nil
@@ -179,7 +179,7 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelmanifes
 	}
 
 	if len(errors) > 0 {
-		return []*bmrelpkg.Package{}, bmerr.NewExplainableError(errors)
+		return []*bmrelpkg.Package{}, bosherr.NewMultiError(errors...)
 	}
 
 	return packages, nil
