@@ -1,4 +1,4 @@
-package durationfmt_test
+package time_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDurationFmt(t *testing.T) {
+func TestTime(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "DurationFmt Suite")
+	RunSpecs(t, "UI Time Suite")
 }

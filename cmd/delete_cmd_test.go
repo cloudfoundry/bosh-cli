@@ -24,15 +24,15 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
-	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
@@ -74,10 +74,7 @@ var _ = Describe("DeleteCmd", func() {
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockCloud              *mock_cloud.MockCloud
 
-			fakeEventLogger     *fakebmeventlog.FakeEventLogger
-			fakeValidatingStage *fakebmeventlog.FakeStage
-			fakeInstallingStage *fakebmeventlog.FakeStage
-			fakeDeletingStage   *fakebmeventlog.FakeStage
+			fakeStage *fakebmui.FakeStage
 
 			directorID string
 
@@ -139,7 +136,9 @@ cloud_provider:
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 
-			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, fakeInstallingStage).Return(mockInstallation, nil).AnyTimes()
+			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ bminstallmanifest.Manifest, stage bmui.Stage) {
+				Expect(fakeStage.SubStages).To(ContainElement(stage))
+			}).Return(mockInstallation, nil).AnyTimes()
 
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(mockInstallation, directorID).Return(mockCloud, nil).AnyTimes()
 
@@ -171,7 +170,6 @@ cloud_provider:
 				mockAgentClientFactory,
 				mockBlobstoreFactory,
 				mockDeploymentManagerFactory,
-				fakeEventLogger,
 				logger,
 			)
 		}
@@ -180,10 +178,11 @@ cloud_provider:
 			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
-			//TODO: can we check that the stage is "deleting deployment"?
 			gomock.InOrder(
-				mockDeployment.EXPECT().Delete(gomock.Any()),
-				mockDeploymentManager.EXPECT().Cleanup(gomock.Any()),
+				mockDeployment.EXPECT().Delete(gomock.Any()).Do(func(stage bmui.Stage) {
+					Expect(fakeStage.SubStages).To(ContainElement(stage))
+				}),
+				mockDeploymentManager.EXPECT().Cleanup(fakeStage),
 			)
 		}
 
@@ -191,8 +190,7 @@ cloud_provider:
 			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager).AnyTimes()
 			mockDeploymentManager.EXPECT().FindCurrent().Return(nil, false, nil).AnyTimes()
 
-			//TODO: can we check that the stage is "deleting deployment"?
-			mockDeploymentManager.EXPECT().Cleanup(gomock.Any())
+			mockDeploymentManager.EXPECT().Cleanup(fakeStage)
 		}
 
 		var expectValidationInstallationDeletionEvents = func() {
@@ -201,34 +199,27 @@ cloud_provider:
 				"Deployment state: '/deployment-dir/deployment.json'",
 			}))
 
-			Expect(fakeEventLogger.NewStageInputs).To(Equal([]fakebmeventlog.NewStageInput{
-				{Name: "validating"},
-				{Name: "installing CPI"},
-				{Name: "deleting deployment"},
-			}))
-
-			Expect(fakeValidatingStage.Steps).To(Equal([]*fakebmeventlog.FakeStep{
-				&fakebmeventlog.FakeStep{
-					Name: "Validating releases",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{
+					Name: "validating",
+					Stage: &fakebmui.FakeStage{
+						PerformCalls: []fakebmui.PerformCall{
+							{Name: "Validating releases"},
+							{Name: "Validating deployment manifest"},
+							{Name: "Validating cpi release"},
+						},
 					},
 				},
-				&fakebmeventlog.FakeStep{
-					Name: "Validating deployment manifest",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
+				{
+					Name:  "installing CPI",
+					Stage: &fakebmui.FakeStage{},
 				},
-				&fakebmeventlog.FakeStep{
-					Name: "Validating cpi release",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
+				{Name: "Starting registry"},
+				{
+					Name:  "deleting deployment",
+					Stage: &fakebmui.FakeStage{},
 				},
+				// mock deployment manager cleanup doesn't add sub-stages
 			}))
 
 			// installing steps handled by installer.Install()
@@ -243,13 +234,7 @@ cloud_provider:
 
 			fakeUI = &fakeui.FakeUI{}
 
-			fakeEventLogger = fakebmeventlog.NewFakeEventLogger()
-			fakeValidatingStage = fakebmeventlog.NewFakeStage()
-			fakeEventLogger.SetNewStageBehavior("validating", fakeValidatingStage)
-			fakeInstallingStage = fakebmeventlog.NewFakeStage()
-			fakeEventLogger.SetNewStageBehavior("installing CPI", fakeInstallingStage)
-			fakeDeletingStage = fakebmeventlog.NewFakeStage()
-			fakeEventLogger.SetNewStageBehavior("deleting deployment", fakeDeletingStage)
+			fakeStage = fakebmui.NewFakeStage()
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
@@ -293,7 +278,7 @@ cloud_provider:
 			})
 
 			It("returns an error", func() {
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Running delete cmd: Deployment manifest not set"))
 				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))
@@ -309,7 +294,7 @@ cloud_provider:
 			It("does not delete anything", func() {
 				expectCleanup()
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 
 				expectValidationInstallationDeletionEvents()
@@ -335,7 +320,7 @@ cloud_provider:
 					expectNewCloud.Times(1),
 				)
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -347,14 +332,14 @@ cloud_provider:
 					expectStopRegistry.Times(1),
 				)
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("deletes the extracted CPI release", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fs.FileExists("fake-cpi-extracted-dir")).To(BeFalse())
 			})
@@ -362,7 +347,7 @@ cloud_provider:
 			It("deletes the deployment & cleans up orphans", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeUI.Errors).To(BeEmpty())
 			})
@@ -370,7 +355,7 @@ cloud_provider:
 			It("logs validating & deleting stages", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 
 				expectValidationInstallationDeletionEvents()
@@ -387,7 +372,7 @@ cloud_provider:
 			It("cleans up orphans, but does not delete any deployment", func() {
 				expectCleanup()
 
-				err := newDeleteCmd().Run([]string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeUI.Errors).To(BeEmpty())
 			})

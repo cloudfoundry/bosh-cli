@@ -8,12 +8,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
-
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob/fakes"
 	fakebmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 )
@@ -26,7 +24,7 @@ var _ = Describe("Installer", func() {
 		blobExtractor  *fakebminstallblob.FakeExtractor
 		templateRepo   *fakebmtemplate.FakeTemplatesRepo
 		jobsPath       string
-		fakeStage      *fakebmlog.FakeStage
+		fakeStage      *fakebmui.FakeStage
 	)
 
 	Context("Installing the job", func() {
@@ -36,7 +34,7 @@ var _ = Describe("Installer", func() {
 			templateRepo = fakebmtemplate.NewFakeTemplatesRepo()
 
 			jobsPath = "/fake/jobs"
-			fakeStage = fakebmlog.NewFakeStage()
+			fakeStage = fakebmui.NewFakeStage()
 
 			jobInstaller = NewInstaller(fs, blobExtractor, templateRepo, jobsPath)
 
@@ -93,12 +91,8 @@ var _ = Describe("Installer", func() {
 			_, err := jobInstaller.Install(renderedJobRef, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Installing job 'cpi'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Installing job 'cpi'"},
 			}))
 		})
 
@@ -108,14 +102,9 @@ var _ = Describe("Installer", func() {
 			_, err := jobInstaller.Install(renderedJobRef, fakeStage)
 			Expect(err).To(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Installing job 'cpi'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Failed,
-				},
-				FailMessage: "Creating job directory '/fake/jobs/cpi': fake-mkdir-error",
-			}))
+			Expect(fakeStage.PerformCalls[0].Name).To(Equal("Installing job 'cpi'"))
+			Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+			Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Creating job directory '/fake/jobs/cpi': fake-mkdir-error"))
 		})
 	})
 })

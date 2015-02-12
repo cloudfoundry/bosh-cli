@@ -25,7 +25,7 @@ import (
 	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("VM", func() {
@@ -112,7 +112,7 @@ var _ = Describe("VM", func() {
 		})
 
 		It("delegates to DiskDeployer.Deploy", func() {
-			fakeStage := fakebmlog.NewFakeStage()
+			fakeStage := fakebmui.NewFakeStage()
 
 			disks, err := vm.UpdateDisks(diskPool, fakeStage)
 			Expect(err).NotTo(HaveOccurred())

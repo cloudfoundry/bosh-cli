@@ -28,10 +28,9 @@ import (
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
-	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {
@@ -164,7 +163,7 @@ var _ = Describe("Manager", func() {
 
 			deploymentConfigPath = "/deployment.json"
 
-			fakeStage *fakebmeventlog.FakeStage
+			fakeStage *fakebmui.FakeStage
 
 			deploymentManager Manager
 		)
@@ -186,7 +185,7 @@ var _ = Describe("Manager", func() {
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			fakeStage = fakebmeventlog.NewFakeStage()
+			fakeStage = fakebmui.NewFakeStage()
 		})
 
 		JustBeforeEach(func() {
@@ -246,7 +245,7 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(BeEmpty())
+				Expect(fakeStage.PerformCalls).To(BeEmpty())
 			})
 		})
 
@@ -273,14 +272,8 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(Equal([]*fakebmeventlog.FakeStep{
-					&fakebmeventlog.FakeStep{
-						Name: "Deleting unused disk 'orphan-disk-cid'",
-						States: []bmeventlog.EventState{
-							bmeventlog.Started,
-							bmeventlog.Finished,
-						},
-					},
+				Expect(fakeStage.PerformCalls).To(ContainElement(fakebmui.PerformCall{
+					Name: "Deleting unused disk 'orphan-disk-cid'",
 				}))
 			})
 
@@ -308,16 +301,8 @@ var _ = Describe("Manager", func() {
 					err := deploymentManager.Cleanup(fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(fakeStage.Steps).To(Equal([]*fakebmeventlog.FakeStep{
-						&fakebmeventlog.FakeStep{
-							Name: "Deleting unused disk 'orphan-disk-cid'",
-							States: []bmeventlog.EventState{
-								bmeventlog.Started,
-								bmeventlog.Skipped,
-							},
-							SkipMessage: "CPI 'delete_disk' method responded with error: CmdError{\"type\":\"Bosh::Cloud::DiskNotFound\",\"message\":\"fake-disk-not-found-message\",\"ok_to_retry\":false}",
-						},
-					}))
+					Expect(fakeStage.PerformCalls[0].Name).To(Equal("Deleting unused disk 'orphan-disk-cid'"))
+					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Disk Not Found: CPI 'delete_disk' method responded with error: CmdError{\"type\":\"Bosh::Cloud::DiskNotFound\",\"message\":\"fake-disk-not-found-message\",\"ok_to_retry\":false}"))
 				})
 			})
 		})
@@ -345,14 +330,8 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(Equal([]*fakebmeventlog.FakeStep{
-					&fakebmeventlog.FakeStep{
-						Name: "Deleting unused stemcell 'orphan-stemcell-cid'",
-						States: []bmeventlog.EventState{
-							bmeventlog.Started,
-							bmeventlog.Finished,
-						},
-					},
+				Expect(fakeStage.PerformCalls).To(ContainElement(fakebmui.PerformCall{
+					Name: "Deleting unused stemcell 'orphan-stemcell-cid'",
 				}))
 			})
 
@@ -380,16 +359,8 @@ var _ = Describe("Manager", func() {
 					err := deploymentManager.Cleanup(fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(fakeStage.Steps).To(Equal([]*fakebmeventlog.FakeStep{
-						&fakebmeventlog.FakeStep{
-							Name: "Deleting unused stemcell 'orphan-stemcell-cid'",
-							States: []bmeventlog.EventState{
-								bmeventlog.Started,
-								bmeventlog.Skipped,
-							},
-							SkipMessage: "CPI 'delete_stemcell' method responded with error: CmdError{\"type\":\"Bosh::Cloud::StemcellNotFound\",\"message\":\"fake-stemcell-not-found-message\",\"ok_to_retry\":false}",
-						},
-					}))
+					Expect(fakeStage.PerformCalls[0].Name).To(Equal("Deleting unused stemcell 'orphan-stemcell-cid'"))
+					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Stemcell not found: CPI 'delete_stemcell' method responded with error: CmdError{\"type\":\"Bosh::Cloud::StemcellNotFound\",\"message\":\"fake-stemcell-not-found-message\",\"ok_to_retry\":false}"))
 				})
 			})
 		})

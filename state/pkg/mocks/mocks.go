@@ -5,8 +5,8 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	pkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	pkg0 "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	pkg0 "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	pkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 )
 
 // Mock of Compiler interface
@@ -30,9 +30,9 @@ func (_m *MockCompiler) EXPECT() *_MockCompilerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCompiler) Compile(_param0 *pkg.Package) (pkg0.CompiledPackageRecord, error) {
+func (_m *MockCompiler) Compile(_param0 *pkg0.Package) (pkg.CompiledPackageRecord, error) {
 	ret := _m.ctrl.Call(_m, "Compile", _param0)
-	ret0, _ := ret[0].(pkg0.CompiledPackageRecord)
+	ret0, _ := ret[0].(pkg.CompiledPackageRecord)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

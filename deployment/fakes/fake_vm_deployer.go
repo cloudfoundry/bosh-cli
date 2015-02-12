@@ -5,8 +5,8 @@ import (
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type FakeVMDeployer struct {
@@ -22,13 +22,13 @@ type VMDeployInput struct {
 	Manifest         bmdeplmanifest.Manifest
 	Stemcell         bmstemcell.CloudStemcell
 	MbusURL          string
-	EventLoggerStage bmeventlog.Stage
+	EventLoggerStage bmui.Stage
 }
 
 type WaitUntilReadyInput struct {
 	VM               bmvm.VM
 	SSHTunnelOptions bmsshtunnel.Options
-	EventLoggerStage bmeventlog.Stage
+	EventLoggerStage bmui.Stage
 }
 
 type vmDeployOutput struct {
@@ -48,7 +48,7 @@ func (m *FakeVMDeployer) Deploy(
 	deploymentManifest bmdeplmanifest.Manifest,
 	stemcell bmstemcell.CloudStemcell,
 	mbusURL string,
-	eventLoggerStage bmeventlog.Stage,
+	eventLoggerStage bmui.Stage,
 ) (bmvm.VM, error) {
 	input := VMDeployInput{
 		Cloud:            cloud,
@@ -65,7 +65,7 @@ func (m *FakeVMDeployer) Deploy(
 	return output.vm, output.err
 }
 
-func (m *FakeVMDeployer) WaitUntilReady(vm bmvm.VM, sshTunnelOptions bmsshtunnel.Options, eventLoggerStage bmeventlog.Stage) error {
+func (m *FakeVMDeployer) WaitUntilReady(vm bmvm.VM, sshTunnelOptions bmsshtunnel.Options, eventLoggerStage bmui.Stage) error {
 	input := WaitUntilReadyInput{
 		VM:               vm,
 		SSHTunnelOptions: sshTunnelOptions,

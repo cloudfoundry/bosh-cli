@@ -9,14 +9,13 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 )
@@ -191,10 +190,10 @@ var _ = Describe("Manager", func() {
 	Describe("DeleteUnused", func() {
 		var (
 			secondDiskRecord bmconfig.DiskRecord
-			fakeStage        *fakebmlog.FakeStage
+			fakeStage        *fakebmui.FakeStage
 		)
 		BeforeEach(func() {
-			fakeStage = fakebmlog.NewFakeStage()
+			fakeStage = fakebmui.NewFakeStage()
 
 			fakeUUIDGenerator.GeneratedUuid = "fake-disk-id-1"
 			_, err := diskRepo.Save("fake-disk-cid-1", 100, nil)
@@ -220,19 +219,9 @@ var _ = Describe("Manager", func() {
 				{DiskCID: "fake-disk-cid-3"},
 			}))
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Deleting unused disk 'fake-disk-cid-1'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Deleting unused disk 'fake-disk-cid-3'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Deleting unused disk 'fake-disk-cid-1'"},
+				{Name: "Deleting unused disk 'fake-disk-cid-3'"},
 			}))
 
 			currentRecord, found, err := diskRepo.FindCurrent()

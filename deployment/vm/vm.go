@@ -15,7 +15,7 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type VM interface {
@@ -26,7 +26,7 @@ type VM interface {
 	Start() error
 	Stop() error
 	Apply(bmas.ApplySpec) error
-	UpdateDisks(bmdeplmanifest.DiskPool, bmeventlog.Stage) ([]bmdisk.Disk, error)
+	UpdateDisks(bmdeplmanifest.DiskPool, bmui.Stage) ([]bmdisk.Disk, error)
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
 	AttachDisk(bmdisk.Disk) error
 	DetachDisk(bmdisk.Disk) error
@@ -89,7 +89,7 @@ func (vm *vm) AgentClient() bmagentclient.AgentClient {
 
 func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
 	agentPingRetryable := bmagentclient.NewPingRetryable(vm.agentClient)
-	timeService := boshtime.NewConcreteService()
+	timeService := boshtime.NewConcreteService() //TODO: inject timeService
 	agentPingRetryStrategy := boshretry.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, timeService, vm.logger)
 	return agentPingRetryStrategy.Try()
 }
@@ -124,7 +124,7 @@ func (vm *vm) Apply(newState bmas.ApplySpec) error {
 	return nil
 }
 
-func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
+func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmui.Stage) ([]bmdisk.Disk, error) {
 	disks, err := vm.diskDeployer.Deploy(diskPool, vm.cloud, vm, eventLoggerStage)
 	if err != nil {
 		return disks, bosherr.WrapError(err, "Deploying disk")

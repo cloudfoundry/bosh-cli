@@ -21,15 +21,14 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {
@@ -57,7 +56,7 @@ var _ = Describe("Manager", func() {
 		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
 		instanceFactory      Factory
 		logger               boshlog.Logger
-		fakeStage            *fakebmlog.FakeStage
+		fakeStage            *fakebmui.FakeStage
 
 		manager Manager
 	)
@@ -82,7 +81,7 @@ var _ = Describe("Manager", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		fakeStage = fakebmlog.NewFakeStage()
+		fakeStage = fakebmui.NewFakeStage()
 
 		manager = NewManager(
 			fakeCloud,
@@ -226,7 +225,7 @@ var _ = Describe("Manager", func() {
 			Expect(fakeCloudStemcell.PromoteAsCurrentCalledTimes).To(Equal(1))
 		})
 
-		It("logs start and stop events to the eventLogger", func() {
+		It("logs instance update stages", func() {
 			_, _, err := manager.Create(
 				"fake-job-name",
 				0,
@@ -238,12 +237,9 @@ var _ = Describe("Manager", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
+				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
 		})
 
@@ -284,12 +280,9 @@ var _ = Describe("Manager", func() {
 				},
 			}))
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
+				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
 		})
 
@@ -428,14 +421,9 @@ var _ = Describe("Manager", func() {
 				)
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "Creating VM: fake-create-vm-error",
-				}))
+				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"))
+				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Creating VM: fake-create-vm-error"))
 			})
 		})
 	})

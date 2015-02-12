@@ -1,36 +1,36 @@
 package cmd
 
 import (
-	"errors"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Runner struct {
 	factory Factory
-	args    []string
 }
 
 func NewRunner(factory Factory) *Runner {
-	return &Runner{factory: factory}
+	return &Runner{
+		factory: factory,
+	}
 }
 
-func (runner *Runner) Run(args []string) error {
-	runner.args = args
-
-	if runner.args == nil {
-		return errors.New("Invalid args, cannot be nil")
-	}
-
-	if len(runner.args) == 0 {
-		return errors.New("Invalid args, cannot be empty")
+func (r *Runner) Run(stage bmui.Stage, args ...string) error {
+	if len(args) == 0 {
+		return bosherr.Error("Invalid usage: No command specified")
 	}
 
 	commandName := args[0]
-	cmd, err := runner.factory.CreateCommand(commandName)
+	cmd, err := r.factory.CreateCommand(commandName)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Failed creating command with name: %s", commandName)
+		return bosherr.WrapErrorf(err, "Command '%s' unknown", commandName)
 	}
 
-	return cmd.Run(args[1:])
+	err = cmd.Run(stage, args[1:])
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Command '%s' failed", commandName)
+	}
+
+	return nil
 }

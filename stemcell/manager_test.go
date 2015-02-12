@@ -15,11 +15,10 @@ import (
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {
@@ -30,7 +29,7 @@ var _ = Describe("Manager", func() {
 		fs                  *fakesys.FakeFileSystem
 		reader              *fakebmstemcell.FakeStemcellReader
 		fakeCloud           *fakebmcloud.FakeCloud
-		fakeStage           *fakebmlog.FakeStage
+		fakeStage           *fakebmui.FakeStage
 		stemcellTarballPath string
 		tempExtractionDir   string
 
@@ -45,7 +44,7 @@ var _ = Describe("Manager", func() {
 		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-1"
 		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
-		fakeStage = fakebmlog.NewFakeStage()
+		fakeStage = fakebmui.NewFakeStage()
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		manager = NewManager(stemcellRepo, fakeCloud)
 		stemcellTarballPath = "/stemcell/tarball/path"
@@ -114,33 +113,24 @@ var _ = Describe("Manager", func() {
 			}))
 		})
 
-		It("logs uploading start and stop events to the eventLogger", func() {
+		It("prints uploading ui stage", func() {
 			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Uploading",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Uploading stemcell 'fake-stemcell-name/fake-stemcell-version'"},
 			}))
 		})
 
-		It("when the upload fails, logs uploading start and failure events to the eventLogger", func() {
+		It("when the upload fails, prints failed uploading ui stage", func() {
 			fakeCloud.CreateStemcellErr = errors.New("fake-create-error")
 			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Uploading",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Failed,
-				},
-				FailMessage: "creating stemcell (fake-stemcell-name fake-stemcell-version): fake-create-error",
-			}))
+			Expect(fakeStage.PerformCalls[0].Name).To(Equal("Uploading stemcell 'fake-stemcell-name/fake-stemcell-version'"))
+			Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+			Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("creating stemcell (fake-stemcell-name fake-stemcell-version): fake-create-error"))
 		})
 
 		It("when the stemcellRepo save fails, logs uploading start and failure events to the eventLogger", func() {
@@ -148,14 +138,10 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-save-error"))
-			Expect(fakeStage.Steps).To(HaveLen(1))
-			uploadStep := fakeStage.Steps[0]
-			Expect(uploadStep.FailMessage).To(ContainSubstring("fake-save-error"))
-			Expect(uploadStep.States).To(Equal([]bmeventlog.EventState{
-				bmeventlog.Started,
-				bmeventlog.Failed,
-			}))
-			Expect(uploadStep.Name).To(Equal("Uploading"))
+
+			Expect(fakeStage.PerformCalls[0].Name).To(Equal("Uploading stemcell 'fake-stemcell-name/fake-stemcell-version'"))
+			Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+			Expect(fakeStage.PerformCalls[0].Error.Error()).To(MatchRegexp("Finding existing stemcell record in repo: .*fake-save-error.*"))
 		})
 
 		Context("when the stemcell record exists in the stemcellRepo (having been previously uploaded)", func() {
@@ -186,14 +172,9 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Uploading",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Skipped,
-					},
-					SkipMessage: "Stemcell already uploaded",
-				}))
+				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Uploading stemcell 'fake-stemcell-name/fake-stemcell-version'"))
+				Expect(fakeStage.PerformCalls[0].SkipError).To(HaveOccurred())
+				Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(MatchRegexp("Stemcell already uploaded: Found stemcell: .*fake-existing-cid.*"))
 			})
 		})
 	})
@@ -301,19 +282,9 @@ var _ = Describe("Manager", func() {
 				{StemcellCID: "fake-stemcell-cid-3"},
 			}))
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Deleting unused stemcell 'fake-stemcell-cid-1'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Deleting unused stemcell 'fake-stemcell-cid-3'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Deleting unused stemcell 'fake-stemcell-cid-1'"},
+				{Name: "Deleting unused stemcell 'fake-stemcell-cid-3'"},
 			}))
 
 			currentRecord, found, err := stemcellRepo.FindCurrent()

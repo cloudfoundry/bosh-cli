@@ -10,7 +10,6 @@ import (
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
@@ -18,6 +17,7 @@ import (
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type ReleaseJobRef struct {
@@ -26,7 +26,7 @@ type ReleaseJobRef struct {
 }
 
 type Builder interface {
-	Build(bminstallmanifest.Manifest, bmeventlog.Stage) (State, error)
+	Build(bminstallmanifest.Manifest, bmui.Stage) (State, error)
 }
 
 type builder struct {
@@ -56,7 +56,7 @@ func NewBuilder(
 	}
 }
 
-func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage bmeventlog.Stage) (State, error) {
+func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage bmui.Stage) (State, error) {
 	// installation only ever has one job: the cpi job.
 	releaseJobRefs := []ReleaseJobRef{
 		{
@@ -111,7 +111,7 @@ func (b *builder) resolveJobs(jobRefs []ReleaseJobRef) ([]bmreljob.Job, error) {
 
 //TODO: same as deployment/instance/state.Builder - abstract
 // compileJobDependencies resolves and compiles all transitive dependencies of multiple release jobs
-func (b *builder) compileJobDependencies(releaseJobs []bmreljob.Job, stage bmeventlog.Stage) ([]bminstallpkg.CompiledPackageRef, error) {
+func (b *builder) compileJobDependencies(releaseJobs []bmreljob.Job, stage bmui.Stage) ([]bminstallpkg.CompiledPackageRef, error) {
 	compileOrderReleasePackages, err := b.resolveJobCompilationDependencies(releaseJobs)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Resolving job package dependencies")
@@ -162,12 +162,12 @@ func (b *builder) resolvePackageDependencies(releasePackage *bmrelpkg.Package, n
 }
 
 // compilePackages compiles the specified packages, in the order specified, uploads them to the Blobstore, and returns the blob references
-func (b *builder) compilePackages(requiredPackages []*bmrelpkg.Package, stage bmeventlog.Stage) ([]bminstallpkg.CompiledPackageRef, error) {
+func (b *builder) compilePackages(requiredPackages []*bmrelpkg.Package, stage bmui.Stage) ([]bminstallpkg.CompiledPackageRef, error) {
 	packageNamesToRefs := make(map[string]bminstallpkg.CompiledPackageRef, len(requiredPackages))
 
 	for _, pkg := range requiredPackages {
 		stepName := fmt.Sprintf("Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
-		err := stage.PerformStep(stepName, func() error {
+		err := stage.Perform(stepName, func() error {
 
 			compiledPackageRecord, err := b.packageCompiler.Compile(pkg)
 			if err != nil {
@@ -203,10 +203,10 @@ func (b *builder) renderJobTemplates(
 	jobProperties bmproperty.Map,
 	globalProperties bmproperty.Map,
 	deploymentName string,
-	stage bmeventlog.Stage,
+	stage bmui.Stage,
 ) ([]bminstalljob.RenderedJobRef, error) {
 	renderedJobRefs := make([]bminstalljob.RenderedJobRef, 0, len(releaseJobs))
-	err := stage.PerformStep("Rendering job templates", func() error {
+	err := stage.Perform("Rendering job templates", func() error {
 		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 		if err != nil {
 			return err

@@ -5,7 +5,7 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type FakeDiskDeployer struct {
@@ -17,7 +17,7 @@ type DeployInput struct {
 	DiskPool         bmdeplmanifest.DiskPool
 	Cloud            bmcloud.Cloud
 	VM               bmvm.VM
-	EventLoggerStage bmeventlog.Stage
+	EventLoggerStage bmui.Stage
 }
 
 type deployOutput struct {
@@ -35,7 +35,7 @@ func (d *FakeDiskDeployer) Deploy(
 	diskPool bmdeplmanifest.DiskPool,
 	cloud bmcloud.Cloud,
 	vm bmvm.VM,
-	eventLoggerStage bmeventlog.Stage,
+	eventLoggerStage bmui.Stage,
 ) ([]bmdisk.Disk, error) {
 	d.DeployInputs = append(d.DeployInputs, DeployInput{
 		DiskPool:         diskPool,

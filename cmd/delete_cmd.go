@@ -13,7 +13,6 @@ import (
 	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -39,7 +38,6 @@ type deleteCmd struct {
 	agentClientFactory       bmhttpagent.AgentClientFactory
 	blobstoreFactory         bmblobstore.Factory
 	deploymentManagerFactory bmdepl.ManagerFactory
-	eventLogger              bmeventlog.EventLogger
 	logger                   boshlog.Logger
 	logTag                   string
 }
@@ -61,7 +59,6 @@ func NewDeleteCmd(
 	agentClientFactory bmhttpagent.AgentClientFactory,
 	blobstoreFactory bmblobstore.Factory,
 	deploymentManagerFactory bmdepl.ManagerFactory,
-	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) Cmd {
 	return &deleteCmd{
@@ -81,9 +78,8 @@ func NewDeleteCmd(
 		agentClientFactory:       agentClientFactory,
 		blobstoreFactory:         blobstoreFactory,
 		deploymentManagerFactory: deploymentManagerFactory,
-		eventLogger:              eventLogger,
-		logger:                   logger,
-		logTag:                   "deleteCmd",
+		logger: logger,
+		logTag: "deleteCmd",
 	}
 }
 
@@ -91,7 +87,7 @@ func (c *deleteCmd) Name() string {
 	return "delete"
 }
 
-func (c *deleteCmd) Run(args []string) error {
+func (c *deleteCmd) Run(stage bmui.Stage, args []string) error {
 	releaseTarballPath, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
@@ -102,26 +98,15 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapErrorf(err, "Running delete cmd")
 	}
 
-	validationStage := c.eventLogger.NewStage("validating")
-	validationStage.Start()
-
 	deploymentConfig, err := c.deploymentConfigService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	err = validationStage.PerformStep("Validating releases", func() error {
-		if !c.fs.FileExists(releaseTarballPath) {
-			return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
-		}
-
-		release, err := c.releaseExtractor.Extract(releaseTarballPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
-		}
-		c.releaseManager.Add(release)
-
-		return nil
+	var installationManifest bminstallmanifest.Manifest
+	err = stage.PerformComplex("validating", func(stage bmui.Stage) error {
+		installationManifest, err = c.validate(stage, releaseTarballPath, deploymentManifestPath)
+		return err
 	})
 	if err != nil {
 		return err
@@ -133,85 +118,30 @@ func (c *deleteCmd) Run(args []string) error {
 		}
 	}()
 
-	var installationManifest bminstallmanifest.Manifest
-	err = validationStage.PerformStep("Validating deployment manifest", func() error {
-		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.releaseSetValidator.Validate(releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating release set manifest")
-		}
-
-		c.releaseResolver.Filter(releaseSetManifest.Releases)
-
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.installationValidator.Validate(installationManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating installation manifest")
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	err = validationStage.PerformStep("Validating cpi release", func() error {
-		cpiRelease, err := c.releaseResolver.Find(installationManifest.Release)
-		if err != nil {
-			// should never happen, due to prior manifest validation
-			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", installationManifest.Release)
-		}
-
-		err = bmcpirel.NewValidator().Validate(cpiRelease)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	validationStage.Finish()
-
 	installer, err := c.installerFactory.NewInstaller()
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}
 
-	c.logger.Debug(c.logTag, "Installing CPI...")
-	installStage := c.eventLogger.NewStage("installing CPI")
-	installStage.Start()
+	var installation bminstall.Installation
+	err = stage.PerformComplex("installing CPI", func(installStage bmui.Stage) error {
+		installation, err = installer.Install(installationManifest, installStage)
+		return err
+	})
 
-	installation, err := installer.Install(installationManifest, installStage)
-	if err != nil {
-		return bosherr.WrapError(err, "Installing CPI")
-	}
-
-	c.logger.Debug(c.logTag, "Starting Registry...")
-	err = installStage.PerformStep("Starting registry", func() error {
+	err = stage.Perform("Starting registry", func() error {
 		return installation.StartRegistry()
 	})
 	if err != nil {
 		return err
 	}
 	defer func() {
+		//TODO: wrap stopping registry in stage?
 		err := installation.StopRegistry()
 		if err != nil {
 			c.logger.Warn(c.logTag, "Registry failed to stop: %s", err)
 		}
 	}()
-
-	installStage.Finish()
 
 	c.logger.Debug(c.logTag, "Creating cloud client...")
 	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
@@ -237,35 +167,109 @@ func (c *deleteCmd) Run(args []string) error {
 		return bosherr.WrapError(err, "Finding current deployment")
 	}
 
-	deleteStage := c.eventLogger.NewStage("deleting deployment")
-	deleteStage.Start()
+	err = stage.PerformComplex("deleting deployment", func(deleteStage bmui.Stage) error {
+		if !found {
+			//TODO: skip? would require adding skip support to PerformComplex
+			c.logger.Debug(c.logTag, "No current deployment found...")
+			return nil
+		}
 
-	if found {
-		c.logger.Debug(c.logTag, "Deleting deployment...")
 		err = deployment.Delete(deleteStage)
 		if err != nil {
 			return bosherr.WrapError(err, "Deleting deployment")
 		}
-	} else {
-		c.logger.Debug(c.logTag, "No current deployment found...")
-	}
+		return nil
+	})
 
-	c.logger.Debug(c.logTag, "Cleaning up...")
-	if err = deploymentManager.Cleanup(deleteStage); err != nil {
+	if err = deploymentManager.Cleanup(stage); err != nil {
 		return err
 	}
 
-	deleteStage.Finish()
-
-	return nil
+	return err
 }
 
 func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
 	if len(args) != 1 {
-		c.ui.Error("Invalid usage - delete command requires exactly 1 argument")
-		c.ui.Sayln("Expected usage: bosh-micro delete <cpi-release-tarball>")
+		c.ui.ErrorLinef("Invalid usage - delete command requires exactly 1 argument")
+		c.ui.PrintLinef("Expected usage: bosh-micro delete <cpi-release-tarball>")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
 		return "", errors.New("Invalid usage - delete command requires exactly 1 argument")
 	}
 	return args[0], nil
+}
+
+func (c *deleteCmd) validate(validationStage bmui.Stage, releaseTarballPath, deploymentManifestPath string) (
+	installationManifest bminstallmanifest.Manifest,
+	err error,
+) {
+	err = validationStage.Perform("Validating releases", func() error {
+		if !c.fs.FileExists(releaseTarballPath) {
+			return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
+		}
+
+		release, err := c.releaseExtractor.Extract(releaseTarballPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
+		}
+		c.releaseManager.Add(release)
+
+		return nil
+	})
+	if err != nil {
+		return installationManifest, err
+	}
+	defer func() {
+		if err != nil {
+			err := c.releaseManager.DeleteAll()
+			if err != nil {
+				c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
+			}
+		}
+	}()
+
+	err = validationStage.Perform("Validating deployment manifest", func() error {
+		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.releaseSetValidator.Validate(releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating release set manifest")
+		}
+
+		c.releaseResolver.Filter(releaseSetManifest.Releases)
+
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.installationValidator.Validate(installationManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating installation manifest")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return installationManifest, err
+	}
+
+	err = validationStage.Perform("Validating cpi release", func() error {
+		cpiRelease, err := c.releaseResolver.Find(installationManifest.Release)
+		if err != nil {
+			// should never happen, due to prior manifest validation
+			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", installationManifest.Release)
+		}
+
+		err = bmcpirel.NewValidator().Validate(cpiRelease)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
+		}
+
+		return nil
+	})
+
+	return installationManifest, err
 }

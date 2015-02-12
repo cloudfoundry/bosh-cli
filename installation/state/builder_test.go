@@ -19,7 +19,6 @@ import (
 	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
@@ -29,7 +28,7 @@ import (
 	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
-	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Builder", func() {
@@ -60,7 +59,7 @@ var _ = Describe("Builder", func() {
 		releaseJob bmreljob.Job
 
 		manifest  bminstallmanifest.Manifest
-		fakeStage *fakebmeventlog.FakeStage
+		fakeStage *fakebmui.FakeStage
 
 		releasePackage1 *bmrelpkg.Package
 		releasePackage2 *bmrelpkg.Package
@@ -84,7 +83,7 @@ var _ = Describe("Builder", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		fakeStage = fakebmeventlog.NewFakeStage()
+		fakeStage = fakebmui.NewFakeStage()
 
 		manifest = bminstallmanifest.Manifest{
 			Name:    "fake-installation-name",
@@ -196,27 +195,15 @@ var _ = Describe("Builder", func() {
 			_, err := builder.Build(manifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(Equal([]*fakebmeventlog.FakeStep{
-				&fakebmeventlog.FakeStep{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{
 					Name: "Compiling package 'fake-release-package-name-1/fake-release-package-fingerprint-1'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
 				},
-				&fakebmeventlog.FakeStep{
+				{
 					Name: "Compiling package 'fake-release-package-name-2/fake-release-package-fingerprint-2'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
 				},
-				&fakebmeventlog.FakeStep{
+				{
 					Name: "Rendering job templates",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
 				},
 			}))
 		})

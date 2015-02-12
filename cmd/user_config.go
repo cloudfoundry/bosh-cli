@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
@@ -14,18 +12,18 @@ func getDeploymentManifest(userConfig bmconfig.UserConfig, ui bmui.UI, fs boshsy
 	deploymentManifestPath := userConfig.DeploymentManifestPath
 
 	if deploymentManifestPath == "" {
-		ui.Error("Deployment manifest not set")
+		ui.ErrorLinef("Deployment manifest not set")
 		return "", bosherr.Error("Deployment manifest not set")
 	}
 
-	ui.Sayln(fmt.Sprintf("Deployment manifest: '%s'", deploymentManifestPath))
+	ui.PrintLinef("Deployment manifest: '%s'", deploymentManifestPath)
 
 	if !fs.FileExists(deploymentManifestPath) {
-		ui.Error("Deployment manifest does not exist")
+		ui.ErrorLinef("Deployment manifest does not exist")
 		return "", bosherr.Errorf("Deployment manifest does not exist at '%s'", deploymentManifestPath)
 	}
 
-	ui.Sayln(fmt.Sprintf("Deployment state: '%s'", userConfig.DeploymentConfigPath()))
+	ui.PrintLinef("Deployment state: '%s'", userConfig.DeploymentConfigPath())
 
 	return deploymentManifestPath, nil
 }

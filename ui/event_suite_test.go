@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestUI(t *testing.T) {
+func TestEvent(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "UI Suite")
+	RunSpecs(t, "UI Event Suite")
 }

@@ -26,6 +26,8 @@ type findOutput struct {
 	err    error
 }
 
+//TODO: remove and replace with state/pkg/mocks/MockCompiledPackageRepo
+
 type FakeCompiledPackageRepo struct {
 	SaveInputs []SaveInput
 	FindInputs []FindInput

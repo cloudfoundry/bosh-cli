@@ -8,12 +8,12 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type TemplatesCompiler interface {
-	Compile(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmeventlog.Stage) error
+	Compile(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmui.Stage) error
 }
 
 type templatesCompiler struct {
@@ -43,11 +43,11 @@ func NewTemplatesCompiler(
 	}
 }
 
-func (tc templatesCompiler) Compile(releaseJobs []bmreljob.Job, deploymentName string, jobProperties bmproperty.Map, stage bmeventlog.Stage) error {
+func (tc templatesCompiler) Compile(releaseJobs []bmreljob.Job, deploymentName string, jobProperties bmproperty.Map, stage bmui.Stage) error {
 	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
 	globalProperties := bmproperty.Map{}
 
-	return stage.PerformStep("Rendering job templates", func() error {
+	return stage.Perform("Rendering job templates", func() error {
 		renderedJobList, err := tc.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 		if err != nil {
 			return err

@@ -12,9 +12,9 @@ import (
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Deployer interface {
@@ -26,7 +26,7 @@ type Deployer interface {
 		bminstallmanifest.SSHTunnel,
 		bmvm.Manager,
 		bmblobstore.Blobstore,
-		bmeventlog.Stage,
+		bmui.Stage,
 	) (Deployment, error)
 }
 
@@ -34,7 +34,6 @@ type deployer struct {
 	vmManagerFactory       bmvm.ManagerFactory
 	instanceManagerFactory bminstance.ManagerFactory
 	deploymentFactory      Factory
-	eventLogger            bmeventlog.EventLogger
 	logger                 boshlog.Logger
 	logTag                 string
 }
@@ -43,14 +42,12 @@ func NewDeployer(
 	vmManagerFactory bmvm.ManagerFactory,
 	instanceManagerFactory bminstance.ManagerFactory,
 	deploymentFactory Factory,
-	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) *deployer {
 	return &deployer{
 		vmManagerFactory:       vmManagerFactory,
 		instanceManagerFactory: instanceManagerFactory,
 		deploymentFactory:      deploymentFactory,
-		eventLogger:            eventLogger,
 		logger:                 logger,
 		logTag:                 "deployer",
 	}
@@ -64,7 +61,7 @@ func (d *deployer) Deploy(
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
 	vmManager bmvm.Manager,
 	blobstore bmblobstore.Blobstore,
-	deployStage bmeventlog.Stage,
+	deployStage bmui.Stage,
 ) (Deployment, error) {
 	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
 
@@ -89,7 +86,7 @@ func (d *deployer) createAllInstances(
 	cloudStemcell bmstemcell.CloudStemcell,
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
-	deployStage bmeventlog.Stage,
+	deployStage bmui.Stage,
 ) ([]bminstance.Instance, []bmdisk.Disk, error) {
 	instances := []bminstance.Instance{}
 	disks := []bmdisk.Disk{}

@@ -23,7 +23,6 @@ import (
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
@@ -49,6 +48,7 @@ type factory struct {
 	deploymentConfigService  bmconfig.DeploymentConfigService
 	fs                       boshsys.FileSystem
 	ui                       bmui.UI
+	timeService              boshtime.Service
 	logger                   boshlog.Logger
 	uuidGenerator            boshuuid.Generator
 	workspaceRootPath        string
@@ -70,8 +70,7 @@ type factory struct {
 	deploymentFactory        bmdepl.Factory
 	deployer                 bmdepl.Deployer
 	blobstoreFactory         bmblobstore.Factory
-	eventLogger              bmeventlog.EventLogger
-	timeService              boshtime.Service
+	eventLogger              bmui.Stage
 	installerFactory         bminstall.InstallerFactory
 	releaseExtractor         bmrel.Extractor
 	releaseManager           bmrel.Manager
@@ -93,6 +92,7 @@ func NewFactory(
 	userConfigService bmconfig.UserConfigService,
 	fs boshsys.FileSystem,
 	ui bmui.UI,
+	timeService boshtime.Service,
 	logger boshlog.Logger,
 	uuidGenerator boshuuid.Generator,
 	workspaceRootPath string,
@@ -102,6 +102,7 @@ func NewFactory(
 		userConfigService: userConfigService,
 		fs:                fs,
 		ui:                ui,
+		timeService:       timeService,
 		logger:            logger,
 		uuidGenerator:     uuidGenerator,
 		workspaceRootPath: workspaceRootPath,
@@ -165,7 +166,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		deploymentRecord,
 		f.loadBlobstoreFactory(),
 		f.loadDeployer(),
-		f.loadEventLogger(),
 		f.logger,
 	), nil
 }
@@ -188,7 +188,6 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.loadAgentClientFactory(),
 		f.loadBlobstoreFactory(),
 		f.loadDeploymentManagerFactory(),
-		f.loadEventLogger(),
 		f.logger,
 	), nil
 }
@@ -436,7 +435,6 @@ func (f *factory) loadDeployer() bmdepl.Deployer {
 		f.loadVMManagerFactory(),
 		f.loadInstanceManagerFactory(),
 		f.loadDeploymentFactory(),
-		f.loadEventLogger(),
 		f.logger,
 	)
 	return f.deployer
@@ -449,25 +447,6 @@ func (f *factory) loadBlobstoreFactory() bmblobstore.Factory {
 
 	f.blobstoreFactory = bmblobstore.NewBlobstoreFactory(f.uuidGenerator, f.fs, f.logger)
 	return f.blobstoreFactory
-}
-
-func (f *factory) loadEventLogger() bmeventlog.EventLogger {
-	if f.eventLogger != nil {
-		return f.eventLogger
-	}
-
-	eventFilters := []bmeventlog.EventFilter{bmeventlog.NewTimeFilter(f.loadTimeService())}
-	f.eventLogger = bmeventlog.NewEventLoggerWithFilters(f.ui, eventFilters)
-	return f.eventLogger
-}
-
-func (f *factory) loadTimeService() boshtime.Service {
-	if f.timeService != nil {
-		return f.timeService
-	}
-
-	f.timeService = boshtime.NewConcreteService()
-	return f.timeService
 }
 
 func (f *factory) loadReleaseExtractor() bmrel.Extractor {
@@ -577,7 +556,6 @@ func (f *factory) loadInstallerFactory() bminstall.InstallerFactory {
 		f.workspaceRootPath,
 		f.uuidGenerator,
 		f.loadRegistryServerManager(),
-		f.loadEventLogger(),
 		f.logger,
 	)
 	return f.installerFactory

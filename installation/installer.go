@@ -7,16 +7,16 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Installer interface {
-	Install(bminstallmanifest.Manifest, bmeventlog.Stage) (Installation, error)
+	Install(bminstallmanifest.Manifest, bmui.Stage) (Installation, error)
 }
 
 type installer struct {
@@ -54,7 +54,7 @@ func NewInstaller(
 	}
 }
 
-func (i *installer) Install(manifest bminstallmanifest.Manifest, stage bmeventlog.Stage) (Installation, error) {
+func (i *installer) Install(manifest bminstallmanifest.Manifest, stage bmui.Stage) (Installation, error) {
 	i.logger.Info(i.logTag, "Installing CPI deployment '%s'", manifest.Name)
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
@@ -63,7 +63,7 @@ func (i *installer) Install(manifest bminstallmanifest.Manifest, stage bmeventlo
 		return nil, bosherr.WrapError(err, "Building installation state")
 	}
 
-	err = stage.PerformStep("Installing packages", func() error {
+	err = stage.Perform("Installing packages", func() error {
 		err = i.fs.MkdirAll(i.packagesPath, os.ModePerm)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating packages directory '%s'", i.packagesPath)

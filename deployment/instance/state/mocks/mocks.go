@@ -10,7 +10,7 @@ import (
 	applyspec "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	ui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 // Mock of BuilderFactory interface
@@ -65,7 +65,7 @@ func (_m *MockBuilder) EXPECT() *_MockBuilderRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBuilder) Build(_param0 string, _param1 int, _param2 manifest.Manifest, _param3 eventlogger.Stage) (state.State, error) {
+func (_m *MockBuilder) Build(_param0 string, _param1 int, _param2 manifest.Manifest, _param3 ui.Stage) (state.State, error) {
 	ret := _m.ctrl.Call(_m, "Build", _param0, _param1, _param2, _param3)
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)

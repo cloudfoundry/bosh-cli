@@ -6,12 +6,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"errors"
 	"time"
 
 	"code.google.com/p/gomock/gomock"
 	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
@@ -19,13 +19,12 @@ import (
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 
 	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
 	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
-	fakebmlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Instance", func() {
@@ -47,7 +46,7 @@ var _ = Describe("Instance", func() {
 		fakeVM               *fakebmvm.FakeVM
 		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
 		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
-		fakeStage            *fakebmlog.FakeStage
+		fakeStage            *fakebmui.FakeStage
 
 		instance Instance
 
@@ -82,7 +81,7 @@ var _ = Describe("Instance", func() {
 			logger,
 		)
 
-		fakeStage = fakebmlog.NewFakeStage()
+		fakeStage = fakebmui.NewFakeStage()
 	})
 
 	Describe("Delete", func() {
@@ -107,28 +106,10 @@ var _ = Describe("Instance", func() {
 			err := instance.Delete(pingTimeout, pingDelay, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(Equal([]*fakebmlog.FakeStep{
-				{
-					Name: "Waiting for the agent on VM 'fake-vm-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
-				},
-				{
-					Name: "Stopping jobs on instance 'fake-job-name/0'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
-				},
-				{
-					Name: "Deleting VM 'fake-vm-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+				{Name: "Stopping jobs on instance 'fake-job-name/0'"},
+				{Name: "Deleting VM 'fake-vm-cid'"},
 			}))
 		})
 
@@ -137,12 +118,8 @@ var _ = Describe("Instance", func() {
 				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
+				Expect(fakeStage.PerformCalls[0]).To(Equal(fakebmui.PerformCall{
 					Name: "Waiting for the agent on VM 'fake-vm-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
 				}))
 			})
 
@@ -166,25 +143,19 @@ var _ = Describe("Instance", func() {
 					{Disk: secondDisk},
 				}))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Unmounting disk 'fake-disk-1'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
-				}))
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Unmounting disk 'fake-disk-2'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Finished,
-					},
+				Expect(fakeStage.PerformCalls[2:4]).To(Equal([]fakebmui.PerformCall{
+					{Name: "Unmounting disk 'fake-disk-1'"},
+					{Name: "Unmounting disk 'fake-disk-2'"},
 				}))
 			})
 
 			Context("when stopping vm fails", func() {
+				var (
+					stopError = bosherr.Error("fake-stop-error")
+				)
+
 				BeforeEach(func() {
-					fakeVM.StopErr = errors.New("fake-stop-error")
+					fakeVM.StopErr = stopError
 				})
 
 				It("returns an error", func() {
@@ -192,13 +163,12 @@ var _ = Describe("Instance", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 
-					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-						Name: "Stopping jobs on instance 'fake-job-name/0'",
-						States: []bmeventlog.EventState{
-							bmeventlog.Started,
-							bmeventlog.Failed,
+					Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+						{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+						{
+							Name:  "Stopping jobs on instance 'fake-job-name/0'",
+							Error: stopError,
 						},
-						FailMessage: "fake-stop-error",
 					}))
 				})
 			})
@@ -206,7 +176,7 @@ var _ = Describe("Instance", func() {
 			Context("when unmounting disk fails", func() {
 				BeforeEach(func() {
 					fakeVM.ListDisksDisks = []bmdisk.Disk{fakebmdisk.NewFakeDisk("fake-disk")}
-					fakeVM.UnmountDiskErr = errors.New("fake-unmount-error")
+					fakeVM.UnmountDiskErr = bosherr.Error("fake-unmount-error")
 				})
 
 				It("returns an error", func() {
@@ -214,41 +184,34 @@ var _ = Describe("Instance", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-unmount-error"))
 
-					Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-						Name: "Unmounting disk 'fake-disk'",
-						States: []bmeventlog.EventState{
-							bmeventlog.Started,
-							bmeventlog.Failed,
-						},
-						FailMessage: "Unmounting disk 'fake-disk' from VM 'fake-vm-cid': fake-unmount-error",
-					}))
+					Expect(fakeStage.PerformCalls[2].Name).To(Equal("Unmounting disk 'fake-disk'"))
+					Expect(fakeStage.PerformCalls[2].Error).To(HaveOccurred())
+					Expect(fakeStage.PerformCalls[2].Error.Error()).To(Equal("Unmounting disk 'fake-disk' from VM 'fake-vm-cid': fake-unmount-error"))
 				})
 			})
 		})
 
 		Context("when agent fails to respond", func() {
 			BeforeEach(func() {
-				fakeVM.WaitUntilReadyErr = errors.New("fake-wait-error")
+				fakeVM.WaitUntilReadyErr = bosherr.Error("fake-wait-error")
 			})
 
 			It("logs failed event", func() {
 				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Waiting for the agent on VM 'fake-vm-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "Agent unreachable: fake-wait-error",
-				}))
+				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Waiting for the agent on VM 'fake-vm-cid'"))
+				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Agent unreachable: fake-wait-error"))
 			})
 		})
 
 		Context("when deleting VM fails", func() {
+			var (
+				deleteError = bosherr.Error("fake-delete-error")
+			)
 			BeforeEach(func() {
-				fakeVM.DeleteErr = errors.New("fake-delete-error")
+				fakeVM.DeleteErr = deleteError
 			})
 
 			It("returns an error", func() {
@@ -256,13 +219,13 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Deleting VM 'fake-vm-cid'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+					{Name: "Stopping jobs on instance 'fake-job-name/0'"},
+					{
+						Name:  "Deleting VM 'fake-vm-cid'",
+						Error: deleteError,
 					},
-					FailMessage: "fake-delete-error",
 				}))
 			})
 		})
@@ -296,16 +259,8 @@ var _ = Describe("Instance", func() {
 				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeStage.Steps).To(Equal([]*fakebmlog.FakeStep{
-					{
-						Name: "Deleting VM 'fake-vm-cid'",
-						States: []bmeventlog.EventState{
-							bmeventlog.Started,
-							bmeventlog.Skipped,
-						},
-						SkipMessage: "CPI 'delete_vm' method responded with error: CmdError{\"type\":\"Bosh::Cloud::VMNotFound\",\"message\":\"fake-vm-not-found-message\",\"ok_to_retry\":false}",
-					},
-				}))
+				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Deleting VM 'fake-vm-cid'"))
+				Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("VM not found: CPI 'delete_vm' method responded with error: CmdError{\"type\":\"Bosh::Cloud::VMNotFound\",\"message\":\"fake-vm-not-found-message\",\"ok_to_retry\":false}"))
 			})
 		})
 	})
@@ -374,25 +329,15 @@ var _ = Describe("Instance", func() {
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Updating instance 'fake-job-name/0'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Waiting for instance 'fake-job-name/0' to be running",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Updating instance 'fake-job-name/0'"},
+				{Name: "Waiting for instance 'fake-job-name/0' to be running"},
 			}))
 		})
 
 		Context("when instance state building fails", func() {
 			JustBeforeEach(func() {
-				expectStateBuild.Return(nil, errors.New("fake-template-err")).Times(1)
+				expectStateBuild.Return(nil, bosherr.Error("fake-template-err")).Times(1)
 			})
 
 			It("returns an error", func() {
@@ -404,7 +349,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when stopping vm fails", func() {
 			BeforeEach(func() {
-				fakeVM.StopErr = errors.New("fake-stop-error")
+				fakeVM.StopErr = bosherr.Error("fake-stop-error")
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -412,20 +357,15 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Updating instance 'fake-job-name/0'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "Stopping the agent: fake-stop-error",
-				}))
+				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Updating instance 'fake-job-name/0'"))
+				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Stopping the agent: fake-stop-error"))
 			})
 		})
 
 		Context("when applying a new vm state fails", func() {
 			BeforeEach(func() {
-				fakeVM.ApplyErr = errors.New("fake-apply-error")
+				fakeVM.ApplyErr = bosherr.Error("fake-apply-error")
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -433,20 +373,15 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Updating instance 'fake-job-name/0'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "Applying the agent state: fake-apply-error",
-				}))
+				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Updating instance 'fake-job-name/0'"))
+				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Applying the agent state: fake-apply-error"))
 			})
 		})
 
 		Context("when starting vm fails", func() {
 			BeforeEach(func() {
-				fakeVM.StartErr = errors.New("fake-start-error")
+				fakeVM.StartErr = bosherr.Error("fake-start-error")
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -454,34 +389,32 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Updating instance 'fake-job-name/0'",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
-					},
-					FailMessage: "Starting the agent: fake-start-error",
-				}))
+				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Updating instance 'fake-job-name/0'"))
+				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Starting the agent: fake-start-error"))
 			})
 		})
 
 		Context("when waiting for running state fails", func() {
+			var (
+				waitError = bosherr.Error("fake-wait-running-error")
+			)
+
 			BeforeEach(func() {
-				fakeVM.WaitToBeRunningErr = errors.New("fake-wait-running-error")
+				fakeVM.WaitToBeRunningErr = waitError
 			})
 
-			It("logs start and stop events to the eventLogger", func() {
+			It("logs instance update stages", func() {
 				err := instance.UpdateJobs(deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Waiting for instance 'fake-job-name/0' to be running",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+					{Name: "Updating instance 'fake-job-name/0'"},
+					{
+						Name:  "Waiting for instance 'fake-job-name/0' to be running",
+						Error: waitError,
 					},
-					FailMessage: "fake-wait-running-error",
 				}))
 			})
 		})
@@ -535,12 +468,8 @@ var _ = Describe("Instance", func() {
 			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-				Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
 		})
 
@@ -570,7 +499,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when starting SSH tunnel fails", func() {
 			BeforeEach(func() {
-				fakeSSHTunnel.SetStartBehavior(errors.New("fake-ssh-tunnel-start-error"), nil)
+				fakeSSHTunnel.SetStartBehavior(bosherr.Error("fake-ssh-tunnel-start-error"), nil)
 			})
 
 			It("returns an error", func() {
@@ -581,8 +510,11 @@ var _ = Describe("Instance", func() {
 		})
 
 		Context("when waiting for the agent fails", func() {
+			var (
+				waitError = bosherr.Error("fake-wait-error")
+			)
 			BeforeEach(func() {
-				fakeVM.WaitUntilReadyErr = errors.New("fake-wait-error")
+				fakeVM.WaitUntilReadyErr = waitError
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -590,13 +522,11 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
-				Expect(fakeStage.Steps).To(ContainElement(&fakebmlog.FakeStep{
-					Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready",
-					States: []bmeventlog.EventState{
-						bmeventlog.Started,
-						bmeventlog.Failed,
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+					{
+						Name:  "Waiting for the agent on VM 'fake-vm-cid' to be ready",
+						Error: waitError,
 					},
-					FailMessage: "fake-wait-error",
 				}))
 			})
 		})

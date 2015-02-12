@@ -8,9 +8,9 @@ import (
 	disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	manifest0 "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	stemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	ui "github.com/cloudfoundry/bosh-micro-cli/ui"
 	time "time"
 )
 
@@ -35,7 +35,7 @@ func (_m *MockInstance) EXPECT() *_MockInstanceRecorder {
 	return _m.recorder
 }
 
-func (_m *MockInstance) Delete(_param0 time.Duration, _param1 time.Duration, _param2 eventlogger.Stage) error {
+func (_m *MockInstance) Delete(_param0 time.Duration, _param1 time.Duration, _param2 ui.Stage) error {
 	ret := _m.ctrl.Call(_m, "Delete", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -76,7 +76,7 @@ func (_mr *_MockInstanceRecorder) JobName() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "JobName")
 }
 
-func (_m *MockInstance) UpdateDisks(_param0 manifest.Manifest, _param1 eventlogger.Stage) ([]disk.Disk, error) {
+func (_m *MockInstance) UpdateDisks(_param0 manifest.Manifest, _param1 ui.Stage) ([]disk.Disk, error) {
 	ret := _m.ctrl.Call(_m, "UpdateDisks", _param0, _param1)
 	ret0, _ := ret[0].([]disk.Disk)
 	ret1, _ := ret[1].(error)
@@ -87,7 +87,7 @@ func (_mr *_MockInstanceRecorder) UpdateDisks(arg0, arg1 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateDisks", arg0, arg1)
 }
 
-func (_m *MockInstance) UpdateJobs(_param0 manifest.Manifest, _param1 eventlogger.Stage) error {
+func (_m *MockInstance) UpdateJobs(_param0 manifest.Manifest, _param1 ui.Stage) error {
 	ret := _m.ctrl.Call(_m, "UpdateJobs", _param0, _param1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -97,7 +97,7 @@ func (_mr *_MockInstanceRecorder) UpdateJobs(arg0, arg1 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateJobs", arg0, arg1)
 }
 
-func (_m *MockInstance) WaitUntilReady(_param0 manifest0.Registry, _param1 manifest0.SSHTunnel, _param2 eventlogger.Stage) error {
+func (_m *MockInstance) WaitUntilReady(_param0 manifest0.Registry, _param1 manifest0.SSHTunnel, _param2 ui.Stage) error {
 	ret := _m.ctrl.Call(_m, "WaitUntilReady", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -128,7 +128,7 @@ func (_m *MockManager) EXPECT() *_MockManagerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockManager) Create(_param0 string, _param1 int, _param2 manifest.Manifest, _param3 stemcell.CloudStemcell, _param4 manifest0.Registry, _param5 manifest0.SSHTunnel, _param6 eventlogger.Stage) (instance.Instance, []disk.Disk, error) {
+func (_m *MockManager) Create(_param0 string, _param1 int, _param2 manifest.Manifest, _param3 stemcell.CloudStemcell, _param4 manifest0.Registry, _param5 manifest0.SSHTunnel, _param6 ui.Stage) (instance.Instance, []disk.Disk, error) {
 	ret := _m.ctrl.Call(_m, "Create", _param0, _param1, _param2, _param3, _param4, _param5, _param6)
 	ret0, _ := ret[0].(instance.Instance)
 	ret1, _ := ret[1].([]disk.Disk)
@@ -140,7 +140,7 @@ func (_mr *_MockManagerRecorder) Create(arg0, arg1, arg2, arg3, arg4, arg5, arg6
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Create", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
-func (_m *MockManager) DeleteAll(_param0 time.Duration, _param1 time.Duration, _param2 eventlogger.Stage) error {
+func (_m *MockManager) DeleteAll(_param0 time.Duration, _param1 time.Duration, _param2 ui.Stage) error {
 	ret := _m.ctrl.Call(_m, "DeleteAll", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0

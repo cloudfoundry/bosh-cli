@@ -5,8 +5,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type FakeManager struct {
@@ -21,7 +21,7 @@ type FakeManager struct {
 
 type UploadInput struct {
 	Stemcell bmstemcell.ExtractedStemcell
-	Stage    bmeventlog.Stage
+	Stage    bmui.Stage
 }
 
 type uploadOutput struct {
@@ -45,7 +45,7 @@ func (m *FakeManager) FindCurrent() ([]bmstemcell.CloudStemcell, error) {
 	return []bmstemcell.CloudStemcell{}, bosherr.Error("FakeManager.FindCurrent() not implemented (yet)")
 }
 
-func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell, stage bmeventlog.Stage) (bmstemcell.CloudStemcell, error) {
+func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell, stage bmui.Stage) (bmstemcell.CloudStemcell, error) {
 	input := UploadInput{
 		Stemcell: stemcell,
 		Stage:    stage,
@@ -63,14 +63,14 @@ func (m *FakeManager) FindUnused() ([]bmstemcell.CloudStemcell, error) {
 	return m.findUnusedOutput.stemcells, m.findUnusedOutput.err
 }
 
-func (m *FakeManager) DeleteUnused(eventLoggerStage bmeventlog.Stage) error {
+func (m *FakeManager) DeleteUnused(eventLoggerStage bmui.Stage) error {
 	m.DeleteUnusedCalledTimes++
 	return m.DeleteUnusedErr
 }
 
 func (m *FakeManager) SetUploadBehavior(
 	extractedStemcell bmstemcell.ExtractedStemcell,
-	stage bmeventlog.Stage,
+	stage bmui.Stage,
 	cloudStemcell bmstemcell.CloudStemcell,
 	err error,
 ) {

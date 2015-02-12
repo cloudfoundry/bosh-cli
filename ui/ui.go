@@ -3,50 +3,70 @@ package ui
 import (
 	"fmt"
 	"io"
+	"os"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
 
 type UI interface {
-	Say(string)
-	Sayln(string)
-	Error(string)
+	ErrorLinef(pattern string, args ...interface{})
+	PrintLinef(pattern string, args ...interface{})
+	BeginLinef(pattern string, args ...interface{})
+	EndLinef(pattern string, args ...interface{})
 }
 
 type ui struct {
-	stdOut io.Writer
-	stdErr io.Writer
-	logger boshlog.Logger
+	outWriter io.Writer
+	errWriter io.Writer
+	logger    boshlog.Logger
+	logTag    string
 }
 
-const logTag = "ui"
+func NewConsoleUI(logger boshlog.Logger) UI {
+	return NewWriterUI(os.Stdout, os.Stderr, logger)
+}
 
-func NewUI(stdOut, stdErr io.Writer, logger boshlog.Logger) UI {
+func NewWriterUI(outWriter, errWriter io.Writer, logger boshlog.Logger) UI {
 	return &ui{
-		stdOut: stdOut,
-		stdErr: stdErr,
-		logger: logger,
+		outWriter: outWriter,
+		errWriter: errWriter,
+		logger:    logger,
+		logTag:    "ui",
 	}
 }
 
-func (u *ui) Say(message string) {
-	_, err := fmt.Fprint(u.stdOut, message)
+// ErrorLinef starts and ends a text error line
+func (ui *ui) ErrorLinef(pattern string, args ...interface{}) {
+	message := fmt.Sprintf(pattern, args...)
+	_, err := fmt.Fprintln(ui.errWriter, message)
 	if err != nil {
-		u.logger.Error(logTag, bosherr.WrapErrorf(err, "Writing to STDOUT: %s", message).Error())
+		ui.logger.Error(ui.logTag, "UI.ErrorLinef failed (message='%s'): %s", message, err)
 	}
 }
 
-func (u *ui) Sayln(message string) {
-	_, err := fmt.Fprintln(u.stdOut, message)
+// Printlnf starts and ends a text line
+func (ui *ui) PrintLinef(pattern string, args ...interface{}) {
+	message := fmt.Sprintf(pattern, args...)
+	_, err := fmt.Fprintln(ui.outWriter, message)
 	if err != nil {
-		u.logger.Error(logTag, bosherr.WrapErrorf(err, "Writing to STDOUT (with newline): %s", message).Error())
+		ui.logger.Error(ui.logTag, "UI.PrintLinef failed (message='%s'): %s", message, err)
 	}
 }
 
-func (u *ui) Error(message string) {
-	_, err := fmt.Fprintln(u.stdErr, message)
+// PrintBeginf starts a text line
+func (ui *ui) BeginLinef(pattern string, args ...interface{}) {
+	message := fmt.Sprintf(pattern, args...)
+	_, err := fmt.Fprint(ui.outWriter, message)
 	if err != nil {
-		u.logger.Error(logTag, bosherr.WrapErrorf(err, "Writing to STDERR: %s", message).Error())
+		ui.logger.Error(ui.logTag, "UI.BeginLinef failed (message='%s'): %s", message, err)
+	}
+}
+
+// PrintEndf ends a text line
+func (ui *ui) EndLinef(pattern string, args ...interface{}) {
+	message := fmt.Sprintf(pattern, args...)
+	_, err := fmt.Fprintln(ui.outWriter, message)
+	if err != nil {
+		ui.logger.Error(ui.logTag, "UI.EndLinef failed (message='%s'): %s", message, err)
 	}
 }

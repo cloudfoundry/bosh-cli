@@ -16,7 +16,6 @@ import (
 	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
@@ -49,7 +48,7 @@ type deployCmd struct {
 	deploymentRecord        bmdepl.Record
 	blobstoreFactory        bmblobstore.Factory
 	deployer                bmdepl.Deployer
-	eventLogger             bmeventlog.EventLogger
+	eventLogger             bmui.Stage
 	logger                  boshlog.Logger
 	logTag                  string
 }
@@ -77,7 +76,6 @@ func NewDeployCmd(
 	deploymentRecord bmdepl.Record,
 	blobstoreFactory bmblobstore.Factory,
 	deployer bmdepl.Deployer,
-	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) Cmd {
 	return &deployCmd{
@@ -103,7 +101,6 @@ func NewDeployCmd(
 		deploymentRecord:        deploymentRecord,
 		blobstoreFactory:        blobstoreFactory,
 		deployer:                deployer,
-		eventLogger:             eventLogger,
 		logger:                  logger,
 		logTag:                  "deployCmd",
 	}
@@ -113,7 +110,7 @@ func (c *deployCmd) Name() string {
 	return "deploy"
 }
 
-func (c *deployCmd) Run(args []string) error {
+func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 	stemcellTarballPath, releaseTarballPaths, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
@@ -124,16 +121,160 @@ func (c *deployCmd) Run(args []string) error {
 		return bosherr.WrapErrorf(err, "Running deploy cmd")
 	}
 
-	validationStage := c.eventLogger.NewStage("validating")
-	validationStage.Start()
-
 	deploymentConfig, err := c.deploymentConfigService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	var extractedStemcell bmstemcell.ExtractedStemcell
-	err = validationStage.PerformStep("Validating stemcell", func() error {
+	var (
+		extractedStemcell    bmstemcell.ExtractedStemcell
+		cpiRelease           bmrel.Release
+		deploymentManifest   bmdeplmanifest.Manifest
+		installationManifest bminstallmanifest.Manifest
+	)
+	err = stage.PerformComplex("validating", func(stage bmui.Stage) error {
+		extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, releaseTarballPaths, deploymentManifestPath)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	defer func() {
+		deleteErr := extractedStemcell.Delete()
+		if deleteErr != nil {
+			c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
+		}
+	}()
+	defer func() {
+		err := c.releaseManager.DeleteAll()
+		if err != nil {
+			c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
+		}
+	}()
+
+	isDeployed, err := c.deploymentRecord.IsDeployed(deploymentManifestPath, cpiRelease, extractedStemcell)
+	if err != nil {
+		return bosherr.WrapError(err, "Checking if deployment has changed")
+	}
+
+	if isDeployed {
+		c.ui.PrintLinef("No deployment, stemcell or cpi release changes. Skipping deploy.")
+		return nil
+	}
+
+	installer, err := c.installerFactory.NewInstaller()
+	if err != nil {
+		return bosherr.WrapError(err, "Creating CPI Installer")
+	}
+
+	var installation bminstall.Installation
+	err = stage.PerformComplex("installing CPI", func(installStage bmui.Stage) error {
+		installation, err = installer.Install(installationManifest, installStage)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	err = stage.Perform("Starting registry", func() error {
+		return installation.StartRegistry()
+	})
+	if err != nil {
+		return err
+	}
+	defer func() {
+		//TODO: wrap stopping registry in stage?
+		err := installation.StopRegistry()
+		if err != nil {
+			c.logger.Warn(c.logTag, "Registry failed to stop: %s", err)
+		}
+	}()
+
+	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
+	}
+
+	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
+
+	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage)
+	if err != nil {
+		return err
+	}
+
+	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
+	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
+
+	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating blobstore client")
+	}
+
+	err = stage.PerformComplex("deploying", func(deployStage bmui.Stage) error {
+		_, err = c.deployer.Deploy(
+			cloud,
+			deploymentManifest,
+			cloudStemcell,
+			installationManifest.Registry,
+			installationManifest.SSHTunnel,
+			vmManager,
+			blobstore,
+			deployStage,
+		)
+		if err != nil {
+			return bosherr.WrapError(err, "Deploying Microbosh")
+		}
+
+		err = c.deploymentRecord.Update(deploymentManifestPath, cpiRelease)
+		if err != nil {
+			return bosherr.WrapError(err, "Updating deployment record")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: cleanup unused disks here?
+
+	err = stemcellManager.DeleteUnused(stage)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type Deployment struct{}
+
+func (c *deployCmd) parseCmdInputs(args []string) (string, []string, error) {
+	if len(args) < 2 {
+		c.ui.ErrorLinef("Invalid usage - deploy command requires at least 2 arguments")
+		c.ui.PrintLinef("Expected usage: bosh-micro deploy <stemcell-tarball> <cpi-release-tarball> [release-2-tarball [release-3-tarball...]]")
+		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
+		return "", []string{}, errors.New("Invalid usage - deploy command requires at least 2 arguments")
+	}
+	return args[0], args[1:], nil
+}
+
+func (c *deployCmd) isBlank(str string) bool {
+	return str == "" || strings.TrimSpace(str) == ""
+}
+
+func (c *deployCmd) validate(
+	validationStage bmui.Stage,
+	stemcellTarballPath string,
+	releaseTarballPaths []string,
+	deploymentManifestPath string,
+) (
+	extractedStemcell bmstemcell.ExtractedStemcell,
+	cpiRelease bmrel.Release,
+	deploymentManifest bmdeplmanifest.Manifest,
+	installationManifest bminstallmanifest.Manifest,
+	err error,
+) {
+	err = validationStage.Perform("Validating stemcell", func() error {
 		if !c.fs.FileExists(stemcellTarballPath) {
 			return bosherr.Errorf("Verifying that the stemcell '%s' exists", stemcellTarballPath)
 		}
@@ -146,23 +287,23 @@ func (c *deployCmd) Run(args []string) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err
 	}
 	defer func() {
-		deleteErr := extractedStemcell.Delete()
-		if deleteErr != nil {
-			c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
+		if err != nil {
+			deleteErr := extractedStemcell.Delete()
+			if deleteErr != nil {
+				c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
+			}
 		}
 	}()
 
-	var cpiRelease bmrel.Release
-	err = validationStage.PerformStep("Validating releases", func() error {
+	err = validationStage.Perform("Validating releases", func() error {
 		for _, releaseTarballPath := range releaseTarballPaths {
 			if !c.fs.FileExists(releaseTarballPath) {
 				return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
 			}
 
-			var err error
 			cpiRelease, err = c.releaseExtractor.Extract(releaseTarballPath)
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
@@ -173,20 +314,18 @@ func (c *deployCmd) Run(args []string) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err
 	}
 	defer func() {
-		err := c.releaseManager.DeleteAll()
 		if err != nil {
-			c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
+			err := c.releaseManager.DeleteAll()
+			if err != nil {
+				c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
+			}
 		}
 	}()
 
-	var (
-		deploymentManifest   bmdeplmanifest.Manifest
-		installationManifest bminstallmanifest.Manifest
-	)
-	err = validationStage.PerformStep("Validating deployment manifest", func() error {
+	err = validationStage.Perform("Validating deployment manifest", func() error {
 		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
@@ -223,10 +362,10 @@ func (c *deployCmd) Run(args []string) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err
 	}
 
-	err = validationStage.PerformStep("Validating cpi release", func() error {
+	err = validationStage.Perform("Validating cpi release", func() error {
 		cpiRelease, err := c.releaseResolver.Find(installationManifest.Release)
 		if err != nil {
 			// should never happen, due to prior manifest validation
@@ -240,119 +379,6 @@ func (c *deployCmd) Run(args []string) error {
 
 		return nil
 	})
-	if err != nil {
-		return err
-	}
 
-	validationStage.Finish()
-
-	isDeployed, err := c.deploymentRecord.IsDeployed(deploymentManifestPath, cpiRelease, extractedStemcell)
-	if err != nil {
-		return bosherr.WrapError(err, "Checking if deployment has changed")
-	}
-
-	if isDeployed {
-		c.ui.Sayln("No deployment, stemcell or cpi release changes. Skipping deploy.")
-		return nil
-	}
-
-	installer, err := c.installerFactory.NewInstaller()
-	if err != nil {
-		return bosherr.WrapError(err, "Creating CPI Installer")
-	}
-
-	installStage := c.eventLogger.NewStage("installing CPI")
-	installStage.Start()
-
-	installation, err := installer.Install(installationManifest, installStage)
-	if err != nil {
-		return bosherr.WrapError(err, "Installing CPI")
-	}
-
-	err = installStage.PerformStep("Starting registry", func() error {
-		return installation.StartRegistry()
-	})
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err := installation.StopRegistry()
-		if err != nil {
-			c.logger.Warn(c.logTag, "Registry failed to stop: %s", err)
-		}
-	}()
-
-	installStage.Finish()
-
-	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
-	}
-
-	uploadStemcellStage := c.eventLogger.NewStage("uploading stemcell")
-	uploadStemcellStage.Start()
-
-	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, uploadStemcellStage)
-	if err != nil {
-		return bosherr.WrapError(err, "Uploading stemcell")
-	}
-
-	uploadStemcellStage.Finish()
-
-	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
-	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
-
-	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating blobstore client")
-	}
-
-	deployStage := c.eventLogger.NewStage("deploying")
-	deployStage.Start()
-
-	_, err = c.deployer.Deploy(
-		cloud,
-		deploymentManifest,
-		cloudStemcell,
-		installationManifest.Registry,
-		installationManifest.SSHTunnel,
-		vmManager,
-		blobstore,
-		deployStage,
-	)
-	if err != nil {
-		return bosherr.WrapError(err, "Deploying Microbosh")
-	}
-
-	err = c.deploymentRecord.Update(deploymentManifestPath, cpiRelease)
-	if err != nil {
-		return bosherr.WrapError(err, "Updating deployment record")
-	}
-
-	// TODO: cleanup unused disks here?
-
-	if err = stemcellManager.DeleteUnused(deployStage); err != nil {
-		return err
-	}
-
-	deployStage.Finish()
-
-	return nil
-}
-
-type Deployment struct{}
-
-func (c *deployCmd) parseCmdInputs(args []string) (string, []string, error) {
-	if len(args) < 2 {
-		c.ui.Error("Invalid usage - deploy command requires at least 2 arguments")
-		c.ui.Sayln("Expected usage: bosh-micro deploy <stemcell-tarball> <cpi-release-tarball> [release-2-tarball [release-3-tarball...]]")
-		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
-		return "", []string{}, errors.New("Invalid usage - deploy command requires at least 2 arguments")
-	}
-	return args[0], args[1:], nil
-}
-
-func (c *deployCmd) isBlank(str string) bool {
-	return str == "" || strings.TrimSpace(str) == ""
+	return extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Mutate go vet commands to add -printfuncs params
 
-goVetParams=-printfuncs=WrapError:1,WrapErrorf:1
+goVetParams=-printfuncs=WrapError:1,WrapErrorf:1,PrintLinef,BeginLinef,EndLinef,ErrorLinef
 
 result=0
 

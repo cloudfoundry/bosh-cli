@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -22,7 +21,9 @@ import (
 	mock_install "github.com/cloudfoundry/bosh-micro-cli/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
@@ -38,7 +39,6 @@ import (
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
@@ -49,10 +49,11 @@ import (
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
 	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 
 	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
-	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("bosh-micro", func() {
@@ -108,8 +109,8 @@ var _ = Describe("bosh-micro", func() {
 			diskManagerFactory bmdisk.ManagerFactory
 			diskDeployer       bmvm.DiskDeployer
 
-			ui          *fakeui.FakeUI
-			eventLogger bmeventlog.EventLogger
+			ui        *fakebmui.FakeUI
+			fakeStage *fakebmui.FakeStage
 
 			stemcellManagerFactory bmstemcell.ManagerFactory
 			vmManagerFactory       bmvm.ManagerFactory
@@ -287,8 +288,10 @@ cloud_provider:
 			installation := bminstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
-			//TODO: check installing stage?
-			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Return(installation, nil).AnyTimes()
+
+			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage bmui.Stage) {
+				Expect(fakeStage.SubStages).To(ContainElement(stage))
+			}).Return(installation, nil).AnyTimes()
 
 			mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(mockCloud, nil).AnyTimes()
 		}
@@ -382,7 +385,6 @@ cloud_provider:
 				vmManagerFactory,
 				instanceManagerFactory,
 				deploymentFactory,
-				eventLogger,
 				logger,
 			)
 
@@ -409,7 +411,6 @@ cloud_provider:
 				deploymentRecord,
 				mockBlobstoreFactory,
 				deployer,
-				eventLogger,
 				logger,
 			)
 		}
@@ -539,10 +540,12 @@ cloud_provider:
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attaching a missing disk will fail
-				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID).Return(bmcloud.NewCPIError("attach_disk", bmcloud.CmdError{
-					Type:    bmcloud.DiskNotFoundError,
-					Message: "fake-disk-not-found-message",
-				})),
+				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID).Return(
+					bmcloud.NewCPIError("attach_disk", bmcloud.CmdError{
+						Type:    bmcloud.DiskNotFoundError,
+						Message: "fake-disk-not-found-message",
+					}),
+				),
 			)
 		}
 
@@ -574,7 +577,9 @@ cloud_provider:
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
-				mockAgentClient.EXPECT().MigrateDisk().Return(errors.New("fake-migration-error")),
+				mockAgentClient.EXPECT().MigrateDisk().Return(
+					bosherr.Error("fake-migration-error"),
+				),
 			)
 		}
 
@@ -720,8 +725,8 @@ cloud_provider:
 
 			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
-			ui = &fakeui.FakeUI{}
-			eventLogger = bmeventlog.NewEventLogger(ui)
+			ui = &fakebmui.FakeUI{}
+			fakeStage = fakebmui.NewFakeStage()
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
@@ -755,7 +760,7 @@ cloud_provider:
 		It("executes the cloud & agent client calls in the expected order", func() {
 			expectDeployFlow()
 
-			err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+			err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -792,7 +797,7 @@ cloud_provider:
 			It("extracts all provided releases & finds the cpi release before executing the expected cloud & agent client commands", func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run([]string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -803,7 +808,7 @@ cloud_provider:
 			})
 
 			It("returns an error", func() {
-				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Deployment manifest not set"))
 			})
@@ -823,7 +828,7 @@ cloud_provider:
 				// new directorID will be generated
 				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
 
-				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.FileExists(deploymentConfigPath)).To(BeTrue())
@@ -838,7 +843,7 @@ cloud_provider:
 			JustBeforeEach(func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				// reset output buffer
@@ -853,7 +858,7 @@ cloud_provider:
 				It("migrates the disk content", func() {
 					expectDeployWithDiskMigration()
 
-					err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+					err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -861,7 +866,7 @@ cloud_provider:
 					It("migrates the disk content, but does not shutdown the old VM", func() {
 						expectDeployWithDiskMigrationMissingVM()
 
-						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 
@@ -873,7 +878,7 @@ cloud_provider:
 							Message: "fake-vm-not-found-message",
 						}))
 
-						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 				})
@@ -884,7 +889,7 @@ cloud_provider:
 					It("returns an error when attach_disk fails with a DiskNotFound error", func() {
 						expectDeployWithNoDiskToMigrate()
 
-						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-disk-not-found-message"))
 					})
@@ -894,7 +899,7 @@ cloud_provider:
 					JustBeforeEach(func() {
 						expectDeployWithDiskMigrationFailure()
 
-						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migration-error"))
 
@@ -911,7 +916,7 @@ cloud_provider:
 
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
 
-						err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 
 						diskRecord, found, err := diskRepo.FindCurrent()
@@ -931,7 +936,7 @@ cloud_provider:
 			It("makes the registry available for all CPI commands", func() {
 				expectDeployFlowWithRegistry()
 
-				err := newDeployCmd().Run([]string{stemcellTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})

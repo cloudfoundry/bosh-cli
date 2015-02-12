@@ -22,7 +22,7 @@ import (
 	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Installer", func() {
@@ -85,7 +85,7 @@ var _ = Describe("Installer", func() {
 	Describe("Install", func() {
 		var (
 			installationManifest bminstallmanifest.Manifest
-			fakeStage            *fakebmeventlog.FakeStage
+			fakeStage            *fakebmui.FakeStage
 
 			installedJob bminstalljob.InstalledJob
 
@@ -103,7 +103,7 @@ var _ = Describe("Installer", func() {
 				RawProperties: map[interface{}]interface{}{},
 			}
 
-			fakeStage = fakebmeventlog.NewFakeStage()
+			fakeStage = fakebmui.NewFakeStage()
 
 			installedJob = bminstalljob.InstalledJob{
 				Name: "cpi",

@@ -5,13 +5,13 @@ import (
 
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Manager interface {
 	FindCurrent() (deployment Deployment, found bool, err error)
-	Cleanup(bmeventlog.Stage) error
+	Cleanup(bmui.Stage) error
 }
 
 type manager struct {
@@ -58,7 +58,7 @@ func (m *manager) FindCurrent() (deployment Deployment, found bool, err error) {
 	return m.deploymentFactory.NewDeployment(instances, disks, stemcells), true, nil
 }
 
-func (m *manager) Cleanup(stage bmeventlog.Stage) error {
+func (m *manager) Cleanup(stage bmui.Stage) error {
 	if err := m.diskManager.DeleteUnused(stage); err != nil {
 		return err
 	}

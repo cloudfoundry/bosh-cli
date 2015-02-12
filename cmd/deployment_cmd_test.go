@@ -31,6 +31,7 @@ var _ = Describe("DeploymentCmd", func() {
 		fakeFs            *fakesys.FakeFileSystem
 		fakeUUID          *fakeuuid.FakeGenerator
 		logger            boshlog.Logger
+		fakeStage         *fakebmui.FakeStage
 	)
 
 	BeforeEach(func() {
@@ -39,6 +40,8 @@ var _ = Describe("DeploymentCmd", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fakeFs, logger)
 		fakeUUID = &fakeuuid.FakeGenerator{}
+
+		fakeStage = fakebmui.NewFakeStage()
 
 		command = NewDeploymentCmd(
 			fakeUI,
@@ -63,13 +66,13 @@ var _ = Describe("DeploymentCmd", func() {
 				})
 
 				It("prints confirmation with full path to the UI", func() {
-					err := command.Run([]string{manifestPath})
+					err := command.Run(fakeStage, []string{manifestPath})
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fakeUI.Said).To(ContainElement(ContainSubstring(fmt.Sprintf("Deployment manifest set to '%s'", manifestPath))))
 				})
 
 				It("saves the deployment manifest to the user config", func() {
-					err := command.Run([]string{manifestPath})
+					err := command.Run(fakeStage, []string{manifestPath})
 					Expect(err).ToNot(HaveOccurred())
 
 					userConfigContents, err := fakeFs.ReadFile("/fake-user-config")
@@ -89,7 +92,7 @@ var _ = Describe("DeploymentCmd", func() {
 					err = fakeFs.WriteFileString(manifestAbsolutePath, "")
 					Expect(err).ToNot(HaveOccurred())
 
-					err = command.Run([]string{"fake-manifest-file"})
+					err = command.Run(fakeStage, []string{"fake-manifest-file"})
 					Expect(err).ToNot(HaveOccurred())
 
 					userConfigContents, err := fakeFs.ReadFile("/fake-user-config")
@@ -102,7 +105,7 @@ var _ = Describe("DeploymentCmd", func() {
 				})
 
 				It("creates a deployment config", func() {
-					err := command.Run([]string{manifestPath})
+					err := command.Run(fakeStage, []string{manifestPath})
 					Expect(err).ToNot(HaveOccurred())
 
 					userConfig := bmconfig.UserConfig{DeploymentManifestPath: manifestPath}
@@ -128,7 +131,7 @@ var _ = Describe("DeploymentCmd", func() {
 						InstallationID: "fake-installation-id",
 					})
 
-					err := command.Run([]string{manifestPath})
+					err := command.Run(fakeStage, []string{manifestPath})
 					Expect(err).ToNot(HaveOccurred())
 
 					deploymentConfig, err := deploymentConfigService.Load()
@@ -143,7 +146,7 @@ var _ = Describe("DeploymentCmd", func() {
 
 			Context("when the deployment manifest does not exist", func() {
 				It("returns err", func() {
-					err := command.Run([]string{"/fake/manifest/path"})
+					err := command.Run(fakeStage, []string{"/fake/manifest/path"})
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Verifying that the deployment '/fake/manifest/path' exists"))
 					Expect(fakeUI.Errors).To(ContainElement("Deployment '/fake/manifest/path' does not exist"))
@@ -171,7 +174,7 @@ var _ = Describe("DeploymentCmd", func() {
 					})
 
 					It("prints the manifest path to the ui", func() {
-						err := command.Run([]string{})
+						err := command.Run(fakeStage, []string{})
 						Expect(err).ToNot(HaveOccurred())
 						Expect(fakeUI.Said).To(ContainElement("Deployment manifest: '/path/to/manifest.yml'"))
 						Expect(fakeUI.Said).To(ContainElement("Deployment state: '/path/to/deployment.json'"))
@@ -180,7 +183,7 @@ var _ = Describe("DeploymentCmd", func() {
 
 				Context("when the manifest file does not exist", func() {
 					It("prints to the ui & returns an error", func() {
-						err := command.Run([]string{})
+						err := command.Run(fakeStage, []string{})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("Running deployment cmd: Deployment manifest does not exist at '/path/to/manifest.yml'"))
 						Expect(fakeUI.Errors).To(ContainElement("Deployment manifest does not exist"))
@@ -190,7 +193,7 @@ var _ = Describe("DeploymentCmd", func() {
 
 			Context("when no deployment manifest is present in the config", func() {
 				It("prints to the ui & returns an error", func() {
-					err := command.Run([]string{})
+					err := command.Run(fakeStage, []string{})
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Running deployment cmd: Deployment manifest not set"))
 					Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))

@@ -17,12 +17,11 @@ import (
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 
-	fakebmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("Builder", describeBuilder)
@@ -68,7 +67,7 @@ func describeBuilder() {
 			jobName            string
 			instanceID         int
 			deploymentManifest bmdeplmanifest.Manifest
-			fakeStage          *fakebmeventlog.FakeStage
+			fakeStage          *fakebmui.FakeStage
 
 			releasePackageLibyaml *bmrelpkg.Package
 			releasePackageRuby    *bmrelpkg.Package
@@ -118,7 +117,7 @@ func describeBuilder() {
 				},
 			}
 
-			fakeStage = fakebmeventlog.NewFakeStage()
+			fakeStage = fakebmui.NewFakeStage()
 
 			stateBuilder = NewBuilder(
 				mockPackageCompiler,
@@ -235,16 +234,15 @@ func describeBuilder() {
 			Expect(state.RenderedJobs()).To(HaveLen(1))
 		})
 
-		It("prints event logs when rendering job templates", func() {
+		It("prints ui stages for compiling packages and rendering job templates", func() {
 			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
-				Name: "Rendering job templates",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				{Name: "Compiling package 'libyaml/fake-package-source-fingerprint-libyaml'"},
+				{Name: "Compiling package 'ruby/fake-package-source-fingerprint-ruby'"},
+				{Name: "Compiling package 'cpi/fake-package-source-fingerprint-cpi'"},
+				{Name: "Rendering job templates"},
 			}))
 		})
 
@@ -266,33 +264,6 @@ func describeBuilder() {
 				Archive: BlobRef{
 					SHA1:        "fake-package-compiled-archive-sha1-ruby",
 					BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
-				},
-			}))
-		})
-
-		It("prints event logs when compiles packages", func() {
-			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
-				Name: "Compiling package 'libyaml/fake-package-source-fingerprint-libyaml'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
-				Name: "Compiling package 'ruby/fake-package-source-fingerprint-ruby'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
-				},
-			}))
-			Expect(fakeStage.Steps).To(ContainElement(&fakebmeventlog.FakeStep{
-				Name: "Compiling package 'cpi/fake-package-source-fingerprint-cpi'",
-				States: []bmeventlog.EventState{
-					bmeventlog.Started,
-					bmeventlog.Finished,
 				},
 			}))
 		})

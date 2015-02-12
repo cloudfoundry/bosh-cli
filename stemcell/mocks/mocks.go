@@ -5,8 +5,8 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	stemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	ui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 // Mock of CloudStemcell interface
@@ -101,7 +101,7 @@ func (_m *MockManager) EXPECT() *_MockManagerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockManager) DeleteUnused(_param0 eventlogger.Stage) error {
+func (_m *MockManager) DeleteUnused(_param0 ui.Stage) error {
 	ret := _m.ctrl.Call(_m, "DeleteUnused", _param0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -133,7 +133,7 @@ func (_mr *_MockManagerRecorder) FindUnused() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FindUnused")
 }
 
-func (_m *MockManager) Upload(_param0 stemcell.ExtractedStemcell, _param1 eventlogger.Stage) (stemcell.CloudStemcell, error) {
+func (_m *MockManager) Upload(_param0 stemcell.ExtractedStemcell, _param1 ui.Stage) (stemcell.CloudStemcell, error) {
 	ret := _m.ctrl.Call(_m, "Upload", _param0, _param1)
 	ret0, _ := ret[0].(stemcell.CloudStemcell)
 	ret1, _ := ret[1].(error)

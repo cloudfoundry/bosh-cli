@@ -12,8 +12,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	faketime "github.com/cloudfoundry/bosh-agent/time/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {
@@ -23,6 +25,7 @@ var _ = Describe("cmd.Factory", func() {
 		userConfigService bmconfig.UserConfigService
 		fs                boshsys.FileSystem
 		ui                bmui.UI
+		fakeTimeService   *faketime.FakeService
 		logger            boshlog.Logger
 		uuidGenerator     *fakeuuid.FakeGenerator
 	)
@@ -32,7 +35,8 @@ var _ = Describe("cmd.Factory", func() {
 		fs = fakesys.NewFakeFileSystem()
 		userConfig = bmconfig.UserConfig{DeploymentManifestPath: "/fake-path/manifest.yml"}
 		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fs, logger)
-		ui = &fakeui.FakeUI{}
+		ui = &fakebmui.FakeUI{}
+		fakeTimeService = &faketime.FakeService{}
 		uuidGenerator = &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(
@@ -40,6 +44,7 @@ var _ = Describe("cmd.Factory", func() {
 			userConfigService,
 			fs,
 			ui,
+			fakeTimeService,
 			logger,
 			uuidGenerator,
 			"/fake-path",

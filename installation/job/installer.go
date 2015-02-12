@@ -9,9 +9,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
 	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type RenderedJobRef struct {
@@ -27,7 +27,7 @@ type InstalledJob struct {
 }
 
 type Installer interface {
-	Install(RenderedJobRef, bmeventlog.Stage) (InstalledJob, error)
+	Install(RenderedJobRef, bmui.Stage) (InstalledJob, error)
 }
 
 func NewInstaller(
@@ -51,9 +51,9 @@ type jobInstaller struct {
 	jobsPath          string
 }
 
-func (i jobInstaller) Install(renderedJobRef RenderedJobRef, stage bmeventlog.Stage) (installedJob InstalledJob, err error) {
+func (i jobInstaller) Install(renderedJobRef RenderedJobRef, stage bmui.Stage) (installedJob InstalledJob, err error) {
 	stageName := fmt.Sprintf("Installing job '%s'", renderedJobRef.Name)
-	err = stage.PerformStep(stageName, func() error {
+	err = stage.Perform(stageName, func() error {
 		installedJob, err = i.install(renderedJobRef)
 		return err
 	})

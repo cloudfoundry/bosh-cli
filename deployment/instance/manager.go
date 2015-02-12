@@ -13,9 +13,9 @@ import (
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
 	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Manager interface {
@@ -27,12 +27,12 @@ type Manager interface {
 		cloudStemcell bmstemcell.CloudStemcell,
 		registryConfig bminstallmanifest.Registry,
 		sshTunnelConfig bminstallmanifest.SSHTunnel,
-		eventLoggerStage bmeventlog.Stage,
+		eventLoggerStage bmui.Stage,
 	) (Instance, []bmdisk.Disk, error)
 	DeleteAll(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
-		eventLoggerStage bmeventlog.Stage,
+		eventLoggerStage bmui.Stage,
 	) error
 }
 
@@ -101,11 +101,11 @@ func (m *manager) Create(
 	cloudStemcell bmstemcell.CloudStemcell,
 	registryConfig bminstallmanifest.Registry,
 	sshTunnelConfig bminstallmanifest.SSHTunnel,
-	eventLoggerStage bmeventlog.Stage,
+	eventLoggerStage bmui.Stage,
 ) (Instance, []bmdisk.Disk, error) {
 	var vm bmvm.VM
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
-	err := eventLoggerStage.PerformStep(stepName, func() error {
+	err := eventLoggerStage.Perform(stepName, func() error {
 		var err error
 		vm, err = m.vmManager.Create(cloudStemcell, deploymentManifest)
 		if err != nil {
@@ -139,7 +139,7 @@ func (m *manager) Create(
 func (m *manager) DeleteAll(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
-	eventLoggerStage bmeventlog.Stage,
+	eventLoggerStage bmui.Stage,
 ) error {
 	instances, err := m.FindCurrent()
 	if err != nil {

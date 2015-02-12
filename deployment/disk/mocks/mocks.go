@@ -8,7 +8,7 @@ import (
 	property "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	ui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 // Mock of Disk interface
@@ -94,7 +94,7 @@ func (_mr *_MockManagerRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Create", arg0, arg1)
 }
 
-func (_m *MockManager) DeleteUnused(_param0 eventlogger.Stage) error {
+func (_m *MockManager) DeleteUnused(_param0 ui.Stage) error {
 	ret := _m.ctrl.Call(_m, "DeleteUnused", _param0)
 	ret0, _ := ret[0].(error)
 	return ret0

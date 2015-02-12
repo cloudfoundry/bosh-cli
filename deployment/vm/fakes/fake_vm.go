@@ -7,7 +7,7 @@ import (
 	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type FakeVM struct {
@@ -59,7 +59,7 @@ type FakeVM struct {
 
 type UpdateDisksInput struct {
 	DiskPool bmdeplmanifest.DiskPool
-	Stage    bmeventlog.Stage
+	Stage    bmui.Stage
 }
 
 type ApplyInput struct {
@@ -124,7 +124,7 @@ func (vm *FakeVM) WaitUntilReady(timeout time.Duration, delay time.Duration) err
 	return vm.WaitUntilReadyErr
 }
 
-func (vm *FakeVM) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmeventlog.Stage) ([]bmdisk.Disk, error) {
+func (vm *FakeVM) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmui.Stage) ([]bmdisk.Disk, error) {
 	vm.UpdateDisksInputs = append(vm.UpdateDisksInputs, UpdateDisksInput{
 		DiskPool: diskPool,
 		Stage:    eventLoggerStage,

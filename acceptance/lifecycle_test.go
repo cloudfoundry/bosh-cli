@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/acceptance"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -16,8 +19,11 @@ import (
 	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+)
 
-	. "github.com/cloudfoundry/bosh-micro-cli/acceptance"
+const (
+	stageTimePattern     = "\\(\\d{2}:\\d{2}:\\d{2}\\)"
+	stageFinishedPattern = "\\.\\.\\. Finished " + stageTimePattern + "$"
 )
 
 var _ = Describe("bosh-micro", func() {
@@ -224,10 +230,13 @@ var _ = Describe("bosh-micro", func() {
 			Fail("Failed to find stage start: " + stageName)
 		}
 
-		stopLine := fmt.Sprintf("Done %s", stageName)
+		stopLinePattern := fmt.Sprintf("^Finished %s %s$", stageName, stageTimePattern)
+		stopLineRegex, err := regexp.Compile(stopLinePattern)
+		Expect(err).ToNot(HaveOccurred())
+
 		stopIndex = -1
 		for i, line := range outputLines[startIndex:] {
-			if line == stopLine {
+			if stopLineRegex.MatchString(line) {
 				stopIndex = startIndex + i
 				break
 			}
@@ -248,43 +257,39 @@ var _ = Describe("bosh-micro", func() {
 
 		outputLines := strings.Split(stdout, "\n")
 
-		donePattern := "\\.\\.\\. done\\. \\(\\d{2}:\\d{2}:\\d{2}\\)$"
-
 		doneIndex := 0
 
 		validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-		Expect(validatingSteps[0]).To(MatchRegexp("^Started validating > Validating stemcell" + donePattern))
-		Expect(validatingSteps[1]).To(MatchRegexp("^Started validating > Validating releases" + donePattern))
-		Expect(validatingSteps[2]).To(MatchRegexp("^Started validating > Validating deployment manifest" + donePattern))
-		Expect(validatingSteps[3]).To(MatchRegexp("^Started validating > Validating cpi release" + donePattern))
+		Expect(validatingSteps[0]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
+		Expect(validatingSteps[1]).To(MatchRegexp("^  Validating releases" + stageFinishedPattern))
+		Expect(validatingSteps[2]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
+		Expect(validatingSteps[3]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
 		Expect(validatingSteps).To(HaveLen(4))
 
 		installingSteps, doneIndex := findStage(outputLines, "installing CPI", doneIndex+1)
 		numInstallingSteps := len(installingSteps)
-		for _, line := range installingSteps[:numInstallingSteps-4] {
-			Expect(line).To(MatchRegexp("^Started installing CPI > Compiling package '.*/.*'" + donePattern))
+		for _, line := range installingSteps[:numInstallingSteps-3] {
+			Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
 		}
-		Expect(installingSteps[numInstallingSteps-4]).To(MatchRegexp("^Started installing CPI > Rendering job templates" + donePattern))
-		Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^Started installing CPI > Installing packages" + donePattern))
-		Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^Started installing CPI > Installing job 'cpi'" + donePattern))
-		Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^Started installing CPI > Starting registry" + donePattern))
+		Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
+		Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^  Installing packages" + stageFinishedPattern))
+		Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^  Installing job 'cpi'" + stageFinishedPattern))
 
-		uploadingSteps, doneIndex := findStage(outputLines, "uploading stemcell", doneIndex+1)
-		Expect(uploadingSteps[0]).To(MatchRegexp("^Started uploading stemcell > Uploading" + donePattern))
-		Expect(uploadingSteps).To(HaveLen(1))
+		Expect(outputLines[doneIndex+2]).To(MatchRegexp("^Starting registry" + stageFinishedPattern))
+		Expect(outputLines[doneIndex+3]).To(MatchRegexp("^Uploading stemcell '.*/.*'" + stageFinishedPattern))
 
 		deployingSteps, doneIndex := findStage(outputLines, "deploying", doneIndex+1)
 		numDeployingSteps := len(deployingSteps)
-		Expect(deployingSteps[0]).To(MatchRegexp("^Started deploying > Creating VM for instance 'bosh/0' from stemcell '.*'" + donePattern))
-		Expect(deployingSteps[1]).To(MatchRegexp("^Started deploying > Waiting for the agent on VM '.*' to be ready" + donePattern))
-		Expect(deployingSteps[2]).To(MatchRegexp("^Started deploying > Creating disk" + donePattern))
-		Expect(deployingSteps[3]).To(MatchRegexp("^Started deploying > Attaching disk '.*' to VM '.*'" + donePattern))
+		Expect(deployingSteps[0]).To(MatchRegexp("^  Creating VM for instance 'bosh/0' from stemcell '.*'" + stageFinishedPattern))
+		Expect(deployingSteps[1]).To(MatchRegexp("^  Waiting for the agent on VM '.*' to be ready" + stageFinishedPattern))
+		Expect(deployingSteps[2]).To(MatchRegexp("^  Creating disk" + stageFinishedPattern))
+		Expect(deployingSteps[3]).To(MatchRegexp("^  Attaching disk '.*' to VM '.*'" + stageFinishedPattern))
 		for _, line := range deployingSteps[4 : numDeployingSteps-3] {
-			Expect(line).To(MatchRegexp("^Started deploying > Compiling package '.*/.*'" + donePattern))
+			Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
 		}
-		Expect(deployingSteps[numDeployingSteps-3]).To(MatchRegexp("^Started deploying > Rendering job templates" + donePattern))
-		Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^Started deploying > Updating instance 'bosh/0'" + donePattern))
-		Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^Started deploying > Waiting for instance 'bosh/0' to be running" + donePattern))
+		Expect(deployingSteps[numDeployingSteps-3]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
+		Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Updating instance 'bosh/0'" + stageFinishedPattern))
+		Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Waiting for instance 'bosh/0' to be running" + stageFinishedPattern))
 	})
 
 	Context("when microbosh has been previously deployed", func() {
@@ -344,7 +349,7 @@ var _ = Describe("bosh-micro", func() {
 			Expect(stdout).To(ContainSubstring("Deleting VM"))
 			Expect(stdout).To(ContainSubstring("Deleting disk"))
 			Expect(stdout).To(ContainSubstring("Deleting stemcell"))
-			Expect(stdout).To(ContainSubstring("Done deleting deployment"))
+			Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
 		})
 
 		Context("when the agent is unresponsive", func() {
@@ -364,20 +369,20 @@ var _ = Describe("bosh-micro", func() {
 
 				stdout := deploy()
 
-				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. failed."))
+				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'%s", stageFinishedPattern))
 				Expect(stdout).To(ContainSubstring("Deleting VM"))
 				Expect(stdout).To(ContainSubstring("Creating VM for instance 'bosh/0' from stemcell"))
-				Expect(stdout).To(ContainSubstring("Done deploying"))
+				Expect(stdout).To(ContainSubstring("Finished deploying"))
 			})
 
 			It("delete deletes the vm", func() {
 				stdout := deleteDeployment()
 
-				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. failed."))
+				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'%s", stageFinishedPattern))
 				Expect(stdout).To(ContainSubstring("Deleting VM"))
 				Expect(stdout).To(ContainSubstring("Deleting disk"))
 				Expect(stdout).To(ContainSubstring("Deleting stemcell"))
-				Expect(stdout).To(ContainSubstring("Done deleting deployment"))
+				Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
 			})
 		})
 	})
@@ -388,9 +393,9 @@ var _ = Describe("bosh-micro", func() {
 		setDeployment(testEnv.Path("manifest"))
 
 		stdout := deploy()
-		Expect(stdout).To(ContainSubstring("Done deploying"))
+		Expect(stdout).To(ContainSubstring("Finished deploying"))
 
 		stdout = deleteDeployment()
-		Expect(stdout).To(ContainSubstring("Done deleting deployment"))
+		Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
 	})
 })

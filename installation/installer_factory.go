@@ -12,7 +12,6 @@ import (
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
@@ -41,7 +40,6 @@ type installerFactory struct {
 	workspaceRootPath       string
 	uuidGenerator           boshuuid.Generator
 	registryServerManager   bmregistry.ServerManager
-	eventLogger             bmeventlog.EventLogger
 	logger                  boshlog.Logger
 	logTag                  string
 }
@@ -57,7 +55,6 @@ func NewInstallerFactory(
 	workspaceRootPath string,
 	uuidGenerator boshuuid.Generator,
 	registryServerManager bmregistry.ServerManager,
-	eventLogger bmeventlog.EventLogger,
 	logger boshlog.Logger,
 ) InstallerFactory {
 	return &installerFactory{
@@ -71,7 +68,6 @@ func NewInstallerFactory(
 		workspaceRootPath:       workspaceRootPath,
 		uuidGenerator:           uuidGenerator,
 		registryServerManager:   registryServerManager,
-		eventLogger:             eventLogger,
 		logger:                  logger,
 		logTag:                  "installer",
 	}
@@ -101,7 +97,6 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 
 	context := &installerFactoryContext{
 		target:             target,
-		eventLogger:        f.eventLogger,
 		fs:                 f.fs,
 		runner:             f.runner,
 		logger:             f.logger,
@@ -124,7 +119,6 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 
 type installerFactoryContext struct {
 	target             Target
-	eventLogger        bmeventlog.EventLogger
 	fs                 boshsys.FileSystem
 	runner             boshsys.CmdRunner
 	logger             boshlog.Logger

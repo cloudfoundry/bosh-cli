@@ -1,4 +1,4 @@
-package durationfmt_test
+package time_test
 
 import (
 	"time"
@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/eventlogger/durationfmt"
+	. "github.com/cloudfoundry/bosh-micro-cli/ui/time"
 )
 
 var _ = Describe("DurationFmt", func() {

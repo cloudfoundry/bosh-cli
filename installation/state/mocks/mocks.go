@@ -5,9 +5,9 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	eventlogger "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	manifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
 	state "github.com/cloudfoundry/bosh-micro-cli/installation/state"
+	ui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 // Mock of Builder interface
@@ -31,7 +31,7 @@ func (_m *MockBuilder) EXPECT() *_MockBuilderRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBuilder) Build(_param0 manifest.Manifest, _param1 eventlogger.Stage) (state.State, error) {
+func (_m *MockBuilder) Build(_param0 manifest.Manifest, _param1 ui.Stage) (state.State, error) {
 	ret := _m.ctrl.Call(_m, "Build", _param0, _param1)
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)

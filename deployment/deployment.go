@@ -7,12 +7,12 @@ import (
 	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
 	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
 	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmeventlog "github.com/cloudfoundry/bosh-micro-cli/eventlogger"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
 
 type Deployment interface {
-	Delete(bmeventlog.Stage) error
+	Delete(bmui.Stage) error
 }
 
 type deployment struct {
@@ -39,7 +39,7 @@ func NewDeployment(
 	}
 }
 
-func (d *deployment) Delete(deleteStage bmeventlog.Stage) error {
+func (d *deployment) Delete(deleteStage bmui.Stage) error {
 	// le sigh... consuming from an array sucks without generics
 	for len(d.instances) > 0 {
 		lastIdx := len(d.instances) - 1
@@ -77,25 +77,25 @@ func (d *deployment) Delete(deleteStage bmeventlog.Stage) error {
 	return nil
 }
 
-func (d *deployment) deleteDisk(deleteStage bmeventlog.Stage, disk bmdisk.Disk) error {
+func (d *deployment) deleteDisk(deleteStage bmui.Stage, disk bmdisk.Disk) error {
 	stepName := fmt.Sprintf("Deleting disk '%s'", disk.CID())
-	return deleteStage.PerformStep(stepName, func() error {
+	return deleteStage.Perform(stepName, func() error {
 		err := disk.Delete()
 		cloudErr, ok := err.(bmcloud.Error)
 		if ok && cloudErr.Type() == bmcloud.DiskNotFoundError {
-			return bmeventlog.NewSkippedStepError(cloudErr.Error())
+			return bmui.NewSkipStageError(cloudErr, "Disk not found")
 		}
 		return err
 	})
 }
 
-func (d *deployment) deleteStemcell(deleteStage bmeventlog.Stage, stemcell bmstemcell.CloudStemcell) error {
+func (d *deployment) deleteStemcell(deleteStage bmui.Stage, stemcell bmstemcell.CloudStemcell) error {
 	stepName := fmt.Sprintf("Deleting stemcell '%s'", stemcell.CID())
-	return deleteStage.PerformStep(stepName, func() error {
+	return deleteStage.Perform(stepName, func() error {
 		err := stemcell.Delete()
 		cloudErr, ok := err.(bmcloud.Error)
 		if ok && cloudErr.Type() == bmcloud.StemcellNotFoundError {
-			return bmeventlog.NewSkippedStepError(cloudErr.Error())
+			return bmui.NewSkipStageError(cloudErr, "Stemcell not found")
 		}
 		return err
 	})
