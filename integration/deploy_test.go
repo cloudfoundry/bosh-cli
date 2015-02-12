@@ -309,17 +309,8 @@ cloud_provider:
 				SHA1:            "fake-stemcell-sha1",
 				CloudProperties: bmproperty.Map{},
 			}
-			stemcellApplySpec := bmstemcell.ApplySpec{
-				Job: bmstemcell.Job{
-					Name:      "cpi",
-					Templates: []bmstemcell.Blob{},
-				},
-				Packages: map[string]bmstemcell.Blob{},
-				Networks: map[string]bmproperty.Map{},
-			}
 			extractedStemcell := bmstemcell.NewExtractedStemcell(
 				stemcellManifest,
-				stemcellApplySpec,
 				"fake-stemcell-extracted-dir",
 				fs,
 			)

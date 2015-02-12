@@ -1,7 +1,6 @@
 package stemcell
 
 import (
-	"encoding/json"
 	"path/filepath"
 
 	"github.com/cloudfoundry-incubator/candiedyaml"
@@ -18,24 +17,6 @@ type manifest struct {
 	Version         string
 	SHA1            string
 	CloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
-}
-
-type applySpec struct {
-	Job      job
-	Packages map[string]blob
-	Networks map[string]map[interface{}]interface{}
-}
-
-type job struct {
-	Name      string
-	Templates []blob
-}
-
-type blob struct {
-	Name        string
-	Version     string
-	SHA1        string
-	BlobstoreID string `json:"blobstore_id"`
 }
 
 // Reader reads a stemcell tarball and returns a stemcell object containing
@@ -72,19 +53,6 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 		return nil, bosherr.WrapErrorf(err, "Parsing stemcell manifest: %s", manifestContents)
 	}
 
-	var rawApplySpec applySpec
-	applySpecPath := filepath.Join(extractedPath, "apply_spec.yml")
-
-	applySpecContents, err := s.fs.ReadFile(applySpecPath)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Reading stemcell apply spec '%s'", applySpecPath)
-	}
-
-	err = json.Unmarshal(applySpecContents, &rawApplySpec)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Parsing stemcell apply spec: %s", applySpecContents)
-	}
-
 	manifest := Manifest{
 		Name:    rawManifest.Name,
 		Version: rawManifest.Version,
@@ -99,51 +67,8 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 
 	manifest.ImagePath = filepath.Join(extractedPath, "image")
 
-	applySpec := ApplySpec{
-		Job: Job{
-			Name: rawApplySpec.Job.Name,
-		},
-	}
-
-	jobTemplates := make([]Blob, len(rawApplySpec.Job.Templates), len(rawApplySpec.Job.Templates))
-	for i, rawJobTemplate := range rawApplySpec.Job.Templates {
-		jobTemplates[i] = Blob{
-			Name:        rawJobTemplate.Name,
-			Version:     rawJobTemplate.Version,
-			SHA1:        rawJobTemplate.SHA1,
-			BlobstoreID: rawJobTemplate.BlobstoreID,
-		}
-	}
-	applySpec.Job.Templates = jobTemplates
-
-	if rawApplySpec.Packages != nil {
-		packages := make(map[string]Blob, len(rawApplySpec.Packages))
-		for packageName, rawPackage := range rawApplySpec.Packages {
-			packages[packageName] = Blob{
-				Name:        rawPackage.Name,
-				Version:     rawPackage.Version,
-				SHA1:        rawPackage.SHA1,
-				BlobstoreID: rawPackage.BlobstoreID,
-			}
-		}
-		applySpec.Packages = packages
-	}
-
-	if rawApplySpec.Networks != nil {
-		networks := make(map[string]bmproperty.Map, len(rawApplySpec.Networks))
-		for networkName, rawNetworkInterface := range rawApplySpec.Networks {
-			networkInterface, err := bmproperty.BuildMap(rawNetworkInterface)
-			if err != nil {
-				return nil, bosherr.WrapErrorf(err, "Parsing stemcell network '%s' interface: %#v", networkName, rawNetworkInterface)
-			}
-			networks[networkName] = networkInterface
-		}
-		applySpec.Networks = networks
-	}
-
 	stemcell := NewExtractedStemcell(
 		manifest,
-		applySpec,
 		extractedPath,
 		s.fs,
 	)

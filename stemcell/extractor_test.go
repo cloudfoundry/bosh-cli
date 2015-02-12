@@ -43,7 +43,6 @@ var _ = Describe("Manager", func() {
 					"fake-prop-key": "fake-prop-value",
 				},
 			},
-			ApplySpec{},
 			tempExtractionDir,
 			fs,
 		)

@@ -39,7 +39,6 @@ var _ = Describe("Record", func() {
 				Name:    "fake-stemcell-name",
 				Version: "fake-stemcell-version",
 			},
-			bmstemcell.ApplySpec{},
 			"fake-extracted-path",
 			fakeFS,
 		)

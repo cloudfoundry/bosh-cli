@@ -183,7 +183,6 @@ var _ = Describe("DeployCmd", func() {
 				SHA1:            "fake-stemcell-sha1",
 				CloudProperties: bmproperty.Map{},
 			},
-			bmstemcell.ApplySpec{},
 			"fake-extracted-path",
 			fakeFs,
 		)
