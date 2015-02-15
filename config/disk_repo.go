@@ -37,7 +37,7 @@ func (r diskRepo) Save(cid string, size int, cloudProperties bmproperty.Map) (Di
 
 	oldRecord, found := r.find(records, cid)
 	if found {
-		return DiskRecord{}, bosherr.Errorf("Failed to save disk cid '%s', existing record found '%s'", cid, oldRecord)
+		return DiskRecord{}, bosherr.Errorf("Failed to save disk cid '%s', existing record found '%#v'", cid, oldRecord)
 	}
 
 	newRecord := DiskRecord{

@@ -47,7 +47,7 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {
 
 	err := s.initDefaults(deploymentFile)
 	if err != nil {
-		return DeploymentFile{}, bosherr.WrapErrorf(err, "Initializing deployment config defaults", s.configPath)
+		return DeploymentFile{}, bosherr.WrapErrorf(err, "Initializing deployment config defaults")
 	}
 
 	return *deploymentFile, nil
