@@ -9,6 +9,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
+	mock_config "github.com/cloudfoundry/bosh-micro-cli/config/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
 	mock_deployment "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
@@ -94,13 +95,14 @@ var _ = Describe("DeployCmd", func() {
 
 		fakeDeploymentRecord *fakebmdepl.FakeRecord
 
-		fakeReleaseSetParser      *fakebmrelsetmanifest.FakeParser
-		fakeInstallationParser    *fakebminstallmanifest.FakeParser
-		fakeDeploymentParser      *fakebmdeplmanifest.FakeParser
-		deploymentConfigService   bmconfig.DeploymentConfigService
-		fakeReleaseSetValidator   *fakebmrelsetmanifest.FakeValidator
-		fakeInstallationValidator *fakebminstallmanifest.FakeValidator
-		fakeDeploymentValidator   *fakebmdeplval.FakeValidator
+		fakeReleaseSetParser               *fakebmrelsetmanifest.FakeParser
+		fakeInstallationParser             *fakebminstallmanifest.FakeParser
+		fakeDeploymentParser               *fakebmdeplmanifest.FakeParser
+		mockLegacyDeploymentConfigMigrator *mock_config.MockLegacyDeploymentConfigMigrator
+		deploymentConfigService            bmconfig.DeploymentConfigService
+		fakeReleaseSetValidator            *fakebmrelsetmanifest.FakeValidator
+		fakeInstallationValidator          *fakebminstallmanifest.FakeValidator
+		fakeDeploymentValidator            *fakebmdeplval.FakeValidator
 
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 
@@ -161,6 +163,8 @@ var _ = Describe("DeployCmd", func() {
 		fakeInstallationParser = fakebminstallmanifest.NewFakeParser()
 		fakeDeploymentParser = fakebmdeplmanifest.NewFakeParser()
 
+		mockLegacyDeploymentConfigMigrator = mock_config.NewMockLegacyDeploymentConfigMigrator(mockCtrl)
+
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, fakeUUIDGenerator, logger)
 
@@ -196,6 +200,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeReleaseSetParser,
 			fakeInstallationParser,
 			fakeDeploymentParser,
+			mockLegacyDeploymentConfigMigrator,
 			deploymentConfigService,
 			fakeReleaseSetValidator,
 			fakeInstallationValidator,
@@ -227,6 +232,7 @@ var _ = Describe("DeployCmd", func() {
 
 			directorID = "fake-uuid-0"
 
+			expectLegacyMigrate        *gomock.Call
 			expectStemcellUpload       *gomock.Call
 			expectStemcellDeleteUnused *gomock.Call
 			expectCPIReleaseExtract    *gomock.Call
@@ -312,6 +318,10 @@ var _ = Describe("DeployCmd", func() {
 
 		// allow return values of mocked methods to be modified by BeforeEach in child contexts
 		JustBeforeEach(func() {
+			expectLegacyMigrate = mockLegacyDeploymentConfigMigrator.EXPECT().MigrateIfExists().AnyTimes()
+
+			mockLegacyDeploymentConfigMigrator.EXPECT().Path().Return("/path/to/bosh-deployments.yml").AnyTimes()
+
 			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
 
 			fakeStemcellManagerFactory.SetNewManagerBehavior(fakeCloud, mockStemcellManager)
@@ -381,6 +391,34 @@ var _ = Describe("DeployCmd", func() {
 			Expect(fakeUI.Said).To(Equal([]string{
 				"Deployment manifest: '/path/to/manifest.yml'",
 				"Deployment state: '/path/to/deployment.json'",
+			}))
+		})
+
+		It("does not migrate the legacy bosh-deployments.yml if deployment.json exists", func() {
+			err := fakeFs.WriteFileString(deploymentConfigPath, "{}")
+			Expect(err).ToNot(HaveOccurred())
+
+			expectLegacyMigrate.Times(0)
+
+			err = command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
+		})
+
+		It("migrates the legacy bosh-deployments.yml if deployment.json does not exist", func() {
+			err := fakeFs.RemoveAll(deploymentConfigPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			expectLegacyMigrate.Return(true, nil).Times(1)
+
+			err = command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
+
+			Expect(fakeUI.Said).To(Equal([]string{
+				"Deployment manifest: '/path/to/manifest.yml'",
+				"Deployment state: '/path/to/deployment.json'",
+				"Migrated legacy deployments file: '/path/to/bosh-deployments.yml'",
 			}))
 		})
 
@@ -716,6 +754,7 @@ var _ = Describe("DeployCmd", func() {
 					fakeReleaseSetParser,
 					fakeInstallationParser,
 					fakeDeploymentParser,
+					mockLegacyDeploymentConfigMigrator,
 					deploymentConfigService,
 					fakeReleaseSetValidator,
 					fakeInstallationValidator,
@@ -739,7 +778,7 @@ var _ = Describe("DeployCmd", func() {
 			It("returns err", func() {
 				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Running deploy cmd: Deployment manifest not set"))
+				Expect(err.Error()).To(Equal("Deployment manifest not set"))
 				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))
 			})
 		})
@@ -752,7 +791,7 @@ var _ = Describe("DeployCmd", func() {
 			It("returns err", func() {
 				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Running deploy cmd: Deployment manifest does not exist at '/path/to/manifest.yml'"))
+				Expect(err.Error()).To(ContainSubstring("Deployment manifest does not exist at '/path/to/manifest.yml'"))
 				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest does not exist"))
 			})
 		})

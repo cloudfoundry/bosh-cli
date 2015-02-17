@@ -42,49 +42,50 @@ type Factory interface {
 }
 
 type factory struct {
-	commands                 map[string](func() (Cmd, error))
-	userConfig               bmconfig.UserConfig
-	userConfigService        bmconfig.UserConfigService
-	deploymentConfigService  bmconfig.DeploymentConfigService
-	fs                       boshsys.FileSystem
-	ui                       bmui.UI
-	timeService              boshtime.Service
-	logger                   boshlog.Logger
-	uuidGenerator            boshuuid.Generator
-	workspaceRootPath        string
-	runner                   boshsys.CmdRunner
-	compressor               boshcmd.Compressor
-	agentClientFactory       bmhttpagent.AgentClientFactory
-	vmManagerFactory         bmvm.ManagerFactory
-	vmRepo                   bmconfig.VMRepo
-	stemcellRepo             bmconfig.StemcellRepo
-	diskRepo                 bmconfig.DiskRepo
-	registryServerManager    bmregistry.ServerManager
-	sshTunnelFactory         bmsshtunnel.Factory
-	diskDeployer             bmvm.DiskDeployer
-	diskManagerFactory       bmdisk.ManagerFactory
-	instanceFactory          bminstance.Factory
-	instanceManagerFactory   bminstance.ManagerFactory
-	stemcellManagerFactory   bmstemcell.ManagerFactory
-	deploymentManagerFactory bmdepl.ManagerFactory
-	deploymentFactory        bmdepl.Factory
-	deployer                 bmdepl.Deployer
-	blobstoreFactory         bmblobstore.Factory
-	eventLogger              bmui.Stage
-	installerFactory         bminstall.InstallerFactory
-	releaseExtractor         bmrel.Extractor
-	releaseManager           bmrel.Manager
-	releaseResolver          bmrelset.Resolver
-	releaseSetParser         bmrelsetmanifest.Parser
-	releaseJobResolver       bmdeplrel.JobResolver
-	installationParser       bminstallmanifest.Parser
-	deploymentParser         bmdeplmanifest.Parser
-	releaseSetValidator      bmrelsetmanifest.Validator
-	installationValidator    bminstallmanifest.Validator
-	deploymentValidator      bmdeplmanifest.Validator
-	cloudFactory             bmcloud.Factory
-	stateBuilderFactory      bminstancestate.BuilderFactory
-	compiledPackageRepo      bmstatepkg.CompiledPackageRepo
+	commands                       map[string](func() (Cmd, error))
+	userConfig                     bmconfig.UserConfig
+	userConfigService              bmconfig.UserConfigService
+	legacyDeploymentConfigMigrator bmconfig.LegacyDeploymentConfigMigrator
+	deploymentConfigService        bmconfig.DeploymentConfigService
+	fs                             boshsys.FileSystem
+	ui                             bmui.UI
+	timeService                    boshtime.Service
+	logger                         boshlog.Logger
+	uuidGenerator                  boshuuid.Generator
+	workspaceRootPath              string
+	runner                         boshsys.CmdRunner
+	compressor                     boshcmd.Compressor
+	agentClientFactory             bmhttpagent.AgentClientFactory
+	vmManagerFactory               bmvm.ManagerFactory
+	vmRepo                         bmconfig.VMRepo
+	stemcellRepo                   bmconfig.StemcellRepo
+	diskRepo                       bmconfig.DiskRepo
+	registryServerManager          bmregistry.ServerManager
+	sshTunnelFactory               bmsshtunnel.Factory
+	diskDeployer                   bmvm.DiskDeployer
+	diskManagerFactory             bmdisk.ManagerFactory
+	instanceFactory                bminstance.Factory
+	instanceManagerFactory         bminstance.ManagerFactory
+	stemcellManagerFactory         bmstemcell.ManagerFactory
+	deploymentManagerFactory       bmdepl.ManagerFactory
+	deploymentFactory              bmdepl.Factory
+	deployer                       bmdepl.Deployer
+	blobstoreFactory               bmblobstore.Factory
+	eventLogger                    bmui.Stage
+	installerFactory               bminstall.InstallerFactory
+	releaseExtractor               bmrel.Extractor
+	releaseManager                 bmrel.Manager
+	releaseResolver                bmrelset.Resolver
+	releaseSetParser               bmrelsetmanifest.Parser
+	releaseJobResolver             bmdeplrel.JobResolver
+	installationParser             bminstallmanifest.Parser
+	deploymentParser               bmdeplmanifest.Parser
+	releaseSetValidator            bmrelsetmanifest.Validator
+	installationValidator          bminstallmanifest.Validator
+	deploymentValidator            bmdeplmanifest.Validator
+	cloudFactory                   bmcloud.Factory
+	stateBuilderFactory            bminstancestate.BuilderFactory
+	compiledPackageRepo            bmstatepkg.CompiledPackageRepo
 }
 
 func NewFactory(
@@ -150,6 +151,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		f.loadReleaseSetParser(),
 		f.loadInstallationParser(),
 		f.loadDeploymentParser(),
+		f.loadLegacyDeploymentConfigMigrator(),
 		f.loadDeploymentConfigService(),
 		f.loadReleaseSetValidator(),
 		f.loadInstallationValidator(),
@@ -404,21 +406,40 @@ func (f *factory) loadStemcellManagerFactory() bmstemcell.ManagerFactory {
 	return f.stemcellManagerFactory
 }
 
+func (f *factory) loadLegacyDeploymentConfigMigrator() bmconfig.LegacyDeploymentConfigMigrator {
+	if f.legacyDeploymentConfigMigrator != nil {
+		return f.legacyDeploymentConfigMigrator
+	}
+
+	if !f.userConfig.IsDeploymentSet() {
+		// no deployment set.
+		// each cmd should handle validation before using deploymentConfigService or deploymentWorkspace
+		return nil
+	}
+
+	f.legacyDeploymentConfigMigrator = bmconfig.NewLegacyDeploymentConfigMigrator(
+		f.userConfig.LegacyDeploymentConfigPath(),
+		f.loadDeploymentConfigService(),
+		f.fs,
+		f.uuidGenerator,
+		f.logger,
+	)
+	return f.legacyDeploymentConfigMigrator
+}
+
 func (f *factory) loadDeploymentConfigService() bmconfig.DeploymentConfigService {
 	if f.deploymentConfigService != nil {
 		return f.deploymentConfigService
 	}
 
-	deploymentConfigPath := f.userConfig.DeploymentConfigPath()
-	f.logger.Debug("cmdFactory", "DeploymentConfigPath: %s", deploymentConfigPath)
-	if deploymentConfigPath == "" {
+	if !f.userConfig.IsDeploymentSet() {
 		// no deployment set.
 		// each cmd should handle validation before using deploymentConfigService or deploymentWorkspace
 		return nil
 	}
 
 	f.deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(
-		deploymentConfigPath,
+		f.userConfig.DeploymentConfigPath(),
 		f.fs,
 		f.uuidGenerator,
 		f.logger,

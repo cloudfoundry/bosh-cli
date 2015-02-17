@@ -27,6 +27,10 @@ func NewFileSystemDeploymentConfigService(configPath string, fs boshsys.FileSyst
 	}
 }
 
+func (s fileSystemDeploymentConfigService) Exists() bool {
+	return s.fs.FileExists(s.configPath)
+}
+
 func (s fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {
 	s.logger.Debug(s.logTag, "Loading deployment config: %s", s.configPath)
 

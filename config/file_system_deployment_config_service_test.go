@@ -33,6 +33,17 @@ var _ = Describe("fileSystemConfigService", func() {
 		service = NewFileSystemDeploymentConfigService(deploymentFilePath, fakeFs, fakeUUIDGenerator, logger)
 	})
 
+	Describe("Exists", func() {
+		It("returns true if the config file exists", func() {
+			fakeFs.WriteFileString(deploymentFilePath, "")
+			Expect(service.Exists()).To(BeTrue())
+		})
+
+		It("returns false if the config file does not exist", func() {
+			Expect(service.Exists()).To(BeFalse())
+		})
+	})
+
 	Describe("Load", func() {
 		It("reads the given config file", func() {
 			stemcells := []StemcellRecord{

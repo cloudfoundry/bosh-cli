@@ -49,7 +49,7 @@ var _ = Describe("StemcellRepo", func() {
 			Expect(deploymentConfig).To(Equal(expectedConfig))
 		})
 
-		It("return the stemcell record with a new uuid", func() {
+		It("returns the stemcell record with a new uuid", func() {
 			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
 			record, err := repo.Save("fake-name", "fake-version-1", "fake-cid-1")
 			Expect(err).ToNot(HaveOccurred())
@@ -84,16 +84,48 @@ var _ = Describe("StemcellRepo", func() {
 			})
 		})
 
-		Context("when there stemcell record with the same cid exists", func() {
+		Context("when there stemcell record with the same cid exists (cpi does not garentee cid uniqueness)", func() {
 			BeforeEach(func() {
-				_, err := repo.Save("fake-name", "fake-version", "fake-cid")
+				_, err := repo.Save("fake-name-1", "fake-version-1", "fake-cid-1")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("returns an error", func() {
-				_, err := repo.Save("fake-name-2", "fake-version-2", "fake-cid")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("duplicate cid"))
+			It("saves the stemcell record using the config service", func() {
+				_, err := repo.Save("fake-name-2", "fake-version-2", "fake-cid-1")
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentConfig, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				expectedConfig := DeploymentFile{
+					DirectorID: "fake-uuid-0",
+					Stemcells: []StemcellRecord{
+						{
+							ID:      "fake-uuid-1",
+							Name:    "fake-name-1",
+							Version: "fake-version-1",
+							CID:     "fake-cid-1",
+						},
+						{
+							ID:      "fake-uuid-2",
+							Name:    "fake-name-2",
+							Version: "fake-version-2",
+							CID:     "fake-cid-1",
+						},
+					},
+				}
+				Expect(deploymentConfig).To(Equal(expectedConfig))
+			})
+
+			It("returns the stemcell record with a new uuid", func() {
+				record, err := repo.Save("fake-name-2", "fake-version-2", "fake-cid-1")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(record).To(Equal(StemcellRecord{
+					ID:      "fake-uuid-2",
+					Name:    "fake-name-2",
+					Version: "fake-version-2",
+					CID:     "fake-cid-1",
+				}))
 			})
 		})
 	})

@@ -52,9 +52,6 @@ func (r stemcellRepo) Save(name, version, cid string) (StemcellRecord, error) {
 			if oldRecord.Name == newRecord.Name && oldRecord.Version == newRecord.Version {
 				return bosherr.Errorf("Failed to save stemcell record '%s' (duplicate name/version), existing record found '%s'", newRecord, oldRecord)
 			}
-			if oldRecord.CID == newRecord.CID {
-				return bosherr.Errorf("Failed to save stemcell record '%s' (duplicate cid), existing record found '%s'", newRecord, oldRecord)
-			}
 		}
 
 		records = append(records, newRecord)

@@ -26,31 +26,32 @@ import (
 )
 
 type deployCmd struct {
-	ui                      bmui.UI
-	userConfig              bmconfig.UserConfig
-	fs                      boshsys.FileSystem
-	releaseSetParser        bmrelsetmanifest.Parser
-	installationParser      bminstallmanifest.Parser
-	deploymentParser        bmdeplmanifest.Parser
-	deploymentConfigService bmconfig.DeploymentConfigService
-	releaseSetValidator     bmrelsetmanifest.Validator
-	installationValidator   bminstallmanifest.Validator
-	deploymentValidator     bmdeplmanifest.Validator
-	installerFactory        bminstall.InstallerFactory
-	releaseExtractor        bmrel.Extractor
-	releaseManager          bmrel.Manager
-	releaseResolver         bmrelset.Resolver
-	cloudFactory            bmcloud.Factory
-	agentClientFactory      bmhttpagent.AgentClientFactory
-	vmManagerFactory        bmvm.ManagerFactory
-	stemcellExtractor       bmstemcell.Extractor
-	stemcellManagerFactory  bmstemcell.ManagerFactory
-	deploymentRecord        bmdepl.Record
-	blobstoreFactory        bmblobstore.Factory
-	deployer                bmdepl.Deployer
-	eventLogger             bmui.Stage
-	logger                  boshlog.Logger
-	logTag                  string
+	ui                             bmui.UI
+	userConfig                     bmconfig.UserConfig
+	fs                             boshsys.FileSystem
+	releaseSetParser               bmrelsetmanifest.Parser
+	installationParser             bminstallmanifest.Parser
+	deploymentParser               bmdeplmanifest.Parser
+	legacyDeploymentConfigMigrator bmconfig.LegacyDeploymentConfigMigrator
+	deploymentConfigService        bmconfig.DeploymentConfigService
+	releaseSetValidator            bmrelsetmanifest.Validator
+	installationValidator          bminstallmanifest.Validator
+	deploymentValidator            bmdeplmanifest.Validator
+	installerFactory               bminstall.InstallerFactory
+	releaseExtractor               bmrel.Extractor
+	releaseManager                 bmrel.Manager
+	releaseResolver                bmrelset.Resolver
+	cloudFactory                   bmcloud.Factory
+	agentClientFactory             bmhttpagent.AgentClientFactory
+	vmManagerFactory               bmvm.ManagerFactory
+	stemcellExtractor              bmstemcell.Extractor
+	stemcellManagerFactory         bmstemcell.ManagerFactory
+	deploymentRecord               bmdepl.Record
+	blobstoreFactory               bmblobstore.Factory
+	deployer                       bmdepl.Deployer
+	eventLogger                    bmui.Stage
+	logger                         boshlog.Logger
+	logTag                         string
 }
 
 func NewDeployCmd(
@@ -60,6 +61,7 @@ func NewDeployCmd(
 	releaseSetParser bmrelsetmanifest.Parser,
 	installationParser bminstallmanifest.Parser,
 	deploymentParser bmdeplmanifest.Parser,
+	legacyDeploymentConfigMigrator bmconfig.LegacyDeploymentConfigMigrator,
 	deploymentConfigService bmconfig.DeploymentConfigService,
 	releaseSetValidator bmrelsetmanifest.Validator,
 	installationValidator bminstallmanifest.Validator,
@@ -79,30 +81,31 @@ func NewDeployCmd(
 	logger boshlog.Logger,
 ) Cmd {
 	return &deployCmd{
-		ui:                      ui,
-		userConfig:              userConfig,
-		fs:                      fs,
-		releaseSetParser:        releaseSetParser,
-		installationParser:      installationParser,
-		deploymentParser:        deploymentParser,
-		deploymentConfigService: deploymentConfigService,
-		releaseSetValidator:     releaseSetValidator,
-		installationValidator:   installationValidator,
-		deploymentValidator:     deploymentValidator,
-		installerFactory:        installerFactory,
-		releaseExtractor:        releaseExtractor,
-		releaseManager:          releaseManager,
-		releaseResolver:         releaseResolver,
-		cloudFactory:            cloudFactory,
-		agentClientFactory:      agentClientFactory,
-		vmManagerFactory:        vmManagerFactory,
-		stemcellExtractor:       stemcellExtractor,
-		stemcellManagerFactory:  stemcellManagerFactory,
-		deploymentRecord:        deploymentRecord,
-		blobstoreFactory:        blobstoreFactory,
-		deployer:                deployer,
-		logger:                  logger,
-		logTag:                  "deployCmd",
+		ui:                             ui,
+		userConfig:                     userConfig,
+		fs:                             fs,
+		releaseSetParser:               releaseSetParser,
+		installationParser:             installationParser,
+		deploymentParser:               deploymentParser,
+		legacyDeploymentConfigMigrator: legacyDeploymentConfigMigrator,
+		deploymentConfigService:        deploymentConfigService,
+		releaseSetValidator:            releaseSetValidator,
+		installationValidator:          installationValidator,
+		deploymentValidator:            deploymentValidator,
+		installerFactory:               installerFactory,
+		releaseExtractor:               releaseExtractor,
+		releaseManager:                 releaseManager,
+		releaseResolver:                releaseResolver,
+		cloudFactory:                   cloudFactory,
+		agentClientFactory:             agentClientFactory,
+		vmManagerFactory:               vmManagerFactory,
+		stemcellExtractor:              stemcellExtractor,
+		stemcellManagerFactory:         stemcellManagerFactory,
+		deploymentRecord:               deploymentRecord,
+		blobstoreFactory:               blobstoreFactory,
+		deployer:                       deployer,
+		logger:                         logger,
+		logTag:                         "deployCmd",
 	}
 }
 
@@ -118,7 +121,17 @@ func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 
 	deploymentManifestPath, err := getDeploymentManifest(c.userConfig, c.ui, c.fs)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Running deploy cmd")
+		return err
+	}
+
+	if !c.deploymentConfigService.Exists() {
+		migrated, err := c.legacyDeploymentConfigMigrator.MigrateIfExists()
+		if err != nil {
+			return bosherr.WrapError(err, "Migrating legacy deployment config file")
+		}
+		if migrated {
+			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", c.legacyDeploymentConfigMigrator.Path())
+		}
 	}
 
 	deploymentConfig, err := c.deploymentConfigService.Load()

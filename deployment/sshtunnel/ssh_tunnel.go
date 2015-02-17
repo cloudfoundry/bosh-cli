@@ -30,17 +30,17 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 	authMethods := []ssh.AuthMethod{}
 
 	if s.options.PrivateKey != "" {
-		s.logger.Debug(s.logTag, "Reading private key file")
+		s.logger.Debug(s.logTag, "Reading private key file '%s'", s.options.PrivateKey)
 		keyContents, err := ioutil.ReadFile(s.options.PrivateKey)
 		if err != nil {
-			readyErrCh <- bosherr.WrapError(err, "Reading private key file")
+			readyErrCh <- bosherr.WrapErrorf(err, "Reading private key file '%s'", s.options.PrivateKey)
 			return
 		}
 
-		s.logger.Debug(s.logTag, "Parsing private key file")
+		s.logger.Debug(s.logTag, "Parsing private key file '%s'", s.options.PrivateKey)
 		signer, err := ssh.ParsePrivateKey(keyContents)
 		if err != nil {
-			readyErrCh <- bosherr.WrapError(err, "Parsing private key file")
+			readyErrCh <- bosherr.WrapErrorf(err, "Parsing private key file '%s'", s.options.PrivateKey)
 			return
 		}
 
@@ -76,6 +76,7 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 	var conn *ssh.Client
 	var err error
 	for i := 0; i < s.startDialMaxTries; i++ {
+		s.logger.Debug(s.logTag, "Making attempt #%d", i)
 		conn, err = ssh.Dial(
 			"tcp",
 			remoteAddr,
@@ -90,6 +91,8 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 		if err == nil {
 			break
 		}
+
+		s.logger.Debug(s.logTag, "Attempt failed #%d: Dialing remote server: %s", i, err.Error())
 
 		time.Sleep(s.startDialDelay)
 	}

@@ -38,6 +38,7 @@ type ReleaseRecord struct {
 }
 
 type DeploymentConfigService interface {
+	Exists() bool
 	Load() (DeploymentFile, error)
 	Save(DeploymentFile) error
 }

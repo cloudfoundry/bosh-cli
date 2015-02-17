@@ -91,18 +91,19 @@ var _ = Describe("bosh-micro", func() {
 			mockBlobstoreFactory *mock_blobstore.MockFactory
 			mockBlobstore        *mock_blobstore.MockBlobstore
 
-			fakeStemcellExtractor   *fakebmstemcell.FakeExtractor
-			fakeUUIDGenerator       *fakeuuid.FakeGenerator
-			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
-			fakeAgentIDGenerator    *fakeuuid.FakeGenerator
-			fakeSHA1Calculator      *fakebmcrypto.FakeSha1Calculator
-			deploymentConfigService bmconfig.DeploymentConfigService
-			vmRepo                  bmconfig.VMRepo
-			diskRepo                bmconfig.DiskRepo
-			stemcellRepo            bmconfig.StemcellRepo
-			deploymentRepo          bmconfig.DeploymentRepo
-			releaseRepo             bmconfig.ReleaseRepo
-			userConfig              bmconfig.UserConfig
+			fakeStemcellExtractor          *fakebmstemcell.FakeExtractor
+			fakeUUIDGenerator              *fakeuuid.FakeGenerator
+			fakeRepoUUIDGenerator          *fakeuuid.FakeGenerator
+			fakeAgentIDGenerator           *fakeuuid.FakeGenerator
+			fakeSHA1Calculator             *fakebmcrypto.FakeSha1Calculator
+			legacyDeploymentConfigMigrator bmconfig.LegacyDeploymentConfigMigrator
+			deploymentConfigService        bmconfig.DeploymentConfigService
+			vmRepo                         bmconfig.VMRepo
+			diskRepo                       bmconfig.DiskRepo
+			stemcellRepo                   bmconfig.StemcellRepo
+			deploymentRepo                 bmconfig.DeploymentRepo
+			releaseRepo                    bmconfig.ReleaseRepo
+			userConfig                     bmconfig.UserConfig
 
 			sshTunnelFactory bmsshtunnel.Factory
 
@@ -119,10 +120,11 @@ var _ = Describe("bosh-micro", func() {
 
 			directorID string
 
-			stemcellTarballPath    = "/fake-stemcell-release.tgz"
-			cpiReleaseTarballPath  = "/fake-cpi-release.tgz"
-			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
-			deploymentConfigPath   = "/fake-bosh-deployments.json"
+			stemcellTarballPath        = "/fake-stemcell-release.tgz"
+			cpiReleaseTarballPath      = "/fake-cpi-release.tgz"
+			deploymentManifestPath     = "/deployment-dir/fake-deployment-manifest.yml"
+			deploymentConfigPath       = "/fake-bosh-deployments.json"
+			legacyDeploymentConfigPath = "/fake-bosh-deployments.yml"
 
 			stemcellImagePath       = "fake-stemcell-image-path"
 			stemcellCID             = "fake-stemcell-cid"
@@ -387,6 +389,7 @@ cloud_provider:
 				releaseSetParser,
 				installationParser,
 				deploymentParser,
+				legacyDeploymentConfigMigrator,
 				deploymentConfigService,
 				releaseSetValidator,
 				installationValidator,
@@ -675,6 +678,7 @@ cloud_provider:
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+			legacyDeploymentConfigMigrator = bmconfig.NewLegacyDeploymentConfigMigrator(legacyDeploymentConfigPath, deploymentConfigService, fs, fakeUUIDGenerator, logger)
 			fakeAgentIDGenerator = fakeuuid.NewFakeGenerator()
 
 			fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
