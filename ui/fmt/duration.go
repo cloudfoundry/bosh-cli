@@ -1,4 +1,4 @@
-package time
+package fmt
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func Format(duration time.Duration) string {
+func Duration(duration time.Duration) string {
 	totalSeconds := math.Floor(duration.Seconds())
 	hours := math.Floor(totalSeconds / 3600)
 	minutes := math.Floor((totalSeconds - hours*3600) / 60)
