@@ -167,16 +167,18 @@ resource_pools:
   network: network-1
 
 jobs:
-- name: cpi
+- name: fake-deployment-job-name
   instances: 1
   persistent_disk: 1024
   networks:
   - name: network-1
   templates:
-  - {name: cpi, release: fake-cpi-release-name}
+  - {name: fake-cpi-release-job-name, release: fake-cpi-release-name}
 
 cloud_provider:
-  release: fake-cpi-release-name
+  template:
+    name: fake-cpi-release-job-name
+    release: fake-cpi-release-name
   mbus: http://fake-mbus-url
   registry:
     host: 127.0.0.1
@@ -208,16 +210,18 @@ resource_pools:
   network: network-1
 
 jobs:
-- name: cpi
+- name: fake-deployment-job-name
   instances: 1
   persistent_disk: 2048
   networks:
   - name: network-1
   templates:
-  - {name: cpi, release: fake-cpi-release-name}
+  - {name: fake-cpi-release-job-name, release: fake-cpi-release-name}
 
 cloud_provider:
-  release: fake-cpi-release-name
+  template:
+    name: fake-cpi-release-job-name
+    release: fake-cpi-release-name
   mbus: http://fake-mbus-url
   registry:
     host: 127.0.0.1
@@ -239,7 +243,7 @@ cloud_provider:
 
 		var allowCPIToBeInstalled = func() {
 			cpiPackage := bmrelpkg.Package{
-				Name:          "cpi",
+				Name:          "fake-package-name",
 				Fingerprint:   "fake-package-fingerprint-cpi",
 				SHA1:          "fake-package-sha1-cpi",
 				Dependencies:  []*bmrelpkg.Package{},
@@ -251,7 +255,7 @@ cloud_provider:
 				"1.1",
 				[]bmreljob.Job{
 					{
-						Name: "cpi",
+						Name: "fake-cpi-release-job-name",
 						Templates: map[string]string{
 							"cpi.erb": "bin/cpi",
 						},
@@ -268,9 +272,12 @@ cloud_provider:
 			}).Return(cpiRelease, nil).AnyTimes()
 
 			installationManifest := bminstallmanifest.Manifest{
-				Name:    "test-release",
-				Release: "fake-cpi-release-name",
-				Mbus:    mbusURL,
+				Name: "test-release",
+				Template: bminstallmanifest.ReleaseJobRef{
+					Name:    "fake-cpi-release-job-name",
+					Release: "fake-cpi-release-name",
+				},
+				Mbus: mbusURL,
 				Registry: bminstallmanifest.Registry{
 					Username: "fake-registry-user",
 					Password: "fake-registry-password",
@@ -284,8 +291,8 @@ cloud_provider:
 			target := bminstall.NewTarget(installationPath)
 
 			installedJob := bminstalljob.InstalledJob{
-				Name: "cpi",
-				Path: filepath.Join(target.JobsPath(), "cpi"),
+				Name: "fake-cpi-release-job-name",
+				Path: filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),
 			}
 
 			installation := bminstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
@@ -321,7 +328,7 @@ cloud_provider:
 		}
 
 		var allowApplySpecToBeCreated = func() {
-			jobName := "cpi"
+			jobName := "fake-deployment-job-name"
 			jobIndex := 0
 
 			applySpec = bmas.ApplySpec{
@@ -339,8 +346,8 @@ cloud_provider:
 					Templates: []bmas.Blob{},
 				},
 				Packages: map[string]bmas.Blob{
-					"cpi": bmas.Blob{
-						Name:        "cpi",
+					"fake-package-name": bmas.Blob{
+						Name:        "fake-package-name",
 						Version:     "fake-package-fingerprint-cpi",
 						SHA1:        "fake-compiled-package-sha1-cpi",
 						BlobstoreID: "fake-compiled-package-blob-id-cpi",

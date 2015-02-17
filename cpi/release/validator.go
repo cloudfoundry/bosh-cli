@@ -5,6 +5,10 @@ import (
 	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
 )
 
+const (
+	ReleaseBinaryName = "bin/cpi"
+)
+
 type Validator struct {
 }
 
@@ -12,31 +16,16 @@ func NewValidator() Validator {
 	return Validator{}
 }
 
-func (v Validator) Validate(release bmrel.Release) error {
-	errs := v.validateCpiJob(release)
-	if len(errs) > 0 {
-		wrappedErrs := []error{}
-		for _, err := range errs {
-			wrappedErrs = append(wrappedErrs, bosherr.WrapError(err, "Validating CPI release"))
-		}
-		return bosherr.NewMultiError(errs...)
-	}
-
-	return nil
-}
-
-func (v Validator) validateCpiJob(release bmrel.Release) []error {
-	errs := []error{}
-
-	job, ok := release.FindJobByName(ReleaseJobName)
+func (v Validator) Validate(release bmrel.Release, cpiReleaseJobName string) error {
+	job, ok := release.FindJobByName(cpiReleaseJobName)
 	if !ok {
-		return append(errs, bosherr.Errorf("Job '%s' is missing from release", ReleaseJobName))
+		return bosherr.Errorf("CPI release must contain specified job '%s'", cpiReleaseJobName)
 	}
 
 	_, ok = job.FindTemplateByValue(ReleaseBinaryName)
 	if !ok {
-		errs = append(errs, bosherr.Errorf("Job '%s' is missing '%s' target", ReleaseJobName, ReleaseBinaryName))
+		return bosherr.Errorf("Specified CPI release job '%s' must contain a template that renders to target '%s'", cpiReleaseJobName, ReleaseBinaryName)
 	}
 
-	return errs
+	return nil
 }

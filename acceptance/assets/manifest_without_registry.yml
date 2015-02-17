@@ -18,7 +18,9 @@ networks:
     static: [10.244.0.42]
 
 cloud_provider:
-  release: bosh-warden-cpi
+  template:
+    name: cpi
+    release: bosh-warden-cpi
   mbus: https://admin:admin@10.244.0.42:6868
   properties:
     cpi:

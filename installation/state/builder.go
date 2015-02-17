@@ -8,7 +8,6 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
 	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
@@ -19,11 +18,6 @@ import (
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
-
-type ReleaseJobRef struct {
-	Name    string
-	Release string
-}
 
 type Builder interface {
 	Build(bminstallmanifest.Manifest, bmui.Stage) (State, error)
@@ -58,12 +52,7 @@ func NewBuilder(
 
 func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage bmui.Stage) (State, error) {
 	// installation only ever has one job: the cpi job.
-	releaseJobRefs := []ReleaseJobRef{
-		{
-			Name:    bmcpirel.ReleaseJobName,
-			Release: installationManifest.Release,
-		},
-	}
+	releaseJobRefs := []bminstallmanifest.ReleaseJobRef{installationManifest.Template}
 
 	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
 	globalProperties := bmproperty.Map{}
@@ -93,7 +82,7 @@ func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage b
 }
 
 //TODO: similar to deployment/instance/state.Builder - abstract?
-func (b *builder) resolveJobs(jobRefs []ReleaseJobRef) ([]bmreljob.Job, error) {
+func (b *builder) resolveJobs(jobRefs []bminstallmanifest.ReleaseJobRef) ([]bmreljob.Job, error) {
 	releaseJobs := make([]bmreljob.Job, len(jobRefs), len(jobRefs))
 	for i, jobRef := range jobRefs {
 		release, err := b.releaseJobResolver.Resolve(jobRef.Name, jobRef.Release)

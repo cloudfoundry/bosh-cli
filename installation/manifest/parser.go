@@ -26,12 +26,17 @@ type manifest struct {
 }
 
 type installation struct {
-	Release         string
+	Template        template
 	Properties      map[interface{}]interface{}
 	Registry        Registry
 	AgentEnvService string    `yaml:"agent_env_service"`
 	SSHTunnel       SSHTunnel `yaml:"ssh_tunnel"`
 	Mbus            string
+}
+
+type template struct {
+	Name    string
+	Release string
 }
 
 func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {
@@ -56,8 +61,11 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	p.logger.Debug(p.logTag, "Parsed installation manifest: %#v", comboManifest)
 
 	installationManifest := Manifest{
-		Name:            comboManifest.Name,
-		Release:         comboManifest.CloudProvider.Release,
+		Name: comboManifest.Name,
+		Template: ReleaseJobRef{
+			Name:    comboManifest.CloudProvider.Template.Name,
+			Release: comboManifest.CloudProvider.Template.Release,
+		},
 		Registry:        comboManifest.CloudProvider.Registry,
 		AgentEnvService: comboManifest.CloudProvider.AgentEnvService,
 		SSHTunnel:       comboManifest.CloudProvider.SSHTunnel,

@@ -260,15 +260,17 @@ func (c *deleteCmd) validate(validationStage bmui.Stage, releaseTarballPath, dep
 	}
 
 	err = validationStage.Perform("Validating cpi release", func() error {
-		cpiRelease, err := c.releaseResolver.Find(installationManifest.Release)
+		cpiReleaseName := installationManifest.Template.Release
+		cpiRelease, err := c.releaseResolver.Find(cpiReleaseName)
 		if err != nil {
 			// should never happen, due to prior manifest validation
-			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", installationManifest.Release)
+			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", cpiReleaseName)
 		}
 
-		err = bmcpirel.NewValidator().Validate(cpiRelease)
+		cpiReleaseJobName := installationManifest.Template.Name
+		err = bmcpirel.NewValidator().Validate(cpiRelease, cpiReleaseJobName)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
+			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiReleaseName)
 		}
 
 		return nil

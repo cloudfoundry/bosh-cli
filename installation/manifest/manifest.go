@@ -6,7 +6,7 @@ import (
 
 type Manifest struct {
 	Name            string
-	Release         string
+	Template        ReleaseJobRef
 	Properties      bmproperty.Map
 	Mbus            string
 	Registry        Registry

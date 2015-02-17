@@ -96,7 +96,9 @@ var _ = Describe("DeleteCmd", func() {
 name: test-release
 
 cloud_provider:
-  release: fake-cpi-release-name
+  template:
+    name: fake-cpi-release-job-name
+    release: fake-cpi-release-name
   mbus: http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint
 `)
 		}
@@ -111,7 +113,7 @@ cloud_provider:
 				"fake-cpi-release-version",
 				[]bmreljob.Job{
 					{
-						Name: "cpi",
+						Name: "fake-cpi-release-job-name",
 						Templates: map[string]string{
 							"templates/cpi.erb": "bin/cpi",
 						},
@@ -130,9 +132,12 @@ cloud_provider:
 
 		var allowCPIToBeInstalled = func() {
 			installationManifest := bminstallmanifest.Manifest{
-				Name:       "test-release",
+				Name: "test-release",
+				Template: bminstallmanifest.ReleaseJobRef{
+					Name:    "fake-cpi-release-job-name",
+					Release: "fake-cpi-release-name",
+				},
 				Mbus:       mbusURL,
-				Release:    "fake-cpi-release-name",
 				Properties: bmproperty.Map{},
 			}
 

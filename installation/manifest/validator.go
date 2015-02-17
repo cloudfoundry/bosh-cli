@@ -26,14 +26,25 @@ func NewValidator(logger boshlog.Logger, releaseResolver bmrelset.Resolver) Vali
 }
 
 func (v *validator) Validate(manifest Manifest) error {
-	cpiReleaseName := manifest.Release
+	errs := []error{}
+
+	cpiJobName := manifest.Template.Name
+	if v.isBlank(cpiJobName) {
+		errs = append(errs, bosherr.Error("cloud_provider.template.name must be provided"))
+	}
+
+	cpiReleaseName := manifest.Template.Release
 	if v.isBlank(cpiReleaseName) {
-		return bosherr.Error("cloud_provider.release must be provided")
+		errs = append(errs, bosherr.Error("cloud_provider.template.release must be provided"))
 	}
 
 	_, err := v.releaseResolver.Find(cpiReleaseName)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "cloud_provider.release '%s' must refer to a provided release", cpiReleaseName)
+		errs = append(errs, bosherr.WrapErrorf(err, "cloud_provider.template.release '%s' must refer to a provided release", cpiReleaseName))
+	}
+
+	if len(errs) > 0 {
+		return bosherr.NewMultiError(errs...)
 	}
 
 	return nil

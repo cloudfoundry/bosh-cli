@@ -32,6 +32,9 @@ var _ = Describe("Parser", func() {
 ---
 name: fake-deployment-name
 cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -80,6 +83,10 @@ cloud_provider:
 
 		Expect(installationManifest).To(Equal(Manifest{
 			Name: "fake-deployment-name",
+			Template: ReleaseJobRef{
+				Name:    "fake-cpi-job-name",
+				Release: "fake-cpi-release-name",
+			},
 			Registry: Registry{
 				Username: "fake-registry-username",
 				Password: "fake-registry-password",

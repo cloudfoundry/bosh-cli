@@ -15,6 +15,8 @@ import (
 var _ = Describe("Validator", func() {
 	var (
 		fakeFs *fakesys.FakeFileSystem
+
+		cpiReleaseJobName = "fake-cpi-release-job-name"
 	)
 
 	BeforeEach(func() {
@@ -27,7 +29,7 @@ var _ = Describe("Validator", func() {
 			"fake-release-version",
 			[]bmreljob.Job{
 				{
-					Name:        "cpi",
+					Name:        "fake-cpi-release-job-name",
 					Fingerprint: "fake-job-1-fingerprint",
 					SHA1:        "fake-job-1-sha",
 					Templates: map[string]string{
@@ -41,7 +43,7 @@ var _ = Describe("Validator", func() {
 		)
 		validator := NewValidator()
 
-		err := validator.Validate(release)
+		err := validator.Validate(release, cpiReleaseJobName)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -71,9 +73,9 @@ var _ = Describe("Validator", func() {
 		})
 
 		It("returns an error that the cpi job is not present", func() {
-			err := validator.Validate(release)
+			err := validator.Validate(release, cpiReleaseJobName)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Job 'cpi' is missing from release"))
+			Expect(err.Error()).To(ContainSubstring("CPI release must contain specified job 'fake-cpi-release-job-name'"))
 		})
 	})
 
@@ -87,7 +89,7 @@ var _ = Describe("Validator", func() {
 				"fake-release-version",
 				[]bmreljob.Job{
 					{
-						Name:        "cpi",
+						Name:        "fake-cpi-release-job-name",
 						Fingerprint: "fake-job-1-fingerprint",
 						SHA1:        "fake-job-1-sha",
 						Templates: map[string]string{
@@ -103,9 +105,9 @@ var _ = Describe("Validator", func() {
 		})
 
 		It("returns an error that the bin/cpi template target is missing", func() {
-			err := validator.Validate(release)
+			err := validator.Validate(release, cpiReleaseJobName)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Job 'cpi' is missing 'bin/cpi' target"))
+			Expect(err.Error()).To(ContainSubstring("Specified CPI release job 'fake-cpi-release-job-name' must contain a template that renders to target 'bin/cpi'"))
 		})
 	})
 })

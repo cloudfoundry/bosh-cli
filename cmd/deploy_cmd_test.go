@@ -279,7 +279,10 @@ var _ = Describe("DeployCmd", func() {
 
 			// parsed CPI deployment manifest
 			installationManifest = bminstallmanifest.Manifest{
-				Release:  "fake-cpi-release-name",
+				Template: bminstallmanifest.ReleaseJobRef{
+					Name:    "fake-cpi-release-job-name",
+					Release: "fake-cpi-release-name",
+				},
 				Registry: bminstallmanifest.Registry{},
 				SSHTunnel: bminstallmanifest.SSHTunnel{
 					Host: "fake-host",
@@ -304,7 +307,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeCPIRelease.ReleaseVersion = "1.0"
 			fakeCPIRelease.ReleaseJobs = []bmreljob.Job{
 				{
-					Name: "cpi",
+					Name: "fake-cpi-release-job-name",
 					Templates: map[string]string{
 						"templates/cpi.erb": "bin/cpi",
 					},
@@ -352,8 +355,8 @@ var _ = Describe("DeployCmd", func() {
 			target := bminstall.NewTarget(installationPath)
 
 			installedJob := bminstalljob.InstalledJob{
-				Name: "cpi",
-				Path: filepath.Join(target.JobsPath(), "cpi"),
+				Name: "fake-cpi-release-job-name",
+				Path: filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),
 			}
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
@@ -630,7 +633,7 @@ var _ = Describe("DeployCmd", func() {
 			It("returns error", func() {
 				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Invalid CPI release 'fake-cpi-release-name': Job 'cpi' is missing from release"))
+				Expect(err.Error()).To(Equal("Invalid CPI release 'fake-cpi-release-name': CPI release must contain specified job 'fake-cpi-release-job-name'"))
 			})
 		})
 

@@ -40,8 +40,11 @@ var _ = Describe("Validator", func() {
 		}
 
 		validManifest = Manifest{
-			Name:    "fake-installation-name",
-			Release: "provided-valid-release-name",
+			Name: "fake-installation-name",
+			Template: ReleaseJobRef{
+				Name:    "cpi",
+				Release: "provided-valid-release-name",
+			},
 			Properties: bmproperty.Map{
 				"fake-prop-key": "fake-prop-value",
 				"fake-prop-map-key": bmproperty.Map{
@@ -70,24 +73,49 @@ var _ = Describe("Validator", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("validates release is not blank", func() {
+		It("validates template must be fully specified", func() {
+			manifest := Manifest{}
+
+			err := validator.Validate(manifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cloud_provider.template.name must be provided"))
+			Expect(err.Error()).To(ContainSubstring("cloud_provider.template.release must be provided"))
+		})
+
+		It("validates template.name is not blank", func() {
 			manifest := Manifest{
-				Release: " ",
+				Template: ReleaseJobRef{
+					Name: " ",
+				},
 			}
 
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("cloud_provider.release must be provided"))
+			Expect(err.Error()).To(ContainSubstring("cloud_provider.template.name must be provided"))
+		})
+
+		It("validates template.release is not blank", func() {
+			manifest := Manifest{
+				Template: ReleaseJobRef{
+					Release: " ",
+				},
+			}
+
+			err := validator.Validate(manifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cloud_provider.template.release must be provided"))
 		})
 
 		It("validates the release is available", func() {
 			manifest := Manifest{
-				Release: "not-provided-valid-release-name",
+				Template: ReleaseJobRef{
+					Release: "not-provided-valid-release-name",
+				},
 			}
 
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("cloud_provider.release 'not-provided-valid-release-name' must refer to a provided release"))
+			Expect(err.Error()).To(ContainSubstring("cloud_provider.template.release 'not-provided-valid-release-name' must refer to a provided release"))
 		})
 	})
 })

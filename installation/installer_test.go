@@ -100,7 +100,6 @@ var _ = Describe("Installer", func() {
 
 			installationManifest = bminstallmanifest.Manifest{
 				Name:       "fake-installation-name",
-				Release:    "fake-release-name",
 				Properties: bmproperty.Map{},
 			}
 

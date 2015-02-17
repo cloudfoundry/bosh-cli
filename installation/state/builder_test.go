@@ -86,8 +86,11 @@ var _ = Describe("Builder", func() {
 		fakeStage = fakebmui.NewFakeStage()
 
 		manifest = bminstallmanifest.Manifest{
-			Name:    "fake-installation-name",
-			Release: "fake-release-name",
+			Name: "fake-installation-name",
+			Template: bminstallmanifest.ReleaseJobRef{
+				Name:    "fake-cpi-job-name",
+				Release: "fake-cpi-release-name",
+			},
 			Properties: bmproperty.Map{
 				"fake-installation-property": "fake-installation-property-value",
 			},
@@ -134,7 +137,7 @@ var _ = Describe("Builder", func() {
 			templatesRepo,
 		)
 
-		expectJobResolve = mockReleaseJobResolver.EXPECT().Resolve("cpi", "fake-release-name").Return(releaseJob, nil).AnyTimes()
+		expectJobResolve = mockReleaseJobResolver.EXPECT().Resolve("fake-cpi-job-name", "fake-cpi-release-name").Return(releaseJob, nil).AnyTimes()
 
 		compiledPackageRecord1 := bmstatepkg.CompiledPackageRecord{
 			BlobID:   "fake-compiled-package-blobstore-id-1",
