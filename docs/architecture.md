@@ -1,5 +1,11 @@
 ## Architecture
 
+### Package Diagram
+
+The following diagram describes the primary packages, their salient classes/subpackages, and their interdependencies.
+
+![bosh-micro package diagram](https://github.com/cloudfoundry/bosh-micro-cli/blob/master/docs/bosh-micro-packages.png "bosh-micro package diagram")
+
 ### Deploy Command Flow
 
 The deploy command consumes:
