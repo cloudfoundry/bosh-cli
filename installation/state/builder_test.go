@@ -8,7 +8,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_deployment_release "github.com/cloudfoundry/bosh-micro-cli/deployment/release/mocks"
-	mock_state_package "github.com/cloudfoundry/bosh-micro-cli/state/pkg/mocks"
+	mock_state_job "github.com/cloudfoundry/bosh-micro-cli/state/job/mocks"
 	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -25,7 +25,7 @@ import (
 	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
@@ -44,7 +44,7 @@ var _ = Describe("Builder", func() {
 
 	var (
 		mockReleaseJobResolver *mock_deployment_release.MockJobResolver
-		mockPackageCompiler    *mock_state_package.MockCompiler
+		mockDependencyCompiler *mock_state_job.MockDependencyCompiler
 		mockJobListRenderer    *mock_template.MockJobListRenderer
 		fakeCompressor         *fakeboshcmd.FakeCompressor
 		fakeBlobstore          *fakeboshblob.FakeBlobstore
@@ -64,15 +64,14 @@ var _ = Describe("Builder", func() {
 		releasePackage1 *bmrelpkg.Package
 		releasePackage2 *bmrelpkg.Package
 
-		expectJobResolve  *gomock.Call
-		expectCompilePkg1 *gomock.Call
-		expectCompilePkg2 *gomock.Call
-		expectJobRender   *gomock.Call
+		expectJobResolve *gomock.Call
+		expectCompile    *gomock.Call
+		expectJobRender  *gomock.Call
 	)
 
 	BeforeEach(func() {
 		mockReleaseJobResolver = mock_deployment_release.NewMockJobResolver(mockCtrl)
-		mockPackageCompiler = mock_state_package.NewMockCompiler(mockCtrl)
+		mockDependencyCompiler = mock_state_job.NewMockDependencyCompiler(mockCtrl)
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		fakeCompressor = fakeboshcmd.NewFakeCompressor()
 		fakeBlobstore = fakeboshblob.NewFakeBlobstore()
@@ -130,7 +129,7 @@ var _ = Describe("Builder", func() {
 	JustBeforeEach(func() {
 		builder = NewBuilder(
 			mockReleaseJobResolver,
-			mockPackageCompiler,
+			mockDependencyCompiler,
 			mockJobListRenderer,
 			fakeCompressor,
 			fakeBlobstore,
@@ -139,19 +138,23 @@ var _ = Describe("Builder", func() {
 
 		expectJobResolve = mockReleaseJobResolver.EXPECT().Resolve("fake-cpi-job-name", "fake-cpi-release-name").Return(releaseJob, nil).AnyTimes()
 
-		compiledPackageRecord1 := bmstatepkg.CompiledPackageRecord{
-			BlobID:   "fake-compiled-package-blobstore-id-1",
-			BlobSHA1: "fake-compiled-package-sha1-1",
-		}
-		expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(releasePackage1).Return(compiledPackageRecord1, nil).AnyTimes()
-
-		compiledPackageRecord2 := bmstatepkg.CompiledPackageRecord{
-			BlobID:   "fake-compiled-package-blobstore-id-2",
-			BlobSHA1: "fake-compiled-package-sha1-2",
-		}
-		expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(releasePackage2).Return(compiledPackageRecord2, nil).AnyTimes()
-
 		releaseJobs := []bmreljob.Job{releaseJob}
+		compiledPackageRefs := []bmstatejob.CompiledPackageRef{
+			{
+				Name:        "fake-release-package-name-1",
+				Version:     "fake-release-package-fingerprint-1",
+				BlobstoreID: "fake-compiled-package-blobstore-id-1",
+				SHA1:        "fake-compiled-package-sha1-1",
+			},
+			{
+				Name:        "fake-release-package-name-2",
+				Version:     "fake-release-package-fingerprint-2",
+				BlobstoreID: "fake-compiled-package-blobstore-id-2",
+				SHA1:        "fake-compiled-package-sha1-2",
+			},
+		}
+		expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, fakeStage).Return(compiledPackageRefs, nil).AnyTimes()
+
 		jobProperties := bmproperty.Map{
 			"fake-installation-property": "fake-installation-property-value",
 		}
@@ -177,11 +180,8 @@ var _ = Describe("Builder", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("compiles the transitive package dependencies of the cpi job, in compilation order", func() {
-			gomock.InOrder(
-				expectCompilePkg1.Times(1),
-				expectCompilePkg2.Times(1),
-			)
+		It("compiles the dependencies of the cpi job", func() {
+			expectCompile.Times(1)
 
 			_, err := builder.Build(manifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
@@ -199,15 +199,8 @@ var _ = Describe("Builder", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
-				{
-					Name: "Compiling package 'fake-release-package-name-1/fake-release-package-fingerprint-1'",
-				},
-				{
-					Name: "Compiling package 'fake-release-package-name-2/fake-release-package-fingerprint-2'",
-				},
-				{
-					Name: "Rendering job templates",
-				},
+				// compile stages not produced by mockDependencyCompiler
+				{Name: "Rendering job templates"},
 			}))
 		})
 
@@ -260,7 +253,7 @@ var _ = Describe("Builder", func() {
 
 		Context("when package compilation fails", func() {
 			JustBeforeEach(func() {
-				expectCompilePkg2.Return(bmstatepkg.CompiledPackageRecord{}, bosherr.Error("fake-compile-package-2-error")).Times(1)
+				expectCompile.Return([]bmstatejob.CompiledPackageRef{}, bosherr.Error("fake-compile-package-2-error")).Times(1)
 			})
 
 			It("returns an error", func() {

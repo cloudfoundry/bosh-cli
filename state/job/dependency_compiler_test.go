@@ -1,0 +1,202 @@
+package job_test
+
+import (
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-micro-cli/state/job"
+
+	"code.google.com/p/gomock/gomock"
+	mock_state_package "github.com/cloudfoundry/bosh-micro-cli/state/pkg/mocks"
+
+	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+
+	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+)
+
+var _ = Describe("DependencyCompiler", func() {
+	var mockCtrl *gomock.Controller
+
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
+
+	var (
+		mockPackageCompiler *mock_state_package.MockCompiler
+
+		dependencyCompiler DependencyCompiler
+
+		releaseJobs []bmreljob.Job
+		fakeStage   *fakebmui.FakeStage
+
+		releasePackage1 *bmrelpkg.Package
+		releasePackage2 *bmrelpkg.Package
+
+		releaseJob bmreljob.Job
+
+		expectCompilePkg1 *gomock.Call
+		expectCompilePkg2 *gomock.Call
+	)
+
+	BeforeEach(func() {
+		mockPackageCompiler = mock_state_package.NewMockCompiler(mockCtrl)
+
+		dependencyCompiler = NewDependencyCompiler(mockPackageCompiler)
+
+		fakeStage = fakebmui.NewFakeStage()
+
+		releasePackage1 = &bmrelpkg.Package{
+			Name:          "fake-release-package-name-1",
+			Fingerprint:   "fake-release-package-fingerprint-1",
+			SHA1:          "fake-release-package-sha1-1",
+			Dependencies:  []*bmrelpkg.Package{},
+			ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-1",
+		}
+
+		releasePackage2 = &bmrelpkg.Package{
+			Name:          "fake-release-package-name-2",
+			Fingerprint:   "fake-release-package-fingerprint-2",
+			SHA1:          "fake-release-package-sha1-2",
+			Dependencies:  []*bmrelpkg.Package{releasePackage1},
+			ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-2",
+		}
+
+		releaseJob = bmreljob.Job{
+			Name:          "cpi",
+			Fingerprint:   "fake-release-job-fingerprint",
+			SHA1:          "fake-release-job-sha1",
+			ExtractedPath: "/extracted-release-path/extracted_jobs/cpi",
+			Templates: map[string]string{
+				"cpi.erb":     "bin/cpi",
+				"cpi.yml.erb": "config/cpi.yml",
+			},
+			PackageNames: []string{releasePackage2.Name},
+			Packages:     []*bmrelpkg.Package{releasePackage2},
+			Properties:   map[string]bmreljob.PropertyDefinition{},
+		}
+		releaseJobs = []bmreljob.Job{releaseJob}
+	})
+
+	JustBeforeEach(func() {
+		compiledPackageRecord1 := bmstatepkg.CompiledPackageRecord{
+			BlobID:   "fake-compiled-package-blobstore-id-1",
+			BlobSHA1: "fake-compiled-package-sha1-1",
+		}
+		expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(releasePackage1).Return(compiledPackageRecord1, nil).AnyTimes()
+
+		compiledPackageRecord2 := bmstatepkg.CompiledPackageRecord{
+			BlobID:   "fake-compiled-package-blobstore-id-2",
+			BlobSHA1: "fake-compiled-package-sha1-2",
+		}
+		expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(releasePackage2).Return(compiledPackageRecord2, nil).AnyTimes()
+	})
+
+	It("compiles all the job dependencies (packages) such that no package is compiled before its dependencies", func() {
+		gomock.InOrder(
+			expectCompilePkg1.Times(1),
+			expectCompilePkg2.Times(1),
+		)
+
+		_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	It("returns references to the compiled packages", func() {
+		compiledPackageRefs, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(compiledPackageRefs).To(Equal([]CompiledPackageRef{
+			{
+				Name:        "fake-release-package-name-1",
+				Version:     "fake-release-package-fingerprint-1",
+				BlobstoreID: "fake-compiled-package-blobstore-id-1",
+				SHA1:        "fake-compiled-package-sha1-1",
+			},
+			{
+				Name:        "fake-release-package-name-2",
+				Version:     "fake-release-package-fingerprint-2",
+				BlobstoreID: "fake-compiled-package-blobstore-id-2",
+				SHA1:        "fake-compiled-package-sha1-2",
+			},
+		}))
+	})
+
+	It("logs compile stages", func() {
+		_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			{Name: "Compiling package 'fake-release-package-name-1/fake-release-package-fingerprint-1'"},
+			{Name: "Compiling package 'fake-release-package-name-2/fake-release-package-fingerprint-2'"},
+		}))
+	})
+
+	Context("when multiple jobs depend on the same package", func() {
+		JustBeforeEach(func() {
+			releaseJob2 := bmreljob.Job{
+				Name:         "fake-other-job",
+				Fingerprint:  "fake-other-job-fingerprint",
+				PackageNames: []string{releasePackage2.Name},
+				Packages:     []*bmrelpkg.Package{releasePackage2},
+			}
+			releaseJobs = append(releaseJobs, releaseJob2)
+		})
+
+		It("only compiles each package once", func() {
+			gomock.InOrder(
+				expectCompilePkg1.Times(1),
+				expectCompilePkg2.Times(1),
+			)
+
+			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Context("when multiple packages depend on the same package", func() {
+		var (
+			releasePackage3 *bmrelpkg.Package
+
+			expectCompilePkg3 *gomock.Call
+		)
+
+		BeforeEach(func() {
+			releasePackage3 = &bmrelpkg.Package{
+				Name:          "fake-release-package-name-3",
+				Fingerprint:   "fake-release-package-fingerprint-3",
+				SHA1:          "fake-release-package-sha1-3",
+				Dependencies:  []*bmrelpkg.Package{releasePackage1},
+				ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-3",
+			}
+
+			releaseJob.PackageNames = append(releaseJob.PackageNames, releasePackage3.Name)
+			releaseJob.Packages = append(releaseJob.Packages, releasePackage3)
+			releaseJobs = []bmreljob.Job{releaseJob}
+		})
+
+		JustBeforeEach(func() {
+			compiledPackageRecord3 := bmstatepkg.CompiledPackageRecord{
+				BlobID:   "fake-compiled-package-blobstore-id-3",
+				BlobSHA1: "fake-compiled-package-sha1-3",
+			}
+			expectCompilePkg3 = mockPackageCompiler.EXPECT().Compile(releasePackage3).Return(compiledPackageRecord3, nil).AnyTimes()
+		})
+
+		It("only compiles each package once", func() {
+			gomock.InOrder(
+				expectCompilePkg1.Times(1),
+				expectCompilePkg2.Times(1),
+				expectCompilePkg3.Times(1),
+			)
+
+			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+})

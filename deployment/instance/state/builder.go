@@ -1,8 +1,6 @@
 package state
 
 import (
-	"fmt"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
@@ -11,8 +9,7 @@ import (
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
 )
@@ -22,8 +19,8 @@ type Builder interface {
 }
 
 type builder struct {
-	packageCompiler           bmstatepkg.Compiler
 	releaseJobResolver        bmdeplrel.JobResolver
+	jobDependencyCompiler     bmstatejob.DependencyCompiler
 	jobListRenderer           bmtemplate.JobListRenderer
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
 	blobstore                 bmblobstore.Blobstore
@@ -32,16 +29,16 @@ type builder struct {
 }
 
 func NewBuilder(
-	packageCompiler bmstatepkg.Compiler,
 	releaseJobResolver bmdeplrel.JobResolver,
+	jobDependencyCompiler bmstatejob.DependencyCompiler,
 	jobListRenderer bmtemplate.JobListRenderer,
 	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
 	blobstore bmblobstore.Blobstore,
 	logger boshlog.Logger,
 ) Builder {
 	return &builder{
-		packageCompiler:           packageCompiler,
 		releaseJobResolver:        releaseJobResolver,
+		jobDependencyCompiler:     jobDependencyCompiler,
 		jobListRenderer:           jobListRenderer,
 		renderedJobListCompressor: renderedJobListCompressor,
 		blobstore:                 blobstore,
@@ -66,9 +63,9 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 		return nil, bosherr.WrapErrorf(err, "Resolving jobs for instance '%s/%d'", jobName, instanceID)
 	}
 
-	compiledPackageRefs, err := b.compileJobDependencies(releaseJobs, stage)
+	compiledPackageRefs, err := b.jobDependencyCompiler.Compile(releaseJobs, stage)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Resolving job package dependencies for instance '%s/%d'", jobName, instanceID)
+		return nil, bosherr.WrapErrorf(err, "Compiling job package dependencies for instance '%s/%d'", jobName, instanceID)
 	}
 
 	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, stage)
@@ -90,6 +87,18 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 		})
 	}
 
+	compiledDeploymentPackageRefs := make([]PackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
+	for i, compiledPackageRef := range compiledPackageRefs {
+		compiledDeploymentPackageRefs[i] = PackageRef{
+			Name:    compiledPackageRef.Name,
+			Version: compiledPackageRef.Version,
+			Archive: BlobRef{
+				BlobstoreID: compiledPackageRef.BlobstoreID,
+				SHA1:        compiledPackageRef.SHA1,
+			},
+		}
+	}
+
 	// convert array to array
 	renderedJobRefs := make([]JobRef, len(releaseJobs), len(releaseJobs))
 	for i, releaseJob := range releaseJobs {
@@ -109,92 +118,23 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 		name:                   jobName,
 		id:                     instanceID,
 		networks:               networkRefs,
+		compiledPackages:       compiledDeploymentPackageRefs,
 		renderedJobs:           renderedJobRefs,
-		compiledPackages:       compiledPackageRefs,
 		renderedJobListArchive: renderedJobListArchiveBlobRef,
 		hash: renderedJobTemplates.Archive.Fingerprint(),
 	}, nil
 }
 
-// compileJobDependencies resolves and compiles all transitive dependencies of multiple release jobs
-func (b *builder) compileJobDependencies(releaseJobs []bmreljob.Job, stage bmui.Stage) ([]PackageRef, error) {
-	compileOrderReleasePackages, err := b.resolveJobCompilationDependencies(releaseJobs)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Resolving job package dependencies")
-	}
-
-	compiledPackageRefs, err := b.compilePackages(compileOrderReleasePackages, stage)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Compiling job package dependencies")
-	}
-
-	return compiledPackageRefs, nil
-}
-
-// resolveJobPackageCompilationDependencies returns all packages required by all specified jobs, in compilation order (reverse dependency order)
-func (b *builder) resolveJobCompilationDependencies(releaseJobs []bmreljob.Job) ([]*bmrelpkg.Package, error) {
-	// collect and de-dupe all required packages (dependencies of jobs)
-	nameToPackageMap := map[string]*bmrelpkg.Package{}
-	for _, releaseJob := range releaseJobs {
-		for _, releasePackage := range releaseJob.Packages {
-			nameToPackageMap[releasePackage.Name] = releasePackage
-			b.resolvePackageDependencies(releasePackage, nameToPackageMap)
-		}
-	}
-
-	// flatten map values to array
-	packages := make([]*bmrelpkg.Package, 0, len(nameToPackageMap))
-	for _, releasePackage := range nameToPackageMap {
-		packages = append(packages, releasePackage)
-	}
-
-	// sort in compilation order
-	sortedPackages := bmrelpkg.Sort(packages)
-
-	return sortedPackages, nil
-}
-
-// resolvePackageDependencies adds the releasePackage's dependencies to the nameToPackageMap recursively
-func (b *builder) resolvePackageDependencies(releasePackage *bmrelpkg.Package, nameToPackageMap map[string]*bmrelpkg.Package) {
-	for _, dependency := range releasePackage.Dependencies {
-		// only add un-added packages, to avoid endless looping in case of cycles
-		if _, found := nameToPackageMap[dependency.Name]; !found {
-			nameToPackageMap[dependency.Name] = dependency
-			b.resolvePackageDependencies(releasePackage, nameToPackageMap)
-		}
-	}
-}
-
-// compilePackages compiles the specified packages, in the order specified, uploads them to the Blobstore, and returns the blob references
-func (b *builder) compilePackages(requiredPackages []*bmrelpkg.Package, stage bmui.Stage) ([]PackageRef, error) {
-	packageRefs := make([]PackageRef, 0, len(requiredPackages))
-
-	for _, pkg := range requiredPackages {
-		stepName := fmt.Sprintf("Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
-		err := stage.Perform(stepName, func() error {
-			compiledPackageRef, err := b.packageCompiler.Compile(pkg)
-			if err != nil {
-				return err
-			}
-
-			packageRef := PackageRef{
-				Name:    pkg.Name,
-				Version: pkg.Fingerprint,
-				Archive: BlobRef{
-					BlobstoreID: compiledPackageRef.BlobID,
-					SHA1:        compiledPackageRef.BlobSHA1,
-				},
-			}
-
-			packageRefs = append(packageRefs, packageRef)
-			return nil
-		})
+func (b *builder) resolveJobs(jobRefs []bmdeplmanifest.ReleaseJobRef) ([]bmreljob.Job, error) {
+	releaseJobs := make([]bmreljob.Job, len(jobRefs), len(jobRefs))
+	for i, jobRef := range jobRefs {
+		release, err := b.releaseJobResolver.Resolve(jobRef.Name, jobRef.Release)
 		if err != nil {
-			return nil, err
+			return releaseJobs, bosherr.Errorf("Resolving job '%s' in release '%s'", jobRef.Name, jobRef.Release)
 		}
+		releaseJobs[i] = release
 	}
-
-	return packageRefs, nil
+	return releaseJobs, nil
 }
 
 // renderJobTemplates renders all the release job templates for multiple release jobs specified by a deployment job
@@ -237,16 +177,4 @@ func (b *builder) renderJobTemplates(
 		BlobstoreID: blobID,
 		Archive:     renderedJobListArchive,
 	}, nil
-}
-
-func (b *builder) resolveJobs(jobRefs []bmdeplmanifest.ReleaseJobRef) ([]bmreljob.Job, error) {
-	releaseJobs := make([]bmreljob.Job, len(jobRefs), len(jobRefs))
-	for i, jobRef := range jobRefs {
-		release, err := b.releaseJobResolver.Resolve(jobRef.Name, jobRef.Release)
-		if err != nil {
-			return releaseJobs, bosherr.Errorf("Resolving job '%s' in release '%s'", jobRef.Name, jobRef.Release)
-		}
-		releaseJobs[i] = release
-	}
-	return releaseJobs, nil
 }

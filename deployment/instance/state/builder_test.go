@@ -9,7 +9,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
 	mock_deployment_release "github.com/cloudfoundry/bosh-micro-cli/deployment/release/mocks"
-	mock_state_package "github.com/cloudfoundry/bosh-micro-cli/state/pkg/mocks"
+	mock_state_job "github.com/cloudfoundry/bosh-micro-cli/state/job/mocks"
 	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -19,7 +19,7 @@ import (
 	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
 
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
@@ -40,8 +40,8 @@ func describeBuilder() {
 	var (
 		logger boshlog.Logger
 
-		mockPackageCompiler    *mock_state_package.MockCompiler
 		mockReleaseJobResolver *mock_deployment_release.MockJobResolver
+		mockDependencyCompiler *mock_state_job.MockDependencyCompiler
 		mockJobListRenderer    *mock_template.MockJobListRenderer
 		mockCompressor         *mock_template.MockRenderedJobListCompressor
 		mockBlobstore          *mock_blobstore.MockBlobstore
@@ -52,8 +52,8 @@ func describeBuilder() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		mockPackageCompiler = mock_state_package.NewMockCompiler(mockCtrl)
 		mockReleaseJobResolver = mock_deployment_release.NewMockJobResolver(mockCtrl)
+		mockDependencyCompiler = mock_state_job.NewMockDependencyCompiler(mockCtrl)
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		mockCompressor = mock_template.NewMockRenderedJobListCompressor(mockCtrl)
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
@@ -72,6 +72,8 @@ func describeBuilder() {
 			releasePackageLibyaml *bmrelpkg.Package
 			releasePackageRuby    *bmrelpkg.Package
 			releasePackageCPI     *bmrelpkg.Package
+
+			expectCompile *gomock.Call
 		)
 
 		BeforeEach(func() {
@@ -120,8 +122,8 @@ func describeBuilder() {
 			fakeStage = fakebmui.NewFakeStage()
 
 			stateBuilder = NewBuilder(
-				mockPackageCompiler,
 				mockReleaseJobResolver,
+				mockDependencyCompiler,
 				mockJobListRenderer,
 				mockCompressor,
 				mockBlobstore,
@@ -159,26 +161,29 @@ func describeBuilder() {
 			}
 			mockReleaseJobResolver.EXPECT().Resolve("fake-release-job-name", "fake-release-name").Return(releaseJob, nil)
 
-			compiledPackageLibyaml := bmstatepkg.CompiledPackageRecord{
-				BlobID:   "fake-package-compiled-archive-blob-id-libyaml",
-				BlobSHA1: "fake-package-compiled-archive-sha1-libyaml",
-			}
-			compiledPackageRuby := bmstatepkg.CompiledPackageRecord{
-				BlobID:   "fake-package-compiled-archive-blob-id-ruby",
-				BlobSHA1: "fake-package-compiled-archive-sha1-ruby",
-			}
-			compiledPackageCPI := bmstatepkg.CompiledPackageRecord{
-				BlobID:   "fake-package-compiled-archive-blob-id-cpi",
-				BlobSHA1: "fake-package-compiled-archive-sha1-cpi",
-			}
-
-			gomock.InOrder(
-				mockPackageCompiler.EXPECT().Compile(releasePackageLibyaml).Return(compiledPackageLibyaml, nil),
-				mockPackageCompiler.EXPECT().Compile(releasePackageRuby).Return(compiledPackageRuby, nil),
-				mockPackageCompiler.EXPECT().Compile(releasePackageCPI).Return(compiledPackageCPI, nil),
-			)
-
 			releaseJobs := []bmreljob.Job{releaseJob}
+			compiledPackageRefs := []bmstatejob.CompiledPackageRef{
+				{
+					Name:        "libyaml",
+					Version:     "fake-package-source-fingerprint-libyaml",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
+					SHA1:        "fake-package-compiled-archive-sha1-libyaml",
+				},
+				{
+					Name:        "ruby",
+					Version:     "fake-package-source-fingerprint-ruby",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
+					SHA1:        "fake-package-compiled-archive-sha1-ruby",
+				},
+				{
+					Name:        "cpi",
+					Version:     "fake-package-source-fingerprint-cpi",
+					BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
+					SHA1:        "fake-package-compiled-archive-sha1-cpi",
+				},
+			}
+			expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, fakeStage).Return(compiledPackageRefs, nil).AnyTimes()
+
 			jobProperties := bmproperty.Map{
 				"fake-job-property": "fake-job-property-value",
 			}
@@ -198,6 +203,13 @@ func describeBuilder() {
 			mockRenderedJobListArchive.EXPECT().Fingerprint().Return("fake-rendered-job-list-fingerprint")
 
 			mockBlobstore.EXPECT().Add("fake-rendered-job-list-archive-path").Return("fake-rendered-job-list-archive-blob-id", nil)
+		})
+
+		It("compiles the dependencies of the jobs", func() {
+			expectCompile.Times(1)
+
+			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("builds a new instance state with zero-to-many networks", func() {
@@ -239,9 +251,7 @@ func describeBuilder() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
-				{Name: "Compiling package 'libyaml/fake-package-source-fingerprint-libyaml'"},
-				{Name: "Compiling package 'ruby/fake-package-source-fingerprint-ruby'"},
-				{Name: "Compiling package 'cpi/fake-package-source-fingerprint-cpi'"},
+				// compile stages not produced by mockDependencyCompiler
 				{Name: "Rendering job templates"},
 			}))
 		})

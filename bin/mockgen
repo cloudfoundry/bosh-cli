@@ -25,6 +25,7 @@ srcFiles=(
   registry/Server,ServerManager
   release/Manager,Extractor
   release/set/Resolver
+  state/job/DependencyCompiler
   state/pkg/Compiler,CompiledPackageRepo
 	stemcell/CloudStemcell,Manager
   templatescompiler/JobRenderer,JobListRenderer,RenderedJob,RenderedJobList,RenderedJobListArchive,RenderedJobListCompressor

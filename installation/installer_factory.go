@@ -19,6 +19,7 @@ import (
 	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
 	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
 	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
+	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
 	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
@@ -126,14 +127,15 @@ type installerFactoryContext struct {
 	uuidGenerator      boshuuid.Generator
 	releaseJobResolver bmdeplrel.JobResolver
 
-	stateBuilder        bminstallstate.Builder
-	packageCompiler     bmstatepkg.Compiler
-	jobInstaller        bminstalljob.Installer
-	templatesRepo       bmtemplate.TemplatesRepo
-	packageInstaller    bminstallpkg.Installer
-	blobstore           boshblob.Blobstore
-	blobExtractor       bminstallblob.Extractor
-	compiledPackageRepo bmstatepkg.CompiledPackageRepo
+	stateBuilder          bminstallstate.Builder
+	jobDependencyCompiler bmstatejob.DependencyCompiler
+	packageCompiler       bmstatepkg.Compiler
+	jobInstaller          bminstalljob.Installer
+	templatesRepo         bmtemplate.TemplatesRepo
+	packageInstaller      bminstallpkg.Installer
+	blobstore             boshblob.Blobstore
+	blobExtractor         bminstallblob.Extractor
+	compiledPackageRepo   bmstatepkg.CompiledPackageRepo
 }
 
 func (c *installerFactoryContext) StateBuilder() bminstallstate.Builder {
@@ -147,13 +149,25 @@ func (c *installerFactoryContext) StateBuilder() bminstallstate.Builder {
 
 	c.stateBuilder = bminstallstate.NewBuilder(
 		c.releaseJobResolver,
-		c.PackageCompiler(),
+		c.JobDependencyCompiler(),
 		jobListRenderer,
 		c.extractor,
 		c.Blobstore(),
 		c.TemplatesRepo(),
 	)
 	return c.stateBuilder
+}
+
+func (c *installerFactoryContext) JobDependencyCompiler() bmstatejob.DependencyCompiler {
+	if c.jobDependencyCompiler != nil {
+		return c.jobDependencyCompiler
+	}
+
+	c.jobDependencyCompiler = bmstatejob.NewDependencyCompiler(
+		c.PackageCompiler(),
+	)
+
+	return c.jobDependencyCompiler
 }
 
 func (c *installerFactoryContext) PackageCompiler() bmstatepkg.Compiler {

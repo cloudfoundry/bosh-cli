@@ -6,6 +6,7 @@ import (
 	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
 	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
+	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
 	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
 	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
@@ -40,9 +41,11 @@ func NewBuilderFactory(
 
 func (f *builderFactory) NewBuilder(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient) Builder {
 	packageCompiler := NewRemotePackageCompiler(blobstore, agentClient, f.packageRepo)
+	jobDependencyCompiler := bmstatejob.NewDependencyCompiler(packageCompiler)
+
 	return NewBuilder(
-		packageCompiler,
 		f.releaseJobResolver,
+		jobDependencyCompiler,
 		f.jobRenderer,
 		f.renderedJobListCompressor,
 		blobstore,
