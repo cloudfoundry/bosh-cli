@@ -39,7 +39,7 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
     - `bosh-release.tgz` is a [BOSH release](http://bosh.io/releases) of [BOSH](http://bosh.io/releases/github.com/cloudfoundry/bosh) or other software    
 
 
-Once deployed, the BOSH director can be targeted using the [bosh_cli](https://rubygems.org/gems/bosh_cli)].
+Once deployed, the BOSH director can be targeted using the [bosh_cli](https://rubygems.org/gems/bosh_cli).
 
 ## Example Deploy Output
 
