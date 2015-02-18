@@ -34,9 +34,9 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
 
     Where:
   
-    - `stemcell.tgz` is a BOSH stemcell appropriate for the CPI release
-    - `cpi-release.tgz` is a BOSH CPI release
-    - `bosh-release.tgz` is a BOSH release of BOSH    
+    - `stemcell.tgz` is a [BOSH stemcell](http://bosh.io/stemcells) appropriate for the CPI release
+    - `cpi-release.tgz` is a [BOSH CPI release](http://bosh.io/releases)
+    - `bosh-release.tgz` is a [BOSH release](http://bosh.io/releases) of [BOSH](http://bosh.io/releases/github.com/cloudfoundry/bosh) or other software    
 
 
 Once deployed, the BOSH director can be targeted using the [bosh_cli](https://rubygems.org/gems/bosh_cli)].
