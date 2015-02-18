@@ -189,11 +189,9 @@ var _ = Describe("DependencyCompiler", func() {
 		})
 
 		It("only compiles each package once", func() {
-			gomock.InOrder(
-				expectCompilePkg1.Times(1),
-				expectCompilePkg2.Times(1),
-				expectCompilePkg3.Times(1),
-			)
+			expectCompilePkg1.Times(1)
+			expectCompilePkg2.After(expectCompilePkg1)
+			expectCompilePkg3.After(expectCompilePkg1)
 
 			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
