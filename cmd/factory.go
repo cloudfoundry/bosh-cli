@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"path/filepath"
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -566,15 +567,20 @@ func (f *factory) loadInstallerFactory() bminstall.InstallerFactory {
 		return f.installerFactory
 	}
 
+	targetProvider := bminstall.NewTargetProvider(
+		f.loadDeploymentConfigService(),
+		f.uuidGenerator,
+		filepath.Join(f.workspaceRootPath, "installations"),
+	)
+
 	f.installerFactory = bminstall.NewInstallerFactory(
+		targetProvider,
 		f.ui,
 		f.fs,
 		f.loadCMDRunner(),
 		f.loadCompressor(),
-		f.loadDeploymentConfigService(),
 		f.loadReleaseResolver(),
 		f.loadReleaseJobResolver(),
-		f.workspaceRootPath,
 		f.uuidGenerator,
 		f.loadRegistryServerManager(),
 		f.logger,

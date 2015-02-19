@@ -1,8 +1,6 @@
 package installation
 
 import (
-	"path/filepath"
-
 	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -10,7 +8,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
 	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
 	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
 	bminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
@@ -31,70 +28,52 @@ type InstallerFactory interface {
 }
 
 type installerFactory struct {
-	ui                      bmui.UI
-	fs                      boshsys.FileSystem
-	runner                  boshsys.CmdRunner
-	extractor               boshcmd.Compressor
-	deploymentConfigService bmconfig.DeploymentConfigService
-	releaseResolver         bmrelset.Resolver
-	releaseJobResolver      bmdeplrel.JobResolver
-	workspaceRootPath       string
-	uuidGenerator           boshuuid.Generator
-	registryServerManager   bmregistry.ServerManager
-	logger                  boshlog.Logger
-	logTag                  string
+	targetProvider        TargetProvider
+	ui                    bmui.UI
+	fs                    boshsys.FileSystem
+	runner                boshsys.CmdRunner
+	extractor             boshcmd.Compressor
+	releaseResolver       bmrelset.Resolver
+	releaseJobResolver    bmdeplrel.JobResolver
+	uuidGenerator         boshuuid.Generator
+	registryServerManager bmregistry.ServerManager
+	logger                boshlog.Logger
+	logTag                string
 }
 
 func NewInstallerFactory(
+	targetProvider TargetProvider,
 	ui bmui.UI,
 	fs boshsys.FileSystem,
 	runner boshsys.CmdRunner,
 	extractor boshcmd.Compressor,
-	deploymentConfigService bmconfig.DeploymentConfigService,
 	releaseResolver bmrelset.Resolver,
 	releaseJobResolver bmdeplrel.JobResolver,
-	workspaceRootPath string,
 	uuidGenerator boshuuid.Generator,
 	registryServerManager bmregistry.ServerManager,
 	logger boshlog.Logger,
 ) InstallerFactory {
 	return &installerFactory{
-		ui:                      ui,
-		fs:                      fs,
-		runner:                  runner,
-		extractor:               extractor,
-		deploymentConfigService: deploymentConfigService,
-		releaseResolver:         releaseResolver,
-		releaseJobResolver:      releaseJobResolver,
-		workspaceRootPath:       workspaceRootPath,
-		uuidGenerator:           uuidGenerator,
-		registryServerManager:   registryServerManager,
-		logger:                  logger,
-		logTag:                  "installer",
+		targetProvider:        targetProvider,
+		ui:                    ui,
+		fs:                    fs,
+		runner:                runner,
+		extractor:             extractor,
+		releaseResolver:       releaseResolver,
+		releaseJobResolver:    releaseJobResolver,
+		uuidGenerator:         uuidGenerator,
+		registryServerManager: registryServerManager,
+		logger:                logger,
+		logTag:                "installer",
 	}
 }
 
 func (f *installerFactory) NewInstaller() (Installer, error) {
-	deploymentConfig, err := f.deploymentConfigService.Load()
+
+	target, err := f.targetProvider.NewTarget()
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Loading deployment config")
+		return nil, bosherr.WrapError(err, "Generating installation target")
 	}
-
-	installationID := deploymentConfig.InstallationID
-	if installationID != "" {
-		installationID, err = f.uuidGenerator.Generate()
-		if err != nil {
-			return nil, bosherr.WrapError(err, "Generating installation ID")
-		}
-
-		deploymentConfig.InstallationID = installationID
-		err := f.deploymentConfigService.Save(deploymentConfig)
-		if err != nil {
-			return nil, bosherr.WrapError(err, "Saving deployment config")
-		}
-	}
-
-	target := NewTarget(filepath.Join(f.workspaceRootPath, installationID))
 
 	context := &installerFactoryContext{
 		target:             target,
