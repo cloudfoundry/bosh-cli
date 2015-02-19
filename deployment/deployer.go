@@ -43,7 +43,7 @@ func NewDeployer(
 	instanceManagerFactory bminstance.ManagerFactory,
 	deploymentFactory Factory,
 	logger boshlog.Logger,
-) *deployer {
+) Deployer {
 	return &deployer{
 		vmManagerFactory:       vmManagerFactory,
 		instanceManagerFactory: instanceManagerFactory,

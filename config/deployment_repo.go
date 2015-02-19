@@ -13,7 +13,7 @@ type deploymentRepo struct {
 	configService DeploymentConfigService
 }
 
-func NewDeploymentRepo(configService DeploymentConfigService) deploymentRepo {
+func NewDeploymentRepo(configService DeploymentConfigService) DeploymentRepo {
 	return deploymentRepo{
 		configService: configService,
 	}

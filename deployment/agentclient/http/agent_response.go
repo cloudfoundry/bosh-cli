@@ -8,24 +8,23 @@ import (
 
 type Response interface {
 	Unmarshal([]byte) error
-	GetException() exceptionResponse
+	ServerError() error
 }
 
-type exceptionResponse struct {
+type exception struct {
 	Message string
-}
-
-func (r exceptionResponse) IsEmpty() bool {
-	return r == exceptionResponse{}
 }
 
 type SimpleTaskResponse struct {
 	Value     string
-	Exception exceptionResponse
+	Exception *exception
 }
 
-func (r *SimpleTaskResponse) GetException() exceptionResponse {
-	return r.Exception
+func (r *SimpleTaskResponse) ServerError() error {
+	if r.Exception != nil {
+		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
+	}
+	return nil
 }
 
 func (r *SimpleTaskResponse) Unmarshal(message []byte) error {
@@ -34,11 +33,14 @@ func (r *SimpleTaskResponse) Unmarshal(message []byte) error {
 
 type ListResponse struct {
 	Value     []string
-	Exception exceptionResponse
+	Exception *exception
 }
 
-func (r *ListResponse) GetException() exceptionResponse {
-	return r.Exception
+func (r *ListResponse) ServerError() error {
+	if r.Exception != nil {
+		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
+	}
+	return nil
 }
 
 func (r *ListResponse) Unmarshal(message []byte) error {
@@ -54,11 +56,14 @@ type BlobRef struct {
 
 type BlobResponse struct {
 	Value     map[string]string
-	Exception exceptionResponse
+	Exception *exception
 }
 
-func (r *BlobResponse) GetException() exceptionResponse {
-	return r.Exception
+func (r *BlobResponse) ServerError() error {
+	if r.Exception != nil {
+		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
+	}
+	return nil
 }
 
 func (r *BlobResponse) Unmarshal(message []byte) error {
@@ -67,11 +72,14 @@ func (r *BlobResponse) Unmarshal(message []byte) error {
 
 type StateResponse struct {
 	Value     AgentState
-	Exception exceptionResponse
+	Exception *exception
 }
 
-func (r *StateResponse) GetException() exceptionResponse {
-	return r.Exception
+func (r *StateResponse) ServerError() error {
+	if r.Exception != nil {
+		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
+	}
+	return nil
 }
 
 func (r *StateResponse) Unmarshal(message []byte) error {
@@ -84,11 +92,14 @@ type AgentState struct {
 
 type TaskResponse struct {
 	Value     interface{}
-	Exception exceptionResponse
+	Exception *exception
 }
 
-func (r *TaskResponse) GetException() exceptionResponse {
-	return r.Exception
+func (r *TaskResponse) ServerError() error {
+	if r.Exception != nil {
+		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
+	}
+	return nil
 }
 
 func (r *TaskResponse) Unmarshal(message []byte) error {

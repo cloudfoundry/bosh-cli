@@ -8,7 +8,7 @@ type Registry interface {
 	Delete(string)
 }
 
-func NewRegistry() registry {
+func NewRegistry() Registry {
 	return make(registry)
 }
 

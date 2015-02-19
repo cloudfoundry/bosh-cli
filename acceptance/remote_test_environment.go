@@ -31,7 +31,7 @@ func NewRemoteTestEnvironment(
 	privateKeyPath string,
 	fileSystem boshsys.FileSystem,
 	logger boshlog.Logger,
-) remoteTestEnvironment {
+) Environment {
 	return remoteTestEnvironment{
 		vmUsername:     vmUsername,
 		vmIP:           vmIP,

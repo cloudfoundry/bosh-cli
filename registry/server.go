@@ -81,7 +81,7 @@ func (s *server) start(username string, password string, host string, port int, 
 	httpServer.Handler = mux
 
 	registry := NewRegistry()
-	instanceHandler := NewInstanceHandler(username, password, registry, s.logger)
+	instanceHandler := newInstanceHandler(username, password, registry, s.logger)
 	mux.HandleFunc("/instances/", instanceHandler.HandleFunc)
 
 	return httpServer.Serve(s.listener)

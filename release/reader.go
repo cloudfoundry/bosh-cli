@@ -31,7 +31,7 @@ func NewReader(
 	extractedReleasePath string,
 	fs boshsys.FileSystem,
 	extractor boshcmd.Compressor,
-) *reader {
+) Reader {
 	return &reader{
 		tarFilePath:          tarFilePath,
 		extractedReleasePath: extractedReleasePath,
@@ -147,7 +147,7 @@ func (r *reader) findPackageByName(packages []*bmrelpkg.Package, pkgName string)
 func (r *reader) newPackagesFromManifestPackages(manifestPackages []bmrelmanifest.PackageRef) ([]*bmrelpkg.Package, error) {
 	packages := []*bmrelpkg.Package{}
 	errors := []error{}
-	packageRepo := bmrelpkg.NewPackageRepo()
+	packageRepo := &bmrelpkg.PackageRepo{}
 
 	for _, manifestPackage := range manifestPackages {
 		pkg := packageRepo.FindOrCreatePackage(manifestPackage.Name)

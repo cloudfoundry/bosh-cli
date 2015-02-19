@@ -22,7 +22,7 @@ var _ = Describe("HttpClient", func() {
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		httpClient = NewHTTPClient(logger)
-		fakeServer = NewFakeServer("localhost:6305")
+		fakeServer = newFakeServer("localhost:6305")
 
 		readyCh := make(chan error)
 		go fakeServer.Start(readyCh)
@@ -104,7 +104,7 @@ type fakeServer struct {
 	responseStatus   int
 }
 
-func NewFakeServer(endpoint string) *fakeServer {
+func newFakeServer(endpoint string) *fakeServer {
 	return &fakeServer{
 		endpoint:         endpoint,
 		responseStatus:   http.StatusOK,

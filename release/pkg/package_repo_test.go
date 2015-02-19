@@ -9,13 +9,13 @@ import (
 
 var _ = Describe("PackageRepo", func() {
 	It("creates an new Package when package is not in repo", func() {
-		packageRepo := NewPackageRepo()
+		packageRepo := &PackageRepo{}
 		pkg := packageRepo.FindOrCreatePackage("fake-package-1")
 		Expect(*pkg).To(Equal(Package{Name: "fake-package-1"}))
 	})
 
 	It("finds existing Package when package is in repo", func() {
-		packageRepo := NewPackageRepo()
+		packageRepo := &PackageRepo{}
 		pkg1 := packageRepo.FindOrCreatePackage("fake-package-1")
 		pkg2 := packageRepo.FindOrCreatePackage("fake-package-1")
 		Expect(pkg1.Name).To(Equal("fake-package-1"))

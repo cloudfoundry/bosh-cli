@@ -21,14 +21,6 @@ type agentRequest struct {
 	httpClient bmhttpclient.HTTPClient
 }
 
-func NewAgentRequest(endpoint string, httpClient bmhttpclient.HTTPClient, directorID string) agentRequest {
-	return agentRequest{
-		endpoint:   endpoint,
-		httpClient: httpClient,
-		directorID: directorID,
-	}
-}
-
 func (r agentRequest) Send(method string, arguments []interface{}, response Response) error {
 	postBody := AgentRequestMessage{
 		Method:    method,
@@ -61,10 +53,9 @@ func (r agentRequest) Send(method string, arguments []interface{}, response Resp
 		return bosherr.WrapError(err, "Unmarshaling agent response")
 	}
 
-	exception := response.GetException()
-
-	if !exception.IsEmpty() {
-		return bosherr.Errorf("Agent responded with error: %s", exception.Message)
+	err = response.ServerError()
+	if err != nil {
+		return err
 	}
 
 	return nil

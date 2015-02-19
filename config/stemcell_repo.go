@@ -21,7 +21,7 @@ type stemcellRepo struct {
 	uuidGenerator boshuuid.Generator
 }
 
-func NewStemcellRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) stemcellRepo {
+func NewStemcellRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) StemcellRepo {
 	return stemcellRepo{
 		configService: configService,
 		uuidGenerator: uuidGenerator,

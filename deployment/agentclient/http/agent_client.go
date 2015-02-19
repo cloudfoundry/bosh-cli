@@ -28,8 +28,11 @@ func NewAgentClient(
 ) bmagentclient.AgentClient {
 	// if this were NATS, we would need the agentID, but since it's http, the endpoint is unique to the agent
 	agentEndpoint := fmt.Sprintf("%s/agent", endpoint)
-	agentRequest := NewAgentRequest(agentEndpoint, httpClient, directorID)
-
+	agentRequest := agentRequest{
+		directorID: directorID,
+		endpoint:   agentEndpoint,
+		httpClient: httpClient,
+	}
 	return &agentClient{
 		agentRequest: agentRequest,
 		getTaskDelay: getTaskDelay,

@@ -22,7 +22,7 @@ type diskRepo struct {
 	uuidGenerator boshuuid.Generator
 }
 
-func NewDiskRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) diskRepo {
+func NewDiskRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) DiskRepo {
 	return diskRepo{
 		configService: configService,
 		uuidGenerator: uuidGenerator,

@@ -18,7 +18,7 @@ type instanceHandler struct {
 	logTag   string
 }
 
-func NewInstanceHandler(
+func newInstanceHandler(
 	username string,
 	password string,
 	registry Registry,

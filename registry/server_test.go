@@ -37,7 +37,7 @@ var _ = Describe("Server", func() {
 		transport := &http.Transport{DisableKeepAlives: true}
 		httpClient := http.Client{Transport: transport}
 
-		client = NewHelperClient(httpClient)
+		client = newHelperClient(httpClient)
 	})
 
 	AfterEach(func() {
@@ -165,7 +165,7 @@ type helperClient struct {
 	httpClient http.Client
 }
 
-func NewHelperClient(httpClient http.Client) helperClient {
+func newHelperClient(httpClient http.Client) helperClient {
 	return helperClient{
 		httpClient: httpClient,
 	}

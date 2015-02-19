@@ -18,7 +18,7 @@ type releaseRepo struct {
 	uuidGenerator boshuuid.Generator
 }
 
-func NewReleaseRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) releaseRepo {
+func NewReleaseRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) ReleaseRepo {
 	return releaseRepo{
 		configService: configService,
 		uuidGenerator: uuidGenerator,

@@ -26,7 +26,7 @@ func NewERBRenderer(
 	fs boshsys.FileSystem,
 	runner boshsys.CmdRunner,
 	logger boshlog.Logger,
-) erbRenderer {
+) ERBRenderer {
 	return erbRenderer{
 		fs:     fs,
 		runner: runner,

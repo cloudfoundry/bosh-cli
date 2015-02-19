@@ -1,16 +1,14 @@
 package pkg
 
-type packageRepo struct {
+type PackageRepo struct {
 	repo map[string]*Package
 }
 
-func NewPackageRepo() *packageRepo {
-	return &packageRepo{
-		repo: make(map[string]*Package),
+func (pr *PackageRepo) FindOrCreatePackage(pkgName string) *Package {
+	if pr.repo == nil {
+		pr.repo = make(map[string]*Package)
 	}
-}
 
-func (pr *packageRepo) FindOrCreatePackage(pkgName string) *Package {
 	pkg, ok := pr.repo[pkgName]
 	if ok {
 		return pkg

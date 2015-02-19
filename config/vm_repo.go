@@ -14,7 +14,7 @@ type vMRepo struct {
 	configService DeploymentConfigService
 }
 
-func NewVMRepo(configService DeploymentConfigService) vMRepo {
+func NewVMRepo(configService DeploymentConfigService) VMRepo {
 	return vMRepo{
 		configService: configService,
 	}
