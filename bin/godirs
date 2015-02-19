@@ -1,7 +1,12 @@
 #!/bin/bash
 
-bin=$(dirname $0)
-
 cd $(dirname $0)/..
 
-$bin/env find * -type d -maxdepth 0 | grep -v '^\.' | grep -v '^Godeps' | grep -v '^bin' | grep -v '^ci' | grep -v '^out' | grep -v '^tmp' | xargs $@
+find * -type d -maxdepth 0 \
+    | grep -v '^\.'                 \
+    | grep -v '^Godeps'             \
+    | grep -v '^bin'                \
+    | grep -v '^ci'                 \
+    | grep -v '^out'                \
+    | grep -v '^tmp'                \
+    | xargs $@
