@@ -18,7 +18,6 @@ type Platform interface {
 	GetVitalsService() boshvitals.Service
 
 	GetDevicePathResolver() (devicePathResolver boshdpresolv.DevicePathResolver)
-	SetDevicePathResolver(devicePathResolver boshdpresolv.DevicePathResolver) error
 
 	// User management
 	CreateUser(username, password, basePath string) (err error)

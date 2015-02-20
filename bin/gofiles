@@ -2,4 +2,4 @@
 
 cd $(dirname $0)/..
 
-printf "$(ls *.go)\n$(find $(bin/godirs) -type f -name '*.go')" | xargs -L 1 $@
+printf "$(find * -maxdepth 0 -type f -name '*.go')\n$(find $(bin/godirs) -type f -name '*.go')" | xargs -L 1 $@

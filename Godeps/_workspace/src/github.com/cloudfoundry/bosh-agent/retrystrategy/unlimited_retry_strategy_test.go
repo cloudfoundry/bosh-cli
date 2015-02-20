@@ -22,7 +22,7 @@ var _ = Describe("UnlimitedRetryStrategy", func() {
 
 	Describe("Try", func() {
 		It("stops retrying when it receives a non-retryable error", func() {
-			retryable := NewSimpleRetryable([]attemptOutput{
+			retryable := newSimpleRetryable([]attemptOutput{
 				{
 					IsRetryable: true,
 					AttemptErr:  errors.New("first-error"),
@@ -60,7 +60,7 @@ var _ = Describe("UnlimitedRetryStrategy", func() {
 		})
 
 		It("stops retrying when it stops receiving errors", func() {
-			retryable := NewSimpleRetryable([]attemptOutput{
+			retryable := newSimpleRetryable([]attemptOutput{
 				{
 					IsRetryable: true,
 					AttemptErr:  errors.New("first-error"),

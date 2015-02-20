@@ -17,7 +17,7 @@ func NewVirtioDevicePathResolver(
 	idDevicePathResolver DevicePathResolver,
 	mappedDevicePathResolver DevicePathResolver,
 	logger boshlog.Logger,
-) virtioDevicePathResolver {
+) DevicePathResolver {
 	return virtioDevicePathResolver{
 		idDevicePathResolver:     idDevicePathResolver,
 		mappedDevicePathResolver: mappedDevicePathResolver,

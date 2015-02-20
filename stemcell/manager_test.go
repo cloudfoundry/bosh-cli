@@ -42,7 +42,7 @@ var _ = Describe("Manager", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
-		fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-1"
+		fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
 		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
 		fakeStage = fakebmui.NewFakeStage()
 		fakeCloud = fakebmcloud.NewFakeCloud()
@@ -225,18 +225,18 @@ var _ = Describe("Manager", func() {
 		)
 
 		BeforeEach(func() {
-			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-1"
+			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
 			firstStemcellRecord, err := stemcellRepo.Save("fake-stemcell-name-1", "fake-stemcell-version-1", "fake-stemcell-cid-1")
 			Expect(err).ToNot(HaveOccurred())
 			firstStemcell = NewCloudStemcell(firstStemcellRecord, stemcellRepo, fakeCloud)
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-2"
+			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-2"
 			_, err = stemcellRepo.Save("fake-stemcell-name-2", "fake-stemcell-version-2", "fake-stemcell-cid-2")
 			Expect(err).ToNot(HaveOccurred())
 			err = stemcellRepo.UpdateCurrent("fake-stemcell-id-2")
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-3"
+			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-3"
 			secondStemcellRecord, err := stemcellRepo.Save("fake-stemcell-name-3", "fake-stemcell-version-3", "fake-stemcell-cid-3")
 			Expect(err).ToNot(HaveOccurred())
 			secondStemcell = NewCloudStemcell(secondStemcellRecord, stemcellRepo, fakeCloud)
@@ -257,17 +257,17 @@ var _ = Describe("Manager", func() {
 			secondStemcellRecord bmconfig.StemcellRecord
 		)
 		BeforeEach(func() {
-			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-1"
+			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
 			_, err := stemcellRepo.Save("fake-stemcell-name-1", "fake-stemcell-version-1", "fake-stemcell-cid-1")
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-2"
+			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-2"
 			secondStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name-2", "fake-stemcell-version-2", "fake-stemcell-cid-2")
 			Expect(err).ToNot(HaveOccurred())
 			err = stemcellRepo.UpdateCurrent(secondStemcellRecord.ID)
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id-3"
+			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-3"
 			_, err = stemcellRepo.Save("fake-stemcell-name-3", "fake-stemcell-version-3", "fake-stemcell-cid-3")
 			Expect(err).ToNot(HaveOccurred())
 		})

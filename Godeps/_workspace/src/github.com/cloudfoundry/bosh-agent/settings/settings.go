@@ -18,6 +18,11 @@ type Settings struct {
 	VM        VM        `json:"vm"`
 }
 
+type Source interface {
+	PublicSSHKeyForUsername(string) (string, error)
+	Settings() (Settings, error)
+}
+
 const (
 	BlobstoreTypeDummy = "dummy"
 	BlobstoreTypeLocal = "local"
@@ -96,8 +101,6 @@ type BoshEnv struct {
 	Password string `json:"password"`
 }
 
-type Networks map[string]Network
-
 type NetworkType string
 
 const (
@@ -117,28 +120,31 @@ type Network struct {
 	Mac string `json:"mac"`
 }
 
-func (n Networks) DefaultNetworkFor(category string) (network Network, found bool) {
-	if len(n) == 0 {
-		return
-	}
+type Networks map[string]Network
 
+func (n Networks) DefaultNetworkFor(category string) (Network, bool) {
 	if len(n) == 1 {
-		found = true
+		for _, net := range n {
+			return net, true
+		}
 	}
 
 	for _, net := range n {
-		for _, def := range net.Default {
-			if def == category {
-				found = true
-			}
-		}
-		if found {
-			network = net
-			return
+		if stringArrayContains(net.Default, category) {
+			return net, true
 		}
 	}
 
-	return
+	return Network{}, false
+}
+
+func stringArrayContains(stringArray []string, str string) bool {
+	for _, s := range stringArray {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }
 
 func (n Networks) DefaultIP() (ip string, found bool) {

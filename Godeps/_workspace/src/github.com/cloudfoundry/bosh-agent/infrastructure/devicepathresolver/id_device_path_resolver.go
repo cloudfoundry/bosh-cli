@@ -22,7 +22,7 @@ func NewIDDevicePathResolver(
 	diskWaitTimeout time.Duration,
 	udev boshudev.UdevDevice,
 	fs boshsys.FileSystem,
-) idDevicePathResolver {
+) DevicePathResolver {
 	return idDevicePathResolver{
 		diskWaitTimeout: diskWaitTimeout,
 		udev:            udev,

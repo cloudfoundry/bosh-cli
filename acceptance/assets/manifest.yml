@@ -60,6 +60,7 @@ jobs:
   - {name: blobstore, release: bosh}
   - {name: director, release: bosh}
   - {name: health_monitor, release: bosh}
+#  - {name: cpi, release: vsphere-release}
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name
@@ -94,6 +95,9 @@ jobs:
       db:
         password: postges
         host: 127.0.0.1
+#      external_cpi: {enabled: true, name: cpi}
+#      vcenter: {address: "", user: "", password: "", datacenters: []}
+#      cpi_job: cpi
     hm:
       http:
         user: hm

@@ -2,7 +2,7 @@
 
 bin=$(dirname $0)
 
-$bin/go install github.com/golang/lint/golint
+$bin/go get github.com/golang/lint/golint
 
 errors=$(
   $bin/gofiles golint \

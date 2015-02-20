@@ -17,7 +17,7 @@ type mappedDevicePathResolver struct {
 func NewMappedDevicePathResolver(
 	diskWaitTimeout time.Duration,
 	fs boshsys.FileSystem,
-) mappedDevicePathResolver {
+) DevicePathResolver {
 	return mappedDevicePathResolver{fs: fs, diskWaitTimeout: diskWaitTimeout}
 }
 

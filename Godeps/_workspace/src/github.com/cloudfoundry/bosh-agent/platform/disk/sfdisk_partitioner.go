@@ -15,11 +15,12 @@ type sfdiskPartitioner struct {
 	logTag    string
 }
 
-func NewSfdiskPartitioner(logger boshlog.Logger, cmdRunner boshsys.CmdRunner) (partitioner sfdiskPartitioner) {
-	partitioner.logger = logger
-	partitioner.cmdRunner = cmdRunner
-	partitioner.logTag = "SfdiskPartitioner"
-	return
+func NewSfdiskPartitioner(logger boshlog.Logger, cmdRunner boshsys.CmdRunner) Partitioner {
+	return sfdiskPartitioner{
+		logger:    logger,
+		cmdRunner: cmdRunner,
+		logTag:    "SfdiskPartitioner",
+	}
 }
 
 func (p sfdiskPartitioner) Partition(devicePath string, partitions []Partition) error {

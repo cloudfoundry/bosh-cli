@@ -30,7 +30,7 @@ var _ = Describe("dummyPlatform", func() {
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		dirProvider = boshdirs.NewProvider("/fake-dir")
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		platform = NewDummyPlatform(collector, fs, cmdRunner, dirProvider, logger)
+		platform = NewDummyPlatform(collector, fs, cmdRunner, dirProvider, nil, logger)
 	})
 
 	Describe("GetDefaultNetwork", func() {

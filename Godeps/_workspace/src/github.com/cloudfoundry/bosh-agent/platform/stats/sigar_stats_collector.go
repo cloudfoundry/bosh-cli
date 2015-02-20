@@ -15,7 +15,7 @@ type sigarStatsCollector struct {
 	latestCPUStatsLock sync.RWMutex
 }
 
-func NewSigarStatsCollector(sigar sigar.Sigar) *sigarStatsCollector {
+func NewSigarStatsCollector(sigar sigar.Sigar) Collector {
 	return &sigarStatsCollector{
 		statsSigar: sigar,
 	}

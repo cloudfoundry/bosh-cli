@@ -86,7 +86,7 @@ var _ = Describe("Blobstore", func() {
 		})
 
 		It("adds file to blobstore and returns its blob ID", func() {
-			fakeUUIDGenerator.GeneratedUuid = "fake-blob-id"
+			fakeUUIDGenerator.GeneratedUUID = "fake-blob-id"
 
 			blobID, err := blobstore.Add("fake-source-path")
 			Expect(err).ToNot(HaveOccurred())

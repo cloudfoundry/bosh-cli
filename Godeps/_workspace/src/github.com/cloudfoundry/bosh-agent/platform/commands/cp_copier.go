@@ -23,7 +23,7 @@ func NewCpCopier(
 	cmdRunner boshsys.CmdRunner,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
-) cpCopier {
+) Copier {
 	return cpCopier{fs: fs, cmdRunner: cmdRunner, logger: logger}
 }
 

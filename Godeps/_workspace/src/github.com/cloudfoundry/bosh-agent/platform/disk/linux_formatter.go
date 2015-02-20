@@ -12,10 +12,11 @@ type linuxFormatter struct {
 	fs     boshsys.FileSystem
 }
 
-func NewLinuxFormatter(runner boshsys.CmdRunner, fs boshsys.FileSystem) (formatter linuxFormatter) {
-	formatter.runner = runner
-	formatter.fs = fs
-	return
+func NewLinuxFormatter(runner boshsys.CmdRunner, fs boshsys.FileSystem) Formatter {
+	return linuxFormatter{
+		runner: runner,
+		fs:     fs,
+	}
 }
 
 func (f linuxFormatter) Format(partitionPath string, fsType FileSystemType) (err error) {

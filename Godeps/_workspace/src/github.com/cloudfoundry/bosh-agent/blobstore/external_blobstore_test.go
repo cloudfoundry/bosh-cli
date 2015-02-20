@@ -137,7 +137,7 @@ var _ = Describe("externalBlobstore", func() {
 			expectedPath, err := filepath.Abs(fileName)
 			Expect(err).ToNot(HaveOccurred())
 
-			uuidGen.GeneratedUuid = "some-uuid"
+			uuidGen.GeneratedUUID = "some-uuid"
 
 			blobID, fingerprint, err := blobstore.Create(fileName)
 			Expect(err).ToNot(HaveOccurred())

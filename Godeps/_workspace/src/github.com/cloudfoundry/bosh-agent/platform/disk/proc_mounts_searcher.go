@@ -11,7 +11,7 @@ type procMountsSearcher struct {
 	fs boshsys.FileSystem
 }
 
-func NewProcMountsSearcher(fs boshsys.FileSystem) procMountsSearcher {
+func NewProcMountsSearcher(fs boshsys.FileSystem) MountsSearcher {
 	return procMountsSearcher{fs}
 }
 

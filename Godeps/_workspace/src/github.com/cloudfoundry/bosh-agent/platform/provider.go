@@ -6,6 +6,7 @@ import (
 	sigar "github.com/cloudfoundry/gosigar"
 
 	bosherror "github.com/cloudfoundry/bosh-agent/errors"
+	"github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcdrom "github.com/cloudfoundry/bosh-agent/platform/cdrom"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
@@ -31,15 +32,19 @@ const (
 	SigarStatsCollectionInterval = 10 * time.Second
 )
 
+type Provider interface {
+	Get(name string) (Platform, error)
+}
+
 type provider struct {
 	platforms map[string]Platform
 }
 
-type ProviderOptions struct {
+type Options struct {
 	Linux LinuxOptions
 }
 
-func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options ProviderOptions) (p provider) {
+func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options Options) Provider {
 	runner := boshsys.NewExecCmdRunner(logger)
 	fs := boshsys.NewOsFileSystem(logger)
 
@@ -71,6 +76,19 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options P
 	monitRetryable := NewMonitRetryable(runner)
 	monitRetryStrategy := boshretry.NewAttemptRetryStrategy(10, 1*time.Second, monitRetryable, logger)
 
+	var devicePathResolver devicepathresolver.DevicePathResolver
+	switch options.Linux.DevicePathResolutionType {
+	case "virtio":
+		udev := boshudev.NewConcreteUdevDevice(runner, logger)
+		idDevicePathResolver := devicepathresolver.NewIDDevicePathResolver(500*time.Millisecond, udev, fs)
+		mappedDevicePathResolver := devicepathresolver.NewMappedDevicePathResolver(500*time.Millisecond, fs)
+		devicePathResolver = devicepathresolver.NewVirtioDevicePathResolver(idDevicePathResolver, mappedDevicePathResolver, logger)
+	case "scsi":
+		devicePathResolver = devicepathresolver.NewScsiDevicePathResolver(500*time.Millisecond, fs)
+	default:
+		devicePathResolver = devicepathresolver.NewIdentityDevicePathResolver()
+	}
+
 	centos := NewLinuxPlatform(
 		fs,
 		runner,
@@ -83,6 +101,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options P
 		linuxDiskManager,
 		centosNetManager,
 		monitRetryStrategy,
+		devicePathResolver,
 		500*time.Millisecond,
 		options.Linux,
 		logger,
@@ -100,17 +119,19 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options P
 		linuxDiskManager,
 		ubuntuNetManager,
 		monitRetryStrategy,
+		devicePathResolver,
 		500*time.Millisecond,
 		options.Linux,
 		logger,
 	)
 
-	p.platforms = map[string]Platform{
-		"ubuntu": ubuntu,
-		"centos": centos,
-		"dummy":  NewDummyPlatform(sigarCollector, fs, runner, dirProvider, logger),
+	return provider{
+		platforms: map[string]Platform{
+			"ubuntu": ubuntu,
+			"centos": centos,
+			"dummy":  NewDummyPlatform(sigarCollector, fs, runner, dirProvider, devicePathResolver, logger),
+		},
 	}
-	return
 }
 
 func (p provider) Get(name string) (Platform, error) {

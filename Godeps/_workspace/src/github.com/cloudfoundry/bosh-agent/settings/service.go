@@ -2,44 +2,30 @@ package settings
 
 import (
 	"encoding/json"
-	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
-const concreteServiceLogTag = "concreteService"
+type Service interface {
+	LoadSettings() error
 
-type Fetcher func() (Settings, error)
+	// GetSettings does not return error because without settings Agent cannot start.
+	GetSettings() Settings
 
-type concreteServiceProvider struct{}
+	PublicSSHKeyForUsername(string) (string, error)
 
-func NewServiceProvider() concreteServiceProvider {
-	return concreteServiceProvider{}
+	InvalidateSettings() error
 }
 
-func (provider concreteServiceProvider) NewService(
-	fs boshsys.FileSystem,
-	dir string,
-	fetcher Fetcher,
-	defaultNetworkDelegate DefaultNetworkDelegate,
-	logger boshlog.Logger,
-) Service {
-	return NewService(
-		fs,
-		filepath.Join(dir, "settings.json"),
-		fetcher,
-		defaultNetworkDelegate,
-		logger,
-	)
-}
+const settingsServiceLogTag = "settingsService"
 
-type concreteService struct {
+type settingsService struct {
 	fs                     boshsys.FileSystem
 	settingsPath           string
 	settings               Settings
-	settingsFetcher        Fetcher
+	settingsSource         Source
 	defaultNetworkDelegate DefaultNetworkDelegate
 	logger                 boshlog.Logger
 }
@@ -47,38 +33,42 @@ type concreteService struct {
 func NewService(
 	fs boshsys.FileSystem,
 	settingsPath string,
-	settingsFetcher Fetcher,
+	settingsSource Source,
 	defaultNetworkDelegate DefaultNetworkDelegate,
 	logger boshlog.Logger,
 ) (service Service) {
-	return &concreteService{
+	return &settingsService{
 		fs:                     fs,
 		settingsPath:           settingsPath,
 		settings:               Settings{},
-		settingsFetcher:        settingsFetcher,
+		settingsSource:         settingsSource,
 		defaultNetworkDelegate: defaultNetworkDelegate,
 		logger:                 logger,
 	}
 }
 
-func (s *concreteService) LoadSettings() error {
-	s.logger.Debug(concreteServiceLogTag, "Loading settings from fetcher")
+func (s *settingsService) PublicSSHKeyForUsername(username string) (string, error) {
+	return s.settingsSource.PublicSSHKeyForUsername(username)
+}
 
-	newSettings, fetchErr := s.settingsFetcher()
+func (s *settingsService) LoadSettings() error {
+	s.logger.Debug(settingsServiceLogTag, "Loading settings from fetcher")
+
+	newSettings, fetchErr := s.settingsSource.Settings()
 	if fetchErr != nil {
-		s.logger.Error(concreteServiceLogTag, "Failed loading settings via fetcher: %v", fetchErr)
+		s.logger.Error(settingsServiceLogTag, "Failed loading settings via fetcher: %v", fetchErr)
 
 		existingSettingsJSON, readError := s.fs.ReadFile(s.settingsPath)
 		if readError != nil {
-			s.logger.Error(concreteServiceLogTag, "Failed reading settings from file %s", readError.Error())
+			s.logger.Error(settingsServiceLogTag, "Failed reading settings from file %s", readError.Error())
 			return bosherr.WrapError(fetchErr, "Invoking settings fetcher")
 		}
 
-		s.logger.Debug(concreteServiceLogTag, "Successfully read settings from file")
+		s.logger.Debug(settingsServiceLogTag, "Successfully read settings from file")
 
 		err := json.Unmarshal(existingSettingsJSON, &s.settings)
 		if err != nil {
-			s.logger.Error(concreteServiceLogTag, "Failed unmarshalling settings from file %s", err.Error())
+			s.logger.Error(settingsServiceLogTag, "Failed unmarshalling settings from file %s", err.Error())
 			return bosherr.WrapError(fetchErr, "Invoking settings fetcher")
 		}
 
@@ -90,7 +80,7 @@ func (s *concreteService) LoadSettings() error {
 		return nil
 	}
 
-	s.logger.Debug(concreteServiceLogTag, "Successfully received settings from fetcher")
+	s.logger.Debug(settingsServiceLogTag, "Successfully received settings from fetcher")
 
 	err := s.checkAtMostOneDynamicNetwork(newSettings)
 	if err != nil {
@@ -112,7 +102,7 @@ func (s *concreteService) LoadSettings() error {
 	return nil
 }
 
-func (s concreteService) checkAtMostOneDynamicNetwork(settings Settings) error {
+func (s settingsService) checkAtMostOneDynamicNetwork(settings Settings) error {
 	var foundOneDynamicNetwork bool
 
 	for _, network := range settings.Networks {
@@ -132,7 +122,7 @@ func (s concreteService) checkAtMostOneDynamicNetwork(settings Settings) error {
 }
 
 // GetSettings returns setting even if it fails to resolve IPs for dynamic networks.
-func (s *concreteService) GetSettings() Settings {
+func (s *settingsService) GetSettings() Settings {
 	for networkName, network := range s.settings.Networks {
 		if !network.IsDynamic() {
 			continue
@@ -141,7 +131,7 @@ func (s *concreteService) GetSettings() Settings {
 		// Ideally this would be GetNetworkByMACAddress(mac string)
 		resolvedNetwork, err := s.defaultNetworkDelegate.GetDefaultNetwork()
 		if err != nil {
-			s.logger.Error(concreteServiceLogTag, "Failed retrieving default network %s", err.Error())
+			s.logger.Error(settingsServiceLogTag, "Failed retrieving default network %s", err.Error())
 			break
 		}
 
@@ -156,7 +146,7 @@ func (s *concreteService) GetSettings() Settings {
 	return s.settings
 }
 
-func (s *concreteService) InvalidateSettings() error {
+func (s *settingsService) InvalidateSettings() error {
 	err := s.fs.RemoveAll(s.settingsPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Removing settings file")

@@ -19,12 +19,13 @@ func NewLinuxMounter(
 	runner boshsys.CmdRunner,
 	mountsSearcher MountsSearcher,
 	unmountRetrySleep time.Duration,
-) (mounter linuxMounter) {
-	mounter.runner = runner
-	mounter.mountsSearcher = mountsSearcher
-	mounter.maxUnmountRetries = 600
-	mounter.unmountRetrySleep = unmountRetrySleep
-	return
+) Mounter {
+	return linuxMounter{
+		runner:            runner,
+		mountsSearcher:    mountsSearcher,
+		maxUnmountRetries: 600,
+		unmountRetrySleep: unmountRetrySleep,
+	}
 }
 
 func (m linuxMounter) Mount(partitionPath, mountPoint string, mountOptions ...string) error {

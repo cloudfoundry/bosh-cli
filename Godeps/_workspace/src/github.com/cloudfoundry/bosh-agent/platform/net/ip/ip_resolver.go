@@ -26,7 +26,7 @@ type ipResolver struct {
 	ifaceToAddrsFunc InterfaceToAddrsFunc
 }
 
-func NewResolver(ifaceToAddrsFunc InterfaceToAddrsFunc) ipResolver {
+func NewResolver(ifaceToAddrsFunc InterfaceToAddrsFunc) Resolver {
 	return ipResolver{ifaceToAddrsFunc: ifaceToAddrsFunc}
 }
 

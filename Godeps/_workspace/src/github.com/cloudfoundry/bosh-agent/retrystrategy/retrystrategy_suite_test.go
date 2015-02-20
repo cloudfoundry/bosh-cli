@@ -22,7 +22,7 @@ type attemptOutput struct {
 	AttemptErr  error
 }
 
-func NewSimpleRetryable(attemptOutputs []attemptOutput) *simpleRetryable {
+func newSimpleRetryable(attemptOutputs []attemptOutput) *simpleRetryable {
 	return &simpleRetryable{
 		attemptOutputs: attemptOutputs,
 	}

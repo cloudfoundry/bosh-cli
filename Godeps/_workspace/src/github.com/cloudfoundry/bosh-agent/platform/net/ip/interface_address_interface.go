@@ -15,7 +15,7 @@ type simpleInterfaceAddress struct {
 	ip            string
 }
 
-func NewSimpleInterfaceAddress(interfaceName string, ip string) simpleInterfaceAddress {
+func NewSimpleInterfaceAddress(interfaceName string, ip string) InterfaceAddress {
 	return simpleInterfaceAddress{interfaceName: interfaceName, ip: ip}
 }
 
@@ -31,7 +31,7 @@ type resolvingInterfaceAddress struct {
 func NewResolvingInterfaceAddress(
 	interfaceName string,
 	ipResolver Resolver,
-) *resolvingInterfaceAddress {
+) InterfaceAddress {
 	return &resolvingInterfaceAddress{
 		interfaceName: interfaceName,
 		ipResolver:    ipResolver,

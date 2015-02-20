@@ -1,40 +1,13 @@
 package fakes
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
-type FakeSettingsServiceProvider struct {
-	NewServiceFs              boshsys.FileSystem
-	NewServiceDir             string
-	NewServiceFetcher         boshsettings.Fetcher
-	NewDefaultNetworkResolver boshsettings.DefaultNetworkDelegate
-	NewServiceSettingsService *FakeSettingsService
-}
-
-func NewServiceProvider() *FakeSettingsServiceProvider {
-	return &FakeSettingsServiceProvider{
-		NewServiceSettingsService: &FakeSettingsService{},
-	}
-}
-
-func (provider *FakeSettingsServiceProvider) NewService(
-	fs boshsys.FileSystem,
-	dir string,
-	fetcher boshsettings.Fetcher,
-	defaultNetworkResolver boshsettings.DefaultNetworkDelegate,
-	logger boshlog.Logger,
-) boshsettings.Service {
-	provider.NewServiceFs = fs
-	provider.NewServiceDir = dir
-	provider.NewServiceFetcher = fetcher
-	provider.NewDefaultNetworkResolver = defaultNetworkResolver
-	return provider.NewServiceSettingsService
-}
-
 type FakeSettingsService struct {
+	PublicKey    string
+	PublicKeyErr error
+
 	LoadSettingsError  error
 	SettingsWereLoaded bool
 
@@ -47,6 +20,10 @@ type FakeSettingsService struct {
 func (service *FakeSettingsService) InvalidateSettings() error {
 	service.SettingsWereInvalidated = true
 	return service.InvalidateSettingsError
+}
+
+func (service *FakeSettingsService) PublicSSHKeyForUsername(_ string) (string, error) {
+	return service.PublicKey, service.PublicKeyErr
 }
 
 func (service *FakeSettingsService) LoadSettings() error {

@@ -50,7 +50,7 @@ var _ = Describe("StemcellRepo", func() {
 		})
 
 		It("returns the stemcell record with a new uuid", func() {
-			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 			record, err := repo.Save("fake-name", "fake-version-1", "fake-cid-1")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(record).To(Equal(StemcellRecord{
@@ -60,7 +60,7 @@ var _ = Describe("StemcellRepo", func() {
 				CID:     "fake-cid-1",
 			}))
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-2"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
 			record, err = repo.Save("fake-name", "fake-version-2", "fake-cid-2")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(record).To(Equal(StemcellRecord{
@@ -162,7 +162,7 @@ var _ = Describe("StemcellRepo", func() {
 	Describe("UpdateCurrent", func() {
 		Context("when a stemcell record exists with the same ID", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 				_, err := repo.Save("fake-name", "fake-version", "fake-cid")
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -180,7 +180,7 @@ var _ = Describe("StemcellRepo", func() {
 
 		Context("when a stemcell record does not exists with the same ID", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 				_, err := repo.Save("fake-name", "fake-version", "fake-cid")
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -196,7 +196,7 @@ var _ = Describe("StemcellRepo", func() {
 	Describe("ClearCurrent", func() {
 		Context("when a stemcell record exists with the same ID", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 				_, err := repo.Save("fake-name", "fake-version", "fake-cid")
 				Expect(err).ToNot(HaveOccurred())
 
@@ -225,13 +225,13 @@ var _ = Describe("StemcellRepo", func() {
 
 		BeforeEach(func() {
 			var err error
-			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 			firstStemcellRecord, err = repo.Save("fake-name1", "fake-version1", "fake-cid1")
 			Expect(err).ToNot(HaveOccurred())
-			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-2"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
 			secondStemcellRecord, err = repo.Save("fake-name2", "fake-version2", "fake-cid2")
 			Expect(err).ToNot(HaveOccurred())
-			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-3"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-3"
 			thirdStemcellRecord, err = repo.Save("fake-name3", "fake-version3", "fake-cid3")
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -276,11 +276,11 @@ var _ = Describe("StemcellRepo", func() {
 	Describe("FindCurrent", func() {
 		Context("when current stemcell exists", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
 				_, err := repo.Save("fake-name", "fake-version-1", "fake-cid-1")
 				Expect(err).ToNot(HaveOccurred())
 
-				fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-2"
 				record, err := repo.Save("fake-name", "fake-version-2", "fake-cid-2")
 				Expect(err).ToNot(HaveOccurred())
 
@@ -302,7 +302,7 @@ var _ = Describe("StemcellRepo", func() {
 
 		Context("when current stemcell does not exist", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
 				_, err := repo.Save("fake-name", "fake-version", "fake-cid")
 				Expect(err).ToNot(HaveOccurred())
 			})

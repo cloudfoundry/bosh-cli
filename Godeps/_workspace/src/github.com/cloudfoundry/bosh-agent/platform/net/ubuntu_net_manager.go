@@ -40,7 +40,7 @@ func NewUbuntuNetManager(
 	ipResolver boship.Resolver,
 	addressBroadcaster bosharp.AddressBroadcaster,
 	logger boshlog.Logger,
-) ubuntuNetManager {
+) Manager {
 	return ubuntuNetManager{
 		DefaultNetworkResolver: defaultNetworkResolver,
 		cmdRunner:              cmdRunner,

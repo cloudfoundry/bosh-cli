@@ -58,6 +58,10 @@ type LinuxOptions struct {
 	// a partition on the same device as the root partition to use as the
 	// ephemeral disk
 	CreatePartitionIfNoEphemeralDisk bool
+
+	// Strategy for resolving device paths;
+	// possible values: virtio, scsi, ''
+	DevicePathResolutionType string
 }
 
 type linux struct {
@@ -72,8 +76,8 @@ type linux struct {
 	diskManager        boshdisk.Manager
 	netManager         boshnet.Manager
 	monitRetryStrategy boshretry.RetryStrategy
-	diskScanDuration   time.Duration
 	devicePathResolver boshdpresolv.DevicePathResolver
+	diskScanDuration   time.Duration
 	options            LinuxOptions
 	logger             boshlog.Logger
 }
@@ -90,11 +94,12 @@ func NewLinuxPlatform(
 	diskManager boshdisk.Manager,
 	netManager boshnet.Manager,
 	monitRetryStrategy boshretry.RetryStrategy,
+	devicePathResolver boshdpresolv.DevicePathResolver,
 	diskScanDuration time.Duration,
 	options LinuxOptions,
 	logger boshlog.Logger,
-) (platform *linux) {
-	platform = &linux{
+) Platform {
+	return &linux{
 		fs:                 fs,
 		cmdRunner:          cmdRunner,
 		collector:          collector,
@@ -106,11 +111,11 @@ func NewLinuxPlatform(
 		diskManager:        diskManager,
 		netManager:         netManager,
 		monitRetryStrategy: monitRetryStrategy,
+		devicePathResolver: devicePathResolver,
 		diskScanDuration:   diskScanDuration,
 		options:            options,
 		logger:             logger,
 	}
-	return
 }
 
 const logTag = "linuxPlatform"
@@ -154,11 +159,6 @@ func (p linux) GetFilesContentsFromDisk(diskPath string, fileNames []string) ([]
 
 func (p linux) GetDevicePathResolver() (devicePathResolver boshdpresolv.DevicePathResolver) {
 	return p.devicePathResolver
-}
-
-func (p *linux) SetDevicePathResolver(devicePathResolver boshdpresolv.DevicePathResolver) (err error) {
-	p.devicePathResolver = devicePathResolver
-	return
 }
 
 func (p linux) SetupManualNetworking(networks boshsettings.Networks) (err error) {

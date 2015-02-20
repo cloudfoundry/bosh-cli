@@ -16,7 +16,7 @@ type defaultNetworkResolver struct {
 func NewDefaultNetworkResolver(
 	routesSearcher RoutesSearcher,
 	ipResolver boship.Resolver,
-) defaultNetworkResolver {
+) boshsettings.DefaultNetworkDelegate {
 	return defaultNetworkResolver{
 		routesSearcher: routesSearcher,
 		ipResolver:     ipResolver,

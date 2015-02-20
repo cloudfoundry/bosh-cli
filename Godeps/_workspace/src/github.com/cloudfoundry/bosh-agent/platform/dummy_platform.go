@@ -33,16 +33,18 @@ func NewDummyPlatform(
 	fs boshsys.FileSystem,
 	cmdRunner boshsys.CmdRunner,
 	dirProvider boshdirs.Provider,
+	devicePathResolver boshdpresolv.DevicePathResolver,
 	logger boshlog.Logger,
-) *dummyPlatform {
+) Platform {
 	return &dummyPlatform{
-		fs:            fs,
-		cmdRunner:     cmdRunner,
-		collector:     collector,
-		compressor:    boshcmd.NewTarballCompressor(cmdRunner, fs),
-		copier:        boshcmd.NewCpCopier(cmdRunner, fs, logger),
-		dirProvider:   dirProvider,
-		vitalsService: boshvitals.NewService(collector, dirProvider),
+		fs:                 fs,
+		cmdRunner:          cmdRunner,
+		collector:          collector,
+		compressor:         boshcmd.NewTarballCompressor(cmdRunner, fs),
+		copier:             boshcmd.NewCpCopier(cmdRunner, fs, logger),
+		dirProvider:        dirProvider,
+		devicePathResolver: devicePathResolver,
+		vitalsService:      boshvitals.NewService(collector, dirProvider),
 	}
 }
 
@@ -72,11 +74,6 @@ func (p dummyPlatform) GetVitalsService() (service boshvitals.Service) {
 
 func (p dummyPlatform) GetDevicePathResolver() (devicePathResolver boshdpresolv.DevicePathResolver) {
 	return p.devicePathResolver
-}
-
-func (p *dummyPlatform) SetDevicePathResolver(devicePathResolver boshdpresolv.DevicePathResolver) (err error) {
-	p.devicePathResolver = devicePathResolver
-	return
 }
 
 func (p dummyPlatform) SetupRuntimeConfiguration() (err error) {

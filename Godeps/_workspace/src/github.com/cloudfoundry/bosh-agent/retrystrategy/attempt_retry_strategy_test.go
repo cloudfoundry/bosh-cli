@@ -23,7 +23,7 @@ var _ = Describe("AttemptRetryStrategy", func() {
 	Describe("Try", func() {
 		Context("when there are errors during a try", func() {
 			It("retries until the max attempts are used up", func() {
-				retryable := NewSimpleRetryable([]attemptOutput{
+				retryable := newSimpleRetryable([]attemptOutput{
 					{
 						IsRetryable: true,
 						AttemptErr:  errors.New("first-error"),
@@ -47,7 +47,7 @@ var _ = Describe("AttemptRetryStrategy", func() {
 
 		Context("when the attempt is not retryable", func() {
 			It("stops trying", func() {
-				retryable := NewSimpleRetryable([]attemptOutput{
+				retryable := newSimpleRetryable([]attemptOutput{
 					{
 						IsRetryable: true,
 						AttemptErr:  errors.New("first-error"),
@@ -67,7 +67,7 @@ var _ = Describe("AttemptRetryStrategy", func() {
 
 		Context("when there are no errors", func() {
 			It("does not retry", func() {
-				retryable := NewSimpleRetryable([]attemptOutput{
+				retryable := newSimpleRetryable([]attemptOutput{
 					{
 						IsRetryable: true,
 						AttemptErr:  nil,

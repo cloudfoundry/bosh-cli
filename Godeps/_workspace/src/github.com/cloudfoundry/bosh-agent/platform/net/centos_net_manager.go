@@ -34,7 +34,7 @@ func NewCentosNetManager(
 	ipResolver boship.Resolver,
 	addressBroadcaster bosharp.AddressBroadcaster,
 	logger boshlog.Logger,
-) centosNetManager {
+) Manager {
 	return centosNetManager{
 		DefaultNetworkResolver: defaultNetworkResolver,
 		fs:                 fs,

@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/cloudfoundry/bosh-agent/infrastructure/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakeplatform "github.com/cloudfoundry/bosh-agent/platform/fakes"
 	. "github.com/cloudfoundry/bosh-agent/settings"
@@ -14,36 +15,22 @@ import (
 )
 
 func init() {
-	Describe("concreteServiceProvider", func() {
+	Describe("settingsService", func() {
 		var (
-			platform *fakeplatform.FakePlatform
-		)
-
-		Describe("NewService", func() {
-			It("returns service with settings.json as its settings path", func() {
-				// Cannot compare fetcher functions since function comparison is problematic
-				fs := fakesys.NewFakeFileSystem()
-				logger := boshlog.NewLogger(boshlog.LevelNone)
-				service := NewServiceProvider().NewService(fs, "/setting/path", nil, platform, logger)
-				Expect(service).To(Equal(NewService(fs, "/setting/path/settings.json", nil, platform, logger)))
-			})
-		})
-	})
-
-	Describe("concreteService", func() {
-		var (
-			fs       *fakesys.FakeFileSystem
-			platform *fakeplatform.FakePlatform
+			fs                 *fakesys.FakeFileSystem
+			platform           *fakeplatform.FakePlatform
+			fakeSettingsSource *fakes.FakeSettingsSource
 		)
 
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			platform = fakeplatform.NewFakePlatform()
+			fakeSettingsSource = &fakes.FakeSettingsSource{}
 		})
 
-		buildService := func(fetcher Fetcher) (Service, *fakesys.FakeFileSystem) {
+		buildService := func() (Service, *fakesys.FakeFileSystem) {
 			logger := boshlog.NewLogger(boshlog.LevelNone)
-			service := NewService(fs, "/setting/path", fetcher, platform, logger)
+			service := NewService(fs, "/setting/path.json", fakeSettingsSource, platform, logger)
 			return service, fs
 		}
 
@@ -60,8 +47,9 @@ func init() {
 			})
 
 			JustBeforeEach(func() {
-				fetcherFunc := func() (Settings, error) { return fetchedSettings, fetcherFuncErr }
-				service, fs = buildService(fetcherFunc)
+				fakeSettingsSource.SettingsValue = fetchedSettings
+				fakeSettingsSource.SettingsErr = fetcherFuncErr
+				service, fs = buildService()
 			})
 
 			Context("when settings fetcher succeeds fetching settings", func() {
@@ -89,7 +77,7 @@ func init() {
 						json, err := json.Marshal(fetchedSettings)
 						Expect(err).NotTo(HaveOccurred())
 
-						fileContent, err := fs.ReadFile("/setting/path")
+						fileContent, err := fs.ReadFile("/setting/path.json")
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fileContent).To(Equal(json))
 					})
@@ -127,7 +115,7 @@ func init() {
 				Context("when a settings file exists", func() {
 					Context("when settings contain at most one dynamic network", func() {
 						BeforeEach(func() {
-							fs.WriteFile("/setting/path", []byte(`{
+							fs.WriteFile("/setting/path.json", []byte(`{
 								"agent_id":"some-agent-id",
 								"networks": {"fake-net-1": {"type": "dynamic"}}
 							}`))
@@ -147,7 +135,7 @@ func init() {
 
 					Context("when settings contain multiple dynamic networks", func() {
 						BeforeEach(func() {
-							fs.WriteFile("/setting/path", []byte(`{
+							fs.WriteFile("/setting/path.json", []byte(`{
 								"agent_id":"some-agent-id",
 								"networks": {
 									"fake-net-1": {"type": "dynamic"},
@@ -166,7 +154,7 @@ func init() {
 
 				Context("when non-unmarshallable settings file exists", func() {
 					It("returns any error from the fetcher", func() {
-						fs.WriteFile("/setting/path", []byte(`$%^&*(`))
+						fs.WriteFile("/setting/path.json", []byte(`$%^&*(`))
 
 						err := service.LoadSettings()
 						Expect(err).To(HaveOccurred())
@@ -190,18 +178,22 @@ func init() {
 
 		Describe("InvalidateSettings", func() {
 			It("removes the settings file", func() {
-				service, fs := buildService(nil)
+				fakeSettingsSource.SettingsValue = Settings{}
+				fakeSettingsSource.SettingsErr = nil
+				service, fs := buildService()
 
-				fs.WriteFile("/setting/path", []byte(`{}`))
+				fs.WriteFile("/setting/path.json", []byte(`{}`))
 
 				err := service.InvalidateSettings()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fs.FileExists("/setting/path")).To(BeFalse())
+				Expect(fs.FileExists("/setting/path.json")).To(BeFalse())
 			})
 
 			It("returns err if removing settings file errored", func() {
-				service, fs := buildService(nil)
+				fakeSettingsSource.SettingsValue = Settings{}
+				fakeSettingsSource.SettingsErr = nil
+				service, fs := buildService()
 
 				fs.RemoveAllError = errors.New("fs-remove-all-error")
 
@@ -222,7 +214,9 @@ func init() {
 			})
 
 			JustBeforeEach(func() {
-				service, _ = buildService(func() (Settings, error) { return loadedSettings, nil })
+				fakeSettingsSource.SettingsValue = loadedSettings
+				fakeSettingsSource.SettingsErr = nil
+				service, _ = buildService()
 				err := service.LoadSettings()
 				Expect(err).NotTo(HaveOccurred())
 			})

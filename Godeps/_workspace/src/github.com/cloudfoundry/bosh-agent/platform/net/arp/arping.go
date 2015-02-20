@@ -29,7 +29,7 @@ func NewArping(
 	iterations int,
 	iterationDelay time.Duration,
 	interfaceCheckDelay time.Duration,
-) arping {
+) AddressBroadcaster {
 	return arping{
 		cmdRunner:           cmdRunner,
 		fs:                  fs,

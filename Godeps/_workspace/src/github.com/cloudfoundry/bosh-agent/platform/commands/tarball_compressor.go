@@ -13,7 +13,7 @@ type tarballCompressor struct {
 func NewTarballCompressor(
 	cmdRunner boshsys.CmdRunner,
 	fs boshsys.FileSystem,
-) tarballCompressor {
+) Compressor {
 	return tarballCompressor{cmdRunner: cmdRunner, fs: fs}
 }
 

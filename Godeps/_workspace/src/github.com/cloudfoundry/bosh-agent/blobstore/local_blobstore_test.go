@@ -116,7 +116,7 @@ var _ = Describe("localBlobstore", func() {
 		It("creates the local blob", func() {
 			fs.WriteFileString("/fake-file.txt", "fake-file-contents")
 
-			uuidGen.GeneratedUuid = "some-uuid"
+			uuidGen.GeneratedUUID = "some-uuid"
 
 			blobID, fingerprint, err := blobstore.Create("/fake-file.txt")
 			Expect(err).ToNot(HaveOccurred())
@@ -151,7 +151,7 @@ var _ = Describe("localBlobstore", func() {
 		It("errs when copy file errs", func() {
 			fs.WriteFileString("/fake-file.txt", "fake-file-contents")
 
-			uuidGen.GeneratedUuid = "some-uuid"
+			uuidGen.GeneratedUUID = "some-uuid"
 			fs.CopyFileError = errors.New("fake-copy-file-error")
 
 			_, _, err := blobstore.Create("/fake-file.txt")

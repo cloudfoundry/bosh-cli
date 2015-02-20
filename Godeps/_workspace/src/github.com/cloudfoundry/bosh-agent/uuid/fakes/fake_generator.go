@@ -5,8 +5,8 @@ import (
 )
 
 type FakeGenerator struct {
-	GeneratedUuid string
-	NextUuid      int
+	GeneratedUUID string
+	NextUUID      int
 	GenerateError error
 }
 
@@ -15,10 +15,10 @@ func NewFakeGenerator() *FakeGenerator {
 }
 
 func (gen *FakeGenerator) Generate() (uuid string, err error) {
-	if gen.GeneratedUuid == "" && gen.GenerateError == nil {
-		uuidString := fmt.Sprintf("fake-uuid-%d", gen.NextUuid)
-		gen.NextUuid++
+	if gen.GeneratedUUID == "" && gen.GenerateError == nil {
+		uuidString := fmt.Sprintf("fake-uuid-%d", gen.NextUUID)
+		gen.NextUUID++
 		return uuidString, nil
 	}
-	return gen.GeneratedUuid, gen.GenerateError
+	return gen.GeneratedUUID, gen.GenerateError
 }

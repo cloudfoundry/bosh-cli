@@ -49,7 +49,7 @@ var _ = Describe("ReleaseRepo", func() {
 		})
 
 		It("return the release record with a new uuid", func() {
-			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 			record, err := repo.Save("fake-name", "fake-version-1")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(record).To(Equal(ReleaseRecord{
@@ -58,7 +58,7 @@ var _ = Describe("ReleaseRepo", func() {
 				Version: "fake-version-1",
 			}))
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-uuid-2"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
 			record, err = repo.Save("fake-name", "fake-version-2")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(record).To(Equal(ReleaseRecord{
@@ -118,7 +118,7 @@ var _ = Describe("ReleaseRepo", func() {
 	Describe("UpdateCurrent", func() {
 		Context("when a release record exists with the same ID", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 				_, err := repo.Save("fake-name", "fake-version")
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -136,7 +136,7 @@ var _ = Describe("ReleaseRepo", func() {
 
 		Context("when a release record does not exists with the same ID", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-uuid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 				_, err := repo.Save("fake-name", "fake-version")
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -152,11 +152,11 @@ var _ = Describe("ReleaseRepo", func() {
 	Describe("FindCurrent", func() {
 		Context("when a current release exists", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
 				_, err := repo.Save("fake-name", "fake-version-1")
 				Expect(err).ToNot(HaveOccurred())
 
-				fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-2"
 				record, err := repo.Save("fake-name", "fake-version-2")
 				Expect(err).ToNot(HaveOccurred())
 
@@ -177,7 +177,7 @@ var _ = Describe("ReleaseRepo", func() {
 
 		Context("when current release does not exist", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
 				_, err := repo.Save("fake-name", "fake-version")
 				Expect(err).ToNot(HaveOccurred())
 			})

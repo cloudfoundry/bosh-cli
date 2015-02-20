@@ -17,7 +17,7 @@ type rootDevicePartitioner struct {
 	logTag       string
 }
 
-func NewRootDevicePartitioner(logger boshlog.Logger, cmdRunner boshsys.CmdRunner, deltaInBytes uint64) rootDevicePartitioner {
+func NewRootDevicePartitioner(logger boshlog.Logger, cmdRunner boshsys.CmdRunner, deltaInBytes uint64) Partitioner {
 	return rootDevicePartitioner{
 		logger:       logger,
 		cmdRunner:    cmdRunner,

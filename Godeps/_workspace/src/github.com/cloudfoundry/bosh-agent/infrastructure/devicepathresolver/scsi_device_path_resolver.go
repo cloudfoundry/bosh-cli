@@ -20,10 +20,11 @@ type scsiDevicePathResolver struct {
 func NewScsiDevicePathResolver(
 	diskWaitTimeout time.Duration,
 	fs boshsys.FileSystem,
-) (scsiDevicePathResolver scsiDevicePathResolver) {
-	scsiDevicePathResolver.fs = fs
-	scsiDevicePathResolver.diskWaitTimeout = diskWaitTimeout
-	return
+) DevicePathResolver {
+	return scsiDevicePathResolver{
+		fs:              fs,
+		diskWaitTimeout: diskWaitTimeout,
+	}
 }
 
 func (devicePathResolver scsiDevicePathResolver) GetRealDevicePath(diskSettings boshsettings.DiskSettings) (realPath string, timedOut bool, err error) {

@@ -29,7 +29,7 @@ type concreteService struct {
 	dirProvider boshdir.Provider
 }
 
-func NewConcreteService(fs boshsys.FileSystem, dirProvider boshdir.Provider) concreteService {
+func NewConcreteService(fs boshsys.FileSystem, dirProvider boshdir.Provider) Service {
 	return concreteService{
 		fs:          fs,
 		dirProvider: dirProvider,

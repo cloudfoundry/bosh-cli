@@ -38,7 +38,7 @@ var _ = Describe("Manager", func() {
 		managerFactory := NewManagerFactory(diskRepo, logger)
 		fakeCloud = fakebmcloud.NewFakeCloud()
 		manager = managerFactory.NewManager(fakeCloud)
-		fakeUUIDGenerator.GeneratedUuid = "fake-uuid"
+		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 	})
 
 	Describe("Create", func() {
@@ -159,18 +159,18 @@ var _ = Describe("Manager", func() {
 		)
 
 		BeforeEach(func() {
-			fakeUUIDGenerator.GeneratedUuid = "fake-guid-1"
+			fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
 			firstDiskRecord, err := diskRepo.Save("fake-disk-cid-1", 1024, bmproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			firstDisk = NewDisk(firstDiskRecord, fakeCloud, diskRepo)
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-guid-2"
+			fakeUUIDGenerator.GeneratedUUID = "fake-guid-2"
 			_, err = diskRepo.Save("fake-disk-cid-2", 1024, bmproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			err = diskRepo.UpdateCurrent("fake-guid-2")
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-guid-3"
+			fakeUUIDGenerator.GeneratedUUID = "fake-guid-3"
 			thirdDiskRecord, err := diskRepo.Save("fake-disk-cid-3", 1024, bmproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			thirdDisk = NewDisk(thirdDiskRecord, fakeCloud, diskRepo)
@@ -195,17 +195,17 @@ var _ = Describe("Manager", func() {
 		BeforeEach(func() {
 			fakeStage = fakebmui.NewFakeStage()
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-disk-id-1"
+			fakeUUIDGenerator.GeneratedUUID = "fake-disk-id-1"
 			_, err := diskRepo.Save("fake-disk-cid-1", 100, nil)
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-disk-id-2"
+			fakeUUIDGenerator.GeneratedUUID = "fake-disk-id-2"
 			secondDiskRecord, err = diskRepo.Save("fake-disk-cid-2", 100, nil)
 			Expect(err).ToNot(HaveOccurred())
 			err = diskRepo.UpdateCurrent(secondDiskRecord.ID)
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeUUIDGenerator.GeneratedUuid = "fake-disk-id-3"
+			fakeUUIDGenerator.GeneratedUUID = "fake-disk-id-3"
 			_, err = diskRepo.Save("fake-disk-cid-3", 100, nil)
 			Expect(err).ToNot(HaveOccurred())
 		})

@@ -157,11 +157,6 @@ func (p *FakePlatform) GetDevicePathResolver() (devicePathResolver boshdpresolv.
 	return p.DevicePathResolver
 }
 
-func (p *FakePlatform) SetDevicePathResolver(devicePathResolver boshdpresolv.DevicePathResolver) (err error) {
-	p.DevicePathResolver = devicePathResolver
-	return
-}
-
 func (p *FakePlatform) SetupRuntimeConfiguration() (err error) {
 	p.SetupRuntimeConfigurationWasInvoked = true
 	return

@@ -6,7 +6,7 @@ import (
 
 type identityDevicePathResolver struct{}
 
-func NewIdentityDevicePathResolver() identityDevicePathResolver {
+func NewIdentityDevicePathResolver() DevicePathResolver {
 	return identityDevicePathResolver{}
 }
 

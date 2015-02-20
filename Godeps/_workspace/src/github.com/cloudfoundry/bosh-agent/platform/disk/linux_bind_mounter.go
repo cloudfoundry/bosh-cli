@@ -4,7 +4,7 @@ type linuxBindMounter struct {
 	delegateMounter Mounter
 }
 
-func NewLinuxBindMounter(delegateMounter Mounter) linuxBindMounter {
+func NewLinuxBindMounter(delegateMounter Mounter) Mounter {
 	return linuxBindMounter{delegateMounter}
 }
 

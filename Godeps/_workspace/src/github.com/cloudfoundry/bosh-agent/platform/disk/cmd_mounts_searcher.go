@@ -11,7 +11,7 @@ type cmdMountsSearcher struct {
 	runner boshsys.CmdRunner
 }
 
-func NewCmdMountsSearcher(runner boshsys.CmdRunner) cmdMountsSearcher {
+func NewCmdMountsSearcher(runner boshsys.CmdRunner) MountsSearcher {
 	return cmdMountsSearcher{runner}
 }
 

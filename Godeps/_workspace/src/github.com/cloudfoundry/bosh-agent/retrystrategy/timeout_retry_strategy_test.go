@@ -35,7 +35,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 					now.Add(50 * time.Second), // after 3rd attempt
 				}
 
-				retryable := NewSimpleRetryable([]attemptOutput{
+				retryable := newSimpleRetryable([]attemptOutput{
 					{
 						IsRetryable: true,
 						AttemptErr:  errors.New("first-error"),
@@ -70,7 +70,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 					now.Add(50 * time.Second), // after 3rd attempt
 				}
 
-				retryable := NewSimpleRetryable([]attemptOutput{
+				retryable := newSimpleRetryable([]attemptOutput{
 					{
 						IsRetryable: true,
 						AttemptErr:  errors.New("first-error"),
@@ -101,7 +101,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 					now.Add(1 * time.Second),
 				}
 
-				retryable := NewSimpleRetryable([]attemptOutput{
+				retryable := newSimpleRetryable([]attemptOutput{
 					{
 						IsRetryable: true,
 						AttemptErr:  errors.New("first-error"),
@@ -126,7 +126,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 					now,
 				}
 
-				retryable := NewSimpleRetryable([]attemptOutput{
+				retryable := newSimpleRetryable([]attemptOutput{
 					{
 						IsRetryable: true,
 						AttemptErr:  nil,

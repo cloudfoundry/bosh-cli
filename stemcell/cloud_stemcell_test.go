@@ -43,7 +43,7 @@ var _ = Describe("CloudStemcell", func() {
 	Describe("PromoteAsCurrent", func() {
 		Context("when stemcell is in the repo", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUuid = "fake-stemcell-id"
+				fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id"
 				_, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
 				Expect(err).ToNot(HaveOccurred())
 			})

@@ -87,12 +87,11 @@ var _ = Describe("LinuxPlatform", func() {
 			diskManager,
 			netManager,
 			monitRetryStrategy,
+			devicePathResolver,
 			5*time.Millisecond,
 			options,
 			logger,
 		)
-
-		platform.SetDevicePathResolver(devicePathResolver)
 	})
 
 	Describe("SetupRuntimeConfiguration", func() {

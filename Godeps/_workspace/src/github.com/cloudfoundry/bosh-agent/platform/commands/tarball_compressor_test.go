@@ -27,7 +27,7 @@ func fixtureSrcTgz() string {
 	return filepath.Join(pwd, "..", "..", "Fixtures", "compressor-decompress-file-to-dir.tgz")
 }
 
-func BeDir() beDirMatcher {
+func beDir() beDirMatcher {
 	return beDirMatcher{}
 }
 
@@ -131,8 +131,8 @@ var _ = Describe("tarballCompressor", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(content).To(ContainSubstring("double-nested-file"))
 
-			Expect(dstDir + "/empty-dir").To(BeDir())
-			Expect(dstDir + "/dir/empty-nested-dir").To(BeDir())
+			Expect(dstDir + "/empty-dir").To(beDir())
+			Expect(dstDir + "/dir/empty-nested-dir").To(beDir())
 		})
 
 		It("returns error if the destination does not exist", func() {

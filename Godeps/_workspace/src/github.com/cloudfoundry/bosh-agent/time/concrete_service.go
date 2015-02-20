@@ -6,7 +6,7 @@ import (
 
 type concreteService struct{}
 
-func NewConcreteService() concreteService {
+func NewConcreteService() Service {
 	return concreteService{}
 }
 
