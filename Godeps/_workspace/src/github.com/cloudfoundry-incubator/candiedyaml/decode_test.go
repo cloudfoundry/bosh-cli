@@ -409,6 +409,15 @@ default:
 		}))
 	})
 
+	It("Decodes a null ptr", func() {
+		d := NewDecoder(strings.NewReader(`null
+`))
+		var v *bool
+		err := d.Decode(&v)
+		Ω(err).ShouldNot(HaveOccurred())
+		Ω(v).Should(BeNil())
+	})
+
 	It("Decodes dates/time", func() {
 		f, _ := os.Open("fixtures/specification/example2_22.yaml")
 		d := NewDecoder(f)
@@ -718,6 +727,25 @@ y: *a
 				"y": int64(1),
 			}))
 		})
+
+		It("can parse nested anchors", func() {
+			d := NewDecoder(strings.NewReader(`
+---
+a:
+  aa: &x
+    aaa: 1
+  ab:
+    aba: &y
+      abaa:
+        abaaa: *x
+b:
+- ba:
+    baa: *y
+`))
+			v := make(map[string]interface{})
+			err := d.Decode(&v)
+			Ω(err).ShouldNot(HaveOccurred())
+		})
 	})
 
 	Context("When decoding fails", func() {
@@ -758,7 +786,7 @@ y: *a
 
 				err := d.Decode(&v)
 				Ω(err).ShouldNot(HaveOccurred())
-				Ω(v.Tag).Should(Equal("!!str"))
+				Ω(v.Tag).Should(Equal(yaml_STR_TAG))
 				Ω(v.Value).Should(Equal("abc"))
 			})
 
@@ -768,7 +796,7 @@ y: *a
 
 				err := d.Decode(&v)
 				Ω(err).ShouldNot(HaveOccurred())
-				Ω(v.Tag).Should(Equal("!!seq"))
+				Ω(v.Tag).Should(Equal(yaml_SEQ_TAG))
 				Ω(v.Value).Should(Equal([]interface{}{"abc", "def"}))
 			})
 
@@ -778,7 +806,7 @@ y: *a
 
 				err := d.Decode(&v)
 				Ω(err).ShouldNot(HaveOccurred())
-				Ω(v.Tag).Should(Equal("!!map"))
+				Ω(v.Tag).Should(Equal(yaml_MAP_TAG))
 				Ω(v.Value).Should(Equal(map[interface{}]interface{}{"a": "bc"}))
 			})
 		})

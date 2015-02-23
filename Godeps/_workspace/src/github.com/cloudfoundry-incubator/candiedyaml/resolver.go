@@ -28,7 +28,7 @@ import (
 
 var byteSliceType = reflect.TypeOf([]byte(nil))
 
-var binary_tags = [][]byte{[]byte("!binary"), []byte("tag:yaml.org,2002:binary")}
+var binary_tags = [][]byte{[]byte("!binary"), []byte(yaml_BINARY_TAG)}
 var bool_values map[string]bool
 var null_values map[string]bool
 
@@ -65,7 +65,7 @@ func resolve(event yaml_event_t, v reflect.Value, useNumber bool) (string, error
 
 	if null_values[val] {
 		v.Set(reflect.Zero(v.Type()))
-		return "!!null", nil
+		return yaml_NULL_TAG, nil
 	}
 
 	switch v.Kind() {
@@ -112,7 +112,7 @@ func resolve(event yaml_event_t, v reflect.Value, useNumber bool) (string, error
 		return "", errors.New("Resolve failed for " + v.Kind().String())
 	}
 
-	return "!!str", nil
+	return yaml_STR_TAG, nil
 }
 
 func hasBinaryTag(event yaml_event_t) bool {
@@ -141,7 +141,7 @@ func resolve_string(val string, v reflect.Value, event yaml_event_t) (string, er
 		}
 	}
 	v.SetString(val)
-	return "!!str", nil
+	return yaml_STR_TAG, nil
 }
 
 func resolve_bool(val string, v reflect.Value) (string, error) {
@@ -151,7 +151,7 @@ func resolve_bool(val string, v reflect.Value) (string, error) {
 	}
 
 	v.SetBool(b)
-	return "!!bool", nil
+	return yaml_BOOL_TAG, nil
 }
 
 func resolve_int(val string, v reflect.Value, useNumber bool) (string, error) {
@@ -177,7 +177,7 @@ func resolve_int(val string, v reflect.Value, useNumber bool) (string, error) {
 			v.Set(reflect.Zero(v.Type()))
 		}
 
-		return "!!int", nil
+		return yaml_INT_TAG, nil
 	}
 
 	if strings.HasPrefix(val, "0o") {
@@ -211,7 +211,7 @@ func resolve_int(val string, v reflect.Value, useNumber bool) (string, error) {
 		v.SetInt(val64)
 	}
 
-	return "!!int", nil
+	return yaml_INT_TAG, nil
 }
 
 func resolve_uint(val string, v reflect.Value, useNumber bool) (string, error) {
@@ -237,7 +237,7 @@ func resolve_uint(val string, v reflect.Value, useNumber bool) (string, error) {
 			v.Set(reflect.Zero(v.Type()))
 		}
 
-		return "!!int", nil
+		return yaml_INT_TAG, nil
 	}
 
 	if strings.HasPrefix(val, "0o") {
@@ -260,7 +260,7 @@ func resolve_uint(val string, v reflect.Value, useNumber bool) (string, error) {
 		v.SetUint(value)
 	}
 
-	return "!!int", nil
+	return yaml_INT_TAG, nil
 }
 
 func resolve_float(val string, v reflect.Value, useNumber bool) (string, error) {
@@ -306,7 +306,7 @@ func resolve_float(val string, v reflect.Value, useNumber bool) (string, error) 
 		v.SetFloat(value)
 	}
 
-	return "!!float", nil
+	return yaml_FLOAT_TAG, nil
 }
 
 func resolve_time(val string, v reflect.Value) (string, error) {
@@ -366,7 +366,7 @@ func resolveInterface(event yaml_event_t, useNumber bool) (string, interface{}) 
 	}
 
 	if len(val) == 0 {
-		return "!!null", nil
+		return yaml_NULL_TAG, nil
 	}
 
 	var result interface{}
@@ -387,7 +387,7 @@ func resolveInterface(event yaml_event_t, useNumber bool) (string, interface{}) 
 
 		v := reflect.ValueOf(result).Elem()
 		if _, err := resolve_int(val, v, useNumber); err == nil {
-			return "!!int", v.Interface()
+			return yaml_INT_TAG, v.Interface()
 		}
 
 		f := float64(0)
@@ -399,7 +399,7 @@ func resolveInterface(event yaml_event_t, useNumber bool) (string, interface{}) 
 
 		v = reflect.ValueOf(result).Elem()
 		if _, err := resolve_float(val, v, useNumber); err == nil {
-			return "!!float", v.Interface()
+			return yaml_FLOAT_TAG, v.Interface()
 		}
 
 		if !sign {
@@ -410,11 +410,11 @@ func resolveInterface(event yaml_event_t, useNumber bool) (string, interface{}) 
 		}
 	case bytes.IndexByte(nulls, c) != -1:
 		if null_values[val] {
-			return "!!null", nil
+			return yaml_NULL_TAG, nil
 		}
 		b := false
 		if _, err := resolve_bool(val, reflect.ValueOf(&b).Elem()); err == nil {
-			return "!!bool", b
+			return yaml_BOOL_TAG, b
 		}
 	case c == '.':
 		f := float64(0)
@@ -426,21 +426,21 @@ func resolveInterface(event yaml_event_t, useNumber bool) (string, interface{}) 
 
 		v := reflect.ValueOf(result).Elem()
 		if _, err := resolve_float(val, v, useNumber); err == nil {
-			return "!!float", v.Interface()
+			return yaml_FLOAT_TAG, v.Interface()
 		}
 	case bytes.IndexByte(bools, c) != -1:
 		b := false
 		if _, err := resolve_bool(val, reflect.ValueOf(&b).Elem()); err == nil {
-			return "!!bool", b
+			return yaml_BOOL_TAG, b
 		}
 	}
 
 	if hasBinaryTag(event) {
 		bytes, err := decode_binary(event.value)
 		if err == nil {
-			return "!!binary", bytes
+			return yaml_BINARY_TAG, bytes
 		}
 	}
 
-	return "!!str", val
+	return yaml_STR_TAG, val
 }
