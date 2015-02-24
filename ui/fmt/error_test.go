@@ -7,6 +7,7 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/ui/fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
 var _ = Describe("MultilineError", describeMultilineError)
@@ -60,6 +61,14 @@ func describeMultilineError() {
 			multi := bosherr.NewMultiError(bosherr.Error("inner a"), bosherr.Error("inner b"))
 			err = bosherr.WrapError(multi, "outer omg")
 			Expect(MultilineError(err)).To(Equal("outer omg:\n  inner a\n  inner b"))
+		})
+	})
+
+	Context("when given an ExecError", func() {
+		It("returns a multi-line message string with the command, stdout, & stderr at the same indentation", func() {
+			execErr := boshsys.NewExecError("fake-cmd --flag with some args", "some\nmultiline\nstdout", "some\nmultiline\nstderr")
+			err = bosherr.WrapError(execErr, "outer omg")
+			Expect(MultilineError(err)).To(Equal("outer omg:\n  Error Executing Command:\n    fake-cmd --flag with some args\n  StdOut:\n    some\n    multiline\n    stdout\n  StdErr:\n    some\n    multiline\n    stderr"))
 		})
 	})
 }

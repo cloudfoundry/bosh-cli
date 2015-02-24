@@ -20,28 +20,28 @@ const (
 )
 
 type ExecError struct {
-	cmd    string
-	stdout string
-	stderr string
+	Command string
+	StdOut  string
+	StdErr  string
 }
 
 func NewExecError(cmd, stdout, stderr string) ExecError {
 	return ExecError{
-		cmd:    cmd,
-		stdout: stdout,
-		stderr: stderr,
+		Command: cmd,
+		StdOut:  stdout,
+		StdErr:  stderr,
 	}
 }
 
 func (e ExecError) Error() string {
-	return fmt.Sprintf(execErrorMsgFmt, e.cmd, e.stdout, e.stderr)
+	return fmt.Sprintf(execErrorMsgFmt, e.Command, e.StdOut, e.StdErr)
 }
 
 // ShortError returns an error message that has stdout/stderr truncated.
 func (e ExecError) ShortError() string {
-	outStr := e.truncateStr(e.stdout, execShortErrorMaxLines)
-	errStr := e.truncateStr(e.stderr, execShortErrorMaxLines)
-	return fmt.Sprintf(execErrorMsgFmt, e.cmd, outStr, errStr)
+	outStr := e.truncateStr(e.StdOut, execShortErrorMaxLines)
+	errStr := e.truncateStr(e.StdErr, execShortErrorMaxLines)
+	return fmt.Sprintf(execErrorMsgFmt, e.Command, outStr, errStr)
 }
 
 func (e ExecError) truncateStr(in string, maxLines int) string {

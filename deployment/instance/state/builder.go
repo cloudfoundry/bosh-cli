@@ -70,7 +70,7 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 
 	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, stage)
 	if err != nil {
-		return nil, bosherr.Errorf("Rendering job templates for instance '%s/%d'", jobName, instanceID)
+		return nil, bosherr.WrapErrorf(err, "Rendering job templates for instance '%s/%d'", jobName, instanceID)
 	}
 
 	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name)
