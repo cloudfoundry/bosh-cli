@@ -53,8 +53,6 @@ jobs:
     static_ips: [10.244.0.42]
   persistent_disk: 1024
   properties:
-    external_cpi:
-      enabled: false
     micro: true
     nats:
       address: 127.0.0.1

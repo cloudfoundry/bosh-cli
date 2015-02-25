@@ -67,8 +67,6 @@ jobs:
   persistent_disk: 1024
   properties:
     new_job_property: new_property_value
-    external_cpi:
-      enabled: false
     micro: true
     nats:
       address: 127.0.0.1

@@ -33,7 +33,7 @@ cloud_provider:
     password: fake-registry-password
   mbus: https://admin:admin@10.244.0.42:6868
   properties:
-    cpi:
+    cpi: &warden_cpi
       warden:
         connect_network: tcp
         connect_address: 0.0.0.0:7777
@@ -60,15 +60,14 @@ jobs:
   - {name: blobstore, release: bosh}
   - {name: director, release: bosh}
   - {name: health_monitor, release: bosh}
-#  - {name: cpi, release: vsphere-release}
+  - {name: cpi, release: bosh-warden-cpi}
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name
     static_ips: [10.244.0.42]
   persistent_disk: 1024
   properties:
-    external_cpi:
-      enabled: false
+    cpi: *warden_cpi
     micro: true
     nats:
       address: 127.0.0.1
@@ -95,9 +94,7 @@ jobs:
       db:
         password: postges
         host: 127.0.0.1
-#      external_cpi: {enabled: true, name: cpi}
-#      vcenter: {address: "", user: "", password: "", datacenters: []}
-#      cpi_job: cpi
+      cpi_job: cpi
     hm:
       http:
         user: hm
@@ -115,9 +112,3 @@ jobs:
         password: postges
         host: 127.0.0.1
     ntp: []
-    # Control some remote vCenter
-    vcenter:
-      address: fake-address
-      user: fake-user
-      password: fake-password
-      datacenters: []

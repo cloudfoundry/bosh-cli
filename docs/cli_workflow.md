@@ -149,7 +149,7 @@ Once agent is listening on Mbus endpoint micro CLI sends stop message to the age
 
 ## 10. Sending micro BOSH apply spec
 
-Next micro CLI sends apply message with the list of packages and jobs that should be installed on VM. The agent serves a blobstore at `<Mbus URL>/blobs` endpoint. The package and job list is parsed from `apply_spec.yml` which is included in the stemcell.
+Next micro CLI sends apply message with the list of packages and jobs that should be installed on VM. The agent serves a blobstore at `<Mbus URL>/blobs` endpoint.
 
 For each of the template specified in micro BOSH job micro CLI downloads corresponding job template from the blobstore, renders the template with the properties specified for micro BOSH job in deployment manifest. Once all the templates are rendered micro CLI uploads the archive of all the rendered templates to the blobstore and generates an apply message. Apply message contains the list of all packages, spec of templates archive with uploaded blob ID, networks spec parsed from deployment manifest and configuration hash which is a digest of all rendered job template files.
 
