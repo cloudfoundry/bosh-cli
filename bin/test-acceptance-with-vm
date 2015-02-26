@@ -5,7 +5,7 @@ base=$( cd "$( dirname "$( dirname "$0" )")" && pwd )
 acceptance_assets_dir=$base/acceptance/tmp
 
 cpi_release_version=16
-bosh_release_version=147
+bosh_release_version=148
 stemcell_file=bosh-stemcell-348-warden-boshlite-ubuntu-trusty-go_agent.tgz
 
 cleanup() {
