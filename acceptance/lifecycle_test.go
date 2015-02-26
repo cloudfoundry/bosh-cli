@@ -64,6 +64,118 @@ var _ = Describe("bosh-micro", func() {
 		deleteLogFile(logPath)
 	}
 
+	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
+	var updateDeploymentManifest = func(sourceManifestPath string) {
+		manifestContents, err := ioutil.ReadFile(sourceManifestPath)
+		Expect(err).ToNot(HaveOccurred())
+		testEnv.WriteContent("manifest", manifestContents)
+	}
+
+	var setDeployment = func(manifestPath string) (stdout string) {
+		os.Stdout.WriteString("\n---DEPLOYMENT---\n")
+		outBuffer := bytes.NewBufferString("")
+		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deployment", manifestPath)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+		return outBuffer.String()
+	}
+
+	var deploy = func() (stdout string) {
+		os.Stdout.WriteString("\n---DEPLOY---\n")
+		outBuffer := bytes.NewBufferString("")
+		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+		return outBuffer.String()
+	}
+
+	var expectDeployToError = func() (stdout string) {
+		os.Stdout.WriteString("\n---DEPLOY---\n")
+		outBuffer := bytes.NewBufferString("")
+		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
+		Expect(err).To(HaveOccurred())
+		Expect(exitCode).To(Equal(1))
+		return outBuffer.String()
+	}
+
+	var deleteDeployment = func() (stdout string) {
+		os.Stdout.WriteString("\n---DELETE---\n")
+		outBuffer := bytes.NewBufferString("")
+		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpi-release.tgz"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+		return outBuffer.String()
+	}
+
+	// parseUserConfig reads & parses the remote bosh-micro user config
+	// This would be a lot cleaner if there were a RemoteFileSystem that used SSH.
+	var parseUserConfig = func() bmconfig.UserConfig {
+		userConfigPath := testEnv.Path(".bosh_micro.json")
+		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "cat", userConfigPath)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+
+		tempUserConfigFile, err := fileSystem.TempFile("bosh-micro-user-config")
+		Expect(err).ToNot(HaveOccurred())
+		err = tempUserConfigFile.Close()
+		Expect(err).ToNot(HaveOccurred())
+		err = fileSystem.WriteFileString(tempUserConfigFile.Name(), stdout)
+		Expect(err).ToNot(HaveOccurred())
+		defer fileSystem.RemoveAll(tempUserConfigFile.Name())
+
+		userConfigService := bmconfig.NewFileSystemUserConfigService(tempUserConfigFile.Name(), fileSystem, logger)
+		userConfig, err := userConfigService.Load()
+		Expect(err).ToNot(HaveOccurred())
+
+		return userConfig
+	}
+
+	var shutdownAgent = func() {
+		_, _, exitCode, err := microSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
+		if exitCode == 1 {
+			// If timeout was reached, KILL signal was sent before exiting.
+			// Retry to wait another 14s for exit.
+			_, _, exitCode, err = microSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
+		}
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+	}
+
+	var findStage = func(outputLines []string, stageName string, zeroIndex int) (steps []string, stopIndex int) {
+		startLine := fmt.Sprintf("Started %s", stageName)
+		startIndex := -1
+		for i, line := range outputLines[zeroIndex:] {
+			if line == startLine {
+				startIndex = zeroIndex + i
+				break
+			}
+		}
+		if startIndex < 0 {
+			Fail("Failed to find stage start: " + stageName)
+		}
+
+		stopLinePattern := fmt.Sprintf("^Finished %s %s$", stageName, stageTimePattern)
+		stopLineRegex, err := regexp.Compile(stopLinePattern)
+		Expect(err).ToNot(HaveOccurred())
+
+		stopIndex = -1
+		for i, line := range outputLines[startIndex:] {
+			if stopLineRegex.MatchString(line) {
+				stopIndex = startIndex + i
+				break
+			}
+		}
+		if stopIndex < 0 {
+			Fail("Failed to find stage stop: " + stageName)
+		}
+
+		return outputLines[startIndex+1 : stopIndex], stopIndex
+	}
+
 	BeforeSuite(func() {
 		// writing to GinkgoWriter prints on test failure or when using verbose mode (-v)
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
@@ -131,53 +243,6 @@ var _ = Describe("bosh-micro", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
-	var updateDeploymentManifest = func(sourceManifestPath string) {
-		manifestContents, err := ioutil.ReadFile(sourceManifestPath)
-		Expect(err).ToNot(HaveOccurred())
-		testEnv.WriteContent("manifest", manifestContents)
-	}
-
-	var setDeployment = func(manifestPath string) (stdout string) {
-		os.Stdout.WriteString("\n---DEPLOYMENT---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deployment", manifestPath)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-		return outBuffer.String()
-	}
-
-	var deploy = func() (stdout string) {
-		os.Stdout.WriteString("\n---DEPLOY---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-		return outBuffer.String()
-	}
-
-	var expectDeployToError = func() (stdout string) {
-		os.Stdout.WriteString("\n---DEPLOY---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
-		Expect(err).To(HaveOccurred())
-		Expect(exitCode).To(Equal(1))
-		return outBuffer.String()
-	}
-
-	var deleteDeployment = func() (stdout string) {
-		os.Stdout.WriteString("\n---DELETE---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpi-release.tgz"))
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-		return outBuffer.String()
-	}
-
 	AfterEach(func() {
 		flushLog(cmdEnv["BOSH_MICRO_LOG_PATH"])
 
@@ -191,80 +256,25 @@ var _ = Describe("bosh-micro", func() {
 		Expect(exitCode).To(Equal(0))
 	})
 
-	// parseUserConfig reads & parses the remote bosh-micro user config
-	// This would be a lot cleaner if there were a RemoteFileSystem that used SSH.
-	var parseUserConfig = func() bmconfig.UserConfig {
-		userConfigPath := testEnv.Path(".bosh_micro.json")
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "cat", userConfigPath)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-
-		tempUserConfigFile, err := fileSystem.TempFile("bosh-micro-user-config")
-		Expect(err).ToNot(HaveOccurred())
-		err = tempUserConfigFile.Close()
-		Expect(err).ToNot(HaveOccurred())
-		err = fileSystem.WriteFileString(tempUserConfigFile.Name(), stdout)
-		Expect(err).ToNot(HaveOccurred())
-		defer fileSystem.RemoveAll(tempUserConfigFile.Name())
-
-		userConfigService := bmconfig.NewFileSystemUserConfigService(tempUserConfigFile.Name(), fileSystem, logger)
-		userConfig, err := userConfigService.Load()
-		Expect(err).ToNot(HaveOccurred())
-
-		return userConfig
-	}
-
-	It("can set deployment", func() {
+	It("is able to deploy given many variances", func() {
 		updateDeploymentManifest("./assets/manifest.yml")
 
+		println("#################################################")
+		println("it can set deployment")
+		println("#################################################")
 		manifestPath := testEnv.Path("manifest")
+		setDeploymentOutput := setDeployment(manifestPath)
 
-		stdout := setDeployment(manifestPath)
-		Expect(stdout).To(ContainSubstring(fmt.Sprintf("Deployment manifest set to '%s'", manifestPath)))
+		Expect(setDeploymentOutput).To(ContainSubstring(fmt.Sprintf("Deployment manifest set to '%s'", manifestPath)))
 
 		Expect(parseUserConfig()).To(Equal(bmconfig.UserConfig{
 			DeploymentManifestPath: manifestPath,
 		}))
-	})
 
-	var findStage = func(outputLines []string, stageName string, zeroIndex int) (steps []string, stopIndex int) {
-		startLine := fmt.Sprintf("Started %s", stageName)
-		startIndex := -1
-		for i, line := range outputLines[zeroIndex:] {
-			if line == startLine {
-				startIndex = zeroIndex + i
-				break
-			}
-		}
-		if startIndex < 0 {
-			Fail("Failed to find stage start: " + stageName)
-		}
-
-		stopLinePattern := fmt.Sprintf("^Finished %s %s$", stageName, stageTimePattern)
-		stopLineRegex, err := regexp.Compile(stopLinePattern)
-		Expect(err).ToNot(HaveOccurred())
-
-		stopIndex = -1
-		for i, line := range outputLines[startIndex:] {
-			if stopLineRegex.MatchString(line) {
-				stopIndex = startIndex + i
-				break
-			}
-		}
-		if stopIndex < 0 {
-			Fail("Failed to find stage stop: " + stageName)
-		}
-
-		return outputLines[startIndex+1 : stopIndex], stopIndex
-	}
-
-	It("can deploy", func() {
-		updateDeploymentManifest("./assets/manifest.yml")
-
-		setDeployment(testEnv.Path("manifest"))
-
+		println("#################################################")
+		println("it can deploy successfully with expected output")
+		println("#################################################")
 		stdout := deploy()
-
 		outputLines := strings.Split(stdout, "\n")
 
 		doneIndex := 0
@@ -300,101 +310,93 @@ var _ = Describe("bosh-micro", func() {
 		Expect(deployingSteps[numDeployingSteps-3]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
 		Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Updating instance 'bosh/0'" + stageFinishedPattern))
 		Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Waiting for instance 'bosh/0' to be running" + stageFinishedPattern))
+
+		println("#################################################")
+		println("it sets the ssh password")
+		println("#################################################")
+		stdout, _, exitCode, err := microSSH.RunCommand("echo ssh-succeeded")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(exitCode).To(Equal(0))
+		Expect(stdout).To(ContainSubstring("ssh-succeeded"))
+
+		println("#################################################")
+		println("when there are no changes, it skips deploy")
+		println("#################################################")
+		stdout = deploy()
+
+		Expect(stdout).To(ContainSubstring("No deployment, stemcell or cpi release changes. Skipping deploy."))
+		Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
+		Expect(stdout).ToNot(ContainSubstring("Started deploying"))
+
+		println("#################################################")
+		println("when updating with property changes, it deletes the old VM")
+		println("#################################################")
+		updateDeploymentManifest("./assets/modified_manifest.yml")
+
+		stdout = deploy()
+
+		Expect(stdout).To(ContainSubstring("Deleting VM"))
+		Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
+		Expect(stdout).To(ContainSubstring("Unmounting disk"))
+
+		Expect(stdout).ToNot(ContainSubstring("Creating disk"))
+
+		println("#################################################")
+		println("when updating with disk size changed, it migrates the disk")
+		println("#################################################")
+		updateDeploymentManifest("./assets/modified_disk_manifest.yml")
+
+		stdout = deploy()
+
+		Expect(stdout).To(ContainSubstring("Deleting VM"))
+		Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
+		Expect(stdout).To(ContainSubstring("Unmounting disk"))
+
+		Expect(stdout).To(ContainSubstring("Creating disk"))
+		Expect(stdout).To(ContainSubstring("Migrating disk"))
+		Expect(stdout).To(ContainSubstring("Deleting disk"))
+
+		println("#################################################")
+		println("when re-deploying without a working agent, it deletes the vm")
+		println("#################################################")
+		shutdownAgent()
+
+		updateDeploymentManifest("./assets/modified_manifest.yml")
+
+		stdout = deploy()
+
+		Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
+		Expect(stdout).To(ContainSubstring("Deleting VM"))
+		Expect(stdout).To(ContainSubstring("Creating VM for instance 'bosh/0' from stemcell"))
+		Expect(stdout).To(ContainSubstring("Finished deploying"))
+
+		println("#################################################")
+		println("it can delete all vms, disk, and stemcells")
+		println("#################################################")
+		stdout = deleteDeployment()
+
+		Expect(stdout).To(ContainSubstring("Stopping jobs on instance"))
+		Expect(stdout).To(ContainSubstring("Deleting VM"))
+		Expect(stdout).To(ContainSubstring("Deleting disk"))
+		Expect(stdout).To(ContainSubstring("Deleting stemcell"))
+		Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
 	})
 
-	Context("when microbosh has been previously deployed", func() {
-		BeforeEach(func() {
-			updateDeploymentManifest("./assets/manifest.yml")
+	It("delete the vm even without a working agent", func() {
+		updateDeploymentManifest("./assets/manifest.yml")
 
-			setDeployment(testEnv.Path("manifest"))
+		setDeployment(testEnv.Path("manifest"))
 
-			deploy()
-		})
+		deploy()
+		shutdownAgent()
 
-		It("sets the ssh password", func() {
-			stdout, _, exitCode, err := microSSH.RunCommand("echo ssh-succeeded")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(exitCode).To(Equal(0))
-			Expect(stdout).To(ContainSubstring("ssh-succeeded"))
-		})
+		stdout := deleteDeployment()
 
-		It("when there are no changes, it skips deploy", func() {
-			stdout := deploy()
-
-			Expect(stdout).To(ContainSubstring("No deployment, stemcell or cpi release changes. Skipping deploy."))
-			Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
-			Expect(stdout).ToNot(ContainSubstring("Started deploying"))
-		})
-
-		It("when updating with property changes, it deletes the old VM", func() {
-			updateDeploymentManifest("./assets/modified_manifest.yml")
-
-			stdout := deploy()
-
-			Expect(stdout).To(ContainSubstring("Deleting VM"))
-			Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
-			Expect(stdout).To(ContainSubstring("Unmounting disk"))
-
-			Expect(stdout).ToNot(ContainSubstring("Creating disk"))
-		})
-
-		It("when updating with disk size changed, it migrates the disk", func() {
-			updateDeploymentManifest("./assets/modified_disk_manifest.yml")
-
-			stdout := deploy()
-
-			Expect(stdout).To(ContainSubstring("Deleting VM"))
-			Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
-			Expect(stdout).To(ContainSubstring("Unmounting disk"))
-
-			Expect(stdout).To(ContainSubstring("Creating disk"))
-			Expect(stdout).To(ContainSubstring("Migrating disk"))
-			Expect(stdout).To(ContainSubstring("Deleting disk"))
-		})
-
-		It("can delete all vms, disk, and stemcells", func() {
-			stdout := deleteDeployment()
-
-			Expect(stdout).To(ContainSubstring("Stopping jobs on instance"))
-			Expect(stdout).To(ContainSubstring("Deleting VM"))
-			Expect(stdout).To(ContainSubstring("Deleting disk"))
-			Expect(stdout).To(ContainSubstring("Deleting stemcell"))
-			Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
-		})
-
-		Context("when the agent is unresponsive", func() {
-			BeforeEach(func() {
-				_, _, exitCode, err := microSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
-				if exitCode == 1 {
-					// If timeout was reached, KILL signal was sent before exiting.
-					// Retry to wait another 14s for exit.
-					_, _, exitCode, err = microSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
-				}
-				Expect(err).ToNot(HaveOccurred())
-				Expect(exitCode).To(Equal(0))
-			})
-
-			It("re-deploying deletes the vm", func() {
-				updateDeploymentManifest("./assets/modified_manifest.yml")
-
-				stdout := deploy()
-
-				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
-				Expect(stdout).To(ContainSubstring("Deleting VM"))
-				Expect(stdout).To(ContainSubstring("Creating VM for instance 'bosh/0' from stemcell"))
-				Expect(stdout).To(ContainSubstring("Finished deploying"))
-			})
-
-			It("delete deletes the vm", func() {
-				stdout := deleteDeployment()
-
-				Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
-				Expect(stdout).To(ContainSubstring("Deleting VM"))
-				Expect(stdout).To(ContainSubstring("Deleting disk"))
-				Expect(stdout).To(ContainSubstring("Deleting stemcell"))
-				Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
-			})
-		})
+		Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
+		Expect(stdout).To(ContainSubstring("Deleting VM"))
+		Expect(stdout).To(ContainSubstring("Deleting disk"))
+		Expect(stdout).To(ContainSubstring("Deleting stemcell"))
+		Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
 	})
 
 	It("deploys & deletes without registry and ssh tunnel", func() {
