@@ -48,7 +48,7 @@ func (r *jobListRenderer) Render(
 		renderedJob, err := r.jobRenderer.Render(releaseJob, jobProperties, globalProperties, deploymentName)
 		if err != nil {
 			defer renderedJobList.DeleteSilently()
-			return renderedJobList, bosherr.WrapErrorf(err, "Rendering templates for job %#v", releaseJob)
+			return renderedJobList, bosherr.WrapErrorf(err, "Rendering templates for job %s/%s", releaseJob.Name, releaseJob.Fingerprint)
 		}
 		renderedJobList.Add(renderedJob)
 	}
