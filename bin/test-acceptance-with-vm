@@ -4,8 +4,8 @@ set -ex
 base=$( cd "$( dirname "$( dirname "$0" )")" && pwd )
 acceptance_assets_dir=$base/acceptance/tmp
 
-cpi_release_file=bosh-warden-cpi-16.tgz
-bosh_release_file=bosh-2811.tgz
+cpi_release_version=16
+bosh_release_version=146
 stemcell_file=bosh-stemcell-348-warden-boshlite-ubuntu-trusty-go_agent.tgz
 
 cleanup() {
@@ -25,8 +25,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cpi_release_url=${BOSH_MICRO_CPI_RELEASE_URL:-https://s3.amazonaws.com/bosh-warden-cpi-blobs/$cpi_release_file}
-bosh_release_url=${BOSH_MICRO_BOSH_RELEASE_URL:-https://s3.amazonaws.com/bosh-jenkins-artifacts/release/$bosh_release_file}
+cpi_release_url=${BOSH_MICRO_CPI_RELEASE_URL:-https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=$cpi_release_version}
+bosh_release_url=${BOSH_MICRO_BOSH_RELEASE_URL:-https://bosh.io/d/github.com/cloudfoundry/bosh?v=$bosh_release_version}
 stemcell_url=${BOSH_MICRO_STEMCELL_URL:-https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-stemcell/warden/$stemcell_file}
 
 echo "ENV"
