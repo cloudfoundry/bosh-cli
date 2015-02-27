@@ -41,7 +41,7 @@ func NewBuilderFactory(
 
 func (f *builderFactory) NewBuilder(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient) Builder {
 	packageCompiler := NewRemotePackageCompiler(blobstore, agentClient, f.packageRepo)
-	jobDependencyCompiler := bmstatejob.NewDependencyCompiler(packageCompiler)
+	jobDependencyCompiler := bmstatejob.NewDependencyCompiler(packageCompiler, f.logger)
 
 	return NewBuilder(
 		f.releaseJobResolver,

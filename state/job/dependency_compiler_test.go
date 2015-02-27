@@ -9,6 +9,8 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_state_package "github.com/cloudfoundry/bosh-micro-cli/state/pkg/mocks"
 
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
 	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
@@ -29,6 +31,7 @@ var _ = Describe("DependencyCompiler", func() {
 
 	var (
 		mockPackageCompiler *mock_state_package.MockCompiler
+		logger              boshlog.Logger
 
 		dependencyCompiler DependencyCompiler
 
@@ -47,7 +50,8 @@ var _ = Describe("DependencyCompiler", func() {
 	BeforeEach(func() {
 		mockPackageCompiler = mock_state_package.NewMockCompiler(mockCtrl)
 
-		dependencyCompiler = NewDependencyCompiler(mockPackageCompiler)
+		logger = boshlog.NewLogger(boshlog.LevelNone)
+		dependencyCompiler = NewDependencyCompiler(mockPackageCompiler, logger)
 
 		fakeStage = fakebmui.NewFakeStage()
 

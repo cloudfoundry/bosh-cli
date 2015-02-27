@@ -63,14 +63,14 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 		return nil, bosherr.WrapErrorf(err, "Resolving jobs for instance '%s/%d'", jobName, instanceID)
 	}
 
-	compiledPackageRefs, err := b.jobDependencyCompiler.Compile(releaseJobs, stage)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Compiling job package dependencies for instance '%s/%d'", jobName, instanceID)
-	}
-
 	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, stage)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Rendering job templates for instance '%s/%d'", jobName, instanceID)
+	}
+
+	compiledPackageRefs, err := b.jobDependencyCompiler.Compile(releaseJobs, stage)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Compiling job package dependencies for instance '%s/%d'", jobName, instanceID)
 	}
 
 	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name)

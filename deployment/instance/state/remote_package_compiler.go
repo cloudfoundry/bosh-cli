@@ -54,9 +54,11 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (recor
 		}
 		if !found {
 			return record, bosherr.Errorf(
-				"Remote compilation failure: Package '%s' requires package '%s', but it has not been compiled",
+				"Remote compilation failure: Package '%s/%s' requires package '%s/%s', but it has not been compiled",
 				releasePackage.Name,
+				releasePackage.Fingerprint,
 				dependency.Name,
+				dependency.Fingerprint,
 			)
 		}
 		packageDependencies[i] = bmagentclient.BlobRef{

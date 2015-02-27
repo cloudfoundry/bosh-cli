@@ -154,7 +154,7 @@ func describeRemotePackageCompiler() {
 			It("returns an error", func() {
 				_, err := remotePackageCompiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Remote compilation failure: Package 'fake-package-name' requires package 'fake-package-name-dep', but it has not been compiled"))
+				Expect(err.Error()).To(ContainSubstring("Remote compilation failure: Package 'fake-package-name/fake-package-fingerprint' requires package 'fake-package-name-dep/fake-package-fingerprint-dep', but it has not been compiled"))
 			})
 		})
 	})

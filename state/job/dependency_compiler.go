@@ -2,8 +2,10 @@ package job
 
 import (
 	"fmt"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
 	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
@@ -24,11 +26,15 @@ type DependencyCompiler interface {
 
 type dependencyCompiler struct {
 	packageCompiler bmstatepkg.Compiler
+	logger          boshlog.Logger
+	logTag          string
 }
 
-func NewDependencyCompiler(packageCompiler bmstatepkg.Compiler) DependencyCompiler {
+func NewDependencyCompiler(packageCompiler bmstatepkg.Compiler, logger boshlog.Logger) DependencyCompiler {
 	return &dependencyCompiler{
 		packageCompiler: packageCompiler,
+		logger:          logger,
+		logTag:          "dependencyCompiler",
 	}
 }
 
@@ -50,33 +56,41 @@ func (c *dependencyCompiler) Compile(releaseJobs []bmreljob.Job, stage bmui.Stag
 // resolveJobPackageCompilationDependencies returns all packages required by all specified jobs, in compilation order (reverse dependency order)
 func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bmreljob.Job) ([]*bmrelpkg.Package, error) {
 	// collect and de-dupe all required packages (dependencies of jobs)
-	nameToPackageMap := map[string]*bmrelpkg.Package{}
+	packageMap := map[string]*bmrelpkg.Package{}
 	for _, releaseJob := range releaseJobs {
 		for _, releasePackage := range releaseJob.Packages {
-			nameToPackageMap[releasePackage.Name] = releasePackage
-			c.resolvePackageDependencies(releasePackage, nameToPackageMap)
+			pkgKey := c.pkgKey(releasePackage)
+			packageMap[pkgKey] = releasePackage
+			c.resolvePackageDependencies(releasePackage, packageMap)
 		}
 	}
 
 	// flatten map values to array
-	packages := make([]*bmrelpkg.Package, 0, len(nameToPackageMap))
-	for _, releasePackage := range nameToPackageMap {
+	packages := make([]*bmrelpkg.Package, 0, len(packageMap))
+	for _, releasePackage := range packageMap {
 		packages = append(packages, releasePackage)
 	}
 
 	// sort in compilation order
 	sortedPackages := bmrelpkg.Sort(packages)
 
+	pkgs := []string{}
+	for _, pkg := range sortedPackages {
+		pkgs = append(pkgs, fmt.Sprintf("%s/%s", pkg.Name, pkg.Fingerprint))
+	}
+	c.logger.Debug(c.logTag, "Sorted dependencies:\n%s", strings.Join(pkgs, "\n"))
+
 	return sortedPackages, nil
 }
 
-// resolvePackageDependencies adds the releasePackage's dependencies to the nameToPackageMap recursively
-func (c *dependencyCompiler) resolvePackageDependencies(releasePackage *bmrelpkg.Package, nameToPackageMap map[string]*bmrelpkg.Package) {
+// resolvePackageDependencies adds the releasePackage's dependencies to the packageMap recursively
+func (c *dependencyCompiler) resolvePackageDependencies(releasePackage *bmrelpkg.Package, packageMap map[string]*bmrelpkg.Package) {
 	for _, dependency := range releasePackage.Dependencies {
 		// only add un-added packages, to avoid endless looping in case of cycles
-		if _, found := nameToPackageMap[dependency.Name]; !found {
-			nameToPackageMap[dependency.Name] = dependency
-			c.resolvePackageDependencies(releasePackage, nameToPackageMap)
+		pkgKey := c.pkgKey(dependency)
+		if _, found := packageMap[pkgKey]; !found {
+			packageMap[pkgKey] = dependency
+			c.resolvePackageDependencies(releasePackage, packageMap)
 		}
 	}
 }
@@ -109,4 +123,8 @@ func (c *dependencyCompiler) compilePackages(requiredPackages []*bmrelpkg.Packag
 	}
 
 	return packageRefs, nil
+}
+
+func (c *dependencyCompiler) pkgKey(pkg *bmrelpkg.Package) string {
+	return pkg.Name
 }

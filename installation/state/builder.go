@@ -67,7 +67,7 @@ func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage b
 
 	renderedJobRefs, err := b.renderJobTemplates(releaseJobs, jobProperties, globalProperties, installationManifest.Name, stage)
 	if err != nil {
-		return nil, bosherr.Error("Rendering job templates for installation")
+		return nil, bosherr.WrapError(err, "Rendering job templates for installation")
 	}
 
 	if len(renderedJobRefs) != 1 {

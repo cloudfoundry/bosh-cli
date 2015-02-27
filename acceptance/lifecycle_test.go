@@ -304,10 +304,12 @@ var _ = Describe("bosh-micro", func() {
 		Expect(deployingSteps[1]).To(MatchRegexp("^  Waiting for the agent on VM '.*' to be ready" + stageFinishedPattern))
 		Expect(deployingSteps[2]).To(MatchRegexp("^  Creating disk" + stageFinishedPattern))
 		Expect(deployingSteps[3]).To(MatchRegexp("^  Attaching disk '.*' to VM '.*'" + stageFinishedPattern))
-		for _, line := range deployingSteps[4 : numDeployingSteps-3] {
+		Expect(deployingSteps[4]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
+
+		for _, line := range deployingSteps[5 : numDeployingSteps-2] {
 			Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
 		}
-		Expect(deployingSteps[numDeployingSteps-3]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
+
 		Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Updating instance 'bosh/0'" + stageFinishedPattern))
 		Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Waiting for instance 'bosh/0' to be running" + stageFinishedPattern))
 

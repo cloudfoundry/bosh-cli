@@ -144,6 +144,7 @@ func (c *installerFactoryContext) JobDependencyCompiler() bmstatejob.DependencyC
 
 	c.jobDependencyCompiler = bmstatejob.NewDependencyCompiler(
 		c.PackageCompiler(),
+		c.logger,
 	)
 
 	return c.jobDependencyCompiler
