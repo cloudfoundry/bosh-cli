@@ -6,6 +6,20 @@ require "rubygems"
 require "ostruct"
 require "json"
 require "erb"
+require "yaml"
+
+class Hash
+  def recursive_merge!(other)
+    self.merge!(other) do |_, old_value, new_value|
+      if old_value.class == Hash && new_value.class == Hash
+        old_value.recursive_merge!(new_value)
+      else
+        new_value
+      end
+    end
+    self
+  end
+end
 
 class TemplateEvaluationContext
   attr_reader :name, :index
@@ -15,8 +29,17 @@ class TemplateEvaluationContext
   def initialize(spec)
     @name = spec["job"]["name"] if spec["job"].is_a?(Hash)
     @index = spec["index"]
-    @properties = openstruct(spec["properties"] || {})
-    @raw_properties = spec["properties"] || {}
+
+    properties1 = spec['global_properties'].recursive_merge!(spec['cluster_properties'])
+    properties = {}
+    spec['default_properties'].each do |name, value|
+      copy_property(properties, properties1, name, value)
+    end
+
+    File.open('/tmp/properties.json', 'w') { |f| f << spec['default_properties'].to_yaml; f << "\n"; f << properties.to_yaml }
+
+    @properties = openstruct(properties)
+    @raw_properties = properties
     @spec = openstruct(spec)
   end
 
@@ -49,6 +72,25 @@ class TemplateEvaluationContext
 
   private
 
+  def copy_property(dst, src, name, default = nil)
+    keys = name.split(".")
+    src_ref = src
+    dst_ref = dst
+
+    keys.each do |key|
+      src_ref = src_ref[key]
+      break if src_ref.nil? # no property with this name is src
+    end
+
+    keys[0..-2].each do |key|
+      dst_ref[key] ||= {}
+      dst_ref = dst_ref[key]
+    end
+
+    dst_ref[keys[-1]] ||= {}
+    dst_ref[keys[-1]] = src_ref.nil? ? default : src_ref
+  end
+
   def openstruct(object)
     case object
       when Hash
@@ -76,9 +118,9 @@ class TemplateEvaluationContext
   class UnknownProperty < StandardError
     attr_reader :name
 
-    def initialize(name)
-      @name = name
-      super("Can't find property '#{name}'")
+    def initialize(names)
+      @names = names
+      super("Can't find property '#{names.join("', or '")}'")
     end
   end
 

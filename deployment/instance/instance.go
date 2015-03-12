@@ -134,7 +134,7 @@ func (i *instance) UpdateJobs(
 ) error {
 	newState, err := i.stateBuilder.Build(i.jobName, i.id, deploymentManifest, stage)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Builing state for instance '%s/%d'", i.jobName, i.id)
+		return bosherr.WrapErrorf(err, "Building state for instance '%s/%d'", i.jobName, i.id)
 	}
 
 	stepName := fmt.Sprintf("Updating instance '%s/%d'", i.jobName, i.id)

@@ -2,14 +2,19 @@ package templatescompiler_test
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
 	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	"github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
 )
@@ -18,9 +23,9 @@ var _ = Describe("JobEvaluationContext", func() {
 	var (
 		generatedContext RootContext
 
-		releaseJob              bmreljob.Job
-		deploymentJobProperties bmproperty.Map
-		deploymentProperties    bmproperty.Map
+		releaseJob        bmreljob.Job
+		clusterProperties bmproperty.Map
+		globalProperties  bmproperty.Map
 	)
 	BeforeEach(func() {
 		generatedContext = RootContext{}
@@ -28,21 +33,21 @@ var _ = Describe("JobEvaluationContext", func() {
 		releaseJob = bmreljob.Job{
 			Name: "fake-job-name",
 			Properties: map[string]bmreljob.PropertyDefinition{
-				"fake-default-property-first-level.fake-default-property-second-level": bmreljob.PropertyDefinition{
-					Default: "default-property-value",
+				"fake-default-property1.fake-default-property2": bmreljob.PropertyDefinition{
+					Default: "value-from-job-defaults",
 				},
 			},
 		}
 
-		deploymentJobProperties = bmproperty.Map{
-			"fake-job-property-first-level": bmproperty.Map{
-				"fake-job-property-second-level": "job-property-value",
+		clusterProperties = bmproperty.Map{
+			"fake-job-property1": bmproperty.Map{
+				"fake-job-property2": "value-from-cluster-properties",
 			},
 		}
 
-		deploymentProperties = bmproperty.Map{
-			"fake-global-property-first-level": bmproperty.Map{
-				"fake-global-property-second-level": "global-property-value",
+		globalProperties = bmproperty.Map{
+			"fake-global-property1": bmproperty.Map{
+				"fake-global-property2": "value-from-global-properties",
 			},
 		}
 	})
@@ -52,8 +57,8 @@ var _ = Describe("JobEvaluationContext", func() {
 
 		jobEvaluationContext := NewJobEvaluationContext(
 			releaseJob,
-			deploymentJobProperties,
-			deploymentProperties,
+			clusterProperties,
+			globalProperties,
 			"fake-deployment-name",
 			logger,
 		)
@@ -65,104 +70,145 @@ var _ = Describe("JobEvaluationContext", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
-	It("generates correct json", func() {
-		Expect(generatedContext.Index).To(Equal(0))
-		Expect(generatedContext.JobContext.Name).To(Equal("fake-job-name"))
-		Expect(generatedContext.Deployment).To(Equal("fake-deployment-name"))
-
-		Expect(generatedContext.Properties).To(Equal(bmproperty.Map{
-			"fake-default-property-first-level": map[string]interface{}{
-				"fake-default-property-second-level": "default-property-value",
-			},
-			"fake-job-property-first-level": map[string]interface{}{
-				"fake-job-property-second-level": "job-property-value",
-			},
-			"fake-global-property-first-level": map[string]interface{}{
-				"fake-global-property-second-level": "global-property-value",
-			},
-		}))
-	})
-
 	It("it has a network context section with empty IP", func() {
 		Expect(generatedContext.NetworkContexts["default"].IP).To(Equal(""))
 	})
 
-	Context("when a job property overrides a global property", func() {
+	var erbRenderer erbrenderer.ERBRenderer
+	getValueFor := func(key string) string {
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		fs := boshsys.NewOsFileSystem(logger)
+		commandRunner := boshsys.NewExecCmdRunner(logger)
+		erbRenderer = erbrenderer.NewERBRenderer(fs, commandRunner, logger)
+
+		srcFile, err := ioutil.TempFile("", "source.txt.erb")
+		Expect(err).ToNot(HaveOccurred())
+		defer os.Remove(srcFile.Name())
+
+		erbContents := fmt.Sprintf("<%%= p('%s') %%>", key)
+		_, err = srcFile.WriteString(erbContents)
+		Expect(err).ToNot(HaveOccurred())
+
+		destFile, err := fs.TempFile("dest.txt")
+		Expect(err).ToNot(HaveOccurred())
+		err = destFile.Close()
+		Expect(err).ToNot(HaveOccurred())
+		defer os.Remove(destFile.Name())
+
+		jobEvaluationContext := NewJobEvaluationContext(
+			releaseJob,
+			clusterProperties,
+			globalProperties,
+			"fake-deployment-name",
+			logger,
+		)
+
+		err = erbRenderer.Render(srcFile.Name(), destFile.Name(), jobEvaluationContext)
+		Expect(err).ToNot(HaveOccurred())
+		contents, err := ioutil.ReadFile(destFile.Name())
+		Expect(err).ToNot(HaveOccurred())
+		return (string)(contents)
+	}
+
+	Context("when a cluster property overrides a global property or default value", func() {
 		BeforeEach(func() {
-			deploymentJobProperties = bmproperty.Map{
-				"fake-overridden-property-first-level": bmproperty.Map{
-					"fake-overridden-property-second-level": "job-property-value",
+			releaseJob = bmreljob.Job{
+				Name: "fake-job-name",
+				Properties: map[string]bmreljob.PropertyDefinition{
+					"fake-overridden-property1.fake-overridden-property2": bmreljob.PropertyDefinition{},
 				},
 			}
 
-			deploymentProperties = bmproperty.Map{
-				"fake-overridden-property-first-level": bmproperty.Map{
-					"fake-overridden-property-second-level": "global-property-value",
+			globalProperties = bmproperty.Map{
+				"fake-overridden-property1": bmproperty.Map{
+					"fake-overridden-property2": "value-from-global-properties",
+				},
+			}
+
+			clusterProperties = bmproperty.Map{
+				"fake-overridden-property1": bmproperty.Map{
+					"fake-overridden-property2": "value-from-cluster-properties",
 				},
 			}
 		})
 
-		It("prefers job values over global values", func() {
-			Expect(generatedContext.Properties).To(Equal(bmproperty.Map{
-				"fake-default-property-first-level": map[string]interface{}{
-					"fake-default-property-second-level": "default-property-value",
-				},
-				"fake-overridden-property-first-level": map[string]interface{}{
-					"fake-overridden-property-second-level": "job-property-value",
-				},
-			}))
+		It("prefers cluster values over global values", func() {
+			Expect(getValueFor("fake-overridden-property1.fake-overridden-property2")).
+				To(Equal("value-from-cluster-properties"))
 		})
 	})
 
 	Context("when a global property overrides a default property", func() {
 		BeforeEach(func() {
-			releaseJob.Properties = map[string]bmreljob.PropertyDefinition{
-				"fake-property-first-level.fake-property-second-level": bmreljob.PropertyDefinition{
-					Default: "default-property-value",
+			releaseJob = bmreljob.Job{
+				Name: "fake-job-name",
+				Properties: map[string]bmreljob.PropertyDefinition{
+					"fake-overridden-property1.fake-overridden-property2": bmreljob.PropertyDefinition{
+						Default: "value-from-job-defaults",
+					},
 				},
 			}
 
-			deploymentJobProperties = bmproperty.Map{}
-
-			deploymentProperties = bmproperty.Map{
-				"fake-property-first-level": bmproperty.Map{
-					"fake-property-second-level": "global-property-value",
+			globalProperties = bmproperty.Map{
+				"fake-overridden-property1": bmproperty.Map{
+					"fake-overridden-property2": "value-from-global-properties",
 				},
 			}
+
+			clusterProperties = bmproperty.Map{}
 		})
 
 		It("prefers global values over default values", func() {
-			Expect(generatedContext.Properties).To(Equal(bmproperty.Map{
-				"fake-property-first-level": map[string]interface{}{
-					"fake-property-second-level": "global-property-value",
-				},
-			}))
+			Expect(getValueFor("fake-overridden-property1.fake-overridden-property2")).
+				To(Equal("value-from-global-properties"))
 		})
 	})
 
-	Context("when a job property overrides a default property", func() {
+	Context("when a cluster property overrides a default property", func() {
 		BeforeEach(func() {
-			releaseJob.Properties = map[string]bmreljob.PropertyDefinition{
-				"fake-property-first-level.fake-property-second-level": bmreljob.PropertyDefinition{
-					Default: "default-property-value",
+			releaseJob = bmreljob.Job{
+				Name: "fake-job-name",
+				Properties: map[string]bmreljob.PropertyDefinition{
+					"fake-overridden-property1.fake-overridden-property2": bmreljob.PropertyDefinition{
+						Default: "value-from-job-defaults",
+					},
 				},
 			}
 
-			deploymentJobProperties = bmproperty.Map{
-				"fake-property-first-level": bmproperty.Map{
-					"fake-property-second-level": "job-property-value",
+			globalProperties = bmproperty.Map{}
+
+			clusterProperties = bmproperty.Map{
+				"fake-overridden-property1": bmproperty.Map{
+					"fake-overridden-property2": "value-from-cluster-properties",
 				},
 			}
-
-			deploymentProperties = bmproperty.Map{}
 		})
 
-		It("prefers job values over default values", func() {
-			Expect(generatedContext.Properties).To(Equal(bmproperty.Map{
-				"fake-property-first-level": map[string]interface{}{
-					"fake-property-second-level": "job-property-value",
+		It("prefers cluster values over default values", func() {
+			Expect(getValueFor("fake-overridden-property1.fake-overridden-property2")).
+				To(Equal("value-from-cluster-properties"))
+		})
+	})
+
+	Context("when a property is not specified in cluster or global properties", func() {
+		BeforeEach(func() {
+			releaseJob = bmreljob.Job{
+				Name: "fake-job-name",
+				Properties: map[string]bmreljob.PropertyDefinition{
+					"fake-overridden-property1.fake-overridden-property2": bmreljob.PropertyDefinition{
+						Default: "value-from-job-defaults",
+					},
 				},
-			}))
+			}
+
+			globalProperties = bmproperty.Map{}
+
+			clusterProperties = bmproperty.Map{}
+		})
+
+		It("uses the property's default value", func() {
+			Expect(getValueFor("fake-overridden-property1.fake-overridden-property2")).
+				To(Equal("value-from-job-defaults"))
 		})
 	})
 })

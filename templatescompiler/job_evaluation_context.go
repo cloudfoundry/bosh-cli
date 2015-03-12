@@ -31,7 +31,9 @@ type RootContext struct {
 	NetworkContexts map[string]networkContext `json:"networks"`
 
 	//TODO: this should be a map[string]interface{}
-	Properties bmproperty.Map `json:"properties"`
+	GlobalProperties  bmproperty.Map `json:"global_properties"`  // values from manifest's top-level properties
+	ClusterProperties bmproperty.Map `json:"cluster_properties"` // values from manifest's jobs[].properties
+	DefaultProperties bmproperty.Map `json:"default_properties"` // values from release's job's spec
 }
 
 type jobContext struct {
@@ -64,34 +66,14 @@ func NewJobEvaluationContext(
 func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 	defaultProperties := ec.propertyDefaults(ec.releaseJob.Properties)
 
-	ec.logger.Debug(ec.logTag, "Original job '%s' property defaults: %#v", ec.releaseJob.Name, defaultProperties)
-
-	properties, err := bmproperty.Unfurl(defaultProperties)
-	if err != nil {
-		return []byte{}, bosherr.WrapErrorf(err, "Unfurling job '%s' property defaults: %#v", ec.releaseJob.Name, defaultProperties)
-	}
-	ec.logger.Debug(ec.logTag, "Unfurled job '%s' property defaults: %#v", ec.releaseJob.Name, properties)
-
-	ec.logger.Debug(ec.logTag, "Global properties: %#v", ec.globalProperties)
-	err = bmproperty.Merge(properties, ec.globalProperties)
-	if err != nil {
-		return []byte{}, bosherr.WrapErrorf(err, "Merging global properties for job '%s'", ec.releaseJob.Name)
-	}
-
-	ec.logger.Debug(ec.logTag, "Job '%s' properties: %#v", ec.releaseJob.Name, ec.jobProperties)
-	err = bmproperty.Merge(properties, ec.jobProperties)
-	if err != nil {
-		return []byte{}, bosherr.WrapErrorf(err, "Merging job properties for job '%s'", ec.releaseJob.Name)
-	}
-
-	ec.logger.Debug(ec.logTag, "Merged job '%s' properties: %#v", ec.releaseJob.Name, properties)
-
 	context := RootContext{
-		Index:           0,
-		JobContext:      jobContext{Name: ec.releaseJob.Name},
-		Deployment:      ec.deploymentName,
-		NetworkContexts: ec.buildNetworkContexts(),
-		Properties:      properties,
+		Index:             0,
+		JobContext:        jobContext{Name: ec.releaseJob.Name},
+		Deployment:        ec.deploymentName,
+		NetworkContexts:   ec.buildNetworkContexts(),
+		GlobalProperties:  ec.globalProperties,
+		ClusterProperties: ec.jobProperties,
+		DefaultProperties: defaultProperties,
 	}
 
 	ec.logger.Debug(ec.logTag, "Marshalling context %#v", context)
