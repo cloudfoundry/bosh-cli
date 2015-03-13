@@ -36,8 +36,6 @@ class TemplateEvaluationContext
       copy_property(properties, properties1, name, value)
     end
 
-    File.open('/tmp/properties.json', 'w') { |f| f << spec['default_properties'].to_yaml; f << "\n"; f << properties.to_yaml }
-
     @properties = openstruct(properties)
     @raw_properties = properties
     @spec = openstruct(spec)
