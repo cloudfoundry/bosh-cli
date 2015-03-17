@@ -5,7 +5,6 @@ base=$( cd "$( dirname "$( dirname "$0" )")" && pwd )
 acceptance_assets_dir=$base/acceptance/tmp
 
 cpi_release_version=16
-bosh_release_version=148
 stemcell_file=registry-test-warden-stemcell.tgz
 
 cleanup() {
@@ -26,8 +25,8 @@ cleanup() {
 trap cleanup EXIT
 
 cpi_release_url=${BOSH_MICRO_CPI_RELEASE_URL:-https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=$cpi_release_version}
-bosh_release_url=${BOSH_MICRO_BOSH_RELEASE_URL:-https://bosh.io/d/github.com/cloudfoundry/bosh?v=$bosh_release_version}
 stemcell_url=${BOSH_MICRO_STEMCELL_URL:-https://s3.amazonaws.com/bosh-dependencies/$stemcell_file}
+dummy_release_path=${BOSH_MICRO_DUMMY_RELEASE_PATH:-./assets/dummy-release.tgz}
 
 echo "ENV"
 echo `env`
@@ -59,8 +58,7 @@ cat > $config_file <<EOF
   "stemcell_url": "${stemcell_url}",
   "cpi_release_path": "${BOSH_MICRO_CPI_RELEASE_PATH}",
   "cpi_release_url": "${cpi_release_url}",
-  "bosh_release_path": "${BOSH_MICRO_BOSH_RELEASE_PATH}",
-  "bosh_release_url": "${bosh_release_url}"
+  "dummy_release_path": "${dummy_release_path}"
 }
 EOF
 

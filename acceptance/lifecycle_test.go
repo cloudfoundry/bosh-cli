@@ -85,7 +85,7 @@ var _ = Describe("bosh-micro", func() {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return outBuffer.String()
@@ -95,7 +95,7 @@ var _ = Describe("bosh-micro", func() {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("bosh-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
 		return outBuffer.String()
@@ -242,7 +242,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(err).NotTo(HaveOccurred())
 		err = testEnv.DownloadOrCopy("cpi-release.tgz", config.CpiReleasePath, config.CpiReleaseURL)
 		Expect(err).NotTo(HaveOccurred())
-		err = testEnv.DownloadOrCopy("bosh-release.tgz", config.BoshReleasePath, config.BoshReleaseURL)
+		err = testEnv.Copy("dummy-release.tgz", config.DummyReleasePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -303,7 +303,7 @@ var _ = Describe("bosh-micro", func() {
 
 		deployingSteps, doneIndex := findStage(outputLines, "deploying", doneIndex+1)
 		numDeployingSteps := len(deployingSteps)
-		Expect(deployingSteps[0]).To(MatchRegexp("^  Creating VM for instance 'bosh/0' from stemcell '.*'" + stageFinishedPattern))
+		Expect(deployingSteps[0]).To(MatchRegexp("^  Creating VM for instance 'dummy_job/0' from stemcell '.*'" + stageFinishedPattern))
 		Expect(deployingSteps[1]).To(MatchRegexp("^  Waiting for the agent on VM '.*' to be ready" + stageFinishedPattern))
 		Expect(deployingSteps[2]).To(MatchRegexp("^  Creating disk" + stageFinishedPattern))
 		Expect(deployingSteps[3]).To(MatchRegexp("^  Attaching disk '.*' to VM '.*'" + stageFinishedPattern))
@@ -313,8 +313,8 @@ var _ = Describe("bosh-micro", func() {
 			Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
 		}
 
-		Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Updating instance 'bosh/0'" + stageFinishedPattern))
-		Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Waiting for instance 'bosh/0' to be running" + stageFinishedPattern))
+		Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Updating instance 'dummy_job/0'" + stageFinishedPattern))
+		Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Waiting for instance 'dummy_job/0' to be running" + stageFinishedPattern))
 
 		println("#################################################")
 		println("it sets the ssh password")
@@ -372,7 +372,7 @@ var _ = Describe("bosh-micro", func() {
 
 		Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
 		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Creating VM for instance 'bosh/0' from stemcell"))
+		Expect(stdout).To(ContainSubstring("Creating VM for instance 'dummy_job/0' from stemcell"))
 		Expect(stdout).To(ContainSubstring("Finished deploying"))
 
 		println("#################################################")
@@ -430,8 +430,6 @@ var _ = Describe("bosh-micro", func() {
 Command 'deploy' failed:
   Validating deployment manifest:
     jobs[0].templates[0].release must refer to an available release:
-      Release 'unknown-release' is not available
-    jobs[0].templates[5].release must refer to an available release:
       Release 'unknown-release' is not available`))
 	})
 })

@@ -33,7 +33,7 @@ cloud_provider:
     password: fake-registry-password
   mbus: https://admin:admin@10.244.0.42:6868
   properties:
-    cpi:
+    cpi: &warden_cpi
       warden:
         connect_network: tcp
         connect_address: 0.0.0.0:7777
@@ -50,16 +50,13 @@ cloud_provider:
             blobstore_path: /var/vcap/micro_bosh/data/cache
 
 jobs:
-- name: bosh
+- name: dummy_job
   instances: 1
   templates:
-  - {name: nats, release: bosh}
-  - {name: redis, release: bosh}
-  - {name: postgres, release: bosh}
-  - {name: powerdns, release: bosh}
-  - {name: blobstore, release: bosh}
-  - {name: director, release: bosh}
-  - {name: health_monitor, release: bosh}
+  - {name: dummy_with_package, release: dummy}
+  - {name: dummy_with_properties, release: dummy}
+  - {name: dummy, release: dummy}
+  - {name: cpi, release: bosh-warden-cpi}
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name
@@ -67,52 +64,8 @@ jobs:
   persistent_disk: 1024
   properties:
     new_job_property: new_property_value
+    cpi: *warden_cpi
     micro: true
-    nats:
-      address: 127.0.0.1
-      user: nats
-      password: nats
-      auth_timeout: 3
-    redis:
-      address: 127.0.0.1
-      password: redis
-    postgres:
-      password: postges
-      host: 127.0.0.1
-    blobstore:
-      address: 127.0.0.1
-      director:
-        user: director
-        password: director
-      agent:
-        user: agent
-        password: agent
-    director:
-      address: 127.0.0.1
-      name: bosh-collocated
-      db:
-        password: postges
-        host: 127.0.0.1
-    hm:
-      http:
-        user: hm
-        password: hm
-      director_account:
-        user: admin
-        password: admin
-      intervals:
-        log_stats: 300
-        agent_timeout: 180
-        rogue_agent_alert: 180
-    dns:
-      address: 127.0.0.1
-      db:
-        password: postges
-        host: 127.0.0.1
+    dummy_with_properties:
+      echo_value: "hi"
     ntp: []
-    # Control some remote vCenter
-    vcenter:
-      address: fake-address
-      user: fake-user
-      password: fake-password
-      datacenters: []

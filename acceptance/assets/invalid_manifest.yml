@@ -33,7 +33,7 @@ cloud_provider:
     password: fake-registry-password
   mbus: https://admin:admin@10.244.0.42:6868
   properties:
-    cpi:
+    cpi: &warden_cpi
       warden:
         connect_network: tcp
         connect_address: 0.0.0.0:7777
@@ -50,19 +50,22 @@ cloud_provider:
             blobstore_path: /var/vcap/micro_bosh/data/cache
 
 jobs:
-- name: bosh
+- name: dummy_job
   instances: 1
   templates:
-  - {name: nats, release: unknown-release}
-  - {name: redis, release: bosh}
-  - {name: postgres, release: bosh}
-  - {name: powerdns, release: bosh}
-  - {name: blobstore, release: bosh}
-  - {name: director, release: unknown-release}
-  - {name: health_monitor, release: bosh}
+  - {name: jobbie-job, release: unknown-release}
+  - {name: dummy_with_package, release: dummy}
+  - {name: dummy_with_properties, release: dummy}
+  - {name: dummy, release: dummy}
+  - {name: cpi, release: bosh-warden-cpi}
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name
     static_ips: [10.244.0.42]
   persistent_disk: 1024
-  properties: {}
+  properties:
+    cpi: *warden_cpi
+    micro: true
+    dummy_with_properties:
+      echo_value: "hi"
+    ntp: []

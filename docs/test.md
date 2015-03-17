@@ -34,7 +34,7 @@ Acceptance tests can be run in a VM with the following vagrant providers:
 
 The acceptance tests can be run on a local VM (using virtual box, vmware fusion, or vmware_workstation with vagrant).
 
-The acceptance tests require a stemcell, a BOSH Warden CPI release, and a BOSH release. 
+The acceptance tests require a stemcell and a BOSH Warden CPI release.
   
 Without specifying them, a specific (known to work) version of each will be downloaded.
   
@@ -46,7 +46,6 @@ To take advantage of this feature, export the following variables prior to runni
 ```
 $ export BOSH_MICRO_CPI_RELEASE_PATH=/tmp/bosh-warden-cpi-9.tgz
 $ export BOSH_MICRO_STEMCELL_PATH=/tmp/bosh-stemcell-348-warden-boshlite-ubuntu-trusty-go_agent.tgz
-$ export BOSH_MICRO_BOSH_RELEASE_PATH=/tmp/bosh-2811.tgz
 $ ./bin/test-acceptance-with-vm --provider=virtualbox
 ```
 
@@ -80,8 +79,7 @@ Acceptance tests use configuration file specified via `BOSH_MICRO_CONFIG_PATH`. 
   "cpi_release_url": "CPI_RELEASE_URL",
   "stemcell_path": "STEMCELL_PATH",
   "stemcell_url": "STEMCELL_URL"
-  "bosh_release_path": "BOSH_RELEASE_PATH",
-  "bosh_release_url": "BOSH_RELEASE_URL"
+  "dummy_release_path": "DUMMY_RELEASE_PATH",
 }
 ```
 

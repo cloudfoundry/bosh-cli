@@ -54,7 +54,7 @@ func (e remoteTestEnvironment) Path(name string) string {
 
 func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 	if srcPath == "" {
-		return fmt.Errorf("Cannot use an empty file for '%s'", destName)
+		return fmt.Errorf("Cannot use an empty source file path '' for destination file '%s'", destName)
 	}
 
 	_, _, exitCode, err := e.cmdRunner.RunCommand(
