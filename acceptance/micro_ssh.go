@@ -16,6 +16,7 @@ type MicroSSH interface {
 type microSSH struct {
 	vmUsername     string
 	vmIP           string
+	vmPort         string
 	privateKeyPath string
 	microUsername  string
 	microIP        string
@@ -27,6 +28,7 @@ type microSSH struct {
 func NewMicroSSH(
 	vmUsername string,
 	vmIP string,
+	vmPort string,
 	privateKeyPath string,
 	microUsername string,
 	microIP string,
@@ -37,6 +39,7 @@ func NewMicroSSH(
 	return &microSSH{
 		vmUsername:     vmUsername,
 		vmIP:           vmIP,
+		vmPort:         vmPort,
 		privateKeyPath: privateKeyPath,
 		microUsername:  microUsername,
 		microIP:        microIP,
@@ -63,7 +66,7 @@ func (s *microSSH) setupSSH() (boshsys.File, error) {
 Host vagrant-vm
 	HostName %s
 	User %s
-	Port 22
+	Port %s
 	StrictHostKeyChecking no
 	IdentityFile %s
 Host warden-vm
@@ -76,6 +79,7 @@ Host warden-vm
 		sshConfigTemplate,
 		s.vmIP,
 		s.vmUsername,
+		s.vmPort,
 		s.privateKeyPath,
 		s.microIP,
 		s.microUsername,

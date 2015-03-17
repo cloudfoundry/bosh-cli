@@ -191,6 +191,7 @@ var _ = Describe("bosh-micro", func() {
 		testEnv = NewRemoteTestEnvironment(
 			config.VMUsername,
 			config.VMIP,
+			config.VMPort,
 			config.PrivateKeyPath,
 			fileSystem,
 			logger,
@@ -199,6 +200,7 @@ var _ = Describe("bosh-micro", func() {
 		sshCmdRunner = NewSSHCmdRunner(
 			config.VMUsername,
 			config.VMIP,
+			config.VMPort,
 			config.PrivateKeyPath,
 			logger,
 		)
@@ -220,6 +222,7 @@ var _ = Describe("bosh-micro", func() {
 		microSSH = NewMicroSSH(
 			config.VMUsername,
 			config.VMIP,
+			config.VMPort,
 			config.PrivateKeyPath,
 			microUsername,
 			microIP,

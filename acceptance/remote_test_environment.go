@@ -20,6 +20,7 @@ type Environment interface {
 type remoteTestEnvironment struct {
 	vmUsername     string
 	vmIP           string
+	vmPort         string
 	privateKeyPath string
 	cmdRunner      boshsys.CmdRunner
 	fileSystem     boshsys.FileSystem
@@ -28,6 +29,7 @@ type remoteTestEnvironment struct {
 func NewRemoteTestEnvironment(
 	vmUsername string,
 	vmIP string,
+	vmPort string,
 	privateKeyPath string,
 	fileSystem boshsys.FileSystem,
 	logger boshlog.Logger,
@@ -35,6 +37,7 @@ func NewRemoteTestEnvironment(
 	return remoteTestEnvironment{
 		vmUsername:     vmUsername,
 		vmIP:           vmIP,
+		vmPort:         vmPort,
 		privateKeyPath: privateKeyPath,
 		cmdRunner:      boshsys.NewExecCmdRunner(logger),
 		fileSystem:     fileSystem,
@@ -58,6 +61,7 @@ func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 		"scp",
 		"-o", "StrictHostKeyChecking=no",
 		"-i", e.privateKeyPath,
+		"-P", e.vmPort,
 		srcPath,
 		fmt.Sprintf("%s@%s:%s", e.vmUsername, e.vmIP, e.Path(destName)),
 	)
@@ -83,6 +87,7 @@ func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {
 		"ssh",
 		"-o", "StrictHostKeyChecking=no",
 		"-i", e.privateKeyPath,
+		"-p", e.vmPort,
 		fmt.Sprintf("%s@%s", e.vmUsername, e.vmIP),
 		fmt.Sprintf("wget -q -O %s %s", destName, srcURL),
 	)

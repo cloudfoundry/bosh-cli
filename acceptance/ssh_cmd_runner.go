@@ -17,6 +17,7 @@ type CmdRunner interface {
 type sshCmdRunner struct {
 	vmUsername     string
 	vmIP           string
+	vmPort         string
 	privateKeyPath string
 	runner         boshsys.CmdRunner
 }
@@ -24,12 +25,14 @@ type sshCmdRunner struct {
 func NewSSHCmdRunner(
 	vmUsername string,
 	vmIP string,
+	vmPort string,
 	privateKeyPath string,
 	logger boshlog.Logger,
 ) CmdRunner {
 	return &sshCmdRunner{
 		vmUsername:     vmUsername,
 		vmIP:           vmIP,
+		vmPort:         vmPort,
 		privateKeyPath: privateKeyPath,
 		runner:         boshsys.NewExecCmdRunner(logger),
 	}
@@ -46,6 +49,7 @@ func (r *sshCmdRunner) RunCommand(env map[string]string, args ...string) (string
 		"ssh",
 		"-o", "StrictHostKeyChecking=no",
 		"-i", r.privateKeyPath,
+		"-p", r.vmPort,
 		fmt.Sprintf("%s@%s", r.vmUsername, r.vmIP),
 		strings.Join(argsWithEnv, " "),
 	)
@@ -64,6 +68,7 @@ func (r *sshCmdRunner) RunStreamingCommand(out io.Writer, env map[string]string,
 		Args: []string{
 			"-o", "StrictHostKeyChecking=no",
 			"-i", r.privateKeyPath,
+			"-p", r.vmPort,
 			fmt.Sprintf("%s@%s", r.vmUsername, r.vmIP),
 			strings.Join(argsWithEnv, " "),
 		},

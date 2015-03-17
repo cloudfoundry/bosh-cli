@@ -6,7 +6,7 @@ acceptance_assets_dir=$base/acceptance/tmp
 
 cpi_release_version=16
 bosh_release_version=148
-stemcell_file=bosh-stemcell-348-warden-boshlite-ubuntu-trusty-go_agent.tgz
+stemcell_file=registry-test-warden-stemcell.tgz
 
 cleanup() {
   ( cd $base && vagrant destroy -f )
@@ -27,7 +27,7 @@ trap cleanup EXIT
 
 cpi_release_url=${BOSH_MICRO_CPI_RELEASE_URL:-https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=$cpi_release_version}
 bosh_release_url=${BOSH_MICRO_BOSH_RELEASE_URL:-https://bosh.io/d/github.com/cloudfoundry/bosh?v=$bosh_release_version}
-stemcell_url=${BOSH_MICRO_STEMCELL_URL:-https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-stemcell/warden/$stemcell_file}
+stemcell_url=${BOSH_MICRO_STEMCELL_URL:-https://s3.amazonaws.com/bosh-dependencies/$stemcell_file}
 
 echo "ENV"
 echo `env`
@@ -45,6 +45,7 @@ vagrant up $@
 
 vm_username=`vagrant ssh-config | grep "User " | awk '{print $2}'`
 vm_ip=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{print $2}'`
+vm_port=`vagrant ssh-config 2>/dev/null | grep Port | awk '{print $2}'`
 private_key_path=${BOSH_LITE_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
 
 config_file=`mktemp -t bosh-micro-config-XXXXXXXX`
@@ -52,6 +53,7 @@ cat > $config_file <<EOF
 {
   "vm_username": "${vm_username}",
   "vm_ip": "${vm_ip}",
+  "vm_port": "${vm_port}",
   "private_key_path": "${private_key_path}",
   "stemcell_path": "${BOSH_MICRO_STEMCELL_PATH}",
   "stemcell_url": "${stemcell_url}",
