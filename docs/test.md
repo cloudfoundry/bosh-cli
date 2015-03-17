@@ -90,3 +90,10 @@ Run acceptance tests:
 ```
 BOSH_MICRO_CONFIG_PATH=config.json bin/test-acceptance
 ```
+
+## Debugging Acceptance Test Failures
+
+If your acceptance tests are failing mysteriously while running a command, here are some things to check:
+
+ * `vagrant ssh` to the vm running the specs and check out the `bosh-micro-cli.log` in the vagrant user home directory
+ * If your agent isn't starting, get its IP from the micro logs (see above). Then you can `ssh vcap@<ip>` and check out `/var/vcap/bosh/log/current`
