@@ -44,9 +44,8 @@ properties:
         scope: openid
         authorities: uaa.none
         secret: uaa-secret-key
-    jwt:
-      signing_key: "uaa-secret-key"
-      verification_key: "uaa-secret-key"
+    cc:
+      token_secret: "uaa-secret-key"
     scim:
       users:
       - marissa|koala|marissa@test.org|Marissa|Bloggs|uaa.user
