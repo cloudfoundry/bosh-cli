@@ -60,4 +60,17 @@ properties:
     protocol: http
 ```
 
+To configure with LDAP add:
 
+```yaml
+properties:
+	uaa:
+    ldap:
+      enabled: true
+      profile_type: search-and-bind
+      url: 'ldap://LDAP_HOST:389/'
+      userDN: 'cn=admin,dc=test,dc=com'
+      userPassword: 'password'
+      searchBase: 'dc=test,dc=com'
+      searchFilter: 'cn={0}'
+```
