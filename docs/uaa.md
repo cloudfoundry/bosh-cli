@@ -21,30 +21,28 @@ properties:
       provider: uaa
       options:
         key: uaa-secret-key
-        url: https://ADDRESS:25888/uaa
+        url: http://ADDRESS:25888
   uaa:
     db:
-      address: ADDRESS
-      name: DB_NAME
+      address: DB-ADDRESS
+      name: uaadb
       db_scheme: mysql
       port: 3306
-      username: USERNAME
-      password: PASSWORD
+      username: DB-USER
+      password: DB-PASSWORD
     port: 25888
     admin:
       client_secret: PASSWORD
-    batch:
-      password: PASSWORD
-      username: batch_user
+    client:
+      autoapprove:
+      - bosh_cli
     clients:
-      hm:
-        secret: PASSWORD
-      login:
-        authorities: oauth.login,scim.write,clients.read,notifications.write,critical_notifications.write,emails.write,scim.userids,password.write
-        authorized-grant-types: authorization_code,client_credentials,refresh_token
-        redirect-uri: http://login.REPLACE_WITH_SYSTEM_DOMAIN
-        scope: openid,oauth.approvals
-        secret: PASSWORD
+      bosh_cli:
+        id: bosh_cli
+        override: true
+        authorized-grant-types: implicit,password,refresh_token
+        scope: openid
+        authorities: uaa.none
     jwt:
       signing_key: |
         -----BEGIN RSA PRIVATE KEY-----
@@ -71,7 +69,8 @@ properties:
         -----END PUBLIC KEY-----
     scim:
       users:
-      - admin|password|scim.write,scim.read
+      - marissa|koala|marissa@test.org|Marissa|Bloggs|uaa.user
+      userids_enabled: true
     url: http://uaa.example.com
     login:
       client_secret: PASSWORD
