@@ -1,14 +1,14 @@
 ## Using UAA for authentication
 
-### 1. Download CF Release.
+### 1. Download the UAA BOSH Release.
 
-Download a release from the releases page of [cf-release](http://bosh.io/releases/github.com/cloudfoundry/cf-release).
+Download a release from the releases page of [uaa-release](https://github.com/pivotal-cf-experimental/tmp-bosh-uaa-release/).
 
 ### 2. Add stuff to your manifest.
 
 Add the `uaa` job to your deployment jobs:
 
-    - { name: uaa, release: cf }
+    - { name: uaa, release: uaa }
 
 Add uaa job properties to either the global properties or the job properties.
 
