@@ -86,13 +86,13 @@ func (r releaseRepo) FindCurrent() (ReleaseRecord, bool, error) {
 		return ReleaseRecord{}, false, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	currentDiskID := config.CurrentReleaseID
-	if currentDiskID == "" {
+	currentReleaseID := config.CurrentReleaseID
+	if currentReleaseID == "" {
 		return ReleaseRecord{}, false, nil
 	}
 
 	for _, oldRecord := range config.Releases {
-		if oldRecord.ID == currentDiskID {
+		if oldRecord.ID == currentReleaseID {
 			return oldRecord, true, nil
 		}
 	}
