@@ -5,7 +5,7 @@ bin=$(dirname $0)
 $bin/go get -u github.com/golang/lint/golint
 
 errors=$(
-  $bin/gofiles golint \
+  $bin/gofiles $bin/env golint \
     | grep -v 'should have comment.* or be unexported'      \
     | grep -v '/mocks/'                                     \
     | grep -v 'should not be capitalized'
