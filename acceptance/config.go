@@ -9,14 +9,14 @@ import (
 )
 
 type Config struct {
-	VMUsername      string `json:"vm_username"`
-	VMIP            string `json:"vm_ip"`
-	VMPort          string `json:"vm_port"`
-	PrivateKeyPath  string `json:"private_key_path"`
-	StemcellURL     string `json:"stemcell_url"`
-	StemcellPath    string `json:"stemcell_path"`
-	CpiReleaseURL   string `json:"cpi_release_url"`
-	CpiReleasePath  string `json:"cpi_release_path"`
+	VMUsername       string `json:"vm_username"`
+	VMIP             string `json:"vm_ip"`
+	VMPort           string `json:"vm_port"`
+	PrivateKeyPath   string `json:"private_key_path"`
+	StemcellURL      string `json:"stemcell_url"`
+	StemcellPath     string `json:"stemcell_path"`
+	CpiReleaseURL    string `json:"cpi_release_url"`
+	CpiReleasePath   string `json:"cpi_release_path"`
 	DummyReleasePath string `json:"dummy_release_path"`
 }
 
