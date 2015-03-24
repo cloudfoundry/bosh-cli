@@ -31,9 +31,9 @@ type ReleaseRepoFindOutput struct {
 }
 
 type ReleaseRepoFindCurrentOutput struct {
-	releaseRecord bmconfig.ReleaseRecord
-	found         bool
-	err           error
+	releaseRecords []bmconfig.ReleaseRecord
+	found          bool
+	err            error
 }
 
 type FakeReleaseRepo struct {
@@ -42,8 +42,8 @@ type FakeReleaseRepo struct {
 	FindBehavior map[string]ReleaseRepoFindOutput
 	FindInputs   []ReleaseRepoFindInput
 
-	UpdateCurrentRecordID string
-	UpdateCurrentErr      error
+	UpdateCurrentRecordIDs []string
+	UpdateCurrentErr       error
 
 	findCurrentOutput ReleaseRepoFindCurrentOutput
 }
@@ -57,13 +57,13 @@ func NewFakeReleaseRepo() *FakeReleaseRepo {
 	}
 }
 
-func (fr *FakeReleaseRepo) UpdateCurrent(recordID string) error {
-	fr.UpdateCurrentRecordID = recordID
+func (fr *FakeReleaseRepo) UpdateCurrent(recordIDs []string) error {
+	fr.UpdateCurrentRecordIDs = recordIDs
 	return fr.UpdateCurrentErr
 }
 
-func (fr *FakeReleaseRepo) FindCurrent() (bmconfig.ReleaseRecord, bool, error) {
-	return fr.findCurrentOutput.releaseRecord, fr.findCurrentOutput.found, fr.findCurrentOutput.err
+func (fr *FakeReleaseRepo) FindCurrent() ([]bmconfig.ReleaseRecord, bool, error) {
+	return fr.findCurrentOutput.releaseRecords, fr.findCurrentOutput.found, fr.findCurrentOutput.err
 }
 
 func (fr *FakeReleaseRepo) Save(name, version string) (bmconfig.ReleaseRecord, error) {
@@ -145,11 +145,11 @@ func (fr *FakeReleaseRepo) SetFindBehavior(name, version string, foundRecord bmc
 	return nil
 }
 
-func (fr *FakeReleaseRepo) SetFindCurrentBehavior(foundRecord bmconfig.ReleaseRecord, found bool, err error) error {
+func (fr *FakeReleaseRepo) SetFindCurrentBehavior(foundRecords []bmconfig.ReleaseRecord, found bool, err error) error {
 	fr.findCurrentOutput = ReleaseRepoFindCurrentOutput{
-		releaseRecord: foundRecord,
-		found:         found,
-		err:           err,
+		releaseRecords: foundRecords,
+		found:          found,
+		err:            err,
 	}
 
 	return nil

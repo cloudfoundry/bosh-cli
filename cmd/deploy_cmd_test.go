@@ -52,7 +52,9 @@ import (
 	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 )
 
-var _ = Describe("DeployCmd", func() {
+var _ = Describe("DeployCmd", rootDesc)
+
+func rootDesc() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {
@@ -227,6 +229,7 @@ var _ = Describe("DeployCmd", func() {
 			boshDeploymentManifest bmdeplmanifest.Manifest
 			installationManifest   bminstallmanifest.Manifest
 			fakeCloud              *fakebmcloud.FakeCloud
+			deploymentReleases     []bmrel.Release
 
 			cloudStemcell bmstemcell.CloudStemcell
 
@@ -303,6 +306,7 @@ var _ = Describe("DeployCmd", func() {
 
 			// parsed/extracted CPI release
 			fakeCPIRelease = fakebmrel.NewFakeRelease()
+			deploymentReleases = []bmrel.Release{fakeCPIRelease}
 			fakeCPIRelease.ReleaseName = "fake-cpi-release-name"
 			fakeCPIRelease.ReleaseVersion = "1.0"
 			fakeCPIRelease.ReleaseJobs = []bmreljob.Job{
@@ -339,7 +343,7 @@ var _ = Describe("DeployCmd", func() {
 
 			fakeDeploymentRecord.SetIsDeployedBehavior(
 				deploymentManifestPath,
-				fakeCPIRelease,
+				deploymentReleases,
 				extractedStemcell,
 				false,
 				nil,
@@ -347,7 +351,7 @@ var _ = Describe("DeployCmd", func() {
 
 			fakeDeploymentRecord.SetUpdateBehavior(
 				deploymentManifestPath,
-				fakeCPIRelease,
+				deploymentReleases,
 				nil,
 			)
 
@@ -575,7 +579,7 @@ var _ = Describe("DeployCmd", func() {
 			Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdepl.UpdateInput{
 				{
 					ManifestPath: deploymentManifestPath,
-					Release:      fakeCPIRelease,
+					Releases:     deploymentReleases,
 				},
 			}))
 		})
@@ -591,7 +595,7 @@ var _ = Describe("DeployCmd", func() {
 			JustBeforeEach(func() {
 				fakeDeploymentRecord.SetIsDeployedBehavior(
 					deploymentManifestPath,
-					fakeCPIRelease,
+					deploymentReleases,
 					extractedStemcell,
 					true,
 					nil,
@@ -649,12 +653,14 @@ var _ = Describe("DeployCmd", func() {
 
 				fakeFs.WriteFileString(otherReleaseTarballPath, "")
 
-				fakeOtherRelease = fakebmrel.NewFakeRelease()
+				fakeOtherRelease = fakebmrel.New("other-release", "1234")
 				fakeOtherRelease.ReleaseJobs = []bmreljob.Job{
 					{
 						Name: "not-cpi",
 					},
 				}
+
+				deploymentReleases = []bmrel.Release{fakeOtherRelease, fakeCPIRelease}
 
 				expectOtherReleaseExtract = mockReleaseExtractor.EXPECT().Extract(otherReleaseTarballPath).Return(fakeOtherRelease, nil).AnyTimes()
 			})
@@ -673,6 +679,17 @@ var _ = Describe("DeployCmd", func() {
 
 				err := command.Run(fakeStage, []string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
 				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("updates the deployment record", func() {
+				err := command.Run(fakeStage, []string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdepl.UpdateInput{
+					{
+						ManifestPath: deploymentManifestPath,
+						Releases:     deploymentReleases,
+					},
+				}))
 			})
 
 			Context("when cloud_provider.release refers to an release declared with version 'latest'", func() {
@@ -869,4 +886,4 @@ var _ = Describe("DeployCmd", func() {
 			})
 		})
 	})
-})
+}

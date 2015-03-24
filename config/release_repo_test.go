@@ -11,7 +11,8 @@ import (
 	. "github.com/cloudfoundry/bosh-micro-cli/config"
 )
 
-var _ = Describe("ReleaseRepo", func() {
+var _ = Describe("ReleaseRepo", rootDesc)
+func rootDesc() {
 	var (
 		repo              ReleaseRepo
 		configService     DeploymentConfigService
@@ -124,13 +125,29 @@ var _ = Describe("ReleaseRepo", func() {
 			})
 
 			It("saves the release record as current release", func() {
-				err := repo.UpdateCurrent("fake-uuid-1")
+				ids := []string{"fake-uuid-1"}
+				err := repo.UpdateCurrent(ids)
 				Expect(err).ToNot(HaveOccurred())
 
 				deploymentConfig, err := configService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentConfig.CurrentReleaseID).To(Equal("fake-uuid-1"))
+				Expect(deploymentConfig.CurrentReleaseIDs).To(Equal([]string{"fake-uuid-1"}))
+			})
+
+			It("can save multiple current releases", func() {
+				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
+				_, err := repo.Save("fake-name-x", "fake-version")
+				Expect(err).ToNot(HaveOccurred())
+
+				ids := []string{"fake-uuid-1", "fake-uuid-2"}
+				err = repo.UpdateCurrent(ids)
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentConfig, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deploymentConfig.CurrentReleaseIDs).To(Equal([]string{"fake-uuid-1", "fake-uuid-2"}))
 			})
 		})
 
@@ -142,9 +159,15 @@ var _ = Describe("ReleaseRepo", func() {
 			})
 
 			It("returns an error", func() {
-				err := repo.UpdateCurrent("fake-uuid-2")
+				err := repo.UpdateCurrent([]string{"fake-uuid-2"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying release record exists with id 'fake-uuid-2'"))
+			})
+
+			It("returns an error if any of the releas IDs are not found", func() {
+				err := repo.UpdateCurrent([]string{"fake-uuid-1", "not-saved-id"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Verifying release record exists with id 'not-saved-id'"))
 			})
 		})
 	})
@@ -152,34 +175,49 @@ var _ = Describe("ReleaseRepo", func() {
 	Describe("FindCurrent", func() {
 		Context("when a current release exists", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
-				_, err := repo.Save("fake-name", "fake-version-1")
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-a"
+				recordA, err := repo.Save("fake-name-a", "fake-version-a")
 				Expect(err).ToNot(HaveOccurred())
 
-				fakeUUIDGenerator.GeneratedUUID = "fake-guid-2"
-				record, err := repo.Save("fake-name", "fake-version-2")
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-b"
+				_, err = repo.Save("fake-name-b", "fake-version-b")
 				Expect(err).ToNot(HaveOccurred())
 
-				repo.UpdateCurrent(record.ID)
+				fakeUUIDGenerator.GeneratedUUID = "fake-guid-c"
+				recordC, err := repo.Save("fake-name-c", "fake-version-c")
+				Expect(err).ToNot(HaveOccurred())
+
+				repo.UpdateCurrent([]string{recordA.ID, recordC.ID})
 			})
 
 			It("returns existing release", func() {
-				record, found, err := repo.FindCurrent()
+				records, found, err := repo.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
-				Expect(record).To(Equal(ReleaseRecord{
-					ID:      "fake-guid-2",
-					Name:    "fake-name",
-					Version: "fake-version-2",
+				Expect(records).To(Equal([]ReleaseRecord{
+					{
+						ID:      "fake-guid-a",
+						Name:    "fake-name-a",
+						Version: "fake-version-a",
+					},
+					{
+						ID:      "fake-guid-c",
+						Name:    "fake-name-c",
+						Version: "fake-version-c",
+					},
 				}))
 			})
 		})
 
-		Context("when current release does not exist", func() {
+		Context("when a current release does not exist", func() {
 			BeforeEach(func() {
 				fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
 				_, err := repo.Save("fake-name", "fake-version")
 				Expect(err).ToNot(HaveOccurred())
+				deploymentConfig, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentConfig.CurrentReleaseIDs = []string{"fake-guid-1", "guid-not-saved"}
 			})
 
 			It("returns not found", func() {
@@ -197,4 +235,4 @@ var _ = Describe("ReleaseRepo", func() {
 			})
 		})
 	})
-})
+}

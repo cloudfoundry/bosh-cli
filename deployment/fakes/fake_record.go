@@ -20,7 +20,7 @@ type FakeRecord struct {
 
 type IsDeployedInput struct {
 	ManifestPath string
-	Release      bmrel.Release
+	Releases     []bmrel.Release
 	Stemcell     bmstemcell.ExtractedStemcell
 }
 
@@ -31,7 +31,7 @@ type isDeployedOutput struct {
 
 type UpdateInput struct {
 	ManifestPath string
-	Release      bmrel.Release
+	Releases     []bmrel.Release
 }
 
 type updateOutput struct {
@@ -45,10 +45,10 @@ func NewFakeRecord() *FakeRecord {
 	}
 }
 
-func (r *FakeRecord) IsDeployed(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error) {
+func (r *FakeRecord) IsDeployed(manifestPath string, releases []bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error) {
 	input := IsDeployedInput{
 		ManifestPath: manifestPath,
-		Release:      release,
+		Releases:     releases,
 		Stemcell:     stemcell,
 	}
 	r.IsDeployedInputs = append(r.IsDeployedInputs, input)
@@ -66,10 +66,10 @@ func (r *FakeRecord) IsDeployed(manifestPath string, release bmrel.Release, stem
 	return output.isDeployed, output.err
 }
 
-func (r *FakeRecord) Update(manifestPath string, release bmrel.Release) error {
+func (r *FakeRecord) Update(manifestPath string, releases []bmrel.Release) error {
 	input := UpdateInput{
 		ManifestPath: manifestPath,
-		Release:      release,
+		Releases:     releases,
 	}
 	r.UpdateInputs = append(r.UpdateInputs, input)
 
@@ -88,14 +88,14 @@ func (r *FakeRecord) Update(manifestPath string, release bmrel.Release) error {
 
 func (r *FakeRecord) SetIsDeployedBehavior(
 	manifestPath string,
-	release bmrel.Release,
+	releases []bmrel.Release,
 	stemcell bmstemcell.ExtractedStemcell,
 	isDeployed bool,
 	err error,
 ) error {
 	input := IsDeployedInput{
 		ManifestPath: manifestPath,
-		Release:      release,
+		Releases:     releases,
 		Stemcell:     stemcell,
 	}
 
@@ -114,12 +114,12 @@ func (r *FakeRecord) SetIsDeployedBehavior(
 
 func (r *FakeRecord) SetUpdateBehavior(
 	manifestPath string,
-	release bmrel.Release,
+	releases []bmrel.Release,
 	err error,
 ) error {
 	input := UpdateInput{
 		ManifestPath: manifestPath,
-		Release:      release,
+		Releases:     releases,
 	}
 
 	inputString, marshalErr := bmtestutils.MarshalToString(input)

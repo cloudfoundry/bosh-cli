@@ -141,12 +141,11 @@ func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 
 	var (
 		extractedStemcell    bmstemcell.ExtractedStemcell
-		cpiRelease           bmrel.Release
 		deploymentManifest   bmdeplmanifest.Manifest
 		installationManifest bminstallmanifest.Manifest
 	)
 	err = stage.PerformComplex("validating", func(stage bmui.Stage) error {
-		extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, releaseTarballPaths, deploymentManifestPath)
+		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, releaseTarballPaths, deploymentManifestPath)
 		return err
 	})
 	if err != nil {
@@ -165,7 +164,7 @@ func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 		}
 	}()
 
-	isDeployed, err := c.deploymentRecord.IsDeployed(deploymentManifestPath, cpiRelease, extractedStemcell)
+	isDeployed, err := c.deploymentRecord.IsDeployed(deploymentManifestPath, c.releaseManager.List(), extractedStemcell)
 	if err != nil {
 		return bosherr.WrapError(err, "Checking if deployment has changed")
 	}
@@ -238,7 +237,7 @@ func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 			return bosherr.WrapError(err, "Deploying Microbosh")
 		}
 
-		err = c.deploymentRecord.Update(deploymentManifestPath, cpiRelease)
+		err = c.deploymentRecord.Update(deploymentManifestPath, c.releaseManager.List())
 		if err != nil {
 			return bosherr.WrapError(err, "Updating deployment record")
 		}
@@ -282,7 +281,6 @@ func (c *deployCmd) validate(
 	deploymentManifestPath string,
 ) (
 	extractedStemcell bmstemcell.ExtractedStemcell,
-	cpiRelease bmrel.Release,
 	deploymentManifest bmdeplmanifest.Manifest,
 	installationManifest bminstallmanifest.Manifest,
 	err error,
@@ -300,7 +298,7 @@ func (c *deployCmd) validate(
 		return nil
 	})
 	if err != nil {
-		return extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err
+		return extractedStemcell, deploymentManifest, installationManifest, err
 	}
 	defer func() {
 		if err != nil {
@@ -317,17 +315,17 @@ func (c *deployCmd) validate(
 				return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
 			}
 
-			cpiRelease, err = c.releaseExtractor.Extract(releaseTarballPath)
+			release, err := c.releaseExtractor.Extract(releaseTarballPath)
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
 			}
-			c.releaseManager.Add(cpiRelease)
+			c.releaseManager.Add(release)
 		}
 
 		return nil
 	})
 	if err != nil {
-		return extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err
+		return extractedStemcell, deploymentManifest, installationManifest, err
 	}
 	defer func() {
 		if err != nil {
@@ -375,7 +373,7 @@ func (c *deployCmd) validate(
 		return nil
 	})
 	if err != nil {
-		return extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err
+		return extractedStemcell, deploymentManifest, installationManifest, err
 	}
 
 	err = validationStage.Perform("Validating cpi release", func() error {
@@ -395,5 +393,5 @@ func (c *deployCmd) validate(
 		return nil
 	})
 
-	return extractedStemcell, cpiRelease, deploymentManifest, installationManifest, err
+	return extractedStemcell, deploymentManifest, installationManifest, err
 }

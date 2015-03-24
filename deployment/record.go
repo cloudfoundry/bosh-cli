@@ -10,8 +10,8 @@ import (
 )
 
 type Record interface {
-	IsDeployed(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error)
-	Update(manifestPath string, release bmrel.Release) error
+	IsDeployed(manifestPath string, releases []bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error)
+	Update(manifestPath string, releases []bmrel.Release) error
 }
 
 type deploymentRecord struct {
@@ -35,7 +35,7 @@ func NewRecord(
 	}
 }
 
-func (v *deploymentRecord) IsDeployed(manifestPath string, release bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error) {
+func (v *deploymentRecord) IsDeployed(manifestPath string, releases []bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error) {
 	manifestSHA1, found, err := v.deploymentRepo.FindCurrent()
 	if err != nil {
 		return false, bosherr.WrapError(err, "Finding sha1 of currently deployed manifest")
@@ -67,7 +67,7 @@ func (v *deploymentRecord) IsDeployed(manifestPath string, release bmrel.Release
 		return false, nil
 	}
 
-	currentRelease, found, err := v.releaseRepo.FindCurrent()
+	currentReleaseRecords, found, err := v.releaseRepo.FindCurrent()
 	if err != nil {
 		return false, bosherr.WrapError(err, "Finding currently deployed release")
 	}
@@ -76,14 +76,27 @@ func (v *deploymentRecord) IsDeployed(manifestPath string, release bmrel.Release
 		return false, nil
 	}
 
-	if currentRelease.Name != release.Name() || currentRelease.Version != release.Version() {
+	if len(releases) != len(currentReleaseRecords) {
 		return false, nil
+	}
+
+	for _, release := range releases {
+		found := false
+		for _, releaseRecord := range currentReleaseRecords {
+			if releaseRecord.Name == release.Name() && releaseRecord.Version == release.Version() {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false, nil
+		}
 	}
 
 	return true, nil
 }
 
-func (v *deploymentRecord) Update(manifestPath string, release bmrel.Release) error {
+func (v *deploymentRecord) Update(manifestPath string, releases []bmrel.Release) error {
 	manifestSHA1, err := v.sha1Calculator.Calculate(manifestPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Calculating sha1 of current deployment manifest")
@@ -94,15 +107,19 @@ func (v *deploymentRecord) Update(manifestPath string, release bmrel.Release) er
 		return bosherr.WrapError(err, "Saving sha1 of deployed manifest")
 	}
 
-	releaseRecord, found, err := v.releaseRepo.Find(release.Name(), release.Version())
-	if !found {
-		releaseRecord, err = v.releaseRepo.Save(release.Name(), release.Version())
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Saving release record with name: '%s', version: '%s'", release.Name(), release.Version())
+    var currentReleaseRecordIDs []string
+	for _, release := range releases {
+		releaseRecord, found, err := v.releaseRepo.Find(release.Name(), release.Version())
+		if !found {
+			releaseRecord, err = v.releaseRepo.Save(release.Name(), release.Version())
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Saving release record with name: '%s', version: '%s'", release.Name(), release.Version())
+			}
 		}
+        currentReleaseRecordIDs = append(currentReleaseRecordIDs, releaseRecord.ID)
 	}
 
-	err = v.releaseRepo.UpdateCurrent(releaseRecord.ID)
+	err = v.releaseRepo.UpdateCurrent(currentReleaseRecordIDs)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating current release record")
 	}

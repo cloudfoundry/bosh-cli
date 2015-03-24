@@ -12,12 +12,15 @@ import (
 	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 
 	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	"github.com/cloudfoundry/bosh-micro-cli/release"
 	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
 
 	. "github.com/cloudfoundry/bosh-micro-cli/deployment"
 )
 
-var _ = Describe("Record", func() {
+var _ = Describe("Record", rootDesc)
+
+func rootDesc() {
 	var (
 		fakeRelease        *fakebmrel.FakeRelease
 		stemcell           bmstemcell.ExtractedStemcell
@@ -26,6 +29,7 @@ var _ = Describe("Record", func() {
 		stemcellRepo       *fakebmconfig.FakeStemcellRepo
 		fakeSHA1Calculator *fakebmcrypto.FakeSha1Calculator
 		deploymentRecord   Record
+		releases           []release.Release
 	)
 
 	BeforeEach(func() {
@@ -33,6 +37,7 @@ var _ = Describe("Record", func() {
 			ReleaseName:    "fake-release-name",
 			ReleaseVersion: "fake-release-version",
 		}
+		releases = []release.Release{fakeRelease}
 		fakeFS := fakesys.NewFakeFileSystem()
 		stemcell = bmstemcell.NewExtractedStemcell(
 			bmstemcell.Manifest{
@@ -59,13 +64,6 @@ var _ = Describe("Record", func() {
 			}
 			stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
 
-			releaseRecord := bmconfig.ReleaseRecord{
-				ID:      "fake-release-id",
-				Name:    "fake-release-name",
-				Version: "fake-release-version",
-			}
-			releaseRepo.SetFindCurrentBehavior(releaseRecord, true, nil)
-
 			deploymentRepo.SetFindCurrentBehavior("fake-manifest-sha1", true, nil)
 			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
 				"fake-manifest-path": fakebmcrypto.CalculateInput{
@@ -75,10 +73,141 @@ var _ = Describe("Record", func() {
 			})
 		})
 
-		It("returns true", func() {
-			isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(isDeployed).To(BeTrue())
+		Context("when the stemcell and manifest do not change", func() {
+			Context("when no release is currently deployed", func() {
+				BeforeEach(func() {
+					releaseRepo.SetFindCurrentBehavior([]bmconfig.ReleaseRecord{}, false, nil)
+				})
+
+				It("returns false", func() {
+					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(isDeployed).To(BeFalse())
+				})
+			})
+
+			Context("when the same release is currently deployed", func() {
+				BeforeEach(func() {
+					releaseRecords := []bmconfig.ReleaseRecord{{
+						ID:      "fake-release-id",
+						Name:    fakeRelease.Name(),
+						Version: fakeRelease.Version(),
+					}}
+					releaseRepo.SetFindCurrentBehavior(releaseRecords, true, nil)
+				})
+
+				It("returns true", func() {
+					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(isDeployed).To(BeTrue())
+				})
+			})
+
+			Context("when a different version of the same release is currently deployed", func() {
+				BeforeEach(func() {
+					Expect("other-version").ToNot(Equal(fakeRelease.Version()))
+					releaseRecords := []bmconfig.ReleaseRecord{{
+						ID:      "fake-release-id-2",
+						Name:    fakeRelease.Name(),
+						Version: "other-version",
+					}}
+					releaseRepo.SetFindCurrentBehavior(releaseRecords, true, nil)
+				})
+
+				It("returns false", func() {
+					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(isDeployed).To(BeFalse())
+				})
+			})
+
+			Context("when a same version of a different release is currently deployed", func() {
+				BeforeEach(func() {
+					Expect("other-release").ToNot(Equal(fakeRelease.Name()))
+					releaseRecords := []bmconfig.ReleaseRecord{{
+						ID:      "fake-release-id-2",
+						Name:    "other-release",
+						Version: fakeRelease.Version(),
+					}}
+					releaseRepo.SetFindCurrentBehavior(releaseRecords, true, nil)
+				})
+
+				It("returns false", func() {
+					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(isDeployed).To(BeFalse())
+				})
+			})
+
+			Context("when deploying multiple releases", func() {
+				var otherFakeRelease *fakebmrel.FakeRelease
+
+				BeforeEach(func() {
+					otherFakeRelease = &fakebmrel.FakeRelease{
+						ReleaseName:    "other-fake-release-name",
+						ReleaseVersion: "other-fake-release-version",
+					}
+					releaseRecords := []bmconfig.ReleaseRecord{
+						{
+							ID:      "fake-release-id-1",
+							Name:    fakeRelease.Name(),
+							Version: fakeRelease.Version(),
+						},
+						{
+							ID:      "other-fake-release-id-1",
+							Name:    otherFakeRelease.Name(),
+							Version: otherFakeRelease.Version(),
+						},
+					}
+					releaseRepo.SetFindCurrentBehavior(releaseRecords, true, nil)
+				})
+
+				Context("when the same releases are currently deployed", func() {
+					Context("(in the same order)", func() {
+						BeforeEach(func() {
+							releases = []release.Release{
+								fakeRelease,
+								otherFakeRelease,
+							}
+						})
+
+						It("returns true", func() {
+							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+							Expect(err).ToNot(HaveOccurred())
+							Expect(isDeployed).To(BeTrue())
+						})
+					})
+
+					Context("(in a different order)", func() {
+						BeforeEach(func() {
+							releases = []release.Release{
+								otherFakeRelease,
+								fakeRelease,
+							}
+						})
+
+						It("returns true", func() {
+							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+							Expect(err).ToNot(HaveOccurred())
+							Expect(isDeployed).To(BeTrue())
+						})
+					})
+
+					Context("when a superset of releases is currently deployed", func() {
+						BeforeEach(func() {
+							releases = []release.Release{
+								fakeRelease,
+							}
+						})
+
+						It("returns false", func() {
+							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+							Expect(err).ToNot(HaveOccurred())
+							Expect(isDeployed).To(BeFalse())
+						})
+					})
+				})
+			})
 		})
 
 		Context("when getting current deployment manifest sha1 fails", func() {
@@ -87,7 +216,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
+				_, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-find-error"))
 			})
@@ -99,7 +228,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
+				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isDeployed).To(BeFalse())
 			})
@@ -116,7 +245,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
+				_, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-calculate-error"))
 			})
@@ -128,7 +257,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
+				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isDeployed).To(BeFalse())
 			})
@@ -140,7 +269,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
+				_, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-find-error"))
 			})
@@ -152,7 +281,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
+				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isDeployed).To(BeFalse())
 			})
@@ -170,7 +299,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
+				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isDeployed).To(BeFalse())
 			})
@@ -178,42 +307,13 @@ var _ = Describe("Record", func() {
 
 		Context("when finding the currently deployed release fails", func() {
 			BeforeEach(func() {
-				releaseRepo.SetFindCurrentBehavior(bmconfig.ReleaseRecord{}, false, errors.New("fake-find-error"))
+				releaseRepo.SetFindCurrentBehavior([]bmconfig.ReleaseRecord{}, false, errors.New("fake-find-error"))
 			})
 
 			It("returns an error", func() {
-				_, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
+				_, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-find-error"))
-			})
-		})
-
-		Context("when no release is currently deployed", func() {
-			BeforeEach(func() {
-				releaseRepo.SetFindCurrentBehavior(bmconfig.ReleaseRecord{}, false, nil)
-			})
-
-			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(isDeployed).To(BeFalse())
-			})
-		})
-
-		Context("when a different release is currently deployed", func() {
-			BeforeEach(func() {
-				releaseRecord := bmconfig.ReleaseRecord{
-					ID:      "fake-release-id-2",
-					Name:    "fake-release-name-2",
-					Version: "fake-release-version-2",
-				}
-				releaseRepo.SetFindCurrentBehavior(releaseRecord, true, nil)
-			})
-
-			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", fakeRelease, stemcell)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(isDeployed).To(BeFalse())
 			})
 		})
 	})
@@ -240,15 +340,32 @@ var _ = Describe("Record", func() {
 		})
 
 		It("calculates and updates sha1 of currently deployed manifest", func() {
-			err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
+			err := deploymentRecord.Update("fake-manifest-path", releases)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploymentRepo.UpdateCurrentManifestSHA1).To(Equal("fake-manifest-sha1"))
 		})
 
 		It("updates currently deployed release", func() {
-			err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
+			err := deploymentRecord.Update("fake-manifest-path", releases)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(releaseRepo.UpdateCurrentRecordID).To(Equal("fake-release-id"))
+			Expect(releaseRepo.UpdateCurrentRecordIDs).To(Equal([]string{"fake-release-id"}))
+		})
+
+		It("updates currently deployed releases", func() {
+            otherFakeRelease := &fakebmrel.FakeRelease{
+                ReleaseName:    "other-fake-release-name",
+                ReleaseVersion: "other-fake-release-version",
+            }
+            releases = append(releases, otherFakeRelease)
+            savedOtherReleaseRecord := bmconfig.ReleaseRecord{
+                ID:      "other-fake-release-id",
+                Name:    otherFakeRelease.Name(),
+                Version: otherFakeRelease.Version(),
+            }
+            releaseRepo.SetFindBehavior(otherFakeRelease.Name(), otherFakeRelease.Version(), savedOtherReleaseRecord, true, nil)
+			err := deploymentRecord.Update("fake-manifest-path", releases)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(releaseRepo.UpdateCurrentRecordIDs).To(Equal([]string{"fake-release-id", "other-fake-release-id"}))
 		})
 
 		Context("when release is not in release repo", func() {
@@ -264,9 +381,9 @@ var _ = Describe("Record", func() {
 			})
 
 			It("saves release to release repo", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
+				err := deploymentRecord.Update("fake-manifest-path", releases)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(releaseRepo.UpdateCurrentRecordID).To(Equal("fake-saved-release-id"))
+				Expect(releaseRepo.UpdateCurrentRecordIDs).To(Equal([]string{"fake-saved-release-id"}))
 
 				Expect(releaseRepo.SaveInputs).To(Equal([]fakebmconfig.ReleaseRepoSaveInput{
 					{
@@ -282,7 +399,7 @@ var _ = Describe("Record", func() {
 				})
 
 				It("returns an error", func() {
-					err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
+					err := deploymentRecord.Update("fake-manifest-path", releases)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
 				})
@@ -300,7 +417,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
+				err := deploymentRecord.Update("fake-manifest-path", releases)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-calculate-error"))
 			})
@@ -312,7 +429,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
+				err := deploymentRecord.Update("fake-manifest-path", releases)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
 			})
@@ -324,10 +441,10 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", fakeRelease)
+				err := deploymentRecord.Update("fake-manifest-path", releases)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
 			})
 		})
 	})
-})
+}

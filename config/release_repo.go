@@ -7,8 +7,8 @@ import (
 
 // ReleaseRepo persists releases metadata
 type ReleaseRepo interface {
-	UpdateCurrent(recordID string) error
-	FindCurrent() (ReleaseRecord, bool, error)
+	UpdateCurrent(recordIDs []string) error
+	FindCurrent() ([]ReleaseRecord, bool, error)
 	Save(name, version string) (ReleaseRecord, error)
 	Find(name, version string) (ReleaseRecord, bool, error)
 }
@@ -80,43 +80,48 @@ func (r releaseRepo) Find(name, version string) (ReleaseRecord, bool, error) {
 	return ReleaseRecord{}, false, nil
 }
 
-func (r releaseRepo) FindCurrent() (ReleaseRecord, bool, error) {
+func (r releaseRepo) FindCurrent() ([]ReleaseRecord, bool, error) {
 	config, err := r.configService.Load()
+	currentReleaseRecords := []ReleaseRecord{}
 	if err != nil {
-		return ReleaseRecord{}, false, bosherr.WrapError(err, "Loading existing config")
+		return currentReleaseRecords, false, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	currentReleaseID := config.CurrentReleaseID
-	if currentReleaseID == "" {
-		return ReleaseRecord{}, false, nil
-	}
+	currentReleaseIDs := config.CurrentReleaseIDs
 
-	for _, oldRecord := range config.Releases {
-		if oldRecord.ID == currentReleaseID {
-			return oldRecord, true, nil
+	for _, currentReleaseID := range currentReleaseIDs {
+		for _, oldRecord := range config.Releases {
+			if oldRecord.ID == currentReleaseID {
+				currentReleaseRecords = append(currentReleaseRecords, oldRecord)
+			}
 		}
 	}
 
-	return ReleaseRecord{}, false, nil
+	found := len(currentReleaseIDs) > 0 && len(currentReleaseRecords) == len(currentReleaseIDs)
+
+	return currentReleaseRecords, found, nil
 }
 
-func (r releaseRepo) UpdateCurrent(recordID string) error {
+func (r releaseRepo) UpdateCurrent(recordIDs []string) error {
 	config, err := r.configService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
-	found := false
-	for _, oldRecord := range config.Releases {
-		if oldRecord.ID == recordID {
-			found = true
+	for _, recordID := range recordIDs {
+		found := false
+		for _, oldRecord := range config.Releases {
+			if oldRecord.ID == recordID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return bosherr.Errorf("Verifying release record exists with id '%s'", recordID)
 		}
 	}
-	if !found {
-		return bosherr.Errorf("Verifying release record exists with id '%s'", recordID)
-	}
 
-	config.CurrentReleaseID = recordID
+	config.CurrentReleaseIDs = recordIDs
 
 	err = r.configService.Save(config)
 	if err != nil {

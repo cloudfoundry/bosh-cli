@@ -118,7 +118,7 @@ registry_instances:
     "current_vm_cid": "",
     "current_stemcell_id": "",
     "current_disk_id": "",
-    "current_release_id": "",
+    "current_release_ids": null,
     "current_manifest_sha1": "",
     "disks": \[\],
     "stemcells": \[\],
@@ -170,7 +170,7 @@ registry_instances:
     "current_vm_cid": "i-a1624150",
     "current_stemcell_id": "",
     "current_disk_id": "fake-uuid-1",
-    "current_release_id": "",
+    "current_release_ids": null,
     "current_manifest_sha1": "",
     "disks": \[
         {
@@ -236,7 +236,7 @@ registry_instances:
     "current_vm_cid": "i-a1624150",
     "current_stemcell_id": "",
     "current_disk_id": "",
-    "current_release_id": "",
+    "current_release_ids": null,
     "current_manifest_sha1": "",
     "disks": \[\],
     "stemcells": \[\],
@@ -288,7 +288,7 @@ registry_instances:
     "current_vm_cid": "",
     "current_stemcell_id": "",
     "current_disk_id": "fake-uuid-1",
-    "current_release_id": "",
+    "current_release_ids": null,
     "current_manifest_sha1": "",
     "disks": \[
         {
@@ -347,7 +347,7 @@ registry_instances:
     "current_vm_cid": "",
     "current_stemcell_id": "",
     "current_disk_id": "",
-    "current_release_id": "",
+    "current_release_ids": null,
     "current_manifest_sha1": "",
     "disks": \[\],
     "stemcells": \[
