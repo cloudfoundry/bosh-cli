@@ -21,7 +21,7 @@ properties:
       provider: uaa
       options:
         key: uaa-secret-key
-        url: http://ADDRESS:25888
+        url: http://ADDRESS:25888/uaa
   uaa:
     db:
       address: DB-ADDRESS
@@ -30,7 +30,8 @@ properties:
       port: 3306
       username: DB-USER
       password: DB-PASSWORD
-    port: 25888
+    port: 25889
+    nginx_port: 25888
     admin:
       client_secret: PASSWORD
     client:
@@ -53,6 +54,9 @@ properties:
     url: http://uaa.example.com
     login:
       client_secret: PASSWORD
+    ssl:
+      key: SSL_CERTIFICATE_KEY
+      cert: SSL_CERTIFICATE
 
   domain: example.com
 
