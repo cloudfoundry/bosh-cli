@@ -21,7 +21,7 @@ properties:
       provider: uaa
       options:
         key: uaa-secret-key
-        url: http://ADDRESS:25888/uaa
+        url: https://ADDRESS
   uaa:
     db:
       address: DB-ADDRESS
@@ -31,7 +31,7 @@ properties:
       username: DB-USER
       password: DB-PASSWORD
     port: 25889
-    nginx_port: 25888
+    nginx_port: 443
     admin:
       client_secret: PASSWORD
     client:
@@ -44,14 +44,14 @@ properties:
         authorized-grant-types: implicit,password,refresh_token
         scope: openid
         authorities: uaa.none
-        secret: uaa-secret-key
+        secret: ""
     cc:
       token_secret: "uaa-secret-key"
     scim:
       users:
       - marissa|koala|marissa@test.org|Marissa|Bloggs|uaa.user
       userids_enabled: true
-    url: http://uaa.example.com
+    url: https://ADDRESS
     login:
       client_secret: PASSWORD
     ssl:
@@ -61,7 +61,9 @@ properties:
   domain: example.com
 
   login:
-    protocol: http
+    url: LOGIN_SERVER_URL
+    entityBaseURL: LOGIN_SERVER_URL
+    entityID: ENTITY_ID
 ```
 
 To configure with LDAP add:
@@ -78,3 +80,32 @@ properties:
       searchBase: 'dc=test,dc=com'
       searchFilter: 'cn={0}'
 ```
+
+to configure with SAML:
+
+```yaml
+properties:
+  login:
+    saml:
+      serviceProviderKey:
+      serviceProviderKeyPassword: password
+      serviceProviderCertificate:
+      nameID: 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified'
+      assertionConsumerIndex: 0
+      signMetaData: true
+      signRequest: true
+      socket:
+        connectionManagerTimeout: 10000
+        soTimeout: 10000
+      providers:
+        okta-local:
+          idpMetadata: idpMetadata
+          nameID: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+          assertionConsumerIndex: 0
+          metadataTrustCheck: true
+          showSamlLoginLink: true
+          linkText: 'Okta Preview 1'
+          iconUrl: 'http://link.to/icon.jpg'
+
+### Notes
+* uaa.nginx_port must be 443 due to tomcat redirect which ignores forwarded port
