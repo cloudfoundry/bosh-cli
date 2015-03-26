@@ -107,7 +107,7 @@ func (v *deploymentRecord) Update(manifestPath string, releases []bmrel.Release)
 		return bosherr.WrapError(err, "Saving sha1 of deployed manifest")
 	}
 
-    var currentReleaseRecordIDs []string
+	var currentReleaseRecordIDs []string
 	for _, release := range releases {
 		releaseRecord, found, err := v.releaseRepo.Find(release.Name(), release.Version())
 		if !found {
@@ -116,7 +116,7 @@ func (v *deploymentRecord) Update(manifestPath string, releases []bmrel.Release)
 				return bosherr.WrapErrorf(err, "Saving release record with name: '%s', version: '%s'", release.Name(), release.Version())
 			}
 		}
-        currentReleaseRecordIDs = append(currentReleaseRecordIDs, releaseRecord.ID)
+		currentReleaseRecordIDs = append(currentReleaseRecordIDs, releaseRecord.ID)
 	}
 
 	err = v.releaseRepo.UpdateCurrent(currentReleaseRecordIDs)

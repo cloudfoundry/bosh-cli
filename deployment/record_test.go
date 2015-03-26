@@ -352,17 +352,17 @@ func rootDesc() {
 		})
 
 		It("updates currently deployed releases", func() {
-            otherFakeRelease := &fakebmrel.FakeRelease{
-                ReleaseName:    "other-fake-release-name",
-                ReleaseVersion: "other-fake-release-version",
-            }
-            releases = append(releases, otherFakeRelease)
-            savedOtherReleaseRecord := bmconfig.ReleaseRecord{
-                ID:      "other-fake-release-id",
-                Name:    otherFakeRelease.Name(),
-                Version: otherFakeRelease.Version(),
-            }
-            releaseRepo.SetFindBehavior(otherFakeRelease.Name(), otherFakeRelease.Version(), savedOtherReleaseRecord, true, nil)
+			otherFakeRelease := &fakebmrel.FakeRelease{
+				ReleaseName:    "other-fake-release-name",
+				ReleaseVersion: "other-fake-release-version",
+			}
+			releases = append(releases, otherFakeRelease)
+			savedOtherReleaseRecord := bmconfig.ReleaseRecord{
+				ID:      "other-fake-release-id",
+				Name:    otherFakeRelease.Name(),
+				Version: otherFakeRelease.Version(),
+			}
+			releaseRepo.SetFindBehavior(otherFakeRelease.Name(), otherFakeRelease.Version(), savedOtherReleaseRecord, true, nil)
 			err := deploymentRecord.Update("fake-manifest-path", releases)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseRepo.UpdateCurrentRecordIDs).To(Equal([]string{"fake-release-id", "other-fake-release-id"}))
