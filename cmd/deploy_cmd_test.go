@@ -40,7 +40,6 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment/fakes"
 	fakebmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
 	fakebmdeplval "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest/fakes"
 	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
@@ -49,7 +48,10 @@ import (
 	fakebmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest/fakes"
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
-	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+
+	"github.com/cloudfoundry/bosh-micro-cli/crypto"
+	"github.com/cloudfoundry/bosh-micro-cli/deployment"
+	"github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("DeployCmd", rootDesc)
@@ -66,10 +68,14 @@ func rootDesc() {
 	})
 
 	var (
-		command    bmcmd.Cmd
-		userConfig bmconfig.UserConfig
-		fakeFs     *fakesys.FakeFileSystem
-		fakeUI     *fakeui.FakeUI
+		command        bmcmd.Cmd
+		userConfig     bmconfig.UserConfig
+		fakeFs         *fakesys.FakeFileSystem
+		stdOut         *gbytes.Buffer
+		stdErr         *gbytes.Buffer
+		userInterface  bmui.UI
+		sha1Calculator crypto.SHA1Calculator
+		manifestSHA1   string
 
 		mockDeployer              *mock_deployment.MockDeployer
 		mockInstaller             *mock_install.MockInstaller
@@ -95,7 +101,7 @@ func rootDesc() {
 		mockStemcellManager        *mock_stemcell.MockManager
 		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
 
-		fakeDeploymentRecord *fakebmdepl.FakeRecord
+		deploymentRecord deployment.Record
 
 		fakeReleaseSetParser               *fakebmrelsetmanifest.FakeParser
 		fakeInstallationParser             *fakebminstallmanifest.FakeParser
@@ -106,6 +112,7 @@ func rootDesc() {
 		fakeInstallationValidator          *fakebminstallmanifest.FakeValidator
 		fakeDeploymentValidator            *fakebmdeplval.FakeValidator
 
+		directorID        = "generated-director-uuid"
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 
 		fakeStage *fakebmui.FakeStage
@@ -123,10 +130,16 @@ func rootDesc() {
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		fakeUI = &fakeui.FakeUI{}
+		stdOut = gbytes.NewBuffer()
+		stdErr = gbytes.NewBuffer()
+		userInterface = bmui.NewWriterUI(stdOut, stdErr, logger)
 		fakeFs = fakesys.NewFakeFileSystem()
 		deploymentManifestPath = "/path/to/manifest.yml"
 		deploymentConfigPath = "/path/to/deployment.json"
+		fakeFs.RegisterOpenFile(deploymentManifestPath, &fakesys.FakeFile{
+			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
+		})
+
 		userConfig = bmconfig.UserConfig{
 			DeploymentManifestPath: deploymentManifestPath,
 		}
@@ -167,8 +180,9 @@ func rootDesc() {
 
 		mockLegacyDeploymentConfigMigrator = mock_config.NewMockLegacyDeploymentConfigMigrator(mockCtrl)
 
-		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, fakeUUIDGenerator, logger)
+		configUUIDGenerator := &fakeuuid.FakeGenerator{}
+		configUUIDGenerator.GeneratedUUID = directorID
+		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, configUUIDGenerator, logger)
 
 		fakeReleaseSetValidator = fakebmrelsetmanifest.NewFakeValidator()
 		fakeInstallationValidator = fakebminstallmanifest.NewFakeValidator()
@@ -176,7 +190,16 @@ func rootDesc() {
 
 		fakeStage = fakebmui.NewFakeStage()
 
-		fakeDeploymentRecord = fakebmdepl.NewFakeRecord()
+		deploymentRepo := bmconfig.NewDeploymentRepo(deploymentConfigService)
+		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+		releaseRepo := bmconfig.NewReleaseRepo(deploymentConfigService, fakeUUIDGenerator)
+		stemcellRepo := bmconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
+		sha1Calculator = crypto.NewSha1Calculator(fakeFs)
+		deploymentRecord = deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
+
+		var err error
+		manifestSHA1, err = sha1Calculator.Calculate(deploymentManifestPath)
+		Expect(err).ToNot(HaveOccurred())
 
 		cpiReleaseTarballPath = "/release/tarball/path"
 
@@ -196,7 +219,7 @@ func rootDesc() {
 
 	JustBeforeEach(func() {
 		command = bmcmd.NewDeployCmd(
-			fakeUI,
+			userInterface,
 			userConfig,
 			fakeFs,
 			fakeReleaseSetParser,
@@ -216,7 +239,7 @@ func rootDesc() {
 			mockVMManagerFactory,
 			fakeStemcellExtractor,
 			fakeStemcellManagerFactory,
-			fakeDeploymentRecord,
+			deploymentRecord,
 			mockBlobstoreFactory,
 			mockDeployer,
 			logger,
@@ -232,8 +255,6 @@ func rootDesc() {
 			deploymentReleases     []bmrel.Release
 
 			cloudStemcell bmstemcell.CloudStemcell
-
-			directorID = "fake-uuid-0"
 
 			expectLegacyMigrate        *gomock.Call
 			expectStemcellUpload       *gomock.Call
@@ -341,20 +362,6 @@ func rootDesc() {
 			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
 			fakeInstallationParser.ParseManifest = installationManifest
 
-			fakeDeploymentRecord.SetIsDeployedBehavior(
-				deploymentManifestPath,
-				deploymentReleases,
-				extractedStemcell,
-				false,
-				nil,
-			)
-
-			fakeDeploymentRecord.SetUpdateBehavior(
-				deploymentManifestPath,
-				deploymentReleases,
-				nil,
-			)
-
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := bminstall.NewTarget(installationPath)
 
@@ -395,10 +402,8 @@ func rootDesc() {
 			err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeUI.Said).To(Equal([]string{
-				"Deployment manifest: '/path/to/manifest.yml'",
-				"Deployment state: '/path/to/deployment.json'",
-			}))
+			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
+			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/deployment.json'"))
 		})
 
 		It("does not migrate the legacy bosh-deployments.yml if deployment.json exists", func() {
@@ -422,11 +427,9 @@ func rootDesc() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 
-			Expect(fakeUI.Said).To(Equal([]string{
-				"Deployment manifest: '/path/to/manifest.yml'",
-				"Deployment state: '/path/to/deployment.json'",
-				"Migrated legacy deployments file: '/path/to/bosh-deployments.yml'",
-			}))
+			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
+			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/deployment.json'"))
+			Expect(stdOut).To(gbytes.Say("Migrated legacy deployments file: '/path/to/bosh-deployments.yml'"))
 		})
 
 		It("parses the installation manifest", func() {
@@ -576,10 +579,16 @@ func rootDesc() {
 		It("updates the deployment record", func() {
 			err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdepl.UpdateInput{
+
+			deploymentConfig, err := deploymentConfigService.Load()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deploymentConfig.CurrentManifestSHA1).To(Equal(manifestSHA1))
+			Expect(deploymentConfig.Releases).To(Equal([]bmconfig.ReleaseRecord{
 				{
-					ManifestPath: deploymentManifestPath,
-					Releases:     deploymentReleases,
+					ID:      "fake-uuid-0",
+					Name:    fakeCPIRelease.Name(),
+					Version: fakeCPIRelease.Version(),
 				},
 			}))
 		})
@@ -593,13 +602,25 @@ func rootDesc() {
 
 		Context("when deployment has not changed", func() {
 			JustBeforeEach(func() {
-				fakeDeploymentRecord.SetIsDeployedBehavior(
-					deploymentManifestPath,
-					deploymentReleases,
-					extractedStemcell,
-					true,
-					nil,
-				)
+				previousDeploymentFile := bmconfig.DeploymentFile{
+					DirectorID:        directorID,
+					CurrentReleaseIDs: []string{"my-release-id-1"},
+					Releases: []bmconfig.ReleaseRecord{{
+						ID:      "my-release-id-1",
+						Name:    fakeCPIRelease.Name(),
+						Version: fakeCPIRelease.Version(),
+					}},
+					CurrentStemcellID: "my-stemcellRecordID",
+					Stemcells: []bmconfig.StemcellRecord{{
+						ID:      "my-stemcellRecordID",
+						Name:    cloudStemcell.Name(),
+						Version: cloudStemcell.Version(),
+					}},
+					CurrentManifestSHA1: manifestSHA1,
+				}
+
+				err := deploymentConfigService.Save(previousDeploymentFile)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("skips deploy", func() {
@@ -607,7 +628,7 @@ func rootDesc() {
 
 				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeUI.Said).To(ContainElement("No deployment, stemcell or cpi release changes. Skipping deploy."))
+				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or cpi release changes. Skipping deploy."))
 			})
 		})
 
@@ -684,10 +705,21 @@ func rootDesc() {
 			It("updates the deployment record", func() {
 				err := command.Run(fakeStage, []string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeDeploymentRecord.UpdateInputs).To(Equal([]fakebmdepl.UpdateInput{
+
+				deploymentConfig, err := deploymentConfigService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deploymentConfig.CurrentManifestSHA1).To(Equal(manifestSHA1))
+				Expect(deploymentConfig.Releases).To(Equal([]bmconfig.ReleaseRecord{
 					{
-						ManifestPath: deploymentManifestPath,
-						Releases:     deploymentReleases,
+						ID:      "fake-uuid-0",
+						Name:    fakeOtherRelease.Name(),
+						Version: fakeOtherRelease.Version(),
+					},
+					{
+						ID:      "fake-uuid-1",
+						Name:    fakeCPIRelease.Name(),
+						Version: fakeCPIRelease.Version(),
 					},
 				}))
 			})
@@ -756,9 +788,7 @@ func rootDesc() {
 				deploymentConfig, err := deploymentConfigService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
-					DirectorID: directorID,
-				}))
+				Expect(deploymentConfig.DirectorID).To(Equal(directorID))
 			})
 		})
 
@@ -768,7 +798,7 @@ func rootDesc() {
 
 				// re-create command to update userConfig.DeploymentFile
 				command = bmcmd.NewDeployCmd(
-					fakeUI,
+					userInterface,
 					userConfig,
 					fakeFs,
 					fakeReleaseSetParser,
@@ -788,7 +818,7 @@ func rootDesc() {
 					mockVMManagerFactory,
 					fakeStemcellExtractor,
 					fakeStemcellManagerFactory,
-					fakeDeploymentRecord,
+					deploymentRecord,
 					mockBlobstoreFactory,
 					mockDeployer,
 					logger,
@@ -799,7 +829,7 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Deployment manifest not set"))
-				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))
+				Expect(stdErr).To(gbytes.Say("Deployment manifest not set"))
 			})
 		})
 
@@ -812,7 +842,7 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Deployment manifest does not exist at '/path/to/manifest.yml'"))
-				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest does not exist"))
+				Expect(stdErr).To(gbytes.Say("Deployment manifest does not exist"))
 			})
 		})
 
@@ -865,13 +895,13 @@ func rootDesc() {
 		It("returns err when no arguments are given", func() {
 			err := command.Run(fakeStage, []string{})
 			Expect(err).To(HaveOccurred())
-			Expect(fakeUI.Errors).To(ContainElement("Invalid usage - deploy command requires at least 2 arguments"))
+			Expect(stdErr).To(gbytes.Say("Invalid usage - deploy command requires at least 2 arguments"))
 		})
 
 		It("returns err when 1 argument is given", func() {
 			err := command.Run(fakeStage, []string{"something"})
 			Expect(err).To(HaveOccurred())
-			Expect(fakeUI.Errors).To(ContainElement("Invalid usage - deploy command requires at least 2 arguments"))
+			Expect(stdErr).To(gbytes.Say("Invalid usage - deploy command requires at least 2 arguments"))
 		})
 
 		Context("when uploading stemcell fails", func() {

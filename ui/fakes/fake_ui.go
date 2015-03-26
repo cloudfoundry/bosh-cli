@@ -9,13 +9,6 @@ type FakeUI struct {
 	Errors []string
 }
 
-func NewFakeUI() *FakeUI {
-	return &FakeUI{
-		Said:   []string{},
-		Errors: []string{},
-	}
-}
-
 func (ui *FakeUI) ErrorLinef(pattern string, args ...interface{}) {
 	ui.Errors = append(ui.Errors, fmt.Sprintf(pattern, args...))
 }
