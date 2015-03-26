@@ -24,7 +24,7 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
     out/bosh-micro deployment manifest.yml
     ```
 
-      See the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
+    See the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
 
 1. Deploy
 
@@ -33,10 +33,10 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
     ```
 
     Where:
-  
+
     - `stemcell.tgz` is a [BOSH stemcell](http://bosh.io/stemcells) appropriate for the CPI release
     - `cpi-release.tgz` is a [BOSH CPI release](http://bosh.io/releases)
-    - `bosh-release.tgz` is a [BOSH release](http://bosh.io/releases) of [BOSH](http://bosh.io/releases/github.com/cloudfoundry/bosh) or other software    
+    - `bosh-release.tgz` is a [BOSH release](http://bosh.io/releases) of [BOSH](http://bosh.io/releases/github.com/cloudfoundry/bosh) or other software
 
 
 Once deployed, the BOSH director can be targeted using the [bosh_cli](https://rubygems.org/gems/bosh_cli).
