@@ -7,6 +7,8 @@ result=0
 
 bin=$(dirname $0)
 
+go get -u code.google.com/p/go.tools/cmd/vet
+
 while IFS= read -r line ; do
   $line
   let "result+=$?"
