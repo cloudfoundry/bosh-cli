@@ -170,7 +170,7 @@ func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 	}
 
 	if isDeployed {
-		c.ui.PrintLinef("No deployment, stemcell or cpi release changes. Skipping deploy.")
+		c.ui.PrintLinef("No deployment, stemcell or release changes. Skipping deploy.")
 		return nil
 	}
 

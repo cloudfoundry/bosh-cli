@@ -67,187 +67,67 @@ func rootDesc() {
 		mockCtrl.Finish()
 	})
 
-	var (
-		command        bmcmd.Cmd
-		userConfig     bmconfig.UserConfig
-		fakeFs         *fakesys.FakeFileSystem
-		stdOut         *gbytes.Buffer
-		stdErr         *gbytes.Buffer
-		userInterface  bmui.UI
-		sha1Calculator crypto.SHA1Calculator
-		manifestSHA1   string
-
-		mockDeployer              *mock_deployment.MockDeployer
-		mockInstaller             *mock_install.MockInstaller
-		mockInstallerFactory      *mock_install.MockInstallerFactory
-		mockReleaseExtractor      *mock_release.MockExtractor
-		releaseManager            bmrel.Manager
-		releaseSetResolver        bmrelset.Resolver
-		mockRegistryServerManager *mock_registry.MockServerManager
-		mockRegistryServer        *mock_registry.MockServer
-		mockAgentClient           *mock_agentclient.MockAgentClient
-		mockAgentClientFactory    *mock_httpagent.MockAgentClientFactory
-		mockCloudFactory          *mock_cloud.MockFactory
-
-		fakeCPIRelease *fakebmrel.FakeRelease
-		logger         boshlog.Logger
-
-		mockBlobstoreFactory *mock_blobstore.MockFactory
-		mockBlobstore        *mock_blobstore.MockBlobstore
-
-		mockVMManagerFactory       *mock_vm.MockManagerFactory
-		fakeVMManager              *fakebmvm.FakeManager
-		fakeStemcellExtractor      *fakebmstemcell.FakeExtractor
-		mockStemcellManager        *mock_stemcell.MockManager
-		fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
-
-		deploymentRecord deployment.Record
-
-		fakeReleaseSetParser               *fakebmrelsetmanifest.FakeParser
-		fakeInstallationParser             *fakebminstallmanifest.FakeParser
-		fakeDeploymentParser               *fakebmdeplmanifest.FakeParser
-		mockLegacyDeploymentConfigMigrator *mock_config.MockLegacyDeploymentConfigMigrator
-		deploymentConfigService            bmconfig.DeploymentConfigService
-		fakeReleaseSetValidator            *fakebmrelsetmanifest.FakeValidator
-		fakeInstallationValidator          *fakebminstallmanifest.FakeValidator
-		fakeDeploymentValidator            *fakebmdeplval.FakeValidator
-
-		directorID        = "generated-director-uuid"
-		fakeUUIDGenerator *fakeuuid.FakeGenerator
-
-		fakeStage *fakebmui.FakeStage
-
-		deploymentManifestPath string
-		deploymentConfigPath   string
-		cpiReleaseTarballPath  string
-		stemcellTarballPath    string
-		extractedStemcell      bmstemcell.ExtractedStemcell
-
-		expectDeploy *gomock.Call
-
-		mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
-	)
-
-	BeforeEach(func() {
-		logger = boshlog.NewLogger(boshlog.LevelNone)
-		stdOut = gbytes.NewBuffer()
-		stdErr = gbytes.NewBuffer()
-		userInterface = bmui.NewWriterUI(stdOut, stdErr, logger)
-		fakeFs = fakesys.NewFakeFileSystem()
-		deploymentManifestPath = "/path/to/manifest.yml"
-		deploymentConfigPath = "/path/to/deployment.json"
-		fakeFs.RegisterOpenFile(deploymentManifestPath, &fakesys.FakeFile{
-			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
-		})
-
-		userConfig = bmconfig.UserConfig{
-			DeploymentManifestPath: deploymentManifestPath,
-		}
-		fakeFs.WriteFileString(deploymentManifestPath, "")
-
-		mockDeployer = mock_deployment.NewMockDeployer(mockCtrl)
-		mockInstaller = mock_install.NewMockInstaller(mockCtrl)
-		mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
-
-		mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
-		releaseManager = bmrel.NewManager(logger)
-		releaseSetResolver = bmrelset.NewResolver(releaseManager, logger)
-
-		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
-		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
-
-		mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
-		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
-		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
-
-		mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
-
-		mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
-		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
-		mockBlobstoreFactory.EXPECT().Create(mbusURL).Return(mockBlobstore, nil).AnyTimes()
-
-		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
-		fakeVMManager = fakebmvm.NewFakeManager()
-		mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient).Return(fakeVMManager).AnyTimes()
-
-		fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
-		mockStemcellManager = mock_stemcell.NewMockManager(mockCtrl)
-		fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
-
-		fakeReleaseSetParser = fakebmrelsetmanifest.NewFakeParser()
-		fakeInstallationParser = fakebminstallmanifest.NewFakeParser()
-		fakeDeploymentParser = fakebmdeplmanifest.NewFakeParser()
-
-		mockLegacyDeploymentConfigMigrator = mock_config.NewMockLegacyDeploymentConfigMigrator(mockCtrl)
-
-		configUUIDGenerator := &fakeuuid.FakeGenerator{}
-		configUUIDGenerator.GeneratedUUID = directorID
-		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, configUUIDGenerator, logger)
-
-		fakeReleaseSetValidator = fakebmrelsetmanifest.NewFakeValidator()
-		fakeInstallationValidator = fakebminstallmanifest.NewFakeValidator()
-		fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
-
-		fakeStage = fakebmui.NewFakeStage()
-
-		deploymentRepo := bmconfig.NewDeploymentRepo(deploymentConfigService)
-		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		releaseRepo := bmconfig.NewReleaseRepo(deploymentConfigService, fakeUUIDGenerator)
-		stemcellRepo := bmconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
-		sha1Calculator = crypto.NewSha1Calculator(fakeFs)
-		deploymentRecord = deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
-
-		var err error
-		manifestSHA1, err = sha1Calculator.Calculate(deploymentManifestPath)
-		Expect(err).ToNot(HaveOccurred())
-
-		cpiReleaseTarballPath = "/release/tarball/path"
-
-		stemcellTarballPath = "/stemcell/tarball/path"
-		extractedStemcell = bmstemcell.NewExtractedStemcell(
-			bmstemcell.Manifest{
-				ImagePath:       "/stemcell/image/path",
-				Name:            "fake-stemcell-name",
-				Version:         "fake-stemcell-version",
-				SHA1:            "fake-stemcell-sha1",
-				CloudProperties: bmproperty.Map{},
-			},
-			"fake-extracted-path",
-			fakeFs,
-		)
-	})
-
-	JustBeforeEach(func() {
-		command = bmcmd.NewDeployCmd(
-			userInterface,
-			userConfig,
-			fakeFs,
-			fakeReleaseSetParser,
-			fakeInstallationParser,
-			fakeDeploymentParser,
-			mockLegacyDeploymentConfigMigrator,
-			deploymentConfigService,
-			fakeReleaseSetValidator,
-			fakeInstallationValidator,
-			fakeDeploymentValidator,
-			mockInstallerFactory,
-			mockReleaseExtractor,
-			releaseManager,
-			releaseSetResolver,
-			mockCloudFactory,
-			mockAgentClientFactory,
-			mockVMManagerFactory,
-			fakeStemcellExtractor,
-			fakeStemcellManagerFactory,
-			deploymentRecord,
-			mockBlobstoreFactory,
-			mockDeployer,
-			logger,
-		)
-	})
-
 	Describe("Run", func() {
 		var (
+			command        bmcmd.Cmd
+			userConfig     bmconfig.UserConfig
+			fakeFs         *fakesys.FakeFileSystem
+			stdOut         *gbytes.Buffer
+			stdErr         *gbytes.Buffer
+			userInterface  bmui.UI
+			sha1Calculator crypto.SHA1Calculator
+			manifestSHA1   string
+
+			mockDeployer              *mock_deployment.MockDeployer
+			mockInstaller             *mock_install.MockInstaller
+			mockInstallerFactory      *mock_install.MockInstallerFactory
+			mockReleaseExtractor      *mock_release.MockExtractor
+			releaseManager            bmrel.Manager
+			releaseSetResolver        bmrelset.Resolver
+			mockRegistryServerManager *mock_registry.MockServerManager
+			mockRegistryServer        *mock_registry.MockServer
+			mockAgentClient           *mock_agentclient.MockAgentClient
+			mockAgentClientFactory    *mock_httpagent.MockAgentClientFactory
+			mockCloudFactory          *mock_cloud.MockFactory
+
+			fakeCPIRelease *fakebmrel.FakeRelease
+			logger         boshlog.Logger
+
+			mockBlobstoreFactory *mock_blobstore.MockFactory
+			mockBlobstore        *mock_blobstore.MockBlobstore
+
+			mockVMManagerFactory       *mock_vm.MockManagerFactory
+			fakeVMManager              *fakebmvm.FakeManager
+			fakeStemcellExtractor      *fakebmstemcell.FakeExtractor
+			mockStemcellManager        *mock_stemcell.MockManager
+			fakeStemcellManagerFactory *fakebmstemcell.FakeManagerFactory
+
+			deploymentRecord deployment.Record
+
+			fakeReleaseSetParser               *fakebmrelsetmanifest.FakeParser
+			fakeInstallationParser             *fakebminstallmanifest.FakeParser
+			fakeDeploymentParser               *fakebmdeplmanifest.FakeParser
+			mockLegacyDeploymentConfigMigrator *mock_config.MockLegacyDeploymentConfigMigrator
+			deploymentConfigService            bmconfig.DeploymentConfigService
+			fakeReleaseSetValidator            *fakebmrelsetmanifest.FakeValidator
+			fakeInstallationValidator          *fakebminstallmanifest.FakeValidator
+			fakeDeploymentValidator            *fakebmdeplval.FakeValidator
+
+			directorID        = "generated-director-uuid"
+			fakeUUIDGenerator *fakeuuid.FakeGenerator
+
+			fakeStage *fakebmui.FakeStage
+
+			deploymentManifestPath string
+			deploymentConfigPath   string
+			cpiReleaseTarballPath  string
+			stemcellTarballPath    string
+			extractedStemcell      bmstemcell.ExtractedStemcell
+
+			expectDeploy *gomock.Call
+
+			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
+
 			releaseSetManifest     bmrelsetmanifest.Manifest
 			boshDeploymentManifest bmdeplmanifest.Manifest
 			installationManifest   bminstallmanifest.Manifest
@@ -265,6 +145,93 @@ func rootDesc() {
 		)
 
 		BeforeEach(func() {
+			logger = boshlog.NewLogger(boshlog.LevelNone)
+			stdOut = gbytes.NewBuffer()
+			stdErr = gbytes.NewBuffer()
+			userInterface = bmui.NewWriterUI(stdOut, stdErr, logger)
+			fakeFs = fakesys.NewFakeFileSystem()
+			deploymentManifestPath = "/path/to/manifest.yml"
+			deploymentConfigPath = "/path/to/deployment.json"
+			fakeFs.RegisterOpenFile(deploymentManifestPath, &fakesys.FakeFile{
+				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
+			})
+
+			userConfig = bmconfig.UserConfig{
+				DeploymentManifestPath: deploymentManifestPath,
+			}
+			fakeFs.WriteFileString(deploymentManifestPath, "")
+
+			mockDeployer = mock_deployment.NewMockDeployer(mockCtrl)
+			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
+			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
+
+			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
+			releaseManager = bmrel.NewManager(logger)
+			releaseSetResolver = bmrelset.NewResolver(releaseManager, logger)
+
+			mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
+			mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
+
+			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
+			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+			mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
+
+			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
+
+			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
+			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+			mockBlobstoreFactory.EXPECT().Create(mbusURL).Return(mockBlobstore, nil).AnyTimes()
+
+			mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
+			fakeVMManager = fakebmvm.NewFakeManager()
+			mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient).Return(fakeVMManager).AnyTimes()
+
+			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
+			mockStemcellManager = mock_stemcell.NewMockManager(mockCtrl)
+			fakeStemcellManagerFactory = fakebmstemcell.NewFakeManagerFactory()
+
+			fakeReleaseSetParser = fakebmrelsetmanifest.NewFakeParser()
+			fakeInstallationParser = fakebminstallmanifest.NewFakeParser()
+			fakeDeploymentParser = fakebmdeplmanifest.NewFakeParser()
+
+			mockLegacyDeploymentConfigMigrator = mock_config.NewMockLegacyDeploymentConfigMigrator(mockCtrl)
+
+			configUUIDGenerator := &fakeuuid.FakeGenerator{}
+			configUUIDGenerator.GeneratedUUID = directorID
+			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fakeFs, configUUIDGenerator, logger)
+
+			fakeReleaseSetValidator = fakebmrelsetmanifest.NewFakeValidator()
+			fakeInstallationValidator = fakebminstallmanifest.NewFakeValidator()
+			fakeDeploymentValidator = fakebmdeplval.NewFakeValidator()
+
+			fakeStage = fakebmui.NewFakeStage()
+
+			deploymentRepo := bmconfig.NewDeploymentRepo(deploymentConfigService)
+			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+			releaseRepo := bmconfig.NewReleaseRepo(deploymentConfigService, fakeUUIDGenerator)
+			stemcellRepo := bmconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
+			sha1Calculator = crypto.NewSha1Calculator(fakeFs)
+			deploymentRecord = deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
+
+			var err error
+			manifestSHA1, err = sha1Calculator.Calculate(deploymentManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			cpiReleaseTarballPath = "/release/tarball/path"
+
+			stemcellTarballPath = "/stemcell/tarball/path"
+			extractedStemcell = bmstemcell.NewExtractedStemcell(
+				bmstemcell.Manifest{
+					ImagePath:       "/stemcell/image/path",
+					Name:            "fake-stemcell-name",
+					Version:         "fake-stemcell-version",
+					SHA1:            "fake-stemcell-sha1",
+					CloudProperties: bmproperty.Map{},
+				},
+				"fake-extracted-path",
+				fakeFs,
+			)
+
 			// create input files
 			fakeFs.WriteFileString(cpiReleaseTarballPath, "")
 			fakeFs.WriteFileString(stemcellTarballPath, "")
@@ -344,8 +311,34 @@ func rootDesc() {
 			cloudStemcell = fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
 		})
 
-		// allow return values of mocked methods to be modified by BeforeEach in child contexts
 		JustBeforeEach(func() {
+			command = bmcmd.NewDeployCmd(
+				userInterface,
+				userConfig,
+				fakeFs,
+				fakeReleaseSetParser,
+				fakeInstallationParser,
+				fakeDeploymentParser,
+				mockLegacyDeploymentConfigMigrator,
+				deploymentConfigService,
+				fakeReleaseSetValidator,
+				fakeInstallationValidator,
+				fakeDeploymentValidator,
+				mockInstallerFactory,
+				mockReleaseExtractor,
+				releaseManager,
+				releaseSetResolver,
+				mockCloudFactory,
+				mockAgentClientFactory,
+				mockVMManagerFactory,
+				fakeStemcellExtractor,
+				fakeStemcellManagerFactory,
+				deploymentRecord,
+				mockBlobstoreFactory,
+				mockDeployer,
+				logger,
+			)
+
 			expectLegacyMigrate = mockLegacyDeploymentConfigMigrator.EXPECT().MigrateIfExists().AnyTimes()
 
 			mockLegacyDeploymentConfigMigrator.EXPECT().Path().Return("/path/to/bosh-deployments.yml").AnyTimes()
@@ -628,7 +621,7 @@ func rootDesc() {
 
 				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).NotTo(HaveOccurred())
-				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or cpi release changes. Skipping deploy."))
+				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 			})
 		})
 
@@ -664,26 +657,24 @@ func rootDesc() {
 
 		Context("when multiple releases are given", func() {
 			var (
-				otherReleaseTarballPath string
-				fakeOtherRelease        *fakebmrel.FakeRelease
-
+				otherReleaseTarballPath   string
+				fakeOtherRelease          *fakebmrel.FakeRelease
 				expectOtherReleaseExtract *gomock.Call
 			)
+
 			BeforeEach(func() {
 				otherReleaseTarballPath = "/path/to/other-release.tgz"
 
 				fakeFs.WriteFileString(otherReleaseTarballPath, "")
 
 				fakeOtherRelease = fakebmrel.New("other-release", "1234")
-				fakeOtherRelease.ReleaseJobs = []bmreljob.Job{
-					{
-						Name: "not-cpi",
-					},
-				}
+				fakeOtherRelease.ReleaseJobs = []bmreljob.Job{{Name: "not-cpi"}}
 
 				deploymentReleases = []bmrel.Release{fakeOtherRelease, fakeCPIRelease}
 
-				expectOtherReleaseExtract = mockReleaseExtractor.EXPECT().Extract(otherReleaseTarballPath).Return(fakeOtherRelease, nil).AnyTimes()
+				expectOtherReleaseExtract = mockReleaseExtractor.EXPECT().Extract(
+					otherReleaseTarballPath,
+				).Return(fakeOtherRelease, nil).AnyTimes()
 			})
 
 			It("extracts all the release tarballs", func() {
@@ -724,23 +715,55 @@ func rootDesc() {
 				}))
 			})
 
-			Context("when cloud_provider.release refers to an release declared with version 'latest'", func() {
-				BeforeEach(func() {
-					releaseSetManifest.Releases = []bmrelmanifest.ReleaseRef{
-						{
-							Name:    "fake-cpi-release-name",
-							Version: "latest",
-						},
+			Context("when deployment has not changed", func() {
+				JustBeforeEach(func() {
+					previousDeploymentFile := bmconfig.DeploymentFile{
+						DirectorID:        directorID,
+						CurrentReleaseIDs: []string{"my-release-id-1"},
+						Releases: []bmconfig.ReleaseRecord{{
+							ID:      "my-release-id-1",
+							Name:    fakeCPIRelease.Name(),
+							Version: fakeCPIRelease.Version(),
+						}},
+						CurrentStemcellID: "my-stemcellRecordID",
+						Stemcells: []bmconfig.StemcellRecord{{
+							ID:      "my-stemcellRecordID",
+							Name:    cloudStemcell.Name(),
+							Version: cloudStemcell.Version(),
+						}},
+						CurrentManifestSHA1: manifestSHA1,
 					}
+
+					err := deploymentConfigService.Save(previousDeploymentFile)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
-				It("uses the latest version of that release that is available", func() {
-					expectInstall.Times(1)
-					expectNewCloud.Times(1)
+				It("skips deploy", func() {
+					expectDeploy.Times(0)
 
-					err := command.Run(fakeStage, []string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+					err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 					Expect(err).NotTo(HaveOccurred())
+					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
+			})
+		})
+
+		Context("when cloud_provider.release refers to an release declared with version 'latest'", func() {
+			BeforeEach(func() {
+				releaseSetManifest.Releases = []bmrelmanifest.ReleaseRef{
+					{
+						Name:    "fake-cpi-release-name",
+						Version: "latest",
+					},
+				}
+			})
+
+			It("uses the latest version of that release that is available", func() {
+				expectInstall.Times(1)
+				expectNewCloud.Times(1)
+
+				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
@@ -792,58 +815,48 @@ func rootDesc() {
 			})
 		})
 
-		Context("when there is no deployment set", func() {
-			BeforeEach(func() {
-				userConfig.DeploymentManifestPath = ""
+		It("returns err when no deployment is set", func() {
+			userConfig.DeploymentManifestPath = ""
+			command = bmcmd.NewDeployCmd(
+				userInterface,
+				userConfig,
+				fakeFs,
+				fakeReleaseSetParser,
+				fakeInstallationParser,
+				fakeDeploymentParser,
+				mockLegacyDeploymentConfigMigrator,
+				deploymentConfigService,
+				fakeReleaseSetValidator,
+				fakeInstallationValidator,
+				fakeDeploymentValidator,
+				mockInstallerFactory,
+				mockReleaseExtractor,
+				releaseManager,
+				releaseSetResolver,
+				mockCloudFactory,
+				mockAgentClientFactory,
+				mockVMManagerFactory,
+				fakeStemcellExtractor,
+				fakeStemcellManagerFactory,
+				deploymentRecord,
+				mockBlobstoreFactory,
+				mockDeployer,
+				logger,
+			)
 
-				// re-create command to update userConfig.DeploymentFile
-				command = bmcmd.NewDeployCmd(
-					userInterface,
-					userConfig,
-					fakeFs,
-					fakeReleaseSetParser,
-					fakeInstallationParser,
-					fakeDeploymentParser,
-					mockLegacyDeploymentConfigMigrator,
-					deploymentConfigService,
-					fakeReleaseSetValidator,
-					fakeInstallationValidator,
-					fakeDeploymentValidator,
-					mockInstallerFactory,
-					mockReleaseExtractor,
-					releaseManager,
-					releaseSetResolver,
-					mockCloudFactory,
-					mockAgentClientFactory,
-					mockVMManagerFactory,
-					fakeStemcellExtractor,
-					fakeStemcellManagerFactory,
-					deploymentRecord,
-					mockBlobstoreFactory,
-					mockDeployer,
-					logger,
-				)
-			})
-
-			It("returns err", func() {
-				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Deployment manifest not set"))
-				Expect(stdErr).To(gbytes.Say("Deployment manifest not set"))
-			})
+			err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Deployment manifest not set"))
+			Expect(stdErr).To(gbytes.Say("Deployment manifest not set"))
 		})
 
-		Context("when the deployment manifest does not exist", func() {
-			BeforeEach(func() {
-				fakeFs.RemoveAll(deploymentManifestPath)
-			})
+		It("returns err when the deployment manifest does not exist", func() {
+			fakeFs.RemoveAll(deploymentManifestPath)
 
-			It("returns err", func() {
-				err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Deployment manifest does not exist at '/path/to/manifest.yml'"))
-				Expect(stdErr).To(gbytes.Say("Deployment manifest does not exist"))
-			})
+			err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Deployment manifest does not exist at '/path/to/manifest.yml'"))
+			Expect(stdErr).To(gbytes.Say("Deployment manifest does not exist"))
 		})
 
 		Context("when the installation manifest is invalid", func() {
