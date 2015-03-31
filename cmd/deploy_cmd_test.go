@@ -49,6 +49,7 @@ import (
 	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
 	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
 
+	"fmt"
 	"github.com/cloudfoundry/bosh-micro-cli/crypto"
 	"github.com/cloudfoundry/bosh-micro-cli/deployment"
 	"github.com/onsi/gomega/gbytes"
@@ -715,16 +716,77 @@ func rootDesc() {
 				}))
 			})
 
-			Context("when deployment has not changed", func() {
+			Context("when one of the releases in the deployment has changed", func() {
+				JustBeforeEach(func() {
+					olderReleaseVersion := "1233"
+					Expect(fakeOtherRelease.Version()).ToNot(Equal(olderReleaseVersion))
+					previousDeploymentFile := bmconfig.DeploymentFile{
+						DirectorID:        directorID,
+						CurrentReleaseIDs: []string{"existing-release-id-1", "existing-release-id-2"},
+						Releases: []bmconfig.ReleaseRecord{
+							{
+								ID:      "existing-release-id-1",
+								Name:    fakeCPIRelease.Name(),
+								Version: fakeCPIRelease.Version(),
+							},
+							{
+								ID:      "existing-release-id-2",
+								Name:    fakeOtherRelease.Name(),
+								Version: olderReleaseVersion,
+							},
+						},
+						CurrentStemcellID: "my-stemcellRecordID",
+						Stemcells: []bmconfig.StemcellRecord{{
+							ID:      "my-stemcellRecordID",
+							Name:    cloudStemcell.Name(),
+							Version: cloudStemcell.Version(),
+						}},
+						CurrentManifestSHA1: manifestSHA1,
+					}
+
+					err := deploymentConfigService.Save(previousDeploymentFile)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("updates the deployment record, clearing out unused releases", func() {
+					err := command.Run(fakeStage, []string{stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+					Expect(err).NotTo(HaveOccurred())
+
+					deploymentConfig, err := deploymentConfigService.Load()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(deploymentConfig.CurrentManifestSHA1).To(Equal(manifestSHA1))
+					keys := []string{}
+					ids := []string{}
+					for _, releaseRecord := range deploymentConfig.Releases {
+						keys = append(keys, fmt.Sprintf("%s-%s", releaseRecord.Name, releaseRecord.Version))
+						ids = append(ids, releaseRecord.ID)
+					}
+					Expect(deploymentConfig.CurrentReleaseIDs).To(ConsistOf(ids))
+					Expect(keys).To(ConsistOf([]string{
+						fmt.Sprintf("%s-%s", fakeCPIRelease.Name(), fakeCPIRelease.Version()),
+						fmt.Sprintf("%s-%s", fakeOtherRelease.Name(), fakeOtherRelease.Version()),
+					}))
+				})
+			})
+
+			Context("when the deployment has not changed", func() {
 				JustBeforeEach(func() {
 					previousDeploymentFile := bmconfig.DeploymentFile{
 						DirectorID:        directorID,
-						CurrentReleaseIDs: []string{"my-release-id-1"},
-						Releases: []bmconfig.ReleaseRecord{{
-							ID:      "my-release-id-1",
-							Name:    fakeCPIRelease.Name(),
-							Version: fakeCPIRelease.Version(),
-						}},
+						CurrentReleaseIDs: []string{"my-release-id-1", "my-release-id-2"},
+						Releases: []bmconfig.ReleaseRecord{
+							{
+								ID:      "my-release-id-1",
+								Name:    fakeCPIRelease.Name(),
+								Version: fakeCPIRelease.Version(),
+							},
+							{
+								ID:      "my-release-id-2",
+								Name:    fakeOtherRelease.Name(),
+								Version: fakeOtherRelease.Version(),
+							},
+						},
 						CurrentStemcellID: "my-stemcellRecordID",
 						Stemcells: []bmconfig.StemcellRecord{{
 							ID:      "my-stemcellRecordID",
@@ -741,7 +803,7 @@ func rootDesc() {
 				It("skips deploy", func() {
 					expectDeploy.Times(0)
 
-					err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
+					err := command.Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath, otherReleaseTarballPath})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})

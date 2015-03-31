@@ -48,7 +48,7 @@ func rootDesc() {
 			fakeFS,
 		)
 		deploymentRepo = fakebmconfig.NewFakeDeploymentRepo()
-		releaseRepo = fakebmconfig.NewFakeReleaseRepo()
+		releaseRepo = &fakebmconfig.FakeReleaseRepo{}
 		stemcellRepo = fakebmconfig.NewFakeStemcellRepo()
 		fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
 		deploymentRecord = NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
@@ -76,7 +76,7 @@ func rootDesc() {
 		Context("when the stemcell and manifest do not change", func() {
 			Context("when no release is currently deployed", func() {
 				BeforeEach(func() {
-					releaseRepo.SetFindCurrentBehavior([]bmconfig.ReleaseRecord{}, false, nil)
+					releaseRepo.ListReturns([]bmconfig.ReleaseRecord{}, nil)
 				})
 
 				It("returns false", func() {
@@ -93,7 +93,7 @@ func rootDesc() {
 						Name:    fakeRelease.Name(),
 						Version: fakeRelease.Version(),
 					}}
-					releaseRepo.SetFindCurrentBehavior(releaseRecords, true, nil)
+					releaseRepo.ListReturns(releaseRecords, nil)
 				})
 
 				It("returns true", func() {
@@ -111,7 +111,7 @@ func rootDesc() {
 						Name:    fakeRelease.Name(),
 						Version: "other-version",
 					}}
-					releaseRepo.SetFindCurrentBehavior(releaseRecords, true, nil)
+					releaseRepo.ListReturns(releaseRecords, nil)
 				})
 
 				It("returns false", func() {
@@ -129,7 +129,7 @@ func rootDesc() {
 						Name:    "other-release",
 						Version: fakeRelease.Version(),
 					}}
-					releaseRepo.SetFindCurrentBehavior(releaseRecords, true, nil)
+					releaseRepo.ListReturns(releaseRecords, nil)
 				})
 
 				It("returns false", func() {
@@ -159,7 +159,7 @@ func rootDesc() {
 							Version: otherFakeRelease.Version(),
 						},
 					}
-					releaseRepo.SetFindCurrentBehavior(releaseRecords, true, nil)
+					releaseRepo.ListReturns(releaseRecords, nil)
 				})
 
 				Context("when the same releases are currently deployed", func() {
@@ -307,7 +307,7 @@ func rootDesc() {
 
 		Context("when finding the currently deployed release fails", func() {
 			BeforeEach(func() {
-				releaseRepo.SetFindCurrentBehavior([]bmconfig.ReleaseRecord{}, false, errors.New("fake-find-error"))
+				releaseRepo.ListReturns([]bmconfig.ReleaseRecord{}, errors.New("fake-find-error"))
 			})
 
 			It("returns an error", func() {
@@ -319,10 +319,6 @@ func rootDesc() {
 	})
 
 	Describe("Update", func() {
-		var (
-			deployedRelease bmconfig.ReleaseRecord
-		)
-
 		BeforeEach(func() {
 			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
 				"fake-manifest-path": fakebmcrypto.CalculateInput{
@@ -330,13 +326,6 @@ func rootDesc() {
 					Err:  nil,
 				},
 			})
-
-			deployedRelease = bmconfig.ReleaseRecord{
-				ID:      "fake-release-id",
-				Name:    "fake-release-name",
-				Version: "fake-release-version",
-			}
-			releaseRepo.SetFindBehavior("fake-release-name", "fake-release-version", deployedRelease, true, nil)
 		})
 
 		It("calculates and updates sha1 of currently deployed manifest", func() {
@@ -345,65 +334,11 @@ func rootDesc() {
 			Expect(deploymentRepo.UpdateCurrentManifestSHA1).To(Equal("fake-manifest-sha1"))
 		})
 
-		It("updates currently deployed release", func() {
+		It("passes the releases to the release repo", func() {
 			err := deploymentRecord.Update("fake-manifest-path", releases)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(releaseRepo.UpdateCurrentRecordIDs).To(Equal([]string{"fake-release-id"}))
-		})
-
-		It("updates currently deployed releases", func() {
-			otherFakeRelease := &fakebmrel.FakeRelease{
-				ReleaseName:    "other-fake-release-name",
-				ReleaseVersion: "other-fake-release-version",
-			}
-			releases = append(releases, otherFakeRelease)
-			savedOtherReleaseRecord := bmconfig.ReleaseRecord{
-				ID:      "other-fake-release-id",
-				Name:    otherFakeRelease.Name(),
-				Version: otherFakeRelease.Version(),
-			}
-			releaseRepo.SetFindBehavior(otherFakeRelease.Name(), otherFakeRelease.Version(), savedOtherReleaseRecord, true, nil)
-			err := deploymentRecord.Update("fake-manifest-path", releases)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(releaseRepo.UpdateCurrentRecordIDs).To(Equal([]string{"fake-release-id", "other-fake-release-id"}))
-		})
-
-		Context("when release is not in release repo", func() {
-			BeforeEach(func() {
-				releaseRepo.SetFindBehavior("fake-release-name", "fake-release-version", bmconfig.ReleaseRecord{}, false, nil)
-				savedRelease := bmconfig.ReleaseRecord{
-					ID:      "fake-saved-release-id",
-					Name:    "fake-release-name",
-					Version: "fake-release-version",
-				}
-
-				releaseRepo.SetSaveBehavior("fake-release-name", "fake-release-version", savedRelease, nil)
-			})
-
-			It("saves release to release repo", func() {
-				err := deploymentRecord.Update("fake-manifest-path", releases)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(releaseRepo.UpdateCurrentRecordIDs).To(Equal([]string{"fake-saved-release-id"}))
-
-				Expect(releaseRepo.SaveInputs).To(Equal([]fakebmconfig.ReleaseRepoSaveInput{
-					{
-						Name:    "fake-release-name",
-						Version: "fake-release-version",
-					},
-				}))
-			})
-
-			Context("when saving release record fails", func() {
-				BeforeEach(func() {
-					releaseRepo.SetSaveBehavior("fake-release-name", "fake-release-version", bmconfig.ReleaseRecord{}, errors.New("fake-save-error"))
-				})
-
-				It("returns an error", func() {
-					err := deploymentRecord.Update("fake-manifest-path", releases)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
-				})
-			})
+			Expect(releaseRepo.UpdateCallCount()).To(Equal(1))
+			Expect(releaseRepo.UpdateArgsForCall(0)).To(Equal(releases))
 		})
 
 		Context("when calculating the deployment manifest sha1 fails", func() {
@@ -421,6 +356,11 @@ func rootDesc() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-calculate-error"))
 			})
+
+			It("does not update the release records", func() {
+				deploymentRecord.Update("fake-manifest-path", releases)
+				Expect(releaseRepo.UpdateCallCount()).To(Equal(0))
+			})
 		})
 
 		Context("when updating currently deployed manifest sha1 fails", func() {
@@ -433,11 +373,16 @@ func rootDesc() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
 			})
+
+			It("does not update the release records", func() {
+				deploymentRecord.Update("fake-manifest-path", releases)
+				Expect(releaseRepo.UpdateCallCount()).To(Equal(0))
+			})
 		})
 
-		Context("when updating current release record fails", func() {
+		Context("when updating release records fails", func() {
 			BeforeEach(func() {
-				releaseRepo.UpdateCurrentErr = errors.New("fake-update-error")
+				releaseRepo.UpdateReturns(errors.New("fake-update-error"))
 			})
 
 			It("returns an error", func() {

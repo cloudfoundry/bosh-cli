@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 
 	"io/ioutil"
 	"net/http"
@@ -110,7 +111,8 @@ var _ = Describe("bosh-micro", func() {
 			diskManagerFactory bmdisk.ManagerFactory
 			diskDeployer       bmvm.DiskDeployer
 
-			ui        *fakebmui.FakeUI
+			stdOut    *gbytes.Buffer
+			stdErr    *gbytes.Buffer
 			fakeStage *fakebmui.FakeStage
 
 			stemcellManagerFactory bmstemcell.ManagerFactory
@@ -390,7 +392,7 @@ cloud_provider:
 			)
 
 			return NewDeployCmd(
-				ui,
+				bmui.NewWriterUI(stdOut, stdErr, logger),
 				userConfig,
 				fs,
 				releaseSetParser,
@@ -728,7 +730,8 @@ cloud_provider:
 
 			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
 
-			ui = &fakebmui.FakeUI{}
+			stdOut = gbytes.NewBuffer()
+			stdErr = gbytes.NewBuffer()
 			fakeStage = fakebmui.NewFakeStage()
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
@@ -848,9 +851,6 @@ cloud_provider:
 
 				err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
-
-				// reset output buffer
-				ui.Said = []string{}
 			})
 
 			Context("when persistent disk size is increased", func() {
@@ -909,9 +909,6 @@ cloud_provider:
 						diskRecords, err := diskRepo.All()
 						Expect(err).ToNot(HaveOccurred())
 						Expect(diskRecords).To(HaveLen(2)) // current + unused
-
-						// reset output buffer
-						ui.Said = []string{}
 					})
 
 					It("deletes unused disks", func() {
@@ -931,6 +928,28 @@ cloud_provider:
 						Expect(err).ToNot(HaveOccurred())
 						Expect(diskRecords).To(Equal([]bmconfig.DiskRecord{diskRecord}))
 					})
+				})
+			})
+
+			var expectNoDeployHappened = func() {
+				expectDeleteVM := mockCloud.EXPECT().DeleteVM(gomock.Any())
+				expectDeleteVM.Times(0)
+				expectCreateVM := mockCloud.EXPECT().CreateVM(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
+				expectCreateVM.Times(0)
+
+				mockCloud.EXPECT().HasVM(gomock.Any()).Return(true, nil).AnyTimes()
+				mockAgentClient.EXPECT().Ping().AnyTimes()
+				mockAgentClient.EXPECT().Stop().AnyTimes()
+				mockAgentClient.EXPECT().ListDisk().AnyTimes()
+			}
+
+			Context("and the same deployment is attempted again", func() {
+				It("skips the deploy", func() {
+					expectNoDeployHappened()
+
+					err := newDeployCmd().Run(fakeStage, []string{stemcellTarballPath, cpiReleaseTarballPath})
+					Expect(err).ToNot(HaveOccurred())
+					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
 			})
 		})

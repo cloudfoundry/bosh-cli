@@ -4,11 +4,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-
 	. "github.com/cloudfoundry/bosh-micro-cli/config"
+	"github.com/cloudfoundry/bosh-micro-cli/release"
+	fakerelease "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
 )
 
 var _ = Describe("ReleaseRepo", rootDesc)
@@ -25,176 +27,28 @@ func rootDesc() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
+		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
+		configService.Load()
 		repo = NewReleaseRepo(configService, fakeUUIDGenerator)
 	})
 
-	Describe("Save", func() {
-		It("saves the release record using the config service", func() {
-			_, err := repo.Save("fake-name", "fake-version")
-			Expect(err).ToNot(HaveOccurred())
-
-			deploymentConfig, err := configService.Load()
-			Expect(err).ToNot(HaveOccurred())
-
-			expectedConfig := DeploymentFile{
-				DirectorID: "fake-uuid-0",
-				Releases: []ReleaseRecord{
-					{
-						ID:      "fake-uuid-1",
-						Name:    "fake-name",
-						Version: "fake-version",
-					},
-				},
-			}
-			Expect(deploymentConfig).To(Equal(expectedConfig))
-		})
-
-		It("return the release record with a new uuid", func() {
-			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
-			record, err := repo.Save("fake-name", "fake-version-1")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(record).To(Equal(ReleaseRecord{
-				ID:      "fake-uuid-1",
-				Name:    "fake-name",
-				Version: "fake-version-1",
-			}))
-
-			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
-			record, err = repo.Save("fake-name", "fake-version-2")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(record).To(Equal(ReleaseRecord{
-				ID:      "fake-uuid-2",
-				Name:    "fake-name",
-				Version: "fake-version-2",
-			}))
-		})
-
-		Context("when a release record with the same name and version exists", func() {
-			BeforeEach(func() {
-				_, err := repo.Save("fake-name", "fake-version")
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("returns an error", func() {
-				_, err := repo.Save("fake-name", "fake-version")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("duplicate name/version"))
-			})
-		})
-	})
-
-	Describe("Find", func() {
-		Context("when a release record with the same name and version exists", func() {
-			var (
-				recordID string
-			)
-
-			BeforeEach(func() {
-				record, err := repo.Save("fake-name", "fake-version")
-				Expect(err).ToNot(HaveOccurred())
-				recordID = record.ID
-			})
-
-			It("finds existing release records", func() {
-				foundRecord, found, err := repo.Find("fake-name", "fake-version")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeTrue())
-				Expect(foundRecord).To(Equal(ReleaseRecord{
-					ID:      recordID,
-					Name:    "fake-name",
-					Version: "fake-version",
-				}))
-			})
-		})
-
-		Context("when a release record with the same name and version does not exist", func() {
-			It("finds existing release records", func() {
-				_, found, err := repo.Find("fake-name", "fake-version")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
-			})
-		})
-	})
-
-	Describe("UpdateCurrent", func() {
-		Context("when a release record exists with the same ID", func() {
-			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
-				_, err := repo.Save("fake-name", "fake-version")
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("saves the release record as current release", func() {
-				ids := []string{"fake-uuid-1"}
-				err := repo.UpdateCurrent(ids)
-				Expect(err).ToNot(HaveOccurred())
-
-				deploymentConfig, err := configService.Load()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(deploymentConfig.CurrentReleaseIDs).To(Equal([]string{"fake-uuid-1"}))
-			})
-
-			It("can save multiple current releases", func() {
-				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
-				_, err := repo.Save("fake-name-x", "fake-version")
-				Expect(err).ToNot(HaveOccurred())
-
-				ids := []string{"fake-uuid-1", "fake-uuid-2"}
-				err = repo.UpdateCurrent(ids)
-				Expect(err).ToNot(HaveOccurred())
-
-				deploymentConfig, err := configService.Load()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(deploymentConfig.CurrentReleaseIDs).To(Equal([]string{"fake-uuid-1", "fake-uuid-2"}))
-			})
-		})
-
-		Context("when a release record does not exists with the same ID", func() {
-			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
-				_, err := repo.Save("fake-name", "fake-version")
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("returns an error", func() {
-				err := repo.UpdateCurrent([]string{"fake-uuid-2"})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Verifying release record exists with id 'fake-uuid-2'"))
-			})
-
-			It("returns an error if any of the releas IDs are not found", func() {
-				err := repo.UpdateCurrent([]string{"fake-uuid-1", "not-saved-id"})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Verifying release record exists with id 'not-saved-id'"))
-			})
-		})
-	})
-
-	Describe("FindCurrent", func() {
+	Describe("List", func() {
 		Context("when a current release exists", func() {
 			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUUID = "fake-guid-a"
-				recordA, err := repo.Save("fake-name-a", "fake-version-a")
+				conf, err := configService.Load()
 				Expect(err).ToNot(HaveOccurred())
-
-				fakeUUIDGenerator.GeneratedUUID = "fake-guid-b"
-				_, err = repo.Save("fake-name-b", "fake-version-b")
+				conf.Releases = []ReleaseRecord{
+					ReleaseRecord{ID: "fake-guid-a", Name: "fake-name-a", Version: "fake-version-a"},
+					ReleaseRecord{ID: "fake-guid-b", Name: "fake-name-b", Version: "fake-version-b"},
+				}
+				err = configService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
-
-				fakeUUIDGenerator.GeneratedUUID = "fake-guid-c"
-				recordC, err := repo.Save("fake-name-c", "fake-version-c")
-				Expect(err).ToNot(HaveOccurred())
-
-				repo.UpdateCurrent([]string{recordA.ID, recordC.ID})
 			})
 
 			It("returns existing release", func() {
-				records, found, err := repo.FindCurrent()
+				records, err := repo.List()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeTrue())
 				Expect(records).To(Equal([]ReleaseRecord{
 					{
 						ID:      "fake-guid-a",
@@ -202,37 +56,185 @@ func rootDesc() {
 						Version: "fake-version-a",
 					},
 					{
-						ID:      "fake-guid-c",
-						Name:    "fake-name-c",
-						Version: "fake-version-c",
+						ID:      "fake-guid-b",
+						Name:    "fake-name-b",
+						Version: "fake-version-b",
 					},
 				}))
 			})
 		})
 
-		Context("when a current release does not exist", func() {
-			BeforeEach(func() {
-				fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
-				_, err := repo.Save("fake-name", "fake-version")
-				Expect(err).ToNot(HaveOccurred())
-				deploymentConfig, err := configService.Load()
-				Expect(err).ToNot(HaveOccurred())
-
-				deploymentConfig.CurrentReleaseIDs = []string{"fake-guid-1", "guid-not-saved"}
-			})
-
+		Context("when there are no releases recorded", func() {
 			It("returns not found", func() {
-				_, found, err := repo.FindCurrent()
+				records, err := repo.List()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
+				Expect(records).To(HaveLen(0))
 			})
 		})
 
-		Context("when there are no releases recorded", func() {
-			It("returns not found", func() {
-				_, found, err := repo.FindCurrent()
+		Context("when the config service fails to load", func() {
+			BeforeEach(func() {
+				fs.ReadFileError = errors.New("kaboom")
+			})
+
+			It("returns an error", func() {
+				_, err := repo.List()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Loading existing config"))
+			})
+		})
+	})
+
+	Describe("Update", func() {
+		Context("when there are no existing releases", func() {
+			It("saves the provided releases to the config file", func() {
+				err := repo.Update([]release.Release{
+					fakerelease.New("name1", "1"),
+					fakerelease.New("name2", "2"),
+				})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(conf.Releases).To(ConsistOf(
+					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "fake-uuid", Name: "name2", Version: "2"},
+				))
+			})
+		})
+
+		Context("when the existing releases exactly match the provided releases", func() {
+			BeforeEach(func() {
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				conf.Releases = []ReleaseRecord{
+					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "2"},
+				}
+				err = configService.Save(conf)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when existing versions differ from the provided release versions", func() {
+			BeforeEach(func() {
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				conf.Releases = []ReleaseRecord{
+					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "3"},
+				}
+				err = configService.Save(conf)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("saves the provided releases to the config file", func() {
+				err := repo.Update([]release.Release{
+					fakerelease.New("name1", "1"),
+					fakerelease.New("name2", "2"),
+				})
+				Expect(err).ToNot(HaveOccurred())
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(conf.Releases).To(ConsistOf(
+					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "fake-uuid", Name: "name2", Version: "2"},
+				))
+			})
+		})
+
+		Context("when existing names differ from the provided release names", func() {
+			BeforeEach(func() {
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				conf.Releases = []ReleaseRecord{
+					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "old-uuid", Name: "other-name", Version: "2"},
+				}
+				err = configService.Save(conf)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("saves the provided releases to the config file", func() {
+				err := repo.Update([]release.Release{
+					fakerelease.New("name1", "1"),
+					fakerelease.New("name2", "2"),
+				})
+				Expect(err).ToNot(HaveOccurred())
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(conf.Releases).To(ConsistOf(
+					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "fake-uuid", Name: "name2", Version: "2"},
+				))
+			})
+		})
+
+		Context("when a release is removed", func() {
+			BeforeEach(func() {
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				conf.Releases = []ReleaseRecord{
+					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "2"},
+					ReleaseRecord{ID: "old-uuid", Name: "name3", Version: "3"},
+				}
+				err = configService.Save(conf)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("saves the provided releases to the config file", func() {
+				err := repo.Update([]release.Release{
+					fakerelease.New("name1", "1"),
+					fakerelease.New("name2", "2"),
+				})
+				Expect(err).ToNot(HaveOccurred())
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(conf.Releases).To(ConsistOf(
+					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "fake-uuid", Name: "name2", Version: "2"},
+				))
+			})
+		})
+
+		Context("when a release is added", func() {
+			BeforeEach(func() {
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				conf.Releases = []ReleaseRecord{
+					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
+				}
+				err = configService.Save(conf)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("saves the provided releases to the config file", func() {
+				err := repo.Update([]release.Release{
+					fakerelease.New("name1", "1"),
+					fakerelease.New("name2", "2"),
+				})
+				Expect(err).ToNot(HaveOccurred())
+				conf, err := configService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(conf.Releases).To(ConsistOf(
+					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
+					ReleaseRecord{ID: "fake-uuid", Name: "name2", Version: "2"},
+				))
+			})
+		})
+
+		Context("when the config service fails to save", func() {
+			BeforeEach(func() {
+				fs.WriteToFileError = errors.New("kaboom")
+			})
+
+			It("returns an error", func() {
+				err := repo.Update([]release.Release{
+					fakerelease.New("name1", "1"),
+					fakerelease.New("name2", "2"),
+				})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("kaboom"))
 			})
 		})
 	})
