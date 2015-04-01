@@ -329,7 +329,7 @@ var _ = Describe("bosh-micro", func() {
 		println("#################################################")
 		stdout = deploy()
 
-		Expect(stdout).To(ContainSubstring("No deployment, stemcell or cpi release changes. Skipping deploy."))
+		Expect(stdout).To(ContainSubstring("No deployment, stemcell or release changes. Skipping deploy."))
 		Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
 		Expect(stdout).ToNot(ContainSubstring("Started deploying"))
 
