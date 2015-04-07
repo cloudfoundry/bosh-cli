@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"strings"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -82,6 +83,11 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 			remoteAddr,
 			sshConfig,
 		)
+
+		if err != nil && strings.Contains(err.Error(), "ssh: unable to authenticate") {
+			readyErrCh <- bosherr.WrapError(err, "Authentication error dialing remote server")
+			return
+		}
 
 		if err != nil && i == s.startDialMaxTries-1 {
 			readyErrCh <- bosherr.WrapError(err, "Timed out dialing remote server")
