@@ -6,7 +6,7 @@ echo "Running ci/run-acceptance-with-vm-in-container.sh"
 echo "ENV:"
 echo `env`
 
-BOSH_MICRO_CLI_DIR=/home/ubuntu/go/src/github.com/cloudfoundry/bosh-micro-cli
+BOSH_MICRO_CLI_DIR=/home/ubuntu/go/src/github.com/cloudfoundry/bosh-init
 
 #inside the docker container
 BOSH_MICRO_PRIVATE_KEY_DIR=/home/ubuntu/private_keys

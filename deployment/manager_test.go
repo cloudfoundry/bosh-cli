@@ -1,20 +1,20 @@
 package deployment_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	. "github.com/cloudfoundry/bosh-init/deployment"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
-	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
-	mock_disk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/mocks"
-	mock_instance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/mocks"
-	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
-	mock_deployment "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
-	mock_stemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
+	mock_disk "github.com/cloudfoundry/bosh-init/deployment/disk/mocks"
+	mock_instance "github.com/cloudfoundry/bosh-init/deployment/instance/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
+	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
+	mock_stemcell "github.com/cloudfoundry/bosh-init/stemcell/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -22,15 +22,15 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
 
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {

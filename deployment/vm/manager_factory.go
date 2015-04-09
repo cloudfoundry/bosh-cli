@@ -5,9 +5,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 )
 
 type ManagerFactory interface {

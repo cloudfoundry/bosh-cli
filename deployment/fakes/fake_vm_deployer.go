@@ -1,12 +1,12 @@
 package fakes
 
 import (
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeVMDeployer struct {

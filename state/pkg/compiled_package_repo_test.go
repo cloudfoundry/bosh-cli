@@ -6,12 +6,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmindex "github.com/cloudfoundry/bosh-init/index"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	. "github.com/cloudfoundry/bosh-init/state/pkg"
 )
 
 var _ = Describe("CompiledPackageRepo", func() {

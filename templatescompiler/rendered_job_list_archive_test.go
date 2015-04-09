@@ -1,7 +1,7 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -10,7 +10,7 @@ import (
 	"os"
 
 	"code.google.com/p/gomock/gomock"
-	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"

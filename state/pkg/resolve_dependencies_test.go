@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	. "github.com/cloudfoundry/bosh-init/state/pkg"
 )
 
 var _ = Describe("DependencyResolver", func() {

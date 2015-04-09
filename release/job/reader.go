@@ -9,8 +9,8 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmreljobmanifest "github.com/cloudfoundry/bosh-micro-cli/release/job/manifest"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmreljobmanifest "github.com/cloudfoundry/bosh-init/release/job/manifest"
 )
 
 type Reader interface {

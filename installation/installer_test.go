@@ -6,24 +6,24 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation"
+	. "github.com/cloudfoundry/bosh-init/installation"
 
 	"code.google.com/p/gomock/gomock"
-	mock_install_job "github.com/cloudfoundry/bosh-micro-cli/installation/job/mocks"
-	mock_install_pkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/mocks"
-	mock_install_state "github.com/cloudfoundry/bosh-micro-cli/installation/state/mocks"
-	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
+	mock_install_job "github.com/cloudfoundry/bosh-init/installation/job/mocks"
+	mock_install_pkg "github.com/cloudfoundry/bosh-init/installation/pkg/mocks"
+	mock_install_state "github.com/cloudfoundry/bosh-init/installation/state/mocks"
+	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
-	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	bminstallstate "github.com/cloudfoundry/bosh-init/installation/state"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Installer", func() {

@@ -3,7 +3,7 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Runner struct {

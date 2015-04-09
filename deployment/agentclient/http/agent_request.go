@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
+	bmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 )
 
 type AgentRequestMessage struct {

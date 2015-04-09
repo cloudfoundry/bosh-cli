@@ -12,11 +12,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	"github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 )
 
 var _ = Describe("JobEvaluationContext", func() {

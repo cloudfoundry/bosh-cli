@@ -14,14 +14,14 @@ Get Golang and its dependencies (Mac example, replace with your package manager 
 
 Clone and set up the BOSH Micro CLI repository:
 
-- `go get -d github.com/cloudfoundry/bosh-micro-cli`
-- `cd $GOPATH/src/github.com/cloudfoundry/bosh-micro-cli`
+- `go get -d github.com/cloudfoundry/bosh-init`
+- `cd $GOPATH/src/github.com/cloudfoundry/bosh-init`
 
-From here on out we assume you're working in `$GOPATH/src/github.com/cloudfoundry/bosh-micro-cli`
+From here on out we assume you're working in `$GOPATH/src/github.com/cloudfoundry/bosh-init`
 
 To build the micro cli:
 
-- `bin/build` # The `bosh-micro` binary will be located in `out/`
+- `bin/build` # The `bosh-init` binary will be located in `out/`
 
 Install tools used by the BOSH Micro CLI test suite:
 

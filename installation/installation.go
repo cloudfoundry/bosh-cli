@@ -3,9 +3,9 @@ package installation
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
+	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bmregistry "github.com/cloudfoundry/bosh-init/registry"
 )
 
 type Installation interface {

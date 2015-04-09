@@ -4,15 +4,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	. "github.com/cloudfoundry/bosh-init/release/job"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
 
-	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
+	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )
 
 var _ = Describe("Reader", func() {

@@ -6,13 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	. "github.com/cloudfoundry/bosh-init/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
 
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
 )
 
 var _ = Describe("Manager", func() {

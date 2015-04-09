@@ -1,8 +1,8 @@
 package job
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type Job struct {

@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type FakeDiskRepo struct {

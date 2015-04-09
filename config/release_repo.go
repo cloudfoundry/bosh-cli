@@ -3,7 +3,7 @@ package config
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
-	"github.com/cloudfoundry/bosh-micro-cli/release"
+	"github.com/cloudfoundry/bosh-init/release"
 )
 
 // ReleaseRepo persists releases metadata

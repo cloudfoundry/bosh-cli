@@ -13,10 +13,10 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
+	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
-var _ = Describe("bosh-micro", func() {
+var _ = Describe("bosh-init", func() {
 	var (
 		deploymentManifestDir      string
 		deploymentManifestFilePath string

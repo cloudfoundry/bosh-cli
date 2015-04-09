@@ -9,9 +9,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
-	bmtemcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bminstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
+	bmtemcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type RenderedJobRef struct {

@@ -1,4 +1,4 @@
-# BOSH Micro CLI [![Build Status](https://travis-ci.org/cloudfoundry/bosh-micro-cli.svg?branch=master)](https://travis-ci.org/cloudfoundry/bosh-micro-cli)
+# BOSH Micro CLI [![Build Status](https://travis-ci.org/cloudfoundry/bosh-init.svg?branch=master)](https://travis-ci.org/cloudfoundry/bosh-init)
 
 This is the BOSH Micro CLI rewritten to support external CPIs.
 
@@ -18,10 +18,10 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
     bin/build
     ```
 
-1. Tell bosh-micro which deployment manifest to use:
+1. Tell bosh-init which deployment manifest to use:
 
     ```
-    out/bosh-micro deployment manifest.yml
+    out/bosh-init deployment manifest.yml
     ```
 
     See the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
@@ -29,7 +29,7 @@ This is the BOSH Micro CLI rewritten to support external CPIs.
 1. Deploy
 
     ```
-    out/bosh-micro deploy stemcell.tgz cpi-release.tgz bosh-release.tgz
+    out/bosh-init deploy stemcell.tgz cpi-release.tgz bosh-release.tgz
     ```
 
     Where:
@@ -46,7 +46,7 @@ Once deployed, the BOSH director can be targeted using the [bosh_cli](https://ru
 The following output (printed to STDOUT) is from deploying BOSH into a Warden Container (inside a bosh-lite vagrant VM).
 
 ```
-> bosh-micro deploy /home/vagrant/test-warden-stemcell.tgz /home/vagrant/bosh-warden-cpi-16.tgz /home/vagrant/bosh-2811.tgz
+> bosh-init deploy /home/vagrant/test-warden-stemcell.tgz /home/vagrant/bosh-warden-cpi-16.tgz /home/vagrant/bosh-2811.tgz
 Deployment manifest: '/home/vagrant/manifest.yml'
 Deployment state: '/home/vagrant/deployment.json'
 
@@ -92,7 +92,7 @@ Finished deploying (00:04:37)
 
 ## Logging
 
-Along with the UI output (STDOUT) and UI errors (STDERR), bosh-micro can output more verbose logs.
+Along with the UI output (STDOUT) and UI errors (STDERR), bosh-init can output more verbose logs.
 
 Logging is disabled by default (`BOSH_MICRO_LOG_LEVEL` defaults to NONE).
 
@@ -110,15 +110,15 @@ The current state of your deployment is stored in a `deployment.json` file in th
 
 This allows you to deploy multiple deployments with different manifests, as long as they're in different directories.
 
-Do not delete this file unless you have already deleted your deployment (with `bosh-micro delete` or by manually removing the VM, disk(s), & stemcell from the infrastructure).
+Do not delete this file unless you have already deleted your deployment (with `bosh-init delete` or by manually removing the VM, disk(s), & stemcell from the infrastructure).
 
 
 ## Other
 
-To build bosh-micro see our [workstation setup docs](https://github.com/cloudfoundry/bosh-micro-cli/blob/master/docs/build.md).
+To build bosh-init see our [workstation setup docs](https://github.com/cloudfoundry/bosh-init/blob/master/docs/build.md).
 
-To run bosh-micro tests see our [test docs](https://github.com/cloudfoundry/bosh-micro-cli/blob/master/docs/test.md).
+To run bosh-init tests see our [test docs](https://github.com/cloudfoundry/bosh-init/blob/master/docs/test.md).
 
-To deploy BOSH with UAA using bosh-micro see our [UAA docs](https://github.com/cloudfoundry/bosh-micro-cli/blob/master/docs/uaa.md).
+To deploy BOSH with UAA using bosh-init see our [UAA docs](https://github.com/cloudfoundry/bosh-init/blob/master/docs/uaa.md).
 
-To learn more about the bosh-micro design see our [architecture docs](https://github.com/cloudfoundry/bosh-micro-cli/blob/master/docs/architecture.md).
+To learn more about the bosh-init design see our [architecture docs](https://github.com/cloudfoundry/bosh-init/blob/master/docs/architecture.md).

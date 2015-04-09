@@ -11,13 +11,13 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
+	. "github.com/cloudfoundry/bosh-init/deployment/disk"
 )
 
 var _ = Describe("Disk", func() {

@@ -7,10 +7,10 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type CompiledPackageRef struct {

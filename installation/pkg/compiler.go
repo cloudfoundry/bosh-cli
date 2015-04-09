@@ -10,8 +10,8 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 )
 
 type compiler struct {

@@ -7,8 +7,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmindex "github.com/cloudfoundry/bosh-init/index"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type CompiledPackageRecord struct {

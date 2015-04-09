@@ -5,7 +5,7 @@ import (
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type ExtractedStemcell interface {

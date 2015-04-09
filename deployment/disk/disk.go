@@ -5,9 +5,9 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type Disk interface {

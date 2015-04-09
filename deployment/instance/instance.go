@@ -7,14 +7,14 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bminstancestate "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bminstancestate "github.com/cloudfoundry/bosh-init/deployment/instance/state"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Instance interface {

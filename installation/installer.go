@@ -7,12 +7,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
-	bminstallstate "github.com/cloudfoundry/bosh-micro-cli/installation/state"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	bminstallstate "github.com/cloudfoundry/bosh-init/installation/state"
+	bmregistry "github.com/cloudfoundry/bosh-init/registry"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Installer interface {

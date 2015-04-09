@@ -7,7 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 )
 
 type Parser interface {

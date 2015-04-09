@@ -33,7 +33,7 @@ echo `env`
 
 # Vagrant needs ubuntu to own the private key if aws provider
 if [ ! -z "$BOSH_LITE_PRIVATE_KEY" ]; then
-  tmpfile=`mktemp -t bosh-micro-tests-XXXXXXXX`
+  tmpfile=`mktemp -t bosh-init-tests-XXXXXXXX`
   cat $BOSH_LITE_PRIVATE_KEY > $tmpfile
   export OLD_BOSH_LITE_PRIVATE_KEY=$BOSH_LITE_PRIVATE_KEY
   export BOSH_LITE_PRIVATE_KEY=$tmpfile
@@ -47,7 +47,7 @@ vm_ip=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{print $2}'`
 vm_port=`vagrant ssh-config 2>/dev/null | grep Port | awk '{print $2}'`
 private_key_path=${BOSH_LITE_PRIVATE_KEY:-`vagrant ssh-config 2>/dev/null | grep IdentityFile | awk '{print $2}'`}
 
-config_file=`mktemp -t bosh-micro-config-XXXXXXXX`
+config_file=`mktemp -t bosh-init-config-XXXXXXXX`
 cat > $config_file <<EOF
 {
   "vm_username": "${vm_username}",

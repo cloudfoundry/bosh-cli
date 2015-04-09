@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	. "github.com/cloudfoundry/bosh-init/stemcell"
 
 	"errors"
 
@@ -13,12 +13,12 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {

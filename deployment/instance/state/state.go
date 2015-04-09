@@ -1,8 +1,8 @@
 package state
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 )
 
 type State interface {

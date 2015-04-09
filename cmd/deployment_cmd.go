@@ -8,8 +8,8 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type deploymentCmd struct {

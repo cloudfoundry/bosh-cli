@@ -8,21 +8,21 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmcpirel "github.com/cloudfoundry/bosh-init/cpi/release"
+	bmdepl "github.com/cloudfoundry/bosh-init/deployment"
+	bmhttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bminstall "github.com/cloudfoundry/bosh-init/installation"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type deployCmd struct {
@@ -263,7 +263,7 @@ type Deployment struct{}
 func (c *deployCmd) parseCmdInputs(args []string) (string, []string, error) {
 	if len(args) < 2 {
 		c.ui.ErrorLinef("Invalid usage - deploy command requires at least 2 arguments")
-		c.ui.PrintLinef("Expected usage: bosh-micro deploy <stemcell-tarball> <cpi-release-tarball> [release-2-tarball [release-3-tarball...]]")
+		c.ui.PrintLinef("Expected usage: bosh-init deploy <stemcell-tarball> <cpi-release-tarball> [release-2-tarball [release-3-tarball...]]")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
 		return "", []string{}, errors.New("Invalid usage - deploy command requires at least 2 arguments")
 	}

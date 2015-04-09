@@ -1,27 +1,27 @@
 package state_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
+	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
-	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
-	mock_deployment_release "github.com/cloudfoundry/bosh-micro-cli/deployment/release/mocks"
-	mock_state_job "github.com/cloudfoundry/bosh-micro-cli/state/job/mocks"
-	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
+	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
 
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Builder", describeBuilder)

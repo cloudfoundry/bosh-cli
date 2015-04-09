@@ -4,14 +4,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/set"
+	. "github.com/cloudfoundry/bosh-init/release/set"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 
-	fake_release "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"
 )
 
 var _ = Describe("Resolver", func() {

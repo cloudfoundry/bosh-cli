@@ -4,14 +4,14 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
-	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmdeplrel "github.com/cloudfoundry/bosh-init/deployment/release"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Builder interface {

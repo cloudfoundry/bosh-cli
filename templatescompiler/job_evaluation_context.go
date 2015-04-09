@@ -6,9 +6,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 )
 
 type jobEvaluationContext struct {

@@ -3,9 +3,9 @@ package deployment
 import (
 	"time"
 
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type Factory interface {

@@ -5,15 +5,15 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
-	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
-	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmdeplrel "github.com/cloudfoundry/bosh-init/deployment/release"
+	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Builder interface {

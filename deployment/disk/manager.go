@@ -5,10 +5,10 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Manager interface {

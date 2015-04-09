@@ -4,14 +4,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/config"
+	. "github.com/cloudfoundry/bosh-init/config"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("DiskRepo", func() {

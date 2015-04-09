@@ -5,7 +5,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
+	bminstall "github.com/cloudfoundry/bosh-init/installation"
 )
 
 type Factory interface {

@@ -11,7 +11,7 @@ Vagrant.configure('2') do |config|
 
   config.vm.provider :aws do |v, override|
     v.tags = {
-      'PipelineName' => 'bosh-micro-cli'
+      'PipelineName' => 'bosh-init'
     }
   end
 

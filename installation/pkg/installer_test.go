@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob/fakes"
+	fakebminstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
+	. "github.com/cloudfoundry/bosh-init/installation/pkg"
 )
 
 var _ = Describe("PackageInstaller", func() {

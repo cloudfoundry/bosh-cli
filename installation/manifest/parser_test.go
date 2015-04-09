@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	. "github.com/cloudfoundry/bosh-init/installation/manifest"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("Parser", func() {

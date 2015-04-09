@@ -3,10 +3,10 @@ package deployment
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmcrypto "github.com/cloudfoundry/bosh-init/crypto"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type Record interface {

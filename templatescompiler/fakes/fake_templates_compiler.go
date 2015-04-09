@@ -7,9 +7,9 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type CompileInput struct {

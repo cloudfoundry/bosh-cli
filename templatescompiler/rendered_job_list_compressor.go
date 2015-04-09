@@ -8,7 +8,7 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto"
+	bmcrypto "github.com/cloudfoundry/bosh-init/crypto"
 )
 
 type RenderedJobListCompressor interface {

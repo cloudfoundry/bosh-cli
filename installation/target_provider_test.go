@@ -4,14 +4,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation"
+	. "github.com/cloudfoundry/bosh-init/installation"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 var _ = Describe("TargetProvider", func() {

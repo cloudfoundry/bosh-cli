@@ -38,7 +38,7 @@ func NewExtractor(
 // parses the release manifest, decompresses the packages and jobs, and validates the release.
 // Use release.Delete() to clean up the temp directory.
 func (e *extractor) Extract(releaseTarballPath string) (Release, error) {
-	extractedReleasePath, err := e.fs.TempDir("bosh-micro-release")
+	extractedReleasePath, err := e.fs.TempDir("bosh-init-release")
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Creating temp directory to extract release '%s'", releaseTarballPath)
 	}

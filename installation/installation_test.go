@@ -6,13 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation"
+	. "github.com/cloudfoundry/bosh-init/installation"
 
 	"code.google.com/p/gomock/gomock"
-	mock_registry "github.com/cloudfoundry/bosh-micro-cli/registry/mocks"
+	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 
-	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 )
 
 var _ = Describe("Installation", func() {

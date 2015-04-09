@@ -10,9 +10,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type reader struct {

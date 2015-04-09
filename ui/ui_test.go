@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/ui"
+	. "github.com/cloudfoundry/bosh-init/ui"
 
 	"bytes"
 	"io"

@@ -1,19 +1,19 @@
 package state_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
+	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
-	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
 
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmindex "github.com/cloudfoundry/bosh-init/index"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 )
 
 var _ = Describe("RemotePackageCompiler", describeRemotePackageCompiler)

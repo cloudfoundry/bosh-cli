@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Deployment interface {

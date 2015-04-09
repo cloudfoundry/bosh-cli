@@ -4,8 +4,8 @@ import (
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 )
 
 type AgentClientFactory interface {

@@ -11,7 +11,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
+	bmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 )
 
 type Factory interface {

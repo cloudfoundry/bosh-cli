@@ -3,8 +3,8 @@ package release
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
 )
 
 type JobResolver interface {

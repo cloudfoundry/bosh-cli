@@ -4,8 +4,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 func getDeploymentManifest(userConfig bmconfig.UserConfig, ui bmui.UI, fs boshsys.FileSystem) (manifestPath string, err error) {

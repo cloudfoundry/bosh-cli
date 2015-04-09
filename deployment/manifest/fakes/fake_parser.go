@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 )
 
 type FakeParser struct {

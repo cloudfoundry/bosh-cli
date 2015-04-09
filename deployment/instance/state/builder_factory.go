@@ -3,12 +3,12 @@ package state
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmdeplrel "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
-	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
-	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmdeplrel "github.com/cloudfoundry/bosh-init/deployment/release"
+	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 )
 
 type BuilderFactory interface {

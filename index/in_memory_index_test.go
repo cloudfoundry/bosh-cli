@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/index"
+	. "github.com/cloudfoundry/bosh-init/index"
 )
 
 var _ = Describe("InMemoryIndex", func() {

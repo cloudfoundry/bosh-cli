@@ -5,8 +5,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 type StemcellRepoSaveInput struct {

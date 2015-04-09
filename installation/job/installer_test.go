@@ -9,11 +9,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob/fakes"
-	fakebmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebminstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
+	fakebmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/job"
+	. "github.com/cloudfoundry/bosh-init/installation/job"
 )
 
 var _ = Describe("Installer", func() {

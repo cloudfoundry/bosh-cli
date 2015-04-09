@@ -18,7 +18,7 @@ RUN apt-get install -y curl; apt-get clean
 RUN apt-get install -y wget; apt-get clean
 RUN apt-get install -y tar; apt-get clean
 
-# bosh-micro dependencies
+# bosh-init dependencies
 RUN apt-get install -y mercurial; apt-get clean
 ADD install-go.sh /tmp/install-go.sh
 RUN chmod a+x /tmp/install-go.sh

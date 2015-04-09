@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	. "github.com/cloudfoundry/bosh-init/cmd"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -13,10 +13,10 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {

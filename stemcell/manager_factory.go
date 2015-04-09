@@ -1,8 +1,8 @@
 package stemcell
 
 import (
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type ManagerFactory interface {

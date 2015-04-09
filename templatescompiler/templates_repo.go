@@ -3,8 +3,8 @@ package templatescompiler
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmindex "github.com/cloudfoundry/bosh-init/index"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
 )
 
 type TemplateRecord struct {

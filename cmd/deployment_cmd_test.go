@@ -11,14 +11,14 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	. "github.com/cloudfoundry/bosh-init/cmd"
 )
 
 var _ = Describe("DeploymentCmd", func() {

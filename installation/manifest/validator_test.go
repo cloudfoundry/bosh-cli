@@ -4,17 +4,17 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	. "github.com/cloudfoundry/bosh-init/installation/manifest"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
 
-	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebmrel "github.com/cloudfoundry/bosh-init/release/fakes"
 )
 
 var _ = Describe("Validator", func() {

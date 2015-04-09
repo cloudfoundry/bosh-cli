@@ -6,10 +6,10 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
+	. "github.com/cloudfoundry/bosh-init/release"
 )
 
 var _ = Describe("Release", func() {

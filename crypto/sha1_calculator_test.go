@@ -9,7 +9,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/crypto"
+	. "github.com/cloudfoundry/bosh-init/crypto"
 )
 
 var _ = Describe("Sha1Calculator", func() {

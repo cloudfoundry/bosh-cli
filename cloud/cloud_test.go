@@ -8,11 +8,11 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	. "github.com/cloudfoundry/bosh-init/cloud"
 )
 
 var _ = Describe("Cloud", func() {

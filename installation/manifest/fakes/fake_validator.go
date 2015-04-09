@@ -3,7 +3,7 @@ package fakes
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 )
 
 type FakeValidator struct {

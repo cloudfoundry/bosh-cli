@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type FakeRelease struct {

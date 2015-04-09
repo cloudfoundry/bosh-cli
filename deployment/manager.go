@@ -3,10 +3,10 @@ package deployment
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Manager interface {

@@ -1,7 +1,7 @@
 package integration_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	. "github.com/cloudfoundry/bosh-init/cmd"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,13 +14,13 @@ import (
 	"time"
 
 	"code.google.com/p/gomock/gomock"
-	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
-	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
-	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
-	mock_install "github.com/cloudfoundry/bosh-micro-cli/installation/mocks"
-	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
+	mock_httpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
+	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
+	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -28,36 +28,36 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmhttp "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
-	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bmregistry "github.com/cloudfoundry/bosh-micro-cli/registry"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmdepl "github.com/cloudfoundry/bosh-init/deployment"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bmhttp "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bminstall "github.com/cloudfoundry/bosh-init/installation"
+	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bmregistry "github.com/cloudfoundry/bosh-init/registry"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 
-	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmcrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	fakebmstemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
-var _ = Describe("bosh-micro", func() {
+var _ = Describe("bosh-init", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {

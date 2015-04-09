@@ -3,7 +3,7 @@ package pkg
 import (
 	"path/filepath"
 
-	bminstallblob "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
+	bminstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
 )
 
 type CompiledPackageRef struct {

@@ -11,13 +11,13 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 
-	fakebmrender "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer/fakes"
+	fakebmrender "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 )
 
 var _ = Describe("JobRenderer", func() {

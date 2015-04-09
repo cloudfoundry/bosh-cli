@@ -3,15 +3,15 @@ package templatescompiler_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmindex "github.com/cloudfoundry/bosh-init/index"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
 )
 
 var _ = Describe("TemplatesRepo", func() {

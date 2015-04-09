@@ -7,12 +7,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer/fakes"
+	fakebmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 )
 
 var _ = Describe("ErbRenderer", func() {

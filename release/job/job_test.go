@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	. "github.com/cloudfoundry/bosh-init/release/job"
 )
 
 var _ = Describe("Job", func() {

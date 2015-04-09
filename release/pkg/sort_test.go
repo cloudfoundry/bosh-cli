@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/pkg"
 
 	gomegafmt "github.com/onsi/gomega/format"
 )

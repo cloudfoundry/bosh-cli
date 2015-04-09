@@ -1,7 +1,7 @@
 package agentclient
 
 import (
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 )
 
 type AgentClient interface {

@@ -7,7 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
+	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
 )
 
 type Validator interface {

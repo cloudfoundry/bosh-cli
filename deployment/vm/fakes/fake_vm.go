@@ -3,11 +3,11 @@ package fakes
 import (
 	"time"
 
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeVM struct {

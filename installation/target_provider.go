@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type TargetProvider interface {

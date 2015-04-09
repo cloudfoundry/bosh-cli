@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
-	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
+	fakebmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
+	. "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 )
 
 var _ = Describe("GetStateRetryable", func() {

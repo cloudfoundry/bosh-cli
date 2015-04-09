@@ -3,10 +3,10 @@ package instance
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
 )
 
 type ManagerFactory interface {

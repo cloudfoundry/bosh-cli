@@ -7,9 +7,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 )
 
 type agentClient struct {

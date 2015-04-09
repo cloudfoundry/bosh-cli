@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"net/http"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
+	. "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	fakebmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient/fakes"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	fakebmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
 )
 
 var _ = Describe("AgentClient", func() {

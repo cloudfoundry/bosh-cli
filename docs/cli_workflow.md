@@ -83,13 +83,13 @@ See [https://github.com/cloudfoundry/bosh/tree/master/release/jobs](https://gith
 
 The command below sets the deployment manifest. The current deployment path is saved to `~/.bosh_micro.json`.
 
-    bosh-micro deployment manifest.yml
+    bosh-init deployment manifest.yml
 
 # Deploy Microbosh
 
 The command below deploys Micro BOSH with the provided CPI release and stemcell.
 
-    bosh-micro deploy cpi-release.tgz stemcell.tgz
+    bosh-init deploy cpi-release.tgz stemcell.tgz
 
 Once the deploy is finished, Micro BOSH will be available to be targeted.
 
@@ -111,7 +111,7 @@ The CPI deployment manifest is used to deploy the CPI locally. It is constructed
 
 ## 2. Deploying CPI Release
 
-The provided CPI release is compiled on the machine where `bosh-micro deploy` is run, and is used locally to run the CPI commands necessary to create the Micro BOSH.
+The provided CPI release is compiled on the machine where `bosh-init deploy` is run, and is used locally to run the CPI commands necessary to create the Micro BOSH.
 
 The CPI release must contain a job called `cpi`. During CPI release deployment, all the packages that the `cpi` job depends on will be compiled and their templates rendered. CPI job templates have access to properties defined in the `cloud_provider -> properties` section of the manifest.
 
@@ -137,7 +137,7 @@ Next, the CLI sends the `create_vm` command to the CPI with the properties parse
 
 ## 7. Starting SSH Tunnel
 
-The CLI creates a reverse SSH tunnel to Micro BOSH VM using the properties provided in the manifest. This allows the agent on the Micro BOSH VM to access the registry, which is running on the machine where `bosh-micro deploy` was run.
+The CLI creates a reverse SSH tunnel to Micro BOSH VM using the properties provided in the manifest. This allows the agent on the Micro BOSH VM to access the registry, which is running on the machine where `bosh-init deploy` was run.
 
 ## 8. Waiting for Agent
 

@@ -1,19 +1,19 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
-	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
 )
 
 var _ = Describe("JobListRenderer", func() {

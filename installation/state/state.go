@@ -1,8 +1,8 @@
 package state
 
 import (
-	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
+	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 )
 
 type State interface {

@@ -11,14 +11,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/acceptance"
+	. "github.com/cloudfoundry/bosh-init/acceptance"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
+	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 const (
@@ -26,7 +26,7 @@ const (
 	stageFinishedPattern = "\\.\\.\\. Finished " + stageTimePattern + "$"
 )
 
-var _ = Describe("bosh-micro", func() {
+var _ = Describe("bosh-init", func() {
 	var (
 		logger       boshlog.Logger
 		fileSystem   boshsys.FileSystem
@@ -75,7 +75,7 @@ var _ = Describe("bosh-micro", func() {
 		os.Stdout.WriteString("\n---DEPLOYMENT---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deployment", manifestPath)
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deployment", manifestPath)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return outBuffer.String()
@@ -85,7 +85,7 @@ var _ = Describe("bosh-micro", func() {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return outBuffer.String()
@@ -95,7 +95,7 @@ var _ = Describe("bosh-micro", func() {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
 		return outBuffer.String()
@@ -105,13 +105,13 @@ var _ = Describe("bosh-micro", func() {
 		os.Stdout.WriteString("\n---DELETE---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpi-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("cpi-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return outBuffer.String()
 	}
 
-	// parseUserConfig reads & parses the remote bosh-micro user config
+	// parseUserConfig reads & parses the remote bosh-init user config
 	// This would be a lot cleaner if there were a RemoteFileSystem that used SSH.
 	var parseUserConfig = func() bmconfig.UserConfig {
 		userConfigPath := testEnv.Path(".bosh_micro.json")
@@ -119,7 +119,7 @@ var _ = Describe("bosh-micro", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 
-		tempUserConfigFile, err := fileSystem.TempFile("bosh-micro-user-config")
+		tempUserConfigFile, err := fileSystem.TempFile("bosh-init-user-config")
 		Expect(err).ToNot(HaveOccurred())
 		err = tempUserConfigFile.Close()
 		Expect(err).ToNot(HaveOccurred())
@@ -207,12 +207,12 @@ var _ = Describe("bosh-micro", func() {
 		cmdEnv = map[string]string{
 			"TMPDIR":               testEnv.Home(),
 			"BOSH_MICRO_LOG_LEVEL": "DEBUG",
-			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-micro-cli.log"),
+			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-init.log"),
 		}
 		quietCmdEnv = map[string]string{
 			"TMPDIR":               testEnv.Home(),
 			"BOSH_MICRO_LOG_LEVEL": "ERROR",
-			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-micro-cli-cleanup.log"),
+			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-init-cleanup.log"),
 		}
 
 		// clean up from previous failed tests
@@ -234,9 +234,9 @@ var _ = Describe("bosh-micro", func() {
 		err = bmtestutils.BuildExecutableForArch("linux-amd64")
 		Expect(err).NotTo(HaveOccurred())
 
-		boshMicroPath := "./../out/bosh-micro"
+		boshMicroPath := "./../out/bosh-init"
 		Expect(fileSystem.FileExists(boshMicroPath)).To(BeTrue())
-		err = testEnv.Copy("bosh-micro", boshMicroPath)
+		err = testEnv.Copy("bosh-init", boshMicroPath)
 		Expect(err).NotTo(HaveOccurred())
 		err = testEnv.DownloadOrCopy("stemcell.tgz", config.StemcellPath, config.StemcellURL)
 		Expect(err).NotTo(HaveOccurred())
@@ -250,7 +250,7 @@ var _ = Describe("bosh-micro", func() {
 		flushLog(cmdEnv["BOSH_MICRO_LOG_PATH"])
 
 		// quietly delete the deployment
-		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-micro"), "delete", testEnv.Path("cpi-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("cpi-release.tgz"))
 		if exitCode != 0 || err != nil {
 			// only flush the delete log if the delete failed
 			flushLog(quietCmdEnv["BOSH_MICRO_LOG_PATH"])

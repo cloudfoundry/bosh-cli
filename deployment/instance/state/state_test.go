@@ -1,13 +1,13 @@
 package state_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
+	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 )
 
 var _ = Describe("State", func() {

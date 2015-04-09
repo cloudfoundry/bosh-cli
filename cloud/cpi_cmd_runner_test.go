@@ -11,7 +11,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cloud"
+	. "github.com/cloudfoundry/bosh-init/cloud"
 )
 
 var _ = Describe("CpiCmdRunner", func() {

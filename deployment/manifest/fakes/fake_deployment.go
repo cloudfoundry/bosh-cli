@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 )
 
 func NewFakeReleaseJobRef() bmdeplmanifest.ReleaseJobRef {

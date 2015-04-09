@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/config"
+	. "github.com/cloudfoundry/bosh-init/config"
 )
 
 var _ = Describe("FileSystemUserConfigService", func() {

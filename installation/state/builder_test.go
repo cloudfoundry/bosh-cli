@@ -4,12 +4,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/state"
+	. "github.com/cloudfoundry/bosh-init/installation/state"
 
 	"code.google.com/p/gomock/gomock"
-	mock_deployment_release "github.com/cloudfoundry/bosh-micro-cli/deployment/release/mocks"
-	mock_state_job "github.com/cloudfoundry/bosh-micro-cli/state/job/mocks"
-	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
+	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
+	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -18,17 +18,17 @@ import (
 	fakeboshcmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmindex "github.com/cloudfoundry/bosh-micro-cli/index"
-	bminstalljob "github.com/cloudfoundry/bosh-micro-cli/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bminstallpkg "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatejob "github.com/cloudfoundry/bosh-micro-cli/state/job"
-	bmtemplate "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmindex "github.com/cloudfoundry/bosh-init/index"
+	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Builder", func() {

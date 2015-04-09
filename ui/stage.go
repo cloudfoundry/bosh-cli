@@ -6,7 +6,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
-	bmuifmt "github.com/cloudfoundry/bosh-micro-cli/ui/fmt"
+	bmuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
 
 type Stage interface {

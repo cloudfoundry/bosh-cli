@@ -5,7 +5,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type Cloud interface {
@@ -110,7 +110,7 @@ func (c cloud) CreateVM(
 	env bmproperty.Map,
 ) (string, error) {
 	method := "create_vm"
-	diskLocality := []interface{}{} // not used with bosh-micro-cli
+	diskLocality := []interface{}{} // not used with bosh-init
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,

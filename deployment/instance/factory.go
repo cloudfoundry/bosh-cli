@@ -3,10 +3,10 @@ package instance
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bminstancestate "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bminstancestate "github.com/cloudfoundry/bosh-init/deployment/instance/state"
+	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
 )
 
 type Factory interface {

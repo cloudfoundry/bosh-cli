@@ -10,7 +10,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
+	. "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 )
 
 var _ = Describe("HttpClient", func() {

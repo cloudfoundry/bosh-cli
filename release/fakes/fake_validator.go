@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
 )
 
 type FakeValidator struct {

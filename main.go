@@ -11,11 +11,11 @@ import (
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
+	bmcmd "github.com/cloudfoundry/bosh-init/cmd"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
 
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
-	bmuifmt "github.com/cloudfoundry/bosh-micro-cli/ui/fmt"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bmuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
 
 const mainLogTag = "main"

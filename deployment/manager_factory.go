@@ -1,13 +1,13 @@
 package deployment
 
 import (
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type ManagerFactory interface {

@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 )
 
 type Manifest struct {

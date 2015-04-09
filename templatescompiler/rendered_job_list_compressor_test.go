@@ -1,7 +1,7 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,9 +17,9 @@ import (
 	fakeboshcmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
 
-	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
+	fakebmcrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 )
 
 var _ = Describe("RenderedJobListCompressor", func() {

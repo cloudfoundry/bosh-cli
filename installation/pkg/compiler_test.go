@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
-	mock_install_package "github.com/cloudfoundry/bosh-micro-cli/installation/pkg/mocks"
-	mock_state_package "github.com/cloudfoundry/bosh-micro-cli/state/pkg/mocks"
+	mock_install_package "github.com/cloudfoundry/bosh-init/installation/pkg/mocks"
+	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
 
 	"errors"
 	"fmt"
@@ -19,10 +19,10 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/pkg"
+	. "github.com/cloudfoundry/bosh-init/installation/pkg"
 )
 
 var _ = Describe("PackageCompiler", func() {

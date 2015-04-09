@@ -6,15 +6,15 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Deployer interface {

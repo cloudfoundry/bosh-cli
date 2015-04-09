@@ -6,14 +6,14 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
 
-	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebmrel "github.com/cloudfoundry/bosh-init/release/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
+	. "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 var _ = Describe("Validator", func() {

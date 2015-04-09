@@ -3,10 +3,10 @@ package state
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 )
 
 type remotePackageCompiler struct {

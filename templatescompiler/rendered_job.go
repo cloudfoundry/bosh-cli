@@ -7,7 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
 )
 
 type RenderedJob interface {

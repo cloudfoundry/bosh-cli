@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmerbrenderer "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/erbrenderer"
-	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
+	bmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 type FakeERBRenderer struct {

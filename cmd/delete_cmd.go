@@ -7,18 +7,18 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmblobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmcpirel "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
-	bmdepl "github.com/cloudfoundry/bosh-micro-cli/deployment"
-	bmhttpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
-	bminstall "github.com/cloudfoundry/bosh-micro-cli/installation"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmcpirel "github.com/cloudfoundry/bosh-init/cpi/release"
+	bmdepl "github.com/cloudfoundry/bosh-init/deployment"
+	bmhttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
+	bminstall "github.com/cloudfoundry/bosh-init/installation"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type deleteCmd struct {
@@ -194,7 +194,7 @@ func (c *deleteCmd) Run(stage bmui.Stage, args []string) error {
 func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
 	if len(args) != 1 {
 		c.ui.ErrorLinef("Invalid usage - delete command requires exactly 1 argument")
-		c.ui.PrintLinef("Expected usage: bosh-micro delete <cpi-release-tarball>")
+		c.ui.PrintLinef("Expected usage: bosh-init delete <cpi-release-tarball>")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
 		return "", errors.New("Invalid usage - delete command requires exactly 1 argument")
 	}

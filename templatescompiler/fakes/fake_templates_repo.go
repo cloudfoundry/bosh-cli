@@ -5,9 +5,9 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmtempcomp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
-	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmtempcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
+	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 type SaveInput struct {

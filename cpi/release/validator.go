@@ -2,7 +2,7 @@ package release
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
 )
 
 const (

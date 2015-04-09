@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 )
 
 type NewManagerInput struct {

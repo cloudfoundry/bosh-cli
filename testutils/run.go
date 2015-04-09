@@ -21,13 +21,13 @@ func BuildExecutableForArch(arch string) error {
 
 	session, err := RunCommand(buildArg)
 	if session.ExitCode() != 0 {
-		return fmt.Errorf("Failed to build bosh-micro:\nstdout:\n%s\nstderr:\n%s", session.Out.Contents(), session.Err.Contents())
+		return fmt.Errorf("Failed to build bosh-init:\nstdout:\n%s\nstderr:\n%s", session.Out.Contents(), session.Err.Contents())
 	}
 	return err
 }
 
 func RunBoshMicro(args ...string) (*gexec.Session, error) {
-	return RunCommand("./../out/bosh-micro", args...)
+	return RunCommand("./../out/bosh-init", args...)
 }
 
 func RunCommand(cmd string, args ...string) (*gexec.Session, error) {

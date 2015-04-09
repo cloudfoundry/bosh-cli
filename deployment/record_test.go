@@ -7,15 +7,15 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmcrypto "github.com/cloudfoundry/bosh-micro-cli/crypto/fakes"
-	fakebmrel "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebmcrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	fakebmrel "github.com/cloudfoundry/bosh-init/release/fakes"
 
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	"github.com/cloudfoundry/bosh-micro-cli/release"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	"github.com/cloudfoundry/bosh-init/release"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment"
+	. "github.com/cloudfoundry/bosh-init/deployment"
 )
 
 var _ = Describe("Record", rootDesc)

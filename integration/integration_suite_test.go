@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
+	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 func TestIntegration(t *testing.T) {

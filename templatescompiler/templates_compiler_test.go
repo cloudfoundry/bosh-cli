@@ -1,7 +1,7 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/templatescompiler"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"code.google.com/p/gomock/gomock"
-	mock_template "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/mocks"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -18,11 +18,11 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
 
-	fakebmtemp "github.com/cloudfoundry/bosh-micro-cli/templatescompiler/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmtemp "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("TemplatesCompiler", func() {
@@ -92,7 +92,7 @@ var _ = Describe("TemplatesCompiler", func() {
 		)
 
 		var err error
-		compileDir, err = fs.TempDir("bosh-micro-cli-tests")
+		compileDir, err = fs.TempDir("bosh-init-tests")
 		Expect(err).ToNot(HaveOccurred())
 		fs.TempDirDir = compileDir
 	})

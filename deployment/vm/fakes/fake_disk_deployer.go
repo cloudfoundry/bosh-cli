@@ -1,11 +1,11 @@
 package fakes
 
 import (
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeDiskDeployer struct {

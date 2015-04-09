@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeCommand struct {

@@ -98,7 +98,7 @@ func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {
 }
 
 func (e remoteTestEnvironment) WriteContent(destName string, contents []byte) error {
-	tmpFile, err := e.fileSystem.TempFile("bosh-micro-cli-acceptance")
+	tmpFile, err := e.fileSystem.TempFile("bosh-init-acceptance")
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,7 @@
 package cmd_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	. "github.com/cloudfoundry/bosh-init/cmd"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -9,13 +9,13 @@ import (
 	"os"
 
 	"code.google.com/p/gomock/gomock"
-	mock_blobstore "github.com/cloudfoundry/bosh-micro-cli/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-micro-cli/cloud/mocks"
-	mock_httpagent "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/mocks"
-	mock_deployment "github.com/cloudfoundry/bosh-micro-cli/deployment/mocks"
-	mock_install "github.com/cloudfoundry/bosh-micro-cli/installation/mocks"
-	mock_release "github.com/cloudfoundry/bosh-micro-cli/release/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
+	mock_httpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
+	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
+	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
+	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -23,18 +23,18 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmrelset "github.com/cloudfoundry/bosh-micro-cli/release/set"
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
-	bmui "github.com/cloudfoundry/bosh-micro-cli/ui"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
+	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bmui "github.com/cloudfoundry/bosh-init/ui"
 
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
-	fakeui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("DeleteCmd", func() {

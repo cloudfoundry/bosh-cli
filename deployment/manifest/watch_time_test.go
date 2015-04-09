@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	. "github.com/cloudfoundry/bosh-init/deployment/manifest"
 )
 
 var _ = Describe("WatchTime", func() {

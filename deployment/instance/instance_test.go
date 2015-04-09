@@ -1,7 +1,7 @@
 package instance_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/instance"
+	. "github.com/cloudfoundry/bosh-init/deployment/instance"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -9,22 +9,22 @@ import (
 	"time"
 
 	"code.google.com/p/gomock/gomock"
-	mock_instance_state "github.com/cloudfoundry/bosh-micro-cli/deployment/instance/state/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel"
-	bminstallmanifest "github.com/cloudfoundry/bosh-micro-cli/installation/manifest"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 
-	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
-	fakebmsshtunnel "github.com/cloudfoundry/bosh-micro-cli/deployment/sshtunnel/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmdisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
+	fakebmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Instance", func() {

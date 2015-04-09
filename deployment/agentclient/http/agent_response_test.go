@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/http"
+	. "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 )
 
 var _ = Describe("AgentResponse", func() {

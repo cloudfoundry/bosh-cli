@@ -4,16 +4,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/release"
+	. "github.com/cloudfoundry/bosh-init/deployment/release"
 
 	"code.google.com/p/gomock/gomock"
-	mock_release_set "github.com/cloudfoundry/bosh-micro-cli/release/set/mocks"
+	mock_release_set "github.com/cloudfoundry/bosh-init/release/set/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
 
-	fake_release "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"
 )
 
 var _ = Describe("JobResolver", func() {

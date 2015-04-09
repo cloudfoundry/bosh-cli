@@ -8,9 +8,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	. "github.com/cloudfoundry/bosh-micro-cli/config"
-	"github.com/cloudfoundry/bosh-micro-cli/release"
-	fakerelease "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	. "github.com/cloudfoundry/bosh-init/config"
+	"github.com/cloudfoundry/bosh-init/release"
+	fakerelease "github.com/cloudfoundry/bosh-init/release/fakes"
 )
 
 var _ = Describe("ReleaseRepo", rootDesc)

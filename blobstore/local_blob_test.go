@@ -1,7 +1,7 @@
 package blobstore_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/blobstore"
+	. "github.com/cloudfoundry/bosh-init/blobstore"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

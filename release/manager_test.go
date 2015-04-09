@@ -4,11 +4,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release"
+	. "github.com/cloudfoundry/bosh-init/release"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	fake_release "github.com/cloudfoundry/bosh-micro-cli/release/fakes"
+	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"
 )
 
 var _ = Describe("Manager", func() {

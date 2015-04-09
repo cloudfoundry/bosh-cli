@@ -6,26 +6,26 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	. "github.com/cloudfoundry/bosh-init/deployment/vm"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-micro-cli/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
-	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
+	fakebmdisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("VM", func() {

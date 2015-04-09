@@ -3,8 +3,8 @@ package release
 import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type release struct {

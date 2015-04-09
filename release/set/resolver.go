@@ -6,8 +6,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 )
 
 type Resolver interface {

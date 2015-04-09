@@ -1,7 +1,7 @@
 package applyspec
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 // ApplySpec is the transport layer model for communicating instance state to the bosh-agent.

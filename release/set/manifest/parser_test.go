@@ -10,9 +10,9 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrelmanifest "github.com/cloudfoundry/bosh-micro-cli/release/manifest"
+	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/release/set/manifest"
+	. "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 var _ = Describe("Parser", func() {

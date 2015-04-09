@@ -8,7 +8,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/config"
+	. "github.com/cloudfoundry/bosh-init/config"
 )
 
 var _ = Describe("DeploymentRepo", func() {

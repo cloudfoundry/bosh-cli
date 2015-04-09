@@ -3,7 +3,7 @@
 set -e
 bin=$(dirname $0)
 
-rootPackage=github.com/cloudfoundry/bosh-micro-cli
+rootPackage=github.com/cloudfoundry/bosh-init
 
 $bin/go install code.google.com/p/gomock/mockgen
 

@@ -1,7 +1,7 @@
 package blobstore_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/blobstore"
+	. "github.com/cloudfoundry/bosh-init/blobstore"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,7 +11,7 @@ import (
 	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
 	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmhttpclient "github.com/cloudfoundry/bosh-micro-cli/deployment/httpclient"
+	bmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"

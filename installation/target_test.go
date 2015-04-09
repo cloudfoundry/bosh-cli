@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation"
+	. "github.com/cloudfoundry/bosh-init/installation"
 )
 
 var _ = Describe("Target", func() {

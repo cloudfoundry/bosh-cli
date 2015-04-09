@@ -7,19 +7,19 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmagentclient "github.com/cloudfoundry/bosh-micro-cli/deployment/agentclient/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	. "github.com/cloudfoundry/bosh-init/deployment/vm"
 )
 
 var _ = Describe("Manager", func() {

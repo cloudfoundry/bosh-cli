@@ -5,11 +5,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	bmrel "github.com/cloudfoundry/bosh-micro-cli/release"
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmrel "github.com/cloudfoundry/bosh-init/release"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/cpi/release"
+	. "github.com/cloudfoundry/bosh-init/cpi/release"
 )
 
 var _ = Describe("Validator", func() {

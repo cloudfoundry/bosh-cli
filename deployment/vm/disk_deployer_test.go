@@ -1,7 +1,7 @@
 package vm_test
 
 import (
-	. "github.com/cloudfoundry/bosh-micro-cli/deployment/vm"
+	. "github.com/cloudfoundry/bosh-init/deployment/vm"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -9,16 +9,16 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-micro-cli/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-micro-cli/config"
-	bmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-micro-cli/deployment/manifest"
+	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-micro-cli/config/fakes"
-	fakebmdisk "github.com/cloudfoundry/bosh-micro-cli/deployment/disk/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-micro-cli/deployment/vm/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebmconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebmdisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
+	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("DiskDeployer", func() {

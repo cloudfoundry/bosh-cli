@@ -5,9 +5,9 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmcloud "github.com/cloudfoundry/bosh-micro-cli/cloud"
-	bmstemcell "github.com/cloudfoundry/bosh-micro-cli/stemcell"
-	bmtestutils "github.com/cloudfoundry/bosh-micro-cli/testutils"
+	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
+	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 type NewManagerInput struct {

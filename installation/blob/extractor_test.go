@@ -10,9 +10,9 @@ import (
 
 	fakeblobstore "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	testfakes "github.com/cloudfoundry/bosh-micro-cli/testutils/fakes"
+	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/installation/blob"
+	. "github.com/cloudfoundry/bosh-init/installation/blob"
 )
 
 var _ = Describe("Extractor", func() {

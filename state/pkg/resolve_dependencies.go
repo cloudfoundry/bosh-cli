@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 func ResolveDependencies(pkg *bmrelpkg.Package) []*bmrelpkg.Package {

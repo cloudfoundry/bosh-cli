@@ -14,7 +14,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/blobstore"
+	. "github.com/cloudfoundry/bosh-init/blobstore"
 )
 
 var _ = Describe("Blobstore", func() {

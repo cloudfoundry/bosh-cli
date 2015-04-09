@@ -6,10 +6,10 @@ import (
 
 	"fmt"
 
-	bmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	bmcmd "github.com/cloudfoundry/bosh-init/cmd"
 
-	fakebmcmd "github.com/cloudfoundry/bosh-micro-cli/cmd/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmcmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Runner", func() {

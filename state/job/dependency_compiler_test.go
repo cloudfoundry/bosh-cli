@@ -4,18 +4,18 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-micro-cli/state/job"
+	. "github.com/cloudfoundry/bosh-init/state/job"
 
 	"code.google.com/p/gomock/gomock"
-	mock_state_package "github.com/cloudfoundry/bosh-micro-cli/state/pkg/mocks"
+	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmreljob "github.com/cloudfoundry/bosh-micro-cli/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-micro-cli/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-micro-cli/state/pkg"
+	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 
-	fakebmui "github.com/cloudfoundry/bosh-micro-cli/ui/fakes"
+	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("DependencyCompiler", func() {

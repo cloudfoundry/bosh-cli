@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	cmd "github.com/cloudfoundry/bosh-micro-cli/cmd"
+	cmd "github.com/cloudfoundry/bosh-init/cmd"
 )
 
 type FakeFactory struct {
