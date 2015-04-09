@@ -1,7 +1,7 @@
 package config
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type DeploymentFile struct {
@@ -28,7 +28,7 @@ type DiskRecord struct {
 	ID              string         `json:"id"`
 	CID             string         `json:"cid"`
 	Size            int            `json:"size"`
-	CloudProperties bmproperty.Map `json:"cloud_properties"`
+	CloudProperties biproperty.Map `json:"cloud_properties"`
 }
 
 type ReleaseRecord struct {

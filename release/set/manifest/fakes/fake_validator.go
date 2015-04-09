@@ -3,7 +3,7 @@ package fakes
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 type FakeValidator struct {
@@ -19,14 +19,14 @@ func NewFakeValidator() *FakeValidator {
 }
 
 type ValidateInput struct {
-	Manifest bmrelsetmanifest.Manifest
+	Manifest birelsetmanifest.Manifest
 }
 
 type ValidateOutput struct {
 	Err error
 }
 
-func (v *FakeValidator) Validate(manifest bmrelsetmanifest.Manifest) error {
+func (v *FakeValidator) Validate(manifest birelsetmanifest.Manifest) error {
 	v.ValidateInputs = append(v.ValidateInputs, ValidateInput{
 		Manifest: manifest,
 	})

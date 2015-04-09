@@ -3,28 +3,28 @@ package deployment
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Manager interface {
 	FindCurrent() (deployment Deployment, found bool, err error)
-	Cleanup(bmui.Stage) error
+	Cleanup(biui.Stage) error
 }
 
 type manager struct {
-	instanceManager   bminstance.Manager
-	diskManager       bmdisk.Manager
-	stemcellManager   bmstemcell.Manager
+	instanceManager   biinstance.Manager
+	diskManager       bidisk.Manager
+	stemcellManager   bistemcell.Manager
 	deploymentFactory Factory
 }
 
 func NewManager(
-	instanceManager bminstance.Manager,
-	diskManager bmdisk.Manager,
-	stemcellManager bmstemcell.Manager,
+	instanceManager biinstance.Manager,
+	diskManager bidisk.Manager,
+	stemcellManager bistemcell.Manager,
 	deploymentFactory Factory,
 ) Manager {
 	return &manager{
@@ -58,7 +58,7 @@ func (m *manager) FindCurrent() (deployment Deployment, found bool, err error) {
 	return m.deploymentFactory.NewDeployment(instances, disks, stemcells), true, nil
 }
 
-func (m *manager) Cleanup(stage bmui.Stage) error {
+func (m *manager) Cleanup(stage biui.Stage) error {
 	if err := m.diskManager.DeleteUnused(stage); err != nil {
 		return err
 	}

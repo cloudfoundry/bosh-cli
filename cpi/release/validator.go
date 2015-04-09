@@ -2,7 +2,7 @@ package release
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmrel "github.com/cloudfoundry/bosh-init/release"
+	birel "github.com/cloudfoundry/bosh-init/release"
 )
 
 const (
@@ -16,7 +16,7 @@ func NewValidator() Validator {
 	return Validator{}
 }
 
-func (v Validator) Validate(release bmrel.Release, cpiReleaseJobName string) error {
+func (v Validator) Validate(release birel.Release, cpiReleaseJobName string) error {
 	job, ok := release.FindJobByName(cpiReleaseJobName)
 	if !ok {
 		return bosherr.Errorf("CPI release must contain specified job '%s'", cpiReleaseJobName)

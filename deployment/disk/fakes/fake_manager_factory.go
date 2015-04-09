@@ -1,17 +1,17 @@
 package fakes
 
 import (
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 )
 
 type NewManagerInput struct {
-	Cloud bmcloud.Cloud
+	Cloud bicloud.Cloud
 }
 
 type FakeManagerFactory struct {
 	NewManagerInputs  []NewManagerInput
-	NewManagerManager bmdisk.Manager
+	NewManagerManager bidisk.Manager
 }
 
 func NewFakeManagerFactory() *FakeManagerFactory {
@@ -20,7 +20,7 @@ func NewFakeManagerFactory() *FakeManagerFactory {
 	}
 }
 
-func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud) bmdisk.Manager {
+func (f *FakeManagerFactory) NewManager(cloud bicloud.Cloud) bidisk.Manager {
 	input := NewManagerInput{
 		Cloud: cloud,
 	}

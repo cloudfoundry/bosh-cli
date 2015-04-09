@@ -5,18 +5,18 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 )
 
 type ManagerFactory interface {
-	NewManager(cloud bmcloud.Cloud, agentClient bmagentclient.AgentClient) Manager
+	NewManager(cloud bicloud.Cloud, agentClient biagentclient.AgentClient) Manager
 }
 
 type managerFactory struct {
-	vmRepo        bmconfig.VMRepo
-	stemcellRepo  bmconfig.StemcellRepo
+	vmRepo        biconfig.VMRepo
+	stemcellRepo  biconfig.StemcellRepo
 	diskDeployer  DiskDeployer
 	uuidGenerator boshuuid.Generator
 	fs            boshsys.FileSystem
@@ -24,8 +24,8 @@ type managerFactory struct {
 }
 
 func NewManagerFactory(
-	vmRepo bmconfig.VMRepo,
-	stemcellRepo bmconfig.StemcellRepo,
+	vmRepo biconfig.VMRepo,
+	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
 	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
@@ -41,7 +41,7 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmagentclient.AgentClient) Manager {
+func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClient biagentclient.AgentClient) Manager {
 	return NewManager(
 		f.vmRepo,
 		f.stemcellRepo,

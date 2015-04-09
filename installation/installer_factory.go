@@ -8,19 +8,19 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmdeplrel "github.com/cloudfoundry/bosh-init/deployment/release"
-	bmindex "github.com/cloudfoundry/bosh-init/index"
-	bminstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	bminstallstate "github.com/cloudfoundry/bosh-init/installation/state"
-	bmregistry "github.com/cloudfoundry/bosh-init/registry"
-	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
-	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
-	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
-	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
-	bmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
+	biindex "github.com/cloudfoundry/bosh-init/index"
+	biinstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	biinstallstate "github.com/cloudfoundry/bosh-init/installation/state"
+	biregistry "github.com/cloudfoundry/bosh-init/registry"
+	birelset "github.com/cloudfoundry/bosh-init/release/set"
+	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type InstallerFactory interface {
@@ -29,28 +29,28 @@ type InstallerFactory interface {
 
 type installerFactory struct {
 	targetProvider        TargetProvider
-	ui                    bmui.UI
+	ui                    biui.UI
 	fs                    boshsys.FileSystem
 	runner                boshsys.CmdRunner
 	extractor             boshcmd.Compressor
-	releaseResolver       bmrelset.Resolver
-	releaseJobResolver    bmdeplrel.JobResolver
+	releaseResolver       birelset.Resolver
+	releaseJobResolver    bideplrel.JobResolver
 	uuidGenerator         boshuuid.Generator
-	registryServerManager bmregistry.ServerManager
+	registryServerManager biregistry.ServerManager
 	logger                boshlog.Logger
 	logTag                string
 }
 
 func NewInstallerFactory(
 	targetProvider TargetProvider,
-	ui bmui.UI,
+	ui biui.UI,
 	fs boshsys.FileSystem,
 	runner boshsys.CmdRunner,
 	extractor boshcmd.Compressor,
-	releaseResolver bmrelset.Resolver,
-	releaseJobResolver bmdeplrel.JobResolver,
+	releaseResolver birelset.Resolver,
+	releaseJobResolver bideplrel.JobResolver,
 	uuidGenerator boshuuid.Generator,
-	registryServerManager bmregistry.ServerManager,
+	registryServerManager biregistry.ServerManager,
 	logger boshlog.Logger,
 ) InstallerFactory {
 	return &installerFactory{
@@ -104,29 +104,29 @@ type installerFactoryContext struct {
 	logger             boshlog.Logger
 	extractor          boshcmd.Compressor
 	uuidGenerator      boshuuid.Generator
-	releaseJobResolver bmdeplrel.JobResolver
+	releaseJobResolver bideplrel.JobResolver
 
-	stateBuilder          bminstallstate.Builder
-	jobDependencyCompiler bmstatejob.DependencyCompiler
-	packageCompiler       bmstatepkg.Compiler
-	jobInstaller          bminstalljob.Installer
-	templatesRepo         bmtemplate.TemplatesRepo
-	packageInstaller      bminstallpkg.Installer
+	stateBuilder          biinstallstate.Builder
+	jobDependencyCompiler bistatejob.DependencyCompiler
+	packageCompiler       bistatepkg.Compiler
+	jobInstaller          biinstalljob.Installer
+	templatesRepo         bitemplate.TemplatesRepo
+	packageInstaller      biinstallpkg.Installer
 	blobstore             boshblob.Blobstore
-	blobExtractor         bminstallblob.Extractor
-	compiledPackageRepo   bmstatepkg.CompiledPackageRepo
+	blobExtractor         biinstallblob.Extractor
+	compiledPackageRepo   bistatepkg.CompiledPackageRepo
 }
 
-func (c *installerFactoryContext) StateBuilder() bminstallstate.Builder {
+func (c *installerFactoryContext) StateBuilder() biinstallstate.Builder {
 	if c.stateBuilder != nil {
 		return c.stateBuilder
 	}
 
-	erbRenderer := bmerbrenderer.NewERBRenderer(c.fs, c.runner, c.logger)
-	jobRenderer := bmtemplate.NewJobRenderer(erbRenderer, c.fs, c.logger)
-	jobListRenderer := bmtemplate.NewJobListRenderer(jobRenderer, c.logger)
+	erbRenderer := bierbrenderer.NewERBRenderer(c.fs, c.runner, c.logger)
+	jobRenderer := bitemplate.NewJobRenderer(erbRenderer, c.fs, c.logger)
+	jobListRenderer := bitemplate.NewJobListRenderer(jobRenderer, c.logger)
 
-	c.stateBuilder = bminstallstate.NewBuilder(
+	c.stateBuilder = biinstallstate.NewBuilder(
 		c.releaseJobResolver,
 		c.JobDependencyCompiler(),
 		jobListRenderer,
@@ -137,12 +137,12 @@ func (c *installerFactoryContext) StateBuilder() bminstallstate.Builder {
 	return c.stateBuilder
 }
 
-func (c *installerFactoryContext) JobDependencyCompiler() bmstatejob.DependencyCompiler {
+func (c *installerFactoryContext) JobDependencyCompiler() bistatejob.DependencyCompiler {
 	if c.jobDependencyCompiler != nil {
 		return c.jobDependencyCompiler
 	}
 
-	c.jobDependencyCompiler = bmstatejob.NewDependencyCompiler(
+	c.jobDependencyCompiler = bistatejob.NewDependencyCompiler(
 		c.PackageCompiler(),
 		c.logger,
 	)
@@ -150,12 +150,12 @@ func (c *installerFactoryContext) JobDependencyCompiler() bmstatejob.DependencyC
 	return c.jobDependencyCompiler
 }
 
-func (c *installerFactoryContext) PackageCompiler() bmstatepkg.Compiler {
+func (c *installerFactoryContext) PackageCompiler() bistatepkg.Compiler {
 	if c.packageCompiler != nil {
 		return c.packageCompiler
 	}
 
-	c.packageCompiler = bminstallpkg.NewPackageCompiler(
+	c.packageCompiler = biinstallpkg.NewPackageCompiler(
 		c.runner,
 		c.target.PackagesPath(),
 		c.fs,
@@ -169,12 +169,12 @@ func (c *installerFactoryContext) PackageCompiler() bmstatepkg.Compiler {
 	return c.packageCompiler
 }
 
-func (c *installerFactoryContext) JobInstaller() bminstalljob.Installer {
+func (c *installerFactoryContext) JobInstaller() biinstalljob.Installer {
 	if c.jobInstaller != nil {
 		return c.jobInstaller
 	}
 
-	c.jobInstaller = bminstalljob.NewInstaller(
+	c.jobInstaller = biinstalljob.NewInstaller(
 		c.fs,
 		c.BlobExtractor(),
 		c.TemplatesRepo(),
@@ -183,22 +183,22 @@ func (c *installerFactoryContext) JobInstaller() bminstalljob.Installer {
 	return c.jobInstaller
 }
 
-func (c *installerFactoryContext) TemplatesRepo() bmtemplate.TemplatesRepo {
+func (c *installerFactoryContext) TemplatesRepo() bitemplate.TemplatesRepo {
 	if c.templatesRepo != nil {
 		return c.templatesRepo
 	}
 
-	templatesIndex := bmindex.NewFileIndex(c.target.TemplatesIndexPath(), c.fs)
-	c.templatesRepo = bmtemplate.NewTemplatesRepo(templatesIndex)
+	templatesIndex := biindex.NewFileIndex(c.target.TemplatesIndexPath(), c.fs)
+	c.templatesRepo = bitemplate.NewTemplatesRepo(templatesIndex)
 	return c.templatesRepo
 }
 
-func (c *installerFactoryContext) PackageInstaller() bminstallpkg.Installer {
+func (c *installerFactoryContext) PackageInstaller() biinstallpkg.Installer {
 	if c.packageInstaller != nil {
 		return c.packageInstaller
 	}
 
-	c.packageInstaller = bminstallpkg.NewPackageInstaller(c.BlobExtractor())
+	c.packageInstaller = biinstallpkg.NewPackageInstaller(c.BlobExtractor())
 	return c.packageInstaller
 }
 
@@ -214,23 +214,23 @@ func (c *installerFactoryContext) Blobstore() boshblob.Blobstore {
 	return c.blobstore
 }
 
-func (c *installerFactoryContext) BlobExtractor() bminstallblob.Extractor {
+func (c *installerFactoryContext) BlobExtractor() biinstallblob.Extractor {
 	if c.blobExtractor != nil {
 		return c.blobExtractor
 	}
 
-	c.blobExtractor = bminstallblob.NewExtractor(c.fs, c.extractor, c.Blobstore(), c.logger)
+	c.blobExtractor = biinstallblob.NewExtractor(c.fs, c.extractor, c.Blobstore(), c.logger)
 
 	return c.blobExtractor
 }
 
-func (c *installerFactoryContext) CompiledPackageRepo() bmstatepkg.CompiledPackageRepo {
+func (c *installerFactoryContext) CompiledPackageRepo() bistatepkg.CompiledPackageRepo {
 	if c.compiledPackageRepo != nil {
 		return c.compiledPackageRepo
 	}
 
-	compiledPackageIndex := bmindex.NewFileIndex(c.target.CompiledPackagedIndexPath(), c.fs)
-	c.compiledPackageRepo = bmstatepkg.NewCompiledPackageRepo(compiledPackageIndex)
+	compiledPackageIndex := biindex.NewFileIndex(c.target.CompiledPackagedIndexPath(), c.fs)
+	c.compiledPackageRepo = bistatepkg.NewCompiledPackageRepo(compiledPackageIndex)
 
 	return c.compiledPackageRepo
 }

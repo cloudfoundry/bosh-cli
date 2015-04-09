@@ -3,24 +3,24 @@ package instance
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
 )
 
 type ManagerFactory interface {
-	NewManager(bmcloud.Cloud, bmvm.Manager, bmblobstore.Blobstore) Manager
+	NewManager(bicloud.Cloud, bivm.Manager, biblobstore.Blobstore) Manager
 }
 
 type managerFactory struct {
-	sshTunnelFactory bmsshtunnel.Factory
+	sshTunnelFactory bisshtunnel.Factory
 	instanceFactory  Factory
 	logger           boshlog.Logger
 }
 
 func NewManagerFactory(
-	sshTunnelFactory bmsshtunnel.Factory,
+	sshTunnelFactory bisshtunnel.Factory,
 	instanceFactory Factory,
 	logger boshlog.Logger,
 ) ManagerFactory {
@@ -31,7 +31,7 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, vmManager bmvm.Manager, blobstore bmblobstore.Blobstore) Manager {
+func (f *managerFactory) NewManager(cloud bicloud.Cloud, vmManager bivm.Manager, blobstore biblobstore.Blobstore) Manager {
 	return NewManager(
 		cloud,
 		vmManager,

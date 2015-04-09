@@ -28,33 +28,33 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmdepl "github.com/cloudfoundry/bosh-init/deployment"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmhttp "github.com/cloudfoundry/bosh-init/deployment/httpclient"
-	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bminstall "github.com/cloudfoundry/bosh-init/installation"
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmregistry "github.com/cloudfoundry/bosh-init/registry"
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bidepl "github.com/cloudfoundry/bosh-init/deployment"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bihttp "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biregistry "github.com/cloudfoundry/bosh-init/registry"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	birelset "github.com/cloudfoundry/bosh-init/release/set"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 
-	fakebmcrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("bosh-init", func() {
@@ -73,9 +73,9 @@ var _ = Describe("bosh-init", func() {
 			fs     *fakesys.FakeFileSystem
 			logger boshlog.Logger
 
-			registryServerManager bmregistry.ServerManager
-			releaseManager        bmrel.Manager
-			releaseResolver       bmrelset.Resolver
+			registryServerManager biregistry.ServerManager
+			releaseManager        birel.Manager
+			releaseResolver       birelset.Resolver
 
 			mockInstaller          *mock_install.MockInstaller
 			mockInstallerFactory   *mock_install.MockInstallerFactory
@@ -92,33 +92,33 @@ var _ = Describe("bosh-init", func() {
 			mockBlobstoreFactory *mock_blobstore.MockFactory
 			mockBlobstore        *mock_blobstore.MockBlobstore
 
-			fakeStemcellExtractor          *fakebmstemcell.FakeExtractor
+			fakeStemcellExtractor          *fakebistemcell.FakeExtractor
 			fakeUUIDGenerator              *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator          *fakeuuid.FakeGenerator
 			fakeAgentIDGenerator           *fakeuuid.FakeGenerator
-			fakeSHA1Calculator             *fakebmcrypto.FakeSha1Calculator
-			legacyDeploymentConfigMigrator bmconfig.LegacyDeploymentConfigMigrator
-			deploymentConfigService        bmconfig.DeploymentConfigService
-			vmRepo                         bmconfig.VMRepo
-			diskRepo                       bmconfig.DiskRepo
-			stemcellRepo                   bmconfig.StemcellRepo
-			deploymentRepo                 bmconfig.DeploymentRepo
-			releaseRepo                    bmconfig.ReleaseRepo
-			userConfig                     bmconfig.UserConfig
+			fakeSHA1Calculator             *fakebicrypto.FakeSha1Calculator
+			legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
+			deploymentConfigService        biconfig.DeploymentConfigService
+			vmRepo                         biconfig.VMRepo
+			diskRepo                       biconfig.DiskRepo
+			stemcellRepo                   biconfig.StemcellRepo
+			deploymentRepo                 biconfig.DeploymentRepo
+			releaseRepo                    biconfig.ReleaseRepo
+			userConfig                     biconfig.UserConfig
 
-			sshTunnelFactory bmsshtunnel.Factory
+			sshTunnelFactory bisshtunnel.Factory
 
-			diskManagerFactory bmdisk.ManagerFactory
-			diskDeployer       bmvm.DiskDeployer
+			diskManagerFactory bidisk.ManagerFactory
+			diskDeployer       bivm.DiskDeployer
 
 			stdOut    *gbytes.Buffer
 			stdErr    *gbytes.Buffer
-			fakeStage *fakebmui.FakeStage
+			fakeStage *fakebiui.FakeStage
 
-			stemcellManagerFactory bmstemcell.ManagerFactory
-			vmManagerFactory       bmvm.ManagerFactory
+			stemcellManagerFactory bistemcell.ManagerFactory
+			vmManagerFactory       bivm.ManagerFactory
 
-			applySpec bmas.ApplySpec
+			applySpec bias.ApplySpec
 
 			directorID string
 
@@ -130,22 +130,22 @@ var _ = Describe("bosh-init", func() {
 
 			stemcellImagePath       = "fake-stemcell-image-path"
 			stemcellCID             = "fake-stemcell-cid"
-			stemcellCloudProperties = bmproperty.Map{}
+			stemcellCloudProperties = biproperty.Map{}
 
-			vmCloudProperties = bmproperty.Map{}
-			vmEnv             = bmproperty.Map{}
+			vmCloudProperties = biproperty.Map{}
+			vmEnv             = biproperty.Map{}
 
-			diskCloudProperties = bmproperty.Map{}
+			diskCloudProperties = biproperty.Map{}
 
-			networkInterfaces = map[string]bmproperty.Map{
-				"network-1": bmproperty.Map{
+			networkInterfaces = map[string]biproperty.Map{
+				"network-1": biproperty.Map{
 					"type":             "dynamic",
 					"ip":               "",
-					"cloud_properties": bmproperty.Map{},
+					"cloud_properties": biproperty.Map{},
 				},
 			}
 
-			agentRunningState = bmagentclient.AgentState{JobState: "running"}
+			agentRunningState = biagentclient.AgentState{JobState: "running"}
 			mbusURL           = "http://fake-mbus-url"
 
 			expectHasVM1    *gomock.Call
@@ -190,7 +190,7 @@ cloud_provider:
 `)
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
+			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
 				deploymentManifestPath: {Sha1: "fake-deployment-sha1-1"},
 			})
 		}
@@ -233,7 +233,7 @@ cloud_provider:
 `)
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
+			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
 				deploymentManifestPath: {Sha1: "fake-deployment-sha1-2"},
 			})
 		}
@@ -244,27 +244,27 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
-			cpiPackage := bmrelpkg.Package{
+			cpiPackage := birelpkg.Package{
 				Name:          "fake-package-name",
 				Fingerprint:   "fake-package-fingerprint-cpi",
 				SHA1:          "fake-package-sha1-cpi",
-				Dependencies:  []*bmrelpkg.Package{},
+				Dependencies:  []*birelpkg.Package{},
 				ExtractedPath: "fake-package-extracted-path-cpi",
 				ArchivePath:   "fake-package-archive-path-cpi",
 			}
-			cpiRelease := bmrel.NewRelease(
+			cpiRelease := birel.NewRelease(
 				"fake-cpi-release-name",
 				"1.1",
-				[]bmreljob.Job{
+				[]bireljob.Job{
 					{
 						Name: "fake-cpi-release-job-name",
 						Templates: map[string]string{
 							"cpi.erb": "bin/cpi",
 						},
-						Packages: []*bmrelpkg.Package{&cpiPackage},
+						Packages: []*birelpkg.Package{&cpiPackage},
 					},
 				},
-				[]*bmrelpkg.Package{&cpiPackage},
+				[]*birelpkg.Package{&cpiPackage},
 				"fake-cpi-extracted-dir",
 				fs,
 			)
@@ -273,35 +273,35 @@ cloud_provider:
 				Expect(err).ToNot(HaveOccurred())
 			}).Return(cpiRelease, nil).AnyTimes()
 
-			installationManifest := bminstallmanifest.Manifest{
+			installationManifest := biinstallmanifest.Manifest{
 				Name: "test-release",
-				Template: bminstallmanifest.ReleaseJobRef{
+				Template: biinstallmanifest.ReleaseJobRef{
 					Name:    "fake-cpi-release-job-name",
 					Release: "fake-cpi-release-name",
 				},
 				Mbus: mbusURL,
-				Registry: bminstallmanifest.Registry{
+				Registry: biinstallmanifest.Registry{
 					Username: "fake-registry-user",
 					Password: "fake-registry-password",
 					Host:     "127.0.0.1",
 					Port:     6301,
 				},
-				Properties: bmproperty.Map{},
+				Properties: biproperty.Map{},
 			}
 
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
-			target := bminstall.NewTarget(installationPath)
+			target := biinstall.NewTarget(installationPath)
 
-			installedJob := bminstalljob.InstalledJob{
+			installedJob := biinstalljob.InstalledJob{
 				Name: "fake-cpi-release-job-name",
 				Path: filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),
 			}
 
-			installation := bminstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
+			installation := biinstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 
-			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage bmui.Stage) {
+			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
 
@@ -314,14 +314,14 @@ cloud_provider:
 		}
 
 		var allowStemcellToBeExtracted = func() {
-			stemcellManifest := bmstemcell.Manifest{
+			stemcellManifest := bistemcell.Manifest{
 				ImagePath:       "fake-stemcell-image-path",
 				Name:            "fake-stemcell-name",
 				Version:         "fake-stemcell-version",
 				SHA1:            "fake-stemcell-sha1",
-				CloudProperties: bmproperty.Map{},
+				CloudProperties: biproperty.Map{},
 			}
-			extractedStemcell := bmstemcell.NewExtractedStemcell(
+			extractedStemcell := bistemcell.NewExtractedStemcell(
 				stemcellManifest,
 				"fake-stemcell-extracted-dir",
 				fs,
@@ -333,29 +333,29 @@ cloud_provider:
 			jobName := "fake-deployment-job-name"
 			jobIndex := 0
 
-			applySpec = bmas.ApplySpec{
+			applySpec = bias.ApplySpec{
 				Deployment: "test-release",
 				Index:      jobIndex,
-				Networks: map[string]bmproperty.Map{
-					"network-1": bmproperty.Map{
-						"cloud_properties": bmproperty.Map{},
+				Networks: map[string]biproperty.Map{
+					"network-1": biproperty.Map{
+						"cloud_properties": biproperty.Map{},
 						"type":             "dynamic",
 						"ip":               "",
 					},
 				},
-				Job: bmas.Job{
+				Job: bias.Job{
 					Name:      jobName,
-					Templates: []bmas.Blob{},
+					Templates: []bias.Blob{},
 				},
-				Packages: map[string]bmas.Blob{
-					"fake-package-name": bmas.Blob{
+				Packages: map[string]bias.Blob{
+					"fake-package-name": bias.Blob{
 						Name:        "fake-package-name",
 						Version:     "fake-package-fingerprint-cpi",
 						SHA1:        "fake-compiled-package-sha1-cpi",
 						BlobstoreID: "fake-compiled-package-blob-id-cpi",
 					},
 				},
-				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
+				RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{},
 				ConfigurationHash:        "",
 			}
 
@@ -367,24 +367,24 @@ cloud_provider:
 		}
 
 		var newDeployCmd = func() Cmd {
-			deploymentParser := bmdeplmanifest.NewParser(fs, logger)
-			releaseSetParser := bmrelsetmanifest.NewParser(fs, logger)
-			installationParser := bminstallmanifest.NewParser(fs, logger)
+			deploymentParser := bideplmanifest.NewParser(fs, logger)
+			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
+			installationParser := biinstallmanifest.NewParser(fs, logger)
 
-			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseResolver)
-			installationValidator := bminstallmanifest.NewValidator(logger, releaseResolver)
-			deploymentValidator := bmdeplmanifest.NewValidator(logger, releaseResolver)
+			releaseSetValidator := birelsetmanifest.NewValidator(logger, releaseResolver)
+			installationValidator := biinstallmanifest.NewValidator(logger, releaseResolver)
+			deploymentValidator := bideplmanifest.NewValidator(logger, releaseResolver)
 
-			deploymentRecord := bmdepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
+			deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 
-			instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
-			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
+			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
+			instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
 
 			pingTimeout := 1 * time.Second
 			pingDelay := 100 * time.Millisecond
-			deploymentFactory := bmdepl.NewFactory(pingTimeout, pingDelay)
+			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
-			deployer := bmdepl.NewDeployer(
+			deployer := bidepl.NewDeployer(
 				vmManagerFactory,
 				instanceManagerFactory,
 				deploymentFactory,
@@ -392,7 +392,7 @@ cloud_provider:
 			)
 
 			return NewDeployCmd(
-				bmui.NewWriterUI(stdOut, stdErr, logger),
+				biui.NewWriterUI(stdOut, stdErr, logger),
 				userConfig,
 				fs,
 				releaseSetParser,
@@ -545,8 +545,8 @@ cloud_provider:
 
 				// attaching a missing disk will fail
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID).Return(
-					bmcloud.NewCPIError("attach_disk", bmcloud.CmdError{
-						Type:    bmcloud.DiskNotFoundError,
+					bicloud.NewCPIError("attach_disk", bicloud.CmdError{
+						Type:    bicloud.DiskNotFoundError,
 						Message: "fake-disk-not-found-message",
 					}),
 				),
@@ -628,7 +628,7 @@ cloud_provider:
 		}
 
 		var expectRegistryToWork = func() {
-			httpClient := bmhttp.NewHTTPClient(logger)
+			httpClient := bihttp.NewHTTPClient(logger)
 
 			endpoint := "http://fake-registry-user:fake-registry-password@127.0.0.1:6301/instances/fake-director-id/settings"
 
@@ -686,39 +686,39 @@ cloud_provider:
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
-			legacyDeploymentConfigMigrator = bmconfig.NewLegacyDeploymentConfigMigrator(legacyDeploymentConfigPath, deploymentConfigService, fs, fakeUUIDGenerator, logger)
+			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+			legacyDeploymentConfigMigrator = biconfig.NewLegacyDeploymentConfigMigrator(legacyDeploymentConfigPath, deploymentConfigService, fs, fakeUUIDGenerator, logger)
 			fakeAgentIDGenerator = fakeuuid.NewFakeGenerator()
 
-			fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
+			fakeSHA1Calculator = fakebicrypto.NewFakeSha1Calculator()
 
 			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
 
-			sshTunnelFactory = bmsshtunnel.NewFactory(logger)
+			sshTunnelFactory = bisshtunnel.NewFactory(logger)
 
 			config, err := deploymentConfigService.Load()
 			Expect(err).ToNot(HaveOccurred())
 			directorID = config.DirectorID
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-			deploymentRepo = bmconfig.NewDeploymentRepo(deploymentConfigService)
-			releaseRepo = bmconfig.NewReleaseRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			vmRepo = biconfig.NewVMRepo(deploymentConfigService)
+			diskRepo = biconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			stemcellRepo = biconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			deploymentRepo = biconfig.NewDeploymentRepo(deploymentConfigService)
+			releaseRepo = biconfig.NewReleaseRepo(deploymentConfigService, fakeRepoUUIDGenerator)
 
-			diskManagerFactory = bmdisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer = bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+			diskManagerFactory = bidisk.NewManagerFactory(diskRepo, logger)
+			diskDeployer = bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
-			registryServerManager = bmregistry.NewServerManager(logger)
+			registryServerManager = biregistry.NewServerManager(logger)
 
 			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
-			releaseManager = bmrel.NewManager(logger)
-			releaseResolver = bmrelset.NewResolver(releaseManager, logger)
+			releaseManager = birel.NewManager(logger)
+			releaseResolver = birelset.NewResolver(releaseManager, logger)
 
 			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
 			mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
@@ -728,18 +728,18 @@ cloud_provider:
 			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 			mockBlobstoreFactory.EXPECT().Create(mbusURL).Return(mockBlobstore, nil).AnyTimes()
 
-			fakeStemcellExtractor = fakebmstemcell.NewFakeExtractor()
+			fakeStemcellExtractor = fakebistemcell.NewFakeExtractor()
 
 			stdOut = gbytes.NewBuffer()
 			stdErr = gbytes.NewBuffer()
-			fakeStage = fakebmui.NewFakeStage()
+			fakeStage = fakebiui.NewFakeStage()
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			stemcellManagerFactory = bmstemcell.NewManagerFactory(stemcellRepo)
+			stemcellManagerFactory = bistemcell.NewManagerFactory(stemcellRepo)
 
-			vmManagerFactory = bmvm.NewManagerFactory(
+			vmManagerFactory = bivm.NewManagerFactory(
 				vmRepo,
 				stemcellRepo,
 				diskDeployer,
@@ -748,7 +748,7 @@ cloud_provider:
 				logger,
 			)
 
-			userConfig = bmconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
+			userConfig = biconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL).Return(mockAgentClient).AnyTimes()
 
@@ -779,10 +779,10 @@ cloud_provider:
 				err := fs.WriteFileString(otherReleaseTarballPath, "fake-other-tgz-content")
 				Expect(err).ToNot(HaveOccurred())
 
-				otherRelease := bmrel.NewRelease(
+				otherRelease := birel.NewRelease(
 					"fake-other-release-name",
 					"1.2",
-					[]bmreljob.Job{
+					[]bireljob.Job{
 						{
 							Name: "other",
 							Templates: map[string]string{
@@ -790,7 +790,7 @@ cloud_provider:
 							},
 						},
 					},
-					[]*bmrelpkg.Package{},
+					[]*birelpkg.Package{},
 					"fake-other-extracted-dir",
 					fs,
 				)
@@ -876,8 +876,8 @@ cloud_provider:
 					It("ignores DiskNotFound errors", func() {
 						expectDeployWithDiskMigrationMissingVM()
 
-						expectDeleteVM1.Return(bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
-							Type:    bmcloud.VMNotFoundError,
+						expectDeleteVM1.Return(bicloud.NewCPIError("delete_vm", bicloud.CmdError{
+							Type:    bicloud.VMNotFoundError,
 							Message: "fake-vm-not-found-message",
 						}))
 
@@ -926,7 +926,7 @@ cloud_provider:
 
 						diskRecords, err := diskRepo.All()
 						Expect(err).ToNot(HaveOccurred())
-						Expect(diskRecords).To(Equal([]bmconfig.DiskRecord{diskRecord}))
+						Expect(diskRecords).To(Equal([]biconfig.DiskRecord{diskRecord}))
 					})
 				})
 			})

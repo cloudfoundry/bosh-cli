@@ -8,8 +8,8 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 var _ = Describe("Validator", func() {
@@ -25,7 +25,7 @@ var _ = Describe("Validator", func() {
 		release := NewRelease(
 			"fake-release-name",
 			"fake-release-version",
-			[]bmreljob.Job{
+			[]bireljob.Job{
 				{
 					Name:          "fake-job-1-name",
 					Fingerprint:   "fake-job-1-fingerprint",
@@ -34,14 +34,14 @@ var _ = Describe("Validator", func() {
 					ExtractedPath: "/some/job/path",
 				},
 			},
-			[]*bmrelpkg.Package{
+			[]*birelpkg.Package{
 				{
 					Name:        "fake-package-1-name",
 					Fingerprint: "fake-package-1-fingerprint",
 					SHA1:        "fake-package-1-sha",
-					Dependencies: []*bmrelpkg.Package{
-						&bmrelpkg.Package{Name: "fake-package-1-dependency-1"},
-						&bmrelpkg.Package{Name: "fake-package-1-dependency-2"},
+					Dependencies: []*birelpkg.Package{
+						&birelpkg.Package{Name: "fake-package-1-dependency-1"},
+						&birelpkg.Package{Name: "fake-package-1-dependency-2"},
 					},
 				},
 			},
@@ -59,8 +59,8 @@ var _ = Describe("Validator", func() {
 		release := NewRelease(
 			"",
 			"",
-			[]bmreljob.Job{},
-			[]*bmrelpkg.Package{},
+			[]bireljob.Job{},
+			[]*birelpkg.Package{},
 			"",
 			fakeFs,
 		)
@@ -74,8 +74,8 @@ var _ = Describe("Validator", func() {
 		release := NewRelease(
 			"fake-release-name",
 			"fake-release-version",
-			[]bmreljob.Job{{}, {Name: "fake-job"}},
-			[]*bmrelpkg.Package{{}, {Name: "fake-package"}},
+			[]bireljob.Job{{}, {Name: "fake-job"}},
+			[]*birelpkg.Package{{}, {Name: "fake-package"}},
 			"/some/release/path",
 			fakeFs,
 		)
@@ -102,7 +102,7 @@ var _ = Describe("Validator", func() {
 			release := NewRelease(
 				"fake-release",
 				"fake-version",
-				[]bmreljob.Job{
+				[]bireljob.Job{
 					{
 						Name:        "fake-job",
 						Fingerprint: "fake-fingerprint",
@@ -116,7 +116,7 @@ var _ = Describe("Validator", func() {
 						Templates:   map[string]string{"fake-template-2": "fake-file-2"},
 					},
 				},
-				[]*bmrelpkg.Package{},
+				[]*birelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
 			)
@@ -135,7 +135,7 @@ var _ = Describe("Validator", func() {
 			release := NewRelease(
 				"fake-release-name",
 				"fake-release-version",
-				[]bmreljob.Job{
+				[]bireljob.Job{
 					{
 						Name:        "fake-job-1",
 						Fingerprint: "fake-finger-print-1",
@@ -147,7 +147,7 @@ var _ = Describe("Validator", func() {
 						SHA1:        "fake-sha-2",
 					},
 				},
-				[]*bmrelpkg.Package{{}, {Name: "fake-package"}},
+				[]*birelpkg.Package{{}, {Name: "fake-package"}},
 				"/some/release/path",
 				fakeFs,
 			)
@@ -166,7 +166,7 @@ var _ = Describe("Validator", func() {
 			release := NewRelease(
 				"fake-release-name",
 				"fake-release-version",
-				[]bmreljob.Job{
+				[]bireljob.Job{
 					{
 						Name:         "fake-job",
 						Fingerprint:  "fake-fingerprint",
@@ -182,7 +182,7 @@ var _ = Describe("Validator", func() {
 						PackageNames: []string{"fake-package-2"},
 					},
 				},
-				[]*bmrelpkg.Package{},
+				[]*birelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
 			)

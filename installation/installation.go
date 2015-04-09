@@ -3,32 +3,32 @@ package installation
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmregistry "github.com/cloudfoundry/bosh-init/registry"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biregistry "github.com/cloudfoundry/bosh-init/registry"
 )
 
 type Installation interface {
 	Target() Target
-	Job() bminstalljob.InstalledJob
+	Job() biinstalljob.InstalledJob
 	StartRegistry() error
 	StopRegistry() error
 }
 
 type installation struct {
 	target                Target
-	job                   bminstalljob.InstalledJob
-	manifest              bminstallmanifest.Manifest
-	registryServerManager bmregistry.ServerManager
+	job                   biinstalljob.InstalledJob
+	manifest              biinstallmanifest.Manifest
+	registryServerManager biregistry.ServerManager
 
-	registryServer bmregistry.Server
+	registryServer biregistry.Server
 }
 
 func NewInstallation(
 	target Target,
-	job bminstalljob.InstalledJob,
-	manifest bminstallmanifest.Manifest,
-	registryServerManager bmregistry.ServerManager,
+	job biinstalljob.InstalledJob,
+	manifest biinstallmanifest.Manifest,
+	registryServerManager biregistry.ServerManager,
 ) Installation {
 	return &installation{
 		target:                target,
@@ -42,7 +42,7 @@ func (i *installation) Target() Target {
 	return i.target
 }
 
-func (i *installation) Job() bminstalljob.InstalledJob {
+func (i *installation) Job() biinstalljob.InstalledJob {
 	return i.job
 }
 

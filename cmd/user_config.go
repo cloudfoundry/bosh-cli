@@ -4,11 +4,11 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
-func getDeploymentManifest(userConfig bmconfig.UserConfig, ui bmui.UI, fs boshsys.FileSystem) (manifestPath string, err error) {
+func getDeploymentManifest(userConfig biconfig.UserConfig, ui biui.UI, fs boshsys.FileSystem) (manifestPath string, err error) {
 	deploymentManifestPath := userConfig.DeploymentManifestPath
 
 	if deploymentManifestPath == "" {

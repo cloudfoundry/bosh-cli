@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type NetworkType string
@@ -19,7 +19,7 @@ const (
 type Network struct {
 	Name            string
 	Type            NetworkType
-	CloudProperties bmproperty.Map
+	CloudProperties biproperty.Map
 	IP              string
 	Netmask         string
 	Gateway         string
@@ -29,8 +29,8 @@ type Network struct {
 // Interface returns a property map representing a generic network interface.
 // Expected Keys: ip, type, cloud properties.
 // Optional Keys: netmask, gateway, dns
-func (n Network) Interface() bmproperty.Map {
-	iface := bmproperty.Map{
+func (n Network) Interface() biproperty.Map {
+	iface := biproperty.Map{
 		"type":             n.Type.String(),
 		"ip":               n.IP,
 		"cloud_properties": n.CloudProperties,

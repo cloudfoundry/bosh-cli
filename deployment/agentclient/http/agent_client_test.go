@@ -10,20 +10,20 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	fakebmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
 )
 
 var _ = Describe("AgentClient", func() {
 	var (
-		fakeHTTPClient *fakebmhttpclient.FakeHTTPClient
-		agentClient    bmagentclient.AgentClient
+		fakeHTTPClient *fakebihttpclient.FakeHTTPClient
+		agentClient    biagentclient.AgentClient
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		fakeHTTPClient = fakebmhttpclient.NewFakeHTTPClient()
+		fakeHTTPClient = fakebihttpclient.NewFakeHTTPClient()
 		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid", 0, fakeHTTPClient, logger)
 	})
 
@@ -157,11 +157,11 @@ var _ = Describe("AgentClient", func() {
 	Describe("Apply", func() {
 		var (
 			specJSON []byte
-			spec     bmas.ApplySpec
+			spec     bias.ApplySpec
 		)
 
 		BeforeEach(func() {
-			spec = bmas.ApplySpec{
+			spec = bias.ApplySpec{
 				Deployment: "fake-deployment-name",
 			}
 			var err error
@@ -302,7 +302,7 @@ var _ = Describe("AgentClient", func() {
 			It("makes a POST request to the endpoint", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(stateResponse).To(Equal(bmagentclient.AgentState{JobState: "running"}))
+				Expect(stateResponse).To(Equal(biagentclient.AgentState{JobState: "running"}))
 
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
 				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
@@ -328,7 +328,7 @@ var _ = Describe("AgentClient", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("status code: 500"))
-				Expect(stateResponse).To(Equal(bmagentclient.AgentState{}))
+				Expect(stateResponse).To(Equal(biagentclient.AgentState{}))
 			})
 		})
 
@@ -341,7 +341,7 @@ var _ = Describe("AgentClient", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("bad request"))
-				Expect(stateResponse).To(Equal(bmagentclient.AgentState{}))
+				Expect(stateResponse).To(Equal(biagentclient.AgentState{}))
 			})
 		})
 	})
@@ -584,13 +584,13 @@ var _ = Describe("AgentClient", func() {
 		})
 
 		It("makes a compile_package request and waits for the task to be done", func() {
-			packageSource := bmagentclient.BlobRef{
+			packageSource := biagentclient.BlobRef{
 				Name:        "fake-package-name",
 				Version:     "fake-package-version",
 				SHA1:        "fake-package-sha1",
 				BlobstoreID: "fake-package-blobstore-id",
 			}
-			dependencies := []bmagentclient.BlobRef{
+			dependencies := []biagentclient.BlobRef{
 				{
 					Name:        "fake-compiled-package-dep-name",
 					Version:     "fake-compiled-package-dep-version",

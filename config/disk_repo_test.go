@@ -11,7 +11,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("DiskRepo", func() {
@@ -20,7 +20,7 @@ var _ = Describe("DiskRepo", func() {
 		repo              DiskRepo
 		fs                *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
-		cloudProperties   bmproperty.Map
+		cloudProperties   biproperty.Map
 	)
 
 	BeforeEach(func() {
@@ -29,7 +29,7 @@ var _ = Describe("DiskRepo", func() {
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		repo = NewDiskRepo(configService, fakeUUIDGenerator)
-		cloudProperties = bmproperty.Map{
+		cloudProperties = biproperty.Map{
 			"fake-cloud_property-key": "fake-cloud-property-value",
 		}
 	})

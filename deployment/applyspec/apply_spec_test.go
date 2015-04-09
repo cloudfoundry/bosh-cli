@@ -8,7 +8,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("ApplySpec", func() {
@@ -28,8 +28,8 @@ var _ = Describe("ApplySpec", func() {
 					BlobstoreID: "first-package-blobstore-id",
 				},
 			},
-			Networks: map[string]bmproperty.Map{
-				"fake-network-name": bmproperty.Map{
+			Networks: map[string]biproperty.Map{
+				"fake-network-name": biproperty.Map{
 					"fake-network-key": "fake-network-value",
 				},
 			},

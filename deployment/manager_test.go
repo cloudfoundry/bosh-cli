@@ -22,15 +22,15 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {
@@ -54,9 +54,9 @@ var _ = Describe("Manager", func() {
 
 			deploymentManager Manager
 
-			expectedInstances []bminstance.Instance
-			expectedDisks     []bmdisk.Disk
-			expectedStemcells []bmstemcell.CloudStemcell
+			expectedInstances []biinstance.Instance
+			expectedDisks     []bidisk.Disk
+			expectedStemcells []bistemcell.CloudStemcell
 
 			expectNewDeployment *gomock.Call
 		)
@@ -68,9 +68,9 @@ var _ = Describe("Manager", func() {
 			mockDeploymentFactory = mock_deployment.NewMockFactory(mockCtrl)
 			mockDeployment = mock_deployment.NewMockDeployment(mockCtrl)
 
-			expectedInstances = []bminstance.Instance{}
-			expectedDisks = []bmdisk.Disk{}
-			expectedStemcells = []bmstemcell.CloudStemcell{}
+			expectedInstances = []biinstance.Instance{}
+			expectedDisks = []bidisk.Disk{}
+			expectedStemcells = []bistemcell.CloudStemcell{}
 		})
 
 		JustBeforeEach(func() {
@@ -153,17 +153,17 @@ var _ = Describe("Manager", func() {
 
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
-			deploymentConfigService bmconfig.DeploymentConfigService
-			vmRepo                  bmconfig.VMRepo
-			diskRepo                bmconfig.DiskRepo
-			stemcellRepo            bmconfig.StemcellRepo
+			deploymentConfigService biconfig.DeploymentConfigService
+			vmRepo                  biconfig.VMRepo
+			diskRepo                biconfig.DiskRepo
+			stemcellRepo            biconfig.StemcellRepo
 
 			mockCloud       *mock_cloud.MockCloud
 			mockAgentClient *mock_agentclient.MockAgentClient
 
 			deploymentConfigPath = "/deployment.json"
 
-			fakeStage *fakebmui.FakeStage
+			fakeStage *fakebiui.FakeStage
 
 			deploymentManager Manager
 		)
@@ -175,31 +175,31 @@ var _ = Describe("Manager", func() {
 			mockDeploymentFactory = mock_deployment.NewMockFactory(mockCtrl)
 
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			vmRepo = biconfig.NewVMRepo(deploymentConfigService)
+			diskRepo = biconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			stemcellRepo = biconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			fakeStage = fakebmui.NewFakeStage()
+			fakeStage = fakebiui.NewFakeStage()
 		})
 
 		JustBeforeEach(func() {
-			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+			diskManagerFactory := bidisk.NewManagerFactory(diskRepo, logger)
+			diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
-			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
-			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
+			vmManagerFactory := bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
+			sshTunnelFactory := bisshtunnel.NewFactory(logger)
 
 			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
 
-			instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
-			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
-			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo)
+			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
+			instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
+			stemcellManagerFactory := bistemcell.NewManagerFactory(stemcellRepo)
 
 			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 
@@ -209,8 +209,8 @@ var _ = Describe("Manager", func() {
 
 		Context("no orphan disk or stemcell records exist", func() {
 			var (
-				currentDiskRecord     bmconfig.DiskRecord
-				currentStemcellRecord bmconfig.StemcellRecord
+				currentDiskRecord     biconfig.DiskRecord
+				currentStemcellRecord biconfig.StemcellRecord
 			)
 
 			BeforeEach(func() {
@@ -272,15 +272,15 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(ContainElement(fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(ContainElement(fakebiui.PerformCall{
 					Name: "Deleting unused disk 'orphan-disk-cid'",
 				}))
 			})
 
 			Context("when disks have been deleted manually (in the infrastructure)", func() {
 				It("deletes the unused disks, ignoring DiskNotFoundError", func() {
-					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid").Return(bmcloud.NewCPIError("delete_disk", bmcloud.CmdError{
-						Type:    bmcloud.DiskNotFoundError,
+					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid").Return(bicloud.NewCPIError("delete_disk", bicloud.CmdError{
+						Type:    bicloud.DiskNotFoundError,
 						Message: "fake-disk-not-found-message",
 					}))
 
@@ -293,8 +293,8 @@ var _ = Describe("Manager", func() {
 				})
 
 				It("logs disk deletion as skipped", func() {
-					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid").Return(bmcloud.NewCPIError("delete_disk", bmcloud.CmdError{
-						Type:    bmcloud.DiskNotFoundError,
+					mockCloud.EXPECT().DeleteDisk("orphan-disk-cid").Return(bicloud.NewCPIError("delete_disk", bicloud.CmdError{
+						Type:    bicloud.DiskNotFoundError,
 						Message: "fake-disk-not-found-message",
 					}))
 
@@ -330,15 +330,15 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(ContainElement(fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(ContainElement(fakebiui.PerformCall{
 					Name: "Deleting unused stemcell 'orphan-stemcell-cid'",
 				}))
 			})
 
 			Context("when stemcells have been deleted manually (in the infrastructure)", func() {
 				It("deletes the unused stemcells, ignoring StemcellNotFoundError", func() {
-					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid").Return(bmcloud.NewCPIError("delete_stemcell", bmcloud.CmdError{
-						Type:    bmcloud.StemcellNotFoundError,
+					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid").Return(bicloud.NewCPIError("delete_stemcell", bicloud.CmdError{
+						Type:    bicloud.StemcellNotFoundError,
 						Message: "fake-stemcell-not-found-message",
 					}))
 
@@ -351,8 +351,8 @@ var _ = Describe("Manager", func() {
 				})
 
 				It("logs stemcell deletion as skipped", func() {
-					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid").Return(bmcloud.NewCPIError("delete_stemcell", bmcloud.CmdError{
-						Type:    bmcloud.StemcellNotFoundError,
+					mockCloud.EXPECT().DeleteStemcell("orphan-stemcell-cid").Return(bicloud.NewCPIError("delete_stemcell", bicloud.CmdError{
+						Type:    bicloud.StemcellNotFoundError,
 						Message: "fake-stemcell-not-found-message",
 					}))
 

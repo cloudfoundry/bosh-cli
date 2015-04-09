@@ -16,9 +16,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 const (
@@ -113,7 +113,7 @@ var _ = Describe("bosh-init", func() {
 
 	// parseUserConfig reads & parses the remote bosh-init user config
 	// This would be a lot cleaner if there were a RemoteFileSystem that used SSH.
-	var parseUserConfig = func() bmconfig.UserConfig {
+	var parseUserConfig = func() biconfig.UserConfig {
 		userConfigPath := testEnv.Path(".bosh_micro.json")
 		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "cat", userConfigPath)
 		Expect(err).ToNot(HaveOccurred())
@@ -127,7 +127,7 @@ var _ = Describe("bosh-init", func() {
 		Expect(err).ToNot(HaveOccurred())
 		defer fileSystem.RemoveAll(tempUserConfigFile.Name())
 
-		userConfigService := bmconfig.NewFileSystemUserConfigService(tempUserConfigFile.Name(), fileSystem, logger)
+		userConfigService := biconfig.NewFileSystemUserConfigService(tempUserConfigFile.Name(), fileSystem, logger)
 		userConfig, err := userConfigService.Load()
 		Expect(err).ToNot(HaveOccurred())
 
@@ -231,7 +231,7 @@ var _ = Describe("bosh-init", func() {
 			logger,
 		)
 
-		err = bmtestutils.BuildExecutableForArch("linux-amd64")
+		err = bitestutils.BuildExecutableForArch("linux-amd64")
 		Expect(err).NotTo(HaveOccurred())
 
 		boshMicroPath := "./../out/bosh-init"
@@ -270,7 +270,7 @@ var _ = Describe("bosh-init", func() {
 
 		Expect(setDeploymentOutput).To(ContainSubstring(fmt.Sprintf("Deployment manifest set to '%s'", manifestPath)))
 
-		Expect(parseUserConfig()).To(Equal(bmconfig.UserConfig{
+		Expect(parseUserConfig()).To(Equal(biconfig.UserConfig{
 			DeploymentManifestPath: manifestPath,
 		}))
 

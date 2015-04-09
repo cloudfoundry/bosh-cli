@@ -19,8 +19,8 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 
 	. "github.com/cloudfoundry/bosh-init/installation/pkg"
 )
@@ -38,9 +38,9 @@ var _ = Describe("PackageCompiler", func() {
 
 	var (
 		logger                  boshlog.Logger
-		compiler                bmstatepkg.Compiler
+		compiler                bistatepkg.Compiler
 		runner                  *fakesys.FakeCmdRunner
-		pkg                     *bmrelpkg.Package
+		pkg                     *birelpkg.Package
 		fs                      *fakesys.FakeFileSystem
 		compressor              *fakecmd.FakeCompressor
 		packagesDir             string
@@ -49,8 +49,8 @@ var _ = Describe("PackageCompiler", func() {
 
 		mockPackageInstaller *mock_install_package.MockInstaller
 
-		dependency1 *bmrelpkg.Package
-		dependency2 *bmrelpkg.Package
+		dependency1 *birelpkg.Package
+		dependency2 *birelpkg.Package
 	)
 
 	BeforeEach(func() {
@@ -68,11 +68,11 @@ var _ = Describe("PackageCompiler", func() {
 
 		mockCompiledPackageRepo = mock_state_package.NewMockCompiledPackageRepo(mockCtrl)
 
-		dependency1 = &bmrelpkg.Package{
+		dependency1 = &birelpkg.Package{
 			Name:        "fake-package-name-dependency-1",
 			Fingerprint: "fake-package-fingerprint-dependency-1",
 		}
-		dependency2 = &bmrelpkg.Package{
+		dependency2 = &birelpkg.Package{
 			Name:        "fake-package-name-dependency-2",
 			Fingerprint: "fake-package-fingerprint-dependency-2",
 		}
@@ -88,10 +88,10 @@ var _ = Describe("PackageCompiler", func() {
 			logger,
 		)
 
-		pkg = &bmrelpkg.Package{
+		pkg = &birelpkg.Package{
 			Name:          "fake-package-1",
 			ExtractedPath: "/fake/path",
-			Dependencies:  []*bmrelpkg.Package{dependency1, dependency2},
+			Dependencies:  []*birelpkg.Package{dependency1, dependency2},
 		}
 	})
 
@@ -112,9 +112,9 @@ var _ = Describe("PackageCompiler", func() {
 		})
 
 		JustBeforeEach(func() {
-			expectFind = mockCompiledPackageRepo.EXPECT().Find(*pkg).Return(bmstatepkg.CompiledPackageRecord{}, false, nil).AnyTimes()
+			expectFind = mockCompiledPackageRepo.EXPECT().Find(*pkg).Return(bistatepkg.CompiledPackageRecord{}, false, nil).AnyTimes()
 
-			compiledDependency1 := bmstatepkg.CompiledPackageRecord{
+			compiledDependency1 := bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-dependency-blobstore-id-1",
 				BlobSHA1: "fake-dependency-sha1-1",
 			}
@@ -128,7 +128,7 @@ var _ = Describe("PackageCompiler", func() {
 			}
 			expectPackageInstall1 = mockPackageInstaller.EXPECT().Install(compiledPackageRef1, packagesDir).AnyTimes()
 
-			compiledDependency2 := bmstatepkg.CompiledPackageRecord{
+			compiledDependency2 := bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-dependency-blobstore-id-2",
 				BlobSHA1: "fake-dependency-sha1-2",
 			}
@@ -147,7 +147,7 @@ var _ = Describe("PackageCompiler", func() {
 
 			compressor.CompressFilesInDirTarballPath = compiledPackageTarballPath
 
-			record := bmstatepkg.CompiledPackageRecord{
+			record := bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-blob-id",
 				BlobSHA1: "fake-fingerprint",
 			}
@@ -156,7 +156,7 @@ var _ = Describe("PackageCompiler", func() {
 
 		Context("when the compiled package repo already has the package", func() {
 			JustBeforeEach(func() {
-				compiledPkgRecord := bmstatepkg.CompiledPackageRecord{
+				compiledPkgRecord := bistatepkg.CompiledPackageRecord{
 					BlobSHA1: "fake-fingerprint",
 				}
 				expectFind.Return(compiledPkgRecord, true, nil).Times(1)
@@ -226,7 +226,7 @@ var _ = Describe("PackageCompiler", func() {
 			record, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(record).To(Equal(bmstatepkg.CompiledPackageRecord{
+			Expect(record).To(Equal(bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-blob-id",
 				BlobSHA1: "fake-fingerprint",
 			}))
@@ -334,7 +334,7 @@ var _ = Describe("PackageCompiler", func() {
 
 		Context("when finding compiled package in the repo fails", func() {
 			JustBeforeEach(func() {
-				expectFind.Return(bmstatepkg.CompiledPackageRecord{}, false, errors.New("fake-error")).Times(1)
+				expectFind.Return(bistatepkg.CompiledPackageRecord{}, false, errors.New("fake-error")).Times(1)
 			})
 
 			It("returns an error", func() {

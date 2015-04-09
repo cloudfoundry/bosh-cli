@@ -3,7 +3,7 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Runner struct {
@@ -16,7 +16,7 @@ func NewRunner(factory Factory) *Runner {
 	}
 }
 
-func (r *Runner) Run(stage bmui.Stage, args ...string) error {
+func (r *Runner) Run(stage biui.Stage, args ...string) error {
 	if len(args) == 0 {
 		return bosherr.Error("Invalid usage: No command specified")
 	}

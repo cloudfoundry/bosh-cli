@@ -4,29 +4,29 @@ import (
 	"fmt"
 	"time"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Deployment interface {
-	Delete(bmui.Stage) error
+	Delete(biui.Stage) error
 }
 
 type deployment struct {
-	instances   []bminstance.Instance
-	disks       []bmdisk.Disk
-	stemcells   []bmstemcell.CloudStemcell
+	instances   []biinstance.Instance
+	disks       []bidisk.Disk
+	stemcells   []bistemcell.CloudStemcell
 	pingTimeout time.Duration
 	pingDelay   time.Duration
 }
 
 func NewDeployment(
-	instances []bminstance.Instance,
-	disks []bmdisk.Disk,
-	stemcells []bmstemcell.CloudStemcell,
+	instances []biinstance.Instance,
+	disks []bidisk.Disk,
+	stemcells []bistemcell.CloudStemcell,
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
 ) Deployment {
@@ -39,7 +39,7 @@ func NewDeployment(
 	}
 }
 
-func (d *deployment) Delete(deleteStage bmui.Stage) error {
+func (d *deployment) Delete(deleteStage biui.Stage) error {
 	// le sigh... consuming from an array sucks without generics
 	for len(d.instances) > 0 {
 		lastIdx := len(d.instances) - 1
@@ -77,25 +77,25 @@ func (d *deployment) Delete(deleteStage bmui.Stage) error {
 	return nil
 }
 
-func (d *deployment) deleteDisk(deleteStage bmui.Stage, disk bmdisk.Disk) error {
+func (d *deployment) deleteDisk(deleteStage biui.Stage, disk bidisk.Disk) error {
 	stepName := fmt.Sprintf("Deleting disk '%s'", disk.CID())
 	return deleteStage.Perform(stepName, func() error {
 		err := disk.Delete()
-		cloudErr, ok := err.(bmcloud.Error)
-		if ok && cloudErr.Type() == bmcloud.DiskNotFoundError {
-			return bmui.NewSkipStageError(cloudErr, "Disk not found")
+		cloudErr, ok := err.(bicloud.Error)
+		if ok && cloudErr.Type() == bicloud.DiskNotFoundError {
+			return biui.NewSkipStageError(cloudErr, "Disk not found")
 		}
 		return err
 	})
 }
 
-func (d *deployment) deleteStemcell(deleteStage bmui.Stage, stemcell bmstemcell.CloudStemcell) error {
+func (d *deployment) deleteStemcell(deleteStage biui.Stage, stemcell bistemcell.CloudStemcell) error {
 	stepName := fmt.Sprintf("Deleting stemcell '%s'", stemcell.CID())
 	return deleteStage.Perform(stepName, func() error {
 		err := stemcell.Delete()
-		cloudErr, ok := err.(bmcloud.Error)
-		if ok && cloudErr.Type() == bmcloud.StemcellNotFoundError {
-			return bmui.NewSkipStageError(cloudErr, "Stemcell not found")
+		cloudErr, ok := err.(bicloud.Error)
+		if ok && cloudErr.Type() == bicloud.StemcellNotFoundError {
+			return biui.NewSkipStageError(cloudErr, "Stemcell not found")
 		}
 		return err
 	})

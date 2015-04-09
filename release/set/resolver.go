@@ -6,25 +6,25 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 )
 
 type Resolver interface {
-	Filter(releases []bmrelmanifest.ReleaseRef) error
-	Find(name string) (release bmrel.Release, err error)
+	Filter(releases []birelmanifest.ReleaseRef) error
+	Find(name string) (release birel.Release, err error)
 }
 
 type resolver struct {
-	manager bmrel.Manager
+	manager birel.Manager
 	logger  boshlog.Logger
 	logTag  string
 
-	releaseMap map[string]bmrelmanifest.ReleaseRef
+	releaseMap map[string]birelmanifest.ReleaseRef
 }
 
 func NewResolver(
-	manager bmrel.Manager,
+	manager birel.Manager,
 	logger boshlog.Logger,
 ) Resolver {
 	return &resolver{
@@ -34,8 +34,8 @@ func NewResolver(
 	}
 }
 
-func (r *resolver) Filter(releases []bmrelmanifest.ReleaseRef) error {
-	r.releaseMap = map[string]bmrelmanifest.ReleaseRef{}
+func (r *resolver) Filter(releases []birelmanifest.ReleaseRef) error {
+	r.releaseMap = map[string]birelmanifest.ReleaseRef{}
 	for _, releaseRef := range releases {
 		_, found := r.releaseMap[releaseRef.Name]
 		if found {
@@ -46,7 +46,7 @@ func (r *resolver) Filter(releases []bmrelmanifest.ReleaseRef) error {
 	return nil
 }
 
-func (r *resolver) Find(name string) (release bmrel.Release, err error) {
+func (r *resolver) Find(name string) (release birel.Release, err error) {
 	releases, found := r.manager.FindByName(name)
 	if !found {
 		return nil, bosherr.Errorf("Release '%s' is not available", name)
@@ -70,13 +70,13 @@ func (r *resolver) Find(name string) (release bmrel.Release, err error) {
 	return r.findByVersion(releases, releaseRef)
 }
 
-func (r *resolver) findLatest(releases []bmrel.Release) (bmrel.Release, error) {
+func (r *resolver) findLatest(releases []birel.Release) (birel.Release, error) {
 	// assumes non-empty input array
 	if len(releases) == 1 {
 		return releases[0], nil
 	}
 	var (
-		latest        bmrel.Release
+		latest        birel.Release
 		latestVersion *version.Version
 	)
 	for _, release := range releases {
@@ -94,7 +94,7 @@ func (r *resolver) findLatest(releases []bmrel.Release) (bmrel.Release, error) {
 	return latest, nil
 }
 
-func (r *resolver) findByVersion(releases []bmrel.Release, releaseRef bmrelmanifest.ReleaseRef) (bmrel.Release, error) {
+func (r *resolver) findByVersion(releases []birel.Release, releaseRef birelmanifest.ReleaseRef) (birel.Release, error) {
 	// assumes non-empty input array
 
 	versionConstraint, err := version.NewConstraint(releaseRef.Version)

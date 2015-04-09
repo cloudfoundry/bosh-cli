@@ -10,10 +10,10 @@ import (
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
 
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmindex "github.com/cloudfoundry/bosh-init/index"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	biindex "github.com/cloudfoundry/bosh-init/index"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 )
 
 var _ = Describe("RemotePackageCompiler", describeRemotePackageCompiler)
@@ -30,10 +30,10 @@ func describeRemotePackageCompiler() {
 	})
 
 	var (
-		packageRepo bmstatepkg.CompiledPackageRepo
+		packageRepo bistatepkg.CompiledPackageRepo
 
-		pkgDependency    *bmrelpkg.Package
-		pkg              *bmrelpkg.Package
+		pkgDependency    *birelpkg.Package
+		pkg              *birelpkg.Package
 		pkgDependencyRef PackageRef
 
 		mockBlobstore   *mock_blobstore.MockBlobstore
@@ -41,9 +41,9 @@ func describeRemotePackageCompiler() {
 
 		archivePath = "fake-archive-path"
 
-		remotePackageCompiler bmstatepkg.Compiler
+		remotePackageCompiler bistatepkg.Compiler
 
-		compiledPackages map[bmstatepkg.CompiledPackageRecord]*bmrelpkg.Package
+		compiledPackages map[bistatepkg.CompiledPackageRecord]*birelpkg.Package
 
 		expectBlobstoreAdd *gomock.Call
 		expectAgentCompile *gomock.Call
@@ -53,21 +53,21 @@ func describeRemotePackageCompiler() {
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-		index := bmindex.NewInMemoryIndex()
-		packageRepo = bmstatepkg.NewCompiledPackageRepo(index)
+		index := biindex.NewInMemoryIndex()
+		packageRepo = bistatepkg.NewCompiledPackageRepo(index)
 		remotePackageCompiler = NewRemotePackageCompiler(mockBlobstore, mockAgentClient, packageRepo)
 
-		pkgDependency = &bmrelpkg.Package{
+		pkgDependency = &birelpkg.Package{
 			Name:        "fake-package-name-dep",
 			Fingerprint: "fake-package-fingerprint-dep",
 		}
 
-		pkg = &bmrelpkg.Package{
+		pkg = &birelpkg.Package{
 			Name:         "fake-package-name",
 			Fingerprint:  "fake-package-fingerprint",
 			SHA1:         "fake-source-package-sha1",
 			ArchivePath:  archivePath,
-			Dependencies: []*bmrelpkg.Package{pkgDependency},
+			Dependencies: []*birelpkg.Package{pkgDependency},
 		}
 
 		pkgDependencyRef = PackageRef{
@@ -79,12 +79,12 @@ func describeRemotePackageCompiler() {
 			},
 		}
 
-		depRecord1 := bmstatepkg.CompiledPackageRecord{
+		depRecord1 := bistatepkg.CompiledPackageRecord{
 			BlobID:   "fake-compiled-package-blob-id-dep",
 			BlobSHA1: "fake-compiled-package-sha1-dep",
 		}
 
-		compiledPackages = map[bmstatepkg.CompiledPackageRecord]*bmrelpkg.Package{
+		compiledPackages = map[bistatepkg.CompiledPackageRecord]*birelpkg.Package{
 			depRecord1: pkgDependency,
 		}
 	})
@@ -96,13 +96,13 @@ func describeRemotePackageCompiler() {
 			Expect(err).ToNot(HaveOccurred())
 		}
 
-		packageSource := bmagentclient.BlobRef{
+		packageSource := biagentclient.BlobRef{
 			Name:        "fake-package-name",
 			Version:     "fake-package-fingerprint",
 			BlobstoreID: "fake-source-package-blob-id",
 			SHA1:        "fake-source-package-sha1",
 		}
-		packageDependencies := []bmagentclient.BlobRef{
+		packageDependencies := []biagentclient.BlobRef{
 			{
 				Name:        "fake-package-name-dep",
 				Version:     "fake-package-fingerprint-dep",
@@ -110,7 +110,7 @@ func describeRemotePackageCompiler() {
 				SHA1:        "fake-compiled-package-sha1-dep",
 			},
 		}
-		compiledPackageRef := bmagentclient.BlobRef{
+		compiledPackageRef := biagentclient.BlobRef{
 			Name:        "fake-package-name",
 			Version:     "fake-package-version",
 			BlobstoreID: "fake-compiled-package-blob-id",
@@ -130,7 +130,7 @@ func describeRemotePackageCompiler() {
 
 			compiledPackageRecord, err := remotePackageCompiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(compiledPackageRecord).To(Equal(bmstatepkg.CompiledPackageRecord{
+			Expect(compiledPackageRecord).To(Equal(bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-compiled-package-blob-id",
 				BlobSHA1: "fake-compiled-package-sha1",
 			}))
@@ -148,7 +148,7 @@ func describeRemotePackageCompiler() {
 
 		Context("when the dependencies are not in the repo", func() {
 			BeforeEach(func() {
-				compiledPackages = map[bmstatepkg.CompiledPackageRecord]*bmrelpkg.Package{}
+				compiledPackages = map[bistatepkg.CompiledPackageRecord]*birelpkg.Package{}
 			})
 
 			It("returns an error", func() {

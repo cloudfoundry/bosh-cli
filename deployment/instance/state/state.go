@@ -1,8 +1,8 @@
 package state
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 )
 
 type State interface {
@@ -10,14 +10,14 @@ type State interface {
 	RenderedJobs() []JobRef
 	CompiledPackages() []PackageRef
 	RenderedJobListArchive() BlobRef
-	ToApplySpec() bmas.ApplySpec
+	ToApplySpec() bias.ApplySpec
 }
 
 // NetworkRef is a reference to a deployment network, with the interface the instance should use to connect to it.
 type NetworkRef struct {
 	Name string
 	// Interface would ideally be a struct with IP, Type & CloudProperties, but the agent supports arbitrary key/value pairs. :(
-	Interface bmproperty.Map
+	Interface biproperty.Map
 }
 
 // JobRef is a reference to a rendered job.
@@ -81,18 +81,18 @@ func (s *state) CompiledPackages() []PackageRef { return s.compiledPackages }
 
 func (s *state) RenderedJobListArchive() BlobRef { return s.renderedJobListArchive }
 
-func (s *state) ToApplySpec() bmas.ApplySpec {
-	jobTemplateList := make([]bmas.Blob, len(s.renderedJobs), len(s.renderedJobs))
+func (s *state) ToApplySpec() bias.ApplySpec {
+	jobTemplateList := make([]bias.Blob, len(s.renderedJobs), len(s.renderedJobs))
 	for i, renderedJob := range s.renderedJobs {
-		jobTemplateList[i] = bmas.Blob{
+		jobTemplateList[i] = bias.Blob{
 			Name:    renderedJob.Name,
 			Version: renderedJob.Version,
 		}
 	}
 
-	packageMap := make(map[string]bmas.Blob, len(s.compiledPackages))
+	packageMap := make(map[string]bias.Blob, len(s.compiledPackages))
 	for _, compiledPackage := range s.compiledPackages {
-		packageMap[compiledPackage.Name] = bmas.Blob{
+		packageMap[compiledPackage.Name] = bias.Blob{
 			Name:        compiledPackage.Name,
 			Version:     compiledPackage.Version,
 			SHA1:        compiledPackage.Archive.SHA1,
@@ -100,21 +100,21 @@ func (s *state) ToApplySpec() bmas.ApplySpec {
 		}
 	}
 
-	networkMap := make(map[string]bmproperty.Map, len(s.networks))
+	networkMap := make(map[string]biproperty.Map, len(s.networks))
 	for _, network := range s.networks {
 		networkMap[network.Name] = network.Interface
 	}
 
-	return bmas.ApplySpec{
+	return bias.ApplySpec{
 		Deployment: s.deploymentName,
 		Index:      s.id,
 		Networks:   networkMap,
-		Job: bmas.Job{
+		Job: bias.Job{
 			Name:      s.name,
 			Templates: jobTemplateList,
 		},
 		Packages: packageMap,
-		RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
+		RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{
 			BlobstoreID: s.renderedJobListArchive.BlobstoreID,
 			SHA1:        s.renderedJobListArchive.SHA1,
 		},

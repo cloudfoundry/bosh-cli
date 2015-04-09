@@ -7,37 +7,37 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bminstancestate "github.com/cloudfoundry/bosh-init/deployment/instance/state"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	biinstancestate "github.com/cloudfoundry/bosh-init/deployment/instance/state"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Instance interface {
 	JobName() string
 	ID() int
-	Disks() ([]bmdisk.Disk, error)
-	WaitUntilReady(bminstallmanifest.Registry, bminstallmanifest.SSHTunnel, bmui.Stage) error
-	UpdateDisks(bmdeplmanifest.Manifest, bmui.Stage) ([]bmdisk.Disk, error)
-	UpdateJobs(bmdeplmanifest.Manifest, bmui.Stage) error
+	Disks() ([]bidisk.Disk, error)
+	WaitUntilReady(biinstallmanifest.Registry, biinstallmanifest.SSHTunnel, biui.Stage) error
+	UpdateDisks(bideplmanifest.Manifest, biui.Stage) ([]bidisk.Disk, error)
+	UpdateJobs(bideplmanifest.Manifest, biui.Stage) error
 	Delete(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
-		stage bmui.Stage,
+		stage biui.Stage,
 	) error
 }
 
 type instance struct {
 	jobName          string
 	id               int
-	vm               bmvm.VM
-	vmManager        bmvm.Manager
-	sshTunnelFactory bmsshtunnel.Factory
-	stateBuilder     bminstancestate.Builder
+	vm               bivm.VM
+	vmManager        bivm.Manager
+	sshTunnelFactory bisshtunnel.Factory
+	stateBuilder     biinstancestate.Builder
 	logger           boshlog.Logger
 	logTag           string
 }
@@ -45,10 +45,10 @@ type instance struct {
 func NewInstance(
 	jobName string,
 	id int,
-	vm bmvm.VM,
-	vmManager bmvm.Manager,
-	sshTunnelFactory bmsshtunnel.Factory,
-	stateBuilder bminstancestate.Builder,
+	vm bivm.VM,
+	vmManager bivm.Manager,
+	sshTunnelFactory bisshtunnel.Factory,
+	stateBuilder biinstancestate.Builder,
 	logger boshlog.Logger,
 ) Instance {
 	return &instance{
@@ -71,7 +71,7 @@ func (i *instance) ID() int {
 	return i.id
 }
 
-func (i *instance) Disks() ([]bmdisk.Disk, error) {
+func (i *instance) Disks() ([]bidisk.Disk, error) {
 	disks, err := i.vm.Disks()
 	if err != nil {
 		return disks, bosherr.WrapError(err, "Listing instance disks")
@@ -80,14 +80,14 @@ func (i *instance) Disks() ([]bmdisk.Disk, error) {
 }
 
 func (i *instance) WaitUntilReady(
-	registryConfig bminstallmanifest.Registry,
-	sshTunnelConfig bminstallmanifest.SSHTunnel,
-	stage bmui.Stage,
+	registryConfig biinstallmanifest.Registry,
+	sshTunnelConfig biinstallmanifest.SSHTunnel,
+	stage biui.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s' to be ready", i.vm.CID())
 	err := stage.Perform(stepName, func() error {
 		if !registryConfig.IsEmpty() && !sshTunnelConfig.IsEmpty() {
-			sshTunnelOptions := bmsshtunnel.Options{
+			sshTunnelOptions := bisshtunnel.Options{
 				Host:              sshTunnelConfig.Host,
 				Port:              sshTunnelConfig.Port,
 				User:              sshTunnelConfig.User,
@@ -114,10 +114,10 @@ func (i *instance) WaitUntilReady(
 	return err
 }
 
-func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, stage bmui.Stage) ([]bmdisk.Disk, error) {
+func (i *instance) UpdateDisks(deploymentManifest bideplmanifest.Manifest, stage biui.Stage) ([]bidisk.Disk, error) {
 	diskPool, err := deploymentManifest.DiskPool(i.jobName)
 	if err != nil {
-		return []bmdisk.Disk{}, bosherr.WrapError(err, "Getting disk pool")
+		return []bidisk.Disk{}, bosherr.WrapError(err, "Getting disk pool")
 	}
 
 	disks, err := i.vm.UpdateDisks(diskPool, stage)
@@ -129,8 +129,8 @@ func (i *instance) UpdateDisks(deploymentManifest bmdeplmanifest.Manifest, stage
 }
 
 func (i *instance) UpdateJobs(
-	deploymentManifest bmdeplmanifest.Manifest,
-	stage bmui.Stage,
+	deploymentManifest bideplmanifest.Manifest,
+	stage biui.Stage,
 ) error {
 	newState, err := i.stateBuilder.Build(i.jobName, i.id, deploymentManifest, stage)
 	if err != nil {
@@ -166,7 +166,7 @@ func (i *instance) UpdateJobs(
 func (i *instance) Delete(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
-	stage bmui.Stage,
+	stage biui.Stage,
 ) error {
 	vmExists, err := i.vm.Exists()
 	if err != nil {
@@ -183,9 +183,9 @@ func (i *instance) Delete(
 	stepName := fmt.Sprintf("Deleting VM '%s'", i.vm.CID())
 	return stage.Perform(stepName, func() error {
 		err := i.vm.Delete()
-		cloudErr, ok := err.(bmcloud.Error)
-		if ok && cloudErr.Type() == bmcloud.VMNotFoundError {
-			return bmui.NewSkipStageError(cloudErr, "VM not found")
+		cloudErr, ok := err.(bicloud.Error)
+		if ok && cloudErr.Type() == bicloud.VMNotFoundError {
+			return biui.NewSkipStageError(cloudErr, "VM not found")
 		}
 		return err
 	})
@@ -194,7 +194,7 @@ func (i *instance) Delete(
 func (i *instance) shutdown(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
-	stage bmui.Stage,
+	stage biui.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", i.vm.CID())
 	waitingForAgentErr := stage.Perform(stepName, func() error {
@@ -217,7 +217,7 @@ func (i *instance) shutdown(
 	return nil
 }
 
-func (i *instance) waitUntilJobsAreRunning(updateWatchTime bmdeplmanifest.WatchTime, stage bmui.Stage) error {
+func (i *instance) waitUntilJobsAreRunning(updateWatchTime bideplmanifest.WatchTime, stage biui.Stage) error {
 	start := time.Duration(updateWatchTime.Start) * time.Millisecond
 	end := time.Duration(updateWatchTime.End) * time.Millisecond
 	delayBetweenAttempts := 1 * time.Second
@@ -230,14 +230,14 @@ func (i *instance) waitUntilJobsAreRunning(updateWatchTime bmdeplmanifest.WatchT
 	})
 }
 
-func (i *instance) stopJobs(stage bmui.Stage) error {
+func (i *instance) stopJobs(stage biui.Stage) error {
 	stepName := fmt.Sprintf("Stopping jobs on instance '%s/%d'", i.jobName, i.id)
 	return stage.Perform(stepName, func() error {
 		return i.vm.Stop()
 	})
 }
 
-func (i *instance) unmountDisks(stage bmui.Stage) error {
+func (i *instance) unmountDisks(stage biui.Stage) error {
 	disks, err := i.vm.Disks()
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Getting VM '%s' disks", i.vm.CID())

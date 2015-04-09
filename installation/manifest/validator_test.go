@@ -8,31 +8,31 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birelset "github.com/cloudfoundry/bosh-init/release/set"
 
-	fakebmrel "github.com/cloudfoundry/bosh-init/release/fakes"
+	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 )
 
 var _ = Describe("Validator", func() {
 	var (
 		logger         boshlog.Logger
-		releaseManager bmrel.Manager
+		releaseManager birel.Manager
 		validator      Validator
 
-		releases      []bmrelmanifest.ReleaseRef
+		releases      []birelmanifest.ReleaseRef
 		validManifest Manifest
-		fakeRelease   *fakebmrel.FakeRelease
+		fakeRelease   *fakebirel.FakeRelease
 	)
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		releaseManager = bmrel.NewManager(logger)
+		releaseManager = birel.NewManager(logger)
 
-		releases = []bmrelmanifest.ReleaseRef{
+		releases = []birelmanifest.ReleaseRef{
 			{
 				Name:    "provided-valid-release-name",
 				Version: "1.0",
@@ -45,21 +45,21 @@ var _ = Describe("Validator", func() {
 				Name:    "cpi",
 				Release: "provided-valid-release-name",
 			},
-			Properties: bmproperty.Map{
+			Properties: biproperty.Map{
 				"fake-prop-key": "fake-prop-value",
-				"fake-prop-map-key": bmproperty.Map{
+				"fake-prop-map-key": biproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},
 		}
 
-		fakeRelease = fakebmrel.New("provided-valid-release-name", "1.0")
-		fakeRelease.ReleaseJobs = []bmreljob.Job{{Name: "fake-job-name"}}
+		fakeRelease = fakebirel.New("provided-valid-release-name", "1.0")
+		fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
 		releaseManager.Add(fakeRelease)
 	})
 
 	JustBeforeEach(func() {
-		releaseResolver := bmrelset.NewResolver(releaseManager, logger)
+		releaseResolver := birelset.NewResolver(releaseManager, logger)
 		err := releaseResolver.Filter(releases)
 		Expect(err).ToNot(HaveOccurred())
 		validator = NewValidator(logger, releaseResolver)

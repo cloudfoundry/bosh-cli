@@ -6,26 +6,26 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmhttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type Manager interface {
 	FindCurrent() (VM, bool, error)
-	Create(bmstemcell.CloudStemcell, bmdeplmanifest.Manifest) (VM, error)
+	Create(bistemcell.CloudStemcell, bideplmanifest.Manifest) (VM, error)
 }
 
 type manager struct {
-	vmRepo             bmconfig.VMRepo
-	stemcellRepo       bmconfig.StemcellRepo
+	vmRepo             biconfig.VMRepo
+	stemcellRepo       biconfig.StemcellRepo
 	diskDeployer       DiskDeployer
-	agentClient        bmagentclient.AgentClient
-	agentClientFactory bmhttpagent.AgentClientFactory
-	cloud              bmcloud.Cloud
+	agentClient        biagentclient.AgentClient
+	agentClientFactory bihttpagent.AgentClientFactory
+	cloud              bicloud.Cloud
 	uuidGenerator      boshuuid.Generator
 	fs                 boshsys.FileSystem
 	logger             boshlog.Logger
@@ -33,11 +33,11 @@ type manager struct {
 }
 
 func NewManager(
-	vmRepo bmconfig.VMRepo,
-	stemcellRepo bmconfig.StemcellRepo,
+	vmRepo biconfig.VMRepo,
+	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
-	agentClient bmagentclient.AgentClient,
-	cloud bmcloud.Cloud,
+	agentClient biagentclient.AgentClient,
+	cloud bicloud.Cloud,
 	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
@@ -79,7 +79,7 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 	return vm, true, err
 }
 
-func (m *manager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmdeplmanifest.Manifest) (VM, error) {
+func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest) (VM, error) {
 	microBoshJobName := deploymentManifest.Jobs[0].Name
 	networkInterfaces, err := deploymentManifest.NetworkInterfaces(microBoshJobName)
 	m.logger.Debug(m.logTag, "Creating VM with network interfaces: %#v", networkInterfaces)

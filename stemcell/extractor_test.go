@@ -10,16 +10,16 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 
-	fakebmstemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
 )
 
 var _ = Describe("Manager", func() {
 	var (
 		extractor           Extractor
 		fs                  *fakesys.FakeFileSystem
-		reader              *fakebmstemcell.FakeStemcellReader
+		reader              *fakebistemcell.FakeStemcellReader
 		stemcellTarballPath string
 		tempExtractionDir   string
 
@@ -28,7 +28,7 @@ var _ = Describe("Manager", func() {
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		reader = fakebmstemcell.NewFakeReader()
+		reader = fakebistemcell.NewFakeReader()
 		stemcellTarballPath = "/stemcell/tarball/path"
 		tempExtractionDir = "/path/to/dest"
 		fs.TempDirDir = tempExtractionDir
@@ -39,7 +39,7 @@ var _ = Describe("Manager", func() {
 			Manifest{
 				Name:      "fake-stemcell-name",
 				ImagePath: "fake-image-path",
-				CloudProperties: bmproperty.Map{
+				CloudProperties: biproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},
@@ -55,7 +55,7 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stemcell).To(Equal(expectedExtractedStemcell))
 
-			Expect(reader.ReadInputs).To(Equal([]fakebmstemcell.ReadInput{
+			Expect(reader.ReadInputs).To(Equal([]fakebistemcell.ReadInput{
 				{
 					StemcellTarballPath: stemcellTarballPath,
 					DestPath:            tempExtractionDir,

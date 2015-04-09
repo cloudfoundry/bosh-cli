@@ -11,7 +11,7 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("Reader", func() {
@@ -53,9 +53,9 @@ cloud_properties:
 				Name:      "fake-stemcell-name",
 				Version:   "2690",
 				ImagePath: "fake-extracted-path/image",
-				CloudProperties: bmproperty.Map{
+				CloudProperties: biproperty.Map{
 					"infrastructure": "aws",
-					"ami": bmproperty.Map{
+					"ami": biproperty.Map{
 						"us-east-1": "fake-ami-version",
 					},
 				},

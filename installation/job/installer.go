@@ -9,9 +9,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bminstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
-	bmtemcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biinstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
+	bitemcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type RenderedJobRef struct {
@@ -27,13 +27,13 @@ type InstalledJob struct {
 }
 
 type Installer interface {
-	Install(RenderedJobRef, bmui.Stage) (InstalledJob, error)
+	Install(RenderedJobRef, biui.Stage) (InstalledJob, error)
 }
 
 func NewInstaller(
 	fs boshsys.FileSystem,
-	templateExtractor bminstallblob.Extractor,
-	templateRepo bmtemcomp.TemplatesRepo,
+	templateExtractor biinstallblob.Extractor,
+	templateRepo bitemcomp.TemplatesRepo,
 	jobsPath string,
 ) Installer {
 	return jobInstaller{
@@ -46,12 +46,12 @@ func NewInstaller(
 
 type jobInstaller struct {
 	fs                boshsys.FileSystem
-	templateExtractor bminstallblob.Extractor
-	templateRepo      bmtemcomp.TemplatesRepo
+	templateExtractor biinstallblob.Extractor
+	templateRepo      bitemcomp.TemplatesRepo
 	jobsPath          string
 }
 
-func (i jobInstaller) Install(renderedJobRef RenderedJobRef, stage bmui.Stage) (installedJob InstalledJob, err error) {
+func (i jobInstaller) Install(renderedJobRef RenderedJobRef, stage biui.Stage) (installedJob InstalledJob, err error) {
 	stageName := fmt.Sprintf("Installing job '%s'", renderedJobRef.Name)
 	err = stage.Perform(stageName, func() error {
 		installedJob, err = i.install(renderedJobRef)

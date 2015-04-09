@@ -10,7 +10,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )
@@ -58,7 +58,7 @@ properties:
 						Properties: map[string]PropertyDefinition{
 							"fake-property": PropertyDefinition{
 								Description: "Fake description",
-								Default:     bmproperty.Property("fake-default"),
+								Default:     biproperty.Property("fake-default"),
 							},
 						},
 					},

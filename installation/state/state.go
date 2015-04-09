@@ -1,31 +1,31 @@
 package state
 
 import (
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 )
 
 type State interface {
-	RenderedCPIJob() bminstalljob.RenderedJobRef
-	CompiledPackages() []bminstallpkg.CompiledPackageRef
+	RenderedCPIJob() biinstalljob.RenderedJobRef
+	CompiledPackages() []biinstallpkg.CompiledPackageRef
 }
 
 type state struct {
-	renderedCPIJob   bminstalljob.RenderedJobRef
-	compiledPackages []bminstallpkg.CompiledPackageRef
+	renderedCPIJob   biinstalljob.RenderedJobRef
+	compiledPackages []biinstallpkg.CompiledPackageRef
 }
 
-func NewState(renderedCPIJob bminstalljob.RenderedJobRef, compiledPackages []bminstallpkg.CompiledPackageRef) State {
+func NewState(renderedCPIJob biinstalljob.RenderedJobRef, compiledPackages []biinstallpkg.CompiledPackageRef) State {
 	return state{
 		renderedCPIJob:   renderedCPIJob,
 		compiledPackages: compiledPackages,
 	}
 }
 
-func (s state) RenderedCPIJob() bminstalljob.RenderedJobRef {
+func (s state) RenderedCPIJob() biinstalljob.RenderedJobRef {
 	return s.renderedCPIJob
 }
 
-func (s state) CompiledPackages() []bminstallpkg.CompiledPackageRef {
+func (s state) CompiledPackages() []biinstallpkg.CompiledPackageRef {
 	return s.compiledPackages
 }

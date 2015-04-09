@@ -16,19 +16,19 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebmdisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
-	fakebmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
+	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {
@@ -43,7 +43,7 @@ var _ = Describe("Manager", func() {
 	})
 
 	var (
-		fakeCloud *fakebmcloud.FakeCloud
+		fakeCloud *fakebicloud.FakeCloud
 
 		mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
 		mockStateBuilder        *mock_instance_state.MockBuilder
@@ -51,23 +51,23 @@ var _ = Describe("Manager", func() {
 
 		mockBlobstore *mock_blobstore.MockBlobstore
 
-		fakeVMManager        *fakebmvm.FakeManager
-		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
-		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
+		fakeVMManager        *fakebivm.FakeManager
+		fakeSSHTunnelFactory *fakebisshtunnel.FakeFactory
+		fakeSSHTunnel        *fakebisshtunnel.FakeTunnel
 		instanceFactory      Factory
 		logger               boshlog.Logger
-		fakeStage            *fakebmui.FakeStage
+		fakeStage            *fakebiui.FakeStage
 
 		manager Manager
 	)
 
 	BeforeEach(func() {
-		fakeCloud = fakebmcloud.NewFakeCloud()
+		fakeCloud = fakebicloud.NewFakeCloud()
 
-		fakeVMManager = fakebmvm.NewFakeManager()
+		fakeVMManager = fakebivm.NewFakeManager()
 
-		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
-		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
+		fakeSSHTunnelFactory = fakebisshtunnel.NewFakeFactory()
+		fakeSSHTunnel = fakebisshtunnel.NewFakeTunnel()
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
@@ -81,7 +81,7 @@ var _ = Describe("Manager", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		fakeStage = fakebmui.NewFakeStage()
+		fakeStage = fakebiui.NewFakeStage()
 
 		manager = NewManager(
 			fakeCloud,
@@ -96,37 +96,37 @@ var _ = Describe("Manager", func() {
 	Describe("Create", func() {
 		var (
 			mockAgentClient    *mock_agentclient.MockAgentClient
-			fakeVM             *fakebmvm.FakeVM
-			diskPool           bmdeplmanifest.DiskPool
-			deploymentManifest bmdeplmanifest.Manifest
-			fakeCloudStemcell  *fakebmstemcell.FakeCloudStemcell
-			registry           bminstallmanifest.Registry
-			sshTunnelConfig    bminstallmanifest.SSHTunnel
+			fakeVM             *fakebivm.FakeVM
+			diskPool           bideplmanifest.DiskPool
+			deploymentManifest bideplmanifest.Manifest
+			fakeCloudStemcell  *fakebistemcell.FakeCloudStemcell
+			registry           biinstallmanifest.Registry
+			sshTunnelConfig    biinstallmanifest.SSHTunnel
 
 			expectedInstance Instance
-			expectedDisk     *fakebmdisk.FakeDisk
+			expectedDisk     *fakebidisk.FakeDisk
 		)
 
 		var allowApplySpecToBeCreated = func() {
 			jobName := "cpi"
 			jobIndex := 0
 
-			applySpec := bmas.ApplySpec{
+			applySpec := bias.ApplySpec{
 				Deployment: "test-release",
 				Index:      jobIndex,
-				Packages:   map[string]bmas.Blob{},
-				Networks: map[string]bmproperty.Map{
-					"network-1": bmproperty.Map{
-						"cloud_properties": bmproperty.Map{},
+				Packages:   map[string]bias.Blob{},
+				Networks: map[string]biproperty.Map{
+					"network-1": biproperty.Map{
+						"cloud_properties": biproperty.Map{},
 						"type":             "dynamic",
 						"ip":               "",
 					},
 				},
-				Job: bmas.Job{
+				Job: bias.Job{
 					Name:      jobName,
-					Templates: []bmas.Blob{},
+					Templates: []bias.Blob{},
 				},
-				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
+				RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{},
 				ConfigurationHash:        "",
 			}
 
@@ -136,25 +136,25 @@ var _ = Describe("Manager", func() {
 		}
 
 		BeforeEach(func() {
-			diskPool = bmdeplmanifest.DiskPool{
+			diskPool = bideplmanifest.DiskPool{
 				Name:     "fake-persistent-disk-pool-name",
 				DiskSize: 1024,
-				CloudProperties: bmproperty.Map{
+				CloudProperties: biproperty.Map{
 					"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 				},
 			}
 
-			deploymentManifest = bmdeplmanifest.Manifest{
-				Update: bmdeplmanifest.Update{
-					UpdateWatchTime: bmdeplmanifest.WatchTime{
+			deploymentManifest = bideplmanifest.Manifest{
+				Update: bideplmanifest.Update{
+					UpdateWatchTime: bideplmanifest.WatchTime{
 						Start: 0,
 						End:   5478,
 					},
 				},
-				DiskPools: []bmdeplmanifest.DiskPool{
+				DiskPools: []bideplmanifest.DiskPool{
 					diskPool,
 				},
-				Jobs: []bmdeplmanifest.Job{
+				Jobs: []bideplmanifest.Job{
 					{
 						Name:               "fake-job-name",
 						PersistentDiskPool: "fake-persistent-disk-pool-name",
@@ -163,11 +163,11 @@ var _ = Describe("Manager", func() {
 				},
 			}
 
-			fakeCloudStemcell = fakebmstemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
-			registry = bminstallmanifest.Registry{}
-			sshTunnelConfig = bminstallmanifest.SSHTunnel{}
+			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
+			registry = biinstallmanifest.Registry{}
+			sshTunnelConfig = biinstallmanifest.SSHTunnel{}
 
-			fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
+			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 			fakeVMManager.CreateVM = fakeVM
 
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
@@ -183,8 +183,8 @@ var _ = Describe("Manager", func() {
 				logger,
 			)
 
-			expectedDisk = fakebmdisk.NewFakeDisk("fake-disk-cid")
-			fakeVM.UpdateDisksDisks = []bmdisk.Disk{expectedDisk}
+			expectedDisk = fakebidisk.NewFakeDisk("fake-disk-cid")
+			fakeVM.UpdateDisksDisks = []bidisk.Disk{expectedDisk}
 		})
 
 		JustBeforeEach(func() {
@@ -204,7 +204,7 @@ var _ = Describe("Manager", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(instance).To(Equal(expectedInstance))
 
-			Expect(fakeVMManager.CreateInput).To(Equal(fakebmvm.CreateInput{
+			Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
 				Stemcell: fakeCloudStemcell,
 				Manifest: deploymentManifest,
 			}))
@@ -237,7 +237,7 @@ var _ = Describe("Manager", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
@@ -245,7 +245,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when registry settings are empty", func() {
 			BeforeEach(func() {
-				registry = bminstallmanifest.Registry{}
+				registry = biinstallmanifest.Registry{}
 			})
 
 			It("does not start the registry", func() {
@@ -273,14 +273,14 @@ var _ = Describe("Manager", func() {
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeVM.WaitUntilReadyInputs).To(Equal([]fakebmvm.WaitUntilReadyInput{
+			Expect(fakeVM.WaitUntilReadyInputs).To(Equal([]fakebivm.WaitUntilReadyInput{
 				{
 					Timeout: 10 * time.Minute,
 					Delay:   500 * time.Millisecond,
 				},
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
@@ -297,9 +297,9 @@ var _ = Describe("Manager", func() {
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(disks).To(Equal([]bmdisk.Disk{expectedDisk}))
+			Expect(disks).To(Equal([]bidisk.Disk{expectedDisk}))
 
-			Expect(fakeVM.UpdateDisksInputs).To(Equal([]fakebmvm.UpdateDisksInput{
+			Expect(fakeVM.UpdateDisksInputs).To(Equal([]fakebivm.UpdateDisksInput{
 				{
 					DiskPool: diskPool,
 					Stage:    fakeStage,
@@ -309,13 +309,13 @@ var _ = Describe("Manager", func() {
 
 		Context("when registry or sshTunnelConfig are not empty", func() {
 			BeforeEach(func() {
-				registry = bminstallmanifest.Registry{
+				registry = biinstallmanifest.Registry{
 					Username: "fake-registry-username",
 					Password: "fake-registry-password",
 					Host:     "fake-registry-host",
 					Port:     124,
 				}
-				sshTunnelConfig = bminstallmanifest.SSHTunnel{
+				sshTunnelConfig = biinstallmanifest.SSHTunnel{
 					User:       "fake-ssh-user",
 					Host:       "fake-ssh-host",
 					Port:       123,
@@ -335,7 +335,7 @@ var _ = Describe("Manager", func() {
 					fakeStage,
 				)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bmsshtunnel.Options{
+				Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bisshtunnel.Options{
 					User:              "fake-ssh-user",
 					Host:              "fake-ssh-host",
 					Port:              123,
@@ -371,7 +371,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when ssh tunnel conifg is empty", func() {
 			BeforeEach(func() {
-				sshTunnelConfig = bminstallmanifest.SSHTunnel{}
+				sshTunnelConfig = biinstallmanifest.SSHTunnel{}
 			})
 
 			It("does not start the ssh tunnel", func() {

@@ -3,15 +3,15 @@ package release
 import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type release struct {
 	name          string
 	version       string
-	jobs          []bmreljob.Job
-	packages      []*bmrelpkg.Package
+	jobs          []bireljob.Job
+	packages      []*birelpkg.Package
 	extractedPath string
 	fs            boshsys.FileSystem
 }
@@ -19,9 +19,9 @@ type release struct {
 type Release interface {
 	Name() string
 	Version() string
-	Jobs() []bmreljob.Job
-	Packages() []*bmrelpkg.Package
-	FindJobByName(jobName string) (job bmreljob.Job, found bool)
+	Jobs() []bireljob.Job
+	Packages() []*birelpkg.Package
+	FindJobByName(jobName string) (job bireljob.Job, found bool)
 	Delete() error
 	Exists() bool
 }
@@ -29,8 +29,8 @@ type Release interface {
 func NewRelease(
 	name string,
 	version string,
-	jobs []bmreljob.Job,
-	packages []*bmrelpkg.Package,
+	jobs []bireljob.Job,
+	packages []*birelpkg.Package,
 	extractedPath string,
 	fs boshsys.FileSystem,
 ) Release {
@@ -48,18 +48,18 @@ func (r *release) Name() string { return r.name }
 
 func (r *release) Version() string { return r.version }
 
-func (r *release) Jobs() []bmreljob.Job { return r.jobs }
+func (r *release) Jobs() []bireljob.Job { return r.jobs }
 
-func (r *release) Packages() []*bmrelpkg.Package { return r.packages }
+func (r *release) Packages() []*birelpkg.Package { return r.packages }
 
-func (r *release) FindJobByName(jobName string) (bmreljob.Job, bool) {
+func (r *release) FindJobByName(jobName string) (bireljob.Job, bool) {
 	for _, job := range r.jobs {
 		if job.Name == jobName {
 			return job, true
 		}
 	}
 
-	return bmreljob.Job{}, false
+	return bireljob.Job{}, false
 }
 
 // Delete removes the extracted release code.

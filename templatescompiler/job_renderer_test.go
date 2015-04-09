@@ -11,11 +11,11 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 
-	fakebmrender "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
+	fakebirender "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 )
@@ -23,12 +23,12 @@ import (
 var _ = Describe("JobRenderer", func() {
 	var (
 		jobRenderer      JobRenderer
-		fakeERBRenderer  *fakebmrender.FakeERBRenderer
-		job              bmreljob.Job
-		context          bmerbrenderer.TemplateEvaluationContext
+		fakeERBRenderer  *fakebirender.FakeERBRenderer
+		job              bireljob.Job
+		context          bierbrenderer.TemplateEvaluationContext
 		fs               *fakesys.FakeFileSystem
-		jobProperties    bmproperty.Map
-		globalProperties bmproperty.Map
+		jobProperties    biproperty.Map
+		globalProperties biproperty.Map
 		srcPath          string
 		dstPath          string
 	)
@@ -36,15 +36,15 @@ var _ = Describe("JobRenderer", func() {
 	BeforeEach(func() {
 		srcPath = "fake-src-path"
 		dstPath = "fake-dst-path"
-		jobProperties = bmproperty.Map{
+		jobProperties = biproperty.Map{
 			"fake-property-key": "fake-job-property-value",
 		}
 
-		globalProperties = bmproperty.Map{
+		globalProperties = biproperty.Map{
 			"fake-property-key": "fake-global-property-value",
 		}
 
-		job = bmreljob.Job{
+		job = bireljob.Job{
 			Templates: map[string]string{
 				"director.yml.erb": "config/director.yml",
 			},
@@ -55,7 +55,7 @@ var _ = Describe("JobRenderer", func() {
 
 		context = NewJobEvaluationContext(job, jobProperties, globalProperties, "fake-deployment-name", logger)
 
-		fakeERBRenderer = fakebmrender.NewFakeERBRender()
+		fakeERBRenderer = fakebirender.NewFakeERBRender()
 
 		fs = fakesys.NewFakeFileSystem()
 		jobRenderer = NewJobRenderer(fakeERBRenderer, fs, logger)
@@ -87,7 +87,7 @@ var _ = Describe("JobRenderer", func() {
 			renderedjob, err := jobRenderer.Render(job, jobProperties, globalProperties, "fake-deployment-name")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebmrender.RenderInput{
+			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebirender.RenderInput{
 				{
 					SrcPath: filepath.Join(srcPath, "templates/director.yml.erb"),
 					DstPath: filepath.Join(renderedjob.Path(), "config/director.yml"),

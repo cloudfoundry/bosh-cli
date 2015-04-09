@@ -5,22 +5,22 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Manager interface {
 	FindCurrent() ([]Disk, error)
-	Create(bmdeplmanifest.DiskPool, string) (Disk, error)
+	Create(bideplmanifest.DiskPool, string) (Disk, error)
 	FindUnused() ([]Disk, error)
-	DeleteUnused(bmui.Stage) error
+	DeleteUnused(biui.Stage) error
 }
 
 func NewManager(
-	cloud bmcloud.Cloud,
-	diskRepo bmconfig.DiskRepo,
+	cloud bicloud.Cloud,
+	diskRepo biconfig.DiskRepo,
 	logger boshlog.Logger,
 ) Manager {
 	return &manager{
@@ -32,8 +32,8 @@ func NewManager(
 }
 
 type manager struct {
-	cloud    bmcloud.Cloud
-	diskRepo bmconfig.DiskRepo
+	cloud    bicloud.Cloud
+	diskRepo biconfig.DiskRepo
 	logger   boshlog.Logger
 	logTag   string
 }
@@ -54,7 +54,7 @@ func (m *manager) FindCurrent() ([]Disk, error) {
 	return disks, nil
 }
 
-func (m *manager) Create(diskPool bmdeplmanifest.DiskPool, vmCID string) (Disk, error) {
+func (m *manager) Create(diskPool bideplmanifest.DiskPool, vmCID string) (Disk, error) {
 	diskCloudProperties := diskPool.CloudProperties
 
 	m.logger.Debug(m.logTag, "Creating disk")
@@ -99,7 +99,7 @@ func (m *manager) FindUnused() ([]Disk, error) {
 	return disks, nil
 }
 
-func (m *manager) DeleteUnused(eventLoggerStage bmui.Stage) error {
+func (m *manager) DeleteUnused(eventLoggerStage biui.Stage) error {
 	disks, err := m.FindUnused()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding unused disks")
@@ -109,9 +109,9 @@ func (m *manager) DeleteUnused(eventLoggerStage bmui.Stage) error {
 		stepName := fmt.Sprintf("Deleting unused disk '%s'", disk.CID())
 		err = eventLoggerStage.Perform(stepName, func() error {
 			err := disk.Delete()
-			cloudErr, ok := err.(bmcloud.Error)
-			if ok && cloudErr.Type() == bmcloud.DiskNotFoundError {
-				return bmui.NewSkipStageError(cloudErr, "Disk Not Found")
+			cloudErr, ok := err.(bicloud.Error)
+			if ok && cloudErr.Type() == bicloud.DiskNotFoundError {
+				return biui.NewSkipStageError(cloudErr, "Disk Not Found")
 			}
 			return err
 		})

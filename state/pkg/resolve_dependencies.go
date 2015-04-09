@@ -1,15 +1,15 @@
 package pkg
 
 import (
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
-func ResolveDependencies(pkg *bmrelpkg.Package) []*bmrelpkg.Package {
-	return resolveInner(pkg, []*bmrelpkg.Package{})
+func ResolveDependencies(pkg *birelpkg.Package) []*birelpkg.Package {
+	return resolveInner(pkg, []*birelpkg.Package{})
 }
 
-func resolveInner(pkg *bmrelpkg.Package, noFollow []*bmrelpkg.Package) []*bmrelpkg.Package {
-	all := []*bmrelpkg.Package{}
+func resolveInner(pkg *birelpkg.Package, noFollow []*birelpkg.Package) []*birelpkg.Package {
+	all := []*birelpkg.Package{}
 	for _, depPkg := range pkg.Dependencies {
 		if !contains(all, depPkg) && !contains(noFollow, depPkg) {
 			all = append(all, depPkg)
@@ -29,7 +29,7 @@ func resolveInner(pkg *bmrelpkg.Package, noFollow []*bmrelpkg.Package) []*bmrelp
 	return all
 }
 
-func contains(list []*bmrelpkg.Package, element *bmrelpkg.Package) bool {
+func contains(list []*birelpkg.Package, element *birelpkg.Package) bool {
 	for _, pkg := range list {
 		if element == pkg {
 			return true
@@ -38,8 +38,8 @@ func contains(list []*bmrelpkg.Package, element *bmrelpkg.Package) bool {
 	return false
 }
 
-func joinUnique(a []*bmrelpkg.Package, b []*bmrelpkg.Package) []*bmrelpkg.Package {
-	joined := []*bmrelpkg.Package{}
+func joinUnique(a []*birelpkg.Package, b []*birelpkg.Package) []*birelpkg.Package {
+	joined := []*birelpkg.Package{}
 	joined = append(joined, a...)
 	for _, pkg := range b {
 		if !contains(a, pkg) {

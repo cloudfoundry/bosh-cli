@@ -3,7 +3,7 @@ package pkg
 import (
 	"path/filepath"
 
-	bminstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
+	biinstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
 )
 
 type CompiledPackageRef struct {
@@ -18,10 +18,10 @@ type Installer interface {
 }
 
 type installer struct {
-	blobExtractor bminstallblob.Extractor
+	blobExtractor biinstallblob.Extractor
 }
 
-func NewPackageInstaller(blobExtractor bminstallblob.Extractor) Installer {
+func NewPackageInstaller(blobExtractor biinstallblob.Extractor) Installer {
 	return &installer{
 		blobExtractor: blobExtractor,
 	}

@@ -1,15 +1,15 @@
 package fakes
 
 import (
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type FakeRelease struct {
 	ReleaseName     string
 	ReleaseVersion  string
-	ReleaseJobs     []bmreljob.Job
-	ReleasePackages []*bmrelpkg.Package
+	ReleaseJobs     []bireljob.Job
+	ReleasePackages []*birelpkg.Package
 
 	DeleteCalled bool
 	DeleteErr    error
@@ -30,18 +30,18 @@ func (r *FakeRelease) Name() string { return r.ReleaseName }
 
 func (r *FakeRelease) Version() string { return r.ReleaseVersion }
 
-func (r *FakeRelease) Jobs() []bmreljob.Job { return r.ReleaseJobs }
+func (r *FakeRelease) Jobs() []bireljob.Job { return r.ReleaseJobs }
 
-func (r *FakeRelease) Packages() []*bmrelpkg.Package { return r.ReleasePackages }
+func (r *FakeRelease) Packages() []*birelpkg.Package { return r.ReleasePackages }
 
-func (r *FakeRelease) FindJobByName(jobName string) (bmreljob.Job, bool) {
+func (r *FakeRelease) FindJobByName(jobName string) (bireljob.Job, bool) {
 	for _, job := range r.ReleaseJobs {
 		if job.Name == jobName {
 			return job, true
 		}
 	}
 
-	return bmreljob.Job{}, false
+	return bireljob.Job{}, false
 }
 
 func (r *FakeRelease) Delete() error {

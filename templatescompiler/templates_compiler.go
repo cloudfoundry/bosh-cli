@@ -7,13 +7,13 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type TemplatesCompiler interface {
-	Compile(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmui.Stage) error
+	Compile(jobs []bireljob.Job, deploymentName string, deploymentProperties biproperty.Map, stage biui.Stage) error
 }
 
 type templatesCompiler struct {
@@ -43,9 +43,9 @@ func NewTemplatesCompiler(
 	}
 }
 
-func (tc templatesCompiler) Compile(releaseJobs []bmreljob.Job, deploymentName string, jobProperties bmproperty.Map, stage bmui.Stage) error {
+func (tc templatesCompiler) Compile(releaseJobs []bireljob.Job, deploymentName string, jobProperties biproperty.Map, stage biui.Stage) error {
 	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
-	globalProperties := bmproperty.Map{}
+	globalProperties := biproperty.Map{}
 
 	return stage.Perform("Rendering job templates", func() error {
 		renderedJobList, err := tc.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)

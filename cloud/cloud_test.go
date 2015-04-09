@@ -8,9 +8,9 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/cloud"
 )
@@ -19,11 +19,11 @@ var _ = Describe("Cloud", func() {
 	var (
 		cloud            Cloud
 		context          CmdContext
-		fakeCPICmdRunner *fakebmcloud.FakeCPICmdRunner
+		fakeCPICmdRunner *fakebicloud.FakeCPICmdRunner
 	)
 
 	BeforeEach(func() {
-		fakeCPICmdRunner = fakebmcloud.NewFakeCPICmdRunner()
+		fakeCPICmdRunner = fakebicloud.NewFakeCPICmdRunner()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", logger)
 		context = CmdContext{DirectorID: "fake-director-id"}
@@ -54,12 +54,12 @@ var _ = Describe("Cloud", func() {
 	Describe("CreateStemcell", func() {
 		var (
 			stemcellImagePath string
-			cloudProperties   bmproperty.Map
+			cloudProperties   biproperty.Map
 		)
 
 		BeforeEach(func() {
 			stemcellImagePath = "/stemcell/path"
-			cloudProperties = bmproperty.Map{
+			cloudProperties = biproperty.Map{
 				"fake-key": "fake-value",
 			}
 		})
@@ -75,7 +75,7 @@ var _ = Describe("Cloud", func() {
 				_, err := cloud.CreateStemcell(stemcellImagePath, cloudProperties)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
 					Context: context,
 					Method:  "create_stemcell",
 					Arguments: []interface{}{
@@ -129,7 +129,7 @@ var _ = Describe("Cloud", func() {
 			err := cloud.DeleteStemcell("fake-stemcell-cid")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-			Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+			Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
 				Context: context,
 				Method:  "delete_stemcell",
 				Arguments: []interface{}{
@@ -165,7 +165,7 @@ var _ = Describe("Cloud", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			Expect(fakeCPICmdRunner.RunInputs).To(Equal([]fakebmcloud.RunInput{
+			Expect(fakeCPICmdRunner.RunInputs).To(Equal([]fakebicloud.RunInput{
 				{
 					Context:   context,
 					Method:    "has_vm",
@@ -206,26 +206,26 @@ var _ = Describe("Cloud", func() {
 		var (
 			agentID           string
 			stemcellCID       string
-			cloudProperties   bmproperty.Map
-			networkInterfaces map[string]bmproperty.Map
-			env               bmproperty.Map
+			cloudProperties   biproperty.Map
+			networkInterfaces map[string]biproperty.Map
+			env               biproperty.Map
 		)
 
 		BeforeEach(func() {
 			agentID = "fake-agent-id"
 			stemcellCID = "fake-stemcell-cid"
-			networkInterfaces = map[string]bmproperty.Map{
-				"bosh": bmproperty.Map{
+			networkInterfaces = map[string]biproperty.Map{
+				"bosh": biproperty.Map{
 					"type": "dynamic",
-					"cloud_properties": bmproperty.Map{
+					"cloud_properties": biproperty.Map{
 						"a": "b",
 					},
 				},
 			}
-			cloudProperties = bmproperty.Map{
+			cloudProperties = biproperty.Map{
 				"fake-cloud-property-key": "fake-cloud-property-value",
 			}
-			env = bmproperty.Map{
+			env = biproperty.Map{
 				"fake-env-key": "fake-env-value",
 			}
 		})
@@ -241,7 +241,7 @@ var _ = Describe("Cloud", func() {
 				_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
 					Context: context,
 					Method:  "create_vm",
 					Arguments: []interface{}{
@@ -297,13 +297,13 @@ var _ = Describe("Cloud", func() {
 	Describe("CreateDisk", func() {
 		var (
 			size            int
-			cloudProperties bmproperty.Map
+			cloudProperties biproperty.Map
 			instanceID      string
 		)
 
 		BeforeEach(func() {
 			size = 1024
-			cloudProperties = bmproperty.Map{
+			cloudProperties = biproperty.Map{
 				"fake-cloud-property-key": "fake-cloud-property-value",
 			}
 			instanceID = "fake-instance-id"
@@ -320,7 +320,7 @@ var _ = Describe("Cloud", func() {
 				_, err := cloud.CreateDisk(size, cloudProperties, instanceID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
 					Context: context,
 					Method:  "create_disk",
 					Arguments: []interface{}{
@@ -376,7 +376,7 @@ var _ = Describe("Cloud", func() {
 				err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
 					Context: context,
 					Method:  "attach_disk",
 					Arguments: []interface{}{
@@ -410,7 +410,7 @@ var _ = Describe("Cloud", func() {
 				err := cloud.DetachDisk("fake-vm-cid", "fake-disk-cid")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
 					Context: context,
 					Method:  "detach_disk",
 					Arguments: []interface{}{
@@ -444,7 +444,7 @@ var _ = Describe("Cloud", func() {
 				err := cloud.DeleteVM("fake-vm-cid")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
 					Context: context,
 					Method:  "delete_vm",
 					Arguments: []interface{}{
@@ -477,7 +477,7 @@ var _ = Describe("Cloud", func() {
 				err := cloud.DeleteDisk("fake-disk-cid")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebmcloud.RunInput{
+				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
 					Context: context,
 					Method:  "delete_disk",
 					Arguments: []interface{}{

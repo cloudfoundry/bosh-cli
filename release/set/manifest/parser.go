@@ -7,7 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 )
 
 type Parser interface {
@@ -21,7 +21,7 @@ type parser struct {
 }
 
 type manifest struct {
-	Releases []bmrelmanifest.ReleaseRef
+	Releases []birelmanifest.ReleaseRef
 }
 
 func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {

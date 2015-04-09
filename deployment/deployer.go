@@ -6,41 +6,41 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Deployer interface {
 	Deploy(
-		bmcloud.Cloud,
-		bmdeplmanifest.Manifest,
-		bmstemcell.CloudStemcell,
-		bminstallmanifest.Registry,
-		bminstallmanifest.SSHTunnel,
-		bmvm.Manager,
-		bmblobstore.Blobstore,
-		bmui.Stage,
+		bicloud.Cloud,
+		bideplmanifest.Manifest,
+		bistemcell.CloudStemcell,
+		biinstallmanifest.Registry,
+		biinstallmanifest.SSHTunnel,
+		bivm.Manager,
+		biblobstore.Blobstore,
+		biui.Stage,
 	) (Deployment, error)
 }
 
 type deployer struct {
-	vmManagerFactory       bmvm.ManagerFactory
-	instanceManagerFactory bminstance.ManagerFactory
+	vmManagerFactory       bivm.ManagerFactory
+	instanceManagerFactory biinstance.ManagerFactory
 	deploymentFactory      Factory
 	logger                 boshlog.Logger
 	logTag                 string
 }
 
 func NewDeployer(
-	vmManagerFactory bmvm.ManagerFactory,
-	instanceManagerFactory bminstance.ManagerFactory,
+	vmManagerFactory bivm.ManagerFactory,
+	instanceManagerFactory biinstance.ManagerFactory,
 	deploymentFactory Factory,
 	logger boshlog.Logger,
 ) Deployer {
@@ -54,14 +54,14 @@ func NewDeployer(
 }
 
 func (d *deployer) Deploy(
-	cloud bmcloud.Cloud,
-	deploymentManifest bmdeplmanifest.Manifest,
-	cloudStemcell bmstemcell.CloudStemcell,
-	registryConfig bminstallmanifest.Registry,
-	sshTunnelConfig bminstallmanifest.SSHTunnel,
-	vmManager bmvm.Manager,
-	blobstore bmblobstore.Blobstore,
-	deployStage bmui.Stage,
+	cloud bicloud.Cloud,
+	deploymentManifest bideplmanifest.Manifest,
+	cloudStemcell bistemcell.CloudStemcell,
+	registryConfig biinstallmanifest.Registry,
+	sshTunnelConfig biinstallmanifest.SSHTunnel,
+	vmManager bivm.Manager,
+	blobstore biblobstore.Blobstore,
+	deployStage biui.Stage,
 ) (Deployment, error) {
 	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
 
@@ -76,20 +76,20 @@ func (d *deployer) Deploy(
 		return nil, err
 	}
 
-	stemcells := []bmstemcell.CloudStemcell{cloudStemcell}
+	stemcells := []bistemcell.CloudStemcell{cloudStemcell}
 	return d.deploymentFactory.NewDeployment(instances, disks, stemcells), nil
 }
 
 func (d *deployer) createAllInstances(
-	deploymentManifest bmdeplmanifest.Manifest,
-	instanceManager bminstance.Manager,
-	cloudStemcell bmstemcell.CloudStemcell,
-	registryConfig bminstallmanifest.Registry,
-	sshTunnelConfig bminstallmanifest.SSHTunnel,
-	deployStage bmui.Stage,
-) ([]bminstance.Instance, []bmdisk.Disk, error) {
-	instances := []bminstance.Instance{}
-	disks := []bmdisk.Disk{}
+	deploymentManifest bideplmanifest.Manifest,
+	instanceManager biinstance.Manager,
+	cloudStemcell bistemcell.CloudStemcell,
+	registryConfig biinstallmanifest.Registry,
+	sshTunnelConfig biinstallmanifest.SSHTunnel,
+	deployStage biui.Stage,
+) ([]biinstance.Instance, []bidisk.Disk, error) {
+	instances := []biinstance.Instance{}
+	disks := []bidisk.Disk{}
 
 	if len(deploymentManifest.Jobs) != 1 {
 		return instances, disks, bosherr.Errorf("There must only be one job, found %d", len(deploymentManifest.Jobs))

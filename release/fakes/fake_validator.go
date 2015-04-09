@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmrel "github.com/cloudfoundry/bosh-init/release"
+	birel "github.com/cloudfoundry/bosh-init/release"
 )
 
 type FakeValidator struct {
@@ -12,6 +12,6 @@ func NewFakeValidator() *FakeValidator {
 	return &FakeValidator{}
 }
 
-func (f *FakeValidator) Validate(release bmrel.Release) error {
+func (f *FakeValidator) Validate(release birel.Release) error {
 	return f.ValidateError
 }

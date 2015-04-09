@@ -1,24 +1,24 @@
 package stemcell
 
 import (
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type ManagerFactory interface {
-	NewManager(bmcloud.Cloud) Manager
+	NewManager(bicloud.Cloud) Manager
 }
 
 type managerFactory struct {
-	repo bmconfig.StemcellRepo
+	repo biconfig.StemcellRepo
 }
 
-func NewManagerFactory(repo bmconfig.StemcellRepo) ManagerFactory {
+func NewManagerFactory(repo biconfig.StemcellRepo) ManagerFactory {
 	return &managerFactory{
 		repo: repo,
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
+func (f *managerFactory) NewManager(cloud bicloud.Cloud) Manager {
 	return NewManager(f.repo, cloud)
 }

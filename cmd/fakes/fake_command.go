@@ -1,12 +1,12 @@
 package fakes
 
 import (
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeCommand struct {
 	name        string
-	Stage       bmui.Stage
+	Stage       biui.Stage
 	Args        []string
 	PresetError error
 }
@@ -22,7 +22,7 @@ func (f *FakeCommand) Name() string {
 	return f.name
 }
 
-func (f *FakeCommand) Run(stage bmui.Stage, args []string) error {
+func (f *FakeCommand) Run(stage biui.Stage, args []string) error {
 	f.Stage = stage
 	f.Args = args
 	return f.PresetError

@@ -13,7 +13,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("Parser", func() {
@@ -171,8 +171,8 @@ cloud_provider:
 					Port:     123,
 				},
 				AgentEnvService: "registry",
-				Properties: bmproperty.Map{
-					"fake-property-name": bmproperty.Map{
+				Properties: biproperty.Map{
+					"fake-property-name": biproperty.Map{
 						"nested-property": "fake-property-value",
 					},
 				},

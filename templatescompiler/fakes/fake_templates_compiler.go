@@ -7,16 +7,16 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type CompileInput struct {
-	Jobs                 []bmreljob.Job
+	Jobs                 []bireljob.Job
 	DeploymentName       string
-	DeploymentProperties bmproperty.Map
-	Stage                bmui.Stage
+	DeploymentProperties biproperty.Map
+	Stage                biui.Stage
 }
 
 type compileOutput struct {
@@ -36,7 +36,7 @@ func NewFakeTemplatesCompiler() *FakeTemplatesCompiler {
 	}
 }
 
-func (f *FakeTemplatesCompiler) Compile(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmui.Stage) error {
+func (f *FakeTemplatesCompiler) Compile(jobs []bireljob.Job, deploymentName string, deploymentProperties biproperty.Map, stage biui.Stage) error {
 	input := CompileInput{
 		Jobs:                 jobs,
 		DeploymentName:       deploymentName,
@@ -57,7 +57,7 @@ func (f *FakeTemplatesCompiler) Compile(jobs []bmreljob.Job, deploymentName stri
 	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v', '%#v')", jobs, deploymentName, deploymentProperties)
 }
 
-func (f *FakeTemplatesCompiler) SetCompileBehavior(jobs []bmreljob.Job, deploymentName string, deploymentProperties bmproperty.Map, stage bmui.Stage, err error) error {
+func (f *FakeTemplatesCompiler) SetCompileBehavior(jobs []bireljob.Job, deploymentName string, deploymentProperties biproperty.Map, stage biui.Stage, err error) error {
 	input := CompileInput{
 		Jobs:                 jobs,
 		DeploymentName:       deploymentName,

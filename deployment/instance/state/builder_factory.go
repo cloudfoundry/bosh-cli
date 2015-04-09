@@ -3,31 +3,31 @@ package state
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmdeplrel "github.com/cloudfoundry/bosh-init/deployment/release"
-	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
-	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
-	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
+	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 )
 
 type BuilderFactory interface {
-	NewBuilder(bmblobstore.Blobstore, bmagentclient.AgentClient) Builder
+	NewBuilder(biblobstore.Blobstore, biagentclient.AgentClient) Builder
 }
 
 type builderFactory struct {
-	packageRepo               bmstatepkg.CompiledPackageRepo
-	releaseJobResolver        bmdeplrel.JobResolver
-	jobRenderer               bmtemplate.JobListRenderer
-	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
+	packageRepo               bistatepkg.CompiledPackageRepo
+	releaseJobResolver        bideplrel.JobResolver
+	jobRenderer               bitemplate.JobListRenderer
+	renderedJobListCompressor bitemplate.RenderedJobListCompressor
 	logger                    boshlog.Logger
 }
 
 func NewBuilderFactory(
-	packageRepo bmstatepkg.CompiledPackageRepo,
-	releaseJobResolver bmdeplrel.JobResolver,
-	jobRenderer bmtemplate.JobListRenderer,
-	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
+	packageRepo bistatepkg.CompiledPackageRepo,
+	releaseJobResolver bideplrel.JobResolver,
+	jobRenderer bitemplate.JobListRenderer,
+	renderedJobListCompressor bitemplate.RenderedJobListCompressor,
 	logger boshlog.Logger,
 ) BuilderFactory {
 	return &builderFactory{
@@ -39,9 +39,9 @@ func NewBuilderFactory(
 	}
 }
 
-func (f *builderFactory) NewBuilder(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient) Builder {
+func (f *builderFactory) NewBuilder(blobstore biblobstore.Blobstore, agentClient biagentclient.AgentClient) Builder {
 	packageCompiler := NewRemotePackageCompiler(blobstore, agentClient, f.packageRepo)
-	jobDependencyCompiler := bmstatejob.NewDependencyCompiler(packageCompiler, f.logger)
+	jobDependencyCompiler := bistatejob.NewDependencyCompiler(packageCompiler, f.logger)
 
 	return NewBuilder(
 		f.releaseJobResolver,

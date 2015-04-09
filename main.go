@@ -11,11 +11,11 @@ import (
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmcmd "github.com/cloudfoundry/bosh-init/cmd"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bicmd "github.com/cloudfoundry/bosh-init/cmd"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 
-	bmui "github.com/cloudfoundry/bosh-init/ui"
-	bmuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
+	biui "github.com/cloudfoundry/bosh-init/ui"
+	biuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
 
 const mainLogTag = "main"
@@ -26,14 +26,14 @@ func main() {
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_micro")
 	userConfigPath := path.Join(os.Getenv("HOME"), ".bosh_micro.json")
-	ui := bmui.NewConsoleUI(logger)
+	ui := biui.NewConsoleUI(logger)
 	config, configService := loadUserConfig(userConfigPath, fileSystem, ui, logger)
 
 	uuidGenerator := boshuuid.NewGenerator()
 
 	timeService := boshtime.NewConcreteService()
 
-	cmdFactory := bmcmd.NewFactory(
+	cmdFactory := bicmd.NewFactory(
 		config,
 		configService,
 		fileSystem,
@@ -44,8 +44,8 @@ func main() {
 		workspaceRootPath,
 	)
 
-	cmdRunner := bmcmd.NewRunner(cmdFactory)
-	stage := bmui.NewStage(ui, timeService, logger)
+	cmdRunner := bicmd.NewRunner(cmdFactory)
+	stage := biui.NewStage(ui, timeService, logger)
 	err := cmdRunner.Run(stage, os.Args[1:]...)
 	if err != nil {
 		fail(err, ui, logger)
@@ -61,7 +61,7 @@ func newLogger() boshlog.Logger {
 		if err != nil {
 			err = bosherr.WrapError(err, "Invalid BOSH_MICRO_LOG_LEVEL value")
 			logger := boshlog.NewLogger(boshlog.LevelError)
-			ui := bmui.NewConsoleUI(logger)
+			ui := biui.NewConsoleUI(logger)
 			fail(err, ui, logger)
 		}
 	}
@@ -84,17 +84,17 @@ func newFileLogger(logPath string, level boshlog.LogLevel) boshlog.Logger {
 	logger, _, err := boshlogfile.New(level, logPath, boshlogfile.DefaultLogFileMode, fileSystem)
 	if err != nil {
 		logger := boshlog.NewLogger(boshlog.LevelError)
-		ui := bmui.NewConsoleUI(logger)
+		ui := biui.NewConsoleUI(logger)
 		fail(err, ui, logger)
 	}
 	return logger
 }
 
-func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, ui bmui.UI, logger boshlog.Logger) (
-	bmconfig.UserConfig,
-	bmconfig.UserConfigService,
+func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, ui biui.UI, logger boshlog.Logger) (
+	biconfig.UserConfig,
+	biconfig.UserConfigService,
 ) {
-	userConfigService := bmconfig.NewFileSystemUserConfigService(userConfigPath, fileSystem, logger)
+	userConfigService := biconfig.NewFileSystemUserConfigService(userConfigPath, fileSystem, logger)
 	userConfig, err := userConfigService.Load()
 	if err != nil {
 		fail(err, ui, logger)
@@ -103,9 +103,9 @@ func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, ui bmu
 	return userConfig, userConfigService
 }
 
-func fail(err error, ui bmui.UI, logger boshlog.Logger) {
+func fail(err error, ui biui.UI, logger boshlog.Logger) {
 	logger.Error(mainLogTag, err.Error())
 	ui.ErrorLinef("")
-	ui.ErrorLinef(bmuifmt.MultilineError(err))
+	ui.ErrorLinef(biuifmt.MultilineError(err))
 	os.Exit(1)
 }

@@ -21,17 +21,17 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Deployment", func() {
@@ -52,10 +52,10 @@ var _ = Describe("Deployment", func() {
 
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
-			deploymentConfigService bmconfig.DeploymentConfigService
-			vmRepo                  bmconfig.VMRepo
-			diskRepo                bmconfig.DiskRepo
-			stemcellRepo            bmconfig.StemcellRepo
+			deploymentConfigService biconfig.DeploymentConfigService
+			vmRepo                  biconfig.VMRepo
+			diskRepo                biconfig.DiskRepo
+			stemcellRepo            biconfig.StemcellRepo
 
 			mockCloud       *mock_cloud.MockCloud
 			mockAgentClient *mock_agentclient.MockAgentClient
@@ -68,7 +68,7 @@ var _ = Describe("Deployment", func() {
 
 			deploymentConfigPath = "/deployment.json"
 
-			fakeStage *fakebmui.FakeStage
+			fakeStage *fakebiui.FakeStage
 
 			deploymentFactory Factory
 
@@ -92,22 +92,22 @@ var _ = Describe("Deployment", func() {
 			jobName := "fake-job-name"
 			jobIndex := 0
 
-			applySpec := bmas.ApplySpec{
+			applySpec := bias.ApplySpec{
 				Deployment: "test-release",
 				Index:      jobIndex,
-				Packages:   map[string]bmas.Blob{},
-				Networks: map[string]bmproperty.Map{
-					"network-1": bmproperty.Map{
-						"cloud_properties": bmproperty.Map{},
+				Packages:   map[string]bias.Blob{},
+				Networks: map[string]biproperty.Map{
+					"network-1": biproperty.Map{
+						"cloud_properties": biproperty.Map{},
 						"type":             "dynamic",
 						"ip":               "",
 					},
 				},
-				Job: bmas.Job{
+				Job: bias.Job{
 					Name:      jobName,
-					Templates: []bmas.Blob{},
+					Templates: []bias.Blob{},
 				},
-				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{},
+				RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{},
 				ConfigurationHash:        "",
 			}
 
@@ -121,17 +121,17 @@ var _ = Describe("Deployment", func() {
 			fs = fakesys.NewFakeFileSystem()
 
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-			vmRepo = bmconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = bmconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-			stemcellRepo = bmconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			vmRepo = biconfig.NewVMRepo(deploymentConfigService)
+			diskRepo = biconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			stemcellRepo = biconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			fakeStage = fakebmui.NewFakeStage()
+			fakeStage = fakebiui.NewFakeStage()
 
 			pingTimeout := 10 * time.Second
 			pingDelay := 500 * time.Millisecond
@@ -140,19 +140,19 @@ var _ = Describe("Deployment", func() {
 
 		JustBeforeEach(func() {
 			// all these local factories & managers are just used to construct a Deployment based on the deployment config
-			diskManagerFactory := bmdisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer := bmvm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+			diskManagerFactory := bidisk.NewManagerFactory(diskRepo, logger)
+			diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
-			vmManagerFactory := bmvm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
-			sshTunnelFactory := bmsshtunnel.NewFactory(logger)
+			vmManagerFactory := bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
+			sshTunnelFactory := bisshtunnel.NewFactory(logger)
 
 			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
 			mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
 			mockState = mock_instance_state.NewMockState(mockCtrl)
 
-			instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
-			instanceManagerFactory := bminstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
-			stemcellManagerFactory := bmstemcell.NewManagerFactory(stemcellRepo)
+			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
+			instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
+			stemcellManagerFactory := bistemcell.NewManagerFactory(stemcellRepo)
 
 			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 
@@ -170,20 +170,20 @@ var _ = Describe("Deployment", func() {
 		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
-				deploymentConfigService.Save(bmconfig.DeploymentFile{
+				deploymentConfigService.Save(biconfig.DeploymentFile{
 					DirectorID:        "fake-director-id",
 					InstallationID:    "fake-installation-id",
 					CurrentVMCID:      "fake-vm-cid",
 					CurrentStemcellID: "fake-stemcell-guid",
 					CurrentDiskID:     "fake-disk-guid",
-					Disks: []bmconfig.DiskRecord{
+					Disks: []biconfig.DiskRecord{
 						{
 							ID:   "fake-disk-guid",
 							CID:  "fake-disk-cid",
 							Size: 100,
 						},
 					},
-					Stemcells: []bmconfig.StemcellRecord{
+					Stemcells: []biconfig.StemcellRecord{
 						{
 							ID:  "fake-stemcell-guid",
 							CID: "fake-stemcell-cid",
@@ -205,7 +205,7 @@ var _ = Describe("Deployment", func() {
 				err := deployment.Delete(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 					{Name: "Stopping jobs on instance 'unknown/0'"},
 					{Name: "Unmounting disk 'fake-disk-cid'"},
@@ -270,7 +270,7 @@ var _ = Describe("Deployment", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					// reset event log recording
-					fakeStage = fakebmui.NewFakeStage()
+					fakeStage = fakebiui.NewFakeStage()
 				})
 
 				It("does not delete anything", func() {
@@ -284,14 +284,14 @@ var _ = Describe("Deployment", func() {
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				deploymentConfigService.Save(biconfig.DeploymentFile{})
 			})
 
 			JustBeforeEach(func() {
 				// A previous JustBeforeEach uses FindCurrent to define deployment,
 				// which would return a nil if the config is empty.
 				// So we have to make a fake empty deployment to test it.
-				deployment = deploymentFactory.NewDeployment([]bminstance.Instance{}, []bmdisk.Disk{}, []bmstemcell.CloudStemcell{})
+				deployment = deploymentFactory.NewDeployment([]biinstance.Instance{}, []bidisk.Disk{}, []bistemcell.CloudStemcell{})
 			})
 
 			It("does not delete anything", func() {
@@ -307,7 +307,7 @@ var _ = Describe("Deployment", func() {
 				expectHasVM *gomock.Call
 			)
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				deploymentConfigService.Save(biconfig.DeploymentFile{})
 				vmRepo.UpdateCurrent("fake-vm-cid")
 
 				expectHasVM = mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil)
@@ -339,8 +339,8 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("ignores VMNotFound errors", func() {
-					mockCloud.EXPECT().DeleteVM("fake-vm-cid").Return(bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
-						Type:    bmcloud.VMNotFoundError,
+					mockCloud.EXPECT().DeleteVM("fake-vm-cid").Return(bicloud.NewCPIError("delete_vm", bicloud.CmdError{
+						Type:    bicloud.VMNotFoundError,
 						Message: "fake-vm-not-found-message",
 					}))
 
@@ -352,7 +352,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when a current disk exists", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				deploymentConfigService.Save(biconfig.DeploymentFile{})
 				diskRecord, err := diskRepo.Save("fake-disk-cid", 100, nil)
 				Expect(err).ToNot(HaveOccurred())
 				diskRepo.UpdateCurrent(diskRecord.ID)
@@ -374,8 +374,8 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("ignores DiskNotFound errors", func() {
-					mockCloud.EXPECT().DeleteDisk("fake-disk-cid").Return(bmcloud.NewCPIError("delete_disk", bmcloud.CmdError{
-						Type:    bmcloud.DiskNotFoundError,
+					mockCloud.EXPECT().DeleteDisk("fake-disk-cid").Return(bicloud.NewCPIError("delete_disk", bicloud.CmdError{
+						Type:    bicloud.DiskNotFoundError,
 						Message: "fake-disk-not-found-message",
 					}))
 
@@ -387,7 +387,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when a current stemcell exists", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				deploymentConfigService.Save(biconfig.DeploymentFile{})
 				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
 				Expect(err).ToNot(HaveOccurred())
 				stemcellRepo.UpdateCurrent(stemcellRecord.ID)
@@ -409,8 +409,8 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("ignores StemcellNotFound errors", func() {
-					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid").Return(bmcloud.NewCPIError("delete_stemcell", bmcloud.CmdError{
-						Type:    bmcloud.StemcellNotFoundError,
+					mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid").Return(bicloud.NewCPIError("delete_stemcell", bicloud.CmdError{
+						Type:    bicloud.StemcellNotFoundError,
 						Message: "fake-stemcell-not-found-message",
 					}))
 

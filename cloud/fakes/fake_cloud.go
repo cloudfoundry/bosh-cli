@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type FakeCloud struct {
@@ -39,7 +39,7 @@ type FakeCloud struct {
 
 type CreateStemcellInput struct {
 	ImagePath       string
-	CloudProperties bmproperty.Map
+	CloudProperties biproperty.Map
 }
 
 type HasVMInput struct {
@@ -49,14 +49,14 @@ type HasVMInput struct {
 type CreateVMInput struct {
 	AgentID            string
 	StemcellCID        string
-	CloudProperties    bmproperty.Map
-	NetworksInterfaces map[string]bmproperty.Map
-	Env                bmproperty.Map
+	CloudProperties    biproperty.Map
+	NetworksInterfaces map[string]biproperty.Map
+	Env                biproperty.Map
 }
 
 type CreateDiskInput struct {
 	Size            int
-	CloudProperties bmproperty.Map
+	CloudProperties biproperty.Map
 	InstanceID      string
 }
 
@@ -89,7 +89,7 @@ func NewFakeCloud() *FakeCloud {
 	}
 }
 
-func (c *FakeCloud) CreateStemcell(imagePath string, cloudProperties bmproperty.Map) (string, error) {
+func (c *FakeCloud) CreateStemcell(imagePath string, cloudProperties biproperty.Map) (string, error) {
 	c.CreateStemcellInputs = append(c.CreateStemcellInputs, CreateStemcellInput{
 		ImagePath:       imagePath,
 		CloudProperties: cloudProperties,
@@ -115,9 +115,9 @@ func (c *FakeCloud) HasVM(vmCID string) (bool, error) {
 func (c *FakeCloud) CreateVM(
 	agentID string,
 	stemcellCID string,
-	cloudProperties bmproperty.Map,
-	networksInterfaces map[string]bmproperty.Map,
-	env bmproperty.Map,
+	cloudProperties biproperty.Map,
+	networksInterfaces map[string]biproperty.Map,
+	env biproperty.Map,
 ) (string, error) {
 	c.CreateVMInput = CreateVMInput{
 		AgentID:            agentID,
@@ -132,7 +132,7 @@ func (c *FakeCloud) CreateVM(
 
 func (c *FakeCloud) CreateDisk(
 	size int,
-	cloudProperties bmproperty.Map,
+	cloudProperties biproperty.Map,
 	instanceID string,
 ) (string, error) {
 	c.CreateDiskInput = CreateDiskInput{

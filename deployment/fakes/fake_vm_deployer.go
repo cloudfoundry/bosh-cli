@@ -1,12 +1,12 @@
 package fakes
 
 import (
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeVMDeployer struct {
@@ -18,21 +18,21 @@ type FakeVMDeployer struct {
 }
 
 type VMDeployInput struct {
-	Cloud            bmcloud.Cloud
-	Manifest         bmdeplmanifest.Manifest
-	Stemcell         bmstemcell.CloudStemcell
+	Cloud            bicloud.Cloud
+	Manifest         bideplmanifest.Manifest
+	Stemcell         bistemcell.CloudStemcell
 	MbusURL          string
-	EventLoggerStage bmui.Stage
+	EventLoggerStage biui.Stage
 }
 
 type WaitUntilReadyInput struct {
-	VM               bmvm.VM
-	SSHTunnelOptions bmsshtunnel.Options
-	EventLoggerStage bmui.Stage
+	VM               bivm.VM
+	SSHTunnelOptions bisshtunnel.Options
+	EventLoggerStage biui.Stage
 }
 
 type vmDeployOutput struct {
-	vm  bmvm.VM
+	vm  bivm.VM
 	err error
 }
 
@@ -44,12 +44,12 @@ func NewFakeVMDeployer() *FakeVMDeployer {
 }
 
 func (m *FakeVMDeployer) Deploy(
-	cloud bmcloud.Cloud,
-	deploymentManifest bmdeplmanifest.Manifest,
-	stemcell bmstemcell.CloudStemcell,
+	cloud bicloud.Cloud,
+	deploymentManifest bideplmanifest.Manifest,
+	stemcell bistemcell.CloudStemcell,
 	mbusURL string,
-	eventLoggerStage bmui.Stage,
-) (bmvm.VM, error) {
+	eventLoggerStage biui.Stage,
+) (bivm.VM, error) {
 	input := VMDeployInput{
 		Cloud:            cloud,
 		Manifest:         deploymentManifest,
@@ -65,7 +65,7 @@ func (m *FakeVMDeployer) Deploy(
 	return output.vm, output.err
 }
 
-func (m *FakeVMDeployer) WaitUntilReady(vm bmvm.VM, sshTunnelOptions bmsshtunnel.Options, eventLoggerStage bmui.Stage) error {
+func (m *FakeVMDeployer) WaitUntilReady(vm bivm.VM, sshTunnelOptions bisshtunnel.Options, eventLoggerStage biui.Stage) error {
 	input := WaitUntilReadyInput{
 		VM:               vm,
 		SSHTunnelOptions: sshTunnelOptions,
@@ -76,6 +76,6 @@ func (m *FakeVMDeployer) WaitUntilReady(vm bmvm.VM, sshTunnelOptions bmsshtunnel
 	return m.WaitUntilReadyErr
 }
 
-func (m *FakeVMDeployer) SetDeployBehavior(vm bmvm.VM, err error) {
+func (m *FakeVMDeployer) SetDeployBehavior(vm bivm.VM, err error) {
 	m.DeployOutputs = append(m.DeployOutputs, vmDeployOutput{vm: vm, err: err})
 }

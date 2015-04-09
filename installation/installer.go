@@ -7,26 +7,26 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	bminstallstate "github.com/cloudfoundry/bosh-init/installation/state"
-	bmregistry "github.com/cloudfoundry/bosh-init/registry"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	biinstallstate "github.com/cloudfoundry/bosh-init/installation/state"
+	biregistry "github.com/cloudfoundry/bosh-init/registry"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Installer interface {
-	Install(bminstallmanifest.Manifest, bmui.Stage) (Installation, error)
+	Install(biinstallmanifest.Manifest, biui.Stage) (Installation, error)
 }
 
 type installer struct {
 	target                Target
 	fs                    boshsys.FileSystem
-	stateBuilder          bminstallstate.Builder
+	stateBuilder          biinstallstate.Builder
 	packagesPath          string
-	packageInstaller      bminstallpkg.Installer
-	jobInstaller          bminstalljob.Installer
-	registryServerManager bmregistry.ServerManager
+	packageInstaller      biinstallpkg.Installer
+	jobInstaller          biinstalljob.Installer
+	registryServerManager biregistry.ServerManager
 	logger                boshlog.Logger
 	logTag                string
 }
@@ -34,11 +34,11 @@ type installer struct {
 func NewInstaller(
 	target Target,
 	fs boshsys.FileSystem,
-	stateBuilder bminstallstate.Builder,
+	stateBuilder biinstallstate.Builder,
 	packagesPath string,
-	packageInstaller bminstallpkg.Installer,
-	jobInstaller bminstalljob.Installer,
-	registryServerManager bmregistry.ServerManager,
+	packageInstaller biinstallpkg.Installer,
+	jobInstaller biinstalljob.Installer,
+	registryServerManager biregistry.ServerManager,
 	logger boshlog.Logger,
 ) Installer {
 	return &installer{
@@ -54,7 +54,7 @@ func NewInstaller(
 	}
 }
 
-func (i *installer) Install(manifest bminstallmanifest.Manifest, stage bmui.Stage) (Installation, error) {
+func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stage) (Installation, error) {
 	i.logger.Info(i.logTag, "Installing CPI deployment '%s'", manifest.Name)
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 

@@ -10,8 +10,8 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )
@@ -78,17 +78,17 @@ packages:
 							release, err := reader.Read()
 							Expect(err).NotTo(HaveOccurred())
 
-							expectedPackage := &bmrelpkg.Package{
+							expectedPackage := &birelpkg.Package{
 								Name:          "fake-package",
 								Fingerprint:   "fake-package-fingerprint",
 								SHA1:          "fake-package-sha",
-								Dependencies:  []*bmrelpkg.Package{&bmrelpkg.Package{Name: "fake-package-1"}},
+								Dependencies:  []*birelpkg.Package{&birelpkg.Package{Name: "fake-package-1"}},
 								ExtractedPath: "/extracted/release/extracted_packages/fake-package",
 								ArchivePath:   "/extracted/release/packages/fake-package.tgz",
 							}
 							Expect(release.Name()).To(Equal("fake-release"))
 							Expect(release.Version()).To(Equal("fake-version"))
-							Expect(release.Jobs()).To(Equal([]bmreljob.Job{
+							Expect(release.Jobs()).To(Equal([]bireljob.Job{
 								{
 									Name:          "fake-job",
 									Fingerprint:   "fake-job-fingerprint",
@@ -96,11 +96,11 @@ packages:
 									ExtractedPath: "/extracted/release/extracted_jobs/fake-job",
 									Templates:     map[string]string{"some_template": "some_file"},
 									PackageNames:  []string{"fake-package"},
-									Packages:      []*bmrelpkg.Package{expectedPackage},
-									Properties:    map[string]bmreljob.PropertyDefinition{},
+									Packages:      []*birelpkg.Package{expectedPackage},
+									Properties:    map[string]bireljob.PropertyDefinition{},
 								},
 							}))
-							Expect(release.Packages()).To(Equal([]*bmrelpkg.Package{expectedPackage}))
+							Expect(release.Packages()).To(Equal([]*birelpkg.Package{expectedPackage}))
 						})
 					})
 

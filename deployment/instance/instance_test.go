@@ -14,17 +14,17 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 
-	fakebmdisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
-	fakebmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
+	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Instance", func() {
@@ -42,11 +42,11 @@ var _ = Describe("Instance", func() {
 		mockStateBuilder *mock_instance_state.MockBuilder
 		mockState        *mock_instance_state.MockState
 
-		fakeVMManager        *fakebmvm.FakeManager
-		fakeVM               *fakebmvm.FakeVM
-		fakeSSHTunnelFactory *fakebmsshtunnel.FakeFactory
-		fakeSSHTunnel        *fakebmsshtunnel.FakeTunnel
-		fakeStage            *fakebmui.FakeStage
+		fakeVMManager        *fakebivm.FakeManager
+		fakeVM               *fakebivm.FakeVM
+		fakeSSHTunnelFactory *fakebisshtunnel.FakeFactory
+		fakeSSHTunnel        *fakebisshtunnel.FakeTunnel
+		fakeStage            *fakebiui.FakeStage
 
 		instance Instance
 
@@ -58,11 +58,11 @@ var _ = Describe("Instance", func() {
 	)
 
 	BeforeEach(func() {
-		fakeVMManager = fakebmvm.NewFakeManager()
-		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
+		fakeVMManager = fakebivm.NewFakeManager()
+		fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 
-		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
-		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
+		fakeSSHTunnelFactory = fakebisshtunnel.NewFakeFactory()
+		fakeSSHTunnel = fakebisshtunnel.NewFakeTunnel()
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
@@ -81,7 +81,7 @@ var _ = Describe("Instance", func() {
 			logger,
 		)
 
-		fakeStage = fakebmui.NewFakeStage()
+		fakeStage = fakebiui.NewFakeStage()
 	})
 
 	Describe("Delete", func() {
@@ -89,7 +89,7 @@ var _ = Describe("Instance", func() {
 			err := instance.Delete(pingTimeout, pingDelay, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebmvm.WaitUntilReadyInput{
+			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
 				Timeout: pingTimeout,
 				Delay:   pingDelay,
 			}))
@@ -106,7 +106,7 @@ var _ = Describe("Instance", func() {
 			err := instance.Delete(pingTimeout, pingDelay, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 				{Name: "Stopping jobs on instance 'fake-job-name/0'"},
 				{Name: "Deleting VM 'fake-vm-cid'"},
@@ -118,7 +118,7 @@ var _ = Describe("Instance", func() {
 				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls[0]).To(Equal(fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls[0]).To(Equal(fakebiui.PerformCall{
 					Name: "Waiting for the agent on VM 'fake-vm-cid'",
 				}))
 			})
@@ -131,19 +131,19 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("unmounts vm disks", func() {
-				firstDisk := fakebmdisk.NewFakeDisk("fake-disk-1")
-				secondDisk := fakebmdisk.NewFakeDisk("fake-disk-2")
-				fakeVM.ListDisksDisks = []bmdisk.Disk{firstDisk, secondDisk}
+				firstDisk := fakebidisk.NewFakeDisk("fake-disk-1")
+				secondDisk := fakebidisk.NewFakeDisk("fake-disk-2")
+				fakeVM.ListDisksDisks = []bidisk.Disk{firstDisk, secondDisk}
 
 				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.UnmountDiskInputs).To(Equal([]fakebmvm.UnmountDiskInput{
+				Expect(fakeVM.UnmountDiskInputs).To(Equal([]fakebivm.UnmountDiskInput{
 					{Disk: firstDisk},
 					{Disk: secondDisk},
 				}))
 
-				Expect(fakeStage.PerformCalls[2:4]).To(Equal([]fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls[2:4]).To(Equal([]fakebiui.PerformCall{
 					{Name: "Unmounting disk 'fake-disk-1'"},
 					{Name: "Unmounting disk 'fake-disk-2'"},
 				}))
@@ -163,7 +163,7 @@ var _ = Describe("Instance", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 
-					Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+					Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 						{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 						{
 							Name:  "Stopping jobs on instance 'fake-job-name/0'",
@@ -175,7 +175,7 @@ var _ = Describe("Instance", func() {
 
 			Context("when unmounting disk fails", func() {
 				BeforeEach(func() {
-					fakeVM.ListDisksDisks = []bmdisk.Disk{fakebmdisk.NewFakeDisk("fake-disk")}
+					fakeVM.ListDisksDisks = []bidisk.Disk{fakebidisk.NewFakeDisk("fake-disk")}
 					fakeVM.UnmountDiskErr = bosherr.Error("fake-unmount-error")
 				})
 
@@ -219,7 +219,7 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 					{Name: "Stopping jobs on instance 'fake-job-name/0'"},
 					{
@@ -233,8 +233,8 @@ var _ = Describe("Instance", func() {
 		Context("when VM does not exist (deleted manually)", func() {
 			BeforeEach(func() {
 				fakeVM.ExistsFound = false
-				fakeVM.DeleteErr = bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
-					Type:    bmcloud.VMNotFoundError,
+				fakeVM.DeleteErr = bicloud.NewCPIError("delete_vm", bicloud.CmdError{
+					Type:    bicloud.VMNotFoundError,
 					Message: "fake-vm-not-found-message",
 				})
 			})
@@ -267,19 +267,19 @@ var _ = Describe("Instance", func() {
 
 	Describe("UpdateJobs", func() {
 		var (
-			deploymentManifest bmdeplmanifest.Manifest
+			deploymentManifest bideplmanifest.Manifest
 
-			applySpec bmas.ApplySpec
+			applySpec bias.ApplySpec
 
 			expectStateBuild *gomock.Call
 		)
 
 		BeforeEach(func() {
 			// manifest is only being used for the Update.UpdateWatchTime, otherwise it's just being passed through to the StateBuilder
-			deploymentManifest = bmdeplmanifest.Manifest{
+			deploymentManifest = bideplmanifest.Manifest{
 				Name: "fake-deployment-name",
-				Update: bmdeplmanifest.Update{
-					UpdateWatchTime: bmdeplmanifest.WatchTime{
+				Update: bideplmanifest.Update{
+					UpdateWatchTime: bideplmanifest.WatchTime{
 						Start: 0,
 						End:   5478,
 					},
@@ -287,7 +287,7 @@ var _ = Describe("Instance", func() {
 			}
 
 			// apply spec is just returned from instance.State.ToApplySpec() and passed to agentClient.Apply()
-			applySpec = bmas.ApplySpec{
+			applySpec = bias.ApplySpec{
 				Deployment: "fake-deployment-name",
 			}
 		})
@@ -309,7 +309,7 @@ var _ = Describe("Instance", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.StopCalled).To(Equal(1))
-			Expect(fakeVM.ApplyInputs).To(Equal([]fakebmvm.ApplyInput{
+			Expect(fakeVM.ApplyInputs).To(Equal([]fakebivm.ApplyInput{
 				{ApplySpec: applySpec},
 			}))
 			Expect(fakeVM.StartCalled).To(Equal(1))
@@ -319,7 +319,7 @@ var _ = Describe("Instance", func() {
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
+			Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebivm.WaitInput{
 				MaxAttempts: 5,
 				Delay:       1 * time.Second,
 			}))
@@ -329,7 +329,7 @@ var _ = Describe("Instance", func() {
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Updating instance 'fake-job-name/0'"},
 				{Name: "Waiting for instance 'fake-job-name/0' to be running"},
 			}))
@@ -409,7 +409,7 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 					{Name: "Updating instance 'fake-job-name/0'"},
 					{
 						Name:  "Waiting for instance 'fake-job-name/0' to be running",
@@ -422,15 +422,15 @@ var _ = Describe("Instance", func() {
 
 	Describe("WaitUntilReady", func() {
 		var (
-			registryConfig  bminstallmanifest.Registry
-			sshTunnelConfig bminstallmanifest.SSHTunnel
+			registryConfig  biinstallmanifest.Registry
+			sshTunnelConfig biinstallmanifest.SSHTunnel
 		)
 
 		BeforeEach(func() {
-			registryConfig = bminstallmanifest.Registry{
+			registryConfig = biinstallmanifest.Registry{
 				Port: 125,
 			}
-			sshTunnelConfig = bminstallmanifest.SSHTunnel{
+			sshTunnelConfig = biinstallmanifest.SSHTunnel{
 				Host:       "fake-ssh-host",
 				Port:       124,
 				User:       "fake-ssh-username",
@@ -442,7 +442,7 @@ var _ = Describe("Instance", func() {
 		It("starts & stops the SSH tunnel", func() {
 			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bmsshtunnel.Options{
+			Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bisshtunnel.Options{
 				User:              "fake-ssh-username",
 				PrivateKey:        "fake-private-key-path",
 				Password:          "fake-password",
@@ -458,7 +458,7 @@ var _ = Describe("Instance", func() {
 		It("waits for the vm", func() {
 			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebmvm.WaitUntilReadyInput{
+			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
 				Timeout: 10 * time.Minute,
 				Delay:   500 * time.Millisecond,
 			}))
@@ -468,14 +468,14 @@ var _ = Describe("Instance", func() {
 			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
 		})
 
 		Context("when ssh tunnel config is empty", func() {
 			BeforeEach(func() {
-				sshTunnelConfig = bminstallmanifest.SSHTunnel{}
+				sshTunnelConfig = biinstallmanifest.SSHTunnel{}
 			})
 
 			It("does not start ssh tunnel", func() {
@@ -487,7 +487,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when registry config is empty", func() {
 			BeforeEach(func() {
-				registryConfig = bminstallmanifest.Registry{}
+				registryConfig = biinstallmanifest.Registry{}
 			})
 
 			It("does not start ssh tunnel", func() {
@@ -522,7 +522,7 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 					{
 						Name:  "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 						Error: waitError,

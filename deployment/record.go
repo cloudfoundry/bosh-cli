@@ -3,29 +3,29 @@ package deployment
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmcrypto "github.com/cloudfoundry/bosh-init/crypto"
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type Record interface {
-	IsDeployed(manifestPath string, releases []bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error)
-	Update(manifestPath string, releases []bmrel.Release) error
+	IsDeployed(manifestPath string, releases []birel.Release, stemcell bistemcell.ExtractedStemcell) (bool, error)
+	Update(manifestPath string, releases []birel.Release) error
 }
 
 type deploymentRecord struct {
-	deploymentRepo bmconfig.DeploymentRepo
-	releaseRepo    bmconfig.ReleaseRepo
-	stemcellRepo   bmconfig.StemcellRepo
-	sha1Calculator bmcrypto.SHA1Calculator
+	deploymentRepo biconfig.DeploymentRepo
+	releaseRepo    biconfig.ReleaseRepo
+	stemcellRepo   biconfig.StemcellRepo
+	sha1Calculator bicrypto.SHA1Calculator
 }
 
 func NewRecord(
-	deploymentRepo bmconfig.DeploymentRepo,
-	releaseRepo bmconfig.ReleaseRepo,
-	stemcellRepo bmconfig.StemcellRepo,
-	sha1Calculator bmcrypto.SHA1Calculator,
+	deploymentRepo biconfig.DeploymentRepo,
+	releaseRepo biconfig.ReleaseRepo,
+	stemcellRepo biconfig.StemcellRepo,
+	sha1Calculator bicrypto.SHA1Calculator,
 ) Record {
 	return &deploymentRecord{
 		deploymentRepo: deploymentRepo,
@@ -35,7 +35,7 @@ func NewRecord(
 	}
 }
 
-func (v *deploymentRecord) IsDeployed(manifestPath string, releases []bmrel.Release, stemcell bmstemcell.ExtractedStemcell) (bool, error) {
+func (v *deploymentRecord) IsDeployed(manifestPath string, releases []birel.Release, stemcell bistemcell.ExtractedStemcell) (bool, error) {
 	manifestSHA1, found, err := v.deploymentRepo.FindCurrent()
 	if err != nil {
 		return false, bosherr.WrapError(err, "Finding sha1 of currently deployed manifest")
@@ -96,7 +96,7 @@ func (v *deploymentRecord) IsDeployed(manifestPath string, releases []bmrel.Rele
 	return true, nil
 }
 
-func (v *deploymentRecord) Update(manifestPath string, releases []bmrel.Release) error {
+func (v *deploymentRecord) Update(manifestPath string, releases []birel.Release) error {
 	manifestSHA1, err := v.sha1Calculator.Calculate(manifestPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Calculating sha1 of current deployment manifest")

@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type FakeDisk struct {
@@ -16,7 +16,7 @@ type FakeDisk struct {
 
 type NeedsMigrationInput struct {
 	Size            int
-	CloudProperties bmproperty.Map
+	CloudProperties biproperty.Map
 }
 
 type needsMigrationOutput struct {
@@ -34,7 +34,7 @@ func (d *FakeDisk) CID() string {
 	return d.cid
 }
 
-func (d *FakeDisk) NeedsMigration(size int, cloudProperties bmproperty.Map) bool {
+func (d *FakeDisk) NeedsMigration(size int, cloudProperties biproperty.Map) bool {
 	d.NeedsMigrationInputs = append(d.NeedsMigrationInputs, NeedsMigrationInput{
 		Size:            size,
 		CloudProperties: cloudProperties,

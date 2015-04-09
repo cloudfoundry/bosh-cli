@@ -2,12 +2,12 @@ package manifest
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type Manifest struct {
 	Name          string
-	Properties    bmproperty.Map
+	Properties    biproperty.Map
 	Jobs          []Job
 	Networks      []Network
 	DiskPools     []DiskPool
@@ -22,15 +22,15 @@ type Update struct {
 // NetworkInterfaces returns a map of network names to network interfaces.
 // We can't use map[string]NetworkInterface, because it's impossible to down-cast to what the cloud client requires.
 //TODO: refactor to NetworkInterfaces(Job) and use FindJobByName before using (then remove error)
-func (d Manifest) NetworkInterfaces(jobName string) (map[string]bmproperty.Map, error) {
+func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, error) {
 	job, found := d.FindJobByName(jobName)
 	if !found {
-		return map[string]bmproperty.Map{}, bosherr.Errorf("Could not find job with name: %s", jobName)
+		return map[string]biproperty.Map{}, bosherr.Errorf("Could not find job with name: %s", jobName)
 	}
 
 	networkMap := d.networkMap()
 
-	ifaceMap := map[string]bmproperty.Map{}
+	ifaceMap := map[string]biproperty.Map{}
 	for _, jobNetwork := range job.Networks {
 		network := networkMap[jobNetwork.Name]
 		staticIPs := jobNetwork.StaticIPs
@@ -62,7 +62,7 @@ func (d Manifest) DiskPool(jobName string) (DiskPool, error) {
 	if job.PersistentDisk > 0 {
 		diskPool := DiskPool{
 			DiskSize:        job.PersistentDisk,
-			CloudProperties: bmproperty.Map{},
+			CloudProperties: biproperty.Map{},
 		}
 		return diskPool, nil
 	}

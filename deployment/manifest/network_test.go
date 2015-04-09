@@ -6,7 +6,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-init/deployment/manifest"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("Network", func() {
@@ -18,8 +18,8 @@ var _ = Describe("Network", func() {
 		network = Network{
 			Name: "fake-name",
 			Type: Dynamic,
-			CloudProperties: bmproperty.Map{
-				"subnet": bmproperty.Map{
+			CloudProperties: biproperty.Map{
+				"subnet": biproperty.Map{
 					"name": "sg-1234",
 				},
 			},
@@ -32,14 +32,14 @@ var _ = Describe("Network", func() {
 
 	Describe("Interface", func() {
 		It("returns an interface that can be used to connect to the network", func() {
-			Expect(network.Interface()).To(Equal(bmproperty.Map{
+			Expect(network.Interface()).To(Equal(biproperty.Map{
 				"type":    "dynamic",
 				"ip":      "1.2.3.4",
 				"netmask": "255.255.255.0",
 				"gateway": "1.2.3.1",
 				"dns":     []string{"1.1.1.1"},
-				"cloud_properties": bmproperty.Map{
-					"subnet": bmproperty.Map{
+				"cloud_properties": biproperty.Map{
+					"subnet": biproperty.Map{
 						"name": "sg-1234",
 					},
 				},
@@ -51,11 +51,11 @@ var _ = Describe("Network", func() {
 			network.Gateway = ""
 			network.DNS = []string{}
 
-			Expect(network.Interface()).To(Equal(bmproperty.Map{
+			Expect(network.Interface()).To(Equal(biproperty.Map{
 				"type": "dynamic",
 				"ip":   "1.2.3.4",
-				"cloud_properties": bmproperty.Map{
-					"subnet": bmproperty.Map{
+				"cloud_properties": biproperty.Map{
+					"subnet": biproperty.Map{
 						"name": "sg-1234",
 					},
 				},

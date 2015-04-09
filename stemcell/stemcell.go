@@ -5,7 +5,7 @@ import (
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type ExtractedStemcell interface {
@@ -47,5 +47,5 @@ type Manifest struct {
 	Name            string
 	Version         string
 	SHA1            string
-	CloudProperties bmproperty.Map
+	CloudProperties biproperty.Map
 }

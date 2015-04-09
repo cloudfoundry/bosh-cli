@@ -4,36 +4,36 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmdeplrel "github.com/cloudfoundry/bosh-init/deployment/release"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
-	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Builder interface {
-	Build(jobName string, instanceID int, deploymentManifest bmdeplmanifest.Manifest, stage bmui.Stage) (State, error)
+	Build(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest, stage biui.Stage) (State, error)
 }
 
 type builder struct {
-	releaseJobResolver        bmdeplrel.JobResolver
-	jobDependencyCompiler     bmstatejob.DependencyCompiler
-	jobListRenderer           bmtemplate.JobListRenderer
-	renderedJobListCompressor bmtemplate.RenderedJobListCompressor
-	blobstore                 bmblobstore.Blobstore
+	releaseJobResolver        bideplrel.JobResolver
+	jobDependencyCompiler     bistatejob.DependencyCompiler
+	jobListRenderer           bitemplate.JobListRenderer
+	renderedJobListCompressor bitemplate.RenderedJobListCompressor
+	blobstore                 biblobstore.Blobstore
 	logger                    boshlog.Logger
 	logTag                    string
 }
 
 func NewBuilder(
-	releaseJobResolver bmdeplrel.JobResolver,
-	jobDependencyCompiler bmstatejob.DependencyCompiler,
-	jobListRenderer bmtemplate.JobListRenderer,
-	renderedJobListCompressor bmtemplate.RenderedJobListCompressor,
-	blobstore bmblobstore.Blobstore,
+	releaseJobResolver bideplrel.JobResolver,
+	jobDependencyCompiler bistatejob.DependencyCompiler,
+	jobListRenderer bitemplate.JobListRenderer,
+	renderedJobListCompressor bitemplate.RenderedJobListCompressor,
+	blobstore biblobstore.Blobstore,
 	logger boshlog.Logger,
 ) Builder {
 	return &builder{
@@ -49,10 +49,10 @@ func NewBuilder(
 
 type renderedJobs struct {
 	BlobstoreID string
-	Archive     bmtemplate.RenderedJobListArchive
+	Archive     bitemplate.RenderedJobListArchive
 }
 
-func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdeplmanifest.Manifest, stage bmui.Stage) (State, error) {
+func (b *builder) Build(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest, stage biui.Stage) (State, error) {
 	deploymentJob, found := deploymentManifest.FindJobByName(jobName)
 	if !found {
 		return nil, bosherr.Errorf("Job '%s' not found in deployment manifest", jobName)
@@ -125,8 +125,8 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bmdep
 	}, nil
 }
 
-func (b *builder) resolveJobs(jobRefs []bmdeplmanifest.ReleaseJobRef) ([]bmreljob.Job, error) {
-	releaseJobs := make([]bmreljob.Job, len(jobRefs), len(jobRefs))
+func (b *builder) resolveJobs(jobRefs []bideplmanifest.ReleaseJobRef) ([]bireljob.Job, error) {
+	releaseJobs := make([]bireljob.Job, len(jobRefs), len(jobRefs))
 	for i, jobRef := range jobRefs {
 		release, err := b.releaseJobResolver.Resolve(jobRef.Name, jobRef.Release)
 		if err != nil {
@@ -139,14 +139,14 @@ func (b *builder) resolveJobs(jobRefs []bmdeplmanifest.ReleaseJobRef) ([]bmreljo
 
 // renderJobTemplates renders all the release job templates for multiple release jobs specified by a deployment job
 func (b *builder) renderJobTemplates(
-	releaseJobs []bmreljob.Job,
-	jobProperties bmproperty.Map,
-	globalProperties bmproperty.Map,
+	releaseJobs []bireljob.Job,
+	jobProperties biproperty.Map,
+	globalProperties biproperty.Map,
 	deploymentName string,
-	stage bmui.Stage,
+	stage biui.Stage,
 ) (renderedJobs, error) {
 	var (
-		renderedJobListArchive bmtemplate.RenderedJobListArchive
+		renderedJobListArchive bitemplate.RenderedJobListArchive
 		blobID                 string
 	)
 	err := stage.Perform("Rendering job templates", func() error {

@@ -11,8 +11,8 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 )
 
 var _ = Describe("Installation", func() {
@@ -27,12 +27,12 @@ var _ = Describe("Installation", func() {
 	})
 
 	var (
-		manifest                  bminstallmanifest.Manifest
+		manifest                  biinstallmanifest.Manifest
 		mockRegistryServerManager *mock_registry.MockServerManager
 		mockRegistryServer        *mock_registry.MockServer
 
 		target       Target
-		installedJob bminstalljob.InstalledJob
+		installedJob biinstalljob.InstalledJob
 	)
 
 	var newInstalation = func() Installation {
@@ -40,14 +40,14 @@ var _ = Describe("Installation", func() {
 	}
 
 	BeforeEach(func() {
-		manifest = bminstallmanifest.Manifest{}
+		manifest = biinstallmanifest.Manifest{}
 
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 		mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
 
 		target = NewTarget("fake-installation-path")
 
-		installedJob = bminstalljob.InstalledJob{
+		installedJob = biinstalljob.InstalledJob{
 			Name: "cpi",
 			Path: "fake-job-path",
 		}
@@ -56,7 +56,7 @@ var _ = Describe("Installation", func() {
 	Describe("StartRegistry", func() {
 		Context("when registry config is not empty", func() {
 			BeforeEach(func() {
-				manifest.Registry = bminstallmanifest.Registry{
+				manifest.Registry = biinstallmanifest.Registry{
 					Username: "fake-username",
 					Password: "fake-password",
 					Host:     "fake-host",
@@ -86,7 +86,7 @@ var _ = Describe("Installation", func() {
 
 		Context("when registry config is empty", func() {
 			BeforeEach(func() {
-				manifest.Registry = bminstallmanifest.Registry{}
+				manifest.Registry = biinstallmanifest.Registry{}
 			})
 
 			It("does not start the registry", func() {
@@ -101,7 +101,7 @@ var _ = Describe("Installation", func() {
 			var installation Installation
 
 			BeforeEach(func() {
-				manifest.Registry = bminstallmanifest.Registry{
+				manifest.Registry = biinstallmanifest.Registry{
 					Username: "fake-username",
 					Password: "fake-password",
 					Host:     "fake-host",
@@ -125,7 +125,7 @@ var _ = Describe("Installation", func() {
 
 		Context("when registry is configured but has not been started", func() {
 			BeforeEach(func() {
-				manifest.Registry = bminstallmanifest.Registry{
+				manifest.Registry = biinstallmanifest.Registry{
 					Username: "fake-username",
 					Password: "fake-password",
 					Host:     "fake-host",
@@ -142,7 +142,7 @@ var _ = Describe("Installation", func() {
 
 		Context("when registry config is empty", func() {
 			BeforeEach(func() {
-				manifest.Registry = bminstallmanifest.Registry{}
+				manifest.Registry = biinstallmanifest.Registry{}
 			})
 
 			It("does not stop the registry", func() {

@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
+	birelset "github.com/cloudfoundry/bosh-init/release/set"
 )
 
 type Validator interface {
@@ -15,10 +15,10 @@ type Validator interface {
 
 type validator struct {
 	logger          boshlog.Logger
-	releaseResolver bmrelset.Resolver
+	releaseResolver birelset.Resolver
 }
 
-func NewValidator(logger boshlog.Logger, releaseResolver bmrelset.Resolver) Validator {
+func NewValidator(logger boshlog.Logger, releaseResolver birelset.Resolver) Validator {
 	return &validator{
 		logger:          logger,
 		releaseResolver: releaseResolver,

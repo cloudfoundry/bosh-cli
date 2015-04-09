@@ -3,7 +3,7 @@ package fakes
 import (
 	"fmt"
 
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type ExtractInput struct {
@@ -11,7 +11,7 @@ type ExtractInput struct {
 }
 
 type extractOutput struct {
-	stemcell bmstemcell.ExtractedStemcell
+	stemcell bistemcell.ExtractedStemcell
 	err      error
 }
 
@@ -27,7 +27,7 @@ func NewFakeExtractor() *FakeExtractor {
 	}
 }
 
-func (e *FakeExtractor) Extract(tarballPath string) (bmstemcell.ExtractedStemcell, error) {
+func (e *FakeExtractor) Extract(tarballPath string) (bistemcell.ExtractedStemcell, error) {
 	input := ExtractInput{
 		TarballPath: tarballPath,
 	}
@@ -42,7 +42,7 @@ func (e *FakeExtractor) Extract(tarballPath string) (bmstemcell.ExtractedStemcel
 
 func (e *FakeExtractor) SetExtractBehavior(
 	tarballPath string,
-	extractedStemcell bmstemcell.ExtractedStemcell,
+	extractedStemcell bistemcell.ExtractedStemcell,
 	err error,
 ) {
 	input := ExtractInput{

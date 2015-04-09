@@ -10,8 +10,8 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 )
 
 type compiler struct {
@@ -20,7 +20,7 @@ type compiler struct {
 	fileSystem          boshsys.FileSystem
 	compressor          boshcmd.Compressor
 	blobstore           boshblob.Blobstore
-	compiledPackageRepo bmstatepkg.CompiledPackageRepo
+	compiledPackageRepo bistatepkg.CompiledPackageRepo
 	packageInstaller    Installer
 	logger              boshlog.Logger
 	logTag              string
@@ -32,10 +32,10 @@ func NewPackageCompiler(
 	fileSystem boshsys.FileSystem,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
-	compiledPackageRepo bmstatepkg.CompiledPackageRepo,
+	compiledPackageRepo bistatepkg.CompiledPackageRepo,
 	packageInstaller Installer,
 	logger boshlog.Logger,
-) bmstatepkg.Compiler {
+) bistatepkg.Compiler {
 	return &compiler{
 		runner:              runner,
 		packagesDir:         packagesDir,
@@ -49,7 +49,7 @@ func NewPackageCompiler(
 	}
 }
 
-func (c *compiler) Compile(pkg *bmrelpkg.Package) (record bmstatepkg.CompiledPackageRecord, err error) {
+func (c *compiler) Compile(pkg *birelpkg.Package) (record bistatepkg.CompiledPackageRecord, err error) {
 	c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name, pkg.Fingerprint)
 	record, found, err := c.compiledPackageRepo.Find(*pkg)
 	if err != nil {
@@ -108,7 +108,7 @@ func (c *compiler) Compile(pkg *bmrelpkg.Package) (record bmstatepkg.CompiledPac
 		return record, bosherr.WrapError(err, "Creating blob")
 	}
 
-	record = bmstatepkg.CompiledPackageRecord{
+	record = bistatepkg.CompiledPackageRecord{
 		BlobID:   blobID,
 		BlobSHA1: blobSHA1,
 	}
@@ -120,7 +120,7 @@ func (c *compiler) Compile(pkg *bmrelpkg.Package) (record bmstatepkg.CompiledPac
 	return record, nil
 }
 
-func (c *compiler) installPackages(packages []*bmrelpkg.Package) error {
+func (c *compiler) installPackages(packages []*birelpkg.Package) error {
 	for _, pkg := range packages {
 		c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name, pkg.Fingerprint)
 		record, found, err := c.compiledPackageRepo.Find(*pkg)

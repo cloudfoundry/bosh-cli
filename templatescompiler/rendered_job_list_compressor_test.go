@@ -17,9 +17,9 @@ import (
 	fakeboshcmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 
-	fakebmcrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 )
 
 var _ = Describe("RenderedJobListCompressor", func() {
@@ -28,7 +28,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 		errBuffer *bytes.Buffer
 		logger    boshlog.Logger
 
-		fakeSHA1Calculator *fakebmcrypto.FakeSha1Calculator
+		fakeSHA1Calculator *fakebicrypto.FakeSha1Calculator
 
 		renderedJobList RenderedJobList
 
@@ -40,7 +40,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 		errBuffer = bytes.NewBufferString("")
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
 
-		fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
+		fakeSHA1Calculator = fakebicrypto.NewFakeSha1Calculator()
 
 		renderedJobList = NewRenderedJobList()
 	})
@@ -67,7 +67,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				// create rendered job with 2 rendered scripts
 				renderedJobDir0, err := fs.TempDir("RenderedJobListCompressorTest")
 				Expect(err).ToNot(HaveOccurred())
-				renderedJob0 := NewRenderedJob(bmreljob.Job{Name: "fake-job-name-0"}, renderedJobDir0, fs, logger)
+				renderedJob0 := NewRenderedJob(bireljob.Job{Name: "fake-job-name-0"}, renderedJobDir0, fs, logger)
 				defer func() { err := renderedJob0.Delete(); Expect(err).ToNot(HaveOccurred()) }()
 				err = fs.WriteFileString(filepath.Join(renderedJobDir0, "script-0"), "fake-rendered-job-0-script-0-content")
 				Expect(err).ToNot(HaveOccurred())
@@ -78,7 +78,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				// create another rendered job with 1 rendered script
 				renderedJobDir1, err := fs.TempDir("RenderedJobListCompressorTest")
 				Expect(err).ToNot(HaveOccurred())
-				renderedJob1 := NewRenderedJob(bmreljob.Job{Name: "fake-job-name-1"}, renderedJobDir1, fs, logger)
+				renderedJob1 := NewRenderedJob(bireljob.Job{Name: "fake-job-name-1"}, renderedJobDir1, fs, logger)
 				defer func() { err := renderedJob1.Delete(); Expect(err).ToNot(HaveOccurred()) }()
 				err = fs.WriteFileString(filepath.Join(renderedJobDir1, "script-0"), "fake-rendered-job-1-script-0-content")
 				Expect(err).ToNot(HaveOccurred())
@@ -128,8 +128,8 @@ var _ = Describe("RenderedJobListCompressor", func() {
 			It("calculates the fingerprint of the rendered", func() {
 				fakeFS.TempDirDir = "fake-rendered-job-list-path"
 
-				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
-					"fake-rendered-job-list-path": fakebmcrypto.CalculateInput{Sha1: "fake-sha1"},
+				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
+					"fake-rendered-job-list-path": fakebicrypto.CalculateInput{Sha1: "fake-sha1"},
 				})
 
 				archive, err := renderedJobListCompressor.Compress(renderedJobList)
@@ -141,8 +141,8 @@ var _ = Describe("RenderedJobListCompressor", func() {
 			It("calculates the SHA1 of the archive", func() {
 				fakeCompressor.CompressFilesInDirTarballPath = "fake-archive-path"
 
-				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
-					"fake-archive-path": fakebmcrypto.CalculateInput{Sha1: "fake-sha1"},
+				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
+					"fake-archive-path": fakebicrypto.CalculateInput{Sha1: "fake-sha1"},
 				})
 
 				archive, err := renderedJobListCompressor.Compress(renderedJobList)

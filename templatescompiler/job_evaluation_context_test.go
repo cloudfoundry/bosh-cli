@@ -12,8 +12,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
@@ -23,30 +23,30 @@ var _ = Describe("JobEvaluationContext", func() {
 	var (
 		generatedContext RootContext
 
-		releaseJob        bmreljob.Job
-		clusterProperties bmproperty.Map
-		globalProperties  bmproperty.Map
+		releaseJob        bireljob.Job
+		clusterProperties biproperty.Map
+		globalProperties  biproperty.Map
 	)
 	BeforeEach(func() {
 		generatedContext = RootContext{}
 
-		releaseJob = bmreljob.Job{
+		releaseJob = bireljob.Job{
 			Name: "fake-job-name",
-			Properties: map[string]bmreljob.PropertyDefinition{
-				"fake-default-property1.fake-default-property2": bmreljob.PropertyDefinition{
+			Properties: map[string]bireljob.PropertyDefinition{
+				"fake-default-property1.fake-default-property2": bireljob.PropertyDefinition{
 					Default: "value-from-job-defaults",
 				},
 			},
 		}
 
-		clusterProperties = bmproperty.Map{
-			"fake-job-property1": bmproperty.Map{
+		clusterProperties = biproperty.Map{
+			"fake-job-property1": biproperty.Map{
 				"fake-job-property2": "value-from-cluster-properties",
 			},
 		}
 
-		globalProperties = bmproperty.Map{
-			"fake-global-property1": bmproperty.Map{
+		globalProperties = biproperty.Map{
+			"fake-global-property1": biproperty.Map{
 				"fake-global-property2": "value-from-global-properties",
 			},
 		}
@@ -112,21 +112,21 @@ var _ = Describe("JobEvaluationContext", func() {
 
 	Context("when a cluster property overrides a global property or default value", func() {
 		BeforeEach(func() {
-			releaseJob = bmreljob.Job{
+			releaseJob = bireljob.Job{
 				Name: "fake-job-name",
-				Properties: map[string]bmreljob.PropertyDefinition{
-					"fake-overridden-property1.fake-overridden-property2": bmreljob.PropertyDefinition{},
+				Properties: map[string]bireljob.PropertyDefinition{
+					"fake-overridden-property1.fake-overridden-property2": bireljob.PropertyDefinition{},
 				},
 			}
 
-			globalProperties = bmproperty.Map{
-				"fake-overridden-property1": bmproperty.Map{
+			globalProperties = biproperty.Map{
+				"fake-overridden-property1": biproperty.Map{
 					"fake-overridden-property2": "value-from-global-properties",
 				},
 			}
 
-			clusterProperties = bmproperty.Map{
-				"fake-overridden-property1": bmproperty.Map{
+			clusterProperties = biproperty.Map{
+				"fake-overridden-property1": biproperty.Map{
 					"fake-overridden-property2": "value-from-cluster-properties",
 				},
 			}
@@ -140,22 +140,22 @@ var _ = Describe("JobEvaluationContext", func() {
 
 	Context("when a global property overrides a default property", func() {
 		BeforeEach(func() {
-			releaseJob = bmreljob.Job{
+			releaseJob = bireljob.Job{
 				Name: "fake-job-name",
-				Properties: map[string]bmreljob.PropertyDefinition{
-					"fake-overridden-property1.fake-overridden-property2": bmreljob.PropertyDefinition{
+				Properties: map[string]bireljob.PropertyDefinition{
+					"fake-overridden-property1.fake-overridden-property2": bireljob.PropertyDefinition{
 						Default: "value-from-job-defaults",
 					},
 				},
 			}
 
-			globalProperties = bmproperty.Map{
-				"fake-overridden-property1": bmproperty.Map{
+			globalProperties = biproperty.Map{
+				"fake-overridden-property1": biproperty.Map{
 					"fake-overridden-property2": "value-from-global-properties",
 				},
 			}
 
-			clusterProperties = bmproperty.Map{}
+			clusterProperties = biproperty.Map{}
 		})
 
 		It("prefers global values over default values", func() {
@@ -166,19 +166,19 @@ var _ = Describe("JobEvaluationContext", func() {
 
 	Context("when a cluster property overrides a default property", func() {
 		BeforeEach(func() {
-			releaseJob = bmreljob.Job{
+			releaseJob = bireljob.Job{
 				Name: "fake-job-name",
-				Properties: map[string]bmreljob.PropertyDefinition{
-					"fake-overridden-property1.fake-overridden-property2": bmreljob.PropertyDefinition{
+				Properties: map[string]bireljob.PropertyDefinition{
+					"fake-overridden-property1.fake-overridden-property2": bireljob.PropertyDefinition{
 						Default: "value-from-job-defaults",
 					},
 				},
 			}
 
-			globalProperties = bmproperty.Map{}
+			globalProperties = biproperty.Map{}
 
-			clusterProperties = bmproperty.Map{
-				"fake-overridden-property1": bmproperty.Map{
+			clusterProperties = biproperty.Map{
+				"fake-overridden-property1": biproperty.Map{
 					"fake-overridden-property2": "value-from-cluster-properties",
 				},
 			}
@@ -192,18 +192,18 @@ var _ = Describe("JobEvaluationContext", func() {
 
 	Context("when a property is not specified in cluster or global properties", func() {
 		BeforeEach(func() {
-			releaseJob = bmreljob.Job{
+			releaseJob = bireljob.Job{
 				Name: "fake-job-name",
-				Properties: map[string]bmreljob.PropertyDefinition{
-					"fake-overridden-property1.fake-overridden-property2": bmreljob.PropertyDefinition{
+				Properties: map[string]bireljob.PropertyDefinition{
+					"fake-overridden-property1.fake-overridden-property2": bireljob.PropertyDefinition{
 						Default: "value-from-job-defaults",
 					},
 				},
 			}
 
-			globalProperties = bmproperty.Map{}
+			globalProperties = biproperty.Map{}
 
-			clusterProperties = bmproperty.Map{}
+			clusterProperties = biproperty.Map{}
 		})
 
 		It("uses the property's default value", func() {

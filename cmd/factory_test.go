@@ -13,19 +13,19 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("cmd.Factory", func() {
 	var (
 		factory           Factory
-		userConfig        bmconfig.UserConfig
-		userConfigService bmconfig.UserConfigService
+		userConfig        biconfig.UserConfig
+		userConfigService biconfig.UserConfigService
 		fs                boshsys.FileSystem
-		ui                bmui.UI
+		ui                biui.UI
 		logger            boshlog.Logger
 		uuidGenerator     *fakeuuid.FakeGenerator
 	)
@@ -33,9 +33,9 @@ var _ = Describe("cmd.Factory", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		userConfig = bmconfig.UserConfig{DeploymentManifestPath: "/fake-path/manifest.yml"}
-		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fs, logger)
-		ui = &fakebmui.FakeUI{}
+		userConfig = biconfig.UserConfig{DeploymentManifestPath: "/fake-path/manifest.yml"}
+		userConfigService = biconfig.NewFileSystemUserConfigService("/fake-user-config", fs, logger)
+		ui = &fakebiui.FakeUI{}
 		uuidGenerator = &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(

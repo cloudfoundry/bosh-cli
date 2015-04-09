@@ -9,8 +9,8 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljobmanifest "github.com/cloudfoundry/bosh-init/release/job/manifest"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljobmanifest "github.com/cloudfoundry/bosh-init/release/job/manifest"
 )
 
 type Reader interface {
@@ -52,7 +52,7 @@ func (r *reader) Read() (Job, error) {
 		return Job{}, bosherr.WrapErrorf(err, "Reading job manifest '%s'", jobManifestPath)
 	}
 
-	var jobManifest bmreljobmanifest.Manifest
+	var jobManifest bireljobmanifest.Manifest
 	err = candiedyaml.Unmarshal(jobManifestBytes, &jobManifest)
 	if err != nil {
 		return Job{}, bosherr.WrapError(err, "Parsing job manifest")
@@ -67,7 +67,7 @@ func (r *reader) Read() (Job, error) {
 
 	jobProperties := make(map[string]PropertyDefinition, len(jobManifest.Properties))
 	for propertyName, rawPropertyDef := range jobManifest.Properties {
-		defaultValue, err := bmproperty.Build(rawPropertyDef.Default)
+		defaultValue, err := biproperty.Build(rawPropertyDef.Default)
 		if err != nil {
 			return Job{}, bosherr.WrapErrorf(err, "Parsing job '%s' property '%s' default: %#v", job.Name, propertyName, rawPropertyDef.Default)
 		}

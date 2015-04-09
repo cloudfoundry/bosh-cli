@@ -16,14 +16,14 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	bminstallstate "github.com/cloudfoundry/bosh-init/installation/state"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	biinstallstate "github.com/cloudfoundry/bosh-init/installation/state"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Installer", func() {
@@ -85,10 +85,10 @@ var _ = Describe("Installer", func() {
 
 	Describe("Install", func() {
 		var (
-			installationManifest bminstallmanifest.Manifest
-			fakeStage            *fakebmui.FakeStage
+			installationManifest biinstallmanifest.Manifest
+			fakeStage            *fakebiui.FakeStage
 
-			installedJob bminstalljob.InstalledJob
+			installedJob biinstalljob.InstalledJob
 
 			expectStateBuild     *gomock.Call
 			expectPackageInstall *gomock.Call
@@ -98,36 +98,36 @@ var _ = Describe("Installer", func() {
 		BeforeEach(func() {
 			fakeFS.WriteFileString(deploymentManifestPath, "")
 
-			installationManifest = bminstallmanifest.Manifest{
+			installationManifest = biinstallmanifest.Manifest{
 				Name:       "fake-installation-name",
-				Properties: bmproperty.Map{},
+				Properties: biproperty.Map{},
 			}
 
-			fakeStage = fakebmui.NewFakeStage()
+			fakeStage = fakebiui.NewFakeStage()
 
-			installedJob = bminstalljob.InstalledJob{
+			installedJob = biinstalljob.InstalledJob{
 				Name: "cpi",
 				Path: "/extracted-release-path/cpi",
 			}
 		})
 
 		JustBeforeEach(func() {
-			renderedCPIJob := bminstalljob.RenderedJobRef{
+			renderedCPIJob := biinstalljob.RenderedJobRef{
 				Name:        "cpi",
 				Version:     "fake-release-job-fingerprint",
 				BlobstoreID: "fake-rendered-job-blobstore-id",
 				SHA1:        "fake-rendered-job-blobstore-id",
 			}
 
-			compiledPackageRef := bminstallpkg.CompiledPackageRef{
+			compiledPackageRef := biinstallpkg.CompiledPackageRef{
 				Name:        "fake-release-package-name",
 				Version:     "fake-release-package-fingerprint",
 				BlobstoreID: "fake-compiled-package-blobstore-id",
 				SHA1:        "fake-compiled-package-blobstore-id",
 			}
-			compiledPackages := []bminstallpkg.CompiledPackageRef{compiledPackageRef}
+			compiledPackages := []biinstallpkg.CompiledPackageRef{compiledPackageRef}
 
-			state := bminstallstate.NewState(renderedCPIJob, compiledPackages)
+			state := biinstallstate.NewState(renderedCPIJob, compiledPackages)
 
 			expectStateBuild = mockStateBuilder.EXPECT().Build(installationManifest, fakeStage).Return(state, nil).AnyTimes()
 

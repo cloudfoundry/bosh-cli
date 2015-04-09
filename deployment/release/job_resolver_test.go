@@ -11,7 +11,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 
 	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"
 )
@@ -31,8 +31,8 @@ var _ = Describe("JobResolver", func() {
 		mockReleaseSetResolver *mock_release_set.MockResolver
 		fakeRelease            *fake_release.FakeRelease
 
-		fakeReleaseJob0 bmreljob.Job
-		fakeReleaseJob1 bmreljob.Job
+		fakeReleaseJob0 bireljob.Job
+		fakeReleaseJob1 bireljob.Job
 
 		jobResolver JobResolver
 	)
@@ -42,11 +42,11 @@ var _ = Describe("JobResolver", func() {
 
 		fakeRelease = fake_release.New("fake-release-name", "fake-release-version")
 
-		fakeReleaseJob0 = bmreljob.Job{
+		fakeReleaseJob0 = bireljob.Job{
 			Name:        "fake-release-job-name-0",
 			Fingerprint: "fake-release-job-fingerprint-0",
 		}
-		fakeReleaseJob1 = bmreljob.Job{
+		fakeReleaseJob1 = bireljob.Job{
 			Name:        "fake-release-job-name-1",
 			Fingerprint: "fake-release-job-fingerprint-1",
 		}
@@ -55,7 +55,7 @@ var _ = Describe("JobResolver", func() {
 	JustBeforeEach(func() {
 		jobResolver = NewJobResolver(mockReleaseSetResolver)
 
-		fakeRelease.ReleaseJobs = []bmreljob.Job{fakeReleaseJob0, fakeReleaseJob1}
+		fakeRelease.ReleaseJobs = []bireljob.Job{fakeReleaseJob0, fakeReleaseJob1}
 	})
 
 	Describe("Resolve", func() {

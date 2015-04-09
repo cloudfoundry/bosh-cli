@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebminstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
+	fakebiinstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/installation/pkg"
 )
@@ -14,12 +14,12 @@ import (
 var _ = Describe("PackageInstaller", func() {
 	var (
 		installer     Installer
-		blobExtractor *fakebminstallblob.FakeExtractor
+		blobExtractor *fakebiinstallblob.FakeExtractor
 		targetDir     string
 	)
 
 	BeforeEach(func() {
-		blobExtractor = fakebminstallblob.NewFakeExtractor()
+		blobExtractor = fakebiinstallblob.NewFakeExtractor()
 		targetDir = "fake-target-dir"
 		installer = NewPackageInstaller(blobExtractor)
 	})
@@ -42,7 +42,7 @@ var _ = Describe("PackageInstaller", func() {
 		It("extracts the blob into the target dir", func() {
 			err := installer.Install(compiledPackageRef, targetDir)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstallblob.ExtractInput{
+			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebiinstallblob.ExtractInput{
 				BlobID:    "fake-blob-id",
 				BlobSHA1:  "fake-package-fingerprint",
 				TargetDir: "fake-target-dir/fake-package-name",

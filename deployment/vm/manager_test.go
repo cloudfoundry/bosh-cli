@@ -7,50 +7,50 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebiagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/deployment/vm"
 )
 
 var _ = Describe("Manager", func() {
 	var (
-		fakeCloud                 *fakebmcloud.FakeCloud
+		fakeCloud                 *fakebicloud.FakeCloud
 		manager                   Manager
 		logger                    boshlog.Logger
-		expectedNetworkInterfaces map[string]bmproperty.Map
-		expectedCloudProperties   bmproperty.Map
-		expectedEnv               bmproperty.Map
-		deploymentManifest        bmdeplmanifest.Manifest
-		fakeVMRepo                *fakebmconfig.FakeVMRepo
-		stemcellRepo              bmconfig.StemcellRepo
-		fakeDiskDeployer          *fakebmvm.FakeDiskDeployer
-		fakeAgentClient           *fakebmagentclient.FakeAgentClient
-		stemcell                  bmstemcell.CloudStemcell
+		expectedNetworkInterfaces map[string]biproperty.Map
+		expectedCloudProperties   biproperty.Map
+		expectedEnv               biproperty.Map
+		deploymentManifest        bideplmanifest.Manifest
+		fakeVMRepo                *fakebiconfig.FakeVMRepo
+		stemcellRepo              biconfig.StemcellRepo
+		fakeDiskDeployer          *fakebivm.FakeDiskDeployer
+		fakeAgentClient           *fakebiagentclient.FakeAgentClient
+		stemcell                  bistemcell.CloudStemcell
 		fs                        *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		fakeCloud = fakebmcloud.NewFakeCloud()
-		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
-		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
+		fakeCloud = fakebicloud.NewFakeCloud()
+		fakeAgentClient = fakebiagentclient.NewFakeAgentClient()
+		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
 
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
-		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
-		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
+		configService := biconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
+		stemcellRepo = biconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
 
-		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
+		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
 
 		manager = NewManagerFactory(
 			fakeVMRepo,
@@ -62,43 +62,43 @@ var _ = Describe("Manager", func() {
 		).NewManager(fakeCloud, fakeAgentClient)
 
 		fakeCloud.CreateVMCID = "fake-vm-cid"
-		expectedNetworkInterfaces = map[string]bmproperty.Map{
-			"fake-network-name": bmproperty.Map{
+		expectedNetworkInterfaces = map[string]biproperty.Map{
+			"fake-network-name": biproperty.Map{
 				"type":             "dynamic",
 				"ip":               "fake-micro-ip",
-				"cloud_properties": bmproperty.Map{},
+				"cloud_properties": biproperty.Map{},
 			},
 		}
-		expectedCloudProperties = bmproperty.Map{
+		expectedCloudProperties = biproperty.Map{
 			"fake-cloud-property-key": "fake-cloud-property-value",
 		}
-		expectedEnv = bmproperty.Map{
+		expectedEnv = biproperty.Map{
 			"fake-env-key": "fake-env-value",
 		}
-		deploymentManifest = bmdeplmanifest.Manifest{
+		deploymentManifest = bideplmanifest.Manifest{
 			Name: "fake-deployment",
-			Networks: []bmdeplmanifest.Network{
+			Networks: []bideplmanifest.Network{
 				{
 					Name:            "fake-network-name",
 					Type:            "dynamic",
-					CloudProperties: bmproperty.Map{},
+					CloudProperties: biproperty.Map{},
 				},
 			},
-			ResourcePools: []bmdeplmanifest.ResourcePool{
+			ResourcePools: []bideplmanifest.ResourcePool{
 				{
 					Name: "fake-resource-pool-name",
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"fake-cloud-property-key": "fake-cloud-property-value",
 					},
-					Env: bmproperty.Map{
+					Env: biproperty.Map{
 						"fake-env-key": "fake-env-value",
 					},
 				},
 			},
-			Jobs: []bmdeplmanifest.Job{
+			Jobs: []bideplmanifest.Job{
 				{
 					Name: "fake-job",
-					Networks: []bmdeplmanifest.JobNetwork{
+					Networks: []bideplmanifest.JobNetwork{
 						{
 							Name:      "fake-network-name",
 							StaticIPs: []string{"fake-micro-ip"},
@@ -108,8 +108,8 @@ var _ = Describe("Manager", func() {
 			},
 		}
 
-		stemcellRecord := bmconfig.StemcellRecord{CID: "fake-stemcell-cid"}
-		stemcell = bmstemcell.NewCloudStemcell(stemcellRecord, stemcellRepo, fakeCloud)
+		stemcellRecord := biconfig.StemcellRecord{CID: "fake-stemcell-cid"}
+		stemcell = bistemcell.NewCloudStemcell(stemcellRecord, stemcellRepo, fakeCloud)
 	})
 
 	Describe("Create", func() {
@@ -129,7 +129,7 @@ var _ = Describe("Manager", func() {
 			Expect(vm).To(Equal(expectedVM))
 
 			Expect(fakeCloud.CreateVMInput).To(Equal(
-				fakebmcloud.CreateVMInput{
+				fakebicloud.CreateVMInput{
 					AgentID:            "fake-uuid-0",
 					StemcellCID:        "fake-stemcell-cid",
 					CloudProperties:    expectedCloudProperties,

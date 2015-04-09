@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type TargetProvider interface {
@@ -14,13 +14,13 @@ type TargetProvider interface {
 }
 
 type targetProvider struct {
-	deploymentConfigService bmconfig.DeploymentConfigService
+	deploymentConfigService biconfig.DeploymentConfigService
 	uuidGenerator           boshuuid.Generator
 	installationsRootPath   string
 }
 
 func NewTargetProvider(
-	deploymentConfigService bmconfig.DeploymentConfigService,
+	deploymentConfigService biconfig.DeploymentConfigService,
 	uuidGenerator boshuuid.Generator,
 	installationsRootPath string,
 ) TargetProvider {

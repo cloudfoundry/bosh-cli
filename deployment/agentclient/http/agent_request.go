@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 )
 
 type AgentRequestMessage struct {
@@ -18,7 +18,7 @@ type AgentRequestMessage struct {
 type agentRequest struct {
 	directorID string
 	endpoint   string
-	httpClient bmhttpclient.HTTPClient
+	httpClient bihttpclient.HTTPClient
 }
 
 func (r agentRequest) Send(method string, arguments []interface{}, response Response) error {

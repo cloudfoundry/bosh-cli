@@ -5,24 +5,24 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Manager interface {
 	FindCurrent() ([]CloudStemcell, error)
-	Upload(ExtractedStemcell, bmui.Stage) (CloudStemcell, error)
+	Upload(ExtractedStemcell, biui.Stage) (CloudStemcell, error)
 	FindUnused() ([]CloudStemcell, error)
-	DeleteUnused(bmui.Stage) error
+	DeleteUnused(biui.Stage) error
 }
 
 type manager struct {
-	repo  bmconfig.StemcellRepo
-	cloud bmcloud.Cloud
+	repo  biconfig.StemcellRepo
+	cloud bicloud.Cloud
 }
 
-func NewManager(repo bmconfig.StemcellRepo, cloud bmcloud.Cloud) Manager {
+func NewManager(repo biconfig.StemcellRepo, cloud bicloud.Cloud) Manager {
 	return &manager{
 		repo:  repo,
 		cloud: cloud,
@@ -48,7 +48,7 @@ func (m *manager) FindCurrent() ([]CloudStemcell, error) {
 // Upload stemcell to an IAAS. It does the following steps:
 // 1) uploads the stemcell to the cloud (if needed),
 // 2) saves a record of the uploaded stemcell in the repo
-func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage bmui.Stage) (cloudStemcell CloudStemcell, err error) {
+func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.Stage) (cloudStemcell CloudStemcell, err error) {
 	manifest := extractedStemcell.Manifest()
 	stageName := fmt.Sprintf("Uploading stemcell '%s/%s'", manifest.Name, manifest.Version)
 	err = uploadStage.Perform(stageName, func() error {
@@ -59,7 +59,7 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage bmui.S
 
 		if found {
 			cloudStemcell = NewCloudStemcell(foundStemcellRecord, m.repo, m.cloud)
-			return bmui.NewSkipStageError(bosherr.Errorf("Found stemcell: %#v", foundStemcellRecord), "Stemcell already uploaded")
+			return biui.NewSkipStageError(bosherr.Errorf("Found stemcell: %#v", foundStemcellRecord), "Stemcell already uploaded")
 		}
 
 		cid, err := m.cloud.CreateStemcell(manifest.ImagePath, manifest.CloudProperties)
@@ -106,7 +106,7 @@ func (m *manager) FindUnused() ([]CloudStemcell, error) {
 	return unusedStemcells, nil
 }
 
-func (m *manager) DeleteUnused(deleteStage bmui.Stage) error {
+func (m *manager) DeleteUnused(deleteStage biui.Stage) error {
 	stemcells, err := m.FindUnused()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding unused stemcells")
@@ -116,9 +116,9 @@ func (m *manager) DeleteUnused(deleteStage bmui.Stage) error {
 		stepName := fmt.Sprintf("Deleting unused stemcell '%s'", stemcell.CID())
 		err = deleteStage.Perform(stepName, func() error {
 			err := stemcell.Delete()
-			cloudErr, ok := err.(bmcloud.Error)
-			if ok && cloudErr.Type() == bmcloud.StemcellNotFoundError {
-				return bmui.NewSkipStageError(cloudErr, "Stemcell not found")
+			cloudErr, ok := err.(bicloud.Error)
+			if ok && cloudErr.Type() == bicloud.StemcellNotFoundError {
+				return biui.NewSkipStageError(cloudErr, "Stemcell not found")
 			}
 			return err
 		})

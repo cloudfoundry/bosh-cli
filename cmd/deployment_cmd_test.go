@@ -11,12 +11,12 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/cmd"
 )
@@ -24,24 +24,24 @@ import (
 var _ = Describe("DeploymentCmd", func() {
 	var (
 		command           Cmd
-		userConfig        bmconfig.UserConfig
-		userConfigService bmconfig.UserConfigService
+		userConfig        biconfig.UserConfig
+		userConfigService biconfig.UserConfigService
 		manifestPath      string
-		fakeUI            *fakebmui.FakeUI
+		fakeUI            *fakebiui.FakeUI
 		fakeFs            *fakesys.FakeFileSystem
 		fakeUUID          *fakeuuid.FakeGenerator
 		logger            boshlog.Logger
-		fakeStage         *fakebmui.FakeStage
+		fakeStage         *fakebiui.FakeStage
 	)
 
 	BeforeEach(func() {
-		fakeUI = &fakebmui.FakeUI{}
+		fakeUI = &fakebiui.FakeUI{}
 		fakeFs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		userConfigService = bmconfig.NewFileSystemUserConfigService("/fake-user-config", fakeFs, logger)
+		userConfigService = biconfig.NewFileSystemUserConfigService("/fake-user-config", fakeFs, logger)
 		fakeUUID = &fakeuuid.FakeGenerator{}
 
-		fakeStage = fakebmui.NewFakeStage()
+		fakeStage = fakebiui.NewFakeStage()
 
 		command = NewDeploymentCmd(
 			fakeUI,
@@ -77,11 +77,11 @@ var _ = Describe("DeploymentCmd", func() {
 
 					userConfigContents, err := fakeFs.ReadFile("/fake-user-config")
 					Expect(err).ToNot(HaveOccurred())
-					userConfig := bmconfig.UserConfig{}
+					userConfig := biconfig.UserConfig{}
 					err = json.Unmarshal(userConfigContents, &userConfig)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentManifestPath: manifestPath}))
+					Expect(userConfig).To(Equal(biconfig.UserConfig{DeploymentManifestPath: manifestPath}))
 				})
 
 				It("saves absolute path to deployment manifest in user config", func() {
@@ -97,36 +97,36 @@ var _ = Describe("DeploymentCmd", func() {
 
 					userConfigContents, err := fakeFs.ReadFile("/fake-user-config")
 					Expect(err).ToNot(HaveOccurred())
-					userConfig := bmconfig.UserConfig{}
+					userConfig := biconfig.UserConfig{}
 					err = json.Unmarshal(userConfigContents, &userConfig)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(userConfig).To(Equal(bmconfig.UserConfig{DeploymentManifestPath: manifestAbsolutePath}))
+					Expect(userConfig).To(Equal(biconfig.UserConfig{DeploymentManifestPath: manifestAbsolutePath}))
 				})
 
 				It("creates a deployment config", func() {
 					err := command.Run(fakeStage, []string{manifestPath})
 					Expect(err).ToNot(HaveOccurred())
 
-					userConfig := bmconfig.UserConfig{DeploymentManifestPath: manifestPath}
-					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(userConfig.DeploymentConfigPath(), fakeFs, fakeUUID, logger)
+					userConfig := biconfig.UserConfig{DeploymentManifestPath: manifestPath}
+					deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(userConfig.DeploymentConfigPath(), fakeFs, fakeUUID, logger)
 					deploymentConfig, err := deploymentConfigService.Load()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
+					Expect(deploymentConfig).To(Equal(biconfig.DeploymentFile{
 						DirectorID: "fake-uuid-0",
 					}))
 				})
 
 				It("reuses the existing deployment config if it exists", func() {
-					userConfig := bmconfig.UserConfig{DeploymentManifestPath: manifestPath}
-					deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(
+					userConfig := biconfig.UserConfig{DeploymentManifestPath: manifestPath}
+					deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(
 						userConfig.DeploymentConfigPath(),
 						fakeFs,
 						fakeUUID,
 						logger,
 					)
-					deploymentConfigService.Save(bmconfig.DeploymentFile{
+					deploymentConfigService.Save(biconfig.DeploymentFile{
 						DirectorID:     "fake-director-id",
 						InstallationID: "fake-installation-id",
 					})
@@ -137,7 +137,7 @@ var _ = Describe("DeploymentCmd", func() {
 					deploymentConfig, err := deploymentConfigService.Load()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(deploymentConfig).To(Equal(bmconfig.DeploymentFile{
+					Expect(deploymentConfig).To(Equal(biconfig.DeploymentFile{
 						DirectorID:     "fake-director-id",
 						InstallationID: "fake-installation-id",
 					}))
@@ -157,7 +157,7 @@ var _ = Describe("DeploymentCmd", func() {
 		Context("ran without args", func() {
 			Context("a deployment manifest is present in the config", func() {
 				BeforeEach(func() {
-					userConfig := bmconfig.UserConfig{DeploymentManifestPath: "/path/to/manifest.yml"}
+					userConfig := biconfig.UserConfig{DeploymentManifestPath: "/path/to/manifest.yml"}
 					command = NewDeploymentCmd(fakeUI,
 						userConfig,
 						userConfigService,

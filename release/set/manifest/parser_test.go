@@ -10,7 +10,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 
 	. "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
@@ -70,7 +70,7 @@ name: unknown-keys-are-ignored
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(deploymentManifest).To(Equal(Manifest{
-			Releases: []bmrelmanifest.ReleaseRef{
+			Releases: []birelmanifest.ReleaseRef{
 				{
 					Name:    "fake-release-name-1",
 					Version: "fake-release-version-1",

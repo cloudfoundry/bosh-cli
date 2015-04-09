@@ -3,7 +3,7 @@ package fakes
 import (
 	"fmt"
 
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type ReadInput struct {
@@ -12,7 +12,7 @@ type ReadInput struct {
 }
 
 type ReadOutput struct {
-	stemcell bmstemcell.ExtractedStemcell
+	stemcell bistemcell.ExtractedStemcell
 	err      error
 }
 
@@ -28,7 +28,7 @@ func NewFakeReader() *FakeStemcellReader {
 	}
 }
 
-func (fr *FakeStemcellReader) Read(stemcellTarballPath, destPath string) (bmstemcell.ExtractedStemcell, error) {
+func (fr *FakeStemcellReader) Read(stemcellTarballPath, destPath string) (bistemcell.ExtractedStemcell, error) {
 	input := ReadInput{
 		StemcellTarballPath: stemcellTarballPath,
 		DestPath:            destPath,
@@ -42,7 +42,7 @@ func (fr *FakeStemcellReader) Read(stemcellTarballPath, destPath string) (bmstem
 	return output.stemcell, output.err
 }
 
-func (fr *FakeStemcellReader) SetReadBehavior(stemcellTarballPath, destPath string, stemcell bmstemcell.ExtractedStemcell, err error) {
+func (fr *FakeStemcellReader) SetReadBehavior(stemcellTarballPath, destPath string, stemcell bistemcell.ExtractedStemcell, err error) {
 	input := ReadInput{
 		StemcellTarballPath: stemcellTarballPath,
 		DestPath:            destPath,

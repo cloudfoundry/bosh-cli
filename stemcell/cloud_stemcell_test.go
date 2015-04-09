@@ -9,24 +9,24 @@ import (
 	"errors"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 )
 
 var _ = Describe("CloudStemcell", func() {
 	var (
-		stemcellRepo      bmconfig.StemcellRepo
+		stemcellRepo      biconfig.StemcellRepo
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
-		fakeCloud         *fakebmcloud.FakeCloud
+		fakeCloud         *fakebicloud.FakeCloud
 		cloudStemcell     CloudStemcell
 	)
 
 	BeforeEach(func() {
-		stemcellRecord := bmconfig.StemcellRecord{
+		stemcellRecord := biconfig.StemcellRecord{
 			CID:     "fake-stemcell-cid",
 			Name:    "fake-stemcell-name",
 			Version: "fake-stemcell-version",
@@ -34,9 +34,9 @@ var _ = Describe("CloudStemcell", func() {
 		fs := fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
-		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
-		fakeCloud = fakebmcloud.NewFakeCloud()
+		configService := biconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
+		stemcellRepo = biconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
+		fakeCloud = fakebicloud.NewFakeCloud()
 		cloudStemcell = NewCloudStemcell(stemcellRecord, stemcellRepo, fakeCloud)
 	})
 
@@ -55,7 +55,7 @@ var _ = Describe("CloudStemcell", func() {
 				currentStemcell, found, err := stemcellRepo.FindCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
-				Expect(currentStemcell).To(Equal(bmconfig.StemcellRecord{
+				Expect(currentStemcell).To(Equal(biconfig.StemcellRecord{
 					ID:      "fake-stemcell-id",
 					CID:     "fake-stemcell-cid",
 					Name:    "fake-stemcell-name",
@@ -77,7 +77,7 @@ var _ = Describe("CloudStemcell", func() {
 		It("deletes stemcell from cloud", func() {
 			err := cloudStemcell.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebmcloud.DeleteStemcellInput{
+			Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebicloud.DeleteStemcellInput{
 				{
 					StemcellCID: "fake-stemcell-cid",
 				},
@@ -126,8 +126,8 @@ var _ = Describe("CloudStemcell", func() {
 		})
 
 		Context("when deleting stemcell in the cloud fails with StemcellNotFoundError", func() {
-			var deleteErr = bmcloud.NewCPIError("delete_stemcell", bmcloud.CmdError{
-				Type:    bmcloud.StemcellNotFoundError,
+			var deleteErr = bicloud.NewCPIError("delete_stemcell", bicloud.CmdError{
+				Type:    bicloud.StemcellNotFoundError,
 				Message: "fake-stemcell-not-found-message",
 			})
 
@@ -146,7 +146,7 @@ var _ = Describe("CloudStemcell", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
 
-				Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebmcloud.DeleteStemcellInput{
+				Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebicloud.DeleteStemcellInput{
 					{
 						StemcellCID: "fake-stemcell-cid",
 					},

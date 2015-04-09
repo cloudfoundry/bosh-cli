@@ -6,15 +6,15 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 )
 
 type jobEvaluationContext struct {
-	releaseJob       bmreljob.Job
-	jobProperties    bmproperty.Map
-	globalProperties bmproperty.Map
+	releaseJob       bireljob.Job
+	jobProperties    biproperty.Map
+	globalProperties biproperty.Map
 	deploymentName   string
 	logger           boshlog.Logger
 	logTag           string
@@ -31,9 +31,9 @@ type RootContext struct {
 	NetworkContexts map[string]networkContext `json:"networks"`
 
 	//TODO: this should be a map[string]interface{}
-	GlobalProperties  bmproperty.Map `json:"global_properties"`  // values from manifest's top-level properties
-	ClusterProperties bmproperty.Map `json:"cluster_properties"` // values from manifest's jobs[].properties
-	DefaultProperties bmproperty.Map `json:"default_properties"` // values from release's job's spec
+	GlobalProperties  biproperty.Map `json:"global_properties"`  // values from manifest's top-level properties
+	ClusterProperties biproperty.Map `json:"cluster_properties"` // values from manifest's jobs[].properties
+	DefaultProperties biproperty.Map `json:"default_properties"` // values from release's job's spec
 }
 
 type jobContext struct {
@@ -47,12 +47,12 @@ type networkContext struct {
 }
 
 func NewJobEvaluationContext(
-	releaseJob bmreljob.Job,
-	jobProperties bmproperty.Map,
-	globalProperties bmproperty.Map,
+	releaseJob bireljob.Job,
+	jobProperties biproperty.Map,
+	globalProperties biproperty.Map,
 	deploymentName string,
 	logger boshlog.Logger,
-) bmerbrenderer.TemplateEvaluationContext {
+) bierbrenderer.TemplateEvaluationContext {
 	return jobEvaluationContext{
 		releaseJob:       releaseJob,
 		jobProperties:    jobProperties,
@@ -86,8 +86,8 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 	return jsonBytes, nil
 }
 
-func (ec jobEvaluationContext) propertyDefaults(properties map[string]bmreljob.PropertyDefinition) bmproperty.Map {
-	result := bmproperty.Map{}
+func (ec jobEvaluationContext) propertyDefaults(properties map[string]bireljob.PropertyDefinition) biproperty.Map {
+	result := biproperty.Map{}
 	for propertyKey, property := range properties {
 		result[propertyKey] = property.Default
 	}

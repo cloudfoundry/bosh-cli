@@ -1,14 +1,14 @@
 package fakes
 
 import (
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeManager struct {
 	CreateInputs []CreateInput
-	CreateDisk   bmdisk.Disk
+	CreateDisk   bidisk.Disk
 	CreateErr    error
 
 	findCurrentOutput findCurrentOutput
@@ -20,17 +20,17 @@ type FakeManager struct {
 }
 
 type CreateInput struct {
-	DiskPool   bmdeplmanifest.DiskPool
+	DiskPool   bideplmanifest.DiskPool
 	InstanceID string
 }
 
 type findCurrentOutput struct {
-	Disks []bmdisk.Disk
+	Disks []bidisk.Disk
 	Err   error
 }
 
 type findUnusedOutput struct {
-	disks []bmdisk.Disk
+	disks []bidisk.Disk
 	err   error
 }
 
@@ -38,7 +38,7 @@ func NewFakeManager() *FakeManager {
 	return &FakeManager{}
 }
 
-func (m *FakeManager) Create(diskPool bmdeplmanifest.DiskPool, instanceID string) (bmdisk.Disk, error) {
+func (m *FakeManager) Create(diskPool bideplmanifest.DiskPool, instanceID string) (bidisk.Disk, error) {
 	input := CreateInput{
 		DiskPool:   diskPool,
 		InstanceID: instanceID,
@@ -48,20 +48,20 @@ func (m *FakeManager) Create(diskPool bmdeplmanifest.DiskPool, instanceID string
 	return m.CreateDisk, m.CreateErr
 }
 
-func (m *FakeManager) FindCurrent() ([]bmdisk.Disk, error) {
+func (m *FakeManager) FindCurrent() ([]bidisk.Disk, error) {
 	return m.findCurrentOutput.Disks, m.findCurrentOutput.Err
 }
 
-func (m *FakeManager) FindUnused() ([]bmdisk.Disk, error) {
+func (m *FakeManager) FindUnused() ([]bidisk.Disk, error) {
 	return m.findUnusedOutput.disks, m.findUnusedOutput.err
 }
 
-func (m *FakeManager) DeleteUnused(eventLogStage bmui.Stage) error {
+func (m *FakeManager) DeleteUnused(eventLogStage biui.Stage) error {
 	m.DeleteUnusedCalledTimes++
 	return m.DeleteUnusedErr
 }
 
-func (m *FakeManager) SetFindCurrentBehavior(disks []bmdisk.Disk, err error) {
+func (m *FakeManager) SetFindCurrentBehavior(disks []bidisk.Disk, err error) {
 	m.findCurrentOutput = findCurrentOutput{
 		Disks: disks,
 		Err:   err,
@@ -69,7 +69,7 @@ func (m *FakeManager) SetFindCurrentBehavior(disks []bmdisk.Disk, err error) {
 }
 
 func (m *FakeManager) SetFindUnusedBehavior(
-	disks []bmdisk.Disk,
+	disks []bidisk.Disk,
 	err error,
 ) {
 	m.findUnusedOutput = findUnusedOutput{

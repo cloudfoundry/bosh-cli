@@ -8,7 +8,7 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmcrypto "github.com/cloudfoundry/bosh-init/crypto"
+	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
 )
 
 type RenderedJobListCompressor interface {
@@ -18,7 +18,7 @@ type RenderedJobListCompressor interface {
 type renderedJobListCompressor struct {
 	fs             boshsys.FileSystem
 	compressor     boshcmd.Compressor
-	sha1Calculator bmcrypto.SHA1Calculator
+	sha1Calculator bicrypto.SHA1Calculator
 	logger         boshlog.Logger
 	logTag         string
 }
@@ -26,7 +26,7 @@ type renderedJobListCompressor struct {
 func NewRenderedJobListCompressor(
 	fs boshsys.FileSystem,
 	compressor boshcmd.Compressor,
-	sha1Calculator bmcrypto.SHA1Calculator,
+	sha1Calculator bicrypto.SHA1Calculator,
 	logger boshlog.Logger,
 ) RenderedJobListCompressor {
 	return &renderedJobListCompressor{

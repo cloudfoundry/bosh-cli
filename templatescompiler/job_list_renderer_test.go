@@ -12,8 +12,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 )
 
 var _ = Describe("JobListRenderer", func() {
@@ -32,9 +32,9 @@ var _ = Describe("JobListRenderer", func() {
 
 		mockJobRenderer *mock_template.MockJobRenderer
 
-		releaseJobs      []bmreljob.Job
-		jobProperties    bmproperty.Map
-		globalProperties bmproperty.Map
+		releaseJobs      []bireljob.Job
+		jobProperties    biproperty.Map
+		globalProperties biproperty.Map
 		deploymentName   string
 
 		renderedJobs []*mock_template.MockRenderedJob
@@ -50,16 +50,16 @@ var _ = Describe("JobListRenderer", func() {
 		mockJobRenderer = mock_template.NewMockJobRenderer(mockCtrl)
 
 		// release jobs are just passed through to JobRenderer.Render, so they do not need real contents
-		releaseJobs = []bmreljob.Job{
+		releaseJobs = []bireljob.Job{
 			{Name: "fake-release-job-name-0"},
 			{Name: "fake-release-job-name-1"},
 		}
 
-		jobProperties = bmproperty.Map{
+		jobProperties = biproperty.Map{
 			"fake-key": "fake-job-value",
 		}
 
-		globalProperties = bmproperty.Map{
+		globalProperties = biproperty.Map{
 			"fake-key": "fake-global-value",
 		}
 

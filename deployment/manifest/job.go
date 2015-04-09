@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type Job struct {
@@ -12,7 +12,7 @@ type Job struct {
 	Networks           []JobNetwork
 	PersistentDisk     int
 	PersistentDiskPool string
-	Properties         bmproperty.Map
+	Properties         biproperty.Map
 }
 
 type JobLifecycle string

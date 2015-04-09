@@ -8,8 +8,8 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 
 	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"
 )
@@ -18,8 +18,8 @@ var _ = Describe("Resolver", func() {
 
 	var (
 		logger         boshlog.Logger
-		releaseManager bmrel.Manager
-		releases       []bmrelmanifest.ReleaseRef
+		releaseManager birel.Manager
+		releases       []birelmanifest.ReleaseRef
 
 		releaseA10 = fake_release.New("release-a", "1.0")
 		resolver   Resolver
@@ -28,8 +28,8 @@ var _ = Describe("Resolver", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		releases = []bmrelmanifest.ReleaseRef{}
-		releaseManager = bmrel.NewManager(logger)
+		releases = []birelmanifest.ReleaseRef{}
+		releaseManager = birel.NewManager(logger)
 	})
 
 	JustBeforeEach(func() {
@@ -74,7 +74,7 @@ var _ = Describe("Resolver", func() {
 
 	Context("when a release version has been specified", func() {
 		JustBeforeEach(func() {
-			resolver.Filter([]bmrelmanifest.ReleaseRef{
+			resolver.Filter([]birelmanifest.ReleaseRef{
 				{Name: "release-a", Version: "1.1"},
 			})
 		})
@@ -111,7 +111,7 @@ var _ = Describe("Resolver", func() {
 			releaseManager.Add(fake_release.New("release-a", "1.0"))
 			releaseManager.Add(fake_release.New("release-a", "1.2"))
 			releaseManager.Add(fake_release.New("release-a", "1.1"))
-			resolver.Filter([]bmrelmanifest.ReleaseRef{
+			resolver.Filter([]birelmanifest.ReleaseRef{
 				{Name: "release-a", Version: "latest"},
 			})
 		})
@@ -125,7 +125,7 @@ var _ = Describe("Resolver", func() {
 
 	It("reports problems with parsing manifest versions", func() {
 		releaseManager.Add(fake_release.New("release-a", "1.0"))
-		resolver.Filter([]bmrelmanifest.ReleaseRef{
+		resolver.Filter([]birelmanifest.ReleaseRef{
 			{Name: "release-a", Version: "_"},
 		})
 		_, err := resolver.Find("release-a")
@@ -134,7 +134,7 @@ var _ = Describe("Resolver", func() {
 
 	It("reports problems with parsing managed release versions", func() {
 		releaseManager.Add(fake_release.New("release-a", "_"))
-		resolver.Filter([]bmrelmanifest.ReleaseRef{
+		resolver.Filter([]birelmanifest.ReleaseRef{
 			{Name: "release-a", Version: "1.0"},
 		})
 		_, err := resolver.Find("release-a")
@@ -143,7 +143,7 @@ var _ = Describe("Resolver", func() {
 	})
 
 	It("reports problems if a release name is specified more than once", func() {
-		err := resolver.Filter([]bmrelmanifest.ReleaseRef{
+		err := resolver.Filter([]birelmanifest.ReleaseRef{
 			{Name: "release-a", Version: "1.0"},
 			{Name: "release-a", Version: "1.1"},
 		})

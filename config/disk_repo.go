@@ -4,14 +4,14 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type DiskRepo interface {
 	UpdateCurrent(diskID string) error
 	FindCurrent() (DiskRecord, bool, error)
 	ClearCurrent() error
-	Save(cid string, size int, cloudProperties bmproperty.Map) (DiskRecord, error)
+	Save(cid string, size int, cloudProperties biproperty.Map) (DiskRecord, error)
 	Find(cid string) (DiskRecord, bool, error)
 	All() ([]DiskRecord, error)
 	Delete(DiskRecord) error
@@ -29,7 +29,7 @@ func NewDiskRepo(configService DeploymentConfigService, uuidGenerator boshuuid.G
 	}
 }
 
-func (r diskRepo) Save(cid string, size int, cloudProperties bmproperty.Map) (DiskRecord, error) {
+func (r diskRepo) Save(cid string, size int, cloudProperties biproperty.Map) (DiskRecord, error) {
 	config, records, err := r.load()
 	if err != nil {
 		return DiskRecord{}, err

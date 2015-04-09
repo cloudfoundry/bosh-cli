@@ -10,32 +10,32 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmindex "github.com/cloudfoundry/bosh-init/index"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	biindex "github.com/cloudfoundry/bosh-init/index"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 )
 
 var _ = Describe("TemplatesRepo", func() {
 	var (
-		index         bmindex.Index
+		index         biindex.Index
 		templatesRepo TemplatesRepo
 		fakeFS        *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
 		fakeFS = fakesys.NewFakeFileSystem()
-		index = bmindex.NewFileIndex("/index_file", fakeFS)
+		index = biindex.NewFileIndex("/index_file", fakeFS)
 		templatesRepo = NewTemplatesRepo(index)
 	})
 
 	Context("Save and Find", func() {
 		var (
 			record TemplateRecord
-			job    bmreljob.Job
+			job    bireljob.Job
 		)
 
 		BeforeEach(func() {
 			record = TemplateRecord{}
-			job = bmreljob.Job{
+			job = bireljob.Job{
 				Name:        "fake-job-name",
 				Fingerprint: "fake-job-fingerprint",
 			}

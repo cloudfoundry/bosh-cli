@@ -1,13 +1,13 @@
 package manifest
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type Manifest struct {
 	Name            string
 	Template        ReleaseJobRef
-	Properties      bmproperty.Map
+	Properties      biproperty.Map
 	Mbus            string
 	Registry        Registry
 	AgentEnvService string

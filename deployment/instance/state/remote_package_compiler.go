@@ -3,19 +3,19 @@ package state
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 )
 
 type remotePackageCompiler struct {
-	blobstore   bmblobstore.Blobstore
-	agentClient bmagentclient.AgentClient
-	packageRepo bmstatepkg.CompiledPackageRepo
+	blobstore   biblobstore.Blobstore
+	agentClient biagentclient.AgentClient
+	packageRepo bistatepkg.CompiledPackageRepo
 }
 
-func NewRemotePackageCompiler(blobstore bmblobstore.Blobstore, agentClient bmagentclient.AgentClient, packageRepo bmstatepkg.CompiledPackageRepo) bmstatepkg.Compiler {
+func NewRemotePackageCompiler(blobstore biblobstore.Blobstore, agentClient biagentclient.AgentClient, packageRepo bistatepkg.CompiledPackageRepo) bistatepkg.Compiler {
 	return &remotePackageCompiler{
 		blobstore:   blobstore,
 		agentClient: agentClient,
@@ -23,14 +23,14 @@ func NewRemotePackageCompiler(blobstore bmblobstore.Blobstore, agentClient bmage
 	}
 }
 
-func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (record bmstatepkg.CompiledPackageRecord, err error) {
+func (c *remotePackageCompiler) Compile(releasePackage *birelpkg.Package) (record bistatepkg.CompiledPackageRecord, err error) {
 
 	blobID, err := c.blobstore.Add(releasePackage.ArchivePath)
 	if err != nil {
-		return bmstatepkg.CompiledPackageRecord{}, bosherr.WrapErrorf(err, "Adding release package archive '%s' to blobstore", releasePackage.ArchivePath)
+		return bistatepkg.CompiledPackageRecord{}, bosherr.WrapErrorf(err, "Adding release package archive '%s' to blobstore", releasePackage.ArchivePath)
 	}
 
-	packageSource := bmagentclient.BlobRef{
+	packageSource := biagentclient.BlobRef{
 		Name:        releasePackage.Name,
 		Version:     releasePackage.Fingerprint,
 		SHA1:        releasePackage.SHA1,
@@ -39,7 +39,7 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (recor
 
 	// Resolve dependencies from map of previously compiled packages.
 	// Only install the package's immediate dependencies when compiling (not all transitive dependencies).
-	packageDependencies := make([]bmagentclient.BlobRef, len(releasePackage.Dependencies), len(releasePackage.Dependencies))
+	packageDependencies := make([]biagentclient.BlobRef, len(releasePackage.Dependencies), len(releasePackage.Dependencies))
 	for i, dependency := range releasePackage.Dependencies {
 		compiledPackageRecord, found, err := c.packageRepo.Find(*dependency)
 		if err != nil {
@@ -61,7 +61,7 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (recor
 				dependency.Fingerprint,
 			)
 		}
-		packageDependencies[i] = bmagentclient.BlobRef{
+		packageDependencies[i] = biagentclient.BlobRef{
 			Name:        dependency.Name,
 			Version:     dependency.Fingerprint,
 			BlobstoreID: compiledPackageRecord.BlobID,
@@ -74,7 +74,7 @@ func (c *remotePackageCompiler) Compile(releasePackage *bmrelpkg.Package) (recor
 		return record, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", releasePackage.Name)
 	}
 
-	record = bmstatepkg.CompiledPackageRecord{
+	record = bistatepkg.CompiledPackageRecord{
 		BlobID:   compiledPackageRef.BlobstoreID,
 		BlobSHA1: compiledPackageRef.SHA1,
 	}

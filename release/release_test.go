@@ -6,8 +6,8 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
 	. "github.com/cloudfoundry/bosh-init/release"
 )
@@ -15,20 +15,20 @@ import (
 var _ = Describe("Release", func() {
 	var (
 		release     Release
-		expectedJob bmreljob.Job
+		expectedJob bireljob.Job
 		fakeFS      *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
-		expectedJob = bmreljob.Job{
+		expectedJob = bireljob.Job{
 			Name: "fake-job-name",
 		}
 		fakeFS = fakesys.NewFakeFileSystem()
 		release = NewRelease(
 			"fake-release-name",
 			"fake-release-version",
-			[]bmreljob.Job{expectedJob},
-			[]*bmrelpkg.Package{},
+			[]bireljob.Job{expectedJob},
+			[]*birelpkg.Package{},
 			"fake-extracted-path",
 			fakeFS,
 		)

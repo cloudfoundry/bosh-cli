@@ -12,7 +12,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 
 	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
@@ -24,7 +24,7 @@ var _ = Describe("RenderedJob", func() {
 		logger    boshlog.Logger
 		fs        *fakeboshsys.FakeFileSystem
 
-		releaseJob bmreljob.Job
+		releaseJob bireljob.Job
 
 		renderedJobPath string
 
@@ -38,7 +38,7 @@ var _ = Describe("RenderedJob", func() {
 
 		fs = fakeboshsys.NewFakeFileSystem()
 
-		releaseJob = bmreljob.Job{
+		releaseJob = bireljob.Job{
 			Name: "fake-job-name",
 		}
 

@@ -1,13 +1,13 @@
 package agentclient
 
 import (
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 )
 
 type AgentClient interface {
 	Ping() (string, error)
 	Stop() error
-	Apply(bmas.ApplySpec) error
+	Apply(bias.ApplySpec) error
 	Start() error
 	GetState() (AgentState, error)
 	MountDisk(string) error

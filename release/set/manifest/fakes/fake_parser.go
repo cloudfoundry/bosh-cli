@@ -1,12 +1,12 @@
 package fakes
 
 import (
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 type FakeParser struct {
 	ParsePath     string
-	ParseManifest bmrelsetmanifest.Manifest
+	ParseManifest birelsetmanifest.Manifest
 	ParseErr      error
 }
 
@@ -14,7 +14,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string) (bmrelsetmanifest.Manifest, error) {
+func (p *FakeParser) Parse(path string) (birelsetmanifest.Manifest, error) {
 	p.ParsePath = path
 	return p.ParseManifest, p.ParseErr
 }

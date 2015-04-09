@@ -8,13 +8,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
 	BeforeSuite(func() {
-		err := bmtestutils.BuildExecutable()
+		err := bitestutils.BuildExecutable()
 		Expect(err).NotTo(HaveOccurred())
 	})
 

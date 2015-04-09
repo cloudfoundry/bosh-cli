@@ -2,21 +2,21 @@ package disk
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type ManagerFactory interface {
-	NewManager(bmcloud.Cloud) Manager
+	NewManager(bicloud.Cloud) Manager
 }
 
 type managerFactory struct {
-	diskRepo bmconfig.DiskRepo
+	diskRepo biconfig.DiskRepo
 	logger   boshlog.Logger
 }
 
 func NewManagerFactory(
-	diskRepo bmconfig.DiskRepo,
+	diskRepo biconfig.DiskRepo,
 	logger boshlog.Logger,
 ) ManagerFactory {
 	return &managerFactory{
@@ -25,6 +25,6 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud) Manager {
+func (f *managerFactory) NewManager(cloud bicloud.Cloud) Manager {
 	return NewManager(cloud, f.diskRepo, f.logger)
 }

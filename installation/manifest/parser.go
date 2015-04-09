@@ -12,7 +12,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type Parser interface {
@@ -80,7 +80,7 @@ func (p *parser) Parse(path string) (Manifest, error) {
 		Mbus:            comboManifest.CloudProvider.Mbus,
 	}
 
-	properties, err := bmproperty.BuildMap(comboManifest.CloudProvider.Properties)
+	properties, err := biproperty.BuildMap(comboManifest.CloudProvider.Properties)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Parsing cloud_provider manifest properties: %#v", comboManifest.CloudProvider.Properties)
 	}

@@ -18,11 +18,11 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 
-	fakebmtemp "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebitemp "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("TemplatesCompiler", func() {
@@ -42,17 +42,17 @@ var _ = Describe("TemplatesCompiler", func() {
 		templatesCompiler TemplatesCompiler
 		compressor        *fakecmd.FakeCompressor
 		blobstore         *fakeblobs.FakeBlobstore
-		templatesRepo     *fakebmtemp.FakeTemplatesRepo
+		templatesRepo     *fakebitemp.FakeTemplatesRepo
 		fs                *fakesys.FakeFileSystem
 		compileDir        string
-		jobs              []bmreljob.Job
+		jobs              []bireljob.Job
 		logger            boshlog.Logger
 
-		jobProperties    bmproperty.Map
-		globalProperties bmproperty.Map
+		jobProperties    biproperty.Map
+		globalProperties biproperty.Map
 		deploymentName   string
 
-		fakeStage *fakebmui.FakeStage
+		fakeStage *fakebiui.FakeStage
 
 		expectJobRender *gomock.Call
 
@@ -69,14 +69,14 @@ var _ = Describe("TemplatesCompiler", func() {
 		blobstore = fakeblobs.NewFakeBlobstore()
 		fs = fakesys.NewFakeFileSystem()
 
-		templatesRepo = fakebmtemp.NewFakeTemplatesRepo()
+		templatesRepo = fakebitemp.NewFakeTemplatesRepo()
 
-		jobProperties = bmproperty.Map{
+		jobProperties = biproperty.Map{
 			"fake-property-key": "fake-job-property-value",
 		}
 
 		// installation ignores global properties
-		globalProperties = bmproperty.Map{}
+		globalProperties = biproperty.Map{}
 
 		deploymentName = "fake-deployment-name"
 
@@ -98,7 +98,7 @@ var _ = Describe("TemplatesCompiler", func() {
 	})
 
 	JustBeforeEach(func() {
-		job := bmreljob.Job{
+		job := bireljob.Job{
 			Name:          "fake-job-1",
 			Fingerprint:   "",
 			SHA1:          "",
@@ -110,9 +110,9 @@ var _ = Describe("TemplatesCompiler", func() {
 			Packages:     nil,
 			Properties:   nil,
 		}
-		jobs := []bmreljob.Job{job}
+		jobs := []bireljob.Job{job}
 
-		fakeStage = fakebmui.NewFakeStage()
+		fakeStage = fakebiui.NewFakeStage()
 
 		renderedJob := NewRenderedJob(job, renderedPath, fs, logger)
 		renderedJobList := NewRenderedJobList()
@@ -128,8 +128,8 @@ var _ = Describe("TemplatesCompiler", func() {
 
 	Context("with a job", func() {
 		BeforeEach(func() {
-			jobs = []bmreljob.Job{
-				bmreljob.Job{
+			jobs = []bireljob.Job{
+				bireljob.Job{
 					Name:          "fake-job-1",
 					ExtractedPath: "fake-extracted-path",
 					Templates: map[string]string{
@@ -159,7 +159,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			err := templatesCompiler.Compile(jobs, "fake-deployment-name", jobProperties, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Rendering job templates"},
 			}))
 		})
@@ -194,7 +194,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			}
 
 			Expect(templatesRepo.SaveInputs).To(ContainElement(
-				fakebmtemp.SaveInput{Job: jobs[0], Record: record},
+				fakebitemp.SaveInput{Job: jobs[0], Record: record},
 			))
 		})
 
@@ -217,7 +217,7 @@ var _ = Describe("TemplatesCompiler", func() {
 				err := templatesCompiler.Compile(jobs, "fake-deployment-name", jobProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 					{
 						Name:  "Rendering job templates",
 						Error: renderError,
@@ -301,22 +301,22 @@ var _ = Describe("TemplatesCompiler", func() {
 			)
 
 			BeforeEach(func() {
-				jobs = []bmreljob.Job{
-					bmreljob.Job{
+				jobs = []bireljob.Job{
+					bireljob.Job{
 						Name:          "fake-job-1",
 						ExtractedPath: "fake-extracted-path-1",
 						Templates: map[string]string{
 							"cpi.erb": "/bin/cpi",
 						},
 					},
-					bmreljob.Job{
+					bireljob.Job{
 						Name:          "fake-job-2",
 						ExtractedPath: "fake-extracted-path-2",
 						Templates: map[string]string{
 							"cpi.erb": "/bin/cpi",
 						},
 					},
-					bmreljob.Job{
+					bireljob.Job{
 						Name:          "fake-job-3",
 						ExtractedPath: "fake-extracted-path-3",
 						Templates: map[string]string{
@@ -345,7 +345,7 @@ var _ = Describe("TemplatesCompiler", func() {
 				err := templatesCompiler.Compile(jobs, "fake-deployment-name", jobProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 					{
 						Name:  "Rendering job templates",
 						Error: renderError,

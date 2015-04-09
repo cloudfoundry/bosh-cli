@@ -19,20 +19,20 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Deployer", func() {
@@ -49,22 +49,22 @@ var _ = Describe("Deployer", func() {
 	var (
 		deployer               Deployer
 		mockVMManagerFactory   *mock_vm.MockManagerFactory
-		fakeVMManager          *fakebmvm.FakeManager
+		fakeVMManager          *fakebivm.FakeManager
 		mockAgentClient        *mock_agentclient.MockAgentClient
 		mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
-		fakeSSHTunnelFactory   *fakebmsshtunnel.FakeFactory
-		fakeSSHTunnel          *fakebmsshtunnel.FakeTunnel
-		cloud                  *fakebmcloud.FakeCloud
-		deploymentManifest     bmdeplmanifest.Manifest
-		diskPool               bmdeplmanifest.DiskPool
-		registryConfig         bminstallmanifest.Registry
-		fakeStage              *fakebmui.FakeStage
-		sshTunnelConfig        bminstallmanifest.SSHTunnel
-		fakeVM                 *fakebmvm.FakeVM
+		fakeSSHTunnelFactory   *fakebisshtunnel.FakeFactory
+		fakeSSHTunnel          *fakebisshtunnel.FakeTunnel
+		cloud                  *fakebicloud.FakeCloud
+		deploymentManifest     bideplmanifest.Manifest
+		diskPool               bideplmanifest.DiskPool
+		registryConfig         biinstallmanifest.Registry
+		fakeStage              *fakebiui.FakeStage
+		sshTunnelConfig        biinstallmanifest.SSHTunnel
+		fakeVM                 *fakebivm.FakeVM
 
-		cloudStemcell bmstemcell.CloudStemcell
+		cloudStemcell bistemcell.CloudStemcell
 
-		applySpec bmas.ApplySpec
+		applySpec bias.ApplySpec
 
 		mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
 		mockStateBuilder        *mock_instance_state.MockBuilder
@@ -74,24 +74,24 @@ var _ = Describe("Deployer", func() {
 	)
 
 	BeforeEach(func() {
-		diskPool = bmdeplmanifest.DiskPool{
+		diskPool = bideplmanifest.DiskPool{
 			Name:     "fake-persistent-disk-pool-name",
 			DiskSize: 1024,
-			CloudProperties: bmproperty.Map{
+			CloudProperties: biproperty.Map{
 				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 			},
 		}
-		deploymentManifest = bmdeplmanifest.Manifest{
-			Update: bmdeplmanifest.Update{
-				UpdateWatchTime: bmdeplmanifest.WatchTime{
+		deploymentManifest = bideplmanifest.Manifest{
+			Update: bideplmanifest.Update{
+				UpdateWatchTime: bideplmanifest.WatchTime{
 					Start: 0,
 					End:   5478,
 				},
 			},
-			DiskPools: []bmdeplmanifest.DiskPool{
+			DiskPools: []bideplmanifest.DiskPool{
 				diskPool,
 			},
-			Jobs: []bmdeplmanifest.Job{
+			Jobs: []bideplmanifest.Job{
 				{
 					Name:               "fake-job-name",
 					PersistentDiskPool: "fake-persistent-disk-pool-name",
@@ -99,8 +99,8 @@ var _ = Describe("Deployer", func() {
 				},
 			},
 		}
-		registryConfig = bminstallmanifest.Registry{}
-		sshTunnelConfig = bminstallmanifest.SSHTunnel{
+		registryConfig = biinstallmanifest.Registry{}
+		sshTunnelConfig = biinstallmanifest.SSHTunnel{
 			User:       "fake-ssh-username",
 			PrivateKey: "fake-private-key-path",
 			Password:   "fake-password",
@@ -108,31 +108,31 @@ var _ = Describe("Deployer", func() {
 			Port:       124,
 		}
 
-		cloud = fakebmcloud.NewFakeCloud()
+		cloud = fakebicloud.NewFakeCloud()
 
 		mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
 
 		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
-		fakeVMManager = fakebmvm.NewFakeManager()
+		fakeVMManager = fakebivm.NewFakeManager()
 		mockVMManagerFactory.EXPECT().NewManager(cloud, mockAgentClient).Return(fakeVMManager).AnyTimes()
 
-		fakeSSHTunnelFactory = fakebmsshtunnel.NewFakeFactory()
-		fakeSSHTunnel = fakebmsshtunnel.NewFakeTunnel()
+		fakeSSHTunnelFactory = fakebisshtunnel.NewFakeFactory()
+		fakeSSHTunnel = fakebisshtunnel.NewFakeTunnel()
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 
-		fakeVM = fakebmvm.NewFakeVM("fake-vm-cid")
+		fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 		fakeVMManager.CreateVM = fakeVM
 
 		fakeVM.AgentClientReturn = mockAgentClient
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		fakeStage = fakebmui.NewFakeStage()
+		fakeStage = fakebiui.NewFakeStage()
 
-		fakeStemcellRepo := fakebmconfig.NewFakeStemcellRepo()
-		stemcellRecord := bmconfig.StemcellRecord{
+		fakeStemcellRepo := fakebiconfig.NewFakeStemcellRepo()
+		stemcellRecord := biconfig.StemcellRecord{
 			ID:      "fake-stemcell-id",
 			Name:    "fake-stemcell-name",
 			Version: "fake-stemcell-version",
@@ -141,14 +141,14 @@ var _ = Describe("Deployer", func() {
 		err := fakeStemcellRepo.SetFindBehavior("fake-stemcell-name", "fake-stemcell-version", stemcellRecord, true, nil)
 		Expect(err).ToNot(HaveOccurred())
 
-		cloudStemcell = bmstemcell.NewCloudStemcell(stemcellRecord, fakeStemcellRepo, cloud)
+		cloudStemcell = bistemcell.NewCloudStemcell(stemcellRecord, fakeStemcellRepo, cloud)
 
 		mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
 		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
 		mockState = mock_instance_state.NewMockState(mockCtrl)
 
-		instanceFactory := bminstance.NewFactory(mockStateBuilderFactory)
-		instanceManagerFactory := bminstance.NewManagerFactory(fakeSSHTunnelFactory, instanceFactory, logger)
+		instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
+		instanceManagerFactory := biinstance.NewManagerFactory(fakeSSHTunnelFactory, instanceFactory, logger)
 
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 
@@ -169,7 +169,7 @@ var _ = Describe("Deployer", func() {
 		jobIndex := 0
 
 		// since we're just passing this from State.ToApplySpec() to VM.Apply(), it doesn't need to be filled out
-		applySpec = bmas.ApplySpec{
+		applySpec = bias.ApplySpec{
 			Deployment: "fake-deployment-name",
 		}
 
@@ -179,10 +179,10 @@ var _ = Describe("Deployer", func() {
 	})
 
 	Context("when a previous instance exists", func() {
-		var fakeExistingVM *fakebmvm.FakeVM
+		var fakeExistingVM *fakebivm.FakeVM
 
 		BeforeEach(func() {
-			fakeExistingVM = fakebmvm.NewFakeVM("existing-vm-cid")
+			fakeExistingVM = fakebivm.NewFakeVM("existing-vm-cid")
 			fakeVMManager.SetFindCurrentBehavior(fakeExistingVM, true, nil)
 			fakeExistingVM.AgentClientReturn = mockAgentClient
 		})
@@ -193,7 +193,7 @@ var _ = Describe("Deployer", func() {
 
 			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
 
-			Expect(fakeStage.PerformCalls[:3]).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls[:3]).To(Equal([]fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
 				{Name: "Stopping jobs on instance 'unknown/0'"},
 				{Name: "Deleting VM 'existing-vm-cid'"},
@@ -205,7 +205,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVMManager.CreateInput).To(Equal(fakebmvm.CreateInput{
+		Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
 			Stemcell: cloudStemcell,
 			Manifest: deploymentManifest,
 		}))
@@ -213,13 +213,13 @@ var _ = Describe("Deployer", func() {
 
 	Context("when registry & ssh tunnel configs are not empty", func() {
 		BeforeEach(func() {
-			registryConfig = bminstallmanifest.Registry{
+			registryConfig = biinstallmanifest.Registry{
 				Username: "fake-username",
 				Password: "fake-password",
 				Host:     "fake-host",
 				Port:     123,
 			}
-			sshTunnelConfig = bminstallmanifest.SSHTunnel{
+			sshTunnelConfig = biinstallmanifest.SSHTunnel{
 				User:       "fake-ssh-username",
 				PrivateKey: "fake-private-key-path",
 				Password:   "fake-password",
@@ -232,7 +232,7 @@ var _ = Describe("Deployer", func() {
 			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeSSHTunnel.Started).To(BeTrue())
-			Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bmsshtunnel.Options{
+			Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bisshtunnel.Options{
 				User:              "fake-ssh-username",
 				PrivateKey:        "fake-private-key-path",
 				Password:          "fake-password",
@@ -259,7 +259,7 @@ var _ = Describe("Deployer", func() {
 	It("waits for the vm", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebmvm.WaitUntilReadyInput{
+		Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
 			Timeout: 10 * time.Minute,
 			Delay:   500 * time.Millisecond,
 		}))
@@ -269,7 +269,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeStage.PerformCalls[1]).To(Equal(fakebmui.PerformCall{
+		Expect(fakeStage.PerformCalls[1]).To(Equal(fakebiui.PerformCall{
 			Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 		}))
 	})
@@ -288,7 +288,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
-			Expect(fakeStage.PerformCalls[1]).To(Equal(fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls[1]).To(Equal(fakebiui.PerformCall{
 				Name:  "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 				Error: waitError,
 			}))
@@ -299,7 +299,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVM.ApplyInputs).To(Equal([]fakebmvm.ApplyInput{
+		Expect(fakeVM.ApplyInputs).To(Equal([]fakebivm.ApplyInput{
 			{ApplySpec: applySpec},
 		}))
 	})
@@ -315,7 +315,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebmvm.WaitInput{
+		Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebivm.WaitInput{
 			MaxAttempts: 5,
 			Delay:       1 * time.Second,
 		}))
@@ -336,7 +336,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, fakeVMManager, mockBlobstore, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeStage.PerformCalls[2:4]).To(Equal([]fakebmui.PerformCall{
+		Expect(fakeStage.PerformCalls[2:4]).To(Equal([]fakebiui.PerformCall{
 			{Name: "Updating instance 'fake-job-name/0'"},
 			{Name: "Waiting for instance 'fake-job-name/0' to be running"},
 		}))
@@ -388,7 +388,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 
-			Expect(fakeStage.PerformCalls[3]).To(Equal(fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls[3]).To(Equal(fakebiui.PerformCall{
 				Name:  "Waiting for instance 'fake-job-name/0' to be running",
 				Error: waitError,
 			}))

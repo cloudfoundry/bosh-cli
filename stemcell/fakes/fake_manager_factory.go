@@ -5,17 +5,17 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 type NewManagerInput struct {
-	Cloud bmcloud.Cloud
+	Cloud bicloud.Cloud
 }
 
 type newManagerOutput struct {
-	manager bmstemcell.Manager
+	manager bistemcell.Manager
 }
 
 type FakeManagerFactory struct {
@@ -30,13 +30,13 @@ func NewFakeManagerFactory() *FakeManagerFactory {
 	}
 }
 
-func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud) bmstemcell.Manager {
+func (f *FakeManagerFactory) NewManager(cloud bicloud.Cloud) bistemcell.Manager {
 	input := NewManagerInput{
 		Cloud: cloud,
 	}
 	f.NewManagerInputs = append(f.NewManagerInputs, input)
 
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
 		panic(bosherr.WrapError(marshalErr, "Marshaling NewManager input"))
 	}
@@ -49,12 +49,12 @@ func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud) bmstemcell.Manager 
 	return output.manager
 }
 
-func (f *FakeManagerFactory) SetNewManagerBehavior(cloud bmcloud.Cloud, manager bmstemcell.Manager) {
+func (f *FakeManagerFactory) SetNewManagerBehavior(cloud bicloud.Cloud, manager bistemcell.Manager) {
 	input := NewManagerInput{
 		Cloud: cloud,
 	}
 
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
 		panic(bosherr.WrapError(marshalErr, "Marshaling NewManager input"))
 	}

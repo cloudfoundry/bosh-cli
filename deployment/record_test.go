@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebmcrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	fakebmrel "github.com/cloudfoundry/bosh-init/release/fakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 	"github.com/cloudfoundry/bosh-init/release"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 
 	. "github.com/cloudfoundry/bosh-init/deployment"
 )
@@ -22,41 +22,41 @@ var _ = Describe("Record", rootDesc)
 
 func rootDesc() {
 	var (
-		fakeRelease        *fakebmrel.FakeRelease
-		stemcell           bmstemcell.ExtractedStemcell
-		deploymentRepo     *fakebmconfig.FakeDeploymentRepo
-		releaseRepo        *fakebmconfig.FakeReleaseRepo
-		stemcellRepo       *fakebmconfig.FakeStemcellRepo
-		fakeSHA1Calculator *fakebmcrypto.FakeSha1Calculator
+		fakeRelease        *fakebirel.FakeRelease
+		stemcell           bistemcell.ExtractedStemcell
+		deploymentRepo     *fakebiconfig.FakeDeploymentRepo
+		releaseRepo        *fakebiconfig.FakeReleaseRepo
+		stemcellRepo       *fakebiconfig.FakeStemcellRepo
+		fakeSHA1Calculator *fakebicrypto.FakeSha1Calculator
 		deploymentRecord   Record
 		releases           []release.Release
 	)
 
 	BeforeEach(func() {
-		fakeRelease = &fakebmrel.FakeRelease{
+		fakeRelease = &fakebirel.FakeRelease{
 			ReleaseName:    "fake-release-name",
 			ReleaseVersion: "fake-release-version",
 		}
 		releases = []release.Release{fakeRelease}
 		fakeFS := fakesys.NewFakeFileSystem()
-		stemcell = bmstemcell.NewExtractedStemcell(
-			bmstemcell.Manifest{
+		stemcell = bistemcell.NewExtractedStemcell(
+			bistemcell.Manifest{
 				Name:    "fake-stemcell-name",
 				Version: "fake-stemcell-version",
 			},
 			"fake-extracted-path",
 			fakeFS,
 		)
-		deploymentRepo = fakebmconfig.NewFakeDeploymentRepo()
-		releaseRepo = &fakebmconfig.FakeReleaseRepo{}
-		stemcellRepo = fakebmconfig.NewFakeStemcellRepo()
-		fakeSHA1Calculator = fakebmcrypto.NewFakeSha1Calculator()
+		deploymentRepo = fakebiconfig.NewFakeDeploymentRepo()
+		releaseRepo = &fakebiconfig.FakeReleaseRepo{}
+		stemcellRepo = fakebiconfig.NewFakeStemcellRepo()
+		fakeSHA1Calculator = fakebicrypto.NewFakeSha1Calculator()
 		deploymentRecord = NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 	})
 
 	Describe("IsDeployed", func() {
 		BeforeEach(func() {
-			stemcellRecord := bmconfig.StemcellRecord{
+			stemcellRecord := biconfig.StemcellRecord{
 				ID:      "fake-stemcell-id",
 				Name:    "fake-stemcell-name",
 				Version: "fake-stemcell-version",
@@ -65,8 +65,8 @@ func rootDesc() {
 			stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
 
 			deploymentRepo.SetFindCurrentBehavior("fake-manifest-sha1", true, nil)
-			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
-				"fake-manifest-path": fakebmcrypto.CalculateInput{
+			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
+				"fake-manifest-path": fakebicrypto.CalculateInput{
 					Sha1: "fake-manifest-sha1",
 					Err:  nil,
 				},
@@ -76,7 +76,7 @@ func rootDesc() {
 		Context("when the stemcell and manifest do not change", func() {
 			Context("when no release is currently deployed", func() {
 				BeforeEach(func() {
-					releaseRepo.ListReturns([]bmconfig.ReleaseRecord{}, nil)
+					releaseRepo.ListReturns([]biconfig.ReleaseRecord{}, nil)
 				})
 
 				It("returns false", func() {
@@ -88,7 +88,7 @@ func rootDesc() {
 
 			Context("when the same release is currently deployed", func() {
 				BeforeEach(func() {
-					releaseRecords := []bmconfig.ReleaseRecord{{
+					releaseRecords := []biconfig.ReleaseRecord{{
 						ID:      "fake-release-id",
 						Name:    fakeRelease.Name(),
 						Version: fakeRelease.Version(),
@@ -106,7 +106,7 @@ func rootDesc() {
 			Context("when a different version of the same release is currently deployed", func() {
 				BeforeEach(func() {
 					Expect("other-version").ToNot(Equal(fakeRelease.Version()))
-					releaseRecords := []bmconfig.ReleaseRecord{{
+					releaseRecords := []biconfig.ReleaseRecord{{
 						ID:      "fake-release-id-2",
 						Name:    fakeRelease.Name(),
 						Version: "other-version",
@@ -124,7 +124,7 @@ func rootDesc() {
 			Context("when a same version of a different release is currently deployed", func() {
 				BeforeEach(func() {
 					Expect("other-release").ToNot(Equal(fakeRelease.Name()))
-					releaseRecords := []bmconfig.ReleaseRecord{{
+					releaseRecords := []biconfig.ReleaseRecord{{
 						ID:      "fake-release-id-2",
 						Name:    "other-release",
 						Version: fakeRelease.Version(),
@@ -140,14 +140,14 @@ func rootDesc() {
 			})
 
 			Context("when deploying multiple releases", func() {
-				var otherFakeRelease *fakebmrel.FakeRelease
+				var otherFakeRelease *fakebirel.FakeRelease
 
 				BeforeEach(func() {
-					otherFakeRelease = &fakebmrel.FakeRelease{
+					otherFakeRelease = &fakebirel.FakeRelease{
 						ReleaseName:    "other-fake-release-name",
 						ReleaseVersion: "other-fake-release-version",
 					}
-					releaseRecords := []bmconfig.ReleaseRecord{
+					releaseRecords := []biconfig.ReleaseRecord{
 						{
 							ID:      "fake-release-id-1",
 							Name:    fakeRelease.Name(),
@@ -236,8 +236,8 @@ func rootDesc() {
 
 		Context("when calculating the deployment manifest sha1 fails", func() {
 			BeforeEach(func() {
-				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
-					"fake-manifest-path": fakebmcrypto.CalculateInput{
+				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
+					"fake-manifest-path": fakebicrypto.CalculateInput{
 						Sha1: "",
 						Err:  errors.New("fake-calculate-error"),
 					},
@@ -265,7 +265,7 @@ func rootDesc() {
 
 		Context("when finding the currently deployed stemcell fails", func() {
 			BeforeEach(func() {
-				stemcellRepo.SetFindCurrentBehavior(bmconfig.StemcellRecord{}, false, errors.New("fake-find-error"))
+				stemcellRepo.SetFindCurrentBehavior(biconfig.StemcellRecord{}, false, errors.New("fake-find-error"))
 			})
 
 			It("returns an error", func() {
@@ -277,7 +277,7 @@ func rootDesc() {
 
 		Context("when no stemcell is currently deployed", func() {
 			BeforeEach(func() {
-				stemcellRepo.SetFindCurrentBehavior(bmconfig.StemcellRecord{}, false, nil)
+				stemcellRepo.SetFindCurrentBehavior(biconfig.StemcellRecord{}, false, nil)
 			})
 
 			It("returns false", func() {
@@ -289,7 +289,7 @@ func rootDesc() {
 
 		Context("when a different stemcell is currently deployed", func() {
 			BeforeEach(func() {
-				stemcellRecord := bmconfig.StemcellRecord{
+				stemcellRecord := biconfig.StemcellRecord{
 					ID:      "fake-stemcell-id-2",
 					Name:    "fake-stemcell-name-2",
 					Version: "fake-stemcell-version-2",
@@ -307,7 +307,7 @@ func rootDesc() {
 
 		Context("when finding the currently deployed release fails", func() {
 			BeforeEach(func() {
-				releaseRepo.ListReturns([]bmconfig.ReleaseRecord{}, errors.New("fake-find-error"))
+				releaseRepo.ListReturns([]biconfig.ReleaseRecord{}, errors.New("fake-find-error"))
 			})
 
 			It("returns an error", func() {
@@ -320,8 +320,8 @@ func rootDesc() {
 
 	Describe("Update", func() {
 		BeforeEach(func() {
-			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
-				"fake-manifest-path": fakebmcrypto.CalculateInput{
+			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
+				"fake-manifest-path": fakebicrypto.CalculateInput{
 					Sha1: "fake-manifest-sha1",
 					Err:  nil,
 				},
@@ -343,8 +343,8 @@ func rootDesc() {
 
 		Context("when calculating the deployment manifest sha1 fails", func() {
 			BeforeEach(func() {
-				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebmcrypto.CalculateInput{
-					"fake-manifest-path": fakebmcrypto.CalculateInput{
+				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
+					"fake-manifest-path": fakebicrypto.CalculateInput{
 						Sha1: "",
 						Err:  errors.New("fake-calculate-error"),
 					},

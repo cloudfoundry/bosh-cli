@@ -1,12 +1,12 @@
 package manifest
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type ResourcePool struct {
 	Name            string
 	Network         string
-	CloudProperties bmproperty.Map
-	Env             bmproperty.Map
+	CloudProperties biproperty.Map
+	Env             biproperty.Map
 }

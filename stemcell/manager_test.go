@@ -13,23 +13,23 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebmstemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {
 	var (
-		stemcellRepo        bmconfig.StemcellRepo
+		stemcellRepo        biconfig.StemcellRepo
 		fakeUUIDGenerator   *fakeuuid.FakeGenerator
 		manager             Manager
 		fs                  *fakesys.FakeFileSystem
-		reader              *fakebmstemcell.FakeStemcellReader
-		fakeCloud           *fakebmcloud.FakeCloud
-		fakeStage           *fakebmui.FakeStage
+		reader              *fakebistemcell.FakeStemcellReader
+		fakeCloud           *fakebicloud.FakeCloud
+		fakeStage           *fakebiui.FakeStage
 		stemcellTarballPath string
 		tempExtractionDir   string
 
@@ -38,14 +38,14 @@ var _ = Describe("Manager", func() {
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		reader = fakebmstemcell.NewFakeReader()
+		reader = fakebistemcell.NewFakeReader()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
+		configService := biconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
 		fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
-		stemcellRepo = bmconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
-		fakeStage = fakebmui.NewFakeStage()
-		fakeCloud = fakebmcloud.NewFakeCloud()
+		stemcellRepo = biconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
+		fakeStage = fakebiui.NewFakeStage()
+		fakeCloud = fakebicloud.NewFakeCloud()
 		manager = NewManager(stemcellRepo, fakeCloud)
 		stemcellTarballPath = "/stemcell/tarball/path"
 		tempExtractionDir = "/path/to/dest"
@@ -56,7 +56,7 @@ var _ = Describe("Manager", func() {
 				Name:      "fake-stemcell-name",
 				Version:   "fake-stemcell-version",
 				ImagePath: "fake-image-path",
-				CloudProperties: bmproperty.Map{
+				CloudProperties: biproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},
@@ -73,7 +73,7 @@ var _ = Describe("Manager", func() {
 
 		BeforeEach(func() {
 			fakeCloud.CreateStemcellCID = "fake-stemcell-cid"
-			stemcellRecord := bmconfig.StemcellRecord{
+			stemcellRecord := biconfig.StemcellRecord{
 				CID:     "fake-stemcell-cid",
 				Name:    "fake-stemcell-name",
 				Version: "fake-stemcell-version",
@@ -86,10 +86,10 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
-			Expect(fakeCloud.CreateStemcellInputs).To(Equal([]fakebmcloud.CreateStemcellInput{
+			Expect(fakeCloud.CreateStemcellInputs).To(Equal([]fakebicloud.CreateStemcellInput{
 				{
 					ImagePath: "fake-image-path",
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"fake-prop-key": "fake-prop-value",
 					},
 				},
@@ -102,7 +102,7 @@ var _ = Describe("Manager", func() {
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
 			stemcellRecords, err := stemcellRepo.All()
-			Expect(stemcellRecords).To(Equal([]bmconfig.StemcellRecord{
+			Expect(stemcellRecords).To(Equal([]biconfig.StemcellRecord{
 				{
 					ID:      "fake-stemcell-id-1",
 					Name:    "fake-stemcell-name",
@@ -116,7 +116,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Uploading stemcell 'fake-stemcell-name/fake-stemcell-version'"},
 			}))
 		})
@@ -145,7 +145,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when the stemcell record exists in the stemcellRepo (having been previously uploaded)", func() {
 			var (
-				foundStemcellRecord bmconfig.StemcellRecord
+				foundStemcellRecord biconfig.StemcellRecord
 			)
 
 			BeforeEach(func() {
@@ -254,7 +254,7 @@ var _ = Describe("Manager", func() {
 
 	Describe("DeleteUnused", func() {
 		var (
-			secondStemcellRecord bmconfig.StemcellRecord
+			secondStemcellRecord biconfig.StemcellRecord
 		)
 		BeforeEach(func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
@@ -276,12 +276,12 @@ var _ = Describe("Manager", func() {
 			err := manager.DeleteUnused(fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebmcloud.DeleteStemcellInput{
+			Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebicloud.DeleteStemcellInput{
 				{StemcellCID: "fake-stemcell-cid-1"},
 				{StemcellCID: "fake-stemcell-cid-3"},
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Deleting unused stemcell 'fake-stemcell-cid-1'"},
 				{Name: "Deleting unused stemcell 'fake-stemcell-cid-3'"},
 			}))
@@ -293,7 +293,7 @@ var _ = Describe("Manager", func() {
 
 			records, err := stemcellRepo.All()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(records).To(Equal([]bmconfig.StemcellRecord{
+			Expect(records).To(Equal([]biconfig.StemcellRecord{
 				secondStemcellRecord,
 			}))
 		})

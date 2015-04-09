@@ -12,7 +12,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("Parser", func() {
@@ -112,9 +112,9 @@ properties:
 				{
 					Name: "fake-network-name",
 					Type: Dynamic,
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"subnet": "fake-subnet",
-						"a": bmproperty.Map{
+						"a": biproperty.Map{
 							"b": "value",
 						},
 					},
@@ -122,17 +122,17 @@ properties:
 				{
 					Name:            "vip",
 					Type:            VIP,
-					CloudProperties: bmproperty.Map{},
+					CloudProperties: biproperty.Map{},
 				},
 			},
 			ResourcePools: []ResourcePool{
 				{
 					Name: "fake-resource-pool-name",
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"fake-property": "fake-property-value",
 					},
-					Env: bmproperty.Map{
-						"bosh": bmproperty.Map{
+					Env: biproperty.Map{
+						"bosh": biproperty.Map{
 							"password": "secret",
 						},
 					},
@@ -142,7 +142,7 @@ properties:
 				{
 					Name:     "fake-disk-pool-name",
 					DiskSize: 2048,
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 					},
 				},
@@ -158,15 +158,15 @@ properties:
 					},
 					PersistentDisk:     1024,
 					PersistentDiskPool: "fake-disk-pool-name",
-					Properties: bmproperty.Map{
-						"fake-prop-key": bmproperty.Map{
+					Properties: biproperty.Map{
+						"fake-prop-key": biproperty.Map{
 							"nested-prop-key": "fake-prop-value",
 						},
 					},
 				},
 			},
-			Properties: bmproperty.Map{
-				"foo": bmproperty.Map{
+			Properties: biproperty.Map{
+				"foo": biproperty.Map{
 					"bar": "baz",
 				},
 			},

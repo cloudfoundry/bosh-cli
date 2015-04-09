@@ -11,7 +11,7 @@ import (
 	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
 	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
@@ -30,7 +30,7 @@ var _ = Describe("BlobstoreFactory", func() {
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 		fs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		httpClient = bmhttpclient.DefaultClient
+		httpClient = bihttpclient.DefaultClient
 
 		blobstoreFactory = NewBlobstoreFactory(fakeUUIDGenerator, fs, logger)
 	})

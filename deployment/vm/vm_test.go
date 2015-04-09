@@ -12,58 +12,58 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 
-	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebmconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
-	fakebmdisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
-	fakebmvm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebiagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
+	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("VM", func() {
 	var (
 		vm               VM
-		fakeVMRepo       *fakebmconfig.FakeVMRepo
-		fakeStemcellRepo *fakebmconfig.FakeStemcellRepo
-		fakeDiskDeployer *fakebmvm.FakeDiskDeployer
-		fakeAgentClient  *fakebmagentclient.FakeAgentClient
-		fakeCloud        *fakebmcloud.FakeCloud
-		applySpec        bmas.ApplySpec
-		diskPool         bmdeplmanifest.DiskPool
+		fakeVMRepo       *fakebiconfig.FakeVMRepo
+		fakeStemcellRepo *fakebiconfig.FakeStemcellRepo
+		fakeDiskDeployer *fakebivm.FakeDiskDeployer
+		fakeAgentClient  *fakebiagentclient.FakeAgentClient
+		fakeCloud        *fakebicloud.FakeCloud
+		applySpec        bias.ApplySpec
+		diskPool         bideplmanifest.DiskPool
 		fs               *fakesys.FakeFileSystem
 		logger           boshlog.Logger
 	)
 
 	BeforeEach(func() {
-		fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
+		fakeAgentClient = fakebiagentclient.NewFakeAgentClient()
 
 		// apply spec is only being passed to the agent client, so it doesn't need much content for testing
-		applySpec = bmas.ApplySpec{
+		applySpec = bias.ApplySpec{
 			Deployment: "fake-deployment-name",
 		}
 
-		diskPool = bmdeplmanifest.DiskPool{
+		diskPool = bideplmanifest.DiskPool{
 			Name:     "fake-persistent-disk-pool-name",
 			DiskSize: 1024,
-			CloudProperties: bmproperty.Map{
+			CloudProperties: biproperty.Map{
 				"fake-disk-pool-cloud-property-key": "fake-disk-pool-cloud-property-value",
 			},
 		}
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		fakeCloud = fakebmcloud.NewFakeCloud()
-		fakeVMRepo = fakebmconfig.NewFakeVMRepo()
-		fakeStemcellRepo = fakebmconfig.NewFakeStemcellRepo()
-		fakeDiskDeployer = fakebmvm.NewFakeDiskDeployer()
+		fakeCloud = fakebicloud.NewFakeCloud()
+		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
+		fakeStemcellRepo = fakebiconfig.NewFakeStemcellRepo()
+		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
 		vm = NewVM(
 			"fake-vm-cid",
 			fakeVMRepo,
@@ -103,22 +103,22 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("UpdateDisks", func() {
-		var expectedDisks []bmdisk.Disk
+		var expectedDisks []bidisk.Disk
 
 		BeforeEach(func() {
-			fakeDisk := fakebmdisk.NewFakeDisk("fake-disk-cid")
-			expectedDisks = []bmdisk.Disk{fakeDisk}
+			fakeDisk := fakebidisk.NewFakeDisk("fake-disk-cid")
+			expectedDisks = []bidisk.Disk{fakeDisk}
 			fakeDiskDeployer.SetDeployBehavior(expectedDisks, nil)
 		})
 
 		It("delegates to DiskDeployer.Deploy", func() {
-			fakeStage := fakebmui.NewFakeStage()
+			fakeStage := fakebiui.NewFakeStage()
 
 			disks, err := vm.UpdateDisks(diskPool, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(disks).To(Equal(expectedDisks))
 
-			Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebmvm.DeployInput{
+			Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebivm.DeployInput{
 				{
 					DiskPool:         diskPool,
 					Cloud:            fakeCloud,
@@ -191,9 +191,9 @@ var _ = Describe("VM", func() {
 
 	Describe("WaitToBeRunning", func() {
 		BeforeEach(func() {
-			fakeAgentClient.SetGetStateBehavior(bmagentclient.AgentState{JobState: "pending"}, nil)
-			fakeAgentClient.SetGetStateBehavior(bmagentclient.AgentState{JobState: "pending"}, nil)
-			fakeAgentClient.SetGetStateBehavior(bmagentclient.AgentState{JobState: "running"}, nil)
+			fakeAgentClient.SetGetStateBehavior(biagentclient.AgentState{JobState: "pending"}, nil)
+			fakeAgentClient.SetGetStateBehavior(biagentclient.AgentState{JobState: "pending"}, nil)
+			fakeAgentClient.SetGetStateBehavior(biagentclient.AgentState{JobState: "running"}, nil)
 		})
 
 		It("waits until agent reports state as running", func() {
@@ -204,16 +204,16 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("AttachDisk", func() {
-		var disk *fakebmdisk.FakeDisk
+		var disk *fakebidisk.FakeDisk
 
 		BeforeEach(func() {
-			disk = fakebmdisk.NewFakeDisk("fake-disk-cid")
+			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
 		})
 
 		It("attaches disk to vm in the cloud", func() {
 			err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.AttachDiskInput).To(Equal(fakebmcloud.AttachDiskInput{
+			Expect(fakeCloud.AttachDiskInput).To(Equal(fakebicloud.AttachDiskInput{
 				VMCID:   "fake-vm-cid",
 				DiskCID: "fake-disk-cid",
 			}))
@@ -251,16 +251,16 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("DetachDisk", func() {
-		var disk *fakebmdisk.FakeDisk
+		var disk *fakebidisk.FakeDisk
 
 		BeforeEach(func() {
-			disk = fakebmdisk.NewFakeDisk("fake-disk-cid")
+			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
 		})
 
 		It("detaches disk from vm in the cloud", func() {
 			err := vm.DetachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.DetachDiskInput).To(Equal(fakebmcloud.DetachDiskInput{
+			Expect(fakeCloud.DetachDiskInput).To(Equal(fakebicloud.DetachDiskInput{
 				VMCID:   "fake-vm-cid",
 				DiskCID: "fake-disk-cid",
 			}))
@@ -280,10 +280,10 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("UnmountDisk", func() {
-		var disk *fakebmdisk.FakeDisk
+		var disk *fakebidisk.FakeDisk
 
 		BeforeEach(func() {
-			disk = fakebmdisk.NewFakeDisk("fake-disk-cid")
+			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
 		})
 
 		It("sends unmount disk to the agent", func() {
@@ -313,9 +313,9 @@ var _ = Describe("VM", func() {
 		It("returns disks that are reported by the agent", func() {
 			disks, err := vm.Disks()
 			Expect(err).ToNot(HaveOccurred())
-			expectedFirstDisk := bmdisk.NewDisk(bmconfig.DiskRecord{CID: "fake-disk-cid-1"}, nil, nil)
-			expectedSecondDisk := bmdisk.NewDisk(bmconfig.DiskRecord{CID: "fake-disk-cid-2"}, nil, nil)
-			Expect(disks).To(Equal([]bmdisk.Disk{expectedFirstDisk, expectedSecondDisk}))
+			expectedFirstDisk := bidisk.NewDisk(biconfig.DiskRecord{CID: "fake-disk-cid-1"}, nil, nil)
+			expectedSecondDisk := bidisk.NewDisk(biconfig.DiskRecord{CID: "fake-disk-cid-2"}, nil, nil)
+			Expect(disks).To(Equal([]bidisk.Disk{expectedFirstDisk, expectedSecondDisk}))
 		})
 
 		Context("when listing disks fails", func() {
@@ -335,7 +335,7 @@ var _ = Describe("VM", func() {
 		It("deletes vm in the cloud", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.DeleteVMInput).To(Equal(fakebmcloud.DeleteVMInput{
+			Expect(fakeCloud.DeleteVMInput).To(Equal(fakebicloud.DeleteVMInput{
 				VMCID: "fake-vm-cid",
 			}))
 		})
@@ -365,8 +365,8 @@ var _ = Describe("VM", func() {
 		})
 
 		Context("when deleting vm in the cloud fails with VMNotFoundError", func() {
-			var deleteErr = bmcloud.NewCPIError("delete_vm", bmcloud.CmdError{
-				Type:    bmcloud.VMNotFoundError,
+			var deleteErr = bicloud.NewCPIError("delete_vm", bicloud.CmdError{
+				Type:    bicloud.VMNotFoundError,
 				Message: "fake-vm-not-found-message",
 			})
 
@@ -378,7 +378,7 @@ var _ = Describe("VM", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
-				Expect(fakeCloud.DeleteVMInput).To(Equal(fakebmcloud.DeleteVMInput{
+				Expect(fakeCloud.DeleteVMInput).To(Equal(fakebicloud.DeleteVMInput{
 					VMCID: "fake-vm-cid",
 				}))
 			})

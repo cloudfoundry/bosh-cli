@@ -1,12 +1,12 @@
 package fakes
 
 import (
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 )
 
 type FakeBlobstoreFactory struct {
 	CreateBlobstoreURL string
-	CreateBlobstore    bmblobstore.Blobstore
+	CreateBlobstore    biblobstore.Blobstore
 	CreateErr          error
 }
 
@@ -14,7 +14,7 @@ func NewFakeBlobstoreFactory() *FakeBlobstoreFactory {
 	return &FakeBlobstoreFactory{}
 }
 
-func (f *FakeBlobstoreFactory) Create(blobstoreURL string) (bmblobstore.Blobstore, error) {
+func (f *FakeBlobstoreFactory) Create(blobstoreURL string) (biblobstore.Blobstore, error) {
 	f.CreateBlobstoreURL = blobstoreURL
 	return f.CreateBlobstore, f.CreateErr
 }

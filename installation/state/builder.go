@@ -5,37 +5,37 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmdeplrel "github.com/cloudfoundry/bosh-init/deployment/release"
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
-	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Builder interface {
-	Build(bminstallmanifest.Manifest, bmui.Stage) (State, error)
+	Build(biinstallmanifest.Manifest, biui.Stage) (State, error)
 }
 
 type builder struct {
-	releaseJobResolver    bmdeplrel.JobResolver
-	jobDependencyCompiler bmstatejob.DependencyCompiler
-	jobListRenderer       bmtemplate.JobListRenderer
+	releaseJobResolver    bideplrel.JobResolver
+	jobDependencyCompiler bistatejob.DependencyCompiler
+	jobListRenderer       bitemplate.JobListRenderer
 	compressor            boshcmd.Compressor
 	blobstore             boshblob.Blobstore
-	templatesRepo         bmtemplate.TemplatesRepo
+	templatesRepo         bitemplate.TemplatesRepo
 }
 
 func NewBuilder(
-	releaseJobResolver bmdeplrel.JobResolver,
-	jobDependencyCompiler bmstatejob.DependencyCompiler,
-	jobListRenderer bmtemplate.JobListRenderer,
+	releaseJobResolver bideplrel.JobResolver,
+	jobDependencyCompiler bistatejob.DependencyCompiler,
+	jobListRenderer bitemplate.JobListRenderer,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
-	templatesRepo bmtemplate.TemplatesRepo,
+	templatesRepo bitemplate.TemplatesRepo,
 ) Builder {
 	return &builder{
 		releaseJobResolver:    releaseJobResolver,
@@ -47,12 +47,12 @@ func NewBuilder(
 	}
 }
 
-func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage bmui.Stage) (State, error) {
+func (b *builder) Build(installationManifest biinstallmanifest.Manifest, stage biui.Stage) (State, error) {
 	// installation only ever has one job: the cpi job.
-	releaseJobRefs := []bminstallmanifest.ReleaseJobRef{installationManifest.Template}
+	releaseJobRefs := []biinstallmanifest.ReleaseJobRef{installationManifest.Template}
 
 	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
-	globalProperties := bmproperty.Map{}
+	globalProperties := biproperty.Map{}
 	jobProperties := installationManifest.Properties
 
 	releaseJobs, err := b.resolveJobs(releaseJobRefs)
@@ -74,9 +74,9 @@ func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage b
 		return nil, bosherr.Error("Too many jobs rendered... oops?")
 	}
 
-	compiledInstallationPackageRefs := make([]bminstallpkg.CompiledPackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
+	compiledInstallationPackageRefs := make([]biinstallpkg.CompiledPackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
 	for i, compiledPackageRef := range compiledPackageRefs {
-		compiledInstallationPackageRefs[i] = bminstallpkg.CompiledPackageRef{
+		compiledInstallationPackageRefs[i] = biinstallpkg.CompiledPackageRef{
 			Name:        compiledPackageRef.Name,
 			Version:     compiledPackageRef.Version,
 			BlobstoreID: compiledPackageRef.BlobstoreID,
@@ -87,8 +87,8 @@ func (b *builder) Build(installationManifest bminstallmanifest.Manifest, stage b
 	return NewState(renderedJobRefs[0], compiledInstallationPackageRefs), nil
 }
 
-func (b *builder) resolveJobs(jobRefs []bminstallmanifest.ReleaseJobRef) ([]bmreljob.Job, error) {
-	releaseJobs := make([]bmreljob.Job, len(jobRefs), len(jobRefs))
+func (b *builder) resolveJobs(jobRefs []biinstallmanifest.ReleaseJobRef) ([]bireljob.Job, error) {
+	releaseJobs := make([]bireljob.Job, len(jobRefs), len(jobRefs))
 	for i, jobRef := range jobRefs {
 		release, err := b.releaseJobResolver.Resolve(jobRef.Name, jobRef.Release)
 		if err != nil {
@@ -101,13 +101,13 @@ func (b *builder) resolveJobs(jobRefs []bminstallmanifest.ReleaseJobRef) ([]bmre
 
 // renderJobTemplates renders all the release job templates for multiple release jobs specified by a deployment job
 func (b *builder) renderJobTemplates(
-	releaseJobs []bmreljob.Job,
-	jobProperties bmproperty.Map,
-	globalProperties bmproperty.Map,
+	releaseJobs []bireljob.Job,
+	jobProperties biproperty.Map,
+	globalProperties biproperty.Map,
 	deploymentName string,
-	stage bmui.Stage,
-) ([]bminstalljob.RenderedJobRef, error) {
-	renderedJobRefs := make([]bminstalljob.RenderedJobRef, 0, len(releaseJobs))
+	stage biui.Stage,
+) ([]biinstalljob.RenderedJobRef, error) {
+	renderedJobRefs := make([]biinstalljob.RenderedJobRef, 0, len(releaseJobs))
 	err := stage.Perform("Rendering job templates", func() error {
 		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 		if err != nil {
@@ -122,7 +122,7 @@ func (b *builder) renderJobTemplates(
 			}
 
 			releaseJob := renderedJob.Job()
-			renderedJobRefs = append(renderedJobRefs, bminstalljob.RenderedJobRef{
+			renderedJobRefs = append(renderedJobRefs, biinstalljob.RenderedJobRef{
 				Name:        releaseJob.Name,
 				Version:     releaseJob.Fingerprint,
 				BlobstoreID: renderedJobRecord.BlobID,
@@ -136,7 +136,7 @@ func (b *builder) renderJobTemplates(
 	return renderedJobRefs, err
 }
 
-func (b *builder) compressAndUpload(renderedJob bmtemplate.RenderedJob) (record bmtemplate.TemplateRecord, err error) {
+func (b *builder) compressAndUpload(renderedJob bitemplate.RenderedJob) (record bitemplate.TemplateRecord, err error) {
 	tarballPath, err := b.compressor.CompressFilesInDir(renderedJob.Path())
 	if err != nil {
 		return record, bosherr.WrapError(err, "Compressing rendered job templates")
@@ -148,7 +148,7 @@ func (b *builder) compressAndUpload(renderedJob bmtemplate.RenderedJob) (record 
 		return record, bosherr.WrapError(err, "Creating blob")
 	}
 
-	record = bmtemplate.TemplateRecord{
+	record = bitemplate.TemplateRecord{
 		BlobID:   blobID,
 		BlobSHA1: blobSHA1,
 	}

@@ -5,14 +5,14 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmtempcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
-	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bitempcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
+	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 type SaveInput struct {
-	Job    bmreljob.Job
-	Record bmtempcomp.TemplateRecord
+	Job    bireljob.Job
+	Record bitempcomp.TemplateRecord
 }
 
 type saveOutput struct {
@@ -20,11 +20,11 @@ type saveOutput struct {
 }
 
 type FindInput struct {
-	Job bmreljob.Job
+	Job bireljob.Job
 }
 
 type findOutput struct {
-	record bmtempcomp.TemplateRecord
+	record bitempcomp.TemplateRecord
 	found  bool
 	err    error
 }
@@ -46,11 +46,11 @@ func NewFakeTemplatesRepo() *FakeTemplatesRepo {
 	}
 }
 
-func (f *FakeTemplatesRepo) Save(job bmreljob.Job, record bmtempcomp.TemplateRecord) error {
+func (f *FakeTemplatesRepo) Save(job bireljob.Job, record bitempcomp.TemplateRecord) error {
 	input := SaveInput{Job: job, Record: record}
 	f.SaveInputs = append(f.SaveInputs, input)
 
-	inputString, err := bmtestutils.MarshalToString(input)
+	inputString, err := bitestutils.MarshalToString(input)
 	if err != nil {
 		return bosherr.WrapError(err, "Marshaling Save input")
 	}
@@ -62,9 +62,9 @@ func (f *FakeTemplatesRepo) Save(job bmreljob.Job, record bmtempcomp.TemplateRec
 	return fmt.Errorf("Unsupported Input: Save('%#v', '%#v')", job, record)
 }
 
-func (f *FakeTemplatesRepo) SetSaveBehavior(job bmreljob.Job, record bmtempcomp.TemplateRecord, err error) error {
+func (f *FakeTemplatesRepo) SetSaveBehavior(job bireljob.Job, record bitempcomp.TemplateRecord, err error) error {
 	input := SaveInput{Job: job, Record: record}
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Save input")
 	}
@@ -72,25 +72,25 @@ func (f *FakeTemplatesRepo) SetSaveBehavior(job bmreljob.Job, record bmtempcomp.
 	return nil
 }
 
-func (f *FakeTemplatesRepo) Find(job bmreljob.Job) (bmtempcomp.TemplateRecord, bool, error) {
+func (f *FakeTemplatesRepo) Find(job bireljob.Job) (bitempcomp.TemplateRecord, bool, error) {
 	input := FindInput{Job: job}
 	f.FindInputs = append(f.FindInputs, input)
 
-	inputString, err := bmtestutils.MarshalToString(input)
+	inputString, err := bitestutils.MarshalToString(input)
 	if err != nil {
-		return bmtempcomp.TemplateRecord{}, false, bosherr.WrapError(err, "Marshaling Find input")
+		return bitempcomp.TemplateRecord{}, false, bosherr.WrapError(err, "Marshaling Find input")
 	}
 	output, found := f.findBehavior[inputString]
 
 	if found {
 		return output.record, output.found, output.err
 	}
-	return bmtempcomp.TemplateRecord{}, false, fmt.Errorf("Unsupported input: Find('%#v')", job)
+	return bitempcomp.TemplateRecord{}, false, fmt.Errorf("Unsupported input: Find('%#v')", job)
 }
 
-func (f *FakeTemplatesRepo) SetFindBehavior(job bmreljob.Job, record bmtempcomp.TemplateRecord, found bool, err error) error {
+func (f *FakeTemplatesRepo) SetFindBehavior(job bireljob.Job, record bitempcomp.TemplateRecord, found bool, err error) error {
 	input := FindInput{Job: job}
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}

@@ -3,11 +3,11 @@ package fakes
 import (
 	"time"
 
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeVM struct {
@@ -17,10 +17,10 @@ type FakeVM struct {
 	ExistsFound  bool
 	ExistsErr    error
 
-	AgentClientReturn bmagentclient.AgentClient
+	AgentClientReturn biagentclient.AgentClient
 
 	UpdateDisksInputs []UpdateDisksInput
-	UpdateDisksDisks  []bmdisk.Disk
+	UpdateDisksDisks  []bidisk.Disk
 	UpdateDisksErr    error
 
 	ApplyInputs []ApplyInput
@@ -47,7 +47,7 @@ type FakeVM struct {
 	StopCalled int
 	StopErr    error
 
-	ListDisksDisks []bmdisk.Disk
+	ListDisksDisks []bidisk.Disk
 	ListDisksErr   error
 
 	UnmountDiskInputs []UnmountDiskInput
@@ -58,12 +58,12 @@ type FakeVM struct {
 }
 
 type UpdateDisksInput struct {
-	DiskPool bmdeplmanifest.DiskPool
-	Stage    bmui.Stage
+	DiskPool bideplmanifest.DiskPool
+	Stage    biui.Stage
 }
 
 type ApplyInput struct {
-	ApplySpec bmas.ApplySpec
+	ApplySpec bias.ApplySpec
 }
 
 type WaitUntilReadyInput struct {
@@ -77,15 +77,15 @@ type WaitInput struct {
 }
 
 type AttachDiskInput struct {
-	Disk bmdisk.Disk
+	Disk bidisk.Disk
 }
 
 type DetachDiskInput struct {
-	Disk bmdisk.Disk
+	Disk bidisk.Disk
 }
 
 type UnmountDiskInput struct {
-	Disk bmdisk.Disk
+	Disk bidisk.Disk
 }
 
 func NewFakeVM(cid string) *FakeVM {
@@ -112,7 +112,7 @@ func (vm *FakeVM) Exists() (bool, error) {
 	return vm.ExistsFound, vm.ExistsErr
 }
 
-func (vm *FakeVM) AgentClient() bmagentclient.AgentClient {
+func (vm *FakeVM) AgentClient() biagentclient.AgentClient {
 	return vm.AgentClientReturn
 }
 
@@ -124,7 +124,7 @@ func (vm *FakeVM) WaitUntilReady(timeout time.Duration, delay time.Duration) err
 	return vm.WaitUntilReadyErr
 }
 
-func (vm *FakeVM) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmui.Stage) ([]bmdisk.Disk, error) {
+func (vm *FakeVM) UpdateDisks(diskPool bideplmanifest.DiskPool, eventLoggerStage biui.Stage) ([]bidisk.Disk, error) {
 	vm.UpdateDisksInputs = append(vm.UpdateDisksInputs, UpdateDisksInput{
 		DiskPool: diskPool,
 		Stage:    eventLoggerStage,
@@ -132,7 +132,7 @@ func (vm *FakeVM) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage
 	return vm.UpdateDisksDisks, vm.UpdateDisksErr
 }
 
-func (vm *FakeVM) Apply(applySpec bmas.ApplySpec) error {
+func (vm *FakeVM) Apply(applySpec bias.ApplySpec) error {
 	vm.ApplyInputs = append(vm.ApplyInputs, ApplyInput{
 		ApplySpec: applySpec,
 	})
@@ -153,7 +153,7 @@ func (vm *FakeVM) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
 	return vm.WaitToBeRunningErr
 }
 
-func (vm *FakeVM) AttachDisk(disk bmdisk.Disk) error {
+func (vm *FakeVM) AttachDisk(disk bidisk.Disk) error {
 	vm.AttachDiskInputs = append(vm.AttachDiskInputs, AttachDiskInput{
 		Disk: disk,
 	})
@@ -161,7 +161,7 @@ func (vm *FakeVM) AttachDisk(disk bmdisk.Disk) error {
 	return vm.attachDiskBehavior[disk.CID()]
 }
 
-func (vm *FakeVM) DetachDisk(disk bmdisk.Disk) error {
+func (vm *FakeVM) DetachDisk(disk bidisk.Disk) error {
 	vm.DetachDiskInputs = append(vm.DetachDiskInputs, DetachDiskInput{
 		Disk: disk,
 	})
@@ -169,7 +169,7 @@ func (vm *FakeVM) DetachDisk(disk bmdisk.Disk) error {
 	return vm.detachDiskBehavior[disk.CID()]
 }
 
-func (vm *FakeVM) UnmountDisk(disk bmdisk.Disk) error {
+func (vm *FakeVM) UnmountDisk(disk bidisk.Disk) error {
 	vm.UnmountDiskInputs = append(vm.UnmountDiskInputs, UnmountDiskInput{
 		Disk: disk,
 	})
@@ -188,7 +188,7 @@ func (vm *FakeVM) Stop() error {
 	return vm.StopErr
 }
 
-func (vm *FakeVM) Disks() ([]bmdisk.Disk, error) {
+func (vm *FakeVM) Disks() ([]bidisk.Disk, error) {
 	return vm.ListDisksDisks, vm.ListDisksErr
 }
 
@@ -197,10 +197,10 @@ func (vm *FakeVM) Delete() error {
 	return vm.DeleteErr
 }
 
-func (vm *FakeVM) SetAttachDiskBehavior(disk bmdisk.Disk, err error) {
+func (vm *FakeVM) SetAttachDiskBehavior(disk bidisk.Disk, err error) {
 	vm.attachDiskBehavior[disk.CID()] = err
 }
 
-func (vm *FakeVM) SetDetachDiskBehavior(disk bmdisk.Disk, err error) {
+func (vm *FakeVM) SetDetachDiskBehavior(disk bidisk.Disk, err error) {
 	vm.detachDiskBehavior[disk.CID()] = err
 }

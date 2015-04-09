@@ -7,24 +7,24 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 )
 
 type JobRenderer interface {
-	Render(releaseJob bmreljob.Job, jobProperties, globalProperties bmproperty.Map, deploymentName string) (RenderedJob, error)
+	Render(releaseJob bireljob.Job, jobProperties, globalProperties biproperty.Map, deploymentName string) (RenderedJob, error)
 }
 
 type jobRenderer struct {
-	erbRenderer bmerbrenderer.ERBRenderer
+	erbRenderer bierbrenderer.ERBRenderer
 	fs          boshsys.FileSystem
 	logger      boshlog.Logger
 	logTag      string
 }
 
 func NewJobRenderer(
-	erbRenderer bmerbrenderer.ERBRenderer,
+	erbRenderer bierbrenderer.ERBRenderer,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) JobRenderer {
@@ -36,7 +36,7 @@ func NewJobRenderer(
 	}
 }
 
-func (r *jobRenderer) Render(releaseJob bmreljob.Job, jobProperties, globalProperties bmproperty.Map, deploymentName string) (RenderedJob, error) {
+func (r *jobRenderer) Render(releaseJob bireljob.Job, jobProperties, globalProperties biproperty.Map, deploymentName string) (RenderedJob, error) {
 	context := NewJobEvaluationContext(releaseJob, jobProperties, globalProperties, deploymentName, r.logger)
 
 	sourcePath := releaseJob.ExtractedPath
@@ -73,7 +73,7 @@ func (r *jobRenderer) Render(releaseJob bmreljob.Job, jobProperties, globalPrope
 	return renderedJob, nil
 }
 
-func (r *jobRenderer) renderFile(sourcePath, destinationPath string, context bmerbrenderer.TemplateEvaluationContext) error {
+func (r *jobRenderer) renderFile(sourcePath, destinationPath string, context bierbrenderer.TemplateEvaluationContext) error {
 	err := r.fs.MkdirAll(filepath.Dir(destinationPath), os.ModePerm)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Creating tempdir '%s'", filepath.Dir(destinationPath))

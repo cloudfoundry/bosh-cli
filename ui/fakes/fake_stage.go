@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeStage struct {
@@ -26,7 +26,7 @@ func (s *FakeStage) Perform(name string, closure func() error) error {
 	call := PerformCall{Name: name, Error: err}
 
 	if err != nil {
-		if skipErr, isSkipError := err.(bmui.SkipStageError); isSkipError {
+		if skipErr, isSkipError := err.(biui.SkipStageError); isSkipError {
 			call.SkipError = skipErr
 			err = nil
 		}
@@ -41,7 +41,7 @@ func (s *FakeStage) Perform(name string, closure func() error) error {
 	return err
 }
 
-func (s *FakeStage) PerformComplex(name string, closure func(bmui.Stage) error) error {
+func (s *FakeStage) PerformComplex(name string, closure func(biui.Stage) error) error {
 	subStage := NewFakeStage()
 
 	// lazily instantiate to make matching simple stages easier
@@ -55,7 +55,7 @@ func (s *FakeStage) PerformComplex(name string, closure func(bmui.Stage) error) 
 	call := PerformCall{Name: name, Error: err, Stage: subStage}
 
 	if err != nil {
-		if skipErr, isSkipError := err.(bmui.SkipStageError); isSkipError {
+		if skipErr, isSkipError := err.(biui.SkipStageError); isSkipError {
 			call.SkipError = skipErr
 			err = nil
 		}

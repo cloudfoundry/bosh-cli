@@ -14,7 +14,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("fileSystemConfigService", func() {
@@ -63,12 +63,12 @@ var _ = Describe("fileSystemConfigService", func() {
 					ID:   "fake-disk-id",
 					CID:  "fake-disk-cid",
 					Size: 1024,
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"fake-disk-property-key": "fake-disk-property-value",
 					},
 				},
 			}
-			deploymentFileContents, err := json.Marshal(bmproperty.Map{
+			deploymentFileContents, err := json.Marshal(biproperty.Map{
 				"director_id":     "fake-director-id",
 				"deployment_id":   "fake-deployment-id",
 				"stemcells":       stemcells,
@@ -139,7 +139,7 @@ var _ = Describe("fileSystemConfigService", func() {
 					{
 						CID:  "fake-disk-cid",
 						Size: 1024,
-						CloudProperties: bmproperty.Map{
+						CloudProperties: biproperty.Map{
 							"fake-disk-property-key": "fake-disk-property-value",
 						},
 					},
@@ -164,7 +164,7 @@ var _ = Describe("fileSystemConfigService", func() {
 					{
 						CID:  "fake-disk-cid",
 						Size: 1024,
-						CloudProperties: bmproperty.Map{
+						CloudProperties: biproperty.Map{
 							"fake-disk-property-key": "fake-disk-property-value",
 						},
 					},

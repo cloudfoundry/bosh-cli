@@ -6,7 +6,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-init/deployment/manifest"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 var _ = Describe("Manifest", func() {
@@ -22,22 +22,22 @@ var _ = Describe("Manifest", func() {
 						{
 							Name:            "fake-network-name",
 							Type:            "dynamic",
-							CloudProperties: bmproperty.Map{},
+							CloudProperties: biproperty.Map{},
 						},
 						{
 							Name:            "fake-manual-network-name",
 							Type:            "manual",
-							CloudProperties: bmproperty.Map{},
+							CloudProperties: biproperty.Map{},
 						},
 						{
 							Name:            "vip",
 							Type:            "vip",
-							CloudProperties: bmproperty.Map{},
+							CloudProperties: biproperty.Map{},
 						},
 						{
 							Name:            "fake",
 							Type:            "dynamic",
-							CloudProperties: bmproperty.Map{},
+							CloudProperties: biproperty.Map{},
 						},
 					},
 					Jobs: []Job{
@@ -63,21 +63,21 @@ var _ = Describe("Manifest", func() {
 			})
 
 			It("is a map of the network names to network interfaces", func() {
-				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]bmproperty.Map{
-					"fake-network-name": bmproperty.Map{
+				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]biproperty.Map{
+					"fake-network-name": biproperty.Map{
 						"type":             "dynamic",
 						"ip":               "5.6.7.8",
-						"cloud_properties": bmproperty.Map{},
+						"cloud_properties": biproperty.Map{},
 					},
-					"fake-manual-network-name": bmproperty.Map{
+					"fake-manual-network-name": biproperty.Map{
 						"type":             "manual",
 						"ip":               "5.6.7.9",
-						"cloud_properties": bmproperty.Map{},
+						"cloud_properties": biproperty.Map{},
 					},
-					"vip": bmproperty.Map{
+					"vip": biproperty.Map{
 						"type":             "vip",
 						"ip":               "1.2.3.4",
-						"cloud_properties": bmproperty.Map{},
+						"cloud_properties": biproperty.Map{},
 					},
 				}))
 			})
@@ -96,7 +96,7 @@ var _ = Describe("Manifest", func() {
 			})
 
 			It("is an empty map", func() {
-				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]bmproperty.Map{}))
+				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]biproperty.Map{}))
 			})
 		})
 
@@ -107,7 +107,7 @@ var _ = Describe("Manifest", func() {
 
 			It("returns an error", func() {
 				networkInterfaces, err := deploymentManifest.NetworkInterfaces("fake-job-name")
-				Expect(networkInterfaces).To(Equal(map[string]bmproperty.Map{}))
+				Expect(networkInterfaces).To(Equal(map[string]biproperty.Map{}))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Could not find job with name: fake-job-name"))
 			})
@@ -122,14 +122,14 @@ var _ = Describe("Manifest", func() {
 						{
 							Name:     "fake-disk-pool-name-1",
 							DiskSize: 1024,
-							CloudProperties: bmproperty.Map{
+							CloudProperties: biproperty.Map{
 								"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 							},
 						},
 						{
 							Name:     "fake-disk-pool-name-2",
 							DiskSize: 2048,
-							CloudProperties: bmproperty.Map{
+							CloudProperties: biproperty.Map{
 								"fake-disk-prop-key-2": "fake-disk-prop-value-1",
 							},
 						},
@@ -150,7 +150,7 @@ var _ = Describe("Manifest", func() {
 				Expect(diskPool).To(Equal(DiskPool{
 					Name:     "fake-disk-pool-name-2",
 					DiskSize: 2048,
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"fake-disk-prop-key-2": "fake-disk-prop-value-1",
 					},
 				}))
@@ -176,7 +176,7 @@ var _ = Describe("Manifest", func() {
 				Expect(diskPool).To(Equal(DiskPool{
 					Name:            "",
 					DiskSize:        1024,
-					CloudProperties: bmproperty.Map{},
+					CloudProperties: biproperty.Map{},
 				}))
 			})
 		})
@@ -188,7 +188,7 @@ var _ = Describe("Manifest", func() {
 						{
 							Name:     "fake-disk-pool-name-1",
 							DiskSize: 1024,
-							CloudProperties: bmproperty.Map{
+							CloudProperties: biproperty.Map{
 								"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 							},
 						},
@@ -210,7 +210,7 @@ var _ = Describe("Manifest", func() {
 				Expect(diskPool).To(Equal(DiskPool{
 					Name:     "fake-disk-pool-name-1",
 					DiskSize: 1024,
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"fake-disk-prop-key-1": "fake-disk-prop-value-1",
 					},
 				}))

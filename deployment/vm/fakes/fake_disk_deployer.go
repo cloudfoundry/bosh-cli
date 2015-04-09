@@ -1,11 +1,11 @@
 package fakes
 
 import (
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeDiskDeployer struct {
@@ -14,14 +14,14 @@ type FakeDiskDeployer struct {
 }
 
 type DeployInput struct {
-	DiskPool         bmdeplmanifest.DiskPool
-	Cloud            bmcloud.Cloud
-	VM               bmvm.VM
-	EventLoggerStage bmui.Stage
+	DiskPool         bideplmanifest.DiskPool
+	Cloud            bicloud.Cloud
+	VM               bivm.VM
+	EventLoggerStage biui.Stage
 }
 
 type deployOutput struct {
-	disks []bmdisk.Disk
+	disks []bidisk.Disk
 	err   error
 }
 
@@ -32,11 +32,11 @@ func NewFakeDiskDeployer() *FakeDiskDeployer {
 }
 
 func (d *FakeDiskDeployer) Deploy(
-	diskPool bmdeplmanifest.DiskPool,
-	cloud bmcloud.Cloud,
-	vm bmvm.VM,
-	eventLoggerStage bmui.Stage,
-) ([]bmdisk.Disk, error) {
+	diskPool bideplmanifest.DiskPool,
+	cloud bicloud.Cloud,
+	vm bivm.VM,
+	eventLoggerStage biui.Stage,
+) ([]bidisk.Disk, error) {
 	d.DeployInputs = append(d.DeployInputs, DeployInput{
 		DiskPool:         diskPool,
 		Cloud:            cloud,
@@ -47,7 +47,7 @@ func (d *FakeDiskDeployer) Deploy(
 	return d.deployOutputs.disks, d.deployOutputs.err
 }
 
-func (d *FakeDiskDeployer) SetDeployBehavior(disks []bmdisk.Disk, err error) {
+func (d *FakeDiskDeployer) SetDeployBehavior(disks []bidisk.Disk, err error) {
 	d.deployOutputs = deployOutput{
 		disks: disks,
 		err:   err,

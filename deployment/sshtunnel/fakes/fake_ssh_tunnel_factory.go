@@ -1,19 +1,19 @@
 package fakes
 
 import (
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
 )
 
 type FakeFactory struct {
-	SSHTunnel           bmsshtunnel.SSHTunnel
-	NewSSHTunnelOptions bmsshtunnel.Options
+	SSHTunnel           bisshtunnel.SSHTunnel
+	NewSSHTunnelOptions bisshtunnel.Options
 }
 
 func NewFakeFactory() *FakeFactory {
 	return &FakeFactory{}
 }
 
-func (f *FakeFactory) NewSSHTunnel(options bmsshtunnel.Options) bmsshtunnel.SSHTunnel {
+func (f *FakeFactory) NewSSHTunnel(options bisshtunnel.Options) bisshtunnel.SSHTunnel {
 	f.NewSSHTunnelOptions = options
 
 	return f.SSHTunnel

@@ -11,7 +11,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmhttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 )
 
 type Factory interface {
@@ -39,7 +39,7 @@ func (f blobstoreFactory) Create(blobstoreURL string) (Blobstore, error) {
 		return nil, bosherr.WrapError(err, "Creating blobstore config")
 	}
 
-	httpClient := bmhttpclient.DefaultClient
+	httpClient := bihttpclient.DefaultClient
 
 	davClient := boshdavcli.NewClient(boshdavcliconf.Config{
 		Endpoint: fmt.Sprintf("%s/blobs", blobstoreConfig.Endpoint),

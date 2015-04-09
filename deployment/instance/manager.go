@@ -7,15 +7,15 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmsshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Manager interface {
@@ -23,34 +23,34 @@ type Manager interface {
 	Create(
 		jobName string,
 		id int,
-		deploymentManifest bmdeplmanifest.Manifest,
-		cloudStemcell bmstemcell.CloudStemcell,
-		registryConfig bminstallmanifest.Registry,
-		sshTunnelConfig bminstallmanifest.SSHTunnel,
-		eventLoggerStage bmui.Stage,
-	) (Instance, []bmdisk.Disk, error)
+		deploymentManifest bideplmanifest.Manifest,
+		cloudStemcell bistemcell.CloudStemcell,
+		registryConfig biinstallmanifest.Registry,
+		sshTunnelConfig biinstallmanifest.SSHTunnel,
+		eventLoggerStage biui.Stage,
+	) (Instance, []bidisk.Disk, error)
 	DeleteAll(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
-		eventLoggerStage bmui.Stage,
+		eventLoggerStage biui.Stage,
 	) error
 }
 
 type manager struct {
-	cloud            bmcloud.Cloud
-	vmManager        bmvm.Manager
-	blobstore        bmblobstore.Blobstore
-	sshTunnelFactory bmsshtunnel.Factory
+	cloud            bicloud.Cloud
+	vmManager        bivm.Manager
+	blobstore        biblobstore.Blobstore
+	sshTunnelFactory bisshtunnel.Factory
 	instanceFactory  Factory
 	logger           boshlog.Logger
 	logTag           string
 }
 
 func NewManager(
-	cloud bmcloud.Cloud,
-	vmManager bmvm.Manager,
-	blobstore bmblobstore.Blobstore,
-	sshTunnelFactory bmsshtunnel.Factory,
+	cloud bicloud.Cloud,
+	vmManager bivm.Manager,
+	blobstore biblobstore.Blobstore,
+	sshTunnelFactory bisshtunnel.Factory,
 	instanceFactory Factory,
 	logger boshlog.Logger,
 ) Manager {
@@ -97,13 +97,13 @@ func (m *manager) FindCurrent() ([]Instance, error) {
 func (m *manager) Create(
 	jobName string,
 	id int,
-	deploymentManifest bmdeplmanifest.Manifest,
-	cloudStemcell bmstemcell.CloudStemcell,
-	registryConfig bminstallmanifest.Registry,
-	sshTunnelConfig bminstallmanifest.SSHTunnel,
-	eventLoggerStage bmui.Stage,
-) (Instance, []bmdisk.Disk, error) {
-	var vm bmvm.VM
+	deploymentManifest bideplmanifest.Manifest,
+	cloudStemcell bistemcell.CloudStemcell,
+	registryConfig biinstallmanifest.Registry,
+	sshTunnelConfig biinstallmanifest.SSHTunnel,
+	eventLoggerStage biui.Stage,
+) (Instance, []bidisk.Disk, error) {
+	var vm bivm.VM
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
 	err := eventLoggerStage.Perform(stepName, func() error {
 		var err error
@@ -119,13 +119,13 @@ func (m *manager) Create(
 		return nil
 	})
 	if err != nil {
-		return nil, []bmdisk.Disk{}, err
+		return nil, []bidisk.Disk{}, err
 	}
 
 	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.blobstore, m.logger)
 
 	if err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, eventLoggerStage); err != nil {
-		return instance, []bmdisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")
+		return instance, []bidisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")
 	}
 
 	disks, err := instance.UpdateDisks(deploymentManifest, eventLoggerStage)
@@ -139,7 +139,7 @@ func (m *manager) Create(
 func (m *manager) DeleteAll(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
-	eventLoggerStage bmui.Stage,
+	eventLoggerStage biui.Stage,
 ) error {
 	instances, err := m.FindCurrent()
 	if err != nil {

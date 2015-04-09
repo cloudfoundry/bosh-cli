@@ -23,17 +23,17 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	birelset "github.com/cloudfoundry/bosh-init/release/set"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
@@ -52,15 +52,15 @@ var _ = Describe("DeleteCmd", func() {
 		var (
 			fs                      boshsys.FileSystem
 			logger                  boshlog.Logger
-			releaseManager          bmrel.Manager
+			releaseManager          birel.Manager
 			mockInstaller           *mock_install.MockInstaller
 			mockInstallerFactory    *mock_install.MockInstallerFactory
 			mockInstallation        *mock_install.MockInstallation
 			mockCloudFactory        *mock_cloud.MockFactory
 			mockReleaseExtractor    *mock_release.MockExtractor
 			fakeUUIDGenerator       *fakeuuid.FakeGenerator
-			deploymentConfigService bmconfig.DeploymentConfigService
-			userConfig              bmconfig.UserConfig
+			deploymentConfigService biconfig.DeploymentConfigService
+			userConfig              biconfig.UserConfig
 
 			fakeUI *fakeui.FakeUI
 
@@ -75,7 +75,7 @@ var _ = Describe("DeleteCmd", func() {
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			mockCloud              *mock_cloud.MockCloud
 
-			fakeStage *fakebmui.FakeStage
+			fakeStage *fakebiui.FakeStage
 
 			directorID string
 
@@ -108,10 +108,10 @@ cloud_provider:
 		}
 
 		var allowCPIToBeExtracted = func() {
-			cpiRelease := bmrel.NewRelease(
+			cpiRelease := birel.NewRelease(
 				"fake-cpi-release-name",
 				"fake-cpi-release-version",
-				[]bmreljob.Job{
+				[]bireljob.Job{
 					{
 						Name: "fake-cpi-release-job-name",
 						Templates: map[string]string{
@@ -119,7 +119,7 @@ cloud_provider:
 						},
 					},
 				},
-				[]*bmrelpkg.Package{},
+				[]*birelpkg.Package{},
 				"fake-cpi-extracted-dir",
 				fs,
 			)
@@ -131,19 +131,19 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
-			installationManifest := bminstallmanifest.Manifest{
+			installationManifest := biinstallmanifest.Manifest{
 				Name: "test-release",
-				Template: bminstallmanifest.ReleaseJobRef{
+				Template: biinstallmanifest.ReleaseJobRef{
 					Name:    "fake-cpi-release-job-name",
 					Release: "fake-cpi-release-name",
 				},
 				Mbus:       mbusURL,
-				Properties: bmproperty.Map{},
+				Properties: biproperty.Map{},
 			}
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 
-			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ bminstallmanifest.Manifest, stage bmui.Stage) {
+			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(mockInstallation, nil).AnyTimes()
 
@@ -154,11 +154,11 @@ cloud_provider:
 		}
 
 		var newDeleteCmd = func() Cmd {
-			releaseSetParser := bmrelsetmanifest.NewParser(fs, logger)
-			releaseSetResolver := bmrelset.NewResolver(releaseManager, logger)
-			releaseSetValidator := bmrelsetmanifest.NewValidator(logger, releaseSetResolver)
-			installationValidator := bminstallmanifest.NewValidator(logger, releaseSetResolver)
-			installationParser := bminstallmanifest.NewParser(fs, logger)
+			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
+			releaseSetResolver := birelset.NewResolver(releaseManager, logger)
+			releaseSetValidator := birelsetmanifest.NewValidator(logger, releaseSetResolver)
+			installationValidator := biinstallmanifest.NewValidator(logger, releaseSetResolver)
+			installationParser := biinstallmanifest.NewParser(fs, logger)
 
 			return NewDeleteCmd(
 				fakeUI,
@@ -186,7 +186,7 @@ cloud_provider:
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			gomock.InOrder(
-				mockDeployment.EXPECT().Delete(gomock.Any()).Do(func(stage bmui.Stage) {
+				mockDeployment.EXPECT().Delete(gomock.Any()).Do(func(stage biui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 				}),
 				mockDeploymentManager.EXPECT().Cleanup(fakeStage),
@@ -206,11 +206,11 @@ cloud_provider:
 				"Deployment state: '/deployment-dir/deployment.json'",
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{
 					Name: "validating",
-					Stage: &fakebmui.FakeStage{
-						PerformCalls: []fakebmui.PerformCall{
+					Stage: &fakebiui.FakeStage{
+						PerformCalls: []fakebiui.PerformCall{
 							{Name: "Validating releases"},
 							{Name: "Validating deployment manifest"},
 							{Name: "Validating cpi release"},
@@ -219,12 +219,12 @@ cloud_provider:
 				},
 				{
 					Name:  "installing CPI",
-					Stage: &fakebmui.FakeStage{},
+					Stage: &fakebiui.FakeStage{},
 				},
 				{Name: "Starting registry"},
 				{
 					Name:  "deleting deployment",
-					Stage: &fakebmui.FakeStage{},
+					Stage: &fakebiui.FakeStage{},
 				},
 				// mock deployment manager cleanup doesn't add sub-stages
 			}))
@@ -237,11 +237,11 @@ cloud_provider:
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
 
 			fakeUI = &fakeui.FakeUI{}
 
-			fakeStage = fakebmui.NewFakeStage()
+			fakeStage = fakebiui.NewFakeStage()
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
@@ -259,12 +259,12 @@ cloud_provider:
 			mockDeployment = mock_deployment.NewMockDeployment(mockCtrl)
 
 			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
-			releaseManager = bmrel.NewManager(logger)
+			releaseManager = birel.NewManager(logger)
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			userConfig = bmconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
+			userConfig = biconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
 
@@ -313,7 +313,7 @@ cloud_provider:
 				directorID = "fake-director-id"
 
 				// create deployment manifest yaml file
-				deploymentConfigService.Save(bmconfig.DeploymentFile{
+				deploymentConfigService.Save(biconfig.DeploymentFile{
 					DirectorID: directorID,
 				})
 			})
@@ -371,7 +371,7 @@ cloud_provider:
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(bmconfig.DeploymentFile{})
+				deploymentConfigService.Save(biconfig.DeploymentFile{})
 
 				directorID = "fake-uuid-0"
 			})

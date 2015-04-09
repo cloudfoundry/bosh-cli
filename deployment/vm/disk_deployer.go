@@ -6,27 +6,27 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 // DiskDeployer is in the vm package to avoid a [disk -> vm -> disk] dependency cycle
 type DiskDeployer interface {
-	Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cloud, vm VM, eventLoggerStage bmui.Stage) ([]bmdisk.Disk, error)
+	Deploy(diskPool bideplmanifest.DiskPool, cloud bicloud.Cloud, vm VM, eventLoggerStage biui.Stage) ([]bidisk.Disk, error)
 }
 
 type diskDeployer struct {
-	diskRepo           bmconfig.DiskRepo
-	diskManagerFactory bmdisk.ManagerFactory
-	diskManager        bmdisk.Manager
+	diskRepo           biconfig.DiskRepo
+	diskManagerFactory bidisk.ManagerFactory
+	diskManager        bidisk.Manager
 	logger             boshlog.Logger
 	logTag             string
 }
 
-func NewDiskDeployer(diskManagerFactory bmdisk.ManagerFactory, diskRepo bmconfig.DiskRepo, logger boshlog.Logger) DiskDeployer {
+func NewDiskDeployer(diskManagerFactory bidisk.ManagerFactory, diskRepo biconfig.DiskRepo, logger boshlog.Logger) DiskDeployer {
 	return &diskDeployer{
 		diskManagerFactory: diskManagerFactory,
 		diskRepo:           diskRepo,
@@ -35,9 +35,9 @@ func NewDiskDeployer(diskManagerFactory bmdisk.ManagerFactory, diskRepo bmconfig
 	}
 }
 
-func (d *diskDeployer) Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cloud, vm VM, stage bmui.Stage) ([]bmdisk.Disk, error) {
+func (d *diskDeployer) Deploy(diskPool bideplmanifest.DiskPool, cloud bicloud.Cloud, vm VM, stage biui.Stage) ([]bidisk.Disk, error) {
 	if diskPool.DiskSize == 0 {
-		return []bmdisk.Disk{}, nil
+		return []bidisk.Disk{}, nil
 	}
 
 	d.diskManager = d.diskManagerFactory.NewManager(cloud)
@@ -70,8 +70,8 @@ func (d *diskDeployer) Deploy(diskPool bmdeplmanifest.DiskPool, cloud bmcloud.Cl
 	return disks, nil
 }
 
-func (d *diskDeployer) deployExistingDisk(disk bmdisk.Disk, diskPool bmdeplmanifest.DiskPool, vm VM, stage bmui.Stage) ([]bmdisk.Disk, error) {
-	disks := []bmdisk.Disk{}
+func (d *diskDeployer) deployExistingDisk(disk bidisk.Disk, diskPool bideplmanifest.DiskPool, vm VM, stage biui.Stage) ([]bidisk.Disk, error) {
+	disks := []bidisk.Disk{}
 
 	// the disk is already part of the deployment, and should already be attached
 	disks = append(disks, disk)
@@ -95,8 +95,8 @@ func (d *diskDeployer) deployExistingDisk(disk bmdisk.Disk, diskPool bmdeplmanif
 	return disks, nil
 }
 
-func (d *diskDeployer) deployNewDisk(diskPool bmdeplmanifest.DiskPool, vm VM, stage bmui.Stage) ([]bmdisk.Disk, error) {
-	disks := []bmdisk.Disk{}
+func (d *diskDeployer) deployNewDisk(diskPool bideplmanifest.DiskPool, vm VM, stage biui.Stage) ([]bidisk.Disk, error) {
+	disks := []bidisk.Disk{}
 
 	disk, err := d.createDisk(diskPool, vm, stage)
 	if err != nil {
@@ -120,11 +120,11 @@ func (d *diskDeployer) deployNewDisk(diskPool bmdeplmanifest.DiskPool, vm VM, st
 }
 
 func (d *diskDeployer) migrateDisk(
-	originalDisk bmdisk.Disk,
-	diskPool bmdeplmanifest.DiskPool,
+	originalDisk bidisk.Disk,
+	diskPool bideplmanifest.DiskPool,
 	vm VM,
-	stage bmui.Stage,
-) (newDisk bmdisk.Disk, err error) {
+	stage biui.Stage,
+) (newDisk bidisk.Disk, err error) {
 	d.logger.Debug(d.logTag, "Migrating disk '%s'", originalDisk.CID())
 
 	err = stage.Perform("Creating disk", func() error {
@@ -175,7 +175,7 @@ func (d *diskDeployer) migrateDisk(
 	return newDisk, nil
 }
 
-func (d *diskDeployer) updateCurrentDiskRecord(disk bmdisk.Disk) error {
+func (d *diskDeployer) updateCurrentDiskRecord(disk bidisk.Disk) error {
 	savedDiskRecord, found, err := d.diskRepo.Find(disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Finding disk record")
@@ -193,7 +193,7 @@ func (d *diskDeployer) updateCurrentDiskRecord(disk bmdisk.Disk) error {
 	return nil
 }
 
-func (d *diskDeployer) createDisk(diskPool bmdeplmanifest.DiskPool, vm VM, stage bmui.Stage) (disk bmdisk.Disk, err error) {
+func (d *diskDeployer) createDisk(diskPool bideplmanifest.DiskPool, vm VM, stage biui.Stage) (disk bidisk.Disk, err error) {
 	err = stage.Perform("Creating disk", func() error {
 		disk, err = d.diskManager.Create(diskPool, vm.CID())
 		return err
@@ -202,7 +202,7 @@ func (d *diskDeployer) createDisk(diskPool bmdeplmanifest.DiskPool, vm VM, stage
 	return disk, err
 }
 
-func (d *diskDeployer) attachDisk(disk bmdisk.Disk, vm VM, stage bmui.Stage) error {
+func (d *diskDeployer) attachDisk(disk bidisk.Disk, vm VM, stage biui.Stage) error {
 	stageName := fmt.Sprintf("Attaching disk '%s' to VM '%s'", disk.CID(), vm.CID())
 	err := stage.Perform(stageName, func() error {
 		return vm.AttachDisk(disk)

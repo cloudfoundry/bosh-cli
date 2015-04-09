@@ -1,26 +1,26 @@
 package fakes
 
 import (
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type CreateInput struct {
-	Stemcell bmstemcell.CloudStemcell
-	Manifest bmdeplmanifest.Manifest
+	Stemcell bistemcell.CloudStemcell
+	Manifest bideplmanifest.Manifest
 }
 
 type FakeManager struct {
 	CreateInput CreateInput
-	CreateVM    bmvm.VM
+	CreateVM    bivm.VM
 	CreateErr   error
 
 	findCurrentBehaviour findCurrentOutput
 }
 
 type findCurrentOutput struct {
-	vm    bmvm.VM
+	vm    bivm.VM
 	found bool
 	err   error
 }
@@ -29,11 +29,11 @@ func NewFakeManager() *FakeManager {
 	return &FakeManager{}
 }
 
-func (m *FakeManager) FindCurrent() (bmvm.VM, bool, error) {
+func (m *FakeManager) FindCurrent() (bivm.VM, bool, error) {
 	return m.findCurrentBehaviour.vm, m.findCurrentBehaviour.found, m.findCurrentBehaviour.err
 }
 
-func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deploymentManifest bmdeplmanifest.Manifest) (bmvm.VM, error) {
+func (m *FakeManager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest) (bivm.VM, error) {
 	input := CreateInput{
 		Stemcell: stemcell,
 		Manifest: deploymentManifest,
@@ -43,7 +43,7 @@ func (m *FakeManager) Create(stemcell bmstemcell.CloudStemcell, deploymentManife
 	return m.CreateVM, m.CreateErr
 }
 
-func (m *FakeManager) SetFindCurrentBehavior(vm bmvm.VM, found bool, err error) {
+func (m *FakeManager) SetFindCurrentBehavior(vm bivm.VM, found bool, err error) {
 	m.findCurrentBehaviour = findCurrentOutput{
 		vm:    vm,
 		found: found,

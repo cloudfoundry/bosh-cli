@@ -8,76 +8,76 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmcpirel "github.com/cloudfoundry/bosh-init/cpi/release"
-	bmdepl "github.com/cloudfoundry/bosh-init/deployment"
-	bmhttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bminstall "github.com/cloudfoundry/bosh-init/installation"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
+	bidepl "github.com/cloudfoundry/bosh-init/deployment"
+	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	birelset "github.com/cloudfoundry/bosh-init/release/set"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type deployCmd struct {
-	ui                             bmui.UI
-	userConfig                     bmconfig.UserConfig
+	ui                             biui.UI
+	userConfig                     biconfig.UserConfig
 	fs                             boshsys.FileSystem
-	releaseSetParser               bmrelsetmanifest.Parser
-	installationParser             bminstallmanifest.Parser
-	deploymentParser               bmdeplmanifest.Parser
-	legacyDeploymentConfigMigrator bmconfig.LegacyDeploymentConfigMigrator
-	deploymentConfigService        bmconfig.DeploymentConfigService
-	releaseSetValidator            bmrelsetmanifest.Validator
-	installationValidator          bminstallmanifest.Validator
-	deploymentValidator            bmdeplmanifest.Validator
-	installerFactory               bminstall.InstallerFactory
-	releaseExtractor               bmrel.Extractor
-	releaseManager                 bmrel.Manager
-	releaseResolver                bmrelset.Resolver
-	cloudFactory                   bmcloud.Factory
-	agentClientFactory             bmhttpagent.AgentClientFactory
-	vmManagerFactory               bmvm.ManagerFactory
-	stemcellExtractor              bmstemcell.Extractor
-	stemcellManagerFactory         bmstemcell.ManagerFactory
-	deploymentRecord               bmdepl.Record
-	blobstoreFactory               bmblobstore.Factory
-	deployer                       bmdepl.Deployer
-	eventLogger                    bmui.Stage
+	releaseSetParser               birelsetmanifest.Parser
+	installationParser             biinstallmanifest.Parser
+	deploymentParser               bideplmanifest.Parser
+	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
+	deploymentConfigService        biconfig.DeploymentConfigService
+	releaseSetValidator            birelsetmanifest.Validator
+	installationValidator          biinstallmanifest.Validator
+	deploymentValidator            bideplmanifest.Validator
+	installerFactory               biinstall.InstallerFactory
+	releaseExtractor               birel.Extractor
+	releaseManager                 birel.Manager
+	releaseResolver                birelset.Resolver
+	cloudFactory                   bicloud.Factory
+	agentClientFactory             bihttpagent.AgentClientFactory
+	vmManagerFactory               bivm.ManagerFactory
+	stemcellExtractor              bistemcell.Extractor
+	stemcellManagerFactory         bistemcell.ManagerFactory
+	deploymentRecord               bidepl.Record
+	blobstoreFactory               biblobstore.Factory
+	deployer                       bidepl.Deployer
+	eventLogger                    biui.Stage
 	logger                         boshlog.Logger
 	logTag                         string
 }
 
 func NewDeployCmd(
-	ui bmui.UI,
-	userConfig bmconfig.UserConfig,
+	ui biui.UI,
+	userConfig biconfig.UserConfig,
 	fs boshsys.FileSystem,
-	releaseSetParser bmrelsetmanifest.Parser,
-	installationParser bminstallmanifest.Parser,
-	deploymentParser bmdeplmanifest.Parser,
-	legacyDeploymentConfigMigrator bmconfig.LegacyDeploymentConfigMigrator,
-	deploymentConfigService bmconfig.DeploymentConfigService,
-	releaseSetValidator bmrelsetmanifest.Validator,
-	installationValidator bminstallmanifest.Validator,
-	deploymentValidator bmdeplmanifest.Validator,
-	installerFactory bminstall.InstallerFactory,
-	releaseExtractor bmrel.Extractor,
-	releaseManager bmrel.Manager,
-	releaseResolver bmrelset.Resolver,
-	cloudFactory bmcloud.Factory,
-	agentClientFactory bmhttpagent.AgentClientFactory,
-	vmManagerFactory bmvm.ManagerFactory,
-	stemcellExtractor bmstemcell.Extractor,
-	stemcellManagerFactory bmstemcell.ManagerFactory,
-	deploymentRecord bmdepl.Record,
-	blobstoreFactory bmblobstore.Factory,
-	deployer bmdepl.Deployer,
+	releaseSetParser birelsetmanifest.Parser,
+	installationParser biinstallmanifest.Parser,
+	deploymentParser bideplmanifest.Parser,
+	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator,
+	deploymentConfigService biconfig.DeploymentConfigService,
+	releaseSetValidator birelsetmanifest.Validator,
+	installationValidator biinstallmanifest.Validator,
+	deploymentValidator bideplmanifest.Validator,
+	installerFactory biinstall.InstallerFactory,
+	releaseExtractor birel.Extractor,
+	releaseManager birel.Manager,
+	releaseResolver birelset.Resolver,
+	cloudFactory bicloud.Factory,
+	agentClientFactory bihttpagent.AgentClientFactory,
+	vmManagerFactory bivm.ManagerFactory,
+	stemcellExtractor bistemcell.Extractor,
+	stemcellManagerFactory bistemcell.ManagerFactory,
+	deploymentRecord bidepl.Record,
+	blobstoreFactory biblobstore.Factory,
+	deployer bidepl.Deployer,
 	logger boshlog.Logger,
 ) Cmd {
 	return &deployCmd{
@@ -113,7 +113,7 @@ func (c *deployCmd) Name() string {
 	return "deploy"
 }
 
-func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
+func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 	stemcellTarballPath, releaseTarballPaths, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
@@ -140,11 +140,11 @@ func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 	}
 
 	var (
-		extractedStemcell    bmstemcell.ExtractedStemcell
-		deploymentManifest   bmdeplmanifest.Manifest
-		installationManifest bminstallmanifest.Manifest
+		extractedStemcell    bistemcell.ExtractedStemcell
+		deploymentManifest   bideplmanifest.Manifest
+		installationManifest biinstallmanifest.Manifest
 	)
-	err = stage.PerformComplex("validating", func(stage bmui.Stage) error {
+	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, releaseTarballPaths, deploymentManifestPath)
 		return err
 	})
@@ -179,8 +179,8 @@ func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}
 
-	var installation bminstall.Installation
-	err = stage.PerformComplex("installing CPI", func(installStage bmui.Stage) error {
+	var installation biinstall.Installation
+	err = stage.PerformComplex("installing CPI", func(installStage biui.Stage) error {
 		installation, err = installer.Install(installationManifest, installStage)
 		return err
 	})
@@ -222,7 +222,7 @@ func (c *deployCmd) Run(stage bmui.Stage, args []string) error {
 		return bosherr.WrapError(err, "Creating blobstore client")
 	}
 
-	err = stage.PerformComplex("deploying", func(deployStage bmui.Stage) error {
+	err = stage.PerformComplex("deploying", func(deployStage biui.Stage) error {
 		_, err = c.deployer.Deploy(
 			cloud,
 			deploymentManifest,
@@ -275,14 +275,14 @@ func (c *deployCmd) isBlank(str string) bool {
 }
 
 func (c *deployCmd) validate(
-	validationStage bmui.Stage,
+	validationStage biui.Stage,
 	stemcellTarballPath string,
 	releaseTarballPaths []string,
 	deploymentManifestPath string,
 ) (
-	extractedStemcell bmstemcell.ExtractedStemcell,
-	deploymentManifest bmdeplmanifest.Manifest,
-	installationManifest bminstallmanifest.Manifest,
+	extractedStemcell bistemcell.ExtractedStemcell,
+	deploymentManifest bideplmanifest.Manifest,
+	installationManifest biinstallmanifest.Manifest,
 	err error,
 ) {
 	err = validationStage.Perform("Validating stemcell", func() error {
@@ -385,7 +385,7 @@ func (c *deployCmd) validate(
 		}
 
 		cpiReleaseJobName := installationManifest.Template.Name
-		err = bmcpirel.NewValidator().Validate(cpiRelease, cpiReleaseJobName)
+		err = bicpirel.NewValidator().Validate(cpiRelease, cpiReleaseJobName)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiReleaseName)
 		}

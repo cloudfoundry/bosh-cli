@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 )
 
 var _ = Describe("State", func() {
@@ -16,7 +16,7 @@ var _ = Describe("State", func() {
 			networkInterfaces := []NetworkRef{
 				{
 					Name: "fake-network-name",
-					Interface: bmproperty.Map{
+					Interface: biproperty.Map{
 						"ip":   "fake-ip",
 						"type": "dynamic",
 					},
@@ -63,39 +63,39 @@ var _ = Describe("State", func() {
 
 			applySpec := state.ToApplySpec()
 
-			Expect(applySpec).To(Equal(bmas.ApplySpec{
+			Expect(applySpec).To(Equal(bias.ApplySpec{
 				Deployment: "fake-deployment-name",
 				Index:      0,
-				Networks: map[string]bmproperty.Map{
-					"fake-network-name": bmproperty.Map{
+				Networks: map[string]biproperty.Map{
+					"fake-network-name": biproperty.Map{
 						"ip":   "fake-ip",
 						"type": "dynamic",
 					},
 				},
-				Job: bmas.Job{
+				Job: bias.Job{
 					Name: "fake-job-name",
-					Templates: []bmas.Blob{
+					Templates: []bias.Blob{
 						{
 							Name:    "fake-job-name",
 							Version: "fake-job-fingerprint",
 						},
 					},
 				},
-				Packages: map[string]bmas.Blob{
-					"vcloud_cpi": bmas.Blob{
+				Packages: map[string]bias.Blob{
+					"vcloud_cpi": bias.Blob{
 						Name:        "vcloud_cpi",
 						Version:     "fake-fingerprint-cpi",
 						SHA1:        "fake-sha1-cpi",
 						BlobstoreID: "fake-package-blob-id-cpi",
 					},
-					"ruby": bmas.Blob{
+					"ruby": bias.Blob{
 						Name:        "ruby",
 						Version:     "fake-fingerprint-ruby",
 						SHA1:        "fake-sha1-ruby",
 						BlobstoreID: "fake-package-blob-id-ruby",
 					},
 				},
-				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
+				RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{
 					BlobstoreID: "fake-rendered-job-list-archive-blob-id",
 					SHA1:        "fake-rendered-job-list-archive-blob-sha1",
 				},

@@ -9,40 +9,40 @@ import (
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
 	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type VM interface {
 	CID() string
 	Exists() (bool, error)
-	AgentClient() bmagentclient.AgentClient
+	AgentClient() biagentclient.AgentClient
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
 	Start() error
 	Stop() error
-	Apply(bmas.ApplySpec) error
-	UpdateDisks(bmdeplmanifest.DiskPool, bmui.Stage) ([]bmdisk.Disk, error)
+	Apply(bias.ApplySpec) error
+	UpdateDisks(bideplmanifest.DiskPool, biui.Stage) ([]bidisk.Disk, error)
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
-	AttachDisk(bmdisk.Disk) error
-	DetachDisk(bmdisk.Disk) error
-	Disks() ([]bmdisk.Disk, error)
-	UnmountDisk(bmdisk.Disk) error
+	AttachDisk(bidisk.Disk) error
+	DetachDisk(bidisk.Disk) error
+	Disks() ([]bidisk.Disk, error)
+	UnmountDisk(bidisk.Disk) error
 	MigrateDisk() error
 	Delete() error
 }
 
 type vm struct {
 	cid          string
-	vmRepo       bmconfig.VMRepo
-	stemcellRepo bmconfig.StemcellRepo
+	vmRepo       biconfig.VMRepo
+	stemcellRepo biconfig.StemcellRepo
 	diskDeployer DiskDeployer
-	agentClient  bmagentclient.AgentClient
-	cloud        bmcloud.Cloud
+	agentClient  biagentclient.AgentClient
+	cloud        bicloud.Cloud
 	fs           boshsys.FileSystem
 	logger       boshlog.Logger
 	logTag       string
@@ -50,11 +50,11 @@ type vm struct {
 
 func NewVM(
 	cid string,
-	vmRepo bmconfig.VMRepo,
-	stemcellRepo bmconfig.StemcellRepo,
+	vmRepo biconfig.VMRepo,
+	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
-	agentClient bmagentclient.AgentClient,
-	cloud bmcloud.Cloud,
+	agentClient biagentclient.AgentClient,
+	cloud bicloud.Cloud,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) VM {
@@ -83,12 +83,12 @@ func (vm *vm) Exists() (bool, error) {
 	return exists, nil
 }
 
-func (vm *vm) AgentClient() bmagentclient.AgentClient {
+func (vm *vm) AgentClient() biagentclient.AgentClient {
 	return vm.agentClient
 }
 
 func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
-	agentPingRetryable := bmagentclient.NewPingRetryable(vm.agentClient)
+	agentPingRetryable := biagentclient.NewPingRetryable(vm.agentClient)
 	timeService := boshtime.NewConcreteService() //TODO: inject timeService
 	agentPingRetryStrategy := boshretry.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, timeService, vm.logger)
 	return agentPingRetryStrategy.Try()
@@ -114,7 +114,7 @@ func (vm *vm) Stop() error {
 	return nil
 }
 
-func (vm *vm) Apply(newState bmas.ApplySpec) error {
+func (vm *vm) Apply(newState bias.ApplySpec) error {
 	vm.logger.Debug(vm.logTag, "Sending apply message to the agent with '%#v'", newState)
 	err := vm.agentClient.Apply(newState)
 	if err != nil {
@@ -124,7 +124,7 @@ func (vm *vm) Apply(newState bmas.ApplySpec) error {
 	return nil
 }
 
-func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmui.Stage) ([]bmdisk.Disk, error) {
+func (vm *vm) UpdateDisks(diskPool bideplmanifest.DiskPool, eventLoggerStage biui.Stage) ([]bidisk.Disk, error) {
 	disks, err := vm.diskDeployer.Deploy(diskPool, vm.cloud, vm, eventLoggerStage)
 	if err != nil {
 		return disks, bosherr.WrapError(err, "Deploying disk")
@@ -133,12 +133,12 @@ func (vm *vm) UpdateDisks(diskPool bmdeplmanifest.DiskPool, eventLoggerStage bmu
 }
 
 func (vm *vm) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
-	agentGetStateRetryable := bmagentclient.NewGetStateRetryable(vm.agentClient)
+	agentGetStateRetryable := biagentclient.NewGetStateRetryable(vm.agentClient)
 	agentGetStateRetryStrategy := boshretry.NewAttemptRetryStrategy(maxAttempts, delay, agentGetStateRetryable, vm.logger)
 	return agentGetStateRetryStrategy.Try()
 }
 
-func (vm *vm) AttachDisk(disk bmdisk.Disk) error {
+func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 	err := vm.cloud.AttachDisk(vm.cid, disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Attaching disk in the cloud")
@@ -152,7 +152,7 @@ func (vm *vm) AttachDisk(disk bmdisk.Disk) error {
 	return nil
 }
 
-func (vm *vm) DetachDisk(disk bmdisk.Disk) error {
+func (vm *vm) DetachDisk(disk bidisk.Disk) error {
 	err := vm.cloud.DetachDisk(vm.cid, disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Detaching disk in the cloud")
@@ -161,8 +161,8 @@ func (vm *vm) DetachDisk(disk bmdisk.Disk) error {
 	return nil
 }
 
-func (vm *vm) Disks() ([]bmdisk.Disk, error) {
-	result := []bmdisk.Disk{}
+func (vm *vm) Disks() ([]bidisk.Disk, error) {
+	result := []bidisk.Disk{}
 
 	disks, err := vm.agentClient.ListDisk()
 	if err != nil {
@@ -170,14 +170,14 @@ func (vm *vm) Disks() ([]bmdisk.Disk, error) {
 	}
 
 	for _, diskCID := range disks {
-		disk := bmdisk.NewDisk(bmconfig.DiskRecord{CID: diskCID}, nil, nil)
+		disk := bidisk.NewDisk(biconfig.DiskRecord{CID: diskCID}, nil, nil)
 		result = append(result, disk)
 	}
 
 	return result, nil
 }
 
-func (vm *vm) UnmountDisk(disk bmdisk.Disk) error {
+func (vm *vm) UnmountDisk(disk bidisk.Disk) error {
 	return vm.agentClient.UnmountDisk(disk.CID())
 }
 
@@ -189,8 +189,8 @@ func (vm *vm) Delete() error {
 	deleteErr := vm.cloud.DeleteVM(vm.cid)
 	if deleteErr != nil {
 		// allow VMNotFoundError for idempotency
-		cloudErr, ok := deleteErr.(bmcloud.Error)
-		if !ok || cloudErr.Type() != bmcloud.VMNotFoundError {
+		cloudErr, ok := deleteErr.(bicloud.Error)
+		if !ok || cloudErr.Type() != bicloud.VMNotFoundError {
 			return bosherr.WrapError(deleteErr, "Deleting vm in the cloud")
 		}
 	}
@@ -205,6 +205,6 @@ func (vm *vm) Delete() error {
 		return bosherr.WrapError(err, "Clearing current stemcell from stemcell repo")
 	}
 
-	// returns bmcloud.Error only if it is a VMNotFoundError
+	// returns bicloud.Error only if it is a VMNotFoundError
 	return deleteErr
 }

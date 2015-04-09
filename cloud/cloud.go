@@ -5,22 +5,22 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type Cloud interface {
-	CreateStemcell(imagePath string, cloudProperties bmproperty.Map) (stemcellCID string, err error)
+	CreateStemcell(imagePath string, cloudProperties biproperty.Map) (stemcellCID string, err error)
 	DeleteStemcell(stemcellCID string) error
 	HasVM(vmCID string) (bool, error)
 	CreateVM(
 		agentID string,
 		stemcellCID string,
-		cloudProperties bmproperty.Map,
-		networksInterfaces map[string]bmproperty.Map,
-		env bmproperty.Map,
+		cloudProperties biproperty.Map,
+		networksInterfaces map[string]biproperty.Map,
+		env biproperty.Map,
 	) (vmCID string, err error)
 	DeleteVM(vmCID string) error
-	CreateDisk(size int, cloudProperties bmproperty.Map, vmCID string) (diskCID string, err error)
+	CreateDisk(size int, cloudProperties biproperty.Map, vmCID string) (diskCID string, err error)
 	AttachDisk(vmCID, diskCID string) error
 	DetachDisk(vmCID, diskCID string) error
 	DeleteDisk(diskCID string) error
@@ -47,7 +47,7 @@ func NewCloud(
 	}
 }
 
-func (c cloud) CreateStemcell(imagePath string, cloudProperties bmproperty.Map) (string, error) {
+func (c cloud) CreateStemcell(imagePath string, cloudProperties biproperty.Map) (string, error) {
 	c.logger.Debug(c.logTag, "Creating stemcell")
 
 	method := "create_stemcell"
@@ -105,9 +105,9 @@ func (c cloud) HasVM(vmCID string) (bool, error) {
 func (c cloud) CreateVM(
 	agentID string,
 	stemcellCID string,
-	cloudProperties bmproperty.Map,
-	networksInterfaces map[string]bmproperty.Map,
-	env bmproperty.Map,
+	cloudProperties biproperty.Map,
+	networksInterfaces map[string]biproperty.Map,
+	env biproperty.Map,
 ) (string, error) {
 	method := "create_vm"
 	diskLocality := []interface{}{} // not used with bosh-init
@@ -137,7 +137,7 @@ func (c cloud) CreateVM(
 	return cidString, nil
 }
 
-func (c cloud) CreateDisk(size int, cloudProperties bmproperty.Map, vmCID string) (string, error) {
+func (c cloud) CreateDisk(size int, cloudProperties biproperty.Map, vmCID string) (string, error) {
 	c.logger.Debug(c.logTag,
 		"Creating disk with size %d, cloudProperties %#v, instanceID %s",
 		size,

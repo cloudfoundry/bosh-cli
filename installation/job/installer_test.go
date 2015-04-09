@@ -9,9 +9,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebminstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
-	fakebmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiinstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
+	fakebitemplate "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/installation/job"
 )
@@ -21,20 +21,20 @@ var _ = Describe("Installer", func() {
 		fs             *fakesys.FakeFileSystem
 		jobInstaller   Installer
 		renderedJobRef RenderedJobRef
-		blobExtractor  *fakebminstallblob.FakeExtractor
-		templateRepo   *fakebmtemplate.FakeTemplatesRepo
+		blobExtractor  *fakebiinstallblob.FakeExtractor
+		templateRepo   *fakebitemplate.FakeTemplatesRepo
 		jobsPath       string
-		fakeStage      *fakebmui.FakeStage
+		fakeStage      *fakebiui.FakeStage
 	)
 
 	Context("Installing the job", func() {
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
-			blobExtractor = fakebminstallblob.NewFakeExtractor()
-			templateRepo = fakebmtemplate.NewFakeTemplatesRepo()
+			blobExtractor = fakebiinstallblob.NewFakeExtractor()
+			templateRepo = fakebitemplate.NewFakeTemplatesRepo()
 
 			jobsPath = "/fake/jobs"
-			fakeStage = fakebmui.NewFakeStage()
+			fakeStage = fakebiui.NewFakeStage()
 
 			jobInstaller = NewInstaller(fs, blobExtractor, templateRepo, jobsPath)
 
@@ -80,7 +80,7 @@ var _ = Describe("Installer", func() {
 		It("tells the blobExtractor to extract the templates into the installed job dir", func() {
 			_, err := jobInstaller.Install(renderedJobRef, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebminstallblob.ExtractInput{
+			Expect(blobExtractor.ExtractInputs).To(ContainElement(fakebiinstallblob.ExtractInput{
 				BlobID:    "fake-job-blobstore-id-cpi",
 				BlobSHA1:  "fake-job-sha1-cpi",
 				TargetDir: filepath.Join(jobsPath, renderedJobRef.Name),
@@ -91,7 +91,7 @@ var _ = Describe("Installer", func() {
 			_, err := jobInstaller.Install(renderedJobRef, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Installing job 'cpi'"},
 			}))
 		})

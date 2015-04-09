@@ -18,17 +18,17 @@ import (
 	fakeboshcmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
 	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmindex "github.com/cloudfoundry/bosh-init/index"
-	bminstalljob "github.com/cloudfoundry/bosh-init/installation/job"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bminstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
-	bmtemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biindex "github.com/cloudfoundry/bosh-init/index"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
+	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Builder", func() {
@@ -50,19 +50,19 @@ var _ = Describe("Builder", func() {
 		fakeBlobstore          *fakeboshblob.FakeBlobstore
 
 		fakeFS        *fakeboshsys.FakeFileSystem
-		templatesRepo bmtemplate.TemplatesRepo
+		templatesRepo bitemplate.TemplatesRepo
 
 		logger boshlog.Logger
 
 		builder Builder
 
-		releaseJob bmreljob.Job
+		releaseJob bireljob.Job
 
-		manifest  bminstallmanifest.Manifest
-		fakeStage *fakebmui.FakeStage
+		manifest  biinstallmanifest.Manifest
+		fakeStage *fakebiui.FakeStage
 
-		releasePackage1 *bmrelpkg.Package
-		releasePackage2 *bmrelpkg.Package
+		releasePackage1 *birelpkg.Package
+		releasePackage2 *birelpkg.Package
 
 		expectJobResolve *gomock.Call
 		expectCompile    *gomock.Call
@@ -77,41 +77,41 @@ var _ = Describe("Builder", func() {
 		fakeBlobstore = fakeboshblob.NewFakeBlobstore()
 
 		fakeFS = fakeboshsys.NewFakeFileSystem()
-		index := bmindex.NewInMemoryIndex()
-		templatesRepo = bmtemplate.NewTemplatesRepo(index)
+		index := biindex.NewInMemoryIndex()
+		templatesRepo = bitemplate.NewTemplatesRepo(index)
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		fakeStage = fakebmui.NewFakeStage()
+		fakeStage = fakebiui.NewFakeStage()
 
-		manifest = bminstallmanifest.Manifest{
+		manifest = biinstallmanifest.Manifest{
 			Name: "fake-installation-name",
-			Template: bminstallmanifest.ReleaseJobRef{
+			Template: biinstallmanifest.ReleaseJobRef{
 				Name:    "fake-cpi-job-name",
 				Release: "fake-cpi-release-name",
 			},
-			Properties: bmproperty.Map{
+			Properties: biproperty.Map{
 				"fake-installation-property": "fake-installation-property-value",
 			},
 		}
 
-		releasePackage1 = &bmrelpkg.Package{
+		releasePackage1 = &birelpkg.Package{
 			Name:          "fake-release-package-name-1",
 			Fingerprint:   "fake-release-package-fingerprint-1",
 			SHA1:          "fake-release-package-sha1-1",
-			Dependencies:  []*bmrelpkg.Package{},
+			Dependencies:  []*birelpkg.Package{},
 			ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-1",
 		}
 
-		releasePackage2 = &bmrelpkg.Package{
+		releasePackage2 = &birelpkg.Package{
 			Name:          "fake-release-package-name-2",
 			Fingerprint:   "fake-release-package-fingerprint-2",
 			SHA1:          "fake-release-package-sha1-2",
-			Dependencies:  []*bmrelpkg.Package{releasePackage1},
+			Dependencies:  []*birelpkg.Package{releasePackage1},
 			ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-2",
 		}
 
-		releaseJob = bmreljob.Job{
+		releaseJob = bireljob.Job{
 			Name:          "cpi",
 			Fingerprint:   "fake-release-job-fingerprint",
 			SHA1:          "fake-release-job-sha1",
@@ -121,8 +121,8 @@ var _ = Describe("Builder", func() {
 				"cpi.yml.erb": "config/cpi.yml",
 			},
 			PackageNames: []string{releasePackage2.Name},
-			Packages:     []*bmrelpkg.Package{releasePackage2},
-			Properties:   map[string]bmreljob.PropertyDefinition{},
+			Packages:     []*birelpkg.Package{releasePackage2},
+			Properties:   map[string]bireljob.PropertyDefinition{},
 		}
 	})
 
@@ -138,8 +138,8 @@ var _ = Describe("Builder", func() {
 
 		expectJobResolve = mockReleaseJobResolver.EXPECT().Resolve("fake-cpi-job-name", "fake-cpi-release-name").Return(releaseJob, nil).AnyTimes()
 
-		releaseJobs := []bmreljob.Job{releaseJob}
-		compiledPackageRefs := []bmstatejob.CompiledPackageRef{
+		releaseJobs := []bireljob.Job{releaseJob}
+		compiledPackageRefs := []bistatejob.CompiledPackageRef{
 			{
 				Name:        "fake-release-package-name-1",
 				Version:     "fake-release-package-fingerprint-1",
@@ -155,14 +155,14 @@ var _ = Describe("Builder", func() {
 		}
 		expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, fakeStage).Return(compiledPackageRefs, nil).AnyTimes()
 
-		jobProperties := bmproperty.Map{
+		jobProperties := biproperty.Map{
 			"fake-installation-property": "fake-installation-property-value",
 		}
-		globalProperties := bmproperty.Map{}
+		globalProperties := biproperty.Map{}
 		deploymentName := "fake-installation-name"
 
-		renderedJobList := bmtemplate.NewRenderedJobList()
-		renderedJobList.Add(bmtemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fakeFS, logger))
+		renderedJobList := bitemplate.NewRenderedJobList()
+		renderedJobList.Add(bitemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fakeFS, logger))
 
 		expectJobRender = mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, deploymentName).Return(renderedJobList, nil).AnyTimes()
 
@@ -198,7 +198,7 @@ var _ = Describe("Builder", func() {
 			_, err := builder.Build(manifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				// compile stages not produced by mockDependencyCompiler
 				{Name: "Rendering job templates"},
 			}))
@@ -217,20 +217,20 @@ var _ = Describe("Builder", func() {
 			state, err := builder.Build(manifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(state.RenderedCPIJob()).To(Equal(bminstalljob.RenderedJobRef{
+			Expect(state.RenderedCPIJob()).To(Equal(biinstalljob.RenderedJobRef{
 				Name:        "cpi",
 				Version:     "fake-release-job-fingerprint",
 				BlobstoreID: "fake-rendered-job-tarball-blobstore-id-cpi",
 				SHA1:        "fake-rendered-job-tarball-sha1-cpi",
 			}))
 
-			Expect(state.CompiledPackages()).To(ContainElement(bminstallpkg.CompiledPackageRef{
+			Expect(state.CompiledPackages()).To(ContainElement(biinstallpkg.CompiledPackageRef{
 				Name:        "fake-release-package-name-1",
 				Version:     "fake-release-package-fingerprint-1",
 				BlobstoreID: "fake-compiled-package-blobstore-id-1",
 				SHA1:        "fake-compiled-package-sha1-1",
 			}))
-			Expect(state.CompiledPackages()).To(ContainElement(bminstallpkg.CompiledPackageRef{
+			Expect(state.CompiledPackages()).To(ContainElement(biinstallpkg.CompiledPackageRef{
 				Name:        "fake-release-package-name-2",
 				Version:     "fake-release-package-fingerprint-2",
 				BlobstoreID: "fake-compiled-package-blobstore-id-2",
@@ -241,7 +241,7 @@ var _ = Describe("Builder", func() {
 
 		Context("when the release does not contain a 'cpi' job", func() {
 			JustBeforeEach(func() {
-				expectJobResolve.Return(bmreljob.Job{}, bosherr.Error("fake-job-resolve-error")).Times(1)
+				expectJobResolve.Return(bireljob.Job{}, bosherr.Error("fake-job-resolve-error")).Times(1)
 			})
 
 			It("returns an error", func() {
@@ -253,7 +253,7 @@ var _ = Describe("Builder", func() {
 
 		Context("when package compilation fails", func() {
 			JustBeforeEach(func() {
-				expectCompile.Return([]bmstatejob.CompiledPackageRef{}, bosherr.Error("fake-compile-package-2-error")).Times(1)
+				expectCompile.Return([]bistatejob.CompiledPackageRef{}, bosherr.Error("fake-compile-package-2-error")).Times(1)
 			})
 
 			It("returns an error", func() {

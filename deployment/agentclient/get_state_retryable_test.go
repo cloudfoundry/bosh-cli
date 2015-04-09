@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
-	fakebmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
+	fakebiagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 )
@@ -15,12 +15,12 @@ import (
 var _ = Describe("GetStateRetryable", func() {
 	Describe("Attempt", func() {
 		var (
-			fakeAgentClient   *fakebmagentclient.FakeAgentClient
+			fakeAgentClient   *fakebiagentclient.FakeAgentClient
 			getStateRetryable boshretry.Retryable
 		)
 
 		BeforeEach(func() {
-			fakeAgentClient = fakebmagentclient.NewFakeAgentClient()
+			fakeAgentClient = fakebiagentclient.NewFakeAgentClient()
 			getStateRetryable = NewGetStateRetryable(fakeAgentClient)
 		})
 

@@ -1,32 +1,32 @@
 package deployment
 
 import (
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bminstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 type ManagerFactory interface {
-	NewManager(bmcloud.Cloud, bmagentclient.AgentClient, bmblobstore.Blobstore) Manager
+	NewManager(bicloud.Cloud, biagentclient.AgentClient, biblobstore.Blobstore) Manager
 }
 
 type managerFactory struct {
-	vmManagerFactory       bmvm.ManagerFactory
-	instanceManagerFactory bminstance.ManagerFactory
-	diskManagerFactory     bmdisk.ManagerFactory
-	stemcellManagerFactory bmstemcell.ManagerFactory
+	vmManagerFactory       bivm.ManagerFactory
+	instanceManagerFactory biinstance.ManagerFactory
+	diskManagerFactory     bidisk.ManagerFactory
+	stemcellManagerFactory bistemcell.ManagerFactory
 	deploymentFactory      Factory
 }
 
 func NewManagerFactory(
-	vmManagerFactory bmvm.ManagerFactory,
-	instanceManagerFactory bminstance.ManagerFactory,
-	diskManagerFactory bmdisk.ManagerFactory,
-	stemcellManagerFactory bmstemcell.ManagerFactory,
+	vmManagerFactory bivm.ManagerFactory,
+	instanceManagerFactory biinstance.ManagerFactory,
+	diskManagerFactory bidisk.ManagerFactory,
+	stemcellManagerFactory bistemcell.ManagerFactory,
 	deploymentFactory Factory,
 ) ManagerFactory {
 	return &managerFactory{
@@ -38,7 +38,7 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bmcloud.Cloud, agentClient bmagentclient.AgentClient, blobstore bmblobstore.Blobstore) Manager {
+func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClient biagentclient.AgentClient, blobstore biblobstore.Blobstore) Manager {
 	vmManager := f.vmManagerFactory.NewManager(cloud, agentClient)
 	instanceManager := f.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
 	diskManager := f.diskManagerFactory.NewManager(cloud)

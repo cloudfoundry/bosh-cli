@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebmerbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
+	fakebierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -20,14 +20,14 @@ var _ = Describe("ErbRenderer", func() {
 		fs          *fakesys.FakeFileSystem
 		runner      *fakesys.FakeCmdRunner
 		erbRenderer ERBRenderer
-		context     *fakebmerbrenderer.FakeTemplateEvaluationContext
+		context     *fakebierbrenderer.FakeTemplateEvaluationContext
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		runner = fakesys.NewFakeCmdRunner()
-		context = &fakebmerbrenderer.FakeTemplateEvaluationContext{}
+		context = &fakebierbrenderer.FakeTemplateEvaluationContext{}
 
 		erbRenderer = NewERBRenderer(fs, runner, logger)
 		fs.TempDirDir = "fake-temp-dir"

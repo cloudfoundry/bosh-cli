@@ -5,8 +5,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 type StemcellRepoSaveInput struct {
@@ -16,7 +16,7 @@ type StemcellRepoSaveInput struct {
 }
 
 type StemcellRepoSaveOutput struct {
-	stemcellRecord bmconfig.StemcellRecord
+	stemcellRecord biconfig.StemcellRecord
 	err            error
 }
 
@@ -26,13 +26,13 @@ type StemcellRepoFindInput struct {
 }
 
 type StemcellRepoFindOutput struct {
-	stemcellRecord bmconfig.StemcellRecord
+	stemcellRecord biconfig.StemcellRecord
 	found          bool
 	err            error
 }
 
 type FindCurrentOutput struct {
-	stemcellRecord bmconfig.StemcellRecord
+	stemcellRecord biconfig.StemcellRecord
 	found          bool
 	err            error
 }
@@ -51,10 +51,10 @@ type FakeStemcellRepo struct {
 	ClearCurrentCalled bool
 	ClearCurrentErr    error
 
-	DeleteStemcellRecords []bmconfig.StemcellRecord
+	DeleteStemcellRecords []biconfig.StemcellRecord
 	DeleteErr             error
 
-	AllStemcellRecords []bmconfig.StemcellRecord
+	AllStemcellRecords []biconfig.StemcellRecord
 	AllErr             error
 }
 
@@ -72,7 +72,7 @@ func (fr *FakeStemcellRepo) UpdateCurrent(recordID string) error {
 	return fr.UpdateCurrentErr
 }
 
-func (fr *FakeStemcellRepo) FindCurrent() (bmconfig.StemcellRecord, bool, error) {
+func (fr *FakeStemcellRepo) FindCurrent() (biconfig.StemcellRecord, bool, error) {
 	return fr.findCurrentOutput.stemcellRecord, fr.findCurrentOutput.found, fr.findCurrentOutput.err
 }
 
@@ -81,16 +81,16 @@ func (fr *FakeStemcellRepo) ClearCurrent() error {
 	return fr.ClearCurrentErr
 }
 
-func (fr *FakeStemcellRepo) Delete(stemcellRecord bmconfig.StemcellRecord) error {
+func (fr *FakeStemcellRepo) Delete(stemcellRecord biconfig.StemcellRecord) error {
 	fr.DeleteStemcellRecords = append(fr.DeleteStemcellRecords, stemcellRecord)
 	return fr.DeleteErr
 }
 
-func (fr *FakeStemcellRepo) All() ([]bmconfig.StemcellRecord, error) {
+func (fr *FakeStemcellRepo) All() ([]biconfig.StemcellRecord, error) {
 	return fr.AllStemcellRecords, fr.AllErr
 }
 
-func (fr *FakeStemcellRepo) Save(name, version, cid string) (bmconfig.StemcellRecord, error) {
+func (fr *FakeStemcellRepo) Save(name, version, cid string) (biconfig.StemcellRecord, error) {
 	input := StemcellRepoSaveInput{
 		Name:    name,
 		Version: version,
@@ -98,27 +98,27 @@ func (fr *FakeStemcellRepo) Save(name, version, cid string) (bmconfig.StemcellRe
 	}
 	fr.SaveInputs = append(fr.SaveInputs, input)
 
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
-		return bmconfig.StemcellRecord{}, bosherr.WrapError(marshalErr, "Marshaling Save input")
+		return biconfig.StemcellRecord{}, bosherr.WrapError(marshalErr, "Marshaling Save input")
 	}
 
 	output, found := fr.SaveBehavior[inputString]
 	if !found {
-		return bmconfig.StemcellRecord{}, fmt.Errorf("Unsupported Save Input: %s", inputString)
+		return biconfig.StemcellRecord{}, fmt.Errorf("Unsupported Save Input: %s", inputString)
 	}
 
 	return output.stemcellRecord, output.err
 }
 
-func (fr *FakeStemcellRepo) SetSaveBehavior(name, version, cid string, stemcellRecord bmconfig.StemcellRecord, err error) error {
+func (fr *FakeStemcellRepo) SetSaveBehavior(name, version, cid string, stemcellRecord biconfig.StemcellRecord, err error) error {
 	input := StemcellRepoSaveInput{
 		Name:    name,
 		Version: version,
 		CID:     cid,
 	}
 
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Save input")
 	}
@@ -131,33 +131,33 @@ func (fr *FakeStemcellRepo) SetSaveBehavior(name, version, cid string, stemcellR
 	return nil
 }
 
-func (fr *FakeStemcellRepo) Find(name, version string) (bmconfig.StemcellRecord, bool, error) {
+func (fr *FakeStemcellRepo) Find(name, version string) (biconfig.StemcellRecord, bool, error) {
 	input := StemcellRepoFindInput{
 		Name:    name,
 		Version: version,
 	}
 	fr.FindInputs = append(fr.FindInputs, input)
 
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
-		return bmconfig.StemcellRecord{}, false, bosherr.WrapError(marshalErr, "Marshaling Find input")
+		return biconfig.StemcellRecord{}, false, bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
 
 	output, found := fr.FindBehavior[inputString]
 	if !found {
-		return bmconfig.StemcellRecord{}, false, fmt.Errorf("Unsupported Find Input: %s", inputString)
+		return biconfig.StemcellRecord{}, false, fmt.Errorf("Unsupported Find Input: %s", inputString)
 	}
 
 	return output.stemcellRecord, output.found, output.err
 }
 
-func (fr *FakeStemcellRepo) SetFindBehavior(name, version string, foundRecord bmconfig.StemcellRecord, found bool, err error) error {
+func (fr *FakeStemcellRepo) SetFindBehavior(name, version string, foundRecord biconfig.StemcellRecord, found bool, err error) error {
 	input := StemcellRepoFindInput{
 		Name:    name,
 		Version: version,
 	}
 
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
 		return bosherr.WrapError(marshalErr, "Marshaling Find input")
 	}
@@ -171,7 +171,7 @@ func (fr *FakeStemcellRepo) SetFindBehavior(name, version string, foundRecord bm
 	return nil
 }
 
-func (fr *FakeStemcellRepo) SetFindCurrentBehavior(foundRecord bmconfig.StemcellRecord, found bool, err error) error {
+func (fr *FakeStemcellRepo) SetFindCurrentBehavior(foundRecord biconfig.StemcellRecord, found bool, err error) error {
 	fr.findCurrentOutput = FindCurrentOutput{
 		stemcellRecord: foundRecord,
 		found:          found,

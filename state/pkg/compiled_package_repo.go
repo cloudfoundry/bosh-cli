@@ -7,8 +7,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmindex "github.com/cloudfoundry/bosh-init/index"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	biindex "github.com/cloudfoundry/bosh-init/index"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type CompiledPackageRecord struct {
@@ -17,19 +17,19 @@ type CompiledPackageRecord struct {
 }
 
 type CompiledPackageRepo interface {
-	Save(bmrelpkg.Package, CompiledPackageRecord) error
-	Find(bmrelpkg.Package) (CompiledPackageRecord, bool, error)
+	Save(birelpkg.Package, CompiledPackageRecord) error
+	Find(birelpkg.Package) (CompiledPackageRecord, bool, error)
 }
 
 type compiledPackageRepo struct {
-	index bmindex.Index
+	index biindex.Index
 }
 
-func NewCompiledPackageRepo(index bmindex.Index) CompiledPackageRepo {
+func NewCompiledPackageRepo(index biindex.Index) CompiledPackageRepo {
 	return &compiledPackageRepo{index: index}
 }
 
-func (cpr *compiledPackageRepo) Save(pkg bmrelpkg.Package, record CompiledPackageRecord) error {
+func (cpr *compiledPackageRepo) Save(pkg birelpkg.Package, record CompiledPackageRecord) error {
 	err := cpr.index.Save(cpr.pkgKey(pkg), record)
 
 	if err != nil {
@@ -39,12 +39,12 @@ func (cpr *compiledPackageRepo) Save(pkg bmrelpkg.Package, record CompiledPackag
 	return nil
 }
 
-func (cpr *compiledPackageRepo) Find(pkg bmrelpkg.Package) (CompiledPackageRecord, bool, error) {
+func (cpr *compiledPackageRepo) Find(pkg birelpkg.Package) (CompiledPackageRecord, bool, error) {
 	var record CompiledPackageRecord
 
 	err := cpr.index.Find(cpr.pkgKey(pkg), &record)
 	if err != nil {
-		if err == bmindex.ErrNotFound {
+		if err == biindex.ErrNotFound {
 			return record, false, nil
 		}
 
@@ -62,7 +62,7 @@ type packageToCompiledPackageKey struct {
 	DependencyKey      string
 }
 
-func (cpr compiledPackageRepo) pkgKey(pkg bmrelpkg.Package) packageToCompiledPackageKey {
+func (cpr compiledPackageRepo) pkgKey(pkg birelpkg.Package) packageToCompiledPackageKey {
 	return packageToCompiledPackageKey{
 		PackageName:        pkg.Name,
 		PackageFingerprint: pkg.Fingerprint,
@@ -70,7 +70,7 @@ func (cpr compiledPackageRepo) pkgKey(pkg bmrelpkg.Package) packageToCompiledPac
 	}
 }
 
-func (cpr compiledPackageRepo) convertToDependencyKey(packages []*bmrelpkg.Package) string {
+func (cpr compiledPackageRepo) convertToDependencyKey(packages []*birelpkg.Package) string {
 	dependencyKeys := []string{}
 	for _, pkg := range packages {
 		dependencyKeys = append(dependencyKeys, fmt.Sprintf("%s:%s", pkg.Name, pkg.Fingerprint))

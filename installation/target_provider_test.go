@@ -11,7 +11,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 var _ = Describe("TargetProvider", func() {
@@ -19,7 +19,7 @@ var _ = Describe("TargetProvider", func() {
 		fakeFS                  *fakesys.FakeFileSystem
 		fakeUUIDGenerator       *fakeuuid.FakeGenerator
 		logger                  boshlog.Logger
-		deploymentConfigService bmconfig.DeploymentConfigService
+		deploymentConfigService biconfig.DeploymentConfigService
 
 		targetProvider TargetProvider
 
@@ -31,7 +31,7 @@ var _ = Describe("TargetProvider", func() {
 		fakeFS = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		deploymentConfigService = bmconfig.NewFileSystemDeploymentConfigService(
+		deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(
 			configPath,
 			fakeFS,
 			fakeUUIDGenerator,

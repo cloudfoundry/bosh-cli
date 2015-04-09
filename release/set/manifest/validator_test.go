@@ -6,12 +6,12 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birelset "github.com/cloudfoundry/bosh-init/release/set"
 
-	fakebmrel "github.com/cloudfoundry/bosh-init/release/fakes"
+	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
@@ -19,19 +19,19 @@ import (
 var _ = Describe("Validator", func() {
 	var (
 		logger         boshlog.Logger
-		releaseManager bmrel.Manager
+		releaseManager birel.Manager
 		validator      Validator
 
 		validManifest Manifest
-		fakeRelease   *fakebmrel.FakeRelease
+		fakeRelease   *fakebirel.FakeRelease
 	)
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		releaseManager = bmrel.NewManager(logger)
+		releaseManager = birel.NewManager(logger)
 
 		validManifest = Manifest{
-			Releases: []bmrelmanifest.ReleaseRef{
+			Releases: []birelmanifest.ReleaseRef{
 				{
 					Name:    "fake-release-name",
 					Version: "1.0",
@@ -39,13 +39,13 @@ var _ = Describe("Validator", func() {
 			},
 		}
 
-		fakeRelease = fakebmrel.New("fake-release-name", "1.0")
-		fakeRelease.ReleaseJobs = []bmreljob.Job{{Name: "fake-job-name"}}
+		fakeRelease = fakebirel.New("fake-release-name", "1.0")
+		fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
 		releaseManager.Add(fakeRelease)
 	})
 
 	JustBeforeEach(func() {
-		releaseResolver := bmrelset.NewResolver(releaseManager, logger)
+		releaseResolver := birelset.NewResolver(releaseManager, logger)
 		validator = NewValidator(logger, releaseResolver)
 	})
 
@@ -59,7 +59,7 @@ var _ = Describe("Validator", func() {
 
 		It("validates releases have names", func() {
 			manifest := Manifest{
-				Releases: []bmrelmanifest.ReleaseRef{{}},
+				Releases: []birelmanifest.ReleaseRef{{}},
 			}
 
 			err := validator.Validate(manifest)
@@ -69,7 +69,7 @@ var _ = Describe("Validator", func() {
 
 		It("validates releases are unique", func() {
 			manifest := Manifest{
-				Releases: []bmrelmanifest.ReleaseRef{
+				Releases: []birelmanifest.ReleaseRef{
 					{Name: "fake-release-name"},
 					{Name: "fake-release-name"},
 				},
@@ -82,7 +82,7 @@ var _ = Describe("Validator", func() {
 
 		It("validates release version is a SemVer", func() {
 			manifest := Manifest{
-				Releases: []bmrelmanifest.ReleaseRef{
+				Releases: []birelmanifest.ReleaseRef{
 					{Name: "fake-release-name", Version: "not-a-semver"},
 				},
 			}
@@ -94,7 +94,7 @@ var _ = Describe("Validator", func() {
 
 		It("validates release is available", func() {
 			manifest := validManifest
-			manifest.Releases = []bmrelmanifest.ReleaseRef{
+			manifest.Releases = []birelmanifest.ReleaseRef{
 				{Name: "fake-other-release-name", Version: "1.0"},
 			}
 
@@ -105,10 +105,10 @@ var _ = Describe("Validator", func() {
 
 		It("allows release versions to be 'latest'", func() {
 			manifest := validManifest
-			manifest.Releases = []bmrelmanifest.ReleaseRef{
+			manifest.Releases = []birelmanifest.ReleaseRef{
 				{Name: "fake-release-name", Version: "latest"},
 			}
-			releaseManager.Add(fakebmrel.New("fake-release-name", "1.0"))
+			releaseManager.Add(fakebirel.New("fake-release-name", "1.0"))
 
 			err := validator.Validate(manifest)
 			Expect(err).NotTo(HaveOccurred())

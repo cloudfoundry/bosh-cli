@@ -1,8 +1,8 @@
 package job
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 type Job struct {
@@ -12,13 +12,13 @@ type Job struct {
 	ExtractedPath string
 	Templates     map[string]string
 	PackageNames  []string
-	Packages      []*bmrelpkg.Package
+	Packages      []*birelpkg.Package
 	Properties    map[string]PropertyDefinition
 }
 
 type PropertyDefinition struct {
 	Description string
-	Default     bmproperty.Property
+	Default     biproperty.Property
 }
 
 func (j Job) FindTemplateByValue(value string) (string, bool) {

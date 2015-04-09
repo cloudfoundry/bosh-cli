@@ -7,10 +7,10 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmstatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type CompiledPackageRef struct {
@@ -21,16 +21,16 @@ type CompiledPackageRef struct {
 }
 
 type DependencyCompiler interface {
-	Compile(releaseJobs []bmreljob.Job, stage bmui.Stage) ([]CompiledPackageRef, error)
+	Compile(releaseJobs []bireljob.Job, stage biui.Stage) ([]CompiledPackageRef, error)
 }
 
 type dependencyCompiler struct {
-	packageCompiler bmstatepkg.Compiler
+	packageCompiler bistatepkg.Compiler
 	logger          boshlog.Logger
 	logTag          string
 }
 
-func NewDependencyCompiler(packageCompiler bmstatepkg.Compiler, logger boshlog.Logger) DependencyCompiler {
+func NewDependencyCompiler(packageCompiler bistatepkg.Compiler, logger boshlog.Logger) DependencyCompiler {
 	return &dependencyCompiler{
 		packageCompiler: packageCompiler,
 		logger:          logger,
@@ -39,7 +39,7 @@ func NewDependencyCompiler(packageCompiler bmstatepkg.Compiler, logger boshlog.L
 }
 
 // Compile resolves and compiles all transitive dependencies of multiple release jobs
-func (c *dependencyCompiler) Compile(releaseJobs []bmreljob.Job, stage bmui.Stage) ([]CompiledPackageRef, error) {
+func (c *dependencyCompiler) Compile(releaseJobs []bireljob.Job, stage biui.Stage) ([]CompiledPackageRef, error) {
 	compileOrderReleasePackages, err := c.resolveJobCompilationDependencies(releaseJobs)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Resolving job package dependencies")
@@ -54,9 +54,9 @@ func (c *dependencyCompiler) Compile(releaseJobs []bmreljob.Job, stage bmui.Stag
 }
 
 // resolveJobPackageCompilationDependencies returns all packages required by all specified jobs, in compilation order (reverse dependency order)
-func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bmreljob.Job) ([]*bmrelpkg.Package, error) {
+func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bireljob.Job) ([]*birelpkg.Package, error) {
 	// collect and de-dupe all required packages (dependencies of jobs)
-	packageMap := map[string]*bmrelpkg.Package{}
+	packageMap := map[string]*birelpkg.Package{}
 	for _, releaseJob := range releaseJobs {
 		for _, releasePackage := range releaseJob.Packages {
 			pkgKey := c.pkgKey(releasePackage)
@@ -66,13 +66,13 @@ func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bmr
 	}
 
 	// flatten map values to array
-	packages := make([]*bmrelpkg.Package, 0, len(packageMap))
+	packages := make([]*birelpkg.Package, 0, len(packageMap))
 	for _, releasePackage := range packageMap {
 		packages = append(packages, releasePackage)
 	}
 
 	// sort in compilation order
-	sortedPackages := bmrelpkg.Sort(packages)
+	sortedPackages := birelpkg.Sort(packages)
 
 	pkgs := []string{}
 	for _, pkg := range sortedPackages {
@@ -84,7 +84,7 @@ func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bmr
 }
 
 // resolvePackageDependencies adds the releasePackage's dependencies to the packageMap recursively
-func (c *dependencyCompiler) resolvePackageDependencies(releasePackage *bmrelpkg.Package, packageMap map[string]*bmrelpkg.Package) {
+func (c *dependencyCompiler) resolvePackageDependencies(releasePackage *birelpkg.Package, packageMap map[string]*birelpkg.Package) {
 	for _, dependency := range releasePackage.Dependencies {
 		// only add un-added packages, to avoid endless looping in case of cycles
 		pkgKey := c.pkgKey(dependency)
@@ -96,7 +96,7 @@ func (c *dependencyCompiler) resolvePackageDependencies(releasePackage *bmrelpkg
 }
 
 // compilePackages compiles the specified packages, in the order specified, uploads them to the Blobstore, and returns the blob references
-func (c *dependencyCompiler) compilePackages(requiredPackages []*bmrelpkg.Package, stage bmui.Stage) ([]CompiledPackageRef, error) {
+func (c *dependencyCompiler) compilePackages(requiredPackages []*birelpkg.Package, stage biui.Stage) ([]CompiledPackageRef, error) {
 	packageRefs := make([]CompiledPackageRef, 0, len(requiredPackages))
 
 	for _, pkg := range requiredPackages {
@@ -125,6 +125,6 @@ func (c *dependencyCompiler) compilePackages(requiredPackages []*bmrelpkg.Packag
 	return packageRefs, nil
 }
 
-func (c *dependencyCompiler) pkgKey(pkg *bmrelpkg.Package) string {
+func (c *dependencyCompiler) pkgKey(pkg *birelpkg.Package) string {
 	return pkg.Name
 }

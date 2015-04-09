@@ -1,15 +1,15 @@
 package manifest
 
 import (
-	bmrelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 )
 
 type Manifest struct {
-	Releases []bmrelmanifest.ReleaseRef
+	Releases []birelmanifest.ReleaseRef
 }
 
-func (d Manifest) ReleasesByName() map[string]bmrelmanifest.ReleaseRef {
-	releasesByName := map[string]bmrelmanifest.ReleaseRef{}
+func (d Manifest) ReleasesByName() map[string]birelmanifest.ReleaseRef {
+	releasesByName := map[string]birelmanifest.ReleaseRef{}
 	for _, release := range d.Releases {
 		releasesByName[release.Name] = release
 	}

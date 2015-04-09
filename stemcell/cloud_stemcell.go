@@ -2,8 +2,8 @@ package stemcell
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type CloudStemcell interface {
@@ -18,14 +18,14 @@ type cloudStemcell struct {
 	cid     string
 	name    string
 	version string
-	repo    bmconfig.StemcellRepo
-	cloud   bmcloud.Cloud
+	repo    biconfig.StemcellRepo
+	cloud   bicloud.Cloud
 }
 
 func NewCloudStemcell(
-	stemcellRecord bmconfig.StemcellRecord,
-	repo bmconfig.StemcellRepo,
-	cloud bmcloud.Cloud,
+	stemcellRecord biconfig.StemcellRecord,
+	repo biconfig.StemcellRepo,
+	cloud bicloud.Cloud,
 ) CloudStemcell {
 	return &cloudStemcell{
 		cid:     stemcellRecord.CID,
@@ -70,8 +70,8 @@ func (s *cloudStemcell) Delete() error {
 	deleteErr := s.cloud.DeleteStemcell(s.cid)
 	if deleteErr != nil {
 		// allow StemcellNotFoundError for idempotency
-		cloudErr, ok := deleteErr.(bmcloud.Error)
-		if !ok || cloudErr.Type() != bmcloud.StemcellNotFoundError {
+		cloudErr, ok := deleteErr.(bicloud.Error)
+		if !ok || cloudErr.Type() != bicloud.StemcellNotFoundError {
 			return bosherr.WrapError(deleteErr, "Deleting stemcell from cloud")
 		}
 	}

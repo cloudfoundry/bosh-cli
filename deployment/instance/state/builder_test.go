@@ -14,14 +14,14 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bmstatejob "github.com/cloudfoundry/bosh-init/state/job"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Builder", describeBuilder)
@@ -66,12 +66,12 @@ func describeBuilder() {
 
 			jobName            string
 			instanceID         int
-			deploymentManifest bmdeplmanifest.Manifest
-			fakeStage          *fakebmui.FakeStage
+			deploymentManifest bideplmanifest.Manifest
+			fakeStage          *fakebiui.FakeStage
 
-			releasePackageLibyaml *bmrelpkg.Package
-			releasePackageRuby    *bmrelpkg.Package
-			releasePackageCPI     *bmrelpkg.Package
+			releasePackageLibyaml *birelpkg.Package
+			releasePackageRuby    *birelpkg.Package
+			releasePackageCPI     *birelpkg.Package
 
 			expectCompile *gomock.Call
 		)
@@ -83,43 +83,43 @@ func describeBuilder() {
 			jobName = "fake-deployment-job-name"
 			instanceID = 0
 
-			deploymentManifest = bmdeplmanifest.Manifest{
+			deploymentManifest = bideplmanifest.Manifest{
 				Name: "fake-deployment-name",
-				Jobs: []bmdeplmanifest.Job{
+				Jobs: []bideplmanifest.Job{
 					{
 						Name: "fake-deployment-job-name",
-						Networks: []bmdeplmanifest.JobNetwork{
+						Networks: []bideplmanifest.JobNetwork{
 							{
 								Name: "fake-network-name",
 							},
 						},
-						Templates: []bmdeplmanifest.ReleaseJobRef{
+						Templates: []bideplmanifest.ReleaseJobRef{
 							{
 								Name:    "fake-release-job-name",
 								Release: "fake-release-name",
 							},
 						},
-						Properties: bmproperty.Map{
+						Properties: biproperty.Map{
 							"fake-job-property": "fake-job-property-value",
 						},
 					},
 				},
-				Networks: []bmdeplmanifest.Network{
+				Networks: []bideplmanifest.Network{
 					{
 						Name: "fake-network-name",
 						IP:   "fake-network-ip",
 						Type: "fake-network-type",
-						CloudProperties: bmproperty.Map{
+						CloudProperties: biproperty.Map{
 							"fake-network-cloud-property": "fake-network-cloud-property-value",
 						},
 					},
 				},
-				Properties: bmproperty.Map{
+				Properties: biproperty.Map{
 					"fake-job-property": "fake-global-property-value", //overridden by job property value
 				},
 			}
 
-			fakeStage = fakebmui.NewFakeStage()
+			fakeStage = fakebiui.NewFakeStage()
 
 			stateBuilder = NewBuilder(
 				mockReleaseJobResolver,
@@ -130,39 +130,39 @@ func describeBuilder() {
 				logger,
 			)
 
-			releasePackageLibyaml = &bmrelpkg.Package{
+			releasePackageLibyaml = &birelpkg.Package{
 				Name:         "libyaml",
 				Fingerprint:  "fake-package-source-fingerprint-libyaml",
 				SHA1:         "fake-package-source-sha1-libyaml",
-				Dependencies: []*bmrelpkg.Package{},
+				Dependencies: []*birelpkg.Package{},
 				ArchivePath:  "fake-package-archive-path-libyaml", // only required by compiler...
 			}
-			releasePackageRuby = &bmrelpkg.Package{
+			releasePackageRuby = &birelpkg.Package{
 				Name:         "ruby",
 				Fingerprint:  "fake-package-source-fingerprint-ruby",
 				SHA1:         "fake-package-source-sha1-ruby",
-				Dependencies: []*bmrelpkg.Package{releasePackageLibyaml},
+				Dependencies: []*birelpkg.Package{releasePackageLibyaml},
 				ArchivePath:  "fake-package-archive-path-ruby", // only required by compiler...
 			}
-			releasePackageCPI = &bmrelpkg.Package{
+			releasePackageCPI = &birelpkg.Package{
 				Name:         "cpi",
 				Fingerprint:  "fake-package-source-fingerprint-cpi",
 				SHA1:         "fake-package-source-sha1-cpi",
-				Dependencies: []*bmrelpkg.Package{releasePackageRuby},
+				Dependencies: []*birelpkg.Package{releasePackageRuby},
 				ArchivePath:  "fake-package-archive-path-cpi", // only required by compiler...
 			}
 		})
 
 		JustBeforeEach(func() {
-			releaseJob := bmreljob.Job{
+			releaseJob := bireljob.Job{
 				Name:        "fake-release-job-name",
 				Fingerprint: "fake-release-job-source-fingerprint",
-				Packages:    []*bmrelpkg.Package{releasePackageCPI, releasePackageRuby},
+				Packages:    []*birelpkg.Package{releasePackageCPI, releasePackageRuby},
 			}
 			mockReleaseJobResolver.EXPECT().Resolve("fake-release-job-name", "fake-release-name").Return(releaseJob, nil)
 
-			releaseJobs := []bmreljob.Job{releaseJob}
-			compiledPackageRefs := []bmstatejob.CompiledPackageRef{
+			releaseJobs := []bireljob.Job{releaseJob}
+			compiledPackageRefs := []bistatejob.CompiledPackageRef{
 				{
 					Name:        "libyaml",
 					Version:     "fake-package-source-fingerprint-libyaml",
@@ -184,10 +184,10 @@ func describeBuilder() {
 			}
 			expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, fakeStage).Return(compiledPackageRefs, nil).AnyTimes()
 
-			jobProperties := bmproperty.Map{
+			jobProperties := biproperty.Map{
 				"fake-job-property": "fake-job-property-value",
 			}
-			globalProperties := bmproperty.Map{
+			globalProperties := biproperty.Map{
 				"fake-job-property": "fake-global-property-value",
 			}
 			mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, "fake-deployment-name").Return(mockRenderedJobList, nil)
@@ -218,10 +218,10 @@ func describeBuilder() {
 
 			Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
 				Name: "fake-network-name",
-				Interface: bmproperty.Map{
+				Interface: biproperty.Map{
 					"ip":   "fake-network-ip",
 					"type": "fake-network-type",
-					"cloud_properties": bmproperty.Map{
+					"cloud_properties": biproperty.Map{
 						"fake-network-cloud-property": "fake-network-cloud-property-value",
 					},
 				},
@@ -250,7 +250,7 @@ func describeBuilder() {
 			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				// compile stages not produced by mockDependencyCompiler
 				{Name: "Rendering job templates"},
 			}))
@@ -350,48 +350,48 @@ func describeBuilder() {
 			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(state.ToApplySpec()).To(Equal(bmas.ApplySpec{
+			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{
 				Deployment: "fake-deployment-name",
 				Index:      0,
-				Networks: map[string]bmproperty.Map{
-					"fake-network-name": bmproperty.Map{
+				Networks: map[string]biproperty.Map{
+					"fake-network-name": biproperty.Map{
 						"ip":   "fake-network-ip",
 						"type": "fake-network-type",
-						"cloud_properties": bmproperty.Map{
+						"cloud_properties": biproperty.Map{
 							"fake-network-cloud-property": "fake-network-cloud-property-value",
 						},
 					},
 				},
-				Job: bmas.Job{
+				Job: bias.Job{
 					Name: "fake-deployment-job-name",
-					Templates: []bmas.Blob{
+					Templates: []bias.Blob{
 						{
 							Name:    "fake-release-job-name",
 							Version: "fake-release-job-source-fingerprint",
 						},
 					},
 				},
-				Packages: map[string]bmas.Blob{
-					"cpi": bmas.Blob{
+				Packages: map[string]bias.Blob{
+					"cpi": bias.Blob{
 						Name:        "cpi",
 						Version:     "fake-package-source-fingerprint-cpi",
 						SHA1:        "fake-package-compiled-archive-sha1-cpi",
 						BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
 					},
-					"ruby": bmas.Blob{
+					"ruby": bias.Blob{
 						Name:        "ruby",
 						Version:     "fake-package-source-fingerprint-ruby",
 						SHA1:        "fake-package-compiled-archive-sha1-ruby",
 						BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
 					},
-					"libyaml": bmas.Blob{
+					"libyaml": bias.Blob{
 						Name:        "libyaml",
 						Version:     "fake-package-source-fingerprint-libyaml",
 						SHA1:        "fake-package-compiled-archive-sha1-libyaml",
 						BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
 					},
 				},
-				RenderedTemplatesArchive: bmas.RenderedTemplatesArchiveSpec{
+				RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{
 					BlobstoreID: "fake-rendered-job-list-archive-blob-id",
 					SHA1:        "fake-rendered-job-list-archive-sha1",
 				},

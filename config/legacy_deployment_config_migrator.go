@@ -10,7 +10,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type LegacyDeploymentConfigMigrator interface {
@@ -118,7 +118,7 @@ func (m *legacyDeploymentConfigMigrator) migrate() (deploymentFile DeploymentFil
 					ID:              uuid,
 					CID:             diskCID,
 					Size:            0,
-					CloudProperties: bmproperty.Map{},
+					CloudProperties: biproperty.Map{},
 				},
 			}
 		}

@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	bmagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bmas "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 )
 
 type FakeAgentClient struct {
@@ -12,7 +12,7 @@ type FakeAgentClient struct {
 	StopCalled bool
 	stopErr    error
 
-	ApplyApplySpec bmas.ApplySpec
+	ApplyApplySpec bias.ApplySpec
 	ApplyErr       error
 
 	StartCalled bool
@@ -41,12 +41,12 @@ type pingResponse struct {
 }
 
 type getStateOutput struct {
-	state bmagentclient.AgentState
+	state biagentclient.AgentState
 	err   error
 }
 
 type compilePackageOutput struct {
-	blobRef bmagentclient.BlobRef
+	blobRef biagentclient.BlobRef
 	err     error
 }
 
@@ -73,7 +73,7 @@ func (c *FakeAgentClient) Stop() error {
 	return c.stopErr
 }
 
-func (c *FakeAgentClient) Apply(applySpec bmas.ApplySpec) error {
+func (c *FakeAgentClient) Apply(applySpec bias.ApplySpec) error {
 	c.ApplyApplySpec = applySpec
 
 	return c.ApplyErr
@@ -84,7 +84,7 @@ func (c *FakeAgentClient) Start() error {
 	return c.startErr
 }
 
-func (c *FakeAgentClient) GetState() (bmagentclient.AgentState, error) {
+func (c *FakeAgentClient) GetState() (biagentclient.AgentState, error) {
 	c.GetStateCalledTimes++
 
 	getStateReturn := c.getStateOutputs[0]
@@ -115,13 +115,13 @@ func (c *FakeAgentClient) MigrateDisk() error {
 }
 
 func (c *FakeAgentClient) CompilePackage(
-	packageSource bmagentclient.BlobRef,
-	compiledPackageDependencies []bmagentclient.BlobRef,
+	packageSource biagentclient.BlobRef,
+	compiledPackageDependencies []biagentclient.BlobRef,
 ) (
-	compiledPackageRef bmagentclient.BlobRef,
+	compiledPackageRef biagentclient.BlobRef,
 	err error,
 ) {
-	return bmagentclient.BlobRef{}, nil
+	return biagentclient.BlobRef{}, nil
 }
 
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {
@@ -139,7 +139,7 @@ func (c *FakeAgentClient) SetStartBehavior(err error) {
 	c.startErr = err
 }
 
-func (c *FakeAgentClient) SetGetStateBehavior(stateResponse bmagentclient.AgentState, err error) {
+func (c *FakeAgentClient) SetGetStateBehavior(stateResponse biagentclient.AgentState, err error) {
 	c.getStateOutputs = append(c.getStateOutputs, getStateOutput{
 		state: stateResponse,
 		err:   err,

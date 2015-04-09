@@ -5,8 +5,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmstemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type FakeManager struct {
@@ -20,17 +20,17 @@ type FakeManager struct {
 }
 
 type UploadInput struct {
-	Stemcell bmstemcell.ExtractedStemcell
-	Stage    bmui.Stage
+	Stemcell bistemcell.ExtractedStemcell
+	Stage    biui.Stage
 }
 
 type uploadOutput struct {
-	stemcell bmstemcell.CloudStemcell
+	stemcell bistemcell.CloudStemcell
 	err      error
 }
 
 type findUnusedOutput struct {
-	stemcells []bmstemcell.CloudStemcell
+	stemcells []bistemcell.CloudStemcell
 	err       error
 }
 
@@ -41,11 +41,11 @@ func NewFakeManager() *FakeManager {
 	}
 }
 
-func (m *FakeManager) FindCurrent() ([]bmstemcell.CloudStemcell, error) {
-	return []bmstemcell.CloudStemcell{}, bosherr.Error("FakeManager.FindCurrent() not implemented (yet)")
+func (m *FakeManager) FindCurrent() ([]bistemcell.CloudStemcell, error) {
+	return []bistemcell.CloudStemcell{}, bosherr.Error("FakeManager.FindCurrent() not implemented (yet)")
 }
 
-func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell, stage bmui.Stage) (bmstemcell.CloudStemcell, error) {
+func (m *FakeManager) Upload(stemcell bistemcell.ExtractedStemcell, stage biui.Stage) (bistemcell.CloudStemcell, error) {
 	input := UploadInput{
 		Stemcell: stemcell,
 		Stage:    stage,
@@ -59,19 +59,19 @@ func (m *FakeManager) Upload(stemcell bmstemcell.ExtractedStemcell, stage bmui.S
 	return output.stemcell, output.err
 }
 
-func (m *FakeManager) FindUnused() ([]bmstemcell.CloudStemcell, error) {
+func (m *FakeManager) FindUnused() ([]bistemcell.CloudStemcell, error) {
 	return m.findUnusedOutput.stemcells, m.findUnusedOutput.err
 }
 
-func (m *FakeManager) DeleteUnused(eventLoggerStage bmui.Stage) error {
+func (m *FakeManager) DeleteUnused(eventLoggerStage biui.Stage) error {
 	m.DeleteUnusedCalledTimes++
 	return m.DeleteUnusedErr
 }
 
 func (m *FakeManager) SetUploadBehavior(
-	extractedStemcell bmstemcell.ExtractedStemcell,
-	stage bmui.Stage,
-	cloudStemcell bmstemcell.CloudStemcell,
+	extractedStemcell bistemcell.ExtractedStemcell,
+	stage biui.Stage,
+	cloudStemcell bistemcell.CloudStemcell,
 	err error,
 ) {
 	input := UploadInput{
@@ -82,7 +82,7 @@ func (m *FakeManager) SetUploadBehavior(
 }
 
 func (m *FakeManager) SetFindUnusedBehavior(
-	stemcells []bmstemcell.CloudStemcell,
+	stemcells []bistemcell.CloudStemcell,
 	err error,
 ) {
 	m.findUnusedOutput = findUnusedOutput{

@@ -5,11 +5,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bminstall "github.com/cloudfoundry/bosh-init/installation"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
 )
 
 type Factory interface {
-	NewCloud(installation bminstall.Installation, directorID string) (Cloud, error)
+	NewCloud(installation biinstall.Installation, directorID string) (Cloud, error)
 }
 
 type factory struct {
@@ -30,7 +30,7 @@ func NewFactory(
 	}
 }
 
-func (f *factory) NewCloud(installation bminstall.Installation, directorID string) (Cloud, error) {
+func (f *factory) NewCloud(installation biinstall.Installation, directorID string) (Cloud, error) {
 	cpiJob := installation.Job()
 	target := installation.Target()
 	cpi := CPI{

@@ -9,7 +9,7 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type manifest struct {
@@ -59,7 +59,7 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 		SHA1:    rawManifest.SHA1,
 	}
 
-	cloudProperties, err := bmproperty.BuildMap(rawManifest.CloudProperties)
+	cloudProperties, err := biproperty.BuildMap(rawManifest.CloudProperties)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Parsing stemcell cloud_properties: %#v", rawManifest.CloudProperties)
 	}

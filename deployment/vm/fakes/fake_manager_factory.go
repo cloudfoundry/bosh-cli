@@ -5,18 +5,18 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmvm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	bmtestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 type NewManagerInput struct {
-	Cloud   bmcloud.Cloud
+	Cloud   bicloud.Cloud
 	MbusURL string
 }
 
 type newManagerOutput struct {
-	manager bmvm.Manager
+	manager bivm.Manager
 }
 
 type FakeManagerFactory struct {
@@ -31,14 +31,14 @@ func NewFakeManagerFactory() *FakeManagerFactory {
 	}
 }
 
-func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud, mbusURL string) bmvm.Manager {
+func (f *FakeManagerFactory) NewManager(cloud bicloud.Cloud, mbusURL string) bivm.Manager {
 	input := NewManagerInput{
 		Cloud:   cloud,
 		MbusURL: mbusURL,
 	}
 	f.NewManagerInputs = append(f.NewManagerInputs, input)
 
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
 		panic(bosherr.WrapError(marshalErr, "Marshaling NewManager input"))
 	}
@@ -51,13 +51,13 @@ func (f *FakeManagerFactory) NewManager(cloud bmcloud.Cloud, mbusURL string) bmv
 	return output.manager
 }
 
-func (f *FakeManagerFactory) SetNewManagerBehavior(cloud bmcloud.Cloud, mbusURL string, manager bmvm.Manager) {
+func (f *FakeManagerFactory) SetNewManagerBehavior(cloud bicloud.Cloud, mbusURL string, manager bivm.Manager) {
 	input := NewManagerInput{
 		Cloud:   cloud,
 		MbusURL: mbusURL,
 	}
 
-	inputString, marshalErr := bmtestutils.MarshalToString(input)
+	inputString, marshalErr := bitestutils.MarshalToString(input)
 	if marshalErr != nil {
 		panic(bosherr.WrapError(marshalErr, "Marshaling NewManager input"))
 	}

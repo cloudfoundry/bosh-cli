@@ -8,14 +8,14 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type deploymentCmd struct {
-	ui                bmui.UI
-	userConfig        bmconfig.UserConfig
-	userConfigService bmconfig.UserConfigService
+	ui                biui.UI
+	userConfig        biconfig.UserConfig
+	userConfigService biconfig.UserConfigService
 	fs                boshsys.FileSystem
 	uuidGenerator     boshuuid.Generator
 	logger            boshlog.Logger
@@ -23,9 +23,9 @@ type deploymentCmd struct {
 }
 
 func NewDeploymentCmd(
-	ui bmui.UI,
-	userConfig bmconfig.UserConfig,
-	userConfigService bmconfig.UserConfigService,
+	ui biui.UI,
+	userConfig biconfig.UserConfig,
+	userConfigService biconfig.UserConfigService,
 	fs boshsys.FileSystem,
 	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
@@ -45,7 +45,7 @@ func (c *deploymentCmd) Name() string {
 	return "deployment"
 }
 
-func (c *deploymentCmd) Run(stage bmui.Stage, args []string) error {
+func (c *deploymentCmd) Run(stage biui.Stage, args []string) error {
 	if args == nil || len(args) < 1 {
 		_, err := getDeploymentManifest(c.userConfig, c.ui, c.fs)
 		if err != nil {
@@ -79,7 +79,7 @@ func (c *deploymentCmd) setDeployment(manifestFilePath string) error {
 	c.ui.PrintLinef("Deployment manifest set to '%s'", manifestAbsFilePath)
 
 	deploymentConfigPath := c.userConfig.DeploymentConfigPath()
-	deploymentConfigService := bmconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, c.fs, c.uuidGenerator, c.logger)
+	deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, c.fs, c.uuidGenerator, c.logger)
 
 	// initialize defaults
 	_, err = deploymentConfigService.Load()

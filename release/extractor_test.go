@@ -11,10 +11,10 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
-	fakebmrel "github.com/cloudfoundry/bosh-init/release/fakes"
+	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )
 
@@ -23,7 +23,7 @@ var _ = Describe("Extractor", func() {
 	var (
 		fakeFS               *fakesys.FakeFileSystem
 		fakeExtractor        *testfakes.FakeMultiResponseExtractor
-		fakeReleaseValidator *fakebmrel.FakeValidator
+		fakeReleaseValidator *fakebirel.FakeValidator
 
 		deploymentManifestPath string
 		releaseExtractor       Extractor
@@ -32,7 +32,7 @@ var _ = Describe("Extractor", func() {
 	BeforeEach(func() {
 		fakeFS = fakesys.NewFakeFileSystem()
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
-		fakeReleaseValidator = fakebmrel.NewFakeValidator()
+		fakeReleaseValidator = fakebirel.NewFakeValidator()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
 		deploymentManifestPath = "/fake/manifest.yml"
@@ -51,21 +51,21 @@ var _ = Describe("Extractor", func() {
 		Context("when a extracted release directory can be created", func() {
 			var (
 				release    Release
-				releaseJob bmreljob.Job
+				releaseJob bireljob.Job
 			)
 
 			BeforeEach(func() {
 				fakeFS.TempDirDirs = []string{"/extracted-release-path"}
 
-				releasePackage := &bmrelpkg.Package{
+				releasePackage := &birelpkg.Package{
 					Name:          "fake-release-package-name",
 					Fingerprint:   "fake-release-package-fingerprint",
 					SHA1:          "fake-release-package-sha1",
-					Dependencies:  []*bmrelpkg.Package{},
+					Dependencies:  []*birelpkg.Package{},
 					ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name",
 				}
 
-				releaseJob = bmreljob.Job{
+				releaseJob = bireljob.Job{
 					Name:          "cpi",
 					Fingerprint:   "fake-release-job-fingerprint",
 					SHA1:          "fake-release-job-sha1",
@@ -75,8 +75,8 @@ var _ = Describe("Extractor", func() {
 						"cpi.yml.erb": "config/cpi.yml",
 					},
 					PackageNames: []string{releasePackage.Name},
-					Packages:     []*bmrelpkg.Package{releasePackage},
-					Properties:   map[string]bmreljob.PropertyDefinition{},
+					Packages:     []*birelpkg.Package{releasePackage},
+					Properties:   map[string]bireljob.PropertyDefinition{},
 				}
 
 				releaseContents := `---
@@ -111,8 +111,8 @@ properties: {}
 			})
 
 			JustBeforeEach(func() {
-				releaseJobs := []bmreljob.Job{releaseJob}
-				releasePackages := append([]*bmrelpkg.Package(nil), releaseJob.Packages...)
+				releaseJobs := []bireljob.Job{releaseJob}
+				releasePackages := append([]*birelpkg.Package(nil), releaseJob.Packages...)
 				release = NewRelease(
 					"fake-release-name",
 					"fake-release-version",
@@ -128,18 +128,18 @@ properties: {}
 					release, err := releaseExtractor.Extract(releaseTarballPath)
 					Expect(err).NotTo(HaveOccurred())
 
-					expectedPackage := &bmrelpkg.Package{
+					expectedPackage := &birelpkg.Package{
 						Name:          "fake-release-package-name",
 						Fingerprint:   "fake-release-package-fingerprint",
 						SHA1:          "fake-release-package-sha1",
 						ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name",
 						ArchivePath:   "/extracted-release-path/packages/fake-release-package-name.tgz",
-						Dependencies:  []*bmrelpkg.Package{},
+						Dependencies:  []*birelpkg.Package{},
 					}
 					expectedRelease := NewRelease(
 						"fake-release-name",
 						"fake-release-version",
-						[]bmreljob.Job{
+						[]bireljob.Job{
 							{
 								Name:          "cpi",
 								Fingerprint:   "fake-release-job-fingerprint",
@@ -152,11 +152,11 @@ properties: {}
 								PackageNames: []string{
 									"fake-release-package-name",
 								},
-								Packages:   []*bmrelpkg.Package{expectedPackage},
-								Properties: map[string]bmreljob.PropertyDefinition{},
+								Packages:   []*birelpkg.Package{expectedPackage},
+								Properties: map[string]bireljob.PropertyDefinition{},
 							},
 						},
-						[]*bmrelpkg.Package{expectedPackage},
+						[]*birelpkg.Package{expectedPackage},
 						"/extracted-release-path",
 						fakeFS,
 					)

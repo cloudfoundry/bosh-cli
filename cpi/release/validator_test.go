@@ -5,9 +5,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmreljob "github.com/cloudfoundry/bosh-init/release/job"
-	bmrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
 	. "github.com/cloudfoundry/bosh-init/cpi/release"
 )
@@ -24,10 +24,10 @@ var _ = Describe("Validator", func() {
 	})
 
 	It("validates a valid release without error", func() {
-		release := bmrel.NewRelease(
+		release := birel.NewRelease(
 			"fake-release-name",
 			"fake-release-version",
-			[]bmreljob.Job{
+			[]bireljob.Job{
 				{
 					Name:        "fake-cpi-release-job-name",
 					Fingerprint: "fake-job-1-fingerprint",
@@ -37,7 +37,7 @@ var _ = Describe("Validator", func() {
 					},
 				},
 			},
-			[]*bmrelpkg.Package{},
+			[]*birelpkg.Package{},
 			"/some/release/path",
 			fakeFs,
 		)
@@ -49,13 +49,13 @@ var _ = Describe("Validator", func() {
 
 	Context("when the cpi job is not present", func() {
 		var validator Validator
-		var release bmrel.Release
+		var release birel.Release
 
 		BeforeEach(func() {
-			release = bmrel.NewRelease(
+			release = birel.NewRelease(
 				"fake-release-name",
 				"fake-release-version",
-				[]bmreljob.Job{
+				[]bireljob.Job{
 					{
 						Name:        "non-cpi-job",
 						Fingerprint: "fake-job-1-fingerprint",
@@ -65,7 +65,7 @@ var _ = Describe("Validator", func() {
 						},
 					},
 				},
-				[]*bmrelpkg.Package{},
+				[]*birelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
 			)
@@ -81,13 +81,13 @@ var _ = Describe("Validator", func() {
 
 	Context("when the templates are missing a bin/cpi target", func() {
 		var validator Validator
-		var release bmrel.Release
+		var release birel.Release
 
 		BeforeEach(func() {
-			release = bmrel.NewRelease(
+			release = birel.NewRelease(
 				"fake-release-name",
 				"fake-release-version",
-				[]bmreljob.Job{
+				[]bireljob.Job{
 					{
 						Name:        "fake-cpi-release-job-name",
 						Fingerprint: "fake-job-1-fingerprint",
@@ -97,7 +97,7 @@ var _ = Describe("Validator", func() {
 						},
 					},
 				},
-				[]*bmrelpkg.Package{},
+				[]*birelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
 			)

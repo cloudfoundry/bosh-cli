@@ -7,58 +7,58 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmcpirel "github.com/cloudfoundry/bosh-init/cpi/release"
-	bmdepl "github.com/cloudfoundry/bosh-init/deployment"
-	bmhttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
-	bminstall "github.com/cloudfoundry/bosh-init/installation"
-	bminstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bmrel "github.com/cloudfoundry/bosh-init/release"
-	bmrelset "github.com/cloudfoundry/bosh-init/release/set"
-	bmrelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bmui "github.com/cloudfoundry/bosh-init/ui"
+	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
+	bidepl "github.com/cloudfoundry/bosh-init/deployment"
+	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	birelset "github.com/cloudfoundry/bosh-init/release/set"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type deleteCmd struct {
-	ui                       bmui.UI
-	userConfig               bmconfig.UserConfig
+	ui                       biui.UI
+	userConfig               biconfig.UserConfig
 	fs                       boshsys.FileSystem
-	releaseSetParser         bmrelsetmanifest.Parser
-	installationParser       bminstallmanifest.Parser
-	deploymentConfigService  bmconfig.DeploymentConfigService
-	releaseSetValidator      bmrelsetmanifest.Validator
-	installationValidator    bminstallmanifest.Validator
-	installerFactory         bminstall.InstallerFactory
-	releaseExtractor         bmrel.Extractor
-	releaseManager           bmrel.Manager
-	releaseResolver          bmrelset.Resolver
-	cloudFactory             bmcloud.Factory
-	agentClientFactory       bmhttpagent.AgentClientFactory
-	blobstoreFactory         bmblobstore.Factory
-	deploymentManagerFactory bmdepl.ManagerFactory
+	releaseSetParser         birelsetmanifest.Parser
+	installationParser       biinstallmanifest.Parser
+	deploymentConfigService  biconfig.DeploymentConfigService
+	releaseSetValidator      birelsetmanifest.Validator
+	installationValidator    biinstallmanifest.Validator
+	installerFactory         biinstall.InstallerFactory
+	releaseExtractor         birel.Extractor
+	releaseManager           birel.Manager
+	releaseResolver          birelset.Resolver
+	cloudFactory             bicloud.Factory
+	agentClientFactory       bihttpagent.AgentClientFactory
+	blobstoreFactory         biblobstore.Factory
+	deploymentManagerFactory bidepl.ManagerFactory
 	logger                   boshlog.Logger
 	logTag                   string
 }
 
 func NewDeleteCmd(
-	ui bmui.UI,
-	userConfig bmconfig.UserConfig,
+	ui biui.UI,
+	userConfig biconfig.UserConfig,
 	fs boshsys.FileSystem,
-	releaseSetParser bmrelsetmanifest.Parser,
-	installationParser bminstallmanifest.Parser,
-	deploymentConfigService bmconfig.DeploymentConfigService,
-	releaseSetValidator bmrelsetmanifest.Validator,
-	installationValidator bminstallmanifest.Validator,
-	installerFactory bminstall.InstallerFactory,
-	releaseExtractor bmrel.Extractor,
-	releaseManager bmrel.Manager,
-	releaseResolver bmrelset.Resolver,
-	cloudFactory bmcloud.Factory,
-	agentClientFactory bmhttpagent.AgentClientFactory,
-	blobstoreFactory bmblobstore.Factory,
-	deploymentManagerFactory bmdepl.ManagerFactory,
+	releaseSetParser birelsetmanifest.Parser,
+	installationParser biinstallmanifest.Parser,
+	deploymentConfigService biconfig.DeploymentConfigService,
+	releaseSetValidator birelsetmanifest.Validator,
+	installationValidator biinstallmanifest.Validator,
+	installerFactory biinstall.InstallerFactory,
+	releaseExtractor birel.Extractor,
+	releaseManager birel.Manager,
+	releaseResolver birelset.Resolver,
+	cloudFactory bicloud.Factory,
+	agentClientFactory bihttpagent.AgentClientFactory,
+	blobstoreFactory biblobstore.Factory,
+	deploymentManagerFactory bidepl.ManagerFactory,
 	logger boshlog.Logger,
 ) Cmd {
 	return &deleteCmd{
@@ -87,7 +87,7 @@ func (c *deleteCmd) Name() string {
 	return "delete"
 }
 
-func (c *deleteCmd) Run(stage bmui.Stage, args []string) error {
+func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
 	releaseTarballPath, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
@@ -103,8 +103,8 @@ func (c *deleteCmd) Run(stage bmui.Stage, args []string) error {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	var installationManifest bminstallmanifest.Manifest
-	err = stage.PerformComplex("validating", func(stage bmui.Stage) error {
+	var installationManifest biinstallmanifest.Manifest
+	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		installationManifest, err = c.validate(stage, releaseTarballPath, deploymentManifestPath)
 		return err
 	})
@@ -123,8 +123,8 @@ func (c *deleteCmd) Run(stage bmui.Stage, args []string) error {
 		return bosherr.WrapError(err, "Creating CPI Installer")
 	}
 
-	var installation bminstall.Installation
-	err = stage.PerformComplex("installing CPI", func(installStage bmui.Stage) error {
+	var installation biinstall.Installation
+	err = stage.PerformComplex("installing CPI", func(installStage biui.Stage) error {
 		installation, err = installer.Install(installationManifest, installStage)
 		return err
 	})
@@ -170,7 +170,7 @@ func (c *deleteCmd) Run(stage bmui.Stage, args []string) error {
 		return bosherr.WrapError(err, "Finding current deployment")
 	}
 
-	err = stage.PerformComplex("deleting deployment", func(deleteStage bmui.Stage) error {
+	err = stage.PerformComplex("deleting deployment", func(deleteStage biui.Stage) error {
 		if !found {
 			//TODO: skip? would require adding skip support to PerformComplex
 			c.logger.Debug(c.logTag, "No current deployment found...")
@@ -201,8 +201,8 @@ func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
 	return args[0], nil
 }
 
-func (c *deleteCmd) validate(validationStage bmui.Stage, releaseTarballPath, deploymentManifestPath string) (
-	installationManifest bminstallmanifest.Manifest,
+func (c *deleteCmd) validate(validationStage biui.Stage, releaseTarballPath, deploymentManifestPath string) (
+	installationManifest biinstallmanifest.Manifest,
 	err error,
 ) {
 	err = validationStage.Perform("Validating releases", func() error {
@@ -268,7 +268,7 @@ func (c *deleteCmd) validate(validationStage bmui.Stage, releaseTarballPath, dep
 		}
 
 		cpiReleaseJobName := installationManifest.Template.Name
-		err = bmcpirel.NewValidator().Validate(cpiRelease, cpiReleaseJobName)
+		err = bicpirel.NewValidator().Validate(cpiRelease, cpiReleaseJobName)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiReleaseName)
 		}

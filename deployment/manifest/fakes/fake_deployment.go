@@ -1,29 +1,29 @@
 package fakes
 
 import (
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 )
 
-func NewFakeReleaseJobRef() bmdeplmanifest.ReleaseJobRef {
-	return bmdeplmanifest.ReleaseJobRef{
+func NewFakeReleaseJobRef() bideplmanifest.ReleaseJobRef {
+	return bideplmanifest.ReleaseJobRef{
 		Name:    "fake-release-job-ref-name",
 		Release: "fake-release-job-ref-release",
 	}
 }
 
-func NewFakeJob() bmdeplmanifest.Job {
-	return bmdeplmanifest.Job{
+func NewFakeJob() bideplmanifest.Job {
+	return bideplmanifest.Job{
 		Name:      "fake-deployment-job",
 		Instances: 1,
-		Templates: []bmdeplmanifest.ReleaseJobRef{NewFakeReleaseJobRef()},
+		Templates: []bideplmanifest.ReleaseJobRef{NewFakeReleaseJobRef()},
 	}
 }
 
-func NewFakeDeployment() bmdeplmanifest.Manifest {
-	return bmdeplmanifest.Manifest{
+func NewFakeDeployment() bideplmanifest.Manifest {
+	return bideplmanifest.Manifest{
 		Name:       "fake-deployment-name",
-		Properties: bmproperty.Map{},
-		Jobs:       []bmdeplmanifest.Job{NewFakeJob()},
+		Properties: biproperty.Map{},
+		Jobs:       []bideplmanifest.Job{NewFakeJob()},
 	}
 }

@@ -8,14 +8,14 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	fakebmcloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
-	bmdisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bmdeplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 
 	. "github.com/cloudfoundry/bosh-init/deployment/disk"
 )
@@ -23,35 +23,35 @@ import (
 var _ = Describe("Manager", func() {
 	var (
 		manager           Manager
-		fakeCloud         *fakebmcloud.FakeCloud
+		fakeCloud         *fakebicloud.FakeCloud
 		fakeFs            *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
-		diskRepo          bmconfig.DiskRepo
+		diskRepo          biconfig.DiskRepo
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeFs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService := bmconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, fakeUUIDGenerator, logger)
-		diskRepo = bmconfig.NewDiskRepo(configService, fakeUUIDGenerator)
+		configService := biconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, fakeUUIDGenerator, logger)
+		diskRepo = biconfig.NewDiskRepo(configService, fakeUUIDGenerator)
 		managerFactory := NewManagerFactory(diskRepo, logger)
-		fakeCloud = fakebmcloud.NewFakeCloud()
+		fakeCloud = fakebicloud.NewFakeCloud()
 		manager = managerFactory.NewManager(fakeCloud)
 		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 	})
 
 	Describe("Create", func() {
 		var (
-			diskPool bmdeplmanifest.DiskPool
+			diskPool bideplmanifest.DiskPool
 		)
 
 		BeforeEach(func() {
 
-			diskPool = bmdeplmanifest.DiskPool{
+			diskPool = bideplmanifest.DiskPool{
 				Name:     "fake-disk-pool-name",
 				DiskSize: 1024,
-				CloudProperties: bmproperty.Map{
+				CloudProperties: biproperty.Map{
 					"fake-cloud-property-key": "fake-cloud-property-value",
 				},
 			}
@@ -76,11 +76,11 @@ var _ = Describe("Manager", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 
-				Expect(diskRecord).To(Equal(bmconfig.DiskRecord{
+				Expect(diskRecord).To(Equal(biconfig.DiskRecord{
 					ID:   "fake-uuid",
 					CID:  "fake-disk-cid",
 					Size: 1024,
-					CloudProperties: bmproperty.Map{
+					CloudProperties: biproperty.Map{
 						"fake-cloud-property-key": "fake-cloud-property-value",
 					},
 				}))
@@ -115,7 +115,7 @@ var _ = Describe("Manager", func() {
 	Describe("FindCurrent", func() {
 		Context("when disk already exists in disk repo", func() {
 			BeforeEach(func() {
-				diskRecord, err := diskRepo.Save("fake-existing-disk-cid", 1024, bmproperty.Map{})
+				diskRecord, err := diskRepo.Save("fake-existing-disk-cid", 1024, biproperty.Map{})
 				Expect(err).ToNot(HaveOccurred())
 
 				err = diskRepo.UpdateCurrent(diskRecord.ID)
@@ -154,24 +154,24 @@ var _ = Describe("Manager", func() {
 
 	Describe("FindUnused", func() {
 		var (
-			firstDisk bmdisk.Disk
-			thirdDisk bmdisk.Disk
+			firstDisk bidisk.Disk
+			thirdDisk bidisk.Disk
 		)
 
 		BeforeEach(func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
-			firstDiskRecord, err := diskRepo.Save("fake-disk-cid-1", 1024, bmproperty.Map{})
+			firstDiskRecord, err := diskRepo.Save("fake-disk-cid-1", 1024, biproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			firstDisk = NewDisk(firstDiskRecord, fakeCloud, diskRepo)
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-guid-2"
-			_, err = diskRepo.Save("fake-disk-cid-2", 1024, bmproperty.Map{})
+			_, err = diskRepo.Save("fake-disk-cid-2", 1024, biproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			err = diskRepo.UpdateCurrent("fake-guid-2")
 			Expect(err).ToNot(HaveOccurred())
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-guid-3"
-			thirdDiskRecord, err := diskRepo.Save("fake-disk-cid-3", 1024, bmproperty.Map{})
+			thirdDiskRecord, err := diskRepo.Save("fake-disk-cid-3", 1024, biproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
 			thirdDisk = NewDisk(thirdDiskRecord, fakeCloud, diskRepo)
 		})
@@ -180,7 +180,7 @@ var _ = Describe("Manager", func() {
 			disks, err := manager.FindUnused()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(disks).To(Equal([]bmdisk.Disk{
+			Expect(disks).To(Equal([]bidisk.Disk{
 				firstDisk,
 				thirdDisk,
 			}))
@@ -189,11 +189,11 @@ var _ = Describe("Manager", func() {
 
 	Describe("DeleteUnused", func() {
 		var (
-			secondDiskRecord bmconfig.DiskRecord
-			fakeStage        *fakebmui.FakeStage
+			secondDiskRecord biconfig.DiskRecord
+			fakeStage        *fakebiui.FakeStage
 		)
 		BeforeEach(func() {
-			fakeStage = fakebmui.NewFakeStage()
+			fakeStage = fakebiui.NewFakeStage()
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-disk-id-1"
 			_, err := diskRepo.Save("fake-disk-cid-1", 100, nil)
@@ -214,12 +214,12 @@ var _ = Describe("Manager", func() {
 			err := manager.DeleteUnused(fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeCloud.DeleteDiskInputs).To(Equal([]fakebmcloud.DeleteDiskInput{
+			Expect(fakeCloud.DeleteDiskInputs).To(Equal([]fakebicloud.DeleteDiskInput{
 				{DiskCID: "fake-disk-cid-1"},
 				{DiskCID: "fake-disk-cid-3"},
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebmui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
 				{Name: "Deleting unused disk 'fake-disk-cid-1'"},
 				{Name: "Deleting unused disk 'fake-disk-cid-3'"},
 			}))
@@ -231,7 +231,7 @@ var _ = Describe("Manager", func() {
 
 			records, err := diskRepo.All()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(records).To(Equal([]bmconfig.DiskRecord{
+			Expect(records).To(Equal([]biconfig.DiskRecord{
 				secondDiskRecord,
 			}))
 		})

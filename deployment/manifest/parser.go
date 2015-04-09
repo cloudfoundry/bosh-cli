@@ -7,7 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
 type Parser interface {
@@ -145,7 +145,7 @@ func (p *parser) parseDeploymentManifest(depManifest manifest) (Manifest, error)
 	}
 	deployment.Jobs = jobs
 
-	properties, err := bmproperty.BuildMap(depManifest.Properties)
+	properties, err := biproperty.BuildMap(depManifest.Properties)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Parsing global manifest properties: %#v", depManifest.Properties)
 	}
@@ -209,7 +209,7 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 		}
 
 		if rawJob.Properties != nil {
-			properties, err := bmproperty.BuildMap(rawJob.Properties)
+			properties, err := biproperty.BuildMap(rawJob.Properties)
 			if err != nil {
 				return jobs, bosherr.WrapErrorf(err, "Parsing job '%s' properties: %#v", rawJob.Name, rawJob.Properties)
 			}
@@ -234,7 +234,7 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 			DNS:     rawNetwork.DNS,
 		}
 
-		cloudProperties, err := bmproperty.BuildMap(rawNetwork.CloudProperties)
+		cloudProperties, err := biproperty.BuildMap(rawNetwork.CloudProperties)
 		if err != nil {
 			return networks, bosherr.WrapErrorf(err, "Parsing network '%s' cloud_properties: %#v", rawNetwork.Name, rawNetwork.CloudProperties)
 		}
@@ -254,13 +254,13 @@ func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool) ([]
 			Network: rawResourcePool.Network,
 		}
 
-		cloudProperties, err := bmproperty.BuildMap(rawResourcePool.CloudProperties)
+		cloudProperties, err := biproperty.BuildMap(rawResourcePool.CloudProperties)
 		if err != nil {
 			return resourcePools, bosherr.WrapErrorf(err, "Parsing resource_pool '%s' cloud_properties: %#v", rawResourcePool.Name, rawResourcePool.CloudProperties)
 		}
 		resourcePool.CloudProperties = cloudProperties
 
-		env, err := bmproperty.BuildMap(rawResourcePool.Env)
+		env, err := biproperty.BuildMap(rawResourcePool.Env)
 		if err != nil {
 			return resourcePools, bosherr.WrapErrorf(err, "Parsing resource_pool '%s' env: %#v", rawResourcePool.Name, rawResourcePool.Env)
 		}
@@ -280,7 +280,7 @@ func (p *parser) parseDiskPoolManifests(rawDiskPools []diskPool) ([]DiskPool, er
 			DiskSize: rawDiskPool.DiskSize,
 		}
 
-		cloudProperties, err := bmproperty.BuildMap(rawDiskPool.CloudProperties)
+		cloudProperties, err := biproperty.BuildMap(rawDiskPool.CloudProperties)
 		if err != nil {
 			return diskPools, bosherr.WrapErrorf(err, "Parsing disk_pool '%s' cloud_properties: %#v", rawDiskPool.Name, rawDiskPool.CloudProperties)
 		}

@@ -5,30 +5,30 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
-	bmcloud "github.com/cloudfoundry/bosh-init/cloud"
-	bmproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bmconfig "github.com/cloudfoundry/bosh-init/config"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 type Disk interface {
 	CID() string
-	NeedsMigration(newSize int, newCloudProperties bmproperty.Map) bool
+	NeedsMigration(newSize int, newCloudProperties biproperty.Map) bool
 	Delete() error
 }
 
 type disk struct {
 	cid             string
 	size            int
-	cloudProperties bmproperty.Map
+	cloudProperties biproperty.Map
 
-	cloud bmcloud.Cloud
-	repo  bmconfig.DiskRepo
+	cloud bicloud.Cloud
+	repo  biconfig.DiskRepo
 }
 
 func NewDisk(
-	diskRecord bmconfig.DiskRecord,
-	cloud bmcloud.Cloud,
-	repo bmconfig.DiskRepo,
+	diskRecord biconfig.DiskRecord,
+	cloud bicloud.Cloud,
+	repo biconfig.DiskRepo,
 ) Disk {
 	return &disk{
 		cid:             diskRecord.CID,
@@ -43,7 +43,7 @@ func (d *disk) CID() string {
 	return d.cid
 }
 
-func (d *disk) NeedsMigration(newSize int, newCloudProperties bmproperty.Map) bool {
+func (d *disk) NeedsMigration(newSize int, newCloudProperties biproperty.Map) bool {
 	return d.size != newSize || !reflect.DeepEqual(d.cloudProperties, newCloudProperties)
 }
 
@@ -51,8 +51,8 @@ func (d *disk) Delete() error {
 	deleteErr := d.cloud.DeleteDisk(d.cid)
 	if deleteErr != nil {
 		// allow DiskNotFoundError for idempotency
-		cloudErr, ok := deleteErr.(bmcloud.Error)
-		if !ok || cloudErr.Type() != bmcloud.DiskNotFoundError {
+		cloudErr, ok := deleteErr.(bicloud.Error)
+		if !ok || cloudErr.Type() != bicloud.DiskNotFoundError {
 			return bosherr.WrapError(deleteErr, "Deleting disk in the cloud")
 		}
 	}
@@ -71,6 +71,6 @@ func (d *disk) Delete() error {
 		return bosherr.WrapError(err, "Deleting disk record")
 	}
 
-	// returns bmcloud.Error only if it is a DiskNotFoundError
+	// returns bicloud.Error only if it is a DiskNotFoundError
 	return deleteErr
 }

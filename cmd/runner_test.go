@@ -6,28 +6,28 @@ import (
 
 	"fmt"
 
-	bmcmd "github.com/cloudfoundry/bosh-init/cmd"
+	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 
-	fakebmcmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
-	fakebmui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("Runner", func() {
 	var (
-		runner      *bmcmd.Runner
-		factory     *fakebmcmd.FakeFactory
-		fakeCommand *fakebmcmd.FakeCommand
-		fakeStage   *fakebmui.FakeStage
+		runner      *bicmd.Runner
+		factory     *fakebicmd.FakeFactory
+		fakeCommand *fakebicmd.FakeCommand
+		fakeStage   *fakebiui.FakeStage
 	)
 
 	BeforeEach(func() {
-		fakeCommand = fakebmcmd.NewFakeCommand("deployment")
-		factory = &fakebmcmd.FakeFactory{PresetCommand: fakeCommand}
-		fakeStage = fakebmui.NewFakeStage()
+		fakeCommand = fakebicmd.NewFakeCommand("deployment")
+		factory = &fakebicmd.FakeFactory{PresetCommand: fakeCommand}
+		fakeStage = fakebiui.NewFakeStage()
 	})
 
 	JustBeforeEach(func() {
-		runner = bmcmd.NewRunner(factory)
+		runner = bicmd.NewRunner(factory)
 	})
 
 	Context("Run", func() {

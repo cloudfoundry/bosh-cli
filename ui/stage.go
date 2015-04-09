@@ -6,7 +6,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshtime "github.com/cloudfoundry/bosh-agent/time"
 
-	bmuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
+	biuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
 
 type Stage interface {
@@ -75,7 +75,7 @@ func (s *stage) PerformComplex(name string, closure func(Stage) error) error {
 func (s *stage) elapsedSince(startTime time.Time) string {
 	stopTime := s.timeService.Now()
 	duration := stopTime.Sub(startTime)
-	return bmuifmt.Duration(duration)
+	return biuifmt.Duration(duration)
 }
 
 func (s *stage) newSubStage() Stage {
