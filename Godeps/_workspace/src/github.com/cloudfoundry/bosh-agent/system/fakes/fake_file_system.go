@@ -38,8 +38,9 @@ type FakeFileSystem struct {
 	ReadFileError       error
 	readFileErrorByPath map[string]error
 
-	WriteToFileError error
-	SymlinkError     error
+	WriteFileError  error
+	WriteFileErrors map[string]error
+	SymlinkError    error
 
 	MkdirAllError       error
 	mkdirAllErrorByPath map[string]error
@@ -175,6 +176,7 @@ func NewFakeFileSystem() *FakeFileSystem {
 		readFileErrorByPath:  map[string]error{},
 		removeAllErrorByPath: map[string]error{},
 		mkdirAllErrorByPath:  map[string]error{},
+		WriteFileErrors:      map[string]error{},
 	}
 }
 
@@ -300,11 +302,20 @@ func (fs *FakeFileSystem) WriteFile(path string, content []byte) (err error) {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
-	if fs.WriteToFileError != nil {
-		return fs.WriteToFileError
+	if error := fs.WriteFileError; error != nil {
+		return error
+	}
+
+	if error := fs.WriteFileErrors[path]; error != nil {
+		return error
 	}
 
 	path = filepath.Join(path)
+
+	parent := filepath.Dir(path)
+	if parent != "." {
+		fs.writeDir(parent)
+	}
 
 	stats := fs.getOrCreateFile(path)
 	stats.FileType = FakeFileTypeFile
@@ -312,12 +323,27 @@ func (fs *FakeFileSystem) WriteFile(path string, content []byte) (err error) {
 	return nil
 }
 
+func (fs *FakeFileSystem) writeDir(path string) (err error) {
+	parent := filepath.Dir(path)
+	if parent != "." && parent != "/" {
+		fs.writeDir(parent)
+	}
+
+	stats := fs.getOrCreateFile(path)
+	stats.FileType = FakeFileTypeDir
+	return nil
+}
+
 func (fs *FakeFileSystem) ConvergeFileContents(path string, content []byte) (bool, error) {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
-	if fs.WriteToFileError != nil {
-		return false, fs.WriteToFileError
+	if fs.WriteFileError != nil {
+		return false, fs.WriteFileError
+	}
+
+	if error := fs.WriteFileErrors[path]; error != nil {
+		return false, error
 	}
 
 	stats := fs.getOrCreateFile(path)
@@ -593,6 +619,10 @@ func (fs *FakeFileSystem) Glob(pattern string) (matches []string, err error) {
 }
 
 func (fs *FakeFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
+	if fs.WalkErr != nil {
+		return walkFunc("", nil, fs.WalkErr)
+	}
+
 	var paths []string
 	for path := range fs.files {
 		paths = append(paths, path)
@@ -613,7 +643,7 @@ func (fs *FakeFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
 		}
 	}
 
-	return fs.WalkErr
+	return nil
 }
 
 func (fs *FakeFileSystem) SetGlob(pattern string, matches ...[]string) {

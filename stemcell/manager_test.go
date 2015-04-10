@@ -133,7 +133,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("when the stemcellRepo save fails, logs uploading start and failure events to the eventLogger", func() {
-			fs.WriteToFileError = errors.New("fake-save-error")
+			fs.WriteFileError = errors.New("fake-save-error")
 			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-save-error"))

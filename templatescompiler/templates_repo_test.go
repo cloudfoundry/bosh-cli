@@ -74,7 +74,7 @@ var _ = Describe("TemplatesRepo", func() {
 
 		Context("when saving to index fails", func() {
 			It("returns error", func() {
-				fakeFS.WriteToFileError = errors.New("fake-write-error")
+				fakeFS.WriteFileError = errors.New("fake-write-error")
 				record := TemplateRecord{
 					BlobID:   "fake-blob-id",
 					BlobSHA1: "fake-sha1",

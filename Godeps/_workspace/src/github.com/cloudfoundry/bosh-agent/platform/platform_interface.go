@@ -28,8 +28,7 @@ type Platform interface {
 	SetupSSH(publicKey, username string) (err error)
 	SetUserPassword(user, encryptedPwd string) (err error)
 	SetupHostname(hostname string) (err error)
-	SetupDhcp(networks boshsettings.Networks) (err error)
-	SetupManualNetworking(networks boshsettings.Networks) (err error)
+	SetupNetworking(networks boshsettings.Networks) (err error)
 	SetupLogrotate(groupName, basePath, size string) (err error)
 	SetTimeWithNtpServers(servers []string) (err error)
 	SetupEphemeralDiskWithPath(devicePath string) (err error)
@@ -43,7 +42,7 @@ type Platform interface {
 	MountPersistentDisk(diskSettings boshsettings.DiskSettings, mountPoint string) error
 	UnmountPersistentDisk(diskSettings boshsettings.DiskSettings) (didUnmount bool, err error)
 	MigratePersistentDisk(fromMountPoint, toMountPoint string) (err error)
-	NormalizeDiskPath(diskSettings boshsettings.DiskSettings) string
+	GetEphemeralDiskPath(diskSettings boshsettings.DiskSettings) string
 	IsMountPoint(path string) (result bool, err error)
 	IsPersistentDiskMounted(diskSettings boshsettings.DiskSettings) (result bool, err error)
 
@@ -51,8 +50,9 @@ type Platform interface {
 	GetFilesContentsFromDisk(diskPath string, fileNames []string) (contents [][]byte, err error)
 
 	// Network misc
-	PrepareForNetworkingChange() error
 	GetDefaultNetwork() (boshsettings.Network, error)
+	GetConfiguredNetworkInterfaces() ([]string, error)
+	PrepareForNetworkingChange() error
 
 	// Additional monit management
 	GetMonitCredentials() (username, password string, err error)

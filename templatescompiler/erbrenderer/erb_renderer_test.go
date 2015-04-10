@@ -66,7 +66,7 @@ var _ = Describe("ErbRenderer", func() {
 
 	Context("when writing renderer script fails", func() {
 		It("returns an error", func() {
-			fs.WriteToFileError = errors.New("fake-write-error")
+			fs.WriteFileError = errors.New("fake-write-error")
 			err := erbRenderer.Render("src-path", "dst-path", context)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-write-error"))

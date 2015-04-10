@@ -44,6 +44,14 @@ type Logger struct {
 	err   *log.Logger
 }
 
+func New(level LogLevel, out, err *log.Logger) Logger {
+	return Logger{
+		level: level,
+		out:   out,
+		err:   err,
+	}
+}
+
 func NewLogger(level LogLevel) Logger {
 	return NewWriterLogger(level, os.Stdout, os.Stderr)
 }

@@ -225,7 +225,7 @@ func rootDesc() {
 
 		Context("when the config service fails to save", func() {
 			BeforeEach(func() {
-				fs.WriteToFileError = errors.New("kaboom")
+				fs.WriteFileError = errors.New("kaboom")
 			})
 
 			It("returns an error", func() {

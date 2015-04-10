@@ -9,7 +9,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-agent/infrastructure/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakeplatform "github.com/cloudfoundry/bosh-agent/platform/fakes"
+	fakenet "github.com/cloudfoundry/bosh-agent/platform/net/fakes"
 	. "github.com/cloudfoundry/bosh-agent/settings"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
@@ -17,20 +17,20 @@ import (
 func init() {
 	Describe("settingsService", func() {
 		var (
-			fs                 *fakesys.FakeFileSystem
-			platform           *fakeplatform.FakePlatform
-			fakeSettingsSource *fakes.FakeSettingsSource
+			fs                         *fakesys.FakeFileSystem
+			fakeDefaultNetworkResolver *fakenet.FakeDefaultNetworkResolver
+			fakeSettingsSource         *fakes.FakeSettingsSource
 		)
 
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
-			platform = fakeplatform.NewFakePlatform()
+			fakeDefaultNetworkResolver = &fakenet.FakeDefaultNetworkResolver{}
 			fakeSettingsSource = &fakes.FakeSettingsSource{}
 		})
 
 		buildService := func() (Service, *fakesys.FakeFileSystem) {
 			logger := boshlog.NewLogger(boshlog.LevelNone)
-			service := NewService(fs, "/setting/path.json", fakeSettingsSource, platform, logger)
+			service := NewService(fs, "/setting/path.json", fakeSettingsSource, fakeDefaultNetworkResolver, logger)
 			return service, fs
 		}
 
@@ -83,26 +83,11 @@ func init() {
 					})
 
 					It("returns any error from writing to the setting file", func() {
-						fs.WriteToFileError = errors.New("fs-write-file-error")
+						fs.WriteFileError = errors.New("fs-write-file-error")
 
 						err := service.LoadSettings()
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fs-write-file-error"))
-					})
-				})
-
-				Context("when settings contain multiple dynamic networks", func() {
-					BeforeEach(func() {
-						fetchedSettings.Networks = Networks{
-							"fake-net-1": Network{Type: NetworkTypeDynamic},
-							"fake-net-2": Network{Type: NetworkTypeDynamic},
-						}
-					})
-
-					It("returns error because multiple dynamic networks are not supported", func() {
-						err := service.LoadSettings()
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Multiple dynamic networks are not supported"))
 					})
 				})
 			})
@@ -119,35 +104,29 @@ func init() {
 								"agent_id":"some-agent-id",
 								"networks": {"fake-net-1": {"type": "dynamic"}}
 							}`))
+
+							fakeDefaultNetworkResolver.GetDefaultNetworkNetwork = Network{
+								IP:      "fake-resolved-ip",
+								Netmask: "fake-resolved-netmask",
+								Gateway: "fake-resolved-gateway",
+							}
 						})
 
-						It("returns settings from the settings file", func() {
+						It("returns settings from the settings file with resolved network", func() {
 							err := service.LoadSettings()
 							Expect(err).ToNot(HaveOccurred())
 							Expect(service.GetSettings()).To(Equal(Settings{
 								AgentID: "some-agent-id",
 								Networks: Networks{
-									"fake-net-1": Network{Type: NetworkTypeDynamic},
+									"fake-net-1": Network{
+										Type:     NetworkTypeDynamic,
+										IP:       "fake-resolved-ip",
+										Netmask:  "fake-resolved-netmask",
+										Gateway:  "fake-resolved-gateway",
+										Resolved: true,
+									},
 								},
 							}))
-						})
-					})
-
-					Context("when settings contain multiple dynamic networks", func() {
-						BeforeEach(func() {
-							fs.WriteFile("/setting/path.json", []byte(`{
-								"agent_id":"some-agent-id",
-								"networks": {
-									"fake-net-1": {"type": "dynamic"},
-									"fake-net-2": {"type": "dynamic"}
-								}
-							}`))
-						})
-
-						It("returns error because multiple dynamic networks are not supported", func() {
-							err := service.LoadSettings()
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Multiple dynamic networks are not supported"))
 						})
 					})
 				})
@@ -228,23 +207,21 @@ func init() {
 
 				It("does not try to determine default network", func() {
 					_ = service.GetSettings()
-					Expect(platform.GetDefaultNetworkCalled).To(BeFalse())
+					Expect(fakeDefaultNetworkResolver.GetDefaultNetworkCalled).To(BeFalse())
 				})
 			})
 
-			Context("when there is one dynamic network", func() {
+			Context("when there is network that needs to be resolved (ip, netmask, or mac are not set)", func() {
 				BeforeEach(func() {
 					loadedSettings = Settings{
 						Networks: map[string]Network{
 							"fake-net1": Network{
 								IP:      "fake-net1-ip",
 								Netmask: "fake-net1-netmask",
+								Mac:     "fake-net1-mac",
 								Gateway: "fake-net1-gateway",
 							},
 							"fake-net2": Network{
-								Type:    "dynamic",
-								IP:      "fake-net2-ip",
-								Netmask: "fake-net2-netmask",
 								Gateway: "fake-net2-gateway",
 								DNS:     []string{"fake-net2-dns"},
 							},
@@ -254,7 +231,7 @@ func init() {
 
 				Context("when default network can be retrieved", func() {
 					BeforeEach(func() {
-						platform.GetDefaultNetworkNetwork = Network{
+						fakeDefaultNetworkResolver.GetDefaultNetworkNetwork = Network{
 							IP:      "fake-resolved-ip",
 							Netmask: "fake-resolved-netmask",
 							Gateway: "fake-resolved-gateway",
@@ -268,14 +245,15 @@ func init() {
 								"fake-net1": Network{
 									IP:      "fake-net1-ip",
 									Netmask: "fake-net1-netmask",
+									Mac:     "fake-net1-mac",
 									Gateway: "fake-net1-gateway",
 								},
 								"fake-net2": Network{
-									Type:    "dynamic",
-									IP:      "fake-resolved-ip",
-									Netmask: "fake-resolved-netmask",
-									Gateway: "fake-resolved-gateway",
-									DNS:     []string{"fake-net2-dns"},
+									IP:       "fake-resolved-ip",
+									Netmask:  "fake-resolved-netmask",
+									Gateway:  "fake-resolved-gateway",
+									DNS:      []string{"fake-net2-dns"},
+									Resolved: true,
 								},
 							},
 						}))
@@ -284,7 +262,7 @@ func init() {
 
 				Context("when default network fails to be retrieved", func() {
 					BeforeEach(func() {
-						platform.GetDefaultNetworkErr = errors.New("fake-get-default-network-err")
+						fakeDefaultNetworkResolver.GetDefaultNetworkErr = errors.New("fake-get-default-network-err")
 					})
 
 					It("returns error", func() {

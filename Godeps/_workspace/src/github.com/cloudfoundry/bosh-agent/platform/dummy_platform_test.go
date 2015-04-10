@@ -1,27 +1,31 @@
 package platform_test
 
 import (
-	"encoding/json"
-	"path/filepath"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshdpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
+	fakedpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver/fakes"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	. "github.com/cloudfoundry/bosh-agent/platform"
+	boshstats "github.com/cloudfoundry/bosh-agent/platform/stats"
 	fakestats "github.com/cloudfoundry/bosh-agent/platform/stats/fakes"
-	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshdirs "github.com/cloudfoundry/bosh-agent/settings/directories"
+	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
-var _ = Describe("dummyPlatform", func() {
+var _ = Describe("DummyPlatform", describeDummyPlatform)
+
+func describeDummyPlatform() {
 	var (
-		collector   *fakestats.FakeCollector
-		fs          *fakesys.FakeFileSystem
-		cmdRunner   *fakesys.FakeCmdRunner
-		dirProvider boshdirs.Provider
-		platform    Platform
+		platform           Platform
+		collector          boshstats.Collector
+		fs                 boshsys.FileSystem
+		cmdRunner          boshsys.CmdRunner
+		dirProvider        boshdirs.Provider
+		devicePathResolver boshdpresolv.DevicePathResolver
+		logger             boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -29,42 +33,30 @@ var _ = Describe("dummyPlatform", func() {
 		fs = fakesys.NewFakeFileSystem()
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		dirProvider = boshdirs.NewProvider("/fake-dir")
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		platform = NewDummyPlatform(collector, fs, cmdRunner, dirProvider, nil, logger)
+		devicePathResolver = fakedpresolv.NewFakeDevicePathResolver()
+		logger = boshlog.NewLogger(boshlog.LevelNone)
+	})
+
+	JustBeforeEach(func() {
+		platform = NewDummyPlatform(
+			collector,
+			fs,
+			cmdRunner,
+			dirProvider,
+			devicePathResolver,
+			logger,
+		)
 	})
 
 	Describe("GetDefaultNetwork", func() {
-		Context("when default networks settings file is found", func() {
-			expectedNetwork := boshsettings.Network{
-				Default: []string{"fake-default"},
-				DNS:     []string{"fake-dns-name"},
-				IP:      "fake-ip-address",
-				Netmask: "fake-netmask",
-				Gateway: "fake-gateway",
-				Mac:     "fake-mac-address",
-			}
+		It("returns the contents of dummy-defaults-network-settings.json since that's what the dummy cpi writes", func() {
+			settingsFilePath := "/fake-dir/bosh/dummy-default-network-settings.json"
+			fs.WriteFileString(settingsFilePath, `{"IP": "1.2.3.4"}`)
 
-			BeforeEach(func() {
-				settingsPath := filepath.Join(dirProvider.BoshDir(), "dummy-default-network-settings.json")
+			network, err := platform.GetDefaultNetwork()
+			Expect(err).NotTo(HaveOccurred())
 
-				expectedNetworkBytes, err := json.Marshal(expectedNetwork)
-				Expect(err).ToNot(HaveOccurred())
-
-				fs.WriteFile(settingsPath, expectedNetworkBytes)
-			})
-
-			It("returns network", func() {
-				network, err := platform.GetDefaultNetwork()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(network).To(Equal(expectedNetwork))
-			})
-		})
-
-		Context("when default networks settings file is not found", func() {
-			It("does not return error because dummy configuration allows no dynamic IP", func() {
-				_, err := platform.GetDefaultNetwork()
-				Expect(err).ToNot(HaveOccurred())
-			})
+			Expect(network.IP).To(Equal("1.2.3.4"))
 		})
 	})
-})
+}

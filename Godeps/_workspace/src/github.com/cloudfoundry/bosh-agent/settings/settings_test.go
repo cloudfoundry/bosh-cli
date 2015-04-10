@@ -273,4 +273,74 @@ func init() {
 			}))
 		})
 	})
+
+	Describe("Network", func() {
+		var network Network
+		BeforeEach(func() {
+			network = Network{}
+		})
+
+		Describe("IsDHCP", func() {
+			Context("when network is VIP", func() {
+				BeforeEach(func() {
+					network.Type = NetworkTypeVIP
+				})
+
+				It("returns false", func() {
+					Expect(network.IsDHCP()).To(BeFalse())
+				})
+			})
+
+			Context("when network is Dynamic", func() {
+				BeforeEach(func() {
+					network.Type = NetworkTypeDynamic
+				})
+
+				It("returns true", func() {
+					Expect(network.IsDHCP()).To(BeTrue())
+				})
+			})
+
+			Context("when IP is not set", func() {
+				BeforeEach(func() {
+					network.Netmask = "255.255.255.0"
+				})
+
+				It("returns true", func() {
+					Expect(network.IsDHCP()).To(BeTrue())
+				})
+			})
+
+			Context("when Netmask is not set", func() {
+				BeforeEach(func() {
+					network.IP = "127.0.0.5"
+				})
+
+				It("returns true", func() {
+					Expect(network.IsDHCP()).To(BeTrue())
+				})
+			})
+
+			Context("when IP and Netmask are set", func() {
+				BeforeEach(func() {
+					network.IP = "127.0.0.5"
+					network.Netmask = "255.255.255.0"
+				})
+
+				It("returns false", func() {
+					Expect(network.IsDHCP()).To(BeFalse())
+				})
+			})
+
+			Context("when network was previously resolved via DHCP", func() {
+				BeforeEach(func() {
+					network.Resolved = true
+				})
+
+				It("returns true", func() {
+					Expect(network.IsDHCP()).To(BeTrue())
+				})
+			})
+		})
+	})
 }

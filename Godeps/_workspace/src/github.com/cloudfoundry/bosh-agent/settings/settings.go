@@ -1,5 +1,9 @@
 package settings
 
+import (
+	"fmt"
+)
+
 const (
 	RootUsername        = "root"
 	VCAPUsername        = "vcap"
@@ -105,14 +109,16 @@ type NetworkType string
 
 const (
 	NetworkTypeDynamic NetworkType = "dynamic"
+	NetworkTypeVIP     NetworkType = "vip"
 )
 
 type Network struct {
 	Type NetworkType `json:"type"`
 
-	IP      string `json:"ip"`
-	Netmask string `json:"netmask"`
-	Gateway string `json:"gateway"`
+	IP       string `json:"ip"`
+	Netmask  string `json:"netmask"`
+	Gateway  string `json:"gateway"`
+	Resolved bool   `json:"resolved"` // was resolved via DHCP
 
 	Default []string `json:"default"`
 	DNS     []string `json:"dns"`
@@ -121,6 +127,16 @@ type Network struct {
 }
 
 type Networks map[string]Network
+
+func (n Networks) NetworkForMac(mac string) (Network, bool) {
+	for i := range n {
+		if n[i].Mac == mac {
+			return n[i], true
+		}
+	}
+
+	return Network{}, false
+}
 
 func (n Networks) DefaultNetworkFor(category string) (Network, bool) {
 	if len(n) == 1 {
@@ -172,8 +188,32 @@ func (n Networks) IPs() (ips []string) {
 	return
 }
 
-func (n Network) IsDynamic() bool {
+func (n Network) String() string {
+	return fmt.Sprintf("type: '%s', ip: '%s', netmask: '%s', gateway: '%s', mac: '%s', resolved: '%t'", n.Type, n.IP, n.Netmask, n.Gateway, n.Mac, n.Resolved)
+}
+
+func (n Network) IsDHCP() bool {
+	if n.IsVIP() {
+		return false
+	}
+
+	if n.isDynamic() {
+		return true
+	}
+
+	// If manual network does not have IP and Netmask it cannot be statically
+	// configured. We want to keep track how originally the network was resolved.
+	// Otherwise it will be considered as static on subsequent checks.
+	isStatic := (n.IP != "" && n.Netmask != "")
+	return n.Resolved || !isStatic
+}
+
+func (n Network) isDynamic() bool {
 	return n.Type == NetworkTypeDynamic
+}
+
+func (n Network) IsVIP() bool {
+	return n.Type == NetworkTypeVIP
 }
 
 //{

@@ -104,11 +104,11 @@ func (p dummyPlatform) SetupHostname(hostname string) (err error) {
 	return
 }
 
-func (p dummyPlatform) SetupDhcp(networks boshsettings.Networks) (err error) {
+func (p dummyPlatform) SetupNetworking(networks boshsettings.Networks) (err error) {
 	return
 }
 
-func (p dummyPlatform) SetupManualNetworking(networks boshsettings.Networks) (err error) {
+func (p dummyPlatform) GetConfiguredNetworkInterfaces() (interfaces []string, err error) {
 	return
 }
 
@@ -140,7 +140,7 @@ func (p dummyPlatform) UnmountPersistentDisk(diskSettings boshsettings.DiskSetti
 	return
 }
 
-func (p dummyPlatform) NormalizeDiskPath(diskSettings boshsettings.DiskSettings) string {
+func (p dummyPlatform) GetEphemeralDiskPath(diskSettings boshsettings.DiskSettings) string {
 	return "/dev/sdb"
 }
 

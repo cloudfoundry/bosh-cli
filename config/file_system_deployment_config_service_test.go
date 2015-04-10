@@ -176,7 +176,7 @@ var _ = Describe("fileSystemConfigService", func() {
 
 		Context("when the deployment file cannot be written", func() {
 			BeforeEach(func() {
-				fakeFs.WriteToFileError = errors.New("")
+				fakeFs.WriteFileError = errors.New("")
 			})
 
 			It("returns an error when it cannot write the config file", func() {

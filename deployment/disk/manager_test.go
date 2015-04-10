@@ -101,7 +101,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when updating disk record fails", func() {
 			BeforeEach(func() {
-				fakeFs.WriteToFileError = errors.New("fake-write-error")
+				fakeFs.WriteFileError = errors.New("fake-write-error")
 			})
 
 			It("returns an error", func() {

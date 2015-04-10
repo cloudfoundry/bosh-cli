@@ -3,6 +3,7 @@ package net
 import (
 	"bytes"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -14,92 +15,33 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 )
 
-const ubuntuNetManagerLogTag = "ubuntuNetManager"
+const UbuntuNetManagerLogTag = "UbuntuNetManager"
 
-type ubuntuNetManager struct {
-	DefaultNetworkResolver
-
-	cmdRunner          boshsys.CmdRunner
-	fs                 boshsys.FileSystem
-	ipResolver         boship.Resolver
-	addressBroadcaster bosharp.AddressBroadcaster
-	logger             boshlog.Logger
+type UbuntuNetManager struct {
+	cmdRunner                     boshsys.CmdRunner
+	fs                            boshsys.FileSystem
+	ipResolver                    boship.Resolver
+	interfaceConfigurationCreator InterfaceConfigurationCreator
+	addressBroadcaster            bosharp.AddressBroadcaster
+	logger                        boshlog.Logger
 }
 
 func NewUbuntuNetManager(
 	fs boshsys.FileSystem,
 	cmdRunner boshsys.CmdRunner,
-	defaultNetworkResolver DefaultNetworkResolver,
 	ipResolver boship.Resolver,
+	interfaceConfigurationCreator InterfaceConfigurationCreator,
 	addressBroadcaster bosharp.AddressBroadcaster,
 	logger boshlog.Logger,
 ) Manager {
-	return ubuntuNetManager{
-		DefaultNetworkResolver: defaultNetworkResolver,
-		cmdRunner:              cmdRunner,
-		fs:                     fs,
-		ipResolver:             ipResolver,
-		addressBroadcaster:     addressBroadcaster,
-		logger:                 logger,
+	return UbuntuNetManager{
+		cmdRunner:                     cmdRunner,
+		fs:                            fs,
+		ipResolver:                    ipResolver,
+		interfaceConfigurationCreator: interfaceConfigurationCreator,
+		addressBroadcaster:            addressBroadcaster,
+		logger:                        logger,
 	}
-}
-
-func (net ubuntuNetManager) SetupDhcp(networks boshsettings.Networks, errCh chan error) error {
-	net.logger.Debug(ubuntuNetManagerLogTag, "Configuring DHCP networking")
-
-	err := net.writeDhcpNetworkInterfaces()
-	if err != nil {
-		return bosherr.WrapError(err, "Generating interfaces config from template")
-	}
-
-	buffer := bytes.NewBuffer([]byte{})
-	t := template.Must(template.New("dhcp-config").Parse(ubuntuDHCPConfigTemplate))
-
-	// Keep DNS servers in the order specified by the network
-	// because they are added by a *single* DHCP's prepend command
-	dnsNetwork, _ := networks.DefaultNetworkFor("dns")
-	dnsServersList := strings.Join(dnsNetwork.DNS, ", ")
-	err = t.Execute(buffer, dnsServersList)
-	if err != nil {
-		return bosherr.WrapError(err, "Generating config from template")
-	}
-
-	dhclientConfigFile := "/etc/dhcp/dhclient.conf"
-	written, err := net.fs.ConvergeFileContents(dhclientConfigFile, buffer.Bytes())
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Writing to %s", dhclientConfigFile)
-	}
-
-	if written {
-		args := net.restartNetworkArguments()
-
-		net.logger.Debug(ubuntuNetManagerLogTag, "Restarting network interfaces")
-
-		_, _, _, err := net.cmdRunner.RunCommand("ifdown", args...)
-		if err != nil {
-			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifdown failure: %s", err.Error())
-		}
-
-		_, _, _, err = net.cmdRunner.RunCommand("ifup", args...)
-		if err != nil {
-			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifup failure: %s", err.Error())
-		}
-	}
-
-	addresses := []boship.InterfaceAddress{
-		// eth0 is hard coded in AWS and OpenStack stemcells.
-		// TODO: abstract hardcoded network interface name to the Manager
-		boship.NewResolvingInterfaceAddress("eth0", net.ipResolver),
-	}
-
-	go func() {
-		net.addressBroadcaster.BroadcastMACAddresses(addresses)
-		if errCh != nil {
-			errCh <- nil
-		}
-	}()
-
-	return nil
 }
 
 // DHCP Config file - /etc/dhcp/dhclient.conf
@@ -118,19 +60,132 @@ request subnet-mask, broadcast-address, time-offset, routers,
 prepend domain-name-servers {{ . }};{{ end }}
 `
 
-func (net ubuntuNetManager) SetupManualNetworking(networks boshsettings.Networks, errCh chan error) error {
-	net.logger.Debug(ubuntuNetManagerLogTag, "Configuring manual networking")
+func (net UbuntuNetManager) ComputeNetworkConfig(networks boshsettings.Networks) ([]StaticInterfaceConfiguration, []DHCPInterfaceConfiguration, []string, error) {
+	nonVipNetworks := boshsettings.Networks{}
+	for networkName, networkSettings := range networks {
+		if networkSettings.IsVIP() {
+			continue
+		}
+		nonVipNetworks[networkName] = networkSettings
+	}
 
-	modifiedNetworks, written, err := net.writeNetworkInterfaces(networks)
+	staticConfigs, dhcpConfigs, err := net.buildInterfaces(nonVipNetworks)
 	if err != nil {
-		return bosherr.WrapError(err, "Writing network interfaces")
+		return nil, nil, nil, err
 	}
 
-	if written {
-		net.restartNetworkingInterfaces(modifiedNetworks)
+	dnsNetwork, _ := nonVipNetworks.DefaultNetworkFor("dns")
+	dnsServers := dnsNetwork.DNS
+	return staticConfigs, dhcpConfigs, dnsServers, nil
+}
+
+func (net UbuntuNetManager) SetupNetworking(networks boshsettings.Networks, errCh chan error) error {
+	staticConfigs, dhcpConfigs, dnsServers, err := net.ComputeNetworkConfig(networks)
+	if err != nil {
+		return bosherr.WrapError(err, "Computing network configuration")
 	}
 
-	addresses := toInterfaceAddresses(modifiedNetworks)
+	interfacesChanged, err := net.writeNetworkInterfaces(dhcpConfigs, staticConfigs, dnsServers)
+	if err != nil {
+		return bosherr.WrapError(err, "Writing network configuration")
+	}
+
+	dhcpChanged := false
+	if len(dhcpConfigs) > 0 {
+		dhcpChanged, err = net.writeDHCPConfiguration(dnsServers)
+		if err != nil {
+			return err
+		}
+	}
+
+	if interfacesChanged || dhcpChanged {
+		err = net.removeDhcpDNSConfiguration()
+		if err != nil {
+			return err
+		}
+		net.restartNetworkingInterfaces()
+	}
+
+	net.broadcastIps(staticConfigs, dhcpConfigs, errCh)
+
+	return nil
+}
+
+func (net UbuntuNetManager) GetConfiguredNetworkInterfaces() ([]string, error) {
+	interfaces := []string{}
+
+	interfacesByMacAddress, err := net.detectMacAddresses()
+	if err != nil {
+		return interfaces, bosherr.WrapError(err, "Getting network interfaces")
+	}
+
+	for _, iface := range interfacesByMacAddress {
+		_, stderr, _, err := net.cmdRunner.RunCommand("ifup", "--no-act", iface)
+		if err != nil {
+			return interfaces, bosherr.WrapErrorf(err, "Getting interface status: '%s'", stderr)
+		}
+
+		if !strings.Contains(stderr, "unknown interface") {
+			interfaces = append(interfaces, iface)
+		}
+	}
+
+	return interfaces, nil
+}
+
+func (net UbuntuNetManager) removeDhcpDNSConfiguration() error {
+	// Removing dhcp configuration from /etc/network/interfaces
+	// and restarting network does not stop dhclient if dhcp
+	// is no longer needed. See https://bugs.launchpad.net/ubuntu/+source/dhcp3/+bug/38140
+	_, _, _, err := net.cmdRunner.RunCommand("pkill", "dhclient")
+	if err != nil {
+		net.logger.Error(UbuntuNetManagerLogTag, "Ignoring failure calling 'pkill dhclient': %s", err)
+	}
+
+	interfacesByMacAddress, err := net.detectMacAddresses()
+	if err != nil {
+		return err
+	}
+
+	for _, ifaceName := range interfacesByMacAddress {
+		// Explicitly delete the resolvconf record about given iface
+		// It seems to hold on to old dhclient records after dhcp configuration
+		// is removed from /etc/network/interfaces.
+		_, _, _, err = net.cmdRunner.RunCommand("resolvconf", "-d", ifaceName+".dhclient")
+		if err != nil {
+			net.logger.Error(UbuntuNetManagerLogTag, "Ignoring failure calling 'resolvconf -d %s.dhclient': %s", ifaceName, err)
+		}
+	}
+
+	return nil
+}
+
+func (net UbuntuNetManager) buildInterfaces(networks boshsettings.Networks) ([]StaticInterfaceConfiguration, []DHCPInterfaceConfiguration, error) {
+	interfacesByMacAddress, err := net.detectMacAddresses()
+	if err != nil {
+		return nil, nil, bosherr.WrapError(err, "Getting network interfaces")
+	}
+
+	// if len(interfacesByMacAddress) == 0 {
+	// 	return nil, nil, bosherr.Error("No network interfaces found")
+	// }
+
+	staticConfigs, dhcpConfigs, err := net.interfaceConfigurationCreator.CreateInterfaceConfigurations(networks, interfacesByMacAddress)
+	if err != nil {
+		return nil, nil, bosherr.WrapError(err, "Creating interface configurations")
+	}
+
+	return staticConfigs, dhcpConfigs, nil
+}
+
+func (net UbuntuNetManager) broadcastIps(staticConfigs []StaticInterfaceConfiguration, dhcpConfigs []DHCPInterfaceConfiguration, errCh chan error) {
+	addresses := []boship.InterfaceAddress{}
+	for _, iface := range staticConfigs {
+		addresses = append(addresses, boship.NewSimpleInterfaceAddress(iface.Name, iface.Address))
+	}
+	for _, iface := range dhcpConfigs {
+		addresses = append(addresses, boship.NewResolvingInterfaceAddress(iface.Name, net.ipResolver))
+	}
 
 	go func() {
 		net.addressBroadcaster.BroadcastMACAddresses(addresses)
@@ -138,100 +193,96 @@ func (net ubuntuNetManager) SetupManualNetworking(networks boshsettings.Networks
 			errCh <- nil
 		}
 	}()
-
-	return nil
 }
 
-func (net ubuntuNetManager) writeNetworkInterfaces(networks boshsettings.Networks) ([]customNetwork, bool, error) {
-	var modifiedNetworks []customNetwork
+func (net UbuntuNetManager) restartNetworkingInterfaces() {
+	net.logger.Debug(UbuntuNetManagerLogTag, "Restarting network interfaces")
 
-	macAddresses, err := net.detectMacAddresses()
+	_, _, _, err := net.cmdRunner.RunCommand("ifdown", "-a", "--no-loopback")
 	if err != nil {
-		return modifiedNetworks, false, bosherr.WrapError(err, "Detecting mac addresses")
+		net.logger.Error(UbuntuNetManagerLogTag, "Ignoring ifdown failure: %s", err.Error())
 	}
 
-	for _, aNet := range networks {
-		network, broadcast, err := boshsys.CalculateNetworkAndBroadcast(aNet.IP, aNet.Netmask)
-		if err != nil {
-			return modifiedNetworks, false, bosherr.WrapError(err, "Calculating network and broadcast")
-		}
+	_, _, _, err = net.cmdRunner.RunCommand("ifup", "-a", "--no-loopback")
+	if err != nil {
+		net.logger.Error(UbuntuNetManagerLogTag, "Ignoring ifup failure: %s", err.Error())
+	}
+}
 
-		newNet := customNetwork{
-			aNet,
-			macAddresses[aNet.Mac],
-			network,
-			broadcast,
-			true,
-		}
-		modifiedNetworks = append(modifiedNetworks, newNet)
+func (net UbuntuNetManager) writeDHCPConfiguration(dnsServers []string) (bool, error) {
+	buffer := bytes.NewBuffer([]byte{})
+	t := template.Must(template.New("dhcp-config").Parse(ubuntuDHCPConfigTemplate))
+
+	// Keep DNS servers in the order specified by the network
+	// because they are added by a *single* DHCP's prepend command
+	dnsServersList := strings.Join(dnsServers, ", ")
+	err := t.Execute(buffer, dnsServersList)
+	if err != nil {
+		return false, bosherr.WrapError(err, "Generating config from template")
+	}
+	dhclientConfigFile := "/etc/dhcp/dhclient.conf"
+	changed, err := net.fs.ConvergeFileContents(dhclientConfigFile, buffer.Bytes())
+
+	if err != nil {
+		return changed, bosherr.WrapErrorf(err, "Writing to %s", dhclientConfigFile)
 	}
 
-	networkInterfaceValues := networkInterfaceConfigArg{
-		Networks:          modifiedNetworks,
-		HasDNSNameServers: false,
+	return changed, nil
+}
+
+type networkInterfaceConfig struct {
+	DNSServers        []string
+	StaticConfigs     []StaticInterfaceConfiguration
+	DHCPConfigs       []DHCPInterfaceConfiguration
+	HasDNSNameServers bool
+}
+
+func (net UbuntuNetManager) writeNetworkInterfaces(dhcpConfigs DHCPInterfaceConfigurations, staticConfigs StaticInterfaceConfigurations, dnsServers []string) (bool, error) {
+	sort.Stable(dhcpConfigs)
+	sort.Stable(staticConfigs)
+
+	networkInterfaceValues := networkInterfaceConfig{
+		DHCPConfigs:       dhcpConfigs,
+		StaticConfigs:     staticConfigs,
+		HasDNSNameServers: true,
+		DNSServers:        dnsServers,
 	}
 
 	buffer := bytes.NewBuffer([]byte{})
 
-	dnsNetwork, _ := networks.DefaultNetworkFor("dns")
-	networkInterfaceValues.HasDNSNameServers = true
-	networkInterfaceValues.DNSServers = dnsNetwork.DNS
-
 	t := template.Must(template.New("network-interfaces").Parse(networkInterfacesTemplate))
 
-	err = t.Execute(buffer, networkInterfaceValues)
+	err := t.Execute(buffer, networkInterfaceValues)
 	if err != nil {
-		return modifiedNetworks, false, bosherr.WrapError(err, "Generating config from template")
+		return false, bosherr.WrapError(err, "Generating config from template")
 	}
 
-	written, err := net.fs.ConvergeFileContents("/etc/network/interfaces", buffer.Bytes())
+	changed, err := net.fs.ConvergeFileContents("/etc/network/interfaces", buffer.Bytes())
 	if err != nil {
-		return modifiedNetworks, false, bosherr.WrapError(err, "Writing to /etc/network/interfaces")
+		return changed, bosherr.WrapError(err, "Writing to /etc/network/interfaces")
 	}
 
-	return modifiedNetworks, written, nil
+	return changed, nil
 }
 
 const networkInterfacesTemplate = `# Generated by bosh-agent
 auto lo
 iface lo inet loopback
-{{ range .Networks }}
-auto {{ .Interface }}
-iface {{ .Interface }} inet static
-    address {{ .IP }}
-    network {{ .NetworkIP }}
+{{ range .DHCPConfigs }}
+auto {{ .Name }}
+iface {{ .Name }} inet dhcp
+{{ end }}{{ range .StaticConfigs }}
+auto {{ .Name }}
+iface {{ .Name }} inet static
+    address {{ .Address }}
+    network {{ .Network }}
     netmask {{ .Netmask }}
     broadcast {{ .Broadcast }}
-{{ if .HasDefaultGateway }}    gateway {{ .Gateway }}{{ end }}{{ end }}
-{{ if .HasDNSNameServers }}dns-nameservers{{ range .DNSServers }} {{ . }}{{ end }}{{ end }}`
+    gateway {{ .Gateway }}{{ end }}
+{{ if .DNSServers }}
+dns-nameservers{{ range .DNSServers }} {{ . }}{{ end }}{{ end }}`
 
-func (net ubuntuNetManager) writeResolvConf(networks boshsettings.Networks) error {
-	net.logger.Debug(ubuntuNetManagerLogTag, "Writing resolv.conf")
-
-	buffer := bytes.NewBuffer([]byte{})
-	t := template.Must(template.New("resolv-conf").Parse(ubuntuResolvConfTemplate))
-
-	// Keep DNS servers in the order specified by the network
-	dnsNetwork, _ := networks.DefaultNetworkFor("dns")
-	dnsServersArg := dnsConfigArg{dnsNetwork.DNS}
-	err := t.Execute(buffer, dnsServersArg)
-	if err != nil {
-		return bosherr.WrapError(err, "Generating config from template")
-	}
-
-	err = net.fs.WriteFile("/etc/resolv.conf", buffer.Bytes())
-	if err != nil {
-		return bosherr.WrapError(err, "Writing to /etc/resolv.conf")
-	}
-
-	return nil
-}
-
-const ubuntuResolvConfTemplate = `# Generated by bosh-agent
-{{ range .DNSServers }}nameserver {{ . }}
-{{ end }}`
-
-func (net ubuntuNetManager) detectMacAddresses() (map[string]string, error) {
+func (net UbuntuNetManager) detectMacAddresses() (map[string]string, error) {
 	addresses := map[string]string{}
 
 	filePaths, err := net.fs.Glob("/sys/class/net/*")
@@ -241,93 +292,20 @@ func (net ubuntuNetManager) detectMacAddresses() (map[string]string, error) {
 
 	var macAddress string
 	for _, filePath := range filePaths {
-		macAddress, err = net.fs.ReadFileString(filepath.Join(filePath, "address"))
-		if err != nil {
-			return addresses, bosherr.WrapError(err, "Reading mac address from file")
+		isPhysicalDevice := net.fs.FileExists(filepath.Join(filePath, "device"))
+
+		if isPhysicalDevice {
+			macAddress, err = net.fs.ReadFileString(filepath.Join(filePath, "address"))
+			if err != nil {
+				return addresses, bosherr.WrapError(err, "Reading mac address from file")
+			}
+
+			macAddress = strings.Trim(macAddress, "\n")
+
+			interfaceName := filepath.Base(filePath)
+			addresses[macAddress] = interfaceName
 		}
-
-		macAddress = strings.Trim(macAddress, "\n")
-
-		interfaceName := filepath.Base(filePath)
-		addresses[macAddress] = interfaceName
 	}
 
 	return addresses, nil
-}
-
-func (net ubuntuNetManager) restartNetworkingInterfaces(networks []customNetwork) {
-	for _, network := range networks {
-		net.logger.Debug(ubuntuNetManagerLogTag, "Restarting network interface %s", network.Interface)
-
-		_, _, _, err := net.cmdRunner.RunCommand("service", "network-interface", "stop", "INTERFACE="+network.Interface)
-		if err != nil {
-			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring network stop failure: %s", err.Error())
-		}
-
-		_, _, _, err = net.cmdRunner.RunCommand("service", "network-interface", "start", "INTERFACE="+network.Interface)
-		if err != nil {
-			net.logger.Error(ubuntuNetManagerLogTag, "Ignoring network start failure: %s", err.Error())
-		}
-	}
-}
-
-func (net ubuntuNetManager) restartNetworkArguments() []string {
-	_, _, _, err := net.cmdRunner.RunCommand("ifup", "--version")
-	if err != nil {
-		net.logger.Error(ubuntuNetManagerLogTag, "Ignoring ifup version failure: %s", err.Error())
-	}
-
-	return []string{"-a", "--no-loopback"}
-}
-
-func (net ubuntuNetManager) writeDhcpNetworkInterfaces() error {
-	interfaces, err := net.detectNetworkInterfaces()
-	if err != nil {
-		return bosherr.WrapError(err, "Detecting network interfaces")
-	}
-
-	buffer := bytes.NewBuffer([]byte{})
-	t := template.Must(template.New("network-interfaces").Parse(ubuntuDhcpNetworkInterfacesTemplate))
-
-	err = t.Execute(buffer, interfaces)
-	if err != nil {
-		return bosherr.WrapError(err, "Generating config from template")
-	}
-
-	_, err = net.fs.ConvergeFileContents("/etc/network/interfaces", buffer.Bytes())
-	if err != nil {
-		return bosherr.WrapError(err, "Writing to /etc/network/interfaces")
-	}
-
-	return nil
-}
-
-const ubuntuDhcpNetworkInterfacesTemplate = `# Generated by bosh-agent
-auto lo
-iface lo inet loopback
-{{ range . }}
-auto {{ . }}
-iface {{ . }} inet dhcp
-{{ end }}`
-
-func (net ubuntuNetManager) detectNetworkInterfaces() ([]string, error) {
-	interfaces := []string{}
-
-	filePaths, err := net.fs.Glob("/sys/class/net/*")
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Getting file list from /sys/class/net")
-	}
-
-	for _, filePath := range filePaths {
-		exists := net.fs.FileExists(filepath.Join(filePath, "device"))
-		if !exists {
-			net.logger.Info(ubuntuNetManagerLogTag, "Ignoring virtual network device: %s", filePath)
-			continue
-		}
-
-		interfaceName := filepath.Base(filePath)
-		interfaces = append(interfaces, interfaceName)
-	}
-
-	return interfaces, nil
 }

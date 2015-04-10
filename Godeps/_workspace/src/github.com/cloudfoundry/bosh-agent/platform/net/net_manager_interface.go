@@ -4,22 +4,12 @@ import (
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 )
 
-type DefaultNetworkResolver interface {
-	// Ideally we would find a network based on a MAC address
-	// but current CPI implementations do not include it
-	GetDefaultNetwork() (boshsettings.Network, error)
-}
-
 type Manager interface {
-	// SetupManualNetworking configures network interfaces with a static ip.
+	// SetupNetworking configures network interfaces with either a static ip or dhcp.
 	// If errCh is provided, nil or an error will be sent
 	// upon completion of background network reconfiguration (e.g. arping).
-	SetupManualNetworking(networks boshsettings.Networks, errCh chan error) error
+	SetupNetworking(networks boshsettings.Networks, errCh chan error) error
 
-	// SetupDhcp configures network interfaces using DHCP.
-	// If errCh is provided, nil or an error will be sent
-	// upon completion of background network reconfiguration (e.g. arping).
-	SetupDhcp(networks boshsettings.Networks, errCh chan error) error
-
-	DefaultNetworkResolver
+	// Returns the list of interfaces that have configurations for them present
+	GetConfiguredNetworkInterfaces() ([]string, error)
 }

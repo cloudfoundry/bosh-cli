@@ -55,13 +55,9 @@ type FakePlatform struct {
 	SetupTmpDirCalled bool
 	SetupTmpDirErr    error
 
-	SetupManualNetworkingCalled   bool
-	SetupManualNetworkingNetworks boshsettings.Networks
-	SetupManualNetworkingErr      error
-
-	SetupDhcpCalled   bool
-	SetupDhcpNetworks boshsettings.Networks
-	SetupDhcpErr      error
+	SetupNetworkingCalled   bool
+	SetupNetworkingNetworks boshsettings.Networks
+	SetupNetworkingErr      error
 
 	MountPersistentDiskCalled     bool
 	MountPersistentDiskSettings   boshsettings.DiskSettings
@@ -82,9 +78,9 @@ type FakePlatform struct {
 	GetFileContentsFromDiskErrs        map[string]error
 	GetFileContentsFromDiskCalledTimes int
 
-	NormalizeDiskPathCalled   bool
-	NormalizeDiskPathSettings boshsettings.DiskSettings
-	NormalizeDiskPathRealPath string
+	GetEphemeralDiskPathCalled   bool
+	GetEphemeralDiskPathSettings boshsettings.DiskSettings
+	GetEphemeralDiskPathRealPath string
 
 	ScsiDiskMap map[string]string
 
@@ -105,9 +101,11 @@ type FakePlatform struct {
 	PrepareForNetworkingChangeCalled bool
 	PrepareForNetworkingChangeErr    error
 
-	GetDefaultNetworkCalled  bool
 	GetDefaultNetworkNetwork boshsettings.Network
 	GetDefaultNetworkErr     error
+
+	GetConfiguredNetworkInterfacesInterfaces []string
+	GetConfiguredNetworkInterfacesErr        error
 }
 
 func NewFakePlatform() (platform *FakePlatform) {
@@ -197,16 +195,14 @@ func (p *FakePlatform) SetupHostname(hostname string) (err error) {
 	return
 }
 
-func (p *FakePlatform) SetupDhcp(networks boshsettings.Networks) error {
-	p.SetupDhcpCalled = true
-	p.SetupDhcpNetworks = networks
-	return p.SetupDhcpErr
+func (p *FakePlatform) SetupNetworking(networks boshsettings.Networks) error {
+	p.SetupNetworkingCalled = true
+	p.SetupNetworkingNetworks = networks
+	return p.SetupNetworkingErr
 }
 
-func (p *FakePlatform) SetupManualNetworking(networks boshsettings.Networks) error {
-	p.SetupManualNetworkingCalled = true
-	p.SetupManualNetworkingNetworks = networks
-	return p.SetupManualNetworkingErr
+func (p *FakePlatform) GetConfiguredNetworkInterfaces() ([]string, error) {
+	return p.GetConfiguredNetworkInterfacesInterfaces, p.GetConfiguredNetworkInterfacesErr
 }
 
 func (p *FakePlatform) SetupLogrotate(groupName, basePath, size string) (err error) {
@@ -246,10 +242,10 @@ func (p *FakePlatform) UnmountPersistentDisk(diskSettings boshsettings.DiskSetti
 	return
 }
 
-func (p *FakePlatform) NormalizeDiskPath(diskSettings boshsettings.DiskSettings) string {
-	p.NormalizeDiskPathCalled = true
-	p.NormalizeDiskPathSettings = diskSettings
-	return p.NormalizeDiskPathRealPath
+func (p *FakePlatform) GetEphemeralDiskPath(diskSettings boshsettings.DiskSettings) string {
+	p.GetEphemeralDiskPathCalled = true
+	p.GetEphemeralDiskPathSettings = diskSettings
+	return p.GetEphemeralDiskPathRealPath
 }
 
 func (p *FakePlatform) GetFileContentsFromCDROM(path string) ([]byte, error) {
@@ -325,6 +321,5 @@ func (p *FakePlatform) PrepareForNetworkingChange() error {
 }
 
 func (p *FakePlatform) GetDefaultNetwork() (boshsettings.Network, error) {
-	p.GetDefaultNetworkCalled = true
 	return p.GetDefaultNetworkNetwork, p.GetDefaultNetworkErr
 }

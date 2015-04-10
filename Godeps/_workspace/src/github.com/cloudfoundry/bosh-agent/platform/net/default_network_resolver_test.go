@@ -17,7 +17,7 @@ var _ = Describe("defaultNetworkResolver", func() {
 	var (
 		routesSearcher *fakenet.FakeRoutesSearcher
 		ipResolver     *fakeip.FakeResolver
-		resolver       DefaultNetworkResolver
+		resolver       boshsettings.DefaultNetworkResolver
 	)
 
 	BeforeEach(func() {

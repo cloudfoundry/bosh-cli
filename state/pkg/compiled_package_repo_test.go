@@ -127,7 +127,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 
 		Context("when saving to index fails", func() {
 			It("returns error", func() {
-				fakeFS.WriteToFileError = errors.New("Could not save")
+				fakeFS.WriteFileError = errors.New("Could not save")
 				record := CompiledPackageRecord{
 					BlobID:   "fake-blob-id",
 					BlobSHA1: "fake-sha1",

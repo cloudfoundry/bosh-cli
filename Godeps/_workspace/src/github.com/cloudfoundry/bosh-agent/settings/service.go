@@ -26,15 +26,21 @@ type settingsService struct {
 	settingsPath           string
 	settings               Settings
 	settingsSource         Source
-	defaultNetworkDelegate DefaultNetworkDelegate
+	defaultNetworkResolver DefaultNetworkResolver
 	logger                 boshlog.Logger
+}
+
+type DefaultNetworkResolver interface {
+	// Ideally we would find a network based on a MAC address
+	// but current CPI implementations do not include it
+	GetDefaultNetwork() (Network, error)
 }
 
 func NewService(
 	fs boshsys.FileSystem,
 	settingsPath string,
 	settingsSource Source,
-	defaultNetworkDelegate DefaultNetworkDelegate,
+	defaultNetworkResolver DefaultNetworkResolver,
 	logger boshlog.Logger,
 ) (service Service) {
 	return &settingsService{
@@ -42,7 +48,7 @@ func NewService(
 		settingsPath:           settingsPath,
 		settings:               Settings{},
 		settingsSource:         settingsSource,
-		defaultNetworkDelegate: defaultNetworkDelegate,
+		defaultNetworkResolver: defaultNetworkResolver,
 		logger:                 logger,
 	}
 }
@@ -72,21 +78,10 @@ func (s *settingsService) LoadSettings() error {
 			return bosherr.WrapError(fetchErr, "Invoking settings fetcher")
 		}
 
-		err = s.checkAtMostOneDynamicNetwork(s.settings)
-		if err != nil {
-			return err
-		}
-
 		return nil
 	}
 
 	s.logger.Debug(settingsServiceLogTag, "Successfully received settings from fetcher")
-
-	err := s.checkAtMostOneDynamicNetwork(newSettings)
-	if err != nil {
-		return err
-	}
-
 	s.settings = newSettings
 
 	newSettingsJSON, err := json.Marshal(newSettings)
@@ -102,45 +97,19 @@ func (s *settingsService) LoadSettings() error {
 	return nil
 }
 
-func (s settingsService) checkAtMostOneDynamicNetwork(settings Settings) error {
-	var foundOneDynamicNetwork bool
-
-	for _, network := range settings.Networks {
-		// Currently proper support for multiple dynamic networks is not possible
-		// because CPIs (e.g. AWS and OpenStack) do not include MAC address
-		// for dynamic networks and that is the only way to reliably determine
-		// network to interface to IP mapping
-		if network.IsDynamic() {
-			if foundOneDynamicNetwork {
-				return bosherr.Error("Multiple dynamic networks are not supported")
-			}
-			foundOneDynamicNetwork = true
-		}
-	}
-
-	return nil
-}
-
 // GetSettings returns setting even if it fails to resolve IPs for dynamic networks.
 func (s *settingsService) GetSettings() Settings {
 	for networkName, network := range s.settings.Networks {
-		if !network.IsDynamic() {
+		if !network.IsDHCP() {
 			continue
 		}
 
-		// Ideally this would be GetNetworkByMACAddress(mac string)
-		resolvedNetwork, err := s.defaultNetworkDelegate.GetDefaultNetwork()
+		resolvedNetwork, err := s.resolveNetwork(network)
 		if err != nil {
-			s.logger.Error(settingsServiceLogTag, "Failed retrieving default network %s", err.Error())
 			break
 		}
 
-		// resolvedNetwork does not have all information for a network
-		network.IP = resolvedNetwork.IP
-		network.Netmask = resolvedNetwork.Netmask
-		network.Gateway = resolvedNetwork.Gateway
-
-		s.settings.Networks[networkName] = network
+		s.settings.Networks[networkName] = resolvedNetwork
 	}
 
 	return s.settings
@@ -153,4 +122,23 @@ func (s *settingsService) InvalidateSettings() error {
 	}
 
 	return nil
+}
+
+func (s *settingsService) resolveNetwork(network Network) (Network, error) {
+	// Ideally this would be GetNetworkByMACAddress(mac string)
+	// Currently, we are relying that if the default network does not contain
+	// the MAC adddress the InterfaceConfigurationCreator will fail.
+	resolvedNetwork, err := s.defaultNetworkResolver.GetDefaultNetwork()
+	if err != nil {
+		s.logger.Error(settingsServiceLogTag, "Failed retrieving default network %s", err.Error())
+		return Network{}, bosherr.WrapError(err, "Failed retrieving default network")
+	}
+
+	// resolvedNetwork does not have all information for a network
+	network.IP = resolvedNetwork.IP
+	network.Netmask = resolvedNetwork.Netmask
+	network.Gateway = resolvedNetwork.Gateway
+	network.Resolved = true
+
+	return network, nil
 }

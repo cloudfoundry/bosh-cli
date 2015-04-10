@@ -26,21 +26,24 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 )
 
-var _ = Describe("LinuxPlatform", func() {
+var _ = Describe("LinuxPlatform", describeLinuxPlatform)
+
+func describeLinuxPlatform() {
 	var (
-		collector          *fakestats.FakeCollector
-		fs                 *fakesys.FakeFileSystem
-		cmdRunner          *fakesys.FakeCmdRunner
-		diskManager        *fakedisk.FakeDiskManager
-		dirProvider        boshdirs.Provider
-		devicePathResolver *fakedpresolv.FakeDevicePathResolver
-		platform           Platform
-		cdutil             *fakedevutil.FakeDeviceUtil
-		compressor         boshcmd.Compressor
-		copier             boshcmd.Copier
-		vitalsService      boshvitals.Service
-		netManager         *fakenet.FakeManager
-		monitRetryStrategy *fakeretry.FakeRetryStrategy
+		collector                  *fakestats.FakeCollector
+		fs                         *fakesys.FakeFileSystem
+		cmdRunner                  *fakesys.FakeCmdRunner
+		diskManager                *fakedisk.FakeDiskManager
+		dirProvider                boshdirs.Provider
+		devicePathResolver         *fakedpresolv.FakeDevicePathResolver
+		platform                   Platform
+		cdutil                     *fakedevutil.FakeDeviceUtil
+		compressor                 boshcmd.Compressor
+		copier                     boshcmd.Copier
+		vitalsService              boshvitals.Service
+		netManager                 *fakenet.FakeManager
+		monitRetryStrategy         *fakeretry.FakeRetryStrategy
+		fakeDefaultNetworkResolver *fakenet.FakeDefaultNetworkResolver
 
 		options LinuxOptions
 		logger  boshlog.Logger
@@ -61,6 +64,7 @@ var _ = Describe("LinuxPlatform", func() {
 		netManager = &fakenet.FakeManager{}
 		monitRetryStrategy = fakeretry.NewFakeRetryStrategy()
 		devicePathResolver = fakedpresolv.NewFakeDevicePathResolver()
+		fakeDefaultNetworkResolver = &fakenet.FakeDefaultNetworkResolver{}
 		options = LinuxOptions{}
 
 		fs.SetGlob("/sys/bus/scsi/devices/*:0:0:0/block/*", []string{
@@ -91,6 +95,7 @@ var _ = Describe("LinuxPlatform", func() {
 			5*time.Millisecond,
 			options,
 			logger,
+			fakeDefaultNetworkResolver,
 		)
 	})
 
@@ -1203,11 +1208,23 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 		})
 	})
 
-	Describe("NormalizeDiskPath", func() {
+	Describe("GetEphemeralDiskPath", func() {
+		Context("when device path is an empty string", func() {
+			It("returns an empty string", func() {
+				devicePathResolver.RealDevicePath = "non-desired-device-path"
+				diskSettings := boshsettings.DiskSettings{
+					ID:       "fake-id",
+					VolumeID: "fake-volume-id",
+					Path:     "",
+				}
+				Expect(platform.GetEphemeralDiskPath(diskSettings)).To(BeEmpty())
+			})
+		})
+
 		Context("when real device path was resolved without an error", func() {
 			It("returns real device path and true", func() {
 				devicePathResolver.RealDevicePath = "fake-real-device-path"
-				realPath := platform.NormalizeDiskPath(boshsettings.DiskSettings{Path: "fake-device-path"})
+				realPath := platform.GetEphemeralDiskPath(boshsettings.DiskSettings{Path: "fake-device-path"})
 				Expect(realPath).To(Equal("fake-real-device-path"))
 			})
 		})
@@ -1215,7 +1232,7 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 		Context("when real device path was not resolved without an error", func() {
 			It("returns real device path and true", func() {
 				devicePathResolver.GetRealDevicePathErr = errors.New("fake-get-real-device-path-err")
-				realPath := platform.NormalizeDiskPath(boshsettings.DiskSettings{Path: "fake-device-path"})
+				realPath := platform.GetEphemeralDiskPath(boshsettings.DiskSettings{Path: "fake-device-path"})
 				Expect(realPath).To(Equal(""))
 			})
 		})
@@ -1426,22 +1443,37 @@ fake-base-path/data/sys/log/*.log fake-base-path/data/sys/log/*/*.log fake-base-
 		})
 	})
 
+	Describe("SetupNetworking", func() {
+		It("delegates to the NetManager", func() {
+			networks := boshsettings.Networks{}
+
+			err := platform.SetupNetworking(networks)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(netManager.SetupNetworkingNetworks).To(Equal(networks))
+		})
+	})
+
+	Describe("GetConfiguredNetworkInterfaces", func() {
+		It("delegates to the NetManager", func() {
+			netmanagerInterfaces := []string{"fake-eth0", "fake-eth1"}
+			netManager.GetConfiguredNetworkInterfacesInterfaces = netmanagerInterfaces
+
+			interfaces, err := platform.GetConfiguredNetworkInterfaces()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(interfaces).To(Equal(netmanagerInterfaces))
+		})
+	})
+
 	Describe("GetDefaultNetwork", func() {
-		It("returns default network according to net manager", func() {
-			netManager.GetDefaultNetworkNetwork = boshsettings.Network{IP: "fake-ip"}
+		It("delegates to the defaultNetworkResolver", func() {
+			defaultNetwork := boshsettings.Network{IP: "1.2.3.4"}
+			fakeDefaultNetworkResolver.GetDefaultNetworkNetwork = defaultNetwork
 
 			network, err := platform.GetDefaultNetwork()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(network).To(Equal(boshsettings.Network{IP: "fake-ip"}))
-		})
 
-		It("returns error if net manager fails to retrieve default network", func() {
-			netManager.GetDefaultNetworkErr = errors.New("fake-get-default-network-err")
-
-			network, err := platform.GetDefaultNetwork()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-get-default-network-err"))
-			Expect(network).To(Equal(boshsettings.Network{}))
+			Expect(network).To(Equal(defaultNetwork))
 		})
 	})
-})
+}
