@@ -80,8 +80,8 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 }
 
 func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest) (VM, error) {
-	microBoshJobName := deploymentManifest.Jobs[0].Name
-	networkInterfaces, err := deploymentManifest.NetworkInterfaces(microBoshJobName)
+	jobName := deploymentManifest.Jobs[0].Name
+	networkInterfaces, err := deploymentManifest.NetworkInterfaces(jobName)
 	m.logger.Debug(m.logTag, "Creating VM with network interfaces: %#v", networkInterfaces)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Getting network spec")
