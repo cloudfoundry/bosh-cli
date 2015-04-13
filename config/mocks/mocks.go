@@ -28,23 +28,13 @@ func (_m *MockLegacyDeploymentConfigMigrator) EXPECT() *_MockLegacyDeploymentCon
 	return _m.recorder
 }
 
-func (_m *MockLegacyDeploymentConfigMigrator) MigrateIfExists() (bool, error) {
-	ret := _m.ctrl.Call(_m, "MigrateIfExists")
+func (_m *MockLegacyDeploymentConfigMigrator) MigrateIfExists(_param0 string) (bool, error) {
+	ret := _m.ctrl.Call(_m, "MigrateIfExists", _param0)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockLegacyDeploymentConfigMigratorRecorder) MigrateIfExists() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MigrateIfExists")
-}
-
-func (_m *MockLegacyDeploymentConfigMigrator) Path() string {
-	ret := _m.ctrl.Call(_m, "Path")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-func (_mr *_MockLegacyDeploymentConfigMigratorRecorder) Path() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Path")
+func (_mr *_MockLegacyDeploymentConfigMigratorRecorder) MigrateIfExists(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MigrateIfExists", arg0)
 }

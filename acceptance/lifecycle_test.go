@@ -17,8 +17,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
-
-	biconfig "github.com/cloudfoundry/bosh-init/config"
 )
 
 const (
@@ -68,24 +66,15 @@ var _ = Describe("bosh-init", func() {
 	var updateDeploymentManifest = func(sourceManifestPath string) {
 		manifestContents, err := ioutil.ReadFile(sourceManifestPath)
 		Expect(err).ToNot(HaveOccurred())
-		testEnv.WriteContent("manifest", manifestContents)
-	}
-
-	var setDeployment = func(manifestPath string) (stdout string) {
-		os.Stdout.WriteString("\n---DEPLOYMENT---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deployment", manifestPath)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-		return outBuffer.String()
+		testEnv.WriteContent("test-manifest.yml", manifestContents)
 	}
 
 	var deploy = func() (stdout string) {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"), testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
+		println((string)(outBuffer.Bytes()))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return outBuffer.String()
@@ -95,7 +84,7 @@ var _ = Describe("bosh-init", func() {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"), testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
 		return outBuffer.String()
@@ -105,33 +94,10 @@ var _ = Describe("bosh-init", func() {
 		os.Stdout.WriteString("\n---DELETE---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("cpi-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"), testEnv.Path("cpi-release.tgz"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return outBuffer.String()
-	}
-
-	// parseUserConfig reads & parses the remote bosh-init user config
-	// This would be a lot cleaner if there were a RemoteFileSystem that used SSH.
-	var parseUserConfig = func() biconfig.UserConfig {
-		userConfigPath := testEnv.Path(".bosh_micro.json")
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "cat", userConfigPath)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-
-		tempUserConfigFile, err := fileSystem.TempFile("bosh-init-user-config")
-		Expect(err).ToNot(HaveOccurred())
-		err = tempUserConfigFile.Close()
-		Expect(err).ToNot(HaveOccurred())
-		err = fileSystem.WriteFileString(tempUserConfigFile.Name(), stdout)
-		Expect(err).ToNot(HaveOccurred())
-		defer fileSystem.RemoveAll(tempUserConfigFile.Name())
-
-		userConfigService := biconfig.NewFileSystemUserConfigService(tempUserConfigFile.Name(), fileSystem, logger)
-		userConfig, err := userConfigService.Load()
-		Expect(err).ToNot(HaveOccurred())
-
-		return userConfig
 	}
 
 	var shutdownAgent = func() {
@@ -250,7 +216,7 @@ var _ = Describe("bosh-init", func() {
 		flushLog(cmdEnv["BOSH_MICRO_LOG_PATH"])
 
 		// quietly delete the deployment
-		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("cpi-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"), testEnv.Path("cpi-release.tgz"))
 		if exitCode != 0 || err != nil {
 			// only flush the delete log if the delete failed
 			flushLog(quietCmdEnv["BOSH_MICRO_LOG_PATH"])
@@ -261,18 +227,6 @@ var _ = Describe("bosh-init", func() {
 
 	It("is able to deploy given many variances", func() {
 		updateDeploymentManifest("./assets/manifest.yml")
-
-		println("#################################################")
-		println("it can set deployment")
-		println("#################################################")
-		manifestPath := testEnv.Path("manifest")
-		setDeploymentOutput := setDeployment(manifestPath)
-
-		Expect(setDeploymentOutput).To(ContainSubstring(fmt.Sprintf("Deployment manifest set to '%s'", manifestPath)))
-
-		Expect(parseUserConfig()).To(Equal(biconfig.UserConfig{
-			DeploymentManifestPath: manifestPath,
-		}))
 
 		println("#################################################")
 		println("it can deploy successfully with expected output")
@@ -390,8 +344,6 @@ var _ = Describe("bosh-init", func() {
 	It("delete the vm even without a working agent", func() {
 		updateDeploymentManifest("./assets/manifest.yml")
 
-		setDeployment(testEnv.Path("manifest"))
-
 		deploy()
 		shutdownAgent()
 
@@ -407,8 +359,6 @@ var _ = Describe("bosh-init", func() {
 	It("deploys & deletes without registry and ssh tunnel", func() {
 		updateDeploymentManifest("./assets/manifest_without_registry.yml")
 
-		setDeployment(testEnv.Path("manifest"))
-
 		stdout := deploy()
 		Expect(stdout).To(ContainSubstring("Finished deploying"))
 
@@ -418,8 +368,6 @@ var _ = Describe("bosh-init", func() {
 
 	It("prints multiple validation errors at the same time", func() {
 		updateDeploymentManifest("./assets/invalid_manifest.yml")
-
-		setDeployment(testEnv.Path("manifest"))
 
 		stdout := expectDeployToError()
 

@@ -175,7 +175,8 @@ var _ = Describe("Manager", func() {
 			mockDeploymentFactory = mock_deployment.NewMockFactory(mockCtrl)
 
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
+			deploymentConfigService.SetConfigPath(deploymentConfigPath)
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
 			vmRepo = biconfig.NewVMRepo(deploymentConfigService)

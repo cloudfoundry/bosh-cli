@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -88,14 +89,33 @@ func (c *deleteCmd) Name() string {
 }
 
 func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
-	releaseTarballPath, err := c.parseCmdInputs(args)
+	deploymentManifestPath, releaseTarballPath, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
 	}
 
-	deploymentManifestPath, err := getDeploymentManifest(c.userConfig, c.ui, c.fs)
+	manifestAbsFilePath, err := filepath.Abs(deploymentManifestPath)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Running delete cmd")
+		c.ui.ErrorLinef("Failed getting absolute path to deployment file '%s'", deploymentManifestPath)
+		return bosherr.WrapErrorf(err, "Getting absolute path to deployment file '%s'", deploymentManifestPath)
+	}
+
+	if !c.fs.FileExists(manifestAbsFilePath) {
+		c.ui.ErrorLinef("Deployment '%s' does not exist", manifestAbsFilePath)
+		return bosherr.Errorf("Deployment manifest does not exist at '%s'", manifestAbsFilePath)
+	}
+
+	c.userConfig.DeploymentManifestPath = manifestAbsFilePath
+	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
+
+	deploymentConfigPath := c.userConfig.DeploymentConfigPath()
+	c.deploymentConfigService.SetConfigPath(deploymentConfigPath)
+
+	c.ui.PrintLinef("Deployment state: '%s'", deploymentConfigPath)
+
+	if !c.deploymentConfigService.Exists() {
+		c.ui.PrintLinef("No deployment config file found.")
+		return nil
 	}
 
 	deploymentConfig, err := c.deploymentConfigService.Load()
@@ -191,14 +211,14 @@ func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
 	return err
 }
 
-func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
-	if len(args) != 1 {
-		c.ui.ErrorLinef("Invalid usage - delete command requires exactly 1 argument")
-		c.ui.PrintLinef("Expected usage: bosh-init delete <cpi-release-tarball>")
+func (c *deleteCmd) parseCmdInputs(args []string) (string, string, error) {
+	if len(args) != 2 {
+		c.ui.ErrorLinef("Invalid usage - delete command requires exactly 2 arguments")
+		c.ui.PrintLinef("Expected usage: bosh-init delete <deployment-manifest> <cpi-release-tarball>")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
-		return "", errors.New("Invalid usage - delete command requires exactly 1 argument")
+		return "", "", errors.New("Invalid usage - delete command requires exactly 2 arguments")
 	}
-	return args[0], nil
+	return args[0], args[1], nil
 }
 
 func (c *deleteCmd) validate(validationStage biui.Stage, releaseTarballPath, deploymentManifestPath string) (

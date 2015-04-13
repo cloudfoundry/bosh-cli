@@ -21,26 +21,23 @@ import (
 
 var _ = Describe("cmd.Factory", func() {
 	var (
-		factory           Factory
-		userConfig        biconfig.UserConfig
-		userConfigService biconfig.UserConfigService
-		fs                boshsys.FileSystem
-		ui                biui.UI
-		logger            boshlog.Logger
-		uuidGenerator     *fakeuuid.FakeGenerator
+		factory       Factory
+		userConfig    biconfig.UserConfig
+		fs            boshsys.FileSystem
+		ui            biui.UI
+		logger        boshlog.Logger
+		uuidGenerator *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		userConfig = biconfig.UserConfig{DeploymentManifestPath: "/fake-path/manifest.yml"}
-		userConfigService = biconfig.NewFileSystemUserConfigService("/fake-user-config", fs, logger)
 		ui = &fakebiui.FakeUI{}
 		uuidGenerator = &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(
 			userConfig,
-			userConfigService,
 			fs,
 			ui,
 			boshtime.NewConcreteService(),
@@ -55,14 +52,6 @@ var _ = Describe("cmd.Factory", func() {
 	})
 
 	Context("known command name", func() {
-		Describe("deployment command", func() {
-			It("returns deployment command", func() {
-				cmd, err := factory.CreateCommand("deployment")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(cmd.Name()).To(Equal("deployment"))
-			})
-		})
-
 		Describe("deploy command", func() {
 			It("returns deploy command", func() {
 				cmd, err := factory.CreateCommand("deploy")

@@ -31,14 +31,15 @@ var _ = Describe("legacyDeploymentConfigMigrator", func() {
 		legacyDeploymentConfigFilePath = "/path/to/legacy/bosh-deployment.yml"
 		modernDeploymentConfigFilePath = "/path/to/legacy/deployment.json"
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		deploymentConfigService = NewFileSystemDeploymentConfigService(modernDeploymentConfigFilePath, fakeFs, fakeUUIDGenerator, logger)
-		migrator = NewLegacyDeploymentConfigMigrator(legacyDeploymentConfigFilePath, deploymentConfigService, fakeFs, fakeUUIDGenerator, logger)
+		deploymentConfigService = NewFileSystemDeploymentConfigService(fakeFs, fakeUUIDGenerator, logger)
+		deploymentConfigService.SetConfigPath(modernDeploymentConfigFilePath)
+		migrator = NewLegacyDeploymentConfigMigrator(deploymentConfigService, fakeFs, fakeUUIDGenerator, logger)
 	})
 
 	Describe("MigrateIfExists", func() {
 		Context("when no legacy deploment config file exists", func() {
 			It("does nothing", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeFalse())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -52,7 +53,7 @@ var _ = Describe("legacyDeploymentConfigMigrator", func() {
 			})
 
 			It("does not delete the legacy deployment config file", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeFalse())
 				Expect(err).To(HaveOccurred())
 
@@ -67,7 +68,7 @@ var _ = Describe("legacyDeploymentConfigMigrator", func() {
 			})
 
 			It("deletes the legacy deployment config file", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -97,7 +98,7 @@ registry_instances:
 			})
 
 			It("deletes the legacy deployment config file", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -105,7 +106,7 @@ registry_instances:
 			})
 
 			It("creates a new deployment config file without vm, disk, or stemcell", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -149,7 +150,7 @@ registry_instances:
 			})
 
 			It("deletes the legacy deployment config file", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -157,7 +158,7 @@ registry_instances:
 			})
 
 			It("creates a new deployment config file with vm, disk & stemcell", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -215,7 +216,7 @@ registry_instances:
 			})
 
 			It("deletes the legacy deployment config file", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -223,7 +224,7 @@ registry_instances:
 			})
 
 			It("creates a new deployment config file with vm", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -267,7 +268,7 @@ registry_instances:
 			})
 
 			It("deletes the legacy deployment config file", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -275,7 +276,7 @@ registry_instances:
 			})
 
 			It("creates a new deployment config file with disk only", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -326,7 +327,7 @@ registry_instances:
 			})
 
 			It("deletes the legacy deployment config file", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -334,7 +335,7 @@ registry_instances:
 			})
 
 			It("creates a new deployment config file with stemcell only (marked as unused)", func() {
-				migrated, err := migrator.MigrateIfExists()
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentConfigFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
 

@@ -50,17 +50,17 @@ var _ = Describe("DeleteCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			fs                      boshsys.FileSystem
-			logger                  boshlog.Logger
-			releaseManager          birel.Manager
-			mockInstaller           *mock_install.MockInstaller
-			mockInstallerFactory    *mock_install.MockInstallerFactory
-			mockInstallation        *mock_install.MockInstallation
-			mockCloudFactory        *mock_cloud.MockFactory
-			mockReleaseExtractor    *mock_release.MockExtractor
-			fakeUUIDGenerator       *fakeuuid.FakeGenerator
-			deploymentConfigService biconfig.DeploymentConfigService
-			userConfig              biconfig.UserConfig
+			fs                           boshsys.FileSystem
+			logger                       boshlog.Logger
+			releaseManager               birel.Manager
+			mockInstaller                *mock_install.MockInstaller
+			mockInstallerFactory         *mock_install.MockInstallerFactory
+			mockInstallation             *mock_install.MockInstallation
+			mockCloudFactory             *mock_cloud.MockFactory
+			mockReleaseExtractor         *mock_release.MockExtractor
+			fakeUUIDGenerator            *fakeuuid.FakeGenerator
+			setupDeploymentConfigService biconfig.DeploymentConfigService
+			userConfig                   biconfig.UserConfig
 
 			fakeUI *fakeui.FakeUI
 
@@ -80,7 +80,7 @@ var _ = Describe("DeleteCmd", func() {
 			directorID string
 
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
-			deploymentConfigPath   = "/fake-bosh-deployments.json"
+			deploymentConfigPath   string
 
 			expectCPIExtractRelease *gomock.Call
 			expectCPIInstall        *gomock.Call
@@ -166,7 +166,7 @@ cloud_provider:
 				fs,
 				releaseSetParser,
 				installationParser,
-				deploymentConfigService,
+				biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger),
 				releaseSetValidator,
 				installationValidator,
 				mockInstallerFactory,
@@ -237,7 +237,10 @@ cloud_provider:
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+			setupDeploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
+			deploymentConfigPath = biconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}.DeploymentConfigPath()
+			setupDeploymentConfigService.SetConfigPath(deploymentConfigPath)
+			setupDeploymentConfigService.Load()
 
 			fakeUI = &fakeui.FakeUI{}
 
@@ -264,7 +267,7 @@ cloud_provider:
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			userConfig = biconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}
+			userConfig = biconfig.UserConfig{}
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
 
@@ -279,16 +282,12 @@ cloud_provider:
 			allowCPIToBeInstalled()
 		})
 
-		Context("when the deployment has not been set", func() {
-			BeforeEach(func() {
-				userConfig.DeploymentManifestPath = ""
-			})
-
+		Context("when the deployment manifest does not exist", func() {
 			It("returns an error", func() {
-				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/garbage", "/fake-cpi-release.tgz"})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Running delete cmd: Deployment manifest not set"))
-				Expect(fakeUI.Errors).To(ContainElement("Deployment manifest not set"))
+				Expect(err.Error()).To(Equal("Deployment manifest does not exist at '/garbage'"))
+				Expect(fakeUI.Errors).To(ContainElement("Deployment '/garbage' does not exist"))
 			})
 		})
 
@@ -299,12 +298,14 @@ cloud_provider:
 			})
 
 			It("does not delete anything", func() {
-				expectCleanup()
-
-				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 
-				expectValidationInstallationDeletionEvents()
+				Expect(fakeUI.Said).To(Equal([]string{
+					"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
+					"Deployment state: '/deployment-dir/deployment.json'",
+					"No deployment config file found.",
+				}))
 			})
 		})
 
@@ -313,7 +314,7 @@ cloud_provider:
 				directorID = "fake-director-id"
 
 				// create deployment manifest yaml file
-				deploymentConfigService.Save(biconfig.DeploymentFile{
+				setupDeploymentConfigService.Save(biconfig.DeploymentFile{
 					DirectorID: directorID,
 				})
 			})
@@ -327,7 +328,7 @@ cloud_provider:
 					expectNewCloud.Times(1),
 				)
 
-				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -339,14 +340,14 @@ cloud_provider:
 					expectStopRegistry.Times(1),
 				)
 
-				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("deletes the extracted CPI release", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fs.FileExists("fake-cpi-extracted-dir")).To(BeFalse())
 			})
@@ -354,7 +355,7 @@ cloud_provider:
 			It("deletes the deployment & cleans up orphans", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeUI.Errors).To(BeEmpty())
 			})
@@ -362,7 +363,7 @@ cloud_provider:
 			It("logs validating & deleting stages", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 
 				expectValidationInstallationDeletionEvents()
@@ -371,15 +372,13 @@ cloud_provider:
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(biconfig.DeploymentFile{})
-
-				directorID = "fake-uuid-0"
+				setupDeploymentConfigService.Save(biconfig.DeploymentFile{DirectorID: "fake-uuid-0"})
 			})
 
 			It("cleans up orphans, but does not delete any deployment", func() {
 				expectCleanup()
 
-				err := newDeleteCmd().Run(fakeStage, []string{"/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeUI.Errors).To(BeEmpty())
 			})

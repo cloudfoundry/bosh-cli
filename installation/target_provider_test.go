@@ -32,12 +32,11 @@ var _ = Describe("TargetProvider", func() {
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(
-			configPath,
 			fakeFS,
 			fakeUUIDGenerator,
 			logger,
 		)
-
+		deploymentConfigService.SetConfigPath(configPath)
 		targetProvider = NewTargetProvider(deploymentConfigService, fakeUUIDGenerator, installationsRootPath)
 	})
 

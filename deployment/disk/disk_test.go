@@ -44,7 +44,8 @@ var _ = Describe("Disk", func() {
 		fs := fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService := biconfig.NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
+		configService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
+		configService.SetConfigPath("/fake/path")
 		diskRepo = biconfig.NewDiskRepo(configService, fakeUUIDGenerator)
 
 		disk = NewDisk(diskRecord, fakeCloud, diskRepo)

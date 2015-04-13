@@ -17,9 +17,8 @@ type fileSystemDeploymentConfigService struct {
 	logTag        string
 }
 
-func NewFileSystemDeploymentConfigService(configPath string, fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger boshlog.Logger) DeploymentConfigService {
-	return fileSystemDeploymentConfigService{
-		configPath:    configPath,
+func NewFileSystemDeploymentConfigService(fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger boshlog.Logger) DeploymentConfigService {
+	return &fileSystemDeploymentConfigService{
 		fs:            fs,
 		uuidGenerator: uuidGenerator,
 		logger:        logger,
@@ -27,11 +26,19 @@ func NewFileSystemDeploymentConfigService(configPath string, fs boshsys.FileSyst
 	}
 }
 
-func (s fileSystemDeploymentConfigService) Exists() bool {
+func (s *fileSystemDeploymentConfigService) Exists() bool {
 	return s.fs.FileExists(s.configPath)
 }
 
-func (s fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {
+func (s *fileSystemDeploymentConfigService) SetConfigPath(path string) {
+	s.configPath = path
+}
+
+func (s *fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {
+	if s.configPath == "" {
+		panic("configPath not yet set!")
+	}
+
 	s.logger.Debug(s.logTag, "Loading deployment config: %s", s.configPath)
 
 	deploymentFile := &DeploymentFile{}
@@ -57,8 +64,12 @@ func (s fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {
 	return *deploymentFile, nil
 }
 
-func (s fileSystemDeploymentConfigService) Save(deploymentFile DeploymentFile) error {
-	s.logger.Debug(s.logTag, "Saving Deployment Config %#v", deploymentFile)
+func (s *fileSystemDeploymentConfigService) Save(deploymentFile DeploymentFile) error {
+	if s.configPath == "" {
+		panic("configPath not yet set!")
+	}
+
+	s.logger.Debug(s.logTag, "Saving deployment config %#v", deploymentFile)
 
 	jsonContent, err := json.MarshalIndent(deploymentFile, "", "    ")
 	if err != nil {
@@ -73,7 +84,7 @@ func (s fileSystemDeploymentConfigService) Save(deploymentFile DeploymentFile) e
 	return nil
 }
 
-func (s fileSystemDeploymentConfigService) initDefaults(deploymentFile *DeploymentFile) error {
+func (s *fileSystemDeploymentConfigService) initDefaults(deploymentFile *DeploymentFile) error {
 	if deploymentFile.DirectorID == "" {
 		uuid, err := s.uuidGenerator.Generate()
 		if err != nil {

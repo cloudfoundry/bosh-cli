@@ -27,7 +27,8 @@ var _ = Describe("DiskRepo", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService = NewFileSystemDeploymentConfigService("/fake/path", fs, fakeUUIDGenerator, logger)
+		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
+		configService.SetConfigPath("/fake/path")
 		repo = NewDiskRepo(configService, fakeUUIDGenerator)
 		cloudProperties = biproperty.Map{
 			"fake-cloud_property-key": "fake-cloud-property-value",

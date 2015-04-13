@@ -25,9 +25,8 @@ func main() {
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_micro")
-	userConfigPath := path.Join(os.Getenv("HOME"), ".bosh_micro.json")
 	ui := biui.NewConsoleUI(logger)
-	config, configService := loadUserConfig(userConfigPath, fileSystem, ui, logger)
+	config := biconfig.UserConfig{}
 
 	uuidGenerator := boshuuid.NewGenerator()
 
@@ -35,7 +34,6 @@ func main() {
 
 	cmdFactory := bicmd.NewFactory(
 		config,
-		configService,
 		fileSystem,
 		ui,
 		timeService,
@@ -88,19 +86,6 @@ func newFileLogger(logPath string, level boshlog.LogLevel) boshlog.Logger {
 		fail(err, ui, logger)
 	}
 	return logger
-}
-
-func loadUserConfig(userConfigPath string, fileSystem boshsys.FileSystem, ui biui.UI, logger boshlog.Logger) (
-	biconfig.UserConfig,
-	biconfig.UserConfigService,
-) {
-	userConfigService := biconfig.NewFileSystemUserConfigService(userConfigPath, fileSystem, logger)
-	userConfig, err := userConfigService.Load()
-	if err != nil {
-		fail(err, ui, logger)
-	}
-
-	return userConfig, userConfigService
 }
 
 func fail(err error, ui biui.UI, logger boshlog.Logger) {

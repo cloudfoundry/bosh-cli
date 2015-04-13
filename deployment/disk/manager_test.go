@@ -33,7 +33,8 @@ var _ = Describe("Manager", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeFs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService := biconfig.NewFileSystemDeploymentConfigService("/fake/path", fakeFs, fakeUUIDGenerator, logger)
+		configService := biconfig.NewFileSystemDeploymentConfigService(fakeFs, fakeUUIDGenerator, logger)
+		configService.SetConfigPath("/fake/path")
 		diskRepo = biconfig.NewDiskRepo(configService, fakeUUIDGenerator)
 		managerFactory := NewManagerFactory(diskRepo, logger)
 		fakeCloud = fakebicloud.NewFakeCloud()

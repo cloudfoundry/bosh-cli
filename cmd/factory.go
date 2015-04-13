@@ -45,7 +45,6 @@ type Factory interface {
 type factory struct {
 	commands                       map[string](func() (Cmd, error))
 	userConfig                     biconfig.UserConfig
-	userConfigService              biconfig.UserConfigService
 	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
 	deploymentConfigService        biconfig.DeploymentConfigService
 	fs                             boshsys.FileSystem
@@ -91,7 +90,6 @@ type factory struct {
 
 func NewFactory(
 	userConfig biconfig.UserConfig,
-	userConfigService biconfig.UserConfigService,
 	fs boshsys.FileSystem,
 	ui biui.UI,
 	timeService boshtime.Service,
@@ -101,7 +99,6 @@ func NewFactory(
 ) Factory {
 	f := &factory{
 		userConfig:        userConfig,
-		userConfigService: userConfigService,
 		fs:                fs,
 		ui:                ui,
 		timeService:       timeService,
@@ -110,9 +107,8 @@ func NewFactory(
 		workspaceRootPath: workspaceRootPath,
 	}
 	f.commands = map[string](func() (Cmd, error)){
-		"deployment": f.createDeploymentCmd,
-		"deploy":     f.createDeployCmd,
-		"delete":     f.createDeleteCmd,
+		"deploy": f.createDeployCmd,
+		"delete": f.createDeleteCmd,
 	}
 	return f
 }
@@ -123,17 +119,6 @@ func (f *factory) CreateCommand(name string) (Cmd, error) {
 	}
 
 	return f.commands[name]()
-}
-
-func (f *factory) createDeploymentCmd() (Cmd, error) {
-	return NewDeploymentCmd(
-		f.ui,
-		f.userConfig,
-		f.userConfigService,
-		f.fs,
-		f.uuidGenerator,
-		f.logger,
-	), nil
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
@@ -169,6 +154,7 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 		deploymentRecord,
 		f.loadBlobstoreFactory(),
 		f.loadDeployer(),
+		f.uuidGenerator,
 		f.logger,
 	), nil
 }
@@ -412,14 +398,7 @@ func (f *factory) loadLegacyDeploymentConfigMigrator() biconfig.LegacyDeployment
 		return f.legacyDeploymentConfigMigrator
 	}
 
-	if !f.userConfig.IsDeploymentSet() {
-		// no deployment set.
-		// each cmd should handle validation before using deploymentConfigService or deploymentWorkspace
-		return nil
-	}
-
 	f.legacyDeploymentConfigMigrator = biconfig.NewLegacyDeploymentConfigMigrator(
-		f.userConfig.LegacyDeploymentConfigPath(),
 		f.loadDeploymentConfigService(),
 		f.fs,
 		f.uuidGenerator,
@@ -433,14 +412,7 @@ func (f *factory) loadDeploymentConfigService() biconfig.DeploymentConfigService
 		return f.deploymentConfigService
 	}
 
-	if !f.userConfig.IsDeploymentSet() {
-		// no deployment set.
-		// each cmd should handle validation before using deploymentConfigService or deploymentWorkspace
-		return nil
-	}
-
 	f.deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(
-		f.userConfig.DeploymentConfigPath(),
 		f.fs,
 		f.uuidGenerator,
 		f.logger,

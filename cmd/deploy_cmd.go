@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"errors"
+	"path/filepath"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	"github.com/cloudfoundry/bosh-agent/uuid"
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -50,6 +52,7 @@ type deployCmd struct {
 	blobstoreFactory               biblobstore.Factory
 	deployer                       bidepl.Deployer
 	eventLogger                    biui.Stage
+	uuidGenerator                  uuid.Generator
 	logger                         boshlog.Logger
 	logTag                         string
 }
@@ -78,6 +81,7 @@ func NewDeployCmd(
 	deploymentRecord bidepl.Record,
 	blobstoreFactory biblobstore.Factory,
 	deployer bidepl.Deployer,
+	uuidGenerator uuid.Generator,
 	logger boshlog.Logger,
 ) Cmd {
 	return &deployCmd{
@@ -104,6 +108,7 @@ func NewDeployCmd(
 		deploymentRecord:               deploymentRecord,
 		blobstoreFactory:               blobstoreFactory,
 		deployer:                       deployer,
+		uuidGenerator:                  uuidGenerator,
 		logger:                         logger,
 		logTag:                         "deployCmd",
 	}
@@ -114,23 +119,37 @@ func (c *deployCmd) Name() string {
 }
 
 func (c *deployCmd) Run(stage biui.Stage, args []string) error {
-	stemcellTarballPath, releaseTarballPaths, err := c.parseCmdInputs(args)
+	deploymentManifestPath, stemcellTarballPath, releaseTarballPaths, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
 	}
 
-	deploymentManifestPath, err := getDeploymentManifest(c.userConfig, c.ui, c.fs)
+	manifestAbsFilePath, err := filepath.Abs(deploymentManifestPath)
 	if err != nil {
-		return err
+		c.ui.ErrorLinef("Failed getting absolute path to deployment file '%s'", deploymentManifestPath)
+		return bosherr.WrapErrorf(err, "Getting absolute path to deployment file '%s'", deploymentManifestPath)
 	}
+
+	if !c.fs.FileExists(manifestAbsFilePath) {
+		c.ui.ErrorLinef("Deployment '%s' does not exist", manifestAbsFilePath)
+		return bosherr.Errorf("Deployment manifest does not exist at '%s'", manifestAbsFilePath)
+	}
+
+	c.userConfig.DeploymentManifestPath = manifestAbsFilePath
+	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
+
+	deploymentConfigPath := c.userConfig.DeploymentConfigPath()
+	c.deploymentConfigService.SetConfigPath(deploymentConfigPath)
+
+	c.ui.PrintLinef("Deployment state: '%s'", deploymentConfigPath)
 
 	if !c.deploymentConfigService.Exists() {
-		migrated, err := c.legacyDeploymentConfigMigrator.MigrateIfExists()
+		migrated, err := c.legacyDeploymentConfigMigrator.MigrateIfExists(c.userConfig.LegacyDeploymentConfigPath())
 		if err != nil {
 			return bosherr.WrapError(err, "Migrating legacy deployment config file")
 		}
 		if migrated {
-			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", c.legacyDeploymentConfigMigrator.Path())
+			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", c.userConfig.LegacyDeploymentConfigPath())
 		}
 	}
 
@@ -260,14 +279,14 @@ func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 
 type Deployment struct{}
 
-func (c *deployCmd) parseCmdInputs(args []string) (string, []string, error) {
-	if len(args) < 2 {
-		c.ui.ErrorLinef("Invalid usage - deploy command requires at least 2 arguments")
-		c.ui.PrintLinef("Expected usage: bosh-init deploy <stemcell-tarball> <cpi-release-tarball> [release-2-tarball [release-3-tarball...]]")
+func (c *deployCmd) parseCmdInputs(args []string) (string, string, []string, error) {
+	if len(args) < 3 {
+		c.ui.ErrorLinef("Invalid usage - deploy command requires at least 3 arguments")
+		c.ui.PrintLinef("Expected usage: bosh-init deploy <deployment-manifest> <stemcell-tarball> <cpi-release-tarball> [release-2-tarball [release-3-tarball...]]")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
-		return "", []string{}, errors.New("Invalid usage - deploy command requires at least 2 arguments")
+		return "", "", []string{}, errors.New("Invalid usage - deploy command requires at least 3 arguments")
 	}
-	return args[0], args[1:], nil
+	return args[0], args[1], args[2:], nil
 }
 
 func (c *deployCmd) isBlank(str string) bool {

@@ -14,12 +14,10 @@ import (
 )
 
 type LegacyDeploymentConfigMigrator interface {
-	Path() string
-	MigrateIfExists() (migrated bool, err error)
+	MigrateIfExists(configPath string) (migrated bool, err error)
 }
 
 type legacyDeploymentConfigMigrator struct {
-	configPath              string
 	deploymentConfigService DeploymentConfigService
 	fs                      boshsys.FileSystem
 	uuidGenerator           boshuuid.Generator
@@ -28,14 +26,12 @@ type legacyDeploymentConfigMigrator struct {
 }
 
 func NewLegacyDeploymentConfigMigrator(
-	configPath string,
 	deploymentConfigService DeploymentConfigService,
 	fs boshsys.FileSystem,
 	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
 ) LegacyDeploymentConfigMigrator {
 	return &legacyDeploymentConfigMigrator{
-		configPath:              configPath,
 		deploymentConfigService: deploymentConfigService,
 		fs:            fs,
 		uuidGenerator: uuidGenerator,
@@ -44,16 +40,12 @@ func NewLegacyDeploymentConfigMigrator(
 	}
 }
 
-func (m *legacyDeploymentConfigMigrator) Path() string {
-	return m.configPath
-}
-
-func (m *legacyDeploymentConfigMigrator) MigrateIfExists() (migrated bool, err error) {
-	if !m.fs.FileExists(m.configPath) {
+func (m *legacyDeploymentConfigMigrator) MigrateIfExists(configPath string) (migrated bool, err error) {
+	if !m.fs.FileExists(configPath) {
 		return false, nil
 	}
 
-	deploymentConfig, err := m.migrate()
+	deploymentConfig, err := m.migrate(configPath)
 	if err != nil {
 		return false, err
 	}
@@ -63,7 +55,7 @@ func (m *legacyDeploymentConfigMigrator) MigrateIfExists() (migrated bool, err e
 		return false, bosherr.WrapError(err, "Saving migrated deployment config")
 	}
 
-	err = m.fs.RemoveAll(m.configPath)
+	err = m.fs.RemoveAll(configPath)
 	if err != nil {
 		return false, bosherr.WrapError(err, "Deleting legacy deployment config")
 	}
@@ -71,12 +63,12 @@ func (m *legacyDeploymentConfigMigrator) MigrateIfExists() (migrated bool, err e
 	return true, nil
 }
 
-func (m *legacyDeploymentConfigMigrator) migrate() (deploymentFile DeploymentFile, err error) {
+func (m *legacyDeploymentConfigMigrator) migrate(configPath string) (deploymentFile DeploymentFile, err error) {
 	m.logger.Info(m.logTag, "Migrating legacy bosh-deployments.yml")
 
-	bytes, err := m.fs.ReadFile(m.configPath)
+	bytes, err := m.fs.ReadFile(configPath)
 	if err != nil {
-		return deploymentFile, bosherr.WrapErrorf(err, "Reading legacy deployment config file '%s'", m.configPath)
+		return deploymentFile, bosherr.WrapErrorf(err, "Reading legacy deployment config file '%s'", configPath)
 	}
 
 	// candiedyaml does not currently support ':' as the first character in a key.

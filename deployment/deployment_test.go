@@ -121,7 +121,8 @@ var _ = Describe("Deployment", func() {
 			fs = fakesys.NewFakeFileSystem()
 
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(deploymentConfigPath, fs, fakeUUIDGenerator, logger)
+			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
+			deploymentConfigService.SetConfigPath(deploymentConfigPath)
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
 			vmRepo = biconfig.NewVMRepo(deploymentConfigService)
