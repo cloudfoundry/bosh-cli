@@ -29,7 +29,6 @@ import (
 
 type deployCmd struct {
 	ui                             biui.UI
-	userConfig                     biconfig.UserConfig
 	fs                             boshsys.FileSystem
 	releaseSetParser               birelsetmanifest.Parser
 	installationParser             biinstallmanifest.Parser
@@ -59,7 +58,6 @@ type deployCmd struct {
 
 func NewDeployCmd(
 	ui biui.UI,
-	userConfig biconfig.UserConfig,
 	fs boshsys.FileSystem,
 	releaseSetParser birelsetmanifest.Parser,
 	installationParser biinstallmanifest.Parser,
@@ -86,7 +84,6 @@ func NewDeployCmd(
 ) Cmd {
 	return &deployCmd{
 		ui:                             ui,
-		userConfig:                     userConfig,
 		fs:                             fs,
 		releaseSetParser:               releaseSetParser,
 		installationParser:             installationParser,
@@ -135,21 +132,20 @@ func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 		return bosherr.Errorf("Deployment manifest does not exist at '%s'", manifestAbsFilePath)
 	}
 
-	c.userConfig.DeploymentManifestPath = manifestAbsFilePath
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
-	deploymentConfigPath := c.userConfig.DeploymentConfigPath()
+	deploymentConfigPath := biconfig.DeploymentConfigPath(manifestAbsFilePath)
 	c.deploymentConfigService.SetConfigPath(deploymentConfigPath)
 
 	c.ui.PrintLinef("Deployment state: '%s'", deploymentConfigPath)
 
 	if !c.deploymentConfigService.Exists() {
-		migrated, err := c.legacyDeploymentConfigMigrator.MigrateIfExists(c.userConfig.LegacyDeploymentConfigPath())
+		migrated, err := c.legacyDeploymentConfigMigrator.MigrateIfExists(biconfig.LegacyDeploymentConfigPath(manifestAbsFilePath))
 		if err != nil {
 			return bosherr.WrapError(err, "Migrating legacy deployment config file")
 		}
 		if migrated {
-			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", c.userConfig.LegacyDeploymentConfigPath())
+			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", biconfig.LegacyDeploymentConfigPath(manifestAbsFilePath))
 		}
 	}
 

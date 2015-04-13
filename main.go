@@ -12,7 +12,6 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
 
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	biuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
@@ -26,19 +25,15 @@ func main() {
 	fileSystem := boshsys.NewOsFileSystem(logger)
 	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_micro")
 	ui := biui.NewConsoleUI(logger)
-	config := biconfig.UserConfig{}
-
-	uuidGenerator := boshuuid.NewGenerator()
 
 	timeService := boshtime.NewConcreteService()
 
 	cmdFactory := bicmd.NewFactory(
-		config,
 		fileSystem,
 		ui,
 		timeService,
 		logger,
-		uuidGenerator,
+		boshuuid.NewGenerator(),
 		workspaceRootPath,
 	)
 

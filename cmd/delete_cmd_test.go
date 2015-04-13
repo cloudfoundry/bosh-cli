@@ -60,7 +60,6 @@ var _ = Describe("DeleteCmd", func() {
 			mockReleaseExtractor         *mock_release.MockExtractor
 			fakeUUIDGenerator            *fakeuuid.FakeGenerator
 			setupDeploymentConfigService biconfig.DeploymentConfigService
-			userConfig                   biconfig.UserConfig
 
 			fakeUI *fakeui.FakeUI
 
@@ -162,7 +161,6 @@ cloud_provider:
 
 			return NewDeleteCmd(
 				fakeUI,
-				userConfig,
 				fs,
 				releaseSetParser,
 				installationParser,
@@ -238,7 +236,7 @@ cloud_provider:
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 			setupDeploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-			deploymentConfigPath = biconfig.UserConfig{DeploymentManifestPath: deploymentManifestPath}.DeploymentConfigPath()
+			deploymentConfigPath = biconfig.DeploymentConfigPath(deploymentManifestPath)
 			setupDeploymentConfigService.SetConfigPath(deploymentConfigPath)
 			setupDeploymentConfigService.Load()
 
@@ -266,8 +264,6 @@ cloud_provider:
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
-
-			userConfig = biconfig.UserConfig{}
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
 

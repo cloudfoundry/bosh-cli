@@ -71,7 +71,6 @@ func rootDesc() {
 	Describe("Run", func() {
 		var (
 			command        bicmd.Cmd
-			userConfig     biconfig.UserConfig
 			fakeFs         *fakesys.FakeFileSystem
 			stdOut         *gbytes.Buffer
 			stdErr         *gbytes.Buffer
@@ -231,7 +230,7 @@ func rootDesc() {
 			fakeFs.WriteFileString(stemcellTarballPath, "")
 
 			// deployment exists
-			fakeFs.WriteFileString(userConfig.DeploymentManifestPath, "")
+			fakeFs.WriteFileString(deploymentManifestPath, "")
 
 			// release set is valid
 			fakeReleaseSetValidator.SetValidateBehavior([]fakebirelsetmanifest.ValidateOutput{
@@ -311,7 +310,6 @@ func rootDesc() {
 
 			command = bicmd.NewDeployCmd(
 				userInterface,
-				userConfig,
 				fakeFs,
 				fakeReleaseSetParser,
 				fakeInstallationParser,

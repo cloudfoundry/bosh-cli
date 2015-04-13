@@ -13,7 +13,6 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
-	biconfig "github.com/cloudfoundry/bosh-init/config"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
@@ -22,7 +21,6 @@ import (
 var _ = Describe("cmd.Factory", func() {
 	var (
 		factory       Factory
-		userConfig    biconfig.UserConfig
 		fs            boshsys.FileSystem
 		ui            biui.UI
 		logger        boshlog.Logger
@@ -32,12 +30,10 @@ var _ = Describe("cmd.Factory", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		userConfig = biconfig.UserConfig{DeploymentManifestPath: "/fake-path/manifest.yml"}
 		ui = &fakebiui.FakeUI{}
 		uuidGenerator = &fakeuuid.FakeGenerator{}
 
 		factory = NewFactory(
-			userConfig,
 			fs,
 			ui,
 			boshtime.NewConcreteService(),

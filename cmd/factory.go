@@ -44,7 +44,6 @@ type Factory interface {
 
 type factory struct {
 	commands                       map[string](func() (Cmd, error))
-	userConfig                     biconfig.UserConfig
 	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
 	deploymentConfigService        biconfig.DeploymentConfigService
 	fs                             boshsys.FileSystem
@@ -89,7 +88,6 @@ type factory struct {
 }
 
 func NewFactory(
-	userConfig biconfig.UserConfig,
 	fs boshsys.FileSystem,
 	ui biui.UI,
 	timeService boshtime.Service,
@@ -98,7 +96,6 @@ func NewFactory(
 	workspaceRootPath string,
 ) Factory {
 	f := &factory{
-		userConfig:        userConfig,
 		fs:                fs,
 		ui:                ui,
 		timeService:       timeService,
@@ -132,7 +129,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 
 	return NewDeployCmd(
 		f.ui,
-		f.userConfig,
 		f.fs,
 		f.loadReleaseSetParser(),
 		f.loadInstallationParser(),
@@ -162,7 +158,6 @@ func (f *factory) createDeployCmd() (Cmd, error) {
 func (f *factory) createDeleteCmd() (Cmd, error) {
 	return NewDeleteCmd(
 		f.ui,
-		f.userConfig,
 		f.fs,
 		f.loadReleaseSetParser(),
 		f.loadInstallationParser(),

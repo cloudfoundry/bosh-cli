@@ -24,7 +24,6 @@ import (
 
 type deleteCmd struct {
 	ui                       biui.UI
-	userConfig               biconfig.UserConfig
 	fs                       boshsys.FileSystem
 	releaseSetParser         birelsetmanifest.Parser
 	installationParser       biinstallmanifest.Parser
@@ -45,7 +44,6 @@ type deleteCmd struct {
 
 func NewDeleteCmd(
 	ui biui.UI,
-	userConfig biconfig.UserConfig,
 	fs boshsys.FileSystem,
 	releaseSetParser birelsetmanifest.Parser,
 	installationParser biinstallmanifest.Parser,
@@ -64,7 +62,6 @@ func NewDeleteCmd(
 ) Cmd {
 	return &deleteCmd{
 		ui:                       ui,
-		userConfig:               userConfig,
 		fs:                       fs,
 		releaseSetParser:         releaseSetParser,
 		installationParser:       installationParser,
@@ -105,10 +102,9 @@ func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
 		return bosherr.Errorf("Deployment manifest does not exist at '%s'", manifestAbsFilePath)
 	}
 
-	c.userConfig.DeploymentManifestPath = manifestAbsFilePath
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
-	deploymentConfigPath := c.userConfig.DeploymentConfigPath()
+	deploymentConfigPath := biconfig.DeploymentConfigPath(manifestAbsFilePath)
 	c.deploymentConfigService.SetConfigPath(deploymentConfigPath)
 
 	c.ui.PrintLinef("Deployment state: '%s'", deploymentConfigPath)

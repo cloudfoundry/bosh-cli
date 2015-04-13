@@ -11,6 +11,7 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	"path"
 )
 
 type LegacyDeploymentConfigMigrator interface {
@@ -157,4 +158,8 @@ type instance struct {
 	DiskCID      string `yaml:"disk_cid"`
 	StemcellCID  string `yaml:"stemcell_cid"`
 	StemcellName string `yaml:"stemcell_name"`
+}
+
+func LegacyDeploymentConfigPath(deploymentManifestPath string) string {
+	return path.Join(path.Dir(deploymentManifestPath), "bosh-deployments.yml")
 }

@@ -104,7 +104,6 @@ var _ = Describe("bosh-init", func() {
 			stemcellRepo                   biconfig.StemcellRepo
 			deploymentRepo                 biconfig.DeploymentRepo
 			releaseRepo                    biconfig.ReleaseRepo
-			userConfig                     biconfig.UserConfig
 
 			sshTunnelFactory bisshtunnel.Factory
 
@@ -391,7 +390,6 @@ cloud_provider:
 
 			return NewDeployCmd(
 				biui.NewWriterUI(stdOut, stdErr, logger),
-				userConfig,
 				fs,
 				releaseSetParser,
 				installationParser,
@@ -749,8 +747,6 @@ cloud_provider:
 				fs,
 				logger,
 			)
-
-			userConfig = biconfig.UserConfig{}
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL).Return(mockAgentClient).AnyTimes()
 
