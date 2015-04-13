@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/cloudfoundry/bosh-micro-cli",
+	"ImportPath": "github.com/cloudfoundry/bosh-init",
 	"GoVersion": "go1.3.3",
 	"Packages": [
 		"./..."
