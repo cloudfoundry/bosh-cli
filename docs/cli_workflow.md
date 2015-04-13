@@ -81,7 +81,7 @@ See [https://github.com/cloudfoundry/bosh/tree/master/release/jobs](https://gith
 
 # Set deployment manifest
 
-The command below sets the deployment manifest. The current deployment path is saved to `~/.bosh_micro.json`.
+The command below sets the deployment manifest. The current deployment path is saved to `~/.bosh_init.json`.
 
     bosh-init deployment manifest.yml
 
@@ -115,7 +115,7 @@ The provided CPI release is compiled on the machine where `bosh-init deploy` is 
 
 The CPI release must contain a job called `cpi`. During CPI release deployment, all the packages that the `cpi` job depends on will be compiled and their templates rendered. CPI job templates have access to properties defined in the `cloud_provider -> properties` section of the manifest.
 
-The compiled packages and rendered job templates are stored in a `~/.bosh_micro/<deployment_uuid>` folder for each deployment.
+The compiled packages and rendered job templates are stored in a `~/.bosh_init/<deployment_uuid>` folder for each deployment.
 
 ## 3. Uploading Stemcell
 
