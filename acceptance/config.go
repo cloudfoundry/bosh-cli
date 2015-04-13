@@ -21,9 +21,9 @@ type Config struct {
 }
 
 func NewConfig(fs boshsys.FileSystem) (*Config, error) {
-	path := os.Getenv("BOSH_MICRO_CONFIG_PATH")
+	path := os.Getenv("BOSH_INIT_CONFIG_PATH")
 	if path == "" {
-		return &Config{}, errors.New("Must provide config file via BOSH_MICRO_CONFIG_PATH environment variable")
+		return &Config{}, errors.New("Must provide config file via BOSH_INIT_CONFIG_PATH environment variable")
 	}
 
 	configContents, err := fs.ReadFile(path)

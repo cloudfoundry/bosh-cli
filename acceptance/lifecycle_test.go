@@ -171,19 +171,19 @@ var _ = Describe("bosh-init", func() {
 			logger,
 		)
 		cmdEnv = map[string]string{
-			"TMPDIR":               testEnv.Home(),
-			"BOSH_MICRO_LOG_LEVEL": "DEBUG",
-			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-init.log"),
+			"TMPDIR":              testEnv.Home(),
+			"BOSH_INIT_LOG_LEVEL": "DEBUG",
+			"BOSH_INIT_LOG_PATH":  testEnv.Path("bosh-init.log"),
 		}
 		quietCmdEnv = map[string]string{
-			"TMPDIR":               testEnv.Home(),
-			"BOSH_MICRO_LOG_LEVEL": "ERROR",
-			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-init-cleanup.log"),
+			"TMPDIR":              testEnv.Home(),
+			"BOSH_INIT_LOG_LEVEL": "ERROR",
+			"BOSH_INIT_LOG_PATH":  testEnv.Path("bosh-init-cleanup.log"),
 		}
 
 		// clean up from previous failed tests
-		deleteLogFile(cmdEnv["BOSH_MICRO_LOG_PATH"])
-		deleteLogFile(quietCmdEnv["BOSH_MICRO_LOG_PATH"])
+		deleteLogFile(cmdEnv["BOSH_INIT_LOG_PATH"])
+		deleteLogFile(quietCmdEnv["BOSH_INIT_LOG_PATH"])
 
 		microSSH = NewMicroSSH(
 			config.VMUsername,
@@ -213,13 +213,13 @@ var _ = Describe("bosh-init", func() {
 	})
 
 	AfterEach(func() {
-		flushLog(cmdEnv["BOSH_MICRO_LOG_PATH"])
+		flushLog(cmdEnv["BOSH_INIT_LOG_PATH"])
 
 		// quietly delete the deployment
 		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"), testEnv.Path("cpi-release.tgz"))
 		if exitCode != 0 || err != nil {
 			// only flush the delete log if the delete failed
-			flushLog(quietCmdEnv["BOSH_MICRO_LOG_PATH"])
+			flushLog(quietCmdEnv["BOSH_INIT_LOG_PATH"])
 		}
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))

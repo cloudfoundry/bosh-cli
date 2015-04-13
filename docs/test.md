@@ -44,8 +44,8 @@ They will then be scp'd onto the vagrant VM.
 To take advantage of this feature, export the following variables prior to running the tests (absolute paths are required):
 
 ```
-$ export BOSH_MICRO_CPI_RELEASE_PATH=/tmp/bosh-warden-cpi-9.tgz
-$ export BOSH_MICRO_STEMCELL_PATH=/tmp/bosh-stemcell-348-warden-boshlite-ubuntu-trusty-go_agent.tgz
+$ export BOSH_INIT_CPI_RELEASE_PATH=/tmp/bosh-warden-cpi-9.tgz
+$ export BOSH_INIT_STEMCELL_PATH=/tmp/bosh-stemcell-348-warden-boshlite-ubuntu-trusty-go_agent.tgz
 $ ./bin/test-acceptance-with-vm --provider=virtualbox
 ```
 
@@ -56,19 +56,19 @@ The acceptance tests can also be run on a remote VM (using aws with vagrant).
 When using the AWS provider, you will need to provide the following:
 
 ```
-$ export BOSH_MICRO_PRIVATE_KEY=/tmp/id_rsa
+$ export BOSH_INIT_PRIVATE_KEY=/tmp/id_rsa
 
 # The following variables are required by Bosh Lite
 $ export BOSH_AWS_ACCESS_KEY_ID=access_key
 $ export BOSH_AWS_SECRET_ACCESS_KEY=secret
 $ export BOSH_LITE_KEYPAIR=keypair
 $ export BOSH_LITE_SECURITY_GROUP=sg-1234
-$ export BOSH_LITE_PRIVATE_KEY=$BOSH_MICRO_PRIVATE_KEY
+$ export BOSH_LITE_PRIVATE_KEY=$BOSH_INIT_PRIVATE_KEY
 ```
 
 #### Running tests against existing VM
 
-Acceptance tests use configuration file specified via `BOSH_MICRO_CONFIG_PATH`. The format of the configuration file is basic JSON.
+Acceptance tests use configuration file specified via `BOSH_INIT_CONFIG_PATH`. The format of the configuration file is basic JSON.
 
 ```
 {
@@ -86,7 +86,7 @@ Acceptance tests use configuration file specified via `BOSH_MICRO_CONFIG_PATH`. 
 Run acceptance tests:
 
 ```
-BOSH_MICRO_CONFIG_PATH=config.json bin/test-acceptance
+BOSH_INIT_CONFIG_PATH=config.json bin/test-acceptance
 ```
 
 ## Debugging Acceptance Test Failures

@@ -51,20 +51,20 @@ func main() {
 }
 
 func newLogger() boshlog.Logger {
-	logLevelString := os.Getenv("BOSH_MICRO_LOG_LEVEL")
+	logLevelString := os.Getenv("BOSH_INIT_LOG_LEVEL")
 	level := boshlog.LevelNone
 	if logLevelString != "" {
 		var err error
 		level, err = boshlog.Levelify(logLevelString)
 		if err != nil {
-			err = bosherr.WrapError(err, "Invalid BOSH_MICRO_LOG_LEVEL value")
+			err = bosherr.WrapError(err, "Invalid BOSH_INIT_LOG_LEVEL value")
 			logger := boshlog.NewLogger(boshlog.LevelError)
 			ui := biui.NewConsoleUI(logger)
 			fail(err, ui, logger)
 		}
 	}
 
-	logPath := os.Getenv("BOSH_MICRO_LOG_PATH")
+	logPath := os.Getenv("BOSH_INIT_LOG_PATH")
 	if logPath != "" {
 		return newFileLogger(logPath, level)
 	}
