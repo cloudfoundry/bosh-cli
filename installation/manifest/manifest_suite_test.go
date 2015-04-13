@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestMicrodeployer(t *testing.T) {
+func TestManifest(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Installation Manifest Suite")
 }

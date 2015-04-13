@@ -200,9 +200,9 @@ var _ = Describe("bosh-init", func() {
 		err = bitestutils.BuildExecutableForArch("linux-amd64")
 		Expect(err).NotTo(HaveOccurred())
 
-		boshMicroPath := "./../out/bosh-init"
-		Expect(fileSystem.FileExists(boshMicroPath)).To(BeTrue())
-		err = testEnv.Copy("bosh-init", boshMicroPath)
+		boshInitPath := "./../out/bosh-init"
+		Expect(fileSystem.FileExists(boshInitPath)).To(BeTrue())
+		err = testEnv.Copy("bosh-init", boshInitPath)
 		Expect(err).NotTo(HaveOccurred())
 		err = testEnv.DownloadOrCopy("stemcell.tgz", config.StemcellPath, config.StemcellURL)
 		Expect(err).NotTo(HaveOccurred())

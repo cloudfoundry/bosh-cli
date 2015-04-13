@@ -26,7 +26,7 @@ func BuildExecutableForArch(arch string) error {
 	return err
 }
 
-func RunBoshMicro(args ...string) (*gexec.Session, error) {
+func RunBoshInit(args ...string) (*gexec.Session, error) {
 	return RunCommand("./../out/bosh-init", args...)
 }
 

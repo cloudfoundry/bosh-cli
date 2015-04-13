@@ -253,7 +253,7 @@ func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 			deployStage,
 		)
 		if err != nil {
-			return bosherr.WrapError(err, "Deploying Microbosh")
+			return bosherr.WrapError(err, "Deploying")
 		}
 
 		err = c.deploymentRecord.Update(deploymentManifestPath, c.releaseManager.List())
