@@ -43,7 +43,7 @@ type Factory interface {
 }
 
 type factory struct {
-	commands                       map[string](func() (Cmd, error))
+	commands                       CommandList
 	userConfig                     biconfig.UserConfig
 	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
 	deploymentConfigService        biconfig.DeploymentConfigService
@@ -106,19 +106,26 @@ func NewFactory(
 		uuidGenerator:     uuidGenerator,
 		workspaceRootPath: workspaceRootPath,
 	}
-	f.commands = map[string](func() (Cmd, error)){
+	f.commands = CommandList{
 		"deploy": f.createDeployCmd,
 		"delete": f.createDeleteCmd,
+		"help":   f.createHelpCmd,
 	}
 	return f
 }
 
-func (f *factory) CreateCommand(name string) (Cmd, error) {
-	if f.commands[name] == nil {
+type CommandList map[string](func() (Cmd, error))
+
+func (cl CommandList) Create(name string) (Cmd, error) {
+	if cl[name] == nil {
 		return nil, errors.New("Invalid command name")
 	}
 
-	return f.commands[name]()
+	return cl[name]()
+}
+
+func (f *factory) CreateCommand(name string) (Cmd, error) {
+	return f.commands.Create(name)
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
@@ -178,6 +185,13 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 		f.loadBlobstoreFactory(),
 		f.loadDeploymentManagerFactory(),
 		f.logger,
+	), nil
+}
+
+func (f *factory) createHelpCmd() (Cmd, error) {
+	return NewHelpCmd(
+		f.ui,
+		f.commands,
 	), nil
 }
 

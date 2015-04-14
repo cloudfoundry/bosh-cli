@@ -21,7 +21,7 @@ var _ = Describe("Runner", func() {
 	)
 
 	BeforeEach(func() {
-		fakeCommand = fakebicmd.NewFakeCommand("deployment")
+		fakeCommand = fakebicmd.NewFakeCommand("fake-command-name", bicmd.Meta{})
 		factory = &fakebicmd.FakeFactory{PresetCommand: fakeCommand}
 		fakeStage = fakebiui.NewFakeStage()
 	})
@@ -33,15 +33,15 @@ var _ = Describe("Runner", func() {
 	Context("Run", func() {
 		Context("valid args", func() {
 			It("extracts command name from the arguments", func() {
-				err := runner.Run(fakeStage, "deployment", "/fake/manifest_path")
+				err := runner.Run(fakeStage, "fake-command-name", "/fake/manifest_path")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(factory.CommandName).To(Equal("deployment"))
+				Expect(factory.CommandName).To(Equal("fake-command-name"))
 			})
 
 			It("creates and run a non nil Command with remaining args", func() {
-				err := runner.Run(fakeStage, "deployment", "/fake/manifest_path")
+				err := runner.Run(fakeStage, "fake-command-name", "/fake/manifest_path")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(factory.CommandName).To(Equal("deployment"))
+				Expect(factory.CommandName).To(Equal("fake-command-name"))
 				Expect(factory.PresetCommand).ToNot(BeNil())
 				Expect(factory.PresetCommand.GetArgs()).To(Equal([]string{"/fake/manifest_path"}))
 			})

@@ -88,6 +88,14 @@ func (c *deleteCmd) Name() string {
 	return "delete"
 }
 
+func (c *deleteCmd) Meta() Meta {
+	return Meta{
+		Synopsis: "Delete existing deployment",
+		Usage:    "<deployment_manifest_path> <cpi_release_path>",
+		Env:      genericEnv,
+	}
+}
+
 func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
 	deploymentManifestPath, releaseTarballPath, err := c.parseCmdInputs(args)
 	if err != nil {
