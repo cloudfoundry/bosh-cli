@@ -161,8 +161,6 @@ var _ = Describe("Manager", func() {
 			mockCloud       *mock_cloud.MockCloud
 			mockAgentClient *mock_agentclient.MockAgentClient
 
-			deploymentConfigPath = "/deployment.json"
-
 			fakeStage *fakebiui.FakeStage
 
 			deploymentManager Manager
@@ -175,8 +173,7 @@ var _ = Describe("Manager", func() {
 			mockDeploymentFactory = mock_deployment.NewMockFactory(mockCtrl)
 
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-			deploymentConfigService.SetConfigPath(deploymentConfigPath)
+			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/deployment.json")
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
 			vmRepo = biconfig.NewVMRepo(deploymentConfigService)

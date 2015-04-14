@@ -47,8 +47,7 @@ var _ = Describe("Manager", func() {
 		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
 
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
-		configService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-		configService.SetConfigPath("/fake/path")
+		configService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		stemcellRepo = biconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
 
 		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()

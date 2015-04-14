@@ -7,10 +7,10 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+	"path"
 )
 
 type fileSystemDeploymentConfigService struct {
-	manifestPath  string `inject:"manifestPath"`
 	configPath    string
 	fs            boshsys.FileSystem
 	uuidGenerator boshuuid.Generator
@@ -18,13 +18,18 @@ type fileSystemDeploymentConfigService struct {
 	logTag        string
 }
 
-func NewFileSystemDeploymentConfigService(fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger boshlog.Logger) DeploymentConfigService {
+func NewFileSystemDeploymentConfigService(fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger boshlog.Logger, deploymentConfigPath string) DeploymentConfigService {
 	return &fileSystemDeploymentConfigService{
+		configPath:    deploymentConfigPath,
 		fs:            fs,
 		uuidGenerator: uuidGenerator,
 		logger:        logger,
 		logTag:        "config",
 	}
+}
+
+func DeploymentConfigPath(deploymentManifestPath string) string {
+	return path.Join(path.Dir(deploymentManifestPath), "deployment.json")
 }
 
 func (s *fileSystemDeploymentConfigService) Path() string {
@@ -33,10 +38,6 @@ func (s *fileSystemDeploymentConfigService) Path() string {
 
 func (s *fileSystemDeploymentConfigService) Exists() bool {
 	return s.fs.FileExists(s.configPath)
-}
-
-func (s *fileSystemDeploymentConfigService) SetConfigPath(path string) {
-	s.configPath = path
 }
 
 func (s *fileSystemDeploymentConfigService) Load() (DeploymentFile, error) {

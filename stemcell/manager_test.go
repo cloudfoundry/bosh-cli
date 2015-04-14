@@ -41,8 +41,7 @@ var _ = Describe("Manager", func() {
 		reader = fakebistemcell.NewFakeReader()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-		configService.SetConfigPath("/fake/path")
+		configService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
 		stemcellRepo = biconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
 		fakeStage = fakebiui.NewFakeStage()

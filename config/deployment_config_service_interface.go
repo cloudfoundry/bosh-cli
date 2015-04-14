@@ -2,7 +2,6 @@ package config
 
 import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	"path"
 )
 
 type DeploymentFile struct {
@@ -40,12 +39,7 @@ type ReleaseRecord struct {
 
 type DeploymentConfigService interface {
 	Path() string
-	SetConfigPath(string)
 	Exists() bool
 	Load() (DeploymentFile, error)
 	Save(DeploymentFile) error
-}
-
-func DeploymentConfigPath(deploymentManifestPath string) string {
-	return path.Join(path.Dir(deploymentManifestPath), "deployment.json")
 }

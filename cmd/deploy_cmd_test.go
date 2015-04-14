@@ -193,8 +193,7 @@ func rootDesc() {
 
 			configUUIDGenerator = &fakeuuid.FakeGenerator{}
 			configUUIDGenerator.GeneratedUUID = directorID
-			setupDeploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fakeFs, configUUIDGenerator, logger)
-			setupDeploymentConfigService.SetConfigPath(deploymentConfigPath)
+			setupDeploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
 
 			fakeReleaseSetValidator = fakebirelsetmanifest.NewFakeValidator()
 			fakeInstallationValidator = fakebiinstallmanifest.NewFakeValidator()
@@ -301,14 +300,13 @@ func rootDesc() {
 		})
 
 		JustBeforeEach(func() {
-			deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fakeFs, configUUIDGenerator, logger)
-			deploymentRepo := biconfig.NewDeploymentRepo(deploymentConfigService)
-			releaseRepo := biconfig.NewReleaseRepo(deploymentConfigService, fakeUUIDGenerator)
-			stemcellRepo := biconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
-			deploymentRecord := deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
 
 			doGet := func(deploymentManifestPath string) DeploymentPreparer {
-				deploymentConfigService.SetConfigPath(biconfig.DeploymentConfigPath(deploymentManifestPath))
+				deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
+				deploymentRepo := biconfig.NewDeploymentRepo(deploymentConfigService)
+				releaseRepo := biconfig.NewReleaseRepo(deploymentConfigService, fakeUUIDGenerator)
+				stemcellRepo := biconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
+				deploymentRecord := deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
 				return DeploymentPreparer{
 					ui:     userInterface,
 					fs:     fakeFs,

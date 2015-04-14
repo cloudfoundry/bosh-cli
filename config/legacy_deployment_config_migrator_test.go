@@ -31,8 +31,7 @@ var _ = Describe("legacyDeploymentConfigMigrator", func() {
 		legacyDeploymentConfigFilePath = "/path/to/legacy/bosh-deployment.yml"
 		modernDeploymentConfigFilePath = "/path/to/legacy/deployment.json"
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		deploymentConfigService = NewFileSystemDeploymentConfigService(fakeFs, fakeUUIDGenerator, logger)
-		deploymentConfigService.SetConfigPath(modernDeploymentConfigFilePath)
+		deploymentConfigService = NewFileSystemDeploymentConfigService(fakeFs, fakeUUIDGenerator, logger, modernDeploymentConfigFilePath)
 		migrator = NewLegacyDeploymentConfigMigrator(deploymentConfigService, fakeFs, fakeUUIDGenerator, logger)
 	})
 

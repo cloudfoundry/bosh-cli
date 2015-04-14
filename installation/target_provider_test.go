@@ -35,8 +35,8 @@ var _ = Describe("TargetProvider", func() {
 			fakeFS,
 			fakeUUIDGenerator,
 			logger,
+			configPath,
 		)
-		deploymentConfigService.SetConfigPath(configPath)
 		targetProvider = NewTargetProvider(deploymentConfigService, fakeUUIDGenerator, installationsRootPath)
 	})
 

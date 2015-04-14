@@ -23,8 +23,7 @@ var _ = Describe("VMRepo", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-		configService.SetConfigPath("/fake/path")
+		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		repo = NewVMRepo(configService)
 	})
 

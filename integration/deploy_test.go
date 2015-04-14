@@ -372,8 +372,6 @@ cloud_provider:
 			installationValidator := biinstallmanifest.NewValidator(logger, releaseResolver)
 			deploymentValidator := bideplmanifest.NewValidator(logger, releaseResolver)
 
-			deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
-
 			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
 			instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
 
@@ -381,16 +379,29 @@ cloud_provider:
 			pingDelay := 100 * time.Millisecond
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
-			deployer := bidepl.NewDeployer(
-				vmManagerFactory,
-				instanceManagerFactory,
-				deploymentFactory,
-				logger,
-			)
-
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
 			doGet := func(deploymentManifestPath string) DeploymentPreparer {
-				deploymentConfigService.SetConfigPath(biconfig.DeploymentConfigPath(deploymentManifestPath))
+				// todo: figure this out?
+				deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
+				vmRepo = biconfig.NewVMRepo(deploymentConfigService)
+				diskRepo = biconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+				stemcellRepo = biconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+				deploymentRepo = biconfig.NewDeploymentRepo(deploymentConfigService)
+				releaseRepo = biconfig.NewReleaseRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+
+				legacyDeploymentConfigMigrator = biconfig.NewLegacyDeploymentConfigMigrator(deploymentConfigService, fs, fakeUUIDGenerator, logger)
+				deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
+				stemcellManagerFactory = bistemcell.NewManagerFactory(stemcellRepo)
+				diskManagerFactory = bidisk.NewManagerFactory(diskRepo, logger)
+				diskDeployer = bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+				vmManagerFactory = bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeAgentIDGenerator, fs, logger)
+				deployer := bidepl.NewDeployer(
+					vmManagerFactory,
+					instanceManagerFactory,
+					deploymentFactory,
+					logger,
+				)
+
 				return NewDeploymentPreparer(
 					ui,
 					fs,
@@ -694,15 +705,11 @@ cloud_provider:
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			setupDeploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-			setupDeploymentConfigService.SetConfigPath(deploymentConfigPath)
+			setupDeploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
 			config, err := setupDeploymentConfigService.Load()
 			Expect(err).ToNot(HaveOccurred())
 			directorID = config.DirectorID
 
-			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-
-			legacyDeploymentConfigMigrator = biconfig.NewLegacyDeploymentConfigMigrator(deploymentConfigService, fs, fakeUUIDGenerator, logger)
 			fakeAgentIDGenerator = fakeuuid.NewFakeGenerator()
 
 			fakeSHA1Calculator = fakebicrypto.NewFakeSha1Calculator()
@@ -714,14 +721,6 @@ cloud_provider:
 			sshTunnelFactory = bisshtunnel.NewFactory(logger)
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-			vmRepo = biconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = biconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-			stemcellRepo = biconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-			deploymentRepo = biconfig.NewDeploymentRepo(deploymentConfigService)
-			releaseRepo = biconfig.NewReleaseRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-
-			diskManagerFactory = bidisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer = bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 
@@ -747,17 +746,6 @@ cloud_provider:
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
-
-			stemcellManagerFactory = bistemcell.NewManagerFactory(stemcellRepo)
-
-			vmManagerFactory = bivm.NewManagerFactory(
-				vmRepo,
-				stemcellRepo,
-				diskDeployer,
-				fakeAgentIDGenerator,
-				fs,
-				logger,
-			)
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL).Return(mockAgentClient).AnyTimes()
 

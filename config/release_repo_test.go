@@ -28,8 +28,7 @@ func rootDesc() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
-		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-		configService.SetConfigPath("/fake/path")
+		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		configService.Load()
 		repo = NewReleaseRepo(configService, fakeUUIDGenerator)
 	})

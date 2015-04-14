@@ -437,9 +437,8 @@ func (d *deploymentManagerFactory2) loadDeploymentConfigService() biconfig.Deplo
 		d.f.fs,
 		d.f.uuidGenerator,
 		d.f.logger,
+		biconfig.DeploymentConfigPath(d.deploymentManifestPath),
 	)
-	deploymentConfigPath := biconfig.DeploymentConfigPath(d.deploymentManifestPath)
-	d.deploymentConfigService.SetConfigPath(deploymentConfigPath)
 	return d.deploymentConfigService
 }
 

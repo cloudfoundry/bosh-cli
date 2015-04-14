@@ -30,8 +30,7 @@ var _ = Describe("fileSystemConfigService", func() {
 		deploymentFilePath = "/some/deployment.json"
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-		service = NewFileSystemDeploymentConfigService(fakeFs, fakeUUIDGenerator, logger)
-		service.SetConfigPath(deploymentFilePath)
+		service = NewFileSystemDeploymentConfigService(fakeFs, fakeUUIDGenerator, logger, deploymentFilePath)
 	})
 
 	Describe("Exists", func() {

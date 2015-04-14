@@ -158,28 +158,27 @@ cloud_provider:
 			installationParser := biinstallmanifest.NewParser(fs, logger)
 
 			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
-				deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-				deploymentConfigService.SetConfigPath(biconfig.DeploymentConfigPath(deploymentManifestPath))
+				deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
 
-				deploymentDeleter := DeploymentDeleter{
-					ui:     fakeUI,
-					logTag: "deleteCmd",
-					logger: logger,
-					fs:     fs,
-					deploymentConfigService:  deploymentConfigService,
-					releaseSetParser:         releaseSetParser,
-					installationParser:       installationParser,
-					releaseSetValidator:      releaseSetValidator,
-					installationValidator:    installationValidator,
-					installerFactory:         mockInstallerFactory,
-					releaseExtractor:         mockReleaseExtractor,
-					releaseManager:           releaseManager,
-					releaseResolver:          releaseSetResolver,
-					cloudFactory:             mockCloudFactory,
-					agentClientFactory:       mockAgentClientFactory,
-					blobstoreFactory:         mockBlobstoreFactory,
-					deploymentManagerFactory: mockDeploymentManagerFactory,
-				}
+				deploymentDeleter := NewDeploymentDeleter(
+					fakeUI,
+					"deleteCmd",
+					logger,
+					fs,
+					deploymentConfigService,
+					releaseManager,
+					mockInstallerFactory,
+					mockCloudFactory,
+					mockAgentClientFactory,
+					mockBlobstoreFactory,
+					mockDeploymentManagerFactory,
+					releaseSetParser,
+					releaseSetValidator,
+					releaseSetResolver,
+					mockReleaseExtractor,
+					installationParser,
+					installationValidator,
+				)
 
 				return deploymentDeleter
 			}
@@ -243,9 +242,8 @@ cloud_provider:
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			setupDeploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
+			setupDeploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
 			deploymentConfigPath = biconfig.DeploymentConfigPath(deploymentManifestPath)
-			setupDeploymentConfigService.SetConfigPath(deploymentConfigPath)
 			setupDeploymentConfigService.Load()
 
 			fakeUI = &fakeui.FakeUI{}

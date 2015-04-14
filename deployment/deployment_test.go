@@ -66,8 +66,6 @@ var _ = Describe("Deployment", func() {
 
 			mockBlobstore *mock_blobstore.MockBlobstore
 
-			deploymentConfigPath = "/deployment.json"
-
 			fakeStage *fakebiui.FakeStage
 
 			deploymentFactory Factory
@@ -121,8 +119,7 @@ var _ = Describe("Deployment", func() {
 			fs = fakesys.NewFakeFileSystem()
 
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
-			deploymentConfigService.SetConfigPath(deploymentConfigPath)
+			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/deployment.json")
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
 			vmRepo = biconfig.NewVMRepo(deploymentConfigService)
