@@ -92,18 +92,18 @@ var _ = Describe("bosh-init", func() {
 			mockBlobstoreFactory *mock_blobstore.MockFactory
 			mockBlobstore        *mock_blobstore.MockBlobstore
 
-			fakeStemcellExtractor          *fakebistemcell.FakeExtractor
-			fakeUUIDGenerator              *fakeuuid.FakeGenerator
-			fakeRepoUUIDGenerator          *fakeuuid.FakeGenerator
-			fakeAgentIDGenerator           *fakeuuid.FakeGenerator
-			fakeSHA1Calculator             *fakebicrypto.FakeSha1Calculator
-			legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
-			deploymentConfigService        biconfig.DeploymentConfigService
-			vmRepo                         biconfig.VMRepo
-			diskRepo                       biconfig.DiskRepo
-			stemcellRepo                   biconfig.StemcellRepo
-			deploymentRepo                 biconfig.DeploymentRepo
-			releaseRepo                    biconfig.ReleaseRepo
+			fakeStemcellExtractor         *fakebistemcell.FakeExtractor
+			fakeUUIDGenerator             *fakeuuid.FakeGenerator
+			fakeRepoUUIDGenerator         *fakeuuid.FakeGenerator
+			fakeAgentIDGenerator          *fakeuuid.FakeGenerator
+			fakeSHA1Calculator            *fakebicrypto.FakeSha1Calculator
+			legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator
+			deploymentStateService        biconfig.DeploymentStateService
+			vmRepo                        biconfig.VMRepo
+			diskRepo                      biconfig.DiskRepo
+			stemcellRepo                  biconfig.StemcellRepo
+			deploymentRepo                biconfig.DeploymentRepo
+			releaseRepo                   biconfig.ReleaseRepo
 
 			sshTunnelFactory bisshtunnel.Factory
 
@@ -124,7 +124,7 @@ var _ = Describe("bosh-init", func() {
 			stemcellTarballPath    = "/fake-stemcell-release.tgz"
 			cpiReleaseTarballPath  = "/fake-cpi-release.tgz"
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
-			deploymentConfigPath   = "/deployment-dir/deployment.json"
+			deploymentStatePath    = "/deployment-dir/deployment.json"
 
 			stemcellImagePath       = "fake-stemcell-image-path"
 			stemcellCID             = "fake-stemcell-cid"
@@ -382,14 +382,14 @@ cloud_provider:
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
 			doGet := func(deploymentManifestPath string) DeploymentPreparer {
 				// todo: figure this out?
-				deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
-				vmRepo = biconfig.NewVMRepo(deploymentConfigService)
-				diskRepo = biconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-				stemcellRepo = biconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-				deploymentRepo = biconfig.NewDeploymentRepo(deploymentConfigService)
-				releaseRepo = biconfig.NewReleaseRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+				vmRepo = biconfig.NewVMRepo(deploymentStateService)
+				diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
+				stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
+				deploymentRepo = biconfig.NewDeploymentRepo(deploymentStateService)
+				releaseRepo = biconfig.NewReleaseRepo(deploymentStateService, fakeRepoUUIDGenerator)
 
-				legacyDeploymentConfigMigrator = biconfig.NewLegacyDeploymentConfigMigrator(deploymentConfigService, fs, fakeUUIDGenerator, logger)
+				legacyDeploymentStateMigrator = biconfig.NewLegacyDeploymentStateMigrator(deploymentStateService, fs, fakeUUIDGenerator, logger)
 				deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
 				stemcellManagerFactory = bistemcell.NewManagerFactory(stemcellRepo)
 				diskManagerFactory = bidisk.NewManagerFactory(diskRepo, logger)
@@ -407,8 +407,8 @@ cloud_provider:
 					fs,
 					logger,
 					"deployCmd",
-					deploymentConfigService,
-					legacyDeploymentConfigMigrator,
+					deploymentStateService,
+					legacyDeploymentStateMigrator,
 					releaseManager,
 					deploymentRecord,
 					mockInstallerFactory,
@@ -705,8 +705,8 @@ cloud_provider:
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			setupDeploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
-			config, err := setupDeploymentConfigService.Load()
+			setupDeploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+			config, err := setupDeploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 			directorID = config.DirectorID
 
@@ -807,7 +807,7 @@ cloud_provider:
 
 		Context("when the deployment config file does not exist", func() {
 			BeforeEach(func() {
-				err := fs.RemoveAll(deploymentConfigPath)
+				err := fs.RemoveAll(deploymentStatePath)
 				Expect(err).ToNot(HaveOccurred())
 
 				directorID = "fake-uuid-1"
@@ -822,11 +822,11 @@ cloud_provider:
 				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fs.FileExists(deploymentConfigPath)).To(BeTrue())
+				Expect(fs.FileExists(deploymentStatePath)).To(BeTrue())
 
-				deploymentConfig, err := deploymentConfigService.Load()
+				deploymentState, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(deploymentConfig.DirectorID).To(Equal(directorID))
+				Expect(deploymentState.DirectorID).To(Equal(directorID))
 			})
 		})
 

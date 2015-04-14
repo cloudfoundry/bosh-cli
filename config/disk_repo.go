@@ -18,11 +18,11 @@ type DiskRepo interface {
 }
 
 type diskRepo struct {
-	configService DeploymentConfigService
+	configService DeploymentStateService
 	uuidGenerator boshuuid.Generator
 }
 
-func NewDiskRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) DiskRepo {
+func NewDiskRepo(configService DeploymentStateService, uuidGenerator boshuuid.Generator) DiskRepo {
 	return diskRepo{
 		configService: configService,
 		uuidGenerator: uuidGenerator,
@@ -166,7 +166,7 @@ func (r diskRepo) ClearCurrent() error {
 	return nil
 }
 
-func (r diskRepo) load() (DeploymentFile, []DiskRecord, error) {
+func (r diskRepo) load() (DeploymentState, []DiskRecord, error) {
 	config, err := r.configService.Load()
 	if err != nil {
 		return config, []DiskRecord{}, bosherr.WrapError(err, "Loading existing config")

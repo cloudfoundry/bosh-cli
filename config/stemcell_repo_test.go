@@ -14,7 +14,7 @@ import (
 var _ = Describe("StemcellRepo", func() {
 	var (
 		repo              StemcellRepo
-		configService     DeploymentConfigService
+		configService     DeploymentStateService
 		fs                *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 	)
@@ -23,7 +23,7 @@ var _ = Describe("StemcellRepo", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		configService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		repo = NewStemcellRepo(configService, fakeUUIDGenerator)
 	})
 
@@ -32,10 +32,10 @@ var _ = Describe("StemcellRepo", func() {
 			_, err := repo.Save("fake-name", "fake-version", "fake-cid")
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentConfig, err := configService.Load()
+			deploymentState, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentFile{
+			expectedConfig := DeploymentState{
 				DirectorID: "fake-uuid-0",
 				Stemcells: []StemcellRecord{
 					{
@@ -46,7 +46,7 @@ var _ = Describe("StemcellRepo", func() {
 					},
 				},
 			}
-			Expect(deploymentConfig).To(Equal(expectedConfig))
+			Expect(deploymentState).To(Equal(expectedConfig))
 		})
 
 		It("returns the stemcell record with a new uuid", func() {
@@ -94,10 +94,10 @@ var _ = Describe("StemcellRepo", func() {
 				_, err := repo.Save("fake-name-2", "fake-version-2", "fake-cid-1")
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentConfig, err := configService.Load()
+				deploymentState, err := configService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				expectedConfig := DeploymentFile{
+				expectedConfig := DeploymentState{
 					DirectorID: "fake-uuid-0",
 					Stemcells: []StemcellRecord{
 						{
@@ -114,7 +114,7 @@ var _ = Describe("StemcellRepo", func() {
 						},
 					},
 				}
-				Expect(deploymentConfig).To(Equal(expectedConfig))
+				Expect(deploymentState).To(Equal(expectedConfig))
 			})
 
 			It("returns the stemcell record with a new uuid", func() {
@@ -171,10 +171,10 @@ var _ = Describe("StemcellRepo", func() {
 				err := repo.UpdateCurrent("fake-uuid-1")
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentConfig, err := configService.Load()
+				deploymentState, err := configService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentConfig.CurrentStemcellID).To(Equal("fake-uuid-1"))
+				Expect(deploymentState.CurrentStemcellID).To(Equal("fake-uuid-1"))
 			})
 		})
 
@@ -208,10 +208,10 @@ var _ = Describe("StemcellRepo", func() {
 				err := repo.ClearCurrent()
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentConfig, err := configService.Load()
+				deploymentState, err := configService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentConfig.CurrentStemcellID).To(Equal(""))
+				Expect(deploymentState.CurrentStemcellID).To(Equal(""))
 			})
 		})
 	})

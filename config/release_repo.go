@@ -13,11 +13,11 @@ type ReleaseRepo interface {
 }
 
 type releaseRepo struct {
-	configService DeploymentConfigService
+	configService DeploymentStateService
 	uuidGenerator boshuuid.Generator
 }
 
-func NewReleaseRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) ReleaseRepo {
+func NewReleaseRepo(configService DeploymentStateService, uuidGenerator boshuuid.Generator) ReleaseRepo {
 	return releaseRepo{
 		configService: configService,
 		uuidGenerator: uuidGenerator,

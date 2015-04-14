@@ -151,12 +151,12 @@ var _ = Describe("Manager", func() {
 
 			mockBlobstore *mock_blobstore.MockBlobstore
 
-			fakeUUIDGenerator       *fakeuuid.FakeGenerator
-			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
-			deploymentConfigService biconfig.DeploymentConfigService
-			vmRepo                  biconfig.VMRepo
-			diskRepo                biconfig.DiskRepo
-			stemcellRepo            biconfig.StemcellRepo
+			fakeUUIDGenerator      *fakeuuid.FakeGenerator
+			fakeRepoUUIDGenerator  *fakeuuid.FakeGenerator
+			deploymentStateService biconfig.DeploymentStateService
+			vmRepo                 biconfig.VMRepo
+			diskRepo               biconfig.DiskRepo
+			stemcellRepo           biconfig.StemcellRepo
 
 			mockCloud       *mock_cloud.MockCloud
 			mockAgentClient *mock_agentclient.MockAgentClient
@@ -173,12 +173,12 @@ var _ = Describe("Manager", func() {
 			mockDeploymentFactory = mock_deployment.NewMockFactory(mockCtrl)
 
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/deployment.json")
+			deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/deployment.json")
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-			vmRepo = biconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = biconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-			stemcellRepo = biconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			vmRepo = biconfig.NewVMRepo(deploymentStateService)
+			diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
+			stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)

@@ -10,10 +10,10 @@ type DeploymentRepo interface {
 }
 
 type deploymentRepo struct {
-	configService DeploymentConfigService
+	configService DeploymentStateService
 }
 
-func NewDeploymentRepo(configService DeploymentConfigService) DeploymentRepo {
+func NewDeploymentRepo(configService DeploymentStateService) DeploymentRepo {
 	return deploymentRepo{
 		configService: configService,
 	}

@@ -101,14 +101,14 @@ func rootDesc() {
 			mockStemcellManager        *mock_stemcell.MockManager
 			fakeStemcellManagerFactory *fakebistemcell.FakeManagerFactory
 
-			fakeReleaseSetParser               *fakebirelsetmanifest.FakeParser
-			fakeInstallationParser             *fakebiinstallmanifest.FakeParser
-			fakeDeploymentParser               *fakebideplmanifest.FakeParser
-			mockLegacyDeploymentConfigMigrator *mock_config.MockLegacyDeploymentConfigMigrator
-			setupDeploymentConfigService       biconfig.DeploymentConfigService
-			fakeReleaseSetValidator            *fakebirelsetmanifest.FakeValidator
-			fakeInstallationValidator          *fakebiinstallmanifest.FakeValidator
-			fakeDeploymentValidator            *fakebideplval.FakeValidator
+			fakeReleaseSetParser              *fakebirelsetmanifest.FakeParser
+			fakeInstallationParser            *fakebiinstallmanifest.FakeParser
+			fakeDeploymentParser              *fakebideplmanifest.FakeParser
+			mockLegacyDeploymentStateMigrator *mock_config.MockLegacyDeploymentStateMigrator
+			setupDeploymentStateService       biconfig.DeploymentStateService
+			fakeReleaseSetValidator           *fakebirelsetmanifest.FakeValidator
+			fakeInstallationValidator         *fakebiinstallmanifest.FakeValidator
+			fakeDeploymentValidator           *fakebideplval.FakeValidator
 
 			directorID          = "generated-director-uuid"
 			fakeUUIDGenerator   *fakeuuid.FakeGenerator
@@ -117,7 +117,7 @@ func rootDesc() {
 			fakeStage *fakebiui.FakeStage
 
 			deploymentManifestPath string
-			deploymentConfigPath   string
+			deploymentStatePath    string
 			cpiReleaseTarballPath  string
 			stemcellTarballPath    string
 			extractedStemcell      bistemcell.ExtractedStemcell
@@ -149,7 +149,7 @@ func rootDesc() {
 			userInterface = biui.NewWriterUI(stdOut, stdErr, logger)
 			fakeFs = fakesys.NewFakeFileSystem()
 			deploymentManifestPath = "/path/to/manifest.yml"
-			deploymentConfigPath = "/path/to/deployment.json"
+			deploymentStatePath = "/path/to/deployment.json"
 			fakeFs.RegisterOpenFile(deploymentManifestPath, &fakesys.FakeFile{
 				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
 			})
@@ -189,11 +189,11 @@ func rootDesc() {
 			fakeInstallationParser = fakebiinstallmanifest.NewFakeParser()
 			fakeDeploymentParser = fakebideplmanifest.NewFakeParser()
 
-			mockLegacyDeploymentConfigMigrator = mock_config.NewMockLegacyDeploymentConfigMigrator(mockCtrl)
+			mockLegacyDeploymentStateMigrator = mock_config.NewMockLegacyDeploymentStateMigrator(mockCtrl)
 
 			configUUIDGenerator = &fakeuuid.FakeGenerator{}
 			configUUIDGenerator.GeneratedUUID = directorID
-			setupDeploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
+			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
 			fakeReleaseSetValidator = fakebirelsetmanifest.NewFakeValidator()
 			fakeInstallationValidator = fakebiinstallmanifest.NewFakeValidator()
@@ -302,10 +302,10 @@ func rootDesc() {
 		JustBeforeEach(func() {
 
 			doGet := func(deploymentManifestPath string) DeploymentPreparer {
-				deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
-				deploymentRepo := biconfig.NewDeploymentRepo(deploymentConfigService)
-				releaseRepo := biconfig.NewReleaseRepo(deploymentConfigService, fakeUUIDGenerator)
-				stemcellRepo := biconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
+				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
+				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
+				stemcellRepo := biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 				deploymentRecord := deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
 				return DeploymentPreparer{
 					ui:     userInterface,
@@ -313,32 +313,32 @@ func rootDesc() {
 					logger: logger,
 					logTag: "deployCmd",
 
-					releaseSetParser:               fakeReleaseSetParser,
-					installationParser:             fakeInstallationParser,
-					deploymentParser:               fakeDeploymentParser,
-					legacyDeploymentConfigMigrator: mockLegacyDeploymentConfigMigrator,
-					deploymentConfigService:        deploymentConfigService,
-					releaseSetValidator:            fakeReleaseSetValidator,
-					installationValidator:          fakeInstallationValidator,
-					deploymentValidator:            fakeDeploymentValidator,
-					installerFactory:               mockInstallerFactory,
-					releaseExtractor:               mockReleaseExtractor,
-					releaseManager:                 releaseManager,
-					releaseResolver:                releaseSetResolver,
-					cloudFactory:                   mockCloudFactory,
-					agentClientFactory:             mockAgentClientFactory,
-					vmManagerFactory:               mockVMManagerFactory,
-					stemcellExtractor:              fakeStemcellExtractor,
-					stemcellManagerFactory:         fakeStemcellManagerFactory,
-					deploymentRecord:               deploymentRecord,
-					blobstoreFactory:               mockBlobstoreFactory,
-					deployer:                       mockDeployer,
+					releaseSetParser:              fakeReleaseSetParser,
+					installationParser:            fakeInstallationParser,
+					deploymentParser:              fakeDeploymentParser,
+					legacyDeploymentStateMigrator: mockLegacyDeploymentStateMigrator,
+					deploymentStateService:        deploymentStateService,
+					releaseSetValidator:           fakeReleaseSetValidator,
+					installationValidator:         fakeInstallationValidator,
+					deploymentValidator:           fakeDeploymentValidator,
+					installerFactory:              mockInstallerFactory,
+					releaseExtractor:              mockReleaseExtractor,
+					releaseManager:                releaseManager,
+					releaseResolver:               releaseSetResolver,
+					cloudFactory:                  mockCloudFactory,
+					agentClientFactory:            mockAgentClientFactory,
+					vmManagerFactory:              mockVMManagerFactory,
+					stemcellExtractor:             fakeStemcellExtractor,
+					stemcellManagerFactory:        fakeStemcellManagerFactory,
+					deploymentRecord:              deploymentRecord,
+					blobstoreFactory:              mockBlobstoreFactory,
+					deployer:                      mockDeployer,
 				}
 			}
 
 			command = NewDeployCmd(userInterface, fakeFs, logger, doGet)
 
-			expectLegacyMigrate = mockLegacyDeploymentConfigMigrator.EXPECT().MigrateIfExists("/path/to/bosh-deployments.yml").AnyTimes()
+			expectLegacyMigrate = mockLegacyDeploymentStateMigrator.EXPECT().MigrateIfExists("/path/to/bosh-deployments.yml").AnyTimes()
 
 			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
 
@@ -397,7 +397,7 @@ func rootDesc() {
 		})
 
 		It("does not migrate the legacy bosh-deployments.yml if deployment.json exists", func() {
-			err := fakeFs.WriteFileString(deploymentConfigPath, "{}")
+			err := fakeFs.WriteFileString(deploymentStatePath, "{}")
 			Expect(err).ToNot(HaveOccurred())
 
 			expectLegacyMigrate.Times(0)
@@ -408,7 +408,7 @@ func rootDesc() {
 		})
 
 		It("migrates the legacy bosh-deployments.yml if deployment.json does not exist", func() {
-			err := fakeFs.RemoveAll(deploymentConfigPath)
+			err := fakeFs.RemoveAll(deploymentStatePath)
 			Expect(err).ToNot(HaveOccurred())
 
 			expectLegacyMigrate.Return(true, nil).Times(1)
@@ -570,11 +570,11 @@ func rootDesc() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			deploymentConfig, err := setupDeploymentConfigService.Load()
+			deploymentState, err := setupDeploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(deploymentConfig.CurrentManifestSHA1).To(Equal(manifestSHA1))
-			Expect(deploymentConfig.Releases).To(Equal([]biconfig.ReleaseRecord{
+			Expect(deploymentState.CurrentManifestSHA1).To(Equal(manifestSHA1))
+			Expect(deploymentState.Releases).To(Equal([]biconfig.ReleaseRecord{
 				{
 					ID:      "fake-uuid-0",
 					Name:    fakeCPIRelease.Name(),
@@ -592,7 +592,7 @@ func rootDesc() {
 
 		Context("when deployment has not changed", func() {
 			JustBeforeEach(func() {
-				previousDeploymentFile := biconfig.DeploymentFile{
+				previousDeploymentState := biconfig.DeploymentState{
 					DirectorID:        directorID,
 					CurrentReleaseIDs: []string{"my-release-id-1"},
 					Releases: []biconfig.ReleaseRecord{{
@@ -609,7 +609,7 @@ func rootDesc() {
 					CurrentManifestSHA1: manifestSHA1,
 				}
 
-				err := setupDeploymentConfigService.Save(previousDeploymentFile)
+				err := setupDeploymentStateService.Save(previousDeploymentState)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -694,11 +694,11 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
 				Expect(err).NotTo(HaveOccurred())
 
-				deploymentConfig, err := setupDeploymentConfigService.Load()
+				deploymentState, err := setupDeploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentConfig.CurrentManifestSHA1).To(Equal(manifestSHA1))
-				Expect(deploymentConfig.Releases).To(Equal([]biconfig.ReleaseRecord{
+				Expect(deploymentState.CurrentManifestSHA1).To(Equal(manifestSHA1))
+				Expect(deploymentState.Releases).To(Equal([]biconfig.ReleaseRecord{
 					{
 						ID:      "fake-uuid-0",
 						Name:    fakeOtherRelease.Name(),
@@ -716,7 +716,7 @@ func rootDesc() {
 				JustBeforeEach(func() {
 					olderReleaseVersion := "1233"
 					Expect(fakeOtherRelease.Version()).ToNot(Equal(olderReleaseVersion))
-					previousDeploymentFile := biconfig.DeploymentFile{
+					previousDeploymentState := biconfig.DeploymentState{
 						DirectorID:        directorID,
 						CurrentReleaseIDs: []string{"existing-release-id-1", "existing-release-id-2"},
 						Releases: []biconfig.ReleaseRecord{
@@ -740,7 +740,7 @@ func rootDesc() {
 						CurrentManifestSHA1: manifestSHA1,
 					}
 
-					err := setupDeploymentConfigService.Save(previousDeploymentFile)
+					err := setupDeploymentStateService.Save(previousDeploymentState)
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -748,17 +748,17 @@ func rootDesc() {
 					err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
 					Expect(err).NotTo(HaveOccurred())
 
-					deploymentConfig, err := setupDeploymentConfigService.Load()
+					deploymentState, err := setupDeploymentStateService.Load()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(deploymentConfig.CurrentManifestSHA1).To(Equal(manifestSHA1))
+					Expect(deploymentState.CurrentManifestSHA1).To(Equal(manifestSHA1))
 					keys := []string{}
 					ids := []string{}
-					for _, releaseRecord := range deploymentConfig.Releases {
+					for _, releaseRecord := range deploymentState.Releases {
 						keys = append(keys, fmt.Sprintf("%s-%s", releaseRecord.Name, releaseRecord.Version))
 						ids = append(ids, releaseRecord.ID)
 					}
-					Expect(deploymentConfig.CurrentReleaseIDs).To(ConsistOf(ids))
+					Expect(deploymentState.CurrentReleaseIDs).To(ConsistOf(ids))
 					Expect(keys).To(ConsistOf([]string{
 						fmt.Sprintf("%s-%s", fakeCPIRelease.Name(), fakeCPIRelease.Version()),
 						fmt.Sprintf("%s-%s", fakeOtherRelease.Name(), fakeOtherRelease.Version()),
@@ -768,7 +768,7 @@ func rootDesc() {
 
 			Context("when the deployment has not changed", func() {
 				JustBeforeEach(func() {
-					previousDeploymentFile := biconfig.DeploymentFile{
+					previousDeploymentState := biconfig.DeploymentState{
 						DirectorID:        directorID,
 						CurrentReleaseIDs: []string{"my-release-id-1", "my-release-id-2"},
 						Releases: []biconfig.ReleaseRecord{
@@ -792,7 +792,7 @@ func rootDesc() {
 						CurrentManifestSHA1: manifestSHA1,
 					}
 
-					err := setupDeploymentConfigService.Save(previousDeploymentFile)
+					err := setupDeploymentStateService.Save(previousDeploymentState)
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -859,17 +859,17 @@ func rootDesc() {
 
 		Context("when the deployment config file does not exist", func() {
 			BeforeEach(func() {
-				fakeFs.RemoveAll(deploymentConfigPath)
+				fakeFs.RemoveAll(deploymentStatePath)
 			})
 
 			It("creates a deployment config", func() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentConfig, err := setupDeploymentConfigService.Load()
+				deploymentState, err := setupDeploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentConfig.DirectorID).To(Equal(directorID))
+				Expect(deploymentState.DirectorID).To(Equal(directorID))
 			})
 		})
 

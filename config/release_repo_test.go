@@ -18,7 +18,7 @@ var _ = Describe("ReleaseRepo", rootDesc)
 func rootDesc() {
 	var (
 		repo              ReleaseRepo
-		configService     DeploymentConfigService
+		configService     DeploymentStateService
 		fs                *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 	)
@@ -28,7 +28,7 @@ func rootDesc() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
-		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		configService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		configService.Load()
 		repo = NewReleaseRepo(configService, fakeUUIDGenerator)
 	})

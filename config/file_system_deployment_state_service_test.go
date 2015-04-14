@@ -17,25 +17,25 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
-var _ = Describe("fileSystemConfigService", func() {
+var _ = Describe("fileSystemDeploymentStateService", func() {
 	var (
-		service            DeploymentConfigService
-		deploymentFilePath string
-		fakeFs             *fakesys.FakeFileSystem
-		fakeUUIDGenerator  *fakeuuid.FakeGenerator
+		service             DeploymentStateService
+		deploymentStatePath string
+		fakeFs              *fakesys.FakeFileSystem
+		fakeUUIDGenerator   *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
 		fakeFs = fakesys.NewFakeFileSystem()
-		deploymentFilePath = "/some/deployment.json"
+		deploymentStatePath = "/some/deployment.json"
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-		service = NewFileSystemDeploymentConfigService(fakeFs, fakeUUIDGenerator, logger, deploymentFilePath)
+		service = NewFileSystemDeploymentStateService(fakeFs, fakeUUIDGenerator, logger, deploymentStatePath)
 	})
 
 	Describe("Exists", func() {
 		It("returns true if the config file exists", func() {
-			fakeFs.WriteFileString(deploymentFilePath, "")
+			fakeFs.WriteFileString(deploymentStatePath, "")
 			Expect(service.Exists()).To(BeTrue())
 		})
 
@@ -68,7 +68,7 @@ var _ = Describe("fileSystemConfigService", func() {
 					},
 				},
 			}
-			deploymentFileContents, err := json.Marshal(biproperty.Map{
+			deploymentStateFileContents, err := json.Marshal(biproperty.Map{
 				"director_id":     "fake-director-id",
 				"deployment_id":   "fake-deployment-id",
 				"stemcells":       stemcells,
@@ -76,32 +76,32 @@ var _ = Describe("fileSystemConfigService", func() {
 				"current_disk_id": "fake-disk-id",
 				"disks":           disks,
 			})
-			fakeFs.WriteFile(deploymentFilePath, deploymentFileContents)
+			fakeFs.WriteFile(deploymentStatePath, deploymentStateFileContents)
 
-			deploymentFile, err := service.Load()
+			deploymentState, err := service.Load()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(deploymentFile.DirectorID).To(Equal("fake-director-id"))
-			Expect(deploymentFile.Stemcells).To(Equal(stemcells))
-			Expect(deploymentFile.CurrentVMCID).To(Equal("fake-vm-cid"))
-			Expect(deploymentFile.CurrentDiskID).To(Equal("fake-disk-id"))
-			Expect(deploymentFile.Disks).To(Equal(disks))
+			Expect(deploymentState.DirectorID).To(Equal("fake-director-id"))
+			Expect(deploymentState.Stemcells).To(Equal(stemcells))
+			Expect(deploymentState.CurrentVMCID).To(Equal("fake-vm-cid"))
+			Expect(deploymentState.CurrentDiskID).To(Equal("fake-disk-id"))
+			Expect(deploymentState.Disks).To(Equal(disks))
 		})
 
 		Context("when the config does not exist", func() {
-			It("returns a new DeploymentConfig with generated defaults", func() {
+			It("returns a new DeploymentState with generated defaults", func() {
 				config, err := service.Load()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(config).To(Equal(DeploymentFile{
+				Expect(config).To(Equal(DeploymentState{
 					DirectorID: "fake-uuid-0",
 				}))
 
-				Expect(fakeFs.FileExists(deploymentFilePath)).To(BeTrue())
+				Expect(fakeFs.FileExists(deploymentStatePath)).To(BeTrue())
 			})
 		})
 
 		Context("when reading config file fails", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(deploymentFilePath, "{}")
+				fakeFs.WriteFileString(deploymentStatePath, "{}")
 				fakeFs.ReadFileError = errors.New("fake-read-error")
 			})
 
@@ -113,19 +113,19 @@ var _ = Describe("fileSystemConfigService", func() {
 		})
 
 		Context("when the config is invalid", func() {
-			It("returns an empty DeploymentConfig and an error", func() {
-				fakeFs.WriteFileString(deploymentFilePath, "some invalid content")
+			It("returns an empty DeploymentState and an error", func() {
+				fakeFs.WriteFileString(deploymentStatePath, "some invalid content")
 				config, err := service.Load()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Unmarshalling deployment config file '/some/deployment.json'"))
-				Expect(config).To(Equal(DeploymentFile{}))
+				Expect(config).To(Equal(DeploymentState{}))
 			})
 		})
 	})
 
 	Describe("Save", func() {
 		It("writes the deployment config to the deployment file", func() {
-			config := DeploymentFile{
+			config := DeploymentState{
 				DirectorID: "deadbeef",
 				Stemcells: []StemcellRecord{
 					{
@@ -149,8 +149,8 @@ var _ = Describe("fileSystemConfigService", func() {
 			err := service.Save(config)
 			Expect(err).NotTo(HaveOccurred())
 
-			deploymentFileContents, err := fakeFs.ReadFileString(deploymentFilePath)
-			deploymentFile := DeploymentFile{
+			deploymentStateFileContents, err := fakeFs.ReadFileString(deploymentStatePath)
+			deploymentState := DeploymentState{
 				DirectorID: "deadbeef",
 				Stemcells: []StemcellRecord{
 					{
@@ -170,8 +170,8 @@ var _ = Describe("fileSystemConfigService", func() {
 					},
 				},
 			}
-			expectedDeploymentFileContents, err := json.MarshalIndent(deploymentFile, "", "    ")
-			Expect(deploymentFileContents).To(Equal(string(expectedDeploymentFileContents)))
+			expectedDeploymentStateFileContents, err := json.MarshalIndent(deploymentState, "", "    ")
+			Expect(deploymentStateFileContents).To(Equal(string(expectedDeploymentStateFileContents)))
 		})
 
 		Context("when the deployment file cannot be written", func() {
@@ -180,7 +180,7 @@ var _ = Describe("fileSystemConfigService", func() {
 			})
 
 			It("returns an error when it cannot write the config file", func() {
-				config := DeploymentFile{
+				config := DeploymentState{
 					Stemcells: []StemcellRecord{},
 				}
 				err := service.Save(config)

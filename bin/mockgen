@@ -8,7 +8,7 @@ rootPackage=github.com/cloudfoundry/bosh-init
 $bin/go install code.google.com/p/gomock/mockgen
 
 srcFiles=(
-  config/LegacyDeploymentConfigMigrator
+  config/LegacyDeploymentStateMigrator
   cloud/Cloud,Factory
 	installation/Installation,Installer,InstallerFactory
 	installation/state/Builder

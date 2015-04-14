@@ -354,27 +354,27 @@ func (f *factory) loadCloudFactory() bicloud.Factory {
 }
 
 type deploymentManagerFactory2 struct {
-	f                              *factory
-	deploymentManifestPath         string
-	deploymentConfigService        biconfig.DeploymentConfigService
-	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
-	vmRepo                         biconfig.VMRepo
-	stemcellRepo                   biconfig.StemcellRepo
-	diskRepo                       biconfig.DiskRepo
-	diskDeployer                   bivm.DiskDeployer
-	diskManagerFactory             bidisk.ManagerFactory
-	deploymentManagerFactory       bidepl.ManagerFactory
-	vmManagerFactory               bivm.ManagerFactory
-	stemcellManagerFactory         bistemcell.ManagerFactory
-	installerFactory               biinstall.InstallerFactory
-	deployer                       bidepl.Deployer
+	f                             *factory
+	deploymentManifestPath        string
+	deploymentStateService        biconfig.DeploymentStateService
+	legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator
+	vmRepo                        biconfig.VMRepo
+	stemcellRepo                  biconfig.StemcellRepo
+	diskRepo                      biconfig.DiskRepo
+	diskDeployer                  bivm.DiskDeployer
+	diskManagerFactory            bidisk.ManagerFactory
+	deploymentManagerFactory      bidepl.ManagerFactory
+	vmManagerFactory              bivm.ManagerFactory
+	stemcellManagerFactory        bistemcell.ManagerFactory
+	installerFactory              biinstall.InstallerFactory
+	deployer                      bidepl.Deployer
 }
 
 func (d *deploymentManagerFactory2) loadDeploymentPreparer() DeploymentPreparer {
 	stemcellReader := bistemcell.NewReader(d.f.loadCompressor(), d.f.fs)
 	stemcellExtractor := bistemcell.NewExtractor(stemcellReader, d.f.fs)
-	deploymentRepo := biconfig.NewDeploymentRepo(d.loadDeploymentConfigService())
-	releaseRepo := biconfig.NewReleaseRepo(d.loadDeploymentConfigService(), d.f.uuidGenerator)
+	deploymentRepo := biconfig.NewDeploymentRepo(d.loadDeploymentStateService())
+	releaseRepo := biconfig.NewReleaseRepo(d.loadDeploymentStateService(), d.f.uuidGenerator)
 	sha1Calculator := bicrypto.NewSha1Calculator(d.f.fs)
 	deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, d.loadStemcellRepo(), sha1Calculator)
 
@@ -383,8 +383,8 @@ func (d *deploymentManagerFactory2) loadDeploymentPreparer() DeploymentPreparer 
 		d.f.fs,
 		d.f.logger,
 		"DeploymentPreparer",
-		d.loadDeploymentConfigService(),
-		d.loadLegacyDeploymentConfigMigrator(),
+		d.loadDeploymentStateService(),
+		d.loadLegacyDeploymentStateMigrator(),
 		d.f.loadReleaseManager(),
 		deploymentRecord,
 		d.loadInstallerFactory(),
@@ -412,7 +412,7 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
 		"DeploymentDeleter",
 		d.f.logger,
 		d.f.fs,
-		d.loadDeploymentConfigService(),
+		d.loadDeploymentStateService(),
 		d.f.loadReleaseManager(),
 		d.loadInstallerFactory(),
 		d.f.loadCloudFactory(),
@@ -428,39 +428,39 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
 	)
 }
 
-func (d *deploymentManagerFactory2) loadDeploymentConfigService() biconfig.DeploymentConfigService {
-	if d.deploymentConfigService != nil {
-		return d.deploymentConfigService
+func (d *deploymentManagerFactory2) loadDeploymentStateService() biconfig.DeploymentStateService {
+	if d.deploymentStateService != nil {
+		return d.deploymentStateService
 	}
 
-	d.deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(
+	d.deploymentStateService = biconfig.NewFileSystemDeploymentStateService(
 		d.f.fs,
 		d.f.uuidGenerator,
 		d.f.logger,
-		biconfig.DeploymentConfigPath(d.deploymentManifestPath),
+		biconfig.DeploymentStatePath(d.deploymentManifestPath),
 	)
-	return d.deploymentConfigService
+	return d.deploymentStateService
 }
 
-func (d *deploymentManagerFactory2) loadLegacyDeploymentConfigMigrator() biconfig.LegacyDeploymentConfigMigrator {
-	if d.legacyDeploymentConfigMigrator != nil {
-		return d.legacyDeploymentConfigMigrator
+func (d *deploymentManagerFactory2) loadLegacyDeploymentStateMigrator() biconfig.LegacyDeploymentStateMigrator {
+	if d.legacyDeploymentStateMigrator != nil {
+		return d.legacyDeploymentStateMigrator
 	}
 
-	d.legacyDeploymentConfigMigrator = biconfig.NewLegacyDeploymentConfigMigrator(
-		d.loadDeploymentConfigService(),
+	d.legacyDeploymentStateMigrator = biconfig.NewLegacyDeploymentStateMigrator(
+		d.loadDeploymentStateService(),
 		d.f.fs,
 		d.f.uuidGenerator,
 		d.f.logger,
 	)
-	return d.legacyDeploymentConfigMigrator
+	return d.legacyDeploymentStateMigrator
 }
 
 func (d *deploymentManagerFactory2) loadStemcellRepo() biconfig.StemcellRepo {
 	if d.stemcellRepo != nil {
 		return d.stemcellRepo
 	}
-	d.stemcellRepo = biconfig.NewStemcellRepo(d.loadDeploymentConfigService(), d.f.uuidGenerator)
+	d.stemcellRepo = biconfig.NewStemcellRepo(d.loadDeploymentStateService(), d.f.uuidGenerator)
 	return d.stemcellRepo
 }
 
@@ -468,7 +468,7 @@ func (d *deploymentManagerFactory2) loadVMRepo() biconfig.VMRepo {
 	if d.vmRepo != nil {
 		return d.vmRepo
 	}
-	d.vmRepo = biconfig.NewVMRepo(d.loadDeploymentConfigService())
+	d.vmRepo = biconfig.NewVMRepo(d.loadDeploymentStateService())
 	return d.vmRepo
 }
 
@@ -476,7 +476,7 @@ func (d *deploymentManagerFactory2) loadDiskRepo() biconfig.DiskRepo {
 	if d.diskRepo != nil {
 		return d.diskRepo
 	}
-	d.diskRepo = biconfig.NewDiskRepo(d.loadDeploymentConfigService(), d.f.uuidGenerator)
+	d.diskRepo = biconfig.NewDiskRepo(d.loadDeploymentStateService(), d.f.uuidGenerator)
 	return d.diskRepo
 }
 
@@ -558,7 +558,7 @@ func (d *deploymentManagerFactory2) loadInstallerFactory() biinstall.InstallerFa
 	}
 
 	targetProvider := biinstall.NewTargetProvider(
-		d.loadDeploymentConfigService(),
+		d.loadDeploymentStateService(),
 		d.f.uuidGenerator,
 		filepath.Join(d.f.workspaceRootPath, "installations"),
 	)

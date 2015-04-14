@@ -14,44 +14,44 @@ import (
 	"path"
 )
 
-type LegacyDeploymentConfigMigrator interface {
+type LegacyDeploymentStateMigrator interface {
 	MigrateIfExists(configPath string) (migrated bool, err error)
 }
 
-type legacyDeploymentConfigMigrator struct {
-	deploymentConfigService DeploymentConfigService
-	fs                      boshsys.FileSystem
-	uuidGenerator           boshuuid.Generator
-	logger                  boshlog.Logger
-	logTag                  string
+type legacyDeploymentStateMigrator struct {
+	deploymentStateService DeploymentStateService
+	fs                     boshsys.FileSystem
+	uuidGenerator          boshuuid.Generator
+	logger                 boshlog.Logger
+	logTag                 string
 }
 
-func NewLegacyDeploymentConfigMigrator(
-	deploymentConfigService DeploymentConfigService,
+func NewLegacyDeploymentStateMigrator(
+	deploymentStateService DeploymentStateService,
 	fs boshsys.FileSystem,
 	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
-) LegacyDeploymentConfigMigrator {
-	return &legacyDeploymentConfigMigrator{
-		deploymentConfigService: deploymentConfigService,
+) LegacyDeploymentStateMigrator {
+	return &legacyDeploymentStateMigrator{
+		deploymentStateService: deploymentStateService,
 		fs:            fs,
 		uuidGenerator: uuidGenerator,
 		logger:        logger,
-		logTag:        "legacyDeploymentConfigMigrator",
+		logTag:        "legacyDeploymentStateMigrator",
 	}
 }
 
-func (m *legacyDeploymentConfigMigrator) MigrateIfExists(configPath string) (migrated bool, err error) {
+func (m *legacyDeploymentStateMigrator) MigrateIfExists(configPath string) (migrated bool, err error) {
 	if !m.fs.FileExists(configPath) {
 		return false, nil
 	}
 
-	deploymentConfig, err := m.migrate(configPath)
+	deploymentState, err := m.migrate(configPath)
 	if err != nil {
 		return false, err
 	}
 
-	err = m.deploymentConfigService.Save(deploymentConfig)
+	err = m.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return false, bosherr.WrapError(err, "Saving migrated deployment config")
 	}
@@ -64,12 +64,12 @@ func (m *legacyDeploymentConfigMigrator) MigrateIfExists(configPath string) (mig
 	return true, nil
 }
 
-func (m *legacyDeploymentConfigMigrator) migrate(configPath string) (deploymentFile DeploymentFile, err error) {
+func (m *legacyDeploymentStateMigrator) migrate(configPath string) (deploymentState DeploymentState, err error) {
 	m.logger.Info(m.logTag, "Migrating legacy bosh-deployments.yml")
 
 	bytes, err := m.fs.ReadFile(configPath)
 	if err != nil {
-		return deploymentFile, bosherr.WrapErrorf(err, "Reading legacy deployment config file '%s'", configPath)
+		return deploymentState, bosherr.WrapErrorf(err, "Reading legacy deployment config file '%s'", configPath)
 	}
 
 	// candiedyaml does not currently support ':' as the first character in a key.
@@ -78,35 +78,35 @@ func (m *legacyDeploymentConfigMigrator) migrate(configPath string) (deploymentF
 
 	m.logger.Debug(m.logTag, "Processed legacy bosh-deployments.yml:\n%s", parsableString)
 
-	var legacyFile legacyDeploymentFile
-	err = candiedyaml.Unmarshal([]byte(parsableString), &legacyFile)
+	var legacyDeploymentState legacyDeploymentState
+	err = candiedyaml.Unmarshal([]byte(parsableString), &legacyDeploymentState)
 	if err != nil {
-		return deploymentFile, bosherr.WrapError(err, "Parsing job manifest")
+		return deploymentState, bosherr.WrapError(err, "Parsing job manifest")
 	}
 
-	m.logger.Debug(m.logTag, "Parsed legacy bosh-deployments.yml: %#v", legacyFile)
+	m.logger.Debug(m.logTag, "Parsed legacy bosh-deployments.yml: %#v", legacyDeploymentState)
 
 	uuid, err := m.uuidGenerator.Generate()
 	if err != nil {
-		return deploymentFile, bosherr.WrapError(err, "Generating UUID")
+		return deploymentState, bosherr.WrapError(err, "Generating UUID")
 	}
-	deploymentFile.DirectorID = uuid
+	deploymentState.DirectorID = uuid
 
-	deploymentFile.Disks = []DiskRecord{}
-	deploymentFile.Stemcells = []StemcellRecord{}
-	deploymentFile.Releases = []ReleaseRecord{}
+	deploymentState.Disks = []DiskRecord{}
+	deploymentState.Stemcells = []StemcellRecord{}
+	deploymentState.Releases = []ReleaseRecord{}
 
-	if len(legacyFile.Instances) > 0 {
-		instance := legacyFile.Instances[0]
+	if len(legacyDeploymentState.Instances) > 0 {
+		instance := legacyDeploymentState.Instances[0]
 		diskCID := instance.DiskCID
 		if diskCID != "" {
 			uuid, err = m.uuidGenerator.Generate()
 			if err != nil {
-				return deploymentFile, bosherr.WrapError(err, "Generating UUID")
+				return deploymentState, bosherr.WrapError(err, "Generating UUID")
 			}
 
-			deploymentFile.CurrentDiskID = uuid
-			deploymentFile.Disks = []DiskRecord{
+			deploymentState.CurrentDiskID = uuid
+			deploymentState.Disks = []DiskRecord{
 				{
 					ID:              uuid,
 					CID:             diskCID,
@@ -118,14 +118,14 @@ func (m *legacyDeploymentConfigMigrator) migrate(configPath string) (deploymentF
 
 		vmCID := instance.VMCID
 		if vmCID != "" {
-			deploymentFile.CurrentVMCID = vmCID
+			deploymentState.CurrentVMCID = vmCID
 		}
 
 		stemcellCID := instance.StemcellCID
 		if stemcellCID != "" {
 			uuid, err = m.uuidGenerator.Generate()
 			if err != nil {
-				return deploymentFile, bosherr.WrapError(err, "Generating UUID")
+				return deploymentState, bosherr.WrapError(err, "Generating UUID")
 			}
 
 			stemcellName := instance.StemcellName
@@ -133,7 +133,7 @@ func (m *legacyDeploymentConfigMigrator) migrate(configPath string) (deploymentF
 				stemcellName = "unknown-stemcell"
 			}
 
-			deploymentFile.Stemcells = []StemcellRecord{
+			deploymentState.Stemcells = []StemcellRecord{
 				{
 					ID:      uuid,
 					Name:    stemcellName,
@@ -144,12 +144,12 @@ func (m *legacyDeploymentConfigMigrator) migrate(configPath string) (deploymentF
 		}
 	}
 
-	m.logger.Debug(m.logTag, "New deployment.json (migrated from legacy bosh-deployments.yml): %#v", deploymentFile)
+	m.logger.Debug(m.logTag, "New deployment.json (migrated from legacy bosh-deployments.yml): %#v", deploymentState)
 
-	return deploymentFile, nil
+	return deploymentState, nil
 }
 
-type legacyDeploymentFile struct {
+type legacyDeploymentState struct {
 	Instances []instance `yaml:"instances"`
 }
 
@@ -160,6 +160,6 @@ type instance struct {
 	StemcellName string `yaml:"stemcell_name"`
 }
 
-func LegacyDeploymentConfigPath(deploymentManifestPath string) string {
+func LegacyDeploymentStatePath(deploymentManifestPath string) string {
 	return path.Join(path.Dir(deploymentManifestPath), "bosh-deployments.yml")
 }

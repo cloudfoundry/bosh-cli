@@ -82,8 +82,8 @@ func NewDeploymentPreparer(
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 	logTag string,
-	deploymentConfigService biconfig.DeploymentConfigService,
-	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator,
+	deploymentStateService biconfig.DeploymentStateService,
+	legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator,
 	releaseManager birel.Manager,
 	deploymentRecord bidepl.Record,
 	installerFactory biinstall.InstallerFactory,
@@ -105,74 +105,74 @@ func NewDeploymentPreparer(
 
 ) DeploymentPreparer {
 	return DeploymentPreparer{
-		ui:                             ui,
-		fs:                             fs,
-		logger:                         logger,
-		logTag:                         logTag,
-		deploymentConfigService:        deploymentConfigService,
-		legacyDeploymentConfigMigrator: legacyDeploymentConfigMigrator,
-		releaseManager:                 releaseManager,
-		deploymentRecord:               deploymentRecord,
-		installerFactory:               installerFactory,
-		cloudFactory:                   cloudFactory,
-		stemcellManagerFactory:         stemcellManagerFactory,
-		agentClientFactory:             agentClientFactory,
-		vmManagerFactory:               vmManagerFactory,
-		blobstoreFactory:               blobstoreFactory,
-		deployer:                       deployer,
-		releaseSetParser:               releaseSetParser,
-		installationParser:             installationParser,
-		deploymentParser:               deploymentParser,
-		releaseSetValidator:            releaseSetValidator,
-		installationValidator:          installationValidator,
-		deploymentValidator:            deploymentValidator,
-		releaseExtractor:               releaseExtractor,
-		releaseResolver:                releaseResolver,
-		stemcellExtractor:              stemcellExtractor,
+		ui:                            ui,
+		fs:                            fs,
+		logger:                        logger,
+		logTag:                        logTag,
+		deploymentStateService:        deploymentStateService,
+		legacyDeploymentStateMigrator: legacyDeploymentStateMigrator,
+		releaseManager:                releaseManager,
+		deploymentRecord:              deploymentRecord,
+		installerFactory:              installerFactory,
+		cloudFactory:                  cloudFactory,
+		stemcellManagerFactory:        stemcellManagerFactory,
+		agentClientFactory:            agentClientFactory,
+		vmManagerFactory:              vmManagerFactory,
+		blobstoreFactory:              blobstoreFactory,
+		deployer:                      deployer,
+		releaseSetParser:              releaseSetParser,
+		installationParser:            installationParser,
+		deploymentParser:              deploymentParser,
+		releaseSetValidator:           releaseSetValidator,
+		installationValidator:         installationValidator,
+		deploymentValidator:           deploymentValidator,
+		releaseExtractor:              releaseExtractor,
+		releaseResolver:               releaseResolver,
+		stemcellExtractor:             stemcellExtractor,
 	}
 }
 
 type DeploymentPreparer struct {
-	ui                             biui.UI
-	fs                             boshsys.FileSystem
-	logger                         boshlog.Logger
-	logTag                         string
-	deploymentConfigService        biconfig.DeploymentConfigService
-	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
-	releaseManager                 birel.Manager
-	deploymentRecord               bidepl.Record
-	installerFactory               biinstall.InstallerFactory
-	cloudFactory                   bicloud.Factory
-	stemcellManagerFactory         bistemcell.ManagerFactory
-	agentClientFactory             bihttpagent.AgentClientFactory
-	vmManagerFactory               bivm.ManagerFactory
-	blobstoreFactory               biblobstore.Factory
-	deployer                       bidepl.Deployer
-	releaseSetParser               birelsetmanifest.Parser
-	installationParser             biinstallmanifest.Parser
-	deploymentParser               bideplmanifest.Parser
-	releaseSetValidator            birelsetmanifest.Validator
-	installationValidator          biinstallmanifest.Validator
-	deploymentValidator            bideplmanifest.Validator
-	releaseExtractor               birel.Extractor
-	releaseResolver                birelset.Resolver
-	stemcellExtractor              bistemcell.Extractor
+	ui                            biui.UI
+	fs                            boshsys.FileSystem
+	logger                        boshlog.Logger
+	logTag                        string
+	deploymentStateService        biconfig.DeploymentStateService
+	legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator
+	releaseManager                birel.Manager
+	deploymentRecord              bidepl.Record
+	installerFactory              biinstall.InstallerFactory
+	cloudFactory                  bicloud.Factory
+	stemcellManagerFactory        bistemcell.ManagerFactory
+	agentClientFactory            bihttpagent.AgentClientFactory
+	vmManagerFactory              bivm.ManagerFactory
+	blobstoreFactory              biblobstore.Factory
+	deployer                      bidepl.Deployer
+	releaseSetParser              birelsetmanifest.Parser
+	installationParser            biinstallmanifest.Parser
+	deploymentParser              bideplmanifest.Parser
+	releaseSetValidator           birelsetmanifest.Validator
+	installationValidator         biinstallmanifest.Validator
+	deploymentValidator           bideplmanifest.Validator
+	releaseExtractor              birel.Extractor
+	releaseResolver               birelset.Resolver
+	stemcellExtractor             bistemcell.Extractor
 }
 
 func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarballPath string, releaseTarballPaths []string, deploymentManifestPath string) (err error) {
-	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentConfigService.Path())
+	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
-	if !c.deploymentConfigService.Exists() {
-		migrated, err := c.legacyDeploymentConfigMigrator.MigrateIfExists(biconfig.LegacyDeploymentConfigPath(deploymentManifestPath))
+	if !c.deploymentStateService.Exists() {
+		migrated, err := c.legacyDeploymentStateMigrator.MigrateIfExists(biconfig.LegacyDeploymentStatePath(deploymentManifestPath))
 		if err != nil {
 			return bosherr.WrapError(err, "Migrating legacy deployment config file")
 		}
 		if migrated {
-			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", biconfig.LegacyDeploymentConfigPath(deploymentManifestPath))
+			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", biconfig.LegacyDeploymentStatePath(deploymentManifestPath))
 		}
 	}
 
-	deploymentConfig, err := c.deploymentConfigService.Load()
+	deploymentState, err := c.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
@@ -240,7 +240,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 		}
 	}()
 
-	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
+	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
 	}
@@ -252,7 +252,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 		return err
 	}
 
-	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
+	agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
 	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)

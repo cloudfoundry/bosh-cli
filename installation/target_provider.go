@@ -14,38 +14,38 @@ type TargetProvider interface {
 }
 
 type targetProvider struct {
-	deploymentConfigService biconfig.DeploymentConfigService
-	uuidGenerator           boshuuid.Generator
-	installationsRootPath   string
+	deploymentStateService biconfig.DeploymentStateService
+	uuidGenerator          boshuuid.Generator
+	installationsRootPath  string
 }
 
 func NewTargetProvider(
-	deploymentConfigService biconfig.DeploymentConfigService,
+	deploymentStateService biconfig.DeploymentStateService,
 	uuidGenerator boshuuid.Generator,
 	installationsRootPath string,
 ) TargetProvider {
 	return &targetProvider{
-		deploymentConfigService: deploymentConfigService,
-		uuidGenerator:           uuidGenerator,
-		installationsRootPath:   installationsRootPath,
+		deploymentStateService: deploymentStateService,
+		uuidGenerator:          uuidGenerator,
+		installationsRootPath:  installationsRootPath,
 	}
 }
 
 func (p *targetProvider) NewTarget() (Target, error) {
-	deploymentConfig, err := p.deploymentConfigService.Load()
+	deploymentState, err := p.deploymentStateService.Load()
 	if err != nil {
 		return Target{}, bosherr.WrapError(err, "Loading deployment config")
 	}
 
-	installationID := deploymentConfig.InstallationID
+	installationID := deploymentState.InstallationID
 	if installationID == "" {
 		installationID, err = p.uuidGenerator.Generate()
 		if err != nil {
 			return Target{}, bosherr.WrapError(err, "Generating installation ID")
 		}
 
-		deploymentConfig.InstallationID = installationID
-		err := p.deploymentConfigService.Save(deploymentConfig)
+		deploymentState.InstallationID = installationID
+		err := p.deploymentStateService.Save(deploymentState)
 		if err != nil {
 			return Target{}, bosherr.WrapError(err, "Saving deployment config")
 		}

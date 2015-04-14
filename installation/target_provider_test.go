@@ -16,10 +16,10 @@ import (
 
 var _ = Describe("TargetProvider", func() {
 	var (
-		fakeFS                  *fakesys.FakeFileSystem
-		fakeUUIDGenerator       *fakeuuid.FakeGenerator
-		logger                  boshlog.Logger
-		deploymentConfigService biconfig.DeploymentConfigService
+		fakeFS                 *fakesys.FakeFileSystem
+		fakeUUIDGenerator      *fakeuuid.FakeGenerator
+		logger                 boshlog.Logger
+		deploymentStateService biconfig.DeploymentStateService
 
 		targetProvider TargetProvider
 
@@ -31,13 +31,13 @@ var _ = Describe("TargetProvider", func() {
 		fakeFS = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(
+		deploymentStateService = biconfig.NewFileSystemDeploymentStateService(
 			fakeFS,
 			fakeUUIDGenerator,
 			logger,
 			configPath,
 		)
-		targetProvider = NewTargetProvider(deploymentConfigService, fakeUUIDGenerator, installationsRootPath)
+		targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath)
 	})
 
 	Context("when the installation_id exists in the deployment config", func() {
@@ -56,9 +56,9 @@ var _ = Describe("TargetProvider", func() {
 			_, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentConfig, err := deploymentConfigService.Load()
+			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deploymentConfig.InstallationID).To(Equal("12345"))
+			Expect(deploymentState.InstallationID).To(Equal("12345"))
 		})
 	})
 
@@ -78,9 +78,9 @@ var _ = Describe("TargetProvider", func() {
 			_, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentConfig, err := deploymentConfigService.Load()
+			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deploymentConfig.InstallationID).To(Equal("fake-uuid-1"))
+			Expect(deploymentState.InstallationID).To(Equal("fake-uuid-1"))
 		})
 	})
 
@@ -100,9 +100,9 @@ var _ = Describe("TargetProvider", func() {
 			_, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentConfig, err := deploymentConfigService.Load()
+			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deploymentConfig.InstallationID).To(Equal("fake-uuid-1"))
+			Expect(deploymentState.InstallationID).To(Equal("fake-uuid-1"))
 		})
 	})
 })

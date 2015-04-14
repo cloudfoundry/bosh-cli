@@ -16,7 +16,7 @@ import (
 
 var _ = Describe("DiskRepo", func() {
 	var (
-		configService     DeploymentConfigService
+		configService     DeploymentStateService
 		repo              DiskRepo
 		fs                *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
@@ -27,7 +27,7 @@ var _ = Describe("DiskRepo", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		configService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		repo = NewDiskRepo(configService, fakeUUIDGenerator)
 		cloudProperties = biproperty.Map{
 			"fake-cloud_property-key": "fake-cloud-property-value",
@@ -45,10 +45,10 @@ var _ = Describe("DiskRepo", func() {
 				CloudProperties: cloudProperties,
 			}))
 
-			deploymentConfig, err := configService.Load()
+			deploymentState, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentFile{
+			expectedConfig := DeploymentState{
 				DirectorID: "fake-uuid-0",
 				Disks: []DiskRecord{
 					{
@@ -59,7 +59,7 @@ var _ = Describe("DiskRepo", func() {
 					},
 				},
 			}
-			Expect(deploymentConfig).To(Equal(expectedConfig))
+			Expect(deploymentState).To(Equal(expectedConfig))
 		})
 	})
 
@@ -100,10 +100,10 @@ var _ = Describe("DiskRepo", func() {
 				err := repo.UpdateCurrent(recordID)
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentConfig, err := configService.Load()
+				deploymentState, err := configService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentConfig.CurrentDiskID).To(Equal(recordID))
+				Expect(deploymentState.CurrentDiskID).To(Equal(recordID))
 			})
 		})
 
@@ -252,14 +252,14 @@ var _ = Describe("DiskRepo", func() {
 			err := repo.ClearCurrent()
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentConfig, err := configService.Load()
+			deploymentState, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentFile{
+			expectedConfig := DeploymentState{
 				DirectorID:    "fake-uuid-0",
 				CurrentDiskID: "",
 			}
-			Expect(deploymentConfig).To(Equal(expectedConfig))
+			Expect(deploymentState).To(Equal(expectedConfig))
 
 			_, found, err := repo.FindCurrent()
 			Expect(err).ToNot(HaveOccurred())

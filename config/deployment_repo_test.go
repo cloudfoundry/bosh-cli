@@ -14,7 +14,7 @@ import (
 var _ = Describe("DeploymentRepo", func() {
 	var (
 		repo              DeploymentRepo
-		configService     DeploymentConfigService
+		configService     DeploymentStateService
 		fs                *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 	)
@@ -23,7 +23,7 @@ var _ = Describe("DeploymentRepo", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-		configService = NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		configService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		repo = NewDeploymentRepo(configService)
 	})
 
@@ -32,14 +32,14 @@ var _ = Describe("DeploymentRepo", func() {
 			err := repo.UpdateCurrent("fake-manifest-sha1")
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentConfig, err := configService.Load()
+			deploymentState, err := configService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentFile{
+			expectedConfig := DeploymentState{
 				DirectorID:          "fake-uuid-0",
 				CurrentManifestSHA1: "fake-manifest-sha1",
 			}
-			Expect(deploymentConfig).To(Equal(expectedConfig))
+			Expect(deploymentState).To(Equal(expectedConfig))
 		})
 	})
 

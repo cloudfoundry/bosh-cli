@@ -4,7 +4,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
-type DeploymentFile struct {
+type DeploymentState struct {
 	DirectorID          string           `json:"director_id"`
 	InstallationID      string           `json:"installation_id"`
 	CurrentVMCID        string           `json:"current_vm_cid"`
@@ -37,9 +37,9 @@ type ReleaseRecord struct {
 	Version string `json:"version"`
 }
 
-type DeploymentConfigService interface {
+type DeploymentStateService interface {
 	Path() string
 	Exists() bool
-	Load() (DeploymentFile, error)
-	Save(DeploymentFile) error
+	Load() (DeploymentState, error)
+	Save(DeploymentState) error
 }

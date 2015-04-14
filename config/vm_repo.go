@@ -11,10 +11,10 @@ type VMRepo interface {
 }
 
 type vMRepo struct {
-	configService DeploymentConfigService
+	configService DeploymentStateService
 }
 
-func NewVMRepo(configService DeploymentConfigService) VMRepo {
+func NewVMRepo(configService DeploymentStateService) VMRepo {
 	return vMRepo{
 		configService: configService,
 	}

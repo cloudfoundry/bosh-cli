@@ -48,16 +48,16 @@ var _ = Describe("DeleteCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			fs                           boshsys.FileSystem
-			logger                       boshlog.Logger
-			releaseManager               birel.Manager
-			mockInstaller                *mock_install.MockInstaller
-			mockInstallerFactory         *mock_install.MockInstallerFactory
-			mockInstallation             *mock_install.MockInstallation
-			mockCloudFactory             *mock_cloud.MockFactory
-			mockReleaseExtractor         *mock_release.MockExtractor
-			fakeUUIDGenerator            *fakeuuid.FakeGenerator
-			setupDeploymentConfigService biconfig.DeploymentConfigService
+			fs                          boshsys.FileSystem
+			logger                      boshlog.Logger
+			releaseManager              birel.Manager
+			mockInstaller               *mock_install.MockInstaller
+			mockInstallerFactory        *mock_install.MockInstallerFactory
+			mockInstallation            *mock_install.MockInstallation
+			mockCloudFactory            *mock_cloud.MockFactory
+			mockReleaseExtractor        *mock_release.MockExtractor
+			fakeUUIDGenerator           *fakeuuid.FakeGenerator
+			setupDeploymentStateService biconfig.DeploymentStateService
 
 			fakeUI *fakeui.FakeUI
 
@@ -77,7 +77,7 @@ var _ = Describe("DeleteCmd", func() {
 			directorID string
 
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
-			deploymentConfigPath   string
+			deploymentStatePath    string
 
 			expectCPIExtractRelease *gomock.Call
 			expectCPIInstall        *gomock.Call
@@ -158,14 +158,14 @@ cloud_provider:
 			installationParser := biinstallmanifest.NewParser(fs, logger)
 
 			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
-				deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
+				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
 				deploymentDeleter := NewDeploymentDeleter(
 					fakeUI,
 					"deleteCmd",
 					logger,
 					fs,
-					deploymentConfigService,
+					deploymentStateService,
 					releaseManager,
 					mockInstallerFactory,
 					mockCloudFactory,
@@ -242,9 +242,9 @@ cloud_provider:
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			setupDeploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentConfigPath(deploymentManifestPath))
-			deploymentConfigPath = biconfig.DeploymentConfigPath(deploymentManifestPath)
-			setupDeploymentConfigService.Load()
+			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+			deploymentStatePath = biconfig.DeploymentStatePath(deploymentManifestPath)
+			setupDeploymentStateService.Load()
 
 			fakeUI = &fakeui.FakeUI{}
 
@@ -295,7 +295,7 @@ cloud_provider:
 
 		Context("when the deployment config file does not exist", func() {
 			BeforeEach(func() {
-				err := fs.RemoveAll(deploymentConfigPath)
+				err := fs.RemoveAll(deploymentStatePath)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -316,7 +316,7 @@ cloud_provider:
 				directorID = "fake-director-id"
 
 				// create deployment manifest yaml file
-				setupDeploymentConfigService.Save(biconfig.DeploymentFile{
+				setupDeploymentStateService.Save(biconfig.DeploymentState{
 					DirectorID: directorID,
 				})
 			})
@@ -374,7 +374,7 @@ cloud_provider:
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				setupDeploymentConfigService.Save(biconfig.DeploymentFile{DirectorID: "fake-uuid-0"})
+				setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
 			})
 
 			It("cleans up orphans, but does not delete any deployment", func() {

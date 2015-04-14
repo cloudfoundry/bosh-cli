@@ -77,7 +77,7 @@ func NewDeploymentDeleter(
 	logTag string,
 	logger boshlog.Logger,
 	fs boshsys.FileSystem,
-	deploymentConfigService biconfig.DeploymentConfigService,
+	deploymentStateService biconfig.DeploymentStateService,
 	releaseManager birel.Manager,
 	installerFactory biinstall.InstallerFactory,
 	cloudFactory bicloud.Factory,
@@ -96,7 +96,7 @@ func NewDeploymentDeleter(
 		logTag: logTag,
 		logger: logger,
 		fs:     fs,
-		deploymentConfigService:  deploymentConfigService,
+		deploymentStateService:   deploymentStateService,
 		releaseManager:           releaseManager,
 		installerFactory:         installerFactory,
 		cloudFactory:             cloudFactory,
@@ -117,7 +117,7 @@ type DeploymentDeleter struct {
 	logTag                   string
 	logger                   boshlog.Logger
 	fs                       boshsys.FileSystem
-	deploymentConfigService  biconfig.DeploymentConfigService
+	deploymentStateService   biconfig.DeploymentStateService
 	releaseManager           birel.Manager
 	installerFactory         biinstall.InstallerFactory
 	cloudFactory             bicloud.Factory
@@ -133,14 +133,14 @@ type DeploymentDeleter struct {
 }
 
 func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, releaseTarballPath string, deploymentManifestPath string) (err error) {
-	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentConfigService.Path())
+	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
-	if !c.deploymentConfigService.Exists() {
+	if !c.deploymentStateService.Exists() {
 		c.ui.PrintLinef("No deployment config file found.")
 		return nil
 	}
 
-	deploymentConfig, err := c.deploymentConfigService.Load()
+	deploymentState, err := c.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading deployment config")
 	}
@@ -189,13 +189,13 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, releaseTarballPat
 	}()
 
 	c.logger.Debug(c.logTag, "Creating cloud client...")
-	cloud, err := c.cloudFactory.NewCloud(installation, deploymentConfig.DirectorID)
+	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
 	}
 
 	c.logger.Debug(c.logTag, "Creating agent client...")
-	agentClient := c.agentClientFactory.NewAgentClient(deploymentConfig.DirectorID, installationManifest.Mbus)
+	agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
 
 	c.logger.Debug(c.logTag, "Creating blobstore client...")
 	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)

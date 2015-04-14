@@ -50,12 +50,12 @@ var _ = Describe("Deployment", func() {
 			logger boshlog.Logger
 			fs     boshsys.FileSystem
 
-			fakeUUIDGenerator       *fakeuuid.FakeGenerator
-			fakeRepoUUIDGenerator   *fakeuuid.FakeGenerator
-			deploymentConfigService biconfig.DeploymentConfigService
-			vmRepo                  biconfig.VMRepo
-			diskRepo                biconfig.DiskRepo
-			stemcellRepo            biconfig.StemcellRepo
+			fakeUUIDGenerator      *fakeuuid.FakeGenerator
+			fakeRepoUUIDGenerator  *fakeuuid.FakeGenerator
+			deploymentStateService biconfig.DeploymentStateService
+			vmRepo                 biconfig.VMRepo
+			diskRepo               biconfig.DiskRepo
+			stemcellRepo           biconfig.StemcellRepo
 
 			mockCloud       *mock_cloud.MockCloud
 			mockAgentClient *mock_agentclient.MockAgentClient
@@ -119,12 +119,12 @@ var _ = Describe("Deployment", func() {
 			fs = fakesys.NewFakeFileSystem()
 
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger, "/deployment.json")
+			deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/deployment.json")
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-			vmRepo = biconfig.NewVMRepo(deploymentConfigService)
-			diskRepo = biconfig.NewDiskRepo(deploymentConfigService, fakeRepoUUIDGenerator)
-			stemcellRepo = biconfig.NewStemcellRepo(deploymentConfigService, fakeRepoUUIDGenerator)
+			vmRepo = biconfig.NewVMRepo(deploymentStateService)
+			diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
+			stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
@@ -168,7 +168,7 @@ var _ = Describe("Deployment", func() {
 		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
-				deploymentConfigService.Save(biconfig.DeploymentFile{
+				deploymentStateService.Save(biconfig.DeploymentState{
 					DirectorID:        "fake-director-id",
 					InstallationID:    "fake-installation-id",
 					CurrentVMCID:      "fake-vm-cid",
@@ -282,7 +282,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(biconfig.DeploymentFile{})
+				deploymentStateService.Save(biconfig.DeploymentState{})
 			})
 
 			JustBeforeEach(func() {
@@ -305,7 +305,7 @@ var _ = Describe("Deployment", func() {
 				expectHasVM *gomock.Call
 			)
 			BeforeEach(func() {
-				deploymentConfigService.Save(biconfig.DeploymentFile{})
+				deploymentStateService.Save(biconfig.DeploymentState{})
 				vmRepo.UpdateCurrent("fake-vm-cid")
 
 				expectHasVM = mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil)
@@ -350,7 +350,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when a current disk exists", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(biconfig.DeploymentFile{})
+				deploymentStateService.Save(biconfig.DeploymentState{})
 				diskRecord, err := diskRepo.Save("fake-disk-cid", 100, nil)
 				Expect(err).ToNot(HaveOccurred())
 				diskRepo.UpdateCurrent(diskRecord.ID)
@@ -385,7 +385,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("when a current stemcell exists", func() {
 			BeforeEach(func() {
-				deploymentConfigService.Save(biconfig.DeploymentFile{})
+				deploymentStateService.Save(biconfig.DeploymentState{})
 				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
 				Expect(err).ToNot(HaveOccurred())
 				stemcellRepo.UpdateCurrent(stemcellRecord.ID)

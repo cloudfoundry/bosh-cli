@@ -17,11 +17,11 @@ type StemcellRepo interface {
 }
 
 type stemcellRepo struct {
-	configService DeploymentConfigService
+	configService DeploymentStateService
 	uuidGenerator boshuuid.Generator
 }
 
-func NewStemcellRepo(configService DeploymentConfigService, uuidGenerator boshuuid.Generator) StemcellRepo {
+func NewStemcellRepo(configService DeploymentStateService, uuidGenerator boshuuid.Generator) StemcellRepo {
 	return stemcellRepo{
 		configService: configService,
 		uuidGenerator: uuidGenerator,
@@ -31,7 +31,7 @@ func NewStemcellRepo(configService DeploymentConfigService, uuidGenerator boshuu
 func (r stemcellRepo) Save(name, version, cid string) (StemcellRecord, error) {
 	stemcellRecord := StemcellRecord{}
 
-	err := r.updateConfig(func(config *DeploymentFile) error {
+	err := r.updateConfig(func(config *DeploymentState) error {
 		records := config.Stemcells
 		if records == nil {
 			records = []StemcellRecord{}
@@ -136,7 +136,7 @@ func (r stemcellRepo) Delete(stemcellRecord StemcellRecord) error {
 }
 
 func (r stemcellRepo) UpdateCurrent(recordID string) error {
-	return r.updateConfig(func(config *DeploymentFile) error {
+	return r.updateConfig(func(config *DeploymentState) error {
 		found := false
 		for _, oldRecord := range config.Stemcells {
 			if oldRecord.ID == recordID {
@@ -154,14 +154,14 @@ func (r stemcellRepo) UpdateCurrent(recordID string) error {
 }
 
 func (r stemcellRepo) ClearCurrent() error {
-	return r.updateConfig(func(config *DeploymentFile) error {
+	return r.updateConfig(func(config *DeploymentState) error {
 		config.CurrentStemcellID = ""
 
 		return nil
 	})
 }
 
-func (r stemcellRepo) updateConfig(updateFunc func(*DeploymentFile) error) error {
+func (r stemcellRepo) updateConfig(updateFunc func(*DeploymentState) error) error {
 	config, err := r.configService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
@@ -180,7 +180,7 @@ func (r stemcellRepo) updateConfig(updateFunc func(*DeploymentFile) error) error
 	return nil
 }
 
-func (r stemcellRepo) load() (DeploymentFile, []StemcellRecord, error) {
+func (r stemcellRepo) load() (DeploymentState, []StemcellRecord, error) {
 	config, err := r.configService.Load()
 	if err != nil {
 		return config, []StemcellRecord{}, bosherr.WrapError(err, "Loading existing config")
