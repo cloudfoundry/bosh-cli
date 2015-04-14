@@ -388,31 +388,42 @@ cloud_provider:
 				logger,
 			)
 
+			ui := biui.NewWriterUI(stdOut, stdErr, logger)
+			doGet := func(deploymentManifestPath string) DeploymentPreparer {
+				deploymentConfigService.SetConfigPath(biconfig.DeploymentConfigPath(deploymentManifestPath))
+				return NewDeploymentPreparer(
+					ui,
+					fs,
+					logger,
+					"deployCmd",
+					deploymentConfigService,
+					legacyDeploymentConfigMigrator,
+					releaseManager,
+					deploymentRecord,
+					mockInstallerFactory,
+					mockCloudFactory,
+					stemcellManagerFactory,
+					mockAgentClientFactory,
+					vmManagerFactory,
+					mockBlobstoreFactory,
+					deployer,
+					releaseSetParser,
+					installationParser,
+					deploymentParser,
+					releaseSetValidator,
+					installationValidator,
+					deploymentValidator,
+					mockReleaseExtractor,
+					releaseResolver,
+					fakeStemcellExtractor,
+				)
+			}
+
 			return NewDeployCmd(
-				biui.NewWriterUI(stdOut, stdErr, logger),
+				ui,
 				fs,
-				releaseSetParser,
-				installationParser,
-				deploymentParser,
-				legacyDeploymentConfigMigrator,
-				deploymentConfigService,
-				releaseSetValidator,
-				installationValidator,
-				deploymentValidator,
-				mockInstallerFactory,
-				mockReleaseExtractor,
-				releaseManager,
-				releaseResolver,
-				mockCloudFactory,
-				mockAgentClientFactory,
-				vmManagerFactory,
-				fakeStemcellExtractor,
-				stemcellManagerFactory,
-				deploymentRecord,
-				mockBlobstoreFactory,
-				deployer,
-				fakeUUIDGenerator,
 				logger,
+				doGet,
 			)
 		}
 

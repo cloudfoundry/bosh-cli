@@ -1,4 +1,4 @@
-package cmd_test
+package cmd
 
 import (
 	"path/filepath"
@@ -22,7 +22,6 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
@@ -70,7 +69,7 @@ func rootDesc() {
 
 	Describe("Run", func() {
 		var (
-			command        bicmd.Cmd
+			command        Cmd
 			fakeFs         *fakesys.FakeFileSystem
 			stdOut         *gbytes.Buffer
 			stdErr         *gbytes.Buffer
@@ -308,32 +307,38 @@ func rootDesc() {
 			stemcellRepo := biconfig.NewStemcellRepo(deploymentConfigService, fakeUUIDGenerator)
 			deploymentRecord := deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
 
-			command = bicmd.NewDeployCmd(
-				userInterface,
-				fakeFs,
-				fakeReleaseSetParser,
-				fakeInstallationParser,
-				fakeDeploymentParser,
-				mockLegacyDeploymentConfigMigrator,
-				deploymentConfigService,
-				fakeReleaseSetValidator,
-				fakeInstallationValidator,
-				fakeDeploymentValidator,
-				mockInstallerFactory,
-				mockReleaseExtractor,
-				releaseManager,
-				releaseSetResolver,
-				mockCloudFactory,
-				mockAgentClientFactory,
-				mockVMManagerFactory,
-				fakeStemcellExtractor,
-				fakeStemcellManagerFactory,
-				deploymentRecord,
-				mockBlobstoreFactory,
-				mockDeployer,
-				configUUIDGenerator,
-				logger,
-			)
+			doGet := func(deploymentManifestPath string) DeploymentPreparer {
+				deploymentConfigService.SetConfigPath(biconfig.DeploymentConfigPath(deploymentManifestPath))
+				return DeploymentPreparer{
+					ui:     userInterface,
+					fs:     fakeFs,
+					logger: logger,
+					logTag: "deployCmd",
+
+					releaseSetParser:               fakeReleaseSetParser,
+					installationParser:             fakeInstallationParser,
+					deploymentParser:               fakeDeploymentParser,
+					legacyDeploymentConfigMigrator: mockLegacyDeploymentConfigMigrator,
+					deploymentConfigService:        deploymentConfigService,
+					releaseSetValidator:            fakeReleaseSetValidator,
+					installationValidator:          fakeInstallationValidator,
+					deploymentValidator:            fakeDeploymentValidator,
+					installerFactory:               mockInstallerFactory,
+					releaseExtractor:               mockReleaseExtractor,
+					releaseManager:                 releaseManager,
+					releaseResolver:                releaseSetResolver,
+					cloudFactory:                   mockCloudFactory,
+					agentClientFactory:             mockAgentClientFactory,
+					vmManagerFactory:               mockVMManagerFactory,
+					stemcellExtractor:              fakeStemcellExtractor,
+					stemcellManagerFactory:         fakeStemcellManagerFactory,
+					deploymentRecord:               deploymentRecord,
+					blobstoreFactory:               mockBlobstoreFactory,
+					deployer:                       mockDeployer,
+				}
+			}
+
+			command = NewDeployCmd(userInterface, fakeFs, logger, doGet)
 
 			expectLegacyMigrate = mockLegacyDeploymentConfigMigrator.EXPECT().MigrateIfExists("/path/to/bosh-deployments.yml").AnyTimes()
 

@@ -23,59 +23,23 @@ import (
 )
 
 type deleteCmd struct {
-	ui                       biui.UI
-	fs                       boshsys.FileSystem
-	releaseSetParser         birelsetmanifest.Parser
-	installationParser       biinstallmanifest.Parser
-	deploymentConfigService  biconfig.DeploymentConfigService
-	releaseSetValidator      birelsetmanifest.Validator
-	installationValidator    biinstallmanifest.Validator
-	installerFactory         biinstall.InstallerFactory
-	releaseExtractor         birel.Extractor
-	releaseManager           birel.Manager
-	releaseResolver          birelset.Resolver
-	cloudFactory             bicloud.Factory
-	agentClientFactory       bihttpagent.AgentClientFactory
-	blobstoreFactory         biblobstore.Factory
-	deploymentManagerFactory bidepl.ManagerFactory
-	logger                   boshlog.Logger
-	logTag                   string
+	deploymentDeleterProvider func(deploymentManifestString string) DeploymentDeleter
+	ui                        biui.UI
+	fs                        boshsys.FileSystem
+	logger                    boshlog.Logger
+	logTag                    string
 }
 
 func NewDeleteCmd(
 	ui biui.UI,
 	fs boshsys.FileSystem,
-	releaseSetParser birelsetmanifest.Parser,
-	installationParser biinstallmanifest.Parser,
-	deploymentConfigService biconfig.DeploymentConfigService,
-	releaseSetValidator birelsetmanifest.Validator,
-	installationValidator biinstallmanifest.Validator,
-	installerFactory biinstall.InstallerFactory,
-	releaseExtractor birel.Extractor,
-	releaseManager birel.Manager,
-	releaseResolver birelset.Resolver,
-	cloudFactory bicloud.Factory,
-	agentClientFactory bihttpagent.AgentClientFactory,
-	blobstoreFactory biblobstore.Factory,
-	deploymentManagerFactory bidepl.ManagerFactory,
 	logger boshlog.Logger,
+	deploymentDeleterProvider func(deploymentManifestString string) DeploymentDeleter,
 ) Cmd {
 	return &deleteCmd{
-		ui:                       ui,
-		fs:                       fs,
-		releaseSetParser:         releaseSetParser,
-		installationParser:       installationParser,
-		deploymentConfigService:  deploymentConfigService,
-		releaseSetValidator:      releaseSetValidator,
-		installationValidator:    installationValidator,
-		installerFactory:         installerFactory,
-		releaseExtractor:         releaseExtractor,
-		releaseManager:           releaseManager,
-		releaseResolver:          releaseResolver,
-		cloudFactory:             cloudFactory,
-		agentClientFactory:       agentClientFactory,
-		blobstoreFactory:         blobstoreFactory,
-		deploymentManagerFactory: deploymentManagerFactory,
+		ui: ui,
+		fs: fs,
+		deploymentDeleterProvider: deploymentDeleterProvider,
 		logger: logger,
 		logTag: "deleteCmd",
 	}
@@ -104,10 +68,72 @@ func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
 
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
-	deploymentConfigPath := biconfig.DeploymentConfigPath(manifestAbsFilePath)
-	c.deploymentConfigService.SetConfigPath(deploymentConfigPath)
+	deploymentDeleter := c.deploymentDeleterProvider(deploymentManifestPath)
+	return deploymentDeleter.DeleteDeployment(stage, releaseTarballPath, deploymentManifestPath)
+}
 
-	c.ui.PrintLinef("Deployment state: '%s'", deploymentConfigPath)
+func NewDeploymentDeleter(
+	ui biui.UI,
+	logTag string,
+	logger boshlog.Logger,
+	fs boshsys.FileSystem,
+	deploymentConfigService biconfig.DeploymentConfigService,
+	releaseManager birel.Manager,
+	installerFactory biinstall.InstallerFactory,
+	cloudFactory bicloud.Factory,
+	agentClientFactory bihttpagent.AgentClientFactory,
+	blobstoreFactory biblobstore.Factory,
+	deploymentManagerFactory bidepl.ManagerFactory,
+	releaseSetParser birelsetmanifest.Parser,
+	releaseSetValidator birelsetmanifest.Validator,
+	releaseResolver birelset.Resolver,
+	releaseExtractor birel.Extractor,
+	installationParser biinstallmanifest.Parser,
+	installationValidator biinstallmanifest.Validator,
+) DeploymentDeleter {
+	return DeploymentDeleter{
+		ui:     ui,
+		logTag: logTag,
+		logger: logger,
+		fs:     fs,
+		deploymentConfigService:  deploymentConfigService,
+		releaseManager:           releaseManager,
+		installerFactory:         installerFactory,
+		cloudFactory:             cloudFactory,
+		agentClientFactory:       agentClientFactory,
+		blobstoreFactory:         blobstoreFactory,
+		deploymentManagerFactory: deploymentManagerFactory,
+		releaseSetParser:         releaseSetParser,
+		releaseSetValidator:      releaseSetValidator,
+		releaseResolver:          releaseResolver,
+		releaseExtractor:         releaseExtractor,
+		installationParser:       installationParser,
+		installationValidator:    installationValidator,
+	}
+}
+
+type DeploymentDeleter struct {
+	ui                       biui.UI
+	logTag                   string
+	logger                   boshlog.Logger
+	fs                       boshsys.FileSystem
+	deploymentConfigService  biconfig.DeploymentConfigService
+	releaseManager           birel.Manager
+	installerFactory         biinstall.InstallerFactory
+	cloudFactory             bicloud.Factory
+	agentClientFactory       bihttpagent.AgentClientFactory
+	blobstoreFactory         biblobstore.Factory
+	deploymentManagerFactory bidepl.ManagerFactory
+	releaseSetParser         birelsetmanifest.Parser
+	releaseSetValidator      birelsetmanifest.Validator
+	releaseResolver          birelset.Resolver
+	releaseExtractor         birel.Extractor
+	installationParser       biinstallmanifest.Parser
+	installationValidator    biinstallmanifest.Validator
+}
+
+func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, releaseTarballPath string, deploymentManifestPath string) (err error) {
+	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentConfigService.Path())
 
 	if !c.deploymentConfigService.Exists() {
 		c.ui.PrintLinef("No deployment config file found.")
@@ -217,7 +243,7 @@ func (c *deleteCmd) parseCmdInputs(args []string) (string, string, error) {
 	return args[0], args[1], nil
 }
 
-func (c *deleteCmd) validate(validationStage biui.Stage, releaseTarballPath, deploymentManifestPath string) (
+func (c *DeploymentDeleter) validate(validationStage biui.Stage, releaseTarballPath, deploymentManifestPath string) (
 	installationManifest biinstallmanifest.Manifest,
 	err error,
 ) {

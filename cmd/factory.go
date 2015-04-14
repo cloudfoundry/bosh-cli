@@ -43,48 +43,36 @@ type Factory interface {
 }
 
 type factory struct {
-	commands                       map[string](func() (Cmd, error))
-	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
-	deploymentConfigService        biconfig.DeploymentConfigService
-	fs                             boshsys.FileSystem
-	ui                             biui.UI
-	timeService                    boshtime.Service
-	logger                         boshlog.Logger
-	uuidGenerator                  boshuuid.Generator
-	workspaceRootPath              string
-	runner                         boshsys.CmdRunner
-	compressor                     boshcmd.Compressor
-	agentClientFactory             bihttpagent.AgentClientFactory
-	vmManagerFactory               bivm.ManagerFactory
-	vmRepo                         biconfig.VMRepo
-	stemcellRepo                   biconfig.StemcellRepo
-	diskRepo                       biconfig.DiskRepo
-	registryServerManager          biregistry.ServerManager
-	sshTunnelFactory               bisshtunnel.Factory
-	diskDeployer                   bivm.DiskDeployer
-	diskManagerFactory             bidisk.ManagerFactory
-	instanceFactory                biinstance.Factory
-	instanceManagerFactory         biinstance.ManagerFactory
-	stemcellManagerFactory         bistemcell.ManagerFactory
-	deploymentManagerFactory       bidepl.ManagerFactory
-	deploymentFactory              bidepl.Factory
-	deployer                       bidepl.Deployer
-	blobstoreFactory               biblobstore.Factory
-	eventLogger                    biui.Stage
-	installerFactory               biinstall.InstallerFactory
-	releaseExtractor               birel.Extractor
-	releaseManager                 birel.Manager
-	releaseResolver                birelset.Resolver
-	releaseSetParser               birelsetmanifest.Parser
-	releaseJobResolver             bideplrel.JobResolver
-	installationParser             biinstallmanifest.Parser
-	deploymentParser               bideplmanifest.Parser
-	releaseSetValidator            birelsetmanifest.Validator
-	installationValidator          biinstallmanifest.Validator
-	deploymentValidator            bideplmanifest.Validator
-	cloudFactory                   bicloud.Factory
-	stateBuilderFactory            biinstancestate.BuilderFactory
-	compiledPackageRepo            bistatepkg.CompiledPackageRepo
+	commands               map[string](func() (Cmd, error))
+	fs                     boshsys.FileSystem
+	ui                     biui.UI
+	timeService            boshtime.Service
+	logger                 boshlog.Logger
+	uuidGenerator          boshuuid.Generator
+	workspaceRootPath      string
+	runner                 boshsys.CmdRunner
+	compressor             boshcmd.Compressor
+	agentClientFactory     bihttpagent.AgentClientFactory
+	registryServerManager  biregistry.ServerManager
+	sshTunnelFactory       bisshtunnel.Factory
+	instanceFactory        biinstance.Factory
+	instanceManagerFactory biinstance.ManagerFactory
+	deploymentFactory      bidepl.Factory
+	blobstoreFactory       biblobstore.Factory
+	eventLogger            biui.Stage
+	releaseExtractor       birel.Extractor
+	releaseManager         birel.Manager
+	releaseResolver        birelset.Resolver
+	releaseSetParser       birelsetmanifest.Parser
+	releaseJobResolver     bideplrel.JobResolver
+	installationParser     biinstallmanifest.Parser
+	deploymentParser       bideplmanifest.Parser
+	releaseSetValidator    birelsetmanifest.Validator
+	installationValidator  biinstallmanifest.Validator
+	deploymentValidator    bideplmanifest.Validator
+	cloudFactory           bicloud.Factory
+	stateBuilderFactory    biinstancestate.BuilderFactory
+	compiledPackageRepo    bistatepkg.CompiledPackageRepo
 }
 
 func NewFactory(
@@ -119,61 +107,20 @@ func (f *factory) CreateCommand(name string) (Cmd, error) {
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
-	stemcellReader := bistemcell.NewReader(f.loadCompressor(), f.fs)
-	stemcellExtractor := bistemcell.NewExtractor(stemcellReader, f.fs)
-
-	deploymentRepo := biconfig.NewDeploymentRepo(f.loadDeploymentConfigService())
-	releaseRepo := biconfig.NewReleaseRepo(f.loadDeploymentConfigService(), f.uuidGenerator)
-	sha1Calculator := bicrypto.NewSha1Calculator(f.fs)
-	deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, f.loadStemcellRepo(), sha1Calculator)
-
-	return NewDeployCmd(
-		f.ui,
-		f.fs,
-		f.loadReleaseSetParser(),
-		f.loadInstallationParser(),
-		f.loadDeploymentParser(),
-		f.loadLegacyDeploymentConfigMigrator(),
-		f.loadDeploymentConfigService(),
-		f.loadReleaseSetValidator(),
-		f.loadInstallationValidator(),
-		f.loadDeploymentValidator(),
-		f.loadInstallerFactory(),
-		f.loadReleaseExtractor(),
-		f.loadReleaseManager(),
-		f.loadReleaseResolver(),
-		f.loadCloudFactory(),
-		f.loadAgentClientFactory(),
-		f.loadVMManagerFactory(),
-		stemcellExtractor,
-		f.loadStemcellManagerFactory(),
-		deploymentRecord,
-		f.loadBlobstoreFactory(),
-		f.loadDeployer(),
-		f.uuidGenerator,
-		f.logger,
-	), nil
+	getter := func(deploymentManifestPath string) DeploymentPreparer {
+		f := &deploymentManagerFactory2{f: f, deploymentManifestPath: deploymentManifestPath}
+		return f.loadDeploymentPreparer()
+	}
+	return NewDeployCmd(f.ui, f.fs, f.logger, getter), nil
 }
 
 func (f *factory) createDeleteCmd() (Cmd, error) {
-	return NewDeleteCmd(
-		f.ui,
-		f.fs,
-		f.loadReleaseSetParser(),
-		f.loadInstallationParser(),
-		f.loadDeploymentConfigService(),
-		f.loadReleaseSetValidator(),
-		f.loadInstallationValidator(),
-		f.loadInstallerFactory(),
-		f.loadReleaseExtractor(),
-		f.loadReleaseManager(),
-		f.loadReleaseResolver(),
-		f.loadCloudFactory(),
-		f.loadAgentClientFactory(),
-		f.loadBlobstoreFactory(),
-		f.loadDeploymentManagerFactory(),
-		f.logger,
-	), nil
+	getter := func(deploymentManifestPath string) DeploymentDeleter {
+		f := &deploymentManagerFactory2{f: f, deploymentManifestPath: deploymentManifestPath}
+		return f.loadDeploymentDeleter()
+	}
+
+	return NewDeleteCmd(f.ui, f.fs, f.logger, getter), nil
 }
 
 func (f *factory) loadCMDRunner() boshsys.CmdRunner {
@@ -190,30 +137,6 @@ func (f *factory) loadCompressor() boshcmd.Compressor {
 	}
 	f.compressor = boshcmd.NewTarballCompressor(f.loadCMDRunner(), f.fs)
 	return f.compressor
-}
-
-func (f *factory) loadStemcellRepo() biconfig.StemcellRepo {
-	if f.stemcellRepo != nil {
-		return f.stemcellRepo
-	}
-	f.stemcellRepo = biconfig.NewStemcellRepo(f.loadDeploymentConfigService(), f.uuidGenerator)
-	return f.stemcellRepo
-}
-
-func (f *factory) loadVMRepo() biconfig.VMRepo {
-	if f.vmRepo != nil {
-		return f.vmRepo
-	}
-	f.vmRepo = biconfig.NewVMRepo(f.loadDeploymentConfigService())
-	return f.vmRepo
-}
-
-func (f *factory) loadDiskRepo() biconfig.DiskRepo {
-	if f.diskRepo != nil {
-		return f.diskRepo
-	}
-	f.diskRepo = biconfig.NewDiskRepo(f.loadDeploymentConfigService(), f.uuidGenerator)
-	return f.diskRepo
 }
 
 func (f *factory) loadCompiledPackageRepo() bistatepkg.CompiledPackageRepo {
@@ -242,24 +165,6 @@ func (f *factory) loadSSHTunnelFactory() bisshtunnel.Factory {
 
 	f.sshTunnelFactory = bisshtunnel.NewFactory(f.logger)
 	return f.sshTunnelFactory
-}
-
-func (f *factory) loadDiskDeployer() bivm.DiskDeployer {
-	if f.diskDeployer != nil {
-		return f.diskDeployer
-	}
-
-	f.diskDeployer = bivm.NewDiskDeployer(f.loadDiskManagerFactory(), f.loadDiskRepo(), f.logger)
-	return f.diskDeployer
-}
-
-func (f *factory) loadDiskManagerFactory() bidisk.ManagerFactory {
-	if f.diskManagerFactory != nil {
-		return f.diskManagerFactory
-	}
-
-	f.diskManagerFactory = bidisk.NewManagerFactory(f.loadDiskRepo(), f.logger)
-	return f.diskManagerFactory
 }
 
 func (f *factory) loadInstanceManagerFactory() biinstance.ManagerFactory {
@@ -324,21 +229,6 @@ func (f *factory) loadBuilderFactory() biinstancestate.BuilderFactory {
 	return f.stateBuilderFactory
 }
 
-func (f *factory) loadDeploymentManagerFactory() bidepl.ManagerFactory {
-	if f.deploymentManagerFactory != nil {
-		return f.deploymentManagerFactory
-	}
-
-	f.deploymentManagerFactory = bidepl.NewManagerFactory(
-		f.loadVMManagerFactory(),
-		f.loadInstanceManagerFactory(),
-		f.loadDiskManagerFactory(),
-		f.loadStemcellManagerFactory(),
-		f.loadDeploymentFactory(),
-	)
-	return f.deploymentManagerFactory
-}
-
 func (f *factory) loadDeploymentFactory() bidepl.Factory {
 	if f.deploymentFactory != nil {
 		return f.deploymentFactory
@@ -361,72 +251,6 @@ func (f *factory) loadAgentClientFactory() bihttpagent.AgentClientFactory {
 
 	f.agentClientFactory = bihttpagent.NewAgentClientFactory(1*time.Second, f.logger)
 	return f.agentClientFactory
-}
-
-func (f *factory) loadVMManagerFactory() bivm.ManagerFactory {
-	if f.vmManagerFactory != nil {
-		return f.vmManagerFactory
-	}
-
-	f.vmManagerFactory = bivm.NewManagerFactory(
-		f.loadVMRepo(),
-		f.loadStemcellRepo(),
-		f.loadDiskDeployer(),
-		f.uuidGenerator,
-		f.fs,
-		f.logger,
-	)
-	return f.vmManagerFactory
-}
-
-func (f *factory) loadStemcellManagerFactory() bistemcell.ManagerFactory {
-	if f.stemcellManagerFactory != nil {
-		return f.stemcellManagerFactory
-	}
-
-	f.stemcellManagerFactory = bistemcell.NewManagerFactory(f.loadStemcellRepo())
-	return f.stemcellManagerFactory
-}
-
-func (f *factory) loadLegacyDeploymentConfigMigrator() biconfig.LegacyDeploymentConfigMigrator {
-	if f.legacyDeploymentConfigMigrator != nil {
-		return f.legacyDeploymentConfigMigrator
-	}
-
-	f.legacyDeploymentConfigMigrator = biconfig.NewLegacyDeploymentConfigMigrator(
-		f.loadDeploymentConfigService(),
-		f.fs,
-		f.uuidGenerator,
-		f.logger,
-	)
-	return f.legacyDeploymentConfigMigrator
-}
-
-func (f *factory) loadDeploymentConfigService() biconfig.DeploymentConfigService {
-	if f.deploymentConfigService != nil {
-		return f.deploymentConfigService
-	}
-
-	f.deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(
-		f.fs,
-		f.uuidGenerator,
-		f.logger,
-	)
-	return f.deploymentConfigService
-}
-
-func (f *factory) loadDeployer() bidepl.Deployer {
-	if f.deployer != nil {
-		return f.deployer
-	}
-
-	f.deployer = bidepl.NewDeployer(
-		f.loadVMManagerFactory(),
-		f.loadInstanceManagerFactory(),
-		f.loadDeploymentFactory(),
-		f.logger,
-	)
-	return f.deployer
 }
 
 func (f *factory) loadBlobstoreFactory() biblobstore.Factory {
@@ -529,28 +353,228 @@ func (f *factory) loadCloudFactory() bicloud.Factory {
 	return f.cloudFactory
 }
 
-func (f *factory) loadInstallerFactory() biinstall.InstallerFactory {
-	if f.installerFactory != nil {
-		return f.installerFactory
+type deploymentManagerFactory2 struct {
+	f                              *factory
+	deploymentManifestPath         string
+	deploymentConfigService        biconfig.DeploymentConfigService
+	legacyDeploymentConfigMigrator biconfig.LegacyDeploymentConfigMigrator
+	vmRepo                         biconfig.VMRepo
+	stemcellRepo                   biconfig.StemcellRepo
+	diskRepo                       biconfig.DiskRepo
+	diskDeployer                   bivm.DiskDeployer
+	diskManagerFactory             bidisk.ManagerFactory
+	deploymentManagerFactory       bidepl.ManagerFactory
+	vmManagerFactory               bivm.ManagerFactory
+	stemcellManagerFactory         bistemcell.ManagerFactory
+	installerFactory               biinstall.InstallerFactory
+	deployer                       bidepl.Deployer
+}
+
+func (d *deploymentManagerFactory2) loadDeploymentPreparer() DeploymentPreparer {
+	stemcellReader := bistemcell.NewReader(d.f.loadCompressor(), d.f.fs)
+	stemcellExtractor := bistemcell.NewExtractor(stemcellReader, d.f.fs)
+	deploymentRepo := biconfig.NewDeploymentRepo(d.loadDeploymentConfigService())
+	releaseRepo := biconfig.NewReleaseRepo(d.loadDeploymentConfigService(), d.f.uuidGenerator)
+	sha1Calculator := bicrypto.NewSha1Calculator(d.f.fs)
+	deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, d.loadStemcellRepo(), sha1Calculator)
+
+	return NewDeploymentPreparer(
+		d.f.ui,
+		d.f.fs,
+		d.f.logger,
+		"DeploymentPreparer",
+		d.loadDeploymentConfigService(),
+		d.loadLegacyDeploymentConfigMigrator(),
+		d.f.loadReleaseManager(),
+		deploymentRecord,
+		d.loadInstallerFactory(),
+		d.f.loadCloudFactory(),
+		d.loadStemcellManagerFactory(),
+		d.f.loadAgentClientFactory(),
+		d.loadVMManagerFactory(),
+		d.f.loadBlobstoreFactory(),
+		d.loadDeployer(),
+		d.f.loadReleaseSetParser(),
+		d.f.loadInstallationParser(),
+		d.f.loadDeploymentParser(),
+		d.f.loadReleaseSetValidator(),
+		d.f.loadInstallationValidator(),
+		d.f.loadDeploymentValidator(),
+		d.f.loadReleaseExtractor(),
+		d.f.loadReleaseResolver(),
+		stemcellExtractor,
+	)
+}
+
+func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
+	return NewDeploymentDeleter(
+		d.f.ui,
+		"DeploymentDeleter",
+		d.f.logger,
+		d.f.fs,
+		d.loadDeploymentConfigService(),
+		d.f.loadReleaseManager(),
+		d.loadInstallerFactory(),
+		d.f.loadCloudFactory(),
+		d.f.loadAgentClientFactory(),
+		d.f.loadBlobstoreFactory(),
+		d.loadDeploymentManagerFactory(),
+		d.f.loadReleaseSetParser(),
+		d.f.loadReleaseSetValidator(),
+		d.f.loadReleaseResolver(),
+		d.f.loadReleaseExtractor(),
+		d.f.loadInstallationParser(),
+		d.f.loadInstallationValidator(),
+	)
+}
+
+func (d *deploymentManagerFactory2) loadDeploymentConfigService() biconfig.DeploymentConfigService {
+	if d.deploymentConfigService != nil {
+		return d.deploymentConfigService
+	}
+
+	d.deploymentConfigService = biconfig.NewFileSystemDeploymentConfigService(
+		d.f.fs,
+		d.f.uuidGenerator,
+		d.f.logger,
+	)
+	deploymentConfigPath := biconfig.DeploymentConfigPath(d.deploymentManifestPath)
+	d.deploymentConfigService.SetConfigPath(deploymentConfigPath)
+	return d.deploymentConfigService
+}
+
+func (d *deploymentManagerFactory2) loadLegacyDeploymentConfigMigrator() biconfig.LegacyDeploymentConfigMigrator {
+	if d.legacyDeploymentConfigMigrator != nil {
+		return d.legacyDeploymentConfigMigrator
+	}
+
+	d.legacyDeploymentConfigMigrator = biconfig.NewLegacyDeploymentConfigMigrator(
+		d.loadDeploymentConfigService(),
+		d.f.fs,
+		d.f.uuidGenerator,
+		d.f.logger,
+	)
+	return d.legacyDeploymentConfigMigrator
+}
+
+func (d *deploymentManagerFactory2) loadStemcellRepo() biconfig.StemcellRepo {
+	if d.stemcellRepo != nil {
+		return d.stemcellRepo
+	}
+	d.stemcellRepo = biconfig.NewStemcellRepo(d.loadDeploymentConfigService(), d.f.uuidGenerator)
+	return d.stemcellRepo
+}
+
+func (d *deploymentManagerFactory2) loadVMRepo() biconfig.VMRepo {
+	if d.vmRepo != nil {
+		return d.vmRepo
+	}
+	d.vmRepo = biconfig.NewVMRepo(d.loadDeploymentConfigService())
+	return d.vmRepo
+}
+
+func (d *deploymentManagerFactory2) loadDiskRepo() biconfig.DiskRepo {
+	if d.diskRepo != nil {
+		return d.diskRepo
+	}
+	d.diskRepo = biconfig.NewDiskRepo(d.loadDeploymentConfigService(), d.f.uuidGenerator)
+	return d.diskRepo
+}
+
+func (d *deploymentManagerFactory2) loadDiskDeployer() bivm.DiskDeployer {
+	if d.diskDeployer != nil {
+		return d.diskDeployer
+	}
+
+	d.diskDeployer = bivm.NewDiskDeployer(d.loadDiskManagerFactory(), d.loadDiskRepo(), d.f.logger)
+	return d.diskDeployer
+}
+
+func (d *deploymentManagerFactory2) loadDiskManagerFactory() bidisk.ManagerFactory {
+	if d.diskManagerFactory != nil {
+		return d.diskManagerFactory
+	}
+
+	d.diskManagerFactory = bidisk.NewManagerFactory(d.loadDiskRepo(), d.f.logger)
+	return d.diskManagerFactory
+}
+
+func (d *deploymentManagerFactory2) loadDeploymentManagerFactory() bidepl.ManagerFactory {
+	if d.deploymentManagerFactory != nil {
+		return d.deploymentManagerFactory
+	}
+
+	d.deploymentManagerFactory = bidepl.NewManagerFactory(
+		d.loadVMManagerFactory(),
+		d.f.loadInstanceManagerFactory(),
+		d.loadDiskManagerFactory(),
+		d.loadStemcellManagerFactory(),
+		d.f.loadDeploymentFactory(),
+	)
+	return d.deploymentManagerFactory
+}
+
+func (d *deploymentManagerFactory2) loadVMManagerFactory() bivm.ManagerFactory {
+	if d.vmManagerFactory != nil {
+		return d.vmManagerFactory
+	}
+
+	d.vmManagerFactory = bivm.NewManagerFactory(
+		d.loadVMRepo(),
+		d.loadStemcellRepo(),
+		d.loadDiskDeployer(),
+		d.f.uuidGenerator,
+		d.f.fs,
+		d.f.logger,
+	)
+	return d.vmManagerFactory
+}
+
+func (d *deploymentManagerFactory2) loadStemcellManagerFactory() bistemcell.ManagerFactory {
+	if d.stemcellManagerFactory != nil {
+		return d.stemcellManagerFactory
+	}
+
+	d.stemcellManagerFactory = bistemcell.NewManagerFactory(d.loadStemcellRepo())
+	return d.stemcellManagerFactory
+}
+
+func (d *deploymentManagerFactory2) loadDeployer() bidepl.Deployer {
+	if d.deployer != nil {
+		return d.deployer
+	}
+
+	d.deployer = bidepl.NewDeployer(
+		d.loadVMManagerFactory(),
+		d.f.loadInstanceManagerFactory(),
+		d.f.loadDeploymentFactory(),
+		d.f.logger,
+	)
+	return d.deployer
+}
+
+func (d *deploymentManagerFactory2) loadInstallerFactory() biinstall.InstallerFactory {
+	if d.installerFactory != nil {
+		return d.installerFactory
 	}
 
 	targetProvider := biinstall.NewTargetProvider(
-		f.loadDeploymentConfigService(),
-		f.uuidGenerator,
-		filepath.Join(f.workspaceRootPath, "installations"),
+		d.loadDeploymentConfigService(),
+		d.f.uuidGenerator,
+		filepath.Join(d.f.workspaceRootPath, "installations"),
 	)
 
-	f.installerFactory = biinstall.NewInstallerFactory(
+	d.installerFactory = biinstall.NewInstallerFactory(
 		targetProvider,
-		f.ui,
-		f.fs,
-		f.loadCMDRunner(),
-		f.loadCompressor(),
-		f.loadReleaseResolver(),
-		f.loadReleaseJobResolver(),
-		f.uuidGenerator,
-		f.loadRegistryServerManager(),
-		f.logger,
+		d.f.ui,
+		d.f.fs,
+		d.f.loadCMDRunner(),
+		d.f.loadCompressor(),
+		d.f.loadReleaseResolver(),
+		d.f.loadReleaseJobResolver(),
+		d.f.uuidGenerator,
+		d.f.loadRegistryServerManager(),
+		d.f.logger,
 	)
-	return f.installerFactory
+	return d.installerFactory
 }

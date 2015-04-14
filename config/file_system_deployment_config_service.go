@@ -10,6 +10,7 @@ import (
 )
 
 type fileSystemDeploymentConfigService struct {
+	manifestPath  string `inject:"manifestPath"`
 	configPath    string
 	fs            boshsys.FileSystem
 	uuidGenerator boshuuid.Generator
@@ -24,6 +25,10 @@ func NewFileSystemDeploymentConfigService(fs boshsys.FileSystem, uuidGenerator b
 		logger:        logger,
 		logTag:        "config",
 	}
+}
+
+func (s *fileSystemDeploymentConfigService) Path() string {
+	return s.configPath
 }
 
 func (s *fileSystemDeploymentConfigService) Exists() bool {

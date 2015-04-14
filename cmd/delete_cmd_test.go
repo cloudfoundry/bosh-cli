@@ -1,8 +1,6 @@
-package cmd_test
+package cmd
 
 import (
-	. "github.com/cloudfoundry/bosh-init/cmd"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -159,24 +157,34 @@ cloud_provider:
 			installationValidator := biinstallmanifest.NewValidator(logger, releaseSetResolver)
 			installationParser := biinstallmanifest.NewParser(fs, logger)
 
-			return NewDeleteCmd(
-				fakeUI,
-				fs,
-				releaseSetParser,
-				installationParser,
-				biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger),
-				releaseSetValidator,
-				installationValidator,
-				mockInstallerFactory,
-				mockReleaseExtractor,
-				releaseManager,
-				releaseSetResolver,
-				mockCloudFactory,
-				mockAgentClientFactory,
-				mockBlobstoreFactory,
-				mockDeploymentManagerFactory,
-				logger,
-			)
+			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
+				deploymentConfigService := biconfig.NewFileSystemDeploymentConfigService(fs, fakeUUIDGenerator, logger)
+				deploymentConfigService.SetConfigPath(biconfig.DeploymentConfigPath(deploymentManifestPath))
+
+				deploymentDeleter := DeploymentDeleter{
+					ui:     fakeUI,
+					logTag: "deleteCmd",
+					logger: logger,
+					fs:     fs,
+					deploymentConfigService:  deploymentConfigService,
+					releaseSetParser:         releaseSetParser,
+					installationParser:       installationParser,
+					releaseSetValidator:      releaseSetValidator,
+					installationValidator:    installationValidator,
+					installerFactory:         mockInstallerFactory,
+					releaseExtractor:         mockReleaseExtractor,
+					releaseManager:           releaseManager,
+					releaseResolver:          releaseSetResolver,
+					cloudFactory:             mockCloudFactory,
+					agentClientFactory:       mockAgentClientFactory,
+					blobstoreFactory:         mockBlobstoreFactory,
+					deploymentManagerFactory: mockDeploymentManagerFactory,
+				}
+
+				return deploymentDeleter
+			}
+
+			return NewDeleteCmd(fakeUI, fs, logger, doGetFunc)
 		}
 
 		var expectDeleteAndCleanup = func() {

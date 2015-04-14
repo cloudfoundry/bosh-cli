@@ -39,6 +39,7 @@ type ReleaseRecord struct {
 }
 
 type DeploymentConfigService interface {
+	Path() string
 	SetConfigPath(string)
 	Exists() bool
 	Load() (DeploymentFile, error)
