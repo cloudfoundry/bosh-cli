@@ -19,6 +19,21 @@ type Meta struct {
 }
 
 type MetaEnv struct {
-	Example     string
+	Example string
+	Default string
+
 	Description string
+}
+
+var genericEnv = map[string]MetaEnv{
+	"BOSH_INIT_LOG_LEVEL": MetaEnv{
+		Example:     "debug",
+		Default:     "none",
+		Description: "none, info, debug, warn, or error",
+	},
+	"BOSH_INIT_LOG_PATH": MetaEnv{
+		Example:     "/path/to/file.log",
+		Default:     "standard out/err",
+		Description: "The path where logs will be written",
+	},
 }

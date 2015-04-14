@@ -10,17 +10,6 @@ import (
 	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
-var genericEnv = map[string]MetaEnv{
-	"BOSH_INIT_LOG_LEVEL": MetaEnv{
-		Example:     "DEBUG",
-		Description: `"NONE", "INFO", "DEBUG", "WARN", or "ERROR"`,
-	},
-	"BOSH_INIT_LOG_PATH": MetaEnv{
-		Example:     "/path/to/file.log",
-		Description: "The path where logs will be written",
-	},
-}
-
 type helpCmd struct {
 	ui          biui.UI
 	commandList CommandList
@@ -90,7 +79,7 @@ func (h *helpCmd) printMissing(cmdName string) {
 
 func (h *helpCmd) sortedCommands() []contextPair {
 	inputs := map[string]string{}
-	for key, _ := range h.commandList {
+	for key := range h.commandList {
 		cmd, _ := h.commandList.Create(key)
 		inputs[key] = cmd.Meta().Synopsis
 	}
@@ -108,7 +97,11 @@ func sortedEnvs(metaEnvs map[string]MetaEnv) []contextPair {
 			key = name
 		}
 
-		inputs[key] = env.Description
+		if env.Default != "" {
+			inputs[key] = fmt.Sprintf("%s. Default: %s", env.Description, env.Default)
+		} else {
+			inputs[key] = env.Description
+		}
 	}
 
 	return sortedPairs(inputs)
@@ -118,7 +111,7 @@ func sortedPairs(pairs map[string]string) []contextPair {
 	keys := make([]string, 0, len(pairs))
 	maxLen := 0
 
-	for key, _ := range pairs {
+	for key := range pairs {
 		if len(key) > maxLen {
 			maxLen = len(key)
 		}

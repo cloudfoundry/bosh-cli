@@ -32,6 +32,7 @@ var _ = Describe("HelpCmd", func() {
 					Env: map[string]MetaEnv{
 						"BOSH_ENV_VARIABLE1": {
 							Example:     "value",
+							Default:     "default",
 							Description: "Sets some environment variable to a value",
 						},
 						"BOSH_ENV_VARIABLE2": {
@@ -103,7 +104,7 @@ USAGE:
     bosh-init complex [arguments]
 
 ENVIRONMENT VARIABLES:
-    BOSH_ENV_VARIABLE1=value             Sets some environment variable to a value
+    BOSH_ENV_VARIABLE1=value             Sets some environment variable to a value. Default: default
     BOSH_ENV_VARIABLE2=something-else    Sets another environment variable`
 
 					Expect(ui.Said).To(Equal([]string{expectedOutput}))

@@ -17,17 +17,20 @@ func NewRunner(factory Factory) *Runner {
 }
 
 func (r *Runner) Run(stage biui.Stage, args ...string) error {
+	var commandName string
 	if len(args) == 0 {
-		return bosherr.Error("Invalid usage: No command specified")
+		commandName = "help"
+	} else {
+		commandName = args[0]
+		args = args[1:]
 	}
 
-	commandName := args[0]
 	cmd, err := r.factory.CreateCommand(commandName)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Command '%s' unknown", commandName)
 	}
 
-	err = cmd.Run(stage, args[1:])
+	err = cmd.Run(stage, args)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Command '%s' failed", commandName)
 	}

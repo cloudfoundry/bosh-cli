@@ -47,28 +47,27 @@ var _ = Describe("Runner", func() {
 			})
 		})
 
-		Context("invalid args", func() {
-			It("fails with error with empty args", func() {
+		Context("when no arguments were passed in", func() {
+			It("prints the generic help command", func() {
 				err := runner.Run(fakeStage)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Invalid usage: No command specified"))
-				Expect(factory.CommandName).To(Equal(""))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(factory.CommandName).To(Equal("help"))
+			})
+		})
+
+		Context("when an unknown command name was passed in", func() {
+			var fakeCommandName string
+
+			BeforeEach(func() {
+				fakeCommandName = "fake-command-name"
+				factory.PresetError = fmt.Errorf("Failed creating command with name: %s", fakeCommandName)
 			})
 
-			Context("unknown command name", func() {
-				var fakeCommandName string
-
-				BeforeEach(func() {
-					fakeCommandName = "fake-command-name"
-					factory.PresetError = fmt.Errorf("Failed creating command with name: %s", fakeCommandName)
-				})
-
-				It("fails with error with unknown command name", func() {
-					err := runner.Run(fakeStage, "fake-command-name", "/fake/manifest_path")
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Command '%s' unknown", fakeCommandName)))
-					Expect(factory.CommandName).To(Equal("fake-command-name"))
-				})
+			It("fails with error with unknown command name", func() {
+				err := runner.Run(fakeStage, "fake-command-name", "/fake/manifest_path")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Command '%s' unknown", fakeCommandName)))
+				Expect(factory.CommandName).To(Equal("fake-command-name"))
 			})
 		})
 	})
