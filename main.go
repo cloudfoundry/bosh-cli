@@ -24,7 +24,6 @@ func main() {
 	logger := newLogger()
 	defer logger.HandlePanic("Main")
 	fileSystem := boshsys.NewOsFileSystem(logger)
-	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_micro")
 	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_init")
 	ui := biui.NewConsoleUI(logger)
 	config := biconfig.UserConfig{}
