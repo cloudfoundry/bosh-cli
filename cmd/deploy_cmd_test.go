@@ -857,12 +857,12 @@ func rootDesc() {
 			})
 		})
 
-		Context("when the deployment config file does not exist", func() {
+		Context("when the deployment state file does not exist", func() {
 			BeforeEach(func() {
 				fakeFs.RemoveAll(deploymentStatePath)
 			})
 
-			It("creates a deployment config", func() {
+			It("creates a deployment state", func() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 

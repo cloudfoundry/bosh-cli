@@ -117,14 +117,14 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 				fakeFs.WriteFileString(deploymentStatePath, "some invalid content")
 				config, err := service.Load()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unmarshalling deployment config file '/some/deployment.json'"))
+				Expect(err.Error()).To(ContainSubstring("Unmarshalling deployment state file '/some/deployment.json'"))
 				Expect(config).To(Equal(DeploymentState{}))
 			})
 		})
 	})
 
 	Describe("Save", func() {
-		It("writes the deployment config to the deployment file", func() {
+		It("writes the deployment state to the deployment file", func() {
 			config := DeploymentState{
 				DirectorID: "deadbeef",
 				Stemcells: []StemcellRecord{
@@ -185,7 +185,7 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 				}
 				err := service.Save(config)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Writing deployment config file '/some/deployment.json'"))
+				Expect(err.Error()).To(ContainSubstring("Writing deployment state file '/some/deployment.json'"))
 			})
 		})
 	})

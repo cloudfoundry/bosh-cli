@@ -34,7 +34,7 @@ func NewTargetProvider(
 func (p *targetProvider) NewTarget() (Target, error) {
 	deploymentState, err := p.deploymentStateService.Load()
 	if err != nil {
-		return Target{}, bosherr.WrapError(err, "Loading deployment config")
+		return Target{}, bosherr.WrapError(err, "Loading deployment state")
 	}
 
 	installationID := deploymentState.InstallationID
@@ -47,7 +47,7 @@ func (p *targetProvider) NewTarget() (Target, error) {
 		deploymentState.InstallationID = installationID
 		err := p.deploymentStateService.Save(deploymentState)
 		if err != nil {
-			return Target{}, bosherr.WrapError(err, "Saving deployment config")
+			return Target{}, bosherr.WrapError(err, "Saving deployment state")
 		}
 	}
 

@@ -805,7 +805,7 @@ cloud_provider:
 			})
 		})
 
-		Context("when the deployment config file does not exist", func() {
+		Context("when the deployment state file does not exist", func() {
 			BeforeEach(func() {
 				err := fs.RemoveAll(deploymentStatePath)
 				Expect(err).ToNot(HaveOccurred())

@@ -293,7 +293,7 @@ cloud_provider:
 			})
 		})
 
-		Context("when the deployment config file does not exist", func() {
+		Context("when the deployment state file does not exist", func() {
 			BeforeEach(func() {
 				err := fs.RemoveAll(deploymentStatePath)
 				Expect(err).ToNot(HaveOccurred())
@@ -306,7 +306,7 @@ cloud_provider:
 				Expect(fakeUI.Said).To(Equal([]string{
 					"Deployment manifest: '/deployment-dir/fake-deployment-manifest.yml'",
 					"Deployment state: '/deployment-dir/deployment.json'",
-					"No deployment config file found.",
+					"No deployment state file found.",
 				}))
 			})
 		})

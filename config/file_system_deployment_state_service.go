@@ -45,26 +45,26 @@ func (s *fileSystemDeploymentStateService) Load() (DeploymentState, error) {
 		panic("configPath not yet set!")
 	}
 
-	s.logger.Debug(s.logTag, "Loading deployment config: %s", s.configPath)
+	s.logger.Debug(s.logTag, "Loading deployment state: %s", s.configPath)
 
 	deploymentState := &DeploymentState{}
 
 	if s.fs.FileExists(s.configPath) {
 		deploymentStateFileContents, err := s.fs.ReadFile(s.configPath)
 		if err != nil {
-			return DeploymentState{}, bosherr.WrapErrorf(err, "Reading deployment config file '%s'", s.configPath)
+			return DeploymentState{}, bosherr.WrapErrorf(err, "Reading deployment state file '%s'", s.configPath)
 		}
 		s.logger.Debug(s.logTag, "Deployment File Contents %#s", deploymentStateFileContents)
 
 		err = json.Unmarshal(deploymentStateFileContents, deploymentState)
 		if err != nil {
-			return DeploymentState{}, bosherr.WrapErrorf(err, "Unmarshalling deployment config file '%s'", s.configPath)
+			return DeploymentState{}, bosherr.WrapErrorf(err, "Unmarshalling deployment state file '%s'", s.configPath)
 		}
 	}
 
 	err := s.initDefaults(deploymentState)
 	if err != nil {
-		return DeploymentState{}, bosherr.WrapErrorf(err, "Initializing deployment config defaults")
+		return DeploymentState{}, bosherr.WrapErrorf(err, "Initializing deployment state defaults")
 	}
 
 	return *deploymentState, nil
@@ -75,16 +75,16 @@ func (s *fileSystemDeploymentStateService) Save(deploymentState DeploymentState)
 		panic("configPath not yet set!")
 	}
 
-	s.logger.Debug(s.logTag, "Saving deployment config %#v", deploymentState)
+	s.logger.Debug(s.logTag, "Saving deployment state %#v", deploymentState)
 
 	jsonContent, err := json.MarshalIndent(deploymentState, "", "    ")
 	if err != nil {
-		return bosherr.WrapError(err, "Marshalling deployment config into JSON")
+		return bosherr.WrapError(err, "Marshalling deployment state into JSON")
 	}
 
 	err = s.fs.WriteFile(s.configPath, jsonContent)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Writing deployment config file '%s'", s.configPath)
+		return bosherr.WrapErrorf(err, "Writing deployment state file '%s'", s.configPath)
 	}
 
 	return nil
@@ -100,7 +100,7 @@ func (s *fileSystemDeploymentStateService) initDefaults(deploymentState *Deploym
 
 		err = s.Save(*deploymentState)
 		if err != nil {
-			return bosherr.WrapError(err, "Saving deployment config")
+			return bosherr.WrapError(err, "Saving deployment state")
 		}
 	}
 

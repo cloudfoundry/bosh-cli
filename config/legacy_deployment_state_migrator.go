@@ -53,12 +53,12 @@ func (m *legacyDeploymentStateMigrator) MigrateIfExists(configPath string) (migr
 
 	err = m.deploymentStateService.Save(deploymentState)
 	if err != nil {
-		return false, bosherr.WrapError(err, "Saving migrated deployment config")
+		return false, bosherr.WrapError(err, "Saving migrated deployment state")
 	}
 
 	err = m.fs.RemoveAll(configPath)
 	if err != nil {
-		return false, bosherr.WrapError(err, "Deleting legacy deployment config")
+		return false, bosherr.WrapError(err, "Deleting legacy deployment state")
 	}
 
 	return true, nil
@@ -69,7 +69,7 @@ func (m *legacyDeploymentStateMigrator) migrate(configPath string) (deploymentSt
 
 	bytes, err := m.fs.ReadFile(configPath)
 	if err != nil {
-		return deploymentState, bosherr.WrapErrorf(err, "Reading legacy deployment config file '%s'", configPath)
+		return deploymentState, bosherr.WrapErrorf(err, "Reading legacy deployment state file '%s'", configPath)
 	}
 
 	// candiedyaml does not currently support ':' as the first character in a key.

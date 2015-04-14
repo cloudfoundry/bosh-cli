@@ -136,13 +136,13 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, releaseTarballPat
 	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
-		c.ui.PrintLinef("No deployment config file found.")
+		c.ui.PrintLinef("No deployment state file found.")
 		return nil
 	}
 
 	deploymentState, err := c.deploymentStateService.Load()
 	if err != nil {
-		return bosherr.WrapError(err, "Loading deployment config")
+		return bosherr.WrapError(err, "Loading deployment state")
 	}
 
 	var installationManifest biinstallmanifest.Manifest

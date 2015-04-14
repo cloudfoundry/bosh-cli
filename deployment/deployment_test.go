@@ -137,7 +137,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		JustBeforeEach(func() {
-			// all these local factories & managers are just used to construct a Deployment based on the deployment config
+			// all these local factories & managers are just used to construct a Deployment based on the deployment state
 			diskManagerFactory := bidisk.NewManagerFactory(diskRepo, logger)
 			diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
 

@@ -165,7 +165,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 	if !c.deploymentStateService.Exists() {
 		migrated, err := c.legacyDeploymentStateMigrator.MigrateIfExists(biconfig.LegacyDeploymentStatePath(deploymentManifestPath))
 		if err != nil {
-			return bosherr.WrapError(err, "Migrating legacy deployment config file")
+			return bosherr.WrapError(err, "Migrating legacy deployment state file")
 		}
 		if migrated {
 			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", biconfig.LegacyDeploymentStatePath(deploymentManifestPath))
@@ -174,7 +174,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 
 	deploymentState, err := c.deploymentStateService.Load()
 	if err != nil {
-		return bosherr.WrapError(err, "Loading deployment config")
+		return bosherr.WrapError(err, "Loading deployment state")
 	}
 
 	var (

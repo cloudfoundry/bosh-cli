@@ -40,7 +40,7 @@ var _ = Describe("TargetProvider", func() {
 		targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath)
 	})
 
-	Context("when the installation_id exists in the deployment config", func() {
+	Context("when the installation_id exists in the deployment state", func() {
 		BeforeEach(func() {
 			err := fakeFS.WriteFileString(configPath, `{"installation_id":"12345"}`)
 			Expect(err).ToNot(HaveOccurred())
@@ -62,7 +62,7 @@ var _ = Describe("TargetProvider", func() {
 		})
 	})
 
-	Context("when the installation_id does not exist in the deployment config", func() {
+	Context("when the installation_id does not exist in the deployment state", func() {
 		BeforeEach(func() {
 			err := fakeFS.WriteFileString(configPath, `{}`)
 			Expect(err).ToNot(HaveOccurred())
@@ -84,7 +84,7 @@ var _ = Describe("TargetProvider", func() {
 		})
 	})
 
-	Context("when the deployment config does not exist", func() {
+	Context("when the deployment state does not exist", func() {
 		BeforeEach(func() {
 			err := fakeFS.RemoveAll(configPath)
 			Expect(err).ToNot(HaveOccurred())

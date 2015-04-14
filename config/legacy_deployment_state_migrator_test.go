@@ -51,7 +51,7 @@ var _ = Describe("legacyDeploymentStateMigrator", func() {
 				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `xyz`)
 			})
 
-			It("does not delete the legacy deployment config file", func() {
+			It("does not delete the legacy deployment state file", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeFalse())
 				Expect(err).To(HaveOccurred())
@@ -66,7 +66,7 @@ var _ = Describe("legacyDeploymentStateMigrator", func() {
 				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `--- {}`)
 			})
 
-			It("deletes the legacy deployment config file", func() {
+			It("deletes the legacy deployment state file", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -96,7 +96,7 @@ registry_instances:
 `)
 			})
 
-			It("deletes the legacy deployment config file", func() {
+			It("deletes the legacy deployment state file", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -104,7 +104,7 @@ registry_instances:
 				Expect(fakeFs.FileExists(legacyDeploymentStateFilePath)).To(BeFalse())
 			})
 
-			It("creates a new deployment config file without vm, disk, or stemcell", func() {
+			It("creates a new deployment state file without vm, disk, or stemcell", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -148,7 +148,7 @@ registry_instances:
 `)
 			})
 
-			It("deletes the legacy deployment config file", func() {
+			It("deletes the legacy deployment state file", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -156,7 +156,7 @@ registry_instances:
 				Expect(fakeFs.FileExists(legacyDeploymentStateFilePath)).To(BeFalse())
 			})
 
-			It("creates a new deployment config file with vm, disk & stemcell", func() {
+			It("creates a new deployment state file with vm, disk & stemcell", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -214,7 +214,7 @@ registry_instances:
 `)
 			})
 
-			It("deletes the legacy deployment config file", func() {
+			It("deletes the legacy deployment state file", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -222,7 +222,7 @@ registry_instances:
 				Expect(fakeFs.FileExists(legacyDeploymentStateFilePath)).To(BeFalse())
 			})
 
-			It("creates a new deployment config file with vm", func() {
+			It("creates a new deployment state file with vm", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -266,7 +266,7 @@ registry_instances:
 `)
 			})
 
-			It("deletes the legacy deployment config file", func() {
+			It("deletes the legacy deployment state file", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -274,7 +274,7 @@ registry_instances:
 				Expect(fakeFs.FileExists(legacyDeploymentStateFilePath)).To(BeFalse())
 			})
 
-			It("creates a new deployment config file with disk only", func() {
+			It("creates a new deployment state file with disk only", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -325,7 +325,7 @@ registry_instances:
 `)
 			})
 
-			It("deletes the legacy deployment config file", func() {
+			It("deletes the legacy deployment state file", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
@@ -333,7 +333,7 @@ registry_instances:
 				Expect(fakeFs.FileExists(legacyDeploymentStateFilePath)).To(BeFalse())
 			})
 
-			It("creates a new deployment config file with stemcell only (marked as unused)", func() {
+			It("creates a new deployment state file with stemcell only (marked as unused)", func() {
 				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
 				Expect(migrated).To(BeTrue())
 				Expect(err).ToNot(HaveOccurred())
