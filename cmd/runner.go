@@ -22,7 +22,7 @@ func (r *Runner) Run(stage biui.Stage, args ...string) error {
 
 	cmd, err := r.factory.CreateCommand(commandName)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Command '%s' unknown", commandName)
+		return err
 	}
 
 	err = cmd.Run(stage, args[1:])

@@ -80,7 +80,7 @@ var _ = Describe("Runner", func() {
 
 			BeforeEach(func() {
 				fakeCommandName = "fake-command-name"
-				factory.PresetError = fmt.Errorf("Failed creating command with name: %s", fakeCommandName)
+				factory.PresetError = fmt.Errorf("Command '%s' unknown", fakeCommandName)
 			})
 
 			It("fails with error with unknown command name", func() {

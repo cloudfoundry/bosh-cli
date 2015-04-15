@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"errors"
 	"path/filepath"
 	"time"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -103,7 +103,7 @@ type CommandList map[string](func() (Cmd, error))
 
 func (cl CommandList) Create(name string) (Cmd, error) {
 	if cl[name] == nil {
-		return nil, errors.New("Invalid command name")
+		return nil, bosherr.Errorf("Command '%s' unknown. See 'bosh-init help'", name)
 	}
 
 	return cl[name]()
