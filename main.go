@@ -42,7 +42,13 @@ func main() {
 	stage := biui.NewStage(ui, timeService, logger)
 	err := cmdRunner.Run(stage, os.Args[1:]...)
 	if err != nil {
-		fail(err, ui, logger)
+		displayHelpFunc := func() {
+			if strings.Contains(err.Error(), "Invalid usage") {
+				ui.ErrorLinef("")
+				cmdRunner.Run(stage, append([]string{"help"}, os.Args[1:]...)...)
+			}
+		}
+		fail(err, ui, logger, displayHelpFunc)
 	}
 }
 
@@ -56,7 +62,7 @@ func newLogger() boshlog.Logger {
 			err = bosherr.WrapError(err, "Invalid BOSH_INIT_LOG_LEVEL value")
 			logger := boshlog.NewLogger(boshlog.LevelError)
 			ui := biui.NewConsoleUI(logger)
-			fail(err, ui, logger)
+			fail(err, ui, logger, nil)
 		}
 	}
 
@@ -79,18 +85,17 @@ func newFileLogger(logPath string, level boshlog.LogLevel) boshlog.Logger {
 	if err != nil {
 		logger := boshlog.NewLogger(boshlog.LevelError)
 		ui := biui.NewConsoleUI(logger)
-		fail(err, ui, logger)
+		fail(err, ui, logger, nil)
 	}
 	return logger
 }
 
-func fail(err error, ui biui.UI, logger boshlog.Logger) {
+func fail(err error, ui biui.UI, logger boshlog.Logger, callback func()) {
 	logger.Error(mainLogTag, err.Error())
 	ui.ErrorLinef("")
 	ui.ErrorLinef(biuifmt.MultilineError(err))
-	if strings.Contains(err.Error(), "Invalid usage") {
-		ui.ErrorLinef("")
-		ui.ErrorLinef("See 'bosh-init help %s'", os.Args[1])
+	if callback != nil {
+		callback()
 	}
 	os.Exit(1)
 }

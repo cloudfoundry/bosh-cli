@@ -185,6 +185,14 @@ var _ = Describe("bosh-init", func() {
 		deleteLogFile(cmdEnv["BOSH_INIT_LOG_PATH"])
 		deleteLogFile(quietCmdEnv["BOSH_INIT_LOG_PATH"])
 
+		err = bitestutils.BuildExecutableForArch("linux-amd64")
+		Expect(err).NotTo(HaveOccurred())
+
+		boshInitPath := "./../out/bosh-init"
+		Expect(fileSystem.FileExists(boshInitPath)).To(BeTrue())
+		err = testEnv.Copy("bosh-init", boshInitPath)
+		Expect(err).NotTo(HaveOccurred())
+
 		instanceSSH = NewInstanceSSH(
 			config.VMUsername,
 			config.VMIP,
@@ -197,13 +205,6 @@ var _ = Describe("bosh-init", func() {
 			logger,
 		)
 
-		err = bitestutils.BuildExecutableForArch("linux-amd64")
-		Expect(err).NotTo(HaveOccurred())
-
-		boshInitPath := "./../out/bosh-init"
-		Expect(fileSystem.FileExists(boshInitPath)).To(BeTrue())
-		err = testEnv.Copy("bosh-init", boshInitPath)
-		Expect(err).NotTo(HaveOccurred())
 		err = testEnv.DownloadOrCopy("stemcell.tgz", config.StemcellPath, config.StemcellURL)
 		Expect(err).NotTo(HaveOccurred())
 		err = testEnv.DownloadOrCopy("cpi-release.tgz", config.CpiReleasePath, config.CpiReleaseURL)
@@ -212,172 +213,189 @@ var _ = Describe("bosh-init", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	AfterEach(func() {
-		flushLog(cmdEnv["BOSH_INIT_LOG_PATH"])
+	Context("when the deploying with valid usage", func() {
+		AfterEach(func() {
+			flushLog(cmdEnv["BOSH_INIT_LOG_PATH"])
 
-		// quietly delete the deployment
-		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"), testEnv.Path("cpi-release.tgz"))
-		if exitCode != 0 || err != nil {
-			// only flush the delete log if the delete failed
-			flushLog(quietCmdEnv["BOSH_INIT_LOG_PATH"])
-		}
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-	})
+			// quietly delete the deployment
+			_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"), testEnv.Path("cpi-release.tgz"))
+			if exitCode != 0 || err != nil {
+				// only flush the delete log if the delete failed
+				flushLog(quietCmdEnv["BOSH_INIT_LOG_PATH"])
+			}
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+		})
 
-	It("is able to deploy given many variances", func() {
-		updateDeploymentManifest("./assets/manifest.yml")
+		It("is able to deploy given many variances", func() {
+			updateDeploymentManifest("./assets/manifest.yml")
 
-		println("#################################################")
-		println("it can deploy successfully with expected output")
-		println("#################################################")
-		stdout := deploy()
-		outputLines := strings.Split(stdout, "\n")
+			println("#################################################")
+			println("it can deploy successfully with expected output")
+			println("#################################################")
+			stdout := deploy()
+			outputLines := strings.Split(stdout, "\n")
 
-		doneIndex := 0
+			doneIndex := 0
 
-		validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-		Expect(validatingSteps[0]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
-		Expect(validatingSteps[1]).To(MatchRegexp("^  Validating releases" + stageFinishedPattern))
-		Expect(validatingSteps[2]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
-		Expect(validatingSteps[3]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
-		Expect(validatingSteps).To(HaveLen(4))
+			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
+			Expect(validatingSteps[0]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
+			Expect(validatingSteps[1]).To(MatchRegexp("^  Validating releases" + stageFinishedPattern))
+			Expect(validatingSteps[2]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
+			Expect(validatingSteps[3]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
+			Expect(validatingSteps).To(HaveLen(4))
 
-		installingSteps, doneIndex := findStage(outputLines, "installing CPI", doneIndex+1)
-		numInstallingSteps := len(installingSteps)
-		for _, line := range installingSteps[:numInstallingSteps-3] {
-			Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
-		}
-		Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
-		Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^  Installing packages" + stageFinishedPattern))
-		Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^  Installing job 'cpi'" + stageFinishedPattern))
+			installingSteps, doneIndex := findStage(outputLines, "installing CPI", doneIndex+1)
+			numInstallingSteps := len(installingSteps)
+			for _, line := range installingSteps[:numInstallingSteps-3] {
+				Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
+			}
+			Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
+			Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^  Installing packages" + stageFinishedPattern))
+			Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^  Installing job 'cpi'" + stageFinishedPattern))
 
-		Expect(outputLines[doneIndex+2]).To(MatchRegexp("^Starting registry" + stageFinishedPattern))
-		Expect(outputLines[doneIndex+3]).To(MatchRegexp("^Uploading stemcell '.*/.*'" + stageFinishedPattern))
+			Expect(outputLines[doneIndex+2]).To(MatchRegexp("^Starting registry" + stageFinishedPattern))
+			Expect(outputLines[doneIndex+3]).To(MatchRegexp("^Uploading stemcell '.*/.*'" + stageFinishedPattern))
 
-		deployingSteps, doneIndex := findStage(outputLines, "deploying", doneIndex+1)
-		numDeployingSteps := len(deployingSteps)
-		Expect(deployingSteps[0]).To(MatchRegexp("^  Creating VM for instance 'dummy_job/0' from stemcell '.*'" + stageFinishedPattern))
-		Expect(deployingSteps[1]).To(MatchRegexp("^  Waiting for the agent on VM '.*' to be ready" + stageFinishedPattern))
-		Expect(deployingSteps[2]).To(MatchRegexp("^  Creating disk" + stageFinishedPattern))
-		Expect(deployingSteps[3]).To(MatchRegexp("^  Attaching disk '.*' to VM '.*'" + stageFinishedPattern))
-		Expect(deployingSteps[4]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
+			deployingSteps, doneIndex := findStage(outputLines, "deploying", doneIndex+1)
+			numDeployingSteps := len(deployingSteps)
+			Expect(deployingSteps[0]).To(MatchRegexp("^  Creating VM for instance 'dummy_job/0' from stemcell '.*'" + stageFinishedPattern))
+			Expect(deployingSteps[1]).To(MatchRegexp("^  Waiting for the agent on VM '.*' to be ready" + stageFinishedPattern))
+			Expect(deployingSteps[2]).To(MatchRegexp("^  Creating disk" + stageFinishedPattern))
+			Expect(deployingSteps[3]).To(MatchRegexp("^  Attaching disk '.*' to VM '.*'" + stageFinishedPattern))
+			Expect(deployingSteps[4]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
 
-		for _, line := range deployingSteps[5 : numDeployingSteps-2] {
-			Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
-		}
+			for _, line := range deployingSteps[5 : numDeployingSteps-2] {
+				Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
+			}
 
-		Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Updating instance 'dummy_job/0'" + stageFinishedPattern))
-		Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Waiting for instance 'dummy_job/0' to be running" + stageFinishedPattern))
+			Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Updating instance 'dummy_job/0'" + stageFinishedPattern))
+			Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Waiting for instance 'dummy_job/0' to be running" + stageFinishedPattern))
 
-		println("#################################################")
-		println("it sets the ssh password")
-		println("#################################################")
-		stdout, _, exitCode, err := instanceSSH.RunCommand("echo ssh-succeeded")
-		Expect(err).ToNot(HaveOccurred())
-		Expect(exitCode).To(Equal(0))
-		Expect(stdout).To(ContainSubstring("ssh-succeeded"))
+			println("#################################################")
+			println("it sets the ssh password")
+			println("#################################################")
+			stdout, _, exitCode, err := instanceSSH.RunCommand("echo ssh-succeeded")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+			Expect(stdout).To(ContainSubstring("ssh-succeeded"))
 
-		println("#################################################")
-		println("when there are no changes, it skips deploy")
-		println("#################################################")
-		stdout = deploy()
+			println("#################################################")
+			println("when there are no changes, it skips deploy")
+			println("#################################################")
+			stdout = deploy()
 
-		Expect(stdout).To(ContainSubstring("No deployment, stemcell or release changes. Skipping deploy."))
-		Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
-		Expect(stdout).ToNot(ContainSubstring("Started deploying"))
+			Expect(stdout).To(ContainSubstring("No deployment, stemcell or release changes. Skipping deploy."))
+			Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
+			Expect(stdout).ToNot(ContainSubstring("Started deploying"))
 
-		println("#################################################")
-		println("when updating with property changes, it deletes the old VM")
-		println("#################################################")
-		updateDeploymentManifest("./assets/modified_manifest.yml")
+			println("#################################################")
+			println("when updating with property changes, it deletes the old VM")
+			println("#################################################")
+			updateDeploymentManifest("./assets/modified_manifest.yml")
 
-		stdout = deploy()
+			stdout = deploy()
 
-		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
-		Expect(stdout).To(ContainSubstring("Unmounting disk"))
+			Expect(stdout).To(ContainSubstring("Deleting VM"))
+			Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
+			Expect(stdout).To(ContainSubstring("Unmounting disk"))
 
-		Expect(stdout).ToNot(ContainSubstring("Creating disk"))
+			Expect(stdout).ToNot(ContainSubstring("Creating disk"))
 
-		println("#################################################")
-		println("when updating with disk size changed, it migrates the disk")
-		println("#################################################")
-		updateDeploymentManifest("./assets/modified_disk_manifest.yml")
+			println("#################################################")
+			println("when updating with disk size changed, it migrates the disk")
+			println("#################################################")
+			updateDeploymentManifest("./assets/modified_disk_manifest.yml")
 
-		stdout = deploy()
+			stdout = deploy()
 
-		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
-		Expect(stdout).To(ContainSubstring("Unmounting disk"))
+			Expect(stdout).To(ContainSubstring("Deleting VM"))
+			Expect(stdout).To(ContainSubstring("Stopping jobs on instance 'unknown/0'"))
+			Expect(stdout).To(ContainSubstring("Unmounting disk"))
 
-		Expect(stdout).To(ContainSubstring("Creating disk"))
-		Expect(stdout).To(ContainSubstring("Migrating disk"))
-		Expect(stdout).To(ContainSubstring("Deleting disk"))
+			Expect(stdout).To(ContainSubstring("Creating disk"))
+			Expect(stdout).To(ContainSubstring("Migrating disk"))
+			Expect(stdout).To(ContainSubstring("Deleting disk"))
 
-		println("#################################################")
-		println("when re-deploying without a working agent, it deletes the vm")
-		println("#################################################")
-		shutdownAgent()
+			println("#################################################")
+			println("when re-deploying without a working agent, it deletes the vm")
+			println("#################################################")
+			shutdownAgent()
 
-		updateDeploymentManifest("./assets/modified_manifest.yml")
+			updateDeploymentManifest("./assets/modified_manifest.yml")
 
-		stdout = deploy()
+			stdout = deploy()
 
-		Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
-		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Creating VM for instance 'dummy_job/0' from stemcell"))
-		Expect(stdout).To(ContainSubstring("Finished deploying"))
+			Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
+			Expect(stdout).To(ContainSubstring("Deleting VM"))
+			Expect(stdout).To(ContainSubstring("Creating VM for instance 'dummy_job/0' from stemcell"))
+			Expect(stdout).To(ContainSubstring("Finished deploying"))
 
-		println("#################################################")
-		println("it can delete all vms, disk, and stemcells")
-		println("#################################################")
-		stdout = deleteDeployment()
+			println("#################################################")
+			println("it can delete all vms, disk, and stemcells")
+			println("#################################################")
+			stdout = deleteDeployment()
 
-		Expect(stdout).To(ContainSubstring("Stopping jobs on instance"))
-		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Deleting disk"))
-		Expect(stdout).To(ContainSubstring("Deleting stemcell"))
-		Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
-	})
+			Expect(stdout).To(ContainSubstring("Stopping jobs on instance"))
+			Expect(stdout).To(ContainSubstring("Deleting VM"))
+			Expect(stdout).To(ContainSubstring("Deleting disk"))
+			Expect(stdout).To(ContainSubstring("Deleting stemcell"))
+			Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
+		})
 
-	It("delete the vm even without a working agent", func() {
-		updateDeploymentManifest("./assets/manifest.yml")
+		It("delete the vm even without a working agent", func() {
+			updateDeploymentManifest("./assets/manifest.yml")
 
-		deploy()
-		shutdownAgent()
+			deploy()
+			shutdownAgent()
 
-		stdout := deleteDeployment()
+			stdout := deleteDeployment()
 
-		Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
-		Expect(stdout).To(ContainSubstring("Deleting VM"))
-		Expect(stdout).To(ContainSubstring("Deleting disk"))
-		Expect(stdout).To(ContainSubstring("Deleting stemcell"))
-		Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
-	})
+			Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
+			Expect(stdout).To(ContainSubstring("Deleting VM"))
+			Expect(stdout).To(ContainSubstring("Deleting disk"))
+			Expect(stdout).To(ContainSubstring("Deleting stemcell"))
+			Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
+		})
 
-	It("deploys & deletes without registry and ssh tunnel", func() {
-		updateDeploymentManifest("./assets/manifest_without_registry.yml")
+		It("deploys & deletes without registry and ssh tunnel", func() {
+			updateDeploymentManifest("./assets/manifest_without_registry.yml")
 
-		stdout := deploy()
-		Expect(stdout).To(ContainSubstring("Finished deploying"))
+			stdout := deploy()
+			Expect(stdout).To(ContainSubstring("Finished deploying"))
 
-		stdout = deleteDeployment()
-		Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
-	})
+			stdout = deleteDeployment()
+			Expect(stdout).To(ContainSubstring("Finished deleting deployment"))
+		})
 
-	It("prints multiple validation errors at the same time", func() {
-		updateDeploymentManifest("./assets/invalid_manifest.yml")
+		It("prints multiple validation errors at the same time", func() {
+			updateDeploymentManifest("./assets/invalid_manifest.yml")
 
-		stdout := expectDeployToError()
+			stdout := expectDeployToError()
 
-		Expect(stdout).To(ContainSubstring("Validating deployment manifest... Failed"))
-		Expect(stdout).To(ContainSubstring("Failed validating"))
+			Expect(stdout).To(ContainSubstring("Validating deployment manifest... Failed"))
+			Expect(stdout).To(ContainSubstring("Failed validating"))
 
-		Expect(stdout).To(ContainSubstring(`
+			Expect(stdout).To(ContainSubstring(`
 Command 'deploy' failed:
   Validating deployment manifest:
     jobs[0].templates[0].release must refer to an available release:
       Release 'unknown-release' is not available`))
+		})
+	})
+
+	Context("when deploying with invalid usage", func() {
+		It("prints command help when command is called with invalid usage", func() {
+			stdout, stderr, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-init"), "deploy")
+
+			Expect(err).To(HaveOccurred())
+			Expect(exitCode).To(Equal(1))
+
+			Expect(stderr).To(ContainSubstring(`
+Command 'deploy' failed:
+  Invalid usage - deploy command requires at least 3 arguments`))
+
+			Expect(stdout).To(ContainSubstring(`deploy - Create or update a deployment`))
+		})
 	})
 })
