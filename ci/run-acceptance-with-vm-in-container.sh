@@ -6,13 +6,13 @@ echo "Running ci/run-acceptance-with-vm-in-container.sh"
 echo "ENV:"
 echo `env`
 
-BOSH_MICRO_CLI_DIR=/home/ubuntu/go/src/github.com/cloudfoundry/bosh-init
+BOSH_INIT_CLI_DIR=/home/ubuntu/go/src/github.com/cloudfoundry/bosh-init
 
 #inside the docker container
-BOSH_MICRO_PRIVATE_KEY_DIR=/home/ubuntu/private_keys
+BOSH_INIT_PRIVATE_KEY_DIR=/home/ubuntu/private_keys
 PRIVATE_KEY_DIR=$(cd $(dirname $BOSH_LITE_PRIVATE_KEY) && pwd)
 BOSH_LITE_PRIVATE_KEY_BASENAME=$(basename $BOSH_LITE_PRIVATE_KEY)
-BOSH_LITE_PRIVATE_KEY=${BOSH_MICRO_PRIVATE_KEY_DIR}/${BOSH_LITE_PRIVATE_KEY_BASENAME}
+BOSH_LITE_PRIVATE_KEY=${BOSH_INIT_PRIVATE_KEY_DIR}/${BOSH_LITE_PRIVATE_KEY_BASENAME}
 
 echo "ENV:"
 echo `env`
@@ -38,12 +38,12 @@ docker run \
   -e BOSH_LITE_NAME \
   -e BOSH_LITE_SECURITY_GROUP \
   -e BOSH_LITE_PRIVATE_KEY \
-  -e BOSH_MICRO_STEMCELL_URL \
-  -e BOSH_MICRO_CPI_RELEASE_URL \
-  -v $SRC_DIR:$BOSH_MICRO_CLI_DIR \
-  -v $PRIVATE_KEY_DIR:$BOSH_MICRO_PRIVATE_KEY_DIR \
+  -e BOSH_INIT_STEMCELL_URL \
+  -e BOSH_INIT_CPI_RELEASE_URL \
+  -v $SRC_DIR:$BOSH_INIT_CLI_DIR \
+  -v $PRIVATE_KEY_DIR:$BOSH_INIT_PRIVATE_KEY_DIR \
   $DOCKER_IMAGE \
-  $BOSH_MICRO_CLI_DIR/bin/test-acceptance-with-vm --provider=aws \
+  $BOSH_INIT_CLI_DIR/bin/test-acceptance-with-vm --provider=aws \
   &
 
 SUBPROC="$!"

@@ -17,11 +17,9 @@ func NewRunner(factory Factory) *Runner {
 }
 
 func (r *Runner) Run(stage biui.Stage, args ...string) error {
-	if len(args) == 0 {
-		return bosherr.Error("Invalid usage: No command specified")
-	}
-
+	args = processHelp(args)
 	commandName := args[0]
+
 	cmd, err := r.factory.CreateCommand(commandName)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Command '%s' unknown", commandName)
@@ -33,4 +31,18 @@ func (r *Runner) Run(stage biui.Stage, args ...string) error {
 	}
 
 	return nil
+}
+
+func processHelp(args []string) []string {
+	if len(args) == 0 {
+		return []string{"help"}
+	}
+
+	for i, arg := range args {
+		if arg == "help" || arg == "-h" || arg == "-help" || arg == "--help" {
+			return append(append([]string{"help"}, args[:i]...), args[i+1:]...)
+		}
+	}
+
+	return args
 }

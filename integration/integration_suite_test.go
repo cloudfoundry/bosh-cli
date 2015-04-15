@@ -26,7 +26,7 @@ func TestIntegration(t *testing.T) {
 		oldHome = os.Getenv("HOME")
 
 		var err error
-		homePath, err = ioutil.TempDir("", "micro-bosh-cli-integration")
+		homePath, err = ioutil.TempDir("", "bosh-init-cli-integration")
 		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Setenv("HOME", homePath)

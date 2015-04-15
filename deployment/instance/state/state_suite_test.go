@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestMicrodeployer(t *testing.T) {
+func TestState(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Instance State Suite")
 }

@@ -34,10 +34,10 @@ var _ = Describe("bosh-init", func() {
 		testEnv      Environment
 		config       *Config
 
-		microSSH      MicroSSH
-		microUsername = "vcap"
-		microPassword = "sshpassword" // encrypted value must be in the manifest: resource_pool.env.bosh.password
-		microIP       = "10.244.0.42"
+		instanceSSH      InstanceSSH
+		instanceUsername = "vcap"
+		instancePassword = "sshpassword" // encrypted value must be in the manifest: resource_pool.env.bosh.password
+		instanceIP       = "10.244.0.42"
 	)
 
 	var readLogFile = func(logPath string) (stdout string) {
@@ -101,11 +101,11 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	var shutdownAgent = func() {
-		_, _, exitCode, err := microSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
+		_, _, exitCode, err := instanceSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
 		if exitCode == 1 {
 			// If timeout was reached, KILL signal was sent before exiting.
 			// Retry to wait another 14s for exit.
-			_, _, exitCode, err = microSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
+			_, _, exitCode, err = instanceSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
 		}
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
@@ -171,28 +171,28 @@ var _ = Describe("bosh-init", func() {
 			logger,
 		)
 		cmdEnv = map[string]string{
-			"TMPDIR":               testEnv.Home(),
-			"BOSH_MICRO_LOG_LEVEL": "DEBUG",
-			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-init.log"),
+			"TMPDIR":              testEnv.Home(),
+			"BOSH_INIT_LOG_LEVEL": "DEBUG",
+			"BOSH_INIT_LOG_PATH":  testEnv.Path("bosh-init.log"),
 		}
 		quietCmdEnv = map[string]string{
-			"TMPDIR":               testEnv.Home(),
-			"BOSH_MICRO_LOG_LEVEL": "ERROR",
-			"BOSH_MICRO_LOG_PATH":  testEnv.Path("bosh-init-cleanup.log"),
+			"TMPDIR":              testEnv.Home(),
+			"BOSH_INIT_LOG_LEVEL": "ERROR",
+			"BOSH_INIT_LOG_PATH":  testEnv.Path("bosh-init-cleanup.log"),
 		}
 
 		// clean up from previous failed tests
-		deleteLogFile(cmdEnv["BOSH_MICRO_LOG_PATH"])
-		deleteLogFile(quietCmdEnv["BOSH_MICRO_LOG_PATH"])
+		deleteLogFile(cmdEnv["BOSH_INIT_LOG_PATH"])
+		deleteLogFile(quietCmdEnv["BOSH_INIT_LOG_PATH"])
 
-		microSSH = NewMicroSSH(
+		instanceSSH = NewInstanceSSH(
 			config.VMUsername,
 			config.VMIP,
 			config.VMPort,
 			config.PrivateKeyPath,
-			microUsername,
-			microIP,
-			microPassword,
+			instanceUsername,
+			instanceIP,
+			instancePassword,
 			fileSystem,
 			logger,
 		)
@@ -200,9 +200,9 @@ var _ = Describe("bosh-init", func() {
 		err = bitestutils.BuildExecutableForArch("linux-amd64")
 		Expect(err).NotTo(HaveOccurred())
 
-		boshMicroPath := "./../out/bosh-init"
-		Expect(fileSystem.FileExists(boshMicroPath)).To(BeTrue())
-		err = testEnv.Copy("bosh-init", boshMicroPath)
+		boshInitPath := "./../out/bosh-init"
+		Expect(fileSystem.FileExists(boshInitPath)).To(BeTrue())
+		err = testEnv.Copy("bosh-init", boshInitPath)
 		Expect(err).NotTo(HaveOccurred())
 		err = testEnv.DownloadOrCopy("stemcell.tgz", config.StemcellPath, config.StemcellURL)
 		Expect(err).NotTo(HaveOccurred())
@@ -213,13 +213,13 @@ var _ = Describe("bosh-init", func() {
 	})
 
 	AfterEach(func() {
-		flushLog(cmdEnv["BOSH_MICRO_LOG_PATH"])
+		flushLog(cmdEnv["BOSH_INIT_LOG_PATH"])
 
 		// quietly delete the deployment
 		_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"), testEnv.Path("cpi-release.tgz"))
 		if exitCode != 0 || err != nil {
 			// only flush the delete log if the delete failed
-			flushLog(quietCmdEnv["BOSH_MICRO_LOG_PATH"])
+			flushLog(quietCmdEnv["BOSH_INIT_LOG_PATH"])
 		}
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
@@ -273,7 +273,7 @@ var _ = Describe("bosh-init", func() {
 		println("#################################################")
 		println("it sets the ssh password")
 		println("#################################################")
-		stdout, _, exitCode, err := microSSH.RunCommand("echo ssh-succeeded")
+		stdout, _, exitCode, err := instanceSSH.RunCommand("echo ssh-succeeded")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		Expect(stdout).To(ContainSubstring("ssh-succeeded"))

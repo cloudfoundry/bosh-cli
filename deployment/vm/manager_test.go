@@ -65,7 +65,7 @@ var _ = Describe("Manager", func() {
 		expectedNetworkInterfaces = map[string]biproperty.Map{
 			"fake-network-name": biproperty.Map{
 				"type":             "dynamic",
-				"ip":               "fake-micro-ip",
+				"ip":               "fake-ip",
 				"cloud_properties": biproperty.Map{},
 			},
 		}
@@ -101,7 +101,7 @@ var _ = Describe("Manager", func() {
 					Networks: []bideplmanifest.JobNetwork{
 						{
 							Name:      "fake-network-name",
-							StaticIPs: []string{"fake-micro-ip"},
+							StaticIPs: []string{"fake-ip"},
 						},
 					},
 				},

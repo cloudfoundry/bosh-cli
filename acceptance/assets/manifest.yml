@@ -64,7 +64,6 @@ jobs:
   persistent_disk: 1024
   properties:
     cpi: *warden_cpi
-    micro: true
     dummy_with_properties:
       echo_value: "hi"
     ntp: []

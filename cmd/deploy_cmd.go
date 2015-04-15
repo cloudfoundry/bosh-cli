@@ -54,6 +54,14 @@ func (c *deployCmd) Name() string {
 	return "deploy"
 }
 
+func (c *deployCmd) Meta() Meta {
+	return Meta{
+		Synopsis: "Create or update a deployment",
+		Usage:    "<deployment_manifest_path> <stemcell_path> <cpi_release_path> [<release_paths...>]",
+		Env:      genericEnv,
+	}
+}
+
 func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 	deploymentManifestPath, stemcellTarballPath, releaseTarballPaths, err := c.parseCmdInputs(args)
 	if err != nil {
@@ -272,7 +280,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 			deployStage,
 		)
 		if err != nil {
-			return bosherr.WrapError(err, "Deploying Microbosh")
+			return bosherr.WrapError(err, "Deploying")
 		}
 
 		err = c.deploymentRecord.Update(deploymentManifestPath, c.releaseManager.List())

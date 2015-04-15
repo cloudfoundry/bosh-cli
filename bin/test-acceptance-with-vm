@@ -24,9 +24,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cpi_release_url=${BOSH_MICRO_CPI_RELEASE_URL:-https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=$cpi_release_version}
-stemcell_url=${BOSH_MICRO_STEMCELL_URL:-https://s3.amazonaws.com/bosh-dependencies/$stemcell_file}
-dummy_release_path=${BOSH_MICRO_DUMMY_RELEASE_PATH:-./assets/dummy-release.tgz}
+cpi_release_url=${BOSH_INIT_CPI_RELEASE_URL:-https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=$cpi_release_version}
+stemcell_url=${BOSH_INIT_STEMCELL_URL:-https://s3.amazonaws.com/bosh-dependencies/$stemcell_file}
+dummy_release_path=${BOSH_INIT_DUMMY_RELEASE_PATH:-./assets/dummy-release.tgz}
 
 echo "ENV"
 echo `env`
@@ -54,14 +54,14 @@ cat > $config_file <<EOF
   "vm_ip": "${vm_ip}",
   "vm_port": "${vm_port}",
   "private_key_path": "${private_key_path}",
-  "stemcell_path": "${BOSH_MICRO_STEMCELL_PATH}",
+  "stemcell_path": "${BOSH_INIT_STEMCELL_PATH}",
   "stemcell_url": "${stemcell_url}",
-  "cpi_release_path": "${BOSH_MICRO_CPI_RELEASE_PATH}",
+  "cpi_release_path": "${BOSH_INIT_CPI_RELEASE_PATH}",
   "cpi_release_url": "${cpi_release_url}",
   "dummy_release_path": "${dummy_release_path}"
 }
 EOF
 
-export BOSH_MICRO_CONFIG_PATH=$config_file
+export BOSH_INIT_CONFIG_PATH=$config_file
 
 ./bin/test-acceptance

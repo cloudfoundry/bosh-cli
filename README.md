@@ -94,15 +94,15 @@ Finished deploying (00:04:37)
 
 Along with the UI output (STDOUT) and UI errors (STDERR), bosh-init can output more verbose logs.
 
-Logging is disabled by default (`BOSH_MICRO_LOG_LEVEL` defaults to NONE).
+Logging is disabled by default (`BOSH_INIT_LOG_LEVEL` defaults to NONE).
 
-To enable logging, set the `BOSH_MICRO_LOG_LEVEL` environment variable to one of the following values:
+To enable logging, set the `BOSH_INIT_LOG_LEVEL` environment variable to one of the following values:
 
 DEBUG, INFO, WARN, ERROR, NONE (default)
 
 Logs write to STDOUT (debug & info) & STDERR (warn & error) by default.
 
-To write logs to a file, set the `BOSH_MICRO_LOG_PATH` environment variable to the path of the file to create and/or append to.
+To write logs to a file, set the `BOSH_INIT_LOG_PATH` environment variable to the path of the file to create and/or append to.
 
 ## Deployment State
 
