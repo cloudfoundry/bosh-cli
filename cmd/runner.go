@@ -39,7 +39,7 @@ func processHelp(args []string) []string {
 	}
 
 	for i, arg := range args {
-		if arg == "help" || arg == "-h" || arg == "-help" || arg == "--help" {
+		if arg == "help" || arg == "-h" || arg == "--help" {
 			return append(append([]string{"help"}, args[:i]...), args[i+1:]...)
 		}
 	}

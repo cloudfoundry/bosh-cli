@@ -57,14 +57,12 @@ var _ = Describe("Runner", func() {
 
 		Context("when help option is passed in", func() {
 			testCases := [][]string{
-				[]string{"fake-command-name", "-h"},
-				[]string{"fake-command-name", "-help"},
-				[]string{"fake-command-name", "--help"},
 				[]string{"fake-command-name", "help"},
-				[]string{"-h", "fake-command-name"},
-				[]string{"-help", "fake-command-name"},
-				[]string{"--help", "fake-command-name"},
+				[]string{"fake-command-name", "-h"},
+				[]string{"fake-command-name", "--help"},
 				[]string{"help", "fake-command-name"},
+				[]string{"-h", "fake-command-name"},
+				[]string{"--help", "fake-command-name"},
 			}
 
 			It("prints command help", func() {

@@ -67,12 +67,15 @@ var _ = Describe("HelpCmd", func() {
     bosh-init - A command line tool to initialize BOSH deployments
 
 USAGE:
-    bosh-init <command> [arguments...]
+    bosh-init [global options] <command> [arguments...]
 
 COMMANDS:
     complex    Complex command... has usage and env
     help       Show help message
-    simple     Simple command... sorted to the end of the list`
+    simple     Simple command... sorted to the end of the list
+
+GLOBAL OPTIONS:
+    --help, -h    Show help message`
 
 				Expect(ui.Said).To(Equal([]string{expectedOutput}))
 			})
@@ -87,7 +90,10 @@ COMMANDS:
     simple - Simple command... sorted to the end of the list
 
 USAGE:
-    bosh-init simple`
+    bosh-init [global options] simple
+
+GLOBAL OPTIONS:
+    --help, -h    Show help message`
 
 					Expect(ui.Said).To(Equal([]string{expectedOutput}))
 				})
@@ -101,11 +107,14 @@ USAGE:
     complex - Complex command... has usage and env
 
 USAGE:
-    bosh-init complex [arguments]
+    bosh-init [global options] complex [arguments]
 
 ENVIRONMENT VARIABLES:
     BOSH_ENV_VARIABLE1=value             Sets some environment variable to a value. Default: default
-    BOSH_ENV_VARIABLE2=something-else    Sets another environment variable`
+    BOSH_ENV_VARIABLE2=something-else    Sets another environment variable
+
+GLOBAL OPTIONS:
+    --help, -h    Show help message`
 
 					Expect(ui.Said).To(Equal([]string{expectedOutput}))
 				})
@@ -128,7 +137,10 @@ ENVIRONMENT VARIABLES:
     help - Show help message
 
 USAGE:
-    bosh-init help [command]`
+    bosh-init [global options] help [command]
+
+GLOBAL OPTIONS:
+    --help, -h    Show help message`
 
 				Expect(ui.Said).To(Equal([]string{expectedOutput}))
 			})

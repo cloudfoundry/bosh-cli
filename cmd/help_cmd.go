@@ -138,13 +138,16 @@ const helpTemplate = `NAME:
     {{.Name}} - {{.Synopsis}}
 
 USAGE:
-    {{ if .IsSubcommand }}bosh-init {{ end}}{{.Name}}{{if .Usage }} {{ .Usage }}{{ end }}{{ if .Commands }}
+    bosh-init [global options]{{ if .IsSubcommand }} {{.Name}}{{ end }}{{ if .Usage }} {{ .Usage }}{{ end }}{{ if .Commands }}
 
 COMMANDS:{{ range .Commands }}
 {{ .Key }}{{ .Value }}{{ end }}{{ end }}{{ if .Envs }}
 
 ENVIRONMENT VARIABLES:{{ range .Envs }}
-{{ .Key }}{{ .Value }}{{ end }}{{ end }}`
+{{ .Key }}{{ .Value }}{{ end }}{{ end }}
+
+GLOBAL OPTIONS:
+    --help, -h    Show help message`
 
 type helpContext struct {
 	Name         string
