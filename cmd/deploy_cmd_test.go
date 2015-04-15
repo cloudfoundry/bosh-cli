@@ -22,6 +22,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
@@ -129,7 +130,7 @@ func rootDesc() {
 			releaseSetManifest     birelsetmanifest.Manifest
 			boshDeploymentManifest bideplmanifest.Manifest
 			installationManifest   biinstallmanifest.Manifest
-			fakeCloud              *fakebicloud.FakeCloud
+			cloud                  bicloud.Cloud
 			deploymentReleases     []birel.Release
 
 			cloudStemcell bistemcell.CloudStemcell
@@ -294,7 +295,7 @@ func rootDesc() {
 				},
 			}
 
-			fakeCloud = fakebicloud.NewFakeCloud()
+			cloud = bicloud.NewCloud(fakebicloud.NewFakeCPICmdRunner(), "fake-director-id", logger)
 
 			cloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
 		})
@@ -342,7 +343,7 @@ func rootDesc() {
 
 			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
 
-			fakeStemcellManagerFactory.SetNewManagerBehavior(fakeCloud, mockStemcellManager)
+			fakeStemcellManagerFactory.SetNewManagerBehavior(cloud, mockStemcellManager)
 
 			expectStemcellUpload = mockStemcellManager.EXPECT().Upload(extractedStemcell, fakeStage).Return(cloudStemcell, nil).AnyTimes()
 
@@ -371,7 +372,7 @@ func rootDesc() {
 			mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
 
 			expectDeploy = mockDeployer.EXPECT().Deploy(
-				fakeCloud,
+				cloud,
 				boshDeploymentManifest,
 				cloudStemcell,
 				installationManifest.Registry,
@@ -385,7 +386,7 @@ func rootDesc() {
 
 			expectCPIReleaseExtract = mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
 
-			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(fakeCloud, nil).AnyTimes()
+			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(cloud, nil).AnyTimes()
 		})
 
 		It("prints the deployment manifest and state file", func() {
