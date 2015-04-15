@@ -25,8 +25,8 @@ func NewReleaseRepo(configService DeploymentStateService, uuidGenerator boshuuid
 }
 
 func (r releaseRepo) Update(releases []release.Release) error {
-	var newRecordIDs []string
-	var newRecords []ReleaseRecord
+	newRecordIDs := []string{}
+	newRecords := []ReleaseRecord{}
 
 	config, err := r.configService.Load()
 	if err != nil {

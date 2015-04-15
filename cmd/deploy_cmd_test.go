@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
@@ -952,6 +953,46 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-upload-error"))
+			})
+		})
+
+		Context("when deploy fails", func() {
+			BeforeEach(func() {
+				mockDeployer.EXPECT().Deploy(
+					cloud,
+					boshDeploymentManifest,
+					cloudStemcell,
+					installationManifest.Registry,
+					installationManifest.SSHTunnel,
+					fakeVMManager,
+					mockBlobstore,
+					gomock.Any(),
+				).Return(nil, errors.New("fake-deploy-error")).AnyTimes()
+
+				previousDeploymentState := biconfig.DeploymentState{
+					CurrentReleaseIDs: []string{"my-release-id-1"},
+					Releases: []biconfig.ReleaseRecord{{
+						ID:      "my-release-id-1",
+						Name:    fakeCPIRelease.Name(),
+						Version: fakeCPIRelease.Version(),
+					}},
+					CurrentManifestSHA1: "fake-manifest-sha",
+				}
+
+				setupDeploymentStateService.Save(previousDeploymentState)
+			})
+
+			It("clears the deployment record", func() {
+				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-deploy-error"))
+
+				deploymentState, err := setupDeploymentStateService.Load()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deploymentState.CurrentManifestSHA1).To(Equal(""))
+				Expect(deploymentState.Releases).To(Equal([]biconfig.ReleaseRecord{}))
+				Expect(deploymentState.CurrentReleaseIDs).To(Equal([]string{}))
 			})
 		})
 	})

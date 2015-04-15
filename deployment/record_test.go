@@ -392,4 +392,45 @@ func rootDesc() {
 			})
 		})
 	})
+
+	Describe("Clear", func() {
+		It("clears manifest hash", func() {
+			deploymentRepo.UpdateCurrentManifestSHA1 = "initial-sha1"
+
+			err := deploymentRecord.Clear()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploymentRepo.UpdateCurrentManifestSHA1).To(Equal(""))
+		})
+
+		It("clears releases list", func() {
+			err := deploymentRecord.Clear()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(releaseRepo.UpdateCallCount()).To(Equal(1))
+			Expect(releaseRepo.UpdateArgsForCall(0)).To(Equal([]release.Release{}))
+		})
+
+		Context("when clearing manifest hash fails", func() {
+			BeforeEach(func() {
+				deploymentRepo.UpdateCurrentErr = errors.New("fake-update-error")
+			})
+
+			It("returns an error", func() {
+				err := deploymentRecord.Clear()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
+			})
+		})
+
+		Context("when clearing release records fails", func() {
+			BeforeEach(func() {
+				releaseRepo.UpdateReturns(errors.New("fake-update-error"))
+			})
+
+			It("returns an error", func() {
+				err := deploymentRecord.Clear()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
+			})
+		})
+	})
 }

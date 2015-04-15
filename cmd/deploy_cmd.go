@@ -269,6 +269,11 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 	}
 
 	err = stage.PerformComplex("deploying", func(deployStage biui.Stage) error {
+		err = c.deploymentRecord.Clear()
+		if err != nil {
+			return bosherr.WrapError(err, "Clearing deployment record")
+		}
+
 		_, err = c.deployer.Deploy(
 			cloud,
 			deploymentManifest,

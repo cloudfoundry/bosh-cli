@@ -11,6 +11,7 @@ import (
 
 type Record interface {
 	IsDeployed(manifestPath string, releases []birel.Release, stemcell bistemcell.ExtractedStemcell) (bool, error)
+	Clear() error
 	Update(manifestPath string, releases []birel.Release) error
 }
 
@@ -94,6 +95,20 @@ func (v *deploymentRecord) IsDeployed(manifestPath string, releases []birel.Rele
 	}
 
 	return true, nil
+}
+
+func (v *deploymentRecord) Clear() error {
+	err := v.deploymentRepo.UpdateCurrent("")
+	if err != nil {
+		return bosherr.WrapError(err, "Clearing sha1 of deployed manifest")
+	}
+
+	err = v.releaseRepo.Update([]birel.Release{})
+	if err != nil {
+		return bosherr.WrapError(err, "Clearing releases")
+	}
+
+	return nil
 }
 
 func (v *deploymentRecord) Update(manifestPath string, releases []birel.Release) error {
