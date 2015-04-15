@@ -372,6 +372,22 @@ cloud_provider:
 			})
 		})
 
+		It("returns err unless exactly 2 arguments are given", func() {
+			command := newDeleteCmd()
+
+			err := command.Run(fakeStage, []string{})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
+
+			err = command.Run(fakeStage, []string{"1"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
+
+			err = command.Run(fakeStage, []string{"1", "2", "3"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
+		})
+
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
 				setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})

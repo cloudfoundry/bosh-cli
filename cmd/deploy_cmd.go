@@ -308,8 +308,6 @@ type Deployment struct{}
 
 func (c *deployCmd) parseCmdInputs(args []string) (string, string, []string, error) {
 	if len(args) < 3 {
-		c.ui.ErrorLinef("Invalid usage - deploy command requires at least 3 arguments")
-		c.ui.PrintLinef("Expected usage: bosh-init deploy <deployment-manifest> <stemcell-tarball> <cpi-release-tarball> [release-2-tarball [release-3-tarball...]]")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
 		return "", "", []string{}, errors.New("Invalid usage - deploy command requires at least 3 arguments")
 	}

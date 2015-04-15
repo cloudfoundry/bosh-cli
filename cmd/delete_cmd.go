@@ -243,8 +243,6 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, releaseTarballPat
 
 func (c *deleteCmd) parseCmdInputs(args []string) (string, string, error) {
 	if len(args) != 2 {
-		c.ui.ErrorLinef("Invalid usage - delete command requires exactly 2 arguments")
-		c.ui.PrintLinef("Expected usage: bosh-init delete <deployment-manifest> <cpi-release-tarball>")
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
 		return "", "", errors.New("Invalid usage - delete command requires exactly 2 arguments")
 	}

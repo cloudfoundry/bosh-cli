@@ -929,16 +929,18 @@ func rootDesc() {
 			})
 		})
 
-		It("returns err when no arguments are given", func() {
+		It("returns err when less than 3 arguments are given", func() {
 			err := command.Run(fakeStage, []string{})
 			Expect(err).To(HaveOccurred())
-			Expect(stdErr).To(gbytes.Say("Invalid usage - deploy command requires at least 3 arguments"))
-		})
+			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
 
-		It("returns err when 1 argument is given", func() {
-			err := command.Run(fakeStage, []string{"something"})
+			err = command.Run(fakeStage, []string{"1"})
 			Expect(err).To(HaveOccurred())
-			Expect(stdErr).To(gbytes.Say("Invalid usage - deploy command requires at least 3 arguments"))
+			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
+
+			err = command.Run(fakeStage, []string{"1", "2"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
 		})
 
 		Context("when uploading stemcell fails", func() {

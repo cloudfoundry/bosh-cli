@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -87,5 +88,9 @@ func fail(err error, ui biui.UI, logger boshlog.Logger) {
 	logger.Error(mainLogTag, err.Error())
 	ui.ErrorLinef("")
 	ui.ErrorLinef(biuifmt.MultilineError(err))
+	if strings.Contains(err.Error(), "Invalid usage") {
+		ui.ErrorLinef("")
+		ui.ErrorLinef("See 'bosh-init help %s'", os.Args[1])
+	}
 	os.Exit(1)
 }
