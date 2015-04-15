@@ -55,6 +55,28 @@ var _ = Describe("Runner", func() {
 			})
 		})
 
+		Context("when help option is passed in", func() {
+			testCases := [][]string{
+				[]string{"fake-command-name", "-h"},
+				[]string{"fake-command-name", "-help"},
+				[]string{"fake-command-name", "--help"},
+				[]string{"fake-command-name", "help"},
+				[]string{"-h", "fake-command-name"},
+				[]string{"-help", "fake-command-name"},
+				[]string{"--help", "fake-command-name"},
+				[]string{"help", "fake-command-name"},
+			}
+
+			It("prints command help", func() {
+				for _, testCase := range testCases {
+					err := runner.Run(fakeStage, testCase[0], testCase[1])
+					Expect(err).ToNot(HaveOccurred())
+					Expect(factory.CommandName).To(Equal("help"))
+					Expect(factory.PresetCommand.GetArgs()).To(Equal([]string{"fake-command-name"}))
+				}
+			})
+		})
+
 		Context("when an unknown command name was passed in", func() {
 			var fakeCommandName string
 
