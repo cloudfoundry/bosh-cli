@@ -1,7 +1,7 @@
 ---
 platform: linux
 
-image: docker://docker.gocd.cf-app.com:5000/bosh-init-container
+image: docker:///bosh/integration
 
 inputs:
 - name: bosh-init
