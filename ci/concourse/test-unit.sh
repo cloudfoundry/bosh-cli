@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 
-echo "haha! ur at $(pwd)"
+pwd
+find .
+
 exit 1
