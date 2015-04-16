@@ -1,6 +1,3 @@
 #!/usr/bin/env bash
 
-pwd
-find .
-
-exit 1
+bosh-init/bin/test
