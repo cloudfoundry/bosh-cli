@@ -16,19 +16,19 @@ import (
 
 var _ = Describe("DiskRepo", func() {
 	var (
-		configService     DeploymentStateService
-		repo              DiskRepo
-		fs                *fakesys.FakeFileSystem
-		fakeUUIDGenerator *fakeuuid.FakeGenerator
-		cloudProperties   biproperty.Map
+		deploymentStateService DeploymentStateService
+		repo                   DiskRepo
+		fs                     *fakesys.FakeFileSystem
+		fakeUUIDGenerator      *fakeuuid.FakeGenerator
+		cloudProperties        biproperty.Map
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
-		repo = NewDiskRepo(configService, fakeUUIDGenerator)
+		deploymentStateService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		repo = NewDiskRepo(deploymentStateService, fakeUUIDGenerator)
 		cloudProperties = biproperty.Map{
 			"fake-cloud_property-key": "fake-cloud-property-value",
 		}
@@ -45,7 +45,7 @@ var _ = Describe("DiskRepo", func() {
 				CloudProperties: cloudProperties,
 			}))
 
-			deploymentState, err := configService.Load()
+			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentState{
@@ -100,7 +100,7 @@ var _ = Describe("DiskRepo", func() {
 				err := repo.UpdateCurrent(recordID)
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentState, err := configService.Load()
+				deploymentState, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentState.CurrentDiskID).To(Equal(recordID))
@@ -252,7 +252,7 @@ var _ = Describe("DiskRepo", func() {
 			err := repo.ClearCurrent()
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentState, err := configService.Load()
+			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentState{

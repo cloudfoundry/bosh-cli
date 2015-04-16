@@ -13,18 +13,18 @@ import (
 
 var _ = Describe("VMRepo", func() {
 	var (
-		repo              VMRepo
-		configService     DeploymentStateService
-		fs                *fakesys.FakeFileSystem
-		fakeUUIDGenerator *fakeuuid.FakeGenerator
+		repo                   VMRepo
+		deploymentStateService DeploymentStateService
+		fs                     *fakesys.FakeFileSystem
+		fakeUUIDGenerator      *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
-		repo = NewVMRepo(configService)
+		deploymentStateService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		repo = NewVMRepo(deploymentStateService)
 	})
 
 	Describe("FindCurrent", func() {
@@ -56,7 +56,7 @@ var _ = Describe("VMRepo", func() {
 			err := repo.UpdateCurrent("fake-vm-cid")
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentState, err := configService.Load()
+			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentState{
@@ -72,7 +72,7 @@ var _ = Describe("VMRepo", func() {
 			err := repo.ClearCurrent()
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentState, err := configService.Load()
+			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentState{

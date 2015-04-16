@@ -17,10 +17,10 @@ var _ = Describe("ReleaseRepo", rootDesc)
 
 func rootDesc() {
 	var (
-		repo              ReleaseRepo
-		configService     DeploymentStateService
-		fs                *fakesys.FakeFileSystem
-		fakeUUIDGenerator *fakeuuid.FakeGenerator
+		repo                   ReleaseRepo
+		deploymentStateService DeploymentStateService
+		fs                     *fakesys.FakeFileSystem
+		fakeUUIDGenerator      *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
@@ -28,21 +28,21 @@ func rootDesc() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
-		configService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
-		configService.Load()
-		repo = NewReleaseRepo(configService, fakeUUIDGenerator)
+		deploymentStateService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		deploymentStateService.Load()
+		repo = NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
 	})
 
 	Describe("List", func() {
 		Context("when a current release exists", func() {
 			BeforeEach(func() {
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
 					ReleaseRecord{ID: "fake-guid-a", Name: "fake-name-a", Version: "fake-version-a"},
 					ReleaseRecord{ID: "fake-guid-b", Name: "fake-name-b", Version: "fake-version-b"},
 				}
-				err = configService.Save(conf)
+				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -93,7 +93,7 @@ func rootDesc() {
 					fakerelease.New("name2", "2"),
 				})
 				Expect(err).ToNot(HaveOccurred())
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(conf.Releases).To(ConsistOf(
 					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
@@ -104,26 +104,26 @@ func rootDesc() {
 
 		Context("when the existing releases exactly match the provided releases", func() {
 			BeforeEach(func() {
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
 					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
 					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "2"},
 				}
-				err = configService.Save(conf)
+				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
 		Context("when existing versions differ from the provided release versions", func() {
 			BeforeEach(func() {
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
 					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
 					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "3"},
 				}
-				err = configService.Save(conf)
+				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -133,7 +133,7 @@ func rootDesc() {
 					fakerelease.New("name2", "2"),
 				})
 				Expect(err).ToNot(HaveOccurred())
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(conf.Releases).To(ConsistOf(
 					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
@@ -144,13 +144,13 @@ func rootDesc() {
 
 		Context("when existing names differ from the provided release names", func() {
 			BeforeEach(func() {
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
 					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
 					ReleaseRecord{ID: "old-uuid", Name: "other-name", Version: "2"},
 				}
-				err = configService.Save(conf)
+				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -160,7 +160,7 @@ func rootDesc() {
 					fakerelease.New("name2", "2"),
 				})
 				Expect(err).ToNot(HaveOccurred())
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(conf.Releases).To(ConsistOf(
 					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
@@ -171,14 +171,14 @@ func rootDesc() {
 
 		Context("when a release is removed", func() {
 			BeforeEach(func() {
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
 					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
 					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "2"},
 					ReleaseRecord{ID: "old-uuid", Name: "name3", Version: "3"},
 				}
-				err = configService.Save(conf)
+				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -188,7 +188,7 @@ func rootDesc() {
 					fakerelease.New("name2", "2"),
 				})
 				Expect(err).ToNot(HaveOccurred())
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(conf.Releases).To(ConsistOf(
 					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},
@@ -199,12 +199,12 @@ func rootDesc() {
 
 		Context("when a release is added", func() {
 			BeforeEach(func() {
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
 					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
 				}
-				err = configService.Save(conf)
+				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -214,7 +214,7 @@ func rootDesc() {
 					fakerelease.New("name2", "2"),
 				})
 				Expect(err).ToNot(HaveOccurred())
-				conf, err := configService.Load()
+				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(conf.Releases).To(ConsistOf(
 					ReleaseRecord{ID: "fake-uuid", Name: "name1", Version: "1"},

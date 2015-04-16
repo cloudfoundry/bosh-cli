@@ -89,9 +89,9 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 
 		Context("when the config does not exist", func() {
 			It("returns a new DeploymentState with generated defaults", func() {
-				config, err := service.Load()
+				deploymentState, err := service.Load()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(config).To(Equal(DeploymentState{
+				Expect(deploymentState).To(Equal(DeploymentState{
 					DirectorID: "fake-uuid-0",
 				}))
 
@@ -115,10 +115,10 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 		Context("when the config is invalid", func() {
 			It("returns an empty DeploymentState and an error", func() {
 				fakeFs.WriteFileString(deploymentStatePath, "some invalid content")
-				config, err := service.Load()
+				deploymentState, err := service.Load()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Unmarshalling deployment state file '/some/deployment.json'"))
-				Expect(config).To(Equal(DeploymentState{}))
+				Expect(deploymentState).To(Equal(DeploymentState{}))
 			})
 		})
 	})

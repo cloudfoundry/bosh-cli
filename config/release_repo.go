@@ -13,14 +13,14 @@ type ReleaseRepo interface {
 }
 
 type releaseRepo struct {
-	configService DeploymentStateService
-	uuidGenerator boshuuid.Generator
+	deploymentStateService DeploymentStateService
+	uuidGenerator          boshuuid.Generator
 }
 
-func NewReleaseRepo(configService DeploymentStateService, uuidGenerator boshuuid.Generator) ReleaseRepo {
+func NewReleaseRepo(deploymentStateService DeploymentStateService, uuidGenerator boshuuid.Generator) ReleaseRepo {
 	return releaseRepo{
-		configService: configService,
-		uuidGenerator: uuidGenerator,
+		deploymentStateService: deploymentStateService,
+		uuidGenerator:          uuidGenerator,
 	}
 }
 
@@ -28,7 +28,7 @@ func (r releaseRepo) Update(releases []release.Release) error {
 	newRecordIDs := []string{}
 	newRecords := []ReleaseRecord{}
 
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
@@ -46,9 +46,9 @@ func (r releaseRepo) Update(releases []release.Release) error {
 		newRecordIDs = append(newRecordIDs, newRecord.ID)
 	}
 
-	config.CurrentReleaseIDs = newRecordIDs
-	config.Releases = newRecords
-	err = r.configService.Save(config)
+	deploymentState.CurrentReleaseIDs = newRecordIDs
+	deploymentState.Releases = newRecords
+	err = r.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating current release record")
 	}
@@ -56,9 +56,9 @@ func (r releaseRepo) Update(releases []release.Release) error {
 }
 
 func (r releaseRepo) List() ([]ReleaseRecord, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return []ReleaseRecord{}, bosherr.WrapError(err, "Loading existing config")
 	}
-	return config.Releases, nil
+	return deploymentState.Releases, nil
 }

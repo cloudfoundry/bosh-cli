@@ -11,22 +11,22 @@ type VMRepo interface {
 }
 
 type vMRepo struct {
-	configService DeploymentStateService
+	deploymentStateService DeploymentStateService
 }
 
-func NewVMRepo(configService DeploymentStateService) VMRepo {
+func NewVMRepo(deploymentStateService DeploymentStateService) VMRepo {
 	return vMRepo{
-		configService: configService,
+		deploymentStateService: deploymentStateService,
 	}
 }
 
 func (r vMRepo) FindCurrent() (string, bool, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return "", false, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	currentVMCID := config.CurrentVMCID
+	currentVMCID := deploymentState.CurrentVMCID
 	if currentVMCID != "" {
 		return currentVMCID, true, nil
 	}
@@ -35,14 +35,14 @@ func (r vMRepo) FindCurrent() (string, bool, error) {
 }
 
 func (r vMRepo) UpdateCurrent(cid string) error {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
-	config.CurrentVMCID = cid
+	deploymentState.CurrentVMCID = cid
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
 	}
@@ -50,14 +50,14 @@ func (r vMRepo) UpdateCurrent(cid string) error {
 }
 
 func (r vMRepo) ClearCurrent() error {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
-	config.CurrentVMCID = ""
+	deploymentState.CurrentVMCID = ""
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
 	}

@@ -10,22 +10,22 @@ type DeploymentRepo interface {
 }
 
 type deploymentRepo struct {
-	configService DeploymentStateService
+	deploymentStateService DeploymentStateService
 }
 
-func NewDeploymentRepo(configService DeploymentStateService) DeploymentRepo {
+func NewDeploymentRepo(deploymentStateService DeploymentStateService) DeploymentRepo {
 	return deploymentRepo{
-		configService: configService,
+		deploymentStateService: deploymentStateService,
 	}
 }
 
 func (r deploymentRepo) FindCurrent() (string, bool, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return "", false, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	currentManifestSHA1 := config.CurrentManifestSHA1
+	currentManifestSHA1 := deploymentState.CurrentManifestSHA1
 	if currentManifestSHA1 != "" {
 		return currentManifestSHA1, true, nil
 	}
@@ -34,14 +34,14 @@ func (r deploymentRepo) FindCurrent() (string, bool, error) {
 }
 
 func (r deploymentRepo) UpdateCurrent(manifestSHA1 string) error {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
-	config.CurrentManifestSHA1 = manifestSHA1
+	deploymentState.CurrentManifestSHA1 = manifestSHA1
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
 	}

@@ -706,9 +706,9 @@ cloud_provider:
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 			setupDeploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
-			config, err := setupDeploymentStateService.Load()
+			deploymentState, err := setupDeploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
-			directorID = config.DirectorID
+			directorID = deploymentState.DirectorID
 
 			fakeAgentIDGenerator = fakeuuid.NewFakeGenerator()
 

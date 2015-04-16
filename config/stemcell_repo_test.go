@@ -13,18 +13,18 @@ import (
 
 var _ = Describe("StemcellRepo", func() {
 	var (
-		repo              StemcellRepo
-		configService     DeploymentStateService
-		fs                *fakesys.FakeFileSystem
-		fakeUUIDGenerator *fakeuuid.FakeGenerator
+		repo                   StemcellRepo
+		deploymentStateService DeploymentStateService
+		fs                     *fakesys.FakeFileSystem
+		fakeUUIDGenerator      *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
-		repo = NewStemcellRepo(configService, fakeUUIDGenerator)
+		deploymentStateService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		repo = NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 	})
 
 	Describe("Save", func() {
@@ -32,7 +32,7 @@ var _ = Describe("StemcellRepo", func() {
 			_, err := repo.Save("fake-name", "fake-version", "fake-cid")
 			Expect(err).ToNot(HaveOccurred())
 
-			deploymentState, err := configService.Load()
+			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentState{
@@ -94,7 +94,7 @@ var _ = Describe("StemcellRepo", func() {
 				_, err := repo.Save("fake-name-2", "fake-version-2", "fake-cid-1")
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentState, err := configService.Load()
+				deploymentState, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedConfig := DeploymentState{
@@ -171,7 +171,7 @@ var _ = Describe("StemcellRepo", func() {
 				err := repo.UpdateCurrent("fake-uuid-1")
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentState, err := configService.Load()
+				deploymentState, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentState.CurrentStemcellID).To(Equal("fake-uuid-1"))
@@ -208,7 +208,7 @@ var _ = Describe("StemcellRepo", func() {
 				err := repo.ClearCurrent()
 				Expect(err).ToNot(HaveOccurred())
 
-				deploymentState, err := configService.Load()
+				deploymentState, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentState.CurrentStemcellID).To(Equal(""))

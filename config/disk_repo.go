@@ -18,14 +18,14 @@ type DiskRepo interface {
 }
 
 type diskRepo struct {
-	configService DeploymentStateService
-	uuidGenerator boshuuid.Generator
+	deploymentStateService DeploymentStateService
+	uuidGenerator          boshuuid.Generator
 }
 
-func NewDiskRepo(configService DeploymentStateService, uuidGenerator boshuuid.Generator) DiskRepo {
+func NewDiskRepo(deploymentStateService DeploymentStateService, uuidGenerator boshuuid.Generator) DiskRepo {
 	return diskRepo{
-		configService: configService,
-		uuidGenerator: uuidGenerator,
+		deploymentStateService: deploymentStateService,
+		uuidGenerator:          uuidGenerator,
 	}
 }
 
@@ -53,7 +53,7 @@ func (r diskRepo) Save(cid string, size int, cloudProperties biproperty.Map) (Di
 	records = append(records, newRecord)
 	config.Disks = records
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(config)
 	if err != nil {
 		return newRecord, bosherr.WrapError(err, "Saving new config")
 	}
@@ -61,17 +61,17 @@ func (r diskRepo) Save(cid string, size int, cloudProperties biproperty.Map) (Di
 }
 
 func (r diskRepo) FindCurrent() (DiskRecord, bool, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return DiskRecord{}, false, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	currentDiskID := config.CurrentDiskID
+	currentDiskID := deploymentState.CurrentDiskID
 	if currentDiskID == "" {
 		return DiskRecord{}, false, nil
 	}
 
-	for _, oldRecord := range config.Disks {
+	for _, oldRecord := range deploymentState.Disks {
 		if oldRecord.ID == currentDiskID {
 			return oldRecord, true, nil
 		}
@@ -81,13 +81,13 @@ func (r diskRepo) FindCurrent() (DiskRecord, bool, error) {
 }
 
 func (r diskRepo) UpdateCurrent(diskID string) error {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
 	found := false
-	for _, oldRecord := range config.Disks {
+	for _, oldRecord := range deploymentState.Disks {
 		if oldRecord.ID == diskID {
 			found = true
 		}
@@ -96,9 +96,9 @@ func (r diskRepo) UpdateCurrent(diskID string) error {
 		return bosherr.Errorf("Verifying disk record exists with id '%s'", diskID)
 	}
 
-	config.CurrentDiskID = diskID
+	deploymentState.CurrentDiskID = diskID
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
 	}
@@ -116,12 +116,12 @@ func (r diskRepo) Find(cid string) (DiskRecord, bool, error) {
 }
 
 func (r diskRepo) All() ([]DiskRecord, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return []DiskRecord{}, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	return config.Disks, nil
+	return deploymentState.Disks, nil
 }
 
 func (r diskRepo) Delete(diskRecord DiskRecord) error {
@@ -143,7 +143,7 @@ func (r diskRepo) Delete(diskRecord DiskRecord) error {
 		config.CurrentDiskID = ""
 	}
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(config)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
 	}
@@ -152,14 +152,14 @@ func (r diskRepo) Delete(diskRecord DiskRecord) error {
 }
 
 func (r diskRepo) ClearCurrent() error {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
-	config.CurrentDiskID = ""
+	deploymentState.CurrentDiskID = ""
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
 	}
@@ -167,17 +167,17 @@ func (r diskRepo) ClearCurrent() error {
 }
 
 func (r diskRepo) load() (DeploymentState, []DiskRecord, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
-		return config, []DiskRecord{}, bosherr.WrapError(err, "Loading existing config")
+		return deploymentState, []DiskRecord{}, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	records := config.Disks
+	records := deploymentState.Disks
 	if records == nil {
-		return config, []DiskRecord{}, nil
+		return deploymentState, []DiskRecord{}, nil
 	}
 
-	return config, records, nil
+	return deploymentState, records, nil
 }
 
 func (r diskRepo) find(records []DiskRecord, cid string) (DiskRecord, bool) {

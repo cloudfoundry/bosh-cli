@@ -34,8 +34,8 @@ var _ = Describe("CloudStemcell", func() {
 		fs := fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		configService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
-		stemcellRepo = biconfig.NewStemcellRepo(configService, fakeUUIDGenerator)
+		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 		fakeCloud = fakebicloud.NewFakeCloud()
 		cloudStemcell = NewCloudStemcell(stemcellRecord, stemcellRepo, fakeCloud)
 	})

@@ -17,14 +17,14 @@ type StemcellRepo interface {
 }
 
 type stemcellRepo struct {
-	configService DeploymentStateService
-	uuidGenerator boshuuid.Generator
+	deploymentStateService DeploymentStateService
+	uuidGenerator          boshuuid.Generator
 }
 
-func NewStemcellRepo(configService DeploymentStateService, uuidGenerator boshuuid.Generator) StemcellRepo {
+func NewStemcellRepo(deploymentStateService DeploymentStateService, uuidGenerator boshuuid.Generator) StemcellRepo {
 	return stemcellRepo{
-		configService: configService,
-		uuidGenerator: uuidGenerator,
+		deploymentStateService: deploymentStateService,
+		uuidGenerator:          uuidGenerator,
 	}
 }
 
@@ -80,17 +80,17 @@ func (r stemcellRepo) Find(name, version string) (StemcellRecord, bool, error) {
 }
 
 func (r stemcellRepo) FindCurrent() (StemcellRecord, bool, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return StemcellRecord{}, false, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	currentDiskID := config.CurrentStemcellID
+	currentDiskID := deploymentState.CurrentStemcellID
 	if currentDiskID == "" {
 		return StemcellRecord{}, false, nil
 	}
 
-	for _, oldRecord := range config.Stemcells {
+	for _, oldRecord := range deploymentState.Stemcells {
 		if oldRecord.ID == currentDiskID {
 			return oldRecord, true, nil
 		}
@@ -100,12 +100,12 @@ func (r stemcellRepo) FindCurrent() (StemcellRecord, bool, error) {
 }
 
 func (r stemcellRepo) All() ([]StemcellRecord, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return []StemcellRecord{}, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	return config.Stemcells, nil
+	return deploymentState.Stemcells, nil
 }
 
 func (r stemcellRepo) Delete(stemcellRecord StemcellRecord) error {
@@ -127,7 +127,7 @@ func (r stemcellRepo) Delete(stemcellRecord StemcellRecord) error {
 		config.CurrentStemcellID = ""
 	}
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(config)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving config")
 	}
@@ -162,17 +162,17 @@ func (r stemcellRepo) ClearCurrent() error {
 }
 
 func (r stemcellRepo) updateConfig(updateFunc func(*DeploymentState) error) error {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return bosherr.WrapError(err, "Loading existing config")
 	}
 
-	err = updateFunc(&config)
+	err = updateFunc(&deploymentState)
 	if err != nil {
 		return err
 	}
 
-	err = r.configService.Save(config)
+	err = r.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
 	}
@@ -181,15 +181,15 @@ func (r stemcellRepo) updateConfig(updateFunc func(*DeploymentState) error) erro
 }
 
 func (r stemcellRepo) load() (DeploymentState, []StemcellRecord, error) {
-	config, err := r.configService.Load()
+	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
-		return config, []StemcellRecord{}, bosherr.WrapError(err, "Loading existing config")
+		return deploymentState, []StemcellRecord{}, bosherr.WrapError(err, "Loading existing config")
 	}
 
-	records := config.Stemcells
+	records := deploymentState.Stemcells
 	if records == nil {
-		return config, []StemcellRecord{}, nil
+		return deploymentState, []StemcellRecord{}, nil
 	}
 
-	return config, records, nil
+	return deploymentState, records, nil
 }
