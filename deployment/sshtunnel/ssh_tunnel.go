@@ -11,6 +11,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshtime "github.com/cloudfoundry/bosh-agent/time"
 )
 
 type SSHTunnel interface {
@@ -19,12 +20,14 @@ type SSHTunnel interface {
 }
 
 type sshTunnel struct {
-	startDialMaxTries int
-	startDialDelay    time.Duration
-	options           Options
-	remoteListener    net.Listener
-	logger            boshlog.Logger
-	logTag            string
+	connectionRefusedTimeout time.Duration
+	authFailureTimeout       time.Duration
+	timeService              boshtime.Service
+	startDialDelay           time.Duration
+	options                  Options
+	remoteListener           net.Listener
+	logger                   boshlog.Logger
+	logTag                   string
 }
 
 func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
@@ -74,28 +77,25 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 	s.logger.Debug(s.logTag, "Dialing remote server at %s:%d", s.options.Host, s.options.Port)
 	remoteAddr := fmt.Sprintf("%s:%d", s.options.Host, s.options.Port)
 
+	retryStrategy := &SSHRetryStrategy{
+		TimeService:              s.timeService,
+		ConnectionRefusedTimeout: s.connectionRefusedTimeout,
+		AuthFailureTimeout:       s.authFailureTimeout,
+	}
+
 	var conn *ssh.Client
 	var err error
-	for i := 0; i < s.startDialMaxTries; i++ {
+	for i := 0; ; i++ {
 		s.logger.Debug(s.logTag, "Making attempt #%d", i)
-		conn, err = ssh.Dial(
-			"tcp",
-			remoteAddr,
-			sshConfig,
-		)
-
-		if err != nil && strings.Contains(err.Error(), "ssh: unable to authenticate") {
-			readyErrCh <- bosherr.WrapError(err, "Authentication error dialing remote server")
-			return
-		}
-
-		if err != nil && i == s.startDialMaxTries-1 {
-			readyErrCh <- bosherr.WrapError(err, "Timed out dialing remote server")
-			return
-		}
+		conn, err = ssh.Dial("tcp", remoteAddr, sshConfig)
 
 		if err == nil {
 			break
+		}
+
+		if !retryStrategy.IsRetryable(err) {
+			readyErrCh <- bosherr.WrapError(err, "Failed to connect to remote server")
+			return
 		}
 
 		s.logger.Debug(s.logTag, "Attempt failed #%d: Dialing remote server: %s", i, err.Error())
@@ -154,4 +154,34 @@ func (s *sshTunnel) Stop() error {
 	}
 
 	return s.remoteListener.Close()
+}
+
+type SSHRetryStrategy struct {
+	ConnectionRefusedTimeout time.Duration
+	AuthFailureTimeout       time.Duration
+	TimeService              boshtime.Service
+
+	initialized   bool
+	startTime     time.Time
+	authStartTime time.Time
+}
+
+func (s *SSHRetryStrategy) IsRetryable(err error) bool {
+	now := s.TimeService.Now()
+	if !s.initialized {
+		s.startTime = now
+		s.authStartTime = now
+		s.initialized = true
+	}
+
+	if strings.Contains(err.Error(), "no common algorithms") {
+		return false
+	}
+
+	if strings.Contains(err.Error(), "unable to authenticate") {
+		return now.Before(s.authStartTime.Add(s.AuthFailureTimeout))
+	}
+
+	s.authStartTime = now
+	return now.Before(s.startTime.Add(s.ConnectionRefusedTimeout))
 }

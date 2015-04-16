@@ -4,6 +4,7 @@ import (
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	boshtime "github.com/cloudfoundry/bosh-agent/time"
 )
 
 type Options struct {
@@ -36,11 +37,14 @@ func NewFactory(logger boshlog.Logger) Factory {
 }
 
 func (s *factory) NewSSHTunnel(options Options) SSHTunnel {
+	timeService := boshtime.NewConcreteService()
 	return &sshTunnel{
-		startDialMaxTries: 300,
-		startDialDelay:    500 * time.Millisecond,
-		options:           options,
-		logger:            s.logger,
-		logTag:            "sshTunnel",
+		connectionRefusedTimeout: 5 * time.Minute,
+		authFailureTimeout:       2 * time.Minute,
+		startDialDelay:           500 * time.Millisecond,
+		timeService:              timeService,
+		options:                  options,
+		logger:                   s.logger,
+		logTag:                   "sshTunnel",
 	}
 }
