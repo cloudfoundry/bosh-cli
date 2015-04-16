@@ -1,0 +1,15 @@
+---
+platform: linux
+
+image: docker:///docker.gocd.cf-app.com:5000/bosh-init-container
+
+inputs:
+- name: bosh-init
+
+params:
+  BOX_TYPE: virtualbox
+  PROVIDER: virtualbox
+  COLUMNS: 100
+
+run:
+  path: bosh-init/ci/concourse/test-unit.sh
