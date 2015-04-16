@@ -124,7 +124,7 @@ var _ = Describe("bosh-init", func() {
 			stemcellTarballPath    = "/fake-stemcell-release.tgz"
 			cpiReleaseTarballPath  = "/fake-cpi-release.tgz"
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
-			deploymentStatePath    = "/deployment-dir/deployment.json"
+			deploymentStatePath    = "/deployment-dir/fake-deployment-manifest-state.json"
 
 			stemcellImagePath       = "fake-stemcell-image-path"
 			stemcellCID             = "fake-stemcell-cid"

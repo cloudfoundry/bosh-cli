@@ -151,7 +151,7 @@ func rootDesc() {
 			userInterface = biui.NewWriterUI(stdOut, stdErr, logger)
 			fakeFs = fakesys.NewFakeFileSystem()
 			deploymentManifestPath = "/path/to/manifest.yml"
-			deploymentStatePath = "/path/to/deployment.json"
+			deploymentStatePath = "/path/to/manifest-state.json"
 			fakeFs.RegisterOpenFile(deploymentManifestPath, &fakesys.FakeFile{
 				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
 			})
@@ -395,10 +395,10 @@ func rootDesc() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
-			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/deployment.json'"))
+			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/manifest-state.json'"))
 		})
 
-		It("does not migrate the legacy bosh-deployments.yml if deployment.json exists", func() {
+		It("does not migrate the legacy bosh-deployments.yml if manifest-state.json exists", func() {
 			err := fakeFs.WriteFileString(deploymentStatePath, "{}")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -409,7 +409,7 @@ func rootDesc() {
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
-		It("migrates the legacy bosh-deployments.yml if deployment.json does not exist", func() {
+		It("migrates the legacy bosh-deployments.yml if manifest-state.json does not exist", func() {
 			err := fakeFs.RemoveAll(deploymentStatePath)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -420,7 +420,7 @@ func rootDesc() {
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 
 			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
-			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/deployment.json'"))
+			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/manifest-state.json'"))
 			Expect(stdOut).To(gbytes.Say("Migrated legacy deployments file: '/path/to/bosh-deployments.yml'"))
 		})
 

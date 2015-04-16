@@ -33,6 +33,14 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 		service = NewFileSystemDeploymentStateService(fakeFs, fakeUUIDGenerator, logger, deploymentStatePath)
 	})
 
+	Describe("DeploymentStatePath", func() {
+		It("is based on the manifest path and name", func() {
+			Expect(DeploymentStatePath("/path/to/some-manifest.yml")).To(Equal("/path/to/some-manifest-state.json"))
+			Expect(DeploymentStatePath("/path/to/some-manifesty.yaml")).To(Equal("/path/to/some-manifesty-state.json"))
+			Expect(DeploymentStatePath("/path/to/some-manifest")).To(Equal("/path/to/some-manifest-state.json"))
+		})
+	})
+
 	Describe("Exists", func() {
 		It("returns true if the config file exists", func() {
 			fakeFs.WriteFileString(deploymentStatePath, "")

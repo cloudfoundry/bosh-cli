@@ -129,11 +129,11 @@ The CPI will store the registry URL in the infrastructure's metadata service. Th
 
 ## 5. Deleting existing VM
 
-In case the VM was previosly deployed, the CLI tries to connect to the agent on the existing VM. If the agent is responsive, the CLI stops services that are running on that VM and unmounts all disks that are attached to the VM. Eventually, the CLI deletes the existing VM and removes VM CID from `deployment.json`.
+In case the VM was previosly deployed, the CLI tries to connect to the agent on the existing VM. If the agent is responsive, the CLI stops services that are running on that VM and unmounts all disks that are attached to the VM. Eventually, the CLI deletes the existing VM and removes VM CID from deployment state file.
 
 ## 6. Creating new VM
 
-Next, the CLI sends the `create_vm` command to the CPI with the properties parsed from the manifest. Additionally, the VM CID is persisted in `deployment.json` in the same folder as the deployment manifest.
+Next, the CLI sends the `create_vm` command to the CPI with the properties parsed from the manifest. Additionally, the VM CID is persisted in deployment state file in the same folder as the deployment manifest.
 
 ## 7. Starting SSH Tunnel
 
@@ -166,7 +166,7 @@ ClI will create and attach a disk to Micro BOSH VM if it is requested in manifes
 
 You should use `disk_pools` if you want to use disk cloud_properties.
 
-In this case the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in `deployment.json` in the same folder as the deployment manifest.
+In this case the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in deployment state file in the same folder as the deployment manifest.
 
 ## 13. Attaching disk
 

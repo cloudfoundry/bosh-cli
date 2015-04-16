@@ -2,12 +2,14 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"path/filepath"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
-	"path"
 )
 
 type fileSystemDeploymentStateService struct {
@@ -29,7 +31,8 @@ func NewFileSystemDeploymentStateService(fs boshsys.FileSystem, uuidGenerator bo
 }
 
 func DeploymentStatePath(deploymentManifestPath string) string {
-	return path.Join(path.Dir(deploymentManifestPath), "deployment.json")
+	baseFileName := filepath.Base(strings.TrimSuffix(deploymentManifestPath, filepath.Ext(deploymentManifestPath)))
+	return filepath.Join(filepath.Dir(deploymentManifestPath), fmt.Sprintf("%s-state.json", baseFileName))
 }
 
 func (s *fileSystemDeploymentStateService) Path() string {
