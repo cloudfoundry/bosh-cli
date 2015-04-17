@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+bin=$(dirname $0)
+
+echo -e "\n Formatting packages..."
+$bin/go fmt github.com/cloudfoundry/bosh-init/...
+
+echo -e "\n Vetting packages for potential issues..."
+$bin/govet
+
+echo -e "\n Checking with golint..."
+$bin/golint

@@ -3,14 +3,11 @@
 export PATH=/usr/local/ruby/bin:/usr/local/go/bin:$PATH
 export GOPATH=$(pwd)/gopath
 
-dir=$(pwd)
+echo "go is at        -- $(which go)"
+echo "working dir is  -- $(pwd)"
+echo "working dir has -- $(ls -la)"
 
 cd gopath/src/github.com/cloudfoundry/bosh-init
-bin/build
-
-cd out
-pwd
-echo "out dir contains:"
-ls -la
-echo "moving bosh-init to ${dir}"
-mv bosh-init $dir
+bin/clean
+bin/install-ginkgo
+bin/test-unit

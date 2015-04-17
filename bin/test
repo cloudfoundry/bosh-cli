@@ -10,18 +10,8 @@ if [ -z "$TRAVIS" ]; then
   race="-race"
 fi
 
-echo -e "\n Formatting packages..."
-$bin/go fmt github.com/cloudfoundry/bosh-init/...
-
-echo -e "\n Vetting packages for potential issues..."
-$bin/govet
-
-echo -e "\n Checking with golint..."
-$bin/golint
-
-echo -e "\n Installing ginkgo..."
-$bin/go install github.com/onsi/ginkgo/ginkgo
-
-echo -e "\n Testing packages..."
-$bin/env go clean -r github.com/cloudfoundry/bosh-init/
-$bin/env ginkgo -r $race -trace -skipPackage acceptance $@
+$bin/clean
+$bin/install-ginkgo
+$bin/test-prepare
+$bin/test-unit
+$bin/test-integration

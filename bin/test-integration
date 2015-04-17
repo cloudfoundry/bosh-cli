@@ -4,7 +4,5 @@ set -e
 
 bin=$(dirname $0)
 
-$bin/install-ginkgo
-
 echo -e "\n Testing packages..."
-$bin/env ginkgo -race -trace acceptance
+$bin/env ginkgo -race -trace integration
