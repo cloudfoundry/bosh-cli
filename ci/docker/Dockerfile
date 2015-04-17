@@ -20,9 +20,14 @@ RUN apt-get install -y tar; apt-get clean
 
 # bosh-init dependencies
 RUN apt-get install -y mercurial; apt-get clean
+# ...go
 ADD install-go.sh /tmp/install-go.sh
 RUN chmod a+x /tmp/install-go.sh
 RUN cd tmp; ./install-go.sh; rm install-go.sh
+# ...ruby
+ADD install-ruby.sh /tmp/install-ruby.sh
+RUN chmod a+x /tmp/install-ruby.sh
+RUN cd tmp; ./install-ruby.sh; rm install-ruby.sh
 
 # lifecycle ssh test
 RUN apt-get install -y sshpass; apt-get clean

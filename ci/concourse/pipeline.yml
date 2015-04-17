@@ -1,0 +1,30 @@
+resources:
+  - name: source
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-init.git
+      branch: concourse
+
+  - name: repository
+    type: s3
+    source:
+      bucket: bosh-init-releases
+      regexp: bosh-init-(.*).tgz
+
+jobs:
+  - name: unit-test
+    plan:
+      - get: source
+        trigger: false
+      - task: unit
+        file: bosh-init/ci/concourse/test-unit.yml
+
+  - name: package
+    plan:
+      - get: source
+        passed: [unit-test]
+      - task: package
+        file: bosh-init/ci/concourse/package.yml
+      - put: repository
+        params:
+          from: package/*.tgz
