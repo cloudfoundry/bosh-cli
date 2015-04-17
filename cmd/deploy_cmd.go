@@ -424,7 +424,7 @@ func (c *DeploymentPreparer) validate(
 
 	err = validationStage.Perform("Validating cpi release", func() error {
 		cpiReleaseName := installationManifest.Template.Release
-		cpiRelease, found := c.releaseManager.FindByName(cpiReleaseName)
+		cpiRelease, found := c.releaseManager.Find(cpiReleaseName)
 		if !found {
 			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", cpiReleaseName)
 		}

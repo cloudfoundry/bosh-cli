@@ -122,7 +122,7 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 			if v.isBlank(template.Release) {
 				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release must be provided", idx, templateIdx))
 			} else {
-				release, found := v.releaseManager.FindByName(template.Release)
+				release, found := v.releaseManager.Find(template.Release)
 				if !found {
 					errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release '%s' must refer to release in releases", idx, templateIdx, template.Release))
 				} else {

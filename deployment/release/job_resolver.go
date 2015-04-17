@@ -22,7 +22,7 @@ func NewJobResolver(releaseManager birel.Manager) JobResolver {
 }
 
 func (r *resolver) Resolve(jobName, releaseName string) (bireljob.Job, error) {
-	release, found := r.releaseManager.FindByName(releaseName)
+	release, found := r.releaseManager.Find(releaseName)
 	if !found {
 		return bireljob.Job{}, bosherr.Errorf("Finding release '%s'", releaseName)
 	}

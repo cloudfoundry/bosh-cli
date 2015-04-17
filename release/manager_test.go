@@ -35,9 +35,9 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
-	Describe("FindByName", func() {
+	Describe("Find", func() {
 		It("returns false when no releases have been added", func() {
-			_, found := releaseManager.FindByName("release-a")
+			_, found := releaseManager.Find("release-a")
 			Expect(found).To(BeFalse())
 		})
 
@@ -46,11 +46,11 @@ var _ = Describe("Manager", func() {
 				releaseManager.Add(releaseA)
 				releaseManager.Add(releaseB)
 
-				releaseAFound, found := releaseManager.FindByName("release-a")
+				releaseAFound, found := releaseManager.Find("release-a")
 				Expect(found).To(BeTrue())
 				Expect(releaseAFound).To(Equal(releaseA))
 
-				releaseBFound, found := releaseManager.FindByName("release-b")
+				releaseBFound, found := releaseManager.Find("release-b")
 				Expect(found).To(BeTrue())
 				Expect(releaseBFound).To(Equal(releaseB))
 			})
@@ -58,7 +58,7 @@ var _ = Describe("Manager", func() {
 			It("returns false when the requested release has not been added", func() {
 				releaseManager.Add(releaseA)
 
-				_, found := releaseManager.FindByName("release-c")
+				_, found := releaseManager.Find("release-c")
 				Expect(found).To(BeFalse())
 			})
 		})

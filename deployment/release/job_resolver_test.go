@@ -58,7 +58,7 @@ var _ = Describe("JobResolver", func() {
 
 	Describe("Resolve", func() {
 		It("Returns the matching release job", func() {
-			mockReleaseManager.EXPECT().FindByName("fake-release-name").Return(fakeRelease, true)
+			mockReleaseManager.EXPECT().Find("fake-release-name").Return(fakeRelease, true)
 
 			releaseJob, err := jobResolver.Resolve("fake-release-job-name-0", "fake-release-name")
 			Expect(err).ToNot(HaveOccurred())
@@ -66,7 +66,7 @@ var _ = Describe("JobResolver", func() {
 		})
 
 		It("Returns an error, when the job is not in the release", func() {
-			mockReleaseManager.EXPECT().FindByName("fake-release-name").Return(fakeRelease, true)
+			mockReleaseManager.EXPECT().Find("fake-release-name").Return(fakeRelease, true)
 
 			_, err := jobResolver.Resolve("fake-missing-release-job-name", "fake-release-name")
 			Expect(err).To(HaveOccurred())
@@ -74,7 +74,7 @@ var _ = Describe("JobResolver", func() {
 		})
 
 		It("Returns an error, when the release is not in resolvable", func() {
-			mockReleaseManager.EXPECT().FindByName("fake-missing-release-name").Return(nil, false)
+			mockReleaseManager.EXPECT().Find("fake-missing-release-name").Return(nil, false)
 
 			_, err := jobResolver.Resolve("fake-release-job-name-0", "fake-missing-release-name")
 			Expect(err).To(HaveOccurred())
