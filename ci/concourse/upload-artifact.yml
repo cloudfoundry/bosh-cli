@@ -12,4 +12,4 @@ params:
   PROVIDER: virtualbox
 
 run:
-  path: gopath/src/github.com/cloudfoundry/bosh-init/ci/concourse/package.sh
+  path: gopath/src/github.com/cloudfoundry/bosh-init/ci/concourse/upload-artifact.sh

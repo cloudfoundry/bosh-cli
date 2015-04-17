@@ -9,5 +9,8 @@ cd gopath/src/github.com/cloudfoundry/bosh-init
 bin/build
 
 cd out
-tar zcf bosh-init-0.0.0.tgz bosh-init
-mv bosh-init-0.0.0.tgz $dir
+pwd
+echo "out dir contains:"
+ls -la
+echo "moving bosh-init to ${dir}"
+mv bosh-init $dir
