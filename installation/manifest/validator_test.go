@@ -27,10 +27,7 @@ var _ = Describe("Validator", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		releases = []birelmanifest.ReleaseRef{
-			{
-				Name:    "provided-valid-release-name",
-				Version: "1.0",
-			},
+			{Name: "provided-valid-release-name"},
 		}
 
 		validManifest = Manifest{

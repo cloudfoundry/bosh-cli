@@ -3,8 +3,6 @@ package manifest
 import (
 	"strings"
 
-	version "github.com/hashicorp/go-version"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 )
@@ -46,12 +44,6 @@ func (v *validator) Validate(manifest Manifest) error {
 
 		if !strings.HasPrefix(release.URL, "file://") {
 			errs = append(errs, bosherr.Errorf("releases[%d].url must be a valid file URL (file://)", releaseIdx))
-		}
-
-		if !v.isBlank(release.Version) && !release.IsLatest() {
-			if _, err := version.NewVersion(release.Version); err != nil {
-				errs = append(errs, bosherr.WrapErrorf(err, "releases[%d].version '%s' must be a semantic version (name: '%s')", releaseIdx, release.Version, release.Name))
-			}
 		}
 	}
 

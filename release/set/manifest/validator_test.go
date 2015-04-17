@@ -29,9 +29,8 @@ var _ = Describe("Validator", func() {
 		validManifest = Manifest{
 			Releases: []birelmanifest.ReleaseRef{
 				{
-					Name:    "fake-release-name",
-					Version: "1.0",
-					URL:     "file://fake-release-path",
+					Name: "fake-release-name",
+					URL:  "file://fake-release-path",
 				},
 			},
 		}
@@ -107,28 +106,6 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("releases[1].name 'fake-release-name' must be unique"))
-		})
-
-		It("validates release version is a SemVer", func() {
-			manifest := Manifest{
-				Releases: []birelmanifest.ReleaseRef{
-					{Name: "fake-release-name", Version: "not-a-semver"},
-				},
-			}
-
-			err := validator.Validate(manifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("releases[0].version 'not-a-semver' must be a semantic version (name: 'fake-release-name')"))
-		})
-
-		It("allows release versions to be 'latest'", func() {
-			manifest := validManifest
-			manifest.Releases = []birelmanifest.ReleaseRef{
-				{Name: "fake-release-name", Version: "latest", URL: "file://fake-release-path"},
-			}
-
-			err := validator.Validate(manifest)
-			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 })

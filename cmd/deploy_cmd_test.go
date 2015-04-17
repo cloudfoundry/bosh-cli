@@ -249,9 +249,8 @@ func rootDesc() {
 			releaseSetManifest = birelsetmanifest.Manifest{
 				Releases: []birelmanifest.ReleaseRef{
 					{
-						Name:    "fake-cpi-release-name",
-						Version: "1.0",
-						URL:     "file://" + cpiReleaseTarballPath,
+						Name: "fake-cpi-release-name",
+						URL:  "file://" + cpiReleaseTarballPath,
 					},
 				},
 			}
@@ -675,14 +674,12 @@ func rootDesc() {
 				releaseSetManifest = birelsetmanifest.Manifest{
 					Releases: []birelmanifest.ReleaseRef{
 						{
-							Name:    "fake-cpi-release-name",
-							Version: "1.0",
-							URL:     "file://" + cpiReleaseTarballPath,
+							Name: "fake-cpi-release-name",
+							URL:  "file://" + cpiReleaseTarballPath,
 						},
 						{
-							Name:    "other-release",
-							Version: "1234",
-							URL:     "file://" + otherReleaseTarballPath,
+							Name: "other-release",
+							URL:  "file://" + otherReleaseTarballPath,
 						},
 					},
 				}
@@ -817,26 +814,6 @@ func rootDesc() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
-			})
-		})
-
-		Context("when cloud_provider.release refers to an release declared with version 'latest'", func() {
-			BeforeEach(func() {
-				releaseSetManifest.Releases = []birelmanifest.ReleaseRef{
-					{
-						Name:    "fake-cpi-release-name",
-						Version: "latest",
-						URL:     "file://" + cpiReleaseTarballPath,
-					},
-				}
-			})
-
-			It("uses the latest version of that release that is available", func() {
-				expectInstall.Times(1)
-				expectNewCloud.Times(1)
-
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
-				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 

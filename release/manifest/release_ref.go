@@ -5,13 +5,8 @@ import (
 )
 
 type ReleaseRef struct {
-	Name    string
-	Version string
-	URL     string
-}
-
-func (r *ReleaseRef) IsLatest() bool {
-	return r.Version == "" || r.Version == "latest"
+	Name string
+	URL  string
 }
 
 func (r *ReleaseRef) Path() string {

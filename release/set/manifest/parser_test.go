@@ -57,10 +57,9 @@ var _ = Describe("Parser", func() {
 ---
 releases:
 - name: fake-release-name-1
-  version: fake-release-version-1
   url: file://fake-release-1.tgz
 - name: fake-release-name-2
-  version: fake-release-version-2
+  url: file://fake-release-2.tgz
 name: unknown-keys-are-ignored
 `
 		fakeFs.WriteFileString(comboManifestPath, contents)
@@ -73,14 +72,12 @@ name: unknown-keys-are-ignored
 		Expect(deploymentManifest).To(Equal(Manifest{
 			Releases: []birelmanifest.ReleaseRef{
 				{
-					Name:    "fake-release-name-1",
-					Version: "fake-release-version-1",
-					URL:     "file://fake-release-1.tgz",
+					Name: "fake-release-name-1",
+					URL:  "file://fake-release-1.tgz",
 				},
 				{
-					Name:    "fake-release-name-2",
-					Version: "fake-release-version-2",
-					URL:     "",
+					Name: "fake-release-name-2",
+					URL:  "file://fake-release-2.tgz",
 				},
 			},
 		}))

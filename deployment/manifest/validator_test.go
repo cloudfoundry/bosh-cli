@@ -32,10 +32,7 @@ var _ = Describe("Validator", func() {
 		releaseManager = birel.NewManager(logger)
 
 		releases = []birelmanifest.ReleaseRef{
-			{
-				Name:    "fake-release-name",
-				Version: "1.0",
-			},
+			{Name: "fake-release-name"},
 		}
 
 		validManifest = Manifest{
