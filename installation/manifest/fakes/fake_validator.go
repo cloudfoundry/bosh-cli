@@ -4,6 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 type FakeValidator struct {
@@ -19,20 +20,22 @@ func NewFakeValidator() *FakeValidator {
 }
 
 type ValidateInput struct {
-	Manifest biinstallmanifest.Manifest
+	InstallationManifest biinstallmanifest.Manifest
+	ReleaseSetManifest   birelsetmanifest.Manifest
 }
 
 type ValidateOutput struct {
 	Err error
 }
 
-func (v *FakeValidator) Validate(manifest biinstallmanifest.Manifest) error {
+func (v *FakeValidator) Validate(installationManifest biinstallmanifest.Manifest, releaseSetManifest birelsetmanifest.Manifest) error {
 	v.ValidateInputs = append(v.ValidateInputs, ValidateInput{
-		Manifest: manifest,
+		InstallationManifest: installationManifest,
+		ReleaseSetManifest:   releaseSetManifest,
 	})
 
 	if len(v.validateOutputs) == 0 {
-		return bosherr.Errorf("Unexpected FakeValidator.Validate(manifest) called with manifest: %#v", manifest)
+		return bosherr.Errorf("Unexpected FakeValidator.Validate(manifest) called with installation manifest: %#v, release set manifest: %#v", installationManifest, releaseSetManifest)
 	}
 	validateOutput := v.validateOutputs[0]
 	v.validateOutputs = v.validateOutputs[1:]

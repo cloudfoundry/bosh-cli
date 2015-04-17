@@ -368,7 +368,7 @@ cloud_provider:
 			installationParser := biinstallmanifest.NewParser(fs, logger)
 
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
-			installationValidator := biinstallmanifest.NewValidator(logger, releaseManager)
+			installationValidator := biinstallmanifest.NewValidator(logger)
 			deploymentValidator := bideplmanifest.NewValidator(logger, releaseManager)
 
 			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)

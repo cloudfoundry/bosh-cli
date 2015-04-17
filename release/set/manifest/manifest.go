@@ -15,3 +15,12 @@ func (d Manifest) ReleasesByName() map[string]birelmanifest.ReleaseRef {
 	}
 	return releasesByName
 }
+
+func (d Manifest) FindByName(name string) (birelmanifest.ReleaseRef, bool) {
+	for _, release := range d.Releases {
+		if release.Name == name {
+			return release, true
+		}
+	}
+	return birelmanifest.ReleaseRef{}, false
+}

@@ -57,7 +57,7 @@ func (c *deleteCmd) Meta() Meta {
 }
 
 func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
-	deploymentManifestPath, releaseTarballPath, err := c.parseCmdInputs(args)
+	deploymentManifestPath, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
 	deploymentDeleter := c.deploymentDeleterProvider(deploymentManifestPath)
-	return deploymentDeleter.DeleteDeployment(stage, releaseTarballPath, deploymentManifestPath)
+	return deploymentDeleter.DeleteDeployment(stage, deploymentManifestPath)
 }
 
 func NewDeploymentDeleter(
@@ -136,7 +136,7 @@ type DeploymentDeleter struct {
 	installationValidator    biinstallmanifest.Validator
 }
 
-func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, releaseTarballPath string, deploymentManifestPath string) (err error) {
+func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, deploymentManifestPath string) (err error) {
 	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -151,7 +151,7 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, releaseTarballPat
 
 	var installationManifest biinstallmanifest.Manifest
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
-		installationManifest, err = c.validate(stage, releaseTarballPath, deploymentManifestPath)
+		installationManifest, err = c.validate(stage, deploymentManifestPath)
 		return err
 	})
 	if err != nil {
@@ -237,28 +237,70 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, releaseTarballPat
 	return err
 }
 
-func (c *deleteCmd) parseCmdInputs(args []string) (string, string, error) {
-	if len(args) != 2 {
+func (c *deleteCmd) parseCmdInputs(args []string) (string, error) {
+	if len(args) != 1 {
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
-		return "", "", errors.New("Invalid usage - delete command requires exactly 2 arguments")
+		return "", errors.New("Invalid usage - delete command requires exactly 1 argument")
 	}
-	return args[0], args[1], nil
+	return args[0], nil
 }
 
-func (c *DeploymentDeleter) validate(validationStage biui.Stage, releaseTarballPath, deploymentManifestPath string) (
+func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManifestPath string) (
 	installationManifest biinstallmanifest.Manifest,
 	err error,
 ) {
-	err = validationStage.Perform("Validating releases", func() error {
-		if !c.fs.FileExists(releaseTarballPath) {
-			return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
+	var cpiReleaseName string
+	var releaseSetManifest birelsetmanifest.Manifest
+
+	err = validationStage.Perform("Validating deployment manifest", func() error {
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
 
-		release, err := c.releaseExtractor.Extract(releaseTarballPath)
+		releaseSetManifest, err = c.releaseSetParser.Parse(deploymentManifestPath)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
+			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.releaseSetValidator.Validate(releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating release set manifest")
+		}
+
+		err = c.installationValidator.Validate(installationManifest, releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating installation manifest")
+		}
+		cpiReleaseName = installationManifest.Template.Release
+
+		return nil
+	})
+	if err != nil {
+		return installationManifest, err
+	}
+
+	err = validationStage.Perform("Validating cpi release", func() error {
+		cpiRelease, found := releaseSetManifest.FindByName(cpiReleaseName)
+		if !found {
+			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
+		}
+
+		if !c.fs.FileExists(cpiRelease.Path()) {
+			return bosherr.Errorf("Verifying that the release '%s' exists", cpiRelease.Path())
+		}
+
+		release, err := c.releaseExtractor.Extract(cpiRelease.Path())
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Extracting release '%s'", cpiRelease.Path())
 		}
 		c.releaseManager.Add(release)
+
+		cpiReleaseJobName := installationManifest.Template.Name
+		err = bicpirel.NewValidator().Validate(release, cpiReleaseJobName)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiReleaseName)
+		}
 
 		return nil
 	})
@@ -273,50 +315,6 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, releaseTarballP
 			}
 		}
 	}()
-
-	err = validationStage.Perform("Validating deployment manifest", func() error {
-		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.releaseSetValidator.Validate(releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating release set manifest")
-		}
-
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.installationValidator.Validate(installationManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating installation manifest")
-		}
-
-		return nil
-	})
-	if err != nil {
-		return installationManifest, err
-	}
-
-	err = validationStage.Perform("Validating cpi release", func() error {
-		cpiReleaseName := installationManifest.Template.Release
-		cpiRelease, found := c.releaseManager.FindByName(cpiReleaseName)
-		if !found {
-			// should never happen, due to prior manifest validation
-			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
-		}
-
-		cpiReleaseJobName := installationManifest.Template.Name
-		err = bicpirel.NewValidator().Validate(cpiRelease, cpiReleaseJobName)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiReleaseName)
-		}
-
-		return nil
-	})
 
 	return installationManifest, err
 }

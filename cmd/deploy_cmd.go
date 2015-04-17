@@ -353,8 +353,9 @@ func (c *DeploymentPreparer) validate(
 		}
 	}()
 
+	var releaseSetManifest birelsetmanifest.Manifest
 	err = validationStage.Perform("Validating releases", func() error {
-		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
+		releaseSetManifest, err = c.releaseSetParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
 		}
@@ -406,7 +407,7 @@ func (c *DeploymentPreparer) validate(
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
 
-		err = c.installationValidator.Validate(installationManifest)
+		err = c.installationValidator.Validate(installationManifest, releaseSetManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating installation manifest")
 		}

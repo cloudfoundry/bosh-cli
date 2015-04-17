@@ -105,7 +105,7 @@ var _ = Describe("bosh-init", func() {
 		os.Stdout.WriteString("\n---DELETE---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"), testEnv.Path("cpi-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return outBuffer.String()
@@ -229,7 +229,7 @@ var _ = Describe("bosh-init", func() {
 			flushLog(cmdEnv["BOSH_INIT_LOG_PATH"])
 
 			// quietly delete the deployment
-			_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"), testEnv.Path("cpi-release.tgz"))
+			_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"))
 			if exitCode != 0 || err != nil {
 				// only flush the delete log if the delete failed
 				flushLog(quietCmdEnv["BOSH_INIT_LOG_PATH"])

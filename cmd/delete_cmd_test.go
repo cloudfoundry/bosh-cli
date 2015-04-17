@@ -156,7 +156,7 @@ cloud_provider:
 		var newDeleteCmd = func() Cmd {
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
-			installationValidator := biinstallmanifest.NewValidator(logger, releaseManager)
+			installationValidator := biinstallmanifest.NewValidator(logger)
 			installationParser := biinstallmanifest.NewParser(fs, logger)
 
 			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
@@ -217,7 +217,6 @@ cloud_provider:
 					Name: "validating",
 					Stage: &fakebiui.FakeStage{
 						PerformCalls: []fakebiui.PerformCall{
-							{Name: "Validating releases"},
 							{Name: "Validating deployment manifest"},
 							{Name: "Validating cpi release"},
 						},
@@ -287,7 +286,7 @@ cloud_provider:
 
 		Context("when the deployment manifest does not exist", func() {
 			It("returns an error", func() {
-				err := newDeleteCmd().Run(fakeStage, []string{"/garbage", "/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{"/garbage"})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Deployment manifest does not exist at '/garbage'"))
 				Expect(fakeUI.Errors).To(ContainElement("Deployment '/garbage' does not exist"))
@@ -301,7 +300,7 @@ cloud_provider:
 			})
 
 			It("does not delete anything", func() {
-				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeUI.Said).To(Equal([]string{
@@ -331,7 +330,7 @@ cloud_provider:
 					expectNewCloud.Times(1),
 				)
 
-				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -343,14 +342,14 @@ cloud_provider:
 					expectStopRegistry.Times(1),
 				)
 
-				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("deletes the extracted CPI release", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fs.FileExists("fake-cpi-extracted-dir")).To(BeFalse())
 			})
@@ -358,7 +357,7 @@ cloud_provider:
 			It("deletes the deployment & cleans up orphans", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeUI.Errors).To(BeEmpty())
 			})
@@ -366,25 +365,21 @@ cloud_provider:
 			It("logs validating & deleting stages", func() {
 				expectDeleteAndCleanup()
 
-				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				expectValidationInstallationDeletionEvents()
 			})
 		})
 
-		It("returns err unless exactly 2 arguments are given", func() {
+		It("returns err unless exactly 1 arguments is given", func() {
 			command := newDeleteCmd()
 
 			err := command.Run(fakeStage, []string{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
 
-			err = command.Run(fakeStage, []string{"1"})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
-
-			err = command.Run(fakeStage, []string{"1", "2", "3"})
+			err = command.Run(fakeStage, []string{"1", "2"})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
 		})
@@ -397,7 +392,7 @@ cloud_provider:
 			It("cleans up orphans, but does not delete any deployment", func() {
 				expectCleanup()
 
-				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath, "/fake-cpi-release.tgz"})
+				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeUI.Errors).To(BeEmpty())
 			})

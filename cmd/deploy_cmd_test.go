@@ -445,7 +445,7 @@ func rootDesc() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationValidator.ValidateInputs).To(Equal([]fakebiinstallmanifest.ValidateInput{
-				{Manifest: installationManifest},
+				{InstallationManifest: installationManifest, ReleaseSetManifest: releaseSetManifest},
 			}))
 		})
 

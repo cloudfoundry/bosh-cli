@@ -324,7 +324,7 @@ func (f *factory) loadInstallationValidator() biinstallmanifest.Validator {
 		return f.installationValidator
 	}
 
-	f.installationValidator = biinstallmanifest.NewValidator(f.logger, f.loadReleaseManager())
+	f.installationValidator = biinstallmanifest.NewValidator(f.logger)
 	return f.installationValidator
 }
 
