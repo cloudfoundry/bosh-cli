@@ -15,7 +15,6 @@ jobs:
   - name: test-unit
     plan:
       - get: bosh-init
-        trigger: false
       - task: unit
         file: bosh-init/ci/concourse/test-unit.yml
 
