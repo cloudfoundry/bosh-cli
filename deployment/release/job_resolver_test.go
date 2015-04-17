@@ -7,13 +7,11 @@ import (
 	. "github.com/cloudfoundry/bosh-init/deployment/release"
 
 	"code.google.com/p/gomock/gomock"
-	mock_release_set "github.com/cloudfoundry/bosh-init/release/set/mocks"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 
 	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"
+	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
 )
 
 var _ = Describe("JobResolver", func() {
@@ -28,8 +26,8 @@ var _ = Describe("JobResolver", func() {
 	})
 
 	var (
-		mockReleaseSetResolver *mock_release_set.MockResolver
-		fakeRelease            *fake_release.FakeRelease
+		mockReleaseManager *mock_release.MockManager
+		fakeRelease        *fake_release.FakeRelease
 
 		fakeReleaseJob0 bireljob.Job
 		fakeReleaseJob1 bireljob.Job
@@ -38,7 +36,7 @@ var _ = Describe("JobResolver", func() {
 	)
 
 	BeforeEach(func() {
-		mockReleaseSetResolver = mock_release_set.NewMockResolver(mockCtrl)
+		mockReleaseManager = mock_release.NewMockManager(mockCtrl)
 
 		fakeRelease = fake_release.New("fake-release-name", "fake-release-version")
 
@@ -53,14 +51,14 @@ var _ = Describe("JobResolver", func() {
 	})
 
 	JustBeforeEach(func() {
-		jobResolver = NewJobResolver(mockReleaseSetResolver)
+		jobResolver = NewJobResolver(mockReleaseManager)
 
 		fakeRelease.ReleaseJobs = []bireljob.Job{fakeReleaseJob0, fakeReleaseJob1}
 	})
 
 	Describe("Resolve", func() {
 		It("Returns the matching release job", func() {
-			mockReleaseSetResolver.EXPECT().Find("fake-release-name").Return(fakeRelease, nil)
+			mockReleaseManager.EXPECT().FindByName("fake-release-name").Return(fakeRelease, true)
 
 			releaseJob, err := jobResolver.Resolve("fake-release-job-name-0", "fake-release-name")
 			Expect(err).ToNot(HaveOccurred())
@@ -68,7 +66,7 @@ var _ = Describe("JobResolver", func() {
 		})
 
 		It("Returns an error, when the job is not in the release", func() {
-			mockReleaseSetResolver.EXPECT().Find("fake-release-name").Return(fakeRelease, nil)
+			mockReleaseManager.EXPECT().FindByName("fake-release-name").Return(fakeRelease, true)
 
 			_, err := jobResolver.Resolve("fake-missing-release-job-name", "fake-release-name")
 			Expect(err).To(HaveOccurred())
@@ -76,12 +74,11 @@ var _ = Describe("JobResolver", func() {
 		})
 
 		It("Returns an error, when the release is not in resolvable", func() {
-			mockReleaseSetResolver.EXPECT().Find("fake-missing-release-name").Return(nil, bosherr.Error("fake-release-resolver-find-error"))
+			mockReleaseManager.EXPECT().FindByName("fake-missing-release-name").Return(nil, false)
 
 			_, err := jobResolver.Resolve("fake-release-job-name-0", "fake-missing-release-name")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Resolving release 'fake-missing-release-name'"))
-			Expect(err.Error()).To(ContainSubstring("fake-release-resolver-find-error"))
+			Expect(err.Error()).To(ContainSubstring("Finding release 'fake-missing-release-name'"))
 		})
 	})
 })

@@ -10,7 +10,6 @@ import (
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 
 	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 
@@ -108,13 +107,7 @@ var _ = Describe("Validator", func() {
 		fakeRelease = fakebirel.New("fake-release-name", "1.0")
 		fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
 		releaseManager.Add(fakeRelease)
-	})
-
-	JustBeforeEach(func() {
-		releaseResolver := birelset.NewResolver(releaseManager, logger)
-		err := releaseResolver.Filter(releases)
-		Expect(err).ToNot(HaveOccurred())
-		validator = NewValidator(logger, releaseResolver)
+		validator = NewValidator(logger, releaseManager)
 	})
 
 	Describe("Validate", func() {
@@ -535,7 +528,7 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release must be provided"))
 		})
 
-		It("validates job templates reference an available release", func() {
+		It("validates job templates reference a release in releases list", func() {
 			deploymentManifest := validManifest
 			deploymentManifest.Jobs[0].Templates = []ReleaseJobRef{
 				{Name: "fake-job-name", Release: "fake-other-release-name"},
@@ -543,18 +536,7 @@ var _ = Describe("Validator", func() {
 
 			err := validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release must refer to an available release"))
-		})
-
-		It("validates job templates reference an available release", func() {
-			deploymentManifest := validManifest
-			deploymentManifest.Jobs[0].Templates = []ReleaseJobRef{
-				{Name: "fake-job-name", Release: "fake-other-release-name"},
-			}
-
-			err := validator.Validate(deploymentManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release must refer to an available release"))
+			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release 'fake-other-release-name' must refer to release in releases"))
 		})
 
 		It("validates job templates reference a job declared within the release", func() {

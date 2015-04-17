@@ -20,7 +20,6 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	birel "github.com/cloudfoundry/bosh-init/release"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
@@ -63,7 +62,7 @@ func (c *deployCmd) Meta() Meta {
 }
 
 func (c *deployCmd) Run(stage biui.Stage, args []string) error {
-	deploymentManifestPath, stemcellTarballPath, releaseTarballPaths, err := c.parseCmdInputs(args)
+	deploymentManifestPath, stemcellTarballPath, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
 	}
@@ -82,7 +81,7 @@ func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
 	deploymentPreparer := c.deploymentPreparerProvider(deploymentManifestPath)
-	return deploymentPreparer.PrepareDeployment(stage, stemcellTarballPath, releaseTarballPaths, deploymentManifestPath)
+	return deploymentPreparer.PrepareDeployment(stage, stemcellTarballPath, deploymentManifestPath)
 }
 
 func NewDeploymentPreparer(
@@ -108,7 +107,6 @@ func NewDeploymentPreparer(
 	installationValidator biinstallmanifest.Validator,
 	deploymentValidator bideplmanifest.Validator,
 	releaseExtractor birel.Extractor,
-	releaseResolver birelset.Resolver,
 	stemcellExtractor bistemcell.Extractor,
 
 ) DeploymentPreparer {
@@ -135,7 +133,6 @@ func NewDeploymentPreparer(
 		installationValidator:         installationValidator,
 		deploymentValidator:           deploymentValidator,
 		releaseExtractor:              releaseExtractor,
-		releaseResolver:               releaseResolver,
 		stemcellExtractor:             stemcellExtractor,
 	}
 }
@@ -163,11 +160,10 @@ type DeploymentPreparer struct {
 	installationValidator         biinstallmanifest.Validator
 	deploymentValidator           bideplmanifest.Validator
 	releaseExtractor              birel.Extractor
-	releaseResolver               birelset.Resolver
 	stemcellExtractor             bistemcell.Extractor
 }
 
-func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarballPath string, releaseTarballPaths []string, deploymentManifestPath string) (err error) {
+func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarballPath string, deploymentManifestPath string) (err error) {
 	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -191,7 +187,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 		installationManifest biinstallmanifest.Manifest
 	)
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
-		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, releaseTarballPaths, deploymentManifestPath)
+		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, deploymentManifestPath)
 		return err
 	})
 	if err != nil {
@@ -311,12 +307,12 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 
 type Deployment struct{}
 
-func (c *deployCmd) parseCmdInputs(args []string) (string, string, []string, error) {
-	if len(args) < 3 {
+func (c *deployCmd) parseCmdInputs(args []string) (string, string, error) {
+	if len(args) != 2 {
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
-		return "", "", []string{}, errors.New("Invalid usage - deploy command requires at least 3 arguments")
+		return "", "", errors.New("Invalid usage - deploy command requires exactly 2 arguments")
 	}
-	return args[0], args[1], args[2:], nil
+	return args[0], args[1], nil
 }
 
 func (c *deployCmd) isBlank(str string) bool {
@@ -326,7 +322,6 @@ func (c *deployCmd) isBlank(str string) bool {
 func (c *DeploymentPreparer) validate(
 	validationStage biui.Stage,
 	stemcellTarballPath string,
-	releaseTarballPaths []string,
 	deploymentManifestPath string,
 ) (
 	extractedStemcell bistemcell.ExtractedStemcell,
@@ -359,14 +354,24 @@ func (c *DeploymentPreparer) validate(
 	}()
 
 	err = validationStage.Perform("Validating releases", func() error {
-		for _, releaseTarballPath := range releaseTarballPaths {
-			if !c.fs.FileExists(releaseTarballPath) {
-				return bosherr.Errorf("Verifying that the release '%s' exists", releaseTarballPath)
+		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.releaseSetValidator.Validate(releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating release set manifest")
+		}
+
+		for _, releaseRef := range releaseSetManifest.Releases {
+			if !c.fs.FileExists(releaseRef.Path()) {
+				return bosherr.Errorf("Verifying that the release '%s' exists", releaseRef.Path())
 			}
 
-			release, err := c.releaseExtractor.Extract(releaseTarballPath)
+			release, err := c.releaseExtractor.Extract(releaseRef.Path())
 			if err != nil {
-				return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseTarballPath)
+				return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseRef.Path())
 			}
 			c.releaseManager.Add(release)
 		}
@@ -386,19 +391,6 @@ func (c *DeploymentPreparer) validate(
 	}()
 
 	err = validationStage.Perform("Validating deployment manifest", func() error {
-		releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.releaseSetValidator.Validate(releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating release set manifest")
-		}
-
-		//TODO: this seems to be a naming smell indicating a deeper issue
-		c.releaseResolver.Filter(releaseSetManifest.Releases)
-
 		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
@@ -427,9 +419,8 @@ func (c *DeploymentPreparer) validate(
 
 	err = validationStage.Perform("Validating cpi release", func() error {
 		cpiReleaseName := installationManifest.Template.Release
-		cpiRelease, err := c.releaseResolver.Find(cpiReleaseName)
-		if err != nil {
-			// should never happen, due to prior manifest validation
+		cpiRelease, found := c.releaseManager.FindByName(cpiReleaseName)
+		if !found {
 			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", cpiReleaseName)
 		}
 

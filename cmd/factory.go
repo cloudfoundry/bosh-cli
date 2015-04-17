@@ -29,7 +29,6 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	birel "github.com/cloudfoundry/bosh-init/release"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
@@ -62,7 +61,6 @@ type factory struct {
 	eventLogger            biui.Stage
 	releaseExtractor       birel.Extractor
 	releaseManager         birel.Manager
-	releaseResolver        birelset.Resolver
 	releaseSetParser       birelsetmanifest.Parser
 	releaseJobResolver     bideplrel.JobResolver
 	installationParser     biinstallmanifest.Parser
@@ -210,8 +208,7 @@ func (f *factory) loadReleaseJobResolver() bideplrel.JobResolver {
 		return f.releaseJobResolver
 	}
 
-	releaseSetResolver := birelset.NewResolver(f.loadReleaseManager(), f.logger)
-	f.releaseJobResolver = bideplrel.NewJobResolver(releaseSetResolver)
+	f.releaseJobResolver = bideplrel.NewJobResolver(f.loadReleaseManager())
 	return f.releaseJobResolver
 }
 
@@ -295,15 +292,6 @@ func (f *factory) loadReleaseManager() birel.Manager {
 	return f.releaseManager
 }
 
-func (f *factory) loadReleaseResolver() birelset.Resolver {
-	if f.releaseResolver != nil {
-		return f.releaseResolver
-	}
-
-	f.releaseResolver = birelset.NewResolver(f.loadReleaseManager(), f.logger)
-	return f.releaseResolver
-}
-
 func (f *factory) loadReleaseSetParser() birelsetmanifest.Parser {
 	if f.releaseSetParser != nil {
 		return f.releaseSetParser
@@ -336,7 +324,7 @@ func (f *factory) loadInstallationValidator() biinstallmanifest.Validator {
 		return f.installationValidator
 	}
 
-	f.installationValidator = biinstallmanifest.NewValidator(f.logger, f.loadReleaseResolver())
+	f.installationValidator = biinstallmanifest.NewValidator(f.logger, f.loadReleaseManager())
 	return f.installationValidator
 }
 
@@ -345,7 +333,7 @@ func (f *factory) loadDeploymentValidator() bideplmanifest.Validator {
 		return f.deploymentValidator
 	}
 
-	f.deploymentValidator = bideplmanifest.NewValidator(f.logger, f.loadReleaseResolver())
+	f.deploymentValidator = bideplmanifest.NewValidator(f.logger, f.loadReleaseManager())
 	return f.deploymentValidator
 }
 
@@ -354,7 +342,7 @@ func (f *factory) loadReleaseSetValidator() birelsetmanifest.Validator {
 		return f.releaseSetValidator
 	}
 
-	f.releaseSetValidator = birelsetmanifest.NewValidator(f.logger, f.loadReleaseResolver())
+	f.releaseSetValidator = birelsetmanifest.NewValidator(f.logger)
 	return f.releaseSetValidator
 }
 
@@ -415,7 +403,6 @@ func (d *deploymentManagerFactory2) loadDeploymentPreparer() DeploymentPreparer 
 		d.f.loadInstallationValidator(),
 		d.f.loadDeploymentValidator(),
 		d.f.loadReleaseExtractor(),
-		d.f.loadReleaseResolver(),
 		stemcellExtractor,
 	)
 }
@@ -435,7 +422,6 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
 		d.loadDeploymentManagerFactory(),
 		d.f.loadReleaseSetParser(),
 		d.f.loadReleaseSetValidator(),
-		d.f.loadReleaseResolver(),
 		d.f.loadReleaseExtractor(),
 		d.f.loadInstallationParser(),
 		d.f.loadInstallationValidator(),
@@ -583,7 +569,6 @@ func (d *deploymentManagerFactory2) loadInstallerFactory() biinstall.InstallerFa
 		d.f.fs,
 		d.f.loadCMDRunner(),
 		d.f.loadCompressor(),
-		d.f.loadReleaseResolver(),
 		d.f.loadReleaseJobResolver(),
 		d.f.uuidGenerator,
 		d.f.loadRegistryServerManager(),

@@ -6,10 +6,8 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 
 	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 
@@ -18,9 +16,8 @@ import (
 
 var _ = Describe("Validator", func() {
 	var (
-		logger         boshlog.Logger
-		releaseManager birel.Manager
-		validator      Validator
+		logger    boshlog.Logger
+		validator Validator
 
 		validManifest Manifest
 		fakeRelease   *fakebirel.FakeRelease
@@ -28,25 +25,23 @@ var _ = Describe("Validator", func() {
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		releaseManager = birel.NewManager(logger)
 
 		validManifest = Manifest{
 			Releases: []birelmanifest.ReleaseRef{
 				{
 					Name:    "fake-release-name",
 					Version: "1.0",
+					URL:     "file://fake-release-path",
 				},
 			},
 		}
 
 		fakeRelease = fakebirel.New("fake-release-name", "1.0")
 		fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
-		releaseManager.Add(fakeRelease)
 	})
 
 	JustBeforeEach(func() {
-		releaseResolver := birelset.NewResolver(releaseManager, logger)
-		validator = NewValidator(logger, releaseResolver)
+		validator = NewValidator(logger)
 	})
 
 	Describe("Validate", func() {
@@ -57,6 +52,16 @@ var _ = Describe("Validator", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It("validates there is at least one release", func() {
+			manifest := Manifest{
+				Releases: []birelmanifest.ReleaseRef{},
+			}
+
+			err := validator.Validate(manifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases must contain at least 1 release"))
+		})
+
 		It("validates releases have names", func() {
 			manifest := Manifest{
 				Releases: []birelmanifest.ReleaseRef{{}},
@@ -65,6 +70,30 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("releases[0].name must be provided"))
+		})
+
+		It("validates releases have urls", func() {
+			manifest := Manifest{
+				Releases: []birelmanifest.ReleaseRef{
+					{Name: "fake-release-name"},
+				},
+			}
+
+			err := validator.Validate(manifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[0].url must be provided"))
+		})
+
+		It("validates releases have valid urls", func() {
+			manifest := Manifest{
+				Releases: []birelmanifest.ReleaseRef{
+					{Name: "fake-release-name", URL: "invalid-url"},
+				},
+			}
+
+			err := validator.Validate(manifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[0].url must be a valid file URL (file://)"))
 		})
 
 		It("validates releases are unique", func() {
@@ -92,23 +121,11 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("releases[0].version 'not-a-semver' must be a semantic version (name: 'fake-release-name')"))
 		})
 
-		It("validates release is available", func() {
-			manifest := validManifest
-			manifest.Releases = []birelmanifest.ReleaseRef{
-				{Name: "fake-other-release-name", Version: "1.0"},
-			}
-
-			err := validator.Validate(manifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("releases[0] must refer to an available release"))
-		})
-
 		It("allows release versions to be 'latest'", func() {
 			manifest := validManifest
 			manifest.Releases = []birelmanifest.ReleaseRef{
-				{Name: "fake-release-name", Version: "latest"},
+				{Name: "fake-release-name", Version: "latest", URL: "file://fake-release-path"},
 			}
-			releaseManager.Add(fakebirel.New("fake-release-name", "1.0"))
 
 			err := validator.Validate(manifest)
 			Expect(err).NotTo(HaveOccurred())

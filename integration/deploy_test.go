@@ -47,7 +47,6 @@ import (
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
@@ -75,7 +74,6 @@ var _ = Describe("bosh-init", func() {
 
 			registryServerManager biregistry.ServerManager
 			releaseManager        birel.Manager
-			releaseResolver       birelset.Resolver
 
 			mockInstaller          *mock_install.MockInstaller
 			mockInstallerFactory   *mock_install.MockInstallerFactory
@@ -122,7 +120,6 @@ var _ = Describe("bosh-init", func() {
 			directorID string
 
 			stemcellTarballPath    = "/fake-stemcell-release.tgz"
-			cpiReleaseTarballPath  = "/fake-cpi-release.tgz"
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentStatePath    = "/deployment-dir/fake-deployment-manifest-state.json"
 
@@ -152,11 +149,12 @@ var _ = Describe("bosh-init", func() {
 
 		var writeDeploymentManifest = func() {
 			err := fs.WriteFileString(deploymentManifestPath, `---
-name: test-release
+name: test-deployment
 
 releases:
 - name: fake-cpi-release-name
   version: 1.1
+  url: file:///fake-cpi-release.tgz
 
 networks:
 - name: network-1
@@ -195,11 +193,12 @@ cloud_provider:
 
 		var writeDeploymentManifestWithLargerDisk = func() {
 			err := fs.WriteFileString(deploymentManifestPath, `---
-name: test-release
+name: test-deployment
 
 releases:
 - name: fake-cpi-release-name
   version: 1.1
+  url: file:///fake-cpi-release.tgz
 
 networks:
 - name: network-1
@@ -237,7 +236,7 @@ cloud_provider:
 		}
 
 		var writeCPIReleaseTarball = func() {
-			err := fs.WriteFileString(cpiReleaseTarballPath, "fake-tgz-content")
+			err := fs.WriteFileString("/fake-cpi-release.tgz", "fake-tgz-content")
 			Expect(err).ToNot(HaveOccurred())
 		}
 
@@ -266,13 +265,13 @@ cloud_provider:
 				"fake-cpi-extracted-dir",
 				fs,
 			)
-			mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Do(func(_ string) {
+			mockReleaseExtractor.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
 				Expect(err).ToNot(HaveOccurred())
 			}).Return(cpiRelease, nil).AnyTimes()
 
 			installationManifest := biinstallmanifest.Manifest{
-				Name: "test-release",
+				Name: "test-deployment",
 				Template: biinstallmanifest.ReleaseJobRef{
 					Name:    "fake-cpi-release-job-name",
 					Release: "fake-cpi-release-name",
@@ -368,9 +367,9 @@ cloud_provider:
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
 			installationParser := biinstallmanifest.NewParser(fs, logger)
 
-			releaseSetValidator := birelsetmanifest.NewValidator(logger, releaseResolver)
-			installationValidator := biinstallmanifest.NewValidator(logger, releaseResolver)
-			deploymentValidator := bideplmanifest.NewValidator(logger, releaseResolver)
+			releaseSetValidator := birelsetmanifest.NewValidator(logger)
+			installationValidator := biinstallmanifest.NewValidator(logger, releaseManager)
+			deploymentValidator := bideplmanifest.NewValidator(logger, releaseManager)
 
 			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
 			instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
@@ -425,7 +424,6 @@ cloud_provider:
 					installationValidator,
 					deploymentValidator,
 					mockReleaseExtractor,
-					releaseResolver,
 					fakeStemcellExtractor,
 				)
 			}
@@ -728,7 +726,6 @@ cloud_provider:
 
 			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
 			releaseManager = birel.NewManager(logger)
-			releaseResolver = birelset.NewResolver(releaseManager, logger)
 
 			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
 			mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
@@ -763,7 +760,7 @@ cloud_provider:
 		It("executes the cloud & agent client calls in the expected order", func() {
 			expectDeployFlow()
 
-			err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+			err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -800,7 +797,7 @@ cloud_provider:
 			It("extracts all provided releases & finds the cpi release before executing the expected cloud & agent client commands", func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, otherReleaseTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -819,7 +816,7 @@ cloud_provider:
 				// new directorID will be generated
 				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.FileExists(deploymentStatePath)).To(BeTrue())
@@ -834,7 +831,7 @@ cloud_provider:
 			JustBeforeEach(func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -846,7 +843,7 @@ cloud_provider:
 				It("migrates the disk content", func() {
 					expectDeployWithDiskMigration()
 
-					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -854,7 +851,7 @@ cloud_provider:
 					It("migrates the disk content, but does not shutdown the old VM", func() {
 						expectDeployWithDiskMigrationMissingVM()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 
@@ -866,7 +863,7 @@ cloud_provider:
 							Message: "fake-vm-not-found-message",
 						}))
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 				})
@@ -877,7 +874,7 @@ cloud_provider:
 					It("returns an error when attach_disk fails with a DiskNotFound error", func() {
 						expectDeployWithNoDiskToMigrate()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-disk-not-found-message"))
 					})
@@ -887,7 +884,7 @@ cloud_provider:
 					JustBeforeEach(func() {
 						expectDeployWithDiskMigrationFailure()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migration-error"))
 
@@ -901,7 +898,7 @@ cloud_provider:
 
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 						Expect(err).ToNot(HaveOccurred())
 
 						diskRecord, found, err := diskRepo.FindCurrent()
@@ -932,7 +929,7 @@ cloud_provider:
 				It("skips the deploy", func() {
 					expectNoDeployHappened()
 
-					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 					Expect(err).ToNot(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
@@ -943,7 +940,7 @@ cloud_provider:
 			It("makes the registry available for all CPI commands", func() {
 				expectDeployFlowWithRegistry()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath, cpiReleaseTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})

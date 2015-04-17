@@ -27,7 +27,6 @@ import (
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 
@@ -92,6 +91,10 @@ var _ = Describe("DeleteCmd", func() {
 			fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
 
+releases:
+- name: fake-cpi-release-name
+  url: file:///fake-cpi-release.tgz
+
 cloud_provider:
   template:
     name: fake-cpi-release-job-name
@@ -152,9 +155,8 @@ cloud_provider:
 
 		var newDeleteCmd = func() Cmd {
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
-			releaseSetResolver := birelset.NewResolver(releaseManager, logger)
-			releaseSetValidator := birelsetmanifest.NewValidator(logger, releaseSetResolver)
-			installationValidator := biinstallmanifest.NewValidator(logger, releaseSetResolver)
+			releaseSetValidator := birelsetmanifest.NewValidator(logger)
+			installationValidator := biinstallmanifest.NewValidator(logger, releaseManager)
 			installationParser := biinstallmanifest.NewParser(fs, logger)
 
 			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
@@ -174,7 +176,6 @@ cloud_provider:
 					mockDeploymentManagerFactory,
 					releaseSetParser,
 					releaseSetValidator,
-					releaseSetResolver,
 					mockReleaseExtractor,
 					installationParser,
 					installationValidator,

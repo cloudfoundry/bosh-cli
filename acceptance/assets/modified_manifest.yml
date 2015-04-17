@@ -1,6 +1,12 @@
 ---
 name: test-release
 
+releases:
+- name: bosh-warden-cpi
+  url: file://{{ .CpiReleasePath }}
+- name: dummy
+  url: file://{{ .DummyReleasePath }}
+
 resource_pools:
 - name: fake-resource-pool-name
   network: fake-network-name

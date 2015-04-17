@@ -12,7 +12,6 @@ import (
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 
 	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 )
@@ -56,13 +55,7 @@ var _ = Describe("Validator", func() {
 		fakeRelease = fakebirel.New("provided-valid-release-name", "1.0")
 		fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
 		releaseManager.Add(fakeRelease)
-	})
-
-	JustBeforeEach(func() {
-		releaseResolver := birelset.NewResolver(releaseManager, logger)
-		err := releaseResolver.Filter(releases)
-		Expect(err).ToNot(HaveOccurred())
-		validator = NewValidator(logger, releaseResolver)
+		validator = NewValidator(logger, releaseManager)
 	})
 
 	Describe("Validate", func() {
@@ -115,7 +108,7 @@ var _ = Describe("Validator", func() {
 
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("cloud_provider.template.release 'not-provided-valid-release-name' must refer to a provided release"))
+			Expect(err.Error()).To(ContainSubstring("cloud_provider.template.release 'not-provided-valid-release-name' must refer to a release in releases"))
 		})
 	})
 })

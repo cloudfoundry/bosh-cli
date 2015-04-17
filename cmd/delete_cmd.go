@@ -17,7 +17,6 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	birel "github.com/cloudfoundry/bosh-init/release"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 )
@@ -94,7 +93,6 @@ func NewDeploymentDeleter(
 	deploymentManagerFactory bidepl.ManagerFactory,
 	releaseSetParser birelsetmanifest.Parser,
 	releaseSetValidator birelsetmanifest.Validator,
-	releaseResolver birelset.Resolver,
 	releaseExtractor birel.Extractor,
 	installationParser biinstallmanifest.Parser,
 	installationValidator biinstallmanifest.Validator,
@@ -113,7 +111,6 @@ func NewDeploymentDeleter(
 		deploymentManagerFactory: deploymentManagerFactory,
 		releaseSetParser:         releaseSetParser,
 		releaseSetValidator:      releaseSetValidator,
-		releaseResolver:          releaseResolver,
 		releaseExtractor:         releaseExtractor,
 		installationParser:       installationParser,
 		installationValidator:    installationValidator,
@@ -134,7 +131,6 @@ type DeploymentDeleter struct {
 	deploymentManagerFactory bidepl.ManagerFactory
 	releaseSetParser         birelsetmanifest.Parser
 	releaseSetValidator      birelsetmanifest.Validator
-	releaseResolver          birelset.Resolver
 	releaseExtractor         birel.Extractor
 	installationParser       biinstallmanifest.Parser
 	installationValidator    biinstallmanifest.Validator
@@ -289,8 +285,6 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, releaseTarballP
 			return bosherr.WrapError(err, "Validating release set manifest")
 		}
 
-		c.releaseResolver.Filter(releaseSetManifest.Releases)
-
 		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
@@ -309,10 +303,10 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, releaseTarballP
 
 	err = validationStage.Perform("Validating cpi release", func() error {
 		cpiReleaseName := installationManifest.Template.Release
-		cpiRelease, err := c.releaseResolver.Find(cpiReleaseName)
-		if err != nil {
+		cpiRelease, found := c.releaseManager.FindByName(cpiReleaseName)
+		if !found {
 			// should never happen, due to prior manifest validation
-			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", cpiReleaseName)
+			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
 		}
 
 		cpiReleaseJobName := installationManifest.Template.Name

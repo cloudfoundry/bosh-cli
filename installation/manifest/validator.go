@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
+	birel "github.com/cloudfoundry/bosh-init/release"
 )
 
 type Validator interface {
@@ -14,14 +14,14 @@ type Validator interface {
 }
 
 type validator struct {
-	logger          boshlog.Logger
-	releaseResolver birelset.Resolver
+	logger         boshlog.Logger
+	releaseManager birel.Manager
 }
 
-func NewValidator(logger boshlog.Logger, releaseResolver birelset.Resolver) Validator {
+func NewValidator(logger boshlog.Logger, releaseManager birel.Manager) Validator {
 	return &validator{
-		logger:          logger,
-		releaseResolver: releaseResolver,
+		logger:         logger,
+		releaseManager: releaseManager,
 	}
 }
 
@@ -38,9 +38,9 @@ func (v *validator) Validate(manifest Manifest) error {
 		errs = append(errs, bosherr.Error("cloud_provider.template.release must be provided"))
 	}
 
-	_, err := v.releaseResolver.Find(cpiReleaseName)
-	if err != nil {
-		errs = append(errs, bosherr.WrapErrorf(err, "cloud_provider.template.release '%s' must refer to a provided release", cpiReleaseName))
+	_, found := v.releaseManager.FindByName(cpiReleaseName)
+	if !found {
+		errs = append(errs, bosherr.Errorf("cloud_provider.template.release '%s' must refer to a release in releases", cpiReleaseName))
 	}
 
 	if len(errs) > 0 {

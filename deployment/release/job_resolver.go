@@ -3,8 +3,8 @@ package release
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 
+	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 )
 
 type JobResolver interface {
@@ -12,19 +12,19 @@ type JobResolver interface {
 }
 
 type resolver struct {
-	releaseSetResolver birelset.Resolver
+	releaseManager birel.Manager
 }
 
-func NewJobResolver(releaseSetResolver birelset.Resolver) JobResolver {
+func NewJobResolver(releaseManager birel.Manager) JobResolver {
 	return &resolver{
-		releaseSetResolver: releaseSetResolver,
+		releaseManager: releaseManager,
 	}
 }
 
 func (r *resolver) Resolve(jobName, releaseName string) (bireljob.Job, error) {
-	release, err := r.releaseSetResolver.Find(releaseName)
-	if err != nil {
-		return bireljob.Job{}, bosherr.WrapErrorf(err, "Resolving release '%s'", releaseName)
+	release, found := r.releaseManager.FindByName(releaseName)
+	if !found {
+		return bireljob.Job{}, bosherr.Errorf("Finding release '%s'", releaseName)
 	}
 
 	releaseJob, found := release.FindJobByName(jobName)

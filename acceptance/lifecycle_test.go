@@ -3,10 +3,10 @@ package acceptance_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
+	"text/template"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -62,18 +62,29 @@ var _ = Describe("bosh-init", func() {
 		deleteLogFile(logPath)
 	}
 
+	type manifestContext struct {
+		CpiReleasePath   string
+		DummyReleasePath string
+	}
+
 	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
 	var updateDeploymentManifest = func(sourceManifestPath string) {
-		manifestContents, err := ioutil.ReadFile(sourceManifestPath)
+		context := manifestContext{
+			CpiReleasePath:   testEnv.Path("cpi-release.tgz"),
+			DummyReleasePath: testEnv.Path("dummy-release.tgz"),
+		}
+		buffer := bytes.NewBuffer([]byte{})
+		t := template.Must(template.ParseFiles(sourceManifestPath))
+		err := t.Execute(buffer, context)
 		Expect(err).ToNot(HaveOccurred())
-		testEnv.WriteContent("test-manifest.yml", manifestContents)
+		testEnv.WriteContent("test-manifest.yml", buffer.Bytes())
 	}
 
 	var deploy = func() (stdout string) {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"), testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"), testEnv.Path("stemcell.tgz"))
 		println((string)(outBuffer.Bytes()))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
@@ -84,7 +95,7 @@ var _ = Describe("bosh-init", func() {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
 		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"), testEnv.Path("stemcell.tgz"), testEnv.Path("cpi-release.tgz"), testEnv.Path("dummy-release.tgz"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"), testEnv.Path("stemcell.tgz"))
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
 		return outBuffer.String()
@@ -379,8 +390,7 @@ var _ = Describe("bosh-init", func() {
 			Expect(stdout).To(ContainSubstring(`
 Command 'deploy' failed:
   Validating deployment manifest:
-    jobs[0].templates[0].release must refer to an available release:
-      Release 'unknown-release' is not available`))
+    jobs[0].templates[0].release 'unknown-release' must refer to release in releases`))
 		})
 	})
 
@@ -393,7 +403,7 @@ Command 'deploy' failed:
 
 			Expect(stderr).To(ContainSubstring(`
 Command 'deploy' failed:
-  Invalid usage - deploy command requires at least 3 arguments`))
+  Invalid usage - deploy command requires exactly 2 arguments`))
 
 			Expect(stdout).To(ContainSubstring(`deploy - Create or update a deployment`))
 		})

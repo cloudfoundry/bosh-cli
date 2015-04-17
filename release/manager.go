@@ -8,8 +8,7 @@ import (
 type Manager interface {
 	Add(Release)
 	List() []Release
-	FindByName(name string) (releases []Release, found bool)
-	Find(name, version string) (release Release, found bool)
+	FindByName(name string) (releases Release, found bool)
 	DeleteAll() error
 }
 
@@ -39,21 +38,9 @@ func (m *manager) List() []Release {
 	return append([]Release(nil), m.releases...)
 }
 
-func (m *manager) FindByName(name string) (releases []Release, found bool) {
-	releases = []Release{}
-	found = false
+func (m *manager) FindByName(name string) (Release, bool) {
 	for _, release := range m.releases {
 		if release.Name() == name {
-			releases = append(releases, release)
-			found = true
-		}
-	}
-	return
-}
-
-func (m *manager) Find(name, version string) (release Release, found bool) {
-	for _, release := range m.releases {
-		if release.Name() == name && release.Version() == version {
 			return release, true
 		}
 	}

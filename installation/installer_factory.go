@@ -15,7 +15,6 @@ import (
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	biinstallstate "github.com/cloudfoundry/bosh-init/installation/state"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
@@ -33,7 +32,6 @@ type installerFactory struct {
 	fs                    boshsys.FileSystem
 	runner                boshsys.CmdRunner
 	extractor             boshcmd.Compressor
-	releaseResolver       birelset.Resolver
 	releaseJobResolver    bideplrel.JobResolver
 	uuidGenerator         boshuuid.Generator
 	registryServerManager biregistry.ServerManager
@@ -47,7 +45,6 @@ func NewInstallerFactory(
 	fs boshsys.FileSystem,
 	runner boshsys.CmdRunner,
 	extractor boshcmd.Compressor,
-	releaseResolver birelset.Resolver,
 	releaseJobResolver bideplrel.JobResolver,
 	uuidGenerator boshuuid.Generator,
 	registryServerManager biregistry.ServerManager,
@@ -59,7 +56,6 @@ func NewInstallerFactory(
 		fs:                    fs,
 		runner:                runner,
 		extractor:             extractor,
-		releaseResolver:       releaseResolver,
 		releaseJobResolver:    releaseJobResolver,
 		uuidGenerator:         uuidGenerator,
 		registryServerManager: registryServerManager,

@@ -7,7 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	birelset "github.com/cloudfoundry/bosh-init/release/set"
+	birel "github.com/cloudfoundry/bosh-init/release"
 )
 
 type Validator interface {
@@ -15,14 +15,14 @@ type Validator interface {
 }
 
 type validator struct {
-	logger          boshlog.Logger
-	releaseResolver birelset.Resolver
+	logger         boshlog.Logger
+	releaseManager birel.Manager
 }
 
-func NewValidator(logger boshlog.Logger, releaseResolver birelset.Resolver) Validator {
+func NewValidator(logger boshlog.Logger, releaseManager birel.Manager) Validator {
 	return &validator{
-		logger:          logger,
-		releaseResolver: releaseResolver,
+		logger:         logger,
+		releaseManager: releaseManager,
 	}
 }
 
@@ -122,9 +122,9 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 			if v.isBlank(template.Release) {
 				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release must be provided", idx, templateIdx))
 			} else {
-				release, err := v.releaseResolver.Find(template.Release)
-				if err != nil {
-					errs = append(errs, bosherr.WrapErrorf(err, "jobs[%d].templates[%d].release must refer to an available release", idx, templateIdx))
+				release, found := v.releaseManager.FindByName(template.Release)
+				if !found {
+					errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release '%s' must refer to release in releases", idx, templateIdx, template.Release))
 				} else {
 					_, found := release.FindJobByName(template.Name)
 					if !found {
