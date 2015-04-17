@@ -374,6 +374,10 @@ func (c *DeploymentPreparer) validate(
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseRef.Path())
 			}
+
+			if release.Name() != releaseRef.Name {
+				return bosherr.Errorf("Release name '%s' does not match the name in release tarball '%s'", releaseRef.Name, release.Name())
+			}
 			c.releaseManager.Add(release)
 		}
 

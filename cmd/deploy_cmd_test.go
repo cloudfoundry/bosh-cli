@@ -817,6 +817,23 @@ func rootDesc() {
 			})
 		})
 
+		Context("when release name does not match the name in release tarball", func() {
+			BeforeEach(func() {
+				releaseSetManifest.Releases = []birelmanifest.ReleaseRef{
+					{
+						Name: "fake-other-cpi-release-name",
+						URL:  "file://" + cpiReleaseTarballPath,
+					},
+				}
+			})
+
+			It("returns an error", func() {
+				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Release name 'fake-other-cpi-release-name' does not match the name in release tarball 'fake-cpi-release-name'"))
+			})
+		})
+
 		Context("When the stemcell tarball does not exist", func() {
 			BeforeEach(func() {
 				fakeFs.RemoveAll(stemcellTarballPath)
