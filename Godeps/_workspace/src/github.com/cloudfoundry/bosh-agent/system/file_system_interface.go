@@ -16,6 +16,7 @@ type File interface {
 
 type FileSystem interface {
 	HomeDir(username string) (path string, err error)
+	ExpandPath(path string) (expandedPath string, err error)
 
 	// MkdirAll will not change existing dir permissions
 	// if dir exists and has different permissions

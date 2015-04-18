@@ -2,7 +2,6 @@ package manifest_test
 
 import (
 	"errors"
-	"os/user"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -50,82 +49,6 @@ var _ = Describe("Parser", func() {
 		})
 	})
 
-	Context("when the combo manifest file refrences ~", func() {
-		Context("when the ~ begins the path", func() {
-			It("expands ~/ into the current user's home directory", func() {
-				manifest := `
----
-name: fake-deployment-name
-cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
-  ssh_tunnel:
-    host: 54.34.56.8
-    port: 22
-    user: fake-ssh-user
-    private_key: ~/fake-ssh-key.pem
-  agent_env_service: registry
-  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
-  registry:
-    username: fake-registry-username
-    password: fake-registry-password
-    host: fake-registry-host
-    port: 123
-  properties:
-    fake-property-name:
-      nested-property: fake-property-value
-`
-				manifestPath := "4d89da25-454a-4c96-9f70-7bc9b90fee53"
-				fakeFs.WriteFileString(manifestPath, manifest)
-
-				currentUser, err := user.Current()
-				Expect(err).ToNot(HaveOccurred())
-
-				installationManifest, err := parser.Parse(manifestPath)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(installationManifest.SSHTunnel.PrivateKey).To(ContainSubstring(currentUser.HomeDir))
-			})
-		})
-
-		Context("when ~ occurs anywhere else in the path", func() {
-			It("assumes the user desired a literal ~", func() {
-				manifest := `
----
-name: fake-deployment-name
-cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
-  ssh_tunnel:
-    host: 54.34.56.8
-    port: 22
-    user: fake-ssh-user
-    private_key: /some-root/~/fake-ssh-key.pem
-  agent_env_service: registry
-  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
-  registry:
-    username: fake-registry-username
-    password: fake-registry-password
-    host: fake-registry-host
-    port: 123
-  properties:
-    fake-property-name:
-      nested-property: fake-property-value
-`
-				currentUser, err := user.Current()
-				Expect(err).ToNot(HaveOccurred())
-
-				manifestPath := "1a56d58a-0d56-4743-bbc5-5a9056af8bed"
-				fakeFs.WriteFileString(manifestPath, manifest)
-
-				installationManifest, err := parser.Parse(manifestPath)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(installationManifest.SSHTunnel.PrivateKey).ToNot(ContainSubstring(currentUser.HomeDir))
-			})
-		})
-	})
-
 	Context("with a valid manifest", func() {
 		JustBeforeEach(func() {
 			contents := `
@@ -152,6 +75,7 @@ cloud_provider:
       nested-property: fake-property-value
 `
 			fakeFs.WriteFileString(comboManifestPath, contents)
+			fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
 		})
 
 		It("parses installation from combo manifest", func() {
@@ -180,10 +104,22 @@ cloud_provider:
 					Host:       "54.34.56.8",
 					Port:       22,
 					User:       "fake-ssh-user",
-					PrivateKey: "/tmp/fake-ssh-key.pem",
+					PrivateKey: "/expanded-tmp/fake-ssh-key.pem",
 				},
 				Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
 			}))
+		})
+
+		Context("when expanding the key file path fails", func() {
+			BeforeEach(func() {
+				fakeFs.ExpandPathErr = errors.New("fake-expand-error")
+			})
+
+			It("uses original path", func() {
+				installationManifest, err := parser.Parse(comboManifestPath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(installationManifest.SSHTunnel.PrivateKey).To(Equal("/tmp/fake-ssh-key.pem"))
+			})
 		})
 	})
 })

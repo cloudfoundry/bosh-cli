@@ -45,6 +45,17 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	}
 	p.logger.Debug(p.logTag, "Parsed release set manifest: %#v", comboManifest)
 
+	var release *birelmanifest.ReleaseRef
+	for i := range comboManifest.Releases {
+		release = &comboManifest.Releases[i]
+		expandedPath, err := p.fs.ExpandPath(release.Path())
+		if err != nil {
+			p.logger.Warn(p.logTag, "Failed to expand release file path, using original URL")
+		} else {
+			release.URL = "file://" + expandedPath
+		}
+	}
+
 	releaseSetManifest := Manifest{
 		Releases: comboManifest.Releases,
 	}

@@ -1,11 +1,6 @@
 package manifest
 
 import (
-	"os"
-	"os/user"
-	"path"
-	"strings"
-
 	"github.com/cloudfoundry-incubator/candiedyaml"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -65,8 +60,13 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	}
 	p.logger.Debug(p.logTag, "Parsed installation manifest: %#v", comboManifest)
 
-	expandedPrivateKeyPath := p.expandTilde(comboManifest.CloudProvider.SSHTunnel.PrivateKey)
-	comboManifest.CloudProvider.SSHTunnel.PrivateKey = expandedPrivateKeyPath
+	privateKeyPath, err := p.fs.ExpandPath(comboManifest.CloudProvider.SSHTunnel.PrivateKey)
+	if err != nil {
+		p.logger.Warn(p.logTag, "Failed to expand private key path, using original path")
+		privateKeyPath = comboManifest.CloudProvider.SSHTunnel.PrivateKey
+	}
+
+	comboManifest.CloudProvider.SSHTunnel.PrivateKey = privateKeyPath
 
 	installationManifest := Manifest{
 		Name: comboManifest.Name,
@@ -87,22 +87,4 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	installationManifest.Properties = properties
 
 	return installationManifest, nil
-}
-
-// special case handling for linux/darwin where the tilde character resolves to home
-func (p *parser) expandTilde(rawPath string) string {
-	currentUser, err := user.Current()
-	if err != nil {
-		p.logger.Warn(p.logTag, "Unable to get current user, cannot expand '~' in paths")
-		return rawPath
-	}
-
-	if strings.IndexRune(rawPath, '~') != 0 {
-		return rawPath
-	}
-
-	sep := "~" + string(os.PathSeparator)
-	currentUserHome := currentUser.HomeDir + string(os.PathSeparator) // we'll clean up any extra path separators later
-	expandedPath := path.Clean(strings.Replace(rawPath, sep, currentUserHome, 1))
-	return path.Clean(expandedPath)
 }

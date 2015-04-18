@@ -32,6 +32,10 @@ type FakeFileSystem struct {
 	HomeDirUsername string
 	HomeDirHomePath string
 
+	ExpandPathPath     string
+	ExpandPathExpanded string
+	ExpandPathErr      error
+
 	openFiles   map[string]*FakeFile
 	OpenFileErr error
 
@@ -192,6 +196,15 @@ func (fs *FakeFileSystem) GetFileTestStat(path string) *FakeFileStats {
 func (fs *FakeFileSystem) HomeDir(username string) (string, error) {
 	fs.HomeDirUsername = username
 	return fs.HomeDirHomePath, nil
+}
+
+func (fs *FakeFileSystem) ExpandPath(path string) (string, error) {
+	fs.ExpandPathPath = path
+	if fs.ExpandPathExpanded == "" {
+		return fs.ExpandPathPath, fs.ExpandPathErr
+	}
+
+	return fs.ExpandPathExpanded, fs.ExpandPathErr
 }
 
 func (fs *FakeFileSystem) RegisterMkdirAllError(path string, err error) {

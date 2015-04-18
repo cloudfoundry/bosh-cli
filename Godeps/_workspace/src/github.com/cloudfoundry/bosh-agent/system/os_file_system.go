@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -19,7 +20,7 @@ type osFileSystem struct {
 }
 
 func NewOsFileSystem(logger boshlog.Logger) FileSystem {
-	return osFileSystem{logger: logger, logTag: "File System"}
+	return &osFileSystem{logger: logger, logTag: "File System"}
 }
 
 func (fs osFileSystem) HomeDir(username string) (homeDir string, err error) {
@@ -34,6 +35,28 @@ func (fs osFileSystem) HomeDir(username string) (homeDir string, err error) {
 
 	fs.logger.Debug(fs.logTag, "HomeDir is %s", homeDir)
 	return
+}
+
+func (fs osFileSystem) ExpandPath(path string) (string, error) {
+	fs.logger.Debug(fs.logTag, "Expanding path for '%s'", path)
+
+	var err error
+	if strings.IndexRune(path, '~') == 0 {
+		currentUser, err := osuser.Current()
+		if err != nil {
+			return "", bosherr.WrapError(err, "Getting current user directory to expand ~")
+		}
+
+		sep := "~" + string(os.PathSeparator)
+		currentUserHome := currentUser.HomeDir + string(os.PathSeparator) // we'll clean up any extra path separators later
+		path = filepath.Clean(strings.Replace(path, sep, currentUserHome, 1))
+	}
+
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Getting absolute path")
+	}
+	return filepath.Clean(path), nil
 }
 
 func (fs osFileSystem) MkdirAll(path string, perm os.FileMode) (err error) {
