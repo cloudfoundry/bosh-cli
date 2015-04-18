@@ -15,7 +15,7 @@ echo "bosh init version -- ${version}"
 cd gopath/src/github.com/cloudfoundry/bosh-init
 echo $version > VERSION.txt
 bin/build
-mv bosh-init bosh-init-${version}-linux
+mv out/bosh-init out/bosh-init-${version}-linux
 
 # GOARCH=amd64 GOOS=darwin
 # GOARCH=amd64 GOOS=windows
