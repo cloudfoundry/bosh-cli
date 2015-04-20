@@ -85,11 +85,6 @@
 			"Rev": "a4a0cae5ff8a342ba01fce700b9e41c6942c0e5e"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/gosigar",
-			"Comment": "scotty_09012012-21-gd906efd",
-			"Rev": "d906efd1da51405714ee9b67c79cf14cdb58fd29"
-		},
-		{
 			"ImportPath": "github.com/cloudfoundry/yagnats",
 			"Rev": "07171a8863c377fb14a44dee402dff9e1282bc49"
 		},
