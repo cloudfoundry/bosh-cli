@@ -179,6 +179,7 @@ cloud_provider:
 					mockReleaseExtractor,
 					installationParser,
 					installationValidator,
+					deploymentManifestPath,
 				)
 
 				return deploymentDeleter

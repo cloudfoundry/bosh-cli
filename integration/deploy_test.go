@@ -425,6 +425,7 @@ cloud_provider:
 					deploymentValidator,
 					mockReleaseExtractor,
 					fakeStemcellExtractor,
+					deploymentManifestPath,
 				)
 			}
 

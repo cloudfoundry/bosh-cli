@@ -75,8 +75,8 @@ func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
 
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
-	deploymentDeleter := c.deploymentDeleterProvider(deploymentManifestPath)
-	return deploymentDeleter.DeleteDeployment(stage, deploymentManifestPath)
+	deploymentDeleter := c.deploymentDeleterProvider(manifestAbsFilePath)
+	return deploymentDeleter.DeleteDeployment(stage)
 }
 
 func NewDeploymentDeleter(
@@ -96,6 +96,7 @@ func NewDeploymentDeleter(
 	releaseExtractor birel.Extractor,
 	installationParser biinstallmanifest.Parser,
 	installationValidator biinstallmanifest.Validator,
+	deploymentManifestPath string,
 ) DeploymentDeleter {
 	return DeploymentDeleter{
 		ui:     ui,
@@ -114,6 +115,7 @@ func NewDeploymentDeleter(
 		releaseExtractor:         releaseExtractor,
 		installationParser:       installationParser,
 		installationValidator:    installationValidator,
+		deploymentManifestPath:   deploymentManifestPath,
 	}
 }
 
@@ -134,9 +136,10 @@ type DeploymentDeleter struct {
 	releaseExtractor         birel.Extractor
 	installationParser       biinstallmanifest.Parser
 	installationValidator    biinstallmanifest.Validator
+	deploymentManifestPath   string
 }
 
-func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, deploymentManifestPath string) (err error) {
+func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -151,7 +154,7 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage, deploymentManifes
 
 	var installationManifest biinstallmanifest.Manifest
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
-		installationManifest, err = c.validate(stage, deploymentManifestPath)
+		installationManifest, err = c.validate(stage, c.deploymentManifestPath)
 		return err
 	})
 	if err != nil {

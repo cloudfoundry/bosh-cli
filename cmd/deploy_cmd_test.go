@@ -331,6 +331,7 @@ func rootDesc() {
 					deploymentRecord:              deploymentRecord,
 					blobstoreFactory:              mockBlobstoreFactory,
 					deployer:                      mockDeployer,
+					deploymentManifestPath:        deploymentManifestPath,
 				}
 			}
 

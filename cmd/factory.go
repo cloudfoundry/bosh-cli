@@ -404,6 +404,7 @@ func (d *deploymentManagerFactory2) loadDeploymentPreparer() DeploymentPreparer 
 		d.f.loadDeploymentValidator(),
 		d.f.loadReleaseExtractor(),
 		stemcellExtractor,
+		d.deploymentManifestPath,
 	)
 }
 
@@ -425,6 +426,7 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
 		d.f.loadReleaseExtractor(),
 		d.f.loadInstallationParser(),
 		d.f.loadInstallationValidator(),
+		d.deploymentManifestPath,
 	)
 }
 

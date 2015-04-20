@@ -80,8 +80,8 @@ func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
-	deploymentPreparer := c.deploymentPreparerProvider(deploymentManifestPath)
-	return deploymentPreparer.PrepareDeployment(stage, stemcellTarballPath, deploymentManifestPath)
+	deploymentPreparer := c.deploymentPreparerProvider(manifestAbsFilePath)
+	return deploymentPreparer.PrepareDeployment(stage, stemcellTarballPath)
 }
 
 func NewDeploymentPreparer(
@@ -108,6 +108,7 @@ func NewDeploymentPreparer(
 	deploymentValidator bideplmanifest.Validator,
 	releaseExtractor birel.Extractor,
 	stemcellExtractor bistemcell.Extractor,
+	deploymentManifestPath string,
 
 ) DeploymentPreparer {
 	return DeploymentPreparer{
@@ -134,6 +135,7 @@ func NewDeploymentPreparer(
 		deploymentValidator:           deploymentValidator,
 		releaseExtractor:              releaseExtractor,
 		stemcellExtractor:             stemcellExtractor,
+		deploymentManifestPath:        deploymentManifestPath,
 	}
 }
 
@@ -161,18 +163,19 @@ type DeploymentPreparer struct {
 	deploymentValidator           bideplmanifest.Validator
 	releaseExtractor              birel.Extractor
 	stemcellExtractor             bistemcell.Extractor
+	deploymentManifestPath        string
 }
 
-func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarballPath string, deploymentManifestPath string) (err error) {
+func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarballPath string) (err error) {
 	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
-		migrated, err := c.legacyDeploymentStateMigrator.MigrateIfExists(biconfig.LegacyDeploymentStatePath(deploymentManifestPath))
+		migrated, err := c.legacyDeploymentStateMigrator.MigrateIfExists(biconfig.LegacyDeploymentStatePath(c.deploymentManifestPath))
 		if err != nil {
 			return bosherr.WrapError(err, "Migrating legacy deployment state file")
 		}
 		if migrated {
-			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", biconfig.LegacyDeploymentStatePath(deploymentManifestPath))
+			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", biconfig.LegacyDeploymentStatePath(c.deploymentManifestPath))
 		}
 	}
 
@@ -187,7 +190,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 		installationManifest biinstallmanifest.Manifest
 	)
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
-		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, deploymentManifestPath)
+		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, c.deploymentManifestPath)
 		return err
 	})
 	if err != nil {
@@ -206,7 +209,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 		}
 	}()
 
-	isDeployed, err := c.deploymentRecord.IsDeployed(deploymentManifestPath, c.releaseManager.List(), extractedStemcell)
+	isDeployed, err := c.deploymentRecord.IsDeployed(c.deploymentManifestPath, c.releaseManager.List(), extractedStemcell)
 	if err != nil {
 		return bosherr.WrapError(err, "Checking if deployment has changed")
 	}
@@ -284,7 +287,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 			return bosherr.WrapError(err, "Deploying")
 		}
 
-		err = c.deploymentRecord.Update(deploymentManifestPath, c.releaseManager.List())
+		err = c.deploymentRecord.Update(c.deploymentManifestPath, c.releaseManager.List())
 		if err != nil {
 			return bosherr.WrapError(err, "Updating deployment record")
 		}
