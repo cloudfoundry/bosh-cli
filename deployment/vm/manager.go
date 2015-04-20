@@ -87,7 +87,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapError(err, "Getting network spec")
 	}
 
-	resourcePool := deploymentManifest.ResourcePools[0]
+	resourcePool := deploymentManifest.ResourcePool()
 
 	agentID, err := m.uuidGenerator.Generate()
 	if err != nil {

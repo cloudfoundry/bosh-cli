@@ -332,30 +332,6 @@ func (c *DeploymentPreparer) validate(
 	installationManifest biinstallmanifest.Manifest,
 	err error,
 ) {
-	err = validationStage.Perform("Validating stemcell", func() error {
-		if !c.fs.FileExists(stemcellTarballPath) {
-			return bosherr.Errorf("Verifying that the stemcell '%s' exists", stemcellTarballPath)
-		}
-
-		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting stemcell from '%s'", stemcellTarballPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return extractedStemcell, deploymentManifest, installationManifest, err
-	}
-	defer func() {
-		if err != nil {
-			deleteErr := extractedStemcell.Delete()
-			if deleteErr != nil {
-				c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
-			}
-		}
-	}()
-
 	var releaseSetManifest birelsetmanifest.Manifest
 	err = validationStage.Perform("Validating releases", func() error {
 		releaseSetManifest, err = c.releaseSetParser.Parse(deploymentManifestPath)
@@ -424,6 +400,31 @@ func (c *DeploymentPreparer) validate(
 	if err != nil {
 		return extractedStemcell, deploymentManifest, installationManifest, err
 	}
+
+	err = validationStage.Perform("Validating stemcell", func() error {
+		stemcellTarballPath := deploymentManifest.ResourcePool().Stemcell.Path()
+		if !c.fs.FileExists(stemcellTarballPath) {
+			return bosherr.Errorf("Verifying that the stemcell '%s' exists", stemcellTarballPath)
+		}
+
+		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Extracting stemcell from '%s'", stemcellTarballPath)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return extractedStemcell, deploymentManifest, installationManifest, err
+	}
+	defer func() {
+		if err != nil {
+			deleteErr := extractedStemcell.Delete()
+			if deleteErr != nil {
+				c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
+			}
+		}
+	}()
 
 	err = validationStage.Perform("Validating cpi release", func() error {
 		cpiReleaseName := installationManifest.Template.Release

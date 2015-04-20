@@ -43,6 +43,10 @@ func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, 
 	return ifaceMap, nil
 }
 
+func (d Manifest) ResourcePool() ResourcePool {
+	return d.ResourcePools[0]
+}
+
 func (d Manifest) DiskPool(jobName string) (DiskPool, error) {
 	job, found := d.FindJobByName(jobName)
 	if !found {

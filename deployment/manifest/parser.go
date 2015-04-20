@@ -49,6 +49,7 @@ type resourcePool struct {
 	Network         string                      `yaml:"network"`
 	CloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 	Env             map[interface{}]interface{} `yaml:"env"`
+	Stemcell        stemcellRef                 `yaml:"stemcell"`
 }
 
 type diskPool struct {
@@ -71,6 +72,10 @@ type job struct {
 type releaseJobRef struct {
 	Name    string
 	Release string
+}
+
+type stemcellRef struct {
+	URL string
 }
 
 type jobNetwork struct {
@@ -250,8 +255,9 @@ func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool) ([]
 	resourcePools := make([]ResourcePool, len(rawResourcePools), len(rawResourcePools))
 	for i, rawResourcePool := range rawResourcePools {
 		resourcePool := ResourcePool{
-			Name:    rawResourcePool.Name,
-			Network: rawResourcePool.Network,
+			Name:     rawResourcePool.Name,
+			Network:  rawResourcePool.Network,
+			Stemcell: StemcellRef(rawResourcePool.Stemcell),
 		}
 
 		cloudProperties, err := biproperty.BuildMap(rawResourcePool.CloudProperties)

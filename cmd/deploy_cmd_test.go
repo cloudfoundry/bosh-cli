@@ -276,6 +276,13 @@ func rootDesc() {
 						Name: "fake-job-name",
 					},
 				},
+				ResourcePools: []bideplmanifest.ResourcePool{
+					{
+						Stemcell: bideplmanifest.StemcellRef{
+							URL: "file://" + stemcellTarballPath,
+						},
+					},
+				},
 			}
 			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
 
@@ -465,9 +472,9 @@ func rootDesc() {
 				Name: "validating",
 				Stage: &fakebiui.FakeStage{
 					PerformCalls: []fakebiui.PerformCall{
-						{Name: "Validating stemcell"},
 						{Name: "Validating releases"},
 						{Name: "Validating deployment manifest"},
+						{Name: "Validating stemcell"},
 						{Name: "Validating cpi release"},
 					},
 				},
@@ -845,7 +852,7 @@ func rootDesc() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
 				Expect(performCall.Name).To(Equal("Validating stemcell"))
 				Expect(performCall.Error.Error()).To(Equal("Verifying that the stemcell '/stemcell/tarball/path' exists"))
 			})
@@ -861,7 +868,7 @@ func rootDesc() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the release '/release/tarball/path' exists"))
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
 				Expect(performCall.Name).To(Equal("Validating releases"))
 				Expect(performCall.Error.Error()).To(Equal("Verifying that the release '/release/tarball/path' exists"))
 			})
@@ -909,7 +916,7 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 				Expect(err).To(HaveOccurred())
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
 				Expect(performCall.Name).To(Equal("Validating deployment manifest"))
 				Expect(performCall.Error.Error()).To(Equal("Validating installation manifest: fake-installation-validation-error"))
 			})
@@ -932,7 +939,7 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
 				Expect(err).To(HaveOccurred())
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
 				Expect(performCall.Name).To(Equal("Validating deployment manifest"))
 				Expect(performCall.Error.Error()).To(Equal("Validating deployment manifest: fake-deployment-validation-error"))
 			})

@@ -65,6 +65,8 @@ resource_pools:
   env:
     bosh:
       password: secret
+  stemcell:
+    url: fake-stemcell-url
 networks:
 - name: fake-network-name
   type: dynamic
@@ -135,6 +137,9 @@ properties:
 						"bosh": biproperty.Map{
 							"password": "secret",
 						},
+					},
+					Stemcell: StemcellRef{
+						URL: "fake-stemcell-url",
 					},
 				},
 			},

@@ -163,6 +163,8 @@ networks:
 resource_pools:
 - name: resource-pool-1
   network: network-1
+  stemcell:
+    url: file:///fake-stemcell-release.tgz
 
 jobs:
 - name: fake-deployment-job-name
@@ -207,6 +209,8 @@ networks:
 resource_pools:
 - name: resource-pool-1
   network: network-1
+  stemcell:
+    url: file:///fake-stemcell-release.tgz
 
 jobs:
 - name: fake-deployment-job-name
