@@ -1,6 +1,8 @@
-# BOSH Micro CLI [![Build Status](https://travis-ci.org/cloudfoundry/bosh-init.svg?branch=master)](https://travis-ci.org/cloudfoundry/bosh-init)
+# bosh-init [![Build Status](https://travis-ci.org/cloudfoundry/bosh-init.svg?branch=master)](https://travis-ci.org/cloudfoundry/bosh-init)
 
-This is the BOSH Micro CLI rewritten to support external CPIs.
+*** This project is still work in progress ***
+
+Updated tool that allows to bootstrap BOSH environment onto a single VM.
 
 * Documentation: [bosh.io/docs](https://bosh.io/docs)
 * IRC: `#bosh` on freenode
