@@ -252,9 +252,9 @@ var _ = Describe("bosh-init", func() {
 			doneIndex := 0
 
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-			Expect(validatingSteps[0]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
-			Expect(validatingSteps[1]).To(MatchRegexp("^  Validating releases" + stageFinishedPattern))
-			Expect(validatingSteps[2]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
+			Expect(validatingSteps[0]).To(MatchRegexp("^  Validating releases" + stageFinishedPattern))
+			Expect(validatingSteps[1]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
+			Expect(validatingSteps[2]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
 			Expect(validatingSteps[3]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
 			Expect(validatingSteps).To(HaveLen(4))
 
