@@ -765,7 +765,7 @@ cloud_provider:
 		It("executes the cloud & agent client calls in the expected order", func() {
 			expectDeployFlow()
 
-			err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -802,7 +802,7 @@ cloud_provider:
 			It("extracts all provided releases & finds the cpi release before executing the expected cloud & agent client commands", func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -821,7 +821,7 @@ cloud_provider:
 				// new directorID will be generated
 				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.FileExists(deploymentStatePath)).To(BeTrue())
@@ -836,7 +836,7 @@ cloud_provider:
 			JustBeforeEach(func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -848,7 +848,7 @@ cloud_provider:
 				It("migrates the disk content", func() {
 					expectDeployWithDiskMigration()
 
-					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -856,7 +856,7 @@ cloud_provider:
 					It("migrates the disk content, but does not shutdown the old VM", func() {
 						expectDeployWithDiskMigrationMissingVM()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 
@@ -868,7 +868,7 @@ cloud_provider:
 							Message: "fake-vm-not-found-message",
 						}))
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 						Expect(err).ToNot(HaveOccurred())
 					})
 				})
@@ -879,7 +879,7 @@ cloud_provider:
 					It("returns an error when attach_disk fails with a DiskNotFound error", func() {
 						expectDeployWithNoDiskToMigrate()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-disk-not-found-message"))
 					})
@@ -889,7 +889,7 @@ cloud_provider:
 					JustBeforeEach(func() {
 						expectDeployWithDiskMigrationFailure()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migration-error"))
 
@@ -903,7 +903,7 @@ cloud_provider:
 
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 						Expect(err).ToNot(HaveOccurred())
 
 						diskRecord, found, err := diskRepo.FindCurrent()
@@ -934,7 +934,7 @@ cloud_provider:
 				It("skips the deploy", func() {
 					expectNoDeployHappened()
 
-					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 					Expect(err).ToNot(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
@@ -945,7 +945,7 @@ cloud_provider:
 			It("makes the registry available for all CPI commands", func() {
 				expectDeployFlowWithRegistry()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})

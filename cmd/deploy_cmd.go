@@ -62,7 +62,7 @@ func (c *deployCmd) Meta() Meta {
 }
 
 func (c *deployCmd) Run(stage biui.Stage, args []string) error {
-	deploymentManifestPath, stemcellTarballPath, err := c.parseCmdInputs(args)
+	deploymentManifestPath, err := c.parseCmdInputs(args)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
 	deploymentPreparer := c.deploymentPreparerProvider(manifestAbsFilePath)
-	return deploymentPreparer.PrepareDeployment(stage, stemcellTarballPath)
+	return deploymentPreparer.PrepareDeployment(stage)
 }
 
 func NewDeploymentPreparer(
@@ -166,7 +166,7 @@ type DeploymentPreparer struct {
 	deploymentManifestPath        string
 }
 
-func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarballPath string) (err error) {
+func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -190,7 +190,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 		installationManifest biinstallmanifest.Manifest
 	)
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
-		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, stemcellTarballPath, c.deploymentManifestPath)
+		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, c.deploymentManifestPath)
 		return err
 	})
 	if err != nil {
@@ -310,12 +310,12 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, stemcellTarball
 
 type Deployment struct{}
 
-func (c *deployCmd) parseCmdInputs(args []string) (string, string, error) {
-	if len(args) != 2 {
+func (c *deployCmd) parseCmdInputs(args []string) (string, error) {
+	if len(args) != 1 {
 		c.logger.Error(c.logTag, "Invalid arguments: %#v", args)
-		return "", "", errors.New("Invalid usage - deploy command requires exactly 2 arguments")
+		return "", errors.New("Invalid usage - deploy command requires exactly 1 argument")
 	}
-	return args[0], args[1], nil
+	return args[0], nil
 }
 
 func (c *deployCmd) isBlank(str string) bool {
@@ -324,7 +324,6 @@ func (c *deployCmd) isBlank(str string) bool {
 
 func (c *DeploymentPreparer) validate(
 	validationStage biui.Stage,
-	stemcellTarballPath string,
 	deploymentManifestPath string,
 ) (
 	extractedStemcell bistemcell.ExtractedStemcell,

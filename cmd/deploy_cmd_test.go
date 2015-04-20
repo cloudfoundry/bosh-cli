@@ -395,7 +395,7 @@ func rootDesc() {
 		})
 
 		It("prints the deployment manifest and state file", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
@@ -408,7 +408,7 @@ func rootDesc() {
 
 			expectLegacyMigrate.Times(0)
 
-			err = command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err = command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
@@ -419,7 +419,7 @@ func rootDesc() {
 
 			expectLegacyMigrate.Return(true, nil).Times(1)
 
-			err = command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err = command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 
@@ -429,19 +429,19 @@ func rootDesc() {
 		})
 
 		It("parses the installation manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
 		It("parses the deployment manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
 		It("validates release set manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeReleaseSetValidator.ValidateInputs).To(Equal([]fakebirelsetmanifest.ValidateInput{
 				{Manifest: releaseSetManifest},
@@ -449,7 +449,7 @@ func rootDesc() {
 		})
 
 		It("validates installation manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationValidator.ValidateInputs).To(Equal([]fakebiinstallmanifest.ValidateInput{
 				{InstallationManifest: installationManifest, ReleaseSetManifest: releaseSetManifest},
@@ -457,7 +457,7 @@ func rootDesc() {
 		})
 
 		It("validates bosh deployment manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebideplval.ValidateInput{
 				{Manifest: boshDeploymentManifest},
@@ -465,7 +465,7 @@ func rootDesc() {
 		})
 
 		It("logs validating stages", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls[0]).To(Equal(fakebiui.PerformCall{
@@ -484,7 +484,7 @@ func rootDesc() {
 		It("extracts CPI release tarball", func() {
 			expectCPIReleaseExtract.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -492,12 +492,12 @@ func rootDesc() {
 			expectInstall.Times(1)
 			expectNewCloud.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("adds a new 'installing CPI' event logger stage", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls[1]).To(Equal(fakebiui.PerformCall{
@@ -507,7 +507,7 @@ func rootDesc() {
 		})
 
 		It("adds a new 'Starting registry' event logger stage", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls[2]).To(Equal(fakebiui.PerformCall{
@@ -529,19 +529,19 @@ func rootDesc() {
 				mockRegistryServerManager.EXPECT().Start("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
 				mockRegistryServer.EXPECT().Stop()
 
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
 		It("deletes the extracted CPI release", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeCPIRelease.DeleteCalled).To(BeTrue())
 		})
 
 		It("extracts the stemcell", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStemcellExtractor.ExtractInputs).To(Equal([]fakebistemcell.ExtractInput{
 				{TarballPath: stemcellTarballPath},
@@ -551,12 +551,12 @@ func rootDesc() {
 		It("uploads the stemcell", func() {
 			expectStemcellUpload.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("adds a new 'deploying' event logger stage", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls[3]).To(Equal(fakebiui.PerformCall{
@@ -568,12 +568,12 @@ func rootDesc() {
 		It("deploys", func() {
 			expectDeploy.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("updates the deployment record", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
 			deploymentState, err := setupDeploymentStateService.Load()
@@ -592,7 +592,7 @@ func rootDesc() {
 		It("deletes unused stemcells", func() {
 			expectStemcellDeleteUnused.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -622,7 +622,7 @@ func rootDesc() {
 			It("skips deploy", func() {
 				expectDeploy.Times(0)
 
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 			})
@@ -634,7 +634,7 @@ func rootDesc() {
 			})
 
 			It("returns error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Parsing deployment manifest"))
 				Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
@@ -652,7 +652,7 @@ func rootDesc() {
 			})
 
 			It("returns error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Invalid CPI release 'fake-cpi-release-name': CPI release must contain specified job 'fake-cpi-release-job-name'"))
 			})
@@ -697,7 +697,7 @@ func rootDesc() {
 				expectCPIReleaseExtract.Times(1)
 				expectOtherReleaseExtract.Times(1)
 
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -705,12 +705,12 @@ func rootDesc() {
 				expectInstall.Times(1)
 				expectNewCloud.Times(1)
 
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("updates the deployment record", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
 
 				deploymentState, err := setupDeploymentStateService.Load()
@@ -764,7 +764,7 @@ func rootDesc() {
 				})
 
 				It("updates the deployment record, clearing out unused releases", func() {
-					err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+					err := command.Run(fakeStage, []string{deploymentManifestPath})
 					Expect(err).NotTo(HaveOccurred())
 
 					deploymentState, err := setupDeploymentStateService.Load()
@@ -818,7 +818,7 @@ func rootDesc() {
 				It("skips deploy", func() {
 					expectDeploy.Times(0)
 
-					err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+					err := command.Run(fakeStage, []string{deploymentManifestPath})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
@@ -836,7 +836,7 @@ func rootDesc() {
 			})
 
 			It("returns an error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Release name 'fake-other-cpi-release-name' does not match the name in release tarball 'fake-cpi-release-name'"))
 			})
@@ -848,7 +848,7 @@ func rootDesc() {
 			})
 
 			It("returns error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
 
@@ -864,7 +864,7 @@ func rootDesc() {
 			})
 
 			It("returns error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the release '/release/tarball/path' exists"))
 
@@ -880,7 +880,7 @@ func rootDesc() {
 			})
 
 			It("creates a deployment state", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).ToNot(HaveOccurred())
 
 				deploymentState, err := setupDeploymentStateService.Load()
@@ -893,7 +893,7 @@ func rootDesc() {
 		It("returns err when the deployment manifest does not exist", func() {
 			fakeFs.RemoveAll(deploymentManifestPath)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deployment manifest does not exist at '/path/to/manifest.yml'"))
 			Expect(stdErr).To(gbytes.Say("Deployment '/path/to/manifest.yml' does not exist"))
@@ -907,13 +907,13 @@ func rootDesc() {
 			})
 
 			It("returns err", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-installation-validation-error"))
 			})
 
 			It("logs the failed event log", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 
 				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
@@ -930,13 +930,13 @@ func rootDesc() {
 			})
 
 			It("returns err", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-deployment-validation-error"))
 			})
 
 			It("logs the failed event log", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 
 				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
@@ -945,16 +945,12 @@ func rootDesc() {
 			})
 		})
 
-		It("returns err when number of arguments is not equal 2", func() {
+		It("returns err when number of arguments is not equal 1", func() {
 			err := command.Run(fakeStage, []string{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
 
-			err = command.Run(fakeStage, []string{"1"})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
-
-			err = command.Run(fakeStage, []string{"1", "2", "3"})
+			err = command.Run(fakeStage, []string{"1", "2"})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
 		})
@@ -965,7 +961,7 @@ func rootDesc() {
 			})
 
 			It("returns an error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-upload-error"))
 			})
@@ -998,7 +994,7 @@ func rootDesc() {
 			})
 
 			It("clears the deployment record", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath, stemcellTarballPath})
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-deploy-error"))
 
