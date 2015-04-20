@@ -13,6 +13,8 @@ resource_pools:
   env:
     bosh:
       password: pjF0EjcwDTvyQ # openssl passwd -crypt sshpassword
+  stemcell:
+    url: file://{{ .StemcellPath }}
 
 networks:
 - name: fake-network-name

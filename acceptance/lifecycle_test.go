@@ -65,6 +65,7 @@ var _ = Describe("bosh-init", func() {
 	type manifestContext struct {
 		CpiReleasePath   string
 		DummyReleasePath string
+		StemcellPath     string
 	}
 
 	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
@@ -72,6 +73,7 @@ var _ = Describe("bosh-init", func() {
 		context := manifestContext{
 			CpiReleasePath:   testEnv.Path("cpi-release.tgz"),
 			DummyReleasePath: testEnv.Path("dummy-release.tgz"),
+			StemcellPath:     testEnv.Path("stemcell.tgz"),
 		}
 		buffer := bytes.NewBuffer([]byte{})
 		t := template.Must(template.ParseFiles(sourceManifestPath))
