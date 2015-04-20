@@ -53,6 +53,9 @@ var _ = Describe("Validator", func() {
 							"fake-prop-key": "fake-prop-value",
 						},
 					},
+					Stemcell: StemcellRef{
+						URL: "file://fake-stemcell-url",
+					},
 				},
 			},
 			DiskPools: []DiskPool{
@@ -206,6 +209,34 @@ var _ = Describe("Validator", func() {
 			err = validator.Validate(deploymentManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must be the name of a network"))
+		})
+
+		It("validates resource pool stemcell", func() {
+			deploymentManifest := Manifest{
+				ResourcePools: []ResourcePool{
+					{
+						Stemcell: StemcellRef{},
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.url must be provided"))
+
+			deploymentManifest = Manifest{
+				ResourcePools: []ResourcePool{
+					{
+						Stemcell: StemcellRef{
+							URL: "invalid-url",
+						},
+					},
+				},
+			}
+
+			err = validator.Validate(deploymentManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.url must be a valid file URL (file://)"))
 		})
 
 		It("validates disk pool name", func() {

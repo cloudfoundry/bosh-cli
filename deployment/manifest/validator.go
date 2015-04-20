@@ -54,6 +54,14 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 		} else if _, ok := v.networkNames(deploymentManifest)[resourcePool.Network]; !ok {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].network must be the name of a network", idx))
 		}
+
+		if v.isBlank(resourcePool.Stemcell.URL) {
+			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.url must be provided", idx))
+		}
+
+		if !strings.HasPrefix(resourcePool.Stemcell.URL, "file://") {
+			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.url must be a valid file URL (file://)", idx))
+		}
 	}
 
 	for idx, diskPool := range deploymentManifest.DiskPools {
