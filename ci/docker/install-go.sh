@@ -12,6 +12,11 @@ wget -q $GO_ARCHIVE_URL
 tar xf $GO_ARCHIVE -C $(dirname $GOROOT)
 chmod -R a+w $GOROOT
 
+(
+  cd $GOROOT/src
+  sudo GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 ./make.bash --no-clean
+)
+
 export GOROOT
 export GOPATH=$GOROOT
 export PATH=$GOROOT/bin:$PATH
