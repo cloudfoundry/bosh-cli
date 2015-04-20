@@ -50,7 +50,7 @@ var _ = Describe("Parser", func() {
 	})
 
 	Context("with a valid manifest", func() {
-		JustBeforeEach(func() {
+		BeforeEach(func() {
 			contents := `
 ---
 name: fake-deployment-name
@@ -119,6 +119,40 @@ cloud_provider:
 				installationManifest, err := parser.Parse(comboManifestPath)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(installationManifest.SSHTunnel.PrivateKey).To(Equal("/tmp/fake-ssh-key.pem"))
+			})
+		})
+
+		Context("when private key is not provided", func() {
+			BeforeEach(func() {
+				contents := `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    password: fake-password
+  agent_env_service: registry
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+  registry:
+    username: fake-registry-username
+    password: fake-registry-password
+    host: fake-registry-host
+    port: 123
+`
+				fakeFs.WriteFileString(comboManifestPath, contents)
+				fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
+			})
+
+			It("does not expand the path", func() {
+				installationManifest, err := parser.Parse(comboManifestPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(installationManifest.SSHTunnel.PrivateKey).To(Equal(""))
 			})
 		})
 	})

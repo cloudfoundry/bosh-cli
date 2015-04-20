@@ -60,13 +60,14 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	}
 	p.logger.Debug(p.logTag, "Parsed installation manifest: %#v", comboManifest)
 
-	privateKeyPath, err := p.fs.ExpandPath(comboManifest.CloudProvider.SSHTunnel.PrivateKey)
-	if err != nil {
-		p.logger.Warn(p.logTag, "Failed to expand private key path, using original path")
-		privateKeyPath = comboManifest.CloudProvider.SSHTunnel.PrivateKey
+	if comboManifest.CloudProvider.SSHTunnel.PrivateKey != "" {
+		privateKeyPath, err := p.fs.ExpandPath(comboManifest.CloudProvider.SSHTunnel.PrivateKey)
+		if err != nil {
+			p.logger.Warn(p.logTag, "Failed to expand private key path, using original path")
+			privateKeyPath = comboManifest.CloudProvider.SSHTunnel.PrivateKey
+		}
+		comboManifest.CloudProvider.SSHTunnel.PrivateKey = privateKeyPath
 	}
-
-	comboManifest.CloudProvider.SSHTunnel.PrivateKey = privateKeyPath
 
 	installationManifest := Manifest{
 		Name: comboManifest.Name,

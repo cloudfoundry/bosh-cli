@@ -405,7 +405,7 @@ Command 'deploy' failed:
 
 			Expect(stderr).To(ContainSubstring(`
 Command 'deploy' failed:
-  Invalid usage - deploy command requires exactly 2 arguments`))
+  Invalid usage - deploy command requires exactly 1 argument`))
 
 			Expect(stdout).To(ContainSubstring(`deploy - Create or update a deployment`))
 		})
