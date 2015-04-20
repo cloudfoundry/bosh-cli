@@ -7,15 +7,10 @@ export GOOS=linux
 
 version=`cat version/number`
 
-echo "go is at          -- $(which go)"
-echo "working dir is    -- $(pwd)"
-echo "working dir has   -- $(ls -la)"
-echo "bosh init version -- ${version}"
+echo "building bosh-init-${version}-linux"
+echo "- working dir is: $(pwd)"
 
 cd gopath/src/github.com/cloudfoundry/bosh-init
 echo $version > VERSION.txt
 bin/build
 mv out/bosh-init out/bosh-init-${version}-linux
-
-# GOARCH=amd64 GOOS=darwin
-# GOARCH=amd64 GOOS=windows

@@ -14,7 +14,7 @@ chmod -R a+w $GOROOT
 
 (
   cd $GOROOT/src
-  sudo GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 ./make.bash --no-clean
+  sudo GOOS=darwin GOARCH=amd64 ./make.bash --no-clean
 )
 
 export GOROOT
