@@ -36,9 +36,9 @@ type httpClient struct {
 	logTag string
 }
 
-func NewHTTPClient(logger boshlog.Logger) HTTPClient {
+func NewHTTPClient(client http.Client, logger boshlog.Logger) HTTPClient {
 	return httpClient{
-		client: DefaultClient,
+		client: client,
 		logger: logger,
 		logTag: "httpClient",
 	}

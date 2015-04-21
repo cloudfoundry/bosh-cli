@@ -87,7 +87,7 @@ var _ = Describe("Provider", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeStage.PerformCalls[0].Name).To(Equal("Downloading fake-description"))
-					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Already downloaded: Found fake-description in local cache"))
+					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Found fake-description in local cache: Already downloaded"))
 				})
 			})
 

@@ -656,7 +656,7 @@ cloud_provider:
 		}
 
 		var expectRegistryToWork = func() {
-			httpClient := bihttp.NewHTTPClient(logger)
+			httpClient := bihttp.NewHTTPClient(bihttp.DefaultClient, logger)
 
 			endpoint := "http://fake-registry-user:fake-registry-password@127.0.0.1:6301/instances/fake-director-id/settings"
 

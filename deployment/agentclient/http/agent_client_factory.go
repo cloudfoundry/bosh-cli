@@ -28,6 +28,6 @@ func NewAgentClientFactory(
 }
 
 func (f *agentClientFactory) NewAgentClient(directorID, mbusURL string) biagentclient.AgentClient {
-	httpClient := bihttpclient.NewHTTPClient(f.logger)
+	httpClient := bihttpclient.NewHTTPClient(bihttpclient.DefaultClient, f.logger)
 	return NewAgentClient(mbusURL, directorID, f.getTaskDelay, httpClient, f.logger)
 }

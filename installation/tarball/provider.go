@@ -3,6 +3,8 @@ package tarball
 import (
 	"fmt"
 	"io"
+	"net"
+	"net/http"
 	"strings"
 	"time"
 
@@ -23,6 +25,17 @@ type Source interface {
 
 type Provider interface {
 	Get(Source, biui.Stage) (path string, err error)
+}
+
+var HTTPClient = http.Client{
+	Transport: &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 0 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
+	},
 }
 
 type provider struct {
@@ -86,7 +99,7 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 		cachedPath, found = p.cache.Get(source.GetSHA1())
 		if found {
 			p.logger.Debug(p.logTag, "Using the tarball from cache: '%s'", cachedPath)
-			return biui.NewSkipStageError(bosherr.Errorf("Found %s in local cache", source.Description()), "Already downloaded")
+			return biui.NewSkipStageError(bosherr.Error("Already downloaded"), fmt.Sprintf("Found %s in local cache", source.Description())))
 		}
 
 		retryStrategy := boshretry.NewAttemptRetryStrategy(p.downloadAttempts, p.delayTimeout, p.downloadRetryable(source), p.logger)

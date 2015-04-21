@@ -21,7 +21,7 @@ var _ = Describe("HttpClient", func() {
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		httpClient = NewHTTPClient(logger)
+		httpClient = NewHTTPClient(DefaultClient, logger)
 		fakeServer = newFakeServer("localhost:6305")
 
 		readyCh := make(chan error)
