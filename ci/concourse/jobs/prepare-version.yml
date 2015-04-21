@@ -6,7 +6,7 @@ image: docker:///bosh/init
 inputs:
 - name: bosh-init
   path: gopath/src/github.com/cloudfoundry/bosh-init
-- name: version
+- name: version-semver
 
 params:
   BOX_TYPE: virtualbox

@@ -4,7 +4,7 @@ basepath=$(pwd)
 cd gopath/src/github.com/cloudfoundry/bosh-init
 
 
-semver=`cat ${basepath}/version/number`
+semver=`cat ${basepath}/version-semver/number`
 timestamp=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 git_rev=`git rev-parse --short HEAD`
 
