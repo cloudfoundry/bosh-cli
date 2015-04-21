@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -18,6 +19,7 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 )
@@ -257,7 +259,7 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManif
 	installationManifest biinstallmanifest.Manifest,
 	err error,
 ) {
-	var cpiReleaseName string
+	var cpiRelease birelmanifest.ReleaseRef
 	var releaseSetManifest birelsetmanifest.Manifest
 
 	err = validationStage.Perform("Validating deployment manifest", func() error {
@@ -280,7 +282,13 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManif
 		if err != nil {
 			return bosherr.WrapError(err, "Validating installation manifest")
 		}
-		cpiReleaseName = installationManifest.Template.Release
+		cpiReleaseName := installationManifest.Template.Release
+
+		var found bool
+		cpiRelease, found = releaseSetManifest.FindByName(cpiReleaseName)
+		if !found {
+			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
+		}
 
 		return nil
 	})
@@ -288,17 +296,12 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManif
 		return installationManifest, err
 	}
 
-	err = validationStage.Perform("Validating cpi release", func() error {
-		cpiRelease, found := releaseSetManifest.FindByName(cpiReleaseName)
-		if !found {
-			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
-		}
+	releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiRelease), validationStage)
+	if err != nil {
+		return installationManifest, err
+	}
 
-		releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiRelease), validationStage)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Getting release '%s'", cpiRelease.Name)
-		}
-
+	err = validationStage.Perform(fmt.Sprintf("Validating release '%s'", cpiRelease.Name), func() error {
 		release, err := c.releaseExtractor.Extract(releasePath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
@@ -308,7 +311,7 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManif
 		cpiReleaseJobName := installationManifest.Template.Name
 		err = bicpirel.NewValidator().Validate(release, cpiReleaseJobName)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiReleaseName)
+			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", release.Name())
 		}
 
 		return nil

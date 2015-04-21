@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -373,11 +374,15 @@ func (c *DeploymentPreparer) validate(
 		return extractedStemcell, deploymentManifest, installationManifest, err
 	}
 
-	err = validationStage.Perform("Validating releases", func() error {
-		for _, releaseRef := range releaseSetManifest.Releases {
-			releasePath, err := c.tarballProvider.Get(releaseRef, validationStage)
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Getting release '%s'", releaseRef.Name)
+	for _, releaseRef := range releaseSetManifest.Releases {
+		releasePath, err := c.tarballProvider.Get(releaseRef, validationStage)
+		if err != nil {
+			return extractedStemcell, deploymentManifest, installationManifest, err
+		}
+
+		err = validationStage.Perform(fmt.Sprintf("Validating release '%s'", releaseRef.Name), func() error {
+			if !c.fs.FileExists(releasePath) {
+				return bosherr.Errorf("File path '%s' does not exist", releasePath)
 			}
 
 			release, err := c.releaseExtractor.Extract(releasePath)
@@ -389,21 +394,21 @@ func (c *DeploymentPreparer) validate(
 				return bosherr.Errorf("Release name '%s' does not match the name in release tarball '%s'", releaseRef.Name, release.Name())
 			}
 			c.releaseManager.Add(release)
-		}
 
-		return nil
-	})
-	if err != nil {
-		return extractedStemcell, deploymentManifest, installationManifest, err
-	}
-	defer func() {
+			return nil
+		})
 		if err != nil {
-			err := c.releaseManager.DeleteAll()
-			if err != nil {
-				c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
-			}
+			return extractedStemcell, deploymentManifest, installationManifest, err
 		}
-	}()
+		defer func() {
+			if err != nil {
+				err := c.releaseManager.DeleteAll()
+				if err != nil {
+					c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
+				}
+			}
+		}()
+	}
 
 	err = validationStage.Perform("Validating jobs", func() error {
 		err = c.deploymentValidator.ValidateReleaseJobs(deploymentManifest, c.releaseManager)

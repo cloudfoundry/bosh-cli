@@ -77,16 +77,11 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 		expandedPath, err := p.fs.ExpandPath(filePath)
 		if err != nil {
 			p.logger.Warn(p.logTag, "Failed to expand file path %s, using original URL", filePath)
-		} else {
-			filePath = expandedPath
-		}
-
-		if !p.fs.FileExists(filePath) {
-			return "", bosherr.Errorf("File path '%s' does not exist", filePath)
+			return filePath, nil
 		}
 
 		p.logger.Debug(p.logTag, "Using the tarball from file source: '%s'", filePath)
-		return filePath, nil
+		return expandedPath, nil
 	}
 
 	if !strings.HasPrefix(source.GetURL(), "http") {

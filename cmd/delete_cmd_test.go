@@ -227,7 +227,7 @@ cloud_provider:
 					Stage: &fakebiui.FakeStage{
 						PerformCalls: []fakebiui.PerformCall{
 							{Name: "Validating deployment manifest"},
-							{Name: "Validating cpi release"},
+							{Name: "Validating release 'fake-cpi-release-name'"},
 						},
 					},
 				},

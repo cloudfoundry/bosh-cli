@@ -260,13 +260,19 @@ var _ = Describe("bosh-init", func() {
 			outputLines := strings.Split(stdout, "\n")
 
 			doneIndex := 0
+			stepIndex := -1
+			nextStep := func() int { stepIndex++; return stepIndex }
 
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-			Expect(validatingSteps[0]).To(MatchRegexp("^  Validating releases" + stageFinishedPattern))
-			Expect(validatingSteps[1]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
-			Expect(validatingSteps[2]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
-			Expect(validatingSteps[3]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
-			Expect(validatingSteps).To(HaveLen(4))
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
+			if config.CpiReleaseURL != "" {
+				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'" + stageFinishedPattern))
+			}
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'dummy'" + stageFinishedPattern))
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating jobs" + stageFinishedPattern))
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
 
 			installingSteps, doneIndex := findStage(outputLines, "installing CPI", doneIndex+1)
 			numInstallingSteps := len(installingSteps)

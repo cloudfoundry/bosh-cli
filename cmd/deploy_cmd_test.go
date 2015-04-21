@@ -492,7 +492,7 @@ func rootDesc() {
 				Stage: &fakebiui.FakeStage{
 					PerformCalls: []fakebiui.PerformCall{
 						{Name: "Validating deployment manifest"},
-						{Name: "Validating releases"},
+						{Name: "Validating release 'fake-cpi-release-name'"},
 						{Name: "Validating jobs"},
 						{Name: "Validating stemcell"},
 						{Name: "Validating cpi release"},
@@ -878,7 +878,7 @@ func rootDesc() {
 			})
 		})
 
-		Context("when tarball provider fails to return path", func() {
+		Context("when release file does not exist", func() {
 			BeforeEach(func() {
 				fakeFs.RemoveAll(cpiReleaseTarballPath)
 			})
@@ -889,8 +889,8 @@ func rootDesc() {
 				Expect(err.Error()).To(ContainSubstring("File path '/release/tarball/path' does not exist"))
 
 				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
-				Expect(performCall.Name).To(Equal("Validating releases"))
-				Expect(performCall.Error.Error()).To(ContainSubstring("Getting release"))
+				Expect(performCall.Name).To(Equal("Validating release 'fake-cpi-release-name'"))
+				Expect(performCall.Error.Error()).To(ContainSubstring("File path '/release/tarball/path' does not exist"))
 			})
 		})
 

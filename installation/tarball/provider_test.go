@@ -51,18 +51,6 @@ var _ = Describe("Provider", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(path).To(Equal("expanded-file-path"))
 			})
-
-			Context("when file does not exist", func() {
-				BeforeEach(func() {
-					fs.RemoveAll("expanded-file-path")
-				})
-
-				It("returns an error", func() {
-					_, err := provider.Get(source, fakeStage)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("File path 'expanded-file-path' does not exist"))
-				})
-			})
 		})
 
 		Context("when URL starts with http(s)://", func() {
