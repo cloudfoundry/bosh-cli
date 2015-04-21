@@ -3,7 +3,7 @@ package job
 import (
 	"path"
 
-	"github.com/cloudfoundry-incubator/candiedyaml"
+	"gopkg.in/yaml.v2"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
@@ -53,7 +53,7 @@ func (r *reader) Read() (Job, error) {
 	}
 
 	var jobManifest bireljobmanifest.Manifest
-	err = candiedyaml.Unmarshal(jobManifestBytes, &jobManifest)
+	err = yaml.Unmarshal(jobManifestBytes, &jobManifest)
 	if err != nil {
 		return Job{}, bosherr.WrapError(err, "Parsing job manifest")
 	}

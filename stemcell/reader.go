@@ -1,9 +1,8 @@
 package stemcell
 
 import (
+	"gopkg.in/yaml.v2"
 	"path/filepath"
-
-	"github.com/cloudfoundry-incubator/candiedyaml"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
@@ -48,7 +47,7 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 		return nil, bosherr.WrapErrorf(err, "Reading stemcell manifest '%s'", manifestPath)
 	}
 
-	err = candiedyaml.Unmarshal(manifestContents, &rawManifest)
+	err = yaml.Unmarshal(manifestContents, &rawManifest)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Parsing stemcell manifest: %s", manifestContents)
 	}

@@ -1,9 +1,9 @@
 package config
 
 import (
+	"gopkg.in/yaml.v2"
+	"path"
 	"regexp"
-
-	"github.com/cloudfoundry-incubator/candiedyaml"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -11,7 +11,6 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	"path"
 )
 
 type LegacyDeploymentStateMigrator interface {
@@ -72,14 +71,14 @@ func (m *legacyDeploymentStateMigrator) migrate(configPath string) (deploymentSt
 		return deploymentState, bosherr.WrapErrorf(err, "Reading legacy deployment state file '%s'", configPath)
 	}
 
-	// candiedyaml does not currently support ':' as the first character in a key.
+	// go-yaml does not currently support ':' as the first character in a key.
 	regex := regexp.MustCompile("\n([- ]) :")
 	parsableString := regex.ReplaceAllString(string(bytes), "\n$1 ")
 
 	m.logger.Debug(m.logTag, "Processed legacy bosh-deployments.yml:\n%s", parsableString)
 
 	var legacyDeploymentState legacyDeploymentState
-	err = candiedyaml.Unmarshal([]byte(parsableString), &legacyDeploymentState)
+	err = yaml.Unmarshal([]byte(parsableString), &legacyDeploymentState)
 	if err != nil {
 		return deploymentState, bosherr.WrapError(err, "Parsing job manifest")
 	}

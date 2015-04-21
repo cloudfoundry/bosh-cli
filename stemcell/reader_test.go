@@ -92,7 +92,7 @@ cloud_properties:
 
 	Context("when parsing stemcell manifest fails", func() {
 		BeforeEach(func() {
-			fs.WriteFileString("fake-extracted-path/stemcell.MF", "")
+			fs.WriteFileString("fake-extracted-path/stemcell.MF", "<not-a-yaml>")
 		})
 
 		It("returns an error", func() {

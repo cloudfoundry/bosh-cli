@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	"github.com/cloudfoundry-incubator/candiedyaml"
+	"gopkg.in/yaml.v2"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -39,7 +39,7 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	}
 
 	comboManifest := manifest{}
-	err = candiedyaml.Unmarshal(contents, &comboManifest)
+	err = yaml.Unmarshal(contents, &comboManifest)
 	if err != nil {
 		return Manifest{}, bosherr.WrapError(err, "Unmarshalling release set manifest")
 	}

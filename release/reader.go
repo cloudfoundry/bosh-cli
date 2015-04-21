@@ -1,10 +1,9 @@
 package release
 
 import (
+	"gopkg.in/yaml.v2"
 	"os"
 	"path"
-
-	"github.com/cloudfoundry-incubator/candiedyaml"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -53,7 +52,7 @@ func (r *reader) Read() (Release, error) {
 	}
 
 	var manifest birelmanifest.Manifest
-	err = candiedyaml.Unmarshal(releaseManifestBytes, &manifest)
+	err = yaml.Unmarshal(releaseManifestBytes, &manifest)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Parsing release manifest")
 	}
