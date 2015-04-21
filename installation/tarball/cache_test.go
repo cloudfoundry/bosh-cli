@@ -55,15 +55,15 @@ var _ = Describe("Cache", func() {
 			})
 
 			It("returns path to tarball", func() {
-				path, err := cache.Save("source-path", "fake-sha1")
+				err := cache.Save("source-path", "fake-sha1")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(path).To(Equal("/fake-base-path/fake-sha1"))
+				Expect(fs.FileExists("/fake-base-path/fake-sha1")).To(BeTrue())
 			})
 		})
 
 		Context("when saving tarball fails", func() {
 			It("returns error", func() {
-				_, err := cache.Save("source-path", "fake-sha1")
+				err := cache.Save("source-path", "fake-sha1")
 				Expect(err).To(HaveOccurred())
 			})
 		})

@@ -318,7 +318,7 @@ func rootDesc() {
 
 				fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
 				tarballCache := bitarball.NewCache("fake-base-path", fakeFs, logger)
-				tarballProvider := bitarball.NewProvider(tarballCache, fakeFs, fakeHTTPClient, sha1Calculator, logger)
+				tarballProvider := bitarball.NewProvider(tarballCache, fakeFs, fakeHTTPClient, sha1Calculator, 1, 0, logger)
 
 				return DeploymentPreparer{
 					ui:     userInterface,

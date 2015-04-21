@@ -34,7 +34,7 @@ var _ = Describe("Provider", func() {
 		cache = NewCache("/fake-base-path", fs, logger)
 		sha1Calculator = fakebicrypto.NewFakeSha1Calculator()
 		httpClient = fakebihttpclient.NewFakeHTTPClient()
-		provider = NewProvider(cache, fs, httpClient, sha1Calculator, logger)
+		provider = NewProvider(cache, fs, httpClient, sha1Calculator, 3, 0, logger)
 		fakeStage = fakebiui.NewFakeStage()
 	})
 
@@ -113,6 +113,8 @@ var _ = Describe("Provider", func() {
 				Context("when downloading succeds", func() {
 					BeforeEach(func() {
 						httpClient.SetGetBehavior("fake-body", 200, nil)
+						httpClient.SetGetBehavior("fake-body", 200, nil)
+						httpClient.SetGetBehavior("fake-body", 200, nil)
 					})
 
 					It("downloads tarball from given URL and returns saved cache tarball path", func() {
@@ -146,6 +148,13 @@ var _ = Describe("Provider", func() {
 							Expect(err.Error()).To(ContainSubstring("'fake-sha2' does not match source SHA1 'fake-sha1'"))
 						})
 
+						It("retries downloading up to 3 times", func() {
+							_, err := provider.Get(source, fakeStage)
+							Expect(err).To(HaveOccurred())
+
+							Expect(httpClient.GetInputs).To(HaveLen(3))
+						})
+
 						It("removes the downloaded file", func() {
 							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
@@ -175,13 +184,17 @@ var _ = Describe("Provider", func() {
 
 				Context("when downloading fails", func() {
 					BeforeEach(func() {
-						httpClient.SetGetBehavior("", 500, errors.New("fake-download-error"))
+						httpClient.SetGetBehavior("", 500, errors.New("fake-download-error-1"))
+						httpClient.SetGetBehavior("", 500, errors.New("fake-download-error-2"))
+						httpClient.SetGetBehavior("", 500, errors.New("fake-download-error-3"))
 					})
 
-					It("returns an error", func() {
+					It("retries downloading up to 3 times", func() {
 						_, err := provider.Get(source, fakeStage)
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("fake-download-error"))
+						Expect(err.Error()).To(ContainSubstring("fake-download-error-3"))
+
+						Expect(httpClient.GetInputs).To(HaveLen(3))
 					})
 
 					It("removes the downloaded file", func() {

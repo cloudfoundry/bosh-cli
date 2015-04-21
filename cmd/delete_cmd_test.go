@@ -164,7 +164,7 @@ cloud_provider:
 			fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
 			tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
 			fakeSHA1Calculator := fakebicrypto.NewFakeSha1Calculator()
-			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, logger)
+			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
 
 			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
 				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))

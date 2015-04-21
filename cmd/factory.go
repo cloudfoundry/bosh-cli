@@ -297,7 +297,7 @@ func (f *factory) loadTarballProvider() bitarball.Provider {
 	tarballCache := bitarball.NewCache(tarballCacheBasePath, f.fs, f.logger)
 	httpClient := bihttpclient.NewHTTPClient(f.logger)
 	sha1Calculator := bicrypto.NewSha1Calculator(f.fs)
-	f.tarballProvider = bitarball.NewProvider(tarballCache, f.fs, httpClient, sha1Calculator, f.logger)
+	f.tarballProvider = bitarball.NewProvider(tarballCache, f.fs, httpClient, sha1Calculator, 3, 500*time.Millisecond, f.logger)
 	return f.tarballProvider
 }
 
