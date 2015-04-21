@@ -63,7 +63,8 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	type manifestContext struct {
-		CpiReleasePath   string
+		CpiReleaseURL    string
+		CpiReleaseSHA1   string
 		DummyReleasePath string
 		StemcellPath     string
 	}
@@ -71,10 +72,17 @@ var _ = Describe("bosh-init", func() {
 	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
 	var updateDeploymentManifest = func(sourceManifestPath string) {
 		context := manifestContext{
-			CpiReleasePath:   testEnv.Path("cpi-release.tgz"),
 			DummyReleasePath: testEnv.Path("dummy-release.tgz"),
 			StemcellPath:     testEnv.Path("stemcell.tgz"),
 		}
+
+		if config.CpiReleasePath != "" {
+			context.CpiReleaseURL = "file://" + testEnv.Path("cpi-release.tgz")
+		} else {
+			context.CpiReleaseURL = config.CpiReleaseURL
+			context.CpiReleaseSHA1 = config.CpiReleaseSHA1
+		}
+
 		buffer := bytes.NewBuffer([]byte{})
 		t := template.Must(template.ParseFiles(sourceManifestPath))
 		err := t.Execute(buffer, context)
@@ -220,8 +228,10 @@ var _ = Describe("bosh-init", func() {
 
 		err = testEnv.DownloadOrCopy("stemcell.tgz", config.StemcellPath, config.StemcellURL)
 		Expect(err).NotTo(HaveOccurred())
-		err = testEnv.DownloadOrCopy("cpi-release.tgz", config.CpiReleasePath, config.CpiReleaseURL)
-		Expect(err).NotTo(HaveOccurred())
+		if config.CpiReleasePath != "" {
+			err = testEnv.Copy("cpi-release.tgz", config.CpiReleasePath)
+			Expect(err).NotTo(HaveOccurred())
+		}
 		err = testEnv.Copy("dummy-release.tgz", config.DummyReleasePath)
 		Expect(err).NotTo(HaveOccurred())
 	})

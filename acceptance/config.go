@@ -16,6 +16,7 @@ type Config struct {
 	StemcellURL      string `json:"stemcell_url"`
 	StemcellPath     string `json:"stemcell_path"`
 	CpiReleaseURL    string `json:"cpi_release_url"`
+	CpiReleaseSHA1   string `json:"cpi_release_sha1"`
 	CpiReleasePath   string `json:"cpi_release_path"`
 	DummyReleasePath string `json:"dummy_release_path"`
 }
