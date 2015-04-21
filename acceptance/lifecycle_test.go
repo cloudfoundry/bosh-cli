@@ -66,14 +66,14 @@ var _ = Describe("bosh-init", func() {
 		CpiReleaseURL    string
 		CpiReleaseSHA1   string
 		DummyReleasePath string
-		StemcellPath     string
+		StemcellURL      string
+		StemcellSHA1     string
 	}
 
 	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
 	var updateDeploymentManifest = func(sourceManifestPath string) {
 		context := manifestContext{
 			DummyReleasePath: testEnv.Path("dummy-release.tgz"),
-			StemcellPath:     testEnv.Path("stemcell.tgz"),
 		}
 
 		if config.CpiReleasePath != "" {
@@ -81,6 +81,13 @@ var _ = Describe("bosh-init", func() {
 		} else {
 			context.CpiReleaseURL = config.CpiReleaseURL
 			context.CpiReleaseSHA1 = config.CpiReleaseSHA1
+		}
+
+		if config.StemcellPath != "" {
+			context.StemcellURL = "file://" + testEnv.Path("stemcell.tgz")
+		} else {
+			context.StemcellURL = config.StemcellURL
+			context.StemcellSHA1 = config.StemcellSHA1
 		}
 
 		buffer := bytes.NewBuffer([]byte{})
@@ -226,8 +233,10 @@ var _ = Describe("bosh-init", func() {
 			logger,
 		)
 
-		err = testEnv.DownloadOrCopy("stemcell.tgz", config.StemcellPath, config.StemcellURL)
-		Expect(err).NotTo(HaveOccurred())
+		if config.StemcellPath != "" {
+			err = testEnv.Copy("stemcell.tgz", config.StemcellPath)
+			Expect(err).NotTo(HaveOccurred())
+		}
 		if config.CpiReleasePath != "" {
 			err = testEnv.Copy("cpi-release.tgz", config.CpiReleasePath)
 			Expect(err).NotTo(HaveOccurred())
@@ -271,6 +280,9 @@ var _ = Describe("bosh-init", func() {
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'dummy'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating jobs" + stageFinishedPattern))
+			if config.StemcellURL != "" {
+				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading stemcell" + stageFinishedPattern))
+			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
 

@@ -13,8 +13,6 @@ type Environment interface {
 	Path(string) string
 	Copy(string, string) error
 	WriteContent(string, []byte) error
-	RemoteDownload(string, string) error
-	DownloadOrCopy(string, string, string) error
 }
 
 type remoteTestEnvironment struct {
@@ -67,32 +65,6 @@ func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 	)
 	if exitCode != 0 {
 		return fmt.Errorf("scp of '%s' to '%s' failed", srcPath, destName)
-	}
-	return err
-}
-
-func (e remoteTestEnvironment) DownloadOrCopy(destName, srcPath, srcURL string) error {
-	if srcPath != "" {
-		return e.Copy(destName, srcPath)
-	}
-	return e.RemoteDownload(destName, srcURL)
-}
-
-func (e remoteTestEnvironment) RemoteDownload(destName, srcURL string) error {
-	if srcURL == "" {
-		return fmt.Errorf("Cannot use an empty file for '%s'", destName)
-	}
-
-	_, _, exitCode, err := e.cmdRunner.RunCommand(
-		"ssh",
-		"-o", "StrictHostKeyChecking=no",
-		"-i", e.privateKeyPath,
-		"-p", e.vmPort,
-		fmt.Sprintf("%s@%s", e.vmUsername, e.vmIP),
-		fmt.Sprintf("wget -q -O %s %s", destName, srcURL),
-	)
-	if exitCode != 0 {
-		return fmt.Errorf("download of '%s' to '%s' failed", srcURL, destName)
 	}
 	return err
 }

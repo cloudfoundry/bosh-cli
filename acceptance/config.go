@@ -14,6 +14,7 @@ type Config struct {
 	VMPort           string `json:"vm_port"`
 	PrivateKeyPath   string `json:"private_key_path"`
 	StemcellURL      string `json:"stemcell_url"`
+	StemcellSHA1     string `json:"stemcell_sha1"`
 	StemcellPath     string `json:"stemcell_path"`
 	CpiReleaseURL    string `json:"cpi_release_url"`
 	CpiReleaseSHA1   string `json:"cpi_release_sha1"`

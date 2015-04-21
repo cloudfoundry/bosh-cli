@@ -240,7 +240,21 @@ var _ = Describe("Validator", func() {
 
 			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.url must be a valid file URL (file://)"))
+			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.url must be a valid URL (file:// or http(s)://)"))
+
+			deploymentManifest = Manifest{
+				ResourcePools: []ResourcePool{
+					{
+						Stemcell: StemcellRef{
+							URL: "https://invalid-url",
+						},
+					},
+				},
+			}
+
+			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.sha1 must be provided for http source"))
 		})
 
 		It("validates disk pool name", func() {

@@ -7,6 +7,7 @@ acceptance_assets_dir=$base/acceptance/tmp
 cpi_release_version=16
 cpi_release_sha1=1caf25a8a304fd18d85830dba895b5523beb1fe8
 stemcell_file=registry-test-warden-stemcell.tgz
+stemcell_sha1=8e3e4374a9971f868086523db0f24b3338b2108b
 
 cleanup() {
   ( cd $base && vagrant destroy -f )
@@ -28,6 +29,7 @@ trap cleanup EXIT
 cpi_release_url=${BOSH_INIT_CPI_RELEASE_URL:-https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=$cpi_release_version}
 cpi_release_sha1=${BOSH_INIT_CPI_RELEASE_SHA1:-$cpi_release_sha1}
 stemcell_url=${BOSH_INIT_STEMCELL_URL:-https://s3.amazonaws.com/bosh-dependencies/$stemcell_file}
+stemcell_sha1=${BOSH_INIT_STEMCELL_SHA1:-$stemcell_sha1}
 dummy_release_path=${BOSH_INIT_DUMMY_RELEASE_PATH:-./assets/dummy-release.tgz}
 
 echo "ENV"
@@ -58,6 +60,7 @@ cat > $config_file <<EOF
   "private_key_path": "${private_key_path}",
   "stemcell_path": "${BOSH_INIT_STEMCELL_PATH}",
   "stemcell_url": "${stemcell_url}",
+  "stemcell_sha1": "${stemcell_sha1}",
   "cpi_release_path": "${BOSH_INIT_CPI_RELEASE_PATH}",
   "cpi_release_url": "${cpi_release_url}",
   "cpi_release_sha1": "${cpi_release_sha1}",

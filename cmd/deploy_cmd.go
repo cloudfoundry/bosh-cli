@@ -422,8 +422,12 @@ func (c *DeploymentPreparer) validate(
 		return extractedStemcell, deploymentManifest, installationManifest, err
 	}
 
+	stemcellTarballPath, err := c.tarballProvider.Get(deploymentManifest.ResourcePool().Stemcell, validationStage)
+	if err != nil {
+		return extractedStemcell, deploymentManifest, installationManifest, err
+	}
+
 	err = validationStage.Perform("Validating stemcell", func() error {
-		stemcellTarballPath := deploymentManifest.ResourcePool().Stemcell.Path()
 		if !c.fs.FileExists(stemcellTarballPath) {
 			return bosherr.Errorf("Verifying that the stemcell '%s' exists", stemcellTarballPath)
 		}

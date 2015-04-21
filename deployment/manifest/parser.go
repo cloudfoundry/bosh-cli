@@ -75,7 +75,8 @@ type releaseJobRef struct {
 }
 
 type stemcellRef struct {
-	URL string
+	URL  string
+	SHA1 string
 }
 
 type jobNetwork struct {

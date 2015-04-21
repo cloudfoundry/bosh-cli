@@ -1,8 +1,6 @@
 package manifest
 
 import (
-	"strings"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
@@ -15,9 +13,18 @@ type ResourcePool struct {
 }
 
 type StemcellRef struct {
-	URL string
+	URL  string
+	SHA1 string
 }
 
-func (s StemcellRef) Path() string {
-	return strings.TrimPrefix(s.URL, "file://")
+func (s StemcellRef) GetURL() string {
+	return s.URL
+}
+
+func (s StemcellRef) GetSHA1() string {
+	return s.SHA1
+}
+
+func (s StemcellRef) Description() string {
+	return "stemcell"
 }

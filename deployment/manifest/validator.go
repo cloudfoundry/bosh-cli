@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"net"
+	"regexp"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -59,8 +60,13 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.url must be provided", idx))
 		}
 
-		if !strings.HasPrefix(resourcePool.Stemcell.URL, "file://") {
-			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.url must be a valid file URL (file://)", idx))
+		matched, err := regexp.MatchString("^(file|http|https)://", resourcePool.Stemcell.URL)
+		if err != nil || !matched {
+			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.url must be a valid URL (file:// or http(s)://)", idx))
+		}
+
+		if strings.HasPrefix(resourcePool.Stemcell.URL, "http") && v.isBlank(resourcePool.Stemcell.SHA1) {
+			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.sha1 must be provided for http source", idx))
 		}
 	}
 
