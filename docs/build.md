@@ -26,4 +26,3 @@ To build the micro cli:
 Install tools used by the BOSH Micro CLI test suite:
 
 - `bin/go get code.google.com/p/go.tools/cmd/vet`
-- `bin/go get github.com/golang/lint/golint`
