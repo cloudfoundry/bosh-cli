@@ -30,6 +30,7 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
@@ -40,6 +41,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
 	fakebideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
 	fakebideplval "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
@@ -313,6 +315,11 @@ func rootDesc() {
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
 				stemcellRepo := biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 				deploymentRecord := deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
+
+				fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
+				tarballCache := bitarball.NewCache("fake-base-path", fakeFs, logger)
+				tarballProvider := bitarball.NewProvider(tarballCache, fakeFs, fakeHTTPClient, sha1Calculator, logger)
+
 				return DeploymentPreparer{
 					ui:     userInterface,
 					fs:     fakeFs,
@@ -339,6 +346,7 @@ func rootDesc() {
 					blobstoreFactory:              mockBlobstoreFactory,
 					deployer:                      mockDeployer,
 					deploymentManifestPath:        deploymentManifestPath,
+					tarballProvider:               tarballProvider,
 				}
 			}
 
@@ -858,7 +866,7 @@ func rootDesc() {
 			})
 		})
 
-		Context("When the CPI release tarball does not exist", func() {
+		Context("when tarball provider fails to return path", func() {
 			BeforeEach(func() {
 				fakeFs.RemoveAll(cpiReleaseTarballPath)
 			})
@@ -866,11 +874,11 @@ func rootDesc() {
 			It("returns error", func() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Verifying that the release '/release/tarball/path' exists"))
+				Expect(err.Error()).To(ContainSubstring("File path '/release/tarball/path' does not exist"))
 
 				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
 				Expect(performCall.Name).To(Equal("Validating releases"))
-				Expect(performCall.Error.Error()).To(Equal("Verifying that the release '/release/tarball/path' exists"))
+				Expect(performCall.Error.Error()).To(ContainSubstring("Getting release"))
 			})
 		})
 

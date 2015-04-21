@@ -19,6 +19,7 @@ import (
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
@@ -109,6 +110,7 @@ func NewDeploymentPreparer(
 	releaseExtractor birel.Extractor,
 	stemcellExtractor bistemcell.Extractor,
 	deploymentManifestPath string,
+	tarballProvider bitarball.Provider,
 
 ) DeploymentPreparer {
 	return DeploymentPreparer{
@@ -136,6 +138,7 @@ func NewDeploymentPreparer(
 		releaseExtractor:              releaseExtractor,
 		stemcellExtractor:             stemcellExtractor,
 		deploymentManifestPath:        deploymentManifestPath,
+		tarballProvider:               tarballProvider,
 	}
 }
 
@@ -164,6 +167,7 @@ type DeploymentPreparer struct {
 	releaseExtractor              birel.Extractor
 	stemcellExtractor             bistemcell.Extractor
 	deploymentManifestPath        string
+	tarballProvider               bitarball.Provider
 }
 
 func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
@@ -344,13 +348,14 @@ func (c *DeploymentPreparer) validate(
 		}
 
 		for _, releaseRef := range releaseSetManifest.Releases {
-			if !c.fs.FileExists(releaseRef.Path()) {
-				return bosherr.Errorf("Verifying that the release '%s' exists", releaseRef.Path())
+			releasePath, err := c.tarballProvider.Get(releaseRef)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Getting release '%s'", releaseRef.Name)
 			}
 
-			release, err := c.releaseExtractor.Extract(releaseRef.Path())
+			release, err := c.releaseExtractor.Extract(releasePath)
 			if err != nil {
-				return bosherr.WrapErrorf(err, "Extracting release '%s'", releaseRef.Path())
+				return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
 			}
 
 			if release.Name() != releaseRef.Name {

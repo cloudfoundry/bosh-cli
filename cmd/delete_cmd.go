@@ -16,6 +16,7 @@ import (
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
@@ -97,6 +98,8 @@ func NewDeploymentDeleter(
 	installationParser biinstallmanifest.Parser,
 	installationValidator biinstallmanifest.Validator,
 	deploymentManifestPath string,
+	tarballProvider bitarball.Provider,
+
 ) DeploymentDeleter {
 	return DeploymentDeleter{
 		ui:     ui,
@@ -116,6 +119,7 @@ func NewDeploymentDeleter(
 		installationParser:       installationParser,
 		installationValidator:    installationValidator,
 		deploymentManifestPath:   deploymentManifestPath,
+		tarballProvider:          tarballProvider,
 	}
 }
 
@@ -137,6 +141,7 @@ type DeploymentDeleter struct {
 	installationParser       biinstallmanifest.Parser
 	installationValidator    biinstallmanifest.Validator
 	deploymentManifestPath   string
+	tarballProvider          bitarball.Provider
 }
 
 func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
@@ -289,13 +294,14 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManif
 			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
 		}
 
-		if !c.fs.FileExists(cpiRelease.Path()) {
-			return bosherr.Errorf("Verifying that the release '%s' exists", cpiRelease.Path())
+		releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiRelease))
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Getting release '%s'", cpiRelease.Name)
 		}
 
-		release, err := c.releaseExtractor.Extract(cpiRelease.Path())
+		release, err := c.releaseExtractor.Extract(releasePath)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting release '%s'", cpiRelease.Path())
+			return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
 		}
 		c.releaseManager.Add(release)
 

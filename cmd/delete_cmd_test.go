@@ -24,12 +24,15 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 
+	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
@@ -158,6 +161,10 @@ cloud_provider:
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			installationValidator := biinstallmanifest.NewValidator(logger)
 			installationParser := biinstallmanifest.NewParser(fs, logger)
+			fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
+			tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
+			fakeSHA1Calculator := fakebicrypto.NewFakeSha1Calculator()
+			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, logger)
 
 			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
 				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
@@ -180,6 +187,7 @@ cloud_provider:
 					installationParser,
 					installationValidator,
 					deploymentManifestPath,
+					tarballProvider,
 				)
 
 				return deploymentDeleter

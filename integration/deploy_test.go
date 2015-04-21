@@ -43,6 +43,7 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
@@ -52,6 +53,7 @@ import (
 	biui "github.com/cloudfoundry/bosh-init/ui"
 
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
@@ -404,6 +406,9 @@ cloud_provider:
 					deploymentFactory,
 					logger,
 				)
+				fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
+				tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
+				tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, logger)
 
 				return NewDeploymentPreparer(
 					ui,
@@ -430,6 +435,7 @@ cloud_provider:
 					mockReleaseExtractor,
 					fakeStemcellExtractor,
 					deploymentManifestPath,
+					tarballProvider,
 				)
 			}
 

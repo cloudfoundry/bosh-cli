@@ -58,12 +58,13 @@ var _ = Describe("Parser", func() {
 releases:
 - name: fake-release-name-1
   url: file://~/fake-release-1.tgz
+  sha1: fake-sha1
 - name: fake-release-name-2
   url: file://fake-release-2.tgz
+  sha1: fake-sha2
 name: unknown-keys-are-ignored
 `
 		fakeFs.WriteFileString(comboManifestPath, contents)
-		fakeFs.ExpandPathExpanded = "fake-expanded-path"
 	})
 
 	It("parses release set manifest from combo manifest file", func() {
@@ -74,34 +75,13 @@ name: unknown-keys-are-ignored
 			Releases: []birelmanifest.ReleaseRef{
 				{
 					Name: "fake-release-name-1",
-					URL:  "file://fake-expanded-path",
+					URL:  "file://~/fake-release-1.tgz",
+					SHA1: "fake-sha1",
 				},
 				{
 					Name: "fake-release-name-2",
-					URL:  "file://fake-expanded-path",
-				},
-			},
-		}))
-	})
-
-	It("uses original URL if expanding file path fails", func() {
-		contents := `
----
-releases:
-- name: fake-release-name-1
-  url: file://~/fake-release-1.tgz
-`
-		fakeFs.WriteFileString(comboManifestPath, contents)
-		fakeFs.ExpandPathErr = errors.New("expand-file-path-error")
-
-		deploymentManifest, err := parser.Parse(comboManifestPath)
-		Expect(err).ToNot(HaveOccurred())
-
-		Expect(deploymentManifest).To(Equal(Manifest{
-			Releases: []birelmanifest.ReleaseRef{
-				{
-					Name: "fake-release-name-1",
-					URL:  "file://~/fake-release-1.tgz",
+					URL:  "file://fake-release-2.tgz",
+					SHA1: "fake-sha2",
 				},
 			},
 		}))

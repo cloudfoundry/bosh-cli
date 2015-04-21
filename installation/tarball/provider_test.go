@@ -39,12 +39,26 @@ var _ = Describe("Provider", func() {
 		Context("when URL starts with file://", func() {
 			BeforeEach(func() {
 				source = newFakeSource("file://fake-file", "fake-sha1")
+				fs.WriteFileString("fake-file", "")
+				fs.ExpandPathExpanded = "expanded-file-path"
 			})
 
-			It("returns path to file", func() {
+			It("returns expanded path to file", func() {
 				path, err := provider.Get(source)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(path).To(Equal("fake-file"))
+				Expect(path).To(Equal("expanded-file-path"))
+			})
+
+			Context("when file does not exist", func() {
+				BeforeEach(func() {
+					fs.RemoveAll("fake-file")
+				})
+
+				It("returns an error", func() {
+					_, err := provider.Get(source)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("File path 'fake-file' does not exist"))
+				})
 			})
 		})
 
@@ -182,5 +196,5 @@ func newFakeSource(url, sha1 string) *fakeSource {
 	return &fakeSource{url, sha1}
 }
 
-func (s *fakeSource) URL() string  { return s.url }
-func (s *fakeSource) SHA1() string { return s.sha1 }
+func (s *fakeSource) GetURL() string  { return s.url }
+func (s *fakeSource) GetSHA1() string { return s.sha1 }

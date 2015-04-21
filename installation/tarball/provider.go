@@ -12,8 +12,8 @@ import (
 )
 
 type Source interface {
-	URL() string
-	SHA1() string
+	GetURL() string
+	GetSHA1() string
 }
 
 type Provider interface {
@@ -47,48 +47,57 @@ func NewProvider(
 }
 
 func (p *provider) Get(source Source) (string, error) {
-	if strings.HasPrefix(source.URL(), "file://") {
-		return strings.TrimPrefix(source.URL(), "file://"), nil
+	if strings.HasPrefix(source.GetURL(), "file://") {
+		filePath := strings.TrimPrefix(source.GetURL(), "file://")
+		if !p.fs.FileExists(filePath) {
+			return "", bosherr.Errorf("File path '%s' does not exist", filePath)
+		}
+		expandedPath, err := p.fs.ExpandPath(filePath)
+		if err != nil {
+			p.logger.Warn(p.logTag, "Failed to expand file path %s, using original URL", filePath)
+			return filePath, nil
+		}
+		return expandedPath, nil
 	}
 
-	if !strings.HasPrefix(source.URL(), "http") {
-		return "", bosherr.Errorf("Invalid source URL: '%s', must be either file:// or http(s)://", source.URL())
+	if !strings.HasPrefix(source.GetURL(), "http") {
+		return "", bosherr.Errorf("Invalid source URL: '%s', must be either file:// or http(s)://", source.GetURL())
 	}
 
-	cachedPath, found := p.cache.Get(source.SHA1())
+	cachedPath, found := p.cache.Get(source.GetSHA1())
 	if found {
 		return cachedPath, nil
 	}
 
 	downloadedFile, err := p.fs.TempFile("tarballProvider")
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to create temporary file when downloading: '%s'", source.URL())
+		return "", bosherr.WrapErrorf(err, "Failed to create temporary file when downloading: '%s'", source.GetURL())
 	}
 	defer p.fs.RemoveAll(downloadedFile.Name())
 
-	response, err := p.httpClient.Get(source.URL())
+	response, err := p.httpClient.Get(source.GetURL())
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to download from endpoint: '%s'", source.URL())
+		return "", bosherr.WrapErrorf(err, "Failed to download from endpoint: '%s'", source.GetURL())
 	}
 	defer response.Body.Close()
 
 	_, err = io.Copy(downloadedFile, response.Body)
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to download to temporary file from endpoint: '%s'", source.URL())
+		return "", bosherr.WrapErrorf(err, "Failed to download to temporary file from endpoint: '%s'", source.GetURL())
 	}
 
 	downloadedSha1, err := p.sha1Calculator.Calculate(downloadedFile.Name())
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to calculate sha1 for downloaded file from endpoint: '%s'", source.URL())
+		return "", bosherr.WrapErrorf(err, "Failed to calculate sha1 for downloaded file from endpoint: '%s'", source.GetURL())
 	}
 
-	if downloadedSha1 != source.SHA1() {
-		return "", bosherr.Errorf("SHA1 of downloaded file '%s' does not match source SHA1 '%s'", downloadedSha1, source.SHA1())
+	if downloadedSha1 != source.GetSHA1() {
+		return "", bosherr.Errorf("SHA1 of downloaded file '%s' does not match source SHA1 '%s'", downloadedSha1, source.GetSHA1())
 	}
 
-	cachedPath, err = p.cache.Save(downloadedFile.Name(), source.SHA1())
+	cachedPath, err = p.cache.Save(downloadedFile.Name(), source.GetSHA1())
 	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to save tarball in cache from endpoint: '%s'", source.URL())
+		return "", bosherr.WrapErrorf(err, "Failed to save tarball in cache from endpoint: '%s'", source.GetURL())
 	}
 
 	return cachedPath, nil

@@ -1,14 +1,15 @@
 package manifest
 
-import (
-	"strings"
-)
-
 type ReleaseRef struct {
 	Name string
 	URL  string
+	SHA1 string
 }
 
-func (r *ReleaseRef) Path() string {
-	return strings.TrimPrefix(r.URL, "file://")
+func (r ReleaseRef) GetURL() string {
+	return r.URL
+}
+
+func (r ReleaseRef) GetSHA1() string {
+	return r.SHA1
 }

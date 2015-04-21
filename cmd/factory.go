@@ -18,6 +18,7 @@ import (
 	bidepl "github.com/cloudfoundry/bosh-init/deployment"
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
 	biinstancestate "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
@@ -27,6 +28,7 @@ import (
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
@@ -71,6 +73,7 @@ type factory struct {
 	cloudFactory           bicloud.Factory
 	stateBuilderFactory    biinstancestate.BuilderFactory
 	compiledPackageRepo    bistatepkg.CompiledPackageRepo
+	tarballProvider        bitarball.Provider
 }
 
 func NewFactory(
@@ -283,6 +286,19 @@ func (f *factory) loadReleaseExtractor() birel.Extractor {
 	return f.releaseExtractor
 }
 
+func (f *factory) loadTarballProvider() bitarball.Provider {
+	if f.tarballProvider != nil {
+		return f.tarballProvider
+	}
+
+	tarballCacheBasePath := filepath.Join(f.workspaceRootPath, "downloads")
+	tarballCache := bitarball.NewCache(tarballCacheBasePath, f.fs, f.logger)
+	httpClient := bihttpclient.NewHTTPClient(f.logger)
+	sha1Calculator := bicrypto.NewSha1Calculator(f.fs)
+	f.tarballProvider = bitarball.NewProvider(tarballCache, f.fs, httpClient, sha1Calculator, f.logger)
+	return f.tarballProvider
+}
+
 func (f *factory) loadReleaseManager() birel.Manager {
 	if f.releaseManager != nil {
 		return f.releaseManager
@@ -405,6 +421,7 @@ func (d *deploymentManagerFactory2) loadDeploymentPreparer() DeploymentPreparer 
 		d.f.loadReleaseExtractor(),
 		stemcellExtractor,
 		d.deploymentManifestPath,
+		d.f.loadTarballProvider(),
 	)
 }
 
@@ -427,6 +444,7 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
 		d.f.loadInstallationParser(),
 		d.f.loadInstallationValidator(),
 		d.deploymentManifestPath,
+		d.f.loadTarballProvider(),
 	)
 }
 
