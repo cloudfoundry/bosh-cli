@@ -49,15 +49,20 @@ func NewProvider(
 func (p *provider) Get(source Source) (string, error) {
 	if strings.HasPrefix(source.GetURL(), "file://") {
 		filePath := strings.TrimPrefix(source.GetURL(), "file://")
-		if !p.fs.FileExists(filePath) {
-			return "", bosherr.Errorf("File path '%s' does not exist", filePath)
-		}
+
 		expandedPath, err := p.fs.ExpandPath(filePath)
 		if err != nil {
 			p.logger.Warn(p.logTag, "Failed to expand file path %s, using original URL", filePath)
-			return filePath, nil
+		} else {
+			filePath = expandedPath
 		}
-		return expandedPath, nil
+
+		if !p.fs.FileExists(filePath) {
+			return "", bosherr.Errorf("File path '%s' does not exist", filePath)
+		}
+
+		p.logger.Debug(p.logTag, "Using the tarball from file source: '%s'", filePath)
+		return filePath, nil
 	}
 
 	if !strings.HasPrefix(source.GetURL(), "http") {
@@ -66,6 +71,7 @@ func (p *provider) Get(source Source) (string, error) {
 
 	cachedPath, found := p.cache.Get(source.GetSHA1())
 	if found {
+		p.logger.Debug(p.logTag, "Using the tarball from cache: '%s'", cachedPath)
 		return cachedPath, nil
 	}
 
@@ -100,5 +106,6 @@ func (p *provider) Get(source Source) (string, error) {
 		return "", bosherr.WrapErrorf(err, "Failed to save tarball in cache from endpoint: '%s'", source.GetURL())
 	}
 
+	p.logger.Debug(p.logTag, "Using the downloaded tarball: '%s'", cachedPath)
 	return cachedPath, nil
 }

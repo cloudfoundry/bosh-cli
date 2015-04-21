@@ -33,6 +33,7 @@ func NewCache(basePath string, fs boshsys.FileSystem, logger boshlog.Logger) Cac
 func (c *cache) Get(sha1 string) (string, bool) {
 	path := filepath.Join(c.basePath, sha1)
 	if c.fs.FileExists(path) {
+		c.logger.Debug(c.logTag, "Found cached tarball at: '%s'", path)
 		return path, true
 	}
 
@@ -52,5 +53,6 @@ func (c *cache) Save(sourcePath string, sha1 string) (string, error) {
 		return "", bosherr.WrapErrorf(err, "Failed to save tarball path '%s' in cache", sourcePath)
 	}
 
+	c.logger.Debug(c.logTag, "Saving tarball in cache at: '%s'", path)
 	return path, nil
 }
