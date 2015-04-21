@@ -3,6 +3,8 @@ package platform
 import (
 	"time"
 
+	sigar "github.com/cloudfoundry/gosigar"
+
 	bosherror "github.com/cloudfoundry/bosh-agent/errors"
 	"github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -42,7 +44,7 @@ type Options struct {
 	Linux LinuxOptions
 }
 
-func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsCollector boshstats.Collector, options Options) Provider {
+func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options Options) Provider {
 	runner := boshsys.NewExecCmdRunner(logger)
 	fs := boshsys.NewOsFileSystem(logger)
 
@@ -55,10 +57,12 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsColl
 	compressor := boshcmd.NewTarballCompressor(runner, fs)
 	copier := boshcmd.NewCpCopier(runner, fs, logger)
 
-	// Kick of stats collection as soon as possible
-	go statsCollector.StartCollecting(SigarStatsCollectionInterval, nil)
+	sigarCollector := boshstats.NewSigarStatsCollector(&sigar.ConcreteSigar{})
 
-	vitalsService := boshvitals.NewService(statsCollector, dirProvider)
+	// Kick of stats collection as soon as possible
+	go sigarCollector.StartCollecting(SigarStatsCollectionInterval, nil)
+
+	vitalsService := boshvitals.NewService(sigarCollector, dirProvider)
 
 	ipResolver := boship.NewResolver(boship.NetworkInterfaceToAddrsFunc)
 
@@ -90,7 +94,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsColl
 	centos := NewLinuxPlatform(
 		fs,
 		runner,
-		statsCollector,
+		sigarCollector,
 		compressor,
 		copier,
 		dirProvider,
@@ -109,7 +113,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsColl
 	ubuntu := NewLinuxPlatform(
 		fs,
 		runner,
-		statsCollector,
+		sigarCollector,
 		compressor,
 		copier,
 		dirProvider,
@@ -129,7 +133,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsColl
 		platforms: map[string]Platform{
 			"ubuntu": ubuntu,
 			"centos": centos,
-			"dummy":  NewDummyPlatform(statsCollector, fs, runner, dirProvider, devicePathResolver, logger),
+			"dummy":  NewDummyPlatform(sigarCollector, fs, runner, dirProvider, devicePathResolver, logger),
 		},
 	}
 }
