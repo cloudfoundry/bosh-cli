@@ -348,7 +348,7 @@ func (c *DeploymentPreparer) validate(
 		}
 
 		for _, releaseRef := range releaseSetManifest.Releases {
-			releasePath, err := c.tarballProvider.Get(releaseRef)
+			releasePath, err := c.tarballProvider.Get(releaseRef, validationStage)
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Getting release '%s'", releaseRef.Name)
 			}

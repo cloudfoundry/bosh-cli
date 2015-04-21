@@ -1,6 +1,7 @@
 package tarball
 
 import (
+	"fmt"
 	"io"
 	"strings"
 
@@ -9,15 +10,17 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Source interface {
 	GetURL() string
 	GetSHA1() string
+	Description() string
 }
 
 type Provider interface {
-	Get(Source) (path string, err error)
+	Get(Source, biui.Stage) (path string, err error)
 }
 
 type provider struct {
@@ -46,7 +49,7 @@ func NewProvider(
 	}
 }
 
-func (p *provider) Get(source Source) (string, error) {
+func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 	if strings.HasPrefix(source.GetURL(), "file://") {
 		filePath := strings.TrimPrefix(source.GetURL(), "file://")
 
@@ -69,43 +72,49 @@ func (p *provider) Get(source Source) (string, error) {
 		return "", bosherr.Errorf("Invalid source URL: '%s', must be either file:// or http(s)://", source.GetURL())
 	}
 
-	cachedPath, found := p.cache.Get(source.GetSHA1())
-	if found {
-		p.logger.Debug(p.logTag, "Using the tarball from cache: '%s'", cachedPath)
-		return cachedPath, nil
-	}
+	var cachedPath string
+	err := stage.Perform(fmt.Sprintf("Downloading %s", source.Description()), func() error {
+		var found bool
+		cachedPath, found = p.cache.Get(source.GetSHA1())
+		if found {
+			p.logger.Debug(p.logTag, "Using the tarball from cache: '%s'", cachedPath)
+			return biui.NewSkipStageError(bosherr.Errorf("Found %s in local cache", source.Description()), "Already downloaded")
+		}
 
-	downloadedFile, err := p.fs.TempFile("tarballProvider")
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to create temporary file when downloading: '%s'", source.GetURL())
-	}
-	defer p.fs.RemoveAll(downloadedFile.Name())
+		downloadedFile, err := p.fs.TempFile("tarballProvider")
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Failed to create temporary file when downloading: '%s'", source.GetURL())
+		}
+		defer p.fs.RemoveAll(downloadedFile.Name())
 
-	response, err := p.httpClient.Get(source.GetURL())
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to download from endpoint: '%s'", source.GetURL())
-	}
-	defer response.Body.Close()
+		response, err := p.httpClient.Get(source.GetURL())
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Failed to download from endpoint: '%s'", source.GetURL())
+		}
+		defer response.Body.Close()
 
-	_, err = io.Copy(downloadedFile, response.Body)
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to download to temporary file from endpoint: '%s'", source.GetURL())
-	}
+		_, err = io.Copy(downloadedFile, response.Body)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Failed to download to temporary file from endpoint: '%s'", source.GetURL())
+		}
 
-	downloadedSha1, err := p.sha1Calculator.Calculate(downloadedFile.Name())
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to calculate sha1 for downloaded file from endpoint: '%s'", source.GetURL())
-	}
+		downloadedSha1, err := p.sha1Calculator.Calculate(downloadedFile.Name())
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Failed to calculate sha1 for downloaded file from endpoint: '%s'", source.GetURL())
+		}
 
-	if downloadedSha1 != source.GetSHA1() {
-		return "", bosherr.Errorf("SHA1 of downloaded file '%s' does not match source SHA1 '%s'", downloadedSha1, source.GetSHA1())
-	}
+		if downloadedSha1 != source.GetSHA1() {
+			return bosherr.Errorf("SHA1 of downloaded file '%s' does not match source SHA1 '%s'", downloadedSha1, source.GetSHA1())
+		}
 
-	cachedPath, err = p.cache.Save(downloadedFile.Name(), source.GetSHA1())
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Failed to save tarball in cache from endpoint: '%s'", source.GetURL())
-	}
+		cachedPath, err = p.cache.Save(downloadedFile.Name(), source.GetSHA1())
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Failed to save tarball in cache from endpoint: '%s'", source.GetURL())
+		}
 
-	p.logger.Debug(p.logTag, "Using the downloaded tarball: '%s'", cachedPath)
-	return cachedPath, nil
+		p.logger.Debug(p.logTag, "Using the downloaded tarball: '%s'", cachedPath)
+		return nil
+	})
+
+	return cachedPath, err
 }

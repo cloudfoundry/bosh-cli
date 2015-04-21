@@ -294,7 +294,7 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManif
 			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
 		}
 
-		releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiRelease))
+		releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiRelease), validationStage)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Getting release '%s'", cpiRelease.Name)
 		}

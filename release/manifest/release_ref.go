@@ -1,5 +1,9 @@
 package manifest
 
+import (
+	"fmt"
+)
+
 type ReleaseRef struct {
 	Name string
 	URL  string
@@ -12,4 +16,8 @@ func (r ReleaseRef) GetURL() string {
 
 func (r ReleaseRef) GetSHA1() string {
 	return r.SHA1
+}
+
+func (r ReleaseRef) Description() string {
+	return fmt.Sprintf("release '%s'", r.Name)
 }

@@ -9,6 +9,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -24,6 +25,7 @@ var _ = Describe("Provider", func() {
 		httpClient     *fakebihttpclient.FakeHTTPClient
 		sha1Calculator *fakebicrypto.FakeSha1Calculator
 		source         *fakeSource
+		fakeStage      *fakebiui.FakeStage
 	)
 
 	BeforeEach(func() {
@@ -33,18 +35,19 @@ var _ = Describe("Provider", func() {
 		sha1Calculator = fakebicrypto.NewFakeSha1Calculator()
 		httpClient = fakebihttpclient.NewFakeHTTPClient()
 		provider = NewProvider(cache, fs, httpClient, sha1Calculator, logger)
+		fakeStage = fakebiui.NewFakeStage()
 	})
 
 	Describe("Get", func() {
 		Context("when URL starts with file://", func() {
 			BeforeEach(func() {
-				source = newFakeSource("file://fake-file", "fake-sha1")
+				source = newFakeSource("file://fake-file", "fake-sha1", "fake-description")
 				fs.WriteFileString("expanded-file-path", "")
 				fs.ExpandPathExpanded = "expanded-file-path"
 			})
 
 			It("returns expanded path to file", func() {
-				path, err := provider.Get(source)
+				path, err := provider.Get(source, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(path).To(Equal("expanded-file-path"))
 			})
@@ -55,7 +58,7 @@ var _ = Describe("Provider", func() {
 				})
 
 				It("returns an error", func() {
-					_, err := provider.Get(source)
+					_, err := provider.Get(source, fakeStage)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("File path 'expanded-file-path' does not exist"))
 				})
@@ -64,7 +67,7 @@ var _ = Describe("Provider", func() {
 
 		Context("when URL starts with http(s)://", func() {
 			BeforeEach(func() {
-				source = newFakeSource("http://fake-url", "fake-sha1")
+				source = newFakeSource("http://fake-url", "fake-sha1", "fake-description")
 			})
 
 			Context("when tarball is present in cache", func() {
@@ -74,9 +77,17 @@ var _ = Describe("Provider", func() {
 				})
 
 				It("returns cached tarball path", func() {
-					path, err := provider.Get(source)
+					path, err := provider.Get(source, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(path).To(Equal("/fake-base-path/fake-sha1"))
+				})
+
+				It("skips downloading stage", func() {
+					_, err := provider.Get(source, fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeStage.PerformCalls[0].Name).To(Equal("Downloading fake-description"))
+					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Already downloaded: Found fake-description in local cache"))
 				})
 			})
 
@@ -105,12 +116,21 @@ var _ = Describe("Provider", func() {
 					})
 
 					It("downloads tarball from given URL and returns saved cache tarball path", func() {
-						path, err := provider.Get(source)
+						path, err := provider.Get(source, fakeStage)
 						Expect(err).ToNot(HaveOccurred())
 						Expect(path).To(Equal("/fake-base-path/fake-sha1"))
 
 						Expect(httpClient.GetInputs).To(HaveLen(1))
 						Expect(httpClient.GetInputs[0].Endpoint).To(Equal("http://fake-url"))
+					})
+
+					It("logs downloading stage", func() {
+						_, err := provider.Get(source, fakeStage)
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+							{Name: "Downloading fake-description"},
+						}))
 					})
 
 					Context("when sha1 does not match", func() {
@@ -121,13 +141,13 @@ var _ = Describe("Provider", func() {
 						})
 
 						It("returns an error", func() {
-							_, err := provider.Get(source)
+							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("'fake-sha2' does not match source SHA1 'fake-sha1'"))
 						})
 
 						It("removes the downloaded file", func() {
-							_, err := provider.Get(source)
+							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
 							Expect(fs.FileExists(tempDownloadFilePath)).To(BeFalse())
 						})
@@ -140,13 +160,13 @@ var _ = Describe("Provider", func() {
 						})
 
 						It("returns an error", func() {
-							_, err := provider.Get(source)
+							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("fake-mkdir-error"))
 						})
 
 						It("removes the downloaded file", func() {
-							_, err := provider.Get(source)
+							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
 							Expect(fs.FileExists(tempDownloadFilePath)).To(BeFalse())
 						})
@@ -159,13 +179,13 @@ var _ = Describe("Provider", func() {
 					})
 
 					It("returns an error", func() {
-						_, err := provider.Get(source)
+						_, err := provider.Get(source, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-download-error"))
 					})
 
 					It("removes the downloaded file", func() {
-						_, err := provider.Get(source)
+						_, err := provider.Get(source, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(fs.FileExists(tempDownloadFilePath)).To(BeFalse())
 					})
@@ -175,11 +195,11 @@ var _ = Describe("Provider", func() {
 
 		Context("when URL does not start with either file:// or http(s)://", func() {
 			BeforeEach(func() {
-				source = newFakeSource("invalid-url", "fake-sha1")
+				source = newFakeSource("invalid-url", "fake-sha1", "fake-description")
 			})
 
 			It("returns an error", func() {
-				_, err := provider.Get(source)
+				_, err := provider.Get(source, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Invalid source URL: 'invalid-url'"))
 			})
@@ -188,13 +208,15 @@ var _ = Describe("Provider", func() {
 })
 
 type fakeSource struct {
-	url  string
-	sha1 string
+	url         string
+	sha1        string
+	description string
 }
 
-func newFakeSource(url, sha1 string) *fakeSource {
-	return &fakeSource{url, sha1}
+func newFakeSource(url, sha1, description string) *fakeSource {
+	return &fakeSource{url, sha1, description}
 }
 
-func (s *fakeSource) GetURL() string  { return s.url }
-func (s *fakeSource) GetSHA1() string { return s.sha1 }
+func (s *fakeSource) GetURL() string      { return s.url }
+func (s *fakeSource) GetSHA1() string     { return s.sha1 }
+func (s *fakeSource) Description() string { return s.description }
