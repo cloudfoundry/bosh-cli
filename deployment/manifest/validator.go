@@ -8,25 +8,25 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	birel "github.com/cloudfoundry/bosh-init/release"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 type Validator interface {
-	Validate(Manifest) error
+	Validate(Manifest, birelsetmanifest.Manifest) error
+	ValidateReleaseJobs(Manifest, birel.Manager) error
 }
 
 type validator struct {
-	logger         boshlog.Logger
-	releaseManager birel.Manager
+	logger boshlog.Logger
 }
 
-func NewValidator(logger boshlog.Logger, releaseManager birel.Manager) Validator {
+func NewValidator(logger boshlog.Logger) Validator {
 	return &validator{
-		logger:         logger,
-		releaseManager: releaseManager,
+		logger: logger,
 	}
 }
 
-func (v *validator) Validate(deploymentManifest Manifest) error {
+func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest birelsetmanifest.Manifest) error {
 	errs := []error{}
 	if v.isBlank(deploymentManifest.Name) {
 		errs = append(errs, bosherr.Error("name must be provided"))
@@ -130,14 +130,33 @@ func (v *validator) Validate(deploymentManifest Manifest) error {
 			if v.isBlank(template.Release) {
 				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release must be provided", idx, templateIdx))
 			} else {
-				release, found := v.releaseManager.Find(template.Release)
+				_, found := releaseSetManifest.FindByName(template.Release)
 				if !found {
 					errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release '%s' must refer to release in releases", idx, templateIdx, template.Release))
-				} else {
-					_, found := release.FindJobByName(template.Name)
-					if !found {
-						errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d] must refer to a job in '%s', but there is no job named '%s'", idx, templateIdx, release.Name(), template.Name))
-					}
+				}
+			}
+		}
+	}
+
+	if len(errs) > 0 {
+		return bosherr.NewMultiError(errs...)
+	}
+
+	return nil
+}
+
+func (v *validator) ValidateReleaseJobs(deploymentManifest Manifest, releaseManager birel.Manager) error {
+	errs := []error{}
+
+	for idx, job := range deploymentManifest.Jobs {
+		for templateIdx, template := range job.Templates {
+			release, found := releaseManager.Find(template.Release)
+			if !found {
+				errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d].release '%s' must refer to release in releases", idx, templateIdx, template.Release))
+			} else {
+				_, found := release.FindJobByName(template.Name)
+				if !found {
+					errs = append(errs, bosherr.Errorf("jobs[%d].templates[%d] must refer to a job in '%s', but there is no job named '%s'", idx, templateIdx, release.Name(), template.Name))
 				}
 			}
 		}

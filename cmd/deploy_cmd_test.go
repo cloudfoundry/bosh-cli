@@ -244,6 +244,9 @@ func rootDesc() {
 			fakeDeploymentValidator.SetValidateBehavior([]fakebideplval.ValidateOutput{
 				{Err: nil},
 			})
+			fakeDeploymentValidator.SetValidateReleaseJobsBehavior([]fakebideplval.ValidateReleaseJobsOutput{
+				{Err: nil},
+			})
 
 			// stemcell exists
 			fakeFs.WriteFile(stemcellTarballPath, []byte{})
@@ -468,7 +471,15 @@ func rootDesc() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebideplval.ValidateInput{
-				{Manifest: boshDeploymentManifest},
+				{Manifest: boshDeploymentManifest, ReleaseSetManifest: releaseSetManifest},
+			}))
+		})
+
+		It("validates jobs in manifest refer to job in releases", func() {
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeDeploymentValidator.ValidateReleaseJobsInputs).To(Equal([]fakebideplval.ValidateReleaseJobsInput{
+				{Manifest: boshDeploymentManifest, ReleaseManager: releaseManager},
 			}))
 		})
 
@@ -480,8 +491,9 @@ func rootDesc() {
 				Name: "validating",
 				Stage: &fakebiui.FakeStage{
 					PerformCalls: []fakebiui.PerformCall{
-						{Name: "Validating releases"},
 						{Name: "Validating deployment manifest"},
+						{Name: "Validating releases"},
+						{Name: "Validating jobs"},
 						{Name: "Validating stemcell"},
 						{Name: "Validating cpi release"},
 					},
@@ -860,7 +872,7 @@ func rootDesc() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[3]
 				Expect(performCall.Name).To(Equal("Validating stemcell"))
 				Expect(performCall.Error.Error()).To(Equal("Verifying that the stemcell '/stemcell/tarball/path' exists"))
 			})
@@ -876,7 +888,7 @@ func rootDesc() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("File path '/release/tarball/path' does not exist"))
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
 				Expect(performCall.Name).To(Equal("Validating releases"))
 				Expect(performCall.Error.Error()).To(ContainSubstring("Getting release"))
 			})
@@ -924,7 +936,7 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
 				Expect(performCall.Name).To(Equal("Validating deployment manifest"))
 				Expect(performCall.Error.Error()).To(Equal("Validating installation manifest: fake-installation-validation-error"))
 			})
@@ -947,9 +959,32 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
 				Expect(performCall.Name).To(Equal("Validating deployment manifest"))
 				Expect(performCall.Error.Error()).To(Equal("Validating deployment manifest: fake-deployment-validation-error"))
+			})
+		})
+
+		Context("when validating jobs fails", func() {
+			BeforeEach(func() {
+				fakeDeploymentValidator.SetValidateReleaseJobsBehavior([]fakebideplval.ValidateReleaseJobsOutput{
+					{Err: bosherr.Error("fake-jobs-validation-error")},
+				})
+			})
+
+			It("returns err", func() {
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-jobs-validation-error"))
+			})
+
+			It("logs the failed event log", func() {
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				Expect(err).To(HaveOccurred())
+
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
+				Expect(performCall.Name).To(Equal("Validating jobs"))
+				Expect(performCall.Error.Error()).To(Equal("Validating deployment jobs refer to jobs in release: fake-jobs-validation-error"))
 			})
 		})
 

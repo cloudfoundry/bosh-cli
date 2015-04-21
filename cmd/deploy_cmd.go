@@ -336,7 +336,7 @@ func (c *DeploymentPreparer) validate(
 	err error,
 ) {
 	var releaseSetManifest birelsetmanifest.Manifest
-	err = validationStage.Perform("Validating releases", func() error {
+	err = validationStage.Perform("Validating deployment manifest", func() error {
 		releaseSetManifest, err = c.releaseSetParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
@@ -347,6 +347,33 @@ func (c *DeploymentPreparer) validate(
 			return bosherr.WrapError(err, "Validating release set manifest")
 		}
 
+		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.deploymentValidator.Validate(deploymentManifest, releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating deployment manifest")
+		}
+
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+		}
+
+		err = c.installationValidator.Validate(installationManifest, releaseSetManifest)
+		if err != nil {
+			return bosherr.WrapError(err, "Validating installation manifest")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return extractedStemcell, deploymentManifest, installationManifest, err
+	}
+
+	err = validationStage.Perform("Validating releases", func() error {
 		for _, releaseRef := range releaseSetManifest.Releases {
 			releasePath, err := c.tarballProvider.Get(releaseRef, validationStage)
 			if err != nil {
@@ -378,25 +405,10 @@ func (c *DeploymentPreparer) validate(
 		}
 	}()
 
-	err = validationStage.Perform("Validating deployment manifest", func() error {
-		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
+	err = validationStage.Perform("Validating jobs", func() error {
+		err = c.deploymentValidator.ValidateReleaseJobs(deploymentManifest, c.releaseManager)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.deploymentValidator.Validate(deploymentManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating deployment manifest")
-		}
-
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.installationValidator.Validate(installationManifest, releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating installation manifest")
+			return bosherr.WrapError(err, "Validating deployment jobs refer to jobs in release")
 		}
 
 		return nil

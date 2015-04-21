@@ -351,7 +351,7 @@ func (f *factory) loadDeploymentValidator() bideplmanifest.Validator {
 		return f.deploymentValidator
 	}
 
-	f.deploymentValidator = bideplmanifest.NewValidator(f.logger, f.loadReleaseManager())
+	f.deploymentValidator = bideplmanifest.NewValidator(f.logger)
 	return f.deploymentValidator
 }
 

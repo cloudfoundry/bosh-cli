@@ -99,7 +99,7 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 		cachedPath, found = p.cache.Get(source.GetSHA1())
 		if found {
 			p.logger.Debug(p.logTag, "Using the tarball from cache: '%s'", cachedPath)
-			return biui.NewSkipStageError(bosherr.Error("Already downloaded"), fmt.Sprintf("Found %s in local cache", source.Description())))
+			return biui.NewSkipStageError(bosherr.Error("Already downloaded"), fmt.Sprintf("Found %s in local cache", source.Description()))
 		}
 
 		retryStrategy := boshretry.NewAttemptRetryStrategy(p.downloadAttempts, p.delayTimeout, p.downloadRetryable(source), p.logger)

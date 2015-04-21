@@ -10,6 +10,7 @@ import (
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 
 	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 
@@ -22,19 +23,14 @@ var _ = Describe("Validator", func() {
 		releaseManager birel.Manager
 		validator      Validator
 
-		releases      []birelmanifest.ReleaseRef
-		validManifest Manifest
-		fakeRelease   *fakebirel.FakeRelease
+		validManifest           Manifest
+		validReleaseSetManifest birelsetmanifest.Manifest
+		fakeRelease             *fakebirel.FakeRelease
 	)
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		releaseManager = birel.NewManager(logger)
-
-		releases = []birelmanifest.ReleaseRef{
-			{Name: "fake-release-name"},
-		}
-
 		validManifest = Manifest{
 			Name: "fake-deployment-name",
 			Networks: []Network{
@@ -104,17 +100,25 @@ var _ = Describe("Validator", func() {
 			},
 		}
 
+		validReleaseSetManifest = birelsetmanifest.Manifest{
+			Releases: []birelmanifest.ReleaseRef{
+				{
+					Name: "fake-release-name",
+				},
+			},
+		}
+
 		fakeRelease = fakebirel.New("fake-release-name", "1.0")
 		fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
 		releaseManager.Add(fakeRelease)
-		validator = NewValidator(logger, releaseManager)
+		validator = NewValidator(logger)
 	})
 
 	Describe("Validate", func() {
 		It("does not error if deployment is valid", func() {
 			deploymentManifest := validManifest
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -123,7 +127,7 @@ var _ = Describe("Validator", func() {
 				Name: "",
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("name must be provided"))
 		})
@@ -133,7 +137,7 @@ var _ = Describe("Validator", func() {
 				Name: "   \t",
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("name must be provided"))
 		})
@@ -146,7 +150,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools must be of size 1"))
 		})
@@ -160,7 +164,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].name must be provided"))
 
@@ -175,7 +179,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err = validator.Validate(deploymentManifest)
+			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[1].name must be provided"))
 		})
@@ -189,7 +193,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must be provided"))
 
@@ -206,7 +210,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err = validator.Validate(deploymentManifest)
+			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].network must be the name of a network"))
 		})
@@ -220,7 +224,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.url must be provided"))
 
@@ -234,7 +238,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err = validator.Validate(deploymentManifest)
+			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.url must be a valid file URL (file://)"))
 		})
@@ -248,7 +252,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("disk_pools[0].name must be provided"))
 
@@ -263,7 +267,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err = validator.Validate(deploymentManifest)
+			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("disk_pools[1].name must be provided"))
 		})
@@ -277,7 +281,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("disk_pools[0].disk_size must be > 0"))
 		})
@@ -291,7 +295,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[0].name must be provided"))
 
@@ -306,7 +310,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err = validator.Validate(deploymentManifest)
+			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[1].name must be provided"))
 		})
@@ -320,7 +324,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("networks[0].type must be 'manual', 'dynamic', or 'vip'"))
 		})
@@ -333,7 +337,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs must be of size 1"))
 		})
@@ -347,7 +351,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].name must be provided"))
 
@@ -362,7 +366,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err = validator.Validate(deploymentManifest)
+			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[1].name must be provided"))
 		})
@@ -376,7 +380,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].persistent_disk must be >= 0"))
 		})
@@ -395,7 +399,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].persistent_disk_pool must be the name of a disk pool"))
 		})
@@ -409,7 +413,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].instances must be >= 0"))
 		})
@@ -423,7 +427,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks must be a non-empty array"))
 		})
@@ -441,7 +445,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].name must be provided"))
 		})
@@ -459,7 +463,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].static_ips[0] must be a valid IP"))
 		})
@@ -479,7 +483,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].default[0] must be 'dns' or 'gateway'"))
 		})
@@ -493,7 +497,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].lifecycle must be 'service' ('errand' not supported)"))
 		})
@@ -507,7 +511,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -519,7 +523,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].name must be provided"))
 		})
@@ -535,7 +539,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[1].name 'fake-job-name' must be unique"))
 		})
@@ -551,7 +555,7 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release must be provided"))
 		})
@@ -562,18 +566,24 @@ var _ = Describe("Validator", func() {
 				{Name: "fake-job-name", Release: "fake-other-release-name"},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0].release 'fake-other-release-name' must refer to release in releases"))
 		})
+	})
 
+	Describe("ValidateReleaseJobs", func() {
 		It("validates job templates reference a job declared within the release", func() {
 			deploymentManifest := validManifest
 			deploymentManifest.Jobs[0].Templates = []ReleaseJobRef{
 				{Name: "fake-other-job-name", Release: "fake-release-name"},
 			}
 
-			err := validator.Validate(deploymentManifest)
+			fakeRelease = fakebirel.New("fake-release-name", "1.0")
+			fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
+			releaseManager.Add(fakeRelease)
+
+			err := validator.ValidateReleaseJobs(deploymentManifest, releaseManager)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].templates[0] must refer to a job in 'fake-release-name', but there is no job named 'fake-other-job-name'"))
 		})

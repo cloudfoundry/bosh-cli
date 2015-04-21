@@ -375,7 +375,7 @@ cloud_provider:
 
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			installationValidator := biinstallmanifest.NewValidator(logger)
-			deploymentValidator := bideplmanifest.NewValidator(logger, releaseManager)
+			deploymentValidator := bideplmanifest.NewValidator(logger)
 
 			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
 			instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
