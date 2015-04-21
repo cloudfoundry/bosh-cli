@@ -1,29 +1,81 @@
+---
+jobs:
+  - name: test
+    plan:
+      - get:      bosh-init
+      - aggregate:
+        - task:   test-unit
+          file:   bosh-init/ci/concourse/jobs/test-unit.yml
+        - task:   test-integration
+          file:   bosh-init/ci/concourse/jobs/test-integration.yml
+        # - task:   test-acceptance
+        #   file:   bosh-init/ci/concourse/jobs/test-acceptance.yml
+
+  - name: bump
+    plan:
+      - get:      bosh-init
+        passed:   [test]
+      - get:      version
+        trigger:  false
+        params:   { bump: patch }
+      - put:      version
+        params:   { file: version/number }
+
+  - name: build
+    plan:
+      - get:      bosh-init
+        passed:   [bump]
+      - get:      version
+        passed:   [bump]
+      - aggregate:
+        - task:   build-linux
+          file:   bosh-init/ci/concourse/jobs/build-linux.yml
+        - task:   build-darwin
+          file:   bosh-init/ci/concourse/jobs/build-darwin.yml
+      - aggregate:
+        # - put:    bosh-init
+        #   params: { tag: version/number, tag_prefix: v }
+        - put:    release-bucket
+          params: { from: bosh-init/out/bosh-init-.*-linux }
+        - put:    release-bucket
+          params: { from: bosh-init/out/bosh-init-.*-darwin }
+
+  - name: bump-minor
+    plan:
+      - get:      version
+        trigger:  false
+        params:   { bump: minor }
+      - put:      version
+        params:   { file: version/number }
+
+  - name: bump-major
+    plan:
+      - get:      version
+        trigger:  false
+        params:   { bump: major }
+      - put:      version
+        params:   { file: version/number }
+
 resources:
   - name: bosh-init
-    type: git
+    type:       git
     source:
-      uri: https://github.com/cloudfoundry/bosh-init.git
-      branch: concourse
+      uri:      https://github.com/cloudfoundry/bosh-init.git
+      branch:   concourse
 
-  - name: release
-    type: s3
+  - name: release-bucket
+    type:       s3
     source:
-      bucket: bosh-init-releases
-      regexp: bosh-init-(.*).tgz
+      bucket:             x-bosh-init-release-test
+      regexp:             bosh-init-(.*)
+      region_name:        us-east-1
+      access_key_id:      &aws_access_key {{aws_access_key}}
+      secret_access_key:  &aws_secret_key {{aws_secret_key}}
 
-jobs:
-  - name: test-unit
-    plan:
-      - get: bosh-init
-      - task: unit
-        file: bosh-init/ci/concourse/test-unit.yml
-
-  - name: package
-    plan:
-      - get: bosh-init
-        passed: [test-unit]
-      - task: package
-        file: bosh-init/ci/concourse/package.yml
-      - put: release
-        params:
-          from: package/*.tgz
+  - name: version
+    type:       semver
+    source:
+      bucket:             x-bosh-init-release-test
+      key:                current-version
+      access_key_id:      *aws_access_key
+      secret_access_key:  *aws_secret_key
