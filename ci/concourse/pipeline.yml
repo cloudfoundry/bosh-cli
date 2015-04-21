@@ -24,7 +24,7 @@ jobs:
         - put:    version-semver
           params: { file: version-semver/number }
         - put:    version-label
-          params: { file: current-label }
+          params: { file: prepare-version/current-label }
 
   - name: build
     plan:
