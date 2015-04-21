@@ -93,9 +93,10 @@ func NewFactory(
 		workspaceRootPath: workspaceRootPath,
 	}
 	f.commands = CommandList{
-		"deploy": f.createDeployCmd,
-		"delete": f.createDeleteCmd,
-		"help":   f.createHelpCmd,
+		"deploy":  f.createDeployCmd,
+		"delete":  f.createDeleteCmd,
+		"help":    f.createHelpCmd,
+		"version": f.createVersionCmd,
 	}
 	return f
 }
@@ -132,10 +133,11 @@ func (f *factory) createDeleteCmd() (Cmd, error) {
 }
 
 func (f *factory) createHelpCmd() (Cmd, error) {
-	return NewHelpCmd(
-		f.ui,
-		f.commands,
-	), nil
+	return NewHelpCmd(f.ui, f.commands), nil
+}
+
+func (f *factory) createVersionCmd() (Cmd, error) {
+	return NewVersionCmd(f.ui), nil
 }
 
 func (f *factory) loadCMDRunner() boshsys.CmdRunner {

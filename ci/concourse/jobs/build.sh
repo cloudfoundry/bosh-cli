@@ -15,7 +15,7 @@ git_rev=`git rev-parse --short HEAD`
 version="${semver}-${git_rev}-${timestamp}"
 
 echo "building ${filename} with version ${version}"
-echo $version > VERSION.txt
+sed 's/\[DEV BUILD\]/'"$version"'/' cmd/version.go > cmd/version.tmp && mv cmd/version{.tmp,.go}
 
 bin/build
 ls -la out

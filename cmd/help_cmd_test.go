@@ -75,7 +75,8 @@ COMMANDS:
     simple     Simple command... sorted to the end of the list
 
 GLOBAL OPTIONS:
-    --help, -h    Show help message`
+    --help, -h       Show help message
+    --version, -v    Show version`
 
 				Expect(ui.Said).To(Equal([]string{expectedOutput}))
 			})
@@ -93,7 +94,8 @@ USAGE:
     bosh-init [global options] simple
 
 GLOBAL OPTIONS:
-    --help, -h    Show help message`
+    --help, -h       Show help message
+    --version, -v    Show version`
 
 					Expect(ui.Said).To(Equal([]string{expectedOutput}))
 				})
@@ -114,7 +116,8 @@ ENVIRONMENT VARIABLES:
     BOSH_ENV_VARIABLE2=something-else    Sets another environment variable
 
 GLOBAL OPTIONS:
-    --help, -h    Show help message`
+    --help, -h       Show help message
+    --version, -v    Show version`
 
 					Expect(ui.Said).To(Equal([]string{expectedOutput}))
 				})
@@ -140,7 +143,8 @@ USAGE:
     bosh-init [global options] help [command]
 
 GLOBAL OPTIONS:
-    --help, -h    Show help message`
+    --help, -h       Show help message
+    --version, -v    Show version`
 
 				Expect(ui.Said).To(Equal([]string{expectedOutput}))
 			})

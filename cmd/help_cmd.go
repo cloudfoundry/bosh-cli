@@ -147,7 +147,8 @@ ENVIRONMENT VARIABLES:{{ range .Envs }}
 {{ .Key }}{{ .Value }}{{ end }}{{ end }}
 
 GLOBAL OPTIONS:
-    --help, -h    Show help message`
+    --help, -h       Show help message
+    --version, -v    Show version`
 
 type helpContext struct {
 	Name         string

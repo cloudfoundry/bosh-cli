@@ -17,7 +17,7 @@ func NewRunner(factory Factory) *Runner {
 }
 
 func (r *Runner) Run(stage biui.Stage, args ...string) error {
-	args = processHelp(args)
+	args = r.processArgs(args)
 	commandName := args[0]
 
 	cmd, err := r.factory.CreateCommand(commandName)
@@ -33,7 +33,7 @@ func (r *Runner) Run(stage biui.Stage, args ...string) error {
 	return nil
 }
 
-func processHelp(args []string) []string {
+func (r *Runner) processArgs(args []string) []string {
 	if len(args) == 0 {
 		return []string{"help"}
 	}
@@ -41,6 +41,9 @@ func processHelp(args []string) []string {
 	for i, arg := range args {
 		if arg == "help" || arg == "-h" || arg == "--help" {
 			return append(append([]string{"help"}, args[:i]...), args[i+1:]...)
+		}
+		if arg == "version" || arg == "-v" || arg == "--version" {
+			return []string{"version"}
 		}
 	}
 
