@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 basepath=$(pwd)
+
+echo "basepath: ${basepath}"
+
 cd gopath/src/github.com/cloudfoundry/bosh-init
 
 
