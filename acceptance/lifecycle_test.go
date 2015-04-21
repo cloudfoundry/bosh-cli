@@ -275,13 +275,13 @@ var _ = Describe("bosh-init", func() {
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
 			if config.CpiReleaseURL != "" {
-				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'" + stageFinishedPattern))
+				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'dummy'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating jobs" + stageFinishedPattern))
 			if config.StemcellURL != "" {
-				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading stemcell" + stageFinishedPattern))
+				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading stemcell"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
