@@ -41,21 +41,47 @@ jobs:
         - put:    release-bucket-darwin
           params: { from: bosh-init/out/bosh-init-.*-darwin-amd64 }
 
-  - name: bump-minor
+  - name: build-minor
     plan:
+      - get:      bosh-init
+        passed:   [bump]
+        trigger:  false
       - get:      version-semver
         trigger:  false
         params:   { bump: minor }
-      - put:      version-semver
-        params:   { file: version-semver/number }
+      - aggregate:
+        - task:   build-linux
+          file:   bosh-init/ci/concourse/jobs/build-linux.yml
+        - task:   build-darwin
+          file:   bosh-init/ci/concourse/jobs/build-darwin.yml
+      - aggregate:
+        - put:    release-bucket-linux
+          params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
+        - put:    release-bucket-darwin
+          params: { from: bosh-init/out/bosh-init-.*-darwin-amd64 }
+        - put:    version-semver
+          params: { file: version-semver/number }
 
-  - name: bump-major
+  - name: build-major
     plan:
+      - get:      bosh-init
+        passed:   [bump]
+        trigger:  false
       - get:      version-semver
         trigger:  false
         params:   { bump: major }
-      - put:      version-semver
-        params:   { file: version-semver/number }
+      - aggregate:
+        - task:   build-linux
+          file:   bosh-init/ci/concourse/jobs/build-linux.yml
+        - task:   build-darwin
+          file:   bosh-init/ci/concourse/jobs/build-darwin.yml
+      - aggregate:
+        - put:    release-bucket-linux
+          params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
+        - put:    release-bucket-darwin
+          params: { from: bosh-init/out/bosh-init-.*-darwin-amd64 }
+        - put:    version-semver
+          params: { file: version-semver/number }
 
 resources:
   - name: bosh-init
