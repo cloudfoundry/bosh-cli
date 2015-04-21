@@ -24,7 +24,7 @@ jobs:
         - put:    version-semver
           params: { file: version-semver/number }
         - put:    version-label
-          params: { file: version-label/version }
+          params: { file: current-label }
 
   - name: build
     plan:
@@ -91,7 +91,7 @@ resources:
   - name: version-label
     type:       s3
     source:
-      regexp:             label
+      regexp:             current-label
       bucket:             {{aws_bucket}}
       region_name:        {{aws_region}}
       access_key_id:      {{aws_access_key}}
