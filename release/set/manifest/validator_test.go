@@ -87,13 +87,25 @@ var _ = Describe("Validator", func() {
 			manifest := Manifest{
 				Releases: []birelmanifest.ReleaseRef{
 					{Name: "fake-release-name-1", URL: "file://fake-file"},
-					{Name: "fake-release-name-2", URL: "http://fake-http"},
-					{Name: "fake-release-name-3", URL: "https://fake-https"},
+					{Name: "fake-release-name-2", URL: "http://fake-http", SHA1: "fake-sha1"},
+					{Name: "fake-release-name-3", URL: "https://fake-https", SHA1: "fake-sha2"},
 				},
 			}
 
 			err := validator.Validate(manifest)
 			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("validates releases with http urls have sha1", func() {
+			manifest := Manifest{
+				Releases: []birelmanifest.ReleaseRef{
+					{Name: "fake-release-name", URL: "http://fake-url"},
+				},
+			}
+
+			err := validator.Validate(manifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("releases[0].sha1 must be provided for http source"))
 		})
 
 		It("validates releases have valid urls", func() {

@@ -47,6 +47,10 @@ func (v *validator) Validate(manifest Manifest) error {
 		if err != nil || !matched {
 			errs = append(errs, bosherr.Errorf("releases[%d].url must be a valid URL (file:// or http(s)://)", releaseIdx))
 		}
+
+		if strings.HasPrefix(release.URL, "http") && v.isBlank(release.SHA1) {
+			errs = append(errs, bosherr.Errorf("releases[%d].sha1 must be provided for http source", releaseIdx))
+		}
 	}
 
 	if len(errs) > 0 {
