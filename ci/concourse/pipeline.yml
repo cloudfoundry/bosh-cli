@@ -18,21 +18,15 @@ jobs:
       - get:      version-semver
         trigger:  false
         params:   { bump: patch }
-      - task:     prepare-version
-        file:     bosh-init/ci/concourse/jobs/prepare-version.yml
       - aggregate:
         - put:    version-semver
           params: { file: version-semver/number }
-        - put:    version-label
-          params: { file: current-label }
 
   - name: build
     plan:
       - get:      bosh-init
         passed:   [bump]
       - get:      version-semver
-        passed:   [bump]
-      - get:      version-label
         passed:   [bump]
       - aggregate:
         - task:   build-linux
@@ -83,15 +77,6 @@ resources:
     type:       s3
     source:
       regexp:             bosh-init-(.*)-darwin-amd64
-      bucket:             {{aws_bucket}}
-      region_name:        {{aws_region}}
-      access_key_id:      {{aws_access_key}}
-      secret_access_key:  {{aws_secret_key}}
-
-  - name: version-label
-    type:       s3
-    source:
-      regexp:             current-label
       bucket:             {{aws_bucket}}
       region_name:        {{aws_region}}
       access_key_id:      {{aws_access_key}}
