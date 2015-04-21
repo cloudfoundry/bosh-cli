@@ -17,7 +17,7 @@ var DefaultClient = http.Client{
 		Proxy:           http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
 			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
+			KeepAlive: 0,
 		}).Dial,
 		TLSHandshakeTimeout: 10 * time.Second,
 	},
