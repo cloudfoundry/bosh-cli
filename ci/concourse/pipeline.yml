@@ -64,7 +64,7 @@ resources:
     type:       git
     source:
       uri:      https://github.com/cloudfoundry/bosh-init.git
-      branch:   concourse
+      branch:   master
 
   - name: release-bucket-linux
     type:       s3
