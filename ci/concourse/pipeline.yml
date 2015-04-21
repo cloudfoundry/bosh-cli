@@ -66,25 +66,25 @@ resources:
   - name: release-bucket-linux
     type:       s3
     source:
-      bucket:             x-bosh-init-release-test
       regexp:             bosh-init-(.*)-linux
-      region_name:        us-east-1
+      bucket:             {{aws_bucket}}
+      region_name:        {{aws_region}}
       access_key_id:      {{aws_access_key}}
       secret_access_key:  {{aws_secret_key}}
 
   - name: release-bucket-darwin
     type:       s3
     source:
-      bucket:             x-bosh-init-release-test
       regexp:             bosh-init-(.*)-darwin
-      region_name:        us-east-1
+      bucket:             {{aws_bucket}}
+      region_name:        {{aws_region}}
       access_key_id:      {{aws_access_key}}
       secret_access_key:  {{aws_secret_key}}
 
   - name: version
     type:       semver
     source:
-      bucket:             x-bosh-init-release-test
       key:                current-version
+      bucket:             {{aws_bucket}}
       access_key_id:      {{aws_access_key}}
       secret_access_key:  {{aws_secret_key}}
