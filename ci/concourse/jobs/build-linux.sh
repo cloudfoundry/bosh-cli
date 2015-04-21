@@ -5,13 +5,13 @@ export GOPATH=$(pwd)/gopath
 export GOARCH=amd64
 export GOOS=linux
 
-version=`cat version/number`
+version=`cat version-semver/number`
 filename="bosh-init-${version}-${GOOS}-${GOARCH}"
+cat version-label/VERSION.txt
 
 cd gopath/src/github.com/cloudfoundry/bosh-init
 
 echo "building ${filename}"
-cat VERSION.txt
 
 bin/build
 ls -la out

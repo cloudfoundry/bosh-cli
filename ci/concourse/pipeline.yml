@@ -15,21 +15,25 @@ jobs:
     plan:
       - get:      bosh-init
         passed:   [test]
-      - get:      version
+      - get:      version-semver
         trigger:  false
         params:   { bump: patch }
-      - put:      version
-        params:   { file: version/number }
+      - task:     prepare-version
+        file:     bosh-init/ci/concourse/jobs/prepare-version.yml
+      - aggregate:
+        - put:    version-semver
+          params: { file: version-semver/number }
+        - put:    version-label
+          params: { file: bosh-init/VERSION.txt }
 
   - name: build
     plan:
       - get:      bosh-init
         passed:   [bump]
-      - get:      version
+      - get:      version-semver
         passed:   [bump]
-      - aggregate:
-        - task:   prepare-version
-          file:   bosh-init/ci/concourse/jobs/prepare-version.yml
+      - get:      version-label
+        passed:   [bump]
       - aggregate:
         - task:   build-linux
           file:   bosh-init/ci/concourse/jobs/build-linux.yml
@@ -37,7 +41,7 @@ jobs:
           file:   bosh-init/ci/concourse/jobs/build-darwin.yml
       - aggregate:
         # - put:    bosh-init
-        #   params: { tag: version/number, tag_prefix: v }
+        #   params: { tag: version-semver/number, tag_prefix: v }
         - put:    release-bucket-linux
           params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
         - put:    release-bucket-darwin
@@ -45,26 +49,26 @@ jobs:
 
   - name: bump-minor
     plan:
-      - get:      version
+      - get:      version-semver
         trigger:  false
         params:   { bump: minor }
-      - put:      version
-        params:   { file: version/number }
+      - put:      version-semver
+        params:   { file: version-semver/number }
 
   - name: bump-major
     plan:
-      - get:      version
+      - get:      version-semver
         trigger:  false
         params:   { bump: major }
-      - put:      version
-        params:   { file: version/number }
+      - put:      version-semver
+        params:   { file: version-semver/number }
 
 resources:
   - name: bosh-init
     type:       git
     source:
       uri:      https://github.com/cloudfoundry/bosh-init.git
-      branch:   master
+      branch:   concourse-version
 
   - name: release-bucket-linux
     type:       s3
@@ -84,7 +88,16 @@ resources:
       access_key_id:      {{aws_access_key}}
       secret_access_key:  {{aws_secret_key}}
 
-  - name: version
+  - name: version-label
+    type:       s3
+    source:
+      regexp:             VERSION\.txt
+      bucket:             {{aws_bucket}}
+      region_name:        {{aws_region}}
+      access_key_id:      {{aws_access_key}}
+      secret_access_key:  {{aws_secret_key}}
+
+  - name: version-semver
     type:       semver
     source:
       key:                current-version
