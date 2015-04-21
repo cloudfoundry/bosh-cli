@@ -9,8 +9,8 @@ inputs:
 - name: version-semver
 
 params:
-  GOARCH:   linux
-  GOOS:     amd64
+  GOOS:   linux
+  GOARCH: amd64
 
 run:
   path: gopath/src/github.com/cloudfoundry/bosh-init/ci/concourse/jobs/build.sh
