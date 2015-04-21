@@ -83,6 +83,19 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("releases[0].url must be provided"))
 		})
 
+		It("accepts file://, http://, https:// as valid URLs", func() {
+			manifest := Manifest{
+				Releases: []birelmanifest.ReleaseRef{
+					{Name: "fake-release-name-1", URL: "file://fake-file"},
+					{Name: "fake-release-name-2", URL: "http://fake-http"},
+					{Name: "fake-release-name-3", URL: "https://fake-https"},
+				},
+			}
+
+			err := validator.Validate(manifest)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("validates releases have valid urls", func() {
 			manifest := Manifest{
 				Releases: []birelmanifest.ReleaseRef{
@@ -92,7 +105,7 @@ var _ = Describe("Validator", func() {
 
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("releases[0].url must be a valid file URL (file://)"))
+			Expect(err.Error()).To(ContainSubstring("releases[0].url must be a valid URL (file:// or http(s)://)"))
 		})
 
 		It("validates releases are unique", func() {

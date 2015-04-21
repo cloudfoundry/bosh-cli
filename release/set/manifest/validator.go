@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"regexp"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -42,8 +43,9 @@ func (v *validator) Validate(manifest Manifest) error {
 			errs = append(errs, bosherr.Errorf("releases[%d].url must be provided", releaseIdx))
 		}
 
-		if !strings.HasPrefix(release.URL, "file://") {
-			errs = append(errs, bosherr.Errorf("releases[%d].url must be a valid file URL (file://)", releaseIdx))
+		matched, err := regexp.MatchString("^(file|http|https)://", release.URL)
+		if err != nil || !matched {
+			errs = append(errs, bosherr.Errorf("releases[%d].url must be a valid URL (file:// or http(s)://)", releaseIdx))
 		}
 	}
 
