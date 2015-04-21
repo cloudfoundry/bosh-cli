@@ -12,5 +12,7 @@ echo "- working dir is: $(pwd)"
 
 cd gopath/src/github.com/cloudfoundry/bosh-init
 echo $version > VERSION.txt
+
 bin/build
+ls -la out
 mv out/bosh-init out/bosh-init-${version}-darwin
