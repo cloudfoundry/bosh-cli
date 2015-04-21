@@ -5,11 +5,11 @@ jobs:
       - get:      bosh-init
       - aggregate:
         - task:   test-unit
-          file:   bosh-init/ci/concourse/jobs/test-unit.yml
+          file:   bosh-init/ci/concourse/tasks/test-unit.yml
         - task:   test-integration
-          file:   bosh-init/ci/concourse/jobs/test-integration.yml
+          file:   bosh-init/ci/concourse/tasks/test-integration.yml
         # - task:   test-acceptance
-        #   file:   bosh-init/ci/concourse/jobs/test-acceptance.yml
+        #   file:   bosh-init/ci/concourse/tasks/test-acceptance.yml
 
   - name: bump
     plan:
@@ -30,9 +30,9 @@ jobs:
         passed:   [bump]
       - aggregate:
         - task:   build-linux
-          file:   bosh-init/ci/concourse/jobs/build-linux.yml
+          file:   bosh-init/ci/concourse/tasks/build-linux.yml
         - task:   build-darwin
-          file:   bosh-init/ci/concourse/jobs/build-darwin.yml
+          file:   bosh-init/ci/concourse/tasks/build-darwin.yml
       - aggregate:
         # - put:    bosh-init
         #   params: { tag: version-semver/number, tag_prefix: v }
@@ -51,9 +51,9 @@ jobs:
         params:   { bump: minor }
       - aggregate:
         - task:   build-linux
-          file:   bosh-init/ci/concourse/jobs/build-linux.yml
+          file:   bosh-init/ci/concourse/tasks/build-linux.yml
         - task:   build-darwin
-          file:   bosh-init/ci/concourse/jobs/build-darwin.yml
+          file:   bosh-init/ci/concourse/tasks/build-darwin.yml
       - aggregate:
         - put:    release-bucket-linux
           params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
@@ -72,9 +72,9 @@ jobs:
         params:   { bump: major }
       - aggregate:
         - task:   build-linux
-          file:   bosh-init/ci/concourse/jobs/build-linux.yml
+          file:   bosh-init/ci/concourse/tasks/build-linux.yml
         - task:   build-darwin
-          file:   bosh-init/ci/concourse/jobs/build-darwin.yml
+          file:   bosh-init/ci/concourse/tasks/build-darwin.yml
       - aggregate:
         - put:    release-bucket-linux
           params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
@@ -88,7 +88,7 @@ resources:
     type:       git
     source:
       uri:      https://github.com/cloudfoundry/bosh-init.git
-      branch:   concourse-version
+      branch:   master
 
   - name: release-bucket-linux
     type:       s3
