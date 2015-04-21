@@ -11,4 +11,4 @@ git_rev=`git rev-parse --short HEAD`
 version="${semver}-${git_rev}-${timestamp}"
 
 echo "version: ${version}"
-echo $version > VERSION.txt
+echo $version > ${basepath}/version-label/label

@@ -7,7 +7,7 @@ export GOOS=darwin
 
 version=`cat version-semver/number`
 filename="bosh-init-${version}-${GOOS}-${GOARCH}"
-cat version-label/VERSION.txt
+cat version-label/label
 
 cd gopath/src/github.com/cloudfoundry/bosh-init
 
