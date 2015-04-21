@@ -254,7 +254,7 @@ var _ = Describe("Validator", func() {
 
 			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.sha1 must be provided for http source"))
+			Expect(err.Error()).To(ContainSubstring("resource_pools[0].stemcell.sha1 must be provided for http URL"))
 		})
 
 		It("validates disk pool name", func() {

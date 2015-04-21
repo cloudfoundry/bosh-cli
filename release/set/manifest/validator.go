@@ -49,7 +49,7 @@ func (v *validator) Validate(manifest Manifest) error {
 		}
 
 		if strings.HasPrefix(release.URL, "http") && v.isBlank(release.SHA1) {
-			errs = append(errs, bosherr.Errorf("releases[%d].sha1 must be provided for http source", releaseIdx))
+			errs = append(errs, bosherr.Errorf("releases[%d].sha1 must be provided for http URL", releaseIdx))
 		}
 	}
 

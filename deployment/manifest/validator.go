@@ -66,7 +66,7 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 		}
 
 		if strings.HasPrefix(resourcePool.Stemcell.URL, "http") && v.isBlank(resourcePool.Stemcell.SHA1) {
-			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.sha1 must be provided for http source", idx))
+			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.sha1 must be provided for http URL", idx))
 		}
 	}
 

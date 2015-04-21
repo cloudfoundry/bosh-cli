@@ -105,7 +105,7 @@ var _ = Describe("Validator", func() {
 
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("releases[0].sha1 must be provided for http source"))
+			Expect(err.Error()).To(ContainSubstring("releases[0].sha1 must be provided for http URL"))
 		})
 
 		It("validates releases have valid urls", func() {
