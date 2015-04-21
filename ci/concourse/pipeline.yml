@@ -28,6 +28,9 @@ jobs:
       - get:      version
         passed:   [bump]
       - aggregate:
+        - task:   prepare-version
+          file:   bosh-init/ci/concourse/jobs/prepare-version.yml
+      - aggregate:
         - task:   build-linux
           file:   bosh-init/ci/concourse/jobs/build-linux.yml
         - task:   build-darwin
@@ -36,9 +39,9 @@ jobs:
         # - put:    bosh-init
         #   params: { tag: version/number, tag_prefix: v }
         - put:    release-bucket-linux
-          params: { from: bosh-init/out/bosh-init-.*-linux }
+          params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
         - put:    release-bucket-darwin
-          params: { from: bosh-init/out/bosh-init-.*-darwin }
+          params: { from: bosh-init/out/bosh-init-.*-darwin-amd64 }
 
   - name: bump-minor
     plan:
@@ -66,7 +69,7 @@ resources:
   - name: release-bucket-linux
     type:       s3
     source:
-      regexp:             bosh-init-(.*)-linux
+      regexp:             bosh-init-(.*)-linux-amd64
       bucket:             {{aws_bucket}}
       region_name:        {{aws_region}}
       access_key_id:      {{aws_access_key}}
@@ -75,7 +78,7 @@ resources:
   - name: release-bucket-darwin
     type:       s3
     source:
-      regexp:             bosh-init-(.*)-darwin
+      regexp:             bosh-init-(.*)-darwin-amd64
       bucket:             {{aws_bucket}}
       region_name:        {{aws_region}}
       access_key_id:      {{aws_access_key}}

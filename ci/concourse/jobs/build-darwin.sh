@@ -6,13 +6,13 @@ export GOARCH=amd64
 export GOOS=darwin
 
 version=`cat version/number`
-
-echo "building bosh-init-${version}-darwin"
-echo "- working dir is: $(pwd)"
+filename="bosh-init-${version}-${GOOS}-${GOARCH}"
 
 cd gopath/src/github.com/cloudfoundry/bosh-init
-echo $version > VERSION.txt
+
+echo "building ${filename}"
+cat VERSION.txt
 
 bin/build
 ls -la out
-mv out/bosh-init out/bosh-init-${version}-darwin
+mv out/bosh-init out/${filename}
