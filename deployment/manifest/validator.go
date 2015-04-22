@@ -40,6 +40,9 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 		if network.Type != Dynamic && network.Type != Manual && network.Type != VIP {
 			errs = append(errs, bosherr.Errorf("networks[%d].type must be 'manual', 'dynamic', or 'vip'", idx))
 		}
+		if network.Type == Manual && len(network.Subnets) != 1 {
+			errs = append(errs, bosherr.Errorf("networks[%d].subnets must be of size 1", idx))
+		}
 	}
 
 	if len(deploymentManifest.ResourcePools) != 1 {

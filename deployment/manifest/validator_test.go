@@ -343,6 +343,21 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("networks[0].type must be 'manual', 'dynamic', or 'vip'"))
 		})
 
+		It("validates that manual network has exactly 1 subnet", func() {
+			deploymentManifest := Manifest{
+				Networks: []Network{
+					{
+						Type:    "manual",
+						Subnets: []Subnet{},
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("networks[0].subnets must be of size 1"))
+		})
+
 		It("validates that there is only one job", func() {
 			deploymentManifest := Manifest{
 				Jobs: []Job{
