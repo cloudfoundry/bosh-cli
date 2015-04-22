@@ -1,0 +1,11 @@
+---
+platform: linux
+
+image: docker:///bosh/init
+
+inputs:
+- name: bosh-init
+  path: gopath/src/github.com/cloudfoundry/bosh-init
+
+run:
+  path: gopath/src/github.com/cloudfoundry/bosh-init/ci/concourse/tasks/test-acceptance.sh

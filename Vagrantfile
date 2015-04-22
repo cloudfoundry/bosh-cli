@@ -10,9 +10,8 @@ Vagrant.configure('2') do |config|
   end
 
   config.vm.provider :aws do |v, override|
-    v.tags = {
-      'PipelineName' => 'bosh-init'
-    }
+    v.tags = { 'PipelineName' => 'bosh-init' }
+    v.associate_public_ip = true
   end
 
   config.vm.synced_folder Dir.pwd, '/vagrant', disabled: true

@@ -4,12 +4,20 @@ jobs:
     plan:
       - get:      bosh-init
       - aggregate:
-        - task:   test-unit
-          file:   bosh-init/ci/concourse/tasks/test-unit.yml
-        - task:   test-integration
-          file:   bosh-init/ci/concourse/tasks/test-integration.yml
-        # - task:   test-acceptance
-        #   file:   bosh-init/ci/concourse/tasks/test-acceptance.yml
+        - task:       test-unit
+          file:       bosh-init/ci/concourse/tasks/test-unit.yml
+        - task:       test-integration
+          file:       bosh-init/ci/concourse/tasks/test-integration.yml
+        - task:       test-acceptance
+          privileged: true
+          file:       bosh-init/ci/concourse/tasks/test-acceptance.yml
+          params:
+            BOSH_AWS_ACCESS_KEY_ID:     {{aws_ec2_acceptance_tests_access_key}}
+            BOSH_AWS_SECRET_ACCESS_KEY: {{aws_ec2_acceptance_tests_secret_key}}
+            BOSH_LITE_KEYPAIR:          {{aws_ec2_acceptance_tests_bosh_lite_keypair}}
+            BOSH_LITE_SUBNET_ID:        {{aws_ec2_acceptance_tests_bosh_lite_subnet_id}}
+            BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
+            BOSH_LITE_PRIVATE_KEY:      {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
 
   - name: bump
     plan:
@@ -94,24 +102,24 @@ resources:
     type:       s3
     source:
       regexp:             bosh-init-(.*)-linux-amd64
-      bucket:             {{aws_bucket}}
-      region_name:        {{aws_region}}
-      access_key_id:      {{aws_access_key}}
-      secret_access_key:  {{aws_secret_key}}
+      bucket:             {{aws_s3_release_bucket}}
+      region_name:        {{aws_s3_release_bucket_region}}
+      access_key_id:      {{aws_s3_release_bucket_access_key}}
+      secret_access_key:  {{aws_s3_release_bucket_secret_key}}
 
   - name: release-bucket-darwin
     type:       s3
     source:
       regexp:             bosh-init-(.*)-darwin-amd64
-      bucket:             {{aws_bucket}}
-      region_name:        {{aws_region}}
-      access_key_id:      {{aws_access_key}}
-      secret_access_key:  {{aws_secret_key}}
+      bucket:             {{aws_s3_release_bucket}}
+      region_name:        {{aws_s3_release_bucket_region}}
+      access_key_id:      {{aws_s3_release_bucket_access_key}}
+      secret_access_key:  {{aws_s3_release_bucket_secret_key}}
 
   - name: version-semver
     type:       semver
     source:
       key:                current-version
-      bucket:             {{aws_bucket}}
-      access_key_id:      {{aws_access_key}}
-      secret_access_key:  {{aws_secret_key}}
+      bucket:             {{aws_s3_release_bucket}}
+      access_key_id:      {{aws_s3_release_bucket_access_key}}
+      secret_access_key:  {{aws_s3_release_bucket_secret_key}}
