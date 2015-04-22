@@ -76,14 +76,14 @@ var _ = Describe("bosh-init", func() {
 			DummyReleasePath: testEnv.Path("dummy-release.tgz"),
 		}
 
-		if config.CpiReleasePath != "" {
+		if config.IsLocalCpiRelease() {
 			context.CpiReleaseURL = "file://" + testEnv.Path("cpi-release.tgz")
 		} else {
 			context.CpiReleaseURL = config.CpiReleaseURL
 			context.CpiReleaseSHA1 = config.CpiReleaseSHA1
 		}
 
-		if config.StemcellPath != "" {
+		if config.IsLocalStemcell() {
 			context.StemcellURL = "file://" + testEnv.Path("stemcell.tgz")
 		} else {
 			context.StemcellURL = config.StemcellURL
@@ -233,11 +233,11 @@ var _ = Describe("bosh-init", func() {
 			logger,
 		)
 
-		if config.StemcellPath != "" {
+		if config.IsLocalStemcell() {
 			err = testEnv.Copy("stemcell.tgz", config.StemcellPath)
 			Expect(err).NotTo(HaveOccurred())
 		}
-		if config.CpiReleasePath != "" {
+		if config.IsLocalCpiRelease() {
 			err = testEnv.Copy("cpi-release.tgz", config.CpiReleasePath)
 			Expect(err).NotTo(HaveOccurred())
 		}
@@ -274,13 +274,13 @@ var _ = Describe("bosh-init", func() {
 
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
-			if config.CpiReleaseURL != "" {
+			if !config.IsLocalCpiRelease() {
 				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'dummy'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating jobs" + stageFinishedPattern))
-			if config.StemcellURL != "" {
+			if !config.IsLocalStemcell() {
 				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading stemcell"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating stemcell" + stageFinishedPattern))

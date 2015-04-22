@@ -42,6 +42,14 @@ func NewConfig(fs boshsys.FileSystem) (*Config, error) {
 	return &config, nil
 }
 
+func (c *Config) IsLocalCpiRelease() bool {
+	return c.CpiReleasePath != ""
+}
+
+func (c *Config) IsLocalStemcell() bool {
+	return c.StemcellPath != ""
+}
+
 func (c *Config) Validate() error {
 	if c.VMUsername == "" {
 		return errors.New("Must provide 'vm_username' in config")
