@@ -137,7 +137,6 @@ var _ = Describe("bosh-init", func() {
 			networkInterfaces = map[string]biproperty.Map{
 				"network-1": biproperty.Map{
 					"type":             "dynamic",
-					"ip":               "",
 					"cloud_properties": biproperty.Map{},
 				},
 			}

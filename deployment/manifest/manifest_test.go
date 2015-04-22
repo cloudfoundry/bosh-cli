@@ -25,9 +25,15 @@ var _ = Describe("Manifest", func() {
 							CloudProperties: biproperty.Map{},
 						},
 						{
-							Name:            "fake-manual-network-name",
-							Type:            "manual",
-							CloudProperties: biproperty.Map{},
+							Name: "fake-manual-network-name",
+							Type: "manual",
+							Subnets: []Subnet{
+								{
+									Range:           "1.2.3.0/22",
+									Gateway:         "1.1.1.1",
+									CloudProperties: biproperty.Map{},
+								},
+							},
 						},
 						{
 							Name:            "vip",
@@ -72,6 +78,8 @@ var _ = Describe("Manifest", func() {
 					"fake-manual-network-name": biproperty.Map{
 						"type":             "manual",
 						"ip":               "5.6.7.9",
+						"netmask":          "255.255.252.0",
+						"gateway":          "1.1.1.1",
 						"cloud_properties": biproperty.Map{},
 					},
 					"vip": biproperty.Map{
@@ -81,35 +89,35 @@ var _ = Describe("Manifest", func() {
 					},
 				}))
 			})
-		})
 
-		Context("when the deployment does not have networks", func() {
-			BeforeEach(func() {
-				deploymentManifest = Manifest{
-					Jobs: []Job{
-						{
-							Name: "fake-job-name",
+			Context("when the deployment does not have networks", func() {
+				BeforeEach(func() {
+					deploymentManifest = Manifest{
+						Jobs: []Job{
+							{
+								Name: "fake-job-name",
+							},
 						},
-					},
-					Networks: []Network{},
-				}
+						Networks: []Network{},
+					}
+				})
+
+				It("is an empty map", func() {
+					Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]biproperty.Map{}))
+				})
 			})
 
-			It("is an empty map", func() {
-				Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]biproperty.Map{}))
-			})
-		})
+			Context("when the deployment does not have a job with requested name", func() {
+				BeforeEach(func() {
+					deploymentManifest = Manifest{}
+				})
 
-		Context("when the deployment does not have a job with requested name", func() {
-			BeforeEach(func() {
-				deploymentManifest = Manifest{}
-			})
-
-			It("returns an error", func() {
-				networkInterfaces, err := deploymentManifest.NetworkInterfaces("fake-job-name")
-				Expect(networkInterfaces).To(Equal(map[string]biproperty.Map{}))
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Could not find job with name: fake-job-name"))
+				It("returns an error", func() {
+					networkInterfaces, err := deploymentManifest.NetworkInterfaces("fake-job-name")
+					Expect(networkInterfaces).To(Equal(map[string]biproperty.Map{}))
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Could not find job with name: fake-job-name"))
+				})
 			})
 		})
 	})

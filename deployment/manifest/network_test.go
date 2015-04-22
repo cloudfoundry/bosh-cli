@@ -15,49 +15,61 @@ var _ = Describe("Network", func() {
 	)
 
 	BeforeEach(func() {
-		network = Network{
-			Name: "fake-name",
-			Type: Dynamic,
-			CloudProperties: biproperty.Map{
-				"subnet": biproperty.Map{
-					"name": "sg-1234",
-				},
-			},
-			IP:      "1.2.3.4",
-			Netmask: "255.255.255.0",
-			Gateway: "1.2.3.1",
-			DNS:     []string{"1.1.1.1"},
-		}
+
 	})
 
 	Describe("Interface", func() {
-		It("returns an interface that can be used to connect to the network", func() {
-			Expect(network.Interface()).To(Equal(biproperty.Map{
-				"type":    "dynamic",
-				"ip":      "1.2.3.4",
-				"netmask": "255.255.255.0",
-				"gateway": "1.2.3.1",
-				"dns":     []string{"1.1.1.1"},
-				"cloud_properties": biproperty.Map{
-					"subnet": biproperty.Map{
-						"name": "sg-1234",
+		Context("when network type is manual", func() {
+			BeforeEach(func() {
+				network = Network{
+					Name: "fake-manual-network-name",
+					Type: "manual",
+					Subnets: []Subnet{
+						{
+							Range:   "1.2.3.0/22",
+							Gateway: "1.1.1.1",
+							DNS:     []string{"1.2.3.4"},
+							CloudProperties: biproperty.Map{
+								"cp_key": "cp_value",
+							},
+						},
 					},
+				}
+			})
+
+			It("includes gateway, dns, ip from the job and netmask calculated from range", func() {
+				Expect(network.Interface([]string{"5.6.7.9"})).To(Equal(biproperty.Map{
+					"type":    "manual",
+					"ip":      "5.6.7.9",
+					"gateway": "1.1.1.1",
+					"netmask": "255.255.252.0",
+					"dns":     []string{"1.2.3.4"},
+					"cloud_properties": biproperty.Map{
+						"cp_key": "cp_value",
+					},
+				}))
+			})
+		})
+	})
+
+	Context("when network type is dynamic", func() {
+		BeforeEach(func() {
+			network = Network{
+				Name: "fake-dynamic-network-name",
+				Type: "dynamic",
+				CloudProperties: biproperty.Map{
+					"cp_key": "cp_value",
 				},
-			}))
+				DNS: []string{"2.2.2.2"},
+			}
 		})
 
-		It("leaves out missing optional fields", func() {
-			network.Netmask = ""
-			network.Gateway = ""
-			network.DNS = []string{}
-
-			Expect(network.Interface()).To(Equal(biproperty.Map{
+		It("includes dns and cloud_properties", func() {
+			Expect(network.Interface([]string{})).To(Equal(biproperty.Map{
 				"type": "dynamic",
-				"ip":   "1.2.3.4",
+				"dns":  []string{"2.2.2.2"},
 				"cloud_properties": biproperty.Map{
-					"subnet": biproperty.Map{
-						"name": "sg-1234",
-					},
+					"cp_key": "cp_value",
 				},
 			}))
 		})

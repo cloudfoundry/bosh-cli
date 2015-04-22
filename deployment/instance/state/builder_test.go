@@ -107,7 +107,6 @@ func describeBuilder() {
 				Networks: []bideplmanifest.Network{
 					{
 						Name: "fake-network-name",
-						IP:   "fake-network-ip",
 						Type: "fake-network-type",
 						CloudProperties: biproperty.Map{
 							"fake-network-cloud-property": "fake-network-cloud-property-value",
@@ -219,7 +218,6 @@ func describeBuilder() {
 			Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
 				Name: "fake-network-name",
 				Interface: biproperty.Map{
-					"ip":   "fake-network-ip",
 					"type": "fake-network-type",
 					"cloud_properties": biproperty.Map{
 						"fake-network-cloud-property": "fake-network-cloud-property-value",
@@ -355,7 +353,6 @@ func describeBuilder() {
 				Index:      0,
 				Networks: map[string]biproperty.Map{
 					"fake-network-name": biproperty.Map{
-						"ip":   "fake-network-ip",
 						"type": "fake-network-type",
 						"cloud_properties": biproperty.Map{
 							"fake-network-cloud-property": "fake-network-cloud-property-value",

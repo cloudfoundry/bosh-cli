@@ -33,11 +33,7 @@ func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, 
 	ifaceMap := map[string]biproperty.Map{}
 	for _, jobNetwork := range job.Networks {
 		network := networkMap[jobNetwork.Name]
-		staticIPs := jobNetwork.StaticIPs
-		if len(staticIPs) > 0 {
-			network.IP = staticIPs[0]
-		}
-		ifaceMap[jobNetwork.Name] = network.Interface()
+		ifaceMap[jobNetwork.Name] = network.Interface(jobNetwork.StaticIPs)
 	}
 
 	return ifaceMap, nil

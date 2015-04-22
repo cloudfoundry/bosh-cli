@@ -38,10 +38,18 @@ type network struct {
 	Name            string                      `yaml:"name"`
 	Type            string                      `yaml:"type"`
 	CloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
+	Subnets         []subnet                    `yaml:"subnets"`
 	IP              string                      `yaml:"ip"`
 	Netmask         string                      `yaml:"netmask"`
 	Gateway         string                      `yaml:"gateway"`
 	DNS             []string                    `yaml:"dns"`
+}
+
+type subnet struct {
+	Range           string                      `yaml:"range"`
+	Gateway         string                      `yaml:"gateway"`
+	DNS             []string                    `yaml:"dns"`
+	CloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 }
 
 type resourcePool struct {
@@ -232,12 +240,8 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 	networks := make([]Network, len(rawNetworks), len(rawNetworks))
 	for i, rawNetwork := range rawNetworks {
 		network := Network{
-			Name:    rawNetwork.Name,
-			Type:    NetworkType(rawNetwork.Type),
-			IP:      rawNetwork.IP,
-			Netmask: rawNetwork.Netmask,
-			Gateway: rawNetwork.Gateway,
-			DNS:     rawNetwork.DNS,
+			Name: rawNetwork.Name,
+			Type: NetworkType(rawNetwork.Type),
 		}
 
 		cloudProperties, err := biproperty.BuildMap(rawNetwork.CloudProperties)
@@ -245,6 +249,20 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 			return networks, bosherr.WrapErrorf(err, "Parsing network '%s' cloud_properties: %#v", rawNetwork.Name, rawNetwork.CloudProperties)
 		}
 		network.CloudProperties = cloudProperties
+
+		for _, subnet := range rawNetwork.Subnets {
+			cloudProperties, err := biproperty.BuildMap(subnet.CloudProperties)
+			if err != nil {
+				return networks, bosherr.WrapErrorf(err, "Parsing network subnet '%s' cloud_properties: %#v", rawNetwork.Name, subnet.CloudProperties)
+			}
+
+			network.Subnets = append(network.Subnets, Subnet{
+				Range:           subnet.Range,
+				Gateway:         subnet.Gateway,
+				DNS:             subnet.DNS,
+				CloudProperties: cloudProperties,
+			})
+		}
 
 		networks[i] = network
 	}

@@ -21,11 +21,12 @@ resource_pools:
 networks:
 - name: fake-network-name
   type: manual
-  cloud_properties:
-    subnet: fake-subnet
-    range: 10.244.0.40/30
-    reserved: [10.244.0.41]
-    static: [10.244.0.42]
+  subnets:
+  - range: 10.244.0.40/30
+    gateway: 10.0.0.1
+    dns: [8.8.8.8]
+    cloud_properties:
+      subnet: fake-subnet
 
 cloud_provider:
   template:
