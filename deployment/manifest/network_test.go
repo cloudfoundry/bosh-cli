@@ -38,7 +38,9 @@ var _ = Describe("Network", func() {
 			})
 
 			It("includes gateway, dns, ip from the job and netmask calculated from range", func() {
-				Expect(network.Interface([]string{"5.6.7.9"})).To(Equal(biproperty.Map{
+				iface, err := network.Interface([]string{"5.6.7.9"})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(iface).To(Equal(biproperty.Map{
 					"type":    "manual",
 					"ip":      "5.6.7.9",
 					"gateway": "1.1.1.1",
@@ -48,6 +50,18 @@ var _ = Describe("Network", func() {
 						"cp_key": "cp_value",
 					},
 				}))
+			})
+
+			Context("when range is invalid", func() {
+				BeforeEach(func() {
+					network.Subnets[0].Range = "invalid-range"
+				})
+
+				It("returns an error", func() {
+					_, err := network.Interface([]string{"5.6.7.9"})
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Failed to parse subnet range"))
+				})
 			})
 		})
 	})
@@ -65,7 +79,9 @@ var _ = Describe("Network", func() {
 		})
 
 		It("includes dns and cloud_properties", func() {
-			Expect(network.Interface([]string{})).To(Equal(biproperty.Map{
+			iface, err := network.Interface([]string{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(iface).To(Equal(biproperty.Map{
 				"type": "dynamic",
 				"dns":  []string{"2.2.2.2"},
 				"cloud_properties": biproperty.Map{

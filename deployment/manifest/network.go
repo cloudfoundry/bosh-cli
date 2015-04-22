@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
@@ -38,7 +39,7 @@ type Subnet struct {
 // Interface returns a property map representing a generic network interface.
 // Expected Keys: ip, type, cloud properties.
 // Optional Keys: netmask, gateway, dns
-func (n Network) Interface(staticIPs []string) biproperty.Map {
+func (n Network) Interface(staticIPs []string) (biproperty.Map, error) {
 	networkInterface := biproperty.Map{
 		"type": n.Type.String(),
 	}
@@ -49,9 +50,15 @@ func (n Network) Interface(staticIPs []string) biproperty.Map {
 			networkInterface["dns"] = n.Subnets[0].DNS
 		}
 
-		_, ipNet, _ := net.ParseCIDR(n.Subnets[0].Range)
-		a, _ := hex.DecodeString(ipNet.Mask.String())
-		networkInterface["netmask"] = fmt.Sprintf("%v.%v.%v.%v", a[0], a[1], a[2], a[3])
+		_, ipNet, err := net.ParseCIDR(n.Subnets[0].Range)
+		if err != nil {
+			return biproperty.Map{}, bosherr.WrapError(err, "Failed to parse subnet range")
+		}
+		ipParts, err := hex.DecodeString(ipNet.Mask.String())
+		if err != nil {
+			return biproperty.Map{}, bosherr.WrapError(err, "Failed to convert subnet range to IP string")
+		}
+		networkInterface["netmask"] = fmt.Sprintf("%v.%v.%v.%v", ipParts[0], ipParts[1], ipParts[2], ipParts[3])
 
 		networkInterface["cloud_properties"] = n.Subnets[0].CloudProperties
 	} else {
@@ -66,5 +73,5 @@ func (n Network) Interface(staticIPs []string) biproperty.Map {
 		networkInterface["ip"] = staticIPs[0]
 	}
 
-	return networkInterface
+	return networkInterface, nil
 }

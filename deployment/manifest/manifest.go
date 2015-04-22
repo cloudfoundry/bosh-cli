@@ -31,9 +31,13 @@ func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, 
 	networkMap := d.networkMap()
 
 	ifaceMap := map[string]biproperty.Map{}
+	var err error
 	for _, jobNetwork := range job.Networks {
 		network := networkMap[jobNetwork.Name]
-		ifaceMap[jobNetwork.Name] = network.Interface(jobNetwork.StaticIPs)
+		ifaceMap[jobNetwork.Name], err = network.Interface(jobNetwork.StaticIPs)
+		if err != nil {
+			return map[string]biproperty.Map{}, bosherr.WrapError(err, "Building network interface")
+		}
 	}
 
 	return ifaceMap, nil
