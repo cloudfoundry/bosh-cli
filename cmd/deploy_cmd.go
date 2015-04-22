@@ -422,7 +422,12 @@ func (c *DeploymentPreparer) validate(
 		return extractedStemcell, deploymentManifest, installationManifest, err
 	}
 
-	stemcellTarballPath, err := c.tarballProvider.Get(deploymentManifest.ResourcePool().Stemcell, validationStage)
+	stemcell, err := deploymentManifest.Stemcell(deploymentManifest.JobName())
+	if err != nil {
+		return extractedStemcell, deploymentManifest, installationManifest, err
+	}
+
+	stemcellTarballPath, err := c.tarballProvider.Get(stemcell, validationStage)
 	if err != nil {
 		return extractedStemcell, deploymentManifest, installationManifest, err
 	}

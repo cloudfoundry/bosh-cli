@@ -43,8 +43,32 @@ func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, 
 	return ifaceMap, nil
 }
 
-func (d Manifest) ResourcePool() ResourcePool {
-	return d.ResourcePools[0]
+func (d Manifest) JobName() string {
+	// Currently we deploy only one job
+	return d.Jobs[0].Name
+}
+
+func (d Manifest) Stemcell(jobName string) (StemcellRef, error) {
+	resourcePool, err := d.ResourcePool(jobName)
+	if err != nil {
+		return StemcellRef{}, err
+	}
+	return resourcePool.Stemcell, nil
+}
+
+func (d Manifest) ResourcePool(jobName string) (ResourcePool, error) {
+	job, found := d.FindJobByName(jobName)
+	if !found {
+		return ResourcePool{}, bosherr.Errorf("Could not find job with name: %s", jobName)
+	}
+
+	for _, resourcePool := range d.ResourcePools {
+		if resourcePool.Name == job.ResourcePool {
+			return resourcePool, nil
+		}
+	}
+	err := bosherr.Errorf("Could not find resource pool '%s' for job '%s'", job.ResourcePool, jobName)
+	return ResourcePool{}, err
 }
 
 func (d Manifest) DiskPool(jobName string) (DiskPool, error) {

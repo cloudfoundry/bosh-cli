@@ -12,6 +12,7 @@ type Job struct {
 	Networks           []JobNetwork
 	PersistentDisk     int
 	PersistentDiskPool string
+	ResourcePool       string
 	Properties         biproperty.Map
 }
 

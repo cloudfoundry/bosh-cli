@@ -104,6 +104,7 @@ var _ = Describe("Manager", func() {
 							StaticIPs: []string{"fake-ip"},
 						},
 					},
+					ResourcePool: "fake-resource-pool-name",
 				},
 			},
 		}

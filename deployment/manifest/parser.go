@@ -74,6 +74,7 @@ type job struct {
 	Networks           []jobNetwork
 	PersistentDisk     int    `yaml:"persistent_disk"`
 	PersistentDiskPool string `yaml:"persistent_disk_pool"`
+	ResourcePool       string `yaml:"resource_pool"`
 	Properties         map[interface{}]interface{}
 }
 
@@ -188,6 +189,7 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 			Lifecycle:          JobLifecycle(rawJob.Lifecycle),
 			PersistentDisk:     rawJob.PersistentDisk,
 			PersistentDiskPool: rawJob.PersistentDiskPool,
+			ResourcePool:       rawJob.ResourcePool,
 		}
 
 		if rawJob.Templates != nil {

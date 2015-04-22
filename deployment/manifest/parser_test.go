@@ -94,6 +94,7 @@ jobs:
     static_ips: [1.2.3.4]
   persistent_disk: 1024
   persistent_disk_pool: fake-disk-pool-name
+  resource_pool: fake-resource-pool
   properties:
     fake-prop-key:
       nested-prop-key: fake-prop-value
@@ -179,6 +180,7 @@ properties:
 					},
 					PersistentDisk:     1024,
 					PersistentDiskPool: "fake-disk-pool-name",
+					ResourcePool:       "fake-resource-pool",
 					Properties: biproperty.Map{
 						"fake-prop-key": biproperty.Map{
 							"nested-prop-key": "fake-prop-value",

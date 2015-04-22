@@ -171,6 +171,7 @@ jobs:
 - name: fake-deployment-job-name
   instances: 1
   persistent_disk: 1024
+  resource_pool: resource-pool-1
   networks:
   - name: network-1
   templates:
@@ -217,6 +218,7 @@ jobs:
 - name: fake-deployment-job-name
   instances: 1
   persistent_disk: 2048
+  resource_pool: resource-pool-1
   networks:
   - name: network-1
   templates:

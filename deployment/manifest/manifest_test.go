@@ -122,6 +122,48 @@ var _ = Describe("Manifest", func() {
 		})
 	})
 
+	Describe("ResourcePool", func() {
+		BeforeEach(func() {
+			deploymentManifest = Manifest{
+				ResourcePools: []ResourcePool{
+					{
+						Name: "fake-resource-pool-name-1",
+					},
+					{
+						Name: "fake-resource-pool-name-2",
+					},
+				},
+				Jobs: []Job{
+					{
+						Name:         "fake-job-name",
+						ResourcePool: "fake-resource-pool-name-2",
+					},
+					{
+						Name:         "job-with-invalid-resource-pool",
+						ResourcePool: "invalid-resource-pool",
+					},
+				},
+			}
+		})
+
+		It("returns resource pool defined on a job", func() {
+			resourcePool, err := deploymentManifest.ResourcePool("fake-job-name")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(resourcePool).To(Equal(ResourcePool{
+				Name: "fake-resource-pool-name-2",
+			}))
+		})
+
+		Context("when resource pool specified on a job is not defined", func() {
+			It("returns an error", func() {
+				_, err := deploymentManifest.ResourcePool("job-with-invalid-resource-pool")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Could not find resource pool 'invalid-resource-pool' for job 'job-with-invalid-resource-pool'"))
+			})
+		})
+	})
+
 	Describe("DiskPool", func() {
 		Context("when the deployment has disk_pools", func() {
 			BeforeEach(func() {

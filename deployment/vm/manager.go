@@ -80,14 +80,17 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 }
 
 func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest) (VM, error) {
-	jobName := deploymentManifest.Jobs[0].Name
+	jobName := deploymentManifest.JobName()
 	networkInterfaces, err := deploymentManifest.NetworkInterfaces(jobName)
 	m.logger.Debug(m.logTag, "Creating VM with network interfaces: %#v", networkInterfaces)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Getting network spec")
 	}
 
-	resourcePool := deploymentManifest.ResourcePool()
+	resourcePool, err := deploymentManifest.ResourcePool(jobName)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Getting resource pool for job '%s'", jobName)
+	}
 
 	agentID, err := m.uuidGenerator.Generate()
 	if err != nil {
