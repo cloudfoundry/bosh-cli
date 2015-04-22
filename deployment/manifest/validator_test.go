@@ -358,6 +358,22 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("networks[0].subnets must be of size 1"))
 		})
 
+		It("validates that manual network subnet has range and gateway", func() {
+			deploymentManifest := Manifest{
+				Networks: []Network{
+					{
+						Type:    "manual",
+						Subnets: []Subnet{{}},
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("networks[0].subnets[0].range must be provided"))
+			Expect(err.Error()).To(ContainSubstring("networks[0].subnets[0].gateway must be provided"))
+		})
+
 		It("validates that there is only one job", func() {
 			deploymentManifest := Manifest{
 				Jobs: []Job{
