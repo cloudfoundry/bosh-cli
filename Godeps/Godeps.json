@@ -16,55 +16,55 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/blobstore",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/davcli/client",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/davcli/config",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/errors",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/http",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/logger",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/platform",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/retrystrategy",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/settings",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/system",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/time",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-agent/uuid",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
+			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gofileutils/glob",

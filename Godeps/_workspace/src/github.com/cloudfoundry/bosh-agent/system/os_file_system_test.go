@@ -41,7 +41,7 @@ func init() {
 
 			homeDir, err := osFs.HomeDir("root")
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), homeDir, "/root")
+			Expect(homeDir).To(ContainSubstring("/root"))
 		})
 
 		It("expand path", func() {

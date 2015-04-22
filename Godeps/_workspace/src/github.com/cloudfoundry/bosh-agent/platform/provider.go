@@ -3,8 +3,6 @@ package platform
 import (
 	"time"
 
-	sigar "github.com/cloudfoundry/gosigar"
-
 	bosherror "github.com/cloudfoundry/bosh-agent/errors"
 	"github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
@@ -44,7 +42,7 @@ type Options struct {
 	Linux LinuxOptions
 }
 
-func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options Options) Provider {
+func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsCollector boshstats.Collector, options Options) Provider {
 	runner := boshsys.NewExecCmdRunner(logger)
 	fs := boshsys.NewOsFileSystem(logger)
 
@@ -57,12 +55,10 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options O
 	compressor := boshcmd.NewTarballCompressor(runner, fs)
 	copier := boshcmd.NewCpCopier(runner, fs, logger)
 
-	sigarCollector := boshstats.NewSigarStatsCollector(&sigar.ConcreteSigar{})
-
 	// Kick of stats collection as soon as possible
-	go sigarCollector.StartCollecting(SigarStatsCollectionInterval, nil)
+	go statsCollector.StartCollecting(SigarStatsCollectionInterval, nil)
 
-	vitalsService := boshvitals.NewService(sigarCollector, dirProvider)
+	vitalsService := boshvitals.NewService(statsCollector, dirProvider)
 
 	ipResolver := boship.NewResolver(boship.NetworkInterfaceToAddrsFunc)
 
@@ -94,7 +90,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options O
 	centos := NewLinuxPlatform(
 		fs,
 		runner,
-		sigarCollector,
+		statsCollector,
 		compressor,
 		copier,
 		dirProvider,
@@ -113,7 +109,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options O
 	ubuntu := NewLinuxPlatform(
 		fs,
 		runner,
-		sigarCollector,
+		statsCollector,
 		compressor,
 		copier,
 		dirProvider,
@@ -133,7 +129,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, options O
 		platforms: map[string]Platform{
 			"ubuntu": ubuntu,
 			"centos": centos,
-			"dummy":  NewDummyPlatform(sigarCollector, fs, runner, dirProvider, devicePathResolver, logger),
+			"dummy":  NewDummyPlatform(statsCollector, fs, runner, dirProvider, devicePathResolver, logger),
 		},
 	}
 }
