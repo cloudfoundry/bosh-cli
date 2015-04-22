@@ -43,8 +43,8 @@ jobs:
         - task:   build-darwin
           file:   bosh-init/ci/concourse/tasks/build-darwin.yml
       - aggregate:
-        # - put:    bosh-init
-        #   params: { tag: version-semver/number, tag_prefix: v }
+        - put:    bosh-init
+          params: { tag: version-semver/number, tag_prefix: v }
         - put:    release-bucket-linux
           params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
         - put:    release-bucket-darwin
@@ -96,8 +96,9 @@ resources:
   - name: bosh-init
     type:       git
     source:
-      uri:      https://github.com/cloudfoundry/bosh-init.git
-      branch:   master
+      uri:         git@github.com:cloudfoundry/bosh-init.git
+      branch:      master
+      private_key: {{concourse_github_private_key}}
 
   - name: release-bucket-linux
     type:       s3
