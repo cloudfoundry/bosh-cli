@@ -49,6 +49,16 @@ $ export BOSH_INIT_STEMCELL_PATH=/tmp/bosh-stemcell-348-warden-boshlite-ubuntu-t
 $ ./bin/test-acceptance-with-vm --provider=virtualbox
 ```
 
+You can use remote releases and stemcells which you can overwrite using environment variables below. In this case you also need to provide sha1 of remote artifacts you want to test.
+
+```
+$ export BOSH_INIT_CPI_RELEASE_URL=https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=6
+$ export BOSH_INIT_CPI_RELEASE_SHA1=cpi-release-sha1
+$ export BOSH_INIT_STEMCELL_URL=https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent?v=2776
+$ export BOSH_INIT_STEMCELL_SHA1=stemcell-sha1
+$ ./bin/test-acceptance-with-vm --provider=virtualbox
+```
+
 #### AWS Provider
 
 The acceptance tests can also be run on a remote VM (using aws with vagrant).
