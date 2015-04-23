@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-#Choosing not to -x. The output would otherwise be shown on a public CI instance, secrets and all.
-set -x
-
 set -e
 
 base=$PWD
