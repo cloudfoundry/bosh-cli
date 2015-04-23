@@ -23,8 +23,7 @@ tmpfile=`mktemp -t bosh-init-tests-XXXXXXXX`
 echo "$BOSH_LITE_PRIVATE_KEY" > $tmpfile
 export BOSH_LITE_PRIVATE_KEY=$tmpfile
 
-vagrant plugin install vagrant-aws
-vagrant up --provider aws
+vagrant up --provider=aws
 
 vm_username=`vagrant ssh-config | grep "User " | awk '{print $2}'`
 vm_ip=`vagrant ssh-config 2>/dev/null | grep HostName | awk '{print $2}'`
