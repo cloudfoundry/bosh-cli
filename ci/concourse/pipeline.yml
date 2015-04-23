@@ -1,13 +1,23 @@
 ---
 jobs:
-  - name: test
+  - name: test-unit
     plan:
       - get:      bosh-init
       - aggregate:
         - task:       test-unit
           file:       bosh-init/ci/concourse/tasks/test-unit.yml
+
+  - name: test-integration
+    plan:
+      - get:      bosh-init
+      - aggregate:
         - task:       test-integration
           file:       bosh-init/ci/concourse/tasks/test-integration.yml
+
+  - name: test-acceptance
+    plan:
+      - get:      bosh-init
+      - aggregate:
         - task:       test-acceptance
           privileged: true
           file:       bosh-init/ci/concourse/tasks/test-acceptance.yml
@@ -23,7 +33,7 @@ jobs:
   - name: bump
     plan:
       - get:      bosh-init
-        passed:   [test]
+        passed:   [test-unit,test-integration,test-acceptance]
       - get:      version-semver
         trigger:  false
         params:   { bump: patch }
@@ -47,64 +57,27 @@ jobs:
           params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
         - put:    release-bucket-darwin
           params: { from: bosh-init/out/bosh-init-.*-darwin-amd64 }
-        - put:        bosh-init
+        - put:    bosh-init
           params:
-            repository: build-linux/bosh-init
+            repository: bosh-init
             tag: version-semver/number
             tag_prefix: v
 
-  - name: build-minor
+  - name: bump-minor
     plan:
-      - get:      bosh-init
-        passed:   [bump]
-        trigger:  false
       - get:      version-semver
         trigger:  false
         params:   { bump: minor }
-      - aggregate:
-        - task:   build-linux
-          file:   bosh-init/ci/concourse/tasks/build-linux.yml
-        - task:   build-darwin
-          file:   bosh-init/ci/concourse/tasks/build-darwin.yml
-      - aggregate:
-        - put:    release-bucket-linux
-          params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
-        - put:    release-bucket-darwin
-          params: { from: bosh-init/out/bosh-init-.*-darwin-amd64 }
-        - put:    version-semver
-          params: { file: version-semver/number }
-        - put:    bosh-init
-          params:
-            repository: build-linux/bosh-init
-            tag: version-semver/number
-            tag_prefix: v
+      - put:    version-semver
+        params: { file: version-semver/number }
 
-
-  - name: build-major
+  - name: bump-major
     plan:
-      - get:      bosh-init
-        passed:   [bump]
-        trigger:  false
       - get:      version-semver
         trigger:  false
         params:   { bump: major }
-      - aggregate:
-        - task:   build-linux
-          file:   bosh-init/ci/concourse/tasks/build-linux.yml
-        - task:   build-darwin
-          file:   bosh-init/ci/concourse/tasks/build-darwin.yml
-      - aggregate:
-        - put:    release-bucket-linux
-          params: { from: bosh-init/out/bosh-init-.*-linux-amd64 }
-        - put:    release-bucket-darwin
-          params: { from: bosh-init/out/bosh-init-.*-darwin-amd64 }
-        - put:    version-semver
-          params: { file: version-semver/number }
-        - put:    bosh-init
-          params:
-            repository: build-linux/bosh-init
-            tag: version-semver/number
-            tag_prefix: v
+      - put:    version-semver
+        params: { file: version-semver/number }
 
 resources:
   - name: bosh-init
