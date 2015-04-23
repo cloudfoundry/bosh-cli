@@ -143,19 +143,6 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("name must be provided"))
 		})
 
-		It("validates that there is only one resource pool", func() {
-			deploymentManifest := Manifest{
-				ResourcePools: []ResourcePool{
-					{},
-					{},
-				},
-			}
-
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("resource_pools must be of size 1"))
-		})
-
 		It("validates resource pool name", func() {
 			deploymentManifest := Manifest{
 				ResourcePools: []ResourcePool{

@@ -54,10 +54,6 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 		}
 	}
 
-	if len(deploymentManifest.ResourcePools) != 1 {
-		errs = append(errs, bosherr.Error("resource_pools must be of size 1"))
-	}
-
 	for idx, resourcePool := range deploymentManifest.ResourcePools {
 		if v.isBlank(resourcePool.Name) {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].name must be provided", idx))
