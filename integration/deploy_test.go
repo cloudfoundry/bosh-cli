@@ -98,6 +98,7 @@ var _ = Describe("bosh-init", func() {
 
 			fakeStemcellExtractor         *fakebistemcell.FakeExtractor
 			fakeUUIDGenerator             *fakeuuid.FakeGenerator
+			fakeRegistryUUIDGenerator     *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator         *fakeuuid.FakeGenerator
 			fakeAgentIDGenerator          *fakeuuid.FakeGenerator
 			fakeSHA1Calculator            *fakebicrypto.FakeSha1Calculator
@@ -277,7 +278,7 @@ cloud_provider:
 				},
 				Registry: biinstallmanifest.Registry{
 					Username: "registry",
-					Password: "password",
+					Password: "registry-password",
 					Host:     "127.0.0.1",
 					Port:     6901,
 					SSHTunnel: biinstallmanifest.SSHTunnel{
@@ -291,7 +292,7 @@ cloud_provider:
 				Properties: biproperty.Map{
 					"registry": biproperty.Map{
 						"username": "registry",
-						"password": "password",
+						"password": "registry-password",
 						"host":     "127.0.0.1",
 						"port":     6901,
 					},
@@ -376,7 +377,9 @@ cloud_provider:
 		var newDeployCmd = func() Cmd {
 			deploymentParser := bideplmanifest.NewParser(fs, logger)
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
-			installationParser := biinstallmanifest.NewParser(fs, logger)
+			fakeRegistryUUIDGenerator = fakeuuid.NewFakeGenerator()
+			fakeRegistryUUIDGenerator.GeneratedUUID = "registry-password"
+			installationParser := biinstallmanifest.NewParser(fs, fakeRegistryUUIDGenerator, logger)
 
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			installationValidator := biinstallmanifest.NewValidator(logger)
@@ -663,7 +666,7 @@ cloud_provider:
 		var expectRegistryToWork = func() {
 			httpClient := bihttp.NewHTTPClient(bihttp.DefaultClient, logger)
 
-			endpoint := "http://registry:password@127.0.0.1:6901/instances/fake-director-id/settings"
+			endpoint := "http://registry:registry-password@127.0.0.1:6901/instances/fake-director-id/settings"
 
 			settingsBytes := []byte("fake-registry-contents") //usually json, but not required to be
 			response, err := httpClient.Put(endpoint, settingsBytes)

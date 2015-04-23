@@ -11,6 +11,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
@@ -19,6 +20,7 @@ var _ = Describe("Parser", func() {
 	var (
 		comboManifestPath string
 		fakeFs            *fakesys.FakeFileSystem
+		fakeUUIDGenerator *fakeuuid.FakeGenerator
 		parser            Parser
 		logger            boshlog.Logger
 	)
@@ -26,7 +28,8 @@ var _ = Describe("Parser", func() {
 	BeforeEach(func() {
 		fakeFs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		parser = NewParser(fakeFs, logger)
+		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
+		parser = NewParser(fakeFs, fakeUUIDGenerator, logger)
 		comboManifestPath = "fake-deployment-manifest"
 	})
 
@@ -105,6 +108,7 @@ cloud_provider:
 `
 			fakeFs.WriteFileString(comboManifestPath, contents)
 			fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 		})
 
 		It("generates registry config and populates properties in manifest", func() {
@@ -122,7 +126,7 @@ cloud_provider:
 						"host":     "127.0.0.1",
 						"port":     6901,
 						"username": "registry",
-						"password": "password", // todo: auto-generate this
+						"password": "fake-uuid",
 					},
 				},
 				Registry: Registry{
@@ -135,7 +139,7 @@ cloud_provider:
 					Host:     "127.0.0.1",
 					Port:     6901,
 					Username: "registry",
-					Password: "password",
+					Password: "fake-uuid",
 				},
 				Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
 			}))

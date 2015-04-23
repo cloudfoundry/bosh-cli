@@ -6,6 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
@@ -15,9 +16,10 @@ type Parser interface {
 }
 
 type parser struct {
-	fs     boshsys.FileSystem
-	logger boshlog.Logger
-	logTag string
+	fs            boshsys.FileSystem
+	uuidGenerator boshuuid.Generator
+	logger        boshlog.Logger
+	logTag        string
 }
 
 type manifest struct {
@@ -41,11 +43,12 @@ type template struct {
 	Release string
 }
 
-func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {
+func NewParser(fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger boshlog.Logger) Parser {
 	return &parser{
-		fs:     fs,
-		logger: logger,
-		logTag: "deploymentParser",
+		fs:            fs,
+		uuidGenerator: uuidGenerator,
+		logger:        logger,
+		logTag:        "deploymentParser",
 	}
 }
 
@@ -87,7 +90,11 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	installationManifest.Properties = properties
 
 	if comboManifest.CloudProvider.HasSSHTunnel() {
-		installationManifest.PopulateRegistry("registry", "password", "127.0.0.1", 6901, comboManifest.CloudProvider.SSHTunnel)
+		password, err := p.uuidGenerator.Generate()
+		if err != nil {
+			return Manifest{}, bosherr.WrapError(err, "Generating registry password")
+		}
+		installationManifest.PopulateRegistry("registry", password, "127.0.0.1", 6901, comboManifest.CloudProvider.SSHTunnel)
 	}
 
 	return installationManifest, nil
