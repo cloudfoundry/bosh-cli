@@ -113,6 +113,13 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 		if len(job.Networks) == 0 {
 			errs = append(errs, bosherr.Errorf("jobs[%d].networks must be a non-empty array", idx))
 		}
+		if v.isBlank(job.ResourcePool) {
+			errs = append(errs, bosherr.Errorf("jobs[%d].resource_pool must be provided", idx))
+		} else {
+			if _, ok := v.resourcePoolNames(deploymentManifest)[job.ResourcePool]; !ok {
+				errs = append(errs, bosherr.Errorf("jobs[%d].resource_pool must be the name of a resource pool", idx))
+			}
+		}
 		for networkIdx, jobNetwork := range job.Networks {
 			if v.isBlank(jobNetwork.Name) {
 				errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].name must be provided", idx, networkIdx))
@@ -203,6 +210,14 @@ func (v *validator) diskPoolNames(deploymentManifest Manifest) map[string]struct
 	names := make(map[string]struct{})
 	for _, diskPool := range deploymentManifest.DiskPools {
 		names[diskPool.Name] = struct{}{}
+	}
+	return names
+}
+
+func (v *validator) resourcePoolNames(deploymentManifest Manifest) map[string]struct{} {
+	names := make(map[string]struct{})
+	for _, resourcePool := range deploymentManifest.ResourcePools {
+		names[resourcePool.Name] = struct{}{}
 	}
 	return names
 }

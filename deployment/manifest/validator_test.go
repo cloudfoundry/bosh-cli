@@ -76,6 +76,7 @@ var _ = Describe("Validator", func() {
 						},
 					},
 					PersistentDisk: 1024,
+					ResourcePool:   "fake-resource-pool-name",
 					Networks: []JobNetwork{
 						{
 							Name:      "fake-network-name",
@@ -447,6 +448,35 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].persistent_disk_pool must be the name of a disk pool"))
+		})
+
+		It("validates job resource pool is provided", func() {
+			deploymentManifest := Manifest{
+				Jobs: []Job{{}},
+			}
+
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].resource_pool must be provided"))
+		})
+
+		It("validates job resource pool is specified in resource pools", func() {
+			deploymentManifest := Manifest{
+				Jobs: []Job{
+					{
+						ResourcePool: "non-existent-resource-pool",
+					},
+				},
+				ResourcePools: []ResourcePool{
+					{
+						Name: "fake-resource-pool",
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].resource_pool must be the name of a resource pool"))
 		})
 
 		It("validates job instances", func() {
