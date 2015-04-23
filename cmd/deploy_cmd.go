@@ -283,7 +283,6 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 			deploymentManifest,
 			cloudStemcell,
 			installationManifest.Registry,
-			installationManifest.SSHTunnel,
 			vmManager,
 			blobstore,
 			deployStage,

@@ -198,7 +198,6 @@ var _ = Describe("Manager", func() {
 				deploymentManifest,
 				fakeCloudStemcell,
 				registry,
-				sshTunnelConfig,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -217,7 +216,6 @@ var _ = Describe("Manager", func() {
 				deploymentManifest,
 				fakeCloudStemcell,
 				registry,
-				sshTunnelConfig,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -232,7 +230,6 @@ var _ = Describe("Manager", func() {
 				deploymentManifest,
 				fakeCloudStemcell,
 				registry,
-				sshTunnelConfig,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -255,7 +252,6 @@ var _ = Describe("Manager", func() {
 					deploymentManifest,
 					fakeCloudStemcell,
 					registry,
-					sshTunnelConfig,
 					fakeStage,
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -269,7 +265,6 @@ var _ = Describe("Manager", func() {
 				deploymentManifest,
 				fakeCloudStemcell,
 				registry,
-				sshTunnelConfig,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -293,7 +288,6 @@ var _ = Describe("Manager", func() {
 				deploymentManifest,
 				fakeCloudStemcell,
 				registry,
-				sshTunnelConfig,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -314,13 +308,13 @@ var _ = Describe("Manager", func() {
 					Password: "fake-registry-password",
 					Host:     "fake-registry-host",
 					Port:     124,
-				}
-				sshTunnelConfig = biinstallmanifest.SSHTunnel{
-					User:       "fake-ssh-user",
-					Host:       "fake-ssh-host",
-					Port:       123,
-					Password:   "fake-ssh-password",
-					PrivateKey: "fake-ssh-private-key-path",
+					SSHTunnel: biinstallmanifest.SSHTunnel{
+						User:       "fake-ssh-user",
+						Host:       "fake-ssh-host",
+						Port:       123,
+						Password:   "fake-ssh-password",
+						PrivateKey: "fake-ssh-private-key-path",
+					},
 				}
 			})
 
@@ -331,7 +325,6 @@ var _ = Describe("Manager", func() {
 					deploymentManifest,
 					fakeCloudStemcell,
 					registry,
-					sshTunnelConfig,
 					fakeStage,
 				)
 				Expect(err).NotTo(HaveOccurred())
@@ -360,7 +353,6 @@ var _ = Describe("Manager", func() {
 						deploymentManifest,
 						fakeCloudStemcell,
 						registry,
-						sshTunnelConfig,
 						fakeStage,
 					)
 					Expect(err).To(HaveOccurred())
@@ -381,7 +373,6 @@ var _ = Describe("Manager", func() {
 					deploymentManifest,
 					fakeCloudStemcell,
 					registry,
-					sshTunnelConfig,
 					fakeStage,
 				)
 				Expect(err).NotTo(HaveOccurred())
@@ -402,7 +393,6 @@ var _ = Describe("Manager", func() {
 					deploymentManifest,
 					fakeCloudStemcell,
 					registry,
-					sshTunnelConfig,
 					fakeStage,
 				)
 				Expect(err).To(HaveOccurred())
@@ -416,7 +406,6 @@ var _ = Describe("Manager", func() {
 					deploymentManifest,
 					fakeCloudStemcell,
 					registry,
-					sshTunnelConfig,
 					fakeStage,
 				)
 				Expect(err).To(HaveOccurred())

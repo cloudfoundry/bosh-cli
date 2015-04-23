@@ -23,7 +23,6 @@ type Deployer interface {
 		bideplmanifest.Manifest,
 		bistemcell.CloudStemcell,
 		biinstallmanifest.Registry,
-		biinstallmanifest.SSHTunnel,
 		bivm.Manager,
 		biblobstore.Blobstore,
 		biui.Stage,
@@ -58,7 +57,6 @@ func (d *deployer) Deploy(
 	deploymentManifest bideplmanifest.Manifest,
 	cloudStemcell bistemcell.CloudStemcell,
 	registryConfig biinstallmanifest.Registry,
-	sshTunnelConfig biinstallmanifest.SSHTunnel,
 	vmManager bivm.Manager,
 	blobstore biblobstore.Blobstore,
 	deployStage biui.Stage,
@@ -71,7 +69,7 @@ func (d *deployer) Deploy(
 		return nil, err
 	}
 
-	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, cloudStemcell, registryConfig, sshTunnelConfig, deployStage)
+	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, cloudStemcell, registryConfig, deployStage)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,6 @@ func (d *deployer) createAllInstances(
 	instanceManager biinstance.Manager,
 	cloudStemcell bistemcell.CloudStemcell,
 	registryConfig biinstallmanifest.Registry,
-	sshTunnelConfig biinstallmanifest.SSHTunnel,
 	deployStage biui.Stage,
 ) ([]biinstance.Instance, []bidisk.Disk, error) {
 	instances := []biinstance.Instance{}
@@ -100,7 +97,7 @@ func (d *deployer) createAllInstances(
 			return instances, disks, bosherr.Errorf("Job '%s' must have only one instance, found %d", jobSpec.Name, jobSpec.Instances)
 		}
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
-			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, registryConfig, sshTunnelConfig, deployStage)
+			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, registryConfig, deployStage)
 			if err != nil {
 				return instances, disks, bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)
 			}

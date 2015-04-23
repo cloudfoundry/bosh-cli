@@ -26,7 +26,6 @@ type Manager interface {
 		deploymentManifest bideplmanifest.Manifest,
 		cloudStemcell bistemcell.CloudStemcell,
 		registryConfig biinstallmanifest.Registry,
-		sshTunnelConfig biinstallmanifest.SSHTunnel,
 		eventLoggerStage biui.Stage,
 	) (Instance, []bidisk.Disk, error)
 	DeleteAll(
@@ -100,7 +99,6 @@ func (m *manager) Create(
 	deploymentManifest bideplmanifest.Manifest,
 	cloudStemcell bistemcell.CloudStemcell,
 	registryConfig biinstallmanifest.Registry,
-	sshTunnelConfig biinstallmanifest.SSHTunnel,
 	eventLoggerStage biui.Stage,
 ) (Instance, []bidisk.Disk, error) {
 	var vm bivm.VM
@@ -124,7 +122,7 @@ func (m *manager) Create(
 
 	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.blobstore, m.logger)
 
-	if err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, eventLoggerStage); err != nil {
+	if err := instance.WaitUntilReady(registryConfig, eventLoggerStage); err != nil {
 		return instance, []bidisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")
 	}
 

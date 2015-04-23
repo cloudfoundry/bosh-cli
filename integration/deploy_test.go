@@ -7,10 +7,14 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
+	"text/template"
 	"time"
 
 	"code.google.com/p/gomock/gomock"
@@ -146,10 +150,11 @@ var _ = Describe("bosh-init", func() {
 
 			expectHasVM1    *gomock.Call
 			expectDeleteVM1 *gomock.Call
+
+			sshConfig *SSHConfig
 		)
 
-		var writeDeploymentManifest = func() {
-			err := fs.WriteFileString(deploymentManifestPath, `---
+		var manifestTemplate = `---
 name: test-deployment
 
 releases:
@@ -170,7 +175,7 @@ resource_pools:
 jobs:
 - name: fake-deployment-job-name
   instances: 1
-  persistent_disk: 1024
+  persistent_disk: {{ .DiskSize }}
   resource_pool: resource-pool-1
   networks:
   - name: network-1
@@ -182,13 +187,34 @@ cloud_provider:
     name: fake-cpi-release-job-name
     release: fake-cpi-release-name
   mbus: http://fake-mbus-url
-  registry:
+  ssh_tunnel:
     host: 127.0.0.1
-    port: 6301
-    username: fake-registry-user
-    password: fake-registry-password
-`)
+    port: 22
+    user: {{ .SSHTunnelUser }}
+    private_key: {{ .SSHTunnelPrivateKey }}
+`
+		type manifestContext struct {
+			DiskSize            int
+			SSHTunnelUser       string
+			SSHTunnelPrivateKey string
+		}
+
+		var updateManifest = func(context manifestContext) {
+			buffer := bytes.NewBuffer([]byte{})
+			t := template.Must(template.New("manifest").Parse(manifestTemplate))
+			err := t.Execute(buffer, context)
 			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(deploymentManifestPath, buffer.String())
+			Expect(err).ToNot(HaveOccurred())
+		}
+
+		var writeDeploymentManifest = func() {
+			context := manifestContext{
+				DiskSize:            1024,
+				SSHTunnelUser:       sshConfig.Username,
+				SSHTunnelPrivateKey: sshConfig.PrivateKey,
+			}
+			updateManifest(context)
 
 			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
 				deploymentManifestPath: {Sha1: "fake-deployment-sha1-1"},
@@ -196,46 +222,12 @@ cloud_provider:
 		}
 
 		var writeDeploymentManifestWithLargerDisk = func() {
-			err := fs.WriteFileString(deploymentManifestPath, `---
-name: test-deployment
-
-releases:
-- name: fake-cpi-release-name
-  version: 1.1
-  url: file:///fake-cpi-release.tgz
-
-networks:
-- name: network-1
-  type: dynamic
-
-resource_pools:
-- name: resource-pool-1
-  network: network-1
-  stemcell:
-    url: file:///fake-stemcell-release.tgz
-
-jobs:
-- name: fake-deployment-job-name
-  instances: 1
-  persistent_disk: 2048
-  resource_pool: resource-pool-1
-  networks:
-  - name: network-1
-  templates:
-  - {name: fake-cpi-release-job-name, release: fake-cpi-release-name}
-
-cloud_provider:
-  template:
-    name: fake-cpi-release-job-name
-    release: fake-cpi-release-name
-  mbus: http://fake-mbus-url
-  registry:
-    host: 127.0.0.1
-    port: 6301
-    username: fake-registry-user
-    password: fake-registry-password
-`)
-			Expect(err).ToNot(HaveOccurred())
+			context := manifestContext{
+				DiskSize:            2048,
+				SSHTunnelUser:       sshConfig.Username,
+				SSHTunnelPrivateKey: sshConfig.PrivateKey,
+			}
+			updateManifest(context)
 
 			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
 				deploymentManifestPath: {Sha1: "fake-deployment-sha1-2"},
@@ -283,16 +275,28 @@ cloud_provider:
 					Name:    "fake-cpi-release-job-name",
 					Release: "fake-cpi-release-name",
 				},
-				Mbus: mbusURL,
 				Registry: biinstallmanifest.Registry{
-					Username: "fake-registry-user",
-					Password: "fake-registry-password",
+					Username: "registry",
+					Password: "password",
 					Host:     "127.0.0.1",
-					Port:     6301,
+					Port:     6901,
+					SSHTunnel: biinstallmanifest.SSHTunnel{
+						Host:       "127.0.0.1",
+						Port:       22,
+						User:       sshConfig.Username,
+						PrivateKey: sshConfig.PrivateKey,
+					},
 				},
-				Properties: biproperty.Map{},
+				Mbus: mbusURL,
+				Properties: biproperty.Map{
+					"registry": biproperty.Map{
+						"username": "registry",
+						"password": "password",
+						"host":     "127.0.0.1",
+						"port":     6901,
+					},
+				},
 			}
-
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := biinstall.NewTarget(installationPath)
 
@@ -659,7 +663,7 @@ cloud_provider:
 		var expectRegistryToWork = func() {
 			httpClient := bihttp.NewHTTPClient(bihttp.DefaultClient, logger)
 
-			endpoint := "http://fake-registry-user:fake-registry-password@127.0.0.1:6301/instances/fake-director-id/settings"
+			endpoint := "http://registry:password@127.0.0.1:6901/instances/fake-director-id/settings"
 
 			settingsBytes := []byte("fake-registry-contents") //usually json, but not required to be
 			response, err := httpClient.Put(endpoint, settingsBytes)
@@ -712,6 +716,10 @@ cloud_provider:
 		}
 
 		BeforeEach(func() {
+			sshConfig = NewSSHConfig(originalHome)
+			err := sshConfig.Prepare()
+			Expect(err).ToNot(HaveOccurred())
+
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
@@ -761,6 +769,11 @@ cloud_provider:
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
 			writeStemcellReleaseTarball()
+		})
+
+		AfterEach(func() {
+			err := sshConfig.Restore()
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		JustBeforeEach(func() {
@@ -958,3 +971,87 @@ cloud_provider:
 		})
 	})
 })
+
+type SSHConfig struct {
+	Username   string
+	PrivateKey string
+	HomeDir    string
+
+	rsaKeyDir string
+}
+
+func NewSSHConfig(homeDir string) *SSHConfig {
+	return &SSHConfig{
+		HomeDir: homeDir,
+	}
+}
+
+func (s *SSHConfig) Prepare() error {
+	var err error
+	s.Username, err = s.runCommand("whoami")
+	if err != nil {
+		return err
+	}
+
+	s.rsaKeyDir, err = ioutil.TempDir("", "bosh-init-deploy-test")
+	if err != nil {
+		return err
+	}
+	s.PrivateKey = filepath.Join(s.rsaKeyDir, "id_rsa_bosh_init")
+
+	script := `
+ssh-keygen -f {{ .PrivateKey }} -N ""
+if [ -f {{ .HomeDir }}/.ssh/authorized_keys ]; then
+	cp {{ .HomeDir }}/.ssh/authorized_keys {{ .HomeDir }}/.ssh/authorized_keys_original
+fi
+cat {{ .PrivateKey }}.pub >> {{ .HomeDir }}/.ssh/authorized_keys
+`
+
+	err = s.runScript(script)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SSHConfig) Restore() error {
+	script := `
+if [ -f {{ .HomeDir }}/.ssh/authorized_keys_original ]; then
+	mv {{ .HomeDir }}/.ssh/authorized_keys_original {{ .HomeDir }}/.ssh/authorized_keys
+else
+    rm {{ .HomeDir }}/.ssh/authorized_keys
+fi
+`
+	err := s.runScript(script)
+	if err != nil {
+		return err
+	}
+
+	err = os.RemoveAll(s.rsaKeyDir)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SSHConfig) runScript(script string) error {
+	buffer := bytes.NewBuffer([]byte{})
+	t := template.Must(template.New("manifest").Parse(script))
+	t.Execute(buffer, s)
+	_, err := s.runCommand("sh", "-c", buffer.String())
+	return err
+}
+
+func (s *SSHConfig) runCommand(args ...string) (string, error) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	shCmd := exec.Command(args[0], args[1:]...)
+	shCmd.Stdout = &stdout
+	shCmd.Stderr = &stderr
+	if err := shCmd.Run(); err != nil {
+		println(stderr.String())
+		return "", err
+	}
+
+	return strings.TrimSpace(stdout.String()), nil
+}

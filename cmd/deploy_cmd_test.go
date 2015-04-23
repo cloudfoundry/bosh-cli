@@ -266,10 +266,6 @@ func rootDesc() {
 					Name:    "fake-cpi-release-job-name",
 					Release: "fake-cpi-release-name",
 				},
-				Registry: biinstallmanifest.Registry{},
-				SSHTunnel: biinstallmanifest.SSHTunnel{
-					Host: "fake-host",
-				},
 				Mbus: mbusURL,
 			}
 
@@ -392,11 +388,10 @@ func rootDesc() {
 				boshDeploymentManifest,
 				cloudStemcell,
 				installationManifest.Registry,
-				installationManifest.SSHTunnel,
 				fakeVMManager,
 				mockBlobstore,
 				gomock.Any(),
-			).Do(func(_, _, _, _, _, _, _ interface{}, stage biui.Stage) {
+			).Do(func(_, _, _, _, _, _ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(mockDeployment, nil).AnyTimes()
 
@@ -1017,7 +1012,6 @@ func rootDesc() {
 					boshDeploymentManifest,
 					cloudStemcell,
 					installationManifest.Registry,
-					installationManifest.SSHTunnel,
 					fakeVMManager,
 					mockBlobstore,
 					gomock.Any(),

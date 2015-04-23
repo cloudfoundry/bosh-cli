@@ -422,25 +422,24 @@ var _ = Describe("Instance", func() {
 
 	Describe("WaitUntilReady", func() {
 		var (
-			registryConfig  biinstallmanifest.Registry
-			sshTunnelConfig biinstallmanifest.SSHTunnel
+			registryConfig biinstallmanifest.Registry
 		)
 
 		BeforeEach(func() {
 			registryConfig = biinstallmanifest.Registry{
 				Port: 125,
-			}
-			sshTunnelConfig = biinstallmanifest.SSHTunnel{
-				Host:       "fake-ssh-host",
-				Port:       124,
-				User:       "fake-ssh-username",
-				Password:   "fake-password",
-				PrivateKey: "fake-private-key-path",
+				SSHTunnel: biinstallmanifest.SSHTunnel{
+					Host:       "fake-ssh-host",
+					Port:       124,
+					User:       "fake-ssh-username",
+					Password:   "fake-password",
+					PrivateKey: "fake-private-key-path",
+				},
 			}
 		})
 
 		It("starts & stops the SSH tunnel", func() {
-			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
+			err := instance.WaitUntilReady(registryConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bisshtunnel.Options{
 				User:              "fake-ssh-username",
@@ -456,7 +455,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("waits for the vm", func() {
-			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
+			err := instance.WaitUntilReady(registryConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
 				Timeout: 10 * time.Minute,
@@ -465,7 +464,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
+			err := instance.WaitUntilReady(registryConfig, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
@@ -473,13 +472,13 @@ var _ = Describe("Instance", func() {
 			}))
 		})
 
-		Context("when ssh tunnel config is empty", func() {
+		Context("when registry config is empty", func() {
 			BeforeEach(func() {
-				sshTunnelConfig = biinstallmanifest.SSHTunnel{}
+				registryConfig = biinstallmanifest.Registry{}
 			})
 
 			It("does not start ssh tunnel", func() {
-				err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
+				err := instance.WaitUntilReady(registryConfig, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeSSHTunnel.Started).To(BeFalse())
 			})
@@ -491,7 +490,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("does not start ssh tunnel", func() {
-				err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
+				err := instance.WaitUntilReady(registryConfig, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeSSHTunnel.Started).To(BeFalse())
 			})
@@ -503,7 +502,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
+				err := instance.WaitUntilReady(registryConfig, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-ssh-tunnel-start-error"))
 			})
@@ -518,7 +517,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
-				err := instance.WaitUntilReady(registryConfig, sshTunnelConfig, fakeStage)
+				err := instance.WaitUntilReady(registryConfig, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 

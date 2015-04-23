@@ -58,18 +58,7 @@ cloud_provider:
   template:
     name: fake-cpi-job-name
     release: fake-cpi-release-name
-  ssh_tunnel:
-    host: 54.34.56.8
-    port: 22
-    user: fake-ssh-user
-    private_key: /tmp/fake-ssh-key.pem
-  agent_env_service: registry
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
-  registry:
-    username: fake-registry-username
-    password: fake-registry-password
-    host: fake-registry-host
-    port: 123
   properties:
     fake-property-name:
       nested-property: fake-property-value
@@ -88,23 +77,65 @@ cloud_provider:
 					Name:    "fake-cpi-job-name",
 					Release: "fake-cpi-release-name",
 				},
-				Registry: Registry{
-					Username: "fake-registry-username",
-					Password: "fake-registry-password",
-					Host:     "fake-registry-host",
-					Port:     123,
-				},
-				AgentEnvService: "registry",
 				Properties: biproperty.Map{
 					"fake-property-name": biproperty.Map{
 						"nested-property": "fake-property-value",
 					},
 				},
-				SSHTunnel: SSHTunnel{
-					Host:       "54.34.56.8",
-					Port:       22,
-					User:       "fake-ssh-user",
-					PrivateKey: "/expanded-tmp/fake-ssh-key.pem",
+				Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+			}))
+		})
+	})
+
+	Context("when ssh tunnel config is present", func() {
+		BeforeEach(func() {
+			contents := `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: /tmp/fake-ssh-key.pem
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+			fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
+		})
+
+		It("generates registry config and populates properties in manifest", func() {
+			installationManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(installationManifest).To(Equal(Manifest{
+				Name: "fake-deployment-name",
+				Template: ReleaseJobRef{
+					Name:    "fake-cpi-job-name",
+					Release: "fake-cpi-release-name",
+				},
+				Properties: biproperty.Map{
+					"registry": biproperty.Map{
+						"host":     "127.0.0.1",
+						"port":     6901,
+						"username": "registry",
+						"password": "password", // todo: auto-generate this
+					},
+				},
+				Registry: Registry{
+					SSHTunnel: SSHTunnel{
+						Host:       "54.34.56.8",
+						Port:       22,
+						User:       "fake-ssh-user",
+						PrivateKey: "/expanded-tmp/fake-ssh-key.pem",
+					},
+					Host:     "127.0.0.1",
+					Port:     6901,
+					Username: "registry",
+					Password: "password",
 				},
 				Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
 			}))
@@ -118,7 +149,7 @@ cloud_provider:
 			It("uses original path", func() {
 				installationManifest, err := parser.Parse(comboManifestPath)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(installationManifest.SSHTunnel.PrivateKey).To(Equal("/tmp/fake-ssh-key.pem"))
+				Expect(installationManifest.Registry.SSHTunnel.PrivateKey).To(Equal("/tmp/fake-ssh-key.pem"))
 			})
 		})
 
@@ -136,13 +167,7 @@ cloud_provider:
     port: 22
     user: fake-ssh-user
     password: fake-password
-  agent_env_service: registry
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
-  registry:
-    username: fake-registry-username
-    password: fake-registry-password
-    host: fake-registry-host
-    port: 123
 `
 				fakeFs.WriteFileString(comboManifestPath, contents)
 				fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
@@ -152,7 +177,7 @@ cloud_provider:
 				installationManifest, err := parser.Parse(comboManifestPath)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(installationManifest.SSHTunnel.PrivateKey).To(Equal(""))
+				Expect(installationManifest.Registry.SSHTunnel.PrivateKey).To(Equal(""))
 			})
 		})
 	})

@@ -11,6 +11,10 @@ import (
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
+var (
+	originalHome string
+)
+
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
 	BeforeSuite(func() {
@@ -20,10 +24,10 @@ func TestIntegration(t *testing.T) {
 
 	var (
 		homePath string
-		oldHome  string
 	)
+
 	BeforeEach(func() {
-		oldHome = os.Getenv("HOME")
+		originalHome = os.Getenv("HOME")
 
 		var err error
 		homePath, err = ioutil.TempDir("", "bosh-init-cli-integration")
@@ -34,7 +38,7 @@ func TestIntegration(t *testing.T) {
 	})
 
 	AfterEach(func() {
-		err := os.Setenv("HOME", oldHome)
+		err := os.Setenv("HOME", originalHome)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = os.RemoveAll(homePath)

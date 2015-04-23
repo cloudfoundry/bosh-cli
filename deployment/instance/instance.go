@@ -21,7 +21,7 @@ type Instance interface {
 	JobName() string
 	ID() int
 	Disks() ([]bidisk.Disk, error)
-	WaitUntilReady(biinstallmanifest.Registry, biinstallmanifest.SSHTunnel, biui.Stage) error
+	WaitUntilReady(biinstallmanifest.Registry, biui.Stage) error
 	UpdateDisks(bideplmanifest.Manifest, biui.Stage) ([]bidisk.Disk, error)
 	UpdateJobs(bideplmanifest.Manifest, biui.Stage) error
 	Delete(
@@ -81,18 +81,17 @@ func (i *instance) Disks() ([]bidisk.Disk, error) {
 
 func (i *instance) WaitUntilReady(
 	registryConfig biinstallmanifest.Registry,
-	sshTunnelConfig biinstallmanifest.SSHTunnel,
 	stage biui.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s' to be ready", i.vm.CID())
 	err := stage.Perform(stepName, func() error {
-		if !registryConfig.IsEmpty() && !sshTunnelConfig.IsEmpty() {
+		if !registryConfig.IsEmpty() {
 			sshTunnelOptions := bisshtunnel.Options{
-				Host:              sshTunnelConfig.Host,
-				Port:              sshTunnelConfig.Port,
-				User:              sshTunnelConfig.User,
-				Password:          sshTunnelConfig.Password,
-				PrivateKey:        sshTunnelConfig.PrivateKey,
+				Host:              registryConfig.SSHTunnel.Host,
+				Port:              registryConfig.SSHTunnel.Port,
+				User:              registryConfig.SSHTunnel.User,
+				Password:          registryConfig.SSHTunnel.Password,
+				PrivateKey:        registryConfig.SSHTunnel.PrivateKey,
 				LocalForwardPort:  registryConfig.Port,
 				RemoteForwardPort: registryConfig.Port,
 			}

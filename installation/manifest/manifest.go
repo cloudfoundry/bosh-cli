@@ -5,13 +5,11 @@ import (
 )
 
 type Manifest struct {
-	Name            string
-	Template        ReleaseJobRef
-	Properties      biproperty.Map
-	Mbus            string
-	Registry        Registry
-	AgentEnvService string
-	SSHTunnel       SSHTunnel
+	Name       string
+	Template   ReleaseJobRef
+	Properties biproperty.Map
+	Mbus       string
+	Registry   Registry
 }
 
 type ReleaseJobRef struct {
@@ -20,10 +18,11 @@ type ReleaseJobRef struct {
 }
 
 type Registry struct {
-	Username string
-	Password string
-	Host     string
-	Port     int
+	Username  string
+	Password  string
+	Host      string
+	Port      int
+	SSHTunnel SSHTunnel
 }
 
 func (r Registry) IsEmpty() bool {
@@ -38,6 +37,18 @@ type SSHTunnel struct {
 	PrivateKey string `yaml:"private_key"`
 }
 
-func (o SSHTunnel) IsEmpty() bool {
-	return o == SSHTunnel{}
+func (m *Manifest) PopulateRegistry(username string, password string, host string, port int, sshTunnel SSHTunnel) {
+	m.Properties["registry"] = biproperty.Map{
+		"host":     host,
+		"port":     port,
+		"username": username,
+		"password": password,
+	}
+	m.Registry = Registry{
+		Username:  username,
+		Password:  password,
+		Host:      host,
+		Port:      port,
+		SSHTunnel: sshTunnel,
+	}
 }

@@ -26,12 +26,14 @@ type manifest struct {
 }
 
 type installation struct {
-	Template        template
-	Properties      map[interface{}]interface{}
-	Registry        Registry
-	AgentEnvService string    `yaml:"agent_env_service"`
-	SSHTunnel       SSHTunnel `yaml:"ssh_tunnel"`
-	Mbus            string
+	Template   template
+	Properties map[interface{}]interface{}
+	SSHTunnel  SSHTunnel `yaml:"ssh_tunnel"`
+	Mbus       string
+}
+
+func (i installation) HasSSHTunnel() bool {
+	return i.SSHTunnel != SSHTunnel{}
 }
 
 type template struct {
@@ -75,10 +77,7 @@ func (p *parser) Parse(path string) (Manifest, error) {
 			Name:    comboManifest.CloudProvider.Template.Name,
 			Release: comboManifest.CloudProvider.Template.Release,
 		},
-		Registry:        comboManifest.CloudProvider.Registry,
-		AgentEnvService: comboManifest.CloudProvider.AgentEnvService,
-		SSHTunnel:       comboManifest.CloudProvider.SSHTunnel,
-		Mbus:            comboManifest.CloudProvider.Mbus,
+		Mbus: comboManifest.CloudProvider.Mbus,
 	}
 
 	properties, err := biproperty.BuildMap(comboManifest.CloudProvider.Properties)
@@ -86,6 +85,10 @@ func (p *parser) Parse(path string) (Manifest, error) {
 		return Manifest{}, bosherr.WrapErrorf(err, "Parsing cloud_provider manifest properties: %#v", comboManifest.CloudProvider.Properties)
 	}
 	installationManifest.Properties = properties
+
+	if comboManifest.CloudProvider.HasSSHTunnel() {
+		installationManifest.PopulateRegistry("registry", "password", "127.0.0.1", 6901, comboManifest.CloudProvider.SSHTunnel)
+	}
 
 	return installationManifest, nil
 }
