@@ -133,7 +133,7 @@ var _ = Describe("Provider", func() {
 						It("returns an error", func() {
 							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("'fake-sha2' does not match source SHA1 'fake-sha1'"))
+							Expect(err.Error()).To(ContainSubstring("'fake-sha2' does not match expected SHA1 'fake-sha1'"))
 						})
 
 						It("retries downloading up to 3 times", func() {

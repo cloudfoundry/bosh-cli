@@ -100,7 +100,7 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 		retryStrategy := boshretry.NewAttemptRetryStrategy(p.downloadAttempts, p.delayTimeout, p.downloadRetryable(source), p.logger)
 		err := retryStrategy.Try()
 		if err != nil {
-			return err
+			return bosherr.WrapErrorf(err, "Failed to download from '%s'", source.GetURL())
 		}
 
 		p.logger.Debug(p.logTag, "Using the downloaded tarball: '%s'", cachedPath)
@@ -118,33 +118,33 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 	return boshretry.NewRetryable(func() (bool, error) {
 		downloadedFile, err := p.fs.TempFile("tarballProvider")
 		if err != nil {
-			return true, bosherr.WrapErrorf(err, "Failed to create temporary file when downloading: '%s'", source.GetURL())
+			return true, bosherr.WrapError(err, "Unable to create temporary file")
 		}
 		defer p.fs.RemoveAll(downloadedFile.Name())
 
 		response, err := p.httpClient.Get(source.GetURL())
 		if err != nil {
-			return true, bosherr.WrapErrorf(err, "Failed to download from endpoint: '%s'", source.GetURL())
+			return true, bosherr.WrapError(err, "Unable to download")
 		}
 		defer response.Body.Close()
 
 		_, err = io.Copy(downloadedFile, response.Body)
 		if err != nil {
-			return true, bosherr.WrapErrorf(err, "Failed to download to temporary file from endpoint: '%s'", source.GetURL())
+			return true, bosherr.WrapError(err, "Saving downloaded bits to temporary file")
 		}
 
 		downloadedSha1, err := p.sha1Calculator.Calculate(downloadedFile.Name())
 		if err != nil {
-			return true, bosherr.WrapErrorf(err, "Failed to calculate sha1 for downloaded file from endpoint: '%s'", source.GetURL())
+			return true, bosherr.WrapError(err, "Calculating sha1 for downloaded file")
 		}
 
 		if downloadedSha1 != source.GetSHA1() {
-			return true, bosherr.Errorf("SHA1 of downloaded file '%s' does not match source SHA1 '%s'", downloadedSha1, source.GetSHA1())
+			return true, bosherr.Errorf("SHA1 of downloaded file '%s' does not match expected SHA1 '%s'", downloadedSha1, source.GetSHA1())
 		}
 
 		err = p.cache.Save(downloadedFile.Name(), source.GetSHA1())
 		if err != nil {
-			return true, bosherr.WrapErrorf(err, "Failed to save tarball in cache from endpoint: '%s'", source.GetURL())
+			return true, bosherr.WrapError(err, "Saving downloaded file in cache")
 		}
 
 		return false, nil
