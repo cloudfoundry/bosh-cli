@@ -1004,6 +1004,7 @@ func (s *SSHConfig) Prepare() error {
 
 	script := `
 ssh-keygen -f {{ .PrivateKey }} -N ""
+mkdir -p {{ .HomeDir }}/.ssh
 if [ -f {{ .HomeDir }}/.ssh/authorized_keys ]; then
 	cp {{ .HomeDir }}/.ssh/authorized_keys {{ .HomeDir }}/.ssh/authorized_keys_original
 fi
