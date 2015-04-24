@@ -10,6 +10,7 @@ Updated tool that allows to bootstrap BOSH environment onto a single VM.
   [bosh-users](https://groups.google.com/a/cloudfoundry.org/group/bosh-users/topics) &
   [bosh-dev](https://groups.google.com/a/cloudfoundry.org/group/bosh-dev/topics) &
   [vcap-dev](https://groups.google.com/a/cloudfoundry.org/group/vcap-dev/topics) (for CF)
+* [CI server](https://concourse-1739433260.us-east-1.elb.amazonaws.com)
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1133984)
 
 ## Usage
