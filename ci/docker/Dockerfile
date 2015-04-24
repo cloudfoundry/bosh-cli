@@ -34,5 +34,3 @@ RUN apt-get install -y sshpass; apt-get clean
 
 # integration registry tests
 RUN apt-get install -y openssh-server
-RUN mkdir /var/run/sshd
-CMD ["/usr/sbin/sshd", "-D"]

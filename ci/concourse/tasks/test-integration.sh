@@ -2,6 +2,9 @@
 
 set -e -x
 
+# For ssh tunnel test
+/etc/init.d/ssh start
+
 export PATH=/usr/local/ruby/bin:/usr/local/go/bin:$PATH
 export GOPATH=$(pwd)/gopath
 
