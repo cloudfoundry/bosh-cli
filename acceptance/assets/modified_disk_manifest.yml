@@ -37,11 +37,6 @@ cloud_provider:
     port: 22
     user: vcap
     password: c1oudc0w
-  registry: &registry
-    host: 127.0.0.1
-    port: 6301
-    username: fake-registry-user
-    password: fake-registry-password
   mbus: https://admin:admin@10.244.0.42:6868
   properties:
     cpi: &warden_cpi
@@ -50,9 +45,6 @@ cloud_provider:
         connect_address: 0.0.0.0:7777
         network_pool: 10.244.0.0/16
         host_ip: 192.168.54.4
-      actions:
-        agent_env_service: registry
-        registry: *registry
       agent:
         mbus: https://admin:admin@0.0.0.0:6868
         blobstore:
