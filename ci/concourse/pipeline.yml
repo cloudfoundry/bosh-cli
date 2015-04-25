@@ -1,6 +1,7 @@
 ---
 jobs:
   - name: test-unit
+    public: true
     plan:
       - get:      bosh-init
       - aggregate:
@@ -8,6 +9,7 @@ jobs:
           file:       bosh-init/ci/concourse/tasks/test-unit.yml
 
   - name: test-integration
+    public: true
     plan:
       - get:      bosh-init
       - aggregate:
@@ -16,6 +18,7 @@ jobs:
           file:       bosh-init/ci/concourse/tasks/test-integration.yml
 
   - name: test-acceptance
+    public: true
     plan:
       - get:      bosh-init
       - aggregate:
@@ -109,6 +112,7 @@ resources:
   - name: version-semver
     type:       semver
     source:
+      initial_version: 0.0.8
       key:                current-version
       bucket:             {{aws_s3_release_bucket}}
       access_key_id:      {{aws_s3_release_bucket_access_key}}
