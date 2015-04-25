@@ -58,7 +58,7 @@ func (c *deployCmd) Name() string {
 func (c *deployCmd) Meta() Meta {
 	return Meta{
 		Synopsis: "Create or update a deployment",
-		Usage:    "<deployment_manifest_path> <stemcell_path> <cpi_release_path> [<release_paths...>]",
+		Usage:    "<deployment_manifest_path>",
 		Env:      genericEnv,
 	}
 }
