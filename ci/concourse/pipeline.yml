@@ -21,6 +21,7 @@ jobs:
     public: true
     plan:
       - get:      bosh-init
+        passed:   [test-unit,test-integration]
       - aggregate:
         - task:       test-acceptance
           privileged: true
@@ -37,7 +38,7 @@ jobs:
   - name: bump
     plan:
       - get:      bosh-init
-        passed:   [test-unit,test-integration,test-acceptance]
+        passed:   [test-acceptance]
       - get:      version-semver
         trigger:  false
         params:   { bump: patch }
