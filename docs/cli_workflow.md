@@ -1,100 +1,90 @@
 # Create deployment manifest
-This file will be used by the BOSH Micro CLI to deploy Micro BOSH.
+
+This file will be used by the bosh-init to deploy BOSH.
 
 ### Example deployment manifest
 
 ```yaml
 ---
-name: micro-bosh
+name: redis
+
+releases:
+- name: bosh-aws-cpi
+  url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-aws-cpi-release?v=7
+  sha1: 6545812c1c8245331b8c420f886dafd24b866eed
+- name: redis
+  url: https://bosh.io/d/github.com/cloudfoundry-community/redis-boshrelease?v=9.1
+  sha1: e18fac6f755c9d8cd90d2f9fad40a7023d1c672f
+
+resource_pools:
+- name: default
+  network: default
+  stemcell:
+    url: file://./light-bosh-stemcell-2941-aws-xen-ubuntu-trusty-go_agent.tgz
+  cloud_properties:
+    instance_type: m3.medium
+    availability_zone: ap-northeast-1c
 
 networks:
 - name: default
   type: dynamic
-  cloud_properties:
-    subnet: AWS_SUBNET_NAME
+  cloud_properties: {subnet: subnet-5907c031}
 - name: vip
   type: vip
 
-resource_pools:
-- name: default
-  cloud_properties:
-    instance_type: AWS_INSTANCE_TYPE
-    availability_zone: AWS_AVAILABILITY_ZONE
+jobs:
+- name: redis
+  instances: 1
+  templates:
+  - {name: redis, release: redis}
+  resource_pool: default
+  persistent_disk: 10240
+  networks:
+  - {name: vip, static_ips: [52.68.164.131]}
+  - name: default
+  properties:
+    redis: {port: 6379}
 
 cloud_provider:
+  template: {name: cpi, release: bosh-aws-cpi}
+
   ssh_tunnel:
-    host: MICRO_BOSH_IP
+    host: 52.68.164.131
     port: 22
-    user: ssh-user
-    password: ssh-password
-  registry:
-    username: registry-user
-    password: registry-password
-    port: 6901
-    host: localhost
-  mbus: https://mbus-user:mbus-password@MICRO_BOSH_IP:6868
-  properties: # properties that are saved in registry by CPI for the agent
-    blobstore:
-      provider: local
-      path: /var/vcap/micro_bosh/data/cache
-    registry:
-      username: admin
-      password: admin
-      port: 6901
-      host: localhost
-    ntp: [NTP_ADDRESS]
+    user: vcap
+    private_key: ./bosh.pem
+
+  mbus: https://nats:nats@52.68.164.131:6868
+
+  properties:
     aws:
-      access_key_id: AWS_SECRET_KEY
-      secret_access_key: AWS_ACCESS_KEY
-      default_key_name: AWS_KEY_NAME
-      default_security_groups: [AWS_SECURITY_GROUP_NAME]
-      region: AWS_REGION
-      ec2_private_key: PATH_TO_PRIVATE_KEY
-    agent:
-      mbus: https://mbus-user:mbus-password@0.0.0.0:6868
+      access_key_id: AKI...
+      secret_access_key: 0kw...
+      default_key_name: bosh
+      default_security_groups: [bosh]
+      region: ap-northeast-1
 
-jobs:
-- name: bosh
-  templates:
-  - name: nats
-  - name: redis
-  - name: postgres
-  - name: powerdns
-  - name: blobstore
-  - name: director
-  - name: health_monitor
-  - name: registry
-  networks:
-  - name: default
-  - name: vip
-    static_ips:
-    - MICRO_BOSH_IP
-  properties: # properties that are used to render job templates
-    nats:
-      user: nats
-      password: nats
-      address: 127.0.0.1
-    ...
+    agent: {mbus: "https://nats:nats@0.0.0.0:6868"}
 
+    blobstore: {provider: local, path: /var/vcap/micro_bosh/data/cache}
+
+    ntp: [0.north-america.pool.ntp.org]
 ```
+
 See [https://github.com/cloudfoundry/bosh/tree/master/release/jobs](https://github.com/cloudfoundry/bosh/tree/master/release/jobs) for defaults
 
-# Set deployment manifest
+# Deploy VM
 
-The command below sets the deployment manifest. The current deployment path is saved to `~/.bosh_init.json`.
+The command below deploys VM with given releases using CPI release and stemcell.
 
-    bosh-init deployment manifest.yml
-
-# Deploy Microbosh
-
-The command below deploys Micro BOSH with the provided CPI release and stemcell.
-
-    bosh-init deploy cpi-release.tgz stemcell.tgz
-
-Once the deploy is finished, Micro BOSH will be available to be targeted.
+```
+bosh-init deploy redis.yml
+```
 
 ---
+
 # Deployment Flow
+
 This section describes how the CLI works. These steps are performed by the CLI.
 
 For additional information see the [decision tree](micro-cli-flow.png) of the deploy command.
@@ -103,29 +93,31 @@ For additional information see the [decision tree](micro-cli-flow.png) of the de
 
 The first step of the deploy process is validation. As part of that validation the CLI verifies if there are changes in either manifest, release or stemcell. In case there are no changes CLI will exit early with message `Skipping deploy`.
 
-As part of manifest validation BOSH Micro CLI validates manifest properties and parses manifest for deploy. BOSH Micro CLI parses the deployment manifest into two parts: the BOSH deployment manifest, and the CPI deployment manifest.
+As part of manifest validation the CLI validates manifest properties and parses manifest for deploy. The CLI parses the deployment manifest into two parts: the deployment manifest, and the CPI configuration.
 
-The BOSH deployment manifest is used to deploy Micro BOSH. The Micro BOSH is defined by the `networks`, `resource_pools`, and `jobs` sections of the manifest. The BOSH micro job must be defined as the first job in the `jobs` section. Any other job will be ignored.
+The deployment manifest is used arbitrary releases onto a single VM. The deployment manifest is defined by the `networks`, `resource_pools`, `disk_pools`, and `jobs` sections of the manifest. Currently only one job is allowed to be specified since the CLI will only create single VM.
 
-The CPI deployment manifest is used to deploy the CPI locally. It is constructed from the `cloud_provider` section of the manifest.
+The CPI configuration is used to install and configure the CPI locally. It is constructed from the `cloud_provider` section of the manifest.
 
-## 2. Deploying CPI Release
+## 2. Installing CPI Release
 
-The provided CPI release is compiled on the machine where `bosh-init deploy` is run, and is used locally to run the CPI commands necessary to create the Micro BOSH.
+The provided CPI release is compiled on the machine where `bosh-init` is run, and is used locally to run the CPI commands necessary to create the VM.
 
-The CPI release must contain a job called `cpi`. During CPI release deployment, all the packages that the `cpi` job depends on will be compiled and their templates rendered. CPI job templates have access to properties defined in the `cloud_provider -> properties` section of the manifest.
+The CPI release must contain a job specified by the `cloud_provider.template.job`. During CPI installation, all the packages that the CPI job depends on will be compiled and their templates rendered. CPI job templates have access to properties defined in the `cloud_provider -> properties` section of the manifest.
 
-The compiled packages and rendered job templates are stored in a `~/.bosh_init/<deployment_uuid>` folder for each deployment.
+The compiled packages and rendered job templates are stored in a `~/.bosh_init/<installation_id>` folder for each deployment.
 
 ## 3. Uploading Stemcell
 
-After the CPI is deployed locally, the CLI calls the `create_stemcell` CPI method with the provided stemcell.
+After the CPI is installed locally, the CLI calls the `create_stemcell` CPI method with the provided stemcell.
 
 ## 4. Starting Registry
 
-Before deploying Micro BOSH, the CLI starts the registry. The registry can be used by the CPI to store mutable data to be later accessed by the agent on the Micro BOSH VM. The registry is a service to store mutable data when the infrastructure's metadata service is immutable. This data is anything that is not known until after the CPI creates the VM that the agent will require. For example, information about any persistent disks that are attached to Micro BOSH after the Micro BOSH VM is created can be stored in the registry.
+Before creating a VM, the CLI starts the registry. The registry can be used by the CPI to store mutable data to be later accessed by the agent running on the VM. The registry is a service to store mutable data when the infrastructure's metadata service is immutable. This data is anything that is not known until after the CPI creates the VM that the agent will require. For example, information about any persistent disks that are attached to Micro BOSH after the Micro BOSH VM is created can be stored in the registry.
 
-The CPI will store the registry URL in the infrastructure's metadata service. The agent on the Micro BOSH VM will fetch registry settings from the provided URL.
+The CPI will store the registry URL in the infrastructure's metadata service. The agent on the VM will fetch registry settings from the provided URL.
+
+Note: We are planning to eventually remove the registry to simplify how CPIs behave.
 
 ## 5. Deleting existing VM
 
@@ -137,39 +129,37 @@ Next, the CLI sends the `create_vm` command to the CPI with the properties parse
 
 ## 7. Starting SSH Tunnel
 
-The CLI creates a reverse SSH tunnel to Micro BOSH VM using the properties provided in the manifest. This allows the agent on the Micro BOSH VM to access the registry, which is running on the machine where `bosh-init deploy` was run.
+The CLI creates a reverse SSH tunnel to BOSH VM using the properties provided in the manifest. This allows the agent on the VM to access the registry, which is running on the machine where `bosh-init deploy` was run.
 
 ## 8. Waiting for Agent
 
 Once the SSH tunnel is up the CLI uses provided mbus URL to issue ping messages to the agent on the Micro BOSH VM. Once the agent is ready it will respond to the ping.
 
-## 9. Sending stop message
+## 9. Creating disk
 
-Once agent is listening on Mbus endpoint micro CLI sends stop message to the agent. The agent is using `monit` to manage job states on VM. The stop is a preparation for the subsequent job update.
+The CLI will create and attach a disk to VM if it is requested in the deployment manifest. There are two ways to request the disk:
 
-## 10. Sending micro BOSH apply spec
-
-Next micro CLI sends apply message with the list of packages and jobs that should be installed on VM. The agent serves a blobstore at `<Mbus URL>/blobs` endpoint.
-
-For each of the template specified in micro BOSH job micro CLI downloads corresponding job template from the blobstore, renders the template with the properties specified for micro BOSH job in deployment manifest. Once all the templates are rendered micro CLI uploads the archive of all the rendered templates to the blobstore and generates an apply message. Apply message contains the list of all packages, spec of templates archive with uploaded blob ID, networks spec parsed from deployment manifest and configuration hash which is a digest of all rendered job template files.
-
-## 11. Sending start message
-
-Once `apply` task is finished micro CLI sends `start` message to the agent which starts installed jobs.
-
-## 12. Creating disk
-
-ClI will create and attach a disk to Micro BOSH VM if it is requested in manifest. There are two ways to request the disk:
-
-1. Adding `persistent_disk_pool` property on a Micro BOSH job which references the disk pool in the list of `disk_pools` specified on the top level of the manifest.
+1. Adding `persistent_disk_pool` property on a job which references the disk pool in the list of `disk_pools` specified on the top level of the manifest.
 2. Adding `persistent_disk` property which specifies the size of persistent disk.
 
-You should use `disk_pools` if you want to use disk cloud_properties.
+You should use `disk_pools` if you want to use disk `cloud_properties`.
 
-In this case the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in deployment state file in the same folder as the deployment manifest.
+In this case the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in deployment state file.
 
-## 13. Attaching disk
+## 10. Attaching disk
 
 After disk is created CLI calls `attach_disk` CPI method. After disk is attached CLI issues `mount_disk` request to the agent on the Micro BOSH VM.
 
-# To be continued…
+## 11. Sending stop message
+
+Once agent is listening on mbus URL, the CLI sends stop message to the agent. The agent is using `monit` to manage job states on VM. The stop is a preparation for the subsequent job update.
+
+## 12. Sending apply message
+
+Next the CLI sends apply message with the list of packages and jobs that should be installed on VM. The agent serves a blobstore at `<mbus URL>/blobs` endpoint.
+
+For each of the template specified, the CLI downloads corresponding job template from the blobstore, renders the template with the properties specified for job in deployment manifest. Once all the templates are rendered the CLI uploads the archive of all the rendered templates to the blobstore and generates an apply message. Apply message contains the list of all packages, spec of templates archive with uploaded blob ID, networks spec parsed from deployment manifest and configuration hash which is a digest of all rendered job template files.
+
+## 13. Sending start message
+
+Once `apply` task is finished the CLI sends `start` message to the agent which starts installed jobs.

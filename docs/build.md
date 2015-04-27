@@ -12,7 +12,7 @@ Get Golang and its dependencies (Mac example, replace with your package manager 
 - `brew install git` (Go needs git for the `go get` command)
 - `brew install hg` (Go needs mercurial for the `go get` command)
 
-Clone and set up the BOSH Micro CLI repository:
+Clone and set up the repository:
 
 - `go get -d github.com/cloudfoundry/bosh-init`
 - `cd $GOPATH/src/github.com/cloudfoundry/bosh-init`
@@ -23,6 +23,6 @@ To build the micro cli:
 
 - `bin/build` # The `bosh-init` binary will be located in `out/`
 
-Install tools used by the BOSH Micro CLI test suite:
+Install tools used by the test suite:
 
 - `bin/go get code.google.com/p/go.tools/cmd/vet`

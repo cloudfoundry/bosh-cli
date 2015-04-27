@@ -1,15 +1,14 @@
 ## Unit Tests
 
-Each package in the agent has its own unit tests and there are integration tests in the `integration` package.
+Each package in the CLI has its own unit tests and there are integration tests in the `integration` package.
 
 You can also run all tests with `bin/test`.
 
-
 ## Acceptance Tests
 
-The acceptance tests are designed to exercise the main commands of the bosh-init CLI (deployment, deploy, delete). 
+The acceptance tests are designed to exercise the main commands of the CLI (deployment, deploy, delete).
 
-They are not designed to verify the compatibility of CPIs or testing BOSH releases. 
+They are not designed to verify the compatibility of CPIs or testing BOSH releases.
 
 ### Dependencies
 
@@ -26,21 +25,18 @@ They are not designed to verify the compatibility of CPIs or testing BOSH releas
 Acceptance tests can be run in a VM with the following vagrant providers:
 
 * [virtualbox](https://www.virtualbox.org/) (free)
-* [vmware_fusion](http://www.vmware.com/products/fusion)
-* [vmware_workstation](http://www.vmware.com/products/workstation)
 * [aws](http://aws.amazon.com/)
 
 #### Local Provider
 
-The acceptance tests can be run on a local VM (using virtual box, vmware fusion, or vmware_workstation with vagrant).
+The acceptance tests can be run on a local VM (using Virtual Box with vagrant).
 
 The acceptance tests require a stemcell and a BOSH Warden CPI release.
-  
+
 Without specifying them, a specific (known to work) version of each will be downloaded.
-  
-You may alternatively choose to download them to a local directory and specify their paths via environment variables.
-They will then be scp'd onto the vagrant VM.
-  
+
+You may alternatively choose to download them to a local directory and specify their paths via environment variables. They will then be scp'd onto the vagrant VM.
+
 To take advantage of this feature, export the following variables prior to running the tests (absolute paths are required):
 
 ```
@@ -85,11 +81,14 @@ Acceptance tests use configuration file specified via `BOSH_INIT_CONFIG_PATH`. T
   "vm_username": "TEST_VM_USERNAME",
   "vm_ip": "TEST_VM_IP",
   "private_key_path": "TEST_VM_PRIVATE_KEY_PATH",
-  "cpi_release_path": "CPI_RELEASE_PATH",
+
   "cpi_release_url": "CPI_RELEASE_URL",
-  "stemcell_path": "STEMCELL_PATH",
-  "stemcell_url": "STEMCELL_URL"
-  "dummy_release_path": "DUMMY_RELEASE_PATH",
+  "cpi_release_sha1": "CPI_RELEASE_SHA1",
+
+  "stemcell_url": "STEMCELL_URL",
+  "stemcell_sha1":"STEMCELL_SHA1",
+
+  "dummy_release_path": "DUMMY_RELEASE_PATH"
 }
 ```
 

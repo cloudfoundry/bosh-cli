@@ -10,7 +10,7 @@ Updated tool that allows to bootstrap BOSH environment onto a single VM.
   [bosh-users](https://groups.google.com/a/cloudfoundry.org/group/bosh-users/topics) &
   [bosh-dev](https://groups.google.com/a/cloudfoundry.org/group/bosh-dev/topics) &
   [vcap-dev](https://groups.google.com/a/cloudfoundry.org/group/vcap-dev/topics) (for CF)
-* [CI server](https://concourse-1739433260.us-east-1.elb.amazonaws.com)
+* CI: [https://concourse-1739433260.us-east-1.elb.amazonaws.com](https://concourse-1739433260.us-east-1.elb.amazonaws.com)
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1133984)
 
 ## Usage
@@ -21,40 +21,30 @@ Updated tool that allows to bootstrap BOSH environment onto a single VM.
     bin/build
     ```
 
-1. Tell bosh-init which deployment manifest to use:
-
-    ```
-    out/bosh-init deployment manifest.yml
-    ```
-
-    See the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
-
 1. Deploy
 
     ```
-    out/bosh-init deploy stemcell.tgz cpi-release.tgz bosh-release.tgz
+    out/bosh-init deploy manifest.yml
     ```
 
-    Where:
-
-    - `stemcell.tgz` is a [BOSH stemcell](http://bosh.io/stemcells) appropriate for the CPI release
-    - `cpi-release.tgz` is a [BOSH CPI release](http://bosh.io/releases)
-    - `bosh-release.tgz` is a [BOSH release](http://bosh.io/releases) of [BOSH](http://bosh.io/releases/github.com/cloudfoundry/bosh) or other software
-
+    See the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
 
 Once deployed, the BOSH director can be targeted using the [bosh_cli](https://rubygems.org/gems/bosh_cli).
 
 ## Example Deploy Output
 
-The following output (printed to STDOUT) is from deploying BOSH into a Warden Container (inside a bosh-lite vagrant VM).
+The following output (printed to STDOUT) is from deploying BOSH onto BOSH lite.
 
 ```
-> bosh-init deploy /home/vagrant/test-warden-stemcell.tgz /home/vagrant/bosh-warden-cpi-16.tgz /home/vagrant/bosh-2811.tgz
-Deployment manifest: '/home/vagrant/manifest.yml'
-Deployment state: '/home/vagrant/deployment.json'
+$ bosh-init deploy bosh.yml
+Deployment manifest: '/home/vagrant/bosh.yml'
+Deployment state: '/home/vagrant/bosh-state.json'
 
 Started validating
+  Downloading stemcell...  Finished (00:00:02)
   Validating stemcell... Finished (00:00:04)
+  Downloading release 'bosh'...  Finished (00:00:01)
+  Downloading release 'bosh-warden-cpi'...  Finished (00:00:01)
   Validating releases... Finished (00:00:03)
   Validating deployment manifest... Finished (00:00:00)
   Validating cpi release... Finished (00:00:00)
@@ -69,6 +59,7 @@ Started installing CPI
 Finished installing CPI (00:00:16)
 
 Starting registry... Finished (00:00:00)
+
 Uploading stemcell 'bosh-warden-boshlite-ubuntu-trusty-go_agent/0000'... Finished (00:00:14)
 
 Started deploying
@@ -99,9 +90,7 @@ Along with the UI output (STDOUT) and UI errors (STDERR), bosh-init can output m
 
 Logging is disabled by default (`BOSH_INIT_LOG_LEVEL` defaults to NONE).
 
-To enable logging, set the `BOSH_INIT_LOG_LEVEL` environment variable to one of the following values:
-
-DEBUG, INFO, WARN, ERROR, NONE (default)
+To enable logging, set the `BOSH_INIT_LOG_LEVEL` environment variable to one of the following values: DEBUG, INFO, WARN, ERROR, NONE (default)
 
 Logs write to STDOUT (debug & info) & STDERR (warn & error) by default.
 
@@ -109,12 +98,11 @@ To write logs to a file, set the `BOSH_INIT_LOG_PATH` environment variable to th
 
 ## Deployment State
 
-The current state of your deployment is stored in a `deployment.json` file in the same directory as your deployment manifest.
+The current state of your deployment is stored in a `<manifest>-state.json` file in the same directory as your deployment manifest.
 
-This allows you to deploy multiple deployments with different manifests, as long as they're in different directories.
+This allows you to deploy multiple deployments with different manifests.
 
-Do not delete this file unless you have already deleted your deployment (with `bosh-init delete` or by manually removing the VM, disk(s), & stemcell from the infrastructure).
-
+Do not delete this file unless you have already deleted your deployment (with `bosh-init delete <manifest>` or by manually removing the VM, disk(s), & stemcell from the infrastructure).
 
 ## Other
 

@@ -32,11 +32,8 @@ properties:
       password: DB-PASSWORD
     port: 25889
     nginx_port: 443
-    admin:
-      client_secret: PASSWORD
-    client:
-      autoapprove:
-      - bosh_cli
+    admin: {client_secret: PASSWORD}
+    client: {autoapprove: [bosh_cli]}
     clients:
       bosh_cli:
         id: bosh_cli
@@ -45,21 +42,17 @@ properties:
         scope: openid
         authorities: uaa.none
         secret: ""
-    cc:
-      token_secret: "uaa-secret-key"
+    cc: {token_secret: "uaa-secret-key"}
     scim:
       users:
       - marissa|koala|marissa@test.org|Marissa|Bloggs|uaa.user
       userids_enabled: true
     url: https://ADDRESS
-    login:
-      client_secret: PASSWORD
+    login: {client_secret: PASSWORD}
     ssl:
       key: SSL_CERTIFICATE_KEY
       cert: SSL_CERTIFICATE
-
   domain: example.com
-
   login:
     url: LOGIN_SERVER_URL
     entityBaseURL: LOGIN_SERVER_URL
@@ -108,4 +101,5 @@ properties:
           iconUrl: 'http://link.to/icon.jpg'
 
 ### Notes
-* uaa.nginx_port must be 443 due to tomcat redirect which ignores forwarded port
+
+* uaa.nginx_port must be 443 due to Tomcat redirect which ignores forwarded port
