@@ -4,6 +4,13 @@ set -e
 
 base=$PWD
 
+user=`whoami`
+
+if [[ "$user" != "root" ]]; then
+  echo "acceptance tests must be run as a privileged user"
+  exit 1
+fi
+
 cleanup() {
   ( cd $base && vagrant destroy -f )
 }
