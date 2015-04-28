@@ -54,7 +54,7 @@ func (c *deleteCmd) Name() string {
 func (c *deleteCmd) Meta() Meta {
 	return Meta{
 		Synopsis: "Delete existing deployment",
-		Usage:    "<deployment_manifest_path> <cpi_release_path>",
+		Usage:    "<deployment_manifest_path>",
 		Env:      genericEnv,
 	}
 }
