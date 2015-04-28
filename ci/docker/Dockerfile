@@ -8,11 +8,9 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get update
 RUN apt-get -y upgrade; apt-get clean
 
-RUN apt-get install -y build-essential; apt-get clean
-RUN apt-get install -y git; apt-get clean
-RUN apt-get install -y curl; apt-get clean
-RUN apt-get install -y wget; apt-get clean
-RUN apt-get install -y tar; apt-get clean
+RUN apt-get install -y build-essential zlib1g-dev libssl-dev libxml2-dev libsqlite3-dev libxslt1-dev libpq-dev libmysqlclient-dev
+RUN apt-get install -y git curl wget tar ruby ruby-dev
+RUN apt-get clean
 
 # package manager provides 1.4.3, which is too old for vagrant-aws
 RUN cd /tmp && wget -q https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.5_x86_64.deb && dpkg -i vagrant_1.6.5_x86_64.deb
