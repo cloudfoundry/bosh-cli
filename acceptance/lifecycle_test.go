@@ -63,17 +63,19 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	type manifestContext struct {
-		CpiReleaseURL    string
-		CpiReleaseSHA1   string
-		DummyReleasePath string
-		StemcellURL      string
-		StemcellSHA1     string
+		CpiReleaseURL       string
+		CpiReleaseSHA1      string
+		DummyReleasePath    string
+		DummyTooReleasePath string
+		StemcellURL         string
+		StemcellSHA1        string
 	}
 
 	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
 	var updateDeploymentManifest = func(sourceManifestPath string) {
 		context := manifestContext{
 			DummyReleasePath: testEnv.Path("dummy-release.tgz"),
+			DummyTooReleasePath: testEnv.Path("dummy-too-release.tgz"),
 		}
 
 		if config.IsLocalCpiRelease() {
@@ -243,6 +245,9 @@ var _ = Describe("bosh-init", func() {
 		}
 		err = testEnv.Copy("dummy-release.tgz", config.DummyReleasePath)
 		Expect(err).NotTo(HaveOccurred())
+
+		err = testEnv.Copy("dummy-too-release.tgz", config.DummyTooReleasePath)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Context("when the deploying with valid usage", func() {
@@ -279,6 +284,7 @@ var _ = Describe("bosh-init", func() {
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'dummy'" + stageFinishedPattern))
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'dummyToo'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating jobs" + stageFinishedPattern))
 			if !config.IsLocalStemcell() {
 				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading stemcell"))

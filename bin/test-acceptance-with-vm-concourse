@@ -14,6 +14,7 @@ cpi_release_sha1=d8df98e4e7b661ba793337d99f57bf0aad8f6a8e
 stemcell_sha1=8e3e4374a9971f868086523db0f24b3338b2108b
 stemcell_url=https://s3.amazonaws.com/bosh-dependencies/registry-test-warden-stemcell.tgz
 dummy_release_path=./assets/dummy-release.tgz
+dummy_too_release_path=./assets/dummy-too-release.tgz
 
 # Vagrant needs ubuntu to own the private key if aws provider
 tmpfile=`mktemp -t bosh-init-tests-XXXXXXXX`
@@ -40,7 +41,8 @@ cat > $config_file <<EOF
   
   "stemcell_sha1":"${stemcell_sha1}",
   "stemcell_url": "${stemcell_url}",
-  "dummy_release_path": "${dummy_release_path}"
+  "dummy_release_path": "${dummy_release_path}",
+  "dummy_too_release_path": "${dummy_too_release_path}"
 }
 EOF
 
