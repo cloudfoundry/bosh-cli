@@ -5,6 +5,8 @@ set -e -x
 export PATH=/usr/local/ruby/bin:/usr/local/go/bin:$PATH
 export GOPATH=$(pwd)/gopath
 
+base=`pwd`
+
 semver=`cat version-semver/number`
 timestamp=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 filename="bosh-init-${semver}-${GOOS}-${GOARCH}"
@@ -18,5 +20,6 @@ echo "building ${filename} with version ${version}"
 sed 's/\[DEV BUILD\]/'"$version"'/' cmd/version.go > cmd/version.tmp && mv cmd/version{.tmp,.go}
 
 bin/build
-ls -la out
-mv out/bosh-init out/${filename}
+
+mkdir $base/out
+mv out/bosh-init $base/out/${filename}
