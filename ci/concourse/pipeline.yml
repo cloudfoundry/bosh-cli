@@ -88,9 +88,8 @@ resources:
   - name: bosh-init
     type:       git
     source:
-      uri:         git@github.com:cloudfoundry/bosh-init.git
+      uri:         https://github.com/cloudfoundry/bosh-init
       branch:      develop
-      private_key: {{concourse_github_private_key}}
 
   - name: bosh-init-promoted
     type:       git
