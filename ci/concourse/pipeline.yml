@@ -36,6 +36,7 @@ jobs:
               BOSH_LITE_PRIVATE_KEY:      {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
 
   - name: bump
+    public: true
     plan:
       - get:      bosh-init
         passed:   [test-acceptance]
@@ -47,6 +48,7 @@ jobs:
           params: { file: version-semver/number }
 
   - name: build
+    public: true
     plan:
       - get:      bosh-init
         passed:   [bump]
@@ -69,6 +71,7 @@ jobs:
             tag_prefix: v
 
   - name: bump-minor
+    public: true
     plan:
       - get:      version-semver
         trigger:  false
@@ -77,6 +80,7 @@ jobs:
         params: { file: version-semver/number }
 
   - name: bump-major
+    public: true
     plan:
       - get:      version-semver
         trigger:  false
