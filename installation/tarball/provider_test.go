@@ -61,13 +61,13 @@ var _ = Describe("Provider", func() {
 			Context("when tarball is present in cache", func() {
 				BeforeEach(func() {
 					fs.WriteFileString("fake-source-path", "")
-					cache.Save("fake-source-path", tarballSource{sha1: "fake-sha1"})
+					cache.Save("fake-source-path", source)
 				})
 
 				It("returns cached tarball path", func() {
 					path, err := provider.Get(source, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(path).To(Equal("/fake-base-path/fake-sha1"))
+					Expect(path).To(Equal("/fake-base-path/9db1fb7c47637e8709e944a232e1aa98ce6fec26-fake-sha1"))
 				})
 
 				It("skips downloading stage", func() {
@@ -108,7 +108,7 @@ var _ = Describe("Provider", func() {
 					It("downloads tarball from given URL and returns saved cache tarball path", func() {
 						path, err := provider.Get(source, fakeStage)
 						Expect(err).ToNot(HaveOccurred())
-						Expect(path).To(Equal("/fake-base-path/fake-sha1"))
+						Expect(path).To(Equal("/fake-base-path/9db1fb7c47637e8709e944a232e1aa98ce6fec26-fake-sha1"))
 
 						Expect(httpClient.GetInputs).To(HaveLen(1))
 						Expect(httpClient.GetInputs[0].Endpoint).To(Equal("http://fake-url"))

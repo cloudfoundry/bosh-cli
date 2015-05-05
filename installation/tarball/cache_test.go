@@ -10,24 +10,6 @@ import (
 	. "github.com/cloudfoundry/bosh-init/installation/tarball"
 )
 
-type tarballSource struct {
-	url         string
-	sha1        string
-	description string
-}
-
-func (ts tarballSource) GetURL() string {
-	return ts.url
-}
-
-func (ts tarballSource) GetSHA1() string {
-	return ts.sha1
-}
-
-func (ts tarballSource) Description() string {
-	return ts.description
-}
-
 var _ = Describe("Cache", func() {
 	var (
 		cache Cache
@@ -44,44 +26,76 @@ var _ = Describe("Cache", func() {
 		)
 	})
 
-	Describe("Get", func() {
-		Context("when cached tarball exists", func() {
-			BeforeEach(func() {
-				fs.WriteFileString("/fake-base-path/fake-sha1", "")
-			})
+	It("is a cache hit when the tarball with that url and sha1 has been downloaded", func() {
+		fs.WriteFileString("source-path", "")
 
-			It("returns path to tarball", func() {
-				path, found := cache.Get(tarballSource{sha1: "fake-sha1"})
-				Expect(path).To(Equal("/fake-base-path/fake-sha1"))
-				Expect(found).To(BeTrue())
-			})
+		err := cache.Save("source-path", &fakeSource{
+			sha1:        "fake-sha1",
+			url:         "http://foo.bar.com",
+			description: "some tarball",
 		})
+		Expect(err).ToNot(HaveOccurred())
 
-		Context("when cached tarball does not exist", func() {
-			It("returns not found", func() {
-				path, found := cache.Get(tarballSource{sha1: "non-existent-fake-sha1"})
-				Expect(path).To(Equal(""))
-				Expect(found).To(BeFalse())
-			})
+		path, found := cache.Get(&fakeSource{
+			sha1:        "fake-sha1",
+			url:         "http://foo.bar.com",
+			description: "some tarball",
 		})
+		Expect(found).To(BeTrue())
+		Expect(fs.FileExists(path)).To(BeTrue())
 	})
 
-	Describe("Save", func() {
-		BeforeEach(func() {
-			fs.WriteFileString("source-path", "")
-		})
+	It("is a cache miss when a tarball from a different url has been downloaded, even if SHA1 matches", func() {
+		fs.WriteFileString("source-path", "")
 
-		It("saves the tarball", func() {
-			err := cache.Save("source-path", tarballSource{sha1: "fake-sha1"})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fs.FileExists("/fake-base-path/fake-sha1")).To(BeTrue())
+		err := cache.Save("source-path", &fakeSource{
+			sha1:        "fake-sha1",
+			url:         "http://foo.bar.com",
+			description: "some tarball",
 		})
+		Expect(err).ToNot(HaveOccurred())
 
-		Context("when saving tarball fails", func() {
-			It("returns error", func() {
-				err := cache.Save("nonexistent-source-path", tarballSource{sha1: "fake-sha1"})
-				Expect(err).To(HaveOccurred())
-			})
+		_, found := cache.Get(&fakeSource{
+			sha1:        "fake-sha1",
+			url:         "http://baz.bar.com",
+			description: "some tarball",
 		})
+		Expect(found).To(BeFalse())
+	})
+
+	It("is a cache miss when a tarball from a different SHA1 has been downloaded, even if url matches", func() {
+		fs.WriteFileString("source-path", "")
+
+		err := cache.Save("source-path", &fakeSource{
+			sha1:        "fake-sha1",
+			url:         "http://foo.bar.com",
+			description: "some tarball",
+		})
+		Expect(err).ToNot(HaveOccurred())
+
+		_, found := cache.Get(&fakeSource{
+			sha1:        "different-fake-sha1",
+			url:         "http://foo.bar.com",
+			description: "some tarball",
+		})
+		Expect(found).To(BeFalse())
+	})
+
+	It("saves files under the base path named with their URL sha1 and tarball sha1", func() {
+		fs.WriteFileString("source-path", "")
+
+		err := cache.Save("source-path", &fakeSource{
+			sha1:        "fake-sha1",
+			url:         "http://foo.bar.com",
+			description: "some tarball",
+		})
+		Expect(err).ToNot(HaveOccurred())
+		// echo -n "http://foo.bar.com" | openssl sha1 -> 587cd74a86333e7f1ebca70474a1f4456e4b5d3e
+		Expect(cache.Path(&fakeSource{
+			sha1:        "fake-sha1",
+			url:         "http://foo.bar.com",
+			description: "some tarball",
+		})).To(Equal("/fake-base-path/587cd74a86333e7f1ebca70474a1f4456e4b5d3e-fake-sha1"))
+		Expect(fs.FileExists("/fake-base-path/587cd74a86333e7f1ebca70474a1f4456e4b5d3e-fake-sha1")).To(BeTrue())
 	})
 })
