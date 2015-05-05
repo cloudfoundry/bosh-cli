@@ -10,6 +10,24 @@ import (
 	. "github.com/cloudfoundry/bosh-init/installation/tarball"
 )
 
+type tarballSource struct {
+	url         string
+	sha1        string
+	description string
+}
+
+func (ts tarballSource) GetURL() string {
+	return ts.url
+}
+
+func (ts tarballSource) GetSHA1() string {
+	return ts.sha1
+}
+
+func (ts tarballSource) Description() string {
+	return ts.description
+}
+
 var _ = Describe("Cache", func() {
 	var (
 		cache Cache
@@ -33,7 +51,7 @@ var _ = Describe("Cache", func() {
 			})
 
 			It("returns path to tarball", func() {
-				path, found := cache.Get("fake-sha1")
+				path, found := cache.Get(tarballSource{sha1: "fake-sha1"})
 				Expect(path).To(Equal("/fake-base-path/fake-sha1"))
 				Expect(found).To(BeTrue())
 			})
@@ -41,7 +59,7 @@ var _ = Describe("Cache", func() {
 
 		Context("when cached tarball does not exist", func() {
 			It("returns not found", func() {
-				path, found := cache.Get("non-existent-fake-sha1")
+				path, found := cache.Get(tarballSource{sha1: "non-existent-fake-sha1"})
 				Expect(path).To(Equal(""))
 				Expect(found).To(BeFalse())
 			})
@@ -49,21 +67,19 @@ var _ = Describe("Cache", func() {
 	})
 
 	Describe("Save", func() {
-		Context("when saving tarball succeeds", func() {
-			BeforeEach(func() {
-				fs.WriteFileString("source-path", "")
-			})
+		BeforeEach(func() {
+			fs.WriteFileString("source-path", "")
+		})
 
-			It("returns path to tarball", func() {
-				err := cache.Save("source-path", "fake-sha1")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(fs.FileExists("/fake-base-path/fake-sha1")).To(BeTrue())
-			})
+		It("saves the tarball", func() {
+			err := cache.Save("source-path", tarballSource{sha1: "fake-sha1"})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fs.FileExists("/fake-base-path/fake-sha1")).To(BeTrue())
 		})
 
 		Context("when saving tarball fails", func() {
 			It("returns error", func() {
-				err := cache.Save("source-path", "fake-sha1")
+				err := cache.Save("nonexistent-source-path", tarballSource{sha1: "fake-sha1"})
 				Expect(err).To(HaveOccurred())
 			})
 		})

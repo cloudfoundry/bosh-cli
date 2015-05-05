@@ -74,7 +74,7 @@ var _ = Describe("bosh-init", func() {
 	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
 	var updateDeploymentManifest = func(sourceManifestPath string) {
 		context := manifestContext{
-			DummyReleasePath: testEnv.Path("dummy-release.tgz"),
+			DummyReleasePath:    testEnv.Path("dummy-release.tgz"),
 			DummyTooReleasePath: testEnv.Path("dummy-too-release.tgz"),
 		}
 

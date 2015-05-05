@@ -12,6 +12,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
+
 	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
 	biui "github.com/cloudfoundry/bosh-init/ui"
@@ -91,7 +92,7 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 	var cachedPath string
 	err := stage.Perform(fmt.Sprintf("Downloading %s", source.Description()), func() error {
 		var found bool
-		cachedPath, found = p.cache.Get(source.GetSHA1())
+		cachedPath, found = p.cache.Get(source)
 		if found {
 			p.logger.Debug(p.logTag, "Using the tarball from cache: '%s'", cachedPath)
 			return biui.NewSkipStageError(bosherr.Error("Already downloaded"), "Found in local cache")
@@ -111,7 +112,7 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 		return "", err
 	}
 
-	return p.cache.Path(source.GetSHA1()), nil
+	return p.cache.Path(source), nil
 }
 
 func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
@@ -142,7 +143,7 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 			return true, bosherr.Errorf("SHA1 of downloaded file '%s' does not match expected SHA1 '%s'", downloadedSha1, source.GetSHA1())
 		}
 
-		err = p.cache.Save(downloadedFile.Name(), source.GetSHA1())
+		err = p.cache.Save(downloadedFile.Name(), source)
 		if err != nil {
 			return true, bosherr.WrapError(err, "Saving downloaded file in cache")
 		}

@@ -10,9 +10,9 @@ import (
 )
 
 type Cache interface {
-	Get(sha1 string) (path string, found bool)
-	Path(sha1 string) (path string)
-	Save(sourcePath string, sha1 string) error
+	Get(source Source) (path string, found bool)
+	Path(source Source) (path string)
+	Save(sourcePath string, source Source) error
 }
 
 type cache struct {
@@ -31,8 +31,8 @@ func NewCache(basePath string, fs boshsys.FileSystem, logger boshlog.Logger) Cac
 	}
 }
 
-func (c *cache) Get(sha1 string) (string, bool) {
-	cachedPath := c.Path(sha1)
+func (c *cache) Get(source Source) (string, bool) {
+	cachedPath := c.Path(source)
 	if c.fs.FileExists(cachedPath) {
 		c.logger.Debug(c.logTag, "Found cached tarball at: '%s'", cachedPath)
 		return cachedPath, true
@@ -41,21 +41,21 @@ func (c *cache) Get(sha1 string) (string, bool) {
 	return "", false
 }
 
-func (c *cache) Save(sourcePath string, sha1 string) error {
+func (c *cache) Save(sourcePath string, source Source) error {
 	err := c.fs.MkdirAll(c.basePath, os.FileMode(0766))
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Failed to create cache directory '%s'", c.basePath)
 	}
 
-	err = c.fs.Rename(sourcePath, c.Path(sha1))
+	err = c.fs.Rename(sourcePath, c.Path(source))
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Failed to save tarball path '%s' in cache", sourcePath)
 	}
 
-	c.logger.Debug(c.logTag, "Saving tarball in cache at: '%s'", c.Path(sha1))
+	c.logger.Debug(c.logTag, "Saving tarball in cache at: '%s'", c.Path(source))
 	return nil
 }
 
-func (c *cache) Path(sha1 string) string {
-	return filepath.Join(c.basePath, sha1)
+func (c *cache) Path(source Source) string {
+	return filepath.Join(c.basePath, source.GetSHA1())
 }

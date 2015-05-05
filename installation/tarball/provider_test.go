@@ -61,7 +61,7 @@ var _ = Describe("Provider", func() {
 			Context("when tarball is present in cache", func() {
 				BeforeEach(func() {
 					fs.WriteFileString("fake-source-path", "")
-					cache.Save("fake-source-path", "fake-sha1")
+					cache.Save("fake-source-path", tarballSource{sha1: "fake-sha1"})
 				})
 
 				It("returns cached tarball path", func() {
