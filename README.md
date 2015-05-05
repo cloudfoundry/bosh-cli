@@ -3,11 +3,8 @@
 `bosh-init` is a tool used to create and update the Director (its VM and persistent disk) in a BOSH environment.
 
 * Documentation: [bosh.io/docs](https://bosh.io/docs)
-* IRC: `#bosh` on freenode
-* Google groups:
-  [bosh-users](https://groups.google.com/a/cloudfoundry.org/group/bosh-users/topics) &
-  [bosh-dev](https://groups.google.com/a/cloudfoundry.org/group/bosh-dev/topics) &
-  [vcap-dev](https://groups.google.com/a/cloudfoundry.org/group/vcap-dev/topics) (for CF)
+* IRC: [`#bosh` on freenode](http://webchat.freenode.net/?channels=bosh)
+* Mailing list: [cf-bosh](https://lists.cloudfoundry.org/pipermail/cf-bosh)
 * CI: [https://concourse-1739433260.us-east-1.elb.amazonaws.com](https://concourse-1739433260.us-east-1.elb.amazonaws.com)
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1133984)
 
