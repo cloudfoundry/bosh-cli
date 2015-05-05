@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	VMNotFoundError       = "Bosh::Cloud::VMNotFound"
-	DiskNotFoundError     = "Bosh::Cloud::DiskNotFound"
-	StemcellNotFoundError = "Bosh::Cloud::StemcellNotFound"
+	VMNotFoundError       = "Bosh::Clouds::VMNotFound"
+	DiskNotFoundError     = "Bosh::Clouds::DiskNotFound"
+	StemcellNotFoundError = "Bosh::Clouds::StemcellNotFound"
 )
 
 type Error interface {

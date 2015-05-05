@@ -260,7 +260,7 @@ var _ = Describe("Instance", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Deleting VM 'fake-vm-cid'"))
-				Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("VM not found: CPI 'delete_vm' method responded with error: CmdError{\"type\":\"Bosh::Cloud::VMNotFound\",\"message\":\"fake-vm-not-found-message\",\"ok_to_retry\":false}"))
+				Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("VM not found: CPI 'delete_vm' method responded with error: CmdError{\"type\":\"Bosh::Clouds::VMNotFound\",\"message\":\"fake-vm-not-found-message\",\"ok_to_retry\":false}"))
 			})
 		})
 	})

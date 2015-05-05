@@ -2,6 +2,7 @@ package cloud_test
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 
 	. "github.com/onsi/ginkgo"
@@ -100,7 +101,22 @@ var _ = Describe("CpiCmdRunner", func() {
 			})
 		})
 
-		Context("when the command fails", func() {
+		Context("when running the command fails", func() {
+			BeforeEach(func() {
+				result := fakesys.FakeCmdResult{
+					Error: errors.New("fake-error-trying-to-run-command"),
+				}
+				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
+			})
+
+			It("returns an error", func() {
+				_, err := cpiCmdRunner.Run(context, "fake-method", "fake-argument")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-error-trying-to-run-command"))
+			})
+		})
+
+		Context("when the command runs but fails", func() {
 			BeforeEach(func() {
 				cmdOutput := CmdOutput{
 					Error: &CmdError{
@@ -118,10 +134,10 @@ var _ = Describe("CpiCmdRunner", func() {
 				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 			})
 
-			It("returns an error", func() {
-				_, err := cpiCmdRunner.Run(context, "fake-method", "fake-argument")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
+			It("returns the command output and no error", func() {
+				cmdOutput, err := cpiCmdRunner.Run(context, "fake-method", "fake-argument")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cmdOutput.Error.Message).To(ContainSubstring("fake-run-error"))
 			})
 		})
 	})

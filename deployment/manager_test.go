@@ -300,7 +300,7 @@ var _ = Describe("Manager", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeStage.PerformCalls[0].Name).To(Equal("Deleting unused disk 'orphan-disk-cid'"))
-					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Disk Not Found: CPI 'delete_disk' method responded with error: CmdError{\"type\":\"Bosh::Cloud::DiskNotFound\",\"message\":\"fake-disk-not-found-message\",\"ok_to_retry\":false}"))
+					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Disk Not Found: CPI 'delete_disk' method responded with error: CmdError{\"type\":\"Bosh::Clouds::DiskNotFound\",\"message\":\"fake-disk-not-found-message\",\"ok_to_retry\":false}"))
 				})
 			})
 		})
@@ -358,7 +358,7 @@ var _ = Describe("Manager", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeStage.PerformCalls[0].Name).To(Equal("Deleting unused stemcell 'orphan-stemcell-cid'"))
-					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Stemcell not found: CPI 'delete_stemcell' method responded with error: CmdError{\"type\":\"Bosh::Cloud::StemcellNotFound\",\"message\":\"fake-stemcell-not-found-message\",\"ok_to_retry\":false}"))
+					Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(Equal("Stemcell not found: CPI 'delete_stemcell' method responded with error: CmdError{\"type\":\"Bosh::Clouds::StemcellNotFound\",\"message\":\"fake-stemcell-not-found-message\",\"ok_to_retry\":false}"))
 				})
 			})
 		})
