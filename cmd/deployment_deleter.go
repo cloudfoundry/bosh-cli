@@ -172,12 +172,11 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 			return nil
 		}
 
-		err = deployment.Delete(deleteStage)
-		if err != nil {
-			return bosherr.WrapError(err, "Deleting deployment")
-		}
-		return nil
+		return deployment.Delete(deleteStage)
 	})
+	if err != nil {
+		return bosherr.WrapError(err, "Deleting deployment")
+	}
 
 	if err = deploymentManager.Cleanup(stage); err != nil {
 		return err
