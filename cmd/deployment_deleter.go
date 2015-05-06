@@ -98,20 +98,49 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		return bosherr.WrapError(err, "Loading deployment state")
 	}
 
-	var installationManifest biinstallmanifest.Manifest
-	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
-		installationManifest, err = c.validate(stage, c.deploymentManifestPath)
-		return err
-	})
-	if err != nil {
-		return err
-	}
 	defer func() {
 		err := c.releaseManager.DeleteAll()
 		if err != nil {
 			c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
 		}
 	}()
+
+	var installationManifest biinstallmanifest.Manifest
+	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
+		var err error
+		var cpiReleaseRef birelmanifest.ReleaseRef
+
+		installationManifest, cpiReleaseRef, err = c.parseDeploymentManifest(stage, c.deploymentManifestPath)
+		if err != nil {
+			return err
+		}
+
+		releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiReleaseRef), stage)
+		if err != nil {
+			return err
+		}
+
+		err = stage.Perform(fmt.Sprintf("Validating release '%s'", cpiReleaseRef.Name), func() error {
+			cpiRelease, err := c.releaseExtractor.Extract(releasePath)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
+			}
+			c.releaseManager.Add(cpiRelease)
+
+			cpiReleaseRefJobName := installationManifest.Template.Name
+			err = bicpirel.NewValidator().Validate(cpiRelease, cpiReleaseRefJobName)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
+			}
+
+			return nil
+		})
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
 
 	installer, err := c.installerFactory.NewInstaller()
 	if err != nil {
@@ -178,21 +207,20 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		return bosherr.WrapError(err, "Deleting deployment")
 	}
 
-	if err = deploymentManager.Cleanup(stage); err != nil {
-		return err
-	}
-
-	return err
+	return deploymentManager.Cleanup(stage)
 }
 
-func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManifestPath string) (
-	installationManifest biinstallmanifest.Manifest,
-	err error,
+func (c *DeploymentDeleter) parseDeploymentManifest(validationStage biui.Stage, deploymentManifestPath string) (
+	biinstallmanifest.Manifest,
+	birelmanifest.ReleaseRef,
+	error,
 ) {
 	var cpiRelease birelmanifest.ReleaseRef
 	var releaseSetManifest birelsetmanifest.Manifest
+	var installationManifest biinstallmanifest.Manifest
 
-	err = validationStage.Perform("Validating deployment manifest", func() error {
+	err := validationStage.Perform("Validating deployment manifest", func() error {
+		var err error
 		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
@@ -222,41 +250,5 @@ func (c *DeploymentDeleter) validate(validationStage biui.Stage, deploymentManif
 
 		return nil
 	})
-	if err != nil {
-		return installationManifest, err
-	}
-
-	releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiRelease), validationStage)
-	if err != nil {
-		return installationManifest, err
-	}
-
-	err = validationStage.Perform(fmt.Sprintf("Validating release '%s'", cpiRelease.Name), func() error {
-		release, err := c.releaseExtractor.Extract(releasePath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
-		}
-		c.releaseManager.Add(release)
-
-		cpiReleaseJobName := installationManifest.Template.Name
-		err = bicpirel.NewValidator().Validate(release, cpiReleaseJobName)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", release.Name())
-		}
-
-		return nil
-	})
-	if err != nil {
-		return installationManifest, err
-	}
-	defer func() {
-		if err != nil {
-			err := c.releaseManager.DeleteAll()
-			if err != nil {
-				c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
-			}
-		}
-	}()
-
-	return installationManifest, err
+	return installationManifest, cpiRelease, err
 }
