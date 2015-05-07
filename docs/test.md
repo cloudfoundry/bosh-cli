@@ -103,4 +103,4 @@ BOSH_INIT_CONFIG_PATH=config.json bin/test-acceptance
 If your acceptance tests are failing mysteriously while running a command, here are some things to check:
 
  * `vagrant ssh` to the vm running the specs and check out the `bosh-init.log` in the vagrant user home directory
- * If your agent isn't starting, get its IP from the micro logs (see above). Then you can `ssh vcap@<ip>` and check out `/var/vcap/bosh/log/current`
+ * If your agent isn't starting, get its IP from the bosh-init logs (see above). Then you can `ssh vcap@<ip>` and check out `/var/vcap/bosh/log/current`
