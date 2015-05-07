@@ -87,6 +87,7 @@ func (b *builder) Build(installationManifest biinstallmanifest.Manifest, stage b
 	return NewState(renderedJobRefs[0], compiledInstallationPackageRefs), nil
 }
 
+// FIXME: why do i exist here and in deployment/instance/state/builder.go??
 func (b *builder) resolveJobs(jobRefs []biinstallmanifest.ReleaseJobRef) ([]bireljob.Job, error) {
 	releaseJobs := make([]bireljob.Job, len(jobRefs), len(jobRefs))
 	for i, jobRef := range jobRefs {

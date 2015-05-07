@@ -115,28 +115,8 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 			return err
 		}
 
-		releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiReleaseRef), stage)
-		if err != nil {
-			return err
-		}
-
-		err = stage.Perform(fmt.Sprintf("Validating release '%s'", cpiReleaseRef.Name), func() error {
-			cpiRelease, err := c.releaseExtractor.Extract(releasePath)
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
-			}
-			c.releaseManager.Add(cpiRelease)
-
-			cpiReleaseRefJobName := installationManifest.Template.Name
-			err = bicpirel.NewValidator().Validate(cpiRelease, cpiReleaseRefJobName)
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
-			}
-
-			return nil
-		})
-
-		return err
+		cpiJobName := installationManifest.Template.Name
+		return c.extractAndValidateCpiRelease(stage, cpiJobName, cpiReleaseRef)
 	})
 	if err != nil {
 		return err
@@ -156,58 +136,69 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		return err
 	}
 
-	err = stage.Perform("Starting registry", func() error {
-		return installation.StartRegistry()
+	return installation.WithRunningRegistry(c.logger, stage, func() error {
+		c.logger.Debug(c.logTag, "Creating cloud client...")
+		cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
+		if err != nil {
+			return bosherr.WrapError(err, "Creating CPI client from CPI installation")
+		}
+
+		c.logger.Debug(c.logTag, "Creating agent client...")
+		agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
+
+		c.logger.Debug(c.logTag, "Creating blobstore client...")
+		blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
+		if err != nil {
+			return bosherr.WrapError(err, "Creating blobstore client")
+		}
+
+		c.logger.Debug(c.logTag, "Creating deployment manager...")
+		deploymentManager := c.deploymentManagerFactory.NewManager(cloud, agentClient, blobstore)
+
+		c.logger.Debug(c.logTag, "Finding current deployment...")
+		deployment, found, err := deploymentManager.FindCurrent()
+		if err != nil {
+			return bosherr.WrapError(err, "Finding current deployment")
+		}
+
+		err = stage.PerformComplex("deleting deployment", func(deleteStage biui.Stage) error {
+			if !found {
+				//TODO: skip? would require adding skip support to PerformComplex
+				c.logger.Debug(c.logTag, "No current deployment found...")
+				return nil
+			}
+
+			return deployment.Delete(deleteStage)
+		})
+		if err != nil {
+			return bosherr.WrapError(err, "Deleting deployment")
+		}
+
+		return deploymentManager.Cleanup(stage)
 	})
+}
+
+func (c *DeploymentDeleter) extractAndValidateCpiRelease(stage biui.Stage, cpiJobName string, cpiReleaseRef birelmanifest.ReleaseRef) error {
+	releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiReleaseRef), stage)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		//TODO: wrap stopping registry in stage?
-		err := installation.StopRegistry()
+
+	err = stage.Perform(fmt.Sprintf("Validating release '%s'", cpiReleaseRef.Name), func() error {
+		cpiRelease, err := c.releaseExtractor.Extract(releasePath)
 		if err != nil {
-			c.logger.Warn(c.logTag, "Registry failed to stop: %s", err)
+			return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
 		}
-	}()
+		c.releaseManager.Add(cpiRelease)
 
-	c.logger.Debug(c.logTag, "Creating cloud client...")
-	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
-	}
-
-	c.logger.Debug(c.logTag, "Creating agent client...")
-	agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
-
-	c.logger.Debug(c.logTag, "Creating blobstore client...")
-	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating blobstore client")
-	}
-
-	c.logger.Debug(c.logTag, "Creating deployment manager...")
-	deploymentManager := c.deploymentManagerFactory.NewManager(cloud, agentClient, blobstore)
-
-	c.logger.Debug(c.logTag, "Finding current deployment...")
-	deployment, found, err := deploymentManager.FindCurrent()
-	if err != nil {
-		return bosherr.WrapError(err, "Finding current deployment")
-	}
-
-	err = stage.PerformComplex("deleting deployment", func(deleteStage biui.Stage) error {
-		if !found {
-			//TODO: skip? would require adding skip support to PerformComplex
-			c.logger.Debug(c.logTag, "No current deployment found...")
-			return nil
+		err = bicpirel.NewValidator().Validate(cpiRelease, cpiJobName)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
 		}
 
-		return deployment.Delete(deleteStage)
+		return nil
 	})
-	if err != nil {
-		return bosherr.WrapError(err, "Deleting deployment")
-	}
-
-	return deploymentManager.Cleanup(stage)
+	return err
 }
 
 func (c *DeploymentDeleter) parseDeploymentManifest(validationStage biui.Stage, deploymentManifestPath string) (

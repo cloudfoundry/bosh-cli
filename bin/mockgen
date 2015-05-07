@@ -29,6 +29,7 @@ srcFiles=(
 	stemcell/CloudStemcell,Manager
   templatescompiler/JobRenderer,JobListRenderer,RenderedJob,RenderedJobList,RenderedJobListArchive,RenderedJobListCompressor
   blobstore/Factory,Blobstore
+  test_support/Spy
 )
 
 for srcFile in ${srcFiles[*]}; do

@@ -5,6 +5,7 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
+	logger "github.com/cloudfoundry/bosh-agent/logger"
 	installation "github.com/cloudfoundry/bosh-init/installation"
 	job "github.com/cloudfoundry/bosh-init/installation/job"
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
@@ -70,6 +71,16 @@ func (_m *MockInstallation) Target() installation.Target {
 
 func (_mr *_MockInstallationRecorder) Target() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Target")
+}
+
+func (_m *MockInstallation) WithRunningRegistry(_param0 logger.Logger, _param1 ui.Stage, _param2 func() error) error {
+	ret := _m.ctrl.Call(_m, "WithRunningRegistry", _param0, _param1, _param2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockInstallationRecorder) WithRunningRegistry(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "WithRunningRegistry", arg0, arg1, arg2)
 }
 
 // Mock of Installer interface

@@ -176,78 +176,66 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		return err
 	}
 
-	err = stage.Perform("Starting registry", func() error {
-		return installation.StartRegistry()
-	})
-	if err != nil {
-		return err
-	}
-	defer func() {
-		//TODO: wrap stopping registry in stage?
-		err := installation.StopRegistry()
+	return installation.WithRunningRegistry(c.logger, stage, func() error {
+		cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
 		if err != nil {
-			c.logger.Warn(c.logTag, "Registry failed to stop: %s", err)
-		}
-	}()
-
-	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
-	}
-
-	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-
-	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage)
-	if err != nil {
-		return err
-	}
-
-	agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
-	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
-
-	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating blobstore client")
-	}
-
-	err = stage.PerformComplex("deploying", func(deployStage biui.Stage) error {
-		err = c.deploymentRecord.Clear()
-		if err != nil {
-			return bosherr.WrapError(err, "Clearing deployment record")
+			return bosherr.WrapError(err, "Creating CPI client from CPI installation")
 		}
 
-		_, err = c.deployer.Deploy(
-			cloud,
-			deploymentManifest,
-			cloudStemcell,
-			installationManifest.Registry,
-			vmManager,
-			blobstore,
-			deployStage,
-		)
+		stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
+
+		cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage)
 		if err != nil {
-			return bosherr.WrapError(err, "Deploying")
+			return err
 		}
 
-		err = c.deploymentRecord.Update(c.deploymentManifestPath, c.releaseManager.List())
+		agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
+		vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
+
+		blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
 		if err != nil {
-			return bosherr.WrapError(err, "Updating deployment record")
+			return bosherr.WrapError(err, "Creating blobstore client")
+		}
+
+		err = stage.PerformComplex("deploying", func(deployStage biui.Stage) error {
+			err = c.deploymentRecord.Clear()
+			if err != nil {
+				return bosherr.WrapError(err, "Clearing deployment record")
+			}
+
+			_, err = c.deployer.Deploy(
+				cloud,
+				deploymentManifest,
+				cloudStemcell,
+				installationManifest.Registry,
+				vmManager,
+				blobstore,
+				deployStage,
+			)
+			if err != nil {
+				return bosherr.WrapError(err, "Deploying")
+			}
+
+			err = c.deploymentRecord.Update(c.deploymentManifestPath, c.releaseManager.List())
+			if err != nil {
+				return bosherr.WrapError(err, "Updating deployment record")
+			}
+
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		// TODO: cleanup unused disks here?
+
+		err = stemcellManager.DeleteUnused(stage)
+		if err != nil {
+			return err
 		}
 
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	// TODO: cleanup unused disks here?
-
-	err = stemcellManager.DeleteUnused(stage)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (c *DeploymentPreparer) validate(

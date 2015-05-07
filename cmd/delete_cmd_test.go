@@ -84,8 +84,7 @@ var _ = Describe("DeleteCmd", func() {
 			expectCPIExtractRelease *gomock.Call
 			expectCPIInstall        *gomock.Call
 			expectNewCloud          *gomock.Call
-			expectStartRegistry     *gomock.Call
-			expectStopRegistry      *gomock.Call
+			expectWithRegistry      *gomock.Call
 
 			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 		)
@@ -152,8 +151,9 @@ cloud_provider:
 
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(mockInstallation, directorID).Return(mockCloud, nil).AnyTimes()
 
-			expectStartRegistry = mockInstallation.EXPECT().StartRegistry().AnyTimes()
-			expectStopRegistry = mockInstallation.EXPECT().StopRegistry().AnyTimes()
+			expectWithRegistry = mockInstallation.EXPECT().WithRunningRegistry(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Do(func(log boshlog.Logger, stage biui.Stage, fn func() error) error {
+				return fn()
+			})
 		}
 
 		var newDeleteCmd = func() Cmd {
@@ -235,7 +235,7 @@ cloud_provider:
 					Name:  "installing CPI",
 					Stage: &fakebiui.FakeStage{},
 				},
-				{Name: "Starting registry"},
+				// mock installation.WithRegistryRunning doesn't add stages
 				{
 					Name:  "deleting deployment",
 					Stage: &fakebiui.FakeStage{},
@@ -346,10 +346,7 @@ cloud_provider:
 			It("starts & stops the registry", func() {
 				expectDeleteAndCleanup()
 
-				gomock.InOrder(
-					expectStartRegistry.Times(1),
-					expectStopRegistry.Times(1),
-				)
+				expectWithRegistry.Times(1)
 
 				err := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())

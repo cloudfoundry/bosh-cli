@@ -2,15 +2,18 @@ package installation
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Installation interface {
 	Target() Target
 	Job() biinstalljob.InstalledJob
+	WithRunningRegistry(boshlog.Logger, biui.Stage, func() error) error
 	StartRegistry() error
 	StopRegistry() error
 }
@@ -44,6 +47,26 @@ func (i *installation) Target() Target {
 
 func (i *installation) Job() biinstalljob.InstalledJob {
 	return i.job
+}
+
+func (i *installation) WithRunningRegistry(logger boshlog.Logger, stage biui.Stage, fn func() error) error {
+	err := stage.Perform("Starting registry", func() error {
+		return i.StartRegistry()
+	})
+	if err != nil {
+		return err
+	}
+	defer i.stopRegistryNice(logger, stage)
+	return fn()
+}
+
+func (i *installation) stopRegistryNice(logger boshlog.Logger, stage biui.Stage) {
+	err := stage.Perform("Stopping registry", func() error {
+		return i.StopRegistry()
+	})
+	if err != nil {
+		logger.Warn("installation", "Registry failed to stop: %s", err)
+	}
 }
 
 func (i *installation) StartRegistry() error {

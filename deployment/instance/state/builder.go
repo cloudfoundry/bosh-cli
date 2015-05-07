@@ -125,6 +125,7 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 	}, nil
 }
 
+// FIXME: why do i exist here and in installation/state/builder.go??
 func (b *builder) resolveJobs(jobRefs []bideplmanifest.ReleaseJobRef) ([]bireljob.Job, error) {
 	releaseJobs := make([]bireljob.Job, len(jobRefs), len(jobRefs))
 	for i, jobRef := range jobRefs {
