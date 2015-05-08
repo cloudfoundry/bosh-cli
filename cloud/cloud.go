@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
@@ -19,6 +20,7 @@ type Cloud interface {
 		networksInterfaces map[string]biproperty.Map,
 		env biproperty.Map,
 	) (vmCID string, err error)
+	SetVMMetadata(cmCID string, metadata VMMetadata) error
 	DeleteVM(vmCID string) error
 	CreateDisk(size int, cloudProperties biproperty.Map, vmCID string) (diskCID string, err error)
 	AttachDisk(vmCID, diskCID string) error
@@ -32,6 +34,13 @@ type cloud struct {
 	context      CmdContext
 	logger       boshlog.Logger
 	logTag       string
+}
+
+type VMMetadata struct {
+	Director   string `json:"director"`
+	Deployment string `json:"deployment"`
+	Job        string `json:"job"`
+	Index      string `json:"index"`
 }
 
 func NewCloud(
@@ -135,6 +144,25 @@ func (c cloud) CreateVM(
 		return "", bosherr.Errorf("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
 	return cidString, nil
+}
+
+func (c cloud) SetVMMetadata(vmCID string, metadata VMMetadata) error {
+	cmdOutput, err := c.cpiCmdRunner.Run(
+		c.context,
+		"set_vm_metadata",
+		vmCID,
+		metadata,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if cmdOutput.Error != nil {
+		return NewCPIError("set_vm_metadata", *cmdOutput.Error)
+	}
+
+	return nil
 }
 
 func (c cloud) CreateDisk(size int, cloudProperties biproperty.Map, vmCID string) (string, error) {

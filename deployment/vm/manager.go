@@ -102,6 +102,17 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapErrorf(err, "Creating vm with stemcell cid '%s'", stemcell.CID())
 	}
 
+	metadata := bicloud.VMMetadata{
+		Deployment: deploymentManifest.Name,
+		Job:        deploymentManifest.JobName(),
+		Index:      "0",
+		Director:   "bosh-init",
+	}
+	err = m.cloud.SetVMMetadata(cid, metadata)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Setting VM metadata to %s", metadata)
+	}
+
 	err = m.vmRepo.UpdateCurrent(cid)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Updating current vm record")

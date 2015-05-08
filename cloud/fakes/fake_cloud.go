@@ -1,6 +1,7 @@
 package fakes
 
 import (
+	"github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )
 
@@ -35,6 +36,10 @@ type FakeCloud struct {
 
 	DeleteStemcellInputs []DeleteStemcellInput
 	DeleteStemcellErr    error
+
+	SetVMMetadataCid      string
+	SetVMMetadataMetadata cloud.VMMetadata
+	SetVMMetadataError    error
 }
 
 type CreateStemcellInput struct {
@@ -128,6 +133,12 @@ func (c *FakeCloud) CreateVM(
 	}
 
 	return c.CreateVMCID, c.CreateVMErr
+}
+
+func (c *FakeCloud) SetVMMetadata(cid string, metadata cloud.VMMetadata) error {
+	c.SetVMMetadataCid = cid
+	c.SetVMMetadataMetadata = metadata
+	return c.SetVMMetadataError
 }
 
 func (c *FakeCloud) CreateDisk(
