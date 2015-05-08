@@ -8,6 +8,14 @@
 * CI: [https://concourse-1739433260.us-east-1.elb.amazonaws.com](https://concourse-1739433260.us-east-1.elb.amazonaws.com)
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1133984)
 
+## Usage
+
+Relevant documentation pages from bosh.io:
+
+- [General install instructions](http://bosh.io/docs#install)
+- [Install bosh-init](https://bosh.io/docs/install-bosh-init.html)
+- [Using bosh-init](https://bosh.io/docs/using-bosh-init.html)
+
 ## Developer Notes
 
 See the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
