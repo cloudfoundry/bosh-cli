@@ -87,7 +87,7 @@ bosh-init deploy redis.yml
 
 This section describes how the CLI works. These steps are performed by the CLI.
 
-For additional information see the [decision tree](micro-cli-flow.png) of the deploy command.
+For additional information see the [decision tree](init-cli-flow.png) of the deploy command.
 
 ## 1. Validating manifest, release and stemcell
 
