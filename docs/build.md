@@ -19,7 +19,7 @@ Clone and set up the repository:
 
 From here on out we assume you're working in `$GOPATH/src/github.com/cloudfoundry/bosh-init`
 
-To build the micro cli:
+To build the bosh-init cli:
 
 - `bin/build` # The `bosh-init` binary will be located in `out/`
 
