@@ -12,7 +12,7 @@
 
 Relevant documentation pages from bosh.io:
 
-- [General install instructions](http://bosh.io/docs#install)
+- [Installing BOSH](http://bosh.io/docs#install)
 - [Install bosh-init](https://bosh.io/docs/install-bosh-init.html)
 - [Using bosh-init](https://bosh.io/docs/using-bosh-init.html)
 
