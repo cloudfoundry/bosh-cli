@@ -466,6 +466,7 @@ cloud_provider:
 			gomock.InOrder(
 				mockCloud.EXPECT().CreateStemcell(stemcellImagePath, stemcellCloudProperties).Return(stemcellCID, nil),
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(vmCID, nil),
+				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				mockCloud.EXPECT().CreateDisk(diskSize, diskCloudProperties, vmCID).Return(diskCID, nil),
@@ -501,6 +502,7 @@ cloud_provider:
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -539,6 +541,7 @@ cloud_provider:
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -577,6 +580,7 @@ cloud_provider:
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attaching a missing disk will fail
@@ -609,6 +613,7 @@ cloud_provider:
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate (with error)
@@ -643,6 +648,7 @@ cloud_provider:
 
 				// create new vm
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
 				// attach both disks and migrate
@@ -698,6 +704,7 @@ cloud_provider:
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Do(
 					func(_, _, _, _, _ interface{}) { expectRegistryToWork() },
 				).Return(vmCID, nil),
+				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
 
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 

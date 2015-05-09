@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	"github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
@@ -140,11 +141,36 @@ var _ = Describe("Manager", func() {
 			))
 		})
 
+		It("sets the vm metadata", func() {
+			_, err := manager.Create(stemcell, deploymentManifest)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
+			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
+				Deployment: "fake-deployment",
+				Job:        "fake-job",
+				Index:      "0",
+				Director:   "bosh-init",
+			}))
+		})
+
 		It("updates the current vm record", func() {
 			_, err := manager.Create(stemcell, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
+		})
+
+		Context("when setting vm metadata fails", func() {
+			BeforeEach(func() {
+				fakeCloud.SetVMMetadataError = errors.New("fake-set-metadata-error")
+			})
+
+			It("returns an error", func() {
+				_, err := manager.Create(stemcell, deploymentManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-set-metadata-error"))
+			})
 		})
 
 		Context("when creating the vm fails", func() {
