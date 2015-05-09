@@ -30,6 +30,7 @@ srcFiles=(
   templatescompiler/JobRenderer,JobListRenderer,RenderedJob,RenderedJobList,RenderedJobListArchive,RenderedJobListCompressor
   blobstore/Factory,Blobstore
   test_support/Spy
+  cpi/release/CPIReleaseValidator
 )
 
 for srcFile in ${srcFiles[*]}; do

@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
@@ -14,10 +12,7 @@ import (
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
-	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
@@ -33,14 +28,9 @@ func NewDeploymentDeleter(
 	agentClientFactory bihttpagent.AgentClientFactory,
 	blobstoreFactory biblobstore.Factory,
 	deploymentManagerFactory bidepl.ManagerFactory,
-	releaseSetParser birelsetmanifest.Parser,
-	releaseSetValidator birelsetmanifest.Validator,
-	releaseExtractor birel.Extractor,
 	installationParser biinstallmanifest.Parser,
-	installationValidator biinstallmanifest.Validator,
 	deploymentManifestPath string,
-	tarballProvider bitarball.Provider,
-
+	cpiReleaseValidator bicpirel.CPIReleaseValidator,
 ) DeploymentDeleter {
 	return DeploymentDeleter{
 		ui:     ui,
@@ -54,13 +44,9 @@ func NewDeploymentDeleter(
 		agentClientFactory:       agentClientFactory,
 		blobstoreFactory:         blobstoreFactory,
 		deploymentManagerFactory: deploymentManagerFactory,
-		releaseSetParser:         releaseSetParser,
-		releaseSetValidator:      releaseSetValidator,
-		releaseExtractor:         releaseExtractor,
 		installationParser:       installationParser,
-		installationValidator:    installationValidator,
 		deploymentManifestPath:   deploymentManifestPath,
-		tarballProvider:          tarballProvider,
+		cpiReleaseValidator:      cpiReleaseValidator,
 	}
 }
 
@@ -76,13 +62,9 @@ type DeploymentDeleter struct {
 	agentClientFactory       bihttpagent.AgentClientFactory
 	blobstoreFactory         biblobstore.Factory
 	deploymentManagerFactory bidepl.ManagerFactory
-	releaseSetParser         birelsetmanifest.Parser
-	releaseSetValidator      birelsetmanifest.Validator
-	releaseExtractor         birel.Extractor
 	installationParser       biinstallmanifest.Parser
-	installationValidator    biinstallmanifest.Validator
 	deploymentManifestPath   string
-	tarballProvider          bitarball.Provider
+	cpiReleaseValidator      bicpirel.CPIReleaseValidator
 }
 
 func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
@@ -120,14 +102,22 @@ func (c *DeploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installati
 	if err != nil {
 		return err
 	}
+	err = c.findCurrentDeploymentAndDelete(stage, deploymentManager)
+	if err != nil {
+		return bosherr.WrapError(err, "Deleting deployment")
+	}
 
+	return deploymentManager.Cleanup(stage)
+}
+
+func (c *DeploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, deploymentManager bidepl.Manager) error {
 	c.logger.Debug(c.logTag, "Finding current deployment...")
 	deployment, found, err := deploymentManager.FindCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Finding current deployment")
 	}
 
-	err = stage.PerformComplex("deleting deployment", func(deleteStage biui.Stage) error {
+	return stage.PerformComplex("deleting deployment", func(deleteStage biui.Stage) error {
 		if !found {
 			//TODO: skip? would require adding skip support to PerformComplex
 			c.logger.Debug(c.logTag, "No current deployment found...")
@@ -136,11 +126,6 @@ func (c *DeploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installati
 
 		return deployment.Delete(deleteStage)
 	})
-	if err != nil {
-		return bosherr.WrapError(err, "Deleting deployment")
-	}
-
-	return deploymentManager.Cleanup(stage)
 }
 
 func (c *DeploymentDeleter) installCPI(stage biui.Stage) (biinstallmanifest.Manifest, biinstall.Installation, error) {
@@ -166,12 +151,18 @@ func (c *DeploymentDeleter) installationManifest(stage biui.Stage) (biinstallman
 	var installationManifest biinstallmanifest.Manifest
 	err := stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var err error
-		var cpiReleaseRef birelmanifest.ReleaseRef
-		installationManifest, cpiReleaseRef, err = c.parseDeploymentManifest(stage, c.deploymentManifestPath)
+		err = stage.Perform("Validating deployment manifest", func() error {
+			installationManifest, err = c.installationParser.Parse(c.deploymentManifestPath)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", c.deploymentManifestPath)
+			}
+			return err
+		})
 		if err != nil {
 			return err
 		}
-		return c.extractAndValidateCpiRelease(stage, installationManifest.Template.Name, cpiReleaseRef)
+
+		return c.cpiReleaseValidator.ValidateCPIReleaseRef(stage, c.deploymentManifestPath, installationManifest)
 	})
 	return installationManifest, err
 }
@@ -194,70 +185,4 @@ func (c *DeploymentDeleter) deploymentManager(installation biinstall.Installatio
 
 	c.logger.Debug(c.logTag, "Creating deployment manager...")
 	return c.deploymentManagerFactory.NewManager(cloud, agentClient, blobstore), nil
-}
-
-func (c *DeploymentDeleter) extractAndValidateCpiRelease(stage biui.Stage, cpiJobName string, cpiReleaseRef birelmanifest.ReleaseRef) error {
-	releasePath, err := c.tarballProvider.Get(bitarball.Source(cpiReleaseRef), stage)
-	if err != nil {
-		return err
-	}
-
-	err = stage.Perform(fmt.Sprintf("Validating release '%s'", cpiReleaseRef.Name), func() error {
-		cpiRelease, err := c.releaseExtractor.Extract(releasePath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
-		}
-		c.releaseManager.Add(cpiRelease)
-
-		err = bicpirel.NewValidator().Validate(cpiRelease, cpiJobName)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
-		}
-
-		return nil
-	})
-	return err
-}
-
-func (c *DeploymentDeleter) parseDeploymentManifest(validationStage biui.Stage, deploymentManifestPath string) (
-	biinstallmanifest.Manifest,
-	birelmanifest.ReleaseRef,
-	error,
-) {
-	var cpiRelease birelmanifest.ReleaseRef
-	var releaseSetManifest birelsetmanifest.Manifest
-	var installationManifest biinstallmanifest.Manifest
-
-	err := validationStage.Perform("Validating deployment manifest", func() error {
-		var err error
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-
-		releaseSetManifest, err = c.releaseSetParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.releaseSetValidator.Validate(releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating release set manifest")
-		}
-
-		err = c.installationValidator.Validate(installationManifest, releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating installation manifest")
-		}
-		cpiReleaseName := installationManifest.Template.Release
-
-		var found bool
-		cpiRelease, found = releaseSetManifest.FindByName(cpiReleaseName)
-		if !found {
-			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
-		}
-
-		return nil
-	})
-	return installationManifest, cpiRelease, err
 }

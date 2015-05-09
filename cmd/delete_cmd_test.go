@@ -23,6 +23,7 @@ import (
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
@@ -165,7 +166,7 @@ cloud_provider:
 			tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
 			fakeSHA1Calculator := fakebicrypto.NewFakeSha1Calculator()
 			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
-
+			cpiReleaseValidator := bicpirel.NewCPIReleaseValidator(releaseSetParser, releaseSetValidator, installationValidator, tarballProvider, mockReleaseExtractor, releaseManager)
 			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
 				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
@@ -181,13 +182,9 @@ cloud_provider:
 					mockAgentClientFactory,
 					mockBlobstoreFactory,
 					mockDeploymentManagerFactory,
-					releaseSetParser,
-					releaseSetValidator,
-					mockReleaseExtractor,
 					installationParser,
-					installationValidator,
 					deploymentManifestPath,
-					tarballProvider,
+					cpiReleaseValidator,
 				)
 
 				return deploymentDeleter

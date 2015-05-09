@@ -14,6 +14,7 @@ import (
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
 	bidepl "github.com/cloudfoundry/bosh-init/deployment"
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
@@ -74,6 +75,7 @@ type factory struct {
 	stateBuilderFactory    biinstancestate.BuilderFactory
 	compiledPackageRepo    bistatepkg.CompiledPackageRepo
 	tarballProvider        bitarball.Provider
+	cpiReleaseValidator    bicpirel.CPIReleaseValidator
 }
 
 func NewFactory(
@@ -277,7 +279,20 @@ func (f *factory) loadBlobstoreFactory() biblobstore.Factory {
 	f.blobstoreFactory = biblobstore.NewBlobstoreFactory(f.uuidGenerator, f.fs, f.logger)
 	return f.blobstoreFactory
 }
-
+func (f *factory) loadCPIReleaseValidator() bicpirel.CPIReleaseValidator {
+	if f.cpiReleaseValidator != nil {
+		return f.cpiReleaseValidator
+	}
+	f.cpiReleaseValidator = bicpirel.NewCPIReleaseValidator(
+		f.loadReleaseSetParser(),
+		f.loadReleaseSetValidator(),
+		f.loadInstallationValidator(),
+		f.loadTarballProvider(),
+		f.loadReleaseExtractor(),
+		f.loadReleaseManager(),
+	)
+	return f.cpiReleaseValidator
+}
 func (f *factory) loadReleaseExtractor() birel.Extractor {
 	if f.releaseExtractor != nil {
 		return f.releaseExtractor
@@ -441,13 +456,9 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
 		d.f.loadAgentClientFactory(),
 		d.f.loadBlobstoreFactory(),
 		d.loadDeploymentManagerFactory(),
-		d.f.loadReleaseSetParser(),
-		d.f.loadReleaseSetValidator(),
-		d.f.loadReleaseExtractor(),
 		d.f.loadInstallationParser(),
-		d.f.loadInstallationValidator(),
 		d.deploymentManifestPath,
-		d.f.loadTarballProvider(),
+		d.f.loadCPIReleaseValidator(),
 	)
 }
 
