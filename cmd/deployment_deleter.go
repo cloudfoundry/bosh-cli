@@ -16,6 +16,10 @@ import (
 	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
+type DeploymentDeleter interface {
+	DeleteDeployment(stage biui.Stage) (err error)
+}
+
 func NewDeploymentDeleter(
 	ui biui.UI,
 	logTag string,
@@ -32,7 +36,7 @@ func NewDeploymentDeleter(
 	deploymentManifestPath string,
 	cpiReleaseValidator bicpirel.CPIReleaseValidator,
 ) DeploymentDeleter {
-	return DeploymentDeleter{
+	return &deploymentDeleter{
 		ui:     ui,
 		logTag: logTag,
 		logger: logger,
@@ -50,7 +54,7 @@ func NewDeploymentDeleter(
 	}
 }
 
-type DeploymentDeleter struct {
+type deploymentDeleter struct {
 	ui                       biui.UI
 	logTag                   string
 	logger                   boshlog.Logger
@@ -67,7 +71,7 @@ type DeploymentDeleter struct {
 	cpiReleaseValidator      bicpirel.CPIReleaseValidator
 }
 
-func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
+func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -97,7 +101,7 @@ func (c *DeploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 	})
 }
 
-func (c *DeploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installation biinstall.Installation, directorID, installationMbus string) error {
+func (c *deploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installation biinstall.Installation, directorID, installationMbus string) error {
 	deploymentManager, err := c.deploymentManager(installation, directorID, installationMbus)
 	if err != nil {
 		return err
@@ -110,7 +114,7 @@ func (c *DeploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installati
 	return deploymentManager.Cleanup(stage)
 }
 
-func (c *DeploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, deploymentManager bidepl.Manager) error {
+func (c *deploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, deploymentManager bidepl.Manager) error {
 	c.logger.Debug(c.logTag, "Finding current deployment...")
 	deployment, found, err := deploymentManager.FindCurrent()
 	if err != nil {
@@ -128,7 +132,7 @@ func (c *DeploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, dep
 	})
 }
 
-func (c *DeploymentDeleter) installCPI(stage biui.Stage) (biinstallmanifest.Manifest, biinstall.Installation, error) {
+func (c *deploymentDeleter) installCPI(stage biui.Stage) (biinstallmanifest.Manifest, biinstall.Installation, error) {
 	installationManifest, err := c.installationManifest(stage)
 	if err != nil {
 		return installationManifest, nil, err
@@ -147,7 +151,7 @@ func (c *DeploymentDeleter) installCPI(stage biui.Stage) (biinstallmanifest.Mani
 	return installationManifest, installation, err
 }
 
-func (c *DeploymentDeleter) installationManifest(stage biui.Stage) (biinstallmanifest.Manifest, error) {
+func (c *deploymentDeleter) installationManifest(stage biui.Stage) (biinstallmanifest.Manifest, error) {
 	var installationManifest biinstallmanifest.Manifest
 	err := stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var err error
@@ -167,7 +171,7 @@ func (c *DeploymentDeleter) installationManifest(stage biui.Stage) (biinstallman
 	return installationManifest, err
 }
 
-func (c *DeploymentDeleter) deploymentManager(installation biinstall.Installation, directorID, installationMbus string) (bidepl.Manager, error) {
+func (c *deploymentDeleter) deploymentManager(installation biinstall.Installation, directorID, installationMbus string) (bidepl.Manager, error) {
 	c.logger.Debug(c.logTag, "Creating cloud client...")
 	cloud, err := c.cloudFactory.NewCloud(installation, directorID)
 	if err != nil {
