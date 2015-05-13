@@ -2,3 +2,4 @@
 /out/*
 tmp/
 **/*.test
+.idea/
