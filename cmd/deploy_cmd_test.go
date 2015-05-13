@@ -1,4 +1,4 @@
-package cmd
+package cmd_test
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
@@ -72,7 +74,7 @@ func rootDesc() {
 
 	Describe("Run", func() {
 		var (
-			command        Cmd
+			command        bicmd.Cmd
 			fakeFs         *fakesys.FakeFileSystem
 			stdOut         *gbytes.Buffer
 			stdErr         *gbytes.Buffer
@@ -308,7 +310,7 @@ func rootDesc() {
 
 		JustBeforeEach(func() {
 
-			doGet := func(deploymentManifestPath string) DeploymentPreparer {
+			doGet := func(deploymentManifestPath string) bicmd.DeploymentPreparer {
 				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
@@ -319,37 +321,36 @@ func rootDesc() {
 				tarballCache := bitarball.NewCache("fake-base-path", fakeFs, logger)
 				tarballProvider := bitarball.NewProvider(tarballCache, fakeFs, fakeHTTPClient, sha1Calculator, 1, 0, logger)
 
-				return DeploymentPreparer{
-					ui:     userInterface,
-					fs:     fakeFs,
-					logger: logger,
-					logTag: "deployCmd",
-
-					releaseSetParser:              fakeReleaseSetParser,
-					installationParser:            fakeInstallationParser,
-					deploymentParser:              fakeDeploymentParser,
-					legacyDeploymentStateMigrator: mockLegacyDeploymentStateMigrator,
-					deploymentStateService:        deploymentStateService,
-					releaseSetValidator:           fakeReleaseSetValidator,
-					installationValidator:         fakeInstallationValidator,
-					deploymentValidator:           fakeDeploymentValidator,
-					installerFactory:              mockInstallerFactory,
-					releaseExtractor:              mockReleaseExtractor,
-					releaseManager:                releaseManager,
-					cloudFactory:                  mockCloudFactory,
-					agentClientFactory:            mockAgentClientFactory,
-					vmManagerFactory:              mockVMManagerFactory,
-					stemcellExtractor:             fakeStemcellExtractor,
-					stemcellManagerFactory:        fakeStemcellManagerFactory,
-					deploymentRecord:              deploymentRecord,
-					blobstoreFactory:              mockBlobstoreFactory,
-					deployer:                      mockDeployer,
-					deploymentManifestPath:        deploymentManifestPath,
-					tarballProvider:               tarballProvider,
-				}
+				return bicmd.NewDeploymentPreparer(
+					userInterface,
+					fakeFs,
+					logger,
+					"deployCmd",
+					deploymentStateService,
+					mockLegacyDeploymentStateMigrator,
+					releaseManager,
+					deploymentRecord,
+					mockInstallerFactory,
+					mockCloudFactory,
+					fakeStemcellManagerFactory,
+					mockAgentClientFactory,
+					mockVMManagerFactory,
+					mockBlobstoreFactory,
+					mockDeployer,
+					fakeReleaseSetParser,
+					fakeInstallationParser,
+					fakeDeploymentParser,
+					fakeReleaseSetValidator,
+					fakeInstallationValidator,
+					fakeDeploymentValidator,
+					mockReleaseExtractor,
+					fakeStemcellExtractor,
+					deploymentManifestPath,
+					tarballProvider,
+				)
 			}
 
-			command = NewDeployCmd(userInterface, fakeFs, logger, doGet)
+			command = bicmd.NewDeployCmd(userInterface, fakeFs, logger, doGet)
 
 			expectLegacyMigrate = mockLegacyDeploymentStateMigrator.EXPECT().MigrateIfExists("/path/to/bosh-deployments.yml").AnyTimes()
 

@@ -1,8 +1,10 @@
-package cmd
+package cmd_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 
 	"code.google.com/p/gomock/gomock"
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
@@ -39,13 +41,13 @@ var _ = Describe("DeleteCmd", func() {
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 		)
 
-		var newDeleteCmd = func() Cmd {
-			doGetFunc := func(deploymentManifestPath string) DeploymentDeleter {
+		var newDeleteCmd = func() bicmd.Cmd {
+			doGetFunc := func(deploymentManifestPath string) bicmd.DeploymentDeleter {
 				Expect(deploymentManifestPath).To(Equal(deploymentManifestPath))
 				return mockDeploymentDeleter
 			}
 
-			return NewDeleteCmd(fakeUI, fs, logger, doGetFunc)
+			return bicmd.NewDeleteCmd(fakeUI, fs, logger, doGetFunc)
 		}
 
 		var writeDeploymentManifest = func() {

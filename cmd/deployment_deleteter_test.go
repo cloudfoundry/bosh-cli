@@ -1,10 +1,12 @@
-package cmd
+package cmd_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"os"
+
+	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
@@ -25,8 +27,6 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
-	biinstallation "github.com/cloudfoundry/bosh-init/installation"
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
@@ -35,34 +35,12 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 
+	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
-
-type FakeInstallation struct {
-}
-
-func (f *FakeInstallation) Target() biinstallation.Target {
-	return biinstallation.Target{}
-}
-
-func (f *FakeInstallation) Job() biinstalljob.InstalledJob {
-	return biinstalljob.InstalledJob{}
-}
-
-func (f *FakeInstallation) WithRunningRegistry(logger boshlog.Logger, stage biui.Stage, fn func() error) error {
-	return fn()
-}
-
-func (f *FakeInstallation) StartRegistry() error {
-	return nil
-}
-
-func (f *FakeInstallation) StopRegistry() error {
-	return nil
-}
 
 var _ = Describe("DeploymentDeleter", func() {
 	var mockCtrl *gomock.Controller
@@ -86,7 +64,7 @@ var _ = Describe("DeploymentDeleter", func() {
 			mockReleaseExtractor        *mock_release.MockExtractor
 			fakeUUIDGenerator           *fakeuuid.FakeGenerator
 			setupDeploymentStateService biconfig.DeploymentStateService
-			fakeInstallation            *FakeInstallation
+			fakeInstallation            *fakecmd.FakeInstallation
 
 			fakeUI *fakeui.FakeUI
 
@@ -178,7 +156,7 @@ cloud_provider:
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
 		}
 
-		var newDeploymentDeleter = func() DeploymentDeleter {
+		var newDeploymentDeleter = func() bicmd.DeploymentDeleter {
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			installationValidator := biinstallmanifest.NewValidator(logger)
@@ -190,7 +168,7 @@ cloud_provider:
 			cpiReleaseValidator := bicpirel.NewCPIReleaseValidator(releaseSetParser, releaseSetValidator, installationValidator, tarballProvider, mockReleaseExtractor, releaseManager)
 			deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
-			return NewDeploymentDeleter(
+			return bicmd.NewDeploymentDeleter(
 				fakeUI,
 				"deleteCmd",
 				logger,
@@ -276,7 +254,7 @@ cloud_provider:
 			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 
-			fakeInstallation = &FakeInstallation{}
+			fakeInstallation = &fakecmd.FakeInstallation{}
 
 			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
 			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
@@ -405,7 +383,7 @@ cloud_provider:
 
 				mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 
-				fakeInstallation := &FakeInstallation{}
+				fakeInstallation := &fakecmd.FakeInstallation{}
 
 				expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
