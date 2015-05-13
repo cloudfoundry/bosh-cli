@@ -23,7 +23,7 @@ networks:
   type: manual
   subnets:
   - range: 10.244.0.40/30
-    gateway: 10.0.0.1
+    gateway: 10.244.0.41
     dns: [8.8.8.8]
     cloud_properties:
       subnet: fake-subnet

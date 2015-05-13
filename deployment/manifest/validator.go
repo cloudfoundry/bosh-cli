@@ -8,6 +8,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
+	binet "github.com/cloudfoundry/bosh-init/common/net"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
@@ -44,12 +45,13 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 			if len(network.Subnets) != 1 {
 				errs = append(errs, bosherr.Errorf("networks[%d].subnets must be of size 1", idx))
 			} else {
-				if v.isBlank(network.Subnets[0].Range) {
-					errs = append(errs, bosherr.Errorf("networks[%d].subnets[0].range must be provided", idx))
-				}
-				if v.isBlank(network.Subnets[0].Gateway) {
-					errs = append(errs, bosherr.Errorf("networks[%d].subnets[0].gateway must be provided", idx))
-				}
+				ipRange := network.Subnets[0].Range
+				rangeErrors, maybeIpNet := v.validateRange(idx, ipRange)
+				errs = append(errs, rangeErrors...)
+
+				gateway := network.Subnets[0].Gateway
+				gatewayErrors := v.validateGateway(idx, gateway, maybeIpNet)
+				errs = append(errs, gatewayErrors...)
 			}
 		}
 	}
@@ -221,4 +223,65 @@ func (v *validator) resourcePoolNames(deploymentManifest Manifest) map[string]st
 func (v *validator) isValidIP(ip string) bool {
 	parsedIP := net.ParseIP(ip)
 	return parsedIP != nil
+}
+
+type maybeIPNet interface {
+	Try(func(*net.IPNet) error) error
+}
+
+type nothingIpNet struct{}
+
+func (in *nothingIpNet) Try(fn func(*net.IPNet) error) error {
+	return nil
+}
+
+type somethingIpNet struct {
+	ipNet *net.IPNet
+}
+
+func (in *somethingIpNet) Try(fn func(*net.IPNet) error) error {
+	return fn(in.ipNet)
+}
+
+func (v *validator) validateRange(idx int, ipRange string) ([]error, maybeIPNet) {
+	if v.isBlank(ipRange) {
+		return []error{bosherr.Errorf("networks[%d].subnets[0].range must be provided", idx)}, &nothingIpNet{}
+	} else {
+		_, ipNet, err := net.ParseCIDR(ipRange)
+		if err != nil {
+			return []error{bosherr.Errorf("networks[%d].subnets[0].range must be an ip range", idx)}, &nothingIpNet{}
+		}
+
+		return []error{}, &somethingIpNet{ipNet: ipNet}
+	}
+}
+
+func (v *validator) validateGateway(idx int, gateway string, ipNet maybeIPNet) []error {
+	if v.isBlank(gateway) {
+		return []error{bosherr.Errorf("networks[%d].subnets[0].gateway must be provided", idx)}
+	} else {
+		errors := []error{}
+		ipNet.Try(func(ipNet *net.IPNet) error {
+			gatewayIp := net.ParseIP(gateway)
+			if gatewayIp == nil {
+				errors = append(errors, bosherr.Errorf("networks[%d].subnets[0].gateway must be an ip", idx))
+			}
+
+			if !ipNet.Contains(gatewayIp) {
+				errors = append(errors, bosherr.Errorf("subnet gateway '%s' must be within the specified range '%s'", gateway, ipNet))
+			}
+
+			if ipNet.IP.Equal(gatewayIp) {
+				errors = append(errors, bosherr.Errorf("subnet gateway can't be the network address '%s'", gatewayIp))
+			}
+
+			if binet.LastAddress(ipNet).Equal(gatewayIp) {
+				errors = append(errors, bosherr.Errorf("subnet gateway can't be the broadcast address '%s'", gatewayIp))
+			}
+
+			return nil
+		})
+
+		return errors
+	}
 }

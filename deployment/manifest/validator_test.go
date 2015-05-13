@@ -288,78 +288,236 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("disk_pools[0].disk_size must be > 0"))
 		})
 
-		It("validates network name", func() {
-			deploymentManifest := Manifest{
-				Networks: []Network{
-					{
-						Name: "",
+		Describe("networks", func() {
+			It("validates name is present", func() {
+				deploymentManifest := Manifest{
+					Networks: []Network{
+						{
+							Name: "",
+						},
+					},
+				}
+
+				err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("networks[0].name must be provided"))
+
+				deploymentManifest = Manifest{
+					Networks: []Network{
+						{
+							Name: "not-blank",
+						},
+						{
+							Name: "   \t",
+						},
+					},
+				}
+
+				err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("networks[1].name must be provided"))
+			})
+
+			It("validates network type is manual, dynamic, or vip", func() {
+				typeError := "networks[0].type must be 'manual', 'dynamic', or 'vip'"
+
+				err := validator.Validate(Manifest{
+					Networks: []Network{
+						{Type: "unknown-type"},
 					},
 				},
-			}
+					validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(typeError))
 
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("networks[0].name must be provided"))
-
-			deploymentManifest = Manifest{
-				Networks: []Network{
-					{
-						Name: "not-blank",
-					},
-					{
-						Name: "   \t",
+				err = validator.Validate(Manifest{
+					Networks: []Network{
+						{Type: "vip"},
 					},
 				},
-			}
+					validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).ToNot(ContainSubstring(typeError))
 
-			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("networks[1].name must be provided"))
-		})
-
-		It("validates network type", func() {
-			deploymentManifest := Manifest{
-				Networks: []Network{
-					{
-						Type: "unknown-type",
+				err = validator.Validate(Manifest{
+					Networks: []Network{
+						{Type: "manual"},
 					},
 				},
-			}
+					validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).ToNot(ContainSubstring(typeError))
 
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("networks[0].type must be 'manual', 'dynamic', or 'vip'"))
-		})
-
-		It("validates that manual network has exactly 1 subnet", func() {
-			deploymentManifest := Manifest{
-				Networks: []Network{
-					{
-						Type:    "manual",
-						Subnets: []Subnet{},
+				err = validator.Validate(Manifest{
+					Networks: []Network{
+						{Type: "dynamic"},
 					},
 				},
-			}
+					validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).ToNot(ContainSubstring(typeError))
+			})
 
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("networks[0].subnets must be of size 1"))
-		})
+			Context("manual networks", func() {
+				It("validates that there is exactly 1 subnet", func() {
+					deploymentManifest := Manifest{
+						Networks: []Network{
+							{
+								Type:    "manual",
+								Subnets: []Subnet{},
+							},
+						},
+					}
 
-		It("validates that manual network subnet has range and gateway", func() {
-			deploymentManifest := Manifest{
-				Networks: []Network{
-					{
-						Type:    "manual",
-						Subnets: []Subnet{{}},
-					},
-				},
-			}
+					err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("networks[0].subnets must be of size 1"))
+				})
 
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("networks[0].subnets[0].range must be provided"))
-			Expect(err.Error()).To(ContainSubstring("networks[0].subnets[0].gateway must be provided"))
+				It("validates that range is present", func() {
+					deploymentManifest := Manifest{
+						Networks: []Network{
+							{
+								Type:    "manual",
+								Subnets: []Subnet{{}},
+							},
+						},
+					}
+
+					err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("networks[0].subnets[0].range must be provided"))
+				})
+
+				It("validates that gateway is present", func() {
+					deploymentManifest := Manifest{
+						Networks: []Network{
+							{
+								Type:    "manual",
+								Subnets: []Subnet{{}},
+							},
+						},
+					}
+
+					err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("networks[0].subnets[0].gateway must be provided"))
+				})
+
+				It("validates that range is an ip range", func() {
+					validationError := "networks[0].subnets[0].range must be an ip range"
+
+					err := validator.Validate(Manifest{
+						Networks: []Network{
+							{
+								Type: "manual",
+								Subnets: []Subnet{{
+									Range:   "not-an-ip",
+									Gateway: "10.0.0.1",
+								}},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring(validationError))
+
+					err = validator.Validate(Manifest{
+						Networks: []Network{
+							{
+								Type: "manual",
+								Subnets: []Subnet{{
+									Range:   "10.10.0.0",
+									Gateway: "10.0.0.1",
+								}},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring(validationError))
+				})
+
+				It("validates that gateway is an ip", func() {
+					validationError := "networks[0].subnets[0].gateway must be an ip"
+
+					err := validator.Validate(Manifest{
+						Networks: []Network{
+							{
+								Type: "manual",
+								Subnets: []Subnet{{
+									Range:   "10.10.0.0/24",
+									Gateway: "not-an-ip",
+								}},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring(validationError))
+				})
+
+				It("validates that gateway is within the range", func() {
+					validationError := "subnet gateway '10.0.0.1' must be within the specified range '10.10.0.0/24'"
+
+					err := validator.Validate(Manifest{
+						Networks: []Network{
+							{
+								Type: "manual",
+								Subnets: []Subnet{{
+									Range:   "10.10.0.0/24",
+									Gateway: "10.0.0.1",
+								}},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring(validationError))
+
+					err = validator.Validate(Manifest{
+						Networks: []Network{
+							{
+								Type: "manual",
+								Subnets: []Subnet{{
+									Range:   "10.10.0.0/24",
+									Gateway: "10.10.0.1",
+								}},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).ToNot(ContainSubstring(validationError))
+				})
+
+				It("validates that the gateway is not the first ip in the range", func(){
+					err := validator.Validate(Manifest{
+						Networks: []Network{
+							{
+								Type: "manual",
+								Subnets: []Subnet{{
+									Range:   "10.10.0.0/24",
+									Gateway: "10.10.0.0",
+								}},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("subnet gateway can't be the network address '10.10.0.0'"))
+				})
+
+				It("validates that the gateway is not the last ip in the range", func(){
+					err := validator.Validate(Manifest{
+						Networks: []Network{
+							{
+								Type: "manual",
+								Subnets: []Subnet{{
+									Range:   "10.10.0.0/24",
+									Gateway: "10.10.0.255",
+								}},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("subnet gateway can't be the broadcast address '10.10.0.255'"))
+				})
+			})
 		})
 
 		It("validates that there is only one job", func() {
