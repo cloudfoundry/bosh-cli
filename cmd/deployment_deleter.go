@@ -110,7 +110,6 @@ func (c *deploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installati
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting deployment")
 	}
-
 	return deploymentManager.Cleanup(stage)
 }
 

@@ -15,6 +15,7 @@ import (
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
 
+	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
@@ -24,6 +25,8 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
+	biinstallation "github.com/cloudfoundry/bosh-init/installation"
+	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
@@ -37,6 +40,29 @@ import (
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
+
+type FakeInstallation struct {
+}
+
+func (f *FakeInstallation) Target() biinstallation.Target {
+	return biinstallation.Target{}
+}
+
+func (f *FakeInstallation) Job() biinstalljob.InstalledJob {
+	return biinstalljob.InstalledJob{}
+}
+
+func (f *FakeInstallation) WithRunningRegistry(logger boshlog.Logger, stage biui.Stage, fn func() error) error {
+	return fn()
+}
+
+func (f *FakeInstallation) StartRegistry() error {
+	return nil
+}
+
+func (f *FakeInstallation) StopRegistry() error {
+	return nil
+}
 
 var _ = Describe("DeploymentDeleter", func() {
 	var mockCtrl *gomock.Controller
@@ -56,11 +82,11 @@ var _ = Describe("DeploymentDeleter", func() {
 			releaseManager              birel.Manager
 			mockInstaller               *mock_install.MockInstaller
 			mockInstallerFactory        *mock_install.MockInstallerFactory
-			mockInstallation            *mock_install.MockInstallation
 			mockCloudFactory            *mock_cloud.MockFactory
 			mockReleaseExtractor        *mock_release.MockExtractor
 			fakeUUIDGenerator           *fakeuuid.FakeGenerator
 			setupDeploymentStateService biconfig.DeploymentStateService
+			fakeInstallation            *FakeInstallation
 
 			fakeUI *fakeui.FakeUI
 
@@ -85,7 +111,6 @@ var _ = Describe("DeploymentDeleter", func() {
 			expectCPIExtractRelease *gomock.Call
 			expectCPIInstall        *gomock.Call
 			expectNewCloud          *gomock.Call
-			expectWithRegistry      *gomock.Call
 
 			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 		)
@@ -148,13 +173,9 @@ cloud_provider:
 
 			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
-			}).Return(mockInstallation, nil).AnyTimes()
+			}).Return(fakeInstallation, nil).AnyTimes()
 
-			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(mockInstallation, directorID).Return(mockCloud, nil).AnyTimes()
-
-			expectWithRegistry = mockInstallation.EXPECT().WithRunningRegistry(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Do(func(log boshlog.Logger, stage biui.Stage, fn func() error) error {
-				return fn()
-			})
+			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
 		}
 
 		var newDeploymentDeleter = func() DeploymentDeleter {
@@ -254,7 +275,8 @@ cloud_provider:
 
 			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
-			mockInstallation = mock_install.NewMockInstallation(mockCtrl)
+
+			fakeInstallation = &FakeInstallation{}
 
 			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
 			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
@@ -280,95 +302,131 @@ cloud_provider:
 
 		JustBeforeEach(func() {
 			allowCPIToBeExtracted()
-			allowCPIToBeInstalled()
 		})
 
-		Context("when the deployment state file does not exist", func() {
-			BeforeEach(func() {
-				err := fs.RemoveAll(deploymentStatePath)
-				Expect(err).ToNot(HaveOccurred())
+		Context("when the CPI installs", func() {
+			JustBeforeEach(func() {
+				allowCPIToBeInstalled()
 			})
 
-			It("does not delete anything", func() {
-				err := newDeploymentDeleter().DeleteDeployment(fakeStage)
-				Expect(err).ToNot(HaveOccurred())
+			Context("when the deployment state file does not exist", func() {
+				BeforeEach(func() {
+					err := fs.RemoveAll(deploymentStatePath)
+					Expect(err).ToNot(HaveOccurred())
+				})
 
-				Expect(fakeUI.Said).To(Equal([]string{
-					"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'",
-					"No deployment state file found.",
-				}))
-			})
-		})
+				It("does not delete anything", func() {
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).ToNot(HaveOccurred())
 
-		Context("when the deployment has been deployed", func() {
-			BeforeEach(func() {
-				directorID = "fake-director-id"
-
-				// create deployment manifest yaml file
-				setupDeploymentStateService.Save(biconfig.DeploymentState{
-					DirectorID: directorID,
+					Expect(fakeUI.Said).To(Equal([]string{
+						"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'",
+						"No deployment state file found.",
+					}))
 				})
 			})
 
-			It("extracts & install CPI release tarball", func() {
-				expectDeleteAndCleanup()
+			Context("when the deployment has been deployed", func() {
+				BeforeEach(func() {
+					directorID = "fake-director-id"
 
-				gomock.InOrder(
-					expectCPIExtractRelease.Times(1),
-					expectCPIInstall.Times(1),
-					expectNewCloud.Times(1),
-				)
+					// create deployment manifest yaml file
+					setupDeploymentStateService.Save(biconfig.DeploymentState{
+						DirectorID: directorID,
+					})
+				})
 
-				err := newDeploymentDeleter().DeleteDeployment(fakeStage)
-				Expect(err).NotTo(HaveOccurred())
+				It("extracts & install CPI release tarball", func() {
+					expectDeleteAndCleanup()
+
+					gomock.InOrder(
+						expectCPIExtractRelease.Times(1),
+						expectCPIInstall.Times(1),
+						expectNewCloud.Times(1),
+					)
+
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("deletes the extracted CPI release", func() {
+					expectDeleteAndCleanup()
+
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(fs.FileExists("fake-cpi-extracted-dir")).To(BeFalse())
+				})
+
+				It("deletes the deployment & cleans up orphans", func() {
+					expectDeleteAndCleanup()
+
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(fakeUI.Errors).To(BeEmpty())
+				})
+
+				It("logs validating & deleting stages", func() {
+					expectDeleteAndCleanup()
+
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					expectValidationInstallationDeletionEvents()
+				})
+
 			})
 
-			It("starts & stops the registry", func() {
-				expectDeleteAndCleanup()
+			Context("when nothing has been deployed", func() {
+				BeforeEach(func() {
+					setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
+				})
 
-				expectWithRegistry.Times(1)
+				It("cleans up orphans, but does not delete any deployment", func() {
+					expectCleanup()
 
-				err := newDeploymentDeleter().DeleteDeployment(fakeStage)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("deletes the extracted CPI release", func() {
-				expectDeleteAndCleanup()
-
-				err := newDeploymentDeleter().DeleteDeployment(fakeStage)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(fs.FileExists("fake-cpi-extracted-dir")).To(BeFalse())
-			})
-
-			It("deletes the deployment & cleans up orphans", func() {
-				expectDeleteAndCleanup()
-
-				err := newDeploymentDeleter().DeleteDeployment(fakeStage)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeUI.Errors).To(BeEmpty())
-			})
-
-			It("logs validating & deleting stages", func() {
-				expectDeleteAndCleanup()
-
-				err := newDeploymentDeleter().DeleteDeployment(fakeStage)
-				Expect(err).ToNot(HaveOccurred())
-
-				expectValidationInstallationDeletionEvents()
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(fakeUI.Errors).To(BeEmpty())
+				})
 			})
 		})
 
-		Context("when nothing has been deployed", func() {
-			BeforeEach(func() {
-				setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
+		Context("when the CPI fails to Delete", func() {
+			JustBeforeEach(func() {
+				installationManifest := biinstallmanifest.Manifest{
+					Name: "test-release",
+					Template: biinstallmanifest.ReleaseJobRef{
+						Name:    "fake-cpi-release-job-name",
+						Release: "fake-cpi-release-name",
+					},
+					Mbus:       mbusURL,
+					Properties: biproperty.Map{},
+				}
+
+				mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+
+				fakeInstallation := &FakeInstallation{}
+
+				expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
+					Expect(fakeStage.SubStages).To(ContainElement(stage))
+				}).Return(fakeInstallation, nil).AnyTimes()
+
+				expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
 			})
 
-			It("cleans up orphans, but does not delete any deployment", func() {
-				expectCleanup()
+			Context("when the call to delete the deployment returns an error", func() {
+				It("returns the error", func() {
+					mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
+					mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
-				err := newDeploymentDeleter().DeleteDeployment(fakeStage)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeUI.Errors).To(BeEmpty())
+					deleteError := bosherr.Error("delete error")
+
+					mockDeployment.EXPECT().Delete(gomock.Any()).Return(deleteError)
+
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+
+					Expect(err).To(HaveOccurred())
+				})
 			})
 		})
 	})

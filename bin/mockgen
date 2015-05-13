@@ -31,6 +31,7 @@ srcFiles=(
   blobstore/Factory,Blobstore
   test_support/Spy
   cpi/release/CPIReleaseValidator
+  cmd/DeploymentDeleter
 )
 
 for srcFile in ${srcFiles[*]}; do
