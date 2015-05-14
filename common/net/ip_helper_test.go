@@ -10,8 +10,8 @@ import (
 )
 
 var _ = Describe("common.net ip helpers", func() {
-	Describe("LastAddress", func(){
-		It("Returns the last address in the network range", func(){
+	Describe("LastAddress", func() {
+		It("Returns the last address in the network range", func() {
 			Expect(
 				binet.LastAddress(netFor("10.0.0.0/24")),
 			).To(Equal(net.ParseIP("10.0.0.255")))
@@ -40,4 +40,3 @@ func netFor(ipNetString string) *net.IPNet {
 	Expect(err).ToNot(HaveOccurred())
 	return ipNet
 }
-

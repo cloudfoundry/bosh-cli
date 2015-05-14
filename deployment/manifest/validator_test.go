@@ -79,9 +79,8 @@ var _ = Describe("Validator", func() {
 					ResourcePool:   "fake-resource-pool-name",
 					Networks: []JobNetwork{
 						{
-							Name:      "fake-network-name",
-							StaticIPs: []string{"127.0.0.1"},
-							Default:   []NetworkDefault{"dns", "gateway"},
+							Name:    "fake-network-name",
+							Default: []NetworkDefault{"dns", "gateway"},
 						},
 					},
 					Lifecycle: "service",
@@ -486,7 +485,7 @@ var _ = Describe("Validator", func() {
 					Expect(err.Error()).ToNot(ContainSubstring(validationError))
 				})
 
-				It("validates that the gateway is not the first ip in the range", func(){
+				It("validates that the gateway is not the first ip in the range", func() {
 					err := validator.Validate(Manifest{
 						Networks: []Network{
 							{
@@ -502,7 +501,7 @@ var _ = Describe("Validator", func() {
 					Expect(err.Error()).To(ContainSubstring("subnet gateway can't be the network address '10.10.0.0'"))
 				})
 
-				It("validates that the gateway is not the last ip in the range", func(){
+				It("validates that the gateway is not the last ip in the range", func() {
 					err := validator.Validate(Manifest{
 						Networks: []Network{
 							{
@@ -706,6 +705,92 @@ var _ = Describe("Validator", func() {
 			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].default[0] must be 'dns' or 'gateway'"))
+		})
+
+		It("validates job network corresponds to a specified network", func() {
+			deploymentManifest := Manifest{
+				Networks: []Network{
+					{
+						Name: "fake-network-name",
+						Type: "manual",
+						Subnets: []Subnet{{
+							Range:   "10.10.0.0/24",
+							Gateway: "10.0.0.1",
+						}},
+					},
+				},
+				Jobs: []Job{
+					{
+						Networks: []JobNetwork{
+							{
+								Name:      "different-network-name",
+								StaticIPs: []string{"10.10.1.1"},
+							},
+						},
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0] not found in networks"))
+		})
+
+		It("validates job network static ip is in the subnet range", func() {
+			deploymentManifest := Manifest{
+				Networks: []Network{
+					{
+						Name: "fake-network-name",
+						Type: "manual",
+						Subnets: []Subnet{{
+							Range:   "10.10.0.0/24",
+							Gateway: "10.10.0.1",
+						}},
+					},
+				},
+				Jobs: []Job{
+					{
+						Networks: []JobNetwork{
+							{
+								Name:      "fake-network-name",
+								StaticIPs: []string{"10.10.1.1"},
+							},
+						},
+					},
+				},
+			}
+
+			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0] static ip '10.10.1.1' must be within subnet range"))
+
+			deploymentManifest = Manifest{
+				Networks: []Network{
+					{
+						Name: "fake-network-name",
+						Type: "manual",
+						Subnets: []Subnet{{
+							Range:   "10.10.0.0/24",
+							Gateway: "10.10.0.1",
+						}},
+					},
+				},
+				Jobs: []Job{
+					{
+						Networks: []JobNetwork{
+							{
+								Name:      "fake-network-name",
+								StaticIPs: []string{"10.10.0.2"},
+							},
+						},
+					},
+				},
+			}
+
+			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).ToNot(ContainSubstring("static ip"))
+
 		})
 
 		It("validates job lifecycle", func() {

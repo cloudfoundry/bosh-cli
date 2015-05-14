@@ -119,21 +119,8 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 			}
 		}
 		for networkIdx, jobNetwork := range job.Networks {
-			if v.isBlank(jobNetwork.Name) {
-				errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].name must be provided", idx, networkIdx))
-			}
-
-			for ipIdx, ip := range jobNetwork.StaticIPs {
-				if !v.isValidIP(ip) {
-					errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].static_ips[%d] must be a valid IP", idx, networkIdx, ipIdx))
-				}
-			}
-
-			for defaultIdx, value := range jobNetwork.Default {
-				if value != NetworkDefaultDNS && value != NetworkDefaultGateway {
-					errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].default[%d] must be 'dns' or 'gateway'", idx, networkIdx, defaultIdx))
-				}
-			}
+			jobNetworkErrors := v.validateJobNetwork(jobNetwork, deploymentManifest.Networks, idx, networkIdx)
+			errs = append(errs, jobNetworkErrors...)
 		}
 
 		if job.Lifecycle != "" && job.Lifecycle != JobLifecycleService {
@@ -253,6 +240,60 @@ func (v *validator) validateRange(idx int, ipRange string) ([]error, maybeIPNet)
 		}
 
 		return []error{}, &somethingIpNet{ipNet: ipNet}
+	}
+}
+
+func (v *validator) validateJobNetwork(jobNetwork JobNetwork, networks []Network, jobIdx, networkIdx int) []error {
+	errs := []error{}
+
+	if v.isBlank(jobNetwork.Name) {
+		errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].name must be provided", jobIdx, networkIdx))
+	}
+
+	var matchingNetwork Network
+	found := false
+	for _, network := range networks {
+		if network.Name == jobNetwork.Name {
+			found = true
+			matchingNetwork = network
+		}
+	}
+
+	if !found {
+		errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d] not found in networks", jobIdx, networkIdx))
+	}
+
+	for ipIdx, ip := range jobNetwork.StaticIPs {
+		staticIPErrors := v.validateStaticIP(ip, jobNetwork, matchingNetwork, jobIdx, networkIdx, ipIdx)
+		errs = append(errs, staticIPErrors...)
+	}
+
+	for defaultIdx, value := range jobNetwork.Default {
+		if value != NetworkDefaultDNS && value != NetworkDefaultGateway {
+			errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].default[%d] must be 'dns' or 'gateway'", jobIdx, networkIdx, defaultIdx))
+		}
+	}
+
+	return errs
+}
+
+func (v *validator) validateStaticIP(ip string, jobNetwork JobNetwork, network Network, jobIdx, networkIdx, ipIdx int) []error {
+	if !v.isValidIP(ip) {
+		return []error{bosherr.Errorf("jobs[%d].networks[%d].static_ips[%d] must be a valid IP", jobIdx, networkIdx, ipIdx)}
+	}
+
+	foundInSubnetRange := false
+	for _, subnet := range network.Subnets {
+		_, rangeNet, err := net.ParseCIDR(subnet.Range)
+		if err == nil && rangeNet.Contains(net.ParseIP(ip)) {
+			foundInSubnetRange = true
+		}
+	}
+
+	if foundInSubnetRange {
+		return []error{}
+	} else {
+		return []error{bosherr.Errorf("jobs[%d].networks[%d] static ip '%s' must be within subnet range", jobIdx, networkIdx, ip)}
 	}
 }
 

@@ -1,6 +1,6 @@
 package net
 
-import(
+import (
 	"net"
 )
 
