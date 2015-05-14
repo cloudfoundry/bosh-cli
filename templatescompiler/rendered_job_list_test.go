@@ -24,10 +24,6 @@ var _ = Describe("RenderedJobList", func() {
 		logger    boshlog.Logger
 		fs        *fakeboshsys.FakeFileSystem
 
-		releaseJob bireljob.Job
-
-		renderedJobPath string
-
 		renderedJobList RenderedJobList
 	)
 
@@ -37,12 +33,6 @@ var _ = Describe("RenderedJobList", func() {
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
 
 		fs = fakeboshsys.NewFakeFileSystem()
-
-		releaseJob = bireljob.Job{
-			Name: "fake-job-name",
-		}
-
-		renderedJobPath = "fake-path"
 
 		renderedJobList = NewRenderedJobList()
 	})

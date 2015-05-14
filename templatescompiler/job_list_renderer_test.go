@@ -41,7 +41,7 @@ var _ = Describe("JobListRenderer", func() {
 
 		jobListRenderer JobListRenderer
 
-		expectRender0 *gomock.Call
+//		expectRender0 *gomock.Call
 		expectRender1 *gomock.Call
 	)
 
@@ -74,7 +74,7 @@ var _ = Describe("JobListRenderer", func() {
 	})
 
 	JustBeforeEach(func() {
-		expectRender0 = mockJobRenderer.EXPECT().Render(releaseJobs[0], jobProperties, globalProperties, deploymentName).Return(renderedJobs[0], nil)
+		mockJobRenderer.EXPECT().Render(releaseJobs[0], jobProperties, globalProperties, deploymentName).Return(renderedJobs[0], nil)
 		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], jobProperties, globalProperties, deploymentName).Return(renderedJobs[1], nil)
 	})
 
