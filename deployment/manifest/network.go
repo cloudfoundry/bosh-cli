@@ -27,6 +27,7 @@ type Network struct {
 	CloudProperties biproperty.Map
 	DNS             []string
 	Subnets         []Subnet
+	Defaults        []string
 }
 
 type Subnet struct {
@@ -71,6 +72,10 @@ func (n Network) Interface(staticIPs []string) (biproperty.Map, error) {
 
 	if len(staticIPs) > 0 {
 		networkInterface["ip"] = staticIPs[0]
+	}
+
+	if len(n.Defaults) > 0 {
+		networkInterface["defaults"] = n.Defaults
 	}
 
 	return networkInterface, nil

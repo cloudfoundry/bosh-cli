@@ -34,10 +34,42 @@ var _ = Describe("Network", func() {
 							},
 						},
 					},
+					Defaults: []string{"dns", "gateway"},
 				}
 			})
 
 			It("includes gateway, dns, ip from the job and netmask calculated from range", func() {
+				iface, err := network.Interface([]string{"5.6.7.9"})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(iface).To(Equal(biproperty.Map{
+					"type":    "manual",
+					"ip":      "5.6.7.9",
+					"gateway": "1.1.1.1",
+					"netmask": "255.255.252.0",
+					"dns":     []string{"1.2.3.4"},
+					"cloud_properties": biproperty.Map{
+						"cp_key": "cp_value",
+					},
+					"defaults": []string{"dns", "gateway"},
+				}))
+			})
+
+			It("doesn't include defaults if they're empty", func() {
+				network = Network{
+					Name: "fake-manual-network-name",
+					Type: "manual",
+					Subnets: []Subnet{
+						{
+							Range:   "1.2.3.0/22",
+							Gateway: "1.1.1.1",
+							DNS:     []string{"1.2.3.4"},
+							CloudProperties: biproperty.Map{
+								"cp_key": "cp_value",
+							},
+						},
+					},
+				}
+
 				iface, err := network.Interface([]string{"5.6.7.9"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(iface).To(Equal(biproperty.Map{
@@ -74,7 +106,8 @@ var _ = Describe("Network", func() {
 				CloudProperties: biproperty.Map{
 					"cp_key": "cp_value",
 				},
-				DNS: []string{"2.2.2.2"},
+				DNS:      []string{"2.2.2.2"},
+				Defaults: []string{"dns", "gateway"},
 			}
 		})
 
@@ -87,6 +120,7 @@ var _ = Describe("Network", func() {
 				"cloud_properties": biproperty.Map{
 					"cp_key": "cp_value",
 				},
+				"defaults": []string{"dns", "gateway"},
 			}))
 		})
 	})

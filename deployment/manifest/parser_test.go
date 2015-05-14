@@ -80,6 +80,32 @@ networks:
     subnet: fake-subnet
     a:
       b: value
+  defaults: [dns]
+- name: second-fake-network-name
+  type: dynamic
+  subnets:
+  - range: 1.2.3.0/22
+    gateway: 1.1.1.1
+    dns: [2.2.2.2]
+    cloud_properties:
+      cp_key: cp_value
+  cloud_properties:
+    subnet: fake-subnet
+    a:
+      b: value
+  defaults: [gateway]
+- name: third-fake-network-name
+  type: dynamic
+  subnets:
+  - range: 1.2.3.0/22
+    gateway: 1.1.1.1
+    dns: [2.2.2.2]
+    cloud_properties:
+      cp_key: cp_value
+  cloud_properties:
+    subnet: fake-subnet
+    a:
+      b: value
 - name: vip
   type: vip
 disk_pools:
@@ -120,6 +146,48 @@ properties:
 			Networks: []Network{
 				{
 					Name: "fake-network-name",
+					Type: Dynamic,
+					Subnets: []Subnet{
+						{
+							Range:   "1.2.3.0/22",
+							Gateway: "1.1.1.1",
+							DNS:     []string{"2.2.2.2"},
+							CloudProperties: biproperty.Map{
+								"cp_key": "cp_value",
+							},
+						},
+					},
+					CloudProperties: biproperty.Map{
+						"subnet": "fake-subnet",
+						"a": biproperty.Map{
+							"b": "value",
+						},
+					},
+					Defaults: []string{"dns"},
+				},
+				{
+					Name: "second-fake-network-name",
+					Type: Dynamic,
+					Subnets: []Subnet{
+						{
+							Range:   "1.2.3.0/22",
+							Gateway: "1.1.1.1",
+							DNS:     []string{"2.2.2.2"},
+							CloudProperties: biproperty.Map{
+								"cp_key": "cp_value",
+							},
+						},
+					},
+					CloudProperties: biproperty.Map{
+						"subnet": "fake-subnet",
+						"a": biproperty.Map{
+							"b": "value",
+						},
+					},
+					Defaults: []string{"gateway"},
+				},
+				{
+					Name: "third-fake-network-name",
 					Type: Dynamic,
 					Subnets: []Subnet{
 						{
