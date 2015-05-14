@@ -48,7 +48,7 @@ var _ = Describe("Extractor", func() {
 			fakeFS.WriteFileString(releaseTarballPath, "fake-tgz-contents")
 		})
 
-		Context("when a extracted release directory can be created", func() {
+		Context("when an extracted release directory can be created", func() {
 			var (
 				release    Release
 				releaseJob bireljob.Job
@@ -180,19 +180,32 @@ properties: {}
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-error"))
 				})
+
+				It("deletes the destination file path", func() {
+					releaseExtractor.Extract(releaseTarballPath)
+					Expect(fakeFS.FileExists("/extracted-release-path")).To(BeFalse())
+				})
 			})
 
 			Context("and the tarball cannot be read", func() {
-				It("returns an error", func() {
+				BeforeEach(func() {
 					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/extracted-release-path", bosherr.Error("fake-error"))
+				})
+
+				It("returns an error", func() {
 					_, err := releaseExtractor.Extract(releaseTarballPath)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Reading release from '/fake/release.tgz'"))
 				})
+
+				It("deletes the destination file path", func() {
+					releaseExtractor.Extract(releaseTarballPath)
+					Expect(fakeFS.FileExists("/extracted-release-path")).To(BeFalse())
+				})
 			})
 		})
 
-		Context("when a extracted release path cannot be created", func() {
+		Context("when an extracted release path cannot be created", func() {
 			BeforeEach(func() {
 				fakeFS.TempDirError = bosherr.Error("fake-tmp-dir-error")
 			})
