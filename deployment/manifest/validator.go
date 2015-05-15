@@ -242,8 +242,11 @@ func (v *validator) validateNetworks(networks []Network) []error {
 		errs = append(errs, networkErrors...)
 	}
 
-	for dflt, count := range defaultCounts {
-		if count > 1 {
+	for _, dflt := range []string{"dns", "gateway"} {
+		count, found := defaultCounts[dflt]
+		if len(networks) > 1 && !found {
+			errs = append(errs, bosherr.Errorf("with multiple networks, a default for '%s' must be specified", dflt))
+		} else if count > 1 {
 			errs = append(errs, bosherr.Errorf("only one network can be the default for '%s'", dflt))
 		}
 	}

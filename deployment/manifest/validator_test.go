@@ -358,39 +358,84 @@ var _ = Describe("Validator", func() {
 			})
 
 			Describe("defaults", func() {
-				It("validates that only one network is the default for dns", func() {
-					deploymentManifest := Manifest{
-						Networks: []Network{
-							{
-								Defaults: []string{"dns", "gateway"},
+				Context("with multiple networks", func() {
+					It("validates exactly only one network is the default for dns", func() {
+						deploymentManifest := Manifest{
+							Networks: []Network{
+								{
+									Defaults: []string{"dns", "gateway"},
+								},
+								{
+									Defaults: []string{"dns"},
+								},
 							},
-							{
-								Defaults: []string{"dns"},
+						}
+
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("only one network can be the default for 'dns'"))
+
+						deploymentManifest = Manifest{
+							Networks: []Network{
+								{
+									Defaults: []string{"gateway"},
+								},
+								{
+									Defaults: []string{},
+								},
 							},
-						},
-					}
+						}
 
-					err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("only one network can be the default for 'dns'"))
+						err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("with multiple networks, a default for 'dns' must be specified"))
+					})
 
+					It("validates that exactly one network is the default for gateway", func() {
+						deploymentManifest := Manifest{
+							Networks: []Network{
+								{
+									Defaults: []string{"dns", "gateway"},
+								},
+								{
+									Defaults: []string{"gateway"},
+								},
+							},
+						}
+
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("only one network can be the default for 'gateway'"))
+
+						deploymentManifest = Manifest{
+							Networks: []Network{
+								{
+									Defaults: []string{"dns"},
+								},
+								{
+									Defaults: []string{},
+								},
+							},
+						}
+
+						err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("with multiple networks, a default for 'gateway' must be specified"))
+					})
 				})
 
-				It("validates that only one network is the default for gateway", func() {
-					deploymentManifest := Manifest{
-						Networks: []Network{
-							{
-								Defaults: []string{"dns", "gateway"},
+				Context("with only one network", func() {
+					It("doesn't require any defaults to be set", func() {
+						deploymentManifest := Manifest{
+							Networks: []Network{
+								{},
 							},
-							{
-								Defaults: []string{"gateway"},
-							},
-						},
-					}
+						}
 
-					err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("only one network can be the default for 'gateway'"))
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).ToNot(ContainSubstring("default"))
+					})
 				})
 
 				It("validates a network's defaults is one of dns/gateway, if present", func() {
