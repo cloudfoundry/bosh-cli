@@ -651,6 +651,56 @@ var _ = Describe("Validator", func() {
 					Expect(err.Error()).To(ContainSubstring("subnet gateway can't be the broadcast address '10.10.0.255'"))
 				})
 			})
+
+			Context("dynamic networks", func() {
+				It("does not validate that a static IP address is within the range", func() {
+					validationError := "jobs[0].networks[0] static ip '10.10.0.42' must be within subnet range"
+					err := validator.Validate(Manifest{
+						Name: "fake-deployment-name",
+						Networks: []Network{
+							{
+								Name: "fake-network-name",
+								Type: "dynamic",
+							},
+						},
+						Jobs: []Job{
+							{
+								Networks: []JobNetwork{
+									{
+										StaticIPs: []string{"10.10.0.42"},
+									},
+								},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err.Error()).ToNot(ContainSubstring(validationError))
+				})
+			})
+
+			Context("VIP networks", func() {
+				It("does not validate that a static IP address is within the range", func() {
+					validationError := "jobs[0].networks[0] static ip '10.10.0.42' must be within subnet range"
+					err := validator.Validate(Manifest{
+						Name: "fake-deployment-name",
+						Networks: []Network{
+							{
+								Name: "fake-network-name",
+								Type: "vip",
+							},
+						},
+						Jobs: []Job{
+							{
+								Networks: []JobNetwork{
+									{
+										StaticIPs: []string{"10.10.0.42"},
+									},
+								},
+							},
+						},
+					}, validReleaseSetManifest)
+					Expect(err.Error()).ToNot(ContainSubstring(validationError))
+				})
+			})
 		})
 
 		It("validates that there is only one job", func() {

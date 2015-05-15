@@ -330,6 +330,10 @@ func (v *validator) validateStaticIP(ip string, jobNetwork JobNetwork, network N
 		return []error{bosherr.Errorf("jobs[%d].networks[%d].static_ips[%d] must be a valid IP", jobIdx, networkIdx, ipIdx)}
 	}
 
+	if network.Type != Manual {
+		return []error{}
+	}
+
 	foundInSubnetRange := false
 	for _, subnet := range network.Subnets {
 		_, rangeNet, err := net.ParseCIDR(subnet.Range)
