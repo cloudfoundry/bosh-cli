@@ -6,13 +6,12 @@ import (
 
 	. "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("AgentClient", func() {

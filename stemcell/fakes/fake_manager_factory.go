@@ -3,11 +3,10 @@ package fakes
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type NewManagerInput struct {

@@ -1,13 +1,11 @@
 package tarball_test
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
+	. "github.com/cloudfoundry/bosh-init/installation/tarball"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/installation/tarball"
 )
 
 var _ = Describe("Cache", func() {

@@ -1,18 +1,15 @@
 package release_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/release"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
@@ -24,9 +21,7 @@ var _ = Describe("Extractor", func() {
 		fakeFS               *fakesys.FakeFileSystem
 		fakeExtractor        *testfakes.FakeMultiResponseExtractor
 		fakeReleaseValidator *fakebirel.FakeValidator
-
-		deploymentManifestPath string
-		releaseExtractor       Extractor
+		releaseExtractor     Extractor
 	)
 
 	BeforeEach(func() {
@@ -34,8 +29,6 @@ var _ = Describe("Extractor", func() {
 		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
 		fakeReleaseValidator = fakebirel.NewFakeValidator()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-
-		deploymentManifestPath = "/fake/manifest.yml"
 		releaseExtractor = NewExtractor(fakeFS, fakeExtractor, fakeReleaseValidator, logger)
 	})
 
@@ -49,36 +42,8 @@ var _ = Describe("Extractor", func() {
 		})
 
 		Context("when an extracted release directory can be created", func() {
-			var (
-				release    Release
-				releaseJob bireljob.Job
-			)
-
 			BeforeEach(func() {
 				fakeFS.TempDirDirs = []string{"/extracted-release-path"}
-
-				releasePackage := &birelpkg.Package{
-					Name:          "fake-release-package-name",
-					Fingerprint:   "fake-release-package-fingerprint",
-					SHA1:          "fake-release-package-sha1",
-					Dependencies:  []*birelpkg.Package{},
-					ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name",
-				}
-
-				releaseJob = bireljob.Job{
-					Name:          "cpi",
-					Fingerprint:   "fake-release-job-fingerprint",
-					SHA1:          "fake-release-job-sha1",
-					ExtractedPath: "/extracted-release-path/extracted_jobs/cpi",
-					Templates: map[string]string{
-						"cpi.erb":     "bin/cpi",
-						"cpi.yml.erb": "config/cpi.yml",
-					},
-					PackageNames: []string{releasePackage.Name},
-					Packages:     []*birelpkg.Package{releasePackage},
-					Properties:   map[string]bireljob.PropertyDefinition{},
-				}
-
 				releaseContents := `---
 name: fake-release-name
 version: fake-release-version
@@ -108,19 +73,6 @@ packages:
 properties: {}
 `
 				fakeFS.WriteFileString("/extracted-release-path/extracted_jobs/cpi/job.MF", jobManifestContents)
-			})
-
-			JustBeforeEach(func() {
-				releaseJobs := []bireljob.Job{releaseJob}
-				releasePackages := append([]*birelpkg.Package(nil), releaseJob.Packages...)
-				release = NewRelease(
-					"fake-release-name",
-					"fake-release-version",
-					releaseJobs,
-					releasePackages,
-					"/extracted-release-path",
-					fakeFS,
-				)
 			})
 
 			Context("and the tarball is a valid BOSH release", func() {

@@ -1,13 +1,12 @@
 package fmt_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/ui/fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/ui/fmt"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 var _ = Describe("MultilineError", describeMultilineError)

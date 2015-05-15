@@ -1,10 +1,9 @@
 package release
 
 import (
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type release struct {

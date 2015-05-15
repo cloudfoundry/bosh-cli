@@ -3,12 +3,6 @@ package vm
 import (
 	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
-
-	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
@@ -16,6 +10,11 @@ import (
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/pivotal-golang/clock"
 )
 
 type VM interface {
@@ -89,7 +88,7 @@ func (vm *vm) AgentClient() biagentclient.AgentClient {
 
 func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
 	agentPingRetryable := biagentclient.NewPingRetryable(vm.agentClient)
-	timeService := boshtime.NewConcreteService() //TODO: inject timeService
+	timeService := clock.NewClock() //TODO: inject timeService
 	agentPingRetryStrategy := boshretry.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, timeService, vm.logger)
 	return agentPingRetryStrategy.Try()
 }

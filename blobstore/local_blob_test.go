@@ -3,15 +3,13 @@ package blobstore_test
 import (
 	. "github.com/cloudfoundry/bosh-init/blobstore"
 
+	"bytes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"bytes"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("LocalBlobstore", func() {

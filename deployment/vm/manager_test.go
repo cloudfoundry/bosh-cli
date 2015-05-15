@@ -3,24 +3,21 @@ package vm_test
 import (
 	"errors"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	"github.com/cloudfoundry/bosh-init/cloud"
+	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
 	fakebiagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-init/deployment/vm"
+	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Manager", func() {

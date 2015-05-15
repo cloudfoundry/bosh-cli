@@ -5,13 +5,12 @@ import (
 	"os"
 	"path"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type reader struct {

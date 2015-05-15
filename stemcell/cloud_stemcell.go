@@ -1,9 +1,9 @@
 package stemcell
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type CloudStemcell interface {

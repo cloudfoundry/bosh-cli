@@ -3,9 +3,6 @@ package deployment
 import (
 	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
@@ -15,6 +12,8 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Deployer interface {

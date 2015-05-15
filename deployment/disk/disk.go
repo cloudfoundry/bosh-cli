@@ -3,11 +3,10 @@ package disk
 import (
 	"reflect"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Disk interface {

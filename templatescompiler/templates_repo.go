@@ -1,10 +1,9 @@
 package templatescompiler
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type TemplateRecord struct {

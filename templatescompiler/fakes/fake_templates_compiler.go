@@ -3,13 +3,11 @@ package fakes
 import (
 	"fmt"
 
-	"gopkg.in/yaml.v2"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"gopkg.in/yaml.v2"
 )
 
 type CompileInput struct {

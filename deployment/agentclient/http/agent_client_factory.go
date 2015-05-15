@@ -3,9 +3,9 @@ package http
 import (
 	"time"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type AgentClientFactory interface {

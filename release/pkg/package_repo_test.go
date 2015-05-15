@@ -1,10 +1,9 @@
 package pkg_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/release/pkg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 var _ = Describe("PackageRepo", func() {

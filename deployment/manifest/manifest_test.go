@@ -1,10 +1,9 @@
 package manifest_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/deployment/manifest"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )

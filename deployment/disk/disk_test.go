@@ -1,19 +1,16 @@
 package disk_test
 
 import (
+	"errors"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"errors"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 

@@ -4,20 +4,17 @@ import (
 	"errors"
 	"log"
 
-	. "github.com/cloudfoundry/bosh-init/installation"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"code.google.com/p/gomock/gomock"
-	"github.com/onsi/gomega/gbytes"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	. "github.com/cloudfoundry/bosh-init/installation"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 	test_support_mocks "github.com/cloudfoundry/bosh-init/test_support/mocks"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("Installation", func() {

@@ -3,10 +3,9 @@ package instance_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance"
 
+	"errors"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"errors"
 	"time"
 
 	"code.google.com/p/gomock/gomock"
@@ -14,14 +13,13 @@ import (
 	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
@@ -101,7 +99,6 @@ var _ = Describe("Manager", func() {
 			deploymentManifest bideplmanifest.Manifest
 			fakeCloudStemcell  *fakebistemcell.FakeCloudStemcell
 			registry           biinstallmanifest.Registry
-			sshTunnelConfig    biinstallmanifest.SSHTunnel
 
 			expectedInstance Instance
 			expectedDisk     *fakebidisk.FakeDisk
@@ -165,7 +162,6 @@ var _ = Describe("Manager", func() {
 
 			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
 			registry = biinstallmanifest.Registry{}
-			sshTunnelConfig = biinstallmanifest.SSHTunnel{}
 
 			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 			fakeVMManager.CreateVM = fakeVM
@@ -362,10 +358,6 @@ var _ = Describe("Manager", func() {
 		})
 
 		Context("when ssh tunnel conifg is empty", func() {
-			BeforeEach(func() {
-				sshTunnelConfig = biinstallmanifest.SSHTunnel{}
-			})
-
 			It("does not start the ssh tunnel", func() {
 				_, _, err := manager.Create(
 					"fake-job-name",

@@ -3,10 +3,9 @@ package cloud
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Cloud interface {

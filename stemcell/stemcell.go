@@ -3,9 +3,8 @@ package stemcell
 import (
 	"fmt"
 
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type ExtractedStemcell interface {

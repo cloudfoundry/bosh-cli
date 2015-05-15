@@ -3,10 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -22,6 +18,9 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 func NewDeploymentPreparer(

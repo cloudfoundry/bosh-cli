@@ -5,14 +5,13 @@ import (
 	"path"
 	"strings"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshlogfile "github.com/cloudfoundry/bosh-agent/logger/file"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
-
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshlogfile "github.com/cloudfoundry/bosh-utils/logger/file"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/pivotal-golang/clock"
 
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	biuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
@@ -27,7 +26,7 @@ func main() {
 	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_init")
 	ui := biui.NewConsoleUI(logger)
 
-	timeService := boshtime.NewConcreteService()
+	timeService := clock.NewClock()
 
 	cmdFactory := bicmd.NewFactory(
 		fileSystem,

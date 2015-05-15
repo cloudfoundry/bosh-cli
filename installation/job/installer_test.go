@@ -5,15 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebiinstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
+	. "github.com/cloudfoundry/bosh-init/installation/job"
 	fakebitemplate "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-
-	. "github.com/cloudfoundry/bosh-init/installation/job"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Installer", func() {

@@ -3,17 +3,15 @@ package templatescompiler_test
 import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
+	"code.google.com/p/gomock/gomock"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"code.google.com/p/gomock/gomock"
-	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var _ = Describe("JobListRenderer", func() {
@@ -41,7 +39,7 @@ var _ = Describe("JobListRenderer", func() {
 
 		jobListRenderer JobListRenderer
 
-//		expectRender0 *gomock.Call
+		//		expectRender0 *gomock.Call
 		expectRender1 *gomock.Call
 	)
 

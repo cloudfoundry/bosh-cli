@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type Environment interface {

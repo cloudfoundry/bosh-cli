@@ -1,13 +1,12 @@
 package vm
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
-
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type ManagerFactory interface {

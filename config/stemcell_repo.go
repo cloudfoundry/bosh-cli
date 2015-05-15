@@ -1,12 +1,12 @@
 package config
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
-// StemcellRepo persists stemcells metadata
-type StemcellRepo interface {
+type StemcellRepo interface // StemcellRepo persists stemcells metadata
+{
 	UpdateCurrent(recordID string) error
 	FindCurrent() (StemcellRecord, bool, error)
 	ClearCurrent() error

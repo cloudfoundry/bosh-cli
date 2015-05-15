@@ -1,16 +1,13 @@
 package job_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/release/job"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release/job"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )

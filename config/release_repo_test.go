@@ -1,16 +1,15 @@
 package config_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	. "github.com/cloudfoundry/bosh-init/config"
 	"github.com/cloudfoundry/bosh-init/release"
 	fakerelease "github.com/cloudfoundry/bosh-init/release/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("ReleaseRepo", rootDesc)

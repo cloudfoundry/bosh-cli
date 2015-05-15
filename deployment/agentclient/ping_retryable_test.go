@@ -3,13 +3,11 @@ package agentclient_test
 import (
 	"errors"
 
+	. "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	fakebiagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
+	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
-	fakebiagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
-
-	. "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 )
 
 var _ = Describe("PingRetryable", func() {

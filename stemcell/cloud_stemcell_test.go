@@ -1,20 +1,18 @@
 package stemcell_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/stemcell"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/stemcell"
-
 	"errors"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )
 
 var _ = Describe("CloudStemcell", func() {

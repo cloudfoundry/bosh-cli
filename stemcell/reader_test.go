@@ -3,15 +3,13 @@ package stemcell_test
 import (
 	"errors"
 
+	. "github.com/cloudfoundry/bosh-init/stemcell"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/stemcell"
-
-	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("Reader", func() {

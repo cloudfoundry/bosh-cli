@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/pivotal-golang/clock"
 )
 
 type SSHTunnel interface {
@@ -22,7 +22,7 @@ type SSHTunnel interface {
 type sshTunnel struct {
 	connectionRefusedTimeout time.Duration
 	authFailureTimeout       time.Duration
-	timeService              boshtime.Service
+	timeService              clock.Clock
 	startDialDelay           time.Duration
 	options                  Options
 	remoteListener           net.Listener
@@ -159,7 +159,7 @@ func (s *sshTunnel) Stop() error {
 type SSHRetryStrategy struct {
 	ConnectionRefusedTimeout time.Duration
 	AuthFailureTimeout       time.Duration
-	TimeService              boshtime.Service
+	TimeService              clock.Clock
 
 	initialized   bool
 	startTime     time.Time

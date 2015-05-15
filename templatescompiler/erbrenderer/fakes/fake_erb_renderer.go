@@ -3,9 +3,9 @@ package fakes
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type FakeERBRenderer struct {

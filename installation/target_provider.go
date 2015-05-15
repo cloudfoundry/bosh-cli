@@ -3,10 +3,9 @@ package installation
 import (
 	"path/filepath"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
-
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type TargetProvider interface {

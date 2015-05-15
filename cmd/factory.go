@@ -4,13 +4,6 @@ import (
 	"path/filepath"
 	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
-
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -38,6 +31,12 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	bitemplateerb "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/pivotal-golang/clock"
 )
 
 type Factory interface {
@@ -48,7 +47,7 @@ type factory struct {
 	commands               CommandList
 	fs                     boshsys.FileSystem
 	ui                     biui.UI
-	timeService            boshtime.Service
+	timeService            clock.Clock
 	logger                 boshlog.Logger
 	uuidGenerator          boshuuid.Generator
 	workspaceRootPath      string
@@ -81,7 +80,7 @@ type factory struct {
 func NewFactory(
 	fs boshsys.FileSystem,
 	ui biui.UI,
-	timeService boshtime.Service,
+	timeService clock.Clock,
 	logger boshlog.Logger,
 	uuidGenerator boshuuid.Generator,
 	workspaceRootPath string,

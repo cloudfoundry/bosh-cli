@@ -5,21 +5,18 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"os"
 
 	"code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakeblobs "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
-	fakecmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	fakeblobs "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebitemp "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"

@@ -4,10 +4,9 @@ import (
 	"errors"
 	"path/filepath"
 
+	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
@@ -21,9 +20,6 @@ import (
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
 	mock_stemcell "github.com/cloudfoundry/bosh-init/stemcell/mocks"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
@@ -39,10 +35,13 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+	"fmt"
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	"github.com/cloudfoundry/bosh-init/crypto"
+	"github.com/cloudfoundry/bosh-init/deployment"
 	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
 	fakebideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
 	fakebideplval "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
@@ -52,10 +51,8 @@ import (
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest/fakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-
-	"fmt"
-	"github.com/cloudfoundry/bosh-init/crypto"
-	"github.com/cloudfoundry/bosh-init/deployment"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/onsi/gomega/gbytes"
 )
 
@@ -134,7 +131,6 @@ func rootDesc() {
 			boshDeploymentManifest bideplmanifest.Manifest
 			installationManifest   biinstallmanifest.Manifest
 			cloud                  bicloud.Cloud
-			deploymentReleases     []birel.Release
 
 			cloudStemcell bistemcell.CloudStemcell
 
@@ -291,7 +287,6 @@ func rootDesc() {
 
 			// parsed/extracted CPI release
 			fakeCPIRelease = fakebirel.NewFakeRelease()
-			deploymentReleases = []birel.Release{fakeCPIRelease}
 			fakeCPIRelease.ReleaseName = "fake-cpi-release-name"
 			fakeCPIRelease.ReleaseVersion = "1.0"
 			fakeCPIRelease.ReleaseJobs = []bireljob.Job{
@@ -688,8 +683,6 @@ func rootDesc() {
 
 				fakeOtherRelease = fakebirel.New("other-release", "1234")
 				fakeOtherRelease.ReleaseJobs = []bireljob.Job{{Name: "not-cpi"}}
-
-				deploymentReleases = []birel.Release{fakeOtherRelease, fakeCPIRelease}
 
 				expectOtherReleaseExtract = mockReleaseExtractor.EXPECT().Extract(
 					otherReleaseTarballPath,

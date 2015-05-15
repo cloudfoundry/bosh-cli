@@ -1,10 +1,6 @@
 package state
 
 import (
-	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
@@ -14,6 +10,9 @@ import (
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 )
 
 type Builder interface {

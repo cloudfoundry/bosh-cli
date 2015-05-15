@@ -1,22 +1,14 @@
 package state_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/installation/state"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/installation/state"
 
 	"code.google.com/p/gomock/gomock"
 	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
 	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakeboshblob "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
-	fakeboshcmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
-	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biindex "github.com/cloudfoundry/bosh-init/index"
@@ -27,6 +19,11 @@ import (
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	fakeboshblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

@@ -4,11 +4,10 @@ import (
 	"gopkg.in/yaml.v2"
 	"path/filepath"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type manifest struct {

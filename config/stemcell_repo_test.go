@@ -1,14 +1,12 @@
 package config_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-
-	. "github.com/cloudfoundry/bosh-init/config"
 )
 
 var _ = Describe("StemcellRepo", func() {

@@ -1,20 +1,17 @@
 package config_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/config"
 
 	"encoding/json"
 	"errors"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )
 
 var _ = Describe("fileSystemDeploymentStateService", func() {

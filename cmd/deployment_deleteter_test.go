@@ -3,7 +3,6 @@ package cmd_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"os"
 
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
@@ -17,13 +16,6 @@ import (
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
@@ -34,6 +26,11 @@ import (
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
 	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"

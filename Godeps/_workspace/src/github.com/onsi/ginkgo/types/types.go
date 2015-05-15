@@ -1,8 +1,6 @@
 package types
 
-import (
-	"time"
-)
+import "time"
 
 const GINKGO_FOCUS_EXIT_CODE = 197
 
@@ -79,7 +77,7 @@ type SetupSummary struct {
 type SpecFailure struct {
 	Message        string
 	Location       CodeLocation
-	ForwardedPanic interface{}
+	ForwardedPanic string
 
 	ComponentIndex        int
 	ComponentType         SpecComponentType
@@ -87,8 +85,9 @@ type SpecFailure struct {
 }
 
 type SpecMeasurement struct {
-	Name string
-	Info interface{}
+	Name  string
+	Info  interface{}
+	Order int
 
 	Results []float64
 

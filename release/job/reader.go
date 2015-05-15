@@ -3,14 +3,12 @@ package job
 import (
 	"path"
 
-	"gopkg.in/yaml.v2"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bireljobmanifest "github.com/cloudfoundry/bosh-init/release/job/manifest"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"gopkg.in/yaml.v2"
 )
 
 type Reader interface {

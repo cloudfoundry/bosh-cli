@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type NetworkType string

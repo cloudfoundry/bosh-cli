@@ -1,19 +1,17 @@
 package job_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/state/job"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/state/job"
 
 	"code.google.com/p/gomock/gomock"
 	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

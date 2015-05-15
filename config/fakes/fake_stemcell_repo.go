@@ -3,10 +3,9 @@ package fakes
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type StemcellRepoSaveInput struct {

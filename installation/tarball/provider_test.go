@@ -5,16 +5,14 @@ import (
 	"io/ioutil"
 	"os"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
+	. "github.com/cloudfoundry/bosh-init/installation/tarball"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/installation/tarball"
 )
 
 var _ = Describe("Provider", func() {

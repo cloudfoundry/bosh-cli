@@ -3,9 +3,6 @@ package deployment_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
@@ -15,12 +12,8 @@ import (
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
 	mock_stemcell "github.com/cloudfoundry/bosh-init/stemcell/mocks"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -29,6 +22,10 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

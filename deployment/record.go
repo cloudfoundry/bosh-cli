@@ -1,12 +1,11 @@
 package deployment
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Record interface {

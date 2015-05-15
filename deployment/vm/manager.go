@@ -1,17 +1,16 @@
 package vm
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
-
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type Manager interface {

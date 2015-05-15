@@ -1,13 +1,11 @@
 package release_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-init/release"
 )

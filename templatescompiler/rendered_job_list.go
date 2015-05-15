@@ -3,7 +3,7 @@ package templatescompiler
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type RenderedJobList interface {

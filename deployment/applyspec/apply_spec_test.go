@@ -3,10 +3,9 @@ package applyspec_test
 import (
 	"encoding/json"
 
+	. "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 )

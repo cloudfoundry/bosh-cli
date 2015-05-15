@@ -5,14 +5,13 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	logger "github.com/cloudfoundry/bosh-agent/logger"
 	installation "github.com/cloudfoundry/bosh-init/installation"
 	job "github.com/cloudfoundry/bosh-init/installation/job"
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	ui "github.com/cloudfoundry/bosh-init/ui"
+	"github.com/cloudfoundry/bosh-utils/logger" // Mock of Installation interface
 )
 
-// Mock of Installation interface
 type MockInstallation struct {
 	ctrl     *gomock.Controller
 	recorder *_MockInstallationRecorder

@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	biinstancestate "github.com/cloudfoundry/bosh-init/deployment/instance/state"
@@ -15,6 +12,8 @@ import (
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Instance interface {

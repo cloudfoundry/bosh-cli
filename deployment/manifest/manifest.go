@@ -1,8 +1,8 @@
 package manifest
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Manifest struct {

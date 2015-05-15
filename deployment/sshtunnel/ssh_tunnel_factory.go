@@ -3,8 +3,8 @@ package sshtunnel
 import (
 	"time"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/pivotal-golang/clock"
 )
 
 type Options struct {
@@ -37,7 +37,7 @@ func NewFactory(logger boshlog.Logger) Factory {
 }
 
 func (s *factory) NewSSHTunnel(options Options) SSHTunnel {
-	timeService := boshtime.NewConcreteService()
+	timeService := clock.NewClock()
 	return &sshTunnel{
 		connectionRefusedTimeout: 5 * time.Minute,
 		authFailureTimeout:       2 * time.Minute,

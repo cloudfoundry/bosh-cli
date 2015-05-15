@@ -3,21 +3,18 @@ package disk_test
 import (
 	"errors"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	. "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-
-	. "github.com/cloudfoundry/bosh-init/deployment/disk"
+	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Manager", func() {

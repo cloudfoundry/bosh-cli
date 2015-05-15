@@ -3,17 +3,15 @@ package deployment_test
 import (
 	"errors"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
-
-	biconfig "github.com/cloudfoundry/bosh-init/config"
 	"github.com/cloudfoundry/bosh-init/release"
+	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-init/deployment"
 )

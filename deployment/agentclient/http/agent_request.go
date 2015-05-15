@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type AgentRequestMessage struct {

@@ -1,13 +1,11 @@
 package release_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/deployment/release"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/deployment/release"
-
 	"code.google.com/p/gomock/gomock"
-
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 
 	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"

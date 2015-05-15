@@ -1,74 +1,62 @@
 {
 	"ImportPath": "github.com/cloudfoundry/bosh-init",
-	"GoVersion": "go1.3.3",
+	"GoVersion": "go1.4.2",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go.crypto/ssh",
-			"Comment": "null-227",
-			"Rev": "d415780565165acd4cc9d476e485d4603b7c42ec"
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
 		},
 		{
 			"ImportPath": "code.google.com/p/gomock/gomock",
-			"Rev": "e033c7513ca3d743bbb64df299bdec29e93fed03"
+			"Rev": "526771f51633c1315ac61c3d832f536f479e1501"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/blobstore",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/blobstore",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/davcli/client",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/davcli/client",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/davcli/config",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/davcli/config",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/errors",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/errors",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/http",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/fileutil",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/http",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/logger",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/logger",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/platform",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/retrystrategy",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/retrystrategy",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/system",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/settings",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
-		},
-		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/system",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
-		},
-		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/time",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
-		},
-		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/uuid",
-			"Rev": "96e8f348e35d8539e0f3599fe806e899f1490f49"
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/uuid",
+			"Rev": "860ec42f3966efe5cce25381aa4eb980b1da36b9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gofileutils/glob",
-			"Rev": "a4a0cae5ff8a342ba01fce700b9e41c6942c0e5e"
+			"Rev": "74388e8083dc77ebfba108a8dd3e3af92b76ee04"
 		},
 		{
 			"ImportPath": "github.com/nu7hatch/gouuid",
@@ -76,13 +64,17 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.0.0-28-g6481765",
-			"Rev": "6481765dda39cbaae281109e6945449642329197"
+			"Comment": "v1.2.0-beta-9-gfbb6632",
+			"Rev": "fbb663242655b700c623e9629d7781db98957501"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0",
-			"Rev": "a78ae492d53aad5a7a232d0d0462c14c400e3ee7"
+			"Comment": "v1.0-43-gf4f1cae",
+			"Rev": "f4f1caefe95e396ea97b72dd6c52973ae4a6978c"
+		},
+		{
+			"ImportPath": "github.com/pivotal-golang/clock",
+			"Rev": "270608bba0223b4ee5e0ac06f85e7964378f57a3"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

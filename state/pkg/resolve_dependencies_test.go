@@ -1,10 +1,9 @@
 package pkg_test
 
 import (
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 
 	. "github.com/cloudfoundry/bosh-init/state/pkg"
 )

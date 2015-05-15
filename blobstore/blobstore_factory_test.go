@@ -5,16 +5,14 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"net/http"
 
-	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
-	boshdavcliconf "github.com/cloudfoundry/bosh-agent/davcli/config"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
+	boshdavcli "github.com/cloudfoundry/bosh-utils/davcli/client"
+	boshdavcliconf "github.com/cloudfoundry/bosh-utils/davcli/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )
 
 var _ = Describe("BlobstoreFactory", func() {

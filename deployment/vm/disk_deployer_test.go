@@ -3,16 +3,14 @@ package vm_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/vm"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"

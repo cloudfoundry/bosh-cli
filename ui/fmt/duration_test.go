@@ -3,10 +3,9 @@ package fmt_test
 import (
 	"time"
 
+	. "github.com/cloudfoundry/bosh-init/ui/fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
 
 var _ = Describe("Duration", describeDuration)

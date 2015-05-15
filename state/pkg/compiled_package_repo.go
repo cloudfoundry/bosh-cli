@@ -5,10 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type CompiledPackageRecord struct {

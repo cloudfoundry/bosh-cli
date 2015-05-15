@@ -8,15 +8,13 @@ import (
 	"strings"
 	"text/template"
 
+	. "github.com/cloudfoundry/bosh-init/acceptance"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/acceptance"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 const (

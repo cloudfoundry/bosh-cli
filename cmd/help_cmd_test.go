@@ -1,11 +1,10 @@
 package cmd_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-init/cmd"
 )

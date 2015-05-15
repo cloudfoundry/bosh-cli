@@ -3,11 +3,10 @@ package integration_test
 import (
 	. "github.com/cloudfoundry/bosh-init/cmd"
 
+	"bytes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-
-	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -25,12 +24,6 @@ import (
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
@@ -55,6 +48,10 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"

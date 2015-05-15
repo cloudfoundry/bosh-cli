@@ -3,10 +3,9 @@ package installation_test
 import (
 	"os"
 
+	. "github.com/cloudfoundry/bosh-init/installation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/installation"
 
 	"code.google.com/p/gomock/gomock"
 	mock_install_job "github.com/cloudfoundry/bosh-init/installation/job/mocks"
@@ -14,16 +13,15 @@ import (
 	mock_install_state "github.com/cloudfoundry/bosh-init/installation/state/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	biinstallstate "github.com/cloudfoundry/bosh-init/installation/state"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("Installer", func() {

@@ -3,11 +3,10 @@ package state_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("State", func() {

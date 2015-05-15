@@ -1,10 +1,10 @@
 package release
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type Extractor interface {

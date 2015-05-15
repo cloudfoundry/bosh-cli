@@ -3,12 +3,11 @@ package state_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	biindex "github.com/cloudfoundry/bosh-init/index"
@@ -32,9 +31,8 @@ func describeRemotePackageCompiler() {
 	var (
 		packageRepo bistatepkg.CompiledPackageRepo
 
-		pkgDependency    *birelpkg.Package
-		pkg              *birelpkg.Package
-		pkgDependencyRef PackageRef
+		pkgDependency *birelpkg.Package
+		pkg           *birelpkg.Package
 
 		mockBlobstore   *mock_blobstore.MockBlobstore
 		mockAgentClient *mock_agentclient.MockAgentClient
@@ -68,15 +66,6 @@ func describeRemotePackageCompiler() {
 			SHA1:         "fake-source-package-sha1",
 			ArchivePath:  archivePath,
 			Dependencies: []*birelpkg.Package{pkgDependency},
-		}
-
-		pkgDependencyRef = PackageRef{
-			Name:    "fake-package-name-dep",
-			Version: "fake-package-fingerprint-dep",
-			Archive: BlobRef{
-				BlobstoreID: "fake-compiled-package-blob-id-dep",
-				SHA1:        "fake-compiled-package-sha1-dep",
-			},
 		}
 
 		depRecord1 := bistatepkg.CompiledPackageRecord{

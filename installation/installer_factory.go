@@ -1,13 +1,6 @@
 package installation
 
 import (
-	boshblob "github.com/cloudfoundry/bosh-agent/blobstore"
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
-
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	biinstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
@@ -20,6 +13,12 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type InstallerFactory interface {

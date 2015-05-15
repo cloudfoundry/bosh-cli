@@ -1,8 +1,8 @@
 package stemcell
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type Extractor interface {

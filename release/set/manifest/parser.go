@@ -1,13 +1,11 @@
 package manifest
 
 import (
-	"gopkg.in/yaml.v2"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"gopkg.in/yaml.v2"
 )
 
 type Parser interface {

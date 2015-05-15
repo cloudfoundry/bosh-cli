@@ -3,16 +3,13 @@ package blob_test
 import (
 	"errors"
 
+	. "github.com/cloudfoundry/bosh-init/installation/blob"
+	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
+	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakeblobstore "github.com/cloudfoundry/bosh-agent/blobstore/fakes"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
-
-	. "github.com/cloudfoundry/bosh-init/installation/blob"
 )
 
 var _ = Describe("Extractor", func() {

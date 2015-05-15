@@ -1,9 +1,9 @@
 package disk
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type ManagerFactory interface {

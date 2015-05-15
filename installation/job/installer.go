@@ -6,12 +6,11 @@ import (
 	"path"
 	"path/filepath"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
 	biinstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
 	bitemcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type RenderedJobRef struct {

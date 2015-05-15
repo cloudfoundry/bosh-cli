@@ -3,16 +3,13 @@ package erbrenderer_test
 import (
 	"errors"
 
+	. "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	fakebierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakebierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	. "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 )
 
 var _ = Describe("ErbRenderer", func() {

@@ -1,12 +1,11 @@
 package index_test
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
+	. "github.com/cloudfoundry/bosh-init/index"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/index"
 )
 
 var _ = Describe("FileIndex", func() {

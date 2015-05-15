@@ -6,17 +6,14 @@ import (
 	"io/ioutil"
 	"os"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
-
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
+	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("JobEvaluationContext", func() {

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshretry "github.com/cloudfoundry/bosh-agent/retrystrategy"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 )
 
 type agentClient struct {

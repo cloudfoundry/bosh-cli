@@ -1,10 +1,9 @@
 package installation_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/installation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/installation"
 )
 
 var _ = Describe("Target", func() {

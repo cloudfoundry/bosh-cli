@@ -6,18 +6,14 @@ import (
 
 	. "github.com/cloudfoundry/bosh-init/deployment"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 	mock_vm "github.com/cloudfoundry/bosh-init/deployment/vm/mocks"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -27,6 +23,8 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"

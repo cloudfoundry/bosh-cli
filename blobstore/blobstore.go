@@ -4,11 +4,11 @@ import (
 	"io"
 	"os"
 
-	boshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client"
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshuuid "github.com/cloudfoundry/bosh-agent/uuid"
+	boshdavcli "github.com/cloudfoundry/bosh-utils/davcli/client"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type Blobstore interface {

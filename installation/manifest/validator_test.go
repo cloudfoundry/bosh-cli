@@ -1,16 +1,14 @@
 package manifest_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/installation/manifest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-init/installation/manifest"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var _ = Describe("Validator", func() {

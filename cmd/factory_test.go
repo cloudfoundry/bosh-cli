@@ -1,19 +1,16 @@
 package cmd_test
 
 import (
+	. "github.com/cloudfoundry/bosh-init/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/pivotal-golang/clock"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
@@ -36,7 +33,7 @@ var _ = Describe("cmd.Factory", func() {
 		factory = NewFactory(
 			fs,
 			ui,
-			boshtime.NewConcreteService(),
+			clock.NewClock(),
 			logger,
 			uuidGenerator,
 			"/fake-path",

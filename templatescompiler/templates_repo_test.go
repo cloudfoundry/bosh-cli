@@ -5,13 +5,11 @@ import (
 
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("TemplatesRepo", func() {

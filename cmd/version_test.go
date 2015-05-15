@@ -1,10 +1,9 @@
 package cmd_test
 
 import (
+	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/cmd"
 )

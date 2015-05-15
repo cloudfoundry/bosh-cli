@@ -3,10 +3,9 @@ package ui
 import (
 	"time"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshtime "github.com/cloudfoundry/bosh-agent/time"
-
 	biuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/pivotal-golang/clock"
 )
 
 type Stage interface {
@@ -16,14 +15,14 @@ type Stage interface {
 
 type stage struct {
 	ui          UI
-	timeService boshtime.Service
+	timeService clock.Clock
 	logger      boshlog.Logger
 	logTag      string
 
 	simpleMode bool
 }
 
-func NewStage(ui UI, timeService boshtime.Service, logger boshlog.Logger) Stage {
+func NewStage(ui UI, timeService clock.Clock, logger boshlog.Logger) Stage {
 	return &stage{
 		ui:          ui,
 		timeService: timeService,

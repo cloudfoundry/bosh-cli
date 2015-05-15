@@ -3,10 +3,9 @@ package pkg_test
 import (
 	"errors"
 
+	fakebiinstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	fakebiinstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/installation/pkg"
 )

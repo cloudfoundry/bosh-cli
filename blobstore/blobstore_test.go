@@ -5,16 +5,13 @@ import (
 	"io/ioutil"
 	"strings"
 
+	. "github.com/cloudfoundry/bosh-init/blobstore"
+	fakeboshdavcli "github.com/cloudfoundry/bosh-utils/davcli/client/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-
-	fakeboshdavcli "github.com/cloudfoundry/bosh-agent/davcli/client/fakes"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-agent/uuid/fakes"
-
-	. "github.com/cloudfoundry/bosh-init/blobstore"
 )
 
 var _ = Describe("Blobstore", func() {

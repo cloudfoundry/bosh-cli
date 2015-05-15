@@ -1,11 +1,10 @@
 package fakes
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
-
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type FakeValidator struct {

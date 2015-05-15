@@ -1,9 +1,8 @@
 package testutils
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"gopkg.in/yaml.v2"
-
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 )
 
 func MarshalToString(input interface{}) (string, error) {

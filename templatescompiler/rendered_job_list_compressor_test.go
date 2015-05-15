@@ -3,21 +3,18 @@ package templatescompiler_test
 import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
+	"bytes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"bytes"
 	"os"
 	"path/filepath"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshcmd "github.com/cloudfoundry/bosh-agent/platform/commands"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
-
-	fakeboshcmd "github.com/cloudfoundry/bosh-agent/platform/commands/fakes"
-	fakeboshsys "github.com/cloudfoundry/bosh-agent/system/fakes"
-
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 )

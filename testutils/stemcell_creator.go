@@ -1,7 +1,7 @@
 package testutils
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-agent/errors"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 func CreateStemcell(stemcellSrcDir string, stemcellPath string) error {
