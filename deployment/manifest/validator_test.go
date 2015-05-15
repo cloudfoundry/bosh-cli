@@ -357,6 +357,58 @@ var _ = Describe("Validator", func() {
 				Expect(err.Error()).ToNot(ContainSubstring(typeError))
 			})
 
+			It("validates defaults is one of dns/gateway, if present", func() {
+				validationError := "networks[0].defaults can only include 'dns' and 'gateway'"
+
+				deploymentManifest := Manifest{
+					Networks: []Network{
+						{
+							Defaults: []string{"dns", "gateway", "nonsense"},
+						},
+					},
+				}
+
+				err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(validationError))
+
+				deploymentManifest = Manifest{
+					Networks: []Network{
+						{
+							Defaults: []string{"dns", "gateway"},
+						},
+					},
+				}
+
+				err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).ToNot(ContainSubstring(validationError))
+
+				// a subset is valid
+				deploymentManifest = Manifest{
+					Networks: []Network{
+						{
+							Defaults: []string{"dns"},
+						},
+					},
+				}
+
+				err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).ToNot(ContainSubstring(validationError))
+
+				// empty is valid
+				deploymentManifest = Manifest{
+					Networks: []Network{
+						{},
+					},
+				}
+
+				err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).ToNot(ContainSubstring(validationError))
+			})
+
 			Context("manual networks", func() {
 				It("validates that there is exactly 1 subnet", func() {
 					deploymentManifest := Manifest{

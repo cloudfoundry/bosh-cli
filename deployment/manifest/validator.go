@@ -35,25 +35,8 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 	}
 
 	for idx, network := range deploymentManifest.Networks {
-		if v.isBlank(network.Name) {
-			errs = append(errs, bosherr.Errorf("networks[%d].name must be provided", idx))
-		}
-		if network.Type != Dynamic && network.Type != Manual && network.Type != VIP {
-			errs = append(errs, bosherr.Errorf("networks[%d].type must be 'manual', 'dynamic', or 'vip'", idx))
-		}
-		if network.Type == Manual {
-			if len(network.Subnets) != 1 {
-				errs = append(errs, bosherr.Errorf("networks[%d].subnets must be of size 1", idx))
-			} else {
-				ipRange := network.Subnets[0].Range
-				rangeErrors, maybeIpNet := v.validateRange(idx, ipRange)
-				errs = append(errs, rangeErrors...)
-
-				gateway := network.Subnets[0].Gateway
-				gatewayErrors := v.validateGateway(idx, gateway, maybeIpNet)
-				errs = append(errs, gatewayErrors...)
-			}
-		}
+		networkErrors := v.validateNetwork(network, idx)
+		errs = append(errs, networkErrors...)
 	}
 
 	for idx, resourcePool := range deploymentManifest.ResourcePools {
@@ -241,6 +224,43 @@ func (v *validator) validateRange(idx int, ipRange string) ([]error, maybeIPNet)
 
 		return []error{}, &somethingIpNet{ipNet: ipNet}
 	}
+}
+
+func (v *validator) validateNetwork(network Network, networkIdx int) []error {
+	errs := []error{}
+
+	if v.isBlank(network.Name) {
+		errs = append(errs, bosherr.Errorf("networks[%d].name must be provided", networkIdx))
+	}
+	if network.Type != Dynamic && network.Type != Manual && network.Type != VIP {
+		errs = append(errs, bosherr.Errorf("networks[%d].type must be 'manual', 'dynamic', or 'vip'", networkIdx))
+	}
+	if network.Type == Manual {
+		if len(network.Subnets) != 1 {
+			errs = append(errs, bosherr.Errorf("networks[%d].subnets must be of size 1", networkIdx))
+		} else {
+			ipRange := network.Subnets[0].Range
+			rangeErrors, maybeIpNet := v.validateRange(networkIdx, ipRange)
+			errs = append(errs, rangeErrors...)
+
+			gateway := network.Subnets[0].Gateway
+			gatewayErrors := v.validateGateway(networkIdx, gateway, maybeIpNet)
+			errs = append(errs, gatewayErrors...)
+		}
+	}
+
+	defaultsValid := true
+	for _, dflt := range network.Defaults {
+		if dflt != "dns" && dflt != "gateway" {
+			defaultsValid = false
+			break
+		}
+	}
+	if !defaultsValid {
+		errs = append(errs, bosherr.Errorf("networks[%d].defaults can only include 'dns' and 'gateway'", networkIdx))
+	}
+
+	return errs
 }
 
 func (v *validator) validateJobNetwork(jobNetwork JobNetwork, networks []Network, jobIdx, networkIdx int) []error {
