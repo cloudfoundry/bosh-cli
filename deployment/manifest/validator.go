@@ -34,10 +34,8 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 		errs = append(errs, bosherr.Error("name must be provided"))
 	}
 
-	for idx, network := range deploymentManifest.Networks {
-		networkErrors := v.validateNetwork(network, idx)
-		errs = append(errs, networkErrors...)
-	}
+	networksErrors := v.validateNetworks(deploymentManifest.Networks)
+	errs = append(errs, networksErrors...)
 
 	for idx, resourcePool := range deploymentManifest.ResourcePools {
 		if v.isBlank(resourcePool.Name) {
@@ -224,6 +222,33 @@ func (v *validator) validateRange(idx int, ipRange string) ([]error, maybeIPNet)
 
 		return []error{}, &somethingIpNet{ipNet: ipNet}
 	}
+}
+
+func (v *validator) validateNetworks(networks []Network) []error {
+	errs := []error{}
+
+	defaultCounts := make(map[string]int)
+	for idx, network := range networks {
+		for _, dflt := range network.Defaults {
+			count, present := defaultCounts[dflt]
+			if present {
+				defaultCounts[dflt] = count + 1
+			} else {
+				defaultCounts[dflt] = 1
+			}
+		}
+
+		networkErrors := v.validateNetwork(network, idx)
+		errs = append(errs, networkErrors...)
+	}
+
+	for dflt, count := range defaultCounts {
+		if count > 1 {
+			errs = append(errs, bosherr.Errorf("only one network can be the default for '%s'", dflt))
+		}
+	}
+
+	return errs
 }
 
 func (v *validator) validateNetwork(network Network, networkIdx int) []error {
