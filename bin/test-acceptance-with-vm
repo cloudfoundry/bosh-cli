@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ex
 
-base=$( cd "$( dirname "$( dirname "$0" )")" && pwd )
+base=${base:-$( cd "$( dirname "$( dirname "$0" )")" && pwd )}
 acceptance_assets_dir=$base/acceptance/tmp
 
 cpi_release_version=19
@@ -26,15 +26,28 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cpi_release_url=${BOSH_INIT_CPI_RELEASE_URL:-https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=$cpi_release_version}
-cpi_release_sha1=${BOSH_INIT_CPI_RELEASE_SHA1:-$cpi_release_sha1}
-stemcell_url=${BOSH_INIT_STEMCELL_URL:-https://s3.amazonaws.com/bosh-dependencies/$stemcell_file}
-stemcell_sha1=${BOSH_INIT_STEMCELL_SHA1:-$stemcell_sha1}
+if [ ! -z ${BOSH_INIT_CPI_RELEASE_URL+x} ]; then
+  cpi_release_url=$BOSH_INIT_CPI_RELEASE_URL
+else
+  cpi_release_url=https://bosh.io/d/github.com/cppforlife/bosh-warden-cpi-release?v=$cpi_release_version
+fi
+
+if [ ! -z ${BOSH_INIT_CPI_RELEASE_SHA1+x} ]; then
+  cpi_release_sha1=$BOSH_INIT_CPI_RELEASE_SHA1
+fi
+
+if [ ! -z ${BOSH_INIT_STEMCELL_URL+x} ]; then
+  stemcell_url=$BOSH_INIT_STEMCELL_URL
+else
+  stemcell_url=https://s3.amazonaws.com/bosh-dependencies/$stemcell_file
+fi
+
+if [ ! -z ${BOSH_INIT_STEMCELL_SHA1+x} ]; then
+  stemcell_sha1=$BOSH_INIT_STEMCELL_SHA1
+fi
+
 dummy_release_path=${BOSH_INIT_DUMMY_RELEASE_PATH:-./assets/dummy-release.tgz}
 dummy_too_release_path=${BOSH_INIT_DUMMY_TOO_RELEASE_PATH:-./assets/dummy-too-release.tgz}
-
-echo "ENV"
-echo `env`
 
 # Vagrant needs ubuntu to own the private key if aws provider
 if [ ! -z "$BOSH_LITE_PRIVATE_KEY" ]; then

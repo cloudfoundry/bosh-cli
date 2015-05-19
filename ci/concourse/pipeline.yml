@@ -3,29 +3,28 @@ jobs:
   - name: test-unit
     public: true
     plan:
-      - get:      bosh-init
-      - aggregate:
-        - task:       test-unit
-          file:       bosh-init/ci/concourse/tasks/test-unit.yml
+      - get: bosh-init
+      - task: test-unit
+        file: bosh-init/ci/concourse/tasks/test-unit.yml
 
   - name: test-integration
     public: true
     plan:
-      - get:      bosh-init
-      - aggregate:
-        - task:       test-integration
-          privileged: true
-          file:       bosh-init/ci/concourse/tasks/test-integration.yml
+      - get: bosh-init
+      - task: test-integration
+        file: bosh-init/ci/concourse/tasks/test-integration.yml
+        privileged: true
 
   - name: test-acceptance
     public: true
     plan:
-      - get:      bosh-init
-        passed:   [test-unit,test-integration]
       - aggregate:
-        - task:       test-acceptance
+        - {passed: [test-unit,test-integration], get: bosh-init}
+        - {trigger: false,                        get: bosh-warden-cpi-release}
+      - aggregate:
+        - task: test-acceptance
+          file: bosh-init/ci/concourse/tasks/test-acceptance.yml
           privileged: true
-          file:       bosh-init/ci/concourse/tasks/test-acceptance.yml
           config:
             params:
               BOSH_AWS_ACCESS_KEY_ID:     {{aws_ec2_acceptance_tests_access_key}}
@@ -35,96 +34,77 @@ jobs:
               BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
               BOSH_LITE_PRIVATE_KEY:      {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
 
-  - name: bump
-    public: true
-    plan:
-      - get:      bosh-init
-        passed:   [test-acceptance]
-      - get:      version-semver
-        trigger:  false
-        params:   { bump: patch }
-      - aggregate:
-        - put:    version-semver
-          params: { file: version-semver/number }
-
   - name: build
     public: true
     plan:
-      - get:      bosh-init
-        passed:   [bump]
-      - get:      version-semver
-        passed:   [bump]
       - aggregate:
-        - task:   build-linux
-          file:   bosh-init/ci/concourse/tasks/build-linux.yml
-        - task:   build-darwin
-          file:   bosh-init/ci/concourse/tasks/build-darwin.yml
+        - {passed: [test-acceptance], get: bosh-init}
+        - {trigger: false, get: version-semver, params: {bump: patch}}
+      - {put: version-semver, params: {file: version-semver/number}}
       - aggregate:
-        - put:    release-bucket-linux
-          params: { from: build-linux/out/bosh-init-.*-linux-amd64 }
-        - put:    release-bucket-darwin
-          params: { from: build-darwin/out/bosh-init-.*-darwin-amd64 }
-        - put:    bosh-init-promoted
-          params:
-            repository: bosh-init
-            tag: version-semver/number
-            tag_prefix: v
+        - task: build-linux
+          file: bosh-init/ci/concourse/tasks/build-linux.yml
+        - task: build-darwin
+          file: bosh-init/ci/concourse/tasks/build-darwin.yml
+      - aggregate:
+        - {put: release-bucket-linux, params: {from: build-linux/out/bosh-init-.*-linux-amd64}}
+        - {put: release-bucket-darwin, params: {from: build-darwin/out/bosh-init-.*-darwin-amd64}}
+        - {put: bosh-init-promoted, params: {repository: bosh-init, tag: version-semver/number, tag_prefix: v}}
 
   - name: bump-minor
     public: true
     plan:
-      - get:      version-semver
-        trigger:  false
-        params:   { bump: minor }
-      - put:    version-semver
-        params: { file: version-semver/number }
+      - {trigger: false, get: version-semver, params: {bump: minor}}
+      - {put: version-semver, params: {file: version-semver/number}}
 
   - name: bump-major
     public: true
     plan:
-      - get:      version-semver
-        trigger:  false
-        params:   { bump: major }
-      - put:    version-semver
-        params: { file: version-semver/number }
+      - {trigger: false, get: version-semver, params: {bump: major}}
+      - {put: version-semver, params: {file: version-semver/number}}
 
 resources:
   - name: bosh-init
-    type:       git
+    type: git
     source:
-      uri:         https://github.com/cloudfoundry/bosh-init
-      branch:      develop
+      uri: https://github.com/cloudfoundry/bosh-init
+      branch: develop
+
+  - name: bosh-warden-cpi-release
+    type: bosh-io-release
+    source:
+      repository: cppforlife/bosh-warden-cpi-release
 
   - name: bosh-init-promoted
-    type:       git
+    type: git
     source:
-      uri:         git@github.com:cloudfoundry/bosh-init.git
-      branch:      master
+      uri: git@github.com:cloudfoundry/bosh-init.git
+      branch: master
       private_key: {{concourse_github_private_key}}
 
   - name: release-bucket-linux
-    type:       s3
+    type: s3
     source:
-      regexp:             bosh-init-(.*)-linux-amd64
-      bucket:             {{aws_s3_release_bucket}}
-      region_name:        {{aws_s3_release_bucket_region}}
-      access_key_id:      {{aws_s3_release_bucket_access_key}}
-      secret_access_key:  {{aws_s3_release_bucket_secret_key}}
+      regexp: bosh-init-(.*)-linux-amd64
+      bucket: {{aws_s3_release_bucket}}
+      region_name: {{aws_s3_release_bucket_region}}
+      access_key_id: {{aws_s3_release_bucket_access_key}}
+      secret_access_key: {{aws_s3_release_bucket_secret_key}}
 
   - name: release-bucket-darwin
-    type:       s3
+    type: s3
     source:
-      regexp:             bosh-init-(.*)-darwin-amd64
-      bucket:             {{aws_s3_release_bucket}}
-      region_name:        {{aws_s3_release_bucket_region}}
-      access_key_id:      {{aws_s3_release_bucket_access_key}}
-      secret_access_key:  {{aws_s3_release_bucket_secret_key}}
+      regexp: bosh-init-(.*)-darwin-amd64
+      bucket: {{aws_s3_release_bucket}}
+      region_name: {{aws_s3_release_bucket_region}}
+      access_key_id: {{aws_s3_release_bucket_access_key}}
+      secret_access_key: {{aws_s3_release_bucket_secret_key}}
 
   - name: version-semver
-    type:       semver
+    type: semver
     source:
       initial_version: 0.0.8
-      key:                current-version
-      bucket:             {{aws_s3_release_bucket}}
-      access_key_id:      {{aws_s3_release_bucket_access_key}}
-      secret_access_key:  {{aws_s3_release_bucket_secret_key}}
+      key: current-version
+      bucket: {{aws_s3_release_bucket}}
+      access_key_id: {{aws_s3_release_bucket_access_key}}
+      secret_access_key: {{aws_s3_release_bucket_secret_key}}
