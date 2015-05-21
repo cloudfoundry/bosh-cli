@@ -423,6 +423,28 @@ Command 'deploy' failed:
 		})
 	})
 
+	Context("when deploying with all network types", func() {
+		AfterEach(func() {
+			flushLog(cmdEnv["BOSH_INIT_LOG_PATH"])
+
+			// quietly delete the deployment
+			_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"))
+			if exitCode != 0 || err != nil {
+				// only flush the delete log if the delete failed
+				flushLog(quietCmdEnv["BOSH_INIT_LOG_PATH"])
+			}
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+		})
+
+		It("is successful", func() {
+			updateDeploymentManifest("./assets/manifest_with_all_network_types.yml")
+
+			stdout := deploy()
+			Expect(stdout).To(ContainSubstring("Finished deploying"))
+		})
+	})
+
 	Context("when deploying with invalid usage", func() {
 		It("prints command help when command is called with invalid usage", func() {
 			stdout, stderr, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh-init"), "deploy")
