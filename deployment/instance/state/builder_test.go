@@ -217,6 +217,7 @@ func describeBuilder() {
 				Name: "fake-network-name",
 				Interface: biproperty.Map{
 					"type": "fake-network-type",
+					"default": []bideplmanifest.NetworkDefault{"dns", "gateway"},
 					"cloud_properties": biproperty.Map{
 						"fake-network-cloud-property": "fake-network-cloud-property-value",
 					},
@@ -352,6 +353,7 @@ func describeBuilder() {
 				Networks: map[string]biproperty.Map{
 					"fake-network-name": biproperty.Map{
 						"type": "fake-network-type",
+						"default": []bideplmanifest.NetworkDefault{"dns", "gateway"},
 						"cloud_properties": biproperty.Map{
 							"fake-network-cloud-property": "fake-network-cloud-property-value",
 						},

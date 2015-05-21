@@ -65,7 +65,7 @@ var _ = Describe("Manager", func() {
 				"type":             "dynamic",
 				"ip":               "fake-ip",
 				"cloud_properties": biproperty.Map{},
-				"defaults":         []string{"dns", "gateway"},
+				"default":          []bideplmanifest.NetworkDefault{"dns", "gateway"},
 			},
 		}
 		expectedCloudProperties = biproperty.Map{
@@ -81,7 +81,6 @@ var _ = Describe("Manager", func() {
 					Name:            "fake-network-name",
 					Type:            "dynamic",
 					CloudProperties: biproperty.Map{},
-					Defaults:        []string{"dns", "gateway"},
 				},
 			},
 			ResourcePools: []bideplmanifest.ResourcePool{
