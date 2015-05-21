@@ -9,9 +9,10 @@ import (
 	job "github.com/cloudfoundry/bosh-init/installation/job"
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	ui "github.com/cloudfoundry/bosh-init/ui"
-	"github.com/cloudfoundry/bosh-utils/logger" // Mock of Installation interface
+	logger "github.com/cloudfoundry/bosh-utils/logger"
 )
 
+// Mock of Installation interface
 type MockInstallation struct {
 	ctrl     *gomock.Controller
 	recorder *_MockInstallationRecorder

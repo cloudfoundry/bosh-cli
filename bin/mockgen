@@ -5,8 +5,6 @@ bin=$(dirname $0)
 
 rootPackage=github.com/cloudfoundry/bosh-init
 
-$bin/go install code.google.com/p/gomock/mockgen
-
 srcFiles=(
   config/LegacyDeploymentStateMigrator
   cloud/Cloud,Factory
