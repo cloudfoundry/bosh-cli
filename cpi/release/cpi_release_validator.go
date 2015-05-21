@@ -13,7 +13,6 @@ import (
 )
 
 type CPIReleaseValidator interface {
-	RegisterValidCpiReleaseSpecifiedIn(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error
 	GetCpiReleaseSpecFrom(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest) (birelmanifest.ReleaseRef, error)
 	DownloadAndRegisterValid(cpiReleaseRef birelmanifest.ReleaseRef, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error
 }
@@ -43,16 +42,6 @@ func NewCPIReleaseValidator(
 		releaseExtractor:            releaseExtractor,
 		releaseManager:              releaseManager,
 	}
-}
-
-func (c *cpiReleaseValidator) RegisterValidCpiReleaseSpecifiedIn(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error {
-
-	cpiReleaseRef, err := c.GetCpiReleaseSpecFrom(deploymentManifestPath, installationManifest)
-	if err != nil {
-		return err
-	}
-
-	return c.DownloadAndRegisterValid(cpiReleaseRef, installationManifest, stage)
 }
 
 func (c *cpiReleaseValidator) GetCpiReleaseSpecFrom(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest) (birelmanifest.ReleaseRef, error) {
