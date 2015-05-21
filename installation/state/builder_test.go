@@ -195,7 +195,7 @@ var _ = Describe("Builder", func() {
 			_, err := builder.Build(manifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				// compile stages not produced by mockDependencyCompiler
 				{Name: "Rendering job templates"},
 			}))

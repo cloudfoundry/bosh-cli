@@ -100,10 +100,10 @@ var _ = Describe("Installation", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(ContainElement(fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(ContainElement(&fakebiui.PerformCall{
 				Name: "Starting registry",
 			}))
-			Expect(fakeStage.PerformCalls).To(ContainElement(fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(ContainElement(&fakebiui.PerformCall{
 				Name: "Stopping registry",
 			}))
 		})

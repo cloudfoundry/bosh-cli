@@ -267,7 +267,7 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(ContainElement(fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(ContainElement(&fakebiui.PerformCall{
 					Name: "Deleting unused disk 'orphan-disk-cid'",
 				}))
 			})
@@ -325,7 +325,7 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(ContainElement(fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(ContainElement(&fakebiui.PerformCall{
 					Name: "Deleting unused stemcell 'orphan-stemcell-cid'",
 				}))
 			})

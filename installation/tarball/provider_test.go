@@ -116,7 +116,7 @@ var _ = Describe("Provider", func() {
 						_, err := provider.Get(source, fakeStage)
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 							{Name: "Downloading fake-description"},
 						}))
 					})

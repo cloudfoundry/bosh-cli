@@ -230,7 +230,7 @@ var _ = Describe("Manager", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
@@ -271,7 +271,7 @@ var _ = Describe("Manager", func() {
 				},
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))

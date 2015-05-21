@@ -89,7 +89,7 @@ var _ = Describe("Installer", func() {
 			_, err := jobInstaller.Install(renderedJobRef, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Installing job 'cpi'"},
 			}))
 		})

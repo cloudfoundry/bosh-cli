@@ -156,7 +156,7 @@ var _ = Describe("TemplatesCompiler", func() {
 			err := templatesCompiler.Compile(jobs, "fake-deployment-name", jobProperties, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Rendering job templates"},
 			}))
 		})
@@ -214,7 +214,7 @@ var _ = Describe("TemplatesCompiler", func() {
 				err := templatesCompiler.Compile(jobs, "fake-deployment-name", jobProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{
 						Name:  "Rendering job templates",
 						Error: renderError,
@@ -342,7 +342,7 @@ var _ = Describe("TemplatesCompiler", func() {
 				err := templatesCompiler.Compile(jobs, "fake-deployment-name", jobProperties, fakeStage)
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{
 						Name:  "Rendering job templates",
 						Error: renderError,

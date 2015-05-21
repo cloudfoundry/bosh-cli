@@ -35,14 +35,12 @@ func NewCPIReleaseValidator(
 }
 
 func (c *cpiReleaseValidator) DownloadAndRegister(cpiReleaseRef birelmanifest.ReleaseRef, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error {
+	releasePath, err := c.tarballProvider.Get(cpiReleaseRef, stage)
+	if err != nil {
+		return err
+	}
 
 	return stage.Perform(fmt.Sprintf("Validating release '%s'", cpiReleaseRef.Name), func() error {
-
-		releasePath, err := c.tarballProvider.Get(cpiReleaseRef, stage)
-		if err != nil {
-			return err
-		}
-
 		cpiRelease, err := c.releaseExtractor.Extract(releasePath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)

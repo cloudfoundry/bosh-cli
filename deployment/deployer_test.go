@@ -191,7 +191,7 @@ var _ = Describe("Deployer", func() {
 
 			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
 
-			Expect(fakeStage.PerformCalls[:3]).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[:3]).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
 				{Name: "Stopping jobs on instance 'unknown/0'"},
 				{Name: "Deleting VM 'existing-vm-cid'"},
@@ -267,7 +267,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, fakeVMManager, mockBlobstore, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeStage.PerformCalls[1]).To(Equal(fakebiui.PerformCall{
+		Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
 			Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 		}))
 	})
@@ -286,7 +286,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
-			Expect(fakeStage.PerformCalls[1]).To(Equal(fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
 				Name:  "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 				Error: waitError,
 			}))
@@ -334,7 +334,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, fakeVMManager, mockBlobstore, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeStage.PerformCalls[2:4]).To(Equal([]fakebiui.PerformCall{
+		Expect(fakeStage.PerformCalls[2:4]).To(Equal([]*fakebiui.PerformCall{
 			{Name: "Updating instance 'fake-job-name/0'"},
 			{Name: "Waiting for instance 'fake-job-name/0' to be running"},
 		}))
@@ -386,7 +386,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 
-			Expect(fakeStage.PerformCalls[3]).To(Equal(fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[3]).To(Equal(&fakebiui.PerformCall{
 				Name:  "Waiting for instance 'fake-job-name/0' to be running",
 				Error: waitError,
 			}))

@@ -478,10 +478,10 @@ func rootDesc() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[0]).To(Equal(fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
 				Name: "validating",
 				Stage: &fakebiui.FakeStage{
-					PerformCalls: []fakebiui.PerformCall{
+					PerformCalls: []*fakebiui.PerformCall{
 						{Name: "Validating deployment manifest"},
 						{Name: "Validating release 'fake-cpi-release-name'"},
 						{Name: "Validating jobs"},
@@ -511,7 +511,7 @@ func rootDesc() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[1]).To(Equal(fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
 				Name:  "installing CPI",
 				Stage: &fakebiui.FakeStage{}, // mock installer doesn't add sub-stages
 			}))
@@ -521,7 +521,7 @@ func rootDesc() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[2]).To(Equal(fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[2]).To(Equal(&fakebiui.PerformCall{
 				Name: "Starting registry",
 			}))
 		})
@@ -570,7 +570,7 @@ func rootDesc() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[3]).To(Equal(fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[3]).To(Equal(&fakebiui.PerformCall{
 				Name:  "deploying",
 				Stage: &fakebiui.FakeStage{}, // mock deployer doesn't add sub-stages
 			}))

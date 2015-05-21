@@ -12,6 +12,7 @@ import (
 	bireleasemocks "github.com/cloudfoundry/bosh-init/release/mocks"
 	birelsetman "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	birelsetmanfakes "github.com/cloudfoundry/bosh-init/release/set/manifest/fakes"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 
 	"errors"
@@ -250,7 +251,11 @@ var _ = Describe("Validator", func() {
 
 			// it should download the release
 			releasePath := "some/release/path"
-			tarballProvider.EXPECT().Get(cpiReleaseRef, stage).Return(releasePath, nil)
+			tarballProvider.EXPECT().Get(cpiReleaseRef, stage).Do(func(releaseRef birelmanifest.ReleaseRef, stage biui.Stage) {
+				stage.Perform("I'm the download step", func() error {
+					return nil
+				})
+			}).Return(releasePath, nil)
 
 			// it should extract the release
 			cpiRelease := birelfakes.New("some-release-name", "some-release-version")
@@ -269,7 +274,8 @@ var _ = Describe("Validator", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// it printed a stage
-			Expect(stage.PerformCalls).To(Equal([]fakeui.PerformCall{
+			Expect(stage.PerformCalls).To(Equal([]*fakeui.PerformCall{
+				{Name: "I'm the download step"},
 				{Name: "Validating release 'some-release-name'"},
 			}))
 		})

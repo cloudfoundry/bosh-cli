@@ -209,11 +209,11 @@ cloud_provider:
 				"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'",
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{
 					Name: "validating",
 					Stage: &fakebiui.FakeStage{
-						PerformCalls: []fakebiui.PerformCall{
+						PerformCalls: []*fakebiui.PerformCall{
 							{Name: "Validating deployment manifest"},
 							{Name: "Validating release 'fake-cpi-release-name'"},
 						},

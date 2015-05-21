@@ -200,7 +200,7 @@ var _ = Describe("Deployment", func() {
 				err := deployment.Delete(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 					{Name: "Stopping jobs on instance 'unknown/0'"},
 					{Name: "Unmounting disk 'fake-disk-cid'"},

@@ -216,7 +216,7 @@ var _ = Describe("Manager", func() {
 				{DiskCID: "fake-disk-cid-3"},
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Deleting unused disk 'fake-disk-cid-1'"},
 				{Name: "Deleting unused disk 'fake-disk-cid-3'"},
 			}))

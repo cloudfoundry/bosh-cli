@@ -113,7 +113,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Uploading stemcell 'fake-stemcell-name/fake-stemcell-version'"},
 			}))
 		})
@@ -278,7 +278,7 @@ var _ = Describe("Manager", func() {
 				{StemcellCID: "fake-stemcell-cid-3"},
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Deleting unused stemcell 'fake-stemcell-cid-1'"},
 				{Name: "Deleting unused stemcell 'fake-stemcell-cid-3'"},
 			}))

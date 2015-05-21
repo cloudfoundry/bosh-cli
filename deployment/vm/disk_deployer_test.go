@@ -100,7 +100,7 @@ var _ = Describe("DiskDeployer", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(disks).To(Equal([]bidisk.Disk{existingDisk}))
 
-					Expect(fakeStage.PerformCalls).ToNot(ContainElement(fakebiui.PerformCall{
+					Expect(fakeStage.PerformCalls).ToNot(ContainElement(&fakebiui.PerformCall{
 						Name: "Creating disk",
 					}))
 				})
@@ -133,7 +133,7 @@ var _ = Describe("DiskDeployer", func() {
 						},
 					}))
 
-					Expect(fakeStage.PerformCalls[1]).To(Equal(fakebiui.PerformCall{
+					Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
 						Name: "Creating disk",
 					}))
 				})
@@ -146,7 +146,7 @@ var _ = Describe("DiskDeployer", func() {
 						{Disk: secondaryDisk},
 					}))
 
-					Expect(fakeStage.PerformCalls[2]).To(Equal(fakebiui.PerformCall{
+					Expect(fakeStage.PerformCalls[2]).To(Equal(&fakebiui.PerformCall{
 						Name: "Attaching disk 'fake-secondary-disk-cid' to VM 'fake-vm-cid'",
 					}))
 				})
@@ -156,7 +156,7 @@ var _ = Describe("DiskDeployer", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fakeVM.MigrateDiskCalledTimes).To(Equal(1))
 
-					Expect(fakeStage.PerformCalls[3]).To(Equal(fakebiui.PerformCall{
+					Expect(fakeStage.PerformCalls[3]).To(Equal(&fakebiui.PerformCall{
 						Name: "Migrating disk content from 'fake-existing-disk-cid' to 'fake-secondary-disk-cid'",
 					}))
 				})
@@ -168,7 +168,7 @@ var _ = Describe("DiskDeployer", func() {
 						{Disk: existingDisk},
 					}))
 
-					Expect(fakeStage.PerformCalls[4]).To(Equal(fakebiui.PerformCall{
+					Expect(fakeStage.PerformCalls[4]).To(Equal(&fakebiui.PerformCall{
 						Name: "Detaching disk 'fake-existing-disk-cid'",
 					}))
 				})
@@ -212,7 +212,7 @@ var _ = Describe("DiskDeployer", func() {
 						Expect(err.Error()).To(ContainSubstring("fake-attach-disk-error"))
 						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{}))
 
-						Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 							{Name: "Attaching disk 'fake-existing-disk-cid' to VM 'fake-vm-cid'"},
 							{Name: "Creating disk"},
 							{
@@ -237,7 +237,7 @@ var _ = Describe("DiskDeployer", func() {
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-detach-disk-error"))
 
-						Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 							{Name: "Attaching disk 'fake-existing-disk-cid' to VM 'fake-vm-cid'"},
 							{Name: "Creating disk"},
 							{Name: "Attaching disk 'fake-secondary-disk-cid' to VM 'fake-vm-cid'"},
@@ -265,7 +265,7 @@ var _ = Describe("DiskDeployer", func() {
 						Expect(err.Error()).To(ContainSubstring("fake-migrate-disk-error"))
 						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{}))
 
-						Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 							{Name: "Attaching disk 'fake-existing-disk-cid' to VM 'fake-vm-cid'"},
 							{Name: "Creating disk"},
 							{Name: "Attaching disk 'fake-secondary-disk-cid' to VM 'fake-vm-cid'"},
@@ -306,7 +306,7 @@ var _ = Describe("DiskDeployer", func() {
 				_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls[0]).To(Equal(fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
 					Name: "Creating disk",
 				}))
 			})
@@ -326,7 +326,7 @@ var _ = Describe("DiskDeployer", func() {
 			_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Creating disk"},
 				{Name: "Attaching disk 'fake-new-disk-cid' to VM 'fake-vm-cid'"},
 			}))
@@ -370,7 +370,7 @@ var _ = Describe("DiskDeployer", func() {
 				_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{
 						Name:  "Creating disk",
 						Error: createDiskError,
@@ -398,7 +398,7 @@ var _ = Describe("DiskDeployer", func() {
 				_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 				Expect(err).To(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Creating disk"},
 					{
 						Name:  "Attaching disk 'fake-new-disk-cid' to VM 'fake-vm-cid'",

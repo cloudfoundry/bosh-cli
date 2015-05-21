@@ -133,7 +133,7 @@ var _ = Describe("DependencyCompiler", func() {
 		_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(fakeStage.PerformCalls).To(Equal([]fakebiui.PerformCall{
+		Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 			{Name: "Compiling package 'fake-release-package-name-1/fake-release-package-fingerprint-1'"},
 			{Name: "Compiling package 'fake-release-package-name-2/fake-release-package-fingerprint-2'"},
 		}))
