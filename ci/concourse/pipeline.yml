@@ -32,7 +32,7 @@ jobs:
               BOSH_LITE_KEYPAIR:          {{aws_ec2_acceptance_tests_bosh_lite_keypair}}
               BOSH_LITE_SUBNET_ID:        {{aws_ec2_acceptance_tests_bosh_lite_subnet_id}}
               BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
-              BOSH_LITE_PRIVATE_KEY:      {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
+              BOSH_LITE_PRIVATE_KEY_DATA: {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
 
   - name: build
     public: true
