@@ -103,7 +103,8 @@ func (h *instanceHandler) HandlePut(instanceID string, w http.ResponseWriter, re
 		return
 	}
 
-	h.logger.Debug(h.logTag, "Saving settings to registry for instance %s", instanceID)
+	h.logger.Debug(h.logTag, "Saving settings to registry for instance %s: %s", instanceID, string(reqBody))
+
 	isUpdated := h.registry.Save(instanceID, reqBody)
 	if isUpdated {
 		w.WriteHeader(http.StatusOK)

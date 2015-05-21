@@ -129,12 +129,7 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	var shutdownAgent = func() {
-		_, _, exitCode, err := instanceSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
-		if exitCode == 1 {
-			// If timeout was reached, KILL signal was sent before exiting.
-			// Retry to wait another 14s for exit.
-			_, _, exitCode, err = instanceSSH.RunCommandWithSudo("sv -w 14 force-shutdown agent")
-		}
+		_, _, exitCode, err := instanceSSH.RunCommandWithSudo("sv stop agent")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 	}
