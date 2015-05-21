@@ -132,7 +132,7 @@ func (c *deploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, dep
 }
 
 func (c *deploymentDeleter) installCPI(stage biui.Stage) (biinstallmanifest.Manifest, biinstall.Installation, error) {
-	installationManifest, err := c.installationManifest(stage)
+	installationManifest, err := c.getInstallationManifestAndRegisterValidCpiRelease(stage)
 	if err != nil {
 		return installationManifest, nil, err
 	}
@@ -150,22 +150,34 @@ func (c *deploymentDeleter) installCPI(stage biui.Stage) (biinstallmanifest.Mani
 	return installationManifest, installation, err
 }
 
-func (c *deploymentDeleter) installationManifest(stage biui.Stage) (biinstallmanifest.Manifest, error) {
+func (c *deploymentDeleter) getInstallationManifestAndRegisterValidCpiRelease(stage biui.Stage) (biinstallmanifest.Manifest, error) {
 	var installationManifest biinstallmanifest.Manifest
 	err := stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var err error
-		err = stage.Perform("Validating deployment manifest", func() error {
-			installationManifest, err = c.installationParser.Parse(c.deploymentManifestPath)
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", c.deploymentManifestPath)
-			}
-			return err
-		})
+		installationManifest, err = c.getInstallationManifestFrom(c.deploymentManifestPath, stage)
 		if err != nil {
 			return err
 		}
 
-		return c.cpiReleaseValidator.RegisterValidCpiReleaseSpecifiedIn(c.deploymentManifestPath, installationManifest, stage)
+		cpiReleaseRef, err := c.cpiReleaseValidator.GetCpiReleaseSpecFrom(c.deploymentManifestPath, installationManifest)
+		if err != nil {
+			return err
+		}
+
+		return c.cpiReleaseValidator.DownloadAndRegisterValid(cpiReleaseRef, installationManifest, stage)
+	})
+	return installationManifest, err
+}
+
+func (c *deploymentDeleter) getInstallationManifestFrom(deploymentManifestPath string, stage biui.Stage) (biinstallmanifest.Manifest, error) {
+	var installationManifest biinstallmanifest.Manifest
+	var err error
+	err = stage.Perform("Validating deployment manifest", func() error {
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+		}
+		return err
 	})
 	return installationManifest, err
 }

@@ -14,6 +14,8 @@ import (
 
 type CPIReleaseValidator interface {
 	RegisterValidCpiReleaseSpecifiedIn(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error
+	GetCpiReleaseSpecFrom(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest) (birelmanifest.ReleaseRef, error)
+	DownloadAndRegisterValid(cpiReleaseRef birelmanifest.ReleaseRef, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error
 }
 
 type cpiReleaseValidator struct {
@@ -45,15 +47,15 @@ func NewCPIReleaseValidator(
 
 func (c *cpiReleaseValidator) RegisterValidCpiReleaseSpecifiedIn(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error {
 
-	cpiReleaseRef, err := c.getCpiReleaseSpecFrom(deploymentManifestPath, installationManifest)
+	cpiReleaseRef, err := c.GetCpiReleaseSpecFrom(deploymentManifestPath, installationManifest)
 	if err != nil {
 		return err
 	}
 
-	return c.downloadAndRegisterValid(cpiReleaseRef, installationManifest, stage)
+	return c.DownloadAndRegisterValid(cpiReleaseRef, installationManifest, stage)
 }
 
-func (c *cpiReleaseValidator) getCpiReleaseSpecFrom(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest) (birelmanifest.ReleaseRef, error) {
+func (c *cpiReleaseValidator) GetCpiReleaseSpecFrom(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest) (birelmanifest.ReleaseRef, error) {
 
 	releaseSetManifest, err := c.releaseSetManifestParser.Parse(deploymentManifestPath)
 	if err != nil {
@@ -79,7 +81,7 @@ func (c *cpiReleaseValidator) getCpiReleaseSpecFrom(deploymentManifestPath strin
 
 }
 
-func (c *cpiReleaseValidator) downloadAndRegisterValid(cpiReleaseRef birelmanifest.ReleaseRef, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error {
+func (c *cpiReleaseValidator) DownloadAndRegisterValid(cpiReleaseRef birelmanifest.ReleaseRef, installationManifest biinstallmanifest.Manifest, stage biui.Stage) error {
 
 	return stage.Perform(fmt.Sprintf("Validating release '%s'", cpiReleaseRef.Name), func() error {
 
