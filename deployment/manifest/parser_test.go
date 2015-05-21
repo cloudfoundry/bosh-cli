@@ -90,7 +90,7 @@ jobs:
   - name: vip
     static_ips: [1.2.3.4]
   - name: fake-network-name
-    defaults: [dns]
+    default: [dns]
   persistent_disk: 1024
   persistent_disk_pool: fake-disk-pool-name
   resource_pool: fake-resource-pool
@@ -178,7 +178,7 @@ properties:
 						},
 						{
 							Name:    "fake-network-name",
-							Default: []NetworkDefault{NetworkDefaultDNS},
+							Defaults: []NetworkDefault{NetworkDefaultDNS},
 						},
 					},
 					PersistentDisk:     1024,

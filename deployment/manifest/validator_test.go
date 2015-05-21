@@ -78,7 +78,7 @@ var _ = Describe("Validator", func() {
 					Networks: []JobNetwork{
 						{
 							Name:    "fake-network-name",
-							Default: []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway},
+							Defaults: []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway},
 						},
 					},
 					Lifecycle: "service",
@@ -741,8 +741,8 @@ var _ = Describe("Validator", func() {
 					Jobs: []Job{
 						{
 							Networks: []JobNetwork{
-								{Default: []NetworkDefault{"non-dns-or-gateway"}},
-								{Default: []NetworkDefault{"another-bad-string", "yet-another-bad-string"}},
+								{Defaults: []NetworkDefault{"non-dns-or-gateway"}},
+								{Defaults: []NetworkDefault{"another-bad-string", "yet-another-bad-string"}},
 							},
 						},
 					},
@@ -868,8 +868,8 @@ var _ = Describe("Validator", func() {
 					})
 
 					It("validates a default dns can only be specified for a single network", func() {
-						deploymentManifest.Jobs[0].Networks[0].Default = []NetworkDefault{"dns", "gateway"}
-						deploymentManifest.Jobs[0].Networks[1].Default = []NetworkDefault{"dns"}
+						deploymentManifest.Jobs[0].Networks[0].Defaults = []NetworkDefault{"dns", "gateway"}
+						deploymentManifest.Jobs[0].Networks[1].Defaults = []NetworkDefault{"dns"}
 
 						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 						Expect(err).To(HaveOccurred())
@@ -883,8 +883,8 @@ var _ = Describe("Validator", func() {
 					})
 
 					It("validates a default gateway can only be specified for a single network", func() {
-						deploymentManifest.Jobs[0].Networks[0].Default = []NetworkDefault{"dns", "gateway"}
-						deploymentManifest.Jobs[0].Networks[1].Default = []NetworkDefault{"gateway"}
+						deploymentManifest.Jobs[0].Networks[0].Defaults = []NetworkDefault{"dns", "gateway"}
+						deploymentManifest.Jobs[0].Networks[1].Defaults = []NetworkDefault{"gateway"}
 
 						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 						Expect(err).To(HaveOccurred())
@@ -916,7 +916,7 @@ var _ = Describe("Validator", func() {
 					})
 
 					It("is ok if defaults to are set", func() {
-						deploymentManifest.Jobs[0].Networks[0].Default = []NetworkDefault{"dns"}
+						deploymentManifest.Jobs[0].Networks[0].Defaults = []NetworkDefault{"dns"}
 						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).ToNot(ContainSubstring("default"))

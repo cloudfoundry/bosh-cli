@@ -70,7 +70,7 @@ jobs:
   networks:
   - name: fake-network-name
     static_ips: [10.244.0.42]
-    defaults: [dns, gateway]
+    default: [dns, gateway]
   - name: dynamic-network
   - name: vip-network
   persistent_disk: 1024

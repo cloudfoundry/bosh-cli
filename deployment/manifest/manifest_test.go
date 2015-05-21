@@ -120,7 +120,7 @@ var _ = Describe("Manifest", func() {
 				})
 
 				It("sets network defaults for both dns and gateway when only dns specified", func() {
-					singleNetworkJob.Networks[0].Default = []NetworkDefault{NetworkDefaultDNS}
+					singleNetworkJob.Networks[0].Defaults = []NetworkDefault{NetworkDefaultDNS}
 					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network")).To(Equal(map[string]biproperty.Map{
 						"vip": biproperty.Map{
 							"type":             "vip",
@@ -132,7 +132,7 @@ var _ = Describe("Manifest", func() {
 				})
 
 				It("sets network defaults for both dns and gateway when only gateway specified", func() {
-					singleNetworkJob.Networks[0].Default = []NetworkDefault{NetworkDefaultGateway}
+					singleNetworkJob.Networks[0].Defaults = []NetworkDefault{NetworkDefaultGateway}
 					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network")).To(Equal(map[string]biproperty.Map{
 						"vip": biproperty.Map{
 							"type":             "vip",
@@ -144,7 +144,7 @@ var _ = Describe("Manifest", func() {
 				})
 
 				It("sets network defaults for both dns and gateway when both gateway and dns specified", func() {
-					singleNetworkJob.Networks[0].Default = []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway}
+					singleNetworkJob.Networks[0].Defaults = []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway}
 					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network")).To(Equal(map[string]biproperty.Map{
 						"vip": biproperty.Map{
 							"type":             "vip",

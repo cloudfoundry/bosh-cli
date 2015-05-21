@@ -30,7 +30,7 @@ type ReleaseJobRef struct {
 
 type JobNetwork struct {
 	Name      string
-	Default   []NetworkDefault
+	Defaults  []NetworkDefault
 	StaticIPs []string
 }
 

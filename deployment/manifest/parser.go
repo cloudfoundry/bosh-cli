@@ -88,7 +88,7 @@ type stemcellRef struct {
 
 type jobNetwork struct {
 	Name      string
-	Default   []string `yaml:"defaults"`
+	Defaults  []string `yaml:"default"`
 	StaticIPs []string `yaml:"static_ips"`
 }
 
@@ -209,12 +209,12 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 					StaticIPs: rawJobNetwork.StaticIPs,
 				}
 
-				if rawJobNetwork.Default != nil {
-					networkDefaults := make([]NetworkDefault, len(rawJobNetwork.Default), len(rawJobNetwork.Default))
-					for i, rawDefault := range rawJobNetwork.Default {
-						networkDefaults[i] = NetworkDefault(rawDefault)
+				if rawJobNetwork.Defaults != nil {
+					networkDefaults := make([]NetworkDefault, len(rawJobNetwork.Defaults), len(rawJobNetwork.Defaults))
+					for i, rawDefaults := range rawJobNetwork.Defaults {
+						networkDefaults[i] = NetworkDefault(rawDefaults)
 					}
-					jobNetwork.Default = networkDefaults
+					jobNetwork.Defaults = networkDefaults
 				}
 
 				jobNetworks[i] = jobNetwork

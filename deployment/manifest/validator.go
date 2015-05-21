@@ -286,13 +286,13 @@ func (v *validator) validateJobNetworks(jobNetworks []JobNetwork, networks []Net
 			errs = append(errs, staticIPErrors...)
 		}
 
-		for defaultIdx, value := range jobNetwork.Default {
+		for defaultIdx, value := range jobNetwork.Defaults {
 			if value != NetworkDefaultDNS && value != NetworkDefaultGateway {
 				errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].default[%d] must be 'dns' or 'gateway'", jobIdx, networkIdx, defaultIdx))
 			}
 		}
 
-		for _, dflt := range jobNetwork.Default {
+		for _, dflt := range jobNetwork.Defaults {
 			count, present := defaultCounts[dflt]
 			if present {
 				defaultCounts[dflt] = count + 1
