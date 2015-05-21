@@ -30,12 +30,12 @@ func (_m *MockCPIReleaseValidator) EXPECT() *_MockCPIReleaseValidatorRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCPIReleaseValidator) ValidateCPIReleaseRef(_param0 ui.Stage, _param1 string, _param2 manifest.Manifest) error {
-	ret := _m.ctrl.Call(_m, "ValidateCPIReleaseRef", _param0, _param1, _param2)
+func (_m *MockCPIReleaseValidator) RegisterValidCpiReleaseSpecifiedIn(_param0 string, _param1 manifest.Manifest, _param2 ui.Stage) error {
+	ret := _m.ctrl.Call(_m, "RegisterValidCpiReleaseSpecifiedIn", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockCPIReleaseValidatorRecorder) ValidateCPIReleaseRef(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ValidateCPIReleaseRef", arg0, arg1, arg2)
+func (_mr *_MockCPIReleaseValidatorRecorder) RegisterValidCpiReleaseSpecifiedIn(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterValidCpiReleaseSpecifiedIn", arg0, arg1, arg2)
 }

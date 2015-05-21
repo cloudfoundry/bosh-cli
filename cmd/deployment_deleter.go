@@ -165,7 +165,7 @@ func (c *deploymentDeleter) installationManifest(stage biui.Stage) (biinstallman
 			return err
 		}
 
-		return c.cpiReleaseValidator.ValidateCPIReleaseRef(stage, c.deploymentManifestPath, installationManifest)
+		return c.cpiReleaseValidator.RegisterValidCpiReleaseSpecifiedIn(c.deploymentManifestPath, installationManifest, stage)
 	})
 	return installationManifest, err
 }
