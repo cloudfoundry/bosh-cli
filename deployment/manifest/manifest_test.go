@@ -63,6 +63,19 @@ var _ = Describe("Manifest", func() {
 								},
 							},
 						},
+						{
+							Name: "job-without-networks",
+							Networks: []JobNetwork{},
+						},
+						{
+							Name: "job-with-single-network",
+							Networks: []JobNetwork{
+								{
+									Name:      "vip",
+									StaticIPs: []string{"1.2.3.4"},
+								},
+							},
+						},
 					},
 				}
 			})
@@ -89,6 +102,71 @@ var _ = Describe("Manifest", func() {
 				}))
 			})
 
+			Context("given a job with a single network", func() {
+				var singleNetworkJob Job
+				BeforeEach(func() {
+					singleNetworkJob = deploymentManifest.Jobs[2]
+				})
+
+				It("sets network defaults for both dns and gateway when none are specified", func() {
+					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network")).To(Equal(map[string]biproperty.Map{
+						"vip": biproperty.Map{
+							"type":             "vip",
+							"ip":               "1.2.3.4",
+							"cloud_properties": biproperty.Map{},
+							"default":          []NetworkDefault{"dns", "gateway"},
+						},
+					}))
+				})
+
+				It("sets network defaults for both dns and gateway when only dns specified", func() {
+					singleNetworkJob.Networks[0].Default = []NetworkDefault{NetworkDefaultDNS}
+					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network")).To(Equal(map[string]biproperty.Map{
+						"vip": biproperty.Map{
+							"type":             "vip",
+							"ip":               "1.2.3.4",
+							"cloud_properties": biproperty.Map{},
+							"default":          []NetworkDefault{"dns", "gateway"},
+						},
+					}))
+				})
+
+				It("sets network defaults for both dns and gateway when only gateway specified", func() {
+					singleNetworkJob.Networks[0].Default = []NetworkDefault{NetworkDefaultGateway}
+					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network")).To(Equal(map[string]biproperty.Map{
+						"vip": biproperty.Map{
+							"type":             "vip",
+							"ip":               "1.2.3.4",
+							"cloud_properties": biproperty.Map{},
+							"default":          []NetworkDefault{"dns", "gateway"},
+						},
+					}))
+				})
+
+				It("sets network defaults for both dns and gateway when both gateway and dns specified", func() {
+					singleNetworkJob.Networks[0].Default = []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway}
+					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network")).To(Equal(map[string]biproperty.Map{
+						"vip": biproperty.Map{
+							"type":             "vip",
+							"ip":               "1.2.3.4",
+							"cloud_properties": biproperty.Map{},
+							"default":          []NetworkDefault{"dns", "gateway"},
+						},
+					}))
+				})
+			})
+
+			It("returns an error when the deployment does not have a job with requested name", func() {
+				networkInterfaces, err := deploymentManifest.NetworkInterfaces("non-existant-job")
+				Expect(networkInterfaces).To(Equal(map[string]biproperty.Map{}))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Could not find job with name: non-existant-job"))
+			})
+
+			It("returns an empty map when job does not specify networks", func() {
+				Expect(deploymentManifest.NetworkInterfaces("job-without-networks")).To(Equal(map[string]biproperty.Map{}))
+			})
+
 			Context("when the deployment does not have networks", func() {
 				BeforeEach(func() {
 					deploymentManifest = Manifest{
@@ -103,19 +181,6 @@ var _ = Describe("Manifest", func() {
 
 				It("is an empty map", func() {
 					Expect(deploymentManifest.NetworkInterfaces("fake-job-name")).To(Equal(map[string]biproperty.Map{}))
-				})
-			})
-
-			Context("when the deployment does not have a job with requested name", func() {
-				BeforeEach(func() {
-					deploymentManifest = Manifest{}
-				})
-
-				It("returns an error", func() {
-					networkInterfaces, err := deploymentManifest.NetworkInterfaces("fake-job-name")
-					Expect(networkInterfaces).To(Equal(map[string]biproperty.Map{}))
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Could not find job with name: fake-job-name"))
 				})
 			})
 		})
