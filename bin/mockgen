@@ -8,23 +8,24 @@ rootPackage=github.com/cloudfoundry/bosh-init
 srcFiles=(
   config/LegacyDeploymentStateMigrator
   cloud/Cloud,Factory
-	installation/Installation,Installer,InstallerFactory
-	installation/state/Builder
-	installation/pkg/Installer
-	installation/job/Installer
-	deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
-	deployment/agentclient/AgentClient
-	deployment/agentclient/http/AgentClientFactory
-	deployment/instance/Instance,Manager
-	deployment/instance/state/BuilderFactory,Builder,State
-	deployment/disk/Disk,Manager
-	deployment/vm/ManagerFactory
-	deployment/release/JobResolver
+  installation/Installation,Installer,InstallerFactory
+  installation/state/Builder
+  installation/pkg/Installer
+  installation/job/Installer
+  installation/tarball/Provider
+  deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
+  deployment/agentclient/AgentClient
+  deployment/agentclient/http/AgentClientFactory
+  deployment/instance/Instance,Manager
+  deployment/instance/state/BuilderFactory,Builder,State
+  deployment/disk/Disk,Manager
+  deployment/vm/ManagerFactory
+  deployment/release/JobResolver
   registry/Server,ServerManager
   release/Manager,Extractor
   state/job/DependencyCompiler
   state/pkg/Compiler,CompiledPackageRepo
-	stemcell/CloudStemcell,Manager
+  stemcell/CloudStemcell,Manager
   templatescompiler/JobRenderer,JobListRenderer,RenderedJob,RenderedJobList,RenderedJobListArchive,RenderedJobListCompressor
   blobstore/Factory,Blobstore
   test_support/Spy

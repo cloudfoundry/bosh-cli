@@ -16,12 +16,12 @@ type CPIReleaseValidator interface {
 }
 
 type cpiReleaseValidator struct {
-	releaseSetParser      birelsetmanifest.Parser
-	releaseSetValidator   birelsetmanifest.Validator
-	tarballProvider       bitarball.Provider
-	installationValidator biinstallmanifest.Validator
-	releaseExtractor      birel.Extractor
-	releaseManager        birel.Manager
+	releaseSetManifestParser    birelsetmanifest.Parser
+	releaseSetManifestValidator birelsetmanifest.Validator
+	tarballProvider             bitarball.Provider
+	installationValidator       biinstallmanifest.Validator
+	releaseExtractor            birel.Extractor
+	releaseManager              birel.Manager
 }
 
 func NewCPIReleaseValidator(
@@ -33,22 +33,22 @@ func NewCPIReleaseValidator(
 	releaseManager birel.Manager,
 ) CPIReleaseValidator {
 	return &cpiReleaseValidator{
-		releaseSetParser:      releaseSetParser,
-		releaseSetValidator:   releaseSetValidator,
-		installationValidator: installationValidator,
-		tarballProvider:       tarballProvider,
-		releaseExtractor:      releaseExtractor,
-		releaseManager:        releaseManager,
+		releaseSetManifestParser:    releaseSetParser,
+		releaseSetManifestValidator: releaseSetValidator,
+		installationValidator:       installationValidator,
+		tarballProvider:             tarballProvider,
+		releaseExtractor:            releaseExtractor,
+		releaseManager:              releaseManager,
 	}
 }
 
 func (c *cpiReleaseValidator) ValidateCPIReleaseRef(stage biui.Stage, deploymentManifestPath string, installationManifest biinstallmanifest.Manifest) error {
-	releaseSetManifest, err := c.releaseSetParser.Parse(deploymentManifestPath)
+	releaseSetManifest, err := c.releaseSetManifestParser.Parse(deploymentManifestPath)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
 	}
 
-	err = c.releaseSetValidator.Validate(releaseSetManifest)
+	err = c.releaseSetManifestValidator.Validate(releaseSetManifest)
 	if err != nil {
 		return bosherr.WrapError(err, "Validating release set manifest")
 	}
@@ -57,8 +57,8 @@ func (c *cpiReleaseValidator) ValidateCPIReleaseRef(stage biui.Stage, deployment
 	if err != nil {
 		return bosherr.WrapError(err, "Validating installation manifest")
 	}
-	cpiReleaseName := installationManifest.Template.Release
 
+	cpiReleaseName := installationManifest.Template.Release
 	cpiReleaseRef, found := releaseSetManifest.FindByName(cpiReleaseName)
 	if !found {
 		return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
@@ -74,12 +74,12 @@ func (c *cpiReleaseValidator) ValidateCPIReleaseRef(stage biui.Stage, deployment
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
 		}
+
 		c.releaseManager.Add(cpiRelease)
 		err = NewValidator().Validate(cpiRelease, installationManifest.Template.Name)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiRelease.Name())
 		}
-
 		return nil
 	})
 }
