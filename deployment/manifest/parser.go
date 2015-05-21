@@ -41,7 +41,6 @@ type network struct {
 	Netmask         string                      `yaml:"netmask"`
 	Gateway         string                      `yaml:"gateway"`
 	DNS             []string                    `yaml:"dns"`
-	Defaults        []string                    `yaml:"defaults"`
 }
 
 type subnet struct {
@@ -89,7 +88,7 @@ type stemcellRef struct {
 
 type jobNetwork struct {
 	Name      string
-	Default   []string
+	Default   []string `yaml:"defaults"`
 	StaticIPs []string `yaml:"static_ips"`
 }
 
@@ -243,7 +242,6 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 		network := Network{
 			Name:     rawNetwork.Name,
 			Type:     NetworkType(rawNetwork.Type),
-			Defaults: rawNetwork.Defaults,
 		}
 
 		cloudProperties, err := biproperty.BuildMap(rawNetwork.CloudProperties)

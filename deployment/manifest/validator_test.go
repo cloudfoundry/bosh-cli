@@ -78,7 +78,7 @@ var _ = Describe("Validator", func() {
 					Networks: []JobNetwork{
 						{
 							Name:    "fake-network-name",
-							Default: []NetworkDefault{"dns", "gateway"},
+							Default: []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway},
 						},
 					},
 					Lifecycle: "service",
@@ -353,140 +353,6 @@ var _ = Describe("Validator", func() {
 					validReleaseSetManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).ToNot(ContainSubstring(typeError))
-			})
-
-			Describe("defaults", func() {
-				Context("with multiple networks", func() {
-					It("validates exactly only one network is the default for dns", func() {
-						deploymentManifest := Manifest{
-							Networks: []Network{
-								{
-									Defaults: []string{"dns", "gateway"},
-								},
-								{
-									Defaults: []string{"dns"},
-								},
-							},
-						}
-
-						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("only one network can be the default for 'dns'"))
-
-						deploymentManifest = Manifest{
-							Networks: []Network{
-								{
-									Defaults: []string{"gateway"},
-								},
-								{
-									Defaults: []string{},
-								},
-							},
-						}
-
-						err = validator.Validate(deploymentManifest, validReleaseSetManifest)
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("with multiple networks, a default for 'dns' must be specified"))
-					})
-
-					It("validates that exactly one network is the default for gateway", func() {
-						deploymentManifest := Manifest{
-							Networks: []Network{
-								{
-									Defaults: []string{"dns", "gateway"},
-								},
-								{
-									Defaults: []string{"gateway"},
-								},
-							},
-						}
-
-						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("only one network can be the default for 'gateway'"))
-
-						deploymentManifest = Manifest{
-							Networks: []Network{
-								{
-									Defaults: []string{"dns"},
-								},
-								{
-									Defaults: []string{},
-								},
-							},
-						}
-
-						err = validator.Validate(deploymentManifest, validReleaseSetManifest)
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("with multiple networks, a default for 'gateway' must be specified"))
-					})
-				})
-
-				Context("with only one network", func() {
-					It("doesn't require any defaults to be set", func() {
-						deploymentManifest := Manifest{
-							Networks: []Network{
-								{},
-							},
-						}
-
-						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).ToNot(ContainSubstring("default"))
-					})
-				})
-
-				It("validates a network's defaults is one of dns/gateway, if present", func() {
-					validationError := "networks[0].defaults can only include 'dns' and 'gateway'"
-
-					deploymentManifest := Manifest{
-						Networks: []Network{
-							{
-								Defaults: []string{"dns", "gateway", "nonsense"},
-							},
-						},
-					}
-
-					err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring(validationError))
-
-					deploymentManifest = Manifest{
-						Networks: []Network{
-							{
-								Defaults: []string{"dns", "gateway"},
-							},
-						},
-					}
-
-					err = validator.Validate(deploymentManifest, validReleaseSetManifest)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).ToNot(ContainSubstring(validationError))
-
-					// a subset is valid
-					deploymentManifest = Manifest{
-						Networks: []Network{
-							{
-								Defaults: []string{"dns"},
-							},
-						},
-					}
-
-					err = validator.Validate(deploymentManifest, validReleaseSetManifest)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).ToNot(ContainSubstring(validationError))
-
-					// empty is valid
-					deploymentManifest = Manifest{
-						Networks: []Network{
-							{},
-						},
-					}
-
-					err = validator.Validate(deploymentManifest, validReleaseSetManifest)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).ToNot(ContainSubstring(validationError))
-				})
 			})
 
 			Context("manual networks", func() {
@@ -819,160 +685,244 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("jobs[0].instances must be >= 0"))
 		})
 
-		It("validates job networks", func() {
-			deploymentManifest := Manifest{
-				Jobs: []Job{
-					{
-						Networks: []JobNetwork{},
-					},
-				},
-			}
-
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].networks must be a non-empty array"))
-		})
-
-		It("validates job network name", func() {
-			deploymentManifest := Manifest{
-				Jobs: []Job{
-					{
-						Networks: []JobNetwork{
-							{
-								Name: "",
-							},
+		Describe ("job networks", func() {
+			It("validates job networks", func() {
+				deploymentManifest := Manifest{
+					Jobs: []Job{
+						{
+							Networks: []JobNetwork{},
 						},
 					},
-				},
-			}
+				}
 
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].name must be provided"))
-		})
+				err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("jobs[0].networks must be a non-empty array"))
+			})
 
-		It("validates job network static ips", func() {
-			deploymentManifest := Manifest{
-				Jobs: []Job{
-					{
-						Networks: []JobNetwork{
-							{
-								StaticIPs: []string{"non-ip"},
-							},
-						},
-					},
-				},
-			}
-
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].static_ips[0] must be a valid IP"))
-		})
-
-		It("validates job network default", func() {
-			deploymentManifest := Manifest{
-				Jobs: []Job{
-					{
-						Networks: []JobNetwork{
-							{
-								Default: []NetworkDefault{
-									"non-dns-or-gateway",
+			It("validates job network name", func() {
+				deploymentManifest := Manifest{
+					Jobs: []Job{
+						{
+							Networks: []JobNetwork{
+								{
+									Name: "",
 								},
 							},
 						},
 					},
-				},
-			}
+				}
 
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].default[0] must be 'dns' or 'gateway'"))
-		})
+				err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].name must be provided"))
+			})
 
-		It("validates job network corresponds to a specified network", func() {
-			deploymentManifest := Manifest{
-				Networks: []Network{
-					{
-						Name: "fake-network-name",
-						Type: "manual",
-						Subnets: []Subnet{{
-							Range:   "10.10.0.0/24",
-							Gateway: "10.0.0.1",
-						}},
-					},
-				},
-				Jobs: []Job{
-					{
-						Networks: []JobNetwork{
-							{
-								Name:      "different-network-name",
-								StaticIPs: []string{"10.10.1.1"},
+			It("validates job network static ips", func() {
+				deploymentManifest := Manifest{
+					Jobs: []Job{
+						{
+							Networks: []JobNetwork{
+								{
+									StaticIPs: []string{"non-ip"},
+								},
 							},
 						},
 					},
-				},
-			}
+				}
 
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0] not found in networks"))
-		})
+				err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].static_ips[0] must be a valid IP"))
+			})
 
-		It("validates job network static ip is in the subnet range", func() {
-			deploymentManifest := Manifest{
-				Networks: []Network{
-					{
-						Name: "fake-network-name",
-						Type: "manual",
-						Subnets: []Subnet{{
-							Range:   "10.10.0.0/24",
-							Gateway: "10.10.0.1",
-						}},
-					},
-				},
-				Jobs: []Job{
-					{
-						Networks: []JobNetwork{
-							{
-								Name:      "fake-network-name",
-								StaticIPs: []string{"10.10.1.1"},
+			It("validates job network default", func() {
+				deploymentManifest := Manifest{
+					Jobs: []Job{
+						{
+							Networks: []JobNetwork{
+								{Default: []NetworkDefault{"non-dns-or-gateway"}},
+								{Default: []NetworkDefault{"another-bad-string", "yet-another-bad-string"}},
 							},
 						},
 					},
-				},
-			}
+				}
 
-			err := validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0] static ip '10.10.1.1' must be within subnet range"))
+				err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0].default[0] must be 'dns' or 'gateway'"))
+				Expect(err.Error()).To(ContainSubstring("jobs[0].networks[1].default[0] must be 'dns' or 'gateway'"))
+				Expect(err.Error()).To(ContainSubstring("jobs[0].networks[1].default[1] must be 'dns' or 'gateway'"))
+			})
 
-			deploymentManifest = Manifest{
-				Networks: []Network{
-					{
-						Name: "fake-network-name",
-						Type: "manual",
-						Subnets: []Subnet{{
-							Range:   "10.10.0.0/24",
-							Gateway: "10.10.0.1",
-						}},
+			It("validates job network corresponds to a specified network", func() {
+				deploymentManifest := Manifest{
+					Networks: []Network{
+						{
+							Name: "fake-network-name",
+							Type: "manual",
+							Subnets: []Subnet{{
+								Range:   "10.10.0.0/24",
+								Gateway: "10.0.0.1",
+							}},
+						},
 					},
-				},
-				Jobs: []Job{
-					{
-						Networks: []JobNetwork{
-							{
-								Name:      "fake-network-name",
-								StaticIPs: []string{"10.10.0.2"},
+					Jobs: []Job{
+						{
+							Networks: []JobNetwork{
+								{
+									Name:      "different-network-name",
+									StaticIPs: []string{"10.10.1.1"},
+								},
 							},
 						},
 					},
-				},
-			}
+				}
 
-			err = validator.Validate(deploymentManifest, validReleaseSetManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).ToNot(ContainSubstring("static ip"))
+				err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0] not found in networks"))
+			})
 
+			It("validates job network static ip is in the subnet range", func() {
+				deploymentManifest := Manifest{
+					Networks: []Network{
+						{
+							Name: "fake-network-name",
+							Type: "manual",
+							Subnets: []Subnet{{
+								Range:   "10.10.0.0/24",
+								Gateway: "10.10.0.1",
+							}},
+						},
+					},
+					Jobs: []Job{
+						{
+							Networks: []JobNetwork{
+								{
+									Name:      "fake-network-name",
+									StaticIPs: []string{"10.10.1.1"},
+								},
+							},
+						},
+					},
+				}
+
+				err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("jobs[0].networks[0] static ip '10.10.1.1' must be within subnet range"))
+
+				deploymentManifest = Manifest{
+					Networks: []Network{
+						{
+							Name: "fake-network-name",
+							Type: "manual",
+							Subnets: []Subnet{{
+								Range:   "10.10.0.0/24",
+								Gateway: "10.10.0.1",
+							}},
+						},
+					},
+					Jobs: []Job{
+						{
+							Networks: []JobNetwork{
+								{
+									Name:      "fake-network-name",
+									StaticIPs: []string{"10.10.0.2"},
+								},
+							},
+						},
+					},
+				}
+
+				err = validator.Validate(deploymentManifest, validReleaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).ToNot(ContainSubstring("static ip"))
+
+			})
+
+			Describe("defaults", func() {
+				var deploymentManifest Manifest
+				Context("with multiple networks", func() {
+					BeforeEach(func() {
+						deploymentManifest = Manifest{
+							Networks: []Network{
+								{Name: "fake-network-name1", Type: "manual"},
+								{Name: "fake-network-name2", Type: "dynamic"},
+							},
+							Jobs: []Job{
+								{
+									Networks: []JobNetwork{
+										{Name: "fake-network-name1"},
+										{Name: "fake-network-name2"},
+									},
+								},
+							},
+						}
+					})
+
+					It("validates a default dns must be specified", func() {
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("with multiple networks, a default for 'dns' must be specified"))
+					})
+
+					It("validates a default dns can only be specified for a single network", func() {
+						deploymentManifest.Jobs[0].Networks[0].Default = []NetworkDefault{"dns", "gateway"}
+						deploymentManifest.Jobs[0].Networks[1].Default = []NetworkDefault{"dns"}
+
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("only one network can be the default for 'dns'"))
+					})
+
+					It("validates a default gateway must be specified", func() {
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("with multiple networks, a default for 'gateway' must be specified"))
+					})
+
+					It("validates a default gateway can only be specified for a single network", func() {
+						deploymentManifest.Jobs[0].Networks[0].Default = []NetworkDefault{"dns", "gateway"}
+						deploymentManifest.Jobs[0].Networks[1].Default = []NetworkDefault{"gateway"}
+
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("only one network can be the default for 'gateway'"))
+					})
+				})
+
+				Context("with only one network", func() {
+					BeforeEach(func() {
+						deploymentManifest = Manifest{
+							Networks: []Network{
+								{Name: "fake-network-name1", Type: "manual"},
+								{Name: "fake-network-name2", Type: "dynamic"},
+							},
+							Jobs: []Job{
+								{
+									Networks: []JobNetwork{
+										{Name: "fake-network-name1"},
+									},
+								},
+							},
+						}
+					})
+
+					It("doesn't require any defaults to be set", func() {
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).ToNot(ContainSubstring("default"))
+					})
+
+					It("is ok if defaults to are set", func() {
+						deploymentManifest.Jobs[0].Networks[0].Default = []NetworkDefault{"dns"}
+						err := validator.Validate(deploymentManifest, validReleaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).ToNot(ContainSubstring("default"))
+					})
+				})
+			})
 		})
 
 		It("validates job lifecycle", func() {

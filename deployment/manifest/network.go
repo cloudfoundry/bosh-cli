@@ -27,7 +27,6 @@ type Network struct {
 	CloudProperties biproperty.Map
 	DNS             []string
 	Subnets         []Subnet
-	Defaults        []string
 }
 
 type Subnet struct {
@@ -40,7 +39,7 @@ type Subnet struct {
 // Interface returns a property map representing a generic network interface.
 // Expected Keys: ip, type, cloud properties.
 // Optional Keys: netmask, gateway, dns
-func (n Network) Interface(staticIPs []string) (biproperty.Map, error) {
+func (n Network) Interface(staticIPs []string, networkDefaults []NetworkDefault) (biproperty.Map, error) {
 	networkInterface := biproperty.Map{
 		"type": n.Type.String(),
 	}
@@ -74,8 +73,8 @@ func (n Network) Interface(staticIPs []string) (biproperty.Map, error) {
 		networkInterface["ip"] = staticIPs[0]
 	}
 
-	if len(n.Defaults) > 0 {
-		networkInterface["defaults"] = n.Defaults
+	if len(networkDefaults) > 0 {
+		networkInterface["default"] = networkDefaults
 	}
 
 	return networkInterface, nil

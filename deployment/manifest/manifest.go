@@ -34,10 +34,13 @@ func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, 
 	var err error
 	for _, jobNetwork := range job.Networks {
 		network := networkMap[jobNetwork.Name]
-		ifaceMap[jobNetwork.Name], err = network.Interface(jobNetwork.StaticIPs)
+		ifaceMap[jobNetwork.Name], err = network.Interface(jobNetwork.StaticIPs, jobNetwork.Default)
 		if err != nil {
 			return map[string]biproperty.Map{}, bosherr.WrapError(err, "Building network interface")
 		}
+	}
+	if len(job.Networks) == 1 {
+		ifaceMap[job.Networks[0].Name]["default"] = []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway}
 	}
 
 	return ifaceMap, nil

@@ -77,32 +77,6 @@ networks:
     subnet: fake-subnet
     a:
       b: value
-  defaults: [dns]
-- name: second-fake-network-name
-  type: dynamic
-  subnets:
-  - range: 1.2.3.0/22
-    gateway: 1.1.1.1
-    dns: [2.2.2.2]
-    cloud_properties:
-      cp_key: cp_value
-  cloud_properties:
-    subnet: fake-subnet
-    a:
-      b: value
-  defaults: [gateway]
-- name: third-fake-network-name
-  type: dynamic
-  subnets:
-  - range: 1.2.3.0/22
-    gateway: 1.1.1.1
-    dns: [2.2.2.2]
-    cloud_properties:
-      cp_key: cp_value
-  cloud_properties:
-    subnet: fake-subnet
-    a:
-      b: value
 - name: vip
   type: vip
 disk_pools:
@@ -115,6 +89,8 @@ jobs:
   networks:
   - name: vip
     static_ips: [1.2.3.4]
+  - name: fake-network-name
+    defaults: [dns]
   persistent_disk: 1024
   persistent_disk_pool: fake-disk-pool-name
   resource_pool: fake-resource-pool
@@ -160,52 +136,10 @@ properties:
 							"b": "value",
 						},
 					},
-					Defaults: []string{"dns"},
 				},
 				{
-					Name: "second-fake-network-name",
-					Type: Dynamic,
-					Subnets: []Subnet{
-						{
-							Range:   "1.2.3.0/22",
-							Gateway: "1.1.1.1",
-							DNS:     []string{"2.2.2.2"},
-							CloudProperties: biproperty.Map{
-								"cp_key": "cp_value",
-							},
-						},
-					},
-					CloudProperties: biproperty.Map{
-						"subnet": "fake-subnet",
-						"a": biproperty.Map{
-							"b": "value",
-						},
-					},
-					Defaults: []string{"gateway"},
-				},
-				{
-					Name: "third-fake-network-name",
-					Type: Dynamic,
-					Subnets: []Subnet{
-						{
-							Range:   "1.2.3.0/22",
-							Gateway: "1.1.1.1",
-							DNS:     []string{"2.2.2.2"},
-							CloudProperties: biproperty.Map{
-								"cp_key": "cp_value",
-							},
-						},
-					},
-					CloudProperties: biproperty.Map{
-						"subnet": "fake-subnet",
-						"a": biproperty.Map{
-							"b": "value",
-						},
-					},
-				},
-				{
-					Name:            "vip",
-					Type:            VIP,
+					Name: "vip",
+					Type: VIP,
 					CloudProperties: biproperty.Map{},
 				},
 			},
@@ -241,6 +175,10 @@ properties:
 						{
 							Name:      "vip",
 							StaticIPs: []string{"1.2.3.4"},
+						},
+						{
+							Name:    "fake-network-name",
+							Default: []NetworkDefault{NetworkDefaultDNS},
 						},
 					},
 					PersistentDisk:     1024,

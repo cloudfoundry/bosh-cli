@@ -98,10 +98,8 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 				errs = append(errs, bosherr.Errorf("jobs[%d].resource_pool must be the name of a resource pool", idx))
 			}
 		}
-		for networkIdx, jobNetwork := range job.Networks {
-			jobNetworkErrors := v.validateJobNetwork(jobNetwork, deploymentManifest.Networks, idx, networkIdx)
-			errs = append(errs, jobNetworkErrors...)
-		}
+
+		errs = append(errs, v.validateJobNetworks(job.Networks, deploymentManifest.Networks, idx)...)
 
 		if job.Lifecycle != "" && job.Lifecycle != JobLifecycleService {
 			errs = append(errs, bosherr.Errorf("jobs[%d].lifecycle must be 'service' ('%s' not supported)", idx, job.Lifecycle))
@@ -226,28 +224,9 @@ func (v *validator) validateRange(idx int, ipRange string) ([]error, maybeIPNet)
 func (v *validator) validateNetworks(networks []Network) []error {
 	errs := []error{}
 
-	defaultCounts := make(map[string]int)
 	for idx, network := range networks {
-		for _, dflt := range network.Defaults {
-			count, present := defaultCounts[dflt]
-			if present {
-				defaultCounts[dflt] = count + 1
-			} else {
-				defaultCounts[dflt] = 1
-			}
-		}
-
 		networkErrors := v.validateNetwork(network, idx)
 		errs = append(errs, networkErrors...)
-	}
-
-	for _, dflt := range []string{"dns", "gateway"} {
-		count, found := defaultCounts[dflt]
-		if len(networks) > 1 && !found {
-			errs = append(errs, bosherr.Errorf("with multiple networks, a default for '%s' must be specified", dflt))
-		} else if count > 1 {
-			errs = append(errs, bosherr.Errorf("only one network can be the default for '%s'", dflt))
-		}
 	}
 
 	return errs
@@ -276,50 +255,61 @@ func (v *validator) validateNetwork(network Network, networkIdx int) []error {
 		}
 	}
 
-	defaultsValid := true
-	for _, dflt := range network.Defaults {
-		if dflt != "dns" && dflt != "gateway" {
-			defaultsValid = false
-			break
-		}
-	}
-	if !defaultsValid {
-		errs = append(errs, bosherr.Errorf("networks[%d].defaults can only include 'dns' and 'gateway'", networkIdx))
-	}
-
 	return errs
 }
 
-func (v *validator) validateJobNetwork(jobNetwork JobNetwork, networks []Network, jobIdx, networkIdx int) []error {
+func (v *validator) validateJobNetworks(jobNetworks []JobNetwork, networks []Network, jobIdx int) []error {
 	errs := []error{}
+	defaultCounts := make(map[NetworkDefault]int)
 
-	if v.isBlank(jobNetwork.Name) {
-		errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].name must be provided", jobIdx, networkIdx))
+	for networkIdx, jobNetwork := range jobNetworks {
+
+		if v.isBlank(jobNetwork.Name) {
+			errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].name must be provided", jobIdx, networkIdx))
+		}
+
+		var matchingNetwork Network
+		found := false
+		for _, network := range networks {
+			if network.Name == jobNetwork.Name {
+				found = true
+				matchingNetwork = network
+			}
+		}
+
+		if !found {
+			errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d] not found in networks", jobIdx, networkIdx))
+		}
+
+		for ipIdx, ip := range jobNetwork.StaticIPs {
+			staticIPErrors := v.validateStaticIP(ip, jobNetwork, matchingNetwork, jobIdx, networkIdx, ipIdx)
+			errs = append(errs, staticIPErrors...)
+		}
+
+		for defaultIdx, value := range jobNetwork.Default {
+			if value != NetworkDefaultDNS && value != NetworkDefaultGateway {
+				errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].default[%d] must be 'dns' or 'gateway'", jobIdx, networkIdx, defaultIdx))
+			}
+		}
+
+		for _, dflt := range jobNetwork.Default {
+			count, present := defaultCounts[dflt]
+			if present {
+				defaultCounts[dflt] = count + 1
+			} else {
+				defaultCounts[dflt] = 1
+			}
+		}
 	}
-
-	var matchingNetwork Network
-	found := false
-	for _, network := range networks {
-		if network.Name == jobNetwork.Name {
-			found = true
-			matchingNetwork = network
+	for _, dflt := range []NetworkDefault{"dns", "gateway"} {
+		count, found := defaultCounts[dflt]
+		if len(jobNetworks) > 1 && !found {
+			errs = append(errs, bosherr.Errorf("with multiple networks, a default for '%s' must be specified", dflt))
+		} else if count > 1 {
+			errs = append(errs, bosherr.Errorf("only one network can be the default for '%s'", dflt))
 		}
 	}
 
-	if !found {
-		errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d] not found in networks", jobIdx, networkIdx))
-	}
-
-	for ipIdx, ip := range jobNetwork.StaticIPs {
-		staticIPErrors := v.validateStaticIP(ip, jobNetwork, matchingNetwork, jobIdx, networkIdx, ipIdx)
-		errs = append(errs, staticIPErrors...)
-	}
-
-	for defaultIdx, value := range jobNetwork.Default {
-		if value != NetworkDefaultDNS && value != NetworkDefaultGateway {
-			errs = append(errs, bosherr.Errorf("jobs[%d].networks[%d].default[%d] must be 'dns' or 'gateway'", jobIdx, networkIdx, defaultIdx))
-		}
-	}
 
 	return errs
 }
