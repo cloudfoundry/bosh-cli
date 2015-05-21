@@ -44,37 +44,38 @@ type Factory interface {
 }
 
 type factory struct {
-	commands               CommandList
-	fs                     boshsys.FileSystem
-	ui                     biui.UI
-	timeService            clock.Clock
-	logger                 boshlog.Logger
-	uuidGenerator          boshuuid.Generator
-	workspaceRootPath      string
-	runner                 boshsys.CmdRunner
-	compressor             boshcmd.Compressor
-	agentClientFactory     bihttpagent.AgentClientFactory
-	registryServerManager  biregistry.ServerManager
-	sshTunnelFactory       bisshtunnel.Factory
-	instanceFactory        biinstance.Factory
-	instanceManagerFactory biinstance.ManagerFactory
-	deploymentFactory      bidepl.Factory
-	blobstoreFactory       biblobstore.Factory
-	eventLogger            biui.Stage
-	releaseExtractor       birel.Extractor
-	releaseManager         birel.Manager
-	releaseSetParser       birelsetmanifest.Parser
-	releaseJobResolver     bideplrel.JobResolver
-	installationParser     biinstallmanifest.Parser
-	deploymentParser       bideplmanifest.Parser
-	releaseSetValidator    birelsetmanifest.Validator
-	installationValidator  biinstallmanifest.Validator
-	deploymentValidator    bideplmanifest.Validator
-	cloudFactory           bicloud.Factory
-	stateBuilderFactory    biinstancestate.BuilderFactory
-	compiledPackageRepo    bistatepkg.CompiledPackageRepo
-	tarballProvider        bitarball.Provider
-	cpiReleaseValidator    bicpirel.CPIReleaseValidator
+	commands                CommandList
+	fs                      boshsys.FileSystem
+	ui                      biui.UI
+	timeService             clock.Clock
+	logger                  boshlog.Logger
+	uuidGenerator           boshuuid.Generator
+	workspaceRootPath       string
+	runner                  boshsys.CmdRunner
+	compressor              boshcmd.Compressor
+	agentClientFactory      bihttpagent.AgentClientFactory
+	registryServerManager   biregistry.ServerManager
+	sshTunnelFactory        bisshtunnel.Factory
+	instanceFactory         biinstance.Factory
+	instanceManagerFactory  biinstance.ManagerFactory
+	deploymentFactory       bidepl.Factory
+	blobstoreFactory        biblobstore.Factory
+	eventLogger             biui.Stage
+	releaseExtractor        birel.Extractor
+	releaseManager          birel.Manager
+	releaseSetParser        birelsetmanifest.Parser
+	releaseJobResolver      bideplrel.JobResolver
+	installationParser      biinstallmanifest.Parser
+	deploymentParser        bideplmanifest.Parser
+	releaseSetValidator     birelsetmanifest.Validator
+	installationValidator   biinstallmanifest.Validator
+	deploymentValidator     bideplmanifest.Validator
+	cloudFactory            bicloud.Factory
+	stateBuilderFactory     biinstancestate.BuilderFactory
+	compiledPackageRepo     bistatepkg.CompiledPackageRepo
+	tarballProvider         bitarball.Provider
+	cpiReleaseValidator     bicpirel.CPIReleaseValidator
+	validatedCpiReleaseSpec bicpirel.ValidatedCpiReleaseSpec
 }
 
 func NewFactory(
@@ -283,15 +284,25 @@ func (f *factory) loadCPIReleaseValidator() bicpirel.CPIReleaseValidator {
 		return f.cpiReleaseValidator
 	}
 	f.cpiReleaseValidator = bicpirel.NewCPIReleaseValidator(
-		f.loadReleaseSetParser(),
-		f.loadReleaseSetValidator(),
-		f.loadInstallationValidator(),
 		f.loadTarballProvider(),
 		f.loadReleaseExtractor(),
 		f.loadReleaseManager(),
 	)
 	return f.cpiReleaseValidator
 }
+
+func (f *factory) loadValidatedCpiReleaseSpec() bicpirel.ValidatedCpiReleaseSpec {
+	if f.validatedCpiReleaseSpec != nil {
+		return f.validatedCpiReleaseSpec
+	}
+	f.validatedCpiReleaseSpec = bicpirel.NewValidatedCpiReleaseSpec(
+		f.loadReleaseSetParser(),
+		f.loadReleaseSetValidator(),
+		f.loadInstallationValidator(),
+	)
+	return f.validatedCpiReleaseSpec
+}
+
 func (f *factory) loadReleaseExtractor() birel.Extractor {
 	if f.releaseExtractor != nil {
 		return f.releaseExtractor
@@ -458,6 +469,7 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
 		d.f.loadInstallationParser(),
 		d.deploymentManifestPath,
 		d.f.loadCPIReleaseValidator(),
+		d.f.loadValidatedCpiReleaseSpec(),
 	)
 }
 

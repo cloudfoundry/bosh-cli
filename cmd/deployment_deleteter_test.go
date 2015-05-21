@@ -162,7 +162,8 @@ cloud_provider:
 			tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
 			fakeSHA1Calculator := fakebicrypto.NewFakeSha1Calculator()
 			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
-			cpiReleaseValidator := bicpirel.NewCPIReleaseValidator(releaseSetParser, releaseSetValidator, installationValidator, tarballProvider, mockReleaseExtractor, releaseManager)
+			cpiReleaseValidator := bicpirel.NewCPIReleaseValidator(tarballProvider, mockReleaseExtractor, releaseManager)
+			validatedCpiReleaseSpec := bicpirel.NewValidatedCpiReleaseSpec(releaseSetParser, releaseSetValidator, installationValidator)
 			deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
 			return bicmd.NewDeploymentDeleter(
@@ -180,6 +181,7 @@ cloud_provider:
 				installationParser,
 				deploymentManifestPath,
 				cpiReleaseValidator,
+				validatedCpiReleaseSpec,
 			)
 		}
 

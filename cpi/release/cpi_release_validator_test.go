@@ -29,7 +29,7 @@ var _ = Describe("Validator", func() {
 		mockCtrl.Finish()
 	})
 
-	Describe("GetCpiReleaseSpecFrom", func() {
+	Describe("GetFrom", func() {
 		var (
 			releaseSetManifestParser    *birelsetmanfakes.FakeParser
 			releaseSetManifestValidator *birelsetmanfakes.FakeValidator
@@ -37,7 +37,7 @@ var _ = Describe("Validator", func() {
 			tarballProvider             *biinstalltarballmocks.MockProvider
 			releaseExtractor            *bireleasemocks.MockExtractor
 			releaseManager              *bireleasemocks.MockManager
-			cpiReleaseValidator         cpirel.CPIReleaseValidator
+			validatedCpiReleaseSpec     cpirel.ValidatedCpiReleaseSpec
 			installManifest             biinstallmanifest.Manifest
 		)
 
@@ -57,13 +57,10 @@ var _ = Describe("Validator", func() {
 				},
 			}
 
-			cpiReleaseValidator = cpirel.NewCPIReleaseValidator(
+			validatedCpiReleaseSpec = cpirel.NewValidatedCpiReleaseSpec(
 				releaseSetManifestParser,
 				releaseSetManifestValidator,
 				installationValidator,
-				tarballProvider,
-				releaseExtractor,
-				releaseManager,
 			)
 		})
 
@@ -84,7 +81,7 @@ var _ = Describe("Validator", func() {
 				{Err: nil},
 			})
 
-			releaseRef, err := cpiReleaseValidator.GetCpiReleaseSpecFrom(deploymentManifestPath, installManifest)
+			releaseRef, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(releaseRef).To(Equal(cpiReleaseRef))
@@ -117,7 +114,7 @@ var _ = Describe("Validator", func() {
 
 			releaseSetManifestParser.ParseErr = errors.New("wow that didn't work")
 
-			_, err := cpiReleaseValidator.GetCpiReleaseSpecFrom(deploymentManifestPath, installManifest)
+			_, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Parsing release set manifest 'some-path': wow that didn't work"))
 		})
@@ -131,7 +128,7 @@ var _ = Describe("Validator", func() {
 				{Err: errors.New("couldn't validate that")},
 			})
 
-			_, err := cpiReleaseValidator.GetCpiReleaseSpecFrom(deploymentManifestPath, installManifest)
+			_, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Validating release set manifest: couldn't validate that"))
 		})
@@ -148,7 +145,7 @@ var _ = Describe("Validator", func() {
 				{Err: errors.New("nope")},
 			})
 
-			_, err := cpiReleaseValidator.GetCpiReleaseSpecFrom(deploymentManifestPath, installManifest)
+			_, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Validating installation manifest: nope"))
 
@@ -171,14 +168,14 @@ var _ = Describe("Validator", func() {
 				{Err: nil},
 			})
 
-			_, err := cpiReleaseValidator.GetCpiReleaseSpecFrom(deploymentManifestPath, installManifest)
+			_, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("installation release 'some-release-name' must refer to a release in releases"))
 		})
 
 	})
 
-	Describe("DownloadAndRegisterValid", func() {
+	Describe("DownloadAndRegister", func() {
 		var (
 			releaseSetManifestParser    *birelsetmanfakes.FakeParser
 			releaseSetManifestValidator *birelsetmanfakes.FakeValidator
@@ -207,9 +204,6 @@ var _ = Describe("Validator", func() {
 			}
 
 			cpiReleaseValidator = cpirel.NewCPIReleaseValidator(
-				releaseSetManifestParser,
-				releaseSetManifestValidator,
-				installationValidator,
 				tarballProvider,
 				releaseExtractor,
 				releaseManager,
@@ -225,7 +219,7 @@ var _ = Describe("Validator", func() {
 
 			tarballProvider.EXPECT().Get(cpiReleaseRef, stage).Return("", errors.New("hey, that download failed"))
 
-			err := cpiReleaseValidator.DownloadAndRegisterValid(cpiReleaseRef, installManifest, stage)
+			err := cpiReleaseValidator.DownloadAndRegister(cpiReleaseRef, installManifest, stage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("hey, that download failed"))
 		})
@@ -242,7 +236,7 @@ var _ = Describe("Validator", func() {
 
 			releaseExtractor.EXPECT().Extract(releasePath).Return(nil, errors.New("boom"))
 
-			err := cpiReleaseValidator.DownloadAndRegisterValid(cpiReleaseRef, installManifest, stage)
+			err := cpiReleaseValidator.DownloadAndRegister(cpiReleaseRef, installManifest, stage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Extracting release 'some/release/path': boom"))
 		})
@@ -271,7 +265,7 @@ var _ = Describe("Validator", func() {
 			// it should add the release the release manager so it can be used?/cleaned up later
 			releaseManager.EXPECT().Add(cpiRelease)
 
-			err := cpiReleaseValidator.DownloadAndRegisterValid(cpiReleaseRef, installManifest, stage)
+			err := cpiReleaseValidator.DownloadAndRegister(cpiReleaseRef, installManifest, stage)
 			Expect(err).ToNot(HaveOccurred())
 
 			// it printed a stage
@@ -299,7 +293,7 @@ var _ = Describe("Validator", func() {
 
 			releaseManager.EXPECT().Add(cpiRelease)
 
-			err := cpiReleaseValidator.DownloadAndRegisterValid(cpiReleaseRef, installManifest, stage)
+			err := cpiReleaseValidator.DownloadAndRegister(cpiReleaseRef, installManifest, stage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Invalid CPI release 'some-release-name': CPI release must contain specified job 'some-job-name'"))
 		})
@@ -325,7 +319,7 @@ var _ = Describe("Validator", func() {
 
 			releaseManager.EXPECT().Add(cpiRelease)
 
-			err := cpiReleaseValidator.DownloadAndRegisterValid(cpiReleaseRef, installManifest, stage)
+			err := cpiReleaseValidator.DownloadAndRegister(cpiReleaseRef, installManifest, stage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Invalid CPI release 'some-release-name': Specified CPI release job 'some-job-name' must contain a template that renders to target 'bin/cpi'"))
 		})

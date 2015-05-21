@@ -35,6 +35,7 @@ func NewDeploymentDeleter(
 	installationParser biinstallmanifest.Parser,
 	deploymentManifestPath string,
 	cpiReleaseValidator bicpirel.CPIReleaseValidator,
+	validatedCpiReleaseSpec bicpirel.ValidatedCpiReleaseSpec,
 ) DeploymentDeleter {
 	return &deploymentDeleter{
 		ui:     ui,
@@ -51,6 +52,7 @@ func NewDeploymentDeleter(
 		installationParser:       installationParser,
 		deploymentManifestPath:   deploymentManifestPath,
 		cpiReleaseValidator:      cpiReleaseValidator,
+		validatedCpiReleaseSpec:  validatedCpiReleaseSpec,
 	}
 }
 
@@ -69,6 +71,7 @@ type deploymentDeleter struct {
 	installationParser       biinstallmanifest.Parser
 	deploymentManifestPath   string
 	cpiReleaseValidator      bicpirel.CPIReleaseValidator
+	validatedCpiReleaseSpec  bicpirel.ValidatedCpiReleaseSpec
 }
 
 func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
@@ -159,12 +162,12 @@ func (c *deploymentDeleter) getInstallationManifestAndRegisterValidCpiRelease(st
 			return err
 		}
 
-		cpiReleaseRef, err := c.cpiReleaseValidator.GetCpiReleaseSpecFrom(c.deploymentManifestPath, installationManifest)
+		cpiReleaseRef, err := c.validatedCpiReleaseSpec.GetFrom(c.deploymentManifestPath, installationManifest)
 		if err != nil {
 			return err
 		}
 
-		return c.cpiReleaseValidator.DownloadAndRegisterValid(cpiReleaseRef, installationManifest, stage)
+		return c.cpiReleaseValidator.DownloadAndRegister(cpiReleaseRef, installationManifest, stage)
 	})
 	return installationManifest, err
 }
