@@ -163,7 +163,7 @@ cloud_provider:
 			fakeSHA1Calculator := fakebicrypto.NewFakeSha1Calculator()
 			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
 			cpiReleaseValidator := bicpirel.NewCPIReleaseValidator(tarballProvider, mockReleaseExtractor, releaseManager)
-			validatedCpiReleaseSpec := bicpirel.NewValidatedCpiReleaseSpec(releaseSetParser, releaseSetValidator, installationValidator)
+			validatedCpiReleaseSpec := bicpirel.NewValidatedCpiReleaseSpec(releaseSetParser, releaseSetValidator, installationParser, installationValidator)
 			deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
 			return bicmd.NewDeploymentDeleter(
@@ -214,7 +214,6 @@ cloud_provider:
 					Name: "validating",
 					Stage: &fakebiui.FakeStage{
 						PerformCalls: []*fakebiui.PerformCall{
-							{Name: "Validating deployment manifest"},
 							{Name: "Validating release 'fake-cpi-release-name'"},
 						},
 					},

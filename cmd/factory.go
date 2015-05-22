@@ -298,6 +298,7 @@ func (f *factory) loadValidatedCpiReleaseSpec() bicpirel.ValidatedCpiReleaseSpec
 	f.validatedCpiReleaseSpec = bicpirel.NewValidatedCpiReleaseSpec(
 		f.loadReleaseSetParser(),
 		f.loadReleaseSetValidator(),
+		f.loadInstallationParser(),
 		f.loadInstallationValidator(),
 	)
 	return f.validatedCpiReleaseSpec

@@ -2,6 +2,7 @@ package manifest
 
 import (
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Manifest struct {
@@ -23,4 +24,17 @@ func (d Manifest) FindByName(name string) (birelmanifest.ReleaseRef, bool) {
 		}
 	}
 	return birelmanifest.ReleaseRef{}, false
+}
+
+func ParseAndValidateFrom(deploymentManifestPath string, parser Parser, validator Validator) (Manifest, error) {
+	releaseSetManifest, err := parser.Parse(deploymentManifestPath)
+	if err != nil {
+		return Manifest{}, bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
+	}
+
+	err = validator.Validate(releaseSetManifest)
+	if err != nil {
+		return Manifest{}, bosherr.WrapError(err, "Validating release set manifest")
+	}
+	return releaseSetManifest, nil
 }

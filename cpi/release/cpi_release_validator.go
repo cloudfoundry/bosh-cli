@@ -56,49 +56,46 @@ func (c *cpiReleaseValidator) DownloadAndRegister(cpiReleaseRef birelmanifest.Re
 }
 
 type ValidatedCpiReleaseSpec interface {
-	GetFrom(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest) (birelmanifest.ReleaseRef, error)
+	GetFrom(deploymentManifestPath string) (biinstallmanifest.Manifest, birelmanifest.ReleaseRef, error)
 }
 
 type validatedCpiReleaseSpec struct {
-	releaseSetManifestParser    birelsetmanifest.Parser
-	releaseSetManifestValidator birelsetmanifest.Validator
-	installationValidator       biinstallmanifest.Validator
+	releaseSetManifestParser      birelsetmanifest.Parser
+	releaseSetManifestValidator   birelsetmanifest.Validator
+	installationManifestParser    biinstallmanifest.Parser
+	installationManifestValidator biinstallmanifest.Validator
 }
 
 func NewValidatedCpiReleaseSpec(
 	releaseSetParser birelsetmanifest.Parser,
 	releaseSetValidator birelsetmanifest.Validator,
+	installationParser biinstallmanifest.Parser,
 	installationValidator biinstallmanifest.Validator,
 ) ValidatedCpiReleaseSpec {
 	return &validatedCpiReleaseSpec{
-		releaseSetManifestParser:    releaseSetParser,
-		releaseSetManifestValidator: releaseSetValidator,
-		installationValidator:       installationValidator,
+		releaseSetManifestParser:      releaseSetParser,
+		releaseSetManifestValidator:   releaseSetValidator,
+		installationManifestParser:    installationParser,
+		installationManifestValidator: installationValidator,
 	}
 }
 
-func (v *validatedCpiReleaseSpec) GetFrom(deploymentManifestPath string, installationManifest biinstallmanifest.Manifest) (birelmanifest.ReleaseRef, error) {
-
-	releaseSetManifest, err := v.releaseSetManifestParser.Parse(deploymentManifestPath)
+func (v *validatedCpiReleaseSpec) GetFrom(deploymentManifestPath string) (biinstallmanifest.Manifest, birelmanifest.ReleaseRef, error) {
+	releaseSetManifest, err := birelsetmanifest.ParseAndValidateFrom(deploymentManifestPath, v.releaseSetManifestParser, v.releaseSetManifestValidator)
 	if err != nil {
-		return birelmanifest.ReleaseRef{}, bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
+		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, err
 	}
 
-	err = v.releaseSetManifestValidator.Validate(releaseSetManifest)
+	installationManifest, err := biinstallmanifest.ParseAndValidateFrom(deploymentManifestPath, v.installationManifestParser, v.installationManifestValidator, releaseSetManifest)
 	if err != nil {
-		return birelmanifest.ReleaseRef{}, bosherr.WrapError(err, "Validating release set manifest")
-	}
-
-	err = v.installationValidator.Validate(installationManifest, releaseSetManifest)
-	if err != nil {
-		return birelmanifest.ReleaseRef{}, bosherr.WrapError(err, "Validating installation manifest")
+		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, err
 	}
 
 	cpiReleaseName := installationManifest.Template.Release
 	cpiReleaseRef, found := releaseSetManifest.FindByName(cpiReleaseName)
 	if !found {
-		return birelmanifest.ReleaseRef{}, bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
+		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
 	}
-	return cpiReleaseRef, nil
+	return installationManifest, cpiReleaseRef, nil
 
 }

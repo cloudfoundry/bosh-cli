@@ -34,17 +34,21 @@ var _ = Describe("Validator", func() {
 		var (
 			releaseSetManifestParser    *birelsetmanfakes.FakeParser
 			releaseSetManifestValidator *birelsetmanfakes.FakeValidator
+			installationParser          *biinstallmanifestfakes.FakeParser
 			installationValidator       *biinstallmanifestfakes.FakeValidator
 			tarballProvider             *biinstalltarballmocks.MockProvider
 			releaseExtractor            *bireleasemocks.MockExtractor
 			releaseManager              *bireleasemocks.MockManager
 			validatedCpiReleaseSpec     cpirel.ValidatedCpiReleaseSpec
 			installManifest             biinstallmanifest.Manifest
+			deploymentManifestPath      string
 		)
 
 		BeforeEach(func() {
+			deploymentManifestPath = "some-path"
 			releaseSetManifestParser = birelsetmanfakes.NewFakeParser()
 			releaseSetManifestValidator = birelsetmanfakes.NewFakeValidator()
+			installationParser = biinstallmanifestfakes.NewFakeParser()
 			installationValidator = biinstallmanifestfakes.NewFakeValidator()
 
 			tarballProvider = biinstalltarballmocks.NewMockProvider(mockCtrl)
@@ -57,17 +61,17 @@ var _ = Describe("Validator", func() {
 					Name:    "some-job-name",
 				},
 			}
+			installationParser.ParseManifest = installManifest
 
 			validatedCpiReleaseSpec = cpirel.NewValidatedCpiReleaseSpec(
 				releaseSetManifestParser,
 				releaseSetManifestValidator,
+				installationParser,
 				installationValidator,
 			)
 		})
 
 		It("parses and validates all the things and returns a release ref", func() {
-			deploymentManifestPath := "some-path"
-
 			cpiReleaseRef := birelmanifest.ReleaseRef{
 				Name: "some-release-name",
 			}
@@ -82,79 +86,34 @@ var _ = Describe("Validator", func() {
 				{Err: nil},
 			})
 
-			releaseRef, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
+			actualInstallManifest, releaseRef, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(releaseRef).To(Equal(cpiReleaseRef))
-
-			// it should have validates the release set manifest
-			Expect(
-				releaseSetManifestValidator.ValidateInputs,
-			).To(
-				Equal([]birelsetmanfakes.ValidateInput{
-					{Manifest: releaseSetManifest},
-				}),
-			)
-
-			// it should have validated the installation manifest
-			Expect(
-				installationValidator.ValidateInputs,
-			).To(
-				Equal([]biinstallmanifestfakes.ValidateInput{
-					{
-						InstallationManifest: installManifest,
-						ReleaseSetManifest:   releaseSetManifest,
-					},
-				}),
-			)
-
+			Expect(actualInstallManifest).To(Equal(installManifest))
 		})
 
 		It("handles errors parsing the release set manifest", func() {
-			deploymentManifestPath := "some-path"
-
 			releaseSetManifestParser.ParseErr = errors.New("wow that didn't work")
 
-			_, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
+			_, _, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Parsing release set manifest 'some-path': wow that didn't work"))
 		})
 
 		It("handles errors validating the release set manifest", func() {
-			deploymentManifestPath := "some-path"
-
 			releaseSetManifest := birelsetman.Manifest{}
 			releaseSetManifestParser.ParseManifest = releaseSetManifest
 			releaseSetManifestValidator.SetValidateBehavior([]birelsetmanfakes.ValidateOutput{
 				{Err: errors.New("couldn't validate that")},
 			})
 
-			_, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
+			_, _, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Validating release set manifest: couldn't validate that"))
 		})
 
-		It("handles installation manifest validation errors", func() {
-			deploymentManifestPath := "some-path"
-
-			releaseSetManifest := birelsetman.Manifest{}
-			releaseSetManifestParser.ParseManifest = releaseSetManifest
-			releaseSetManifestValidator.SetValidateBehavior([]birelsetmanfakes.ValidateOutput{
-				{Err: nil},
-			})
-			installationValidator.SetValidateBehavior([]biinstallmanifestfakes.ValidateOutput{
-				{Err: errors.New("nope")},
-			})
-
-			_, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Validating installation manifest: nope"))
-
-		})
-
 		It("errors when the referenced release isn't in the release set manifest", func() {
-			deploymentManifestPath := "some-path"
-
 			cpiReleaseRef := birelmanifest.ReleaseRef{
 				Name: "some-other-release-name",
 			}
@@ -169,7 +128,7 @@ var _ = Describe("Validator", func() {
 				{Err: nil},
 			})
 
-			_, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath, installManifest)
+			_, _, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("installation release 'some-release-name' must refer to a release in releases"))
 		})

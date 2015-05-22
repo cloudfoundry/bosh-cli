@@ -10,6 +10,7 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	birel "github.com/cloudfoundry/bosh-init/release"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -156,31 +157,14 @@ func (c *deploymentDeleter) installCPI(stage biui.Stage) (biinstallmanifest.Mani
 func (c *deploymentDeleter) getInstallationManifestAndRegisterValidCpiRelease(stage biui.Stage) (biinstallmanifest.Manifest, error) {
 	var installationManifest biinstallmanifest.Manifest
 	err := stage.PerformComplex("validating", func(stage biui.Stage) error {
+		var cpiReleaseRef birelmanifest.ReleaseRef
 		var err error
-		installationManifest, err = c.getInstallationManifestFrom(c.deploymentManifestPath, stage)
-		if err != nil {
-			return err
-		}
-
-		cpiReleaseRef, err := c.validatedCpiReleaseSpec.GetFrom(c.deploymentManifestPath, installationManifest)
+		installationManifest, cpiReleaseRef, err = c.validatedCpiReleaseSpec.GetFrom(c.deploymentManifestPath)
 		if err != nil {
 			return err
 		}
 
 		return c.cpiReleaseValidator.DownloadAndRegister(cpiReleaseRef, installationManifest, stage)
-	})
-	return installationManifest, err
-}
-
-func (c *deploymentDeleter) getInstallationManifestFrom(deploymentManifestPath string, stage biui.Stage) (biinstallmanifest.Manifest, error) {
-	var installationManifest biinstallmanifest.Manifest
-	var err error
-	err = stage.Perform("Validating deployment manifest", func() error {
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-		return err
 	})
 	return installationManifest, err
 }

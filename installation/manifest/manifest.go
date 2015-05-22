@@ -2,6 +2,8 @@ package manifest
 
 import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Manifest struct {
@@ -51,4 +53,17 @@ func (m *Manifest) PopulateRegistry(username string, password string, host strin
 		Port:      port,
 		SSHTunnel: sshTunnel,
 	}
+}
+
+func ParseAndValidateFrom(deploymentManifestPath string, parser Parser, validator Validator, releaseSetManifest birelsetmanifest.Manifest) (Manifest, error) {
+	installationSetManifest, err := parser.Parse(deploymentManifestPath)
+	if err != nil {
+		return Manifest{}, bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
+	}
+
+	err = validator.Validate(installationSetManifest, releaseSetManifest)
+	if err != nil {
+		return Manifest{}, bosherr.WrapError(err, "Validating installation manifest")
+	}
+	return installationSetManifest, nil
 }
