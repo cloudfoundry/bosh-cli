@@ -295,12 +295,7 @@ func (f *factory) loadValidatedCpiReleaseSpec() bicpirel.ValidatedCpiReleaseSpec
 	if f.validatedCpiReleaseSpec != nil {
 		return f.validatedCpiReleaseSpec
 	}
-	f.validatedCpiReleaseSpec = bicpirel.NewValidatedCpiReleaseSpec(
-		f.loadReleaseSetParser(),
-		f.loadReleaseSetValidator(),
-		f.loadInstallationParser(),
-		f.loadInstallationValidator(),
-	)
+	f.validatedCpiReleaseSpec = bicpirel.NewValidatedCpiReleaseSpec(f.loadReleaseSetParser(), f.loadInstallationParser())
 	return f.validatedCpiReleaseSpec
 }
 
@@ -341,7 +336,7 @@ func (f *factory) loadReleaseSetParser() birelsetmanifest.Parser {
 		return f.releaseSetParser
 	}
 
-	f.releaseSetParser = birelsetmanifest.NewParser(f.fs, f.logger)
+	f.releaseSetParser = birelsetmanifest.NewParser(f.fs, f.logger, f.loadReleaseSetValidator())
 	return f.releaseSetParser
 }
 

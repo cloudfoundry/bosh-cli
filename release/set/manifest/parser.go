@@ -13,20 +13,22 @@ type Parser interface {
 }
 
 type parser struct {
-	fs     boshsys.FileSystem
-	logger boshlog.Logger
-	logTag string
+	fs        boshsys.FileSystem
+	logger    boshlog.Logger
+	logTag    string
+	validator Validator
 }
 
 type manifest struct {
 	Releases []birelmanifest.ReleaseRef
 }
 
-func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {
+func NewParser(fs boshsys.FileSystem, logger boshlog.Logger, validator Validator) Parser {
 	return &parser{
-		fs:     fs,
-		logger: logger,
-		logTag: "releaseSetParser",
+		fs:        fs,
+		logger:    logger,
+		logTag:    "releaseSetParser",
+		validator: validator,
 	}
 }
 
@@ -45,6 +47,11 @@ func (p *parser) Parse(path string) (Manifest, error) {
 
 	releaseSetManifest := Manifest{
 		Releases: comboManifest.Releases,
+	}
+
+	err = p.validator.Validate(releaseSetManifest)
+	if err != nil {
+		return Manifest{}, bosherr.WrapError(err, "Validating release set manifest")
 	}
 
 	return releaseSetManifest, nil

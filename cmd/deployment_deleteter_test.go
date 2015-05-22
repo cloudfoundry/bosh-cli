@@ -154,8 +154,8 @@ cloud_provider:
 		}
 
 		var newDeploymentDeleter = func() bicmd.DeploymentDeleter {
-			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
+			releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
 			installationValidator := biinstallmanifest.NewValidator(logger)
 			installationParser := biinstallmanifest.NewParser(fs, fakeUUIDGenerator, logger, installationValidator)
 			fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
@@ -163,7 +163,7 @@ cloud_provider:
 			fakeSHA1Calculator := fakebicrypto.NewFakeSha1Calculator()
 			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
 			cpiReleaseValidator := bicpirel.NewCPIReleaseValidator(tarballProvider, mockReleaseExtractor, releaseManager)
-			validatedCpiReleaseSpec := bicpirel.NewValidatedCpiReleaseSpec(releaseSetParser, releaseSetValidator, installationParser, installationValidator)
+			validatedCpiReleaseSpec := bicpirel.NewValidatedCpiReleaseSpec(releaseSetParser, installationParser)
 			deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
 			return bicmd.NewDeploymentDeleter(

@@ -9,21 +9,37 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	"github.com/cloudfoundry/bosh-init/release/set/manifest"
+	"github.com/cloudfoundry/bosh-init/release/set/manifest/fakes"
 )
 
 var _ = Describe("Parser", func() {
+	comboManifestPath := "fake-deployment-path"
 	var (
-		comboManifestPath string
-		fakeFs            *fakesys.FakeFileSystem
-		parser            Parser
+		fakeFs        *fakesys.FakeFileSystem
+		parser        manifest.Parser
+		fakeValidator *fakes.FakeValidator
 	)
 
 	BeforeEach(func() {
-		comboManifestPath = "fake-deployment-path"
 		fakeFs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		parser = NewParser(fakeFs, logger)
+		fakeValidator = fakes.NewFakeValidator()
+		fakeValidator.SetValidateBehavior([]fakes.ValidateOutput{
+			{Err: nil},
+		})
+		parser = manifest.NewParser(fakeFs, logger, fakeValidator)
+		fakeFs.WriteFileString(comboManifestPath, `
+---
+releases:
+- name: fake-release-name-1
+  url: file://~/fake-release-1.tgz
+  sha1: fake-sha1
+- name: fake-release-name-2
+  url: file://fake-release-2.tgz
+  sha1: fake-sha2
+name: unknown-keys-are-ignored
+`)
 	})
 
 	Context("when combo manifest path does not exist", func() {
@@ -49,26 +65,11 @@ var _ = Describe("Parser", func() {
 		})
 	})
 
-	BeforeEach(func() {
-		contents := `
----
-releases:
-- name: fake-release-name-1
-  url: file://~/fake-release-1.tgz
-  sha1: fake-sha1
-- name: fake-release-name-2
-  url: file://fake-release-2.tgz
-  sha1: fake-sha2
-name: unknown-keys-are-ignored
-`
-		fakeFs.WriteFileString(comboManifestPath, contents)
-	})
-
 	It("parses release set manifest from combo manifest file", func() {
 		deploymentManifest, err := parser.Parse(comboManifestPath)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(deploymentManifest).To(Equal(Manifest{
+		Expect(deploymentManifest).To(Equal(manifest.Manifest{
 			Releases: []birelmanifest.ReleaseRef{
 				{
 					Name: "fake-release-name-1",
@@ -82,5 +83,15 @@ name: unknown-keys-are-ignored
 				},
 			},
 		}))
+	})
+
+	It("handles errors validating the release set manifest", func() {
+		fakeValidator.SetValidateBehavior([]fakes.ValidateOutput{
+			{Err: errors.New("couldn't validate that")},
+		})
+
+		_, err := parser.Parse(comboManifestPath)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Validating release set manifest: couldn't validate that"))
 	})
 })

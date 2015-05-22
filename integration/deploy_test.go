@@ -374,13 +374,13 @@ cloud_provider:
 
 		var newDeployCmd = func() Cmd {
 			deploymentParser := bideplmanifest.NewParser(fs, logger)
-			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
+			releaseSetValidator := birelsetmanifest.NewValidator(logger)
+			releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
 			fakeRegistryUUIDGenerator = fakeuuid.NewFakeGenerator()
 			fakeRegistryUUIDGenerator.GeneratedUUID = "registry-password"
 			installationValidator := biinstallmanifest.NewValidator(logger)
 			installationParser := biinstallmanifest.NewParser(fs, fakeRegistryUUIDGenerator, logger, installationValidator)
 
-			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			deploymentValidator := bideplmanifest.NewValidator(logger)
 
 			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)

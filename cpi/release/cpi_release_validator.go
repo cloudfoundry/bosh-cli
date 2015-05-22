@@ -60,35 +60,29 @@ type ValidatedCpiReleaseSpec interface {
 }
 
 type validatedCpiReleaseSpec struct {
-	releaseSetManifestParser      birelsetmanifest.Parser
-	releaseSetManifestValidator   birelsetmanifest.Validator
-	installationManifestParser    biinstallmanifest.Parser
-	installationManifestValidator biinstallmanifest.Validator
+	releaseSetManifestParser   birelsetmanifest.Parser
+	installationManifestParser biinstallmanifest.Parser
 }
 
 func NewValidatedCpiReleaseSpec(
 	releaseSetParser birelsetmanifest.Parser,
-	releaseSetValidator birelsetmanifest.Validator,
 	installationParser biinstallmanifest.Parser,
-	installationValidator biinstallmanifest.Validator,
 ) ValidatedCpiReleaseSpec {
 	return &validatedCpiReleaseSpec{
-		releaseSetManifestParser:      releaseSetParser,
-		releaseSetManifestValidator:   releaseSetValidator,
-		installationManifestParser:    installationParser,
-		installationManifestValidator: installationValidator,
+		releaseSetManifestParser:   releaseSetParser,
+		installationManifestParser: installationParser,
 	}
 }
 
 func (v *validatedCpiReleaseSpec) GetFrom(deploymentManifestPath string) (biinstallmanifest.Manifest, birelmanifest.ReleaseRef, error) {
-	releaseSetManifest, err := birelsetmanifest.ParseAndValidateFrom(deploymentManifestPath, v.releaseSetManifestParser, v.releaseSetManifestValidator)
+	releaseSetManifest, err := v.releaseSetManifestParser.Parse(deploymentManifestPath)
 	if err != nil {
-		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, err
+		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
 	}
 
 	installationManifest, err := v.installationManifestParser.Parse(deploymentManifestPath, releaseSetManifest)
 	if err != nil {
-		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, err
+		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 	}
 
 	cpiReleaseName := installationManifest.Template.Release

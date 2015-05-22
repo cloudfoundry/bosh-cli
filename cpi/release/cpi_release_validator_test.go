@@ -63,12 +63,7 @@ var _ = Describe("Validator", func() {
 			}
 			installationParser.ParseManifest = installManifest
 
-			validatedCpiReleaseSpec = cpirel.NewValidatedCpiReleaseSpec(
-				releaseSetManifestParser,
-				releaseSetManifestValidator,
-				installationParser,
-				installationValidator,
-			)
+			validatedCpiReleaseSpec = cpirel.NewValidatedCpiReleaseSpec(releaseSetManifestParser, installationParser)
 		})
 
 		It("parses and validates all the things and returns a release ref", func() {
@@ -101,16 +96,12 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(Equal("Parsing release set manifest 'some-path': wow that didn't work"))
 		})
 
-		It("handles errors validating the release set manifest", func() {
-			releaseSetManifest := birelsetman.Manifest{}
-			releaseSetManifestParser.ParseManifest = releaseSetManifest
-			releaseSetManifestValidator.SetValidateBehavior([]birelsetmanfakes.ValidateOutput{
-				{Err: errors.New("couldn't validate that")},
-			})
+		It("handles errors parsing the installation manifest", func() {
+			installationParser.ParseErr = errors.New("wow that didn't work")
 
 			_, _, err := validatedCpiReleaseSpec.GetFrom(deploymentManifestPath)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Validating release set manifest: couldn't validate that"))
+			Expect(err.Error()).To(Equal("Parsing installation manifest 'some-path': wow that didn't work"))
 		})
 
 		It("errors when the referenced release isn't in the release set manifest", func() {
@@ -132,7 +123,6 @@ var _ = Describe("Validator", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("installation release 'some-release-name' must refer to a release in releases"))
 		})
-
 	})
 
 	Describe("DownloadAndRegister", func() {
