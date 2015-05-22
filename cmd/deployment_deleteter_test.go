@@ -157,7 +157,7 @@ cloud_provider:
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			installationValidator := biinstallmanifest.NewValidator(logger)
-			installationParser := biinstallmanifest.NewParser(fs, fakeUUIDGenerator, logger)
+			installationParser := biinstallmanifest.NewParser(fs, fakeUUIDGenerator, logger, installationValidator)
 			fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
 			tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
 			fakeSHA1Calculator := fakebicrypto.NewFakeSha1Calculator()

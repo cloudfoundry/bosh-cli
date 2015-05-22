@@ -351,7 +351,7 @@ func (f *factory) loadInstallationParser() biinstallmanifest.Parser {
 	}
 
 	uuidGenerator := boshuuid.NewGenerator()
-	f.installationParser = biinstallmanifest.NewParser(f.fs, uuidGenerator, f.logger)
+	f.installationParser = biinstallmanifest.NewParser(f.fs, uuidGenerator, f.logger, f.loadInstallationValidator())
 	return f.installationParser
 }
 

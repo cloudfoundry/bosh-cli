@@ -2,6 +2,7 @@ package manifest
 
 import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -10,7 +11,7 @@ import (
 )
 
 type Parser interface {
-	Parse(path string) (Manifest, error)
+	Parse(path string, releaseSetManifest birelsetmanifest.Manifest) (Manifest, error)
 }
 
 type parser struct {
@@ -18,6 +19,7 @@ type parser struct {
 	uuidGenerator boshuuid.Generator
 	logger        boshlog.Logger
 	logTag        string
+	validator     Validator
 }
 
 type manifest struct {
@@ -41,16 +43,17 @@ type template struct {
 	Release string
 }
 
-func NewParser(fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger boshlog.Logger) Parser {
+func NewParser(fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger boshlog.Logger, validator Validator) Parser {
 	return &parser{
 		fs:            fs,
 		uuidGenerator: uuidGenerator,
 		logger:        logger,
 		logTag:        "deploymentParser",
+		validator:     validator,
 	}
 }
 
-func (p *parser) Parse(path string) (Manifest, error) {
+func (p *parser) Parse(path string, releaseSetManifest birelsetmanifest.Manifest) (Manifest, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
@@ -93,6 +96,11 @@ func (p *parser) Parse(path string) (Manifest, error) {
 			return Manifest{}, bosherr.WrapError(err, "Generating registry password")
 		}
 		installationManifest.PopulateRegistry("registry", password, "127.0.0.1", 6901, comboManifest.CloudProvider.SSHTunnel)
+	}
+
+	err = p.validator.Validate(installationManifest, releaseSetManifest)
+	if err != nil {
+		return Manifest{}, bosherr.WrapError(err, "Validating installation manifest")
 	}
 
 	return installationManifest, nil

@@ -377,10 +377,10 @@ cloud_provider:
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger)
 			fakeRegistryUUIDGenerator = fakeuuid.NewFakeGenerator()
 			fakeRegistryUUIDGenerator.GeneratedUUID = "registry-password"
-			installationParser := biinstallmanifest.NewParser(fs, fakeRegistryUUIDGenerator, logger)
+			installationValidator := biinstallmanifest.NewValidator(logger)
+			installationParser := biinstallmanifest.NewParser(fs, fakeRegistryUUIDGenerator, logger, installationValidator)
 
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
-			installationValidator := biinstallmanifest.NewValidator(logger)
 			deploymentValidator := bideplmanifest.NewValidator(logger)
 
 			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)

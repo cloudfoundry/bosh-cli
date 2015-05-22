@@ -86,7 +86,7 @@ func (v *validatedCpiReleaseSpec) GetFrom(deploymentManifestPath string) (biinst
 		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, err
 	}
 
-	installationManifest, err := biinstallmanifest.ParseAndValidateFrom(deploymentManifestPath, v.installationManifestParser, v.installationManifestValidator, releaseSetManifest)
+	installationManifest, err := v.installationManifestParser.Parse(deploymentManifestPath, releaseSetManifest)
 	if err != nil {
 		return biinstallmanifest.Manifest{}, birelmanifest.ReleaseRef{}, err
 	}

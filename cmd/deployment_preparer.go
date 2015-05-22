@@ -268,7 +268,7 @@ func (c *DeploymentPreparer) validate(
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
 
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath)
+		installationManifest, err = c.installationParser.Parse(deploymentManifestPath, releaseSetManifest)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 		}
