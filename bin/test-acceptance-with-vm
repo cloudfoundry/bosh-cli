@@ -4,8 +4,8 @@ set -ex
 base=${base:-$( cd "$( dirname "$( dirname "$0" )")" && pwd )}
 acceptance_assets_dir=$base/acceptance/tmp
 
-cpi_release_version=19
-cpi_release_sha1=d8df98e4e7b661ba793337d99f57bf0aad8f6a8e
+cpi_release_version=20
+cpi_release_sha1=e128f11f3576c1410f8265cca8182cc4c2c9f0bd
 stemcell_file=registry-test-warden-stemcell.tgz
 stemcell_sha1=8e3e4374a9971f868086523db0f24b3338b2108b
 
