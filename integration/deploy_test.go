@@ -435,8 +435,6 @@ cloud_provider:
 					releaseSetParser,
 					installationParser,
 					deploymentParser,
-					releaseSetValidator,
-					installationValidator,
 					deploymentValidator,
 					mockReleaseExtractor,
 					fakeStemcellExtractor,

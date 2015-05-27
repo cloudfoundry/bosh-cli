@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -42,8 +40,6 @@ func NewDeploymentPreparer(
 	releaseSetParser birelsetmanifest.Parser,
 	installationParser biinstallmanifest.Parser,
 	deploymentParser bideplmanifest.Parser,
-	releaseSetValidator birelsetmanifest.Validator,
-	installationValidator biinstallmanifest.Validator,
 	deploymentValidator bideplmanifest.Validator,
 	releaseExtractor birel.Extractor,
 	stemcellExtractor bistemcell.Extractor,
@@ -70,8 +66,6 @@ func NewDeploymentPreparer(
 		releaseSetParser:              releaseSetParser,
 		installationParser:            installationParser,
 		deploymentParser:              deploymentParser,
-		releaseSetValidator:           releaseSetValidator,
-		installationValidator:         installationValidator,
 		deploymentValidator:           deploymentValidator,
 		releaseExtractor:              releaseExtractor,
 		stemcellExtractor:             stemcellExtractor,
@@ -99,8 +93,6 @@ type DeploymentPreparer struct {
 	releaseSetParser              birelsetmanifest.Parser
 	installationParser            biinstallmanifest.Parser
 	deploymentParser              bideplmanifest.Parser
-	releaseSetValidator           birelsetmanifest.Validator
-	installationValidator         biinstallmanifest.Validator
 	deploymentValidator           bideplmanifest.Validator
 	releaseExtractor              birel.Extractor
 	stemcellExtractor             bistemcell.Extractor
@@ -126,13 +118,69 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		return bosherr.WrapError(err, "Loading deployment state")
 	}
 
+	defer func() {
+		err := c.releaseManager.DeleteAll()
+		if err != nil {
+			c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
+		}
+	}()
+
 	var (
 		extractedStemcell    bistemcell.ExtractedStemcell
 		deploymentManifest   bideplmanifest.Manifest
 		installationManifest biinstallmanifest.Manifest
 	)
+
+	installer, err := c.installerFactory.NewInstaller()
+	if err != nil {
+		return bosherr.WrapError(err, "Creating CPI Installer")
+	}
+
+	cpiInstaller := bicpirel.CpiInstaller{
+		ReleaseManager: c.releaseManager,
+		Installer:      installer,
+		Validator:      bicpirel.NewValidator(),
+	}
+
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
-		extractedStemcell, deploymentManifest, installationManifest, err = c.validate(stage, c.deploymentManifestPath)
+		var releaseSetManifest birelsetmanifest.Manifest
+		releaseSetManifest, installationManifest, err = releaseSetAndInstallationManifestParser{
+			releaseSetParser:   c.releaseSetParser,
+			installationParser: c.installationParser,
+		}.ReleaseSetAndInstallationManifest(c.deploymentManifestPath)
+		if err != nil {
+			return err
+		}
+
+		for _, releaseRef := range releaseSetManifest.Releases {
+			err = birel.NewFetcher(
+				c.tarballProvider,
+				c.releaseExtractor,
+				c.releaseManager,
+			).DownloadAndExtract(releaseRef, stage)
+			if err != nil {
+				return err
+			}
+		}
+
+		err := cpiInstaller.ValidateCpiRelease(installationManifest, stage)
+		if err != nil {
+			return err
+		}
+
+		deploymentManifest, err = deploymentParser{
+			deploymentParser:    c.deploymentParser,
+			deploymentValidator: c.deploymentValidator,
+			releaseManager:      c.releaseManager,
+		}.GetDeploymentManifest(c.deploymentManifestPath, releaseSetManifest, stage)
+		if err != nil {
+			return err
+		}
+
+		extractedStemcell, err = bistemcell.Fetcher{
+			TarballProvider:   c.tarballProvider,
+			StemcellExtractor: c.stemcellExtractor,
+		}.GetStemcell(deploymentManifest, stage)
 		return err
 	})
 	if err != nil {
@@ -142,12 +190,6 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		deleteErr := extractedStemcell.Delete()
 		if deleteErr != nil {
 			c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
-		}
-	}()
-	defer func() {
-		err := c.releaseManager.DeleteAll()
-		if err != nil {
-			c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
 		}
 	}()
 
@@ -161,16 +203,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		return nil
 	}
 
-	installer, err := c.installerFactory.NewInstaller()
-	if err != nil {
-		return bosherr.WrapError(err, "Creating CPI Installer")
-	}
-
-	var installation biinstall.Installation
-	err = stage.PerformComplex("installing CPI", func(installStage biui.Stage) error {
-		installation, err = installer.Install(installationManifest, installStage)
-		return err
-	})
+	installation, err := cpiInstaller.InstallCpiRelease(installationManifest, stage)
 	if err != nil {
 		return err
 	}
@@ -235,152 +268,4 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 
 		return nil
 	})
-}
-
-func (c *DeploymentPreparer) validate(
-	validationStage biui.Stage,
-	deploymentManifestPath string,
-) (
-	extractedStemcell bistemcell.ExtractedStemcell,
-	deploymentManifest bideplmanifest.Manifest,
-	installationManifest biinstallmanifest.Manifest,
-	err error,
-) {
-	var releaseSetManifest birelsetmanifest.Manifest
-	err = validationStage.Perform("Validating deployment manifest", func() error {
-		releaseSetManifest, err = c.releaseSetParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.releaseSetValidator.Validate(releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating release set manifest")
-		}
-
-		deploymentManifest, err = c.deploymentParser.Parse(deploymentManifestPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.deploymentValidator.Validate(deploymentManifest, releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating deployment manifest")
-		}
-
-		installationManifest, err = c.installationParser.Parse(deploymentManifestPath, releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
-		}
-
-		err = c.installationValidator.Validate(installationManifest, releaseSetManifest)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating installation manifest")
-		}
-
-		return nil
-	})
-	if err != nil {
-		return extractedStemcell, deploymentManifest, installationManifest, err
-	}
-
-	for _, releaseRef := range releaseSetManifest.Releases {
-		releasePath, err := c.tarballProvider.Get(releaseRef, validationStage)
-		if err != nil {
-			return extractedStemcell, deploymentManifest, installationManifest, err
-		}
-
-		err = validationStage.Perform(fmt.Sprintf("Validating release '%s'", releaseRef.Name), func() error {
-			if !c.fs.FileExists(releasePath) {
-				return bosherr.Errorf("File path '%s' does not exist", releasePath)
-			}
-
-			release, err := c.releaseExtractor.Extract(releasePath)
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Extracting release '%s'", releasePath)
-			}
-
-			if release.Name() != releaseRef.Name {
-				return bosherr.Errorf("Release name '%s' does not match the name in release tarball '%s'", releaseRef.Name, release.Name())
-			}
-			c.releaseManager.Add(release)
-
-			return nil
-		})
-		if err != nil {
-			return extractedStemcell, deploymentManifest, installationManifest, err
-		}
-		defer func() {
-			if err != nil {
-				err := c.releaseManager.DeleteAll()
-				if err != nil {
-					c.logger.Warn(c.logTag, "Deleting all extracted releases: %s", err.Error())
-				}
-			}
-		}()
-	}
-
-	err = validationStage.Perform("Validating jobs", func() error {
-		err = c.deploymentValidator.ValidateReleaseJobs(deploymentManifest, c.releaseManager)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating deployment jobs refer to jobs in release")
-		}
-
-		return nil
-	})
-	if err != nil {
-		return extractedStemcell, deploymentManifest, installationManifest, err
-	}
-
-	stemcell, err := deploymentManifest.Stemcell(deploymentManifest.JobName())
-	if err != nil {
-		return extractedStemcell, deploymentManifest, installationManifest, err
-	}
-
-	stemcellTarballPath, err := c.tarballProvider.Get(stemcell, validationStage)
-	if err != nil {
-		return extractedStemcell, deploymentManifest, installationManifest, err
-	}
-
-	err = validationStage.Perform("Validating stemcell", func() error {
-		if !c.fs.FileExists(stemcellTarballPath) {
-			return bosherr.Errorf("Verifying that the stemcell '%s' exists", stemcellTarballPath)
-		}
-
-		extractedStemcell, err = c.stemcellExtractor.Extract(stemcellTarballPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Extracting stemcell from '%s'", stemcellTarballPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return extractedStemcell, deploymentManifest, installationManifest, err
-	}
-	defer func() {
-		if err != nil {
-			deleteErr := extractedStemcell.Delete()
-			if deleteErr != nil {
-				c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
-			}
-		}
-	}()
-
-	err = validationStage.Perform("Validating cpi release", func() error {
-		cpiReleaseName := installationManifest.Template.Release
-		cpiRelease, found := c.releaseManager.Find(cpiReleaseName)
-		if !found {
-			return bosherr.WrapErrorf(err, "installation release '%s' must refer to a provided release", cpiReleaseName)
-		}
-
-		cpiReleaseJobName := installationManifest.Template.Name
-		err = bicpirel.NewValidator().Validate(cpiRelease, cpiReleaseJobName)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Invalid CPI release '%s'", cpiReleaseName)
-		}
-
-		return nil
-	})
-
-	return extractedStemcell, deploymentManifest, installationManifest, err
 }

@@ -9,8 +9,9 @@ import (
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
-	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -35,8 +36,10 @@ func NewDeploymentDeleter(
 	deploymentManagerFactory bidepl.ManagerFactory,
 	installationParser biinstallmanifest.Parser,
 	deploymentManifestPath string,
-	cpiReleaseValidator bicpirel.CPIReleaseValidator,
-	validatedCpiReleaseSpec bicpirel.ValidatedCpiReleaseSpec,
+	tarballProvider bitarball.Provider,
+	releaseExtractor birel.Extractor,
+	cpiReleaseValidator bicpirel.Validator,
+	releaseSetParser birelsetmanifest.Parser,
 ) DeploymentDeleter {
 	return &deploymentDeleter{
 		ui:     ui,
@@ -52,8 +55,10 @@ func NewDeploymentDeleter(
 		deploymentManagerFactory: deploymentManagerFactory,
 		installationParser:       installationParser,
 		deploymentManifestPath:   deploymentManifestPath,
+		tarballProvider:          tarballProvider,
+		releaseExtractor:         releaseExtractor,
 		cpiReleaseValidator:      cpiReleaseValidator,
-		validatedCpiReleaseSpec:  validatedCpiReleaseSpec,
+		releaseSetParser:         releaseSetParser,
 	}
 }
 
@@ -71,8 +76,10 @@ type deploymentDeleter struct {
 	deploymentManagerFactory bidepl.ManagerFactory
 	installationParser       biinstallmanifest.Parser
 	deploymentManifestPath   string
-	cpiReleaseValidator      bicpirel.CPIReleaseValidator
-	validatedCpiReleaseSpec  bicpirel.ValidatedCpiReleaseSpec
+	tarballProvider          bitarball.Provider
+	releaseExtractor         birel.Extractor
+	cpiReleaseValidator      bicpirel.Validator
+	releaseSetParser         birelsetmanifest.Parser
 }
 
 func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
@@ -87,7 +94,6 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 	if err != nil {
 		return bosherr.WrapError(err, "Loading deployment state")
 	}
-
 	defer func() {
 		err := c.releaseManager.DeleteAll()
 		if err != nil {
@@ -95,7 +101,55 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		}
 	}()
 
-	installationManifest, installation, err := c.installCPI(stage)
+	var (
+		installationManifest biinstallmanifest.Manifest
+		installation         biinstall.Installation
+	)
+
+	installer, err := c.installerFactory.NewInstaller()
+	if err != nil {
+		return bosherr.WrapError(err, "Creating CPI Installer")
+	}
+
+	cpiInstaller := bicpirel.CpiInstaller{
+		ReleaseManager: c.releaseManager,
+		Installer:      installer,
+		Validator:      bicpirel.NewValidator(),
+	}
+
+	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
+		var releaseSetManifest birelsetmanifest.Manifest
+		releaseSetManifest, installationManifest, err = releaseSetAndInstallationManifestParser{
+			releaseSetParser:   c.releaseSetParser,
+			installationParser: c.installationParser,
+		}.ReleaseSetAndInstallationManifest(c.deploymentManifestPath)
+		if err != nil {
+			return err
+		}
+
+		cpiReleaseName := installationManifest.Template.Release
+		cpiReleaseRef, found := releaseSetManifest.FindByName(cpiReleaseName)
+		if !found {
+			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
+		}
+
+		err = birel.NewFetcher(
+			c.tarballProvider,
+			c.releaseExtractor,
+			c.releaseManager,
+		).DownloadAndExtract(cpiReleaseRef, stage)
+		if err != nil {
+			return err
+		}
+
+		err = cpiInstaller.ValidateCpiRelease(installationManifest, stage)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	installation, err = cpiInstaller.InstallCpiRelease(installationManifest, stage)
 	if err != nil {
 		return err
 	}
@@ -133,40 +187,6 @@ func (c *deploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, dep
 
 		return deployment.Delete(deleteStage)
 	})
-}
-
-func (c *deploymentDeleter) installCPI(stage biui.Stage) (biinstallmanifest.Manifest, biinstall.Installation, error) {
-	installationManifest, err := c.getInstallationManifestAndRegisterValidCpiRelease(stage)
-	if err != nil {
-		return installationManifest, nil, err
-	}
-
-	installer, err := c.installerFactory.NewInstaller()
-	if err != nil {
-		return installationManifest, nil, bosherr.WrapError(err, "Creating CPI Installer")
-	}
-
-	var installation biinstall.Installation
-	err = stage.PerformComplex("installing CPI", func(installStage biui.Stage) error {
-		installation, err = installer.Install(installationManifest, installStage)
-		return err
-	})
-	return installationManifest, installation, err
-}
-
-func (c *deploymentDeleter) getInstallationManifestAndRegisterValidCpiRelease(stage biui.Stage) (biinstallmanifest.Manifest, error) {
-	var installationManifest biinstallmanifest.Manifest
-	err := stage.PerformComplex("validating", func(stage biui.Stage) error {
-		var cpiReleaseRef birelmanifest.ReleaseRef
-		var err error
-		installationManifest, cpiReleaseRef, err = c.validatedCpiReleaseSpec.GetFrom(c.deploymentManifestPath)
-		if err != nil {
-			return err
-		}
-
-		return c.cpiReleaseValidator.DownloadAndRegister(cpiReleaseRef, installationManifest, stage)
-	})
-	return installationManifest, err
 }
 
 func (c *deploymentDeleter) deploymentManager(installation biinstall.Installation, directorID, installationMbus string) (bidepl.Manager, error) {

@@ -62,14 +62,16 @@ The acceptance tests can also be run on a remote VM (using aws with vagrant).
 When using the AWS provider, you will need to provide the following:
 
 ```
-$ export BOSH_INIT_PRIVATE_KEY=/tmp/id_rsa
+export BOSH_INIT_PRIVATE_KEY=~/tmp/bosh-dev.key
 
 # The following variables are required by Bosh Lite
-$ export BOSH_AWS_ACCESS_KEY_ID=access_key
-$ export BOSH_AWS_SECRET_ACCESS_KEY=secret
-$ export BOSH_LITE_KEYPAIR=keypair
-$ export BOSH_LITE_SECURITY_GROUP=sg-1234
-$ export BOSH_LITE_PRIVATE_KEY=$BOSH_INIT_PRIVATE_KEY
+export BOSH_AWS_ACCESS_KEY_ID=foo
+export BOSH_AWS_SECRET_ACCESS_KEY=bar
+export BOSH_LITE_KEYPAIR=bosh-dev
+export BOSH_LITE_SUBNET_ID=subnet-1234
+export BOSH_LITE_NAME=baz
+export BOSH_LITE_SECURITY_GROUP=sg-1234
+export BOSH_LITE_PRIVATE_KEY=$BOSH_INIT_PRIVATE_KEY
 ```
 
 #### Running tests against existing VM

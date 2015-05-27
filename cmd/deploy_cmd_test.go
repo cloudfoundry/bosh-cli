@@ -107,8 +107,6 @@ func rootDesc() {
 			fakeDeploymentParser              *fakebideplmanifest.FakeParser
 			mockLegacyDeploymentStateMigrator *mock_config.MockLegacyDeploymentStateMigrator
 			setupDeploymentStateService       biconfig.DeploymentStateService
-			fakeReleaseSetValidator           *fakebirelsetmanifest.FakeValidator
-			fakeInstallationValidator         *fakebiinstallmanifest.FakeValidator
 			fakeDeploymentValidator           *fakebideplval.FakeValidator
 
 			directorID          = "generated-director-uuid"
@@ -194,8 +192,6 @@ func rootDesc() {
 			configUUIDGenerator.GeneratedUUID = directorID
 			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
-			fakeReleaseSetValidator = fakebirelsetmanifest.NewFakeValidator()
-			fakeInstallationValidator = fakebiinstallmanifest.NewFakeValidator()
 			fakeDeploymentValidator = fakebideplval.NewFakeValidator()
 
 			fakeStage = fakebiui.NewFakeStage()
@@ -228,15 +224,6 @@ func rootDesc() {
 
 			// deployment exists
 			fakeFs.WriteFileString(deploymentManifestPath, "")
-
-			// release set is valid
-			fakeReleaseSetValidator.SetValidateBehavior([]fakebirelsetmanifest.ValidateOutput{
-				{Err: nil},
-			})
-
-			fakeInstallationValidator.SetValidateBehavior([]fakebiinstallmanifest.ValidateOutput{
-				{Err: nil},
-			})
 
 			// deployment is valid
 			fakeDeploymentValidator.SetValidateBehavior([]fakebideplval.ValidateOutput{
@@ -335,8 +322,6 @@ func rootDesc() {
 					fakeReleaseSetParser,
 					fakeInstallationParser,
 					fakeDeploymentParser,
-					fakeReleaseSetValidator,
-					fakeInstallationValidator,
 					fakeDeploymentValidator,
 					mockReleaseExtractor,
 					fakeStemcellExtractor,
@@ -442,22 +427,6 @@ func rootDesc() {
 			Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
-		It("validates release set manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeReleaseSetValidator.ValidateInputs).To(Equal([]fakebirelsetmanifest.ValidateInput{
-				{Manifest: releaseSetManifest},
-			}))
-		})
-
-		It("validates installation manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeInstallationValidator.ValidateInputs).To(Equal([]fakebiinstallmanifest.ValidateInput{
-				{InstallationManifest: installationManifest, ReleaseSetManifest: releaseSetManifest},
-			}))
-		})
-
 		It("validates bosh deployment manifest", func() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())
@@ -482,11 +451,10 @@ func rootDesc() {
 				Name: "validating",
 				Stage: &fakebiui.FakeStage{
 					PerformCalls: []*fakebiui.PerformCall{
-						{Name: "Validating deployment manifest"},
 						{Name: "Validating release 'fake-cpi-release-name'"},
-						{Name: "Validating jobs"},
-						{Name: "Validating stemcell"},
 						{Name: "Validating cpi release"},
+						{Name: "Validating deployment manifest"},
+						{Name: "Validating stemcell"},
 					},
 				},
 			}))
@@ -852,34 +820,34 @@ func rootDesc() {
 		})
 
 		Context("When the stemcell tarball does not exist", func() {
-			BeforeEach(func() {
-				fakeFs.RemoveAll(stemcellTarballPath)
+			JustBeforeEach(func() {
+				fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, errors.New("no-stemcell-there"))
 			})
 
 			It("returns error", func() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Verifying that the stemcell '/stemcell/tarball/path' exists"))
+				Expect(err.Error()).To(ContainSubstring("no-stemcell-there"))
 
 				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[3]
 				Expect(performCall.Name).To(Equal("Validating stemcell"))
-				Expect(performCall.Error.Error()).To(Equal("Verifying that the stemcell '/stemcell/tarball/path' exists"))
+				Expect(performCall.Error.Error()).To(ContainSubstring("no-stemcell-there"))
 			})
 		})
 
 		Context("when release file does not exist", func() {
 			BeforeEach(func() {
-				fakeFs.RemoveAll(cpiReleaseTarballPath)
+				mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(nil, errors.New("not there"))
 			})
 
 			It("returns error", func() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("File path '/release/tarball/path' does not exist"))
+				Expect(err.Error()).To(ContainSubstring("not there"))
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[1]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
 				Expect(performCall.Name).To(Equal("Validating release 'fake-cpi-release-name'"))
-				Expect(performCall.Error.Error()).To(ContainSubstring("File path '/release/tarball/path' does not exist"))
+				Expect(performCall.Error.Error()).To(ContainSubstring("not there"))
 			})
 		})
 
@@ -908,29 +876,6 @@ func rootDesc() {
 			Expect(stdErr).To(gbytes.Say("Deployment '/path/to/manifest.yml' does not exist"))
 		})
 
-		Context("when the installation manifest is invalid", func() {
-			BeforeEach(func() {
-				fakeInstallationValidator.SetValidateBehavior([]fakebiinstallmanifest.ValidateOutput{
-					{Err: bosherr.Error("fake-installation-validation-error")},
-				})
-			})
-
-			It("returns err", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-installation-validation-error"))
-			})
-
-			It("logs the failed event log", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
-				Expect(err).To(HaveOccurred())
-
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
-				Expect(performCall.Name).To(Equal("Validating deployment manifest"))
-				Expect(performCall.Error.Error()).To(Equal("Validating installation manifest: fake-installation-validation-error"))
-			})
-		})
-
 		Context("when the deployment manifest is invalid", func() {
 			BeforeEach(func() {
 				fakeDeploymentValidator.SetValidateBehavior([]fakebideplval.ValidateOutput{
@@ -948,7 +893,7 @@ func rootDesc() {
 				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).To(HaveOccurred())
 
-				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[0]
+				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
 				Expect(performCall.Name).To(Equal("Validating deployment manifest"))
 				Expect(performCall.Error.Error()).To(Equal("Validating deployment manifest: fake-deployment-validation-error"))
 			})
@@ -972,7 +917,7 @@ func rootDesc() {
 				Expect(err).To(HaveOccurred())
 
 				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
-				Expect(performCall.Name).To(Equal("Validating jobs"))
+				Expect(performCall.Name).To(Equal("Validating deployment manifest"))
 				Expect(performCall.Error.Error()).To(Equal("Validating deployment jobs refer to jobs in release: fake-jobs-validation-error"))
 			})
 		})
