@@ -32,3 +32,6 @@ RUN apt-get install -y sshpass; apt-get clean
 
 # integration registry tests
 RUN apt-get install -y openssh-server
+
+# for hijack debugging
+RUN apt-get install -y lsof psmisc strace
