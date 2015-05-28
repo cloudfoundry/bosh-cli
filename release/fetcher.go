@@ -8,21 +8,21 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-type fetcher struct {
+type Fetcher struct {
 	tarballProvider  tarball.Provider
 	releaseExtractor Extractor
 	releaseManager   Manager
 }
 
-func NewFetcher(tarballProvider tarball.Provider, releaseExtractor Extractor, releaseManager Manager) fetcher {
-	return fetcher{
+func NewFetcher(tarballProvider tarball.Provider, releaseExtractor Extractor, releaseManager Manager) Fetcher {
+	return Fetcher{
 		tarballProvider:  tarballProvider,
 		releaseExtractor: releaseExtractor,
 		releaseManager:   releaseManager,
 	}
 }
 
-func (f fetcher) DownloadAndExtract(releaseRef manifest.ReleaseRef, stage ui.Stage) error {
+func (f Fetcher) DownloadAndExtract(releaseRef manifest.ReleaseRef, stage ui.Stage) error {
 	releasePath, err := f.tarballProvider.Get(releaseRef, stage)
 	if err != nil {
 		return err

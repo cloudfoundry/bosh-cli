@@ -8,27 +8,27 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-type deploymentParser struct {
-	deploymentParser    bideplmanifest.Parser
-	deploymentValidator bideplmanifest.Validator
-	releaseManager      birel.Manager
+type DeploymentManifestParser struct {
+	DeploymentParser    bideplmanifest.Parser
+	DeploymentValidator bideplmanifest.Validator
+	ReleaseManager      birel.Manager
 }
 
-func (y deploymentParser) GetDeploymentManifest(deploymentManifestPath string, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, error) {
+func (y DeploymentManifestParser) GetDeploymentManifest(deploymentManifestPath string, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, error) {
 	var deploymentManifest bideplmanifest.Manifest
 	err := stage.Perform("Validating deployment manifest", func() error {
 		var err error
-		deploymentManifest, err = y.deploymentParser.Parse(deploymentManifestPath)
+		deploymentManifest, err = y.DeploymentParser.Parse(deploymentManifestPath)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
 		}
 
-		err = y.deploymentValidator.Validate(deploymentManifest, releaseSetManifest)
+		err = y.DeploymentValidator.Validate(deploymentManifest, releaseSetManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
 
-		err = y.deploymentValidator.ValidateReleaseJobs(deploymentManifest, y.releaseManager)
+		err = y.DeploymentValidator.ValidateReleaseJobs(deploymentManifest, y.ReleaseManager)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment jobs refer to jobs in release")
 		}

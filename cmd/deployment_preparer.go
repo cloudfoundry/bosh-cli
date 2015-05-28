@@ -9,95 +9,80 @@ import (
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 func NewDeploymentPreparer(
 	ui biui.UI,
-	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 	logTag string,
 	deploymentStateService biconfig.DeploymentStateService,
 	legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator,
 	releaseManager birel.Manager,
 	deploymentRecord bidepl.Record,
-	installerFactory biinstall.InstallerFactory,
 	cloudFactory bicloud.Factory,
 	stemcellManagerFactory bistemcell.ManagerFactory,
 	agentClientFactory bihttpagent.AgentClientFactory,
 	vmManagerFactory bivm.ManagerFactory,
 	blobstoreFactory biblobstore.Factory,
 	deployer bidepl.Deployer,
-	releaseSetParser birelsetmanifest.Parser,
-	installationParser biinstallmanifest.Parser,
-	deploymentParser bideplmanifest.Parser,
-	deploymentValidator bideplmanifest.Validator,
-	releaseExtractor birel.Extractor,
-	stemcellExtractor bistemcell.Extractor,
 	deploymentManifestPath string,
-	tarballProvider bitarball.Provider,
+	cpiInstaller bicpirel.CpiInstaller,
+	releaseFetcher birel.Fetcher,
+	stemcellFetcher bistemcell.Fetcher,
+	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser,
+	deploymentManifestParser DeploymentManifestParser,
 
 ) DeploymentPreparer {
 	return DeploymentPreparer{
-		ui:                            ui,
-		fs:                            fs,
-		logger:                        logger,
-		logTag:                        logTag,
-		deploymentStateService:        deploymentStateService,
-		legacyDeploymentStateMigrator: legacyDeploymentStateMigrator,
-		releaseManager:                releaseManager,
-		deploymentRecord:              deploymentRecord,
-		installerFactory:              installerFactory,
-		cloudFactory:                  cloudFactory,
-		stemcellManagerFactory:        stemcellManagerFactory,
-		agentClientFactory:            agentClientFactory,
-		vmManagerFactory:              vmManagerFactory,
-		blobstoreFactory:              blobstoreFactory,
-		deployer:                      deployer,
-		releaseSetParser:              releaseSetParser,
-		installationParser:            installationParser,
-		deploymentParser:              deploymentParser,
-		deploymentValidator:           deploymentValidator,
-		releaseExtractor:              releaseExtractor,
-		stemcellExtractor:             stemcellExtractor,
-		deploymentManifestPath:        deploymentManifestPath,
-		tarballProvider:               tarballProvider,
+		ui:                                      ui,
+		logger:                                  logger,
+		logTag:                                  logTag,
+		deploymentStateService:                  deploymentStateService,
+		legacyDeploymentStateMigrator:           legacyDeploymentStateMigrator,
+		releaseManager:                          releaseManager,
+		deploymentRecord:                        deploymentRecord,
+		cloudFactory:                            cloudFactory,
+		stemcellManagerFactory:                  stemcellManagerFactory,
+		agentClientFactory:                      agentClientFactory,
+		vmManagerFactory:                        vmManagerFactory,
+		blobstoreFactory:                        blobstoreFactory,
+		deployer:                                deployer,
+		deploymentManifestPath:                  deploymentManifestPath,
+		cpiInstaller:                            cpiInstaller,
+		releaseFetcher:                          releaseFetcher,
+		stemcellFetcher:                         stemcellFetcher,
+		releaseSetAndInstallationManifestParser: releaseSetAndInstallationManifestParser,
+		deploymentManifestParser:                deploymentManifestParser,
 	}
 }
 
 type DeploymentPreparer struct {
-	ui                            biui.UI
-	fs                            boshsys.FileSystem
-	logger                        boshlog.Logger
-	logTag                        string
-	deploymentStateService        biconfig.DeploymentStateService
-	legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator
-	releaseManager                birel.Manager
-	deploymentRecord              bidepl.Record
-	installerFactory              biinstall.InstallerFactory
-	cloudFactory                  bicloud.Factory
-	stemcellManagerFactory        bistemcell.ManagerFactory
-	agentClientFactory            bihttpagent.AgentClientFactory
-	vmManagerFactory              bivm.ManagerFactory
-	blobstoreFactory              biblobstore.Factory
-	deployer                      bidepl.Deployer
-	releaseSetParser              birelsetmanifest.Parser
-	installationParser            biinstallmanifest.Parser
-	deploymentParser              bideplmanifest.Parser
-	deploymentValidator           bideplmanifest.Validator
-	releaseExtractor              birel.Extractor
-	stemcellExtractor             bistemcell.Extractor
-	deploymentManifestPath        string
-	tarballProvider               bitarball.Provider
+	ui                                      biui.UI
+	logger                                  boshlog.Logger
+	logTag                                  string
+	deploymentStateService                  biconfig.DeploymentStateService
+	legacyDeploymentStateMigrator           biconfig.LegacyDeploymentStateMigrator
+	releaseManager                          birel.Manager
+	deploymentRecord                        bidepl.Record
+	cloudFactory                            bicloud.Factory
+	stemcellManagerFactory                  bistemcell.ManagerFactory
+	agentClientFactory                      bihttpagent.AgentClientFactory
+	vmManagerFactory                        bivm.ManagerFactory
+	blobstoreFactory                        biblobstore.Factory
+	deployer                                bidepl.Deployer
+	deploymentManifestPath                  string
+	cpiInstaller                            bicpirel.CpiInstaller
+	releaseFetcher                          birel.Fetcher
+	stemcellFetcher                         bistemcell.Fetcher
+	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser
+	deploymentManifestParser                DeploymentManifestParser
 }
 
 func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
@@ -130,57 +115,31 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		deploymentManifest   bideplmanifest.Manifest
 		installationManifest biinstallmanifest.Manifest
 	)
-
-	installer, err := c.installerFactory.NewInstaller()
-	if err != nil {
-		return bosherr.WrapError(err, "Creating CPI Installer")
-	}
-
-	cpiInstaller := bicpirel.CpiInstaller{
-		ReleaseManager: c.releaseManager,
-		Installer:      installer,
-		Validator:      bicpirel.NewValidator(),
-	}
-
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var releaseSetManifest birelsetmanifest.Manifest
-		releaseSetManifest, installationManifest, err = releaseSetAndInstallationManifestParser{
-			releaseSetParser:   c.releaseSetParser,
-			installationParser: c.installationParser,
-		}.ReleaseSetAndInstallationManifest(c.deploymentManifestPath)
+		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath)
 		if err != nil {
 			return err
 		}
 
 		for _, releaseRef := range releaseSetManifest.Releases {
-			err = birel.NewFetcher(
-				c.tarballProvider,
-				c.releaseExtractor,
-				c.releaseManager,
-			).DownloadAndExtract(releaseRef, stage)
+			err = c.releaseFetcher.DownloadAndExtract(releaseRef, stage)
 			if err != nil {
 				return err
 			}
 		}
 
-		err := cpiInstaller.ValidateCpiRelease(installationManifest, stage)
+		err := c.cpiInstaller.ValidateCpiRelease(installationManifest, stage)
 		if err != nil {
 			return err
 		}
 
-		deploymentManifest, err = deploymentParser{
-			deploymentParser:    c.deploymentParser,
-			deploymentValidator: c.deploymentValidator,
-			releaseManager:      c.releaseManager,
-		}.GetDeploymentManifest(c.deploymentManifestPath, releaseSetManifest, stage)
+		deploymentManifest, err = c.deploymentManifestParser.GetDeploymentManifest(c.deploymentManifestPath, releaseSetManifest, stage)
 		if err != nil {
 			return err
 		}
 
-		extractedStemcell, err = bistemcell.Fetcher{
-			TarballProvider:   c.tarballProvider,
-			StemcellExtractor: c.stemcellExtractor,
-		}.GetStemcell(deploymentManifest, stage)
+		extractedStemcell, err = c.stemcellFetcher.GetStemcell(deploymentManifest, stage)
 		return err
 	})
 	if err != nil {
@@ -203,7 +162,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		return nil
 	}
 
-	installation, err := cpiInstaller.InstallCpiRelease(installationManifest, stage)
+	installation, err := c.cpiInstaller.InstallCpiRelease(installationManifest, stage)
 	if err != nil {
 		return err
 	}

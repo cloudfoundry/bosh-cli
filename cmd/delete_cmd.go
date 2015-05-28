@@ -11,7 +11,7 @@ import (
 )
 
 type deleteCmd struct {
-	deploymentDeleterProvider func(deploymentManifestString string) DeploymentDeleter
+	deploymentDeleterProvider func(deploymentManifestString string) (DeploymentDeleter, error)
 	ui                        biui.UI
 	fs                        boshsys.FileSystem
 	logger                    boshlog.Logger
@@ -22,7 +22,7 @@ func NewDeleteCmd(
 	ui biui.UI,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
-	deploymentDeleterProvider func(deploymentManifestString string) DeploymentDeleter,
+	deploymentDeleterProvider func(deploymentManifestString string) (DeploymentDeleter, error),
 ) Cmd {
 	return &deleteCmd{
 		ui: ui,
@@ -64,7 +64,11 @@ func (c *deleteCmd) Run(stage biui.Stage, args []string) error {
 
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
-	deploymentDeleter := c.deploymentDeleterProvider(manifestAbsFilePath)
+	deploymentDeleter, err := c.deploymentDeleterProvider(manifestAbsFilePath)
+	if err != nil {
+		return err
+	}
+
 	return deploymentDeleter.DeleteDeployment(stage)
 }
 

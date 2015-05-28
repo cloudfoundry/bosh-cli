@@ -117,17 +117,26 @@ func (f *factory) CreateCommand(name string) (Cmd, error) {
 }
 
 func (f *factory) createDeployCmd() (Cmd, error) {
-	getter := func(deploymentManifestPath string) DeploymentPreparer {
+	getter := func(deploymentManifestPath string) (DeploymentPreparer, error) {
 		f := &deploymentManagerFactory2{f: f, deploymentManifestPath: deploymentManifestPath}
-		return f.loadDeploymentPreparer()
+		deploymentPreparer, err := f.loadDeploymentPreparer()
+		if err != nil {
+			return deploymentPreparer, err
+		}
+
+		return deploymentPreparer, nil
 	}
 	return NewDeployCmd(f.ui, f.fs, f.logger, getter), nil
 }
 
 func (f *factory) createDeleteCmd() (Cmd, error) {
-	getter := func(deploymentManifestPath string) DeploymentDeleter {
+	getter := func(deploymentManifestPath string) (DeploymentDeleter, error) {
 		f := &deploymentManagerFactory2{f: f, deploymentManifestPath: deploymentManifestPath}
-		return f.loadDeploymentDeleter()
+		deploymentDeleter, err := f.loadDeploymentDeleter()
+		if err != nil {
+			return deploymentDeleter, err
+		}
+		return deploymentDeleter, nil
 	}
 
 	return NewDeleteCmd(f.ui, f.fs, f.logger, getter), nil
@@ -400,61 +409,59 @@ type deploymentManagerFactory2 struct {
 	deployer                      bidepl.Deployer
 }
 
-func (d *deploymentManagerFactory2) loadDeploymentPreparer() DeploymentPreparer {
-	stemcellReader := bistemcell.NewReader(d.f.loadCompressor(), d.f.fs)
-	stemcellExtractor := bistemcell.NewExtractor(stemcellReader, d.f.fs)
+func (d *deploymentManagerFactory2) loadDeploymentPreparer() (DeploymentPreparer, error) {
 	deploymentRepo := biconfig.NewDeploymentRepo(d.loadDeploymentStateService())
 	releaseRepo := biconfig.NewReleaseRepo(d.loadDeploymentStateService(), d.f.uuidGenerator)
 	sha1Calculator := bicrypto.NewSha1Calculator(d.f.fs)
 	deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, d.loadStemcellRepo(), sha1Calculator)
+	cpiInstaller, err := d.loadCpiInstaller()
+	if err != nil {
+		return DeploymentPreparer{}, err
+	}
 
 	return NewDeploymentPreparer(
 		d.f.ui,
-		d.f.fs,
 		d.f.logger,
 		"DeploymentPreparer",
 		d.loadDeploymentStateService(),
 		d.loadLegacyDeploymentStateMigrator(),
 		d.f.loadReleaseManager(),
 		deploymentRecord,
-		d.loadInstallerFactory(),
 		d.f.loadCloudFactory(),
 		d.loadStemcellManagerFactory(),
 		d.f.loadAgentClientFactory(),
 		d.loadVMManagerFactory(),
 		d.f.loadBlobstoreFactory(),
 		d.loadDeployer(),
-		d.f.loadReleaseSetParser(),
-		d.f.loadInstallationParser(),
-		d.f.loadDeploymentParser(),
-		d.f.loadDeploymentValidator(),
-		d.f.loadReleaseExtractor(),
-		stemcellExtractor,
 		d.deploymentManifestPath,
-		d.f.loadTarballProvider(),
-	)
+		cpiInstaller,
+		d.loadReleaseFetcher(),
+		d.loadStemcellFetcher(),
+		d.loadReleaseSetAndInstallationManifestParser(),
+		d.loadDeploymentManifestParser(),
+	), nil
 }
 
-func (d *deploymentManagerFactory2) loadDeploymentDeleter() DeploymentDeleter {
+func (d *deploymentManagerFactory2) loadDeploymentDeleter() (DeploymentDeleter, error) {
+	cpiInstaller, err := d.loadCpiInstaller()
+	if err != nil {
+		return nil, err
+	}
 	return NewDeploymentDeleter(
 		d.f.ui,
 		"DeploymentDeleter",
 		d.f.logger,
-		d.f.fs,
 		d.loadDeploymentStateService(),
 		d.f.loadReleaseManager(),
-		d.loadInstallerFactory(),
 		d.f.loadCloudFactory(),
 		d.f.loadAgentClientFactory(),
 		d.f.loadBlobstoreFactory(),
 		d.loadDeploymentManagerFactory(),
-		d.f.loadInstallationParser(),
 		d.deploymentManifestPath,
-		d.f.loadTarballProvider(),
-		d.f.loadReleaseExtractor(),
-		d.f.loadCPIReleaseValidator(),
-		d.f.loadReleaseSetParser(),
-	)
+		cpiInstaller,
+		d.loadReleaseFetcher(),
+		d.loadReleaseSetAndInstallationManifestParser(),
+	), nil
 }
 
 func (d *deploymentManagerFactory2) loadDeploymentStateService() biconfig.DeploymentStateService {
@@ -604,4 +611,50 @@ func (d *deploymentManagerFactory2) loadInstallerFactory() biinstall.InstallerFa
 		d.f.logger,
 	)
 	return d.installerFactory
+}
+
+func (d *deploymentManagerFactory2) loadCpiInstaller() (bicpirel.CpiInstaller, error) {
+	installer, err := d.loadInstallerFactory().NewInstaller()
+	if err != nil {
+		return bicpirel.CpiInstaller{}, bosherr.WrapError(err, "Creating CPI Installer")
+	}
+
+	return bicpirel.CpiInstaller{
+		ReleaseManager: d.f.loadReleaseManager(),
+		Installer:      installer,
+		Validator:      bicpirel.NewValidator(),
+	}, nil
+}
+
+func (d *deploymentManagerFactory2) loadReleaseFetcher() birel.Fetcher {
+	return birel.NewFetcher(
+		d.f.loadTarballProvider(),
+		d.f.loadReleaseExtractor(),
+		d.f.loadReleaseManager(),
+	)
+}
+
+func (d *deploymentManagerFactory2) loadStemcellFetcher() bistemcell.Fetcher {
+	stemcellReader := bistemcell.NewReader(d.f.loadCompressor(), d.f.fs)
+	stemcellExtractor := bistemcell.NewExtractor(stemcellReader, d.f.fs)
+
+	return bistemcell.Fetcher{
+		TarballProvider:   d.f.loadTarballProvider(),
+		StemcellExtractor: stemcellExtractor,
+	}
+}
+
+func (d *deploymentManagerFactory2) loadReleaseSetAndInstallationManifestParser() ReleaseSetAndInstallationManifestParser {
+	return ReleaseSetAndInstallationManifestParser{
+		ReleaseSetParser:   d.f.loadReleaseSetParser(),
+		InstallationParser: d.f.loadInstallationParser(),
+	}
+}
+
+func (d *deploymentManagerFactory2) loadDeploymentManifestParser() DeploymentManifestParser {
+	return DeploymentManifestParser{
+		DeploymentParser:    d.f.loadDeploymentParser(),
+		DeploymentValidator: d.f.loadDeploymentValidator(),
+		ReleaseManager:      d.f.loadReleaseManager(),
+	}
 }

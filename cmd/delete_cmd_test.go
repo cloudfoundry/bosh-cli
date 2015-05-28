@@ -39,9 +39,9 @@ var _ = Describe("DeleteCmd", func() {
 		)
 
 		var newDeleteCmd = func() bicmd.Cmd {
-			doGetFunc := func(deploymentManifestPath string) bicmd.DeploymentDeleter {
+			doGetFunc := func(deploymentManifestPath string) (bicmd.DeploymentDeleter, error) {
 				Expect(deploymentManifestPath).To(Equal(deploymentManifestPath))
-				return mockDeploymentDeleter
+				return mockDeploymentDeleter, nil
 			}
 
 			return bicmd.NewDeleteCmd(fakeUI, fs, logger, doGetFunc)

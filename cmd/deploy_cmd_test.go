@@ -24,6 +24,7 @@ import (
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
@@ -292,7 +293,7 @@ func rootDesc() {
 
 		JustBeforeEach(func() {
 
-			doGet := func(deploymentManifestPath string) bicmd.DeploymentPreparer {
+			doGet := func(deploymentManifestPath string) (bicmd.DeploymentPreparer, error) {
 				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
@@ -303,31 +304,48 @@ func rootDesc() {
 				tarballCache := bitarball.NewCache("fake-base-path", fakeFs, logger)
 				tarballProvider := bitarball.NewProvider(tarballCache, fakeFs, fakeHTTPClient, sha1Calculator, 1, 0, logger)
 
+				cpiInstaller := bicpirel.CpiInstaller{
+					ReleaseManager: releaseManager,
+					Installer:      mockInstaller,
+					Validator:      bicpirel.NewValidator(),
+				}
+				releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
+				stemcellFetcher := bistemcell.Fetcher{
+					TarballProvider:   tarballProvider,
+					StemcellExtractor: fakeStemcellExtractor,
+				}
+				releaseSetAndInstallationManifestParser := bicmd.ReleaseSetAndInstallationManifestParser{
+					ReleaseSetParser:   fakeReleaseSetParser,
+					InstallationParser: fakeInstallationParser,
+				}
+
+				deploymentManifestParser := bicmd.DeploymentManifestParser{
+					DeploymentParser:    fakeDeploymentParser,
+					DeploymentValidator: fakeDeploymentValidator,
+					ReleaseManager:      releaseManager,
+				}
+
 				return bicmd.NewDeploymentPreparer(
 					userInterface,
-					fakeFs,
 					logger,
 					"deployCmd",
 					deploymentStateService,
 					mockLegacyDeploymentStateMigrator,
 					releaseManager,
 					deploymentRecord,
-					mockInstallerFactory,
 					mockCloudFactory,
 					fakeStemcellManagerFactory,
 					mockAgentClientFactory,
 					mockVMManagerFactory,
 					mockBlobstoreFactory,
 					mockDeployer,
-					fakeReleaseSetParser,
-					fakeInstallationParser,
-					fakeDeploymentParser,
-					fakeDeploymentValidator,
-					mockReleaseExtractor,
-					fakeStemcellExtractor,
 					deploymentManifestPath,
-					tarballProvider,
-				)
+					cpiInstaller,
+					releaseFetcher,
+					stemcellFetcher,
+					releaseSetAndInstallationManifestParser,
+					deploymentManifestParser,
+				), nil
 			}
 
 			command = bicmd.NewDeployCmd(userInterface, fakeFs, logger, doGet)

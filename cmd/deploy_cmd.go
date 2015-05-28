@@ -12,7 +12,7 @@ import (
 )
 
 type deployCmd struct {
-	deploymentPreparerProvider func(deploymentManifestPath string) DeploymentPreparer
+	deploymentPreparerProvider func(deploymentManifestPath string) (DeploymentPreparer, error)
 	ui                         biui.UI
 	fs                         boshsys.FileSystem
 	eventLogger                biui.Stage
@@ -24,7 +24,7 @@ func NewDeployCmd(
 	ui biui.UI,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
-	deploymentPreparerProvider func(deploymentManifestPath string) DeploymentPreparer,
+	deploymentPreparerProvider func(deploymentManifestPath string) (DeploymentPreparer, error),
 ) Cmd {
 	return &deployCmd{
 		ui: ui,
@@ -66,7 +66,11 @@ func (c *deployCmd) Run(stage biui.Stage, args []string) error {
 
 	c.ui.PrintLinef("Deployment manifest: '%s'", manifestAbsFilePath)
 
-	deploymentPreparer := c.deploymentPreparerProvider(manifestAbsFilePath)
+	deploymentPreparer, err := c.deploymentPreparerProvider(manifestAbsFilePath)
+	if err != nil {
+		return err
+	}
+
 	return deploymentPreparer.PrepareDeployment(stage)
 }
 

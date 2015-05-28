@@ -28,6 +28,7 @@ import (
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	bidepl "github.com/cloudfoundry/bosh-init/deployment"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
@@ -391,7 +392,7 @@ cloud_provider:
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
-			doGet := func(deploymentManifestPath string) DeploymentPreparer {
+			doGet := func(deploymentManifestPath string) (DeploymentPreparer, error) {
 				// todo: figure this out?
 				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				vmRepo = biconfig.NewVMRepo(deploymentStateService)
@@ -416,31 +417,48 @@ cloud_provider:
 				tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
 				tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
 
+				cpiInstaller := bicpirel.CpiInstaller{
+					ReleaseManager: releaseManager,
+					Installer:      mockInstaller,
+					Validator:      bicpirel.NewValidator(),
+				}
+				releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
+				stemcellFetcher := bistemcell.Fetcher{
+					TarballProvider:   tarballProvider,
+					StemcellExtractor: fakeStemcellExtractor,
+				}
+
+				releaseSetAndInstallationManifestParser := ReleaseSetAndInstallationManifestParser{
+					ReleaseSetParser:   releaseSetParser,
+					InstallationParser: installationParser,
+				}
+				deploymentManifestParser := DeploymentManifestParser{
+					DeploymentParser:    deploymentParser,
+					DeploymentValidator: deploymentValidator,
+					ReleaseManager:      releaseManager,
+				}
+
 				return NewDeploymentPreparer(
 					ui,
-					fs,
 					logger,
 					"deployCmd",
 					deploymentStateService,
 					legacyDeploymentStateMigrator,
 					releaseManager,
 					deploymentRecord,
-					mockInstallerFactory,
 					mockCloudFactory,
 					stemcellManagerFactory,
 					mockAgentClientFactory,
 					vmManagerFactory,
 					mockBlobstoreFactory,
 					deployer,
-					releaseSetParser,
-					installationParser,
-					deploymentParser,
-					deploymentValidator,
-					mockReleaseExtractor,
-					fakeStemcellExtractor,
 					deploymentManifestPath,
-					tarballProvider,
-				)
+					cpiInstaller,
+					releaseFetcher,
+					stemcellFetcher,
+					releaseSetAndInstallationManifestParser,
+					deploymentManifestParser,
+				), nil
 			}
 
 			return NewDeployCmd(
