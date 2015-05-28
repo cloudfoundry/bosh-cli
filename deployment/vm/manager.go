@@ -110,7 +110,12 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	}
 	err = m.cloud.SetVMMetadata(cid, metadata)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Setting VM metadata to %s", metadata)
+		cloudErr, ok := err.(bicloud.Error)
+		if ok && cloudErr.Type() == bicloud.NotImplementedError {
+			//ignore it
+		} else {
+			return nil, bosherr.WrapErrorf(err, "Setting VM metadata to %s", metadata)
+		}
 	}
 
 	vm := NewVM(

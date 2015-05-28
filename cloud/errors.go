@@ -8,6 +8,7 @@ const (
 	VMNotFoundError       = "Bosh::Clouds::VMNotFound"
 	DiskNotFoundError     = "Bosh::Clouds::DiskNotFound"
 	StemcellNotFoundError = "Bosh::Clouds::StemcellNotFound"
+	NotImplementedError   = "Bosh::Clouds::NotImplemented"
 )
 
 type Error interface {

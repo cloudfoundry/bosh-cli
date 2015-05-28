@@ -175,6 +175,18 @@ var _ = Describe("Manager", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
 			})
+
+			It("ignores not implemented error", func() {
+				notImplementedCloudError := cloud.NewCPIError("set_vm_metadata", cloud.CmdError{
+					Type:      "Bosh::Clouds::NotImplemented",
+					Message:   "set_vm_metadata is not implemented by VCloudCloud::Cloud",
+					OkToRetry: false,
+				})
+				fakeCloud.SetVMMetadataError = notImplementedCloudError
+
+				_, err := manager.Create(stemcell, deploymentManifest)
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 
 		Context("when creating the vm fails", func() {
