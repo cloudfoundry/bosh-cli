@@ -64,7 +64,7 @@ var _ = Describe("Manifest", func() {
 							},
 						},
 						{
-							Name: "job-without-networks",
+							Name:     "job-without-networks",
 							Networks: []JobNetwork{},
 						},
 						{

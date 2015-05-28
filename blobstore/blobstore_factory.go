@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
+	boshdavcli "github.com/cloudfoundry/bosh-davcli/client"
+	boshdavcliconf "github.com/cloudfoundry/bosh-davcli/config"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
-	boshdavcli "github.com/cloudfoundry/bosh-utils/davcli/client"
-	boshdavcliconf "github.com/cloudfoundry/bosh-utils/davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"

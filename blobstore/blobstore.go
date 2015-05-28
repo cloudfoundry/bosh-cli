@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	boshdavcli "github.com/cloudfoundry/bosh-utils/davcli/client"
+	boshdavcli "github.com/cloudfoundry/bosh-davcli/client"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"

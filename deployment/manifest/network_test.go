@@ -15,8 +15,8 @@ var _ = Describe("Network", func() {
 		Describe("network defaults", func() {
 			BeforeEach(func() {
 				network = Network{
-					Name: "fake-manual-network-name",
-					Type: "whatever",
+					Name:            "fake-manual-network-name",
+					Type:            "whatever",
 					CloudProperties: biproperty.Map{"cp_key": "cp_value"},
 				}
 			})
@@ -25,8 +25,8 @@ var _ = Describe("Network", func() {
 				iface, err := network.Interface([]string{}, []NetworkDefault{"foo", "bar"})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(iface).To(Equal(biproperty.Map{
-					"cloud_properties": biproperty.Map{"cp_key": "cp_value", },
-					"default":         []NetworkDefault{"foo", "bar"},
+					"cloud_properties": biproperty.Map{"cp_key": "cp_value"},
+					"default":          []NetworkDefault{"foo", "bar"},
 					"type":             "whatever",
 				}))
 			})

@@ -139,7 +139,7 @@ var _ = Describe("bosh-init", func() {
 			networkInterfaces = map[string]biproperty.Map{
 				"network-1": biproperty.Map{
 					"type":             "dynamic",
-					"default": []bideplmanifest.NetworkDefault{"dns", "gateway"},
+					"default":          []bideplmanifest.NetworkDefault{"dns", "gateway"},
 					"cloud_properties": biproperty.Map{},
 				},
 			}

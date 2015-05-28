@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	davconf "github.com/cloudfoundry/bosh-utils/davcli/config"
+	davconf "github.com/cloudfoundry/bosh-davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshhttp "github.com/cloudfoundry/bosh-utils/http"
 )

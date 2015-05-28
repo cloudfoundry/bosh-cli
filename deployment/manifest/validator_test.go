@@ -77,7 +77,7 @@ var _ = Describe("Validator", func() {
 					ResourcePool:   "fake-resource-pool-name",
 					Networks: []JobNetwork{
 						{
-							Name:    "fake-network-name",
+							Name:     "fake-network-name",
 							Defaults: []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway},
 						},
 					},
@@ -685,7 +685,7 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("jobs[0].instances must be >= 0"))
 		})
 
-		Describe ("job networks", func() {
+		Describe("job networks", func() {
 			It("validates job networks", func() {
 				deploymentManifest := Manifest{
 					Jobs: []Job{

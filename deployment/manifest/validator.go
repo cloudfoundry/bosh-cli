@@ -310,7 +310,6 @@ func (v *validator) validateJobNetworks(jobNetworks []JobNetwork, networks []Net
 		}
 	}
 
-
 	return errs
 }
 

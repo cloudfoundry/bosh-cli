@@ -240,8 +240,8 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 	networks := make([]Network, len(rawNetworks), len(rawNetworks))
 	for i, rawNetwork := range rawNetworks {
 		network := Network{
-			Name:     rawNetwork.Name,
-			Type:     NetworkType(rawNetwork.Type),
+			Name: rawNetwork.Name,
+			Type: NetworkType(rawNetwork.Type),
 		}
 
 		cloudProperties, err := biproperty.BuildMap(rawNetwork.CloudProperties)

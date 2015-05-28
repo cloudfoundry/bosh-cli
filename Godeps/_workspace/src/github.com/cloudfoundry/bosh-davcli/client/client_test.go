@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-utils/davcli/client"
-	davconf "github.com/cloudfoundry/bosh-utils/davcli/config"
+	. "github.com/cloudfoundry/bosh-davcli/client"
+	davconf "github.com/cloudfoundry/bosh-davcli/config"
 	fakehttp "github.com/cloudfoundry/bosh-utils/http/fakes"
 )
 

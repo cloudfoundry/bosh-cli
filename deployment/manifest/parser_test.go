@@ -138,8 +138,8 @@ properties:
 					},
 				},
 				{
-					Name: "vip",
-					Type: VIP,
+					Name:            "vip",
+					Type:            VIP,
 					CloudProperties: biproperty.Map{},
 				},
 			},
@@ -177,7 +177,7 @@ properties:
 							StaticIPs: []string{"1.2.3.4"},
 						},
 						{
-							Name:    "fake-network-name",
+							Name:     "fake-network-name",
 							Defaults: []NetworkDefault{NetworkDefaultDNS},
 						},
 					},
