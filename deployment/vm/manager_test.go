@@ -169,6 +169,12 @@ var _ = Describe("Manager", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-set-metadata-error"))
 			})
+
+			It("still updates the current vm record", func() {
+				_, err := manager.Create(stemcell, deploymentManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
+			})
 		})
 
 		Context("when creating the vm fails", func() {

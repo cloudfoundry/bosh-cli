@@ -2,6 +2,7 @@ package vm
 
 import (
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
@@ -96,9 +97,9 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapError(err, "Generating agent ID")
 	}
 
-	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), resourcePool.CloudProperties, networkInterfaces, resourcePool.Env)
+	cid, err := m.createAndRecordVm(agentID, stemcell, resourcePool, networkInterfaces)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Creating vm with stemcell cid '%s'", stemcell.CID())
+		return nil, err
 	}
 
 	metadata := bicloud.VMMetadata{
@@ -110,11 +111,6 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	err = m.cloud.SetVMMetadata(cid, metadata)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Setting VM metadata to %s", metadata)
-	}
-
-	err = m.vmRepo.UpdateCurrent(cid)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Updating current vm record")
 	}
 
 	vm := NewVM(
@@ -129,4 +125,19 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	)
 
 	return vm, nil
+}
+
+func (m *manager) createAndRecordVm(agentID string, stemcell bistemcell.CloudStemcell, resourcePool bideplmanifest.ResourcePool, networkInterfaces map[string]biproperty.Map) (string, error) {
+	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), resourcePool.CloudProperties, networkInterfaces, resourcePool.Env)
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Creating vm with stemcell cid '%s'", stemcell.CID())
+	}
+
+	// Record vm info immediately so we don't leak it
+	err = m.vmRepo.UpdateCurrent(cid)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Updating current vm record")
+	}
+
+	return cid, nil
 }
