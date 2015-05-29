@@ -8,7 +8,7 @@ rootPackage=github.com/cloudfoundry/bosh-init
 srcFiles=(
   config/LegacyDeploymentStateMigrator
   cloud/Cloud,Factory
-  installation/Installation,Installer,InstallerFactory
+  installation/Installation,Installer,InstallerFactory,Uninstaller
   installation/state/Builder
   installation/pkg/Installer
   installation/job/Installer

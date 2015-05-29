@@ -459,6 +459,7 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() (DeploymentDeleter, 
 		d.loadDeploymentManagerFactory(),
 		d.deploymentManifestPath,
 		cpiInstaller,
+		d.loadCpiUninstaller(),
 		d.loadReleaseFetcher(),
 		d.loadReleaseSetAndInstallationManifestParser(),
 	), nil
@@ -611,6 +612,10 @@ func (d *deploymentManagerFactory2) loadInstallerFactory() biinstall.InstallerFa
 		d.f.logger,
 	)
 	return d.installerFactory
+}
+
+func (d *deploymentManagerFactory2) loadCpiUninstaller() biinstall.Uninstaller {
+	return biinstall.NewUninstaller(d.f.fs, d.f.logger)
 }
 
 func (d *deploymentManagerFactory2) loadCpiInstaller() (bicpirel.CpiInstaller, error) {

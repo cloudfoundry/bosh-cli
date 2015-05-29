@@ -55,7 +55,8 @@ var _ = Describe("DeploymentDeleter", func() {
 			fs                          boshsys.FileSystem
 			logger                      boshlog.Logger
 			releaseManager              birel.Manager
-			mockInstaller               *mock_install.MockInstaller
+			mockCpiInstaller            *mock_install.MockInstaller
+			mockCpiUninstaller          *mock_install.MockUninstaller
 			mockInstallerFactory        *mock_install.MockInstallerFactory
 			mockCloudFactory            *mock_cloud.MockFactory
 			mockReleaseExtractor        *mock_release.MockExtractor
@@ -144,9 +145,9 @@ cloud_provider:
 				Properties: biproperty.Map{},
 			}
 
-			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+			mockInstallerFactory.EXPECT().NewInstaller().Return(mockCpiInstaller, nil).AnyTimes()
 
-			expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
+			expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(fakeInstallation, nil).AnyTimes()
 
@@ -166,7 +167,7 @@ cloud_provider:
 
 			cpiInstaller := bicpirel.CpiInstaller{
 				ReleaseManager: releaseManager,
-				Installer:      mockInstaller,
+				Installer:      mockCpiInstaller,
 				Validator:      bicpirel.NewValidator(),
 			}
 			releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
@@ -187,12 +188,13 @@ cloud_provider:
 				mockDeploymentManagerFactory,
 				deploymentManifestPath,
 				cpiInstaller,
+				mockCpiUninstaller,
 				releaseFetcher,
 				releaseSetAndInstallationManifestParser,
 			)
 		}
 
-		var expectDeleteAndCleanup = func() {
+		var expectDeleteAndCleanup = func(defaultUninstallerUsed bool) {
 			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
@@ -202,6 +204,10 @@ cloud_provider:
 				}),
 				mockDeploymentManager.EXPECT().Cleanup(fakeStage),
 			)
+			if defaultUninstallerUsed {
+				mockCpiUninstaller.EXPECT().Uninstall(gomock.Any()).Return(nil)
+			}
+
 		}
 
 		var expectCleanup = func() {
@@ -209,6 +215,7 @@ cloud_provider:
 			mockDeploymentManager.EXPECT().FindCurrent().Return(nil, false, nil).AnyTimes()
 
 			mockDeploymentManager.EXPECT().Cleanup(fakeStage)
+			mockCpiUninstaller.EXPECT().Uninstall(gomock.Any()).Return(nil)
 		}
 
 		var expectValidationInstallationDeletionEvents = func() {
@@ -235,6 +242,9 @@ cloud_provider:
 					Name:  "deleting deployment",
 					Stage: &fakebiui.FakeStage{},
 				},
+				{
+					Name:  "Uninstalling local CPI",
+				},
 				// mock deployment manager cleanup doesn't add sub-stages
 			}))
 
@@ -257,7 +267,8 @@ cloud_provider:
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
 			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
 
-			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
+			mockCpiInstaller = mock_install.NewMockInstaller(mockCtrl)
+			mockCpiUninstaller = mock_install.NewMockUninstaller(mockCtrl)
 			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 
 			fakeInstallation = &fakecmd.FakeInstallation{}
@@ -321,7 +332,7 @@ cloud_provider:
 				})
 
 				It("extracts & install CPI release tarball", func() {
-					expectDeleteAndCleanup()
+					expectDeleteAndCleanup(true)
 
 					gomock.InOrder(
 						expectCPIExtractRelease.Times(1),
@@ -334,7 +345,7 @@ cloud_provider:
 				})
 
 				It("deletes the extracted CPI release", func() {
-					expectDeleteAndCleanup()
+					expectDeleteAndCleanup(true)
 
 					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
 					Expect(err).NotTo(HaveOccurred())
@@ -342,15 +353,23 @@ cloud_provider:
 				})
 
 				It("deletes the deployment & cleans up orphans", func() {
-					expectDeleteAndCleanup()
+					expectDeleteAndCleanup(true)
 
 					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fakeUI.Errors).To(BeEmpty())
 				})
 
+				It("deletes the local CPI installation", func() {
+					expectDeleteAndCleanup(false)
+					mockCpiUninstaller.EXPECT().Uninstall(gomock.Any()).Return(nil)
+
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
 				It("logs validating & deleting stages", func() {
-					expectDeleteAndCleanup()
+					expectDeleteAndCleanup(true)
 
 					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
 					Expect(err).ToNot(HaveOccurred())
@@ -387,11 +406,11 @@ cloud_provider:
 					Properties: biproperty.Map{},
 				}
 
-				mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+				mockInstallerFactory.EXPECT().NewInstaller().Return(mockCpiInstaller, nil).AnyTimes()
 
 				fakeInstallation := &fakecmd.FakeInstallation{}
 
-				expectCPIInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
+				expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 				}).Return(fakeInstallation, nil).AnyTimes()
 

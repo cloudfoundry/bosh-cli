@@ -32,6 +32,7 @@ func NewDeploymentDeleter(
 	deploymentManagerFactory bidepl.ManagerFactory,
 	deploymentManifestPath string,
 	cpiInstaller bicpirel.CpiInstaller,
+	cpiUninstaller biinstall.Uninstaller,
 	releaseFetcher birel.Fetcher,
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser,
 ) DeploymentDeleter {
@@ -47,6 +48,7 @@ func NewDeploymentDeleter(
 		deploymentManagerFactory:                deploymentManagerFactory,
 		deploymentManifestPath:                  deploymentManifestPath,
 		cpiInstaller:                            cpiInstaller,
+		cpiUninstaller:                          cpiUninstaller,
 		releaseFetcher:                          releaseFetcher,
 		releaseSetAndInstallationManifestParser: releaseSetAndInstallationManifestParser,
 	}
@@ -64,6 +66,7 @@ type deploymentDeleter struct {
 	deploymentManagerFactory                bidepl.ManagerFactory
 	deploymentManifestPath                  string
 	cpiInstaller                            bicpirel.CpiInstaller
+	cpiUninstaller                          biinstall.Uninstaller
 	releaseFetcher                          birel.Fetcher
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser
 }
@@ -89,7 +92,7 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 
 	var (
 		installationManifest biinstallmanifest.Manifest
-		installation         biinstall.Installation
+		localCpiInstallation biinstall.Installation
 	)
 
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
@@ -117,13 +120,20 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		return err
 	}
 
-	installation, err = c.cpiInstaller.InstallCpiRelease(installationManifest, stage)
+	localCpiInstallation, err = c.cpiInstaller.InstallCpiRelease(installationManifest, stage)
 	if err != nil {
 		return err
 	}
+	return localCpiInstallation.WithRunningRegistry(c.logger, stage, func() error {
+		err = c.findAndDeleteDeployment(stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus)
 
-	return installation.WithRunningRegistry(c.logger, stage, func() error {
-		return c.findAndDeleteDeployment(stage, installation, deploymentState.DirectorID, installationManifest.Mbus)
+		if err != nil {
+			return err
+		}
+
+		return stage.Perform("Uninstalling local CPI", func() error {
+			return c.cpiUninstaller.Uninstall(localCpiInstallation.Target())
+		})
 	})
 }
 
