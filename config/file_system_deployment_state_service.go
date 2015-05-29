@@ -109,3 +109,11 @@ func (s *fileSystemDeploymentStateService) initDefaults(deploymentState *Deploym
 
 	return nil
 }
+
+func (s *fileSystemDeploymentStateService) Cleanup() error {
+	err := s.fs.RemoveAll(s.configPath)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Could not delete deployment state file %s", s.configPath)
+	}
+	return nil
+}

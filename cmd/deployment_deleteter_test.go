@@ -243,7 +243,7 @@ cloud_provider:
 					Stage: &fakebiui.FakeStage{},
 				},
 				{
-					Name:  "Uninstalling local CPI",
+					Name: "Uninstalling local artifacts for CPI and deployment",
 				},
 				// mock deployment manager cleanup doesn't add sub-stages
 			}))
@@ -375,6 +375,15 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					expectValidationInstallationDeletionEvents()
+				})
+
+				It("deletes the local deployment state file", func() {
+					expectDeleteAndCleanup(true)
+
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fs.FileExists(deploymentStatePath)).To(BeFalse())
 				})
 
 			})

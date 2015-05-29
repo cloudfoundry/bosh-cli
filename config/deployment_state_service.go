@@ -42,4 +42,5 @@ type DeploymentStateService interface {
 	Exists() bool
 	Load() (DeploymentState, error)
 	Save(DeploymentState) error
+	Cleanup() error
 }

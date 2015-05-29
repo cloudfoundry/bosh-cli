@@ -131,8 +131,13 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 			return err
 		}
 
-		return stage.Perform("Uninstalling local CPI", func() error {
-			return c.cpiUninstaller.Uninstall(localCpiInstallation.Target())
+		return stage.Perform("Uninstalling local artifacts for CPI and deployment", func() error {
+			err := c.cpiUninstaller.Uninstall(localCpiInstallation.Target())
+			if err != nil {
+				return err
+			}
+
+			return c.deploymentStateService.Cleanup()
 		})
 	})
 }
