@@ -63,7 +63,7 @@ func (i *installer) InstallPackagesAndJobs(manifest biinstallmanifest.Manifest, 
 
 	compiledPackages, err := i.packageCompiler.For(jobs, i.packagesPath, stage)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = stage.Perform("Installing packages", func() error {

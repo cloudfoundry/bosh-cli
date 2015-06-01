@@ -178,7 +178,7 @@ var _ = Describe("JobRenderer", func() {
 			}))
 		})
 
-		It("cleans up the rendered jobs from the installation directory", func(){
+		It("cleans up the rendered jobs from the installation directory", func() {
 			_, err := renderer.RenderAndUploadFrom(manifest, releaseJobs, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
