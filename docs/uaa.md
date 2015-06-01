@@ -53,6 +53,7 @@ properties:
       key: SSL_CERTIFICATE_KEY
       cert: SSL_CERTIFICATE
   domain: example.com
+  spring_profiles: mysql,default
   login:
     url: LOGIN_SERVER_URL
     entityBaseURL: LOGIN_SERVER_URL
@@ -100,6 +101,25 @@ properties:
           linkText: 'Okta Preview 1'
           iconUrl: 'http://link.to/icon.jpg'
 
+to configure with client secret:
+```yaml
+properties:
+  uaa:
+    clients:
+      test:
+        id: test
+        override: true
+        authorized-grant-types: implicit,password,refresh_token,client_credentials
+        scope: openid,password
+        authorities: uaa.none
+        secret: "secret"
+
+
 ### Notes
 
 * uaa.nginx_port must be 443 due to Tomcat redirect which ignores forwarded port
+* BOSH director is using UAA with symmetric key encryption. See [UAA docs](https://github.com/cloudfoundry/uaa/blob/master/docs/Sysadmin-Guide.rst) on how to configure UAA with symmetric key.
+Currently UAA will be using symmetric key encryption if jwt:token:signing-key and jwt:token:verification-key are the same. Specifying cc:token_secret will render jwt token keys with the same value.
+* See UAA logs in `/var/vcap/sys/log/uaa.log` in case of any issues.
+* Make sure there is only one UAA service running if there are no logs.
+* `spring_profiles` should specify database type that is used by UAA.
