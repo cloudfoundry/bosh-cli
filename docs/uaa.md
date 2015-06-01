@@ -100,8 +100,10 @@ properties:
           showSamlLoginLink: true
           linkText: 'Okta Preview 1'
           iconUrl: 'http://link.to/icon.jpg'
+```
 
 to configure with client secret:
+
 ```yaml
 properties:
   uaa:
@@ -113,7 +115,7 @@ properties:
         scope: openid,password
         authorities: uaa.none
         secret: "secret"
-
+```
 
 ### Notes
 
