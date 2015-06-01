@@ -24,7 +24,7 @@ import (
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
-var _ = Describe("Builder", func() {
+var _ = Describe("JobRenderer", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {
@@ -57,6 +57,8 @@ var _ = Describe("Builder", func() {
 		releasePackage2 *birelpkg.Package
 
 		expectJobRender *gomock.Call
+
+		renderedJobList bitemplate.RenderedJobList
 	)
 
 	BeforeEach(func() {
@@ -131,7 +133,7 @@ var _ = Describe("Builder", func() {
 		globalProperties := biproperty.Map{}
 		deploymentName := "fake-installation-name"
 
-		renderedJobList := bitemplate.NewRenderedJobList()
+		renderedJobList = bitemplate.NewRenderedJobList()
 		renderedJobList.Add(bitemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fakeFS, logger))
 
 		expectJobRender = mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, deploymentName).Return(renderedJobList, nil).AnyTimes()
@@ -174,6 +176,13 @@ var _ = Describe("Builder", func() {
 					SHA1:        "fake-rendered-job-tarball-sha1-cpi",
 				},
 			}))
+		})
+
+		It("cleans up the rendered jobs from the installation directory", func(){
+			_, err := renderer.RenderAndUploadFrom(manifest, releaseJobs, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(renderedJobList.All()).To(BeEmpty())
 		})
 	})
 })
