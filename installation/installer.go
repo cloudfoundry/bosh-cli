@@ -61,12 +61,12 @@ func (i *installer) InstallPackagesAndJobs(manifest biinstallmanifest.Manifest, 
 		return nil, bosherr.WrapError(err, "Resolving jobs from manifest")
 	}
 
-	err = stage.Perform("Installing packages", func() error {
-		compiledPackages, err := i.packageCompiler.For(jobs, i.packagesPath, stage)
-		if err != nil {
-			return err
-		}
+	compiledPackages, err := i.packageCompiler.For(jobs, i.packagesPath, stage)
+	if err != nil {
+		return err
+	}
 
+	err = stage.Perform("Installing packages", func() error {
 		return i.install(compiledPackages)
 	})
 	if err != nil {
