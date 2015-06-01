@@ -1,27 +1,24 @@
 package installation_test
 
 import (
-	"os"
-
 	. "github.com/cloudfoundry/bosh-init/installation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
 	mock_install_job "github.com/cloudfoundry/bosh-init/installation/job/mocks"
+	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	mock_install_pkg "github.com/cloudfoundry/bosh-init/installation/pkg/mocks"
-	mock_install_state "github.com/cloudfoundry/bosh-init/installation/state/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	biinstallstate "github.com/cloudfoundry/bosh-init/installation/state"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("Installer", func() {
@@ -36,9 +33,9 @@ var _ = Describe("Installer", func() {
 	})
 
 	var (
-		fakeFS *fakesys.FakeFileSystem
-
-		mockStateBuilder     *mock_install_state.MockBuilder
+		mockJobRenderer      *mock_install.MockJobRenderer
+		mockJobResolver      *mock_install.MockJobResolver
+		mockPackageCompiler  *mock_install.MockPackageCompiler
 		mockPackageInstaller *mock_install_pkg.MockInstaller
 		mockJobInstaller     *mock_install_job.MockInstaller
 
@@ -46,33 +43,32 @@ var _ = Describe("Installer", func() {
 
 		logger boshlog.Logger
 
-		packagesPath           string
-		deploymentManifestPath string
-		installer              Installer
-		target                 Target
+		packagesPath string
+		installer    Installer
+		target       Target
 	)
 
 	BeforeEach(func() {
-		fakeFS = fakesys.NewFakeFileSystem()
-
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		mockStateBuilder = mock_install_state.NewMockBuilder(mockCtrl)
+		mockJobRenderer = mock_install.NewMockJobRenderer(mockCtrl)
+		mockJobResolver = mock_install.NewMockJobResolver(mockCtrl)
+		mockPackageCompiler = mock_install.NewMockPackageCompiler(mockCtrl)
 		mockPackageInstaller = mock_install_pkg.NewMockInstaller(mockCtrl)
 		mockJobInstaller = mock_install_job.NewMockInstaller(mockCtrl)
 
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 
 		packagesPath = "/path/to/installed/packages"
-		deploymentManifestPath = "/path/to/manifest.yml"
 		target = NewTarget("fake-installation-path")
 	})
 
 	JustBeforeEach(func() {
 		installer = NewInstaller(
 			target,
-			fakeFS,
-			mockStateBuilder,
+			mockJobRenderer,
+			mockJobResolver,
+			mockPackageCompiler,
 			packagesPath,
 			mockPackageInstaller,
 			mockJobInstaller,
@@ -88,14 +84,14 @@ var _ = Describe("Installer", func() {
 
 			installedJob biinstalljob.InstalledJob
 
-			expectStateBuild     *gomock.Call
-			expectPackageInstall *gomock.Call
-			expectJobInstall     *gomock.Call
+			expectedResolveJobsFrom     *gomock.Call
+			expectedPackageCompilerFrom *gomock.Call
+			expectedRenderAndUploadFrom *gomock.Call
+			expectPackageInstall        *gomock.Call
+			expectJobInstall            *gomock.Call
 		)
 
 		BeforeEach(func() {
-			fakeFS.WriteFileString(deploymentManifestPath, "")
-
 			installationManifest = biinstallmanifest.Manifest{
 				Name:       "fake-installation-name",
 				Properties: biproperty.Map{},
@@ -125,40 +121,33 @@ var _ = Describe("Installer", func() {
 			}
 			compiledPackages := []biinstallpkg.CompiledPackageRef{compiledPackageRef}
 
-			state := biinstallstate.NewState(renderedCPIJob, compiledPackages)
-
-			expectStateBuild = mockStateBuilder.EXPECT().Build(installationManifest, fakeStage).Return(state, nil).AnyTimes()
+			releaseJobs := []bireljob.Job{}
+			renderedJobRefs := []biinstalljob.RenderedJobRef{renderedCPIJob}
+			expectedResolveJobsFrom = mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil).AnyTimes()
+			expectedPackageCompilerFrom = mockPackageCompiler.EXPECT().For(releaseJobs, packagesPath, fakeStage).Return(compiledPackages, nil).AnyTimes()
+			expectedRenderAndUploadFrom = mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return(renderedJobRefs, nil).AnyTimes()
 
 			expectPackageInstall = mockPackageInstaller.EXPECT().Install(compiledPackageRef, packagesPath).AnyTimes()
 
 			expectJobInstall = mockJobInstaller.EXPECT().Install(renderedCPIJob, fakeStage).Return(installedJob, nil).AnyTimes()
-
-			fakeFS.MkdirAll("/extracted-release-path", os.FileMode(0750))
 		})
 
-		It("builds a new installation state", func() {
-			expectStateBuild.Times(1)
-
-			_, err := installer.Install(installationManifest, fakeStage)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("installs the compiled packages specified by the state", func() {
+		It("compiles and installs the jobs' packages", func() {
 			expectPackageInstall.Times(1)
 
-			_, err := installer.Install(installationManifest, fakeStage)
+			_, err := installer.InstallPackagesAndJobs(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("installs the rendered jobs specified by the state", func() {
+		It("installs the rendered jobs", func() {
 			expectJobInstall.Times(1)
 
-			_, err := installer.Install(installationManifest, fakeStage)
+			_, err := installer.InstallPackagesAndJobs(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns the installation", func() {
-			installation, err := installer.Install(installationManifest, fakeStage)
+			installation, err := installer.InstallPackagesAndJobs(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedInstallation := NewInstallation(

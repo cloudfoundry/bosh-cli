@@ -1,27 +1,24 @@
 package installation
 
 import (
-	"os"
-
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	biinstallstate "github.com/cloudfoundry/bosh-init/installation/state"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type Installer interface {
-	Install(biinstallmanifest.Manifest, biui.Stage) (Installation, error)
+	InstallPackagesAndJobs(biinstallmanifest.Manifest, biui.Stage) (Installation, error)
 }
 
 type installer struct {
 	target                Target
-	fs                    boshsys.FileSystem
-	stateBuilder          biinstallstate.Builder
+	jobRenderer           JobRenderer
+	jobResolver           JobResolver
+	packageCompiler       PackageCompiler
 	packagesPath          string
 	packageInstaller      biinstallpkg.Installer
 	jobInstaller          biinstalljob.Installer
@@ -32,8 +29,9 @@ type installer struct {
 
 func NewInstaller(
 	target Target,
-	fs boshsys.FileSystem,
-	stateBuilder biinstallstate.Builder,
+	jobRenderer JobRenderer,
+	jobResolver JobResolver,
+	packageCompiler PackageCompiler,
 	packagesPath string,
 	packageInstaller biinstallpkg.Installer,
 	jobInstaller biinstalljob.Installer,
@@ -42,8 +40,9 @@ func NewInstaller(
 ) Installer {
 	return &installer{
 		target:                target,
-		fs:                    fs,
-		stateBuilder:          stateBuilder,
+		jobRenderer:           jobRenderer,
+		jobResolver:           jobResolver,
+		packageCompiler:       packageCompiler,
 		packagesPath:          packagesPath,
 		packageInstaller:      packageInstaller,
 		jobInstaller:          jobInstaller,
@@ -53,34 +52,29 @@ func NewInstaller(
 	}
 }
 
-func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stage) (Installation, error) {
+func (i *installer) InstallPackagesAndJobs(manifest biinstallmanifest.Manifest, stage biui.Stage) (Installation, error) {
 	i.logger.Info(i.logTag, "Installing CPI deployment '%s'", manifest.Name)
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
-	state, err := i.stateBuilder.Build(manifest, stage)
+	jobs, err := i.jobResolver.From(manifest)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Building installation state")
+		return nil, bosherr.WrapError(err, "Resolving jobs from manifest")
 	}
 
 	err = stage.Perform("Installing packages", func() error {
-		err = i.fs.MkdirAll(i.packagesPath, os.ModePerm)
+		compiledPackages, err := i.packageCompiler.For(jobs, i.packagesPath, stage)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Creating packages directory '%s'", i.packagesPath)
+			return err
 		}
 
-		for _, compiledPackageRef := range state.CompiledPackages() {
-			err = i.packageInstaller.Install(compiledPackageRef, i.packagesPath)
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Installing package '%s'", compiledPackageRef.Name)
-			}
-		}
-		return nil
+		return i.install(compiledPackages)
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	renderedCPIJob := state.RenderedCPIJob()
+	renderedJobRefs, err := i.jobRenderer.RenderAndUploadFrom(manifest, jobs, stage)
+	renderedCPIJob := renderedJobRefs[0]
 	installedJob, err := i.jobInstaller.Install(renderedCPIJob, stage)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", renderedCPIJob.Name)
@@ -92,4 +86,14 @@ func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stag
 		manifest,
 		i.registryServerManager,
 	), nil
+}
+
+func (i *installer) install(compiledPackages []biinstallpkg.CompiledPackageRef) error {
+	for _, compiledPackageRef := range compiledPackages {
+		err := i.packageInstaller.Install(compiledPackageRef, i.packagesPath)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Installing package '%s'", compiledPackageRef.Name)
+		}
+	}
+	return nil
 }

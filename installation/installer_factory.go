@@ -6,7 +6,6 @@ import (
 	biinstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	biinstallstate "github.com/cloudfoundry/bosh-init/installation/state"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
@@ -82,8 +81,9 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 
 	return NewInstaller(
 		target,
-		f.fs,
-		context.StateBuilder(),
+		context.JobRenderer(),
+		context.JobResolver(),
+		context.PackageCompiler(),
 		target.PackagesPath(),
 		context.PackageInstaller(),
 		context.JobInstaller(),
@@ -101,7 +101,6 @@ type installerFactoryContext struct {
 	uuidGenerator      boshuuid.Generator
 	releaseJobResolver bideplrel.JobResolver
 
-	stateBuilder          biinstallstate.Builder
 	jobDependencyCompiler bistatejob.DependencyCompiler
 	packageCompiler       bistatepkg.Compiler
 	jobInstaller          biinstalljob.Installer
@@ -112,24 +111,29 @@ type installerFactoryContext struct {
 	compiledPackageRepo   bistatepkg.CompiledPackageRepo
 }
 
-func (c *installerFactoryContext) StateBuilder() biinstallstate.Builder {
-	if c.stateBuilder != nil {
-		return c.stateBuilder
-	}
+func (c *installerFactoryContext) JobRenderer() JobRenderer {
 
 	erbRenderer := bierbrenderer.NewERBRenderer(c.fs, c.runner, c.logger)
 	jobRenderer := bitemplate.NewJobRenderer(erbRenderer, c.fs, c.logger)
 	jobListRenderer := bitemplate.NewJobListRenderer(jobRenderer, c.logger)
 
-	c.stateBuilder = biinstallstate.NewBuilder(
-		c.releaseJobResolver,
-		c.JobDependencyCompiler(),
+	return NewJobRenderer(
 		jobListRenderer,
 		c.extractor,
 		c.Blobstore(),
 		c.TemplatesRepo(),
 	)
-	return c.stateBuilder
+}
+
+func (c *installerFactoryContext) PackageCompiler() PackageCompiler {
+	return NewPackageCompiler(
+		c.JobDependencyCompiler(),
+		c.fs,
+	)
+}
+
+func (c *installerFactoryContext) JobResolver() JobResolver {
+	return NewJobResolver(c.releaseJobResolver)
 }
 
 func (c *installerFactoryContext) JobDependencyCompiler() bistatejob.DependencyCompiler {
@@ -138,14 +142,14 @@ func (c *installerFactoryContext) JobDependencyCompiler() bistatejob.DependencyC
 	}
 
 	c.jobDependencyCompiler = bistatejob.NewDependencyCompiler(
-		c.PackageCompiler(),
+		c.InstallationStatePackageCompiler(),
 		c.logger,
 	)
 
 	return c.jobDependencyCompiler
 }
 
-func (c *installerFactoryContext) PackageCompiler() bistatepkg.Compiler {
+func (c *installerFactoryContext) InstallationStatePackageCompiler() bistatepkg.Compiler {
 	if c.packageCompiler != nil {
 		return c.packageCompiler
 	}
