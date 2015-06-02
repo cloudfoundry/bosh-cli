@@ -289,8 +289,8 @@ var _ = Describe("bosh-init", func() {
 			for _, line := range installingSteps[:numInstallingSteps-3] {
 				Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageFinishedPattern))
 			}
-			Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
-			Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^  Installing packages" + stageFinishedPattern))
+			Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^  Installing packages" + stageFinishedPattern))
+			Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
 			Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^  Installing job 'cpi'" + stageFinishedPattern))
 
 			Expect(outputLines[doneIndex+2]).To(MatchRegexp("^Starting registry" + stageFinishedPattern))
