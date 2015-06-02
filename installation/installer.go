@@ -12,6 +12,7 @@ import (
 
 type Installer interface {
 	InstallPackagesAndJobs(biinstallmanifest.Manifest, biui.Stage) (Installation, error)
+	Cleanup(Installation) error
 }
 
 type installer struct {
@@ -86,6 +87,10 @@ func (i *installer) InstallPackagesAndJobs(manifest biinstallmanifest.Manifest, 
 		manifest,
 		i.registryServerManager,
 	), nil
+}
+
+func (i *installer) Cleanup(installation Installation) error {
+	return i.jobInstaller.Cleanup(installation.Job())
 }
 
 func (i *installer) install(compiledPackages []biinstallpkg.CompiledPackageRef) error {

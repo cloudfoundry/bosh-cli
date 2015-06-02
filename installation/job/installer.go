@@ -27,6 +27,7 @@ type InstalledJob struct {
 
 type Installer interface {
 	Install(RenderedJobRef, biui.Stage) (InstalledJob, error)
+	Cleanup(InstalledJob) error
 }
 
 func NewInstaller(
@@ -85,4 +86,14 @@ func (i jobInstaller) install(renderedJobRef RenderedJobRef) (InstalledJob, erro
 	}
 
 	return InstalledJob{Name: renderedJobRef.Name, Path: jobDir}, nil
+}
+
+func (i jobInstaller) Cleanup(job InstalledJob) error {
+	err := i.fs.RemoveAll(job.Path)
+
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Removing job installed to %s", job.Path)
+	}
+
+	return nil
 }

@@ -106,6 +106,16 @@ func (_m *MockInstaller) EXPECT() *_MockInstallerRecorder {
 	return _m.recorder
 }
 
+func (_m *MockInstaller) Cleanup(_param0 installation.Installation) error {
+	ret := _m.ctrl.Call(_m, "Cleanup", _param0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockInstallerRecorder) Cleanup(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Cleanup", arg0)
+}
+
 func (_m *MockInstaller) InstallPackagesAndJobs(_param0 manifest.Manifest, _param1 ui.Stage) (installation.Installation, error) {
 	ret := _m.ctrl.Call(_m, "InstallPackagesAndJobs", _param0, _param1)
 	ret0, _ := ret[0].(installation.Installation)

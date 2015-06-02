@@ -379,6 +379,7 @@ func rootDesc() {
 			expectInstall = mockInstaller.EXPECT().InstallPackagesAndJobs(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
+			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
 
 			mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
 

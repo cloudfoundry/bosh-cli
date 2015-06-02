@@ -265,6 +265,7 @@ var _ = Describe("bosh-init", func() {
 			println("#################################################")
 			stdout := deploy()
 			outputLines := strings.Split(stdout, "\n")
+			numOutputLines := len(outputLines)
 
 			doneIndex := 0
 			stepIndex := -1
@@ -310,6 +311,8 @@ var _ = Describe("bosh-init", func() {
 
 			Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Updating instance 'dummy_job/0'" + stageFinishedPattern))
 			Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Waiting for instance 'dummy_job/0' to be running" + stageFinishedPattern))
+
+			Expect(outputLines[numOutputLines-2]).To(MatchRegexp("^Cleaning up rendered CPI jobs" + stageFinishedPattern))
 
 			println("#################################################")
 			println("it sets the ssh password")

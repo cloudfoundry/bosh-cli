@@ -11,9 +11,9 @@ import (
 	agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	disk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	instance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	manifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	manifest0 "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	vm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	manifest0 "github.com/cloudfoundry/bosh-init/installation/manifest"
+	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	stemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	ui "github.com/cloudfoundry/bosh-init/ui"
 )
@@ -101,7 +101,7 @@ func (_m *MockDeployer) EXPECT() *_MockDeployerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest.Manifest, _param2 stemcell.CloudStemcell, _param3 manifest0.Registry, _param4 vm.Manager, _param5 blobstore.Blobstore, _param6 ui.Stage) (deployment.Deployment, error) {
+func (_m *MockDeployer) Deploy(_param0 cloud.Cloud, _param1 manifest0.Manifest, _param2 stemcell.CloudStemcell, _param3 manifest.Registry, _param4 vm.Manager, _param5 blobstore.Blobstore, _param6 ui.Stage) (deployment.Deployment, error) {
 	ret := _m.ctrl.Call(_m, "Deploy", _param0, _param1, _param2, _param3, _param4, _param5, _param6)
 	ret0, _ := ret[0].(deployment.Deployment)
 	ret1, _ := ret[1].(error)

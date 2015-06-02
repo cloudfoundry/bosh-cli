@@ -105,4 +105,27 @@ var _ = Describe("Installer", func() {
 			Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Creating job directory '/fake/jobs/cpi': fake-mkdir-error"))
 		})
 	})
+
+	Context("Cleanup", func() {
+		It("cleans up files left under the jobPath when done", func() {
+			fs.MkdirAll("/some/job/dir", os.ModePerm)
+			fs.WriteFileString("/some/job/dir/file", "contents")
+
+			job := InstalledJob{Name: "job-name", Path: "/some/job/dir"}
+
+			err := jobInstaller.Cleanup(job)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.FileExists("/some/job/dir")).To(BeFalse())
+		})
+
+		It("returns the error if deleting the job dir fails", func() {
+			job := InstalledJob{Name: "job-name", Path: "/some/job/dir"}
+
+			fs.RemoveAllError = errors.New("couldn't delete that")
+			err := jobInstaller.Cleanup(job)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("couldn't delete that"))
+		})
+	})
 })

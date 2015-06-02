@@ -18,6 +18,7 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
+	"errors"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
@@ -77,7 +78,7 @@ var _ = Describe("Installer", func() {
 		)
 	})
 
-	Describe("Install", func() {
+	Describe("InstallPackagesAndJobs", func() {
 		var (
 			installationManifest biinstallmanifest.Manifest
 			fakeStage            *fakebiui.FakeStage
@@ -158,6 +159,31 @@ var _ = Describe("Installer", func() {
 			)
 
 			Expect(installation).To(Equal(expectedInstallation))
+		})
+	})
+
+	Describe("Cleanup", func() {
+		It("cleans up installed jobs", func() {
+			installation := mock_install.NewMockInstallation(mockCtrl)
+			installationJob := biinstalljob.InstalledJob{}
+			installation.EXPECT().Job().Return(installationJob)
+
+			mockJobInstaller.EXPECT().Cleanup(installationJob)
+
+			err := installer.Cleanup(installation)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns errors when cleaning up installed jobs", func() {
+			installation := mock_install.NewMockInstallation(mockCtrl)
+			installationJob := biinstalljob.InstalledJob{}
+			installation.EXPECT().Job().Return(installationJob)
+
+			mockJobInstaller.EXPECT().Cleanup(installationJob).Return(errors.New("nope"))
+
+			err := installer.Cleanup(installation)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("nope"))
 		})
 	})
 })

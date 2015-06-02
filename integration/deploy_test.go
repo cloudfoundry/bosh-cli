@@ -312,6 +312,7 @@ cloud_provider:
 			mockInstaller.EXPECT().InstallPackagesAndJobs(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
+			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
 			mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(mockCloud, nil).AnyTimes()
 		}
 

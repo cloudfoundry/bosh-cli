@@ -50,5 +50,14 @@ func (i CpiInstaller) WithInstalledCpiRelease(installationManifest biinstallmani
 		return err
 	}
 
+	defer i.cleanupInstall(installation, stage)
+
 	return fn(installation)
+}
+
+func (i CpiInstaller) cleanupInstall(installation biinstall.Installation, stage biui.Stage) {
+	stage.Perform("Cleaning up rendered CPI jobs", func() error {
+		i.Installer.Cleanup(installation)
+		return nil
+	})
 }

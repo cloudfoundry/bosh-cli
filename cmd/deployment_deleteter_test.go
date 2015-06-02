@@ -150,6 +150,7 @@ cloud_provider:
 			expectCPIInstall = mockCpiInstaller.EXPECT().InstallPackagesAndJobs(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(fakeInstallation, nil).AnyTimes()
+			mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
 
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
 		}
@@ -244,6 +245,9 @@ cloud_provider:
 				},
 				{
 					Name: "Uninstalling local artifacts for CPI and deployment",
+				},
+				{
+					Name: "Cleaning up rendered CPI jobs",
 				},
 				// mock deployment manager cleanup doesn't add sub-stages
 			}))
@@ -422,6 +426,7 @@ cloud_provider:
 				expectCPIInstall = mockCpiInstaller.EXPECT().InstallPackagesAndJobs(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 				}).Return(fakeInstallation, nil).AnyTimes()
+				mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
 
 				expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
 			})
