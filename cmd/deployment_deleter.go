@@ -90,11 +90,7 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		}
 	}()
 
-	var (
-		installationManifest biinstallmanifest.Manifest
-		localCpiInstallation biinstall.Installation
-	)
-
+	var installationManifest biinstallmanifest.Manifest
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var releaseSetManifest birelsetmanifest.Manifest
 		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath)
@@ -120,26 +116,26 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		return err
 	}
 
-	localCpiInstallation, err = c.cpiInstaller.InstallCpiRelease(installationManifest, stage)
-	if err != nil {
-		return err
-	}
-	return localCpiInstallation.WithRunningRegistry(c.logger, stage, func() error {
-		err = c.findAndDeleteDeployment(stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus)
+	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, stage, func(localCpiInstallation biinstall.Installation) error {
+		return localCpiInstallation.WithRunningRegistry(c.logger, stage, func() error {
+			err = c.findAndDeleteDeployment(stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus)
 
-		if err != nil {
-			return err
-		}
-
-		return stage.Perform("Uninstalling local artifacts for CPI and deployment", func() error {
-			err := c.cpiUninstaller.Uninstall(localCpiInstallation.Target())
 			if err != nil {
 				return err
 			}
 
-			return c.deploymentStateService.Cleanup()
+			return stage.Perform("Uninstalling local artifacts for CPI and deployment", func() error {
+				err := c.cpiUninstaller.Uninstall(localCpiInstallation.Target())
+				if err != nil {
+					return err
+				}
+
+				return c.deploymentStateService.Cleanup()
+			})
 		})
 	})
+
+	return err
 }
 
 func (c *deploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installation biinstall.Installation, directorID, installationMbus string) error {

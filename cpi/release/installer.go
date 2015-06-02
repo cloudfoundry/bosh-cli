@@ -30,7 +30,7 @@ func (i CpiInstaller) ValidateCpiRelease(installationManifest biinstallmanifest.
 	})
 }
 
-func (i CpiInstaller) InstallCpiRelease(installationManifest biinstallmanifest.Manifest, stage biui.Stage) (biinstall.Installation, error) {
+func (i CpiInstaller) installCpiRelease(installationManifest biinstallmanifest.Manifest, stage biui.Stage) (biinstall.Installation, error) {
 	var installation biinstall.Installation
 	var err error
 	err = stage.PerformComplex("installing CPI", func(installStage biui.Stage) error {
@@ -41,5 +41,14 @@ func (i CpiInstaller) InstallCpiRelease(installationManifest biinstallmanifest.M
 		return installation, bosherr.WrapError(err, "Installing CPI")
 	}
 
-	return installation, err
+	return installation, nil
+}
+
+func (i CpiInstaller) WithInstalledCpiRelease(installationManifest biinstallmanifest.Manifest, stage biui.Stage, fn func(biinstall.Installation) error) error {
+	installation, err := i.installCpiRelease(installationManifest, stage)
+	if err != nil {
+		return err
+	}
+
+	return fn(installation)
 }

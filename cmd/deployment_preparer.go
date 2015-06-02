@@ -9,6 +9,7 @@ import (
 	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
@@ -162,69 +163,86 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		return nil
 	}
 
-	installation, err := c.cpiInstaller.InstallCpiRelease(installationManifest, stage)
+	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, stage, func(installation biinstall.Installation) error {
+		return installation.WithRunningRegistry(c.logger, stage, func() error {
+			return c.deploy(
+				installation,
+				deploymentState,
+				extractedStemcell,
+				installationManifest,
+				deploymentManifest,
+				stage)
+		})
+	})
+
+	return err
+
+}
+
+func (c *DeploymentPreparer) deploy(
+	installation biinstall.Installation,
+	deploymentState biconfig.DeploymentState,
+	extractedStemcell bistemcell.ExtractedStemcell,
+	installationManifest biinstallmanifest.Manifest,
+	deploymentManifest bideplmanifest.Manifest,
+	stage biui.Stage,
+) (err error) {
+	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
+	}
+
+	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
+
+	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage)
 	if err != nil {
 		return err
 	}
 
-	return installation.WithRunningRegistry(c.logger, stage, func() error {
-		cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
+	agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
+	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
+
+	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
+	if err != nil {
+		return bosherr.WrapError(err, "Creating blobstore client")
+	}
+
+	err = stage.PerformComplex("deploying", func(deployStage biui.Stage) error {
+		err = c.deploymentRecord.Clear()
 		if err != nil {
-			return bosherr.WrapError(err, "Creating CPI client from CPI installation")
+			return bosherr.WrapError(err, "Clearing deployment record")
 		}
 
-		stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
-
-		cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage)
+		_, err = c.deployer.Deploy(
+			cloud,
+			deploymentManifest,
+			cloudStemcell,
+			installationManifest.Registry,
+			vmManager,
+			blobstore,
+			deployStage,
+		)
 		if err != nil {
-			return err
+			return bosherr.WrapError(err, "Deploying")
 		}
 
-		agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
-		vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
-
-		blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
+		err = c.deploymentRecord.Update(c.deploymentManifestPath, c.releaseManager.List())
 		if err != nil {
-			return bosherr.WrapError(err, "Creating blobstore client")
-		}
-
-		err = stage.PerformComplex("deploying", func(deployStage biui.Stage) error {
-			err = c.deploymentRecord.Clear()
-			if err != nil {
-				return bosherr.WrapError(err, "Clearing deployment record")
-			}
-
-			_, err = c.deployer.Deploy(
-				cloud,
-				deploymentManifest,
-				cloudStemcell,
-				installationManifest.Registry,
-				vmManager,
-				blobstore,
-				deployStage,
-			)
-			if err != nil {
-				return bosherr.WrapError(err, "Deploying")
-			}
-
-			err = c.deploymentRecord.Update(c.deploymentManifestPath, c.releaseManager.List())
-			if err != nil {
-				return bosherr.WrapError(err, "Updating deployment record")
-			}
-
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
-		// TODO: cleanup unused disks here?
-
-		err = stemcellManager.DeleteUnused(stage)
-		if err != nil {
-			return err
+			return bosherr.WrapError(err, "Updating deployment record")
 		}
 
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: cleanup unused disks here?
+
+	err = stemcellManager.DeleteUnused(stage)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
