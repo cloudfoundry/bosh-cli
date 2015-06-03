@@ -44,20 +44,26 @@ func (i CpiInstaller) installCpiRelease(installationManifest biinstallmanifest.M
 	return installation, nil
 }
 
-func (i CpiInstaller) WithInstalledCpiRelease(installationManifest biinstallmanifest.Manifest, stage biui.Stage, fn func(biinstall.Installation) error) error {
+func (i CpiInstaller) WithInstalledCpiRelease(installationManifest biinstallmanifest.Manifest, stage biui.Stage, fn func(biinstall.Installation) error) (errToReturn error) {
 	installation, err := i.installCpiRelease(installationManifest, stage)
 	if err != nil {
-		return err
+		errToReturn = err
+		return
 	}
 
-	defer i.cleanupInstall(installation, stage)
+	defer func() {
+		err = i.cleanupInstall(installation, stage)
+		if errToReturn == nil {
+			errToReturn = err
+		}
+	}()
 
-	return fn(installation)
+	errToReturn = fn(installation)
+	return
 }
 
-func (i CpiInstaller) cleanupInstall(installation biinstall.Installation, stage biui.Stage) {
-	stage.Perform("Cleaning up rendered CPI jobs", func() error {
-		i.Installer.Cleanup(installation)
-		return nil
+func (i CpiInstaller) cleanupInstall(installation biinstall.Installation, stage biui.Stage) error {
+	return stage.Perform("Cleaning up rendered CPI jobs", func() error {
+		return i.Installer.Cleanup(installation)
 	})
 }

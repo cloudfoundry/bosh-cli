@@ -171,5 +171,39 @@ var _ = Describe("Installer", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
+		Context("when cleanup fails", func() {
+			It("returns the error", func() {
+				cpiInstaller := release.CpiInstaller{
+					Installer: mockInstaller,
+				}
+
+				expectInstallPackagesAndJobs.Return(installation, nil)
+				expectCleanup.Return(errors.New("cleanup failed"))
+
+				err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
+					return nil
+				})
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("cleanup failed"))
+			})
+
+			It("returns the error from the function instead, if present", func() {
+				cpiInstaller := release.CpiInstaller{
+					Installer: mockInstaller,
+				}
+
+				expectInstallPackagesAndJobs.Return(installation, nil)
+				expectCleanup.Return(errors.New("cleanup failed"))
+
+				err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
+					return errors.New("My passed in function failed")
+				})
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("My passed in function failed"))
+			})
+		})
 	})
 })
