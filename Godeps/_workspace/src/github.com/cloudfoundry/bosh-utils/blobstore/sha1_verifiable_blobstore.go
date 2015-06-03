@@ -39,6 +39,10 @@ func (b sha1VerifiableBlobstore) Get(blobID, fingerprint string) (string, error)
 	return fileName, nil
 }
 
+func (b sha1VerifiableBlobstore) Delete(blobId string) error {
+	return b.blobstore.Delete(blobId)
+}
+
 func (b sha1VerifiableBlobstore) CleanUp(fileName string) error {
 	return b.blobstore.CleanUp(fileName)
 }

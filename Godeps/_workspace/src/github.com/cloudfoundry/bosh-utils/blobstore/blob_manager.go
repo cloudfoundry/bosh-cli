@@ -7,7 +7,7 @@ import (
 )
 
 type BlobManager struct {
-	fs          boshsys.FileSystem
+	fs            boshsys.FileSystem
 	blobstorePath string
 }
 

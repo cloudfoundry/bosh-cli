@@ -4,9 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
+	"github.com/cloudfoundry/bosh-utils/internal/github.com/stretchr/testify/assert"
 
 	. "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -31,7 +31,7 @@ var _ = Describe("cpCopier", func() {
 		copierFixtureSrcDir := func() string {
 			pwd, err := os.Getwd()
 			Expect(err).ToNot(HaveOccurred())
-			return filepath.Join(pwd,"test_assets", "test_filtered_copy_to_temp")
+			return filepath.Join(pwd, "test_assets", "test_filtered_copy_to_temp")
 		}
 		filesInDir := func(dir string) []string {
 			copiedFiles := []string{}

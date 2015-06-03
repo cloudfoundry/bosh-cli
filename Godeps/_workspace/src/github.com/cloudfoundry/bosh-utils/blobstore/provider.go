@@ -6,8 +6,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 const (
@@ -16,11 +16,11 @@ const (
 )
 
 type Provider struct {
-	fs 	system.FileSystem
-	runner system.CmdRunner
-	configDir 	string
-	uuidGen     boshuuid.Generator
-	logger      boshlog.Logger
+	fs        system.FileSystem
+	runner    system.CmdRunner
+	configDir string
+	uuidGen   boshuuid.Generator
+	logger    boshlog.Logger
 }
 
 func NewProvider(
@@ -30,11 +30,11 @@ func NewProvider(
 	logger boshlog.Logger,
 ) Provider {
 	return Provider{
-		uuidGen: boshuuid.NewGenerator(),
-		fs: fs,
-		runner: runner,
-		configDir:configDir,
-		logger: logger,
+		uuidGen:   boshuuid.NewGenerator(),
+		fs:        fs,
+		runner:    runner,
+		configDir: configDir,
+		logger:    logger,
 	}
 }
 

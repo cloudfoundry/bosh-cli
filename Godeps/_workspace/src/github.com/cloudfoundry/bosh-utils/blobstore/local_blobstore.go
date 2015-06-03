@@ -53,6 +53,11 @@ func (b localBlobstore) CleanUp(fileName string) error {
 	return nil
 }
 
+func (b localBlobstore) Delete(blobID string) error {
+	blobPath := filepath.Join(b.path(), blobID)
+	return b.fs.RemoveAll(blobPath)
+}
+
 func (b localBlobstore) Create(fileName string) (blobID string, fingerprint string, err error) {
 	blobID, err = b.uuidGen.Generate()
 	if err != nil {

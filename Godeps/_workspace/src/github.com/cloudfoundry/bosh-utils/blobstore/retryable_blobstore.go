@@ -43,6 +43,10 @@ func (b retryableBlobstore) CleanUp(fileName string) error {
 	return b.blobstore.CleanUp(fileName)
 }
 
+func (b retryableBlobstore) Delete(blobID string) error {
+	return b.blobstore.Delete(blobID)
+}
+
 func (b retryableBlobstore) Create(fileName string) (string, string, error) {
 	var blobID string
 	var fingerprint string

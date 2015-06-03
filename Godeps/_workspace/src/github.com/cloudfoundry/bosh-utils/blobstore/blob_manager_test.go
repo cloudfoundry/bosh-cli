@@ -1,8 +1,8 @@
 package blobstore_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-utils/blobstore"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -14,7 +14,7 @@ func createBlobManager() (blobManager BlobManager, fs *fakesys.FakeFileSystem) {
 	return
 }
 
-var _ =	Describe("Testing with Ginkgo", func() {
+var _ = Describe("Testing with Ginkgo", func() {
 	It("fetch", func() {
 		blobManager, fs := createBlobManager()
 		fs.WriteFileString("/var/vcap/micro_bosh/data/cache/105d33ae-655c-493d-bf9f-1df5cf3ca847", "some data")

@@ -3,15 +3,19 @@ package retrystrategy
 import (
 	"time"
 
-	"github.com/pivotal-golang/clock"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
+
+type Clock interface {
+	Sleep(time.Duration)
+	Now() time.Time
+}
 
 type timeoutRetryStrategy struct {
 	timeout     time.Duration
 	delay       time.Duration
 	retryable   Retryable
-	timeService clock.Clock
+	timeService Clock
 	logger      boshlog.Logger
 	logTag      string
 }
@@ -20,7 +24,7 @@ func NewTimeoutRetryStrategy(
 	timeout time.Duration,
 	delay time.Duration,
 	retryable Retryable,
-	timeService clock.Clock,
+	timeService Clock,
 	logger boshlog.Logger,
 ) RetryStrategy {
 	return &timeoutRetryStrategy{

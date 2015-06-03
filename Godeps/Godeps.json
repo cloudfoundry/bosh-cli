@@ -24,35 +24,35 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/blobstore",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/errors",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/fileutil",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/http",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/logger",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/retrystrategy",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/system",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/uuid",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gofileutils/glob",
