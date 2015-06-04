@@ -21,3 +21,7 @@ func (b dummyBlobstore) Create(fileName string) (string, string, error) {
 func (b dummyBlobstore) Validate() error {
 	return nil
 }
+
+func (b dummyBlobstore) Delete(blobID string) error {
+	return nil
+}

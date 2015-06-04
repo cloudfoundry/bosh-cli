@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
+	"github.com/cloudfoundry/bosh-utils/internal/github.com/stretchr/testify/assert"
 
-	. "github.com/cloudfoundry/bosh-utils/system"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/cloudfoundry/bosh-utils/system"
 )
 
 func createOsFs() (fs FileSystem, runner CmdRunner) {

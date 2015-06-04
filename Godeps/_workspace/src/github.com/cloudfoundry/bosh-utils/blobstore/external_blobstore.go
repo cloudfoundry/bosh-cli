@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"errors"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -56,6 +57,10 @@ func (b externalBlobstore) Get(blobID, _ string) (string, error) {
 
 func (b externalBlobstore) CleanUp(fileName string) error {
 	return b.fs.RemoveAll(fileName)
+}
+
+func (b externalBlobstore) Delete(blobId string) error {
+	return errors.New("externalBlobstore doesn't implement Delete")
 }
 
 func (b externalBlobstore) Create(fileName string) (string, string, error) {

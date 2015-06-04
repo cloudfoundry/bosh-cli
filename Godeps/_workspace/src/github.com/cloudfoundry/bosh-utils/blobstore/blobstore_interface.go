@@ -12,4 +12,6 @@ type Blobstore interface {
 	Create(fileName string) (blobID string, fingerprint string, err error)
 
 	Validate() (err error)
+
+	Delete(blobId string) (err error)
 }

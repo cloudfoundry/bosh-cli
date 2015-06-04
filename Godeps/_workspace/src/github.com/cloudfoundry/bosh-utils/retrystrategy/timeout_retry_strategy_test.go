@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
 
-	"github.com/pivotal-golang/clock/fakeclock"
+	"github.com/cloudfoundry/bosh-utils/internal/github.com/pivotal-golang/clock/fakeclock"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/cloudfoundry/bosh-utils/retrystrategy"
@@ -46,10 +46,10 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 					},
 				})
 				// deadline between 2nd and 3rd attempts
-				delay := 10*time.Second
+				delay := 10 * time.Second
 				timeoutRetryStrategy := NewTimeoutRetryStrategy(29*time.Second, delay, retryable, fakeTimeService, logger)
 
-				doneChan := incrementSleepInBackground(fakeTimeService,delay)
+				doneChan := incrementSleepInBackground(fakeTimeService, delay)
 				err := timeoutRetryStrategy.Try()
 				close(doneChan)
 
@@ -73,10 +73,10 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 					},
 				})
 				// deadline after 2nd attempt errors, but (deadline - delay) between 2nd and 3rd attempts
-				delay := 20*time.Second
+				delay := 20 * time.Second
 				timeoutRetryStrategy := NewTimeoutRetryStrategy(25*time.Second, delay, retryable, fakeTimeService, logger)
 
-				doneChan := incrementSleepInBackground(fakeTimeService,delay)
+				doneChan := incrementSleepInBackground(fakeTimeService, delay)
 				err := timeoutRetryStrategy.Try()
 				close(doneChan)
 
@@ -100,7 +100,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 				})
 				timeoutRetryStrategy := NewTimeoutRetryStrategy(10*time.Second, time.Second, retryable, fakeTimeService, logger)
 
-				doneChan := incrementSleepInBackground(fakeTimeService,time.Second)
+				doneChan := incrementSleepInBackground(fakeTimeService, time.Second)
 				err := timeoutRetryStrategy.Try()
 				close(doneChan)
 
@@ -119,7 +119,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 					},
 				})
 				timeoutRetryStrategy := NewTimeoutRetryStrategy(5*time.Second, 1*time.Second, retryable, fakeTimeService, logger)
-				doneChan := incrementSleepInBackground(fakeTimeService,time.Second)
+				doneChan := incrementSleepInBackground(fakeTimeService, time.Second)
 				err := timeoutRetryStrategy.Try()
 				close(doneChan)
 
@@ -130,7 +130,7 @@ var _ = Describe("TimeoutRetryStrategy", func() {
 	})
 })
 
-func incrementSleepInBackground(fakeTimeService *fakeclock.FakeClock, delay time.Duration) chan struct{}{
+func incrementSleepInBackground(fakeTimeService *fakeclock.FakeClock, delay time.Duration) chan struct{} {
 	doneChan := make(chan struct{})
 	go func() {
 		for {

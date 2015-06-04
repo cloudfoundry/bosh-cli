@@ -1,19 +1,19 @@
 package blobstore_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 var _ = Describe("Provider", func() {
 	var (
-		fs *fakesys.FakeFileSystem
-		runner *fakesys.FakeCmdRunner
+		fs       *fakesys.FakeFileSystem
+		runner   *fakesys.FakeCmdRunner
 		logger   boshlog.Logger
 		provider Provider
 	)
@@ -27,7 +27,7 @@ var _ = Describe("Provider", func() {
 
 	Describe("Get", func() {
 		It("get dummy", func() {
-			blobstore, err := provider.Get(BlobstoreTypeDummy,map[string]interface{}{})
+			blobstore, err := provider.Get(BlobstoreTypeDummy, map[string]interface{}{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobstore).ToNot(BeNil())
 		})
@@ -47,7 +47,7 @@ var _ = Describe("Provider", func() {
 			expectedBlobstore = NewSHA1VerifiableBlobstore(expectedBlobstore)
 			expectedBlobstore = NewRetryableBlobstore(expectedBlobstore, 3, logger)
 
-			blobstore, err := provider.Get("fake-external-type",options)
+			blobstore, err := provider.Get("fake-external-type", options)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobstore).To(Equal(expectedBlobstore))
 
@@ -59,7 +59,7 @@ var _ = Describe("Provider", func() {
 			options := map[string]interface{}{"key": "value"}
 			runner.CommandExistsValue = false
 
-			_, err := provider.Get("fake-external-type",options)
+			_, err := provider.Get("fake-external-type", options)
 			Expect(err).To(HaveOccurred())
 		})
 	})

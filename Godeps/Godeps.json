@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/cloudfoundry/bosh-init",
-	"GoVersion": "go1.3.3",
+	"GoVersion": "go1.4.2",
 	"Packages": [
 		"./..."
 	],
@@ -24,43 +24,43 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/blobstore",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/errors",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/fileutil",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/http",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/internal/github.com/cloudfoundry/gofileutils/glob",
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/internal/github.com/nu7hatch/gouuid",
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/logger",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/retrystrategy",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/system",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/uuid",
-			"Rev": "c8030dac33dcf350be3d275984fab7f78a25e921"
-		},
-		{
-			"ImportPath": "github.com/cloudfoundry/gofileutils/glob",
-			"Rev": "74388e8083dc77ebfba108a8dd3e3af92b76ee04"
-		},
-		{
-			"ImportPath": "github.com/nu7hatch/gouuid",
-			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",

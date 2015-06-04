@@ -11,6 +11,9 @@ type FakeBlobstore struct {
 	CleanUpFileName string
 	CleanUpErr      error
 
+	DeleteBlobID string
+	DeleteErr    error
+
 	CreateFileNames    []string
 	CreateBlobID       string
 	CreateBlobIDs      []string
@@ -49,6 +52,11 @@ func (bs *FakeBlobstore) Get(blobID, fingerprint string) (string, error) {
 func (bs *FakeBlobstore) CleanUp(fileName string) error {
 	bs.CleanUpFileName = fileName
 	return bs.CleanUpErr
+}
+
+func (bs *FakeBlobstore) Delete(blobId string) error {
+	bs.DeleteBlobID = blobId
+	return bs.DeleteErr
 }
 
 func (bs *FakeBlobstore) Create(fileName string) (string, string, error) {
