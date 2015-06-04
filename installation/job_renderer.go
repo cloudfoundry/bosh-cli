@@ -4,12 +4,12 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	boshblob "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 )
 
 type JobRenderer interface {

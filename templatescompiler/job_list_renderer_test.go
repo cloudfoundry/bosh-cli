@@ -3,15 +3,15 @@ package templatescompiler_test
 import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
-	"code.google.com/p/gomock/gomock"
+	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var _ = Describe("JobListRenderer", func() {

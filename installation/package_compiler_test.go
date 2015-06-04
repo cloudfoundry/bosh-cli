@@ -6,16 +6,16 @@ import (
 
 	"github.com/cloudfoundry/bosh-init/installation"
 
-	"code.google.com/p/gomock/gomock"
 	"errors"
+	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
 
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	fakeboshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

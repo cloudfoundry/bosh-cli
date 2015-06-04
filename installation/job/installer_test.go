@@ -7,9 +7,9 @@ import (
 
 	fakebiinstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
 	. "github.com/cloudfoundry/bosh-init/installation/job"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakebitemplate "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

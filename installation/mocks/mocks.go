@@ -4,14 +4,14 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	installation "github.com/cloudfoundry/bosh-init/installation"
 	job0 "github.com/cloudfoundry/bosh-init/installation/job"
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	pkg "github.com/cloudfoundry/bosh-init/installation/pkg"
+	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
+	logger "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	job "github.com/cloudfoundry/bosh-init/release/job"
 	ui "github.com/cloudfoundry/bosh-init/ui"
-	logger "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 // Mock of Installation interface

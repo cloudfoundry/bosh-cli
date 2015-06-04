@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("Parser", func() {

@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )

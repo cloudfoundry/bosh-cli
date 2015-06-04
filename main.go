@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshlogfile "github.com/cloudfoundry/bosh-utils/logger/file"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshlogfile "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger/file"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-golang/clock"
 
 	biui "github.com/cloudfoundry/bosh-init/ui"

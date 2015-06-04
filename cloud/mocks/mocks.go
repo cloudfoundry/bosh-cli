@@ -4,10 +4,10 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	cloud "github.com/cloudfoundry/bosh-init/cloud"
 	property "github.com/cloudfoundry/bosh-init/common/property"
 	installation "github.com/cloudfoundry/bosh-init/installation"
+	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 )
 
 // Mock of Cloud interface

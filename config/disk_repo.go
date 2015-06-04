@@ -2,8 +2,8 @@ package config
 
 import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type DiskRepo interface {

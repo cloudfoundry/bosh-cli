@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 
 	"github.com/cloudfoundry/bosh-init/installation"
-	"github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/cloudfoundry/bosh-utils/system"
-	"github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/onsi/gomega/gbytes"
 )
 

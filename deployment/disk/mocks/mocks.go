@@ -4,10 +4,10 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	property "github.com/cloudfoundry/bosh-init/common/property"
 	disk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	manifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	ui "github.com/cloudfoundry/bosh-init/ui"
 )
 

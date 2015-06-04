@@ -8,12 +8,12 @@ import (
 	. "github.com/onsi/gomega"
 	"os"
 
-	"code.google.com/p/gomock/gomock"
+	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	fakeboshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("RenderedJobListArchive", func() {

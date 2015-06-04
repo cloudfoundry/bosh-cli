@@ -1,8 +1,8 @@
 package pkg_test
 
 import (
-	"code.google.com/p/gomock/gomock"
 	mock_install_package "github.com/cloudfoundry/bosh-init/installation/pkg/mocks"
+	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,13 +11,13 @@ import (
 	"fmt"
 	"path"
 
+	fakeblobstore "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	fakecmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
-	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/installation/pkg"
 )

@@ -5,7 +5,7 @@ import (
 
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type AgentClientFactory interface {

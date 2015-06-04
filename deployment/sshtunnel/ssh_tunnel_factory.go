@@ -3,7 +3,7 @@ package sshtunnel
 import (
 	"time"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/pivotal-golang/clock"
 )
 

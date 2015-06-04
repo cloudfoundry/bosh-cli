@@ -1,0 +1,347 @@
+{
+	"Tool": "github.com/kardianos/vendor",
+	"Package": [
+		{
+			"Vendor": "code.google.com/p/go.crypto/ssh",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/go.crypto/ssh",
+			"Revision": "69e2a90ed92d",
+			"RevisionTime": "2014-11-21T14:11:46-08:00"
+		},
+		{
+			"Vendor": "code.google.com/p/gomock/gomock",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock",
+			"Revision": "526771f51633c1315ac61c3d832f536f479e1501",
+			"RevisionTime": "2015-05-13T09:47:39+10:00"
+		},
+		{
+			"Vendor": "code.google.com/p/gomock/gomock/mock_matcher",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock/mock_matcher",
+			"Revision": "526771f51633c1315ac61c3d832f536f479e1501",
+			"RevisionTime": "2015-05-13T09:47:39+10:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-davcli/client",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-davcli/client",
+			"Revision": "fd7dbb3f3e88ec6516abf9f90f4feedb9413cc2e",
+			"RevisionTime": "2015-05-28T12:08:59-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-davcli/client/fakes",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-davcli/client/fakes",
+			"Revision": "fd7dbb3f3e88ec6516abf9f90f4feedb9413cc2e",
+			"RevisionTime": "2015-05-28T12:08:59-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-davcli/config",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-davcli/config",
+			"Revision": "fd7dbb3f3e88ec6516abf9f90f4feedb9413cc2e",
+			"RevisionTime": "2015-05-28T12:08:59-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/assert",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/assert",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/blobstore",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/blobstore/fakes",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore/fakes",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/errors",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/fileutil",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/fileutil/fakes",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil/fakes",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/http",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/http",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/http/fakes",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/http/fakes",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/logger",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/logger/file",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger/file",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/retrystrategy",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/retrystrategy",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/system",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/system/fakes",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/uuid",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/uuid/fakes",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid/fakes",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/cloudfoundry/gofileutils/glob",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/gofileutils/glob",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/nu7hatch/gouuid",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/nu7hatch/gouuid",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/config",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/config",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/codelocation",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/codelocation",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/containernode",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/containernode",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/failer",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/failer",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/leafnodes",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/leafnodes",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/remote",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/remote",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/spec",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/spec",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/specrunner",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/specrunner",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/suite",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/suite",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/testingtproxy",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/testingtproxy",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/internal/writer",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/writer",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/reporters",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/reporters",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/reporters/stenographer",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/reporters/stenographer",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo/types",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/types",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/format",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/format",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/gbytes",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/gbytes",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/onsi/gomega/gexec",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/gexec",
+			"Revision": "f4f1caefe95e396ea97b72dd6c52973ae4a6978c",
+			"RevisionTime": "2015-04-30T07:36:41-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/ghttp",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/ghttp",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/internal/assertion",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/internal/assertion",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/internal/asyncassertion",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/internal/asyncassertion",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/internal/fakematcher",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/internal/fakematcher",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/internal/testingtsupport",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/internal/testingtsupport",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/matchers",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/matchers",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/matchers/support/goraph/edge",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/matchers/support/goraph/edge",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/matchers/support/goraph/node",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/matchers/support/goraph/node",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/matchers/support/goraph/util",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/matchers/support/goraph/util",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega/types",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/types",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/pivotal-golang/clock",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/pivotal-golang/clock",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/pivotal-golang/clock/fakeclock",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/pivotal-golang/clock/fakeclock",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "github.com/cloudfoundry/bosh-utils/internal/github.com/stretchr/testify/assert",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/github.com/stretchr/testify/assert",
+			"Revision": "d41ff2652f0e049819b2610c916f32615d37cfc9",
+			"RevisionTime": "2015-06-03T13:50:14-07:00"
+		},
+		{
+			"Vendor": "gopkg.in/yaml.v2",
+			"Local": "github.com/cloudfoundry/bosh-init/internal/gopkg.in/yaml.v2",
+			"Revision": "49c95bdc21843256fb6c4e0d370a05f24a0bf213",
+			"RevisionTime": "2015-02-24T19:57:58-03:00"
+		}
+	]
+}

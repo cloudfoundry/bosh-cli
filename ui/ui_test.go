@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"io"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var _ = Describe("UI", func() {

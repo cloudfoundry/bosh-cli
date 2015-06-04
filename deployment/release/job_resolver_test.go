@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"code.google.com/p/gomock/gomock"
+	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 
 	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"

@@ -4,10 +4,10 @@ import (
 	"errors"
 
 	. "github.com/cloudfoundry/bosh-init/installation/blob"
+	fakeblobstore "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
-	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

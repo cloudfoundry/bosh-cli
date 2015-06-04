@@ -4,8 +4,8 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 )
 
 // Mock of Factory interface

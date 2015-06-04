@@ -4,11 +4,11 @@ import (
 	"path"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cloudfoundry/bosh-init/internal/gopkg.in/yaml.v2"
 	bireljobmanifest "github.com/cloudfoundry/bosh-init/release/job/manifest"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"gopkg.in/yaml.v2"
 )
 
 type Reader interface {

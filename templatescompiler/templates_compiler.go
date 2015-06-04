@@ -2,13 +2,13 @@ package templatescompiler
 
 import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	boshblob "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type TemplatesCompiler interface {

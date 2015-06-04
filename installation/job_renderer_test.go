@@ -6,20 +6,20 @@ import (
 
 	"github.com/cloudfoundry/bosh-init/installation"
 
-	"code.google.com/p/gomock/gomock"
+	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	fakeboshblob "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	fakeboshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	fakeboshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
-	fakeboshblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

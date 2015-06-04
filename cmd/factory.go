@@ -23,6 +23,11 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
@@ -31,11 +36,6 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	bitemplateerb "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-golang/clock"
 )
 

@@ -10,11 +10,11 @@ import (
 
 	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshretry "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/retrystrategy"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type Source interface {

@@ -4,7 +4,7 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
+	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	registry "github.com/cloudfoundry/bosh-init/registry"
 )
 

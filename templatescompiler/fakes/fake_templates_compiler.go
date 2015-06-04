@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cloudfoundry/bosh-init/internal/gopkg.in/yaml.v2"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"gopkg.in/yaml.v2"
 )
 
 type CompileInput struct {

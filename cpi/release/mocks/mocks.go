@@ -4,8 +4,8 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	ui "github.com/cloudfoundry/bosh-init/ui"
 )
 

@@ -7,12 +7,12 @@ import (
 	. "github.com/onsi/gomega"
 	"net/http"
 
-	boshdavcli "github.com/cloudfoundry/bosh-davcli/client"
-	boshdavcliconf "github.com/cloudfoundry/bosh-davcli/config"
 	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	boshdavcli "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-davcli/client"
+	boshdavcliconf "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-davcli/config"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )
 
 var _ = Describe("BlobstoreFactory", func() {

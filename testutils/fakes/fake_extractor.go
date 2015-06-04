@@ -3,7 +3,7 @@ package fakes
 import (
 	"fmt"
 
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
 )
 
 type decompressInput struct {

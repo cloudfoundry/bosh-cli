@@ -3,10 +3,10 @@ package fakes
 import (
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	bitempcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type SaveInput struct {

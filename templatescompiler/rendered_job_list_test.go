@@ -8,11 +8,11 @@ import (
 	. "github.com/onsi/gomega"
 	"os"
 
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeboshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("RenderedJobList", func() {
