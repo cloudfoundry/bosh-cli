@@ -2,11 +2,11 @@ package manifest_test
 
 import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

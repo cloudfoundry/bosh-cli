@@ -9,4 +9,9 @@ bin=$(dirname $0)
 
 go get -u code.google.com/p/go.tools/cmd/vet
 
-go vet ` find . -type d -maxdepth 1 -not -name ".*" -not -regex "^./internal" | sed 's/$/\/.../' | xargs`
+while IFS= read -r line ; do
+  $line
+  let "result+=$?"
+done < <($bin/go vet -n github.com/cloudfoundry/bosh-init/... | sed -e "s/\/vet /\/vet $goVetParams /")
+
+exit $result

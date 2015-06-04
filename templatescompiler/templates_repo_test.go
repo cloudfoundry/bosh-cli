@@ -6,8 +6,8 @@ import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	biindex "github.com/cloudfoundry/bosh-init/index"
-	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

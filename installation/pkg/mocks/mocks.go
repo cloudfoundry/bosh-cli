@@ -4,8 +4,8 @@
 package mocks
 
 import (
+	gomock "code.google.com/p/gomock/gomock"
 	pkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 )
 
 // Mock of Installer interface

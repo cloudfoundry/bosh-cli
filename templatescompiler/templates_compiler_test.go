@@ -7,16 +7,16 @@ import (
 	. "github.com/onsi/gomega"
 	"os"
 
-	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
+	"code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	fakeblobs "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
-	fakecmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	fakeblobs "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebitemp "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"

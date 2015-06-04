@@ -3,8 +3,8 @@ package installation
 import (
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type JobResolver interface {

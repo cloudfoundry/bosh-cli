@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"regexp"
 
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type instanceHandler struct {

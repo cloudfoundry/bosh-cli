@@ -3,9 +3,9 @@ package state
 import (
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type remotePackageCompiler struct {

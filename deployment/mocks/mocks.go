@@ -4,6 +4,7 @@
 package mocks
 
 import (
+	gomock "code.google.com/p/gomock/gomock"
 	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	cloud "github.com/cloudfoundry/bosh-init/cloud"
 	deployment "github.com/cloudfoundry/bosh-init/deployment"
@@ -13,7 +14,6 @@ import (
 	manifest0 "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	vm "github.com/cloudfoundry/bosh-init/deployment/vm"
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	stemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	ui "github.com/cloudfoundry/bosh-init/ui"
 )

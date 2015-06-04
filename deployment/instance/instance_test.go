@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 	"time"
 
+	"code.google.com/p/gomock/gomock"
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
-	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
@@ -16,8 +16,8 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"

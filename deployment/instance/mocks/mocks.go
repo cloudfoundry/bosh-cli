@@ -4,11 +4,11 @@
 package mocks
 
 import (
+	gomock "code.google.com/p/gomock/gomock"
 	disk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	instance "github.com/cloudfoundry/bosh-init/deployment/instance"
 	manifest0 "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	stemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	ui "github.com/cloudfoundry/bosh-init/ui"
 	time "time"

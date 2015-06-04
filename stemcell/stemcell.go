@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type ExtractedStemcell interface {

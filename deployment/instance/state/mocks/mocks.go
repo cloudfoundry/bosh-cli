@@ -4,12 +4,12 @@
 package mocks
 
 import (
+	gomock "code.google.com/p/gomock/gomock"
 	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
 	applyspec "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 	state "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 	manifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	gomock "github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	ui "github.com/cloudfoundry/bosh-init/ui"
 )
 

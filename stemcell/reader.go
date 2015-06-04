@@ -1,13 +1,13 @@
 package stemcell
 
 import (
-	"github.com/cloudfoundry/bosh-init/internal/gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	"path/filepath"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
-	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type manifest struct {

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os"
 
-	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type Config struct {

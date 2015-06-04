@@ -1,7 +1,7 @@
 package testutils
 
 import (
-	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 func GenerateDeploymentManifest(deploymentManifestFilePath string, fs boshsys.FileSystem, manifestContents string) error {

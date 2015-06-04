@@ -1,8 +1,8 @@
 package agentclient
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
-	boshretry "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/retrystrategy"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 )
 
 type getStateRetryable struct {

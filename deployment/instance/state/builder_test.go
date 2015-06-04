@@ -3,9 +3,9 @@ package state_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
+	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
-	"github.com/cloudfoundry/bosh-init/internal/code.google.com/p/gomock/gomock"
 	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 	. "github.com/onsi/ginkgo"
@@ -14,10 +14,10 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
 	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

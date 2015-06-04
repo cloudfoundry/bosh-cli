@@ -1,7 +1,7 @@
 package agentclient
 
 import (
-	boshretry "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/retrystrategy"
+	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 )
 
 type pingRetryable struct {

@@ -1,7 +1,7 @@
 package config
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type VMRepo interface {

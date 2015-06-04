@@ -7,11 +7,11 @@ import (
 	"os"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
