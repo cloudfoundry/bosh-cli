@@ -152,7 +152,10 @@ func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{
 	})
 
 	getTaskRetryStrategy := boshretry.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)
-	return value, getTaskRetryStrategy.Try()
+	// cannot call getTaskRetryStrategy.Try in the return statement due to gccgo
+	// execution order issues: https://code.google.com/p/go/issues/detail?id=8698&thanks=8698&ts=1410376474
+	err = getTaskRetryStrategy.Try()
+	return value, err
 }
 
 func (c *agentClient) CompilePackage(packageSource biagentclient.BlobRef, compiledPackageDependencies []biagentclient.BlobRef) (compiledPackageRef biagentclient.BlobRef, err error) {
