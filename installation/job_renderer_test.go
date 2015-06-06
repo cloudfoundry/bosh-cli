@@ -10,7 +10,6 @@ import (
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	biindex "github.com/cloudfoundry/bosh-init/index"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
@@ -40,8 +39,7 @@ var _ = Describe("JobRenderer", func() {
 		fakeCompressor      *fakeboshcmd.FakeCompressor
 		fakeBlobstore       *fakeboshblob.FakeBlobstore
 
-		fakeFS        *fakeboshsys.FakeFileSystem
-		templatesRepo bitemplate.TemplatesRepo
+		fakeFS *fakeboshsys.FakeFileSystem
 
 		logger boshlog.Logger
 
@@ -67,8 +65,6 @@ var _ = Describe("JobRenderer", func() {
 		fakeBlobstore = fakeboshblob.NewFakeBlobstore()
 
 		fakeFS = fakeboshsys.NewFakeFileSystem()
-		index := biindex.NewInMemoryIndex()
-		templatesRepo = bitemplate.NewTemplatesRepo(index)
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -122,7 +118,6 @@ var _ = Describe("JobRenderer", func() {
 			mockJobListRenderer,
 			fakeCompressor,
 			fakeBlobstore,
-			templatesRepo,
 		)
 
 		releaseJobs := []bireljob.Job{releaseJob}

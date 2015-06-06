@@ -20,20 +20,17 @@ type jobRenderer struct {
 	jobListRenderer bitemplate.JobListRenderer
 	compressor      boshcmd.Compressor
 	blobstore       boshblob.Blobstore
-	templatesRepo   bitemplate.TemplatesRepo
 }
 
 func NewJobRenderer(
 	jobListRenderer bitemplate.JobListRenderer,
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
-	templatesRepo bitemplate.TemplatesRepo,
 ) JobRenderer {
 	return &jobRenderer{
 		jobListRenderer: jobListRenderer,
 		compressor:      compressor,
 		blobstore:       blobstore,
-		templatesRepo:   templatesRepo,
 	}
 }
 
@@ -72,18 +69,12 @@ func (b *jobRenderer) renderJobTemplates(
 		defer renderedJobList.DeleteSilently()
 
 		for _, renderedJob := range renderedJobList.All() {
-			renderedJobRecord, err := b.compressAndUpload(renderedJob)
+			renderedJobRef, err := b.compressAndUpload(renderedJob)
 			if err != nil {
 				return err
 			}
 
-			releaseJob := renderedJob.Job()
-			renderedJobRefs = append(renderedJobRefs, biinstalljob.RenderedJobRef{
-				Name:        releaseJob.Name,
-				Version:     releaseJob.Fingerprint,
-				BlobstoreID: renderedJobRecord.BlobID,
-				SHA1:        renderedJobRecord.BlobSHA1,
-			})
+			renderedJobRefs = append(renderedJobRefs, renderedJobRef)
 		}
 
 		return nil
@@ -92,27 +83,24 @@ func (b *jobRenderer) renderJobTemplates(
 	return renderedJobRefs, err
 }
 
-func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (record bitemplate.TemplateRecord, err error) {
+func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (biinstalljob.RenderedJobRef, error) {
 	tarballPath, err := b.compressor.CompressFilesInDir(renderedJob.Path())
 	if err != nil {
-		return record, bosherr.WrapError(err, "Compressing rendered job templates")
+		return biinstalljob.RenderedJobRef{}, bosherr.WrapError(err, "Compressing rendered job templates")
 	}
 	defer b.compressor.CleanUp(tarballPath)
 
 	blobID, blobSHA1, err := b.blobstore.Create(tarballPath)
 	if err != nil {
-		return record, bosherr.WrapError(err, "Creating blob")
+		return biinstalljob.RenderedJobRef{}, bosherr.WrapError(err, "Creating blob")
 	}
 
-	record = bitemplate.TemplateRecord{
-		BlobID:   blobID,
-		BlobSHA1: blobSHA1,
-	}
-	//TODO: move TemplatesRepo to state/job.TemplatesRepo and reuse in deployment/instance/state.Builder
-	err = b.templatesRepo.Save(renderedJob.Job(), record)
-	if err != nil {
-		return record, bosherr.WrapError(err, "Saving job to templates repo")
-	}
+	releaseJob := renderedJob.Job()
 
-	return record, nil
+	return biinstalljob.RenderedJobRef{
+		Name:        releaseJob.Name,
+		Version:     releaseJob.Fingerprint,
+		BlobstoreID: blobID,
+		SHA1:        blobSHA1,
+	}, nil
 }

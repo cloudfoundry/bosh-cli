@@ -104,7 +104,6 @@ type installerFactoryContext struct {
 	jobDependencyCompiler bistatejob.DependencyCompiler
 	packageCompiler       bistatepkg.Compiler
 	jobInstaller          biinstalljob.Installer
-	templatesRepo         bitemplate.TemplatesRepo
 	packageInstaller      biinstallpkg.Installer
 	blobstore             boshblob.Blobstore
 	blobExtractor         biinstallblob.Extractor
@@ -121,7 +120,6 @@ func (c *installerFactoryContext) JobRenderer() JobRenderer {
 		jobListRenderer,
 		c.extractor,
 		c.Blobstore(),
-		c.TemplatesRepo(),
 	)
 }
 
@@ -176,20 +174,9 @@ func (c *installerFactoryContext) JobInstaller() biinstalljob.Installer {
 	c.jobInstaller = biinstalljob.NewInstaller(
 		c.fs,
 		c.BlobExtractor(),
-		c.TemplatesRepo(),
 		c.target.JobsPath(),
 	)
 	return c.jobInstaller
-}
-
-func (c *installerFactoryContext) TemplatesRepo() bitemplate.TemplatesRepo {
-	if c.templatesRepo != nil {
-		return c.templatesRepo
-	}
-
-	templatesIndex := biindex.NewFileIndex(c.target.TemplatesIndexPath(), c.fs)
-	c.templatesRepo = bitemplate.NewTemplatesRepo(templatesIndex)
-	return c.templatesRepo
 }
 
 func (c *installerFactoryContext) PackageInstaller() biinstallpkg.Installer {

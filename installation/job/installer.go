@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	biinstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
-	bitemcomp "github.com/cloudfoundry/bosh-init/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -33,13 +32,11 @@ type Installer interface {
 func NewInstaller(
 	fs boshsys.FileSystem,
 	templateExtractor biinstallblob.Extractor,
-	templateRepo bitemcomp.TemplatesRepo,
 	jobsPath string,
 ) Installer {
 	return jobInstaller{
 		fs:                fs,
 		templateExtractor: templateExtractor,
-		templateRepo:      templateRepo,
 		jobsPath:          jobsPath,
 	}
 }
@@ -47,7 +44,6 @@ func NewInstaller(
 type jobInstaller struct {
 	fs                boshsys.FileSystem
 	templateExtractor biinstallblob.Extractor
-	templateRepo      bitemcomp.TemplatesRepo
 	jobsPath          string
 }
 

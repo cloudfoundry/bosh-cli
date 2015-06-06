@@ -7,7 +7,6 @@ import (
 
 	fakebiinstallblob "github.com/cloudfoundry/bosh-init/installation/blob/fakes"
 	. "github.com/cloudfoundry/bosh-init/installation/job"
-	fakebitemplate "github.com/cloudfoundry/bosh-init/templatescompiler/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -20,7 +19,6 @@ var _ = Describe("Installer", func() {
 		jobInstaller   Installer
 		renderedJobRef RenderedJobRef
 		blobExtractor  *fakebiinstallblob.FakeExtractor
-		templateRepo   *fakebitemplate.FakeTemplatesRepo
 		jobsPath       string
 		fakeStage      *fakebiui.FakeStage
 	)
@@ -29,12 +27,11 @@ var _ = Describe("Installer", func() {
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			blobExtractor = fakebiinstallblob.NewFakeExtractor()
-			templateRepo = fakebitemplate.NewFakeTemplatesRepo()
 
 			jobsPath = "/fake/jobs"
 			fakeStage = fakebiui.NewFakeStage()
 
-			jobInstaller = NewInstaller(fs, blobExtractor, templateRepo, jobsPath)
+			jobInstaller = NewInstaller(fs, blobExtractor, jobsPath)
 
 			renderedJobRef = RenderedJobRef{
 				Name:        "cpi",
