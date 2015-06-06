@@ -4,9 +4,6 @@ import (
 	. "github.com/cloudfoundry/bosh-init/cmd"
 
 	"bytes"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -15,6 +12,10 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
@@ -300,10 +301,9 @@ cloud_provider:
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := biinstall.NewTarget(installationPath)
 
-			installedJob := biinstalljob.InstalledJob{
-				Name: "fake-cpi-release-job-name",
-				Path: filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),
-			}
+			installedJob := biinstalljob.InstalledJob{}
+			installedJob.Name = "fake-cpi-release-job-name"
+			installedJob.Path = filepath.Join(target.JobsPath(), "fake-cpi-release-job-name")
 
 			installation := biinstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
 

@@ -19,6 +19,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"errors"
+
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
@@ -100,10 +101,7 @@ var _ = Describe("Installer", func() {
 
 			fakeStage = fakebiui.NewFakeStage()
 
-			installedJob = biinstalljob.InstalledJob{
-				Name: "cpi",
-				Path: "/extracted-release-path/cpi",
-			}
+			installedJob = biinstalljob.NewInstalledJob(biinstalljob.RenderedJobRef{Name: "cpi"}, "/extracted-release-path/cpi")
 		})
 
 		JustBeforeEach(func() {

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
+
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
 	mock_config "github.com/cloudfoundry/bosh-init/config/mocks"
@@ -40,6 +41,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"fmt"
+
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	"github.com/cloudfoundry/bosh-init/crypto"
 	"github.com/cloudfoundry/bosh-init/deployment"
@@ -367,10 +369,12 @@ func rootDesc() {
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := biinstall.NewTarget(installationPath)
 
-			installedJob := biinstalljob.InstalledJob{
-				Name: "fake-cpi-release-job-name",
-				Path: filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),
-			}
+			installedJob := biinstalljob.NewInstalledJob(
+				biinstalljob.RenderedJobRef{
+					Name: "fake-cpi-release-job-name",
+				},
+				filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),
+			)
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 

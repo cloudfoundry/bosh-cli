@@ -15,30 +15,32 @@ import (
 
 var _ = Describe("Installer", func() {
 	var (
-		fs             *fakesys.FakeFileSystem
-		jobInstaller   Installer
-		renderedJobRef RenderedJobRef
-		blobExtractor  *fakebiinstallblob.FakeExtractor
-		jobsPath       string
-		fakeStage      *fakebiui.FakeStage
+		fs            *fakesys.FakeFileSystem
+		jobInstaller  Installer
+		blobExtractor *fakebiinstallblob.FakeExtractor
+		jobsPath      string
 	)
 
+	BeforeEach(func() {
+		fs = fakesys.NewFakeFileSystem()
+		blobExtractor = fakebiinstallblob.NewFakeExtractor()
+		jobsPath = "/fake/jobs"
+
+		jobInstaller = NewInstaller(fs, blobExtractor, jobsPath)
+	})
+
 	Context("Installing the job", func() {
+		var renderedJobRef RenderedJobRef
+		var fakeStage *fakebiui.FakeStage
+
 		BeforeEach(func() {
-			fs = fakesys.NewFakeFileSystem()
-			blobExtractor = fakebiinstallblob.NewFakeExtractor()
-
-			jobsPath = "/fake/jobs"
-			fakeStage = fakebiui.NewFakeStage()
-
-			jobInstaller = NewInstaller(fs, blobExtractor, jobsPath)
-
 			renderedJobRef = RenderedJobRef{
 				Name:        "cpi",
 				Version:     "fake-job-version-cpi",
 				BlobstoreID: "fake-job-blobstore-id-cpi",
 				SHA1:        "fake-job-sha1-cpi",
 			}
+			fakeStage = fakebiui.NewFakeStage()
 		})
 
 		JustBeforeEach(func() {
@@ -58,12 +60,7 @@ var _ = Describe("Installer", func() {
 		It("returns a record of the installed job", func() {
 			installedJob, err := jobInstaller.Install(renderedJobRef, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(installedJob).To(Equal(
-				InstalledJob{
-					Name: "cpi",
-					Path: "/fake/jobs/cpi",
-				},
-			))
+			Expect(installedJob).To(Equal(NewInstalledJob(renderedJobRef, "/fake/jobs/cpi")))
 		})
 
 		It("creates basic job layout", func() {
@@ -104,11 +101,21 @@ var _ = Describe("Installer", func() {
 	})
 
 	Context("Cleanup", func() {
+		var job InstalledJob
+
+		BeforeEach(func() {
+			renderedJobRef := RenderedJobRef{
+				Name:        "cpi",
+				Version:     "fake-job-version-cpi",
+				BlobstoreID: "fake-job-blobstore-id-cpi",
+				SHA1:        "fake-job-sha1-cpi",
+			}
+			job = NewInstalledJob(renderedJobRef, "/some/job/dir")
+		})
+
 		It("cleans up files left under the jobPath when done", func() {
 			fs.MkdirAll("/some/job/dir", os.ModePerm)
 			fs.WriteFileString("/some/job/dir/file", "contents")
-
-			job := InstalledJob{Name: "job-name", Path: "/some/job/dir"}
 
 			err := jobInstaller.Cleanup(job)
 			Expect(err).ToNot(HaveOccurred())
@@ -117,8 +124,6 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("returns the error if deleting the job dir fails", func() {
-			job := InstalledJob{Name: "job-name", Path: "/some/job/dir"}
-
 			fs.RemoveAllError = errors.New("couldn't delete that")
 			err := jobInstaller.Cleanup(job)
 			Expect(err).To(HaveOccurred())

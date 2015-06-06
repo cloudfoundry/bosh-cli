@@ -49,10 +49,7 @@ var _ = Describe("Installation", func() {
 
 		target = NewTarget("fake-installation-path")
 
-		installedJob = biinstalljob.InstalledJob{
-			Name: "cpi",
-			Path: "fake-job-path",
-		}
+		installedJob = biinstalljob.NewInstalledJob(biinstalljob.RenderedJobRef{Name: "cpi"}, "fake-job-path")
 	})
 
 	Describe("WithRunningRegistry", func() {

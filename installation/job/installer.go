@@ -20,8 +20,12 @@ type RenderedJobRef struct {
 }
 
 type InstalledJob struct {
-	Name string
+	RenderedJobRef
 	Path string
+}
+
+func NewInstalledJob(ref RenderedJobRef, path string) InstalledJob {
+	return InstalledJob{RenderedJobRef: ref, Path: path}
 }
 
 type Installer interface {
@@ -81,7 +85,7 @@ func (i jobInstaller) install(renderedJobRef RenderedJobRef) (InstalledJob, erro
 		}
 	}
 
-	return InstalledJob{Name: renderedJobRef.Name, Path: jobDir}, nil
+	return NewInstalledJob(renderedJobRef, jobDir), nil
 }
 
 func (i jobInstaller) Cleanup(job InstalledJob) error {
