@@ -3,7 +3,9 @@ package pkg
 import (
 	"os"
 	"path"
+	"path/filepath"
 
+	"github.com/cloudfoundry/bosh-init/installation/blobextract"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
@@ -20,7 +22,7 @@ type compiler struct {
 	compressor          boshcmd.Compressor
 	blobstore           boshblob.Blobstore
 	compiledPackageRepo bistatepkg.CompiledPackageRepo
-	packageInstaller    Installer
+	blobExtractor       blobextract.Extractor
 	logger              boshlog.Logger
 	logTag              string
 }
@@ -32,7 +34,7 @@ func NewPackageCompiler(
 	compressor boshcmd.Compressor,
 	blobstore boshblob.Blobstore,
 	compiledPackageRepo bistatepkg.CompiledPackageRepo,
-	packageInstaller Installer,
+	blobExtractor blobextract.Extractor,
 	logger boshlog.Logger,
 ) bistatepkg.Compiler {
 	return &compiler{
@@ -42,7 +44,7 @@ func NewPackageCompiler(
 		compressor:          compressor,
 		blobstore:           blobstore,
 		compiledPackageRepo: compiledPackageRepo,
-		packageInstaller:    packageInstaller,
+		blobExtractor:       blobExtractor,
 		logger:              logger,
 		logTag:              "packageCompiler",
 	}
@@ -131,14 +133,8 @@ func (c *compiler) installPackages(packages []*birelpkg.Package) error {
 		}
 
 		c.logger.Debug(c.logTag, "Installing package '%s/%s'", pkg.Name, pkg.Fingerprint)
-		compiledPackageRef := CompiledPackageRef{
-			Name:        pkg.Name,
-			Version:     pkg.Fingerprint,
-			BlobstoreID: record.BlobID,
-			SHA1:        record.BlobSHA1,
-		}
 
-		err = c.packageInstaller.Install(compiledPackageRef, c.packagesDir)
+		err = c.blobExtractor.Extract(record.BlobID, record.BlobSHA1, filepath.Join(c.packagesDir, pkg.Name))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Installing package '%s' into '%s'", pkg.Name, c.packagesDir)
 		}

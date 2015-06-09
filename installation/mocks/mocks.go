@@ -6,9 +6,7 @@ package mocks
 import (
 	gomock "code.google.com/p/gomock/gomock"
 	installation "github.com/cloudfoundry/bosh-init/installation"
-	job0 "github.com/cloudfoundry/bosh-init/installation/job"
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	pkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	job "github.com/cloudfoundry/bosh-init/release/job"
 	ui "github.com/cloudfoundry/bosh-init/ui"
 	logger "github.com/cloudfoundry/bosh-utils/logger"
@@ -35,9 +33,9 @@ func (_m *MockInstallation) EXPECT() *_MockInstallationRecorder {
 	return _m.recorder
 }
 
-func (_m *MockInstallation) Job() job0.InstalledJob {
+func (_m *MockInstallation) Job() installation.InstalledJob {
 	ret := _m.ctrl.Call(_m, "Job")
-	ret0, _ := ret[0].(job0.InstalledJob)
+	ret0, _ := ret[0].(installation.InstalledJob)
 	return ret0
 }
 
@@ -116,15 +114,15 @@ func (_mr *_MockInstallerRecorder) Cleanup(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Cleanup", arg0)
 }
 
-func (_m *MockInstaller) InstallPackagesAndJobs(_param0 manifest.Manifest, _param1 ui.Stage) (installation.Installation, error) {
-	ret := _m.ctrl.Call(_m, "InstallPackagesAndJobs", _param0, _param1)
+func (_m *MockInstaller) Install(_param0 manifest.Manifest, _param1 ui.Stage) (installation.Installation, error) {
+	ret := _m.ctrl.Call(_m, "Install", _param0, _param1)
 	ret0, _ := ret[0].(installation.Installation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockInstallerRecorder) InstallPackagesAndJobs(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "InstallPackagesAndJobs", arg0, arg1)
+func (_mr *_MockInstallerRecorder) Install(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Install", arg0, arg1)
 }
 
 // Mock of InstallerFactory interface
@@ -243,15 +241,15 @@ func (_m *MockPackageCompiler) EXPECT() *_MockPackageCompilerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockPackageCompiler) For(_param0 []job.Job, _param1 string, _param2 ui.Stage) ([]pkg.CompiledPackageRef, error) {
-	ret := _m.ctrl.Call(_m, "For", _param0, _param1, _param2)
-	ret0, _ := ret[0].([]pkg.CompiledPackageRef)
+func (_m *MockPackageCompiler) For(_param0 []job.Job, _param1 ui.Stage) ([]installation.CompiledPackageRef, error) {
+	ret := _m.ctrl.Call(_m, "For", _param0, _param1)
+	ret0, _ := ret[0].([]installation.CompiledPackageRef)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockPackageCompilerRecorder) For(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "For", arg0, arg1, arg2)
+func (_mr *_MockPackageCompilerRecorder) For(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "For", arg0, arg1)
 }
 
 // Mock of JobRenderer interface
@@ -275,9 +273,9 @@ func (_m *MockJobRenderer) EXPECT() *_MockJobRendererRecorder {
 	return _m.recorder
 }
 
-func (_m *MockJobRenderer) RenderAndUploadFrom(_param0 manifest.Manifest, _param1 []job.Job, _param2 ui.Stage) ([]job0.RenderedJobRef, error) {
+func (_m *MockJobRenderer) RenderAndUploadFrom(_param0 manifest.Manifest, _param1 []job.Job, _param2 ui.Stage) ([]installation.RenderedJobRef, error) {
 	ret := _m.ctrl.Call(_m, "RenderAndUploadFrom", _param0, _param1, _param2)
-	ret0, _ := ret[0].([]job0.RenderedJobRef)
+	ret0, _ := ret[0].([]installation.RenderedJobRef)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

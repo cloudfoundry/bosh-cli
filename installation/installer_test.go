@@ -1,24 +1,21 @@
 package installation_test
 
 import (
+	"errors"
+
 	. "github.com/cloudfoundry/bosh-init/installation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"code.google.com/p/gomock/gomock"
-	mock_install_job "github.com/cloudfoundry/bosh-init/installation/job/mocks"
+	"github.com/cloudfoundry/bosh-init/installation/blobextract/fakeblobextract"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
-	mock_install_pkg "github.com/cloudfoundry/bosh-init/installation/pkg/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-
-	"errors"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
@@ -35,12 +32,11 @@ var _ = Describe("Installer", func() {
 	})
 
 	var (
-		mockJobRenderer      *mock_install.MockJobRenderer
-		mockJobResolver      *mock_install.MockJobResolver
-		mockPackageCompiler  *mock_install.MockPackageCompiler
-		mockPackageInstaller *mock_install_pkg.MockInstaller
-		mockJobInstaller     *mock_install_job.MockInstaller
-
+		installationManifest      biinstallmanifest.Manifest
+		mockJobRenderer           *mock_install.MockJobRenderer
+		mockJobResolver           *mock_install.MockJobResolver
+		mockPackageCompiler       *mock_install.MockPackageCompiler
+		fakeExtractor             *fakeblobextract.FakeExtractor
 		mockRegistryServerManager *mock_registry.MockServerManager
 
 		logger boshlog.Logger
@@ -48,21 +44,26 @@ var _ = Describe("Installer", func() {
 		packagesPath string
 		installer    Installer
 		target       Target
+		installedJob InstalledJob
 	)
 
 	BeforeEach(func() {
-		logger = boshlog.NewLogger(boshlog.LevelNone)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
 
 		mockJobRenderer = mock_install.NewMockJobRenderer(mockCtrl)
 		mockJobResolver = mock_install.NewMockJobResolver(mockCtrl)
 		mockPackageCompiler = mock_install.NewMockPackageCompiler(mockCtrl)
-		mockPackageInstaller = mock_install_pkg.NewMockInstaller(mockCtrl)
-		mockJobInstaller = mock_install_job.NewMockInstaller(mockCtrl)
-
+		fakeExtractor = &fakeblobextract.FakeExtractor{}
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 
 		packagesPath = "/path/to/installed/packages"
 		target = NewTarget("fake-installation-path")
+		installationManifest = biinstallmanifest.Manifest{
+			Name:       "fake-installation-name",
+			Properties: biproperty.Map{},
+		}
+		renderedCPIJob := NewRenderedJobRef("cpi", "fake-release-job-fingerprint", "fake-rendered-job-blobstore-id", "fake-rendered-job-blobstore-id")
+		installedJob = NewInstalledJob(renderedCPIJob, "/extracted-release-path/cpi")
 	})
 
 	JustBeforeEach(func() {
@@ -72,112 +73,84 @@ var _ = Describe("Installer", func() {
 			mockJobResolver,
 			mockPackageCompiler,
 			packagesPath,
-			mockPackageInstaller,
-			mockJobInstaller,
+			fakeExtractor,
 			mockRegistryServerManager,
 			logger,
 		)
 	})
 
-	Describe("InstallPackagesAndJobs", func() {
+	Describe("Install", func() {
 		var (
-			installationManifest biinstallmanifest.Manifest
-			fakeStage            *fakebiui.FakeStage
-
-			installedJob biinstalljob.InstalledJob
+			fakeStage *fakebiui.FakeStage
 
 			expectedResolveJobsFrom     *gomock.Call
 			expectedPackageCompilerFrom *gomock.Call
 			expectedRenderAndUploadFrom *gomock.Call
-			expectPackageInstall        *gomock.Call
-			expectJobInstall            *gomock.Call
 		)
 
 		BeforeEach(func() {
-			installationManifest = biinstallmanifest.Manifest{
-				Name:       "fake-installation-name",
-				Properties: biproperty.Map{},
-			}
-
 			fakeStage = fakebiui.NewFakeStage()
-
-			installedJob = biinstalljob.NewInstalledJob(biinstalljob.RenderedJobRef{Name: "cpi"}, "/extracted-release-path/cpi")
 		})
 
 		JustBeforeEach(func() {
-			renderedCPIJob := biinstalljob.RenderedJobRef{
-				Name:        "cpi",
-				Version:     "fake-release-job-fingerprint",
-				BlobstoreID: "fake-rendered-job-blobstore-id",
-				SHA1:        "fake-rendered-job-blobstore-id",
-			}
-
-			compiledPackageRef := biinstallpkg.CompiledPackageRef{
+			ref := CompiledPackageRef{
 				Name:        "fake-release-package-name",
 				Version:     "fake-release-package-fingerprint",
 				BlobstoreID: "fake-compiled-package-blobstore-id",
 				SHA1:        "fake-compiled-package-blobstore-id",
 			}
-			compiledPackages := []biinstallpkg.CompiledPackageRef{compiledPackageRef}
+			compiledPackages := []CompiledPackageRef{ref}
 
 			releaseJobs := []bireljob.Job{}
-			renderedJobRefs := []biinstalljob.RenderedJobRef{renderedCPIJob}
+			renderedJobRefs := []RenderedJobRef{installedJob.RenderedJobRef}
 			expectedResolveJobsFrom = mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil).AnyTimes()
-			expectedPackageCompilerFrom = mockPackageCompiler.EXPECT().For(releaseJobs, packagesPath, fakeStage).Return(compiledPackages, nil).AnyTimes()
+			expectedPackageCompilerFrom = mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil).AnyTimes()
 			expectedRenderAndUploadFrom = mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return(renderedJobRefs, nil).AnyTimes()
-
-			expectPackageInstall = mockPackageInstaller.EXPECT().Install(compiledPackageRef, packagesPath).AnyTimes()
-
-			expectJobInstall = mockJobInstaller.EXPECT().Install(renderedCPIJob, fakeStage).Return(installedJob, nil).AnyTimes()
 		})
 
 		It("compiles and installs the jobs' packages", func() {
-			expectPackageInstall.Times(1)
-
-			_, err := installer.InstallPackagesAndJobs(installationManifest, fakeStage)
+			_, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("installs the rendered jobs", func() {
-			expectJobInstall.Times(1)
-
-			_, err := installer.InstallPackagesAndJobs(installationManifest, fakeStage)
+			_, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns the installation", func() {
-			installation, err := installer.InstallPackagesAndJobs(installationManifest, fakeStage)
+			installation, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(installation.Target().JobsPath()).To(Equal(target.JobsPath()))
+		})
+	})
 
-			expectedInstallation := NewInstallation(
+	Describe("Cleanup", func() {
+		var installation Installation
+
+		BeforeEach(func() {
+			installation = NewInstallation(
 				target,
 				installedJob,
 				installationManifest,
 				mockRegistryServerManager,
 			)
-
-			Expect(installation).To(Equal(expectedInstallation))
 		})
-	})
 
-	Describe("Cleanup", func() {
 		It("cleans up installed jobs", func() {
-			installation := mock_install.NewMockInstallation(mockCtrl)
-			installationJob := biinstalljob.InstalledJob{}
-			installation.EXPECT().Job().Return(installationJob)
-
-			mockJobInstaller.EXPECT().Cleanup(installationJob)
-
 			err := installer.Cleanup(installation)
 			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeExtractor.CleanupCallCount()).To(Equal(1))
+
+			blobstoreID, sha1, jobPath := fakeExtractor.CleanupArgsForCall(0)
+			Expect(blobstoreID).To(Equal(installedJob.BlobstoreID))
+			Expect(sha1).To(Equal(installedJob.SHA1))
+			Expect(jobPath).To(Equal(installedJob.Path))
 		})
 
 		It("returns errors when cleaning up installed jobs", func() {
-			installation := mock_install.NewMockInstallation(mockCtrl)
-			installationJob := biinstalljob.InstalledJob{}
-			installation.EXPECT().Job().Return(installationJob)
-
-			mockJobInstaller.EXPECT().Cleanup(installationJob).Return(errors.New("nope"))
+			fakeExtractor.CleanupReturns(errors.New("nope"))
 
 			err := installer.Cleanup(installation)
 			Expect(err).To(HaveOccurred())

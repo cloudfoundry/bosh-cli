@@ -1,9 +1,10 @@
-package blob_test
+package blobextract_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 func TestInstall(t *testing.T) {

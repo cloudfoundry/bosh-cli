@@ -7,10 +7,8 @@ import (
 	"github.com/cloudfoundry/bosh-init/installation"
 
 	"code.google.com/p/gomock/gomock"
-	"errors"
 	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
 
-	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
@@ -111,13 +109,11 @@ var _ = Describe("PackageCompiler", func() {
 	})
 
 	Describe("From", func() {
-		packagesPath := "/path/to/installed/packages"
-
 		It("returns compiled packages and release jobs", func() {
-			packages, err := compiler.For(releaseJobs, packagesPath, fakeStage)
+			packages, err := compiler.For(releaseJobs, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(packages).To(ConsistOf([]biinstallpkg.CompiledPackageRef{
+			Expect(packages).To(ConsistOf([]installation.CompiledPackageRef{
 				{
 					Name:        "fake-release-package-name-1",
 					Version:     "fake-release-package-fingerprint-1",
@@ -139,20 +135,10 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := compiler.For(releaseJobs, packagesPath, fakeStage)
+				_, err := compiler.For(releaseJobs, fakeStage)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-compile-package-2-error"))
-			})
-		})
-
-		Context("fails to create compilation path", func() {
-			It("returns an error", func() {
-				fakeFS.MkdirAllError = errors.New("Oops Failed")
-				_, err := compiler.For(releaseJobs, packagesPath, fakeStage)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Oops Failed"))
 			})
 		})
 	})

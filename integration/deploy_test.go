@@ -38,7 +38,6 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
@@ -301,7 +300,7 @@ cloud_provider:
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := biinstall.NewTarget(installationPath)
 
-			installedJob := biinstalljob.InstalledJob{}
+			installedJob := biinstall.InstalledJob{}
 			installedJob.Name = "fake-cpi-release-job-name"
 			installedJob.Path = filepath.Join(target.JobsPath(), "fake-cpi-release-job-name")
 
@@ -309,7 +308,7 @@ cloud_provider:
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 
-			mockInstaller.EXPECT().InstallPackagesAndJobs(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
+			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
 			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()

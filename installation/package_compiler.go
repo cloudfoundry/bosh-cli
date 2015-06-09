@@ -1,17 +1,22 @@
 package installation
 
 import (
-	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"os"
 )
 
+type CompiledPackageRef struct {
+	Name        string
+	Version     string
+	BlobstoreID string
+	SHA1        string
+}
+
 type PackageCompiler interface {
-	For([]bireljob.Job, string, biui.Stage) ([]biinstallpkg.CompiledPackageRef, error)
+	For([]bireljob.Job, biui.Stage) ([]CompiledPackageRef, error)
 }
 
 type packageCompiler struct {
@@ -29,21 +34,15 @@ func NewPackageCompiler(
 	}
 }
 
-func (b *packageCompiler) For(jobs []bireljob.Job, packagesPath string, stage biui.Stage) ([]biinstallpkg.CompiledPackageRef, error) {
-
-	err := b.fs.MkdirAll(packagesPath, os.ModePerm)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Creating packages directory '%s'", packagesPath)
-	}
-
+func (b *packageCompiler) For(jobs []bireljob.Job, stage biui.Stage) ([]CompiledPackageRef, error) {
 	compiledPackageRefs, err := b.jobDependencyCompiler.Compile(jobs, stage)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Compiling job package dependencies for installation")
 	}
 
-	compiledInstallationPackageRefs := make([]biinstallpkg.CompiledPackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
+	compiledInstallationPackageRefs := make([]CompiledPackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
 	for i, compiledPackageRef := range compiledPackageRefs {
-		compiledInstallationPackageRefs[i] = biinstallpkg.CompiledPackageRef{
+		compiledInstallationPackageRefs[i] = CompiledPackageRef{
 			Name:        compiledPackageRef.Name,
 			Version:     compiledPackageRef.Version,
 			BlobstoreID: compiledPackageRef.BlobstoreID,

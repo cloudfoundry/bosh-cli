@@ -3,8 +3,7 @@ package installation
 import (
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
 	biindex "github.com/cloudfoundry/bosh-init/index"
-	biinstallblob "github.com/cloudfoundry/bosh-init/installation/blob"
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	"github.com/cloudfoundry/bosh-init/installation/blobextract"
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
@@ -85,8 +84,7 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 		context.JobResolver(),
 		context.PackageCompiler(),
 		target.PackagesPath(),
-		context.PackageInstaller(),
-		context.JobInstaller(),
+		context.BlobExtractor(),
 		f.registryServerManager,
 		f.logger,
 	), nil
@@ -103,10 +101,8 @@ type installerFactoryContext struct {
 
 	jobDependencyCompiler bistatejob.DependencyCompiler
 	packageCompiler       bistatepkg.Compiler
-	jobInstaller          biinstalljob.Installer
-	packageInstaller      biinstallpkg.Installer
 	blobstore             boshblob.Blobstore
-	blobExtractor         biinstallblob.Extractor
+	blobExtractor         blobextract.Extractor
 	compiledPackageRepo   bistatepkg.CompiledPackageRepo
 }
 
@@ -159,33 +155,11 @@ func (c *installerFactoryContext) InstallationStatePackageCompiler() bistatepkg.
 		c.extractor,
 		c.Blobstore(),
 		c.CompiledPackageRepo(),
-		c.PackageInstaller(),
+		c.BlobExtractor(),
 		c.logger,
 	)
 
 	return c.packageCompiler
-}
-
-func (c *installerFactoryContext) JobInstaller() biinstalljob.Installer {
-	if c.jobInstaller != nil {
-		return c.jobInstaller
-	}
-
-	c.jobInstaller = biinstalljob.NewInstaller(
-		c.fs,
-		c.BlobExtractor(),
-		c.target.JobsPath(),
-	)
-	return c.jobInstaller
-}
-
-func (c *installerFactoryContext) PackageInstaller() biinstallpkg.Installer {
-	if c.packageInstaller != nil {
-		return c.packageInstaller
-	}
-
-	c.packageInstaller = biinstallpkg.NewPackageInstaller(c.BlobExtractor())
-	return c.packageInstaller
 }
 
 func (c *installerFactoryContext) Blobstore() boshblob.Blobstore {
@@ -200,12 +174,12 @@ func (c *installerFactoryContext) Blobstore() boshblob.Blobstore {
 	return c.blobstore
 }
 
-func (c *installerFactoryContext) BlobExtractor() biinstallblob.Extractor {
+func (c *installerFactoryContext) BlobExtractor() blobextract.Extractor {
 	if c.blobExtractor != nil {
 		return c.blobExtractor
 	}
 
-	c.blobExtractor = biinstallblob.NewExtractor(c.fs, c.extractor, c.Blobstore(), c.logger)
+	c.blobExtractor = blobextract.NewExtractor(c.fs, c.extractor, c.Blobstore(), c.logger)
 
 	return c.blobExtractor
 }

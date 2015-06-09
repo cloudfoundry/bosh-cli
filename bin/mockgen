@@ -9,8 +9,6 @@ srcFiles=(
   config/LegacyDeploymentStateMigrator
   cloud/Cloud,Factory
   installation/Installation,Installer,InstallerFactory,Uninstaller,JobResolver,PackageCompiler,JobRenderer
-  installation/pkg/Installer
-  installation/job/Installer
   installation/tarball/Provider
   deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
   deployment/agentclient/AgentClient

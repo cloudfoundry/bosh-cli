@@ -6,7 +6,7 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	. "github.com/cloudfoundry/bosh-init/installation"
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 	test_support_mocks "github.com/cloudfoundry/bosh-init/test_support/mocks"
@@ -34,7 +34,7 @@ var _ = Describe("Installation", func() {
 		mockRegistryServer        *mock_registry.MockServer
 
 		target       Target
-		installedJob biinstalljob.InstalledJob
+		installedJob InstalledJob
 	)
 
 	var newInstalation = func() Installation {
@@ -49,7 +49,7 @@ var _ = Describe("Installation", func() {
 
 		target = NewTarget("fake-installation-path")
 
-		installedJob = biinstalljob.NewInstalledJob(biinstalljob.RenderedJobRef{Name: "cpi"}, "fake-job-path")
+		installedJob = NewInstalledJob(RenderedJobRef{Name: "cpi"}, "fake-job-path")
 	})
 
 	Describe("WithRunningRegistry", func() {

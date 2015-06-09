@@ -1,7 +1,6 @@
 package installation
 
 import (
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
@@ -13,13 +12,29 @@ import (
 )
 
 type JobRenderer interface {
-	RenderAndUploadFrom(biinstallmanifest.Manifest, []bireljob.Job, biui.Stage) ([]biinstalljob.RenderedJobRef, error)
+	RenderAndUploadFrom(biinstallmanifest.Manifest, []bireljob.Job, biui.Stage) ([]RenderedJobRef, error)
 }
 
 type jobRenderer struct {
 	jobListRenderer bitemplate.JobListRenderer
 	compressor      boshcmd.Compressor
 	blobstore       boshblob.Blobstore
+}
+
+type RenderedJobRef struct {
+	Name        string
+	Version     string
+	BlobstoreID string
+	SHA1        string
+}
+
+func NewRenderedJobRef(name, version, blobstoreID, sha1 string) RenderedJobRef {
+	return RenderedJobRef{
+		Name:        name,
+		Version:     version,
+		BlobstoreID: blobstoreID,
+		SHA1:        sha1,
+	}
 }
 
 func NewJobRenderer(
@@ -34,7 +49,7 @@ func NewJobRenderer(
 	}
 }
 
-func (b *jobRenderer) RenderAndUploadFrom(installationManifest biinstallmanifest.Manifest, jobs []bireljob.Job, stage biui.Stage) ([]biinstalljob.RenderedJobRef, error) {
+func (b *jobRenderer) RenderAndUploadFrom(installationManifest biinstallmanifest.Manifest, jobs []bireljob.Job, stage biui.Stage) ([]RenderedJobRef, error) {
 	// installation jobs do not get rendered with global deployment properties, only the cloud_provider properties
 	globalProperties := biproperty.Map{}
 	jobProperties := installationManifest.Properties
@@ -59,8 +74,8 @@ func (b *jobRenderer) renderJobTemplates(
 	globalProperties biproperty.Map,
 	deploymentName string,
 	stage biui.Stage,
-) ([]biinstalljob.RenderedJobRef, error) {
-	renderedJobRefs := make([]biinstalljob.RenderedJobRef, 0, len(releaseJobs))
+) ([]RenderedJobRef, error) {
+	renderedJobRefs := make([]RenderedJobRef, 0, len(releaseJobs))
 	err := stage.Perform("Rendering job templates", func() error {
 		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 		if err != nil {
@@ -83,21 +98,21 @@ func (b *jobRenderer) renderJobTemplates(
 	return renderedJobRefs, err
 }
 
-func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (biinstalljob.RenderedJobRef, error) {
+func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (RenderedJobRef, error) {
 	tarballPath, err := b.compressor.CompressFilesInDir(renderedJob.Path())
 	if err != nil {
-		return biinstalljob.RenderedJobRef{}, bosherr.WrapError(err, "Compressing rendered job templates")
+		return RenderedJobRef{}, bosherr.WrapError(err, "Compressing rendered job templates")
 	}
 	defer b.compressor.CleanUp(tarballPath)
 
 	blobID, blobSHA1, err := b.blobstore.Create(tarballPath)
 	if err != nil {
-		return biinstalljob.RenderedJobRef{}, bosherr.WrapError(err, "Creating blob")
+		return RenderedJobRef{}, bosherr.WrapError(err, "Creating blob")
 	}
 
 	releaseJob := renderedJob.Job()
 
-	return biinstalljob.RenderedJobRef{
+	return RenderedJobRef{
 		Name:        releaseJob.Name,
 		Version:     releaseJob.Fingerprint,
 		BlobstoreID: blobID,

@@ -1,17 +1,29 @@
 package installation
 
 import (
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
+	"fmt"
+	"path"
+	"path/filepath"
+
+	"github.com/cloudfoundry/bosh-init/installation/blobextract"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
+type InstalledJob struct {
+	RenderedJobRef
+	Path string
+}
+
+func NewInstalledJob(ref RenderedJobRef, path string) InstalledJob {
+	return InstalledJob{RenderedJobRef: ref, Path: path}
+}
+
 type Installer interface {
-	InstallPackagesAndJobs(biinstallmanifest.Manifest, biui.Stage) (Installation, error)
+	Install(biinstallmanifest.Manifest, biui.Stage) (Installation, error)
 	Cleanup(Installation) error
 }
 
@@ -21,8 +33,7 @@ type installer struct {
 	jobResolver           JobResolver
 	packageCompiler       PackageCompiler
 	packagesPath          string
-	packageInstaller      biinstallpkg.Installer
-	jobInstaller          biinstalljob.Installer
+	blobExtractor         blobextract.Extractor
 	registryServerManager biregistry.ServerManager
 	logger                boshlog.Logger
 	logTag                string
@@ -34,8 +45,7 @@ func NewInstaller(
 	jobResolver JobResolver,
 	packageCompiler PackageCompiler,
 	packagesPath string,
-	packageInstaller biinstallpkg.Installer,
-	jobInstaller biinstalljob.Installer,
+	blobExtractor blobextract.Extractor,
 	registryServerManager biregistry.ServerManager,
 	logger boshlog.Logger,
 ) Installer {
@@ -45,15 +55,14 @@ func NewInstaller(
 		jobResolver:           jobResolver,
 		packageCompiler:       packageCompiler,
 		packagesPath:          packagesPath,
-		packageInstaller:      packageInstaller,
-		jobInstaller:          jobInstaller,
+		blobExtractor:         blobExtractor,
 		registryServerManager: registryServerManager,
 		logger:                logger,
 		logTag:                "installer",
 	}
 }
 
-func (i *installer) InstallPackagesAndJobs(manifest biinstallmanifest.Manifest, stage biui.Stage) (Installation, error) {
+func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stage) (Installation, error) {
 	i.logger.Info(i.logTag, "Installing CPI deployment '%s'", manifest.Name)
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
@@ -62,13 +71,13 @@ func (i *installer) InstallPackagesAndJobs(manifest biinstallmanifest.Manifest, 
 		return nil, bosherr.WrapError(err, "Resolving jobs from manifest")
 	}
 
-	compiledPackages, err := i.packageCompiler.For(jobs, i.packagesPath, stage)
+	compiledPackages, err := i.packageCompiler.For(jobs, stage)
 	if err != nil {
 		return nil, err
 	}
 
 	err = stage.Perform("Installing packages", func() error {
-		return i.install(compiledPackages)
+		return i.installPackages(compiledPackages)
 	})
 	if err != nil {
 		return nil, err
@@ -76,7 +85,7 @@ func (i *installer) InstallPackagesAndJobs(manifest biinstallmanifest.Manifest, 
 
 	renderedJobRefs, err := i.jobRenderer.RenderAndUploadFrom(manifest, jobs, stage)
 	renderedCPIJob := renderedJobRefs[0]
-	installedJob, err := i.jobInstaller.Install(renderedCPIJob, stage)
+	installedJob, err := i.installJob(renderedCPIJob, stage)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", renderedCPIJob.Name)
 	}
@@ -90,15 +99,37 @@ func (i *installer) InstallPackagesAndJobs(manifest biinstallmanifest.Manifest, 
 }
 
 func (i *installer) Cleanup(installation Installation) error {
-	return i.jobInstaller.Cleanup(installation.Job())
+	job := installation.Job()
+	return i.blobExtractor.Cleanup(job.BlobstoreID, job.SHA1, job.Path)
 }
 
-func (i *installer) install(compiledPackages []biinstallpkg.CompiledPackageRef) error {
-	for _, compiledPackageRef := range compiledPackages {
-		err := i.packageInstaller.Install(compiledPackageRef, i.packagesPath)
+func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error {
+	for _, pkg := range compiledPackages {
+		err := i.blobExtractor.Extract(pkg.BlobstoreID, pkg.SHA1, filepath.Join(i.packagesPath, pkg.Name))
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Installing package '%s'", compiledPackageRef.Name)
+			return bosherr.WrapErrorf(err, "Installing package '%s'", pkg.Name)
 		}
 	}
 	return nil
+}
+
+func (i *installer) installJob(renderedJobRef RenderedJobRef, stage biui.Stage) (installedJob InstalledJob, err error) {
+	err = stage.Perform(fmt.Sprintf("Installing job '%s'", renderedJobRef.Name), func() error {
+		var stageErr error
+		jobDir := filepath.Join(i.target.JobsPath(), renderedJobRef.Name)
+
+		stageErr = i.blobExtractor.Extract(renderedJobRef.BlobstoreID, renderedJobRef.SHA1, jobDir)
+		if stageErr != nil {
+			return bosherr.WrapErrorf(stageErr, "Extracting blob with ID '%s'", renderedJobRef.BlobstoreID)
+		}
+
+		stageErr = i.blobExtractor.ChmodExecutables(path.Join(jobDir, "bin", "*"))
+		if stageErr != nil {
+			return bosherr.WrapErrorf(stageErr, "Chmoding binaries for '%s'", jobDir)
+		}
+
+		installedJob = NewInstalledJob(renderedJobRef, jobDir)
+		return nil
+	})
+	return installedJob, err
 }

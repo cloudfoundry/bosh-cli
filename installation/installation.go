@@ -1,7 +1,6 @@
 package installation
 
 import (
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	biui "github.com/cloudfoundry/bosh-init/ui"
@@ -11,7 +10,7 @@ import (
 
 type Installation interface {
 	Target() Target
-	Job() biinstalljob.InstalledJob
+	Job() InstalledJob
 	WithRunningRegistry(boshlog.Logger, biui.Stage, func() error) error
 	StartRegistry() error
 	StopRegistry() error
@@ -19,7 +18,7 @@ type Installation interface {
 
 type installation struct {
 	target                Target
-	job                   biinstalljob.InstalledJob
+	job                   InstalledJob
 	manifest              biinstallmanifest.Manifest
 	registryServerManager biregistry.ServerManager
 
@@ -28,7 +27,7 @@ type installation struct {
 
 func NewInstallation(
 	target Target,
-	job biinstalljob.InstalledJob,
+	job InstalledJob,
 	manifest biinstallmanifest.Manifest,
 	registryServerManager biregistry.ServerManager,
 ) Installation {
@@ -44,7 +43,7 @@ func (i *installation) Target() Target {
 	return i.target
 }
 
-func (i *installation) Job() biinstalljob.InstalledJob {
+func (i *installation) Job() InstalledJob {
 	return i.job
 }
 

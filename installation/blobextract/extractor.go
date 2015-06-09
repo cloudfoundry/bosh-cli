@@ -1,4 +1,4 @@
-package blob
+package blobextract
 
 import (
 	"os"
@@ -10,8 +10,11 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
+//go:generate counterfeiter -o fakeblobextract/fake_extractor.go extractor.go Extractor
 type Extractor interface {
-	Extract(blobID string, blobSHA1 string, targetDir string) error
+	Extract(blobID, blobSHA1, targetDir string) error
+	Cleanup(blobID, blobSHA1, targetDir string) error
+	ChmodExecutables(binPath string) error
 }
 
 type extractor struct {
@@ -28,7 +31,7 @@ func NewExtractor(
 	blobstore boshblob.Blobstore,
 	logger boshlog.Logger,
 ) Extractor {
-	return extractor{
+	return &extractor{
 		fs:         fs,
 		compressor: compressor,
 		blobstore:  blobstore,
@@ -37,7 +40,7 @@ func NewExtractor(
 	}
 }
 
-func (e extractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
+func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
 	filePath, err := e.blobstore.Get(blobID, blobSHA1)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Getting object from blobstore: %s", blobID)
@@ -62,7 +65,26 @@ func (e extractor) Extract(blobID string, blobSHA1 string, targetDir string) err
 	return nil
 }
 
-func (e extractor) cleanUpBlob(filePath string) {
+func (e *extractor) ChmodExecutables(binGlob string) error {
+	files, err := e.fs.Glob(binGlob)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Globbing %s", binGlob)
+	}
+
+	for _, file := range files {
+		err = e.fs.Chmod(file, os.FileMode(0755))
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Making '%s' executable in '%s'", file, binGlob)
+		}
+	}
+	return nil
+}
+
+func (e *extractor) Cleanup(blobID string, blobSHA1 string, targetDir string) error {
+	return nil
+}
+
+func (e *extractor) cleanUpBlob(filePath string) {
 	err := e.blobstore.CleanUp(filePath)
 	if err != nil {
 		e.logger.Error(
@@ -72,7 +94,7 @@ func (e extractor) cleanUpBlob(filePath string) {
 	}
 }
 
-func (e extractor) cleanUpFile(filePath string) {
+func (e *extractor) cleanUpFile(filePath string) {
 	err := e.fs.RemoveAll(filePath)
 	if err != nil {
 		e.logger.Error(

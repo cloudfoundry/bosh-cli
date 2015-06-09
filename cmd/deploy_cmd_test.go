@@ -27,7 +27,6 @@ import (
 	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
@@ -369,8 +368,8 @@ func rootDesc() {
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := biinstall.NewTarget(installationPath)
 
-			installedJob := biinstalljob.NewInstalledJob(
-				biinstalljob.RenderedJobRef{
+			installedJob := biinstall.NewInstalledJob(
+				biinstall.RenderedJobRef{
 					Name: "fake-cpi-release-job-name",
 				},
 				filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),

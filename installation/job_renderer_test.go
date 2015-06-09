@@ -9,7 +9,6 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
-	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
@@ -163,13 +162,8 @@ var _ = Describe("JobRenderer", func() {
 			jobs, err := renderer.RenderAndUploadFrom(manifest, releaseJobs, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(jobs).To(Equal([]biinstalljob.RenderedJobRef{
-				{
-					Name:        "cpi",
-					Version:     "fake-release-job-fingerprint",
-					BlobstoreID: "fake-rendered-job-tarball-blobstore-id-cpi",
-					SHA1:        "fake-rendered-job-tarball-sha1-cpi",
-				},
+			Expect(jobs).To(Equal([]installation.RenderedJobRef{
+				installation.NewRenderedJobRef("cpi", "fake-release-job-fingerprint", "fake-rendered-job-tarball-blobstore-id-cpi", "fake-rendered-job-tarball-sha1-cpi"),
 			}))
 		})
 

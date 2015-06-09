@@ -1,9 +1,9 @@
-package blob_test
+package blobextract_test
 
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-init/installation/blob"
+	. "github.com/cloudfoundry/bosh-init/installation/blobextract"
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
