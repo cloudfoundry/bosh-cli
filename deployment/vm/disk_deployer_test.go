@@ -3,7 +3,7 @@ package vm_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/vm"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"

@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

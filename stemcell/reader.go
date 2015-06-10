@@ -4,7 +4,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"path/filepath"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"

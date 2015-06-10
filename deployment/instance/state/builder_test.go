@@ -11,8 +11,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"

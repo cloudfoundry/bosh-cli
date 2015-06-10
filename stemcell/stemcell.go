@@ -3,7 +3,7 @@ package stemcell
 import (
 	"fmt"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 

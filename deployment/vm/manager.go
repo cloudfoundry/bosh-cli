@@ -2,10 +2,10 @@ package vm
 
 import (
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
-	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bihttpagent "github.com/cloudfoundry/bosh-init/deployment/agentclient/http"
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

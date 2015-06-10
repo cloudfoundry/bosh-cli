@@ -2,7 +2,7 @@ package state
 
 import (
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"

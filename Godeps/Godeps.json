@@ -15,6 +15,14 @@
 			"Rev": "526771f51633c1315ac61c3d832f536f479e1501"
 		},
 		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/agentclient",
+			"Rev": "70cedfd71f7063d6bfab5efc7b601ff43f7a266e"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-agent/settings",
+			"Rev": "70cedfd71f7063d6bfab5efc7b601ff43f7a266e"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry/bosh-davcli/client",
 			"Rev": "fd7dbb3f3e88ec6516abf9f90f4feedb9413cc2e"
 		},
@@ -24,43 +32,51 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/blobstore",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/errors",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/fileutil",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/http",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/httpclient",
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/internal/github.com/cloudfoundry/gofileutils/glob",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/internal/github.com/nu7hatch/gouuid",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/logger",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/bosh-utils/property",
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/retrystrategy",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/system",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/uuid",
-			"Rev": "d41ff2652f0e049819b2610c916f32615d37cfc9"
+			"Rev": "091666c15d455d50ef826625d40250bf96a83cf5"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",

@@ -11,7 +11,7 @@ import (
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"

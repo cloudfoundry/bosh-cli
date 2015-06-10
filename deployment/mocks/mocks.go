@@ -8,7 +8,7 @@ import (
 	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	cloud "github.com/cloudfoundry/bosh-init/cloud"
 	deployment "github.com/cloudfoundry/bosh-init/deployment"
-	agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	disk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	instance "github.com/cloudfoundry/bosh-init/deployment/instance"
 	manifest0 "github.com/cloudfoundry/bosh-init/deployment/manifest"

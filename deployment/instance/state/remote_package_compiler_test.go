@@ -5,11 +5,11 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"

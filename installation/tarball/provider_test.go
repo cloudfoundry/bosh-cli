@@ -6,7 +6,7 @@ import (
 	"os"
 
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	fakebihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient/fakes"
+	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	. "github.com/cloudfoundry/bosh-init/installation/tarball"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

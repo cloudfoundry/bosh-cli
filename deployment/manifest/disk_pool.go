@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type DiskPool struct {

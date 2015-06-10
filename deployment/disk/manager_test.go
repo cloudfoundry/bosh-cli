@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	. "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"

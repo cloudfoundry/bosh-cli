@@ -6,7 +6,7 @@ package mocks
 import (
 	gomock "code.google.com/p/gomock/gomock"
 	cloud "github.com/cloudfoundry/bosh-init/cloud"
-	agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	vm "github.com/cloudfoundry/bosh-init/deployment/vm"
 )
 

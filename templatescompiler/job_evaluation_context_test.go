@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"

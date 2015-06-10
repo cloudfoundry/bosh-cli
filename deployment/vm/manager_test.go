@@ -5,10 +5,10 @@ import (
 
 	"github.com/cloudfoundry/bosh-init/cloud"
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebiagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
+	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-init/deployment/vm"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"

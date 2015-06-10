@@ -8,7 +8,7 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"

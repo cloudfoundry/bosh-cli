@@ -9,7 +9,7 @@ import (
 	"time"
 
 	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
-	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

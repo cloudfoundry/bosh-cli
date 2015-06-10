@@ -8,10 +8,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
-	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
-	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -19,7 +19,7 @@ import (
 
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebiagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/fakes"
+	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"

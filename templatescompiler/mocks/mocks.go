@@ -5,7 +5,7 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	property "github.com/cloudfoundry/bosh-init/common/property"
+	property "github.com/cloudfoundry/bosh-utils/property"
 	job "github.com/cloudfoundry/bosh-init/release/job"
 	templatescompiler "github.com/cloudfoundry/bosh-init/templatescompiler"
 )

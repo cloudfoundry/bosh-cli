@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

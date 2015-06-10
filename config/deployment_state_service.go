@@ -1,7 +1,7 @@
 package config
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type DeploymentState struct {

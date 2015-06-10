@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

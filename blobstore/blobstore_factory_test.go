@@ -9,7 +9,7 @@ import (
 
 	boshdavcli "github.com/cloudfoundry/bosh-davcli/client"
 	boshdavcliconf "github.com/cloudfoundry/bosh-davcli/config"
-	bihttpclient "github.com/cloudfoundry/bosh-init/deployment/httpclient"
+	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"

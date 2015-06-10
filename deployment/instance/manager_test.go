@@ -10,11 +10,11 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 
-	biproperty "github.com/cloudfoundry/bosh-init/common/property"
-	bias "github.com/cloudfoundry/bosh-init/deployment/applyspec"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"

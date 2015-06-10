@@ -2,7 +2,7 @@ package state
 
 import (
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	biagentclient "github.com/cloudfoundry/bosh-init/deployment/agentclient"
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
