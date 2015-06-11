@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"os"
+	"path/filepath"
 
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 
@@ -18,6 +19,7 @@ import (
 
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-init/release"
@@ -28,7 +30,6 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
@@ -52,7 +53,7 @@ var _ = Describe("DeploymentDeleter", func() {
 
 	Describe("DeleteDeployment", func() {
 		var (
-			fs                          boshsys.FileSystem
+			fs                          *fakesys.FakeFileSystem
 			logger                      boshlog.Logger
 			releaseManager              birel.Manager
 			mockCpiInstaller            *mock_install.MockInstaller
@@ -176,6 +177,13 @@ cloud_provider:
 				ReleaseSetParser:   releaseSetParser,
 				InstallationParser: installationParser,
 			}
+			fakeInstallationUUIDGenerator := &fakeuuid.FakeGenerator{}
+			fakeInstallationUUIDGenerator.GeneratedUUID = "fake-installation-id"
+			targetProvider := biinstall.NewTargetProvider(
+				deploymentStateService,
+				fakeInstallationUUIDGenerator,
+				filepath.Join("fake-install-dir"),
+			)
 
 			return bicmd.NewDeploymentDeleter(
 				fakeUI,
@@ -192,6 +200,8 @@ cloud_provider:
 				mockCpiUninstaller,
 				releaseFetcher,
 				releaseSetAndInstallationManifestParser,
+				fs,
+				targetProvider,
 			)
 		}
 
@@ -258,6 +268,7 @@ cloud_provider:
 
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
+			fs.EnableStrictTempRootBehavior()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
@@ -333,6 +344,13 @@ cloud_provider:
 					setupDeploymentStateService.Save(biconfig.DeploymentState{
 						DirectorID: directorID,
 					})
+				})
+
+				It("sets the temp root", func() {
+					expectDeleteAndCleanup(true)
+					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(fs.TempRootPath).To(Equal("fake-install-dir/fake-installation-id/tmp"))
 				})
 
 				It("extracts & install CPI release tarball", func() {

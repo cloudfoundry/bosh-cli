@@ -28,5 +28,9 @@ var _ = Describe("Target", func() {
 		It("returns the packages path", func() {
 			Expect(target.PackagesPath()).To(Equal("/home/fake/madcow/packages"))
 		})
+
+		It("returns the temp path", func() {
+			Expect(target.TmpPath()).To(Equal("/home/fake/madcow/tmp"))
+		})
 	})
 })

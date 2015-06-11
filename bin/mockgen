@@ -8,6 +8,7 @@ rootPackage=github.com/cloudfoundry/bosh-init
 srcFiles=(
   config/LegacyDeploymentStateMigrator
   cloud/Cloud,Factory
+  cmd/DeploymentDeleter
   installation/Installation,Installer,InstallerFactory,Uninstaller,JobResolver,PackageCompiler,JobRenderer
   installation/tarball/Provider
   deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
@@ -24,7 +25,6 @@ srcFiles=(
   templatescompiler/JobRenderer,JobListRenderer,RenderedJob,RenderedJobList,RenderedJobListArchive,RenderedJobListCompressor
   blobstore/Factory,Blobstore
   test_support/Spy
-  cmd/DeploymentDeleter
 )
 
 for srcFile in ${srcFiles[*]}; do

@@ -19,6 +19,10 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
+type TempRootConfigurator interface {
+	ChangeTempRoot(path string) error
+}
+
 func NewDeploymentPreparer(
 	ui biui.UI,
 	logger boshlog.Logger,
@@ -39,7 +43,8 @@ func NewDeploymentPreparer(
 	stemcellFetcher bistemcell.Fetcher,
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser,
 	deploymentManifestParser DeploymentManifestParser,
-
+	tempRootConfigurator TempRootConfigurator,
+	targetProvider biinstall.TargetProvider,
 ) DeploymentPreparer {
 	return DeploymentPreparer{
 		ui:                                      ui,
@@ -61,6 +66,8 @@ func NewDeploymentPreparer(
 		stemcellFetcher:                         stemcellFetcher,
 		releaseSetAndInstallationManifestParser: releaseSetAndInstallationManifestParser,
 		deploymentManifestParser:                deploymentManifestParser,
+		tempRootConfigurator:                    tempRootConfigurator,
+		targetProvider:                          targetProvider,
 	}
 }
 
@@ -84,6 +91,8 @@ type DeploymentPreparer struct {
 	stemcellFetcher                         bistemcell.Fetcher
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser
 	deploymentManifestParser                DeploymentManifestParser
+	tempRootConfigurator                    TempRootConfigurator
+	targetProvider                          biinstall.TargetProvider
 }
 
 func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
@@ -103,6 +112,13 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 	if err != nil {
 		return bosherr.WrapError(err, "Loading deployment state")
 	}
+
+	target, err := c.targetProvider.NewTarget()
+	if err != nil {
+		return bosherr.WrapError(err, "Teh target no...")
+	}
+
+	c.tempRootConfigurator.ChangeTempRoot(target.TmpPath())
 
 	defer func() {
 		err := c.releaseManager.DeleteAll()

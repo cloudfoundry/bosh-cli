@@ -148,6 +148,7 @@ func rootDesc() {
 			stdErr = gbytes.NewBuffer()
 			userInterface = biui.NewWriterUI(stdOut, stdErr, logger)
 			fakeFs = fakesys.NewFakeFileSystem()
+			fakeFs.EnableStrictTempRootBehavior()
 			deploymentManifestPath = "/path/to/manifest.yml"
 			deploymentStatePath = "/path/to/manifest-state.json"
 			fakeFs.RegisterOpenFile(deploymentManifestPath, &fakesys.FakeFile{
@@ -326,6 +327,14 @@ func rootDesc() {
 					ReleaseManager:      releaseManager,
 				}
 
+				fakeInstallationUUIDGenerator := &fakeuuid.FakeGenerator{}
+				fakeInstallationUUIDGenerator.GeneratedUUID = "fake-installation-id"
+				targetProvider := biinstall.NewTargetProvider(
+					deploymentStateService,
+					fakeInstallationUUIDGenerator,
+					filepath.Join("fake-install-dir"),
+				)
+
 				return bicmd.NewDeploymentPreparer(
 					userInterface,
 					logger,
@@ -346,6 +355,8 @@ func rootDesc() {
 					stemcellFetcher,
 					releaseSetAndInstallationManifestParser,
 					deploymentManifestParser,
+					fakeFs,
+					targetProvider,
 				), nil
 			}
 
@@ -435,6 +446,12 @@ func rootDesc() {
 			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
 			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/manifest-state.json'"))
 			Expect(stdOut).To(gbytes.Say("Migrated legacy deployments file: '/path/to/bosh-deployments.yml'"))
+		})
+
+		It("sets the temp root", func() {
+			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeFs.TempRootPath).To(Equal("fake-install-dir/fake-installation-id/tmp"))
 		})
 
 		It("parses the installation manifest", func() {

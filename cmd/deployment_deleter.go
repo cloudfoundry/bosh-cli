@@ -35,6 +35,8 @@ func NewDeploymentDeleter(
 	cpiUninstaller biinstall.Uninstaller,
 	releaseFetcher birel.Fetcher,
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser,
+	tempRootConfigurator TempRootConfigurator,
+	targetProvider biinstall.TargetProvider,
 ) DeploymentDeleter {
 	return &deploymentDeleter{
 		ui:                                      ui,
@@ -51,6 +53,8 @@ func NewDeploymentDeleter(
 		cpiUninstaller:                          cpiUninstaller,
 		releaseFetcher:                          releaseFetcher,
 		releaseSetAndInstallationManifestParser: releaseSetAndInstallationManifestParser,
+		tempRootConfigurator:                    tempRootConfigurator,
+		targetProvider:                          targetProvider,
 	}
 }
 
@@ -69,6 +73,8 @@ type deploymentDeleter struct {
 	cpiUninstaller                          biinstall.Uninstaller
 	releaseFetcher                          birel.Fetcher
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser
+	tempRootConfigurator                    TempRootConfigurator
+	targetProvider                          biinstall.TargetProvider
 }
 
 func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
@@ -83,6 +89,14 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 	if err != nil {
 		return bosherr.WrapError(err, "Loading deployment state")
 	}
+
+	target, err := c.targetProvider.NewTarget()
+	if err != nil {
+		return bosherr.WrapError(err, "Teh target no...")
+	}
+
+	c.tempRootConfigurator.ChangeTempRoot(target.TmpPath())
+
 	defer func() {
 		err := c.releaseManager.DeleteAll()
 		if err != nil {

@@ -26,7 +26,6 @@ type InstallerFactory interface {
 type installerFactory struct {
 	targetProvider        TargetProvider
 	ui                    biui.UI
-	fs                    boshsys.FileSystem
 	runner                boshsys.CmdRunner
 	extractor             boshcmd.Compressor
 	releaseJobResolver    bideplrel.JobResolver
@@ -34,23 +33,23 @@ type installerFactory struct {
 	registryServerManager biregistry.ServerManager
 	logger                boshlog.Logger
 	logTag                string
+	fs                    boshsys.FileSystem
 }
 
 func NewInstallerFactory(
 	targetProvider TargetProvider,
 	ui biui.UI,
-	fs boshsys.FileSystem,
 	runner boshsys.CmdRunner,
 	extractor boshcmd.Compressor,
 	releaseJobResolver bideplrel.JobResolver,
 	uuidGenerator boshuuid.Generator,
 	registryServerManager biregistry.ServerManager,
 	logger boshlog.Logger,
+	fs boshsys.FileSystem,
 ) InstallerFactory {
 	return &installerFactory{
 		targetProvider:        targetProvider,
 		ui:                    ui,
-		fs:                    fs,
 		runner:                runner,
 		extractor:             extractor,
 		releaseJobResolver:    releaseJobResolver,
@@ -58,6 +57,7 @@ func NewInstallerFactory(
 		registryServerManager: registryServerManager,
 		logger:                logger,
 		logTag:                "installer",
+		fs:                    fs,
 	}
 }
 
@@ -70,12 +70,12 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 
 	context := &installerFactoryContext{
 		target:             target,
-		fs:                 f.fs,
 		runner:             f.runner,
 		logger:             f.logger,
 		extractor:          f.extractor,
 		uuidGenerator:      f.uuidGenerator,
 		releaseJobResolver: f.releaseJobResolver,
+		fs:                 f.fs,
 	}
 
 	return NewInstaller(

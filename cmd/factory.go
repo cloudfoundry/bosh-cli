@@ -439,6 +439,8 @@ func (d *deploymentManagerFactory2) loadDeploymentPreparer() (DeploymentPreparer
 		d.loadStemcellFetcher(),
 		d.loadReleaseSetAndInstallationManifestParser(),
 		d.loadDeploymentManifestParser(),
+		d.f.fs,
+		d.loadTargetProvider(),
 	), nil
 }
 
@@ -462,6 +464,8 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() (DeploymentDeleter, 
 		d.loadCpiUninstaller(),
 		d.loadReleaseFetcher(),
 		d.loadReleaseSetAndInstallationManifestParser(),
+		d.f.fs,
+		d.loadTargetProvider(),
 	), nil
 }
 
@@ -594,24 +598,26 @@ func (d *deploymentManagerFactory2) loadInstallerFactory() biinstall.InstallerFa
 		return d.installerFactory
 	}
 
-	targetProvider := biinstall.NewTargetProvider(
-		d.loadDeploymentStateService(),
-		d.f.uuidGenerator,
-		filepath.Join(d.f.workspaceRootPath, "installations"),
-	)
-
 	d.installerFactory = biinstall.NewInstallerFactory(
-		targetProvider,
+		d.loadTargetProvider(),
 		d.f.ui,
-		d.f.fs,
 		d.f.loadCMDRunner(),
 		d.f.loadCompressor(),
 		d.f.loadReleaseJobResolver(),
 		d.f.uuidGenerator,
 		d.f.loadRegistryServerManager(),
 		d.f.logger,
+		d.f.fs,
 	)
 	return d.installerFactory
+}
+
+func (d *deploymentManagerFactory2) loadTargetProvider() biinstall.TargetProvider {
+	return biinstall.NewTargetProvider(
+		d.loadDeploymentStateService(),
+		d.f.uuidGenerator,
+		filepath.Join(d.f.workspaceRootPath, "installations"),
+	)
 }
 
 func (d *deploymentManagerFactory2) loadCpiUninstaller() biinstall.Uninstaller {

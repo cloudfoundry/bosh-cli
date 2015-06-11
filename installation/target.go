@@ -37,3 +37,7 @@ func (t Target) PackagesPath() string {
 func (t Target) JobsPath() string {
 	return filepath.Join(t.path, "jobs")
 }
+
+func (t Target) TmpPath() string {
+	return filepath.Join(t.path, "tmp")
+}

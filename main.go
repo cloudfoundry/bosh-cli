@@ -25,7 +25,7 @@ const mainLogTag = "main"
 func main() {
 	logger := newLogger()
 	defer logger.HandlePanic("Main")
-	fileSystem := boshsys.NewOsFileSystem(logger)
+	fileSystem := boshsys.NewOsFileWithStrictTempRoot(logger)
 	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_init")
 	ui := biui.NewConsoleUI(logger)
 

@@ -438,6 +438,12 @@ cloud_provider:
 					ReleaseManager:      releaseManager,
 				}
 
+				targetProvider := biinstall.NewTargetProvider(
+					deploymentStateService,
+					fakeUUIDGenerator,
+					filepath.Join("fake-install-dir"),
+				)
+
 				return NewDeploymentPreparer(
 					ui,
 					logger,
@@ -458,6 +464,8 @@ cloud_provider:
 					stemcellFetcher,
 					releaseSetAndInstallationManifestParser,
 					deploymentManifestParser,
+					fs,
+					targetProvider,
 				), nil
 			}
 
@@ -745,6 +753,8 @@ cloud_provider:
 			Expect(err).ToNot(HaveOccurred())
 
 			fs = fakesys.NewFakeFileSystem()
+			fs.EnableStrictTempRootBehavior()
+
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 			setupDeploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
