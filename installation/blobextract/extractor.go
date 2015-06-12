@@ -63,7 +63,7 @@ func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) er
 			// Clean up extracted contents of blob
 			e.cleanUpFile(targetDir)
 		}
-		return bosherr.WrapErrorf(err, "Decompressing compiled package: BlobID:'%s', BlobSHA1: '%s'", blobID, blobSHA1)
+		return bosherr.WrapErrorf(err, "Decompressing compiled package: BlobID: '%s', BlobSHA1: '%s'", blobID, blobSHA1)
 	}
 	return nil
 }
