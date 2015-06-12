@@ -22,10 +22,12 @@ var _ = Describe("Extractor", func() {
 		logger        boshlog.Logger
 		fs            *fakesys.FakeFileSystem
 
-		blobID            string
-		blobSHA1          string
-		extractedBlobPath string
+		blobID              string
+		blobSHA1            string
+		decompressionResult string
+		fileName            string
 	)
+
 	BeforeEach(func() {
 		blobstore = fakeblobstore.NewFakeBlobstore()
 		targetDir = "fake-target-dir"
@@ -34,14 +36,28 @@ var _ = Describe("Extractor", func() {
 		fs = fakesys.NewFakeFileSystem()
 		blobID = "fake-blob-id"
 		blobSHA1 = "fake-sha1"
-		extractedBlobPath = "fake-target-dir/fake-blob-file"
+		fileName = "tarball.tgz"
+		blobstore.GetFileName = fileName
+		decompressionResult = "decompressed 'tarball.tgz' to directory 'fake-target-dir'"
 
 		extractor = NewExtractor(fs, fakeExtractor, blobstore, logger)
 	})
 
 	Describe("Cleanup", func() {
+		BeforeEach(func() {
+			err := extractor.Extract(blobID, blobSHA1, targetDir)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("deletes the extracted temp file", func() {
+			Expect(fs.FileExists(targetDir)).To(BeTrue())
+			err := extractor.Cleanup(blobID, targetDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fs.FileExists(targetDir)).To(BeFalse())
+		})
+
 		It("deletes the stored blob", func() {
-			err := extractor.Cleanup(blobID, extractedBlobPath)
+			err := extractor.Cleanup(blobID, targetDir)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(blobstore.DeleteBlobID).To(Equal(blobID))
 		})
@@ -49,13 +65,6 @@ var _ = Describe("Extractor", func() {
 
 	Describe("Extract", func() {
 		Context("when the specified blobID exists in the blobstore", func() {
-			var fileName string
-
-			BeforeEach(func() {
-				fileName = "fake-blob-file"
-				blobstore.GetFileName = fileName
-			})
-
 			It("creates the installed package dir if it does not exist", func() {
 				Expect(fs.FileExists(targetDir)).To(BeFalse())
 				err := extractor.Extract(blobID, blobSHA1, targetDir)
@@ -66,7 +75,7 @@ var _ = Describe("Extractor", func() {
 			It("decompresses the blob into the target dir", func() {
 				err := extractor.Extract(blobID, blobSHA1, targetDir)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeExtractor.DecompressedFiles()).To(ContainElement(extractedBlobPath))
+				Expect(fakeExtractor.DecompressedFiles()).To(ContainElement(decompressionResult))
 			})
 
 			It("cleans up the extracted blob file", func() {
@@ -82,12 +91,12 @@ var _ = Describe("Extractor", func() {
 
 				It("decompresses the blob into the target dir", func() {
 					Expect(fs.FileExists(targetDir)).To(BeTrue())
-					Expect(fakeExtractor.DecompressedFiles()).ToNot(ContainElement(extractedBlobPath))
+					Expect(fakeExtractor.DecompressedFiles()).ToNot(ContainElement(decompressionResult))
 
 					err := extractor.Extract(blobID, blobSHA1, targetDir)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fs.FileExists(targetDir)).To(BeTrue())
-					Expect(fakeExtractor.DecompressedFiles()).To(ContainElement(extractedBlobPath))
+					Expect(fakeExtractor.DecompressedFiles()).To(ContainElement(decompressionResult))
 				})
 
 				It("does not re-create the target package dir", func() {
@@ -99,13 +108,13 @@ var _ = Describe("Extractor", func() {
 				Context("and decompressing the blob fails", func() {
 					It("returns an error and doesn't remove the target dir", func() {
 						fakeExtractor.SetDecompressBehavior(
-							"fake-blob-file",
-							"fake-target-dir",
+							fileName,
+							targetDir,
 							errors.New("fake-error"))
 						Expect(fs.FileExists(targetDir)).To(BeTrue())
 						err := extractor.Extract(blobID, blobSHA1, targetDir)
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Extracting compiled package"))
+						Expect(err.Error()).To(ContainSubstring("Decompressing compiled package"))
 						Expect(fs.FileExists(targetDir)).To(BeTrue())
 					})
 				})
@@ -119,6 +128,7 @@ var _ = Describe("Extractor", func() {
 				It("returns an error", func() {
 					err := extractor.Extract(blobID, blobSHA1, targetDir)
 					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Getting object from blobstore"))
 					Expect(err.Error()).To(ContainSubstring("fake-error"))
 				})
 			})
@@ -142,15 +152,15 @@ var _ = Describe("Extractor", func() {
 			Context("when decompressing the blob fails", func() {
 				BeforeEach(func() {
 					fakeExtractor.SetDecompressBehavior(
-						"fake-blob-file",
-						"fake-target-dir",
+						fileName,
+						targetDir,
 						errors.New("fake-error"))
 				})
 
 				It("returns an error", func() {
 					err := extractor.Extract(blobID, blobSHA1, targetDir)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Extracting compiled package"))
+					Expect(err.Error()).To(ContainSubstring("Decompressing compiled package"))
 					Expect(err.Error()).To(ContainSubstring("fake-error"))
 				})
 

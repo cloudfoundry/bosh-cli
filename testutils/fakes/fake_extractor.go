@@ -60,7 +60,7 @@ func (e *FakeMultiResponseExtractor) SetDecompressBehavior(srcFile, destDir stri
 func (e *FakeMultiResponseExtractor) DecompressedFiles() []string {
 	files := make([]string, 0, len(e.decompressedInputs))
 	for _, decompressedInput := range e.decompressedInputs {
-		file := fmt.Sprintf("%s/%s", decompressedInput.destDir, decompressedInput.srcFile)
+		file := fmt.Sprintf("decompressed '%s' to directory '%s'", decompressedInput.srcFile, decompressedInput.destDir)
 		files = append(files, file)
 	}
 	return files

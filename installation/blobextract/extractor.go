@@ -63,7 +63,7 @@ func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) er
 			// Clean up extracted contents of blob
 			e.cleanUpFile(targetDir)
 		}
-		return bosherr.WrapErrorf(err, "Extracting compiled package: BlobID:'%s', BlobSHA1: '%s'", blobID, blobSHA1)
+		return bosherr.WrapErrorf(err, "Decompressing compiled package: BlobID:'%s', BlobSHA1: '%s'", blobID, blobSHA1)
 	}
 	return nil
 }
@@ -83,8 +83,8 @@ func (e *extractor) ChmodExecutables(binGlob string) error {
 	return nil
 }
 
-func (e *extractor) Cleanup(blobID string, extractedBlobPath string) error {
-	e.cleanUpFile(extractedBlobPath)
+func (e *extractor) Cleanup(blobID string, decompressedBlobPath string) error {
+	e.cleanUpFile(decompressedBlobPath)
 
 	err := e.blobstore.Delete(blobID)
 	if err != nil {
