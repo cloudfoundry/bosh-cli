@@ -41,11 +41,13 @@ func NewExtractor(
 }
 
 func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
-	filePath, err := e.blobstore.Get(blobID, blobSHA1) // retrieve a temp copy of blob
+	// Retrieve a temp copy of blob
+	filePath, err := e.blobstore.Get(blobID, blobSHA1)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Getting object from blobstore: %s", blobID)
 	}
-	defer e.cleanUpBlob(filePath) // clean up temp copy of blob
+	// Clean up temp copy of blob
+	defer e.cleanUpBlob(filePath)
 
 	existed := e.fs.FileExists(targetDir)
 	if !existed {
@@ -58,7 +60,8 @@ func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) er
 	err = e.compressor.DecompressFileToDir(filePath, targetDir, boshcmd.CompressorOptions{})
 	if err != nil {
 		if !existed {
-			e.cleanUpFile(targetDir) // clean up extracted contents of blob
+			// Clean up extracted contents of blob
+			e.cleanUpFile(targetDir)
 		}
 		return bosherr.WrapErrorf(err, "Extracting compiled package: BlobID:'%s', BlobSHA1: '%s'", blobID, blobSHA1)
 	}
