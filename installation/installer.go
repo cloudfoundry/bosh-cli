@@ -100,7 +100,7 @@ func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stag
 
 func (i *installer) Cleanup(installation Installation) error {
 	job := installation.Job()
-	return i.blobExtractor.Cleanup(job.BlobstoreID, job.SHA1, job.Path)
+	return i.blobExtractor.Cleanup(job.BlobstoreID, job.Path)
 }
 
 func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error {

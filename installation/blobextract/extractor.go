@@ -13,7 +13,7 @@ import (
 //go:generate counterfeiter -o fakeblobextract/fake_extractor.go extractor.go Extractor
 type Extractor interface {
 	Extract(blobID, blobSHA1, targetDir string) error
-	Cleanup(blobID, blobSHA1, targetDir string) error
+	Cleanup(blobID string, extractedBlobPath string) error
 	ChmodExecutables(binPath string) error
 }
 
@@ -41,11 +41,11 @@ func NewExtractor(
 }
 
 func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
-	filePath, err := e.blobstore.Get(blobID, blobSHA1)
+	filePath, err := e.blobstore.Get(blobID, blobSHA1) // retrieve a temp copy of blob
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Getting object from blobstore: %s", blobID)
 	}
-	defer e.cleanUpBlob(filePath)
+	defer e.cleanUpBlob(filePath) // clean up temp copy of blob
 
 	existed := e.fs.FileExists(targetDir)
 	if !existed {
@@ -58,7 +58,7 @@ func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) er
 	err = e.compressor.DecompressFileToDir(filePath, targetDir, boshcmd.CompressorOptions{})
 	if err != nil {
 		if !existed {
-			e.cleanUpFile(targetDir)
+			e.cleanUpFile(targetDir) // clean up extracted contents of blob
 		}
 		return bosherr.WrapErrorf(err, "Extracting compiled package: BlobID:'%s', BlobSHA1: '%s'", blobID, blobSHA1)
 	}
@@ -80,7 +80,13 @@ func (e *extractor) ChmodExecutables(binGlob string) error {
 	return nil
 }
 
-func (e *extractor) Cleanup(blobID string, blobSHA1 string, targetDir string) error {
+func (e *extractor) Cleanup(blobID string, extractedBlobPath string) error {
+	e.cleanUpFile(extractedBlobPath)
+
+	err := e.blobstore.Delete(blobID)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Deleting object from blobstore: %s", blobID)
+	}
 	return nil
 }
 

@@ -18,12 +18,11 @@ type FakeExtractor struct {
 	extractReturns struct {
 		result1 error
 	}
-	CleanupStub        func(blobID, blobSHA1, targetDir string) error
+	CleanupStub        func(blobID string, extractedBlobPath string) error
 	cleanupMutex       sync.RWMutex
 	cleanupArgsForCall []struct {
-		blobID    string
-		blobSHA1  string
-		targetDir string
+		blobID            string
+		extractedBlobPath string
 	}
 	cleanupReturns struct {
 		result1 error
@@ -72,16 +71,15 @@ func (fake *FakeExtractor) ExtractReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeExtractor) Cleanup(blobID string, blobSHA1 string, targetDir string) error {
+func (fake *FakeExtractor) Cleanup(blobID string, extractedBlobPath string) error {
 	fake.cleanupMutex.Lock()
 	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct {
-		blobID    string
-		blobSHA1  string
-		targetDir string
-	}{blobID, blobSHA1, targetDir})
+		blobID            string
+		extractedBlobPath string
+	}{blobID, extractedBlobPath})
 	fake.cleanupMutex.Unlock()
 	if fake.CleanupStub != nil {
-		return fake.CleanupStub(blobID, blobSHA1, targetDir)
+		return fake.CleanupStub(blobID, extractedBlobPath)
 	} else {
 		return fake.cleanupReturns.result1
 	}
@@ -93,10 +91,10 @@ func (fake *FakeExtractor) CleanupCallCount() int {
 	return len(fake.cleanupArgsForCall)
 }
 
-func (fake *FakeExtractor) CleanupArgsForCall(i int) (string, string, string) {
+func (fake *FakeExtractor) CleanupArgsForCall(i int) (string, string) {
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
-	return fake.cleanupArgsForCall[i].blobID, fake.cleanupArgsForCall[i].blobSHA1, fake.cleanupArgsForCall[i].targetDir
+	return fake.cleanupArgsForCall[i].blobID, fake.cleanupArgsForCall[i].extractedBlobPath
 }
 
 func (fake *FakeExtractor) CleanupReturns(result1 error) {

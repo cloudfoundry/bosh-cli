@@ -21,8 +21,9 @@ var _ = Describe("Extractor", func() {
 		logger        boshlog.Logger
 		fs            *fakesys.FakeFileSystem
 
-		blobID   string
-		blobSHA1 string
+		blobID            string
+		blobSHA1          string
+		extractedBlobPath string
 	)
 	BeforeEach(func() {
 		blobstore = fakeblobstore.NewFakeBlobstore()
@@ -32,8 +33,17 @@ var _ = Describe("Extractor", func() {
 		fs = fakesys.NewFakeFileSystem()
 		blobID = "fake-blob-id"
 		blobSHA1 = "fake-sha1"
+		extractedBlobPath = "fake-target-dir/fake-blob-file"
 
 		extractor = NewExtractor(fs, fakeExtractor, blobstore, logger)
+	})
+
+	Describe("Cleanup", func() {
+		It("deletes the stored blob", func() {
+			err := extractor.Cleanup(blobID, extractedBlobPath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(blobstore.DeleteBlobID).To(Equal(blobID))
+		})
 	})
 
 	Context("when the specified blobID exists in the blobstore", func() {

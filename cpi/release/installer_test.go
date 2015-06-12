@@ -16,13 +16,13 @@ import (
 var _ = Describe("Installer", func() {
 	Describe("WithInstalledCpiRelease", func() {
 		var (
-			mockCtrl                     *gomock.Controller
-			mockInstaller                *mocks.MockInstaller
-			installationManifest         biinstallationmanifest.Manifest
-			installStage                 *fakeui.FakeStage
-			installation                 *mocks.MockInstallation
-			expectInstallPackagesAndJobs *gomock.Call
-			expectCleanup                *gomock.Call
+			mockCtrl             *gomock.Controller
+			mockInstaller        *mocks.MockInstaller
+			installationManifest biinstallationmanifest.Manifest
+			installStage         *fakeui.FakeStage
+			installation         *mocks.MockInstallation
+			expectInstall        *gomock.Call
+			expectCleanup        *gomock.Call
 		)
 
 		BeforeEach(func() {
@@ -39,7 +39,7 @@ var _ = Describe("Installer", func() {
 			installStage = fakeui.NewFakeStage()
 			installation = mocks.NewMockInstallation(mockCtrl)
 
-			expectInstallPackagesAndJobs = mockInstaller.EXPECT().InstallPackagesAndJobs(installationManifest, gomock.Any())
+			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any())
 			expectCleanup = mockInstaller.EXPECT().Cleanup(installation).Return(nil)
 
 		})
@@ -49,7 +49,7 @@ var _ = Describe("Installer", func() {
 				Installer: mockInstaller,
 			}
 
-			expectInstallPackagesAndJobs.Return(installation, nil)
+			expectInstall.Return(installation, nil)
 
 			var installationArgumentToFunction biinstallation.Installation
 			err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
@@ -68,16 +68,16 @@ var _ = Describe("Installer", func() {
 				Installer: mockInstaller,
 			}
 
-			var stageForInstallPackagesAndJobs ui.Stage
-			expectInstallPackagesAndJobs.Do(func(manifest biinstallationmanifest.Manifest, stage ui.Stage) {
-				stageForInstallPackagesAndJobs = stage
+			var stageForInstall ui.Stage
+			expectInstall.Do(func(manifest biinstallationmanifest.Manifest, stage ui.Stage) {
+				stageForInstall = stage
 			}).Return(installation, nil)
 
 			err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
 				return nil
 			})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(stageForInstallPackagesAndJobs).To(fakeui.BeASubstageOf(installStage))
+			Expect(stageForInstall).To(fakeui.BeASubstageOf(installStage))
 
 			Expect(installStage.PerformCalls).To(ContainElement(
 				&fakeui.PerformCall{
@@ -93,7 +93,7 @@ var _ = Describe("Installer", func() {
 			}
 
 			cleanupCalled := false
-			expectInstallPackagesAndJobs.Return(installation, nil)
+			expectInstall.Return(installation, nil)
 			expectCleanup.Times(1).Do(func(_ biinstallation.Installation) {
 				cleanupCalled = true
 			})
@@ -108,7 +108,7 @@ var _ = Describe("Installer", func() {
 			cpiInstaller := release.CpiInstaller{
 				Installer: mockInstaller,
 			}
-			expectInstallPackagesAndJobs.Return(installation, nil)
+			expectInstall.Return(installation, nil)
 
 			err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
 				return nil
@@ -129,7 +129,7 @@ var _ = Describe("Installer", func() {
 					Installer: mockInstaller,
 				}
 
-				expectInstallPackagesAndJobs.Return(nil, errors.New("couldn't install that"))
+				expectInstall.Return(nil, errors.New("couldn't install that"))
 				expectCleanup.Times(0)
 
 				err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
@@ -147,7 +147,7 @@ var _ = Describe("Installer", func() {
 					Installer: mockInstaller,
 				}
 
-				expectInstallPackagesAndJobs.Return(installation, nil)
+				expectInstall.Return(installation, nil)
 
 				err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
 					return errors.New("My passed in function failed")
@@ -162,7 +162,7 @@ var _ = Describe("Installer", func() {
 					Installer: mockInstaller,
 				}
 
-				expectInstallPackagesAndJobs.Return(installation, nil)
+				expectInstall.Return(installation, nil)
 				expectCleanup.Times(1)
 
 				err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
@@ -178,7 +178,7 @@ var _ = Describe("Installer", func() {
 					Installer: mockInstaller,
 				}
 
-				expectInstallPackagesAndJobs.Return(installation, nil)
+				expectInstall.Return(installation, nil)
 				expectCleanup.Return(errors.New("cleanup failed"))
 
 				err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {
@@ -194,7 +194,7 @@ var _ = Describe("Installer", func() {
 					Installer: mockInstaller,
 				}
 
-				expectInstallPackagesAndJobs.Return(installation, nil)
+				expectInstall.Return(installation, nil)
 				expectCleanup.Return(errors.New("cleanup failed"))
 
 				err := cpiInstaller.WithInstalledCpiRelease(installationManifest, installStage, func(installation biinstallation.Installation) error {

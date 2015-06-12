@@ -143,10 +143,8 @@ var _ = Describe("Installer", func() {
 
 			Expect(fakeExtractor.CleanupCallCount()).To(Equal(1))
 
-			blobstoreID, sha1, jobPath := fakeExtractor.CleanupArgsForCall(0)
+			blobstoreID := fakeExtractor.CleanupArgsForCall(0)
 			Expect(blobstoreID).To(Equal(installedJob.BlobstoreID))
-			Expect(sha1).To(Equal(installedJob.SHA1))
-			Expect(jobPath).To(Equal(installedJob.Path))
 		})
 
 		It("returns errors when cleaning up installed jobs", func() {

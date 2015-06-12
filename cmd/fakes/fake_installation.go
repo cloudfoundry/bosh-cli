@@ -13,8 +13,8 @@ func (f *FakeInstallation) Target() biinstallation.Target {
 	return biinstallation.Target{}
 }
 
-func (f *FakeInstallation) Job() InstalledJob {
-	return InstalledJob{}
+func (f *FakeInstallation) Job() biinstallation.InstalledJob {
+	return biinstallation.InstalledJob{}
 }
 
 func (f *FakeInstallation) WithRunningRegistry(logger boshlog.Logger, stage biui.Stage, fn func() error) error {
