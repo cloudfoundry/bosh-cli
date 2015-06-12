@@ -11,8 +11,6 @@ srcFiles=(
   installation/Installation,Installer,InstallerFactory,Uninstaller,JobResolver,PackageCompiler,JobRenderer
   installation/tarball/Provider
   deployment/Deployment,Factory,Deployer,Manager,ManagerFactory
-  deployment/agentclient/AgentClient
-  deployment/agentclient/http/AgentClientFactory
   deployment/instance/Instance,Manager
   deployment/instance/state/BuilderFactory,Builder,State
   deployment/disk/Disk,Manager
