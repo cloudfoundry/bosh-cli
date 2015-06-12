@@ -1,7 +1,6 @@
 package installation
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
@@ -10,6 +9,7 @@ import (
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type JobRenderer interface {

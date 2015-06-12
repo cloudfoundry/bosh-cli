@@ -1,9 +1,9 @@
 package vm
 
 import (
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"

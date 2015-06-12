@@ -1,8 +1,8 @@
 package state
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type State interface {

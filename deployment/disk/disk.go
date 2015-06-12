@@ -4,9 +4,9 @@ import (
 	"reflect"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type Disk interface {

@@ -10,11 +10,11 @@ import (
 
 	"code.google.com/p/gomock/gomock"
 
+	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
 	mock_config "github.com/cloudfoundry/bosh-init/config/mocks"
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
 	mock_vm "github.com/cloudfoundry/bosh-init/deployment/vm/mocks"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
@@ -23,7 +23,6 @@ import (
 	mock_stemcell "github.com/cloudfoundry/bosh-init/stemcell/mocks"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
@@ -39,13 +38,13 @@ import (
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
 	"fmt"
 
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	"github.com/cloudfoundry/bosh-init/crypto"
 	"github.com/cloudfoundry/bosh-init/deployment"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	fakebideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
 	fakebideplval "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
@@ -54,6 +53,7 @@ import (
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest/fakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/onsi/gomega/gbytes"

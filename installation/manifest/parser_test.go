@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )

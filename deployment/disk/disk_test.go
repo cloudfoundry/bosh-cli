@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 

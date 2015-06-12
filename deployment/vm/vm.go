@@ -3,10 +3,10 @@ package vm
 import (
 	"time"
 
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"

@@ -9,7 +9,6 @@ import (
 	"code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
@@ -18,6 +17,7 @@ import (
 	fakeboshblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
 	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"

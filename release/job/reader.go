@@ -3,10 +3,10 @@ package job
 import (
 	"path"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bireljobmanifest "github.com/cloudfoundry/bosh-init/release/job/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 )

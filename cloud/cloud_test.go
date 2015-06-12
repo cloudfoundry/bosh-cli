@@ -3,8 +3,8 @@ package cloud_test
 import (
 	"errors"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 

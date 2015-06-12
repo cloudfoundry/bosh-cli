@@ -5,10 +5,10 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	property "github.com/cloudfoundry/bosh-utils/property"
 	disk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	manifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	ui "github.com/cloudfoundry/bosh-init/ui"
+	property "github.com/cloudfoundry/bosh-utils/property"
 )
 
 // Mock of Disk interface

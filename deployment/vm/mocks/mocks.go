@@ -5,8 +5,8 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	cloud "github.com/cloudfoundry/bosh-init/cloud"
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	cloud "github.com/cloudfoundry/bosh-init/cloud"
 	vm "github.com/cloudfoundry/bosh-init/deployment/vm"
 )
 

@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 func NewFakeReleaseJobRef() bideplmanifest.ReleaseJobRef {

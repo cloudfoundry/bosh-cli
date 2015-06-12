@@ -4,9 +4,9 @@ import (
 	. "github.com/cloudfoundry/bosh-init/deployment"
 
 	"code.google.com/p/gomock/gomock"
+	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_disk "github.com/cloudfoundry/bosh-init/deployment/disk/mocks"
 	mock_instance "github.com/cloudfoundry/bosh-init/deployment/instance/mocks"
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"

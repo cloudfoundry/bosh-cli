@@ -11,13 +11,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

@@ -7,9 +7,9 @@ import (
 
 	"errors"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 

@@ -5,9 +5,9 @@ import (
 	"path"
 	"regexp"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )

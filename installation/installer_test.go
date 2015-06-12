@@ -11,12 +11,12 @@ import (
 	mock_install_pkg "github.com/cloudfoundry/bosh-init/installation/pkg/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biinstalljob "github.com/cloudfoundry/bosh-init/installation/job"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
 	"errors"
 

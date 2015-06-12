@@ -2,7 +2,6 @@ package state
 
 import (
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
@@ -11,6 +10,7 @@ import (
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type Builder interface {

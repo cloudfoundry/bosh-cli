@@ -5,9 +5,9 @@ package mocks
 
 import (
 	gomock "code.google.com/p/gomock/gomock"
-	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	applyspec "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	state "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 	manifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	ui "github.com/cloudfoundry/bosh-init/ui"

@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"

@@ -1,9 +1,9 @@
 package manifest
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 )

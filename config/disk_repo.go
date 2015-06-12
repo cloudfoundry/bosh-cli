@@ -1,8 +1,8 @@
 package config
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 

@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	bidepl "github.com/cloudfoundry/bosh-init/deployment"
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	birel "github.com/cloudfoundry/bosh-init/release"

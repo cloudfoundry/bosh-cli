@@ -4,11 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 

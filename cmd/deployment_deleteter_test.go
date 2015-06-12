@@ -8,15 +8,14 @@ import (
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 
 	"code.google.com/p/gomock/gomock"
-	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
 	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
 	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
@@ -28,15 +27,16 @@ import (
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
 	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 )
 
 var _ = Describe("DeploymentDeleter", func() {
