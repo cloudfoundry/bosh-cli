@@ -9,22 +9,21 @@ import (
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-
-	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )
 
 var _ = Describe("tarReader", func() {
 	var (
-		reader        Reader
-		fakeFs        *fakesys.FakeFileSystem
-		fakeExtractor *testfakes.FakeMultiResponseExtractor
+		reader     Reader
+		fakeFs     *fakesys.FakeFileSystem
+		compressor *fakecmd.FakeCompressor
 	)
 
 	BeforeEach(func() {
 		fakeFs = fakesys.NewFakeFileSystem()
-		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
-		reader = NewReader("/some/release.tgz", "/extracted/release", fakeFs, fakeExtractor)
+		compressor = fakecmd.NewFakeCompressor()
+		reader = NewReader("/some/release.tgz", "/extracted/release", fakeFs, compressor)
 	})
 
 	Describe("Read", func() {
@@ -104,7 +103,7 @@ packages:
 
 					Context("when the package cannot be extracted", func() {
 						BeforeEach(func() {
-							fakeExtractor.SetDecompressBehavior("/some/release.tgz", "/extracted/release", errors.New("Extracting package 'fake-package'"))
+							compressor.DecompressFileToDirErr = errors.New("Extracting package 'fake-package'")
 						})
 
 						It("returns errors for each invalid package", func() {
@@ -219,7 +218,7 @@ packages:
 
 		Context("when the CPI release is not a valid tar", func() {
 			BeforeEach(func() {
-				fakeExtractor.SetDecompressBehavior("/some/release.tgz", "/extracted/release", errors.New("fake-error"))
+				compressor.DecompressFileToDirErr = errors.New("fake-error")
 			})
 
 			It("returns err", func() {

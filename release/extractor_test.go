@@ -8,28 +8,28 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
-	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )
 
 var _ = Describe("Extractor", func() {
 
 	var (
 		fakeFS               *fakesys.FakeFileSystem
-		fakeExtractor        *testfakes.FakeMultiResponseExtractor
+		compressor           *fakecmd.FakeCompressor
 		fakeReleaseValidator *fakebirel.FakeValidator
 		releaseExtractor     Extractor
 	)
 
 	BeforeEach(func() {
 		fakeFS = fakesys.NewFakeFileSystem()
-		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
+		compressor = fakecmd.NewFakeCompressor()
 		fakeReleaseValidator = fakebirel.NewFakeValidator()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		releaseExtractor = NewExtractor(fakeFS, fakeExtractor, fakeReleaseValidator, logger)
+		releaseExtractor = NewExtractor(fakeFS, compressor, fakeReleaseValidator, logger)
 	})
 
 	Describe("Extract", func() {
@@ -141,7 +141,7 @@ properties: {}
 
 			Context("and the tarball cannot be read", func() {
 				BeforeEach(func() {
-					fakeExtractor.SetDecompressBehavior(releaseTarballPath, "/extracted-release-path", bosherr.Error("fake-error"))
+					compressor.DecompressFileToDirErr = bosherr.Error("fake-error")
 				})
 
 				It("returns an error", func() {

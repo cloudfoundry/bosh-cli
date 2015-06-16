@@ -6,22 +6,21 @@ import (
 	. "github.com/onsi/gomega"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-
-	testfakes "github.com/cloudfoundry/bosh-init/testutils/fakes"
 )
 
 var _ = Describe("Reader", func() {
 	var (
-		fakeExtractor *testfakes.FakeMultiResponseExtractor
-		fakeFs        *fakesys.FakeFileSystem
-		reader        Reader
+		compressor *fakecmd.FakeCompressor
+		fakeFs     *fakesys.FakeFileSystem
+		reader     Reader
 	)
 	BeforeEach(func() {
-		fakeExtractor = testfakes.NewFakeMultiResponseExtractor()
+		compressor = fakecmd.NewFakeCompressor()
 		fakeFs = fakesys.NewFakeFileSystem()
-		reader = NewReader("/some/job/archive", "/extracted/job", fakeExtractor, fakeFs)
+		reader = NewReader("/some/job/archive", "/extracted/job", compressor, fakeFs)
 	})
 
 	Context("when the job archive is a valid tar", func() {
@@ -81,7 +80,7 @@ properties:
 
 	Context("when the job archive is not a valid tar", func() {
 		BeforeEach(func() {
-			fakeExtractor.SetDecompressBehavior("/some/job/archive", "/extracted/job", bosherr.Error("fake-error"))
+			compressor.DecompressFileToDirErr = bosherr.Error("fake-error")
 		})
 
 		It("returns error", func() {
