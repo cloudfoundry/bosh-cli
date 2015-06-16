@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	biutil "github.com/cloudfoundry/bosh-init/common/util"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -72,7 +73,7 @@ func (p *parser) Parse(path string, releaseSetManifest birelsetmanifest.Manifest
 			p.logger.Warn(p.logTag, "Failed to expand private key path, using original path")
 			privateKeyPath = comboManifest.CloudProvider.SSHTunnel.PrivateKey
 		}
-		comboManifest.CloudProvider.SSHTunnel.PrivateKey = privateKeyPath
+		comboManifest.CloudProvider.SSHTunnel.PrivateKey = biutil.ParseFilePath(path, privateKeyPath)
 	}
 
 	installationManifest := Manifest{

@@ -63,7 +63,7 @@ resource_pools:
     bosh:
       password: secret
   stemcell:
-    url: fake-stemcell-url
+    url: http://fake-stemcell-url
 networks:
 - name: fake-network-name
   type: dynamic
@@ -155,7 +155,7 @@ properties:
 						},
 					},
 					Stemcell: StemcellRef{
-						URL: "fake-stemcell-url",
+						URL: "http://fake-stemcell-url",
 					},
 				},
 			},

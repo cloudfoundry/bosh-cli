@@ -18,11 +18,12 @@ import (
 type manifestFixtures struct {
 	validManifest             string
 	missingPrivateKeyManifest string
-	sshTunnelManifest         string
+	sshTunnelManifestAbsPath  string
+	sshTunnelManifestRelPath  string
 }
 
 var _ = Describe("Parser", func() {
-	comboManifestPath := "fake-deployment-manifest"
+	comboManifestPath := "/path/to/fake-deployment-manifest"
 	releaseSetManifest := birelsetmanifest.Manifest{}
 	var (
 		fakeFs            *fakesys.FakeFileSystem
@@ -68,7 +69,7 @@ cloud_provider:
     password: fake-password
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `,
-			sshTunnelManifest: `
+			sshTunnelManifestAbsPath: `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -80,6 +81,20 @@ cloud_provider:
     port: 22
     user: fake-ssh-user
     private_key: /tmp/fake-ssh-key.pem
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`,
+			sshTunnelManifestRelPath: `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: tmp/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `,
 		}
@@ -108,7 +123,6 @@ cloud_provider:
 		Context("with a valid manifest", func() {
 			BeforeEach(func() {
 				fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
-				fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
 			})
 
 			It("parses installation from combo manifest", func() {
@@ -132,48 +146,91 @@ cloud_provider:
 		})
 
 		Context("when ssh tunnel config is present", func() {
-			BeforeEach(func() {
-				fakeFs.WriteFileString(comboManifestPath, fixtures.sshTunnelManifest)
-				fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
-				fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+			Context("with absolute private key path", func() {
+				BeforeEach(func() {
+					fakeFs.WriteFileString(comboManifestPath, fixtures.sshTunnelManifestAbsPath)
+					fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+				})
+
+				It("generates registry config and populates properties in manifest with absolute path for private key", func() {
+					installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(installationManifest).To(Equal(manifest.Manifest{
+						Name: "fake-deployment-name",
+						Template: manifest.ReleaseJobRef{
+							Name:    "fake-cpi-job-name",
+							Release: "fake-cpi-release-name",
+						},
+						Properties: biproperty.Map{
+							"registry": biproperty.Map{
+								"host":     "127.0.0.1",
+								"port":     6901,
+								"username": "registry",
+								"password": "fake-uuid",
+							},
+						},
+						Registry: manifest.Registry{
+							SSHTunnel: manifest.SSHTunnel{
+								Host:       "54.34.56.8",
+								Port:       22,
+								User:       "fake-ssh-user",
+								PrivateKey: "/tmp/fake-ssh-key.pem",
+							},
+							Host:     "127.0.0.1",
+							Port:     6901,
+							Username: "registry",
+							Password: "fake-uuid",
+						},
+						Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+					}))
+				})
 			})
 
-			It("generates registry config and populates properties in manifest", func() {
-				installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
-				Expect(err).ToNot(HaveOccurred())
+			Context("with relative private key path", func() {
+				BeforeEach(func() {
+					fakeFs.WriteFileString(comboManifestPath, fixtures.sshTunnelManifestRelPath)
+					fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+				})
 
-				Expect(installationManifest).To(Equal(manifest.Manifest{
-					Name: "fake-deployment-name",
-					Template: manifest.ReleaseJobRef{
-						Name:    "fake-cpi-job-name",
-						Release: "fake-cpi-release-name",
-					},
-					Properties: biproperty.Map{
-						"registry": biproperty.Map{
-							"host":     "127.0.0.1",
-							"port":     6901,
-							"username": "registry",
-							"password": "fake-uuid",
+				It("generates registry config and populates properties in manifest with expanded path for private key", func() {
+					installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(installationManifest).To(Equal(manifest.Manifest{
+						Name: "fake-deployment-name",
+						Template: manifest.ReleaseJobRef{
+							Name:    "fake-cpi-job-name",
+							Release: "fake-cpi-release-name",
 						},
-					},
-					Registry: manifest.Registry{
-						SSHTunnel: manifest.SSHTunnel{
-							Host:       "54.34.56.8",
-							Port:       22,
-							User:       "fake-ssh-user",
-							PrivateKey: "/expanded-tmp/fake-ssh-key.pem",
+						Properties: biproperty.Map{
+							"registry": biproperty.Map{
+								"host":     "127.0.0.1",
+								"port":     6901,
+								"username": "registry",
+								"password": "fake-uuid",
+							},
 						},
-						Host:     "127.0.0.1",
-						Port:     6901,
-						Username: "registry",
-						Password: "fake-uuid",
-					},
-					Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
-				}))
+						Registry: manifest.Registry{
+							SSHTunnel: manifest.SSHTunnel{
+								Host:       "54.34.56.8",
+								Port:       22,
+								User:       "fake-ssh-user",
+								PrivateKey: "/path/to/tmp/fake-ssh-key.pem",
+							},
+							Host:     "127.0.0.1",
+							Port:     6901,
+							Username: "registry",
+							Password: "fake-uuid",
+						},
+						Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+					}))
+				})
 			})
 
 			Context("when expanding the key file path fails", func() {
 				BeforeEach(func() {
+					fakeFs.WriteFileString(comboManifestPath, fixtures.sshTunnelManifestAbsPath)
 					fakeFs.ExpandPathErr = errors.New("fake-expand-error")
 				})
 
@@ -187,7 +244,6 @@ cloud_provider:
 			Context("when private key is not provided", func() {
 				BeforeEach(func() {
 					fakeFs.WriteFileString(comboManifestPath, fixtures.missingPrivateKeyManifest)
-					fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
 				})
 
 				It("does not expand the path", func() {
@@ -201,7 +257,6 @@ cloud_provider:
 
 		It("handles installation manifest validation errors", func() {
 			fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
-			fakeFs.ExpandPathExpanded = "/expanded-tmp/fake-ssh-key.pem"
 
 			fakeValidator.SetValidateBehavior([]fakes.ValidateOutput{
 				{Err: errors.New("nope")},
