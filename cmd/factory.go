@@ -439,7 +439,7 @@ func (d *deploymentManagerFactory2) loadDeploymentPreparer() (DeploymentPreparer
 		d.loadStemcellFetcher(),
 		d.loadReleaseSetAndInstallationManifestParser(),
 		d.loadDeploymentManifestParser(),
-		d.f.fs,
+		NewTempRootConfigurator(d.f.fs),
 		d.loadTargetProvider(),
 	), nil
 }
@@ -464,7 +464,7 @@ func (d *deploymentManagerFactory2) loadDeploymentDeleter() (DeploymentDeleter, 
 		d.loadCpiUninstaller(),
 		d.loadReleaseFetcher(),
 		d.loadReleaseSetAndInstallationManifestParser(),
-		d.f.fs,
+		NewTempRootConfigurator(d.f.fs),
 		d.loadTargetProvider(),
 	), nil
 }

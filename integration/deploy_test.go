@@ -444,6 +444,8 @@ cloud_provider:
 					filepath.Join("fake-install-dir"),
 				)
 
+				tempRootConfigurator := NewTempRootConfigurator(fs)
+
 				return NewDeploymentPreparer(
 					ui,
 					logger,
@@ -464,7 +466,7 @@ cloud_provider:
 					stemcellFetcher,
 					releaseSetAndInstallationManifestParser,
 					deploymentManifestParser,
-					fs,
+					tempRootConfigurator,
 					targetProvider,
 				), nil
 			}

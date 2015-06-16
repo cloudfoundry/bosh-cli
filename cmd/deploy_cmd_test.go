@@ -334,6 +334,7 @@ func rootDesc() {
 					fakeInstallationUUIDGenerator,
 					filepath.Join("fake-install-dir"),
 				)
+				tempRootConfigurator := bicmd.NewTempRootConfigurator(fakeFs)
 
 				return bicmd.NewDeploymentPreparer(
 					userInterface,
@@ -355,7 +356,7 @@ func rootDesc() {
 					stemcellFetcher,
 					releaseSetAndInstallationManifestParser,
 					deploymentManifestParser,
-					fakeFs,
+					tempRootConfigurator,
 					targetProvider,
 				), nil
 			}

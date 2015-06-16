@@ -1,10 +1,11 @@
 package cmd_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"os"
 	"path/filepath"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 
@@ -185,6 +186,8 @@ cloud_provider:
 				filepath.Join("fake-install-dir"),
 			)
 
+			tempRootConfigurator := bicmd.NewTempRootConfigurator(fs)
+
 			return bicmd.NewDeploymentDeleter(
 				fakeUI,
 				"deleteCmd",
@@ -200,7 +203,7 @@ cloud_provider:
 				mockCpiUninstaller,
 				releaseFetcher,
 				releaseSetAndInstallationManifestParser,
-				fs,
+				tempRootConfigurator,
 				targetProvider,
 			)
 		}

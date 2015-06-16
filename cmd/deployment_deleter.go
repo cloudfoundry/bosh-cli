@@ -95,7 +95,7 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		return bosherr.WrapError(err, "Teh target no...")
 	}
 
-	c.tempRootConfigurator.ChangeTempRoot(target.TmpPath())
+	c.tempRootConfigurator.PrepareAndSetTempRoot(target.TmpPath())
 
 	defer func() {
 		err := c.releaseManager.DeleteAll()

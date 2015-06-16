@@ -19,10 +19,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-type TempRootConfigurator interface {
-	ChangeTempRoot(path string) error
-}
-
 func NewDeploymentPreparer(
 	ui biui.UI,
 	logger boshlog.Logger,
@@ -118,7 +114,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		return bosherr.WrapError(err, "Teh target no...")
 	}
 
-	c.tempRootConfigurator.ChangeTempRoot(target.TmpPath())
+	c.tempRootConfigurator.PrepareAndSetTempRoot(target.TmpPath())
 
 	defer func() {
 		err := c.releaseManager.DeleteAll()
