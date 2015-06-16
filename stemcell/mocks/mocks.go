@@ -4,9 +4,9 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	stemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	ui "github.com/cloudfoundry/bosh-init/ui"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of CloudStemcell interface

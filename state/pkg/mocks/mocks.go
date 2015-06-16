@@ -4,9 +4,9 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	pkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	pkg0 "github.com/cloudfoundry/bosh-init/state/pkg"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of Compiler interface

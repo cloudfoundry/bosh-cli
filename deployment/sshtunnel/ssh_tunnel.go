@@ -1,8 +1,8 @@
 package sshtunnel
 
 import (
-	"code.google.com/p/go.crypto/ssh"
 	"fmt"
+	"golang.org/x/crypto/ssh"
 	"io"
 	"io/ioutil"
 	"net"

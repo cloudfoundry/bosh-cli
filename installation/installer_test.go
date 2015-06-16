@@ -7,10 +7,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"code.google.com/p/gomock/gomock"
 	"github.com/cloudfoundry/bosh-init/installation/blobextract/fakeblobextract"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
+	"github.com/golang/mock/gomock"
 
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"

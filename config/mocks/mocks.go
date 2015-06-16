@@ -4,7 +4,7 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of LegacyDeploymentStateMigrator interface

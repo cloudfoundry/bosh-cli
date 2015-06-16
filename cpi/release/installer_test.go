@@ -1,7 +1,6 @@
 package release_test
 
 import (
-	"code.google.com/p/gomock/gomock"
 	"errors"
 	"github.com/cloudfoundry/bosh-init/cpi/release"
 	biinstallation "github.com/cloudfoundry/bosh-init/installation"
@@ -9,6 +8,7 @@ import (
 	"github.com/cloudfoundry/bosh-init/installation/mocks"
 	"github.com/cloudfoundry/bosh-init/ui"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

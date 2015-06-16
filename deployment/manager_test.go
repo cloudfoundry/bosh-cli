@@ -3,7 +3,6 @@ package deployment_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment"
 
-	"code.google.com/p/gomock/gomock"
 	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
@@ -12,6 +11,7 @@ import (
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
 	mock_stemcell "github.com/cloudfoundry/bosh-init/stemcell/mocks"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

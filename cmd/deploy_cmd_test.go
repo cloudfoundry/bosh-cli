@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"code.google.com/p/gomock/gomock"
+	"github.com/golang/mock/gomock"
 
 	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"

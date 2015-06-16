@@ -4,8 +4,8 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	ui "github.com/cloudfoundry/bosh-init/ui"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of DeploymentDeleter interface

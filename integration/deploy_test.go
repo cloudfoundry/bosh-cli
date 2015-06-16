@@ -17,7 +17,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	"code.google.com/p/gomock/gomock"
 	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
@@ -25,6 +24,7 @@ import (
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
+	"github.com/golang/mock/gomock"
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"

@@ -6,8 +6,8 @@ import (
 
 	"github.com/cloudfoundry/bosh-init/installation"
 
-	"code.google.com/p/gomock/gomock"
 	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
+	"github.com/golang/mock/gomock"
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"

@@ -4,13 +4,13 @@
 package mocks
 
 import (
-	gomock "code.google.com/p/gomock/gomock"
 	disk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	instance "github.com/cloudfoundry/bosh-init/deployment/instance"
 	manifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	manifest0 "github.com/cloudfoundry/bosh-init/installation/manifest"
 	stemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	ui "github.com/cloudfoundry/bosh-init/ui"
+	gomock "github.com/golang/mock/gomock"
 	time "time"
 )
 

@@ -1,12 +1,11 @@
 package pkg_test
 
 import (
-	"path/filepath"
-
-	"code.google.com/p/gomock/gomock"
 	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"path/filepath"
 
 	"errors"
 	"fmt"

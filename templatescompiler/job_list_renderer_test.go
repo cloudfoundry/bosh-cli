@@ -3,8 +3,8 @@ package templatescompiler_test
 import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
-	"code.google.com/p/gomock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

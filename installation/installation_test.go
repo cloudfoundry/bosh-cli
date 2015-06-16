@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 
-	"code.google.com/p/gomock/gomock"
 	. "github.com/cloudfoundry/bosh-init/installation"
 
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
@@ -12,6 +11,7 @@ import (
 	test_support_mocks "github.com/cloudfoundry/bosh-init/test_support/mocks"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
