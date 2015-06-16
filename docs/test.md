@@ -10,7 +10,48 @@ The acceptance tests are designed to exercise the main commands of the CLI (depl
 
 They are not designed to verify the compatibility of CPIs or testing BOSH releases.
 
-### Dependencies
+### Fly executing the acceptance tests
+
+In theory you should be able to export the environment variables for the task,
+but I've had trouble getting that to work.
+
+A way to run the acceptance tests that seems to work:
+
+We're going to `fly execute` the test-acceptance.yml task by editing it directly
+with our secrets. To make it harder to accidently check these secrets in, we
+should copy that file somewhere like `/tmp/bosh-init-acceptance`. Now insert
+real values for the environment variables so test-acceptance.yml looks something
+like
+
+```
+...
+
+params:
+  BOSH_AWS_ACCESS_KEY_ID:     "ASDF"
+  BOSH_AWS_SECRET_ACCESS_KEY: "asdfasdf"
+  BOSH_LITE_KEYPAIR:          bosh-dev
+  BOSH_LITE_SUBNET_ID:        subnet-12345
+  BOSH_LITE_SECURITY_GROUP:   sg-5678
+  BOSH_LITE_PRIVATE_KEY_DATA: |
+    -----BEGIN RSA PRIVATE KEY-----
+    sosecretandsecure
+    -----END RSA PRIVATE KEY-----
+```
+
+We're also going to need all the inputs for the task. `bosh-init` is easy,
+that's going to be the bosh-init source directory. To satisfy the
+`bosh-warden-cpi-release` input, we'll need to download the warden cpi release
+(probably from bosh.io) and name it `cpi-release.tgz`.
+
+Now we can fly execute:
+
+```
+./fly -t bosh-init -k execute -p -c <path-to-test-acceptance.yml> -i bosh-init=<path-to-source-dir> -i bosh-warden-cpi-release=<path-to-dir-containing-cpi-release.tgz>
+```
+
+### Running the acceptance tests directly
+
+#### Dependencies
 
 - [Vagrant](https://www.vagrantup.com/)
 
@@ -20,14 +61,14 @@ They are not designed to verify the compatibility of CPIs or testing BOSH releas
 
     `brew install https://raw.github.com/eugeneoden/homebrew/eca9de1/Library/Formula/sshpass.rb`
 
-### Providers
+#### Providers
 
 Acceptance tests can be run in a VM with the following vagrant providers:
 
 * [virtualbox](https://www.virtualbox.org/) (free)
 * [aws](http://aws.amazon.com/)
 
-#### Local Provider
+##### Local Provider
 
 The acceptance tests can be run on a local VM (using Virtual Box with vagrant).
 
@@ -55,7 +96,7 @@ $ export BOSH_INIT_STEMCELL_SHA1=stemcell-sha1
 $ ./bin/test-acceptance-with-vm --provider=virtualbox
 ```
 
-#### AWS Provider
+##### AWS Provider
 
 The acceptance tests can also be run on a remote VM (using aws with vagrant).
 
@@ -74,7 +115,7 @@ export BOSH_LITE_SECURITY_GROUP=sg-1234
 export BOSH_LITE_PRIVATE_KEY=$BOSH_INIT_PRIVATE_KEY
 ```
 
-#### Running tests against existing VM
+##### Running tests against existing VM
 
 Acceptance tests use configuration file specified via `BOSH_INIT_CONFIG_PATH`. The format of the configuration file is basic JSON.
 
