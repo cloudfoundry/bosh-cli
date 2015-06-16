@@ -4,6 +4,7 @@ jobs:
     public: true
     plan:
       - get: bosh-init
+        trigger: true
       - task: test-unit
         file: bosh-init/ci/concourse/tasks/test-unit.yml
 
@@ -11,6 +12,7 @@ jobs:
     public: true
     plan:
       - get: bosh-init
+        trigger: true
       - task: test-integration
         file: bosh-init/ci/concourse/tasks/test-integration.yml
         privileged: true
@@ -19,8 +21,11 @@ jobs:
     public: true
     plan:
       - aggregate:
-        - {passed: [test-unit,test-integration], get: bosh-init}
-        - {trigger: false,                        get: bosh-warden-cpi-release}
+        - get: bosh-init
+          passed: [test-unit,test-integration]
+          trigger: true
+        - get: bosh-warden-cpi-release
+          trigger: true
       - aggregate:
         - task: test-acceptance
           file: bosh-init/ci/concourse/tasks/test-acceptance.yml
@@ -38,8 +43,11 @@ jobs:
     public: true
     plan:
       - aggregate:
-        - {passed: [test-acceptance], get: bosh-init}
-        - {trigger: false, get: version-semver, params: {bump: patch}}
+        - get: bosh-init
+          passed: [test-acceptance]
+          trigger: true
+        - get: version-semver
+          params: {bump: patch}
       - {put: version-semver, params: {file: version-semver/number}}
       - aggregate:
         - task: build-linux
@@ -54,13 +62,15 @@ jobs:
   - name: bump-minor
     public: true
     plan:
-      - {trigger: false, get: version-semver, params: {bump: minor}}
+      - get: version-semver
+        params: {bump: minor}
       - {put: version-semver, params: {file: version-semver/number}}
 
   - name: bump-major
     public: true
     plan:
-      - {trigger: false, get: version-semver, params: {bump: major}}
+      - get: version-semver
+        params: {bump: major}
       - {put: version-semver, params: {file: version-semver/number}}
 
 resources:
