@@ -17,9 +17,17 @@ func NewTempRootConfigurator(fs boshsys.FileSystem) TempRootConfigurator {
 }
 
 func (c *tempRootConfigurator) PrepareAndSetTempRoot(path string) error {
+	if c.fs.FileExists(path) {
+		err := c.fs.RemoveAll(path)
+		if err != nil {
+			return err
+		}
+	}
+
 	err := c.fs.ChangeTempRoot(path)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
