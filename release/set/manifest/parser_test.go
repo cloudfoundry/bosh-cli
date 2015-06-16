@@ -14,7 +14,7 @@ import (
 )
 
 var _ = Describe("Parser", func() {
-	comboManifestPath := "fake-deployment-path"
+	comboManifestPath := "/path/to/manifest/fake-deployment-manifest"
 	var (
 		fakeFs        *fakesys.FakeFileSystem
 		parser        manifest.Parser
@@ -33,11 +33,17 @@ var _ = Describe("Parser", func() {
 ---
 releases:
 - name: fake-release-name-1
-  url: file://~/fake-release-1.tgz
+  url: file://~/absolute-path/fake-release-1.tgz
   sha1: fake-sha1
 - name: fake-release-name-2
-  url: file://fake-release-2.tgz
+  url: file:///absolute-path/fake-release-2.tgz
   sha1: fake-sha2
+- name: fake-release-name-3
+  url: file://relative-path/fake-release-3.tgz
+  sha1: fake-sha3
+- name: fake-release-name-4
+  url: http://fake-url/fake-release-4.tgz
+  sha1: fake-sha4
 name: unknown-keys-are-ignored
 `)
 	})
@@ -65,6 +71,96 @@ name: unknown-keys-are-ignored
 		})
 	})
 
+	Context("when release url points to a local file", func() {
+		Context("when release file path begins with 'file://~' or 'file:///'", func() {
+			BeforeEach(func() {
+				fakeFs.WriteFileString(comboManifestPath, `
+---
+releases:
+- name: fake-release-name-1
+  url: file://~/absolute-path/fake-release-1.tgz
+  sha1: fake-sha1
+- name: fake-release-name-2
+  url: file:///absolute-path/fake-release-2.tgz
+  sha1: fake-sha2
+`)
+			})
+
+			It("does not change release url", func() {
+				deploymentManifest, err := parser.Parse(comboManifestPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deploymentManifest).To(Equal(manifest.Manifest{
+					Releases: []birelmanifest.ReleaseRef{
+						{
+							Name: "fake-release-name-1",
+							URL:  "file://~/absolute-path/fake-release-1.tgz",
+							SHA1: "fake-sha1",
+						},
+						{
+							Name: "fake-release-name-2",
+							URL:  "file:///absolute-path/fake-release-2.tgz",
+							SHA1: "fake-sha2",
+						},
+					},
+				}))
+			})
+		})
+
+		Context("when release file path does not begin with 'file://~' or 'file:///'", func() {
+			BeforeEach(func() {
+				fakeFs.WriteFileString(comboManifestPath, `
+---
+releases:
+- name: fake-release-name-3
+  url: file://relative-path/fake-release-3.tgz
+  sha1: fake-sha3
+`)
+			})
+
+			It("changes release url to include absolute path to manifest directory", func() {
+				deploymentManifest, err := parser.Parse(comboManifestPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deploymentManifest).To(Equal(manifest.Manifest{
+					Releases: []birelmanifest.ReleaseRef{
+						{
+							Name: "fake-release-name-3",
+							URL:  "file:///path/to/manifest/relative-path/fake-release-3.tgz",
+							SHA1: "fake-sha3",
+						},
+					},
+				}))
+			})
+		})
+	})
+	Context("when release url points to an http url", func() {
+		BeforeEach(func() {
+			fakeFs.WriteFileString(comboManifestPath, `
+---
+releases:
+- name: fake-release-name-4
+  url: http://fake-url/fake-release-4.tgz
+  sha1: fake-sha4
+`)
+		})
+
+		It("does not change the release url", func() {
+			deploymentManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deploymentManifest).To(Equal(manifest.Manifest{
+				Releases: []birelmanifest.ReleaseRef{
+					{
+						Name: "fake-release-name-4",
+						URL:  "http://fake-url/fake-release-4.tgz",
+						SHA1: "fake-sha4",
+					},
+				},
+			}))
+		})
+	})
+
 	It("parses release set manifest from combo manifest file", func() {
 		deploymentManifest, err := parser.Parse(comboManifestPath)
 		Expect(err).ToNot(HaveOccurred())
@@ -73,13 +169,23 @@ name: unknown-keys-are-ignored
 			Releases: []birelmanifest.ReleaseRef{
 				{
 					Name: "fake-release-name-1",
-					URL:  "file://~/fake-release-1.tgz",
+					URL:  "file://~/absolute-path/fake-release-1.tgz",
 					SHA1: "fake-sha1",
 				},
 				{
 					Name: "fake-release-name-2",
-					URL:  "file://fake-release-2.tgz",
+					URL:  "file:///absolute-path/fake-release-2.tgz",
 					SHA1: "fake-sha2",
+				},
+				{
+					Name: "fake-release-name-3",
+					URL:  "file:///path/to/manifest/relative-path/fake-release-3.tgz",
+					SHA1: "fake-sha3",
+				},
+				{
+					Name: "fake-release-name-4",
+					URL:  "http://fake-url/fake-release-4.tgz",
+					SHA1: "fake-sha4",
 				},
 			},
 		}))

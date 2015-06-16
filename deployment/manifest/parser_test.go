@@ -199,6 +199,177 @@ properties:
 		}))
 	})
 
+	Context("when stemcell url begins with 'http'", func() {
+		BeforeEach(func() {
+			contents := `
+---
+name: fake-deployment-manifest
+
+resource_pools:
+- name: fake-resource-pool-name
+  stemcell:
+    url: http://fake-url
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+		It("it does not change the url", func() {
+			deploymentManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploymentManifest).To(Equal(Manifest{
+
+				Name:       "fake-deployment-manifest",
+				Properties: biproperty.Map{},
+				Jobs:       []Job{},
+				Networks:   []Network{},
+				DiskPools:  []DiskPool{},
+				ResourcePools: []ResourcePool{
+					{
+						Name:            "fake-resource-pool-name",
+						Network:         "",
+						CloudProperties: biproperty.Map{},
+						Env:             biproperty.Map{},
+						Stemcell: StemcellRef{
+							URL:  "http://fake-url",
+							SHA1: "",
+						},
+					},
+				},
+				Update: Update{
+					UpdateWatchTime: WatchTime{Start: 0, End: 300000},
+				},
+			}))
+		})
+	})
+
+	Context("when stemcell url is a file path", func() {
+		Context("that begin with 'file:///'", func() {
+			BeforeEach(func() {
+				contents := `
+---
+name: fake-deployment-manifest
+
+resource_pools:
+- name: fake-resource-pool-name
+  stemcell:
+   url: file:///fake-absolute-path
+`
+				fakeFs.WriteFileString(comboManifestPath, contents)
+			})
+			It("it does not expand the path to be relative to the manifest path", func() {
+				deploymentManifest, err := parser.Parse(comboManifestPath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentManifest).To(Equal(Manifest{
+
+					Name:       "fake-deployment-manifest",
+					Properties: biproperty.Map{},
+					Jobs:       []Job{},
+					Networks:   []Network{},
+					DiskPools:  []DiskPool{},
+					ResourcePools: []ResourcePool{
+						{
+							Name:            "fake-resource-pool-name",
+							Network:         "",
+							CloudProperties: biproperty.Map{},
+							Env:             biproperty.Map{},
+							Stemcell: StemcellRef{
+								URL:  "file:///fake-absolute-path",
+								SHA1: "",
+							},
+						},
+					},
+					Update: Update{
+						UpdateWatchTime: WatchTime{Start: 0, End: 300000},
+					},
+				}))
+			})
+		})
+
+		Context("that begin with 'file://~/'", func() {
+			BeforeEach(func() {
+				contents := `
+---
+name: fake-deployment-manifest
+
+resource_pools:
+- name: fake-resource-pool-name
+  stemcell:
+   url: file://~/fake-absolute-path
+`
+				fakeFs.WriteFileString(comboManifestPath, contents)
+			})
+			It("it does not expand the path to be relative to the manifest path", func() {
+				deploymentManifest, err := parser.Parse(comboManifestPath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentManifest).To(Equal(Manifest{
+
+					Name:       "fake-deployment-manifest",
+					Properties: biproperty.Map{},
+					Jobs:       []Job{},
+					Networks:   []Network{},
+					DiskPools:  []DiskPool{},
+					ResourcePools: []ResourcePool{
+						{
+							Name:            "fake-resource-pool-name",
+							Network:         "",
+							CloudProperties: biproperty.Map{},
+							Env:             biproperty.Map{},
+							Stemcell: StemcellRef{
+								URL:  "file://~/fake-absolute-path",
+								SHA1: "",
+							},
+						},
+					},
+					Update: Update{
+						UpdateWatchTime: WatchTime{Start: 0, End: 300000},
+					},
+				}))
+			})
+		})
+
+		Context("that do not begin with 'file://~/' or  'file:///'", func() {
+			BeforeEach(func() {
+				comboManifestPath = "/path/to/fake-deployment-yml"
+				contents := `
+---
+name: fake-deployment-manifest
+
+resource_pools:
+- name: fake-resource-pool-name
+  stemcell:
+   url: file://fake-relative-path
+`
+				fakeFs.WriteFileString(comboManifestPath, contents)
+			})
+			It("it does not expand the path to be relative to the manifest path", func() {
+				deploymentManifest, err := parser.Parse(comboManifestPath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentManifest).To(Equal(Manifest{
+
+					Name:       "fake-deployment-manifest",
+					Properties: biproperty.Map{},
+					Jobs:       []Job{},
+					Networks:   []Network{},
+					DiskPools:  []DiskPool{},
+					ResourcePools: []ResourcePool{
+						{
+							Name:            "fake-resource-pool-name",
+							Network:         "",
+							CloudProperties: biproperty.Map{},
+							Env:             biproperty.Map{},
+							Stemcell: StemcellRef{
+								URL:  "file:///path/to/fake-relative-path",
+								SHA1: "",
+							},
+						},
+					},
+					Update: Update{
+						UpdateWatchTime: WatchTime{Start: 0, End: 300000},
+					},
+				}))
+			})
+		})
+	})
+
 	Context("when global property keys are not strings", func() {
 		BeforeEach(func() {
 			contents := `

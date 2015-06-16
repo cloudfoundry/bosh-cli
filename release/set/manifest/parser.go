@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	biutil "github.com/cloudfoundry/bosh-init/common/util"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -44,6 +45,10 @@ func (p *parser) Parse(path string) (Manifest, error) {
 		return Manifest{}, bosherr.WrapError(err, "Unmarshalling release set manifest")
 	}
 	p.logger.Debug(p.logTag, "Parsed release set manifest: %#v", comboManifest)
+
+	for i, releaseRef := range comboManifest.Releases {
+		comboManifest.Releases[i].URL = biutil.ParseFilePath(path, releaseRef.URL)
+	}
 
 	releaseSetManifest := Manifest{
 		Releases: comboManifest.Releases,

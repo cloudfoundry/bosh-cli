@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	biutil "github.com/cloudfoundry/bosh-init/common/util"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -122,7 +123,7 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	}
 	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest: %#v", comboManifest)
 
-	deploymentManifest, err := p.parseDeploymentManifest(comboManifest)
+	deploymentManifest, err := p.parseDeploymentManifest(comboManifest, path)
 	if err != nil {
 		return Manifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
@@ -130,7 +131,7 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	return deploymentManifest, nil
 }
 
-func (p *parser) parseDeploymentManifest(depManifest manifest) (Manifest, error) {
+func (p *parser) parseDeploymentManifest(depManifest manifest, path string) (Manifest, error) {
 	deployment := boshDeploymentDefaults
 	deployment.Name = depManifest.Name
 
@@ -140,10 +141,11 @@ func (p *parser) parseDeploymentManifest(depManifest manifest) (Manifest, error)
 	}
 	deployment.Networks = networks
 
-	resourcePools, err := p.parseResourcePoolManifests(depManifest.ResourcePools)
+	resourcePools, err := p.parseResourcePoolManifests(depManifest.ResourcePools, path)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Parsing resource_pools: %#v", depManifest.ResourcePools)
 	}
+
 	deployment.ResourcePools = resourcePools
 
 	diskPools, err := p.parseDiskPoolManifests(depManifest.DiskPools)
@@ -270,7 +272,7 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 	return networks, nil
 }
 
-func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool) ([]ResourcePool, error) {
+func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool, path string) ([]ResourcePool, error) {
 	resourcePools := make([]ResourcePool, len(rawResourcePools), len(rawResourcePools))
 	for i, rawResourcePool := range rawResourcePools {
 		resourcePool := ResourcePool{
@@ -290,6 +292,8 @@ func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool) ([]
 			return resourcePools, bosherr.WrapErrorf(err, "Parsing resource_pool '%s' env: %#v", rawResourcePool.Name, rawResourcePool.Env)
 		}
 		resourcePool.Env = env
+
+		resourcePool.Stemcell.URL = biutil.ParseFilePath(path, resourcePool.Stemcell.URL)
 
 		resourcePools[i] = resourcePool
 	}
