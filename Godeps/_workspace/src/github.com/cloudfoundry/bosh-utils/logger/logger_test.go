@@ -256,4 +256,41 @@ var _ = Describe("Logger", func() {
 		Expect(stderr).ToNot(ContainSubstring("WARN"))
 		Expect(stderr).To(ContainSubstring("ERROR"))
 	})
+
+	Describe("Toggling forced debug", func() {
+		Describe("when the log level is error", func() {
+			It("outputs at debug level", func() {
+				stdout, stderr := captureOutputs(func() {
+					logger := NewLogger(LevelError)
+					logger.ToggleForcedDebug()
+					logger.Debug("TOGGLED_DEBUG", "some debug log")
+					logger.Info("TOGGLED_INFO", "some info log")
+					logger.Warn("TOGGLED_WARN", "some warn log")
+					logger.Error("TOGGLED_ERROR", "some error log")
+				})
+
+				Expect(stdout).To(ContainSubstring("TOGGLED_DEBUG"))
+				Expect(stdout).To(ContainSubstring("TOGGLED_INFO"))
+				Expect(stderr).To(ContainSubstring("TOGGLED_WARN"))
+				Expect(stderr).To(ContainSubstring("TOGGLED_ERROR"))
+			})
+
+			It("outputs at error level when toggled back", func() {
+				stdout, stderr := captureOutputs(func() {
+					logger := NewLogger(LevelError)
+					logger.ToggleForcedDebug()
+					logger.ToggleForcedDebug()
+					logger.Debug("STANDARD_DEBUG", "some debug log")
+					logger.Info("STANDARD_INFO", "some info log")
+					logger.Warn("STANDARD_WARN", "some warn log")
+					logger.Error("STANDARD_ERROR", "some error log")
+				})
+
+				Expect(stdout).ToNot(ContainSubstring("STANDARD_DEBUG"))
+				Expect(stdout).ToNot(ContainSubstring("STANDARD_INFO"))
+				Expect(stderr).ToNot(ContainSubstring("STANDARD_WARN"))
+				Expect(stderr).To(ContainSubstring("STANDARD_ERROR"))
+			})
+		})
+	})
 })

@@ -51,6 +51,7 @@ type FileSystem interface {
 	// Returns *unique* temporary file/dir with a custom prefix
 	TempFile(prefix string) (file File, err error)
 	TempDir(prefix string) (path string, err error)
+	ChangeTempRoot(path string) error
 
 	Glob(pattern string) (matches []string, err error)
 	Walk(root string, walkFunc filepath.WalkFunc) error

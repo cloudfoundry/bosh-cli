@@ -13,18 +13,25 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"errors"
 )
 
 type osFileSystem struct {
 	logger boshlog.Logger
 	logTag string
+	tempRoot string
+	requiresTempRoot bool
 }
 
 func NewOsFileSystem(logger boshlog.Logger) FileSystem {
-	return &osFileSystem{logger: logger, logTag: "File System"}
+	return &osFileSystem{logger: logger, logTag: "File System", requiresTempRoot: false}
 }
 
-func (fs osFileSystem) HomeDir(username string) (string, error) {
+func NewOsFileWithStrictTempRoot(logger boshlog.Logger) FileSystem {
+	return &osFileSystem{logger: logger, logTag: "File System", requiresTempRoot: true}
+}
+
+func (fs *osFileSystem) HomeDir(username string) (string, error) {
 	fs.logger.Debug(fs.logTag, "Getting HomeDir for %s", username)
 
 	homeDir, err := fs.runCommand(fmt.Sprintf("echo ~%s", username))
@@ -40,7 +47,7 @@ func (fs osFileSystem) HomeDir(username string) (string, error) {
 	return homeDir, nil
 }
 
-func (fs osFileSystem) ExpandPath(path string) (string, error) {
+func (fs *osFileSystem) ExpandPath(path string) (string, error) {
 	fs.logger.Debug(fs.logTag, "Expanding path for '%s'", path)
 
 	var err error
@@ -61,12 +68,12 @@ func (fs osFileSystem) ExpandPath(path string) (string, error) {
 	return path, nil
 }
 
-func (fs osFileSystem) MkdirAll(path string, perm os.FileMode) (err error) {
+func (fs *osFileSystem) MkdirAll(path string, perm os.FileMode) (err error) {
 	fs.logger.Debug(fs.logTag, "Making dir %s with perm %d", path, perm)
 	return os.MkdirAll(path, perm)
 }
 
-func (fs osFileSystem) Chown(path, username string) error {
+func (fs *osFileSystem) Chown(path, username string) error {
 	fs.logger.Debug(fs.logTag, "Chown %s to user %s", path, username)
 
 	uid, err := fs.runCommand(fmt.Sprintf("id -u %s", username))
@@ -97,20 +104,20 @@ func (fs osFileSystem) Chown(path, username string) error {
 	return nil
 }
 
-func (fs osFileSystem) Chmod(path string, perm os.FileMode) (err error) {
+func (fs *osFileSystem) Chmod(path string, perm os.FileMode) (err error) {
 	fs.logger.Debug(fs.logTag, "Chmod %s to %d", path, perm)
 	return os.Chmod(path, perm)
 }
 
-func (fs osFileSystem) OpenFile(path string, flag int, perm os.FileMode) (File, error) {
+func (fs *osFileSystem) OpenFile(path string, flag int, perm os.FileMode) (File, error) {
 	return os.OpenFile(path, flag, perm)
 }
 
-func (fs osFileSystem) WriteFileString(path, content string) (err error) {
+func (fs *osFileSystem) WriteFileString(path, content string) (err error) {
 	return fs.WriteFile(path, []byte(content))
 }
 
-func (fs osFileSystem) WriteFile(path string, content []byte) error {
+func (fs *osFileSystem) WriteFile(path string, content []byte) error {
 	fs.logger.Debug(fs.logTag, "Writing %s", path)
 
 	err := fs.MkdirAll(filepath.Dir(path), os.ModePerm)
@@ -135,7 +142,7 @@ func (fs osFileSystem) WriteFile(path string, content []byte) error {
 	return nil
 }
 
-func (fs osFileSystem) ConvergeFileContents(path string, content []byte) (bool, error) {
+func (fs *osFileSystem) ConvergeFileContents(path string, content []byte) (bool, error) {
 	if fs.filesAreIdentical(content, path) {
 		fs.logger.Debug(fs.logTag, "Skipping writing %s because contents are identical", path)
 		return false, nil
@@ -163,7 +170,7 @@ func (fs osFileSystem) ConvergeFileContents(path string, content []byte) (bool, 
 	return true, nil
 }
 
-func (fs osFileSystem) ReadFileString(path string) (content string, err error) {
+func (fs *osFileSystem) ReadFileString(path string) (content string, err error) {
 	bytes, err := fs.ReadFile(path)
 	if err != nil {
 		return
@@ -173,7 +180,7 @@ func (fs osFileSystem) ReadFileString(path string) (content string, err error) {
 	return
 }
 
-func (fs osFileSystem) ReadFile(path string) (content []byte, err error) {
+func (fs *osFileSystem) ReadFile(path string) (content []byte, err error) {
 	fs.logger.Debug(fs.logTag, "Reading file %s", path)
 
 	file, err := os.Open(path)
@@ -196,7 +203,7 @@ func (fs osFileSystem) ReadFile(path string) (content []byte, err error) {
 	return
 }
 
-func (fs osFileSystem) FileExists(path string) bool {
+func (fs *osFileSystem) FileExists(path string) bool {
 	fs.logger.Debug(fs.logTag, "Checking if file exists %s", path)
 
 	_, err := os.Stat(path)
@@ -206,14 +213,14 @@ func (fs osFileSystem) FileExists(path string) bool {
 	return true
 }
 
-func (fs osFileSystem) Rename(oldPath, newPath string) (err error) {
+func (fs *osFileSystem) Rename(oldPath, newPath string) (err error) {
 	fs.logger.Debug(fs.logTag, "Renaming %s to %s", oldPath, newPath)
 
 	fs.RemoveAll(newPath)
 	return os.Rename(oldPath, newPath)
 }
 
-func (fs osFileSystem) Symlink(oldPath, newPath string) error {
+func (fs *osFileSystem) Symlink(oldPath, newPath string) error {
 	fs.logger.Debug(fs.logTag, "Symlinking oldPath %s with newPath %s", oldPath, newPath)
 
 	actualOldPath, err := filepath.EvalSymlinks(oldPath)
@@ -241,12 +248,12 @@ func (fs osFileSystem) Symlink(oldPath, newPath string) error {
 	return os.Symlink(oldPath, newPath)
 }
 
-func (fs osFileSystem) ReadLink(symlinkPath string) (targetPath string, err error) {
+func (fs *osFileSystem) ReadLink(symlinkPath string) (targetPath string, err error) {
 	targetPath, err = filepath.EvalSymlinks(symlinkPath)
 	return
 }
 
-func (fs osFileSystem) CopyFile(srcPath, dstPath string) error {
+func (fs *osFileSystem) CopyFile(srcPath, dstPath string) error {
 	fs.logger.Debug(fs.logTag, "Copying file '%s' to '%s'", srcPath, dstPath)
 	srcFile, err := os.Open(srcPath)
 	if err != nil {
@@ -270,7 +277,7 @@ func (fs osFileSystem) CopyFile(srcPath, dstPath string) error {
 	return nil
 }
 
-func (fs osFileSystem) CopyDir(srcPath, dstPath string) error {
+func (fs *osFileSystem) CopyDir(srcPath, dstPath string) error {
 	fs.logger.Debug(fs.logTag, "Copying dir '%s' to '%s'", srcPath, dstPath)
 
 	sourceInfo, err := os.Stat(srcPath)
@@ -309,7 +316,7 @@ func (fs osFileSystem) CopyDir(srcPath, dstPath string) error {
 	return nil
 }
 
-func (fs osFileSystem) listDirContents(dirPath string) ([]os.FileInfo, error) {
+func (fs *osFileSystem) listDirContents(dirPath string) ([]os.FileInfo, error) {
 	directory, err := os.Open(dirPath)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Openning dir '%s' for reading", dirPath)
@@ -324,32 +331,47 @@ func (fs osFileSystem) listDirContents(dirPath string) ([]os.FileInfo, error) {
 	return files, nil
 }
 
-func (fs osFileSystem) TempFile(prefix string) (file File, err error) {
+func (fs *osFileSystem) TempFile(prefix string) (file File, err error) {
 	fs.logger.Debug(fs.logTag, "Creating temp file with prefix %s", prefix)
-	return ioutil.TempFile("", prefix)
+	if fs.tempRoot == "" && fs.requiresTempRoot {
+		return nil, errors.New("Set a temp directory root with ChangeTempRoot before making temp files")
+	}
+	return ioutil.TempFile(fs.tempRoot, prefix)
 }
 
-func (fs osFileSystem) TempDir(prefix string) (path string, err error) {
+func (fs *osFileSystem) TempDir(prefix string) (path string, err error) {
 	fs.logger.Debug(fs.logTag, "Creating temp dir with prefix %s", prefix)
-	return ioutil.TempDir("", prefix)
+	if fs.tempRoot == "" && fs.requiresTempRoot {
+		return "", errors.New("Set a temp directory root with ChangeTempRoot before making temp directories")
+	}
+	return ioutil.TempDir(fs.tempRoot, prefix)
 }
 
-func (fs osFileSystem) RemoveAll(fileOrDir string) (err error) {
+func (f *osFileSystem) ChangeTempRoot(tempRootPath string) error {
+	err := f.MkdirAll(tempRootPath, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	f.tempRoot = tempRootPath
+	return nil
+}
+
+func (fs *osFileSystem) RemoveAll(fileOrDir string) (err error) {
 	fs.logger.Debug(fs.logTag, "Remove all %s", fileOrDir)
 	err = os.RemoveAll(fileOrDir)
 	return
 }
 
-func (fs osFileSystem) Glob(pattern string) (matches []string, err error) {
+func (fs *osFileSystem) Glob(pattern string) (matches []string, err error) {
 	fs.logger.Debug(fs.logTag, "Glob '%s'", pattern)
 	return filepath.Glob(pattern)
 }
 
-func (fs osFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
+func (fs *osFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
 	return filepath.Walk(root, walkFunc)
 }
 
-func (fs osFileSystem) filesAreIdentical(newContent []byte, filePath string) bool {
+func (fs *osFileSystem) filesAreIdentical(newContent []byte, filePath string) bool {
 	existingStat, err := os.Stat(filePath)
 	if err != nil || int64(len(newContent)) != existingStat.Size() {
 		return false
@@ -363,7 +385,7 @@ func (fs osFileSystem) filesAreIdentical(newContent []byte, filePath string) boo
 	return bytes.Compare(newContent, existingContent) == 0
 }
 
-func (fs osFileSystem) runCommand(cmd string) (string, error) {
+func (fs *osFileSystem) runCommand(cmd string) (string, error) {
 	var stdout bytes.Buffer
 	shCmd := exec.Command("sh", "-c", cmd)
 	shCmd.Stdout = &stdout

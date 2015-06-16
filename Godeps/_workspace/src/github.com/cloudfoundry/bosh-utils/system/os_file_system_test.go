@@ -15,6 +15,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/cloudfoundry/bosh-utils/system"
+	"io/ioutil"
 )
 
 func createOsFs() (fs FileSystem, runner CmdRunner) {
@@ -411,6 +412,57 @@ func init() {
 			defer os.Remove(path2)
 
 			assert.NotEqual(GinkgoT(), path1, path2)
+		})
+
+		Describe("Temporary directories and files", func() {
+			var (
+				osFs FileSystem
+				testTempDir string
+			)
+			BeforeEach(func() {
+				osFs, _ = createOsFs()
+				var err error
+				testTempDir, err = ioutil.TempDir("", "os_filesystem_test")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			AfterEach(func() {
+				os.Remove(testTempDir)
+			})
+
+			Context("a temp root is set", func() {
+				BeforeEach(func() {
+					osFs.ChangeTempRoot(testTempDir)
+				})
+
+				It("creates temp files under that root", func() {
+					file, err := osFs.TempFile("some-file-prefix")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(file.Name()).To(HavePrefix(filepath.Join(testTempDir, "some-file-prefix")))
+				})
+
+				It("creates temp directories under that root", func() {
+					dirName, err := osFs.TempDir("some-dir-prefix")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(dirName).To(HavePrefix(filepath.Join(testTempDir, "some-dir-prefix")))
+				})
+			})
+
+			Context("no temp root is set and was initialized as a strict temp root", func() {
+				BeforeEach(func () {
+					osFs = NewOsFileWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+				})
+
+				It("should eror", func() {
+					_, err := osFs.TempFile("some-prefix")
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("ChangeTempRoot"))
+
+					_, err = osFs.TempDir("some-prefix")
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("ChangeTempRoot"))
+				})
+			})
 		})
 
 		Describe("CopyFile", func() {

@@ -16,7 +16,7 @@ const DefaultLogFileMode = os.FileMode(0666)
 func New(level boshlog.LogLevel, filePath string, fileMode os.FileMode, fs boshsys.FileSystem) (boshlog.Logger, boshsys.File, error) {
 	file, err := fs.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, fileMode)
 	if err != nil {
-		return boshlog.Logger{}, file, bosherr.WrapErrorf(err, "Failed to open log file '%s'", filePath)
+		return nil, file, bosherr.WrapErrorf(err, "Failed to open log file '%s'", filePath)
 	}
 
 	return boshlog.NewWriterLogger(level, file, file), file, nil

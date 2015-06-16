@@ -76,6 +76,9 @@ type FakeFileSystem struct {
 	globsMap map[string][][]string
 
 	WalkErr error
+
+	TempRootPath string
+	strictTempRoot bool
 }
 
 type FakeFileStats struct {
@@ -511,12 +514,25 @@ func (fs *FakeFileSystem) CopyDir(srcPath, dstPath string) error {
 	return nil
 }
 
+func (fs *FakeFileSystem) ChangeTempRoot(tempRootPath string) error {
+	fs.TempRootPath = tempRootPath
+	return nil
+}
+
+func (fs *FakeFileSystem) EnableStrictTempRootBehavior() {
+	fs.strictTempRoot = true
+}
+
 func (fs *FakeFileSystem) TempFile(prefix string) (file boshsys.File, err error) {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
 	if fs.TempFileError != nil {
 		return nil, fs.TempFileError
+	}
+
+	if fs.strictTempRoot && fs.TempRootPath == "" {
+		return nil, errors.New("Temp file was requested without having set a temp root")
 	}
 
 	if fs.ReturnTempFile != nil {
@@ -541,6 +557,10 @@ func (fs *FakeFileSystem) TempDir(prefix string) (string, error) {
 
 	if fs.TempDirError != nil {
 		return "", fs.TempDirError
+	}
+
+	if fs.strictTempRoot && fs.TempRootPath == "" {
+		return "", errors.New("Temp file was requested without having set a temp root")
 	}
 
 	var path string
