@@ -5,7 +5,7 @@
 * Documentation: [bosh.io/docs](https://bosh.io/docs)
 * IRC: [`#bosh` on freenode](http://webchat.freenode.net/?channels=bosh)
 * Mailing list: [cf-bosh](https://lists.cloudfoundry.org/pipermail/cf-bosh)
-* CI: [https://concourse-1739433260.us-east-1.elb.amazonaws.com](https://concourse-1739433260.us-east-1.elb.amazonaws.com)
+* CI: [https://main.bosh-ci.cf-app.com/pipelines/bosh-init](https://main.bosh-ci.cf-app.com/pipelines/bosh-init)
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1133984)
 
 ## Usage
