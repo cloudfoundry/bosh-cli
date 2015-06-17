@@ -65,7 +65,7 @@ var _ = Describe("SignalableLogger", func() {
 		Describe("when the log level is error", func() {
 			It("outputs at debug level", func() {
 				stdout, stderr := captureOutputs(func() {
-					logger, doneChannel := bilog.NewSignalableLogger(boshlog.LevelError, signalChannel)
+					logger, doneChannel := bilog.NewSignalableLogger(boshlog.NewLogger(boshlog.LevelError), signalChannel)
 
 					signalChannel <- syscall.SIGHUP
 					<-doneChannel
@@ -84,7 +84,7 @@ var _ = Describe("SignalableLogger", func() {
 
 			It("outputs at error level when toggled back", func() {
 				stdout, stderr := captureOutputs(func() {
-					logger, doneChannel := bilog.NewSignalableLogger(boshlog.LevelError, signalChannel)
+					logger, doneChannel := bilog.NewSignalableLogger(boshlog.NewLogger(boshlog.LevelError), signalChannel)
 
 					signalChannel <- syscall.SIGHUP
 					<-doneChannel

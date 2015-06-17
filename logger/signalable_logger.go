@@ -6,8 +6,7 @@ import (
 	"os"
 )
 
-func NewSignalableLogger(level boshlog.LogLevel, signalChannel chan os.Signal) (boshlog.Logger, chan bool) {
-	logger := boshlog.NewLogger(level)
+func NewSignalableLogger(logger boshlog.Logger, signalChannel chan os.Signal) (boshlog.Logger, chan bool) {
 	doneChannel := make(chan bool, 1)
 	go func() {
 		for {

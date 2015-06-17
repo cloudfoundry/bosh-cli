@@ -70,30 +70,33 @@ func newLogger() boshlog.Logger {
 
 	logPath := os.Getenv("BOSH_INIT_LOG_PATH")
 	if logPath != "" {
-		return newFileLogger(logPath, level)
+		return newSignalableFileLogger(logPath, level)
 	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP)
-	logger, _ := bilog.NewSignalableLogger(level, c)
-
-	return logger
+	return newSignalableLogger(boshlog.NewLogger(level))
 }
 
-func newFileLogger(logPath string, level boshlog.LogLevel) boshlog.Logger {
+func newSignalableLogger(logger boshlog.Logger) boshlog.Logger {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP)
+	signalableLogger, _ := bilog.NewSignalableLogger(logger, c)
+	return signalableLogger
+}
+
+func newSignalableFileLogger(logPath string, level boshlog.LogLevel) boshlog.Logger {
 	// Log file logger errors to the STDERR logger
 	logger := boshlog.NewLogger(boshlog.LevelError)
 	fileSystem := boshsys.NewOsFileSystem(logger)
 
 	// log file will be closed by process exit
 	// log file readable by all
-	logger, _, err := boshlogfile.New(level, logPath, boshlogfile.DefaultLogFileMode, fileSystem)
+	logfileLogger, _, err := boshlogfile.New(level, logPath, boshlogfile.DefaultLogFileMode, fileSystem)
 	if err != nil {
 		logger := boshlog.NewLogger(boshlog.LevelError)
 		ui := biui.NewConsoleUI(logger)
 		fail(err, ui, logger, nil)
 	}
-	return logger
+	return newSignalableLogger(logfileLogger)
 }
 
 func fail(err error, ui biui.UI, logger boshlog.Logger, callback func()) {
