@@ -111,10 +111,10 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 
 	target, err := c.targetProvider.NewTarget()
 	if err != nil {
-		return bosherr.WrapError(err, "Teh target no...")
+		return bosherr.WrapError(err, "Determining installation target")
 	}
 
-	c.tempRootConfigurator.PrepareAndSetTempRoot(target.TmpPath())
+	c.tempRootConfigurator.PrepareAndSetTempRoot(target.TmpPath(), c.logger)
 
 	defer func() {
 		err := c.releaseManager.DeleteAll()

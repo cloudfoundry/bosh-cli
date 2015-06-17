@@ -7,7 +7,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-init/cmd"
 
-	"github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	. "github.com/onsi/ginkgo"
@@ -19,6 +19,7 @@ var _ = Describe("TempRootConfigurator", func() {
 		var fs boshsys.FileSystem
 		var testTempDir string
 		var tempRoot string
+		var logger boshlog.Logger
 
 		BeforeEach(func() {
 			var err error
@@ -26,7 +27,8 @@ var _ = Describe("TempRootConfigurator", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			tempRoot = filepath.Join(testTempDir, "my-temp-root")
-			fs = boshsys.NewOsFileSystem(logger.NewLogger(logger.LevelNone))
+			logger = boshlog.NewLogger(boshlog.LevelNone)
+			fs = boshsys.NewOsFileSystem(logger)
 		})
 
 		AfterEach(func() {
@@ -55,7 +57,7 @@ var _ = Describe("TempRootConfigurator", func() {
 
 				Expect(existingFilePath).To(BeAnExistingFile())
 
-				err := tempRootConfigurator.PrepareAndSetTempRoot(tempRoot)
+				err := tempRootConfigurator.PrepareAndSetTempRoot(tempRoot, logger)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(existingFilePath).ToNot(BeAnExistingFile())
@@ -64,7 +66,7 @@ var _ = Describe("TempRootConfigurator", func() {
 			It("sets the filesystem temp root", func() {
 				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
-				err := tempRootConfigurator.PrepareAndSetTempRoot(tempRoot)
+				err := tempRootConfigurator.PrepareAndSetTempRoot(tempRoot, logger)
 				Expect(err).ToNot(HaveOccurred())
 
 				expectTempFileToBeCreatedUnderRoot(tempRoot, "my-temp-file", fs)
@@ -73,7 +75,7 @@ var _ = Describe("TempRootConfigurator", func() {
 			It("returns an error if changing the temp root fails", func() {
 				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
-				err := tempRootConfigurator.PrepareAndSetTempRoot("/dev/null/foo")
+				err := tempRootConfigurator.PrepareAndSetTempRoot("/dev/null/foo", logger)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("/dev/null"))
 			})
@@ -83,7 +85,7 @@ var _ = Describe("TempRootConfigurator", func() {
 			It("sets the FileSystem temp root", func() {
 				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
-				err := tempRootConfigurator.PrepareAndSetTempRoot(tempRoot)
+				err := tempRootConfigurator.PrepareAndSetTempRoot(tempRoot, logger)
 				Expect(err).ToNot(HaveOccurred())
 
 				expectTempFileToBeCreatedUnderRoot(tempRoot, "my-temp-file", fs)
@@ -92,7 +94,7 @@ var _ = Describe("TempRootConfigurator", func() {
 			It("returns an error if changing the temp root fails", func() {
 				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
-				err := tempRootConfigurator.PrepareAndSetTempRoot("/dev/null/foo")
+				err := tempRootConfigurator.PrepareAndSetTempRoot("/dev/null/foo", logger)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("/dev/null"))
 			})
