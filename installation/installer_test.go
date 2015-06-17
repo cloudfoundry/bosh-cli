@@ -72,7 +72,6 @@ var _ = Describe("Installer", func() {
 			mockJobRenderer,
 			mockJobResolver,
 			mockPackageCompiler,
-			packagesPath,
 			fakeExtractor,
 			mockRegistryServerManager,
 			logger,

@@ -83,7 +83,6 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 		context.JobRenderer(),
 		context.JobResolver(),
 		context.PackageCompiler(),
-		target.PackagesPath(),
 		context.BlobExtractor(),
 		f.registryServerManager,
 		f.logger,

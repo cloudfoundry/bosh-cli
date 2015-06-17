@@ -32,7 +32,6 @@ type installer struct {
 	jobRenderer           JobRenderer
 	jobResolver           JobResolver
 	packageCompiler       PackageCompiler
-	packagesPath          string
 	blobExtractor         blobextract.Extractor
 	registryServerManager biregistry.ServerManager
 	logger                boshlog.Logger
@@ -44,7 +43,6 @@ func NewInstaller(
 	jobRenderer JobRenderer,
 	jobResolver JobResolver,
 	packageCompiler PackageCompiler,
-	packagesPath string,
 	blobExtractor blobextract.Extractor,
 	registryServerManager biregistry.ServerManager,
 	logger boshlog.Logger,
@@ -54,7 +52,6 @@ func NewInstaller(
 		jobRenderer:           jobRenderer,
 		jobResolver:           jobResolver,
 		packageCompiler:       packageCompiler,
-		packagesPath:          packagesPath,
 		blobExtractor:         blobExtractor,
 		registryServerManager: registryServerManager,
 		logger:                logger,
@@ -105,7 +102,7 @@ func (i *installer) Cleanup(installation Installation) error {
 
 func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error {
 	for _, pkg := range compiledPackages {
-		err := i.blobExtractor.Extract(pkg.BlobstoreID, pkg.SHA1, filepath.Join(i.packagesPath, pkg.Name))
+		err := i.blobExtractor.Extract(pkg.BlobstoreID, pkg.SHA1, filepath.Join(i.target.PackagesPath(), pkg.Name))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Installing package '%s'", pkg.Name)
 		}
