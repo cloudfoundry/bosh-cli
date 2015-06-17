@@ -293,7 +293,7 @@ func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool, pat
 		}
 		resourcePool.Env = env
 
-		resourcePool.Stemcell.URL = biutil.ParseFilePath(path, resourcePool.Stemcell.URL)
+		resourcePool.Stemcell.URL = biutil.AbsolutifyPath(path, resourcePool.Stemcell.URL)
 
 		resourcePools[i] = resourcePool
 	}

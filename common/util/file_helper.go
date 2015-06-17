@@ -5,19 +5,32 @@ import (
 	"strings"
 )
 
-func ParseFilePath(path string, filename string) string {
-	if strings.HasPrefix(filename, "file:///") || strings.HasPrefix(filename, "file://~") ||
-		strings.HasPrefix(filename, "http") || strings.HasPrefix(filename, "/") {
-		return filename
+func AbsolutifyPath(pathToManifest string, pathToFile string) string {
+	if strings.HasPrefix(pathToFile, "http") {
+		return pathToFile
 	}
 
-	s := strings.Split(filepath.Dir(path), "/")
-	if strings.HasPrefix(filename, "file://") {
-		s = append(s, strings.Replace(filename, "file://", "", 1))
-		s = append([]string{"file:/"}, s...)
-	} else {
-		s = append(s, filename)
+	if strings.HasPrefix(pathToFile, "file:///") || strings.HasPrefix(pathToFile, "/") {
+		return pathToFile
 	}
 
-	return strings.Join(s, "/")
+	if strings.HasPrefix(pathToFile, "file://~") || strings.HasPrefix(pathToFile, "~") {
+		return pathToFile
+	}
+
+	var absPath string
+
+	if strings.HasPrefix(pathToFile, "file://") {
+		absPath += "file://"
+	}
+
+	absPath += filepath.Dir(pathToManifest)
+
+	if !strings.HasSuffix(absPath, "/") {
+		absPath += "/"
+	}
+
+	absPath += strings.Replace(pathToFile, "file://", "", 1)
+
+	return absPath
 }

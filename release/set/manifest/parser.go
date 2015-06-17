@@ -47,7 +47,7 @@ func (p *parser) Parse(path string) (Manifest, error) {
 	p.logger.Debug(p.logTag, "Parsed release set manifest: %#v", comboManifest)
 
 	for i, releaseRef := range comboManifest.Releases {
-		comboManifest.Releases[i].URL = biutil.ParseFilePath(path, releaseRef.URL)
+		comboManifest.Releases[i].URL = biutil.AbsolutifyPath(path, releaseRef.URL)
 	}
 
 	releaseSetManifest := Manifest{

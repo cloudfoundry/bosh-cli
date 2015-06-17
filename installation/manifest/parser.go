@@ -73,7 +73,7 @@ func (p *parser) Parse(path string, releaseSetManifest birelsetmanifest.Manifest
 			p.logger.Warn(p.logTag, "Failed to expand private key path, using original path")
 			privateKeyPath = comboManifest.CloudProvider.SSHTunnel.PrivateKey
 		}
-		comboManifest.CloudProvider.SSHTunnel.PrivateKey = biutil.ParseFilePath(path, privateKeyPath)
+		comboManifest.CloudProvider.SSHTunnel.PrivateKey = biutil.AbsolutifyPath(path, privateKeyPath)
 	}
 
 	installationManifest := Manifest{
