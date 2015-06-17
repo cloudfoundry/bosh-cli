@@ -455,6 +455,15 @@ func rootDesc() {
 			Expect(fakeFs.TempRootPath).To(Equal("fake-install-dir/fake-installation-id/tmp"))
 		})
 
+		Context("when setting the temp root fails", func() {
+			It("returns an error", func() {
+				fakeFs.ChangeTempRootErr = errors.New("fake ChangeTempRootErr")
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Setting temp root: fake ChangeTempRootErr"))
+			})
+		})
+
 		It("parses the installation manifest", func() {
 			err := command.Run(fakeStage, []string{deploymentManifestPath})
 			Expect(err).NotTo(HaveOccurred())

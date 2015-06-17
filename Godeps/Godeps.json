@@ -23,51 +23,51 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/blobstore",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/errors",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/fileutil",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/http",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/httpclient",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/internal/github.com/cloudfoundry/gofileutils/glob",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/internal/github.com/nu7hatch/gouuid",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/logger",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/property",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/retrystrategy",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/system",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/bosh-utils/uuid",
-			"Rev": "5e37d5707a1817d1fb1a963c9f21e0d7ab9d5e3c"
+			"Rev": "6c266c2d546fc0dfec0f3c2b0728f87b06fcd25e"
 		},
 		{
 			"ImportPath": "github.com/golang/mock/gomock",

@@ -49,6 +49,8 @@ type FakeFileSystem struct {
 	MkdirAllError       error
 	mkdirAllErrorByPath map[string]error
 
+	ChangeTempRootErr error
+
 	ChownErr error
 	ChmodErr error
 
@@ -515,6 +517,9 @@ func (fs *FakeFileSystem) CopyDir(srcPath, dstPath string) error {
 }
 
 func (fs *FakeFileSystem) ChangeTempRoot(tempRootPath string) error {
+	if (fs.ChangeTempRootErr != nil){
+		return fs.ChangeTempRootErr
+	}
 	fs.TempRootPath = tempRootPath
 	return nil
 }

@@ -27,7 +27,7 @@ func NewOsFileSystem(logger boshlog.Logger) FileSystem {
 	return &osFileSystem{logger: logger, logTag: "File System", requiresTempRoot: false}
 }
 
-func NewOsFileWithStrictTempRoot(logger boshlog.Logger) FileSystem {
+func NewOsFileSystemWithStrictTempRoot(logger boshlog.Logger) FileSystem {
 	return &osFileSystem{logger: logger, logTag: "File System", requiresTempRoot: true}
 }
 

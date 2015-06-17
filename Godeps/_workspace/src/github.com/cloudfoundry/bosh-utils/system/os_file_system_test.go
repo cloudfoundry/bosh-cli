@@ -450,7 +450,7 @@ func init() {
 
 			Context("no temp root is set and was initialized as a strict temp root", func() {
 				BeforeEach(func () {
-					osFs = NewOsFileWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+					osFs = NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
 				})
 
 				It("should eror", func() {

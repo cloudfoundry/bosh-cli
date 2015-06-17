@@ -34,6 +34,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
+	"errors"
 	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
@@ -346,6 +347,15 @@ cloud_provider:
 					// create deployment manifest yaml file
 					setupDeploymentStateService.Save(biconfig.DeploymentState{
 						DirectorID: directorID,
+					})
+				})
+
+				Context("when change temp root fails", func() {
+					It("returns an error", func() {
+						fs.ChangeTempRootErr = errors.New("fake ChangeTempRootErr")
+						err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(Equal("Setting temp root: fake ChangeTempRootErr"))
 					})
 				})
 

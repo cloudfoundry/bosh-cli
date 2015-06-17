@@ -95,7 +95,10 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		return bosherr.WrapError(err, "Determining installation target")
 	}
 
-	c.tempRootConfigurator.PrepareAndSetTempRoot(target.TmpPath(), c.logger)
+	err = c.tempRootConfigurator.PrepareAndSetTempRoot(target.TmpPath(), c.logger)
+	if err != nil {
+		return bosherr.WrapError(err, "Setting temp root")
+	}
 
 	defer func() {
 		err := c.releaseManager.DeleteAll()
