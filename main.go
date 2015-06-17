@@ -13,8 +13,11 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-golang/clock"
 
+	bilog "github.com/cloudfoundry/bosh-init/logger"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	biuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
+	"os/signal"
+	"syscall"
 )
 
 const mainLogTag = "main"
@@ -70,7 +73,11 @@ func newLogger() boshlog.Logger {
 		return newFileLogger(logPath, level)
 	}
 
-	return boshlog.NewLogger(level)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP)
+	logger, _ := bilog.NewSignalableLogger(level, c)
+
+	return logger
 }
 
 func newFileLogger(logPath string, level boshlog.LogLevel) boshlog.Logger {
