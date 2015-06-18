@@ -18,8 +18,6 @@ import (
 type manifestFixtures struct {
 	validManifest             string
 	missingPrivateKeyManifest string
-	sshTunnelManifestAbsPath  string
-	sshTunnelManifestRelPath  string
 }
 
 var _ = Describe("Parser", func() {
@@ -67,34 +65,6 @@ cloud_provider:
     port: 22
     user: fake-ssh-user
     password: fake-password
-  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
-`,
-			sshTunnelManifestAbsPath: `
----
-name: fake-deployment-name
-cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
-  ssh_tunnel:
-    host: 54.34.56.8
-    port: 22
-    user: fake-ssh-user
-    private_key: /tmp/fake-ssh-key.pem
-  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
-`,
-			sshTunnelManifestRelPath: `
----
-name: fake-deployment-name
-cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
-  ssh_tunnel:
-    host: 54.34.56.8
-    port: 22
-    user: fake-ssh-user
-    private_key: tmp/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `,
 		}
@@ -148,7 +118,20 @@ cloud_provider:
 		Context("when ssh tunnel config is present", func() {
 			Context("with absolute private key path", func() {
 				BeforeEach(func() {
-					fakeFs.WriteFileString(comboManifestPath, fixtures.sshTunnelManifestAbsPath)
+					fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: /tmp/fake-ssh-key.pem
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
 					fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 				})
 
@@ -189,7 +172,19 @@ cloud_provider:
 
 			Context("with relative private key path", func() {
 				BeforeEach(func() {
-					fakeFs.WriteFileString(comboManifestPath, fixtures.sshTunnelManifestRelPath)
+					fakeFs.WriteFileString(comboManifestPath, `---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: tmp/fake-ssh-key.pem
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
 					fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 				})
 
@@ -230,14 +225,27 @@ cloud_provider:
 
 			Context("when expanding the key file path fails", func() {
 				BeforeEach(func() {
-					fakeFs.WriteFileString(comboManifestPath, fixtures.sshTunnelManifestAbsPath)
+					fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: /tmp/fake-ssh-key.pem
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
 					fakeFs.ExpandPathErr = errors.New("fake-expand-error")
 				})
 
-				It("uses original path", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(installationManifest.Registry.SSHTunnel.PrivateKey).To(Equal("/tmp/fake-ssh-key.pem"))
+				It("returns an error", func() {
+					_, err := parser.Parse(comboManifestPath, releaseSetManifest)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Expanding private_key path: fake-expand-error"))
 				})
 			})
 
