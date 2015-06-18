@@ -306,7 +306,7 @@ cloud_provider:
 
 			installation := biinstall.NewInstallation(target, installedJob, installationManifest, registryServerManager)
 
-			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 
 			mockInstaller.EXPECT().Install(installationManifest, target, gomock.Any()).Do(func(_ interface{}, _ biinstall.Target, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
@@ -418,9 +418,9 @@ cloud_provider:
 				tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
 
 				cpiInstaller := bicpirel.CpiInstaller{
-					ReleaseManager: releaseManager,
-					Installer:      mockInstaller,
-					Validator:      bicpirel.NewValidator(),
+					ReleaseManager:   releaseManager,
+					InstallerFactory: mockInstallerFactory,
+					Validator:        bicpirel.NewValidator(),
 				}
 				releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
 				stemcellFetcher := bistemcell.Fetcher{

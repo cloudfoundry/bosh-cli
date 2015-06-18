@@ -624,17 +624,10 @@ func (d *deploymentManagerFactory2) loadCpiUninstaller() biinstall.Uninstaller {
 }
 
 func (d *deploymentManagerFactory2) loadCpiInstaller() (bicpirel.CpiInstaller, error) {
-	target, err := d.loadTargetProvider().NewTarget()
-	if err != nil {
-		return bicpirel.CpiInstaller{}, bosherr.WrapError(err, "Loading target")
-	}
-
-	installer := d.loadInstallerFactory().NewInstaller(target)
-
 	return bicpirel.CpiInstaller{
-		ReleaseManager: d.f.loadReleaseManager(),
-		Installer:      installer,
-		Validator:      bicpirel.NewValidator(),
+		ReleaseManager:   d.f.loadReleaseManager(),
+		InstallerFactory: d.loadInstallerFactory(),
+		Validator:        bicpirel.NewValidator(),
 	}, nil
 }
 

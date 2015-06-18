@@ -146,15 +146,14 @@ func (_m *MockInstallerFactory) EXPECT() *_MockInstallerFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockInstallerFactory) NewInstaller() (installation.Installer, error) {
-	ret := _m.ctrl.Call(_m, "NewInstaller")
+func (_m *MockInstallerFactory) NewInstaller(_param0 installation.Target) installation.Installer {
+	ret := _m.ctrl.Call(_m, "NewInstaller", _param0)
 	ret0, _ := ret[0].(installation.Installer)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
-func (_mr *_MockInstallerFactoryRecorder) NewInstaller() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewInstaller")
+func (_mr *_MockInstallerFactoryRecorder) NewInstaller(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewInstaller", arg0)
 }
 
 // Mock of Uninstaller interface

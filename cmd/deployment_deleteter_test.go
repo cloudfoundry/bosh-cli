@@ -148,9 +148,8 @@ cloud_provider:
 				Properties: biproperty.Map{},
 			}
 
-			mockInstallerFactory.EXPECT().NewInstaller().Return(mockCpiInstaller, nil).AnyTimes()
-
 			target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
+			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockCpiInstaller).AnyTimes()
 
 			expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, target, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, _ biinstall.Target, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
@@ -172,9 +171,9 @@ cloud_provider:
 			deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
 			cpiInstaller := bicpirel.CpiInstaller{
-				ReleaseManager: releaseManager,
-				Installer:      mockCpiInstaller,
-				Validator:      bicpirel.NewValidator(),
+				ReleaseManager:   releaseManager,
+				InstallerFactory: mockInstallerFactory,
+				Validator:        bicpirel.NewValidator(),
 			}
 			releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
 			releaseSetAndInstallationManifestParser := bicmd.ReleaseSetAndInstallationManifestParser{
@@ -452,11 +451,10 @@ cloud_provider:
 					Properties: biproperty.Map{},
 				}
 
-				mockInstallerFactory.EXPECT().NewInstaller().Return(mockCpiInstaller, nil).AnyTimes()
+				target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
+				mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockCpiInstaller).AnyTimes()
 
 				fakeInstallation := &fakecmd.FakeInstallation{}
-
-				target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
 
 				expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, target, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, _ biinstall.Target, stage biui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))

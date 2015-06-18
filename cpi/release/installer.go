@@ -9,9 +9,9 @@ import (
 )
 
 type CpiInstaller struct {
-	ReleaseManager birel.Manager
-	Installer      biinstall.Installer
-	Validator      Validator
+	ReleaseManager   birel.Manager
+	InstallerFactory biinstall.InstallerFactory
+	Validator        Validator
 }
 
 func (i CpiInstaller) ValidateCpiRelease(installationManifest biinstallmanifest.Manifest, stage biui.Stage) error {
@@ -30,11 +30,11 @@ func (i CpiInstaller) ValidateCpiRelease(installationManifest biinstallmanifest.
 	})
 }
 
-func (i CpiInstaller) installCpiRelease(installationManifest biinstallmanifest.Manifest, target biinstall.Target, stage biui.Stage) (biinstall.Installation, error) {
+func (i CpiInstaller) installCpiRelease(installer biinstall.Installer, installationManifest biinstallmanifest.Manifest, target biinstall.Target, stage biui.Stage) (biinstall.Installation, error) {
 	var installation biinstall.Installation
 	var err error
 	err = stage.PerformComplex("installing CPI", func(installStage biui.Stage) error {
-		installation, err = i.Installer.Install(installationManifest, target, installStage)
+		installation, err = installer.Install(installationManifest, target, installStage)
 		return err
 	})
 	if err != nil {
@@ -45,14 +45,16 @@ func (i CpiInstaller) installCpiRelease(installationManifest biinstallmanifest.M
 }
 
 func (i CpiInstaller) WithInstalledCpiRelease(installationManifest biinstallmanifest.Manifest, target biinstall.Target, stage biui.Stage, fn func(biinstall.Installation) error) (errToReturn error) {
-	installation, err := i.installCpiRelease(installationManifest, target, stage)
+	installer := i.InstallerFactory.NewInstaller(target)
+
+	installation, err := i.installCpiRelease(installer, installationManifest, target, stage)
 	if err != nil {
 		errToReturn = err
 		return
 	}
 
 	defer func() {
-		err = i.cleanupInstall(installation, stage)
+		err = i.cleanupInstall(installation, installer, stage)
 		if errToReturn == nil {
 			errToReturn = err
 		}
@@ -62,8 +64,8 @@ func (i CpiInstaller) WithInstalledCpiRelease(installationManifest biinstallmani
 	return
 }
 
-func (i CpiInstaller) cleanupInstall(installation biinstall.Installation, stage biui.Stage) error {
+func (i CpiInstaller) cleanupInstall(installation biinstall.Installation, installer biinstall.Installer, stage biui.Stage) error {
 	return stage.Perform("Cleaning up rendered CPI jobs", func() error {
-		return i.Installer.Cleanup(installation)
+		return installer.Cleanup(installation)
 	})
 }

@@ -307,9 +307,9 @@ func rootDesc() {
 				tarballProvider := bitarball.NewProvider(tarballCache, fakeFs, fakeHTTPClient, sha1Calculator, 1, 0, logger)
 
 				cpiInstaller := bicpirel.CpiInstaller{
-					ReleaseManager: releaseManager,
-					Installer:      mockInstaller,
-					Validator:      bicpirel.NewValidator(),
+					ReleaseManager:   releaseManager,
+					InstallerFactory: mockInstallerFactory,
+					Validator:        bicpirel.NewValidator(),
 				}
 				releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
 				stemcellFetcher := bistemcell.Fetcher{
@@ -387,7 +387,7 @@ func rootDesc() {
 				filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),
 			)
 
-			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
+			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 
 			installation := biinstall.NewInstallation(target, installedJob, installationManifest, mockRegistryServerManager)
 

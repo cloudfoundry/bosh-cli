@@ -6,6 +6,7 @@ import (
 	biinstallation "github.com/cloudfoundry/bosh-init/installation"
 	biinstallationmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	"github.com/cloudfoundry/bosh-init/installation/mocks"
+	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	"github.com/cloudfoundry/bosh-init/ui"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	"github.com/golang/mock/gomock"
@@ -18,6 +19,7 @@ var _ = Describe("Installer", func() {
 		var (
 			mockCtrl             *gomock.Controller
 			mockInstaller        *mocks.MockInstaller
+			mockInstallerFactory *mock_install.MockInstallerFactory
 			installationManifest biinstallationmanifest.Manifest
 			installStage         *fakeui.FakeStage
 			installation         *mocks.MockInstallation
@@ -36,18 +38,21 @@ var _ = Describe("Installer", func() {
 
 		BeforeEach(func() {
 			mockInstaller = mocks.NewMockInstaller(mockCtrl)
+			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
+
 			installationManifest = biinstallationmanifest.Manifest{}
 			installStage = fakeui.NewFakeStage()
 			installation = mocks.NewMockInstallation(mockCtrl)
 
 			target = biinstallation.NewTarget("fake-installation-path")
+			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 			expectInstall = mockInstaller.EXPECT().Install(installationManifest, target, gomock.Any())
 			expectCleanup = mockInstaller.EXPECT().Cleanup(installation).Return(nil)
 		})
 
 		It("should install the CPI and call the passed in function with the installation", func() {
 			cpiInstaller := release.CpiInstaller{
-				Installer: mockInstaller,
+				InstallerFactory: mockInstallerFactory,
 			}
 
 			expectInstall.Return(installation, nil)
@@ -66,7 +71,7 @@ var _ = Describe("Installer", func() {
 
 		It("starts an 'installing CPI stage' and passes it to the installer", func() {
 			cpiInstaller := release.CpiInstaller{
-				Installer: mockInstaller,
+				InstallerFactory: mockInstallerFactory,
 			}
 
 			var stageForInstall ui.Stage
@@ -90,7 +95,7 @@ var _ = Describe("Installer", func() {
 
 		It("cleans up the installation afterwards", func() {
 			cpiInstaller := release.CpiInstaller{
-				Installer: mockInstaller,
+				InstallerFactory: mockInstallerFactory,
 			}
 
 			cleanupCalled := false
@@ -107,7 +112,7 @@ var _ = Describe("Installer", func() {
 
 		It("creates a stage for the cleanup", func() {
 			cpiInstaller := release.CpiInstaller{
-				Installer: mockInstaller,
+				InstallerFactory: mockInstallerFactory,
 			}
 			expectInstall.Return(installation, nil)
 
@@ -127,7 +132,7 @@ var _ = Describe("Installer", func() {
 		Context("when installing the cpi fails", func() {
 			It("returns the error", func() {
 				cpiInstaller := release.CpiInstaller{
-					Installer: mockInstaller,
+					InstallerFactory: mockInstallerFactory,
 				}
 
 				expectInstall.Return(nil, errors.New("couldn't install that"))
@@ -145,7 +150,7 @@ var _ = Describe("Installer", func() {
 		Context("when the passed in function returns an error", func() {
 			It("returns the error", func() {
 				cpiInstaller := release.CpiInstaller{
-					Installer: mockInstaller,
+					InstallerFactory: mockInstallerFactory,
 				}
 
 				expectInstall.Return(installation, nil)
@@ -160,7 +165,7 @@ var _ = Describe("Installer", func() {
 
 			It("cleans up the installation", func() {
 				cpiInstaller := release.CpiInstaller{
-					Installer: mockInstaller,
+					InstallerFactory: mockInstallerFactory,
 				}
 
 				expectInstall.Return(installation, nil)
@@ -176,7 +181,7 @@ var _ = Describe("Installer", func() {
 		Context("when cleanup fails", func() {
 			It("returns the error", func() {
 				cpiInstaller := release.CpiInstaller{
-					Installer: mockInstaller,
+					InstallerFactory: mockInstallerFactory,
 				}
 
 				expectInstall.Return(installation, nil)
@@ -192,7 +197,7 @@ var _ = Describe("Installer", func() {
 
 			It("returns the error from the function instead, if present", func() {
 				cpiInstaller := release.CpiInstaller{
-					Installer: mockInstaller,
+					InstallerFactory: mockInstallerFactory,
 				}
 
 				expectInstall.Return(installation, nil)
