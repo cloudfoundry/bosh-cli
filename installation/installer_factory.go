@@ -12,7 +12,6 @@ import (
 	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -20,11 +19,10 @@ import (
 )
 
 type InstallerFactory interface {
-	NewInstaller() (Installer, error)
+	NewInstaller(Target) Installer
 }
 
 type installerFactory struct {
-	targetProvider        TargetProvider
 	ui                    biui.UI
 	runner                boshsys.CmdRunner
 	extractor             boshcmd.Compressor
@@ -37,7 +35,6 @@ type installerFactory struct {
 }
 
 func NewInstallerFactory(
-	targetProvider TargetProvider,
 	ui biui.UI,
 	runner boshsys.CmdRunner,
 	extractor boshcmd.Compressor,
@@ -48,7 +45,6 @@ func NewInstallerFactory(
 	fs boshsys.FileSystem,
 ) InstallerFactory {
 	return &installerFactory{
-		targetProvider:        targetProvider,
 		ui:                    ui,
 		runner:                runner,
 		extractor:             extractor,
@@ -61,13 +57,7 @@ func NewInstallerFactory(
 	}
 }
 
-func (f *installerFactory) NewInstaller() (Installer, error) {
-
-	target, err := f.targetProvider.NewTarget()
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Generating installation target")
-	}
-
+func (f *installerFactory) NewInstaller(target Target) Installer {
 	context := &installerFactoryContext{
 		target:             target,
 		runner:             f.runner,
@@ -85,7 +75,7 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 		context.BlobExtractor(),
 		f.registryServerManager,
 		f.logger,
-	), nil
+	)
 }
 
 type installerFactoryContext struct {
