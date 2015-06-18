@@ -293,7 +293,10 @@ func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool, pat
 		}
 		resourcePool.Env = env
 
-		resourcePool.Stemcell.URL = biutil.AbsolutifyPath(path, resourcePool.Stemcell.URL)
+		resourcePool.Stemcell.URL, err = biutil.AbsolutifyPath(path, resourcePool.Stemcell.URL, p.fs)
+		if err != nil {
+			return resourcePools, bosherr.WrapErrorf(err, "Resolving stemcell path '%s", resourcePool.Stemcell.URL)
+		}
 
 		resourcePools[i] = resourcePool
 	}

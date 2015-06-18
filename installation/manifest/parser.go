@@ -68,11 +68,10 @@ func (p *parser) Parse(path string, releaseSetManifest birelsetmanifest.Manifest
 	p.logger.Debug(p.logTag, "Parsed installation manifest: %#v", comboManifest)
 
 	if comboManifest.CloudProvider.SSHTunnel.PrivateKey != "" {
-		privateKeyPath, err := p.fs.ExpandPath(comboManifest.CloudProvider.SSHTunnel.PrivateKey)
+		comboManifest.CloudProvider.SSHTunnel.PrivateKey, err = biutil.AbsolutifyPath(path, comboManifest.CloudProvider.SSHTunnel.PrivateKey, p.fs)
 		if err != nil {
 			return Manifest{}, bosherr.WrapErrorf(err, "Expanding private_key path")
 		}
-		comboManifest.CloudProvider.SSHTunnel.PrivateKey = biutil.AbsolutifyPath(path, privateKeyPath)
 	}
 
 	installationManifest := Manifest{
