@@ -461,4 +461,12 @@ Command 'deploy' failed:
 			Expect(stdout).To(ContainSubstring(`deploy - Create or update a deployment`))
 		})
 	})
+
+	It("exits early if there's no deployment state to delete", func() {
+		updateDeploymentManifest("./assets/manifest.yml")
+		stdout := deleteDeployment()
+
+		Expect(stdout).To(ContainSubstring("No deployment state file found"))
+
+	})
 })
