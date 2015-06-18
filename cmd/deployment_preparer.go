@@ -178,7 +178,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		return nil
 	}
 
-	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, stage, func(installation biinstall.Installation) error {
+	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(installation biinstall.Installation) error {
 		return installation.WithRunningRegistry(c.logger, stage, func() error {
 			return c.deploy(
 				installation,

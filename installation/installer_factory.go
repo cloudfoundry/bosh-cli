@@ -79,7 +79,6 @@ func (f *installerFactory) NewInstaller() (Installer, error) {
 	}
 
 	return NewInstaller(
-		target,
 		context.JobRenderer(),
 		context.JobResolver(),
 		context.PackageCompiler(),

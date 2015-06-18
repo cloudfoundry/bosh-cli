@@ -150,7 +150,9 @@ cloud_provider:
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockCpiInstaller, nil).AnyTimes()
 
-			expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
+			target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
+
+			expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, target, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, _ biinstall.Target, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(fakeInstallation, nil).AnyTimes()
 			mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
@@ -454,7 +456,9 @@ cloud_provider:
 
 				fakeInstallation := &fakecmd.FakeInstallation{}
 
-				expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
+				target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
+
+				expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, target, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, _ biinstall.Target, stage biui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 				}).Return(fakeInstallation, nil).AnyTimes()
 				mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()

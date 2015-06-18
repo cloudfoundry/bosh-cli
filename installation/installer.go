@@ -23,12 +23,11 @@ func NewInstalledJob(ref RenderedJobRef, path string) InstalledJob {
 }
 
 type Installer interface {
-	Install(biinstallmanifest.Manifest, biui.Stage) (Installation, error)
+	Install(biinstallmanifest.Manifest, Target, biui.Stage) (Installation, error)
 	Cleanup(Installation) error
 }
 
 type installer struct {
-	target                Target
 	jobRenderer           JobRenderer
 	jobResolver           JobResolver
 	packageCompiler       PackageCompiler
@@ -39,7 +38,6 @@ type installer struct {
 }
 
 func NewInstaller(
-	target Target,
 	jobRenderer JobRenderer,
 	jobResolver JobResolver,
 	packageCompiler PackageCompiler,
@@ -48,7 +46,6 @@ func NewInstaller(
 	logger boshlog.Logger,
 ) Installer {
 	return &installer{
-		target:                target,
 		jobRenderer:           jobRenderer,
 		jobResolver:           jobResolver,
 		packageCompiler:       packageCompiler,
@@ -59,7 +56,7 @@ func NewInstaller(
 	}
 }
 
-func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stage) (Installation, error) {
+func (i *installer) Install(manifest biinstallmanifest.Manifest, target Target, stage biui.Stage) (Installation, error) {
 	i.logger.Info(i.logTag, "Installing CPI deployment '%s'", manifest.Name)
 	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
@@ -74,7 +71,7 @@ func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stag
 	}
 
 	err = stage.Perform("Installing packages", func() error {
-		return i.installPackages(compiledPackages)
+		return i.installPackages(compiledPackages, target)
 	})
 	if err != nil {
 		return nil, err
@@ -82,13 +79,13 @@ func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stag
 
 	renderedJobRefs, err := i.jobRenderer.RenderAndUploadFrom(manifest, jobs, stage)
 	renderedCPIJob := renderedJobRefs[0]
-	installedJob, err := i.installJob(renderedCPIJob, stage)
+	installedJob, err := i.installJob(renderedCPIJob, target, stage)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", renderedCPIJob.Name)
 	}
 
 	return NewInstallation(
-		i.target,
+		target,
 		installedJob,
 		manifest,
 		i.registryServerManager,
@@ -100,9 +97,9 @@ func (i *installer) Cleanup(installation Installation) error {
 	return i.blobExtractor.Cleanup(job.BlobstoreID, job.Path)
 }
 
-func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error {
+func (i *installer) installPackages(compiledPackages []CompiledPackageRef, target Target) error {
 	for _, pkg := range compiledPackages {
-		err := i.blobExtractor.Extract(pkg.BlobstoreID, pkg.SHA1, filepath.Join(i.target.PackagesPath(), pkg.Name))
+		err := i.blobExtractor.Extract(pkg.BlobstoreID, pkg.SHA1, filepath.Join(target.PackagesPath(), pkg.Name))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Installing package '%s'", pkg.Name)
 		}
@@ -110,10 +107,10 @@ func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error
 	return nil
 }
 
-func (i *installer) installJob(renderedJobRef RenderedJobRef, stage biui.Stage) (installedJob InstalledJob, err error) {
+func (i *installer) installJob(renderedJobRef RenderedJobRef, target Target, stage biui.Stage) (installedJob InstalledJob, err error) {
 	err = stage.Perform(fmt.Sprintf("Installing job '%s'", renderedJobRef.Name), func() error {
 		var stageErr error
-		jobDir := filepath.Join(i.target.JobsPath(), renderedJobRef.Name)
+		jobDir := filepath.Join(target.JobsPath(), renderedJobRef.Name)
 
 		stageErr = i.blobExtractor.Extract(renderedJobRef.BlobstoreID, renderedJobRef.SHA1, jobDir)
 		if stageErr != nil {

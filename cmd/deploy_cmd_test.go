@@ -391,7 +391,7 @@ func rootDesc() {
 
 			installation := biinstall.NewInstallation(target, installedJob, installationManifest, mockRegistryServerManager)
 
-			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
+			expectInstall = mockInstaller.EXPECT().Install(installationManifest, target, gomock.Any()).Do(func(_ interface{}, _ biinstall.Target, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
 			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()

@@ -30,11 +30,11 @@ func (i CpiInstaller) ValidateCpiRelease(installationManifest biinstallmanifest.
 	})
 }
 
-func (i CpiInstaller) installCpiRelease(installationManifest biinstallmanifest.Manifest, stage biui.Stage) (biinstall.Installation, error) {
+func (i CpiInstaller) installCpiRelease(installationManifest biinstallmanifest.Manifest, target biinstall.Target, stage biui.Stage) (biinstall.Installation, error) {
 	var installation biinstall.Installation
 	var err error
 	err = stage.PerformComplex("installing CPI", func(installStage biui.Stage) error {
-		installation, err = i.Installer.Install(installationManifest, installStage)
+		installation, err = i.Installer.Install(installationManifest, target, installStage)
 		return err
 	})
 	if err != nil {
@@ -44,8 +44,8 @@ func (i CpiInstaller) installCpiRelease(installationManifest biinstallmanifest.M
 	return installation, nil
 }
 
-func (i CpiInstaller) WithInstalledCpiRelease(installationManifest biinstallmanifest.Manifest, stage biui.Stage, fn func(biinstall.Installation) error) (errToReturn error) {
-	installation, err := i.installCpiRelease(installationManifest, stage)
+func (i CpiInstaller) WithInstalledCpiRelease(installationManifest biinstallmanifest.Manifest, target biinstall.Target, stage biui.Stage, fn func(biinstall.Installation) error) (errToReturn error) {
+	installation, err := i.installCpiRelease(installationManifest, target, stage)
 	if err != nil {
 		errToReturn = err
 		return

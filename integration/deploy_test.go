@@ -308,7 +308,7 @@ cloud_provider:
 
 			mockInstallerFactory.EXPECT().NewInstaller().Return(mockInstaller, nil).AnyTimes()
 
-			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
+			mockInstaller.EXPECT().Install(installationManifest, target, gomock.Any()).Do(func(_ interface{}, _ biinstall.Target, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
 			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
@@ -438,9 +438,11 @@ cloud_provider:
 					ReleaseManager:      releaseManager,
 				}
 
+				installationUuidGenerator := fakeuuid.NewFakeGenerator()
+				installationUuidGenerator.GeneratedUUID = "fake-installation-id"
 				targetProvider := biinstall.NewTargetProvider(
 					deploymentStateService,
-					fakeUUIDGenerator,
+					installationUuidGenerator,
 					filepath.Join("fake-install-dir"),
 				)
 

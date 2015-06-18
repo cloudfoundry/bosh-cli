@@ -114,15 +114,15 @@ func (_mr *_MockInstallerRecorder) Cleanup(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Cleanup", arg0)
 }
 
-func (_m *MockInstaller) Install(_param0 manifest.Manifest, _param1 ui.Stage) (installation.Installation, error) {
-	ret := _m.ctrl.Call(_m, "Install", _param0, _param1)
+func (_m *MockInstaller) Install(_param0 manifest.Manifest, _param1 installation.Target, _param2 ui.Stage) (installation.Installation, error) {
+	ret := _m.ctrl.Call(_m, "Install", _param0, _param1, _param2)
 	ret0, _ := ret[0].(installation.Installation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockInstallerRecorder) Install(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Install", arg0, arg1)
+func (_mr *_MockInstallerRecorder) Install(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Install", arg0, arg1, arg2)
 }
 
 // Mock of InstallerFactory interface

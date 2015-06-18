@@ -68,7 +68,6 @@ var _ = Describe("Installer", func() {
 
 	JustBeforeEach(func() {
 		installer = NewInstaller(
-			target,
 			mockJobRenderer,
 			mockJobResolver,
 			mockPackageCompiler,
@@ -108,17 +107,17 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("compiles and installs the jobs' packages", func() {
-			_, err := installer.Install(installationManifest, fakeStage)
+			_, err := installer.Install(installationManifest, target, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("installs the rendered jobs", func() {
-			_, err := installer.Install(installationManifest, fakeStage)
+			_, err := installer.Install(installationManifest, target, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns the installation", func() {
-			installation, err := installer.Install(installationManifest, fakeStage)
+			installation, err := installer.Install(installationManifest, target, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(installation.Target().JobsPath()).To(Equal(target.JobsPath()))
 		})

@@ -133,7 +133,7 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 		return err
 	}
 
-	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, stage, func(localCpiInstallation biinstall.Installation) error {
+	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(localCpiInstallation biinstall.Installation) error {
 		return localCpiInstallation.WithRunningRegistry(c.logger, stage, func() error {
 			err = c.findAndDeleteDeployment(stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus)
 
