@@ -46,7 +46,7 @@ var _ = Describe("Installer", func() {
 
 			target = biinstallation.NewTarget("fake-installation-path")
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
-			expectInstall = mockInstaller.EXPECT().Install(installationManifest, target, gomock.Any())
+			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any())
 			expectCleanup = mockInstaller.EXPECT().Cleanup(installation).Return(nil)
 		})
 
@@ -75,7 +75,7 @@ var _ = Describe("Installer", func() {
 			}
 
 			var stageForInstall ui.Stage
-			expectInstall.Do(func(manifest biinstallationmanifest.Manifest, target biinstallation.Target, stage ui.Stage) {
+			expectInstall.Do(func(manifest biinstallationmanifest.Manifest, stage ui.Stage) {
 				stageForInstall = stage
 			}).Return(installation, nil)
 

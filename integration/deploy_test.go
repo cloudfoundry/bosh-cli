@@ -308,7 +308,7 @@ cloud_provider:
 
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 
-			mockInstaller.EXPECT().Install(installationManifest, target, gomock.Any()).Do(func(_ interface{}, _ biinstall.Target, stage biui.Stage) {
+			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
 			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()

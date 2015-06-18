@@ -34,7 +34,7 @@ func (i CpiInstaller) installCpiRelease(installer biinstall.Installer, installat
 	var installation biinstall.Installation
 	var err error
 	err = stage.PerformComplex("installing CPI", func(installStage biui.Stage) error {
-		installation, err = installer.Install(installationManifest, target, installStage)
+		installation, err = installer.Install(installationManifest, installStage)
 		return err
 	})
 	if err != nil {
