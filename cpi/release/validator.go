@@ -2,7 +2,7 @@ package release
 
 import (
 	birel "github.com/cloudfoundry/bosh-init/release"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 const (

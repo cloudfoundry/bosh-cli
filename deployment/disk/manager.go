@@ -7,8 +7,8 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Manager interface {

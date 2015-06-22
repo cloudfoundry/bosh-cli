@@ -5,7 +5,7 @@ package mocks
 
 import (
 	job "github.com/cloudfoundry/bosh-init/release/job"
-	gomock "github.com/golang/mock/gomock"
+	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 )
 
 // Mock of JobResolver interface

@@ -8,9 +8,9 @@ import (
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 )
 
 type Builder interface {

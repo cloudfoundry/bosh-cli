@@ -5,7 +5,7 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type CpiInstaller struct {

@@ -12,8 +12,8 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Deployer interface {

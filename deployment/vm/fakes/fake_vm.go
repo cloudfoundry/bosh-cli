@@ -3,8 +3,8 @@ package fakes
 import (
 	"time"
 
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	biagentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
+	bias "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"

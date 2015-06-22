@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
-	"github.com/golang/mock/gomock"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
+	mock_httpagent "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
 	mock_config "github.com/cloudfoundry/bosh-init/config/mocks"
@@ -35,9 +35,9 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 
 	"fmt"
 
@@ -52,10 +52,10 @@ import (
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest/fakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
-	"github.com/onsi/gomega/gbytes"
+	fakebihttpclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/httpclient/fakes"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("DeployCmd", rootDesc)

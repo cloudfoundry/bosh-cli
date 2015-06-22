@@ -1,23 +1,23 @@
 package installation_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-init/installation"
 
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
-	"github.com/golang/mock/gomock"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
-	fakeboshblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeboshblob "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	fakeboshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
+	fakeboshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

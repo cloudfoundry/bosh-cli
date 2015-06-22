@@ -5,7 +5,7 @@ import (
 
 	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type FakeERBRenderer struct {

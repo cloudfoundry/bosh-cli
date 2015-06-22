@@ -5,7 +5,7 @@ package mocks
 
 import (
 	release "github.com/cloudfoundry/bosh-init/release"
-	gomock "github.com/golang/mock/gomock"
+	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 )
 
 // Mock of Manager interface

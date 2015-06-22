@@ -4,7 +4,7 @@
 package mocks
 
 import (
-	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	agentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
 	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	cloud "github.com/cloudfoundry/bosh-init/cloud"
 	deployment "github.com/cloudfoundry/bosh-init/deployment"
@@ -15,7 +15,7 @@ import (
 	manifest0 "github.com/cloudfoundry/bosh-init/installation/manifest"
 	stemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	ui "github.com/cloudfoundry/bosh-init/ui"
-	gomock "github.com/golang/mock/gomock"
+	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 )
 
 // Mock of Deployment interface

@@ -4,14 +4,14 @@ import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
-	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 )
 
 var _ = Describe("JobListRenderer", func() {

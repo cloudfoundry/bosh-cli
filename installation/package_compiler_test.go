@@ -1,19 +1,19 @@
 package installation_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-init/installation"
 
 	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
-	"github.com/golang/mock/gomock"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	fakeboshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

@@ -5,7 +5,7 @@ import (
 
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type StemcellRepoSaveInput struct {

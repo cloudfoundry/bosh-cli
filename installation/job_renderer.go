@@ -5,10 +5,10 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	boshblob "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
+	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 )
 
 type JobRenderer interface {

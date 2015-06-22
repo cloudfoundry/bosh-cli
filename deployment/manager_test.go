@@ -3,7 +3,7 @@ package deployment_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
 	mock_disk "github.com/cloudfoundry/bosh-init/deployment/disk/mocks"
@@ -11,9 +11,9 @@ import (
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
 	mock_stemcell "github.com/cloudfoundry/bosh-init/stemcell/mocks"
-	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -22,10 +22,10 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

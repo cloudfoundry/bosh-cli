@@ -5,7 +5,7 @@ import (
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type DeploymentManifestParser struct {

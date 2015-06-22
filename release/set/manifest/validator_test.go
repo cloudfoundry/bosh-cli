@@ -3,9 +3,9 @@ package manifest_test
 import (
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
 	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
 

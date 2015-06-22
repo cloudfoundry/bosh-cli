@@ -3,10 +3,10 @@ package state_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	bias "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 )
 
 var _ = Describe("State", func() {

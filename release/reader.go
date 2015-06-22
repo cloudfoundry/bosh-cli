@@ -1,16 +1,16 @@
 package release
 
 import (
-	"gopkg.in/yaml.v2"
+	"github.com/cloudfoundry/bosh-init/internal/gopkg.in/yaml.v2"
 	"os"
 	"path"
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
 )
 
 type reader struct {

@@ -3,21 +3,21 @@ package instance_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	"time"
 
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
-	"github.com/golang/mock/gomock"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	bias "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 
 	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"

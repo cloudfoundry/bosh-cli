@@ -11,11 +11,11 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	boshblob "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type InstallerFactory interface {

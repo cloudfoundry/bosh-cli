@@ -2,7 +2,7 @@ package fakes
 
 import (
 	"fmt"
-	"github.com/onsi/gomega/types"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/types"
 )
 
 func BeASubstageOf(expected interface{}) types.GomegaMatcher {

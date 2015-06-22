@@ -3,12 +3,12 @@ package manifest
 import (
 	biutil "github.com/cloudfoundry/bosh-init/common/util"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"gopkg.in/yaml.v2"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/cloudfoundry/bosh-init/internal/gopkg.in/yaml.v2"
 )
 
 type Parser interface {

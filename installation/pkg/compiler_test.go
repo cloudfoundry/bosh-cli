@@ -2,9 +2,9 @@ package pkg_test
 
 import (
 	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
-	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	"path/filepath"
 
 	"errors"
@@ -14,11 +14,11 @@ import (
 	"github.com/cloudfoundry/bosh-init/installation/blobextract/fakeblobextract"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
-	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeblobstore "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	fakecmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	. "github.com/cloudfoundry/bosh-init/installation/pkg"
 )

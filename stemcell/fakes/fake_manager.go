@@ -5,7 +5,7 @@ import (
 
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type FakeManager struct {

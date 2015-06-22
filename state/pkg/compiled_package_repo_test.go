@@ -5,11 +5,11 @@ import (
 
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-init/state/pkg"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("CompiledPackageRepo", func() {

@@ -3,18 +3,18 @@ package vm
 import (
 	"time"
 
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	biagentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
+	bias "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"github.com/pivotal-golang/clock"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshretry "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/retrystrategy"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/pivotal-golang/clock"
 )
 
 type VM interface {

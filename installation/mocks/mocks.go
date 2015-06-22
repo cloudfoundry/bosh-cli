@@ -8,8 +8,8 @@ import (
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	job "github.com/cloudfoundry/bosh-init/release/job"
 	ui "github.com/cloudfoundry/bosh-init/ui"
-	logger "github.com/cloudfoundry/bosh-utils/logger"
-	gomock "github.com/golang/mock/gomock"
+	logger "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 )
 
 // Mock of Installation interface

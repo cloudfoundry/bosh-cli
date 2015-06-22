@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/url"
 
-	boshdavcli "github.com/cloudfoundry/bosh-davcli/client"
-	boshdavcliconf "github.com/cloudfoundry/bosh-davcli/config"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	boshdavcli "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-davcli/client"
+	boshdavcliconf "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-davcli/config"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	bihttpclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/httpclient"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type Factory interface {

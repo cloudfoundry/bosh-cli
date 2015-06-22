@@ -4,7 +4,7 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Fetcher struct {

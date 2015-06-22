@@ -7,17 +7,17 @@ import (
 	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
 	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
-	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	bias "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

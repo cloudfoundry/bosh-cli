@@ -2,16 +2,16 @@ package sshtunnel
 
 import (
 	"fmt"
-	"golang.org/x/crypto/ssh"
+	"github.com/cloudfoundry/bosh-init/internal/golang.org/x/crypto/ssh"
 	"io"
 	"io/ioutil"
 	"net"
 	"strings"
 	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-golang/clock"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/pivotal-golang/clock"
 )
 
 type SSHTunnel interface {

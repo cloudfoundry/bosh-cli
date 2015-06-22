@@ -6,7 +6,7 @@ package mocks
 import (
 	stemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	ui "github.com/cloudfoundry/bosh-init/ui"
-	gomock "github.com/golang/mock/gomock"
+	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 )
 
 // Mock of CloudStemcell interface

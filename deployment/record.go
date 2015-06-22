@@ -5,7 +5,7 @@ import (
 	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Record interface {

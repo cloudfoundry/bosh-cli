@@ -3,7 +3,7 @@ package cmd
 import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type ReleaseSetAndInstallationManifestParser struct {
