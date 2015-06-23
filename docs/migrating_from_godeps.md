@@ -41,11 +41,12 @@ Disable govet. Since it will govet internal which we don't want.
 
 Remove internal from test packages in bin/test-unit -skipPackage="acceptance,integration,internal"
 
-We decided to use vendored ginkgo in our CI.
+We decided to use vendored ginkgo in our CI, so we vendor it explicitly, and re-vendor gomega so that is updates imports in ginkgo.
 
 ```
-vendor add github.com/onsi/ginkgo/...
-vendor add github.com/onsi/gomega/...
+vendor add github.com/onsi/ginkgo/ginkgo
+vendor add github.com/onsi/ginkgo/ginkgo/...
+vendor add -status ext
 ```
 
 Update install-ginkgo to install from internal dependecy:
