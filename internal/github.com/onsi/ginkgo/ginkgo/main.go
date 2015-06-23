@@ -125,7 +125,7 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/ginkgo/testsuite"
-	"github.com/onsi/ginkgo/config"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/config"
 )
 
 const greenColor = "\x1b[32m"

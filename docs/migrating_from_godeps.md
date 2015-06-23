@@ -51,7 +51,7 @@ vendor add github.com/onsi/gomega/...
 Update install-ginkgo to install from internal dependecy:
 
 ```
-$bin/go install ./internal/github.com/onsi/ginkgo
+$bin/go install ./internal/github.com/onsi/ginkgo/ginkgo
 ```
 
 Clean everything from GOPATH:

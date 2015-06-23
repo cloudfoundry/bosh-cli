@@ -4,7 +4,7 @@ import (
 	"flag"
 	"runtime"
 
-	"github.com/onsi/ginkgo/config"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/config"
 )
 
 type RunWatchAndBuildCommandFlags struct {

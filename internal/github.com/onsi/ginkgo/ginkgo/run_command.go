@@ -9,8 +9,8 @@ import (
 
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/ginkgo/interrupthandler"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/ginkgo/testrunner"
-	"github.com/onsi/ginkgo/config"
-	"github.com/onsi/ginkgo/types"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/config"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/types"
 )
 
 func BuildRunCommand() *Command {
