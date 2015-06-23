@@ -1,8 +1,8 @@
 package release
 
 import (
-	birel "github.com/cloudfoundry/bosh-init/release"
 	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	birel "github.com/cloudfoundry/bosh-init/release"
 )
 
 const (

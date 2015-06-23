@@ -3,7 +3,6 @@ package vm_test
 import (
 	"errors"
 
-	fakebiagentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	"github.com/cloudfoundry/bosh-init/cloud"
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -11,13 +10,14 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-init/deployment/vm"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	fakebiagentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
 var _ = Describe("Manager", func() {

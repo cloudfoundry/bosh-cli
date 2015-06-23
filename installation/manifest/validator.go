@@ -3,9 +3,9 @@ package manifest
 import (
 	"strings"
 
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 type Validator interface {

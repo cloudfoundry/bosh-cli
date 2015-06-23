@@ -3,8 +3,8 @@
 package check_test
 
 import (
-	"time"
 	. "github.com/cloudfoundry/bosh-init/internal/gopkg.in/check.v1"
+	"time"
 )
 
 var benchmarkS = Suite(&BenchmarkS{})

@@ -1,9 +1,9 @@
 package job_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/release/job"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/release/job"
 )
 
 var _ = Describe("Job", func() {

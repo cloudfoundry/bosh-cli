@@ -1,9 +1,9 @@
 package ui_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/ui"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/ui"
 
 	"bytes"
 	"io"

@@ -3,8 +3,8 @@ package stemcell
 import (
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
-	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Fetcher struct {

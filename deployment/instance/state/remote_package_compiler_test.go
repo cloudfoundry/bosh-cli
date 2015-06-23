@@ -3,14 +3,14 @@ package state_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/mocks"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
-	biagentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
 	biindex "github.com/cloudfoundry/bosh-init/index"
+	biagentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 )

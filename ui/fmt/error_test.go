@@ -1,9 +1,9 @@
 package fmt_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/ui/fmt"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/ui/fmt"
 
 	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"

@@ -1,9 +1,9 @@
 package stemcell_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/stemcell"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/cloudfoundry/bosh-init/stemcell"
 
 	"errors"
 

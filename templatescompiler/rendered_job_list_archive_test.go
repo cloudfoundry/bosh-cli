@@ -8,8 +8,8 @@ import (
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	"os"
 
-	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"

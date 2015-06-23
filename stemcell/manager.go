@@ -5,8 +5,8 @@ import (
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
-	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 type Manager interface {

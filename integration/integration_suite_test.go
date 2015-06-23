@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
 )
 
 var (
@@ -16,10 +16,6 @@ var (
 
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
-	BeforeSuite(func() {
-		err := bitestutils.BuildExecutable()
-		Expect(err).NotTo(HaveOccurred())
-	})
 
 	var (
 		homePath string
@@ -46,3 +42,8 @@ func TestIntegration(t *testing.T) {
 
 	RunSpecs(t, "Integration Suite")
 }
+
+var _ = BeforeSuite(func() {
+	err := bitestutils.BuildExecutable()
+	Expect(err).NotTo(HaveOccurred())
+})

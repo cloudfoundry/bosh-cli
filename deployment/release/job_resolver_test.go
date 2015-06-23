@@ -5,8 +5,8 @@ import (
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 
 	fake_release "github.com/cloudfoundry/bosh-init/release/fakes"
 	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"

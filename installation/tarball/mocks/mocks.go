@@ -5,8 +5,8 @@ package mocks
 
 import (
 	tarball "github.com/cloudfoundry/bosh-init/installation/tarball"
-	ui "github.com/cloudfoundry/bosh-init/ui"
 	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	ui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 // Mock of Provider interface

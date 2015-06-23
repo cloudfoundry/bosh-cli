@@ -4,13 +4,13 @@
 package mocks
 
 import (
-	agentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
-	applyspec "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	state "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 	manifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	ui "github.com/cloudfoundry/bosh-init/ui"
+	agentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
+	applyspec "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	ui "github.com/cloudfoundry/bosh-init/ui"
 )
 
 // Mock of BuilderFactory interface
