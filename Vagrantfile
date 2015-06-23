@@ -1,6 +1,6 @@
 Vagrant.configure('2') do |config|
   config.vm.box = 'cloudfoundry/bosh-lite'
-  config.vm.box_version = '388'
+  config.vm.box_version = '9000.36.0'
 
   [:virtualbox, :vmware_fusion, :vmware_desktop, :vmware_workstation].each do |provider|
     config.vm.provider provider do |v, override|
