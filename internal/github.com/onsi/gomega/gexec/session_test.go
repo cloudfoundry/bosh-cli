@@ -5,11 +5,11 @@ import (
 	"syscall"
 	"time"
 
-	. "github.com/onsi/gomega/gbytes"
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/gbytes"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/gexec"
 
+	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Session", func() {

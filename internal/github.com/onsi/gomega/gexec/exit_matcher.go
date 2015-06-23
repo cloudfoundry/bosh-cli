@@ -3,7 +3,7 @@ package gexec
 import (
 	"fmt"
 
-	"github.com/onsi/gomega/format"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/format"
 )
 
 /*
