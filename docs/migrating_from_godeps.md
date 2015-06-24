@@ -20,16 +20,6 @@ Get vendor tool:
 go get github.com/kardianos/vendor
 ```
 
-Currently the tool has an [issue](https://github.com/kardianos/vendor/issues/18) handling same dependencies from different packages. Until fix for it is merged pull changes from our fork:
-
-```
-goto vendor
-git remote add mariash https://github.com/mariash/vendor
-git fetch mariash master
-git co mariash/master
-go build -o $GOPATH/bin/vendor github.com/kardianos/vendor
-```
-
 Vendor everything:
 
 ```
