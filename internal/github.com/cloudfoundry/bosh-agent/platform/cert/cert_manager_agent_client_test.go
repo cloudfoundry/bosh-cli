@@ -20,7 +20,7 @@ var _ = Describe("CertManager", func() {
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeHTTPClient = fakehttpclient.NewFakeHTTPClient()
-		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid", 0, fakeHTTPClient, logger)
+		agentClient = NewAgentClient("http://localhost:6305", "fake-uuid", 0, 10, fakeHTTPClient, logger)
 		fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
 		fakeHTTPClient.SetPostBehavior(`{"value":"updated"}`, 200, nil)
 	})
