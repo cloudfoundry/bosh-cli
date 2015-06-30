@@ -31,5 +31,5 @@ func NewAgentClientFactory(
 
 func (f *agentClientFactory) NewAgentClient(directorID, mbusURL string) agentclient.AgentClient {
 	httpClient := httpclient.NewHTTPClient(httpclient.DefaultClient, f.logger)
-	return NewAgentClient(mbusURL, directorID, f.getTaskDelay, httpClient, f.logger)
+	return NewAgentClient(mbusURL, directorID, f.getTaskDelay, 10, httpClient, f.logger)
 }

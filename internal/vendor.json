@@ -5,253 +5,253 @@
 			"canonical": "github.com/cloudfoundry/bosh-agent/agentclient",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/agentclient/applyspec",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/agentclient/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/agentclient/http",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/http",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/http/mocks",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/agentclient/mocks",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/mocks",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/factory",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/factory",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/infrastructure",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/infrastructure",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/infrastructure/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/infrastructure/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/matchers",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/matchers",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/cdrom",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/cdrom",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/cdrom/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/cdrom/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/cert",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/cert",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/cert/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/cert/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/deviceutil",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/deviceutil",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/deviceutil/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/deviceutil/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/disk",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/disk",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/disk/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/disk/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/net",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/net",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/net/arp",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/net/arp",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/net/arp/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/net/arp/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/net/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/net/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/net/ip",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/net/ip",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/net/ip/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/net/ip/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/stats",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/stats",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/stats/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/stats/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/udevdevice",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/udevdevice",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/udevdevice/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/udevdevice/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/vitals",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/vitals",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/platform/vitals/fakes",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/platform/vitals/fakes",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/settings",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/settings",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-agent/settings/directories",
 			"comment": "",
 			"local": "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/settings/directories",
-			"revision": "cf0bb56564d48d7596f0410c86ecdfd6bafca366",
-			"revisionTime": "2015-06-15T16:22:35-07:00"
+			"revision": "b0cea7a0c6ad82d4e77090bf79bd961f13e879fe",
+			"revisionTime": "2015-06-30T10:39:22-07:00"
 		},
 		{
 			"canonical": "github.com/cloudfoundry/bosh-davcli/client",

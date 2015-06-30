@@ -37,6 +37,7 @@ type certManager struct {
 	runner        boshsys.CmdRunner
 	path          string
 	updateCmdPath string
+	updateCmdArgs []string
 	logger        logger.Logger
 	logTag        string
 }
@@ -47,6 +48,7 @@ func NewUbuntuCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, logge
 		runner:        runner,
 		path:          "/usr/local/share/ca-certificates/",
 		updateCmdPath: "/usr/sbin/update-ca-certificates",
+		updateCmdArgs: []string{"-f"},
 		logger:        logger,
 		logTag:        "UbuntuCertManager",
 	}
@@ -96,7 +98,7 @@ func (c *certManager) UpdateCertificates(certs string) error {
 	}
 	c.logger.Debug(c.logTag, "Wrote %d new certificate files", len(slicedCerts))
 
-	_, _, _, err = c.runner.RunCommand(c.updateCmdPath)
+	_, _, _, err = c.runner.RunCommand(c.updateCmdPath, c.updateCmdArgs...)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating certificates")
 	}

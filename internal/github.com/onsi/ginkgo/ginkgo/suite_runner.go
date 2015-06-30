@@ -5,10 +5,10 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/config"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/ginkgo/interrupthandler"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/ginkgo/testrunner"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/ginkgo/testsuite"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/config"
 )
 
 type compilationInput struct {

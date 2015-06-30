@@ -246,7 +246,7 @@ var _ = Describe("Certificate Management", func() {
 			// TODO this test can be shared if there is a way to update existing FakeCmdRunner command specs
 			It("executes update cert command", func() {
 				fakeCmd = fakesys.NewFakeCmdRunner()
-				fakeCmd.AddCmdResult("/usr/sbin/update-ca-certificates", fakesys.FakeCmdResult{
+				fakeCmd.AddCmdResult("/usr/sbin/update-ca-certificates -f", fakesys.FakeCmdResult{
 					Stdout:     "",
 					Stderr:     "",
 					ExitStatus: 2,

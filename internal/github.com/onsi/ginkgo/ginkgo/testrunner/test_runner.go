@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/ginkgo/testsuite"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/config"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/ginkgo/testsuite"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/internal/remote"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/reporters/stenographer"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo/types"
