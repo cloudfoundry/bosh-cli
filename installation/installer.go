@@ -81,6 +81,10 @@ func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stag
 	}
 
 	renderedJobRefs, err := i.jobRenderer.RenderAndUploadFrom(manifest, jobs, stage)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Rendering and uploading Jobs")
+	}
+
 	renderedCPIJob := renderedJobRefs[0]
 	installedJob, err := i.installJob(renderedCPIJob, stage)
 	if err != nil {

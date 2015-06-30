@@ -85,6 +85,8 @@ var _ = Describe("Installer", func() {
 			expectedResolveJobsFrom     *gomock.Call
 			expectedPackageCompilerFrom *gomock.Call
 			expectedRenderAndUploadFrom *gomock.Call
+			renderedJobRefs             []RenderedJobRef
+			releaseJobs                 []bireljob.Job
 		)
 
 		BeforeEach(func() {
@@ -100,27 +102,43 @@ var _ = Describe("Installer", func() {
 			}
 			compiledPackages := []CompiledPackageRef{ref}
 
-			releaseJobs := []bireljob.Job{}
-			renderedJobRefs := []RenderedJobRef{installedJob.RenderedJobRef}
+			releaseJobs = []bireljob.Job{}
+			renderedJobRefs = []RenderedJobRef{installedJob.RenderedJobRef}
 			expectedResolveJobsFrom = mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil).AnyTimes()
 			expectedPackageCompilerFrom = mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil).AnyTimes()
-			expectedRenderAndUploadFrom = mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return(renderedJobRefs, nil).AnyTimes()
 		})
 
-		It("compiles and installs the jobs' packages", func() {
-			_, err := installer.Install(installationManifest, fakeStage)
-			Expect(err).NotTo(HaveOccurred())
+		Context("success", func() {
+			JustBeforeEach(func() {
+				expectedRenderAndUploadFrom = mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return(renderedJobRefs, nil).AnyTimes()
+			})
+
+			It("compiles and installs the jobs' packages", func() {
+				_, err := installer.Install(installationManifest, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("installs the rendered jobs", func() {
+				_, err := installer.Install(installationManifest, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("returns the installation", func() {
+				installation, err := installer.Install(installationManifest, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(installation.Target().JobsPath()).To(Equal(target.JobsPath()))
+			})
 		})
 
-		It("installs the rendered jobs", func() {
-			_, err := installer.Install(installationManifest, fakeStage)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("returns the installation", func() {
-			installation, err := installer.Install(installationManifest, fakeStage)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(installation.Target().JobsPath()).To(Equal(target.JobsPath()))
+		Context("when rendering jobs errors", func() {
+			JustBeforeEach(func() {
+				err := errors.New("OMG - no ruby found!!")
+				expectedRenderAndUploadFrom = mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return([]RenderedJobRef{}, err).AnyTimes()
+			})
+			It("should return an error", func() {
+				_, err := installer.Install(installationManifest, fakeStage)
+				Expect(err).To(HaveOccurred())
+			})
 		})
 	})
 
