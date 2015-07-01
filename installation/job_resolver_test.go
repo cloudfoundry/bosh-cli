@@ -32,8 +32,7 @@ var _ = Describe("JobResolver", func() {
 
 		resolver installation.JobResolver
 
-		releaseJob  bireljob.Job
-		releaseJobs []bireljob.Job
+		releaseJob bireljob.Job
 
 		manifest biinstallmanifest.Manifest
 
@@ -72,7 +71,6 @@ var _ = Describe("JobResolver", func() {
 	JustBeforeEach(func() {
 		resolver = installation.NewJobResolver(mockReleaseJobResolver)
 		expectJobResolve = mockReleaseJobResolver.EXPECT().Resolve("fake-cpi-job-name", "fake-cpi-release-name").Return(releaseJob, nil).AnyTimes()
-		releaseJobs = []bireljob.Job{releaseJob}
 	})
 	Describe("From", func() {
 		It("when the release does contain a 'cpi' job returns release jobs", func() {

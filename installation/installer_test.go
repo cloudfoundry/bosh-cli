@@ -41,7 +41,6 @@ var _ = Describe("Installer", func() {
 
 		logger boshlog.Logger
 
-		packagesPath string
 		installer    Installer
 		target       Target
 		installedJob InstalledJob
@@ -56,7 +55,6 @@ var _ = Describe("Installer", func() {
 		fakeExtractor = &fakeblobextract.FakeExtractor{}
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 
-		packagesPath = "/path/to/installed/packages"
 		target = NewTarget("fake-installation-path")
 		installationManifest = biinstallmanifest.Manifest{
 			Name:       "fake-installation-name",
@@ -82,11 +80,8 @@ var _ = Describe("Installer", func() {
 		var (
 			fakeStage *fakebiui.FakeStage
 
-			expectedResolveJobsFrom     *gomock.Call
-			expectedPackageCompilerFrom *gomock.Call
-			expectedRenderAndUploadFrom *gomock.Call
-			renderedJobRefs             []RenderedJobRef
-			releaseJobs                 []bireljob.Job
+			renderedJobRefs []RenderedJobRef
+			releaseJobs     []bireljob.Job
 		)
 
 		BeforeEach(func() {
@@ -104,13 +99,13 @@ var _ = Describe("Installer", func() {
 
 			releaseJobs = []bireljob.Job{}
 			renderedJobRefs = []RenderedJobRef{installedJob.RenderedJobRef}
-			expectedResolveJobsFrom = mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil).AnyTimes()
-			expectedPackageCompilerFrom = mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil).AnyTimes()
+			mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil).AnyTimes()
+			mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil).AnyTimes()
 		})
 
 		Context("success", func() {
 			JustBeforeEach(func() {
-				expectedRenderAndUploadFrom = mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return(renderedJobRefs, nil).AnyTimes()
+				mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return(renderedJobRefs, nil).AnyTimes()
 			})
 
 			It("compiles and installs the jobs' packages", func() {
@@ -133,7 +128,7 @@ var _ = Describe("Installer", func() {
 		Context("when rendering jobs errors", func() {
 			JustBeforeEach(func() {
 				err := errors.New("OMG - no ruby found!!")
-				expectedRenderAndUploadFrom = mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return([]RenderedJobRef{}, err).AnyTimes()
+				mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return([]RenderedJobRef{}, err).AnyTimes()
 			})
 			It("should return an error", func() {
 				_, err := installer.Install(installationManifest, fakeStage)

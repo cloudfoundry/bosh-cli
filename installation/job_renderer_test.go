@@ -53,8 +53,6 @@ var _ = Describe("JobRenderer", func() {
 		releasePackage1 *birelpkg.Package
 		releasePackage2 *birelpkg.Package
 
-		expectJobRender *gomock.Call
-
 		renderedJobList bitemplate.RenderedJobList
 	)
 
@@ -130,7 +128,7 @@ var _ = Describe("JobRenderer", func() {
 		renderedJobList = bitemplate.NewRenderedJobList()
 		renderedJobList.Add(bitemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fakeFS, logger))
 
-		expectJobRender = mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, deploymentName).Return(renderedJobList, nil).AnyTimes()
+		mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, deploymentName).Return(renderedJobList, nil).AnyTimes()
 
 		fakeCompressor.CompressFilesInDirTarballPath = "/fake-rendered-job-tarball-cpi.tgz"
 
