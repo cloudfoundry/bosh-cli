@@ -162,7 +162,10 @@ type helpContext struct {
 func (c *helpContext) Render() string {
 	buffer := bytes.NewBuffer([]byte{})
 	t := template.Must(template.New("help").Parse(helpTemplate))
-	t.Execute(buffer, c)
+	err := t.Execute(buffer, c)
+	if err != nil {
+		fmt.Printf("Error printing help: %s\n", err.Error())
+	}
 	return strings.TrimRight(buffer.String(), "\r\n")
 }
 

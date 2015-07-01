@@ -43,7 +43,9 @@ func (s *serverManager) Start(username string, password string, host string, por
 	// block until started
 	err := <-startedCh
 	if err != nil {
-		server.Stop()
+		if stopErr := server.Stop(); stopErr != nil {
+			s.logger.Warn(s.logTag, "Failed to stop server: %s", stopErr.Error())
+		}
 	}
 	return server, err
 }

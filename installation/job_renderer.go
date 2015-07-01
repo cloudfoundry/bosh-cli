@@ -103,7 +103,9 @@ func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (Ren
 	if err != nil {
 		return RenderedJobRef{}, bosherr.WrapError(err, "Compressing rendered job templates")
 	}
-	defer b.compressor.CleanUp(tarballPath)
+	defer func() {
+		_ = b.compressor.CleanUp(tarballPath)
+	}()
 
 	blobID, blobSHA1, err := b.blobstore.Create(tarballPath)
 	if err != nil {

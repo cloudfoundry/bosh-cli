@@ -342,7 +342,7 @@ func (v *validator) validateGateway(idx int, gateway string, ipNet maybeIPNet) [
 		return []error{bosherr.Errorf("networks[%d].subnets[0].gateway must be provided", idx)}
 	} else {
 		errors := []error{}
-		ipNet.Try(func(ipNet *net.IPNet) error {
+		_ = ipNet.Try(func(ipNet *net.IPNet) error {
 			gatewayIp := net.ParseIP(gateway)
 			if gatewayIp == nil {
 				errors = append(errors, bosherr.Errorf("networks[%d].subnets[0].gateway must be an ip", idx))

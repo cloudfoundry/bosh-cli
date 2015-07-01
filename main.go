@@ -13,11 +13,12 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/pivotal-golang/clock"
 
+	"os/signal"
+	"syscall"
+
 	bilog "github.com/cloudfoundry/bosh-init/logger"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	biuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
-	"os/signal"
-	"syscall"
 )
 
 const mainLogTag = "main"
@@ -47,7 +48,10 @@ func main() {
 		displayHelpFunc := func() {
 			if strings.Contains(err.Error(), "Invalid usage") {
 				ui.ErrorLinef("")
-				cmdRunner.Run(stage, append([]string{"help"}, os.Args[1:]...)...)
+				helpErr := cmdRunner.Run(stage, append([]string{"help"}, os.Args[1:]...)...)
+				if helpErr != nil {
+					logger.Error(mainLogTag, "Couldn't print help: %s", helpErr.Error())
+				}
 			}
 		}
 		fail(err, ui, logger, displayHelpFunc)

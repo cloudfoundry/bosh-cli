@@ -2,12 +2,13 @@ package sshtunnel
 
 import (
 	"fmt"
-	"github.com/cloudfoundry/bosh-init/internal/golang.org/x/crypto/ssh"
 	"io"
 	"io/ioutil"
 	"net"
 	"strings"
 	"time"
+
+	"github.com/cloudfoundry/bosh-init/internal/golang.org/x/crypto/ssh"
 
 	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
@@ -118,7 +119,11 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 		if err != nil {
 			errCh <- bosherr.WrapError(err, "Accepting connection on remote server")
 		}
-		defer remoteConn.Close()
+		defer func() {
+			if err = remoteConn.Close(); err != nil {
+				s.logger.Warn(s.logTag, "Failed to close remote listener connection: %s", err.Error())
+			}
+		}()
 
 		s.logger.Debug(s.logTag, "Dialing local server")
 		localDialAddr := fmt.Sprintf("127.0.0.1:%d", s.options.LocalForwardPort)
@@ -130,7 +135,11 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 
 		go func() {
 			bytesNum, err := io.Copy(remoteConn, localConn)
-			defer localConn.Close()
+			defer func() {
+				if err = localConn.Close(); err != nil {
+					s.logger.Warn(s.logTag, "Failed to close local dial connection: %s", err.Error())
+				}
+			}()
 			s.logger.Debug(s.logTag, "Copying bytes from local to remote %d", bytesNum)
 			if err != nil {
 				errCh <- bosherr.WrapError(err, "Copying bytes from local to remote")
@@ -139,7 +148,11 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 
 		go func() {
 			bytesNum, err := io.Copy(localConn, remoteConn)
-			defer localConn.Close()
+			defer func() {
+				if err = localConn.Close(); err != nil {
+					s.logger.Warn(s.logTag, "Failed to close local dial connection: %s", err.Error())
+				}
+			}()
 			s.logger.Debug(s.logTag, "Copying bytes from remote to local %d", bytesNum)
 			if err != nil {
 				errCh <- bosherr.WrapError(err, "Copying bytes from remote to local")

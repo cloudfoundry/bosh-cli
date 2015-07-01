@@ -120,13 +120,21 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 		if err != nil {
 			return true, bosherr.WrapError(err, "Unable to create temporary file")
 		}
-		defer p.fs.RemoveAll(downloadedFile.Name())
+		defer func() {
+			if err = p.fs.RemoveAll(downloadedFile.Name()); err != nil {
+				p.logger.Warn(p.logTag, "Failed to remove downloaded file: %s", err.Error())
+			}
+		}()
 
 		response, err := p.httpClient.Get(source.GetURL())
 		if err != nil {
 			return true, bosherr.WrapError(err, "Unable to download")
 		}
-		defer response.Body.Close()
+		defer func() {
+			if err = response.Body.Close(); err != nil {
+				p.logger.Warn(p.logTag, "Failed to close download response body: %s", err.Error())
+			}
+		}()
 
 		_, err = io.Copy(downloadedFile, response.Body)
 		if err != nil {

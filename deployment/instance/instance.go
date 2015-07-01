@@ -98,7 +98,11 @@ func (i *instance) WaitUntilReady(
 			sshReadyErrCh := make(chan error)
 			sshErrCh := make(chan error)
 			go sshTunnel.Start(sshReadyErrCh, sshErrCh)
-			defer sshTunnel.Stop()
+			defer func() {
+				if err := sshTunnel.Stop(); err != nil {
+					i.logger.Warn(i.logTag, "Failed to stop ssh tunnel: %s", err.Error())
+				}
+			}()
 
 			err := <-sshReadyErrCh
 			if err != nil {

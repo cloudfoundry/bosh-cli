@@ -86,7 +86,10 @@ func (h *instanceHandler) HandleGet(instanceID string, w http.ResponseWriter, re
 		return
 	}
 
-	w.Write(responseJSON)
+	_, err = w.Write(responseJSON)
+	if err != nil {
+		h.logger.Warn(h.logTag, "Couldn't write response: %s", err.Error())
+	}
 
 	return
 }
@@ -155,7 +158,10 @@ func (h *instanceHandler) handleNotFound(w http.ResponseWriter) {
 		h.logger.Warn(h.logTag, "Failed to marshal 'not found' settings response %s", err.Error())
 		return
 	}
-	w.Write(settingsJSON)
+	_, err = w.Write(settingsJSON)
+	if err != nil {
+		h.logger.Warn(h.logTag, "Failed to write response: %s", err.Error())
+	}
 }
 
 func (h *instanceHandler) handleBadRequest(w http.ResponseWriter) {
@@ -165,5 +171,8 @@ func (h *instanceHandler) handleBadRequest(w http.ResponseWriter) {
 		h.logger.Warn(h.logTag, "Failed to marshal 'bad request' settings response %s", err.Error())
 		return
 	}
-	w.Write(settingsJSON)
+	_, err = w.Write(settingsJSON)
+	if err != nil {
+		h.logger.Warn(h.logTag, "Failed to write response: %s", err.Error())
+	}
 }

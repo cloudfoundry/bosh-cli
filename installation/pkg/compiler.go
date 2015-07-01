@@ -50,7 +50,7 @@ func NewPackageCompiler(
 	}
 }
 
-func (c *compiler) Compile(pkg *birelpkg.Package) (record bistatepkg.CompiledPackageRecord, err error) {
+func (c *compiler) Compile(pkg *birelpkg.Package) (bistatepkg.CompiledPackageRecord, error) {
 	c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name, pkg.Fingerprint)
 	record, found, err := c.compiledPackageRepo.Find(*pkg)
 	if err != nil {
@@ -65,7 +65,11 @@ func (c *compiler) Compile(pkg *birelpkg.Package) (record bistatepkg.CompiledPac
 	if err != nil {
 		return record, bosherr.WrapErrorf(err, "Installing dependencies of package '%s'", pkg.Name)
 	}
-	defer c.fileSystem.RemoveAll(c.packagesDir)
+	defer func() {
+		if err = c.fileSystem.RemoveAll(c.packagesDir); err != nil {
+			c.logger.Warn(c.logTag, "Failed to remove packages dir: %s", err.Error())
+		}
+	}()
 
 	c.logger.Debug(c.logTag, "Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
 	installDir := path.Join(c.packagesDir, pkg.Name)
@@ -102,7 +106,11 @@ func (c *compiler) Compile(pkg *birelpkg.Package) (record bistatepkg.CompiledPac
 	if err != nil {
 		return record, bosherr.WrapError(err, "Compressing compiled package")
 	}
-	defer c.compressor.CleanUp(tarball)
+	defer func() {
+		if err = c.compressor.CleanUp(tarball); err != nil {
+			c.logger.Warn(c.logTag, "Failed to clean up tarball: %s", err.Error())
+		}
+	}()
 
 	blobID, blobSHA1, err := c.blobstore.Create(tarball)
 	if err != nil {

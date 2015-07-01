@@ -48,13 +48,17 @@ func (e *extractor) Extract(releaseTarballPath string) (Release, error) {
 	releaseReader := NewReader(releaseTarballPath, extractedReleasePath, e.fs, e.compressor)
 	release, err := releaseReader.Read()
 	if err != nil {
-		e.fs.RemoveAll(extractedReleasePath)
+		if removeErr := e.fs.RemoveAll(extractedReleasePath); removeErr != nil {
+			e.logger.Warn(e.logTag, "Failed to remove extracted release: %s", removeErr.Error())
+		}
 		return nil, bosherr.WrapErrorf(err, "Reading release from '%s'", releaseTarballPath)
 	}
 
 	err = e.validator.Validate(release)
 	if err != nil {
-		e.fs.RemoveAll(extractedReleasePath)
+		if removeErr := e.fs.RemoveAll(extractedReleasePath); removeErr != nil {
+			e.logger.Warn(e.logTag, "Failed to remove extracted release: %s", removeErr.Error())
+		}
 		return nil, bosherr.WrapErrorf(err, "Validating release '%s-%s'", release.Name(), release.Version())
 	}
 

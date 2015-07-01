@@ -44,7 +44,11 @@ func (r erbRenderer) Render(srcPath, dstPath string, context TemplateEvaluationC
 	if err != nil {
 		return bosherr.WrapError(err, "Creating temporary directory")
 	}
-	defer r.fs.RemoveAll(tmpDir)
+	defer func() {
+		if err = r.fs.RemoveAll(tmpDir); err != nil {
+			r.logger.Warn(r.logTag, "Failed to remove temp dir: %s", err.Error())
+		}
+	}()
 
 	rendererScriptPath := filepath.Join(tmpDir, "erb-render.rb")
 	err = r.writeRendererScript(rendererScriptPath)

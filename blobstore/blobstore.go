@@ -54,7 +54,11 @@ func (b *blobstore) Get(blobID string) (LocalBlob, error) {
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Getting blob %s from blobstore", blobID)
 	}
-	defer readCloser.Close()
+	defer func() {
+		if err = readCloser.Close(); err != nil {
+			b.logger.Warn(b.logTag, "Couldn't close davClient.Get reader: %s", err.Error())
+		}
+	}()
 
 	targetFile, err := b.fs.OpenFile(destinationPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -81,7 +85,11 @@ func (b *blobstore) Add(sourcePath string) (blobID string, err error) {
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Opening file for reading %s", sourcePath)
 	}
-	defer file.Close()
+	defer func() {
+		if err = file.Close(); err != nil {
+			b.logger.Warn(b.logTag, "Couldn't close source file: %s", err.Error())
+		}
+	}()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
