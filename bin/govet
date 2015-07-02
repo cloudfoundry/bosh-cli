@@ -1,5 +1,4 @@
 #!/bin/bash
-# Mutate go vet commands to add -printfuncs params
 
 set -e
 
