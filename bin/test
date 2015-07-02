@@ -13,6 +13,5 @@ fi
 $bin/clean
 $bin/install-ginkgo
 $bin/test-prepare
-$bin/test-unhandled-errors
 $bin/test-unit
 $bin/test-integration

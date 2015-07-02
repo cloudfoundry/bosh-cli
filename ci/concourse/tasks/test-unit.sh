@@ -8,4 +8,5 @@ export GOPATH=$(pwd)/gopath
 cd gopath/src/github.com/cloudfoundry/bosh-init
 bin/clean
 bin/install-ginkgo
+bin/test-prepare
 bin/test-unit
