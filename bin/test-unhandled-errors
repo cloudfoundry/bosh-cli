@@ -15,7 +15,7 @@ packages_to_check=$(go list ./... \
 )
 
 set +e
-all_errors=$(errcheck $packages_to_check)
+all_errors=$($GOPATH/bin/errcheck $packages_to_check)
 
 # exits 0 if no unhandled errors, 1 if there are unhandled errors, 2 if checking failed
 if [ "$?" -eq 2 ]
