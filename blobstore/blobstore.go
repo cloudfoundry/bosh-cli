@@ -73,8 +73,8 @@ func (b *blobstore) Get(blobID string) (LocalBlob, error) {
 	return NewLocalBlob(destinationPath, b.fs, b.logger), nil
 }
 
-func (b *blobstore) Add(sourcePath string) (blobID string, err error) {
-	blobID, err = b.uuidGenerator.Generate()
+func (b *blobstore) Add(sourcePath string) (string, error) {
+	blobID, err := b.uuidGenerator.Generate()
 	if err != nil {
 		return "", bosherr.WrapError(err, "Generating Blob ID")
 	}
@@ -86,7 +86,7 @@ func (b *blobstore) Add(sourcePath string) (blobID string, err error) {
 		return "", bosherr.WrapErrorf(err, "Opening file for reading %s", sourcePath)
 	}
 	defer func() {
-		if err = file.Close(); err != nil {
+		if err := file.Close(); err != nil {
 			b.logger.Warn(b.logTag, "Couldn't close source file: %s", err.Error())
 		}
 	}()
