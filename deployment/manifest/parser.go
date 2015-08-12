@@ -244,6 +244,7 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 		network := Network{
 			Name: rawNetwork.Name,
 			Type: NetworkType(rawNetwork.Type),
+			DNS:  rawNetwork.DNS,
 		}
 
 		cloudProperties, err := biproperty.BuildMap(rawNetwork.CloudProperties)

@@ -67,6 +67,7 @@ resource_pools:
 networks:
 - name: fake-network-name
   type: dynamic
+  dns:  [5.5.5.5, 6.6.6.6]
   subnets:
   - range: 1.2.3.0/22
     gateway: 1.1.1.1
@@ -120,6 +121,7 @@ properties:
 				{
 					Name: "fake-network-name",
 					Type: Dynamic,
+					DNS: []string{"5.5.5.5", "6.6.6.6"},
 					Subnets: []Subnet{
 						{
 							Range:   "1.2.3.0/22",
