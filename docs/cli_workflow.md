@@ -1,74 +1,144 @@
 # Create deployment manifest
 
-This file will be used by bosh-init to deploy BOSH on a single VM.
+This file will be used by bosh-init to deploy BOSH on a single VM to AWS. See [the documentation on bosh.io](http://bosh.io/docs/init.html) for additional examples for other infrastructures.
 
 ### Example deployment manifest
 
 ```yaml
 ---
-name: redis
+name: bosh
 
 releases:
+- name: bosh
+  url: https://bosh.io/d/github.com/cloudfoundry/bosh?v=206
+  sha1: 04649aa32f910f8ff11cc25a38e563d4d1beb6db
 - name: bosh-aws-cpi
-  url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-aws-cpi-release?v=7
-  sha1: 6545812c1c8245331b8c420f886dafd24b866eed
-- name: redis
-  url: https://bosh.io/d/github.com/cloudfoundry-community/redis-boshrelease?v=9.1
-  sha1: e18fac6f755c9d8cd90d2f9fad40a7023d1c672f
+  url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-aws-cpi-release?v=30
+  sha1: 627f7ab28ca6cc945750eab75cd4eb7e3e335895
 
 resource_pools:
-- name: default
-  network: default
+- name: vms
+  network: private
   stemcell:
-    url: file://./light-bosh-stemcell-2941-aws-xen-ubuntu-trusty-go_agent.tgz
+    url: https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent?v=3012
+    sha1: 3380b55948abe4c437dee97f67d2d8df4eec3fc1
   cloud_properties:
-    instance_type: m3.medium
-    availability_zone: ap-northeast-1c
+    instance_type: m3.xlarge
+    ephemeral_disk: {size: 25_000, type: gp2}
+    availability_zone: AVAILABILITY-ZONE # <--- Replace with Availability Zone
+
+disk_pools:
+- name: disks
+  disk_size: 20_000
+  cloud_properties: {type: gp2}
 
 networks:
-- name: default
-  type: dynamic
-  cloud_properties: {subnet: subnet-5907c031}
-- name: vip
+- name: private
+  type: manual
+  subnets:
+  - range: 10.0.0.0/24
+    gateway: 10.0.0.1
+    dns: [10.0.0.2]
+    cloud_properties: {subnet: SUBNET-ID} # <--- Replace with Subnet ID
+- name: public
   type: vip
 
 jobs:
-- name: redis
+- name: bosh
   instances: 1
+
   templates:
-  - {name: redis, release: redis}
-  resource_pool: default
-  persistent_disk: 10240
+  - {name: nats, release: bosh}
+  - {name: redis, release: bosh}
+  - {name: postgres, release: bosh}
+  - {name: blobstore, release: bosh}
+  - {name: director, release: bosh}
+  - {name: health_monitor, release: bosh}
+  - {name: registry, release: bosh}
+  - {name: cpi, release: bosh-aws-cpi}
+
+  resource_pool: vms
+  persistent_disk_pool: disks
+
   networks:
-  - {name: vip, static_ips: [52.68.164.131]}
-  - name: default
+  - name: private
+    static_ips: [10.0.0.6]
+    default: [dns, gateway]
+  - name: public
+    static_ips: [ELASTIC-IP] # <--- Replace with Elastic IP
+
   properties:
-    redis: {port: 6379}
+    nats:
+      address: 127.0.0.1
+      user: nats
+      password: nats-password
+
+    redis:
+      listen_addresss: 127.0.0.1
+      address: 127.0.0.1
+      password: redis-password
+
+    postgres: &db
+      host: 127.0.0.1
+      user: postgres
+      password: postgres-password
+      database: bosh
+      adapter: postgres
+
+    registry:
+      address: 10.0.0.6
+      host: 10.0.0.6
+      db: *db
+      http: {user: admin, password: admin, port: 25777}
+      username: admin
+      password: admin
+      port: 25777
+
+    blobstore:
+      address: 10.0.0.6
+      port: 25250
+      provider: dav
+      director: {user: director, password: director-password}
+      agent: {user: agent, password: agent-password}
+
+    director:
+      address: 127.0.0.1
+      name: my-bosh
+      db: *db
+      cpi_job: cpi
+      max_threads: 10
+
+    hm:
+      director_account: {user: admin, password: admin}
+      resurrector_enabled: true
+
+    aws: &aws
+      access_key_id: ACCESS-KEY-ID # <--- Replace with AWS Access Key ID
+      secret_access_key: SECRET-ACCESS-KEY # <--- Replace with AWS Secret Key
+      default_key_name: bosh
+      default_security_groups: [bosh]
+      region: us-east-1
+
+    agent: {mbus: "nats://nats:nats-password@10.0.0.6:4222"}
+
+    ntp: &ntp [0.pool.ntp.org, 1.pool.ntp.org]
 
 cloud_provider:
   template: {name: cpi, release: bosh-aws-cpi}
 
   ssh_tunnel:
-    host: 52.68.164.131
+    host: ELASTIC-IP # <--- Replace with your Elastic IP address
     port: 22
     user: vcap
-    private_key: ./bosh.pem
+    private_key: ./bosh.pem # Path relative to this manifest file
 
-  mbus: https://nats:nats@52.68.164.131:6868
+  mbus: "https://mbus:mbus-password@ELASTIC-IP:6868" # <--- Replace with Elastic IP
 
   properties:
-    aws:
-      access_key_id: AKI...
-      secret_access_key: 0kw...
-      default_key_name: bosh
-      default_security_groups: [bosh]
-      region: ap-northeast-1
-
-    agent: {mbus: "https://nats:nats@0.0.0.0:6868"}
-
+    aws: *aws
+    agent: {mbus: "https://mbus:mbus-password@0.0.0.0:6868"}
     blobstore: {provider: local, path: /var/vcap/micro_bosh/data/cache}
-
-    ntp: [0.north-america.pool.ntp.org]
+    ntp: *ntp
 ```
 
 See [https://github.com/cloudfoundry/bosh/tree/master/release/jobs](https://github.com/cloudfoundry/bosh/tree/master/release/jobs) for defaults
@@ -78,7 +148,7 @@ See [https://github.com/cloudfoundry/bosh/tree/master/release/jobs](https://gith
 The command below deploys a VM with given releases using CPI release and stemcell.
 
 ```
-bosh-init deploy redis.yml
+bosh-init deploy bosh.yml
 ```
 
 ---
