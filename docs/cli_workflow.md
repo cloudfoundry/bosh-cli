@@ -1,6 +1,6 @@
 # Create deployment manifest
 
-This file will be used by bosh-init to deploy BOSH.
+This file will be used by bosh-init to deploy BOSH on a single VM.
 
 ### Example deployment manifest
 
@@ -113,7 +113,7 @@ After the CPI is installed locally, the CLI calls the `create_stemcell` CPI meth
 
 ## 4. Starting Registry
 
-Before creating a VM, the CLI starts the registry. The registry can be used by the CPI to store mutable data to be later accessed by the agent running on the VM. The registry is a service to store mutable data when the infrastructure's metadata service is immutable. This data is anything that is not known until after the CPI creates the VM that the agent will require. For example, information about any persistent disks that are attached to Micro BOSH after the Micro BOSH VM is created can be stored in the registry.
+Before creating a VM, the CLI starts the registry. The registry can be used by the CPI to store mutable data to be later accessed by the agent running on the VM. The registry is a service to store mutable data when the infrastructure's metadata service is immutable. This data is anything that is not known until after the CPI creates the VM that the agent will require. For example, information about any persistent disks that are attached to BOSH after the BOSH VM is created can be stored in the registry.
 
 The CPI will store the registry URL in the infrastructure's metadata service. The agent on the VM will fetch registry settings from the provided URL.
 
@@ -133,7 +133,7 @@ The CLI creates a reverse SSH tunnel to the BOSH VM using the properties provide
 
 ## 8. Waiting for Agent
 
-Once the SSH tunnel is up the CLI uses the message bus (currently Nats) at the provided mbus URL to issue ping messages to the agent on the Micro BOSH VM. Once the agent is ready it will respond to the ping.
+Once the SSH tunnel is up the CLI uses the message bus (currently Nats) at the provided mbus URL to issue ping messages to the agent on the BOSH VM. Once the agent is ready it will respond to the ping.
 
 ## 9. Creating disk
 
@@ -148,7 +148,7 @@ In this case, the CLI calls the `create_disk` CPI method with the provided size.
 
 ## 10. Attaching disk
 
-After the disk is created, the CLI calls the `attach_disk` CPI method. After the disk is attached, the CLI issues a `mount_disk` request to the agent on the Micro BOSH VM.
+After the disk is created, the CLI calls the `attach_disk` CPI method. After the disk is attached, the CLI issues a `mount_disk` request to the agent on the BOSH VM.
 
 ## 11. Sending stop message
 
