@@ -1,6 +1,6 @@
 # Create deployment manifest
 
-This file will be used by the bosh-init to deploy BOSH.
+This file will be used by bosh-init to deploy BOSH.
 
 ### Example deployment manifest
 
@@ -75,7 +75,7 @@ See [https://github.com/cloudfoundry/bosh/tree/master/release/jobs](https://gith
 
 # Deploy VM
 
-The command below deploys VM with given releases using CPI release and stemcell.
+The command below deploys a VM with given releases using CPI release and stemcell.
 
 ```
 bosh-init deploy redis.yml
@@ -129,37 +129,37 @@ Next, the CLI sends the `create_vm` command to the CPI with the properties parse
 
 ## 7. Starting SSH Tunnel
 
-The CLI creates a reverse SSH tunnel to BOSH VM using the properties provided in the manifest. This allows the agent on the VM to access the registry, which is running on the machine where `bosh-init deploy` was run.
+The CLI creates a reverse SSH tunnel to the BOSH VM using the properties provided in the manifest. This allows the agent on the VM to access the registry, which is running on the machine where `bosh-init deploy` was run.
 
 ## 8. Waiting for Agent
 
-Once the SSH tunnel is up the CLI uses provided mbus URL to issue ping messages to the agent on the Micro BOSH VM. Once the agent is ready it will respond to the ping.
+Once the SSH tunnel is up the CLI uses the message bus (currently Nats) at the provided mbus URL to issue ping messages to the agent on the Micro BOSH VM. Once the agent is ready it will respond to the ping.
 
 ## 9. Creating disk
 
-The CLI will create and attach a disk to VM if it is requested in the deployment manifest. There are two ways to request the disk:
+The CLI will create and attach a disk to the VM if it is requested in the deployment manifest. There are two ways to request the disk:
 
-1. Adding `persistent_disk_pool` property on a job which references the disk pool in the list of `disk_pools` specified on the top level of the manifest.
-2. Adding `persistent_disk` property which specifies the size of persistent disk.
+1. Adding the `persistent_disk_pool` property on a job which references the disk pool in the list of `disk_pools` specified on the top level of the manifest.
+2. Adding the `persistent_disk` property which specifies the size of persistent disk.
 
 You should use `disk_pools` if you want to use disk `cloud_properties`.
 
-In this case the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in deployment state file.
+In this case, the CLI calls the `create_disk` CPI method with the provided size. Additionally, the disk CID is persisted in deployment state file.
 
 ## 10. Attaching disk
 
-After disk is created CLI calls `attach_disk` CPI method. After disk is attached CLI issues `mount_disk` request to the agent on the Micro BOSH VM.
+After the disk is created, the CLI calls the `attach_disk` CPI method. After the disk is attached, the CLI issues a `mount_disk` request to the agent on the Micro BOSH VM.
 
 ## 11. Sending stop message
 
-Once agent is listening on mbus URL, the CLI sends stop message to the agent. The agent is using `monit` to manage job states on VM. The stop is a preparation for the subsequent job update.
+Once the agent is listening on the message bus, the CLI sends a `stop` message to the agent. The agent is using `monit` to manage job states on VM. The `stop` is a preparation for the subsequent job update.
 
 ## 12. Sending apply message
 
-Next the CLI sends apply message with the list of packages and jobs that should be installed on VM. The agent serves a blobstore at `<mbus URL>/blobs` endpoint.
+Next the CLI sends an `apply` message with the list of packages and jobs that should be installed on the VM. The agent serves a blobstore at `<mbus URL>/blobs` endpoint.
 
-For each of the template specified, the CLI downloads corresponding job template from the blobstore, renders the template with the properties specified for job in deployment manifest. Once all the templates are rendered the CLI uploads the archive of all the rendered templates to the blobstore and generates an apply message. Apply message contains the list of all packages, spec of templates archive with uploaded blob ID, networks spec parsed from deployment manifest and configuration hash which is a digest of all rendered job template files.
+For each of the templates specified, the CLI downloads the corresponding job template from the blobstore, renders the template with the properties specified for the job in the deployment manifest. Once all the templates are rendered, the CLI uploads the archive of all the rendered templates to the blobstore and generates an `apply` message. This `apply` message contains the list of all packages, spec of the templates archive with uploaded blob ID, networks spec parsed from deployment manifest and configuration hash which is a digest of all rendered job template files.
 
 ## 13. Sending start message
 
-Once `apply` task is finished the CLI sends `start` message to the agent which starts installed jobs.
+Once the `apply` task is finished the CLI sends a `start` message to the agent which starts installed jobs.
