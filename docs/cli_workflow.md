@@ -203,7 +203,7 @@ The CLI creates a reverse SSH tunnel to the BOSH VM using the properties provide
 
 ## 8. Waiting for Agent
 
-Once the SSH tunnel is up the CLI uses the message bus (currently Nats) at the provided mbus URL to issue ping messages to the agent on the BOSH VM. Once the agent is ready it will respond to the ping.
+Once the SSH tunnel is up the CLI uses the provided mbus URL to issue ping messages to the agent on the BOSH VM. Once the agent is ready it will respond to the ping.
 
 ## 9. Creating disk
 
@@ -222,7 +222,7 @@ After the disk is created, the CLI calls the `attach_disk` CPI method. After the
 
 ## 11. Sending stop message
 
-Once the agent is listening on the message bus, the CLI sends a `stop` message to the agent. The agent is using `monit` to manage job states on VM. The `stop` is a preparation for the subsequent job update.
+Once the agent is listening on the mbus URL, the CLI sends a `stop` message to the agent. The agent is using `monit` to manage job states on VM. The `stop` is a preparation for the subsequent job update.
 
 ## 12. Sending apply message
 
