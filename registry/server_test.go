@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
@@ -21,15 +22,33 @@ var _ = Describe("Server", func() {
 		client                   helperClient
 	)
 
+	retryStartingServer := func() (Server, error) {
+		var err error
+		var server Server
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		serverFactory := NewServerManager(logger)
+
+		attempts := 0
+		for attempts < 3 {
+			server, err = serverFactory.Start("fake-user", "fake-password", "localhost", 6901)
+			if err == nil {
+				return server, nil
+			}
+
+			attempts++
+			time.Sleep(1 * time.Second)
+		}
+
+		return nil, err
+	}
+
 	BeforeEach(func() {
 		registryHost := "localhost:6901"
 		registryURL = fmt.Sprintf("http://fake-user:fake-password@%s", registryHost)
 		incorrectAuthRegistryURL = fmt.Sprintf("http://incorrect-user:incorrect-password@%s", registryHost)
-		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		serverFactory := NewServerManager(logger)
 		var err error
-		server, err = serverFactory.Start("fake-user", "fake-password", "localhost", 6901)
+		server, err = retryStartingServer() // wait for previous test to close socket if still open
 		Expect(err).ToNot(HaveOccurred())
 
 		transport := &http.Transport{DisableKeepAlives: true}
