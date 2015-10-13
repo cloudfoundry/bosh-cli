@@ -18,12 +18,7 @@ Relevant documentation pages from bosh.io:
 
 ## Developer Notes
 
-See the [CLI workflow](docs/cli_workflow.md) for more information on creating a manifest.
-
-To build bosh-init see our [workstation setup docs](https://github.com/cloudfoundry/bosh-init/blob/master/docs/build.md).
-
-To run bosh-init tests see our [test docs](https://github.com/cloudfoundry/bosh-init/blob/master/docs/test.md).
-
-To deploy BOSH with UAA using bosh-init see our [UAA docs](https://github.com/cloudfoundry/bosh-init/blob/master/docs/uaa.md).
-
-To learn more about the bosh-init design see our [architecture docs](https://github.com/cloudfoundry/bosh-init/blob/master/docs/architecture.md).
+- [Workstation setup docs](docs/build.md)
+- [Test docs](docs/test.md)
+- [CLI workflow](docs/cli_workflow.md)
+  - [Architecture docs](docs/architecture.md)
