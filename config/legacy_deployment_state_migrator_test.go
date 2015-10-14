@@ -302,6 +302,58 @@ registry_instances:
 			})
 		})
 
+		Context("when legacy deploment config file exists and contains none-specific node tag (!)", func() {
+			BeforeEach(func() {
+				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+instances:
+- :id: 1
+  :name: micro-robinson
+  :uuid: bm-5480c6bb-3ba8-449a-a262-a2e75fbe5daf
+  :stemcell_cid:
+  :stemcell_sha1:
+  :stemcell_name:
+  :config_sha1: f9bdbc6cf6bf922f520ee9c45ed94a16a46dd972
+  :vm_cid:
+  :disk_cid:
+disks: []
+registry_instances:
+- :id: 1
+  :instance_id: i-a1624150
+  :settings: ! '{"vm":{"name":"fake-name"}}'
+`)
+			})
+
+			It("deletes the legacy deployment state file", func() {
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
+				Expect(migrated).To(BeTrue())
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeFs.FileExists(legacyDeploymentStateFilePath)).To(BeFalse())
+			})
+
+			It("creates a new deployment state file", func() {
+				migrated, err := migrator.MigrateIfExists(legacyDeploymentStateFilePath)
+				Expect(migrated).To(BeTrue())
+				Expect(err).ToNot(HaveOccurred())
+
+				content, err := fakeFs.ReadFileString(modernDeploymentStateFilePath)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(content).To(MatchRegexp(`{
+    "director_id": "fake-uuid-0",
+    "installation_id": "",
+    "current_vm_cid": "",
+    "current_stemcell_id": "",
+    "current_disk_id": "",
+    "current_release_ids": null,
+    "current_manifest_sha1": "",
+    "disks": \[\],
+    "stemcells": \[\],
+    "releases": \[\]
+}`))
+			})
+		})
+
 		Context("when legacy deploment config file exists (with stemcell only)", func() {
 			BeforeEach(func() {
 				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
