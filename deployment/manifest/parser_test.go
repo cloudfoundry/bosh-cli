@@ -121,7 +121,7 @@ properties:
 				{
 					Name: "fake-network-name",
 					Type: Dynamic,
-					DNS: []string{"5.5.5.5", "6.6.6.6"},
+					DNS:  []string{"5.5.5.5", "6.6.6.6"},
 					Subnets: []Subnet{
 						{
 							Range:   "1.2.3.0/22",
