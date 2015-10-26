@@ -84,11 +84,15 @@ func (m *legacyDeploymentStateMigrator) migrate(configPath string) (deploymentSt
 
 	m.logger.Debug(m.logTag, "Parsed legacy bosh-deployments.yml: %#v", legacyDeploymentState)
 
-	uuid, err := m.uuidGenerator.Generate()
-	if err != nil {
-		return deploymentState, bosherr.WrapError(err, "Generating UUID")
+	if (len(legacyDeploymentState.Instances) > 0) && (legacyDeploymentState.Instances[0].UUID != "") {
+		deploymentState.DirectorID = legacyDeploymentState.Instances[0].UUID
+	} else {
+		uuid, err := m.uuidGenerator.Generate()
+		if err != nil {
+			return deploymentState, bosherr.WrapError(err, "Generating UUID")
+		}
+		deploymentState.DirectorID = uuid
 	}
-	deploymentState.DirectorID = uuid
 
 	deploymentState.Disks = []DiskRecord{}
 	deploymentState.Stemcells = []StemcellRecord{}
@@ -98,7 +102,7 @@ func (m *legacyDeploymentStateMigrator) migrate(configPath string) (deploymentSt
 		instance := legacyDeploymentState.Instances[0]
 		diskCID := instance.DiskCID
 		if diskCID != "" {
-			uuid, err = m.uuidGenerator.Generate()
+			uuid, err := m.uuidGenerator.Generate()
 			if err != nil {
 				return deploymentState, bosherr.WrapError(err, "Generating UUID")
 			}
@@ -121,7 +125,7 @@ func (m *legacyDeploymentStateMigrator) migrate(configPath string) (deploymentSt
 
 		stemcellCID := instance.StemcellCID
 		if stemcellCID != "" {
-			uuid, err = m.uuidGenerator.Generate()
+			uuid, err := m.uuidGenerator.Generate()
 			if err != nil {
 				return deploymentState, bosherr.WrapError(err, "Generating UUID")
 			}
@@ -152,6 +156,7 @@ type legacyDeploymentState struct {
 }
 
 type instance struct {
+	UUID         string `yaml:"uuid"`
 	VMCID        string `yaml:"vm_cid"`
 	DiskCID      string `yaml:"disk_cid"`
 	StemcellCID  string `yaml:"stemcell_cid"`
