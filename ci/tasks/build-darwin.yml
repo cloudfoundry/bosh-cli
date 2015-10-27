@@ -13,4 +13,4 @@ params:
   GOARCH: amd64
 
 run:
-  path: gopath/src/github.com/cloudfoundry/bosh-init/ci/concourse/tasks/build.sh
+  path: gopath/src/github.com/cloudfoundry/bosh-init/ci/tasks/build.sh

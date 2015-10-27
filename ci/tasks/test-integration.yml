@@ -6,11 +6,10 @@ image: docker:///bosh/init
 inputs:
 - name: bosh-init
   path: gopath/src/github.com/cloudfoundry/bosh-init
-- name: version-semver
 
 params:
-  GOOS:   linux
-  GOARCH: amd64
+  BOX_TYPE: virtualbox
+  PROVIDER: virtualbox
 
 run:
-  path: gopath/src/github.com/cloudfoundry/bosh-init/ci/concourse/tasks/build.sh
+  path: gopath/src/github.com/cloudfoundry/bosh-init/ci/tasks/test-integration.sh
