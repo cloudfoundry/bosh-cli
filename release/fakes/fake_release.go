@@ -53,4 +53,4 @@ func (r *FakeRelease) Exists() bool {
 	return !r.DeleteCalled
 }
 
-func (r *FakeRelease) IsCompiled() bool { return false }
+func (r *FakeRelease) IsCompiled() bool { return r.ReleaseIsCompiled }

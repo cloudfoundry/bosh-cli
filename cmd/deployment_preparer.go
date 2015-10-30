@@ -159,19 +159,15 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 
 		extractedStemcell, err = c.stemcellFetcher.GetStemcell(deploymentManifest, stage)
 
-		releasesMap, _ := deploymentManifest.GetListOfTemplateReleases()
-		delete(releasesMap, installationManifest.Template.Release) // remove CPI release
+		nonCpiReleasesMap, _ := deploymentManifest.GetListOfTemplateReleases()
+		delete(nonCpiReleasesMap, installationManifest.Template.Release) // remove CPI release from nonCpiReleasesMap
 
-		// Check if the compiled release stemcell doesn't match the deployment stemcell
 		for _, release := range c.releaseManager.List() {
-			if _, ok := releasesMap[release.Name()]; ok {
-				isCompilesRelease := release.IsCompiled()
-
-				if(isCompilesRelease) {
-					os := release.Packages()[0].Stemcell
-
-					if((strings.ToLower(os) != strings.ToLower(extractedStemcell.OsAndVersion()))){
-						return bosherr.Errorf("OS/Version mismatch between stemcell and compiled package for release %s", release.Name())
+			if _, ok := nonCpiReleasesMap[release.Name()]; ok {
+				if release.IsCompiled() {
+					compilationOsAndVersion := release.Packages()[0].Stemcell
+					if strings.ToLower(compilationOsAndVersion) != strings.ToLower(extractedStemcell.OsAndVersion()) {
+						return bosherr.Errorf("OS/Version mismatch between deployment stemcell and compiled package stemcell for release '%s'", release.Name())
 					}
 				}
 			}
