@@ -38,6 +38,7 @@ var _ = Describe("Validator", func() {
 			[]*birelpkg.Package{},
 			"/some/release/path",
 			fakeFs,
+			false,
 		)
 		validator := NewValidator()
 
@@ -66,6 +67,7 @@ var _ = Describe("Validator", func() {
 				[]*birelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
+				false,
 			)
 			validator = NewValidator()
 		})
@@ -98,6 +100,7 @@ var _ = Describe("Validator", func() {
 				[]*birelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
+				false,
 			)
 			validator = NewValidator()
 		})

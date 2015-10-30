@@ -45,6 +45,7 @@ var _ = Describe("Validator", func() {
 			},
 			"/some/release/path",
 			fakeFs,
+			false,
 		)
 		validator := NewValidator(fakeFs)
 
@@ -61,6 +62,7 @@ var _ = Describe("Validator", func() {
 			[]*birelpkg.Package{},
 			"",
 			fakeFs,
+			false,
 		)
 		err := validator.Validate(release)
 		Expect(err).To(HaveOccurred())
@@ -76,6 +78,7 @@ var _ = Describe("Validator", func() {
 			[]*birelpkg.Package{{}, {Name: "fake-package"}},
 			"/some/release/path",
 			fakeFs,
+			false,
 		)
 		validator := NewValidator(fakeFs)
 
@@ -117,6 +120,7 @@ var _ = Describe("Validator", func() {
 				[]*birelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
+				false,
 			)
 			validator := NewValidator(fakeFs)
 
@@ -148,6 +152,7 @@ var _ = Describe("Validator", func() {
 				[]*birelpkg.Package{{}, {Name: "fake-package"}},
 				"/some/release/path",
 				fakeFs,
+				false,
 			)
 			validator := NewValidator(fakeFs)
 
@@ -183,6 +188,7 @@ var _ = Describe("Validator", func() {
 				[]*birelpkg.Package{},
 				"/some/release/path",
 				fakeFs,
+				false,
 			)
 			validator := NewValidator(fakeFs)
 
@@ -193,4 +199,133 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("Job 'fake-job-2' requires 'fake-package-2' which is not in the release"))
 		})
 	})
+
+
+	Context("when the release is a compiled release", func() {
+
+		It("validates the relase without error", func() {
+			fakeFs.WriteFileString("/some/job/path/monit", "")
+			fakeFs.WriteFileString("/some/job/path/templates/fake-job-1-template", "")
+			release := NewRelease(
+				"fake-compiled-release-name",
+				"fake-compiled-release-version",
+				[]bireljob.Job{
+					{
+						Name:          "fake-job-1-name",
+						Fingerprint:   "fake-job-1-fingerprint",
+						SHA1:          "fake-job-1-sha",
+						Templates:     map[string]string{"fake-job-1-template": "fake-job-1-file"},
+						ExtractedPath: "/some/job/path",
+					},
+				},
+				[]*birelpkg.Package{
+					{
+						Name:        "fake-compiled-package-1-name",
+						Fingerprint: "fake-compiled-package-1-fingerprint",
+						SHA1:        "fake-compiled-package-1-sha",
+						Stemcell:    "fake-compiled-package-stemcell/987",
+						Dependencies: []*birelpkg.Package{
+							&birelpkg.Package{Name: "fake-package-1-dependency-1"},
+							&birelpkg.Package{Name: "fake-package-1-dependency-2"},
+						},
+					},
+				},
+				"/some/release/path",
+				fakeFs,
+				true,
+			)
+			validator := NewValidator(fakeFs)
+
+			err := validator.Validate(release)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("returns an error if compiled pacakges stemcell versions are different", func() {
+			fakeFs.WriteFileString("/some/job/path/monit", "")
+			fakeFs.WriteFileString("/some/job/path/templates/fake-job-1-template", "")
+			release := NewRelease(
+				"fake-compiled-release-name",
+				"fake-compiled-release-version",
+				[]bireljob.Job{
+					{
+						Name:          "fake-job-1-name",
+						Fingerprint:   "fake-job-1-fingerprint",
+						SHA1:          "fake-job-1-sha",
+						Templates:     map[string]string{"fake-job-1-template": "fake-job-1-file"},
+						ExtractedPath: "/some/job/path",
+					},
+				},
+				[]*birelpkg.Package{
+					{
+						Name:        "fake-compiled-package-1-name",
+						Fingerprint: "fake-compiled-package-1-fingerprint",
+						SHA1:        "fake-compiled-package-1-sha",
+						Stemcell:    "fake-compiled-package-stemcell-2/2",
+						Dependencies: []*birelpkg.Package{
+							&birelpkg.Package{Name: "fake-compiled-package-1-dependency-1"},
+							&birelpkg.Package{Name: "fake-compiled-package-1-dependency-2"},
+						},
+					},
+					{
+						Name:        "fake-compiled-package-2-name",
+						Fingerprint: "fake-compiled-package-2-fingerprint",
+						SHA1:        "fake-compiled-package-2-sha",
+						Stemcell:    "fake-compiled-package-stemcell-1/1",
+						Dependencies: []*birelpkg.Package{
+							&birelpkg.Package{Name: "fake-compiled-package-2-dependency-1"},
+							&birelpkg.Package{Name: "fake-compiled-package-2-dependency-2"},
+						},
+					},
+				},
+				"/some/release/path",
+				fakeFs,
+				true,
+			)
+			validator := NewValidator(fakeFs)
+
+			err := validator.Validate(release)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Packages were compiled against different stemcells: [fake-compiled-package-stemcell-1/1 fake-compiled-package-stemcell-2/2]"))
+		})
+
+		It("returns an  error if a compiled pacakge stemcell field is empty", func() {
+			fakeFs.WriteFileString("/some/job/path/monit", "")
+			fakeFs.WriteFileString("/some/job/path/templates/fake-job-1-template", "")
+			release := NewRelease(
+				"fake-compiled-release-name",
+				"fake-compiled-release-version",
+				[]bireljob.Job{
+					{
+						Name:          "fake-job-1-name",
+						Fingerprint:   "fake-job-1-fingerprint",
+						SHA1:          "fake-job-1-sha",
+						Templates:     map[string]string{"fake-job-1-template": "fake-job-1-file"},
+						ExtractedPath: "/some/job/path",
+					},
+				},
+				[]*birelpkg.Package{
+					{
+						Name:        "fake-compiled-package-1-name",
+						Fingerprint: "fake-compiled-package-1-fingerprint",
+						SHA1:        "fake-compiled-package-1-sha",
+						Stemcell:    "",
+						Dependencies: []*birelpkg.Package{
+							&birelpkg.Package{Name: "fake-package-1-dependency-1"},
+							&birelpkg.Package{Name: "fake-package-1-dependency-2"},
+						},
+					},
+				},
+				"/some/release/path",
+				fakeFs,
+				true,
+			)
+			validator := NewValidator(fakeFs)
+
+			err := validator.Validate(release)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Compiled package 'fake-compiled-package-1-name' stemcell is missing"))
+		})
+	})
+
+
 })

@@ -111,6 +111,7 @@ properties: {}
 						[]*birelpkg.Package{expectedPackage},
 						"/extracted-release-path",
 						fakeFS,
+						false,
 					)
 
 					Expect(release).To(Equal(expectedRelease))

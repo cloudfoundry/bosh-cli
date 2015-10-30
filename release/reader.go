@@ -66,7 +66,7 @@ func (r *reader) Read() (Release, error) {
 
 func (r *reader) newReleaseFromManifest(releaseManifest birelmanifest.Manifest) (Release, error) {
 	errors := []error{}
-	packages, err := r.newPackagesFromManifestPackages(releaseManifest.Packages)
+	packages, isCompiledRelease, err := r.newPackagesFromManifestPackages(releaseManifest)
 	if err != nil {
 		errors = append(errors, bosherr.WrapError(err, "Constructing packages from manifest"))
 	}
@@ -89,6 +89,7 @@ func (r *reader) newReleaseFromManifest(releaseManifest birelmanifest.Manifest) 
 
 		extractedPath: r.extractedReleasePath,
 		fs:            r.fs,
+		isCompiled:    isCompiledRelease,
 	}
 
 	return release, nil
@@ -142,10 +143,24 @@ func (r *reader) findPackageByName(packages []*birelpkg.Package, pkgName string)
 	return nil, false
 }
 
-func (r *reader) newPackagesFromManifestPackages(manifestPackages []birelmanifest.PackageRef) ([]*birelpkg.Package, error) {
+func (r *reader) newPackagesFromManifestPackages(releaseManifest birelmanifest.Manifest) ([]*birelpkg.Package, bool, error) {
+
+	manifestPackages := releaseManifest.Packages
+	isCompiledPackage := false
+
+	if (len(releaseManifest.Packages) > 0 && len(releaseManifest.CompiledPackages) > 0) {
+		return []*birelpkg.Package{}, isCompiledPackage, bosherr.Errorf("Release '%s' contains compiled and non-compiled pacakges", releaseManifest.Name)
+	} else if len(releaseManifest.CompiledPackages) > 0 {
+		manifestPackages = releaseManifest.CompiledPackages
+		isCompiledPackage = true
+	}
+
 	packages := []*birelpkg.Package{}
 	errors := []error{}
 	packageRepo := &birelpkg.PackageRepo{}
+
+	packagesDirectory := "packages"
+	if isCompiledPackage { packagesDirectory = "compiled_packages" }
 
 	for _, manifestPackage := range manifestPackages {
 		pkg := packageRepo.FindOrCreatePackage(manifestPackage.Name)
@@ -156,7 +171,8 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []birelmanifes
 			errors = append(errors, bosherr.WrapError(err, "Creating extracted package path"))
 			continue
 		}
-		packageArchivePath := path.Join(r.extractedReleasePath, "packages", manifestPackage.Name+".tgz")
+
+		packageArchivePath := path.Join(r.extractedReleasePath, packagesDirectory, manifestPackage.Name+".tgz")
 		err = r.extractor.DecompressFileToDir(packageArchivePath, extractedPackagePath, boshcmd.CompressorOptions{})
 		if err != nil {
 			errors = append(errors, bosherr.WrapErrorf(err, "Extracting package '%s'", manifestPackage.Name))
@@ -168,6 +184,8 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []birelmanifes
 		pkg.ExtractedPath = extractedPackagePath
 		pkg.ArchivePath = packageArchivePath
 
+		if isCompiledPackage { pkg.Stemcell = manifestPackage.Stemcell }
+
 		pkg.Dependencies = []*birelpkg.Package{}
 		for _, manifestPackageName := range manifestPackage.Dependencies {
 			pkg.Dependencies = append(pkg.Dependencies, packageRepo.FindOrCreatePackage(manifestPackageName))
@@ -177,8 +195,8 @@ func (r *reader) newPackagesFromManifestPackages(manifestPackages []birelmanifes
 	}
 
 	if len(errors) > 0 {
-		return []*birelpkg.Package{}, bosherr.NewMultiError(errors...)
+		return []*birelpkg.Package{}, isCompiledPackage, bosherr.NewMultiError(errors...)
 	}
 
-	return packages, nil
+	return packages, isCompiledPackage, nil
 }

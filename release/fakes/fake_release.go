@@ -10,7 +10,7 @@ type FakeRelease struct {
 	ReleaseVersion  string
 	ReleaseJobs     []bireljob.Job
 	ReleasePackages []*birelpkg.Package
-
+	ReleaseIsCompiled bool
 	DeleteCalled bool
 	DeleteErr    error
 }
@@ -52,3 +52,5 @@ func (r *FakeRelease) Delete() error {
 func (r *FakeRelease) Exists() bool {
 	return !r.DeleteCalled
 }
+
+func (r *FakeRelease) IsCompiled() bool { return false }

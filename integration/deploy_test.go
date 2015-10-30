@@ -263,6 +263,7 @@ cloud_provider:
 				[]*birelpkg.Package{&cpiPackage},
 				"fake-cpi-extracted-dir",
 				fs,
+				false,
 			)
 			mockReleaseExtractor.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
@@ -850,6 +851,7 @@ cloud_provider:
 					[]*birelpkg.Package{},
 					"fake-other-extracted-dir",
 					fs,
+					false,
 				)
 				mockReleaseExtractor.EXPECT().Extract(otherReleaseTarballPath).Do(func(_ string) {
 					err := fs.MkdirAll("fake-other-extracted-dir", os.ModePerm)

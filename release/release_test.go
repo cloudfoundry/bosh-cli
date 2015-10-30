@@ -29,6 +29,7 @@ var _ = Describe("Release", func() {
 			[]*birelpkg.Package{},
 			"fake-extracted-path",
 			fakeFS,
+			false,
 		)
 	})
 

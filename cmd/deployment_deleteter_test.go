@@ -129,6 +129,7 @@ cloud_provider:
 				[]*birelpkg.Package{},
 				"fake-cpi-extracted-dir",
 				fs,
+				false,
 			)
 
 			expectCPIExtractRelease = mockReleaseExtractor.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {

@@ -4,6 +4,7 @@ type Package struct {
 	Name          string
 	Fingerprint   string
 	SHA1          string
+	Stemcell      string
 	Dependencies  []*Package
 	ExtractedPath string
 	ArchivePath   string

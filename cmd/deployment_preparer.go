@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"strings"
+
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -156,6 +158,25 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		}
 
 		extractedStemcell, err = c.stemcellFetcher.GetStemcell(deploymentManifest, stage)
+
+		releasesMap, _ := deploymentManifest.GetListOfTemplateReleases()
+		delete(releasesMap, installationManifest.Template.Release) // remove CPI release
+
+		// Check if the compiled release stemcell doesn't match the deployment stemcell
+		for _, release := range c.releaseManager.List() {
+			if _, ok := releasesMap[release.Name()]; ok {
+				isCompilesRelease := release.IsCompiled()
+
+				if(isCompilesRelease) {
+					os := release.Packages()[0].Stemcell
+
+					if((strings.ToLower(os) != strings.ToLower(extractedStemcell.OsAndVersion()))){
+						return bosherr.Errorf("OS/Version mismatch between stemcell and compiled package for release %s", release.Name())
+					}
+				}
+			}
+		}
+
 		return err
 	})
 	if err != nil {

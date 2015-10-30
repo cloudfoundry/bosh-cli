@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"sort"
 
 	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
@@ -117,6 +118,8 @@ func (v *validator) validateReleaseJobs(release Release) error {
 
 func (v *validator) validateReleasePackages(release Release) error {
 	errs := []error{}
+	stemcells := map[string]string{}
+
 	for _, pkg := range release.Packages() {
 		if pkg.Name == "" {
 			errs = append(errs, errors.New("Package name is missing"))
@@ -129,6 +132,23 @@ func (v *validator) validateReleasePackages(release Release) error {
 		if pkg.SHA1 == "" {
 			errs = append(errs, fmt.Errorf("Package '%s' sha1 is missing", pkg.Name))
 		}
+
+		if (release.IsCompiled()) {
+			if(pkg.Stemcell == "") {
+				errs = append(errs, fmt.Errorf("Compiled package '%s' stemcell is missing", pkg.Name))
+			} else {
+				stemcells[pkg.Stemcell] = pkg.Stemcell
+			}
+		}
+	}
+
+	if (release.IsCompiled() && len(stemcells) > 1) {
+		keys := []string{}
+		for k := range stemcells {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		errs = append(errs, fmt.Errorf("Packages were compiled against different stemcells: %v", keys))
 	}
 
 	if len(errs) > 0 {
