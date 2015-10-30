@@ -1097,7 +1097,7 @@ func rootDesc() {
 			})
 
 			It("extracts the compiled release tarball", func() {
-				expectCPIReleaseExtract.Times(1)
+				expectOtherReleaseExtract.Times(1)
 
 				err := command.Run(fakeStage, []string{deploymentManifestPath})
 				Expect(err).NotTo(HaveOccurred())
