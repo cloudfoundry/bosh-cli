@@ -43,7 +43,7 @@ func (s *extractedStemcell) String() string {
 }
 
 func (s *extractedStemcell) OsAndVersion() string {
-	return fmt.Sprintf("%s/%s}", s.manifest.OS, s.manifest.Version)
+	return fmt.Sprintf("%s/%s", s.manifest.OS, s.manifest.Version)
 }
 
 type Manifest struct {
