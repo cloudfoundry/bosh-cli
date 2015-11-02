@@ -170,6 +170,11 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 						return bosherr.Errorf("OS/Version mismatch between deployment stemcell and compiled package stemcell for release '%s'", release.Name())
 					}
 				}
+			} else {
+				// It is a CPI release, check if it is compiled
+				if release.IsCompiled() {
+					return bosherr.Errorf("CPI is not allowed to be a compiled release. The provided CPI release '%s' is compiled", release.Name())
+				}
 			}
 		}
 

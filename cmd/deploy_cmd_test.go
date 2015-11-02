@@ -1119,6 +1119,14 @@ func rootDesc() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("OS/Version mismatch between deployment stemcell and compiled package stemcell for release 'other-release'"))
 			})
+
+			It("returns error if CPI release is compiled", func() {
+				fakeCPIRelease.ReleaseIsCompiled = true
+
+				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("CPI is not allowed to be a compiled release. The provided CPI release 'fake-cpi-release-name' is compiled"))
+			})
 		})
 	})
 }
