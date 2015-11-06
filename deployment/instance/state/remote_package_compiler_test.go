@@ -117,7 +117,7 @@ func describeRemotePackageCompiler() {
 				expectAgentCompile.Times(1),
 			)
 
-			compiledPackageRecord, err := remotePackageCompiler.Compile(pkg)
+			compiledPackageRecord, _, err := remotePackageCompiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(compiledPackageRecord).To(Equal(bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-compiled-package-blob-id",
@@ -126,7 +126,7 @@ func describeRemotePackageCompiler() {
 		})
 
 		It("saves the compiled package ref in the package repo", func() {
-			compiledPackageRecord, err := remotePackageCompiler.Compile(pkg)
+			compiledPackageRecord, _, err := remotePackageCompiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
 			record, found, err := packageRepo.Find(*pkg)
@@ -141,9 +141,30 @@ func describeRemotePackageCompiler() {
 			})
 
 			It("returns an error", func() {
-				_, err := remotePackageCompiler.Compile(pkg)
+				_, _, err := remotePackageCompiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Remote compilation failure: Package 'fake-package-name/fake-package-fingerprint' requires package 'fake-package-name-dep/fake-package-fingerprint-dep', but it has not been compiled"))
+			})
+		})
+
+		Context("when package belongs to a compiled release", func() {
+			BeforeEach(func() {
+				pkg.Stemcell = "ubuntu/fake"
+			})
+
+			AfterEach(func() {
+				pkg.Stemcell = ""
+			})
+
+			It("should skip compilation", func() {
+				compiledPackageRecord, isAlreadyCompiled, err := remotePackageCompiler.Compile(pkg)
+
+				expectAgentCompile.Times(0)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(isAlreadyCompiled).To(Equal(true))
+				Expect(compiledPackageRecord.BlobID).To(Equal("fake-source-package-blob-id"))
+				Expect(compiledPackageRecord.BlobSHA1).To(Equal(pkg.SHA1))
 			})
 		})
 	})

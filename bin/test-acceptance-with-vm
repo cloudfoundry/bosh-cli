@@ -48,6 +48,7 @@ fi
 
 dummy_release_path=${BOSH_INIT_DUMMY_RELEASE_PATH:-./assets/dummy-release.tgz}
 dummy_too_release_path=${BOSH_INIT_DUMMY_TOO_RELEASE_PATH:-./assets/dummy-too-release.tgz}
+dummy_compiled_release_path=${BOSH_INIT_DUMMY_COMPILED_RELEASE_PATH:-./assets/dummy-compiled-release.tgz}
 
 # Vagrant needs ubuntu to own the private key if aws provider
 if [ ! -z "$BOSH_LITE_PRIVATE_KEY" ]; then
@@ -79,7 +80,8 @@ cat > $config_file <<EOF
   "cpi_release_url": "${cpi_release_url}",
   "cpi_release_sha1": "${cpi_release_sha1}",
   "dummy_release_path": "${dummy_release_path}",
-  "dummy_too_release_path": "${dummy_too_release_path}"
+  "dummy_too_release_path": "${dummy_too_release_path}",
+  "dummy_compiled_release_path": "${dummy_compiled_release_path}"
 }
 EOF
 

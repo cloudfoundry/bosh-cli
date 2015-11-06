@@ -30,11 +30,12 @@ func (_m *MockCompiler) EXPECT() *_MockCompilerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCompiler) Compile(_param0 *pkg.Package) (pkg0.CompiledPackageRecord, error) {
+func (_m *MockCompiler) Compile(_param0 *pkg.Package) (pkg0.CompiledPackageRecord, bool, error) {
 	ret := _m.ctrl.Call(_m, "Compile", _param0)
 	ret0, _ := ret[0].(pkg0.CompiledPackageRecord)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 func (_mr *_MockCompilerRecorder) Compile(arg0 interface{}) *gomock.Call {

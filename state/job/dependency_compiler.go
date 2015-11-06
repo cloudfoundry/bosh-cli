@@ -101,7 +101,7 @@ func (c *dependencyCompiler) compilePackages(requiredPackages []*birelpkg.Packag
 	for _, pkg := range requiredPackages {
 		stepName := fmt.Sprintf("Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
 		err := stage.Perform(stepName, func() error {
-			compiledPackageRecord, err := c.packageCompiler.Compile(pkg)
+			compiledPackageRecord, isAlreadyCompiled, err := c.packageCompiler.Compile(pkg)
 			if err != nil {
 				return err
 			}
@@ -113,6 +113,10 @@ func (c *dependencyCompiler) compilePackages(requiredPackages []*birelpkg.Packag
 				SHA1:        compiledPackageRecord.BlobSHA1,
 			}
 			packageRefs = append(packageRefs, packageRef)
+
+			if isAlreadyCompiled {
+				return biui.NewSkipStageError(bosherr.Error(fmt.Sprintf("Package '%s' is already compiled. Skipped compilation", pkg.Name)), "Package already compiled")
+			}
 
 			return nil
 		})

@@ -5,5 +5,5 @@ import (
 )
 
 type Compiler interface {
-	Compile(*birelpkg.Package) (CompiledPackageRecord, error)
+	Compile(*birelpkg.Package) (CompiledPackageRecord, bool, error)
 }

@@ -146,7 +146,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("skips the compilation", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(len(runner.RunComplexCommands)).To(Equal(0))
@@ -154,7 +154,7 @@ var _ = Describe("PackageCompiler", func() {
 		})
 
 		It("installs all the dependencies for the package", func() {
-			_, err := compiler.Compile(pkg)
+			_, _, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
 			blobstoreID, sha1, jobPath := fakeExtractor.ExtractArgsForCall(0)
@@ -169,7 +169,7 @@ var _ = Describe("PackageCompiler", func() {
 		})
 
 		It("runs the packaging script in package extractedPath dir", func() {
-			_, err := compiler.Compile(pkg)
+			_, _, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedCmd := boshsys.Command{
@@ -191,7 +191,7 @@ var _ = Describe("PackageCompiler", func() {
 		})
 
 		It("compresses the compiled package", func() {
-			_, err := compiler.Compile(pkg)
+			_, _, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(compressor.CompressFilesInDirDir).To(Equal(installPath))
@@ -199,7 +199,7 @@ var _ = Describe("PackageCompiler", func() {
 		})
 
 		It("moves the compressed package to a blobstore", func() {
-			_, err := compiler.Compile(pkg)
+			_, _, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(blobstore.CreateFileNames).To(Equal([]string{compiledPackageTarballPath}))
@@ -208,12 +208,12 @@ var _ = Describe("PackageCompiler", func() {
 		It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
 			expectSave.Times(1)
 
-			_, err := compiler.Compile(pkg)
+			_, _, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns the repo record", func() {
-			record, err := compiler.Compile(pkg)
+			record, _, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(record).To(Equal(bistatepkg.CompiledPackageRecord{
@@ -223,7 +223,7 @@ var _ = Describe("PackageCompiler", func() {
 		})
 
 		It("cleans up the packages dir", func() {
-			_, err := compiler.Compile(pkg)
+			_, _, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fs.FileExists(packagesDir)).To(BeFalse())
@@ -235,7 +235,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-install-error"))
 			})
@@ -248,7 +248,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns error", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Packaging script for package 'fake-package-1' not found"))
 			})
@@ -264,7 +264,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns error", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Compiling package"))
 				Expect(err.Error()).To(ContainSubstring("fake-error"))
@@ -277,7 +277,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns error", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Compressing compiled package"))
 			})
@@ -289,7 +289,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns error", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Creating blob"))
 				Expect(err.Error()).To(ContainSubstring("fake-error"))
@@ -302,7 +302,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns error", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Saving compiled package"))
 				Expect(err.Error()).To(ContainSubstring("fake-error"))
@@ -315,7 +315,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns error", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Creating package install dir"))
 				Expect(err.Error()).To(ContainSubstring("fake-error"))
@@ -328,7 +328,7 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := compiler.Compile(pkg)
+				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Attempting to find compiled package '%s'", pkg.Name)))
 				Expect(err.Error()).To(ContainSubstring("fake-error"))

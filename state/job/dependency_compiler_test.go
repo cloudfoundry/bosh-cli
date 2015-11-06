@@ -90,13 +90,13 @@ var _ = Describe("DependencyCompiler", func() {
 			BlobID:   "fake-compiled-package-blobstore-id-1",
 			BlobSHA1: "fake-compiled-package-sha1-1",
 		}
-		expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(releasePackage1).Return(compiledPackageRecord1, nil).AnyTimes()
+		expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(releasePackage1).Return(compiledPackageRecord1, false, nil).AnyTimes()
 
 		compiledPackageRecord2 := bistatepkg.CompiledPackageRecord{
 			BlobID:   "fake-compiled-package-blobstore-id-2",
 			BlobSHA1: "fake-compiled-package-sha1-2",
 		}
-		expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(releasePackage2).Return(compiledPackageRecord2, nil).AnyTimes()
+		expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(releasePackage2).Return(compiledPackageRecord2, false, nil).AnyTimes()
 	})
 
 	It("compiles all the job dependencies (packages) such that no package is compiled before its dependencies", func() {
@@ -137,6 +137,33 @@ var _ = Describe("DependencyCompiler", func() {
 			{Name: "Compiling package 'fake-release-package-name-1/fake-release-package-fingerprint-1'"},
 			{Name: "Compiling package 'fake-release-package-name-2/fake-release-package-fingerprint-2'"},
 		}))
+	})
+
+	Context("when a compiled releases is provided", func() {
+
+		BeforeEach(func() {
+			compiledPackageRecord1 := bistatepkg.CompiledPackageRecord{
+				BlobID:   "fake-compiled-package-blobstore-id-1",
+				BlobSHA1: "fake-compiled-package-sha1-1",
+			}
+			expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(releasePackage1).Return(compiledPackageRecord1, true, nil).AnyTimes()
+
+			compiledPackageRecord2 := bistatepkg.CompiledPackageRecord{
+				BlobID:   "fake-compiled-package-blobstore-id-2",
+				BlobSHA1: "fake-compiled-package-sha1-2",
+			}
+			expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(releasePackage2).Return(compiledPackageRecord2, true, nil).AnyTimes()
+		})
+
+		It("skips compiling the packages in the release", func() {
+			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+			Expect(err).ToNot(HaveOccurred())
+
+			for _, call := range fakeStage.PerformCalls{
+				Expect(call.SkipError.Error()).To(MatchRegexp("Package already compiled: Package 'fake-release-package-name-\\d' is already compiled. Skipped compilation"))
+			}
+		})
+
 	})
 
 	Context("when multiple jobs depend on the same package", func() {
@@ -187,7 +214,7 @@ var _ = Describe("DependencyCompiler", func() {
 				BlobID:   "fake-compiled-package-blobstore-id-3",
 				BlobSHA1: "fake-compiled-package-sha1-3",
 			}
-			expectCompilePkg3 = mockPackageCompiler.EXPECT().Compile(releasePackage3).Return(compiledPackageRecord3, nil).AnyTimes()
+			expectCompilePkg3 = mockPackageCompiler.EXPECT().Compile(releasePackage3).Return(compiledPackageRecord3, false, nil).AnyTimes()
 		})
 
 		It("only compiles each package once", func() {

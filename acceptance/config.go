@@ -9,18 +9,19 @@ import (
 )
 
 type Config struct {
-	VMUsername          string `json:"vm_username"`
-	VMIP                string `json:"vm_ip"`
-	VMPort              string `json:"vm_port"`
-	PrivateKeyPath      string `json:"private_key_path"`
-	StemcellURL         string `json:"stemcell_url"`
-	StemcellSHA1        string `json:"stemcell_sha1"`
-	StemcellPath        string `json:"stemcell_path"`
-	CpiReleaseURL       string `json:"cpi_release_url"`
-	CpiReleaseSHA1      string `json:"cpi_release_sha1"`
-	CpiReleasePath      string `json:"cpi_release_path"`
-	DummyReleasePath    string `json:"dummy_release_path"`
-	DummyTooReleasePath string `json:"dummy_too_release_path"`
+	VMUsername          	 string `json:"vm_username"`
+	VMIP                	 string `json:"vm_ip"`
+	VMPort              	 string `json:"vm_port"`
+	PrivateKeyPath      	 string `json:"private_key_path"`
+	StemcellURL         	 string `json:"stemcell_url"`
+	StemcellSHA1        	 string `json:"stemcell_sha1"`
+	StemcellPath        	 string `json:"stemcell_path"`
+	CpiReleaseURL       	 string `json:"cpi_release_url"`
+	CpiReleaseSHA1      	 string `json:"cpi_release_sha1"`
+	CpiReleasePath      	 string `json:"cpi_release_path"`
+	DummyReleasePath    	 string `json:"dummy_release_path"`
+	DummyTooReleasePath 	 string `json:"dummy_too_release_path"`
+	DummyCompiledReleasePath string `json:"dummy_compiled_release_path"`
 }
 
 func NewConfig(fs boshsys.FileSystem) (*Config, error) {
@@ -74,6 +75,10 @@ func (c *Config) Validate() error {
 
 	if c.DummyTooReleasePath == "" {
 		return errors.New("Must provide 'dummy_too_release_path' in config")
+	}
+
+	if c.DummyCompiledReleasePath == "" {
+		return errors.New("Must provide 'dummy_compiled_release_path' in config")
 	}
 
 	return nil
