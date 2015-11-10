@@ -106,7 +106,7 @@ var _ = Describe("bosh-init", func() {
 
 	var updateCompiledReleaseDeploymentManifest = func(sourceManifestPath string) {
 		context := manifestContext{
-			DummyCompiledReleasePath:    testEnv.Path("dummy-compiled-release.tgz"),
+			DummyCompiledReleasePath:    testEnv.Path("sample-release-compiled.tgz"),
 		}
 
 		buffer := prepareDeploymentManifest(context, sourceManifestPath)
@@ -258,7 +258,7 @@ var _ = Describe("bosh-init", func() {
 		err = testEnv.Copy("dummy-too-release.tgz", config.DummyTooReleasePath)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = testEnv.Copy("dummy-compiled-release.tgz", config.DummyCompiledReleasePath)
+		err = testEnv.Copy("sample-release-compiled.tgz", config.DummyCompiledReleasePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -278,7 +278,7 @@ var _ = Describe("bosh-init", func() {
 		})
 
 		It("is able to deploy given many variances with compiled releases", func() {
-			updateCompiledReleaseDeploymentManifest("./assets/compiled_release_manifest.yml")
+			updateCompiledReleaseDeploymentManifest("./assets/sample-release-compiled-manifest.yml")
 
 			println("#################################################################")
 			println("it can deploy compiled releases successfully with expected output")
@@ -297,7 +297,7 @@ var _ = Describe("bosh-init", func() {
 				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
-			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'hello-go'" + stageFinishedPattern))
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'sample-release'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
 			if !config.IsLocalStemcell() {

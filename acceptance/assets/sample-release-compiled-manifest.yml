@@ -1,11 +1,11 @@
 ---
-name: test-release
+name: sample-release
 
 releases:
 - name: bosh-warden-cpi
   url: {{ .CpiReleaseURL }}
   sha1: {{ .CpiReleaseSHA1 }}
-- name: hello-go
+- name: sample-release
   url: file://{{ .DummyCompiledReleasePath }}
 
 resource_pools:
@@ -56,7 +56,7 @@ jobs:
 - name: dummy_compiled_job
   instances: 1
   templates:
-  - {name: hello-go, release: hello-go}
+  - {name: sample-job, release: sample-release}
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name
