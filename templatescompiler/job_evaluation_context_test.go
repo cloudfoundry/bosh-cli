@@ -57,6 +57,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			clusterProperties,
 			globalProperties,
 			"fake-deployment-name",
+			"1.2.3.4",
 			logger,
 		)
 
@@ -69,6 +70,10 @@ var _ = Describe("JobEvaluationContext", func() {
 
 	It("it has a network context section with empty IP", func() {
 		Expect(generatedContext.NetworkContexts["default"].IP).To(Equal(""))
+	})
+
+	It("it has address available in the spec", func() {
+		Expect(generatedContext.Address).To(Equal("1.2.3.4"))
 	})
 
 	var erbRenderer erbrenderer.ERBRenderer
@@ -97,6 +102,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			clusterProperties,
 			globalProperties,
 			"fake-deployment-name",
+			"1.2.3.4",
 			logger,
 		)
 

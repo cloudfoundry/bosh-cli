@@ -13,7 +13,7 @@ import (
 )
 
 type JobRenderer interface {
-	Render(releaseJob bireljob.Job, jobProperties, globalProperties biproperty.Map, deploymentName string) (RenderedJob, error)
+	Render(releaseJob bireljob.Job, jobProperties, globalProperties biproperty.Map, deploymentName string, address string) (RenderedJob, error)
 }
 
 type jobRenderer struct {
@@ -36,8 +36,8 @@ func NewJobRenderer(
 	}
 }
 
-func (r *jobRenderer) Render(releaseJob bireljob.Job, jobProperties, globalProperties biproperty.Map, deploymentName string) (RenderedJob, error) {
-	context := NewJobEvaluationContext(releaseJob, jobProperties, globalProperties, deploymentName, r.logger)
+func (r *jobRenderer) Render(releaseJob bireljob.Job, jobProperties, globalProperties biproperty.Map, deploymentName string, address string) (RenderedJob, error) {
+	context := NewJobEvaluationContext(releaseJob, jobProperties, globalProperties, deploymentName, address, r.logger)
 
 	sourcePath := releaseJob.ExtractedPath
 

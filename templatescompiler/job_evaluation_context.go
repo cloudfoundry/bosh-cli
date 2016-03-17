@@ -15,6 +15,7 @@ type jobEvaluationContext struct {
 	jobProperties    biproperty.Map
 	globalProperties biproperty.Map
 	deploymentName   string
+	address 		 string
 	logger           boshlog.Logger
 	logTag           string
 }
@@ -25,6 +26,7 @@ type RootContext struct {
 	Index      int        `json:"index"`
 	JobContext jobContext `json:"job"`
 	Deployment string     `json:"deployment"`
+	Address string     	  `json:"address,omitempty"`
 
 	// Usually is accessed with <%= spec.networks.default.ip %>
 	NetworkContexts map[string]networkContext `json:"networks"`
@@ -50,6 +52,7 @@ func NewJobEvaluationContext(
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,
+	address string,
 	logger boshlog.Logger,
 ) bierbrenderer.TemplateEvaluationContext {
 	return jobEvaluationContext{
@@ -57,6 +60,7 @@ func NewJobEvaluationContext(
 		jobProperties:    jobProperties,
 		globalProperties: globalProperties,
 		deploymentName:   deploymentName,
+		address:		  address,
 		logger:           logger,
 		logTag:           "jobEvaluationContext",
 	}
@@ -73,6 +77,10 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 		GlobalProperties:  ec.globalProperties,
 		ClusterProperties: ec.jobProperties,
 		DefaultProperties: defaultProperties,
+	}
+
+	if len(ec.address) > 0 {
+		context.Address = ec.address
 	}
 
 	ec.logger.Debug(ec.logTag, "Marshalling context %#v", context)

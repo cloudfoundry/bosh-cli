@@ -77,7 +77,7 @@ func (b *jobRenderer) renderJobTemplates(
 ) ([]RenderedJobRef, error) {
 	renderedJobRefs := make([]RenderedJobRef, 0, len(releaseJobs))
 	err := stage.Perform("Rendering job templates", func() error {
-		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
+		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName, "")
 		if err != nil {
 			return err
 		}
