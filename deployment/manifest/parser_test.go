@@ -502,4 +502,83 @@ name: fake-deployment-name
 			Expect(deploymentManifest.Update.UpdateWatchTime.End).To(Equal(300000))
 		})
 	})
+
+	Context("when instance_groups is defined, treats it as jobs", func() {
+		BeforeEach(func() {
+			contents := `
+---
+instance_groups:
+- name: jobby
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("treats instance groups as jobs", func() {
+			deploymentManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploymentManifest.Jobs[0].Name).To(Equal("jobby"))
+		})
+	})
+
+	Context("when jobs is defined inside an instance_group, treats it as templates", func() {
+		BeforeEach(func() {
+			contents := `
+---
+instance_groups:
+- name: jobby
+  jobs:
+  - name: job1
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("treats instance groups as jobs", func() {
+			deploymentManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploymentManifest.Jobs[0].Templates[0].Name).To(Equal("job1"))
+		})
+	})
+
+	Context("when both instance_groups and jobs are present at root level in deployment manifest", func() {
+		BeforeEach(func() {
+			contents := `
+---
+jobs:
+- name: jobby
+
+instance_groups:
+- name: instancey
+
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("throws an error", func() {
+			_,err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Deployment specifies both jobs and instance_groups keys, only one is allowed"))
+		})
+	})
+
+	Context("when both templates and jobs are present at job level in deployment manifest", func() {
+		BeforeEach(func() {
+			contents := `
+---
+jobs:
+- name: jobby
+  templates:
+  - name: temp1
+  jobs:
+  - name: job1
+
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("throws an error", func() {
+			_,err := parser.Parse(comboManifestPath)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Deployment specifies both templates and jobs keys for instance_group jobby, only one is allowed"))
+		})
+	})
 })
