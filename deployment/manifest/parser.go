@@ -342,3 +342,4 @@ func (p *parser) parseDiskPoolManifests(rawDiskPools []diskPool) ([]DiskPool, er
 	}
 
 	return diskPools, nil
+}
