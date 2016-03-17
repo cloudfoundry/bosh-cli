@@ -11,7 +11,6 @@ import (
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	"errors"
 )
 
 type Builder interface {
@@ -63,6 +62,16 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 		return nil, bosherr.WrapErrorf(err, "Resolving jobs for instance '%s/%d'", jobName, instanceID)
 	}
 
+	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, stage)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Rendering job templates for instance '%s/%d'", jobName, instanceID)
+	}
+
+	compiledPackageRefs, err := b.jobDependencyCompiler.Compile(releaseJobs, stage)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Compiling job package dependencies for instance '%s/%d'", jobName, instanceID)
+	}
+
 	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Finding networks for job '%s", jobName)
@@ -75,21 +84,6 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 			Name:      networkName,
 			Interface: networkInterface,
 		})
-	}
-
-	defaultAddress, err := b.defaultAddress(networkRefs)
-	if err != nil {
-		return nil, err
-	}
-
-	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, defaultAddress, stage)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Rendering job templates for instance '%s/%d'", jobName, instanceID)
-	}
-
-	compiledPackageRefs, err := b.jobDependencyCompiler.Compile(releaseJobs, stage)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Compiling job package dependencies for instance '%s/%d'", jobName, instanceID)
 	}
 
 	compiledDeploymentPackageRefs := make([]PackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
@@ -149,7 +143,6 @@ func (b *builder) renderJobTemplates(
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,
-	address string,
 	stage biui.Stage,
 ) (renderedJobs, error) {
 	var (
@@ -157,7 +150,7 @@ func (b *builder) renderJobTemplates(
 		blobID                 string
 	)
 	err := stage.Perform("Rendering job templates", func() error {
-		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName, address)
+		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
 		if err != nil {
 			return err
 		}
@@ -184,29 +177,4 @@ func (b *builder) renderJobTemplates(
 		BlobstoreID: blobID,
 		Archive:     renderedJobListArchive,
 	}, nil
-}
-
-func (b *builder) defaultAddress(networkRefs []NetworkRef) (string, error) {
-
-	if (networkRefs == nil) || (len(networkRefs) == 0) {
-		return "", errors.New("Must specify network")
-	}
-
-	if len(networkRefs) == 1 {
-		return networkRefs[0].Interface["ip"].(string), nil
-	}
-
-	for _, ref := range networkRefs {
-		if ref.Interface["default"] == nil {
-			continue
-		}
-
-		for _, val := range ref.Interface["default"].([]bideplmanifest.NetworkDefault) {
-			if val == "gateway" {
-				return ref.Interface["ip"].(string), nil
-			}
-		}
-	}
-
-	return "", errors.New("Must specify default network")
 }
