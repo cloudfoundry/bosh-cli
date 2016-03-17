@@ -89,6 +89,7 @@ func describeBuilder() {
 						Networks: []bideplmanifest.JobNetwork{
 							{
 								Name: "fake-network-name",
+								StaticIPs: []string{"1.2.3.4"},
 							},
 						},
 						Templates: []bideplmanifest.ReleaseJobRef{
@@ -187,7 +188,7 @@ func describeBuilder() {
 			globalProperties := biproperty.Map{
 				"fake-job-property": "fake-global-property-value",
 			}
-			mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, "fake-deployment-name").Return(mockRenderedJobList, nil)
+			mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4").Return(mockRenderedJobList, nil)
 
 			mockRenderedJobList.EXPECT().DeleteSilently()
 
@@ -218,6 +219,7 @@ func describeBuilder() {
 				Interface: biproperty.Map{
 					"type":    "fake-network-type",
 					"default": []bideplmanifest.NetworkDefault{"dns", "gateway"},
+					"ip": "1.2.3.4",
 					"cloud_properties": biproperty.Map{
 						"fake-network-cloud-property": "fake-network-cloud-property-value",
 					},
@@ -354,6 +356,7 @@ func describeBuilder() {
 					"fake-network-name": biproperty.Map{
 						"type":    "fake-network-type",
 						"default": []bideplmanifest.NetworkDefault{"dns", "gateway"},
+						"ip": "1.2.3.4",
 						"cloud_properties": biproperty.Map{
 							"fake-network-cloud-property": "fake-network-cloud-property-value",
 						},

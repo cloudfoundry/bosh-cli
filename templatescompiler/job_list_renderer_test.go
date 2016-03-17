@@ -34,6 +34,7 @@ var _ = Describe("JobListRenderer", func() {
 		jobProperties    biproperty.Map
 		globalProperties biproperty.Map
 		deploymentName   string
+		address   string
 
 		renderedJobs []*mock_template.MockRenderedJob
 
@@ -62,6 +63,7 @@ var _ = Describe("JobListRenderer", func() {
 		}
 
 		deploymentName = "fake-deployment-name"
+		address = "1.2.3.4"
 
 		renderedJobs = []*mock_template.MockRenderedJob{
 			mock_template.NewMockRenderedJob(mockCtrl),
@@ -72,13 +74,13 @@ var _ = Describe("JobListRenderer", func() {
 	})
 
 	JustBeforeEach(func() {
-		mockJobRenderer.EXPECT().Render(releaseJobs[0], jobProperties, globalProperties, deploymentName).Return(renderedJobs[0], nil)
-		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], jobProperties, globalProperties, deploymentName).Return(renderedJobs[1], nil)
+		mockJobRenderer.EXPECT().Render(releaseJobs[0], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[0], nil)
+		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[1], nil)
 	})
 
 	Describe("Render", func() {
 		It("returns a new RenderedJobList with all the RenderedJobs", func() {
-			renderedJobList, err := jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
+			renderedJobList, err := jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName, address)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(renderedJobList.All()).To(Equal([]RenderedJob{
 				renderedJobs[0],
@@ -94,7 +96,7 @@ var _ = Describe("JobListRenderer", func() {
 			It("returns an error and cleans up any sucessfully rendered jobs", func() {
 				renderedJobs[0].EXPECT().DeleteSilently()
 
-				_, err := jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName)
+				_, err := jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName, address)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
 			})
