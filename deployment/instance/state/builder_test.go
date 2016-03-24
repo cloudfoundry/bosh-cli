@@ -96,6 +96,9 @@ func describeBuilder() {
 							{
 								Name:    "fake-release-job-name",
 								Release: "fake-release-name",
+								Properties: biproperty.Map{
+									"fake-template-property": "fake-template-property-value",
+								},
 							},
 						},
 						Properties: biproperty.Map{
@@ -182,13 +185,20 @@ func describeBuilder() {
 			}
 			expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, fakeStage).Return(compiledPackageRefs, nil).AnyTimes()
 
+			releaseJobProperties := map[string]biproperty.Map {
+				"fake-release-job-name": biproperty.Map {
+					"fake-template-property": "fake-template-property-value",
+				},
+			}
+
 			jobProperties := biproperty.Map{
 				"fake-job-property": "fake-job-property-value",
 			}
 			globalProperties := biproperty.Map{
 				"fake-job-property": "fake-global-property-value",
 			}
-			mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4").Return(mockRenderedJobList, nil)
+
+			mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4").Return(mockRenderedJobList, nil)
 
 			mockRenderedJobList.EXPECT().DeleteSilently()
 

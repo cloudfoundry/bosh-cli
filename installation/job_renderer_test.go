@@ -119,6 +119,7 @@ var _ = Describe("JobRenderer", func() {
 
 		releaseJobs := []bireljob.Job{releaseJob}
 
+		releaseJobProperties := map[string]biproperty.Map{}
 		jobProperties := biproperty.Map{
 			"fake-installation-property": "fake-installation-property-value",
 		}
@@ -129,7 +130,7 @@ var _ = Describe("JobRenderer", func() {
 		renderedJobList = bitemplate.NewRenderedJobList()
 		renderedJobList.Add(bitemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fakeFS, logger))
 
-		mockJobListRenderer.EXPECT().Render(releaseJobs, jobProperties, globalProperties, deploymentName, address).Return(renderedJobList, nil).AnyTimes()
+		mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address).Return(renderedJobList, nil).AnyTimes()
 
 		fakeCompressor.CompressFilesInDirTarballPath = "/fake-rendered-job-tarball-cpi.tgz"
 

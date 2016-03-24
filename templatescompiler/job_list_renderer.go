@@ -10,6 +10,7 @@ import (
 type JobListRenderer interface {
 	Render(
 		releaseJobs []bireljob.Job,
+		releaseJobProperties map[string]biproperty.Map,
 		jobProperties biproperty.Map,
 		globalProperties biproperty.Map,
 		deploymentName string,
@@ -36,6 +37,7 @@ func NewJobListRenderer(
 
 func (r *jobListRenderer) Render(
 	releaseJobs []bireljob.Job,
+	releaseJobProperties map[string]biproperty.Map,
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,
@@ -46,7 +48,7 @@ func (r *jobListRenderer) Render(
 
 	// render all the jobs' templates
 	for _, releaseJob := range releaseJobs {
-		renderedJob, err := r.jobRenderer.Render(releaseJob, jobProperties, globalProperties, deploymentName, address)
+		renderedJob, err := r.jobRenderer.Render(releaseJob, releaseJobProperties, jobProperties, globalProperties, deploymentName, address)
 		if err != nil {
 			defer renderedJobList.DeleteSilently()
 			return renderedJobList, bosherr.WrapErrorf(err, "Rendering templates for job '%s/%s'", releaseJob.Name, releaseJob.Fingerprint)

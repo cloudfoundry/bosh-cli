@@ -24,6 +24,7 @@ var _ = Describe("JobRenderer", func() {
 		job              bireljob.Job
 		context          bierbrenderer.TemplateEvaluationContext
 		fs               *fakesys.FakeFileSystem
+		releaseJobProperties    map[string]biproperty.Map
 		jobProperties    biproperty.Map
 		globalProperties biproperty.Map
 		srcPath          string
@@ -33,6 +34,13 @@ var _ = Describe("JobRenderer", func() {
 	BeforeEach(func() {
 		srcPath = "fake-src-path"
 		dstPath = "fake-dst-path"
+
+		releaseJobProperties = map[string]biproperty.Map {
+			"fake-release-job-name": biproperty.Map {
+				"fake-template-property": "fake-template-property-value",
+			},
+		}
+
 		jobProperties = biproperty.Map{
 			"fake-property-key": "fake-job-property-value",
 		}
@@ -42,6 +50,7 @@ var _ = Describe("JobRenderer", func() {
 		}
 
 		job = bireljob.Job{
+			Name: "fake-release-job-name",
 			Templates: map[string]string{
 				"director.yml.erb": "config/director.yml",
 			},
@@ -50,7 +59,7 @@ var _ = Describe("JobRenderer", func() {
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		context = NewJobEvaluationContext(job, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", logger)
+		context = NewJobEvaluationContext(job, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", logger)
 
 		fakeERBRenderer = fakebirender.NewFakeERBRender()
 
@@ -81,7 +90,7 @@ var _ = Describe("JobRenderer", func() {
 
 	Describe("Render", func() {
 		It("renders job templates", func() {
-			renderedjob, err := jobRenderer.Render(job, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+			renderedjob, err := jobRenderer.Render(job, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebirender.RenderInput{
@@ -109,7 +118,7 @@ var _ = Describe("JobRenderer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := jobRenderer.Render(job, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+				_, err := jobRenderer.Render(job, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-render-error"))
 			})

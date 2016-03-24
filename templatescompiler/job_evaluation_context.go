@@ -12,6 +12,7 @@ import (
 
 type jobEvaluationContext struct {
 	releaseJob       bireljob.Job
+	releaseJobProperties    map[string]biproperty.Map
 	jobProperties    biproperty.Map
 	globalProperties biproperty.Map
 	deploymentName   string
@@ -33,7 +34,8 @@ type RootContext struct {
 
 	//TODO: this should be a map[string]interface{}
 	GlobalProperties  biproperty.Map `json:"global_properties"`  // values from manifest's top-level properties
-	ClusterProperties biproperty.Map `json:"cluster_properties"` // values from manifest's jobs[].properties
+	ClusterProperties biproperty.Map `json:"cluster_properties"` // values from instance group (deployment job) properties
+	JobProperties biproperty.Map `json:"job_properties"` // values from release job (aka template) properties
 	DefaultProperties biproperty.Map `json:"default_properties"` // values from release's job's spec
 }
 
@@ -49,6 +51,7 @@ type networkContext struct {
 
 func NewJobEvaluationContext(
 	releaseJob bireljob.Job,
+	releaseJobProperties map[string]biproperty.Map,
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,
@@ -56,8 +59,9 @@ func NewJobEvaluationContext(
 	logger boshlog.Logger,
 ) bierbrenderer.TemplateEvaluationContext {
 	return jobEvaluationContext{
-		releaseJob:       releaseJob,
-		jobProperties:    jobProperties,
+		releaseJob:       		 releaseJob,
+		releaseJobProperties:    releaseJobProperties,
+		jobProperties:    		 jobProperties,
 		globalProperties: globalProperties,
 		deploymentName:   deploymentName,
 		address:		  address,
@@ -76,6 +80,7 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 		NetworkContexts:   ec.buildNetworkContexts(),
 		GlobalProperties:  ec.globalProperties,
 		ClusterProperties: ec.jobProperties,
+		JobProperties:     ec.releaseJobProperties[ec.releaseJob.Name],
 		DefaultProperties: defaultProperties,
 	}
 

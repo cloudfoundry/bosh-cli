@@ -82,6 +82,7 @@ type job struct {
 type releaseJobRef struct {
 	Name    string
 	Release string
+	Properties map[interface{}]interface{}
 }
 
 type stemcellRef struct {
@@ -214,9 +215,16 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 		if templates != nil {
 			releaseJobRefs := make([]ReleaseJobRef, len(templates), len(templates))
 			for i, rawJobRef := range templates {
+
+				properties, err := biproperty.BuildMap(rawJobRef.Properties)
+				if err != nil {
+					return []Job{}, bosherr.WrapErrorf(err, "Parsing release job properties: %#v", rawJobRef.Properties)
+				}
+
 				releaseJobRefs[i] = ReleaseJobRef{
 					Name:    rawJobRef.Name,
 					Release: rawJobRef.Release,
+					Properties: properties,
 				}
 			}
 			job.Templates = releaseJobRefs

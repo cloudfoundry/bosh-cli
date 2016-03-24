@@ -63,6 +63,11 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 		return nil, bosherr.WrapErrorf(err, "Resolving jobs for instance '%s/%d'", jobName, instanceID)
 	}
 
+	releaseJobProperties := make(map[string]biproperty.Map)
+	for _, releaseJob := range deploymentJob.Templates {
+		releaseJobProperties[releaseJob.Name] = releaseJob.Properties
+	}
+
 	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Finding networks for job '%s", jobName)
@@ -82,7 +87,7 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 		return nil, err
 	}
 
-	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, defaultAddress, stage)
+	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, releaseJobProperties, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, defaultAddress, stage)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Rendering job templates for instance '%s/%d'", jobName, instanceID)
 	}
@@ -146,6 +151,7 @@ func (b *builder) resolveJobs(jobRefs []bideplmanifest.ReleaseJobRef) ([]bireljo
 // renderJobTemplates renders all the release job templates for multiple release jobs specified by a deployment job
 func (b *builder) renderJobTemplates(
 	releaseJobs []bireljob.Job,
+	releaseJobProperties map[string]biproperty.Map,
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,
@@ -157,7 +163,7 @@ func (b *builder) renderJobTemplates(
 		blobID                 string
 	)
 	err := stage.Perform("Rendering job templates", func() error {
-		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, jobProperties, globalProperties, deploymentName, address)
+		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address)
 		if err != nil {
 			return err
 		}
