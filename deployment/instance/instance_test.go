@@ -310,6 +310,7 @@ var _ = Describe("Instance", func() {
 			Expect(fakeVM.ApplyInputs).To(Equal([]fakebivm.ApplyInput{
 				{ApplySpec: applySpec},
 			}))
+			Expect(fakeVM.RunScriptInputs).To(Equal([]string{"pre-start"}))
 			Expect(fakeVM.StartCalled).To(Equal(1))
 		})
 
@@ -374,6 +375,18 @@ var _ = Describe("Instance", func() {
 				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Updating instance 'fake-job-name/0'"))
 				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
 				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Applying the agent state: fake-apply-error"))
+			})
+		})
+
+		Context("when running the pre-start script fails", func() {
+			BeforeEach(func() {
+				fakeVM.RunScriptErr = bosherr.Error("fake-run-script-error")
+			})
+
+			It("returns the error", func() {
+				err := instance.UpdateJobs(deploymentManifest, fakeStage)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-run-script-error"))
 			})
 		})
 

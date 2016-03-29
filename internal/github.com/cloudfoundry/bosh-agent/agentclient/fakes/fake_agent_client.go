@@ -37,6 +37,9 @@ type FakeAgentClient struct {
 
 	UpdateSettingsCalledTimes int
 	updateSettingsErr         error
+
+	RunScriptInputs []string
+	runScriptErr    error
 }
 
 type pingResponse struct {
@@ -123,6 +126,11 @@ func (c *FakeAgentClient) UpdateSettings(settings settings.Settings) error {
 	return c.updateSettingsErr
 }
 
+func (c *FakeAgentClient) RunScript(script string) error {
+	c.RunScriptInputs = append(c.RunScriptInputs, script)
+	return c.runScriptErr
+}
+
 func (c *FakeAgentClient) CompilePackage(
 	packageSource agentclient.BlobRef,
 	compiledPackageDependencies []agentclient.BlobRef,
@@ -174,4 +182,8 @@ func (c *FakeAgentClient) SetUpdateSettingsBehavior(err error) {
 func (c *FakeAgentClient) SetListDiskBehavior(disks []string, err error) {
 	c.listDiskDisks = disks
 	c.listDiskErr = err
+}
+
+func (c *FakeAgentClient) SetRunScriptBehavior(err error) {
+	c.runScriptErr = err
 }

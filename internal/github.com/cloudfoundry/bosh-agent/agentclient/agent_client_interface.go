@@ -19,6 +19,7 @@ type AgentClient interface {
 	MigrateDisk() error
 	CompilePackage(packageSource BlobRef, compiledPackageDependencies []BlobRef) (compiledPackageRef BlobRef, err error)
 	UpdateSettings(settings settings.Settings) error
+	RunScript(script string) error
 }
 
 type AgentState struct {

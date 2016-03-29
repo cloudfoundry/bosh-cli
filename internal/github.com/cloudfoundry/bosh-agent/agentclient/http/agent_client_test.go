@@ -702,4 +702,45 @@ var _ = Describe("AgentClient", func() {
 			}))
 		})
 	})
+
+	Describe("RunScript", func() {
+		It("Sends a run_script message to the agent", func() {
+			fakeHTTPClient.SetPostBehavior(`{"value":"started"}`, 200, nil)
+			err := agentClient.RunScript("the-script")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
+			Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+			var request AgentRequestMessage
+			err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(request).To(Equal(AgentRequestMessage{
+				Method:    "run_script",
+				Arguments: []interface{}{"the-script"},
+				ReplyTo:   "fake-uuid",
+			}))
+		})
+
+		It("Returns an error if an error occurs", func() {
+			fakeHTTPClient.SetPostBehavior("", 0, errors.New("connection reset by peer"))
+			err := agentClient.RunScript("the-script")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("connection reset by peer"))
+
+			Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
+			Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+			var request AgentRequestMessage
+			err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(request).To(Equal(AgentRequestMessage{
+				Method:    "run_script",
+				Arguments: []interface{}{"the-script"},
+				ReplyTo:   "fake-uuid",
+			}))
+		})
+	})
 })

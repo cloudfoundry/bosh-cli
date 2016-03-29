@@ -55,6 +55,9 @@ type FakeVM struct {
 
 	MigrateDiskCalledTimes int
 	MigrateDiskErr         error
+
+	RunScriptInputs []string
+	RunScriptErr    error
 }
 
 type UpdateDisksInput struct {
@@ -190,6 +193,11 @@ func (vm *FakeVM) Stop() error {
 
 func (vm *FakeVM) Disks() ([]bidisk.Disk, error) {
 	return vm.ListDisksDisks, vm.ListDisksErr
+}
+
+func (vm *FakeVM) RunScript(script string) error {
+	vm.RunScriptInputs = append(vm.RunScriptInputs, script)
+	return vm.RunScriptErr
 }
 
 func (vm *FakeVM) Delete() error {

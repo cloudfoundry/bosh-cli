@@ -151,6 +151,11 @@ func (i *instance) UpdateJobs(
 			return bosherr.WrapError(err, "Applying the agent state")
 		}
 
+		err = i.vm.RunScript("pre-start")
+		if err != nil {
+			return bosherr.WrapError(err, "Running the pre-start script")
+		}
+
 		err = i.vm.Start()
 		if err != nil {
 			return bosherr.WrapError(err, "Starting the agent")

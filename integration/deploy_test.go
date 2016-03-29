@@ -502,6 +502,7 @@ cloud_provider:
 
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().Apply(applySpec),
+				mockAgentClient.EXPECT().RunScript("pre-start"),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
@@ -545,6 +546,7 @@ cloud_provider:
 				// start jobs & wait for running
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().Apply(applySpec),
+				mockAgentClient.EXPECT().RunScript("pre-start"),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
@@ -584,6 +586,7 @@ cloud_provider:
 				// start jobs & wait for running
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().Apply(applySpec),
+				mockAgentClient.EXPECT().RunScript("pre-start"),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
@@ -691,6 +694,7 @@ cloud_provider:
 				// start jobs & wait for running
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().Apply(applySpec),
+				mockAgentClient.EXPECT().RunScript("pre-start"),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
@@ -747,6 +751,7 @@ cloud_provider:
 					func() { expectRegistryToWork() },
 				),
 				mockAgentClient.EXPECT().Apply(applySpec),
+				mockAgentClient.EXPECT().RunScript("pre-start"),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
