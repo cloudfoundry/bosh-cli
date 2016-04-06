@@ -2,6 +2,7 @@ package erbrenderer
 
 const templateEvaluationContextRb = `
 # Based on common/properties/template_evaluation_context.rb
+require "rubygems"
 require "ostruct"
 require "json"
 require "erb"
