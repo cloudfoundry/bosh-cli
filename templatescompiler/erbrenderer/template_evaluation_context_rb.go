@@ -2,7 +2,6 @@ package erbrenderer
 
 const templateEvaluationContextRb = `
 # Based on common/properties/template_evaluation_context.rb
-require "rubygems"
 require "ostruct"
 require "json"
 require "erb"
@@ -66,6 +65,10 @@ class TemplateEvaluationContext
 
     yield *values
     InactiveElseBlock.new
+  end
+  
+  def if_link(name)
+    false
   end
 
   private
