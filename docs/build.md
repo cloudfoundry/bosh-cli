@@ -22,7 +22,3 @@ From here on out we assume you're working in `$GOPATH/src/github.com/cloudfoundr
 To build the bosh-init cli:
 
 - `bin/build` # The `bosh-init` binary will be located in `out/`
-
-Install tools used by the test suite:
-
-- `bin/go get golang.org/x/tools/cmd/vet`
