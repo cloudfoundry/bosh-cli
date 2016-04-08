@@ -67,6 +67,10 @@ class TemplateEvaluationContext
     yield *values
     InactiveElseBlock.new
   end
+  
+  def if_link(name)
+    false
+  end
 
   private
 
