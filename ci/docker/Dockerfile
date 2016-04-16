@@ -13,7 +13,7 @@ RUN apt-get install -y git curl wget tar ruby ruby-dev
 RUN apt-get clean
 
 # package manager provides 1.4.3, which is too old for vagrant-aws
-RUN cd /tmp && wget -q https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.5_x86_64.deb && dpkg -i vagrant_1.6.5_x86_64.deb
+RUN cd /tmp && wget -q https://releases.hashicorp.com/vagrant/1.6.5/vagrant_1.6.5_x86_64.deb && dpkg -i vagrant_1.6.5_x86_64.deb
 RUN vagrant plugin install vagrant-aws
 
 # bosh-init dependencies
