@@ -31,6 +31,13 @@ class TemplateEvaluationContext
     @index = spec["index"]
 
     properties1 = spec['global_properties'].recursive_merge!(spec['cluster_properties'])
+
+    if spec['job_properties']
+    	properties1 = spec['job_properties']
+    else
+    	properties1 = spec['global_properties'].recursive_merge!(spec['cluster_properties'])
+    end
+
     properties = {}
     spec['default_properties'].each do |name, value|
       copy_property(properties, properties1, name, value)
