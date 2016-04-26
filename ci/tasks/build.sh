@@ -21,4 +21,4 @@ sed 's/\[DEV BUILD\]/'"$version"'/' cmd/version.go > cmd/version.tmp && mv cmd/v
 
 bin/build
 
-mv out/bosh-init compiled-binary/${filename}
+mv out/bosh-init compiled-${GOOS}/${filename}

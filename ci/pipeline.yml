@@ -54,8 +54,8 @@ jobs:
         - task: build-darwin
           file: bosh-init/ci/tasks/build-darwin.yml
       - aggregate:
-        - {put: release-bucket-linux, params: {file: compiled-binary/bosh-init-.*-linux-amd64}}
-        - {put: release-bucket-darwin, params: {file: compiled-binary/bosh-init-.*-darwin-amd64}}
+        - {put: release-bucket-linux, params: {file: compiled-linux/bosh-init-.*-linux-amd64}}
+        - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-init-.*-darwin-amd64}}
         - {put: bosh-init-promoted, params: {repository: bosh-init, tag: version-semver/number, tag_prefix: v}}
 
   - name: bump-minor

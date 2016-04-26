@@ -9,7 +9,7 @@ inputs:
 - name: version-semver
 
 outputs:
-- name: compiled-binary
+- name: compiled-darwin
 
 params:
   GOOS:   darwin
