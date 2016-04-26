@@ -25,6 +25,9 @@ type jobEvaluationContext struct {
 // It must stay same to provide backwards compatible API.
 type RootContext struct {
 	Index      int        `json:"index"`
+	ID         string     `json:"id"`
+	AZ         string     `json:"az"`
+	Bootstrap  bool       `json:"bootstrap"`
 	JobContext jobContext `json:"job"`
 	Deployment string     `json:"deployment"`
 	Address string     	  `json:"address,omitempty"`
@@ -75,6 +78,9 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 
 	context := RootContext{
 		Index:             0,
+		ID:                "unknown",
+		AZ:                "unknown",
+		Bootstrap:         true,
 		JobContext:        jobContext{Name: ec.releaseJob.Name},
 		Deployment:        ec.deploymentName,
 		NetworkContexts:   ec.buildNetworkContexts(),

@@ -84,6 +84,18 @@ var _ = Describe("JobEvaluationContext", func() {
 		Expect(generatedContext.Address).To(Equal("1.2.3.4"))
 	})
 
+	It("it has id available in the spec", func() {
+		Expect(generatedContext.ID).To(Equal("unknown"))
+	})
+
+	It("it has az available in the spec", func() {
+		Expect(generatedContext.AZ).To(Equal("unknown"))
+	})
+
+	It("it has bootstrap available in the spec", func() {
+		Expect(generatedContext.Bootstrap).To(Equal(true))
+	})
+
 	var erbRenderer erbrenderer.ERBRenderer
 	getValueFor := func(key string) string {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
