@@ -8,6 +8,9 @@ inputs:
   path: gopath/src/github.com/cloudfoundry/bosh-init
 - name: version-semver
 
+outputs:
+- name: compiled-binary
+
 params:
   GOOS:   darwin
   GOARCH: amd64

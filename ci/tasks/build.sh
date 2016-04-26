@@ -21,5 +21,4 @@ sed 's/\[DEV BUILD\]/'"$version"'/' cmd/version.go > cmd/version.tmp && mv cmd/v
 
 bin/build
 
-mkdir $base/out
-mv out/bosh-init $base/out/${filename}
+mv out/bosh-init compiled-binary/${filename}

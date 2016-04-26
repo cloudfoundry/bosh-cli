@@ -30,14 +30,13 @@ jobs:
         - task: test-acceptance
           file: bosh-init/ci/tasks/test-acceptance.yml
           privileged: true
-          config:
-            params:
-              BOSH_AWS_ACCESS_KEY_ID:     {{aws_ec2_acceptance_tests_access_key}}
-              BOSH_AWS_SECRET_ACCESS_KEY: {{aws_ec2_acceptance_tests_secret_key}}
-              BOSH_LITE_KEYPAIR:          {{aws_ec2_acceptance_tests_bosh_lite_keypair}}
-              BOSH_LITE_SUBNET_ID:        {{aws_ec2_acceptance_tests_bosh_lite_subnet_id}}
-              BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
-              BOSH_LITE_PRIVATE_KEY_DATA: {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
+          params:
+            BOSH_AWS_ACCESS_KEY_ID:     {{aws_ec2_acceptance_tests_access_key}}
+            BOSH_AWS_SECRET_ACCESS_KEY: {{aws_ec2_acceptance_tests_secret_key}}
+            BOSH_LITE_KEYPAIR:          {{aws_ec2_acceptance_tests_bosh_lite_keypair}}
+            BOSH_LITE_SUBNET_ID:        {{aws_ec2_acceptance_tests_bosh_lite_subnet_id}}
+            BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
+            BOSH_LITE_PRIVATE_KEY_DATA: {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
 
   - name: build
     public: true
@@ -55,8 +54,8 @@ jobs:
         - task: build-darwin
           file: bosh-init/ci/tasks/build-darwin.yml
       - aggregate:
-        - {put: release-bucket-linux, params: {from: build-linux/out/bosh-init-.*-linux-amd64}}
-        - {put: release-bucket-darwin, params: {from: build-darwin/out/bosh-init-.*-darwin-amd64}}
+        - {put: release-bucket-linux, params: {file: compiled-binary/bosh-init-.*-linux-amd64}}
+        - {put: release-bucket-darwin, params: {file: compiled-binary/bosh-init-.*-darwin-amd64}}
         - {put: bosh-init-promoted, params: {repository: bosh-init, tag: version-semver/number, tag_prefix: v}}
 
   - name: bump-minor
