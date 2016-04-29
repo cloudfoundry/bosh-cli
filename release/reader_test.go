@@ -391,7 +391,7 @@ packages:
 					)
 				})
 
-				It("returns an error when release contains compiled and non compiled packages", func(){
+				It("returns an error when release contains compiled and non compiled packages", func() {
 					_, err := reader.Read()
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Release 'fake-release' contains compiled and non-compiled pacakges"))

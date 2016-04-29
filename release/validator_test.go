@@ -200,7 +200,6 @@ var _ = Describe("Validator", func() {
 		})
 	})
 
-
 	Context("when the release is a compiled release", func() {
 
 		It("validates the relase without error", func() {
@@ -326,6 +325,5 @@ var _ = Describe("Validator", func() {
 			Expect(err.Error()).To(ContainSubstring("Compiled package 'fake-compiled-package-1-name' stemcell is missing"))
 		})
 	})
-
 
 })

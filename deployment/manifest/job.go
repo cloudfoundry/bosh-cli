@@ -24,8 +24,8 @@ const (
 )
 
 type ReleaseJobRef struct {
-	Name    string
-	Release string
+	Name       string
+	Release    string
 	Properties biproperty.Map
 }
 

@@ -120,7 +120,7 @@ func (d Manifest) FindJobByName(jobName string) (Job, bool) {
 }
 
 func (d Manifest) GetListOfTemplateReleases() (map[string]string, bool) {
-	if (len(d.Jobs) != 1) {
+	if len(d.Jobs) != 1 {
 		return nil, false
 	} else {
 		result := make(map[string]string)

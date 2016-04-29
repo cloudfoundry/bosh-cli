@@ -37,7 +37,7 @@ func (c *remotePackageCompiler) Compile(releasePackage *birelpkg.Package) (recor
 	}
 
 	// If the package is a source package
-	if  releasePackage.Stemcell == "" {
+	if releasePackage.Stemcell == "" {
 		// Resolve dependencies from map of previously compiled packages.
 		// Only install the package's immediate dependencies when compiling (not all transitive dependencies).
 		packageDependencies := make([]biagentclient.BlobRef, len(releasePackage.Dependencies), len(releasePackage.Dependencies))
@@ -72,7 +72,7 @@ func (c *remotePackageCompiler) Compile(releasePackage *birelpkg.Package) (recor
 
 		compiledPackageRef, err := c.agentClient.CompilePackage(packageSource, packageDependencies)
 		if err != nil {
-			return record,false, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", releasePackage.Name)
+			return record, false, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", releasePackage.Name)
 		}
 		record = bistatepkg.CompiledPackageRecord{
 			BlobID:   compiledPackageRef.BlobstoreID,
@@ -87,7 +87,6 @@ func (c *remotePackageCompiler) Compile(releasePackage *birelpkg.Package) (recor
 		isAlreadyCompiled = true
 	}
 
-
 	err = c.packageRepo.Save(*releasePackage, record)
 	if err != nil {
 		return record, isAlreadyCompiled, bosherr.WrapErrorf(err, "Saving compiled package record %#v of package %#v", record, releasePackage)
@@ -95,4 +94,3 @@ func (c *remotePackageCompiler) Compile(releasePackage *birelpkg.Package) (recor
 
 	return record, isAlreadyCompiled, nil
 }
-

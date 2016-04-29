@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	stageTimePattern     = "\\(\\d{2}:\\d{2}:\\d{2}\\)"
-	stageFinishedPattern = "\\.\\.\\. Finished " + stageTimePattern + "$"
+	stageTimePattern                   = "\\(\\d{2}:\\d{2}:\\d{2}\\)"
+	stageFinishedPattern               = "\\.\\.\\. Finished " + stageTimePattern + "$"
 	stageCompiledPackageSkippedPattern = "\\.\\.\\. Skipped \\[Package already compiled\\] " + stageTimePattern + "$"
 )
 
@@ -62,16 +62,16 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	type manifestContext struct {
-		CpiReleaseURL       	 string
-		CpiReleaseSHA1      	 string
-		DummyReleasePath    	 string
-		DummyTooReleasePath 	 string
+		CpiReleaseURL            string
+		CpiReleaseSHA1           string
+		DummyReleasePath         string
+		DummyTooReleasePath      string
 		DummyCompiledReleasePath string
-		StemcellURL         	 string
-		StemcellSHA1        	 string
+		StemcellURL              string
+		StemcellSHA1             string
 	}
 
-	var prepareDeploymentManifest = func(context manifestContext,  sourceManifestPath string) []byte {
+	var prepareDeploymentManifest = func(context manifestContext, sourceManifestPath string) []byte {
 		if config.IsLocalCpiRelease() {
 			context.CpiReleaseURL = "file://" + testEnv.Path("cpi-release.tgz")
 		} else {
@@ -106,7 +106,7 @@ var _ = Describe("bosh-init", func() {
 
 	var updateCompiledReleaseDeploymentManifest = func(sourceManifestPath string) {
 		context := manifestContext{
-			DummyCompiledReleasePath:    testEnv.Path("sample-release-compiled.tgz"),
+			DummyCompiledReleasePath: testEnv.Path("sample-release-compiled.tgz"),
 		}
 
 		buffer := prepareDeploymentManifest(context, sourceManifestPath)

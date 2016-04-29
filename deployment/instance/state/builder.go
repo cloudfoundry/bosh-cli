@@ -1,6 +1,7 @@
 package state
 
 import (
+	"errors"
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
@@ -11,7 +12,6 @@ import (
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	"errors"
 )
 
 type Builder interface {

@@ -554,7 +554,7 @@ instance_groups:
 		})
 
 		It("throws an error", func() {
-			_,err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deployment specifies both jobs and instance_groups keys, only one is allowed"))
 		})
@@ -576,7 +576,7 @@ jobs:
 		})
 
 		It("throws an error", func() {
-			_,err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deployment specifies both templates and jobs keys for instance_group jobby, only one is allowed"))
 		})

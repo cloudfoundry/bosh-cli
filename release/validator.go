@@ -133,8 +133,8 @@ func (v *validator) validateReleasePackages(release Release) error {
 			errs = append(errs, fmt.Errorf("Package '%s' sha1 is missing", pkg.Name))
 		}
 
-		if (release.IsCompiled()) {
-			if(pkg.Stemcell == "") {
+		if release.IsCompiled() {
+			if pkg.Stemcell == "" {
 				errs = append(errs, fmt.Errorf("Compiled package '%s' stemcell is missing", pkg.Name))
 			} else {
 				stemcells[pkg.Stemcell] = pkg.Stemcell
@@ -142,7 +142,7 @@ func (v *validator) validateReleasePackages(release Release) error {
 		}
 	}
 
-	if (release.IsCompiled() && len(stemcells) > 1) {
+	if release.IsCompiled() && len(stemcells) > 1 {
 		keys := []string{}
 		for k := range stemcells {
 			keys = append(keys, k)

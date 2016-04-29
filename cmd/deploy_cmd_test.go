@@ -9,9 +9,9 @@ import (
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	"github.com/cloudfoundry/bosh-init/crypto"
 	"github.com/cloudfoundry/bosh-init/deployment"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/gbytes"
 
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
@@ -37,9 +37,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 	birel "github.com/cloudfoundry/bosh-init/release"
-	bipkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	bipkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
@@ -216,7 +216,7 @@ func rootDesc() {
 					Version:         "fake-stemcell-version",
 					SHA1:            "fake-stemcell-sha1",
 					CloudProperties: biproperty.Map{},
-					OS:				 "ubuntu-trusty",
+					OS:              "ubuntu-trusty",
 				},
 				"fake-extracted-path",
 				fakeFs,
@@ -1060,7 +1060,6 @@ func rootDesc() {
 					otherReleaseTarballPath,
 				).Return(fakeOtherRelease, nil).AnyTimes()
 
-
 				releaseSetManifest = birelsetmanifest.Manifest{
 					Releases: []birelmanifest.ReleaseRef{
 						{
@@ -1081,7 +1080,7 @@ func rootDesc() {
 							Name: "fake-job-name",
 							Templates: []bideplmanifest.ReleaseJobRef{
 								{
-									Release:"other-release",
+									Release: "other-release",
 								},
 							},
 						},

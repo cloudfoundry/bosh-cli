@@ -6,13 +6,13 @@ import (
 )
 
 type FakeRelease struct {
-	ReleaseName     string
-	ReleaseVersion  string
-	ReleaseJobs     []bireljob.Job
-	ReleasePackages []*birelpkg.Package
+	ReleaseName       string
+	ReleaseVersion    string
+	ReleaseJobs       []bireljob.Job
+	ReleasePackages   []*birelpkg.Package
 	ReleaseIsCompiled bool
-	DeleteCalled bool
-	DeleteErr    error
+	DeleteCalled      bool
+	DeleteErr         error
 }
 
 func NewFakeRelease() *FakeRelease {

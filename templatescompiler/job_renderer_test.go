@@ -19,24 +19,24 @@ import (
 
 var _ = Describe("JobRenderer", func() {
 	var (
-		jobRenderer      JobRenderer
-		fakeERBRenderer  *fakebirender.FakeERBRenderer
-		job              bireljob.Job
-		context          bierbrenderer.TemplateEvaluationContext
-		fs               *fakesys.FakeFileSystem
-		releaseJobProperties    map[string]biproperty.Map
-		jobProperties    biproperty.Map
-		globalProperties biproperty.Map
-		srcPath          string
-		dstPath          string
+		jobRenderer          JobRenderer
+		fakeERBRenderer      *fakebirender.FakeERBRenderer
+		job                  bireljob.Job
+		context              bierbrenderer.TemplateEvaluationContext
+		fs                   *fakesys.FakeFileSystem
+		releaseJobProperties map[string]biproperty.Map
+		jobProperties        biproperty.Map
+		globalProperties     biproperty.Map
+		srcPath              string
+		dstPath              string
 	)
 
 	BeforeEach(func() {
 		srcPath = "fake-src-path"
 		dstPath = "fake-dst-path"
 
-		releaseJobProperties = map[string]biproperty.Map {
-			"fake-release-job-name": biproperty.Map {
+		releaseJobProperties = map[string]biproperty.Map{
+			"fake-release-job-name": biproperty.Map{
 				"fake-template-property": "fake-template-property-value",
 			},
 		}

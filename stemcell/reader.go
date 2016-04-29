@@ -13,7 +13,7 @@ import (
 type manifest struct {
 	Name            string
 	Version         string
-	OS              string  `yaml:"operating_system"`
+	OS              string `yaml:"operating_system"`
 	SHA1            string
 	CloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 }
@@ -55,7 +55,7 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 	manifest := Manifest{
 		Name:    rawManifest.Name,
 		Version: rawManifest.Version,
-		OS: 	 rawManifest.OS,
+		OS:      rawManifest.OS,
 		SHA1:    rawManifest.SHA1,
 	}
 

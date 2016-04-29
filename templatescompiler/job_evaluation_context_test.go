@@ -20,10 +20,10 @@ var _ = Describe("JobEvaluationContext", func() {
 	var (
 		generatedContext RootContext
 
-		releaseJob        bireljob.Job
+		releaseJob           bireljob.Job
 		releaseJobProperties map[string]biproperty.Map
-		clusterProperties biproperty.Map
-		globalProperties  biproperty.Map
+		clusterProperties    biproperty.Map
+		globalProperties     biproperty.Map
 	)
 	BeforeEach(func() {
 		generatedContext = RootContext{}
@@ -37,20 +37,20 @@ var _ = Describe("JobEvaluationContext", func() {
 			},
 		}
 
-		releaseJobProperties = map[string]biproperty.Map {
-			"fake-release-job-name": biproperty.Map {
+		releaseJobProperties = map[string]biproperty.Map{
+			"fake-release-job-name": biproperty.Map{
 				"fake-template-property": "fake-template-property-value",
 			},
 		}
 
-		clusterProperties = biproperty.Map {
-			"fake-job-property1": biproperty.Map {
+		clusterProperties = biproperty.Map{
+			"fake-job-property1": biproperty.Map{
 				"fake-job-property2": "value-from-cluster-properties",
 			},
 		}
 
-		globalProperties = biproperty.Map {
-			"fake-global-property1": biproperty.Map {
+		globalProperties = biproperty.Map{
+			"fake-global-property1": biproperty.Map{
 				"fake-global-property2": "value-from-global-properties",
 			},
 		}

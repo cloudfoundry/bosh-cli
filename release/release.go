@@ -7,13 +7,13 @@ import (
 )
 
 type release struct {
-	name          			string
-	version       			string
-	jobs          			[]bireljob.Job
-	packages      			[]*birelpkg.Package
-	extractedPath 			string
-	fs            			boshsys.FileSystem
-	isCompiled    			bool
+	name          string
+	version       string
+	jobs          []bireljob.Job
+	packages      []*birelpkg.Package
+	extractedPath string
+	fs            boshsys.FileSystem
+	isCompiled    bool
 }
 
 type Release interface {
@@ -77,4 +77,3 @@ func (r *release) Exists() bool {
 }
 
 func (r *release) IsCompiled() bool { return r.isCompiled }
-

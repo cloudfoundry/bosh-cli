@@ -159,7 +159,7 @@ var _ = Describe("DependencyCompiler", func() {
 			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			for _, call := range fakeStage.PerformCalls{
+			for _, call := range fakeStage.PerformCalls {
 				Expect(call.SkipError.Error()).To(MatchRegexp("Package already compiled: Package 'fake-release-package-name-\\d' is already compiled. Skipped compilation"))
 			}
 		})

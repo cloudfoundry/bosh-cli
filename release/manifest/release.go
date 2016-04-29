@@ -7,8 +7,8 @@ type Manifest struct {
 	CommitHash         string `yaml:"commit_hash"`
 	UncommittedChanges bool   `yaml:"uncommitted_changes"`
 
-	Jobs     []JobRef     `yaml:"jobs"`
-	Packages []PackageRef `yaml:"packages"`
+	Jobs             []JobRef     `yaml:"jobs"`
+	Packages         []PackageRef `yaml:"packages"`
 	CompiledPackages []PackageRef `yaml:"compiled_packages"`
 }
 

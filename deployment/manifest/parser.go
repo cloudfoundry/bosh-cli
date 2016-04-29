@@ -80,8 +80,8 @@ type job struct {
 }
 
 type releaseJobRef struct {
-	Name    string
-	Release string
+	Name       string
+	Release    string
 	Properties map[interface{}]interface{}
 }
 
@@ -222,8 +222,8 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 				}
 
 				releaseJobRefs[i] = ReleaseJobRef{
-					Name:    rawJobRef.Name,
-					Release: rawJobRef.Release,
+					Name:       rawJobRef.Name,
+					Release:    rawJobRef.Release,
 					Properties: properties,
 				}
 			}

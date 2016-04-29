@@ -148,7 +148,7 @@ func (r *reader) newPackagesFromManifestPackages(releaseManifest birelmanifest.M
 	manifestPackages := releaseManifest.Packages
 	isCompiledPackage := false
 
-	if (len(releaseManifest.Packages) > 0 && len(releaseManifest.CompiledPackages) > 0) {
+	if len(releaseManifest.Packages) > 0 && len(releaseManifest.CompiledPackages) > 0 {
 		return []*birelpkg.Package{}, isCompiledPackage, bosherr.Errorf("Release '%s' contains compiled and non-compiled pacakges", releaseManifest.Name)
 	} else if len(releaseManifest.CompiledPackages) > 0 {
 		manifestPackages = releaseManifest.CompiledPackages
@@ -160,7 +160,9 @@ func (r *reader) newPackagesFromManifestPackages(releaseManifest birelmanifest.M
 	packageRepo := &birelpkg.PackageRepo{}
 
 	packagesDirectory := "packages"
-	if isCompiledPackage { packagesDirectory = "compiled_packages" }
+	if isCompiledPackage {
+		packagesDirectory = "compiled_packages"
+	}
 
 	for _, manifestPackage := range manifestPackages {
 		pkg := packageRepo.FindOrCreatePackage(manifestPackage.Name)
@@ -184,7 +186,9 @@ func (r *reader) newPackagesFromManifestPackages(releaseManifest birelmanifest.M
 		pkg.ExtractedPath = extractedPackagePath
 		pkg.ArchivePath = packageArchivePath
 
-		if isCompiledPackage { pkg.Stemcell = manifestPackage.Stemcell }
+		if isCompiledPackage {
+			pkg.Stemcell = manifestPackage.Stemcell
+		}
 
 		pkg.Dependencies = []*birelpkg.Package{}
 		for _, manifestPackageName := range manifestPackage.Dependencies {
