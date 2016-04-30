@@ -415,4 +415,16 @@ var _ = Describe("VM", func() {
 			})
 		})
 	})
+
+	Describe("GetState", func() {
+		BeforeEach(func() {
+			fakeAgentClient.SetGetStateBehavior(biagentclient.AgentState{JobState: "testing"}, nil)
+		})
+
+		It("sends get_state to the agent", func() {
+			agentState, err := vm.GetState()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(agentState).To(Equal(biagentclient.AgentState{JobState: "testing"}))
+		})
+	})
 })

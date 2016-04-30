@@ -12,6 +12,7 @@ import (
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biac "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
@@ -71,6 +72,9 @@ func describeBuilder() {
 			releasePackageRuby    *birelpkg.Package
 			releasePackageCPI     *birelpkg.Package
 
+			agentState biac.AgentState
+			expectedIP string
+
 			expectCompile *gomock.Call
 		)
 
@@ -80,6 +84,7 @@ func describeBuilder() {
 
 			jobName = "fake-deployment-job-name"
 			instanceID = 0
+			expectedIP = "1.2.3.4"
 
 			deploymentManifest = bideplmanifest.Manifest{
 				Name: "fake-deployment-name",
@@ -117,6 +122,14 @@ func describeBuilder() {
 				},
 				Properties: biproperty.Map{
 					"fake-job-property": "fake-global-property-value", //overridden by job property value
+				},
+			}
+
+			agentState = biac.AgentState{
+				NetworkSpecs: map[string]biac.NetworkSpec{
+					"fake-network-name": biac.NetworkSpec{
+						IP: "1.2.3.5",
+					},
 				},
 			}
 
@@ -198,7 +211,7 @@ func describeBuilder() {
 				"fake-job-property": "fake-global-property-value",
 			}
 
-			mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4").Return(mockRenderedJobList, nil)
+			mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", expectedIP).Return(mockRenderedJobList, nil)
 
 			mockRenderedJobList.EXPECT().DeleteSilently()
 
@@ -216,12 +229,12 @@ func describeBuilder() {
 		It("compiles the dependencies of the jobs", func() {
 			expectCompile.Times(1)
 
-			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("builds a new instance state with zero-to-many networks", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
@@ -238,8 +251,78 @@ func describeBuilder() {
 			Expect(state.NetworkInterfaces()).To(HaveLen(1))
 		})
 
+		Context("dynamic network without IP address", func() {
+			Context("single network", func() {
+				BeforeEach(func() {
+					deploymentManifest.Jobs[0].Networks[0].StaticIPs = nil
+					deploymentManifest.Networks[0].Type = "dynamic"
+					expectedIP = "1.2.3.5"
+				})
+
+				It("should not fail", func() {
+					state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
+						Name: "fake-network-name",
+						Interface: biproperty.Map{
+							"type":    "dynamic",
+							"default": []bideplmanifest.NetworkDefault{"dns", "gateway"},
+							"cloud_properties": biproperty.Map{
+								"fake-network-cloud-property": "fake-network-cloud-property-value",
+							},
+						},
+					}))
+					Expect(state.NetworkInterfaces()).To(HaveLen(1))
+				})
+			})
+
+			Context("multiple networks", func() {
+				BeforeEach(func() {
+					expectedIP = "1.2.3.6"
+					deploymentManifest.Networks = append(
+						deploymentManifest.Networks,
+						bideplmanifest.Network{
+							Name: "fake-dynamic-network-name",
+							Type: "dynamic",
+							CloudProperties: biproperty.Map{
+								"fake-network-cloud-property": "fake-network-cloud-property-value",
+							},
+						},
+					)
+					deploymentManifest.Jobs[0].Networks = append(
+						deploymentManifest.Jobs[0].Networks,
+						bideplmanifest.JobNetwork{
+							Name:     "fake-dynamic-network-name",
+							Defaults: []bideplmanifest.NetworkDefault{bideplmanifest.NetworkDefaultDNS, bideplmanifest.NetworkDefaultGateway},
+						},
+					)
+					agentState.NetworkSpecs["fake-dynamic-network-name"] = biac.NetworkSpec{
+						IP: "1.2.3.6",
+					}
+				})
+
+				It("should not fail", func() {
+					state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
+						Name: "fake-dynamic-network-name",
+						Interface: biproperty.Map{
+							"type":    "dynamic",
+							"default": []bideplmanifest.NetworkDefault{"dns", "gateway"},
+							"cloud_properties": biproperty.Map{
+								"fake-network-cloud-property": "fake-network-cloud-property-value",
+							},
+						},
+					}))
+					Expect(state.NetworkInterfaces()).To(HaveLen(2))
+				})
+			})
+		})
+
 		It("builds a new instance state with zero-to-many rendered jobs from one or more releases", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.RenderedJobs()).To(ContainElement(JobRef{
@@ -256,7 +339,7 @@ func describeBuilder() {
 		})
 
 		It("prints ui stages for compiling packages and rendering job templates", func() {
-			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
@@ -266,7 +349,7 @@ func describeBuilder() {
 		})
 
 		It("builds a new instance state with the compiled packages required by the release jobs", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
@@ -288,7 +371,7 @@ func describeBuilder() {
 		})
 
 		It("builds a new instance state that includes transitively dependent compiled packages", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
@@ -324,7 +407,7 @@ func describeBuilder() {
 			})
 
 			It("does not recompile dependant packages", func() {
-				state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+				state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
@@ -356,7 +439,7 @@ func describeBuilder() {
 		})
 
 		It("builds an instance state that can be converted to an ApplySpec", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage)
+			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{

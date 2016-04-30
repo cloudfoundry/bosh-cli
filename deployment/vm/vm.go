@@ -34,6 +34,7 @@ type VM interface {
 	MigrateDisk() error
 	RunScript(script string) error
 	Delete() error
+	GetState() (biagentclient.AgentState, error)
 }
 
 type vm struct {
@@ -211,4 +212,14 @@ func (vm *vm) Delete() error {
 
 	// returns bicloud.Error only if it is a VMNotFoundError
 	return deleteErr
+}
+
+func (vm *vm) GetState() (biagentclient.AgentState, error) {
+	agentState, err := vm.agentClient.GetState()
+
+	if err != nil {
+		return agentState, bosherr.WrapError(err, "Getting vm state")
+	}
+
+	return agentState, nil
 }

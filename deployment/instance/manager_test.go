@@ -25,6 +25,7 @@ import (
 	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
 	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
@@ -127,8 +128,11 @@ var _ = Describe("Manager", func() {
 				ConfigurationHash:        "",
 			}
 
+			fakeAgentState := agentclient.AgentState{}
+			fakeVM.GetStateResult = fakeAgentState
+
 			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-			mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage).Return(mockState, nil).AnyTimes()
+			mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 

@@ -58,6 +58,10 @@ type FakeVM struct {
 
 	RunScriptInputs []string
 	RunScriptErr    error
+
+	GetStateResult biagentclient.AgentState
+	GetStateCalled int
+	GetStateErr    error
 }
 
 type UpdateDisksInput struct {
@@ -211,4 +215,9 @@ func (vm *FakeVM) SetAttachDiskBehavior(disk bidisk.Disk, err error) {
 
 func (vm *FakeVM) SetDetachDiskBehavior(disk bidisk.Disk, err error) {
 	vm.detachDiskBehavior[disk.CID()] = err
+}
+
+func (vm *FakeVM) GetState() (biagentclient.AgentState, error) {
+	vm.GetStateCalled++
+	return vm.GetStateResult, vm.GetStateErr
 }

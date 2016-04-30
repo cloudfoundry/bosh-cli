@@ -23,7 +23,12 @@ type AgentClient interface {
 }
 
 type AgentState struct {
-	JobState string
+	JobState     string
+	NetworkSpecs map[string]NetworkSpec
+}
+
+type NetworkSpec struct {
+	IP string `json:"ip"`
 }
 
 type BlobRef struct {

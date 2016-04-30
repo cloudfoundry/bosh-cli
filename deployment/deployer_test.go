@@ -30,6 +30,7 @@ import (
 	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
@@ -171,8 +172,11 @@ var _ = Describe("Deployer", func() {
 			Deployment: "fake-deployment-name",
 		}
 
+		fakeAgentState := agentclient.AgentState{}
+		fakeVM.GetStateResult = fakeAgentState
+
 		mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-		mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage).Return(mockState, nil).AnyTimes()
+		mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
 		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 	})
 
@@ -299,6 +303,7 @@ var _ = Describe("Deployer", func() {
 
 		Expect(fakeVM.ApplyInputs).To(Equal([]fakebivm.ApplyInput{
 			{ApplySpec: applySpec},
+			{ApplySpec: applySpec},
 		}))
 	})
 
@@ -352,7 +357,7 @@ var _ = Describe("Deployer", func() {
 
 			Expect(fakeStage.PerformCalls[2].Name).To(Equal("Updating instance 'fake-job-name/0'"))
 			Expect(fakeStage.PerformCalls[2].Error).To(HaveOccurred())
-			Expect(fakeStage.PerformCalls[2].Error.Error()).To(Equal("Applying the agent state: fake-apply-error"))
+			Expect(fakeStage.PerformCalls[2].Error.Error()).To(Equal("Applying the initial agent state: fake-apply-error"))
 		})
 	})
 

@@ -338,13 +338,23 @@ var _ = Describe("AgentClient", func() {
 	Describe("GetState", func() {
 		Context("when agent responds with a value", func() {
 			BeforeEach(func() {
-				fakeHTTPClient.SetPostBehavior(`{"value":{"job_state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"job_state":"running","networks":{"private":{"ip":"192.0.2.10"},"public":{"ip":"192.0.3.11"}}}}`, 200, nil)
 			})
 
 			It("makes a POST request to the endpoint", func() {
 				stateResponse, err := agentClient.GetState()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(stateResponse).To(Equal(agentclient.AgentState{JobState: "running"}))
+				Expect(stateResponse).To(Equal(agentclient.AgentState{
+					JobState: "running",
+					NetworkSpecs: map[string]agentclient.NetworkSpec{
+						"private": {
+							IP: "192.0.2.10",
+						},
+						"public": {
+							IP: "192.0.3.11",
+						},
+					},
+				}))
 
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
 				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
@@ -718,7 +728,7 @@ var _ = Describe("AgentClient", func() {
 
 			Expect(request).To(Equal(AgentRequestMessage{
 				Method:    "run_script",
-				Arguments: []interface{}{"the-script"},
+				Arguments: []interface{}{"the-script", map[string]interface{}{}},
 				ReplyTo:   "fake-uuid",
 			}))
 		})
@@ -738,7 +748,7 @@ var _ = Describe("AgentClient", func() {
 
 			Expect(request).To(Equal(AgentRequestMessage{
 				Method:    "run_script",
-				Arguments: []interface{}{"the-script"},
+				Arguments: []interface{}{"the-script", map[string]interface{}{}},
 				ReplyTo:   "fake-uuid",
 			}))
 		})

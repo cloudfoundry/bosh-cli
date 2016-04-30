@@ -3,9 +3,10 @@ package instance_test
 import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance"
 
+	"time"
+
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
 	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
-	"time"
 
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
 	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
@@ -22,6 +23,7 @@ import (
 	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
@@ -291,12 +293,15 @@ var _ = Describe("Instance", func() {
 		})
 
 		JustBeforeEach(func() {
-			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage).Return(mockState, nil).AnyTimes()
+			fakeAgentState := agentclient.AgentState{JobState: "testing"}
+			fakeVM.GetStateResult = fakeAgentState
+
+			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		})
 
 		It("builds a new instance state", func() {
-			expectStateBuild.Times(1)
+			expectStateBuild.Times(2)
 
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
@@ -308,6 +313,7 @@ var _ = Describe("Instance", func() {
 
 			Expect(fakeVM.StopCalled).To(Equal(1))
 			Expect(fakeVM.ApplyInputs).To(Equal([]fakebivm.ApplyInput{
+				{ApplySpec: applySpec},
 				{ApplySpec: applySpec},
 			}))
 			Expect(fakeVM.RunScriptInputs).To(Equal([]string{"pre-start"}))
@@ -374,7 +380,7 @@ var _ = Describe("Instance", func() {
 
 				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Updating instance 'fake-job-name/0'"))
 				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
-				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Applying the agent state: fake-apply-error"))
+				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Applying the initial agent state: fake-apply-error"))
 			})
 		})
 

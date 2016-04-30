@@ -114,7 +114,8 @@ func (c *agentClient) GetState() (agentclient.AgentState, error) {
 	}
 
 	agentState := agentclient.AgentState{
-		JobState: response.Value.JobState,
+		JobState:     response.Value.JobState,
+		NetworkSpecs: response.Value.NetworkSpecs,
 	}
 
 	return agentState, err
