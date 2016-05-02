@@ -134,43 +134,35 @@ func (i *instance) UpdateJobs(
 	deploymentManifest bideplmanifest.Manifest,
 	stage biui.Stage,
 ) error {
+	initialAgentState, err := i.stateBuilder.BuildInitialState(i.jobName, i.id, deploymentManifest)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Building initial state for instance '%s/%d'", i.jobName, i.id)
+	}
+
+	// apply it to agent to force it to load networking details
+	err = i.vm.Apply(initialAgentState.ToApplySpec())
+	if err != nil {
+		return bosherr.WrapError(err, "Applying the initial agent state")
+	}
+
+	// now that the agent will tell us the address, get new state
+	resolvedAgentState, err := i.vm.GetState()
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Getting state for instance '%s/%d'", i.jobName, i.id)
+	}
+
+	newAgentState, err := i.stateBuilder.Build(i.jobName, i.id, deploymentManifest, stage, resolvedAgentState)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Building state for instance '%s/%d'", i.jobName, i.id)
+	}
 	stepName := fmt.Sprintf("Updating instance '%s/%d'", i.jobName, i.id)
-	err := stage.Perform(stepName, func() error {
-		// generate a (potentially) incorrect state with bad spec.address
-		agentState, err := i.vm.GetState()
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Getting initial state for instance '%s/%d'", i.jobName, i.id)
-		}
-
-		newState, err := i.stateBuilder.Build(i.jobName, i.id, deploymentManifest, stage, agentState)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Building initial state for instance '%s/%d'", i.jobName, i.id)
-		}
-
-		// apply it to agent to force it to load networking details
-		err = i.vm.Apply(newState.ToApplySpec())
-		if err != nil {
-			return bosherr.WrapError(err, "Applying the initial agent state")
-		}
-
-		// now that the agent will tell us the address, get new state
-		agentState, err = i.vm.GetState()
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Getting state for instance '%s/%d'", i.jobName, i.id)
-		}
-
-		// rebuild the templates so we can actually apply them
-		newState, err = i.stateBuilder.Build(i.jobName, i.id, deploymentManifest, stage, agentState)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Building state for instance '%s/%d'", i.jobName, i.id)
-		}
-
+	err = stage.Perform(stepName, func() error {
 		err = i.vm.Stop()
 		if err != nil {
 			return bosherr.WrapError(err, "Stopping the agent")
 		}
 
-		err = i.vm.Apply(newState.ToApplySpec())
+		err = i.vm.Apply(newAgentState.ToApplySpec())
 		if err != nil {
 			return bosherr.WrapError(err, "Applying the agent state")
 		}

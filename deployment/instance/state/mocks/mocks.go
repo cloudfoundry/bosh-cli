@@ -76,6 +76,17 @@ func (_mr *_MockBuilderRecorder) Build(arg0, arg1, arg2, arg3, arg4 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Build", arg0, arg1, arg2, arg3, arg4)
 }
 
+func (_m *MockBuilder) BuildInitialState(_param0 string, _param1 int, _param2 manifest.Manifest) (state.State, error) {
+	ret := _m.ctrl.Call(_m, "BuildInitialState", _param0, _param1, _param2)
+	ret0, _ := ret[0].(state.State)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBuilderRecorder) BuildInitialState(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BuildInitialState", arg0, arg1, arg2)
+}
+
 // Mock of State interface
 type MockState struct {
 	ctrl     *gomock.Controller

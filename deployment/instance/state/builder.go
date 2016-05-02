@@ -17,6 +17,7 @@ import (
 
 type Builder interface {
 	Build(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest, stage biui.Stage, agentState agentclient.AgentState) (State, error)
+	BuildInitialState(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest) (State, error)
 }
 
 type builder struct {
@@ -133,6 +134,34 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 		renderedJobs:           renderedJobRefs,
 		renderedJobListArchive: renderedJobListArchiveBlobRef,
 		hash: renderedJobTemplates.Archive.Fingerprint(),
+	}, nil
+}
+
+func (b *builder) BuildInitialState(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest) (State, error) {
+	deploymentJob, found := deploymentManifest.FindJobByName(jobName)
+	if !found {
+		return nil, bosherr.Errorf("Job '%s' not found in deployment manifest", jobName)
+	}
+
+	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Finding networks for job '%s", jobName)
+	}
+
+	// convert map to array
+	networkRefs := make([]NetworkRef, 0, len(networkInterfaces))
+	for networkName, networkInterface := range networkInterfaces {
+		networkRefs = append(networkRefs, NetworkRef{
+			Name:      networkName,
+			Interface: networkInterface,
+		})
+	}
+
+	return &state{
+		deploymentName: deploymentManifest.Name,
+		name:           jobName,
+		id:             instanceID,
+		networks:       networkRefs,
 	}, nil
 }
 

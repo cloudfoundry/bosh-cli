@@ -177,6 +177,7 @@ var _ = Describe("Deployer", func() {
 
 		mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
 		mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
+		mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, deploymentManifest).Return(mockState, nil).AnyTimes()
 		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 	})
 
@@ -345,19 +346,15 @@ var _ = Describe("Deployer", func() {
 		}))
 	})
 
-	Context("when updating instance fails", func() {
+	Context("when applying instance spec fails", func() {
 		BeforeEach(func() {
 			fakeVM.ApplyErr = bosherr.Error("fake-apply-error")
 		})
 
-		It("logs start and stop events to the eventLogger", func() {
+		It("fails with descriptive error", func() {
 			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, registryConfig, fakeVMManager, mockBlobstore, fakeStage)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
-
-			Expect(fakeStage.PerformCalls[2].Name).To(Equal("Updating instance 'fake-job-name/0'"))
-			Expect(fakeStage.PerformCalls[2].Error).To(HaveOccurred())
-			Expect(fakeStage.PerformCalls[2].Error.Error()).To(Equal("Applying the initial agent state: fake-apply-error"))
+			Expect(err.Error()).To(Equal("Applying the initial agent state: fake-apply-error"))
 		})
 	})
 

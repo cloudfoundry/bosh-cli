@@ -371,6 +371,7 @@ cloud_provider:
 
 			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
 			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+			mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 
@@ -500,7 +501,6 @@ cloud_provider:
 				mockCloud.EXPECT().AttachDisk(vmCID, diskCID),
 				mockAgentClient.EXPECT().MountDisk(diskCID),
 
-				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop(),
@@ -547,7 +547,6 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
 
 				// start jobs & wait for running
-				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop(),
@@ -590,7 +589,6 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
 
 				// start jobs & wait for running
-				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop(),
@@ -701,7 +699,6 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
 
 				// start jobs & wait for running
-				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop(),
@@ -759,7 +756,6 @@ cloud_provider:
 				),
 
 				mockAgentClient.EXPECT().MountDisk(diskCID),
-				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop().Do(

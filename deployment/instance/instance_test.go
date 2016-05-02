@@ -272,6 +272,8 @@ var _ = Describe("Instance", func() {
 			applySpec bias.ApplySpec
 
 			expectStateBuild *gomock.Call
+
+			expectStateBuildInitialState *gomock.Call
 		)
 
 		BeforeEach(func() {
@@ -297,11 +299,13 @@ var _ = Describe("Instance", func() {
 			fakeVM.GetStateResult = fakeAgentState
 
 			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
+			expectStateBuildInitialState = mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, deploymentManifest).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		})
 
 		It("builds a new instance state", func() {
-			expectStateBuild.Times(2)
+			expectStateBuild.Times(1)
+			expectStateBuildInitialState.Times(1)
 
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
@@ -373,14 +377,10 @@ var _ = Describe("Instance", func() {
 				fakeVM.ApplyErr = bosherr.Error("fake-apply-error")
 			})
 
-			It("logs start and stop events to the eventLogger", func() {
+			It("fails with descriptive error", func() {
 				err := instance.UpdateJobs(deploymentManifest, fakeStage)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-apply-error"))
-
-				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Updating instance 'fake-job-name/0'"))
-				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
-				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Applying the initial agent state: fake-apply-error"))
+				Expect(err.Error()).To(ContainSubstring("Applying the initial agent state: fake-apply-error"))
 			})
 		})
 

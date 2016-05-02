@@ -58,6 +58,93 @@ func describeBuilder() {
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
 	})
 
+	Describe("BuildInitialState", func() {
+		var (
+			jobName            string
+			instanceID         int
+			deploymentManifest bideplmanifest.Manifest
+		)
+
+		BeforeEach(func() {
+			jobName = "fake-deployment-job-name"
+			instanceID = 0
+
+			deploymentManifest = bideplmanifest.Manifest{
+				Name: "fake-deployment-name",
+				Jobs: []bideplmanifest.Job{
+					{
+						Name: "fake-deployment-job-name",
+						Networks: []bideplmanifest.JobNetwork{
+							{
+								Name:      "fake-network-name",
+								StaticIPs: []string{"1.2.3.4"},
+							},
+						},
+						Templates: []bideplmanifest.ReleaseJobRef{
+							{
+								Name:    "fake-release-job-name",
+								Release: "fake-release-name",
+								Properties: biproperty.Map{
+									"fake-template-property": "fake-template-property-value",
+								},
+							},
+						},
+						Properties: biproperty.Map{
+							"fake-job-property": "fake-job-property-value",
+						},
+					},
+				},
+				Networks: []bideplmanifest.Network{
+					{
+						Name: "fake-network-name",
+						Type: "fake-network-type",
+						CloudProperties: biproperty.Map{
+							"fake-network-cloud-property": "fake-network-cloud-property-value",
+						},
+					},
+				},
+				Properties: biproperty.Map{
+					"fake-job-property": "fake-global-property-value", //overridden by job property value
+				},
+			}
+
+			stateBuilder = NewBuilder(
+				mockReleaseJobResolver,
+				mockDependencyCompiler,
+				mockJobListRenderer,
+				mockCompressor,
+				mockBlobstore,
+				logger,
+			)
+		})
+
+		It("generates an initial apply spec", func() {
+			state, err := stateBuilder.BuildInitialState(jobName, instanceID, deploymentManifest)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{
+				Deployment: "fake-deployment-name",
+				Index:      0,
+				Job: bias.Job{
+					Name:      "fake-deployment-job-name",
+					Templates: []bias.Blob{},
+				},
+				Packages: map[string]bias.Blob{},
+				Networks: map[string]biproperty.Map{
+					"fake-network-name": biproperty.Map{
+						"type":    "fake-network-type",
+						"default": []bideplmanifest.NetworkDefault{"dns", "gateway"},
+						"ip":      "1.2.3.4",
+						"cloud_properties": biproperty.Map{
+							"fake-network-cloud-property": "fake-network-cloud-property-value",
+						},
+					},
+				},
+			}))
+		})
+
+	})
+
 	Describe("Build", func() {
 		var (
 			mockRenderedJobList        *mock_template.MockRenderedJobList
