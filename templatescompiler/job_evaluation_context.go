@@ -12,7 +12,7 @@ import (
 
 type jobEvaluationContext struct {
 	releaseJob           bireljob.Job
-	releaseJobProperties map[string]biproperty.Map
+	releaseJobProperties biproperty.Map
 	jobProperties        biproperty.Map
 	globalProperties     biproperty.Map
 	deploymentName       string
@@ -54,7 +54,7 @@ type networkContext struct {
 
 func NewJobEvaluationContext(
 	releaseJob bireljob.Job,
-	releaseJobProperties map[string]biproperty.Map,
+	releaseJobProperties biproperty.Map,
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,
@@ -86,7 +86,7 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 		NetworkContexts:   ec.buildNetworkContexts(),
 		GlobalProperties:  ec.globalProperties,
 		ClusterProperties: ec.jobProperties,
-		JobProperties:     ec.releaseJobProperties[ec.releaseJob.Name],
+		JobProperties:     ec.releaseJobProperties,
 		DefaultProperties: defaultProperties,
 	}
 

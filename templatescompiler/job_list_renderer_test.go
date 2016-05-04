@@ -56,9 +56,10 @@ var _ = Describe("JobListRenderer", func() {
 		}
 
 		releaseJobProperties = map[string]biproperty.Map{
-			"fake-job-name": biproperty.Map{
+			"fake-release-job-name-0": biproperty.Map{
 				"fake-template-property": "fake-template-property-value",
 			},
+			"fake-release-job-name-1": biproperty.Map{},
 		}
 
 		jobProperties = biproperty.Map{
@@ -81,8 +82,8 @@ var _ = Describe("JobListRenderer", func() {
 	})
 
 	JustBeforeEach(func() {
-		mockJobRenderer.EXPECT().Render(releaseJobs[0], releaseJobProperties, jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[0], nil)
-		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], releaseJobProperties, jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[1], nil)
+		mockJobRenderer.EXPECT().Render(releaseJobs[0], releaseJobProperties[releaseJobs[0].Name], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[0], nil)
+		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], releaseJobProperties[releaseJobs[1].Name], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[1], nil)
 	})
 
 	Describe("Render", func() {
