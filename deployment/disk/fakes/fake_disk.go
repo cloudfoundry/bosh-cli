@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type FakeDisk struct {

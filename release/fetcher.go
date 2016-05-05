@@ -3,9 +3,9 @@ package release
 import (
 	"fmt"
 	"github.com/cloudfoundry/bosh-init/installation/tarball"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-init/release/manifest"
 	"github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Fetcher struct {

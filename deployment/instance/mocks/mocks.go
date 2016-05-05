@@ -8,9 +8,9 @@ import (
 	instance "github.com/cloudfoundry/bosh-init/deployment/instance"
 	manifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	manifest0 "github.com/cloudfoundry/bosh-init/installation/manifest"
-	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	stemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	ui "github.com/cloudfoundry/bosh-init/ui"
+	gomock "github.com/golang/mock/gomock"
 	time "time"
 )
 

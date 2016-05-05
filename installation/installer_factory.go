@@ -5,17 +5,17 @@ import (
 	biindex "github.com/cloudfoundry/bosh-init/index"
 	"github.com/cloudfoundry/bosh-init/installation/blobextract"
 	biinstallpkg "github.com/cloudfoundry/bosh-init/installation/pkg"
-	boshblob "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/blobstore"
-	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/uuid"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type InstallerFactory interface {

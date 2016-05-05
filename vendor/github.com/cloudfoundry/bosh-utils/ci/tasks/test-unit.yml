@@ -1,0 +1,11 @@
+---
+platform: linux
+
+image: docker:///bosh/utils
+
+inputs:
+- name: bosh-utils
+  path: gopath/src/github.com/cloudfoundry/bosh-utils
+
+run:
+  path: gopath/src/github.com/cloudfoundry/bosh-utils/ci/tasks/test-unit.sh

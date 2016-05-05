@@ -1,14 +1,14 @@
 package ui_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	. "github.com/cloudfoundry/bosh-init/ui"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"bytes"
 	"io"
 
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var _ = Describe("UI", func() {

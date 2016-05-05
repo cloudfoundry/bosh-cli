@@ -1,8 +1,8 @@
 package job
 
 import (
-	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type Job struct {

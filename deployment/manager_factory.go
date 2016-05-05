@@ -1,12 +1,12 @@
 package deployment
 
 import (
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
 	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	biagentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 

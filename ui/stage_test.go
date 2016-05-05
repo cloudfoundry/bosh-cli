@@ -1,16 +1,16 @@
 package ui_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	. "github.com/cloudfoundry/bosh-init/ui"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"bytes"
 	"time"
 
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/pivotal-golang/clock/fakeclock"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/pivotal-golang/clock/fakeclock"
 )
 
 var _ = Describe("Stage", func() {

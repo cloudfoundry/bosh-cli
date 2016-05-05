@@ -4,10 +4,10 @@
 package mocks
 
 import (
-	property "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
-	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	job "github.com/cloudfoundry/bosh-init/release/job"
 	templatescompiler "github.com/cloudfoundry/bosh-init/templatescompiler"
+	property "github.com/cloudfoundry/bosh-utils/property"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of JobRenderer interface

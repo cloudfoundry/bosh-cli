@@ -4,18 +4,18 @@ import (
 	"errors"
 
 	. "github.com/cloudfoundry/bosh-init/installation"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-init/installation/blobextract/fakeblobextract"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
+	"github.com/golang/mock/gomock"
 
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )

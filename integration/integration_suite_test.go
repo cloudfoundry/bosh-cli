@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var (

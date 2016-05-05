@@ -5,8 +5,8 @@ package mocks
 
 import (
 	manifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	ui "github.com/cloudfoundry/bosh-init/ui"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of CPIReleaseValidator interface

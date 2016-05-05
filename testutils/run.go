@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/gexec"
+	"github.com/onsi/ginkgo"
+	"github.com/onsi/gomega/gexec"
 )
 
 func BuildExecutable() error {

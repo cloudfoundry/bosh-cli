@@ -4,8 +4,8 @@
 package mocks
 
 import (
-	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	registry "github.com/cloudfoundry/bosh-init/registry"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of Server interface

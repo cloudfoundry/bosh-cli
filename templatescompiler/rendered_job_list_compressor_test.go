@@ -4,17 +4,17 @@ import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	"bytes"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"os"
 	"path/filepath"
 
-	boshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil"
-	fakeboshcmd "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
-	fakeboshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 )

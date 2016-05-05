@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type UI interface {

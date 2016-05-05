@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	biindex "github.com/cloudfoundry/bosh-init/index"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type CompiledPackageRecord struct {

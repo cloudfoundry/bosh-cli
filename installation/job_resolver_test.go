@@ -2,18 +2,18 @@ package installation_test
 
 import (
 	"github.com/cloudfoundry/bosh-init/installation"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
 
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 var _ = Describe("JobResolver", func() {

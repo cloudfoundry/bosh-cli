@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type NewManagerInput struct {

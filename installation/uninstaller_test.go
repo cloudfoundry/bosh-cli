@@ -2,16 +2,16 @@ package installation_test
 
 import (
 	"errors"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"log"
 	"path/filepath"
 
 	"github.com/cloudfoundry/bosh-init/installation"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/gbytes"
+	"github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("Uninstaller", func() {

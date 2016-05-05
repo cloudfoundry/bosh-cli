@@ -10,10 +10,10 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Deployer interface {

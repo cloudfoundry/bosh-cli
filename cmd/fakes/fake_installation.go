@@ -2,8 +2,8 @@ package fakes
 
 import (
 	biinstallation "github.com/cloudfoundry/bosh-init/installation"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
 	biui "github.com/cloudfoundry/bosh-init/ui"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type FakeInstallation struct {

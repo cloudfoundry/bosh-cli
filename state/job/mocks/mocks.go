@@ -4,10 +4,10 @@
 package mocks
 
 import (
-	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	job "github.com/cloudfoundry/bosh-init/release/job"
 	job0 "github.com/cloudfoundry/bosh-init/state/job"
 	ui "github.com/cloudfoundry/bosh-init/ui"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of DependencyCompiler interface

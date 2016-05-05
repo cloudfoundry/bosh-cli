@@ -3,10 +3,10 @@ package cloud_test
 import (
 	"errors"
 
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
 

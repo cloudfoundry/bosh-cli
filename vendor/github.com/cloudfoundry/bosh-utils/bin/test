@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+bin=$(dirname $0)
+
+$bin/install-ginkgo
+$bin/test-unit

@@ -2,7 +2,7 @@ package logger
 
 import (
 	"fmt"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"os"
 )
 

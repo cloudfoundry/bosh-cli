@@ -4,10 +4,10 @@
 package mocks
 
 import (
+	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	cloud "github.com/cloudfoundry/bosh-init/cloud"
 	vm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	agentclient "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-agent/agentclient"
-	gomock "github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // Mock of ManagerFactory interface

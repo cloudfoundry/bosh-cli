@@ -2,7 +2,7 @@ package fakes
 
 import (
 	biconfig "github.com/cloudfoundry/bosh-init/config"
-	biproperty "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/property"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type FakeDiskRepo struct {

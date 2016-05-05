@@ -1,7 +1,7 @@
 package util
 
 import (
-	boshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"path/filepath"
 	"strings"
 )

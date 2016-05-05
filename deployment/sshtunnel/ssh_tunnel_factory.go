@@ -3,8 +3,8 @@ package sshtunnel
 import (
 	"time"
 
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/pivotal-golang/clock"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/pivotal-golang/clock"
 )
 
 type Options struct {

@@ -3,11 +3,11 @@ package pkg_test
 import (
 	"fmt"
 
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	. "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
-	gomegafmt "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega/format"
+	gomegafmt "github.com/onsi/gomega/format"
 )
 
 var _ = Describe("Sort", func() {

@@ -2,8 +2,8 @@ package cmd_test
 
 import (
 	"fmt"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 

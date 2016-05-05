@@ -2,11 +2,11 @@ package sshtunnel
 
 import (
 	"errors"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"time"
 
-	"github.com/cloudfoundry/bosh-init/internal/github.com/pivotal-golang/clock/fakeclock"
+	"github.com/pivotal-golang/clock/fakeclock"
 )
 
 var _ = Describe("SSH", func() {

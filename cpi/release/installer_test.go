@@ -7,11 +7,11 @@ import (
 	biinstallationmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	"github.com/cloudfoundry/bosh-init/installation/mocks"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
-	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
 	"github.com/cloudfoundry/bosh-init/ui"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Installer", func() {

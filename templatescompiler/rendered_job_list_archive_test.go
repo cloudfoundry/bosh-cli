@@ -4,16 +4,16 @@ import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	"bytes"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-init/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"os"
 
-	"github.com/cloudfoundry/bosh-init/internal/github.com/golang/mock/gomock"
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
+	"github.com/golang/mock/gomock"
 
-	bosherr "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/logger"
-	fakeboshsys "github.com/cloudfoundry/bosh-init/internal/github.com/cloudfoundry/bosh-utils/system/fakes"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("RenderedJobListArchive", func() {
