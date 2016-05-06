@@ -10,7 +10,7 @@ import (
 type JobListRenderer interface {
 	Render(
 		releaseJobs []bireljob.Job,
-		releaseJobProperties map[string]biproperty.Map,
+		releaseJobProperties map[string]*biproperty.Map,
 		jobProperties biproperty.Map,
 		globalProperties biproperty.Map,
 		deploymentName string,
@@ -37,7 +37,7 @@ func NewJobListRenderer(
 
 func (r *jobListRenderer) Render(
 	releaseJobs []bireljob.Job,
-	releaseJobProperties map[string]biproperty.Map,
+	releaseJobProperties map[string]*biproperty.Map,
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,

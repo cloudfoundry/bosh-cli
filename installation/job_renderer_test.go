@@ -119,7 +119,7 @@ var _ = Describe("JobRenderer", func() {
 
 		releaseJobs := []bireljob.Job{releaseJob}
 
-		releaseJobProperties := map[string]biproperty.Map{}
+		releaseJobProperties := map[string]*biproperty.Map{}
 		jobProperties := biproperty.Map{
 			"fake-installation-property": "fake-installation-property-value",
 		}

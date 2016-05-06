@@ -59,7 +59,7 @@ var _ = Describe("JobRenderer", func() {
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		context = NewJobEvaluationContext(job, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", logger)
+		context = NewJobEvaluationContext(job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", logger)
 
 		fakeERBRenderer = fakebirender.NewFakeERBRender()
 
@@ -90,7 +90,7 @@ var _ = Describe("JobRenderer", func() {
 
 	Describe("Render", func() {
 		It("renders job templates", func() {
-			renderedjob, err := jobRenderer.Render(job, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+			renderedjob, err := jobRenderer.Render(job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebirender.RenderInput{
@@ -118,7 +118,7 @@ var _ = Describe("JobRenderer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := jobRenderer.Render(job, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+				_, err := jobRenderer.Render(job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-render-error"))
 			})

@@ -31,7 +31,7 @@ var _ = Describe("JobListRenderer", func() {
 		mockJobRenderer *mock_template.MockJobRenderer
 
 		releaseJobs          []bireljob.Job
-		releaseJobProperties map[string]biproperty.Map
+		releaseJobProperties map[string]*biproperty.Map
 		jobProperties        biproperty.Map
 		globalProperties     biproperty.Map
 		deploymentName       string
@@ -55,11 +55,11 @@ var _ = Describe("JobListRenderer", func() {
 			{Name: "fake-release-job-name-1"},
 		}
 
-		releaseJobProperties = map[string]biproperty.Map{
-			"fake-release-job-name-0": biproperty.Map{
+		releaseJobProperties = map[string]*biproperty.Map{
+			"fake-release-job-name-0": &biproperty.Map{
 				"fake-template-property": "fake-template-property-value",
 			},
-			"fake-release-job-name-1": biproperty.Map{},
+			"fake-release-job-name-1": &biproperty.Map{},
 		}
 
 		jobProperties = biproperty.Map{

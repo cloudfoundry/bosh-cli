@@ -539,6 +539,66 @@ instance_groups:
 		})
 	})
 
+	Context("when job is defined inside an instance_group with properties", func() {
+		BeforeEach(func() {
+			contents := `
+---
+instance_groups:
+- name: jobby
+  jobs:
+  - name: job1
+    properties:
+      key1: value1
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("parses the property", func() {
+			deploymentManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect((*deploymentManifest.Jobs[0].Templates[0].Properties)["key1"]).To(Equal("value1"))
+		})
+	})
+
+	Context("when job is defined inside an instance_group with empty properties", func() {
+		BeforeEach(func() {
+			contents := `
+---
+instance_groups:
+- name: jobby
+  jobs:
+  - name: job1
+    properties: {}
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("parses the properties as an empty map", func() {
+			deploymentManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*deploymentManifest.Jobs[0].Templates[0].Properties).To(BeEmpty())
+		})
+	})
+
+	Context("when job is defined inside an instance_group with no properties", func() {
+		BeforeEach(func() {
+			contents := `
+---
+instance_groups:
+- name: jobby
+  jobs:
+  - name: job1
+`
+			fakeFs.WriteFileString(comboManifestPath, contents)
+		})
+
+		It("parses the properties as nil", func() {
+			deploymentManifest, err := parser.Parse(comboManifestPath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploymentManifest.Jobs[0].Templates[0].Properties).To(BeNil())
+		})
+	})
+
 	Context("when both instance_groups and jobs are present at root level in deployment manifest", func() {
 		BeforeEach(func() {
 			contents := `

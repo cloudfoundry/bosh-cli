@@ -12,7 +12,7 @@ import (
 
 type jobEvaluationContext struct {
 	releaseJob           bireljob.Job
-	releaseJobProperties biproperty.Map
+	releaseJobProperties *biproperty.Map
 	jobProperties        biproperty.Map
 	globalProperties     biproperty.Map
 	deploymentName       string
@@ -36,10 +36,10 @@ type RootContext struct {
 	NetworkContexts map[string]networkContext `json:"networks"`
 
 	//TODO: this should be a map[string]interface{}
-	GlobalProperties  biproperty.Map `json:"global_properties"`  // values from manifest's top-level properties
-	ClusterProperties biproperty.Map `json:"cluster_properties"` // values from instance group (deployment job) properties
-	JobProperties     biproperty.Map `json:"job_properties"`     // values from release job (aka template) properties
-	DefaultProperties biproperty.Map `json:"default_properties"` // values from release's job's spec
+	GlobalProperties  biproperty.Map  `json:"global_properties"`  // values from manifest's top-level properties
+	ClusterProperties biproperty.Map  `json:"cluster_properties"` // values from instance group (deployment job) properties
+	JobProperties     *biproperty.Map `json:"job_properties"`     // values from release job (aka template) properties
+	DefaultProperties biproperty.Map  `json:"default_properties"` // values from release's job's spec
 }
 
 type jobContext struct {
@@ -54,7 +54,7 @@ type networkContext struct {
 
 func NewJobEvaluationContext(
 	releaseJob bireljob.Job,
-	releaseJobProperties biproperty.Map,
+	releaseJobProperties *biproperty.Map,
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,

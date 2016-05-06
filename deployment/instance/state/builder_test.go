@@ -84,7 +84,7 @@ func describeBuilder() {
 							{
 								Name:    "fake-release-job-name",
 								Release: "fake-release-name",
-								Properties: biproperty.Map{
+								Properties: &biproperty.Map{
 									"fake-template-property": "fake-template-property-value",
 								},
 							},
@@ -188,7 +188,7 @@ func describeBuilder() {
 							{
 								Name:    "fake-release-job-name",
 								Release: "fake-release-name",
-								Properties: biproperty.Map{
+								Properties: &biproperty.Map{
 									"fake-template-property": "fake-template-property-value",
 								},
 							},
@@ -285,8 +285,8 @@ func describeBuilder() {
 			}
 			expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, fakeStage).Return(compiledPackageRefs, nil).AnyTimes()
 
-			releaseJobProperties := map[string]biproperty.Map{
-				"fake-release-job-name": biproperty.Map{
+			releaseJobProperties := map[string]*biproperty.Map{
+				"fake-release-job-name": &biproperty.Map{
 					"fake-template-property": "fake-template-property-value",
 				},
 			}

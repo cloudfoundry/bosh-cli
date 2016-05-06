@@ -80,9 +80,12 @@ type job struct {
 }
 
 type releaseJobRef struct {
-	Name       string
-	Release    string
-	Properties map[interface{}]interface{}
+	Name    string
+	Release string
+
+	// This is a pointer so we can differentiate between `properties: {}`
+	// and not specifying the key at all.
+	Properties *map[interface{}]interface{}
 }
 
 type stemcellRef struct {
@@ -215,17 +218,21 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 		if templates != nil {
 			releaseJobRefs := make([]ReleaseJobRef, len(templates), len(templates))
 			for i, rawJobRef := range templates {
-
-				properties, err := biproperty.BuildMap(rawJobRef.Properties)
-				if err != nil {
-					return []Job{}, bosherr.WrapErrorf(err, "Parsing release job properties: %#v", rawJobRef.Properties)
+				ref := ReleaseJobRef{
+					Name:    rawJobRef.Name,
+					Release: rawJobRef.Release,
 				}
 
-				releaseJobRefs[i] = ReleaseJobRef{
-					Name:       rawJobRef.Name,
-					Release:    rawJobRef.Release,
-					Properties: properties,
+				if rawJobRef.Properties != nil {
+					properties, err := biproperty.BuildMap(*rawJobRef.Properties)
+					if err != nil {
+						return []Job{}, bosherr.WrapErrorf(err, "Parsing release job properties: %#v", rawJobRef.Properties)
+					}
+
+					ref.Properties = &properties
 				}
+
+				releaseJobRefs[i] = ref
 			}
 			job.Templates = releaseJobRefs
 		}

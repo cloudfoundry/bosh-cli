@@ -21,7 +21,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		generatedContext RootContext
 
 		releaseJob              bireljob.Job
-		jobProperties           biproperty.Map
+		jobProperties           *biproperty.Map
 		instanceGroupProperties biproperty.Map
 		deploymentProperties    biproperty.Map
 	)
@@ -44,7 +44,7 @@ var _ = Describe("JobEvaluationContext", func() {
 
 		instanceGroupProperties = biproperty.Map{}
 
-		jobProperties = biproperty.Map{}
+		jobProperties = nil
 	})
 
 	JustBeforeEach(func() {
@@ -185,7 +185,7 @@ var _ = Describe("JobEvaluationContext", func() {
 
 	Context("when a job sets a property", func() {
 		BeforeEach(func() {
-			jobProperties = biproperty.Map{
+			jobProperties = &biproperty.Map{
 				"property1": biproperty.Map{
 					"subproperty1": "job-property",
 				},
@@ -206,6 +206,42 @@ var _ = Describe("JobEvaluationContext", func() {
 
 			It("is not used", func() {
 				Expect(getValueFor("property2.subproperty2")).
+					To(Equal("spec-default"))
+			})
+		})
+	})
+
+	Context("when the job sets a property to an empty hash ({})", func() {
+		BeforeEach(func() {
+			jobProperties = &biproperty.Map{}
+		})
+
+		Context("when an instance group sets a property", func() {
+			BeforeEach(func() {
+				instanceGroupProperties = biproperty.Map{
+					"property1": biproperty.Map{
+						"subproperty1": "value-from-instance-group-properties",
+					},
+				}
+			})
+
+			It("does not use the instance group value", func() {
+				Expect(getValueFor("property1.subproperty1")).
+					To(Equal("spec-default"))
+			})
+		})
+
+		Context("when an deployment sets a property", func() {
+			BeforeEach(func() {
+				deploymentProperties = biproperty.Map{
+					"property1": biproperty.Map{
+						"subproperty1": "value-from-global-properties",
+					},
+				}
+			})
+
+			It("does not use the instance group value", func() {
+				Expect(getValueFor("property1.subproperty1")).
 					To(Equal("spec-default"))
 			})
 		})

@@ -71,7 +71,7 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 		return nil, bosherr.WrapErrorf(err, "Resolving jobs for instance '%s/%d'", jobName, instanceID)
 	}
 
-	releaseJobProperties := make(map[string]biproperty.Map)
+	releaseJobProperties := make(map[string]*biproperty.Map)
 	for _, releaseJob := range deploymentJob.Templates {
 		releaseJobProperties[releaseJob.Name] = releaseJob.Properties
 	}
@@ -173,7 +173,7 @@ func (b *builder) resolveJobs(jobRefs []bideplmanifest.ReleaseJobRef) ([]bireljo
 // renderJobTemplates renders all the release job templates for multiple release jobs specified by a deployment job
 func (b *builder) renderJobTemplates(
 	releaseJobs []bireljob.Job,
-	releaseJobProperties map[string]biproperty.Map,
+	releaseJobProperties map[string]*biproperty.Map,
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,

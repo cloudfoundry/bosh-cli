@@ -30,7 +30,7 @@ class TemplateEvaluationContext
     @name = spec["job"]["name"] if spec["job"].is_a?(Hash)
     @index = spec["index"]
 
-    if !spec['job_properties'].nil? && !spec['job_properties'].empty?
+    if !spec['job_properties'].nil?
       properties1 = spec['job_properties']
     else
       properties1 = spec['global_properties'].recursive_merge!(spec['cluster_properties'])
