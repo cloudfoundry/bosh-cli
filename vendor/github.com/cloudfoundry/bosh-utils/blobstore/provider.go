@@ -2,7 +2,7 @@ package blobstore
 
 import (
 	"fmt"
-	"path/filepath"
+	"path"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -40,7 +40,7 @@ func NewProvider(
 
 func (p Provider) Get(storeType string, options map[string]interface{}) (blobstore Blobstore, err error) {
 	configName := fmt.Sprintf("blobstore-%s.json", storeType)
-	externalConfigFile := filepath.Join(p.configDir, configName)
+	externalConfigFile := path.Join(p.configDir, configName)
 
 	switch storeType {
 	case BlobstoreTypeDummy:

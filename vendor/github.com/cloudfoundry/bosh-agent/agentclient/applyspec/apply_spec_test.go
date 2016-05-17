@@ -6,8 +6,6 @@ import (
 	. "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 var _ = Describe("ApplySpec", func() {
@@ -17,8 +15,11 @@ var _ = Describe("ApplySpec", func() {
 
 	BeforeEach(func() {
 		applySpec = ApplySpec{
-			Deployment: "fake-deployment-name",
-			Index:      0,
+			Deployment:       "fake-deployment-name",
+			Name:             "fake-instance-name",
+			Index:            0,
+			NodeID:           "this-is-a-node-id",
+			AvailabilityZone: "this-is-an-availability-zone",
 			Packages: map[string]Blob{
 				"first-package-name": Blob{
 					Name:        "first-package-name",
@@ -27,8 +28,8 @@ var _ = Describe("ApplySpec", func() {
 					BlobstoreID: "first-package-blobstore-id",
 				},
 			},
-			Networks: map[string]biproperty.Map{
-				"fake-network-name": biproperty.Map{
+			Networks: map[string]interface{}{
+				"fake-network-name": map[string]interface{}{
 					"fake-network-key": "fake-network-value",
 				},
 			},
@@ -62,7 +63,10 @@ var _ = Describe("ApplySpec", func() {
 
 			Expect(applySpecMap).To(Equal(map[string]interface{}{
 				"deployment": "fake-deployment-name",
+				"name":       "fake-instance-name",
 				"index":      0.0, //json.Unmarshal ultimately converts all ints to floats. type must be float for comparisons to work
+				"id":         "this-is-a-node-id",
+				"az":         "this-is-an-availability-zone",
 				"packages": map[string]interface{}{
 					"first-package-name": map[string]interface{}{
 						"name":         "first-package-name",

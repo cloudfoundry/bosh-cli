@@ -2,58 +2,16 @@ package logger_test
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
+	"bytes"
 	. "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func expectedLogFormat(tag, msg string) string {
 	return fmt.Sprintf("\\[%s\\] [0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} %s\n", tag, msg)
-}
-
-func captureOutputs(f func()) (stdout, stderr []byte) {
-	oldStdout := os.Stdout
-	oldStderr := os.Stderr
-
-	rOut, wOut, err := os.Pipe()
-	Expect(err).ToNot(HaveOccurred())
-
-	rErr, wErr, err := os.Pipe()
-	Expect(err).ToNot(HaveOccurred())
-
-	os.Stdout = wOut
-	os.Stderr = wErr
-
-	f()
-
-	outC := make(chan []byte)
-	errC := make(chan []byte)
-
-	go func() {
-		bytes, _ := ioutil.ReadAll(rOut)
-		outC <- bytes
-
-		bytes, _ = ioutil.ReadAll(rErr)
-		errC <- bytes
-	}()
-
-	err = wOut.Close()
-	Expect(err).ToNot(HaveOccurred())
-
-	err = wErr.Close()
-	Expect(err).ToNot(HaveOccurred())
-
-	stdout = <-outC
-	stderr = <-errC
-
-	os.Stdout = oldStdout
-	os.Stderr = oldStderr
-
-	return
 }
 
 var _ = Describe("Levelify", func() {
@@ -111,185 +69,175 @@ var _ = Describe("Levelify", func() {
 })
 
 var _ = Describe("Logger", func() {
+	var (
+		outBuf *bytes.Buffer
+		errBuf *bytes.Buffer
+	)
+	BeforeEach(func() {
+		outBuf = bytes.NewBufferString("")
+		errBuf = bytes.NewBufferString("")
+	})
+
 	Describe("Debug", func() {
 		It("logs the formatted message to Logger.out at the debug level", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelDebug)
-				logger.Debug("TAG", "some %s info to log", "awesome")
-			})
+			logger := NewWriterLogger(LevelDebug, outBuf, errBuf)
+			logger.Debug("TAG", "some %s info to log", "awesome")
 
 			expectedContent := expectedLogFormat("TAG", "DEBUG - some awesome info to log")
-			Expect(stdout).To(MatchRegexp(expectedContent))
-			Expect(stderr).ToNot(MatchRegexp(expectedContent))
+			Expect(outBuf).To(MatchRegexp(expectedContent))
+			Expect(errBuf).ToNot(MatchRegexp(expectedContent))
 		})
 	})
 
 	Describe("DebugWithDetails", func() {
 		It("logs the message to Logger.out at the debug level with specially formatted arguments", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelDebug)
-				logger.DebugWithDetails("TAG", "some info to log", "awesome")
-			})
-
+			logger := NewWriterLogger(LevelDebug, outBuf, errBuf)
+			logger.DebugWithDetails("TAG", "some info to log", "awesome")
 			expectedContent := expectedLogFormat("TAG", "DEBUG - some info to log")
-			Expect(stdout).To(MatchRegexp(expectedContent))
-			Expect(stderr).ToNot(MatchRegexp(expectedContent))
+			Expect(outBuf).To(MatchRegexp(expectedContent))
+			Expect(errBuf).ToNot(MatchRegexp(expectedContent))
 
 			expectedDetails := "\n********************\nawesome\n********************"
-			Expect(stdout).To(ContainSubstring(expectedDetails))
-			Expect(stderr).ToNot(ContainSubstring(expectedDetails))
+			Expect(outBuf).To(ContainSubstring(expectedDetails))
+			Expect(errBuf).ToNot(ContainSubstring(expectedDetails))
 		})
 	})
 
 	Describe("Info", func() {
 		It("logs the formatted message to Logger.out at the info level", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelInfo)
-				logger.Info("TAG", "some %s info to log", "awesome")
-			})
+			logger := NewWriterLogger(LevelInfo, outBuf, errBuf)
+			logger.Info("TAG", "some %s info to log", "awesome")
 
 			expectedContent := expectedLogFormat("TAG", "INFO - some awesome info to log")
-			Expect(stdout).To(MatchRegexp(expectedContent))
-			Expect(stderr).ToNot(MatchRegexp(expectedContent))
+			Expect(outBuf).To(MatchRegexp(expectedContent))
+			Expect(errBuf).ToNot(MatchRegexp(expectedContent))
 		})
 	})
 
 	Describe("Warn", func() {
 		It("logs the formatted message to Logger.err at the warn level", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelWarn)
-				logger.Warn("TAG", "some %s info to log", "awesome")
-			})
+			logger := NewWriterLogger(LevelWarn, outBuf, errBuf)
+			logger.Warn("TAG", "some %s info to log", "awesome")
 
 			expectedContent := expectedLogFormat("TAG", "WARN - some awesome info to log")
-			Expect(stdout).ToNot(MatchRegexp(expectedContent))
-			Expect(stderr).To(MatchRegexp(expectedContent))
+			Expect(outBuf).ToNot(MatchRegexp(expectedContent))
+			Expect(errBuf).To(MatchRegexp(expectedContent))
 		})
 	})
 
 	Describe("Error", func() {
 		It("logs the formatted message to Logger.err at the error level", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelError)
-				logger.Error("TAG", "some %s info to log", "awesome")
-			})
+			logger := NewWriterLogger(LevelError, outBuf, errBuf)
+			logger.Error("TAG", "some %s info to log", "awesome")
 
 			expectedContent := expectedLogFormat("TAG", "ERROR - some awesome info to log")
-			Expect(stdout).ToNot(MatchRegexp(expectedContent))
-			Expect(stderr).To(MatchRegexp(expectedContent))
+			Expect(outBuf).ToNot(MatchRegexp(expectedContent))
+			Expect(errBuf).To(MatchRegexp(expectedContent))
 		})
 	})
 
 	Describe("ErrorWithDetails", func() {
 		It("logs the message to Logger.err at the error level with specially formatted arguments", func() {
-			stdout, stderr := captureOutputs(func() {
-				logger := NewLogger(LevelError)
-				logger.ErrorWithDetails("TAG", "some error to log", "awesome")
-			})
+			logger := NewWriterLogger(LevelError, outBuf, errBuf)
+
+			logger.ErrorWithDetails("TAG", "some error to log", "awesome")
 
 			expectedContent := expectedLogFormat("TAG", "ERROR - some error to log")
-			Expect(stdout).ToNot(MatchRegexp(expectedContent))
-			Expect(stderr).To(MatchRegexp(expectedContent))
+			Expect(outBuf).ToNot(MatchRegexp(expectedContent))
+			Expect(errBuf).To(MatchRegexp(expectedContent))
 
 			expectedDetails := "\n********************\nawesome\n********************"
-			Expect(stdout).ToNot(ContainSubstring(expectedDetails))
-			Expect(stderr).To(ContainSubstring(expectedDetails))
+			Expect(outBuf).ToNot(ContainSubstring(expectedDetails))
+			Expect(errBuf).To(ContainSubstring(expectedDetails))
 		})
 	})
 
 	It("log level debug", func() {
-		stdout, stderr := captureOutputs(func() {
-			logger := NewLogger(LevelDebug)
-			logger.Debug("DEBUG", "some debug log")
-			logger.Info("INFO", "some info log")
-			logger.Warn("WARN", "some warn log")
-			logger.Error("ERROR", "some error log")
-		})
+		logger := NewWriterLogger(LevelDebug, outBuf, errBuf)
+		logger.Debug("DEBUG", "some debug log")
+		logger.Info("INFO", "some info log")
+		logger.Warn("WARN", "some warn log")
+		logger.Error("ERROR", "some error log")
 
-		Expect(stdout).To(ContainSubstring("DEBUG"))
-		Expect(stdout).To(ContainSubstring("INFO"))
-		Expect(stderr).To(ContainSubstring("WARN"))
-		Expect(stderr).To(ContainSubstring("ERROR"))
+		Expect(outBuf).To(ContainSubstring("DEBUG"))
+		Expect(outBuf).To(ContainSubstring("INFO"))
+		Expect(errBuf).To(ContainSubstring("WARN"))
+		Expect(errBuf).To(ContainSubstring("ERROR"))
 	})
 
 	It("log level info", func() {
-		stdout, stderr := captureOutputs(func() {
-			logger := NewLogger(LevelInfo)
-			logger.Debug("DEBUG", "some debug log")
-			logger.Info("INFO", "some info log")
-			logger.Warn("WARN", "some warn log")
-			logger.Error("ERROR", "some error log")
-		})
+		logger := NewWriterLogger(LevelInfo, outBuf, errBuf)
 
-		Expect(stdout).ToNot(ContainSubstring("DEBUG"))
-		Expect(stdout).To(ContainSubstring("INFO"))
-		Expect(stderr).To(ContainSubstring("WARN"))
-		Expect(stderr).To(ContainSubstring("ERROR"))
+		logger.Debug("DEBUG", "some debug log")
+		logger.Info("INFO", "some info log")
+		logger.Warn("WARN", "some warn log")
+		logger.Error("ERROR", "some error log")
+
+		Expect(outBuf).ToNot(ContainSubstring("DEBUG"))
+		Expect(outBuf).To(ContainSubstring("INFO"))
+		Expect(errBuf).To(ContainSubstring("WARN"))
+		Expect(errBuf).To(ContainSubstring("ERROR"))
 	})
 
 	It("log level warn", func() {
-		stdout, stderr := captureOutputs(func() {
-			logger := NewLogger(LevelWarn)
-			logger.Debug("DEBUG", "some debug log")
-			logger.Info("INFO", "some info log")
-			logger.Warn("WARN", "some warn log")
-			logger.Error("ERROR", "some error log")
-		})
+		logger := NewWriterLogger(LevelWarn, outBuf, errBuf)
 
-		Expect(stdout).ToNot(ContainSubstring("DEBUG"))
-		Expect(stdout).ToNot(ContainSubstring("INFO"))
-		Expect(stderr).To(ContainSubstring("WARN"))
-		Expect(stderr).To(ContainSubstring("ERROR"))
+		logger.Debug("DEBUG", "some debug log")
+		logger.Info("INFO", "some info log")
+		logger.Warn("WARN", "some warn log")
+		logger.Error("ERROR", "some error log")
+
+		Expect(outBuf).ToNot(ContainSubstring("DEBUG"))
+		Expect(outBuf).ToNot(ContainSubstring("INFO"))
+		Expect(errBuf).To(ContainSubstring("WARN"))
+		Expect(errBuf).To(ContainSubstring("ERROR"))
 	})
 
 	It("log level error", func() {
-		stdout, stderr := captureOutputs(func() {
-			logger := NewLogger(LevelError)
-			logger.Debug("DEBUG", "some debug log")
-			logger.Info("INFO", "some info log")
-			logger.Warn("WARN", "some warn log")
-			logger.Error("ERROR", "some error log")
-		})
+		logger := NewWriterLogger(LevelError, outBuf, errBuf)
 
-		Expect(stdout).ToNot(ContainSubstring("DEBUG"))
-		Expect(stdout).ToNot(ContainSubstring("INFO"))
-		Expect(stderr).ToNot(ContainSubstring("WARN"))
-		Expect(stderr).To(ContainSubstring("ERROR"))
+		logger.Debug("DEBUG", "some debug log")
+		logger.Info("INFO", "some info log")
+		logger.Warn("WARN", "some warn log")
+		logger.Error("ERROR", "some error log")
+
+		Expect(outBuf).ToNot(ContainSubstring("DEBUG"))
+		Expect(outBuf).ToNot(ContainSubstring("INFO"))
+		Expect(errBuf).ToNot(ContainSubstring("WARN"))
+		Expect(errBuf).To(ContainSubstring("ERROR"))
 	})
 
 	Describe("Toggling forced debug", func() {
 		Describe("when the log level is error", func() {
 			It("outputs at debug level", func() {
-				stdout, stderr := captureOutputs(func() {
-					logger := NewLogger(LevelError)
-					logger.ToggleForcedDebug()
-					logger.Debug("TOGGLED_DEBUG", "some debug log")
-					logger.Info("TOGGLED_INFO", "some info log")
-					logger.Warn("TOGGLED_WARN", "some warn log")
-					logger.Error("TOGGLED_ERROR", "some error log")
-				})
+				logger := NewWriterLogger(LevelError, outBuf, errBuf)
 
-				Expect(stdout).To(ContainSubstring("TOGGLED_DEBUG"))
-				Expect(stdout).To(ContainSubstring("TOGGLED_INFO"))
-				Expect(stderr).To(ContainSubstring("TOGGLED_WARN"))
-				Expect(stderr).To(ContainSubstring("TOGGLED_ERROR"))
+				logger.ToggleForcedDebug()
+				logger.Debug("TOGGLED_DEBUG", "some debug log")
+				logger.Info("TOGGLED_INFO", "some info log")
+				logger.Warn("TOGGLED_WARN", "some warn log")
+				logger.Error("TOGGLED_ERROR", "some error log")
+
+				Expect(outBuf).To(ContainSubstring("TOGGLED_DEBUG"))
+				Expect(outBuf).To(ContainSubstring("TOGGLED_INFO"))
+				Expect(errBuf).To(ContainSubstring("TOGGLED_WARN"))
+				Expect(errBuf).To(ContainSubstring("TOGGLED_ERROR"))
 			})
 
 			It("outputs at error level when toggled back", func() {
-				stdout, stderr := captureOutputs(func() {
-					logger := NewLogger(LevelError)
-					logger.ToggleForcedDebug()
-					logger.ToggleForcedDebug()
-					logger.Debug("STANDARD_DEBUG", "some debug log")
-					logger.Info("STANDARD_INFO", "some info log")
-					logger.Warn("STANDARD_WARN", "some warn log")
-					logger.Error("STANDARD_ERROR", "some error log")
-				})
+				logger := NewWriterLogger(LevelError, outBuf, errBuf)
 
-				Expect(stdout).ToNot(ContainSubstring("STANDARD_DEBUG"))
-				Expect(stdout).ToNot(ContainSubstring("STANDARD_INFO"))
-				Expect(stderr).ToNot(ContainSubstring("STANDARD_WARN"))
-				Expect(stderr).To(ContainSubstring("STANDARD_ERROR"))
+				logger.ToggleForcedDebug()
+				logger.ToggleForcedDebug()
+				logger.Debug("STANDARD_DEBUG", "some debug log")
+				logger.Info("STANDARD_INFO", "some info log")
+				logger.Warn("STANDARD_WARN", "some warn log")
+				logger.Error("STANDARD_ERROR", "some error log")
+
+				Expect(outBuf).ToNot(ContainSubstring("STANDARD_DEBUG"))
+				Expect(outBuf).ToNot(ContainSubstring("STANDARD_INFO"))
+				Expect(errBuf).ToNot(ContainSubstring("STANDARD_WARN"))
+				Expect(errBuf).To(ContainSubstring("STANDARD_ERROR"))
 			})
 		})
 	})

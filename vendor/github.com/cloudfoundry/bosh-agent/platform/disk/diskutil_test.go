@@ -16,16 +16,17 @@ import (
 
 var _ = Describe("Diskutil", func() {
 	var (
-		diskUtil boshdevutil.DeviceUtil
-		mounter  *fakedisk.FakeMounter
-		fs       *fakesys.FakeFileSystem
+		diskUtil      boshdevutil.DeviceUtil
+		mounter       *fakedisk.FakeMounter
+		fs            *fakesys.FakeFileSystem
+		fakeCmdRunner *fakesys.FakeCmdRunner
 	)
 
 	BeforeEach(func() {
 		mounter = &fakedisk.FakeMounter{}
 		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		diskUtil = NewDiskUtil("fake-disk-path", mounter, fs, logger)
+		diskUtil = NewDiskUtil("fake-disk-path", fakeCmdRunner, mounter, fs, logger)
 	})
 
 	Describe("GetFileContents", func() {

@@ -199,7 +199,7 @@ func (vm *FakeVM) Disks() ([]bidisk.Disk, error) {
 	return vm.ListDisksDisks, vm.ListDisksErr
 }
 
-func (vm *FakeVM) RunScript(script string) error {
+func (vm *FakeVM) RunScript(script string, options map[string]interface{}) error {
 	vm.RunScriptInputs = append(vm.RunScriptInputs, script)
 	return vm.RunScriptErr
 }

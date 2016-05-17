@@ -3,6 +3,7 @@ package cert
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/logger"
@@ -40,9 +41,12 @@ type certManager struct {
 	updateCmdArgs []string
 	logger        logger.Logger
 	logTag        string
+	// Update execution time limit in seconds
+	// No retry if 0
+	updateTimeout time.Duration
 }
 
-func NewUbuntuCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, logger logger.Logger) Manager {
+func NewUbuntuCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, timeout time.Duration, logger logger.Logger) Manager {
 	return &certManager{
 		fs:            fs,
 		runner:        runner,
@@ -51,10 +55,11 @@ func NewUbuntuCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, logge
 		updateCmdArgs: []string{"-f"},
 		logger:        logger,
 		logTag:        "UbuntuCertManager",
+		updateTimeout: timeout,
 	}
 }
 
-func NewCentOSCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, logger logger.Logger) Manager {
+func NewCentOSCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, timeout time.Duration, logger logger.Logger) Manager {
 	return &certManager{
 		fs:            fs,
 		runner:        runner,
@@ -62,10 +67,11 @@ func NewCentOSCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, logge
 		updateCmdPath: "/usr/bin/update-ca-trust",
 		logger:        logger,
 		logTag:        "CentOSCertManager",
+		updateTimeout: timeout,
 	}
 }
 
-func NewDummyCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, logger logger.Logger) Manager {
+func NewDummyCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, timeout time.Duration, logger logger.Logger) Manager {
 	return &certManager{
 		fs:            fs,
 		runner:        runner,
@@ -73,6 +79,7 @@ func NewDummyCertManager(fs boshsys.FileSystem, runner boshsys.CmdRunner, logger
 		updateCmdPath: "dummy",
 		logger:        logger,
 		logTag:        "DummyCertManager",
+		updateTimeout: timeout,
 	}
 }
 
@@ -98,10 +105,50 @@ func (c *certManager) UpdateCertificates(certs string) error {
 	}
 	c.logger.Debug(c.logTag, "Wrote %d new certificate files", len(slicedCerts))
 
+	// For Ubuntu OS, update-ca-certificates occasionally hangs, which results
+	// in bosh-agent failure. A retry normally solves this issue. We kill the process
+	// if it runs over given time limit and retry for 3 times until we throw error.
+	if c.updateTimeout > 0 {
+		command := boshsys.Command{
+			Name: c.updateCmdPath,
+			Args: c.updateCmdArgs,
+		}
+
+		for i := 1; i < 4; i++ {
+			c.logger.Debug(c.logTag, "Try to update new certificate files with retry, take %d of 3", i)
+
+			process, err := c.runner.RunComplexCommandAsync(command)
+			if err != nil {
+				return bosherr.WrapError(err, "Running command to update certificates with retries")
+			}
+
+			resultChannel := process.Wait()
+
+			select {
+			case <-time.After(c.updateTimeout * time.Second):
+				err = process.TerminateNicely(5 * time.Second)
+				if err != nil {
+					c.logger.Debug(c.logTag, "Failed to terminate update certificates cmd '%s' after %d seconds", c.updateCmdPath, c.updateTimeout)
+				}
+			case result := <-resultChannel:
+				if result.Error == nil {
+					c.logger.Debug(c.logTag, "Successfully updated new certificate files")
+					return nil
+				}
+			}
+		}
+
+		return bosherr.Error("Updating certificates with retries")
+	}
+
+	c.logger.Debug(c.logTag, "Try to update new certificate files without retry")
+
 	_, _, _, err = c.runner.RunCommand(c.updateCmdPath, c.updateCmdArgs...)
 	if err != nil {
-		return bosherr.WrapError(err, "Updating certificates")
+		return bosherr.WrapError(err, "Running command to update certificates without retries")
 	}
+
+	c.logger.Debug(c.logTag, "Successfully updated new certificate files.")
 	return nil
 }
 

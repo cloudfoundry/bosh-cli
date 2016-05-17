@@ -7,6 +7,7 @@ import (
 type FakeDevicePathResolver struct {
 	GetRealDevicePathDiskSettings boshsettings.DiskSettings
 	RealDevicePath                string
+	GetRealDevicePathStub         func(boshsettings.DiskSettings) (string, bool, error)
 	GetRealDevicePathTimedOut     bool
 	GetRealDevicePathErr          error
 }
@@ -20,6 +21,10 @@ func (r *FakeDevicePathResolver) GetRealDevicePath(diskSettings boshsettings.Dis
 
 	if r.GetRealDevicePathErr != nil {
 		return "", r.GetRealDevicePathTimedOut, r.GetRealDevicePathErr
+	}
+
+	if r.GetRealDevicePathStub != nil {
+		return r.GetRealDevicePathStub(diskSettings)
 	}
 
 	return r.RealDevicePath, false, nil

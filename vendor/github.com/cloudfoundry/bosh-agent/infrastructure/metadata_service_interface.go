@@ -33,3 +33,8 @@ type UserDataContentsType struct {
 	}
 	Networks boshsettings.Networks
 }
+
+type DynamicMetadataService interface {
+	MetadataService
+	GetValueAtPath(string) (string, error)
+}

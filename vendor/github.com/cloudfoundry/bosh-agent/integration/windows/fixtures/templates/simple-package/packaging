@@ -1,0 +1,1 @@
+Add-Content $Env:BOSH_INSTALL_TARGET\output.txt "i'm a compiled package!" 

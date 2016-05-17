@@ -1,0 +1,52 @@
+---
+jobs:
+  - name: test-unit
+    public: true
+    plan:
+      - get: bosh-agent
+        trigger: true
+      - task: test-unit
+        file: bosh-agent/ci/tasks/test-unit.yml
+
+  - name: test-integration
+    public: false
+    plan:
+      - get: bosh-agent
+        trigger: true
+      - task: test-integration
+        privileged: true
+        file: bosh-agent/ci/tasks/test-integration.yml
+        config:
+          params:
+            BOSH_AWS_ACCESS_KEY_ID: {{BOSH_AWS_ACCESS_KEY_ID}}
+            BOSH_AWS_SECRET_ACCESS_KEY: {{BOSH_AWS_SECRET_ACCESS_KEY}}
+            BOSH_LITE_KEYPAIR: {{BOSH_LITE_KEYPAIR}}
+            BOSH_LITE_SUBNET_ID: {{BOSH_LITE_SUBNET_ID}}
+            BOSH_LITE_NAME: {{BOSH_LITE_NAME}}
+            BOSH_LITE_SECURITY_GROUP: {{BOSH_LITE_SECURITY_GROUP}}
+            BOSH_LITE_PRIVATE_KEY: {{BOSH_LITE_PRIVATE_KEY}}
+
+  - name: promote
+    public: true
+    serial: true
+    plan:
+      - trigger: true
+        passed: [test-unit, test-integration]
+        get: bosh-agent
+      - put: bosh-agent-master
+        params:
+          repository: bosh-agent
+
+resources:
+  - name: bosh-agent
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-agent
+      branch: develop
+
+  - name: bosh-agent-master
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/bosh-agent.git
+      branch: master
+      private_key: {{BOSH_GITHUB_DEPLOYMENT_KEY}}

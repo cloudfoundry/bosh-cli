@@ -7,5 +7,6 @@ base_gopath=$( cd $base/../../../.. && pwd )
 
 export GOPATH=$base_gopath GOBIN=$base_gopath/gobin
 export PATH=$PATH:$GOBIN
+export GO15VENDOREXPERIMENT='1'
 
 exec $@

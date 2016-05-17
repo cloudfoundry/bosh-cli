@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,6 +12,7 @@ import (
 	"github.com/cloudfoundry/bosh-agent/platform/cert"
 	"github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cloudfoundry/bosh-utils/system"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
@@ -161,9 +163,9 @@ var _ = Describe("Certificate Management", func() {
 
 	Describe("cert.Manager implementations", func() {
 		var (
-			fakeFs      *fakesys.FakeFileSystem
-			fakeCmd     *fakesys.FakeCmdRunner
-			certManager cert.Manager
+			fakeFs        *fakesys.FakeFileSystem
+			fakeCmdRunner *fakesys.FakeCmdRunner
+			certManager   cert.Manager
 		)
 
 		SharedLinuxCertManagerExamples := func(certBasePath, certUpdateProgram string) {
@@ -229,32 +231,87 @@ var _ = Describe("Certificate Management", func() {
 		}
 
 		Context("Ubuntu", func() {
+			var (
+				fakeResult   boshsys.Result
+				fakeProcess1 *fakesys.FakeProcess
+				fakeProcess2 *fakesys.FakeProcess
+				fakeProcess3 *fakesys.FakeProcess
+			)
 			BeforeEach(func() {
 				fakeFs = fakesys.NewFakeFileSystem()
-				fakeCmd = fakesys.NewFakeCmdRunner()
-				fakeCmd.AddCmdResult("/usr/sbin/update-ca-certificates", fakesys.FakeCmdResult{
+				fakeCmdRunner = fakesys.NewFakeCmdRunner()
+				fakeCmdRunner.AddCmdResult("/usr/sbin/update-ca-certificates", fakesys.FakeCmdResult{
 					Stdout:     "",
 					Stderr:     "",
 					ExitStatus: 0,
 					Sticky:     true,
 				})
-				certManager = cert.NewUbuntuCertManager(fakeFs, fakeCmd, log)
+				certManager = cert.NewUbuntuCertManager(fakeFs, fakeCmdRunner, 1, log)
+				fakeResult = boshsys.Result{
+					Stdout:     "",
+					Stderr:     "",
+					ExitStatus: 0,
+					Error:      nil,
+				}
+
+				fakeProcess1 = &fakesys.FakeProcess{WaitResult: fakeResult}
+				fakeProcess2 = &fakesys.FakeProcess{WaitResult: fakeResult}
+				fakeProcess3 = &fakesys.FakeProcess{WaitResult: fakeResult}
+
+				fakeCmdRunner.AddProcess("/usr/sbin/update-ca-certificates -f", fakeProcess1)
+				fakeCmdRunner.AddProcess("/usr/sbin/update-ca-certificates -f", fakeProcess2)
+				fakeCmdRunner.AddProcess("/usr/sbin/update-ca-certificates -f", fakeProcess3)
 			})
 
 			SharedLinuxCertManagerExamples("/usr/local/share/ca-certificates", "/usr/sbin/update-ca-certificates")
 
-			// TODO this test can be shared if there is a way to update existing FakeCmdRunner command specs
-			It("executes update cert command", func() {
-				fakeCmd = fakesys.NewFakeCmdRunner()
-				fakeCmd.AddCmdResult("/usr/sbin/update-ca-certificates -f", fakesys.FakeCmdResult{
-					Stdout:     "",
-					Stderr:     "",
-					ExitStatus: 2,
-					Error:      errors.New("command failed"),
-				})
-				certManager = cert.NewUbuntuCertManager(fakeFs, fakeCmd, log)
+			It("updates certs", func() {
+				err := certManager.UpdateCertificates(cert1)
+
+				Expect(fakeProcess1.Waited).To(BeTrue())
+				Expect(fakeProcess1.TerminatedNicely).To(BeFalse())
+
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("fails at first try and succeeds by killing and re-run", func() {
+				fakeResult.ExitStatus = 143
+				fakeResult.Error = errors.New("command failed")
+
+				fakeProcess1.TerminatedNicelyCallBack = func(p *fakesys.FakeProcess) {}
 
 				err := certManager.UpdateCertificates(cert1)
+
+				Expect(fakeProcess1.Waited).To(BeTrue())
+				Expect(fakeProcess1.TerminatedNicely).To(BeTrue())
+				Expect(fakeProcess1.TerminateNicelyKillGracePeriod).To(Equal(5 * time.Second))
+				Expect(fakeProcess2.Waited).To(BeTrue())
+				Expect(fakeProcess2.TerminatedNicely).To(BeFalse())
+				Expect(fakeProcess3.Waited).To(BeFalse())
+
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("terminates update cert command nicely upon time-out", func() {
+				fakeResult.ExitStatus = 143
+				fakeResult.Error = errors.New("command failed")
+
+				fakeProcess1.TerminatedNicelyCallBack = func(p *fakesys.FakeProcess) {}
+				fakeProcess2.TerminatedNicelyCallBack = func(p *fakesys.FakeProcess) {}
+				fakeProcess3.TerminatedNicelyCallBack = func(p *fakesys.FakeProcess) {}
+
+				err := certManager.UpdateCertificates(cert1)
+
+				Expect(fakeProcess1.Waited).To(BeTrue())
+				Expect(fakeProcess1.TerminatedNicely).To(BeTrue())
+				Expect(fakeProcess1.TerminateNicelyKillGracePeriod).To(Equal(5 * time.Second))
+				Expect(fakeProcess2.Waited).To(BeTrue())
+				Expect(fakeProcess2.TerminatedNicely).To(BeTrue())
+				Expect(fakeProcess2.TerminateNicelyKillGracePeriod).To(Equal(5 * time.Second))
+				Expect(fakeProcess3.Waited).To(BeTrue())
+				Expect(fakeProcess3.TerminatedNicely).To(BeTrue())
+				Expect(fakeProcess3.TerminateNicelyKillGracePeriod).To(Equal(5 * time.Second))
+
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -262,28 +319,27 @@ var _ = Describe("Certificate Management", func() {
 		Context("CentOS", func() {
 			BeforeEach(func() {
 				fakeFs = fakesys.NewFakeFileSystem()
-				fakeCmd = fakesys.NewFakeCmdRunner()
-				fakeCmd.AddCmdResult("/usr/bin/update-ca-trust", fakesys.FakeCmdResult{
+				fakeCmdRunner = fakesys.NewFakeCmdRunner()
+				fakeCmdRunner.AddCmdResult("/usr/bin/update-ca-trust", fakesys.FakeCmdResult{
 					Stdout:     "",
 					Stderr:     "",
 					ExitStatus: 0,
 					Sticky:     true,
 				})
-				certManager = cert.NewCentOSCertManager(fakeFs, fakeCmd, log)
+				certManager = cert.NewCentOSCertManager(fakeFs, fakeCmdRunner, 0, log)
 			})
 
 			SharedLinuxCertManagerExamples("/etc/pki/ca-trust/source/anchors", "/usr/bin/update-ca-trust")
 
-			// see message above about the shareability of this test
 			It("executes update cert command", func() {
-				fakeCmd = fakesys.NewFakeCmdRunner()
-				fakeCmd.AddCmdResult("/usr/bin/update-ca-trust", fakesys.FakeCmdResult{
+				fakeCmdRunner = fakesys.NewFakeCmdRunner()
+				fakeCmdRunner.AddCmdResult("/usr/bin/update-ca-trust", fakesys.FakeCmdResult{
 					Stdout:     "",
 					Stderr:     "",
 					ExitStatus: 2,
 					Error:      errors.New("command failed"),
 				})
-				certManager = cert.NewCentOSCertManager(fakeFs, fakeCmd, log)
+				certManager = cert.NewCentOSCertManager(fakeFs, fakeCmdRunner, 0, log)
 
 				err := certManager.UpdateCertificates(cert1)
 				Expect(err).To(HaveOccurred())

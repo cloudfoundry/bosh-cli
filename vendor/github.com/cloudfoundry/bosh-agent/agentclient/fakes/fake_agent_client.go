@@ -38,8 +38,11 @@ type FakeAgentClient struct {
 	UpdateSettingsCalledTimes int
 	updateSettingsErr         error
 
-	RunScriptInputs []string
-	runScriptErr    error
+	RunScriptCalledTimes int
+	runScriptErr         error
+
+	DeleteARPEntriesCalledTimes int
+	deleteARPEntriesErr         error
 }
 
 type pingResponse struct {
@@ -126,9 +129,14 @@ func (c *FakeAgentClient) UpdateSettings(settings settings.Settings) error {
 	return c.updateSettingsErr
 }
 
-func (c *FakeAgentClient) RunScript(script string) error {
-	c.RunScriptInputs = append(c.RunScriptInputs, script)
+func (c *FakeAgentClient) RunScript(scriptName string, options map[string]interface{}) error {
+	c.RunScriptCalledTimes++
 	return c.runScriptErr
+}
+
+func (c *FakeAgentClient) DeleteARPEntries(ips []string) error {
+	c.DeleteARPEntriesCalledTimes++
+	return c.deleteARPEntriesErr
 }
 
 func (c *FakeAgentClient) CompilePackage(
@@ -182,8 +190,4 @@ func (c *FakeAgentClient) SetUpdateSettingsBehavior(err error) {
 func (c *FakeAgentClient) SetListDiskBehavior(disks []string, err error) {
 	c.listDiskDisks = disks
 	c.listDiskErr = err
-}
-
-func (c *FakeAgentClient) SetRunScriptBehavior(err error) {
-	c.runScriptErr = err
 }

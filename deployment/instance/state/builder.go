@@ -143,9 +143,15 @@ func (b *builder) BuildInitialState(jobName string, instanceID int, deploymentMa
 	// convert map to array
 	networkRefs := make([]NetworkRef, 0, len(networkInterfaces))
 	for networkName, networkInterface := range networkInterfaces {
+		genericMap := make(map[string]interface{}, len(networkInterface))
+
+		for k, v := range networkInterface {
+			genericMap[k] = v
+		}
+
 		networkRefs = append(networkRefs, NetworkRef{
 			Name:      networkName,
-			Interface: networkInterface,
+			Interface: genericMap,
 		})
 	}
 

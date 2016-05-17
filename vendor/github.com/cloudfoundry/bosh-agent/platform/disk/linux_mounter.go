@@ -54,7 +54,7 @@ func (m linuxMounter) RemountAsReadonly(mountPoint string) error {
 }
 
 func (m linuxMounter) Remount(fromMountPoint, toMountPoint string, mountOptions ...string) error {
-	partitionPath, found, err := m.findDeviceMatchingMountPoint(fromMountPoint)
+	partitionPath, found, err := m.IsMountPoint(fromMountPoint)
 	if err != nil || !found {
 		return bosherr.WrapErrorf(err, "Error finding device for mount point %s", fromMountPoint)
 	}
@@ -107,29 +107,14 @@ func (m linuxMounter) Unmount(partitionOrMountPoint string) (bool, error) {
 	return err == nil, err
 }
 
-func (m linuxMounter) IsMountPoint(path string) (bool, error) {
-	mounts, err := m.mountsSearcher.SearchMounts()
-	if err != nil {
-		return false, bosherr.WrapError(err, "Searching mounts")
-	}
-
-	for _, mount := range mounts {
-		if mount.MountPoint == path {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
-func (m linuxMounter) findDeviceMatchingMountPoint(mountPoint string) (string, bool, error) {
+func (m linuxMounter) IsMountPoint(path string) (string, bool, error) {
 	mounts, err := m.mountsSearcher.SearchMounts()
 	if err != nil {
 		return "", false, bosherr.WrapError(err, "Searching mounts")
 	}
 
 	for _, mount := range mounts {
-		if mount.MountPoint == mountPoint {
+		if mount.MountPoint == path {
 			return mount.PartitionPath, true, nil
 		}
 	}

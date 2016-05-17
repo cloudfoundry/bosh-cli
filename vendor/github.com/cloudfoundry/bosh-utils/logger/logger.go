@@ -50,9 +50,9 @@ type Logger interface {
 }
 
 type logger struct {
-	level LogLevel
-	out   *log.Logger
-	err   *log.Logger
+	level       LogLevel
+	out         *log.Logger
+	err         *log.Logger
 	forcedDebug bool
 }
 

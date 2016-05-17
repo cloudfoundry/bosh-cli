@@ -713,44 +713,62 @@ var _ = Describe("AgentClient", func() {
 		})
 	})
 
-	Describe("RunScript", func() {
-		It("Sends a run_script message to the agent", func() {
-			fakeHTTPClient.SetPostBehavior(`{"value":"started"}`, 200, nil)
-			err := agentClient.RunScript("the-script")
-			Expect(err).ToNot(HaveOccurred())
+	Describe("DeleteARPEntries", func() {
+		var (
+			ips []string
+		)
 
-			Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
-			Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+		Context("when agent responds with a value", func() {
+			BeforeEach(func() {
+				ips = []string{"10.0.0.1", "10.0.0.2"}
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+				fakeHTTPClient.SetPostBehavior(`{"value":"{}"}`, 200, nil)
+			})
 
-			var request AgentRequestMessage
-			err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
-			Expect(err).ToNot(HaveOccurred())
+			It("makes a POST request to the endpoint", func() {
+				err := agentClient.DeleteARPEntries(ips)
+				Expect(err).ToNot(HaveOccurred())
 
-			Expect(request).To(Equal(AgentRequestMessage{
-				Method:    "run_script",
-				Arguments: []interface{}{"the-script", map[string]interface{}{}},
-				ReplyTo:   "fake-uuid",
-			}))
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(4))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+				var request AgentRequestMessage
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				expectedIps := []interface{}{ips[0], ips[1]}
+				Expect(request).To(Equal(AgentRequestMessage{
+					Method:    "delete_arp_entries",
+					Arguments: []interface{}{map[string]interface{}{"ips": expectedIps}},
+					ReplyTo:   "fake-uuid",
+				}))
+			})
 		})
 
-		It("Returns an error if an error occurs", func() {
-			fakeHTTPClient.SetPostBehavior("", 0, errors.New("connection reset by peer"))
-			err := agentClient.RunScript("the-script")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection reset by peer"))
+		Context("when agent does not respond with 200", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, nil)
+			})
 
-			Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
-			Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+			It("returns an error", func() {
+				err := agentClient.DeleteARPEntries(ips)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("status code: 500"))
+			})
+		})
 
-			var request AgentRequestMessage
-			err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
-			Expect(err).ToNot(HaveOccurred())
+		Context("when agent responds with exception", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"bad request"}}`, 200, nil)
+			})
 
-			Expect(request).To(Equal(AgentRequestMessage{
-				Method:    "run_script",
-				Arguments: []interface{}{"the-script", map[string]interface{}{}},
-				ReplyTo:   "fake-uuid",
-			}))
+			It("returns an error", func() {
+				err := agentClient.DeleteARPEntries(ips)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("bad request"))
+			})
 		})
 	})
 })

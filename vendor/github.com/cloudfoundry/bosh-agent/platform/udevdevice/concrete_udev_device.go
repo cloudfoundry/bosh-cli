@@ -34,7 +34,9 @@ func (udev ConcreteUdevDevice) KickDevice(filePath string) {
 		time.Sleep(time.Second / 2)
 	}
 
-	udev.readByte(filePath)
+	if err := udev.readByte(filePath); err != nil {
+		udev.logger.Error(udev.logtag, "Failed to red byte from device: %s", err.Error())
+	}
 
 	return
 }
@@ -91,7 +93,11 @@ func (udev ConcreteUdevDevice) readByte(filePath string) error {
 	if err != nil {
 		return err
 	}
-	defer device.Close()
+	defer func() {
+		if err = device.Close(); err != nil {
+			udev.logger.Warn(udev.logtag, "Failed to close device: %s", err.Error())
+		}
+	}()
 	udev.logger.Debug(udev.logtag, "Successfully open file: %s", filePath)
 
 	bytes := make([]byte, 1, 1)

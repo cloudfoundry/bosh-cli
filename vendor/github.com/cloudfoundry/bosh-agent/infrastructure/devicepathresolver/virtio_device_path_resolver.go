@@ -29,7 +29,7 @@ func NewVirtioDevicePathResolver(
 func (vpr virtioDevicePathResolver) GetRealDevicePath(diskSettings boshsettings.DiskSettings) (string, bool, error) {
 	realPath, timeout, err := vpr.idDevicePathResolver.GetRealDevicePath(diskSettings)
 	if err == nil {
-		vpr.logger.Debug(vpr.logTag, "Resolved disk '%s' by ID '%s' as '%s'", diskSettings.Path, diskSettings.ID, realPath)
+		vpr.logger.Debug(vpr.logTag, "Resolved disk %+v by ID as '%s'", diskSettings, realPath)
 		return realPath, false, nil
 	}
 

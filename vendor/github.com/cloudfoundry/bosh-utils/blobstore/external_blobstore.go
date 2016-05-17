@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"errors"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -95,7 +96,6 @@ func (b externalBlobstore) writeConfigFile() error {
 	if err != nil {
 		return bosherr.WrapError(err, "Marshalling JSON")
 	}
-
 	err = b.fs.WriteFile(b.configFilePath, configJSON)
 	if err != nil {
 		return bosherr.WrapError(err, "Writing config file")

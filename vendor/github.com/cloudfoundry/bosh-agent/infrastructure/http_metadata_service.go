@@ -13,25 +13,37 @@ import (
 )
 
 type httpMetadataService struct {
-	metadataHost string
-	resolver     DNSResolver
-	platform     boshplat.Platform
-	logTag       string
-	logger       boshlog.Logger
+	metadataHost    string
+	metadataHeaders map[string]string
+	userdataPath    string
+	instanceIDPath  string
+	sshKeysPath     string
+	resolver        DNSResolver
+	platform        boshplat.Platform
+	logTag          string
+	logger          boshlog.Logger
 }
 
 func NewHTTPMetadataService(
 	metadataHost string,
+	metadataHeaders map[string]string,
+	userdataPath string,
+	instanceIDPath string,
+	sshKeysPath string,
 	resolver DNSResolver,
 	platform boshplat.Platform,
 	logger boshlog.Logger,
-) MetadataService {
+) DynamicMetadataService {
 	return httpMetadataService{
-		metadataHost: metadataHost,
-		resolver:     resolver,
-		platform:     platform,
-		logTag:       "httpMetadataService",
-		logger:       logger,
+		metadataHost:    metadataHost,
+		metadataHeaders: metadataHeaders,
+		userdataPath:    userdataPath,
+		instanceIDPath:  instanceIDPath,
+		sshKeysPath:     sshKeysPath,
+		resolver:        resolver,
+		platform:        platform,
+		logTag:          "httpMetadataService",
+		logger:          logger,
 	}
 }
 
@@ -40,18 +52,26 @@ func (ms httpMetadataService) Load() error {
 }
 
 func (ms httpMetadataService) GetPublicKey() (string, error) {
+	if ms.sshKeysPath == "" {
+		return "", nil
+	}
+
 	err := ms.ensureMinimalNetworkSetup()
 	if err != nil {
 		return "", err
 	}
 
-	url := fmt.Sprintf("%s/latest/meta-data/public-keys/0/openssh-key", ms.metadataHost)
-	resp, err := http.Get(url)
+	url := fmt.Sprintf("%s%s", ms.metadataHost, ms.sshKeysPath)
+	resp, err := ms.doGet(url)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Getting open ssh key")
+		return "", bosherr.WrapErrorf(err, "Getting open ssh key from url %s", url)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			ms.logger.Warn(ms.logTag, "Failed to close response body when getting ssh key: %s", err.Error())
+		}
+	}()
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -62,18 +82,26 @@ func (ms httpMetadataService) GetPublicKey() (string, error) {
 }
 
 func (ms httpMetadataService) GetInstanceID() (string, error) {
+	if ms.instanceIDPath == "" {
+		return "", nil
+	}
+
 	err := ms.ensureMinimalNetworkSetup()
 	if err != nil {
 		return "", err
 	}
 
-	url := fmt.Sprintf("%s/latest/meta-data/instance-id", ms.metadataHost)
-	resp, err := http.Get(url)
+	url := fmt.Sprintf("%s%s", ms.metadataHost, ms.instanceIDPath)
+	resp, err := ms.doGet(url)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Getting instance id from url")
+		return "", bosherr.WrapErrorf(err, "Getting instance id from url %s", url)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			ms.logger.Warn(ms.logTag, "Failed to close response body when getting instance id: %s", err.Error())
+		}
+	}()
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -83,6 +111,35 @@ func (ms httpMetadataService) GetInstanceID() (string, error) {
 	return string(bytes), nil
 }
 
+func (ms httpMetadataService) GetValueAtPath(path string) (string, error) {
+	if path == "" {
+		return "", fmt.Errorf("Can not retrieve metadata value for empthy path")
+	}
+
+	err := ms.ensureMinimalNetworkSetup()
+	if err != nil {
+		return "", err
+	}
+
+	url := fmt.Sprintf("%s%s", ms.metadataHost, path)
+	resp, err := ms.doGet(url)
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Getting value from url %s", url)
+	}
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			ms.logger.Warn(ms.logTag, "Failed to close response body when getting value from path: %s", err.Error())
+		}
+	}()
+
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", bosherr.WrapError(err, fmt.Sprintf("Reading response body from %s", url))
+	}
+
+	return string(bytes), nil
+}
 func (ms httpMetadataService) GetServerName() (string, error) {
 	userData, err := ms.getUserData()
 	if err != nil {
@@ -131,13 +188,17 @@ func (ms httpMetadataService) getUserData() (UserDataContentsType, error) {
 		return userData, err
 	}
 
-	userDataURL := fmt.Sprintf("%s/latest/user-data", ms.metadataHost)
-	userDataResp, err := http.Get(userDataURL)
+	userDataURL := fmt.Sprintf("%s%s", ms.metadataHost, ms.userdataPath)
+	userDataResp, err := ms.doGet(userDataURL)
 	if err != nil {
-		return userData, bosherr.WrapError(err, "Getting user data from url")
+		return userData, bosherr.WrapErrorf(err, "Getting user data from url %s", userDataURL)
 	}
 
-	defer userDataResp.Body.Close()
+	defer func() {
+		if err := userDataResp.Body.Close(); err != nil {
+			ms.logger.Warn(ms.logTag, "Failed to close response body when getting user data: %s", err.Error())
+		}
+	}()
 
 	userDataBytes, err := ioutil.ReadAll(userDataResp.Body)
 	if err != nil {
@@ -174,4 +235,19 @@ func (ms httpMetadataService) ensureMinimalNetworkSetup() error {
 	}
 
 	return nil
+}
+
+func (ms httpMetadataService) doGet(url string) (*http.Response, error) {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for key, value := range ms.metadataHeaders {
+		req.Header.Add(key, value)
+	}
+
+	return client.Do(req)
 }

@@ -344,9 +344,9 @@ cloud_provider:
 			applySpec = bias.ApplySpec{
 				Deployment: "test-release",
 				Index:      jobIndex,
-				Networks: map[string]biproperty.Map{
-					"network-1": biproperty.Map{
-						"cloud_properties": biproperty.Map{},
+				Networks: map[string]interface{}{
+					"network-1": map[string]interface{}{
+						"cloud_properties": map[string]interface{}{},
 						"type":             "dynamic",
 						"ip":               "",
 					},
@@ -505,7 +505,7 @@ cloud_provider:
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start"),
+				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
@@ -551,7 +551,7 @@ cloud_provider:
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start"),
+				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
@@ -593,7 +593,7 @@ cloud_provider:
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start"),
+				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
@@ -703,7 +703,7 @@ cloud_provider:
 				mockAgentClient.EXPECT().GetState(),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start"),
+				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)
@@ -762,7 +762,7 @@ cloud_provider:
 					func() { expectRegistryToWork() },
 				),
 				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start"),
+				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
 			)

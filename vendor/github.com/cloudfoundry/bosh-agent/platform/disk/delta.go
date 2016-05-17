@@ -1,11 +1,11 @@
 package disk
 
-func withinDelta(left, right, delta uint64) bool {
+func withinDelta(existing, expected, delta uint64) bool {
 	switch {
-	case left-delta >= right:
-		return true
-	case right-delta <= left:
-		return true
+	case existing > expected:
+		return (existing - expected) <= delta
+	case expected > existing:
+		return (expected - existing) <= delta
 	}
-	return false
+	return true
 }

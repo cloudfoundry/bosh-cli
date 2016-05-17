@@ -43,7 +43,7 @@ var _ = Describe("SettingsSourceFactory", func() {
 
 					It("returns a settings source that uses HTTP to fetch settings", func() {
 						resolver := NewRegistryEndpointResolver(NewDigDNSResolver(platform.GetRunner(), logger))
-						httpMetadataService := NewHTTPMetadataService("http://fake-url", resolver, platform, logger)
+						httpMetadataService := NewHTTPMetadataService("http://fake-url", nil, "", "", "", resolver, platform, logger)
 						multiSourceMetadataService := NewMultiSourceMetadataService(httpMetadataService)
 						registryProvider := NewRegistryProvider(multiSourceMetadataService, platform, useServerName, platform.GetFs(), logger)
 						httpSettingsSource := NewComplexSettingsSource(multiSourceMetadataService, registryProvider, logger)

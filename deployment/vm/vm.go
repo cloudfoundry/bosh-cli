@@ -32,7 +32,7 @@ type VM interface {
 	Disks() ([]bidisk.Disk, error)
 	UnmountDisk(bidisk.Disk) error
 	MigrateDisk() error
-	RunScript(script string) error
+	RunScript(script string, options map[string]interface{}) error
 	Delete() error
 	GetState() (biagentclient.AgentState, error)
 }
@@ -186,8 +186,8 @@ func (vm *vm) MigrateDisk() error {
 	return vm.agentClient.MigrateDisk()
 }
 
-func (vm *vm) RunScript(script string) error {
-	return vm.agentClient.RunScript(script)
+func (vm *vm) RunScript(script string, options map[string]interface{}) error {
+	return vm.agentClient.RunScript(script, options)
 }
 
 func (vm *vm) Delete() error {

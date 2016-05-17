@@ -14,10 +14,11 @@ var _ = Describe("InterfaceConfigurationCreator", describeInterfaceConfiguration
 
 func describeInterfaceConfigurationCreator() {
 	var (
-		interfaceConfigurationCreator InterfaceConfigurationCreator
-		staticNetwork                 boshsettings.Network
-		staticNetworkWithoutMAC       boshsettings.Network
-		dhcpNetwork                   boshsettings.Network
+		interfaceConfigurationCreator   InterfaceConfigurationCreator
+		staticNetwork                   boshsettings.Network
+		staticNetworkWithoutMAC         boshsettings.Network
+		staticNetworkWithDefaultGateway boshsettings.Network
+		dhcpNetwork                     boshsettings.Network
 	)
 
 	BeforeEach(func() {
@@ -34,6 +35,13 @@ func describeInterfaceConfigurationCreator() {
 			Netmask: "255.255.255.0",
 			Gateway: "3.4.5.6",
 			Mac:     "fake-static-mac-address",
+		}
+		staticNetworkWithDefaultGateway = boshsettings.Network{
+			IP:      "5.6.7.8",
+			Netmask: "255.255.255.0",
+			Default: []string{"gateway"},
+			Gateway: "5.6.7.1",
+			Mac:     "fake-static-mac-address-with-default-gateway",
 		}
 		staticNetworkWithoutMAC = boshsettings.Network{
 			Type:    "manual",
@@ -69,13 +77,14 @@ func describeInterfaceConfigurationCreator() {
 
 						Expect(staticInterfaceConfigurations).To(Equal([]StaticInterfaceConfiguration{
 							StaticInterfaceConfiguration{
-								Name:      "static-interface-name",
-								Address:   "1.2.3.4",
-								Netmask:   "255.255.255.0",
-								Network:   "1.2.3.0",
-								Broadcast: "1.2.3.255",
-								Mac:       "fake-static-mac-address",
-								Gateway:   "3.4.5.6",
+								Name:                "static-interface-name",
+								Address:             "1.2.3.4",
+								Netmask:             "255.255.255.0",
+								Network:             "1.2.3.0",
+								IsDefaultForGateway: false,
+								Broadcast:           "1.2.3.255",
+								Mac:                 "fake-static-mac-address",
+								Gateway:             "3.4.5.6",
 							},
 						}))
 
@@ -115,13 +124,14 @@ func describeInterfaceConfigurationCreator() {
 
 						Expect(staticInterfaceConfigurations).To(Equal([]StaticInterfaceConfiguration{
 							StaticInterfaceConfiguration{
-								Name:      "any-interface-name",
-								Address:   "1.2.3.4",
-								Netmask:   "255.255.255.0",
-								Network:   "1.2.3.0",
-								Broadcast: "1.2.3.255",
-								Mac:       "fake-any-mac-address",
-								Gateway:   "3.4.5.6",
+								Name:                "any-interface-name",
+								Address:             "1.2.3.4",
+								Netmask:             "255.255.255.0",
+								Network:             "1.2.3.0",
+								IsDefaultForGateway: false,
+								Broadcast:           "1.2.3.255",
+								Mac:                 "fake-any-mac-address",
+								Gateway:             "3.4.5.6",
 							},
 						}))
 
@@ -149,23 +159,36 @@ func describeInterfaceConfigurationCreator() {
 					BeforeEach(func() {
 						networks["foo"] = staticNetwork
 						networks["bar"] = dhcpNetwork
+						networks["baz"] = staticNetworkWithDefaultGateway
 						interfacesByMAC[staticNetwork.Mac] = "static-interface-name"
 						interfacesByMAC[dhcpNetwork.Mac] = "dhcp-interface-name"
+						interfacesByMAC[staticNetworkWithDefaultGateway.Mac] = "static-interface-name-with-default-gateway"
 					})
 
 					It("creates interface configurations for each network when matching interfaces exist", func() {
 						staticInterfaceConfigurations, dhcpInterfaceConfigurations, err := interfaceConfigurationCreator.CreateInterfaceConfigurations(networks, interfacesByMAC)
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(staticInterfaceConfigurations).To(Equal([]StaticInterfaceConfiguration{
+						Expect(staticInterfaceConfigurations).To(ConsistOf([]StaticInterfaceConfiguration{
 							StaticInterfaceConfiguration{
-								Name:      "static-interface-name",
-								Address:   "1.2.3.4",
-								Netmask:   "255.255.255.0",
-								Network:   "1.2.3.0",
-								Broadcast: "1.2.3.255",
-								Mac:       "fake-static-mac-address",
-								Gateway:   "3.4.5.6",
+								Name:                "static-interface-name",
+								Address:             "1.2.3.4",
+								Netmask:             "255.255.255.0",
+								Network:             "1.2.3.0",
+								Broadcast:           "1.2.3.255",
+								IsDefaultForGateway: false,
+								Mac:                 "fake-static-mac-address",
+								Gateway:             "3.4.5.6",
+							},
+							StaticInterfaceConfiguration{
+								Name:                "static-interface-name-with-default-gateway",
+								Address:             "5.6.7.8",
+								Netmask:             "255.255.255.0",
+								Network:             "5.6.7.0",
+								IsDefaultForGateway: true,
+								Broadcast:           "5.6.7.255",
+								Mac:                 "fake-static-mac-address-with-default-gateway",
+								Gateway:             "5.6.7.1",
 							},
 						}))
 

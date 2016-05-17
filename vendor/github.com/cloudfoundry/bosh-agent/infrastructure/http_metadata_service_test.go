@@ -21,6 +21,7 @@ var _ = Describe("HTTPMetadataService", describeHTTPMetadataService)
 
 func describeHTTPMetadataService() {
 	var (
+		metadataHeaders map[string]string
 		dnsResolver     *fakeinf.FakeDNSResolver
 		platform        *fakeplat.FakePlatform
 		logger          boshlog.Logger
@@ -28,10 +29,12 @@ func describeHTTPMetadataService() {
 	)
 
 	BeforeEach(func() {
+		metadataHeaders = make(map[string]string)
+		metadataHeaders["key"] = "value"
 		dnsResolver = &fakeinf.FakeDNSResolver{}
 		platform = fakeplat.NewFakePlatform()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		metadataService = NewHTTPMetadataService("fake-metadata-host", dnsResolver, platform, logger)
+		metadataService = NewHTTPMetadataService("fake-metadata-host", metadataHeaders, "/user-data", "/instanceid", "/ssh-keys", dnsResolver, platform, logger)
 	})
 
 	ItEnsuresMinimalNetworkSetup := func(subject func() (string, error)) {
@@ -74,71 +77,109 @@ func describeHTTPMetadataService() {
 
 	Describe("GetPublicKey", func() {
 		var (
-			ts *httptest.Server
+			ts          *httptest.Server
+			sshKeysPath string
 		)
 
 		BeforeEach(func() {
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				GinkgoRecover()
+				defer GinkgoRecover()
 
 				Expect(r.Method).To(Equal("GET"))
-				Expect(r.URL.Path).To(Equal("/latest/meta-data/public-keys/0/openssh-key"))
+				Expect(r.URL.Path).To(Equal("/ssh-keys"))
+				Expect(r.Header.Get("key")).To(Equal("value"))
 
 				w.Write([]byte("fake-public-key"))
 			})
-
 			ts = httptest.NewServer(handler)
-
-			metadataService = NewHTTPMetadataService(ts.URL, dnsResolver, platform, logger)
 		})
 
 		AfterEach(func() {
 			ts.Close()
 		})
 
-		ItEnsuresMinimalNetworkSetup(func() (string, error) {
-			return metadataService.GetPublicKey()
+		Context("when the ssh keys path is present", func() {
+			BeforeEach(func() {
+				sshKeysPath = "/ssh-keys"
+				metadataService = NewHTTPMetadataService(ts.URL, metadataHeaders, "/user-data", "/instanceid", sshKeysPath, dnsResolver, platform, logger)
+			})
+
+			It("returns fetched public key", func() {
+				publicKey, err := metadataService.GetPublicKey()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(publicKey).To(Equal("fake-public-key"))
+			})
+
+			ItEnsuresMinimalNetworkSetup(func() (string, error) {
+				return metadataService.GetPublicKey()
+			})
 		})
 
-		It("returns fetched public key", func() {
-			publicKey, err := metadataService.GetPublicKey()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(publicKey).To(Equal("fake-public-key"))
+		Context("when the ssh keys path is not present", func() {
+			BeforeEach(func() {
+				sshKeysPath = ""
+				metadataService = NewHTTPMetadataService(ts.URL, metadataHeaders, "/user-data", "/instanceid", sshKeysPath, dnsResolver, platform, logger)
+			})
+
+			It("returns an empty ssh key", func() {
+				publicKey, err := metadataService.GetPublicKey()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(publicKey).To(BeEmpty())
+			})
 		})
 	})
 
 	Describe("GetInstanceID", func() {
 		var (
-			ts *httptest.Server
+			ts             *httptest.Server
+			instanceIDPath string
 		)
 
 		BeforeEach(func() {
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				GinkgoRecover()
+				defer GinkgoRecover()
 
 				Expect(r.Method).To(Equal("GET"))
-				Expect(r.URL.Path).To(Equal("/latest/meta-data/instance-id"))
+				Expect(r.URL.Path).To(Equal("/instanceid"))
+				Expect(r.Header.Get("key")).To(Equal("value"))
 
 				w.Write([]byte("fake-instance-id"))
 			})
-
 			ts = httptest.NewServer(handler)
-
-			metadataService = NewHTTPMetadataService(ts.URL, dnsResolver, platform, logger)
 		})
 
 		AfterEach(func() {
 			ts.Close()
 		})
 
-		ItEnsuresMinimalNetworkSetup(func() (string, error) {
-			return metadataService.GetInstanceID()
+		Context("when the instance ID path is present", func() {
+			BeforeEach(func() {
+				instanceIDPath = "/instanceid"
+				metadataService = NewHTTPMetadataService(ts.URL, metadataHeaders, "/user-data", instanceIDPath, "/ssh-keys", dnsResolver, platform, logger)
+			})
+
+			It("returns fetched instance id", func() {
+				instanceID, err := metadataService.GetInstanceID()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(instanceID).To(Equal("fake-instance-id"))
+			})
+
+			ItEnsuresMinimalNetworkSetup(func() (string, error) {
+				return metadataService.GetInstanceID()
+			})
 		})
 
-		It("returns fetched instance id", func() {
-			publicKey, err := metadataService.GetInstanceID()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(publicKey).To(Equal("fake-instance-id"))
+		Context("when the instance ID path is not present", func() {
+			BeforeEach(func() {
+				instanceIDPath = ""
+				metadataService = NewHTTPMetadataService(ts.URL, metadataHeaders, "/user-data", instanceIDPath, "/ssh-keys", dnsResolver, platform, logger)
+			})
+
+			It("returns an empty instance ID", func() {
+				instanceID, err := metadataService.GetInstanceID()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(instanceID).To(BeEmpty())
+			})
 		})
 	})
 
@@ -149,10 +190,11 @@ func describeHTTPMetadataService() {
 		)
 
 		handlerFunc := func(w http.ResponseWriter, r *http.Request) {
-			GinkgoRecover()
+			defer GinkgoRecover()
 
 			Expect(r.Method).To(Equal("GET"))
-			Expect(r.URL.Path).To(Equal("/latest/user-data"))
+			Expect(r.URL.Path).To(Equal("/user-data"))
+			Expect(r.Header.Get("key")).To(Equal("value"))
 
 			var jsonStr string
 
@@ -170,7 +212,7 @@ func describeHTTPMetadataService() {
 
 			handler := http.HandlerFunc(handlerFunc)
 			ts = httptest.NewServer(handler)
-			metadataService = NewHTTPMetadataService(ts.URL, dnsResolver, platform, logger)
+			metadataService = NewHTTPMetadataService(ts.URL, metadataHeaders, "/user-data", "/instanceid", "/ssh-keys", dnsResolver, platform, logger)
 		})
 
 		AfterEach(func() {
@@ -215,10 +257,11 @@ func describeHTTPMetadataService() {
 		)
 
 		handlerFunc := func(w http.ResponseWriter, r *http.Request) {
-			GinkgoRecover()
+			defer GinkgoRecover()
 
 			Expect(r.Method).To(Equal("GET"))
-			Expect(r.URL.Path).To(Equal("/latest/user-data"))
+			Expect(r.URL.Path).To(Equal("/user-data"))
+			Expect(r.Header.Get("key")).To(Equal("value"))
 
 			var jsonStr string
 
@@ -241,7 +284,7 @@ func describeHTTPMetadataService() {
 
 			handler := http.HandlerFunc(handlerFunc)
 			ts = httptest.NewServer(handler)
-			metadataService = NewHTTPMetadataService(ts.URL, dnsResolver, platform, logger)
+			metadataService = NewHTTPMetadataService(ts.URL, metadataHeaders, "/user-data", "/instanceid", "/ssh-keys", dnsResolver, platform, logger)
 		})
 
 		AfterEach(func() {

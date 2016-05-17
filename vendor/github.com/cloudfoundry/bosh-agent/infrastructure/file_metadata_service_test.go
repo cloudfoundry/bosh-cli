@@ -50,6 +50,29 @@ var _ = Describe("FileMetadataService", func() {
 		})
 	})
 
+	Describe("GetServerName", func() {
+		Context("when userdata file exists", func() {
+			BeforeEach(func() {
+				userDataContents := `{"server":{"name":"fake-server-name"}}`
+				fs.WriteFileString("fake-userdata-file-path", userDataContents)
+			})
+
+			It("returns server name", func() {
+				serverName, err := metadataService.GetServerName()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(serverName).To(Equal("fake-server-name"))
+			})
+		})
+
+		Context("when userdata file does not exist", func() {
+			It("returns an error", func() {
+				serverName, err := metadataService.GetServerName()
+				Expect(err).To(HaveOccurred())
+				Expect(serverName).To(BeEmpty())
+			})
+		})
+	})
+
 	Describe("GetNetworks", func() {
 		It("returns the network settings", func() {
 			userDataContents := `
@@ -123,8 +146,20 @@ var _ = Describe("FileMetadataService", func() {
 	})
 
 	Describe("IsAvailable", func() {
-		It("returns true", func() {
-			Expect(metadataService.IsAvailable()).To(BeTrue())
+		Context("when file does not exist", func() {
+			It("returns false", func() {
+				Expect(metadataService.IsAvailable()).To(BeFalse())
+			})
+		})
+
+		Context("when file exists", func() {
+			BeforeEach(func() {
+				fs.WriteFileString("fake-settings-file-path", ``)
+			})
+
+			It("returns true", func() {
+				Expect(metadataService.IsAvailable()).To(BeTrue())
+			})
 		})
 	})
 })

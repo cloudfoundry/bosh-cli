@@ -135,6 +135,16 @@ func (_mr *_MockAgentClientRecorder) CompilePackage(arg0, arg1 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CompilePackage", arg0, arg1)
 }
 
+func (_m *MockAgentClient) DeleteARPEntries(ips []string) error {
+	ret := _m.ctrl.Call(_m, "DeleteARPEntries", ips)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockAgentClientRecorder) DeleteARPEntries(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteARPEntries", arg0)
+}
+
 func (_m *MockAgentClient) UpdateSettings(settings settings.Settings) error {
 	ret := _m.ctrl.Call(_m, "UpdateSettings", settings)
 	ret0, _ := ret[0].(error)
@@ -145,12 +155,12 @@ func (_mr *_MockAgentClientRecorder) UpdateSettings(arg0 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateSettings", arg0)
 }
 
-func (_m *MockAgentClient) RunScript(script string) error {
-	ret := _m.ctrl.Call(_m, "RunScript", script)
+func (_m *MockAgentClient) RunScript(scriptName string, options map[string]interface{}) error {
+	ret := _m.ctrl.Call(_m, "RunScript", scriptName, options)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockAgentClientRecorder) RunScript(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RunScript", arg0)
+func (_mr *_MockAgentClientRecorder) RunScript(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RunScript", arg0, arg1)
 }

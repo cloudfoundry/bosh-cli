@@ -1,19 +1,18 @@
 package applyspec
 
-import (
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-)
-
 // ApplySpec is the transport layer model for communicating instance state to the bosh-agent.
 // The format is suboptimal for its current usage. :(
 type ApplySpec struct {
-	Deployment string `json:"deployment"`
-	Index      int    `json:"index"`
+	Deployment       string `json:"deployment"`
+	Name             string `json:"name"`
+	Index            int    `json:"index"`
+	NodeID           string `json:"id"`
+	AvailabilityZone string `json:"az"`
 	// Packages is a map of package names to compiled package blob references
 	Packages map[string]Blob `json:"packages"`
 	// Networks is a map of network names to network interfaces.
 	// The value type would ideally be a struct with IP, Type & CloudProperties, but the agent supports arbitrary key/value pairs. :(
-	Networks                 map[string]biproperty.Map    `json:"networks"`
+	Networks                 map[string]interface{}       `json:"networks"`
 	Job                      Job                          `json:"job"`
 	RenderedTemplatesArchive RenderedTemplatesArchiveSpec `json:"rendered_templates_archive"`
 	ConfigurationHash        string                       `json:"configuration_hash"`

@@ -256,26 +256,40 @@ var _ = Describe("linuxMounter", func() {
 	})
 
 	Describe("IsMountPoint", func() {
-		It("is mount point", func() {
-			mountsSearcher.SearchMountsMounts = []Mount{
-				Mount{PartitionPath: "/dev/xvdb2", MountPoint: "/var/vcap/data"},
-			}
+		Context("when it is a mount point", func() {
+			It("is mount point", func() {
+				mountsSearcher.SearchMountsMounts = []Mount{
+					Mount{PartitionPath: "/dev/xvdb2", MountPoint: "/var/vcap/data"},
+				}
 
-			isMountPoint, err := mounter.IsMountPoint("/var/vcap/data")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(isMountPoint).To(BeTrue())
-
-			isMountPoint, err = mounter.IsMountPoint("/var/vcap/store")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(isMountPoint).To(BeFalse())
+				partitionPath, isMountPoint, err := mounter.IsMountPoint("/var/vcap/data")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(partitionPath).To(Equal("/dev/xvdb2"))
+				Expect(isMountPoint).To(BeTrue())
+			})
 		})
 
-		It("returns error when searching mounts fails", func() {
-			mountsSearcher.SearchMountsErr = errors.New("fake-search-mounts-err")
+		Context("when it is not a mount point", func() {
+			It("return empty partition path", func() {
+				mountsSearcher.SearchMountsMounts = []Mount{
+					Mount{PartitionPath: "/dev/xvdb2", MountPoint: "/var/vcap/data"},
+				}
 
-			_, err := mounter.IsMountPoint("/var/vcap/store")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-search-mounts-err"))
+				partitionPath, isMountPoint, err := mounter.IsMountPoint("/var/vcap/store")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(partitionPath).To(Equal(""))
+				Expect(isMountPoint).To(BeFalse())
+			})
+		})
+
+		Context("when searching mounts fails", func() {
+			It("returns error", func() {
+				mountsSearcher.SearchMountsErr = errors.New("fake-search-mounts-err")
+
+				_, _, err := mounter.IsMountPoint("/var/vcap/store")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-search-mounts-err"))
+			})
 		})
 	})
 

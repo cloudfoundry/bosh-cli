@@ -11,7 +11,6 @@ import (
 	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
-	"strings"
 )
 
 type agentClient struct {
@@ -80,22 +79,6 @@ func (c *agentClient) Start() error {
 	return nil
 }
 
-func (c *agentClient) RunScript(script string) error {
-	var response TaskResponse
-	err := c.agentRequest.Send("run_script", []interface{}{script, make(map[string]string)}, &response)
-
-	if err != nil {
-		if strings.Contains(err.Error(), "unknown message") {
-			// ignore 'unknown message' errors for backwards compatibility with older stemcells
-			c.logger.Warn(c.logTag, "Ignoring run_script 'unknown message' error from the agent: %s. Received while trying to run: %s", err.Error(), script)
-		} else {
-			return bosherr.WrapError(err, "Running script")
-		}
-	}
-
-	return nil
-}
-
 func (c *agentClient) GetState() (agentclient.AgentState, error) {
 	var response StateResponse
 
@@ -148,6 +131,11 @@ func (c *agentClient) MigrateDisk() error {
 
 func (c *agentClient) UpdateSettings(settings settings.Settings) error {
 	_, err := c.sendAsyncTaskMessage("update_settings", []interface{}{settings})
+	return err
+}
+
+func (c *agentClient) RunScript(scriptName string, options map[string]interface{}) error {
+	_, err := c.sendAsyncTaskMessage("run_script", []interface{}{scriptName, options})
 	return err
 }
 
@@ -250,4 +238,9 @@ func (c *agentClient) CompilePackage(packageSource agentclient.BlobRef, compiled
 	}
 
 	return compiledPackageRef, nil
+}
+
+func (c *agentClient) DeleteARPEntries(ips []string) error {
+	_, err := c.sendAsyncTaskMessage("delete_arp_entries", []interface{}{map[string][]string{"ips": ips}})
+	return err
 }

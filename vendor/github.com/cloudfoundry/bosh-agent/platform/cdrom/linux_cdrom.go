@@ -50,7 +50,7 @@ func (cdrom LinuxCdrom) Unmount() (err error) {
 }
 
 func (cdrom LinuxCdrom) Eject() (err error) {
-	_, stderr, _, err := cdrom.runner.RunCommand("eject", cdrom.devicePath)
+	_, stderr, _, err := cdrom.runner.RunCommand("eject", "-v", cdrom.devicePath)
 	if err != nil {
 		err = bosherr.WrapErrorf(err, "Ejecting CDROM: %s", stderr)
 	}

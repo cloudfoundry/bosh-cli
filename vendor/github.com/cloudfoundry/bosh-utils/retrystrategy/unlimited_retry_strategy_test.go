@@ -3,8 +3,8 @@ package retrystrategy_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 

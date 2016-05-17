@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"errors"
 	boshdevutil "github.com/cloudfoundry/bosh-agent/platform/deviceutil"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -71,4 +72,8 @@ func (util cdUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 	}
 
 	return contents, nil
+}
+
+func (util cdUtil) GetBlockDeviceSize() (size uint64, err error) {
+	return 0, errors.New("not supported")
 }

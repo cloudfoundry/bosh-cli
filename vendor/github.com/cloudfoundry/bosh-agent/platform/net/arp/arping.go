@@ -1,7 +1,7 @@
 package arp
 
 import (
-	"path/filepath"
+	"path"
 	"sync"
 	"time"
 
@@ -71,7 +71,7 @@ func (a arping) BroadcastMACAddresses(addresses []boship.InterfaceAddress) {
 // at /sys/class/net/<interfaceName>
 func (a arping) blockUntilInterfaceExists(interfaceName string) {
 	// TODO: Timeout waiting for net interface to exist?
-	for !a.fs.FileExists(filepath.Join("/sys/class/net", interfaceName)) {
+	for !a.fs.FileExists(path.Join("/sys/class/net", interfaceName)) {
 		time.Sleep(a.interfaceCheckDelay)
 	}
 }

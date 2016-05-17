@@ -2,7 +2,6 @@ package state
 
 import (
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type State interface {
@@ -17,7 +16,7 @@ type State interface {
 type NetworkRef struct {
 	Name string
 	// Interface would ideally be a struct with IP, Type & CloudProperties, but the agent supports arbitrary key/value pairs. :(
-	Interface biproperty.Map
+	Interface map[string]interface{}
 }
 
 // JobRef is a reference to a rendered job.
@@ -100,7 +99,7 @@ func (s *state) ToApplySpec() bias.ApplySpec {
 		}
 	}
 
-	networkMap := make(map[string]biproperty.Map, len(s.networks))
+	networkMap := make(map[string]interface{}, len(s.networks))
 	for _, network := range s.networks {
 		networkMap[network.Name] = network.Interface
 	}

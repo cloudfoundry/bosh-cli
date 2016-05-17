@@ -10,7 +10,7 @@ fi
 
 package_name=$1
 
-go get -d -t ${package_name}
+go get -d ${package_name}
 
 package_path=$(echo ${package_name} | sed 's/\.\.\.$//')
 
@@ -48,3 +48,7 @@ set -e
 if [ $found -ne 0 ]; then
 	echo $package_name:$sha >> deps.txt
 fi	
+
+# destroy sub-vendored dependencies because they could cause type mismatches
+# between our locally vendored types and the vendored vendored type
+find . -name vendor -type d -mindepth 2 | sort -r | xargs rm -rf {}

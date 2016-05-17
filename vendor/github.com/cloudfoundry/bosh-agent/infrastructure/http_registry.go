@@ -74,7 +74,9 @@ func (r httpRegistry) GetSettings() (boshsettings.Settings, error) {
 		return settings, bosherr.WrapError(err, "Getting settings from url")
 	}
 
-	defer wrapperResponse.Body.Close()
+	defer func() {
+		_ = wrapperResponse.Body.Close()
+	}()
 
 	wrapperBytes, err := ioutil.ReadAll(wrapperResponse.Body)
 	if err != nil {

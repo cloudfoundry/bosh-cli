@@ -1,6 +1,7 @@
 package devicepathresolver_test
 
 import (
+	"runtime"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -20,11 +21,24 @@ var _ = Describe("mappedDevicePathResolver", func() {
 	)
 
 	BeforeEach(func() {
+		if runtime.GOOS == "windows" {
+			Skip("Not yet implemented on Windows")
+		}
+
 		fs = fakesys.NewFakeFileSystem()
 		resolver = NewMappedDevicePathResolver(time.Second, fs)
 		diskSettings = boshsettings.DiskSettings{
 			Path: "/dev/sda",
 		}
+	})
+
+	Context("when path is not provided", func() {
+		It("returns an error", func() {
+			diskSettings := boshsettings.DiskSettings{}
+			_, _, err := resolver.GetRealDevicePath(diskSettings)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("path is missing"))
+		})
 	})
 
 	Context("when a matching /dev/xvdX device is found", func() {
@@ -95,14 +109,35 @@ var _ = Describe("mappedDevicePathResolver", func() {
 		})
 	})
 
-	Context("when an invalid device name is passed in", func() {
-		It("panics", func() {
-			Expect(func() {
+	Context("when a path that never needs remapping is passed in", func() {
+		Context("when path exists", func() {
+			BeforeEach(func() {
+				fs.WriteFile("/dev/xvdba", []byte{})
 				diskSettings = boshsettings.DiskSettings{
-					Path: "not even a device",
+					Path: "/dev/xvdba",
 				}
-				resolver.GetRealDevicePath(diskSettings)
-			}).To(Panic())
+			})
+
+			It("returns the path as given", func() {
+				realPath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
+				Expect(realPath).To(Equal("/dev/xvdba"))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(timedOut).To(BeFalse())
+			})
+		})
+		Context("when path does not exist", func() {
+			BeforeEach(func() {
+				diskSettings = boshsettings.DiskSettings{
+					Path: "/dev/xvdba",
+				}
+			})
+
+			It("returns an error", func() {
+				realPath, timedOut, err := resolver.GetRealDevicePath(diskSettings)
+				Expect(realPath).To(Equal(""))
+				Expect(err).To(HaveOccurred())
+				Expect(timedOut).To(BeTrue())
+			})
 		})
 	})
 })

@@ -7,6 +7,8 @@ jobs:
         trigger: true
       - task: test-unit
         file: bosh-utils/ci/tasks/test-unit.yml
+      - task: test-unit-windows
+        file: bosh-utils/ci/tasks/test-unit-windows.yml
       - put: bosh-utils-promoted
         params:
           repository: bosh-utils

@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	"strings"
 
 	. "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	"strings"
 )
 
 func fixtureSrcDir() string {
@@ -84,6 +86,9 @@ var _ = Describe("tarballCompressor", func() {
 	})
 
 	BeforeEach(func() {
+		if runtime.GOOS == "windows" {
+			Skip("Pending on Windows")
+		}
 		fs.MkdirAll(dstDir, os.ModePerm)
 	})
 

@@ -12,8 +12,7 @@ import (
 )
 
 type Options struct {
-	StaticEphemeralDiskPath string
-	Settings                SettingsOptions
+	Settings SettingsOptions
 }
 
 type SettingsOptions struct {
@@ -30,7 +29,11 @@ type SourceOptions interface {
 }
 
 type HTTPSourceOptions struct {
-	URI string
+	URI            string
+	Headers        map[string]string
+	UserDataPath   string
+	InstanceIDPath string
+	SSHKeysPath    string
 }
 
 func (o HTTPSourceOptions) sourceOptionsInterface() {}
@@ -60,6 +63,14 @@ type CDROMSourceOptions struct {
 }
 
 func (o CDROMSourceOptions) sourceOptionsInterface() {}
+
+type InstanceMetadataSourceOptions struct {
+	URI          string
+	Headers      map[string]string
+	SettingsPath string
+}
+
+func (o InstanceMetadataSourceOptions) sourceOptionsInterface() {}
 
 type SettingsSourceFactory struct {
 	options  SettingsOptions
@@ -98,7 +109,16 @@ func (f SettingsSourceFactory) buildWithRegistry() (boshsettings.Source, error) 
 
 		switch typedOpts := opts.(type) {
 		case HTTPSourceOptions:
-			metadataService = NewHTTPMetadataService(typedOpts.URI, resolver, f.platform, f.logger)
+			metadataService = NewHTTPMetadataService(
+				typedOpts.URI,
+				typedOpts.Headers,
+				typedOpts.UserDataPath,
+				typedOpts.InstanceIDPath,
+				typedOpts.SSHKeysPath,
+				resolver,
+				f.platform,
+				f.logger,
+			)
 
 		case ConfigDriveSourceOptions:
 			metadataService = NewConfigDriveMetadataService(
@@ -121,8 +141,10 @@ func (f SettingsSourceFactory) buildWithRegistry() (boshsettings.Source, error) 
 
 		case CDROMSourceOptions:
 			return nil, bosherr.Error("CDROM source is not supported when registry is used")
-		}
 
+		case InstanceMetadataSourceOptions:
+			return nil, bosherr.Error("Instance Metadata source is not supported when registry is used")
+		}
 		metadataServices = append(metadataServices, metadataService)
 	}
 
@@ -161,6 +183,15 @@ func (f SettingsSourceFactory) buildWithoutRegistry() (boshsettings.Source, erro
 				f.platform,
 				f.logger,
 			)
+
+		case InstanceMetadataSourceOptions:
+			settingsSource = NewInstanceMetadataSettingsSource(
+				typedOpts.URI,
+				typedOpts.Headers,
+				typedOpts.SettingsPath,
+				f.platform,
+				f.logger,
+			)
 		}
 
 		settingsSources = append(settingsSources, settingsSource)
@@ -185,6 +216,10 @@ func (s *SourceOptionsSlice) UnmarshalJSON(data []byte) error {
 			switch {
 			case optType == "HTTP":
 				var o HTTPSourceOptions
+				err, opts = mapstruc.Decode(m, &o), o
+
+			case optType == "InstanceMetadata":
+				var o InstanceMetadataSourceOptions
 				err, opts = mapstruc.Decode(m, &o), o
 
 			case optType == "ConfigDrive":

@@ -1,0 +1,66 @@
+Vagrant.configure(2) do |config|
+  config.vm.box          = 'dummy'
+  config.vm.communicator = 'winrm'
+  config.winrm.username  = "#{ENV['WINRM_USERNAME']}"
+  config.winrm.password  = "#{ENV['WINRM_PASSWORD']}"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provider :vsphere do |vm, override|
+    vm.host                  = "#{ENV['VCENTER_HOST']}"
+    vm.compute_resource_name = "#{ENV['VCENTER_COMPUTE_RESOURCE']}"
+    vm.resource_pool_name    = "#{ENV['VCENTER_RESOURCE_POOL']}"
+    vm.template_name         = "#{ENV['VCENTER_TEMPLATE_NAME']}"
+    vm.vm_base_path          = "#{ENV['VCENTER_VM_BASE_PATH']}"
+    vm.name                  = "#{ENV['VCENTER_VM_NAME']}"
+    vm.user                  = "#{ENV['VCENTER_USERNAME']}"
+    vm.password              = "#{ENV['VCENTER_PASSWORD']}"
+  end
+
+  config.vm.provision 'shell', inline: <<-EOF
+if (Test-Path c:\\bosh){
+  Remove-Item -Recurse c:\\bosh
+}
+
+mkdir C:\\bosh
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+function Unzip
+{
+    param([string]$zipfile, [string]$outpath)
+
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)
+}
+
+Invoke-WebRequest "#{ENV['AGENT_DEPS_ZIP_URL']}" -Verbose -OutFile C:\\bosh\\agent_deps.zip
+Unzip C:\\bosh\\agent_deps.zip C:\\bosh\\
+
+mkdir C:\\var\\vcap\\bosh\\log
+mkdir C:\\var\\vcap\\bosh\\bin
+mv C:\\bosh\\job-service-wrapper.exe C:\\var\\vcap\\bosh\\bin\\job-service-wrapper.exe
+
+Invoke-WebRequest "#{ENV['AGENT_ZIP_URL']}" -Verbose -OutFile C:\\bosh\\agent.zip
+
+Unzip C:\\bosh\\agent.zip C:\\bosh\\
+New-Item -ItemType file -path "C:\\bosh\\agent.json" -Value @"
+{
+  "Platform": {
+    "Linux": {
+      "DevicePathResolutionType": "scsi"
+    }
+  },
+  "Infrastructure": {
+    "Settings": {
+      "Sources": [
+        {
+          "Type": "CDROM",
+          "FileName": "ENV"
+        }
+      ]
+    }
+  }
+}
+"@
+
+C:\\bosh\\service_wrapper.exe install
+C:\\bosh\\service_wrapper.exe start
+  EOF
+end

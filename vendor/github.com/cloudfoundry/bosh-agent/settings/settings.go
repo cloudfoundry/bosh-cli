@@ -2,12 +2,14 @@ package settings
 
 import (
 	"fmt"
+	"github.com/cloudfoundry/bosh-agent/platform/disk"
 )
 
 const (
 	RootUsername        = "root"
 	VCAPUsername        = "vcap"
 	AdminGroup          = "admin"
+	SudoersGroup        = "bosh_sudoers"
 	EphemeralUserPrefix = "bosh_"
 )
 
@@ -37,8 +39,11 @@ type Disks struct {
 	// e.g "/dev/sda", "1"
 	System string `json:"system"`
 
+	// Older CPIs returned disk settings as string
 	// e.g "/dev/sdb", "2"
-	Ephemeral string `json:"ephemeral"`
+	// Newer CPIs will populate it in a hash
+	// e.g {"path" => "/dev/sdc", "volume_id" => "3"}
+	Ephemeral interface{} `json:"ephemeral"`
 
 	// Older CPIs returned disk settings as strings
 	// e.g {"disk-3845-43758-7243-38754" => "/dev/sdc"}
@@ -47,12 +52,16 @@ type Disks struct {
 	// e.g {"disk-3845-43758-7243-38754" => {"path" => "/dev/sdc"}}
 	//     {"disk-3845-43758-7243-38754" => {"volume_id" => "3"}}
 	Persistent map[string]interface{} `json:"persistent"`
+
+	RawEphemeral []DiskSettings `json:"raw_ephemeral"`
 }
 
 type DiskSettings struct {
-	ID       string
-	VolumeID string
-	Path     string
+	ID             string
+	DeviceID       string
+	VolumeID       string
+	Path           string
+	FileSystemType disk.FileSystemType
 }
 
 type VM struct {
@@ -62,19 +71,27 @@ type VM struct {
 func (s Settings) PersistentDiskSettings(diskID string) (DiskSettings, bool) {
 	diskSettings := DiskSettings{}
 
-	for id, settings := range s.Disks.Persistent {
-		if id == diskID {
+	for key, settings := range s.Disks.Persistent {
+		if key == diskID {
 			diskSettings.ID = diskID
 
 			if hashSettings, ok := settings.(map[string]interface{}); ok {
-				diskSettings.Path = hashSettings["path"].(string)
-				diskSettings.VolumeID = hashSettings["volume_id"].(string)
+				if path, ok := hashSettings["path"]; ok {
+					diskSettings.Path = path.(string)
+				}
+				if volumeID, ok := hashSettings["volume_id"]; ok {
+					diskSettings.VolumeID = volumeID.(string)
+				}
+				if deviceID, ok := hashSettings["id"]; ok {
+					diskSettings.DeviceID = deviceID.(string)
+				}
 			} else {
 				// Old CPIs return disk path (string) or volume id (string) as disk settings
 				diskSettings.Path = settings.(string)
 				diskSettings.VolumeID = settings.(string)
 			}
 
+			diskSettings.FileSystemType = s.Env.PersistentDiskFS
 			return diskSettings, true
 		}
 	}
@@ -83,22 +100,54 @@ func (s Settings) PersistentDiskSettings(diskID string) (DiskSettings, bool) {
 }
 
 func (s Settings) EphemeralDiskSettings() DiskSettings {
-	return DiskSettings{
-		VolumeID: s.Disks.Ephemeral,
-		Path:     s.Disks.Ephemeral,
+	diskSettings := DiskSettings{}
+
+	if s.Disks.Ephemeral != nil {
+		if hashSettings, ok := s.Disks.Ephemeral.(map[string]interface{}); ok {
+			if path, ok := hashSettings["path"]; ok {
+				diskSettings.Path = path.(string)
+			}
+			if volumeID, ok := hashSettings["volume_id"]; ok {
+				diskSettings.VolumeID = volumeID.(string)
+			}
+			if deviceID, ok := hashSettings["id"]; ok {
+				diskSettings.DeviceID = deviceID.(string)
+			}
+		} else {
+			// Old CPIs return disk path (string) or volume id (string) as disk settings
+			diskSettings.Path = s.Disks.Ephemeral.(string)
+			diskSettings.VolumeID = s.Disks.Ephemeral.(string)
+		}
 	}
+
+	return diskSettings
+}
+
+func (s Settings) RawEphemeralDiskSettings() (devices []DiskSettings) {
+	return s.Disks.RawEphemeral
 }
 
 type Env struct {
-	Bosh BoshEnv `json:"bosh"`
+	Bosh             BoshEnv             `json:"bosh"`
+	PersistentDiskFS disk.FileSystemType `json:"persistent_disk_fs"`
 }
 
 func (e Env) GetPassword() string {
 	return e.Bosh.Password
 }
 
+func (e Env) GetKeepRootPassword() bool {
+	return e.Bosh.KeepRootPassword
+}
+
+func (e Env) GetRemoveDevTools() bool {
+	return e.Bosh.RemoveDevTools
+}
+
 type BoshEnv struct {
-	Password string `json:"password"`
+	Password         string `json:"password"`
+	KeepRootPassword bool   `json:"keep_root_password"`
+	RemoveDevTools   bool   `json:"remove_dev_tools"`
 }
 
 type NetworkType string
@@ -115,14 +164,21 @@ type Network struct {
 	Netmask  string `json:"netmask"`
 	Gateway  string `json:"gateway"`
 	Resolved bool   `json:"resolved"` // was resolved via DHCP
+	UseDHCP  bool   `json:"use_dhcp"`
 
 	Default []string `json:"default"`
 	DNS     []string `json:"dns"`
 
 	Mac string `json:"mac"`
+
+	Preconfigured bool `json:"preconfigured"`
 }
 
 type Networks map[string]Network
+
+func (n Network) IsDefaultFor(category string) bool {
+	return stringArrayContains(n.Default, category)
+}
 
 func (n Networks) NetworkForMac(mac string) (Network, bool) {
 	for i := range n {
@@ -142,7 +198,7 @@ func (n Networks) DefaultNetworkFor(category string) (Network, bool) {
 	}
 
 	for _, net := range n {
-		if stringArrayContains(net.Default, category) {
+		if net.IsDefaultFor(category) {
 			return net, true
 		}
 	}
@@ -184,8 +240,26 @@ func (n Networks) IPs() (ips []string) {
 	return
 }
 
+func (n Networks) IsPreconfigured() bool {
+	for _, network := range n {
+		if network.IsVIP() {
+			// Skip VIP networks since we do not configure interfaces for them
+			continue
+		}
+
+		if !network.Preconfigured {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n Network) String() string {
-	return fmt.Sprintf("type: '%s', ip: '%s', netmask: '%s', gateway: '%s', mac: '%s', resolved: '%t'", n.Type, n.IP, n.Netmask, n.Gateway, n.Mac, n.Resolved)
+	return fmt.Sprintf(
+		"type: '%s', ip: '%s', netmask: '%s', gateway: '%s', mac: '%s', resolved: '%t', preconfigured: '%t', use_dhcp: '%t'",
+		n.Type, n.IP, n.Netmask, n.Gateway, n.Mac, n.Resolved, n.Preconfigured, n.UseDHCP,
+	)
 }
 
 func (n Network) IsDHCP() bool {
@@ -194,6 +268,10 @@ func (n Network) IsDHCP() bool {
 	}
 
 	if n.isDynamic() {
+		return true
+	}
+
+	if n.UseDHCP {
 		return true
 	}
 
@@ -230,7 +308,8 @@ func (n Network) IsVIP() bool {
 //	"env": {
 //		"bosh": {
 //			"password": null
-//		}
+//      },
+//      "persistent_disk_fs": "xfs"
 //	},
 //  "trusted_certs": "very\nlong\nmultiline\nstring"
 //	"mbus": "https://vcap:b00tstrap@0.0.0.0:6868",

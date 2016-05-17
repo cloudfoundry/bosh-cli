@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	gopath "path"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
 
-	gouuid "github.com/cloudfoundry/bosh-utils/internal/github.com/nu7hatch/gouuid"
+	gouuid "github.com/nu7hatch/gouuid"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -26,8 +27,8 @@ const (
 )
 
 type FakeFileSystem struct {
-	files     map[string]*FakeFileStats
-	filesLock sync.Mutex
+	fileRegistry *FakeFileStatsRegistry
+	filesLock    sync.Mutex
 
 	HomeDirUsername string
 	HomeDirHomePath string
@@ -36,8 +37,8 @@ type FakeFileSystem struct {
 	ExpandPathExpanded string
 	ExpandPathErr      error
 
-	openFiles   map[string]*FakeFile
-	OpenFileErr error
+	openFileRegsitry *FakeFileRegistry
+	OpenFileErr      error
 
 	ReadFileError       error
 	readFileErrorByPath map[string]error
@@ -79,7 +80,7 @@ type FakeFileSystem struct {
 
 	WalkErr error
 
-	TempRootPath string
+	TempRootPath   string
 	strictTempRoot bool
 }
 
@@ -87,7 +88,10 @@ type FakeFileStats struct {
 	FileType FakeFileType
 
 	FileMode os.FileMode
+	Flags    int
 	Username string
+
+	Open bool
 
 	SymlinkTarget string
 
@@ -130,10 +134,17 @@ type FakeFile struct {
 }
 
 func NewFakeFile(path string, fs *FakeFileSystem) *FakeFile {
-	return &FakeFile{
+	fakeFile := &FakeFile{
 		path: path,
 		fs:   fs,
 	}
+	me := fs.fileRegistry.Get(path)
+	if me != nil {
+		fakeFile.Contents = me.Content
+		fakeFile.Stats = me
+		fakeFile.Stats.Open = true
+	}
+	return fakeFile
 }
 
 func (f *FakeFile) Name() string {
@@ -170,6 +181,9 @@ func (f *FakeFile) ReadAt(b []byte, offset int64) (int, error) {
 }
 
 func (f *FakeFile) Close() error {
+	if f.Stats != nil {
+		f.Stats.Open = false
+	}
 	return f.CloseErr
 }
 
@@ -179,8 +193,8 @@ func (f FakeFile) Stat() (os.FileInfo, error) {
 
 func NewFakeFileSystem() *FakeFileSystem {
 	return &FakeFileSystem{
-		files:                map[string]*FakeFileStats{},
-		openFiles:            map[string]*FakeFile{},
+		fileRegistry:         NewFakeFileStatsRegistry(),
+		openFileRegsitry:     NewFakeFileRegistry(),
 		globsMap:             map[string][][]string{},
 		readFileErrorByPath:  map[string]error{},
 		removeAllErrorByPath: map[string]error{},
@@ -193,9 +207,7 @@ func (fs *FakeFileSystem) GetFileTestStat(path string) *FakeFileStats {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
-	path = filepath.Join(path)
-
-	return fs.files[path]
+	return fs.fileRegistry.Get(path)
 }
 
 func (fs *FakeFileSystem) HomeDir(username string) (string, error) {
@@ -213,7 +225,7 @@ func (fs *FakeFileSystem) ExpandPath(path string) (string, error) {
 }
 
 func (fs *FakeFileSystem) RegisterMkdirAllError(path string, err error) {
-	path = filepath.Join(path)
+	path = gopath.Join(path)
 	if _, ok := fs.mkdirAllErrorByPath[path]; ok {
 		panic(fmt.Sprintf("MkdirAll error is already set for path: %s", path))
 	}
@@ -228,7 +240,7 @@ func (fs *FakeFileSystem) MkdirAll(path string, perm os.FileMode) error {
 		return fs.MkdirAllError
 	}
 
-	path = filepath.Join(path)
+	path = gopath.Join(path)
 
 	if fs.mkdirAllErrorByPath[path] != nil {
 		return fs.mkdirAllErrorByPath[path]
@@ -237,12 +249,21 @@ func (fs *FakeFileSystem) MkdirAll(path string, perm os.FileMode) error {
 	stats := fs.getOrCreateFile(path)
 	stats.FileMode = perm
 	stats.FileType = FakeFileTypeDir
+	fs.fileRegistry.Register(path, stats)
+
 	return nil
 }
 
 func (fs *FakeFileSystem) RegisterOpenFile(path string, file *FakeFile) {
-	path = filepath.Join(path)
-	fs.openFiles[path] = file
+	path = gopath.Join(path)
+	fs.openFileRegsitry.Register(path, file)
+}
+
+func (fs *FakeFileSystem) FindFileStats(path string) (*FakeFileStats, error) {
+	if stats := fs.fileRegistry.Get(path); stats != nil {
+		return stats, nil
+	}
+	return nil, fmt.Errorf("Path does not exist: %s", path)
 }
 
 func (fs *FakeFileSystem) OpenFile(path string, flag int, perm os.FileMode) (boshsys.File, error) {
@@ -253,22 +274,18 @@ func (fs *FakeFileSystem) OpenFile(path string, flag int, perm os.FileMode) (bos
 		return nil, fs.OpenFileErr
 	}
 
-	path = filepath.Join(path)
-
 	// Make sure to record a reference for FileExist, etc. to work
 	stats := fs.getOrCreateFile(path)
 	stats.FileMode = perm
+	stats.Flags = flag
 	stats.FileType = FakeFileTypeFile
 
-	if fs.openFiles[path] != nil {
-		return fs.openFiles[path], nil
+	if openFile := fs.openFileRegsitry.Get(path); openFile != nil {
+		return openFile, nil
 	}
+	file := NewFakeFile(path, fs)
 
-	file := &FakeFile{
-		path: path,
-		fs:   fs,
-	}
-
+	fs.RegisterOpenFile(path, file)
 	return file, nil
 }
 
@@ -281,9 +298,7 @@ func (fs *FakeFileSystem) Chown(path, username string) error {
 		return fs.ChownErr
 	}
 
-	path = filepath.Join(path)
-
-	stats := fs.files[path]
+	stats := fs.fileRegistry.Get(path)
 	if stats == nil {
 		return fmt.Errorf("Path does not exist: %s", path)
 	}
@@ -301,9 +316,7 @@ func (fs *FakeFileSystem) Chmod(path string, perm os.FileMode) error {
 		return fs.ChmodErr
 	}
 
-	path = filepath.Join(path)
-
-	stats := fs.files[path]
+	stats := fs.fileRegistry.Get(path)
 	if stats == nil {
 		return fmt.Errorf("Path does not exist: %s", path)
 	}
@@ -328,9 +341,8 @@ func (fs *FakeFileSystem) WriteFile(path string, content []byte) (err error) {
 		return error
 	}
 
-	path = filepath.Join(path)
-
-	parent := filepath.Dir(path)
+	path = fs.fileRegistry.UnifiedPath(path)
+	parent := gopath.Dir(path)
 	if parent != "." {
 		fs.writeDir(parent)
 	}
@@ -342,8 +354,10 @@ func (fs *FakeFileSystem) WriteFile(path string, content []byte) (err error) {
 }
 
 func (fs *FakeFileSystem) writeDir(path string) (err error) {
-	parent := filepath.Dir(path)
-	if parent != "." && parent != "/" {
+	parent := gopath.Dir(path)
+
+	grandparent := gopath.Dir(parent)
+	if grandparent != parent {
 		fs.writeDir(parent)
 	}
 
@@ -419,14 +433,14 @@ func (fs *FakeFileSystem) Rename(oldPath, newPath string) error {
 		return fs.RenameError
 	}
 
-	oldPath = filepath.Join(oldPath)
-	newPath = filepath.Join(newPath)
+	oldPath = fs.fileRegistry.UnifiedPath(oldPath)
+	newPath = fs.fileRegistry.UnifiedPath(newPath)
 
-	if fs.files[filepath.Dir(newPath)] == nil {
+	if fs.fileRegistry.Get(gopath.Dir(newPath)) == nil {
 		return errors.New("Parent directory does not exist")
 	}
 
-	stats := fs.files[oldPath]
+	stats := fs.fileRegistry.Get(oldPath)
 	if stats == nil {
 		return errors.New("Old path did not exist")
 	}
@@ -438,6 +452,7 @@ func (fs *FakeFileSystem) Rename(oldPath, newPath string) error {
 	newStats.Content = stats.Content
 	newStats.FileMode = stats.FileMode
 	newStats.FileType = stats.FileType
+	newStats.Flags = stats.Flags
 
 	// Ignore error from RemoveAll
 	fs.removeAll(oldPath)
@@ -452,7 +467,7 @@ func (fs *FakeFileSystem) Symlink(oldPath, newPath string) (err error) {
 	if fs.SymlinkError == nil {
 		stats := fs.getOrCreateFile(newPath)
 		stats.FileType = FakeFileTypeSymlink
-		stats.SymlinkTarget = oldPath
+		stats.SymlinkTarget = fs.fileRegistry.UnifiedPath(oldPath)
 		return
 	}
 
@@ -465,7 +480,7 @@ func (fs *FakeFileSystem) ReadLink(symlinkPath string) (string, error) {
 		return "", fs.ReadLinkError
 	}
 
-	symlinkPath = filepath.Join(symlinkPath)
+	symlinkPath = gopath.Join(symlinkPath)
 
 	stat := fs.GetFileTestStat(symlinkPath)
 	if stat != nil {
@@ -483,15 +498,12 @@ func (fs *FakeFileSystem) CopyFile(srcPath, dstPath string) error {
 		return fs.CopyFileError
 	}
 
-	srcPath = filepath.Join(srcPath)
-	dstPath = filepath.Join(dstPath)
-
-	srcFile, found := fs.files[srcPath]
-	if !found {
+	srcFile := fs.fileRegistry.Get(srcPath)
+	if srcFile == nil {
 		return errors.New(fmt.Sprintf("%s doesn't exist", srcPath))
 	}
 
-	fs.files[dstPath] = srcFile
+	fs.fileRegistry.Register(dstPath, srcFile)
 	return nil
 }
 
@@ -503,13 +515,13 @@ func (fs *FakeFileSystem) CopyDir(srcPath, dstPath string) error {
 		return fs.CopyDirError
 	}
 
-	srcPath = filepath.Join(srcPath) + string(os.PathSeparator)
-	dstPath = filepath.Join(dstPath)
+	srcPath = fs.fileRegistry.UnifiedPath(srcPath) + "/"
+	dstPath = fs.fileRegistry.UnifiedPath(dstPath)
 
-	for filePath, fileStats := range fs.files {
+	for filePath, fileStats := range fs.fileRegistry.GetAll() {
 		if strings.HasPrefix(filePath, srcPath) {
-			dstPath := filepath.Join(dstPath, filePath[len(srcPath)-1:])
-			fs.files[dstPath] = fileStats
+			dstPath := gopath.Join(dstPath, filePath[len(srcPath)-1:])
+			fs.fileRegistry.Register(dstPath, fileStats)
 		}
 	}
 
@@ -517,7 +529,7 @@ func (fs *FakeFileSystem) CopyDir(srcPath, dstPath string) error {
 }
 
 func (fs *FakeFileSystem) ChangeTempRoot(tempRootPath string) error {
-	if (fs.ChangeTempRootErr != nil){
+	if fs.ChangeTempRootErr != nil {
 		return fs.ChangeTempRootErr
 	}
 	fs.TempRootPath = tempRootPath
@@ -543,9 +555,9 @@ func (fs *FakeFileSystem) TempFile(prefix string) (file boshsys.File, err error)
 	if fs.ReturnTempFile != nil {
 		file = fs.ReturnTempFile
 	} else {
-		file, err = os.Open("/dev/null")
+		file, err = os.Open(os.DevNull)
 		if err != nil {
-			err = bosherr.WrapError(err, "Opening /dev/null")
+			err = bosherr.WrapError(err, fmt.Sprintf("Opening %s", os.DevNull))
 			return
 		}
 	}
@@ -612,8 +624,7 @@ func (fs *FakeFileSystem) RemoveAll(path string) error {
 		return fs.RemoveAllError
 	}
 
-	path = filepath.Join(path)
-
+	path = fs.fileRegistry.UnifiedPath(path)
 	if fs.removeAllErrorByPath[path] != nil {
 		return fs.removeAllErrorByPath[path]
 	}
@@ -622,27 +633,25 @@ func (fs *FakeFileSystem) RemoveAll(path string) error {
 }
 
 func (fs *FakeFileSystem) removeAll(path string) error {
-	path = filepath.Join(path)
-
-	fileInfo := fs.files[path]
+	fileInfo := fs.fileRegistry.Get(path)
 	if fileInfo != nil {
-		delete(fs.files, path)
+		fs.fileRegistry.Remove(path)
 		if fileInfo.FileType != FakeFileTypeDir {
 			return nil
 		}
 	}
 
 	// path must be a dir
-	path = path + string(os.PathSeparator)
+	path = path + "/"
 
 	filesToRemove := []string{}
-	for name := range fs.files {
+	for name := range fs.fileRegistry.GetAll() {
 		if strings.HasPrefix(name, path) {
 			filesToRemove = append(filesToRemove, name)
 		}
 	}
 	for _, name := range filesToRemove {
-		delete(fs.files, name)
+		fs.fileRegistry.Remove(name)
 	}
 
 	return nil
@@ -667,14 +676,14 @@ func (fs *FakeFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
 	}
 
 	var paths []string
-	for path := range fs.files {
+	for path := range fs.fileRegistry.GetAll() {
 		paths = append(paths, path)
 	}
 	sort.Strings(paths)
 
-	root = filepath.Join(root) + string(os.PathSeparator)
+	root = gopath.Join(root) + "/"
 	for _, path := range paths {
-		fileStats := fs.files[path]
+		fileStats := fs.fileRegistry.Get(path)
 		if strings.HasPrefix(path, root) {
 			fakeFile := NewFakeFile(path, fs)
 			fakeFile.Stats = fileStats
@@ -694,11 +703,64 @@ func (fs *FakeFileSystem) SetGlob(pattern string, matches ...[]string) {
 }
 
 func (fs *FakeFileSystem) getOrCreateFile(path string) *FakeFileStats {
-	path = filepath.Join(path)
-	stats := fs.files[path]
+	stats := fs.fileRegistry.Get(path)
 	if stats == nil {
 		stats = new(FakeFileStats)
-		fs.files[path] = stats
+		fs.fileRegistry.Register(path, stats)
 	}
 	return stats
+}
+
+type FakeFileStatsRegistry struct {
+	files map[string]*FakeFileStats
+}
+
+func NewFakeFileStatsRegistry() *FakeFileStatsRegistry {
+	return &FakeFileStatsRegistry{
+		files: map[string]*FakeFileStats{},
+	}
+}
+
+func (fsr *FakeFileStatsRegistry) Register(path string, stats *FakeFileStats) {
+	fsr.files[fsr.UnifiedPath(path)] = stats
+}
+
+func (fsr *FakeFileStatsRegistry) Get(path string) *FakeFileStats {
+	return fsr.files[fsr.UnifiedPath(path)]
+}
+
+func (fsr *FakeFileStatsRegistry) GetAll() map[string]*FakeFileStats {
+	return fsr.files
+}
+
+func (fsr *FakeFileStatsRegistry) Remove(path string) {
+	delete(fsr.files, fsr.UnifiedPath(path))
+}
+
+func (fsr *FakeFileStatsRegistry) UnifiedPath(path string) string {
+	path = strings.TrimPrefix(path, filepath.VolumeName(path))
+	return filepath.ToSlash(gopath.Join(path))
+}
+
+type FakeFileRegistry struct {
+	files map[string]*FakeFile
+}
+
+func NewFakeFileRegistry() *FakeFileRegistry {
+	return &FakeFileRegistry{
+		files: map[string]*FakeFile{},
+	}
+}
+
+func (ffr *FakeFileRegistry) Register(path string, file *FakeFile) {
+	ffr.files[ffr.UnifiedPath(path)] = file
+}
+
+func (ffr *FakeFileRegistry) Get(path string) *FakeFile {
+	return ffr.files[ffr.UnifiedPath(path)]
+}
+
+func (ffr *FakeFileRegistry) UnifiedPath(path string) string {
+	path = strings.TrimPrefix(path, filepath.VolumeName(path))
+	return filepath.ToSlash(gopath.Join(path))
 }

@@ -1,27 +1,31 @@
 package disk
 
 import (
-	"path/filepath"
+	"path"
 
 	boshdevutil "github.com/cloudfoundry/bosh-agent/platform/deviceutil"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"strconv"
+	"strings"
 )
 
 type diskUtil struct {
 	diskPath string
 	mounter  Mounter
+	runner   boshsys.CmdRunner
 	fs       boshsys.FileSystem
 
 	logTag string
 	logger boshlog.Logger
 }
 
-func NewDiskUtil(diskPath string, mounter Mounter, fs boshsys.FileSystem, logger boshlog.Logger) boshdevutil.DeviceUtil {
+func NewDiskUtil(diskPath string, runner boshsys.CmdRunner, mounter Mounter, fs boshsys.FileSystem, logger boshlog.Logger) boshdevutil.DeviceUtil {
 	return diskUtil{
 		diskPath: diskPath,
 		mounter:  mounter,
+		runner:   runner,
 		fs:       fs,
 
 		logTag: "diskUtil",
@@ -39,7 +43,9 @@ func (util diskUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 		return [][]byte{}, bosherr.WrapError(err, "Creating temporary disk mount point")
 	}
 
-	defer util.fs.RemoveAll(tempDir)
+	defer func() {
+		_ = util.fs.RemoveAll(tempDir)
+	}()
 
 	err = util.mounter.Mount(util.diskPath, tempDir)
 	if err != nil {
@@ -51,14 +57,16 @@ func (util diskUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 	contents := [][]byte{}
 
 	for _, fileName := range fileNames {
-		diskFilePath := filepath.Join(tempDir, fileName)
+		diskFilePath := path.Join(tempDir, fileName)
 
 		util.logger.Debug(util.logTag, "Reading contents of '%s'", diskFilePath)
 
 		content, err := util.fs.ReadFile(diskFilePath)
 		if err != nil {
 			// todo unmount before removing
-			util.unmount(tempDir)
+			if uErr := util.unmount(tempDir); uErr != nil {
+				util.logger.Warn(util.logTag, "Failed to unmount temp dir: %s", uErr.Error())
+			}
 			return [][]byte{}, bosherr.WrapErrorf(err, "Reading from disk file '%s'", diskFilePath)
 		}
 
@@ -73,6 +81,20 @@ func (util diskUtil) GetFilesContents(fileNames []string) ([][]byte, error) {
 	}
 
 	return contents, nil
+}
+
+func (util diskUtil) GetBlockDeviceSize() (size uint64, err error) {
+	stdout, _, _, err := util.runner.RunCommand("lsblk", "--nodeps", "-nb", "-o", "SIZE", util.diskPath)
+	if err != nil {
+		util.logger.Error(util.logTag, "Getting the Block Device size of '%s': %s", util.diskPath, err.Error())
+		return 0, err
+	}
+	deviceSize, err := strconv.Atoi(strings.Trim(stdout, "\n"))
+	if err != nil {
+		util.logger.Error(util.logTag, "Converting the Block Device size of '%s': %s", util.diskPath, err.Error())
+		return 0, err
+	}
+	return uint64(deviceSize), nil
 }
 
 func (util diskUtil) unmount(tempDir string) error {

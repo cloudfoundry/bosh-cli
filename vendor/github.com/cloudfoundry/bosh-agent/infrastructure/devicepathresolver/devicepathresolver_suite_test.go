@@ -1,9 +1,10 @@
 package devicepathresolver_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 func TestDevicepathresolver(t *testing.T) {

@@ -26,6 +26,7 @@ type Platform interface {
 	DeleteEphemeralUsersMatching(regex string) (err error)
 
 	// Bootstrap functionality
+	SetupRootDisk(ephemeralDiskPath string) (err error)
 	SetupSSH(publicKey, username string) (err error)
 	SetUserPassword(user, encryptedPwd string) (err error)
 	SetupHostname(hostname string) (err error)
@@ -33,6 +34,7 @@ type Platform interface {
 	SetupLogrotate(groupName, basePath, size string) (err error)
 	SetTimeWithNtpServers(servers []string) (err error)
 	SetupEphemeralDiskWithPath(devicePath string) (err error)
+	SetupRawEphemeralDisks(devices []boshsettings.DiskSettings) (err error)
 	SetupDataDir() (err error)
 	SetupTmpDir() (err error)
 	SetupMonitUser() (err error)
@@ -44,8 +46,9 @@ type Platform interface {
 	UnmountPersistentDisk(diskSettings boshsettings.DiskSettings) (didUnmount bool, err error)
 	MigratePersistentDisk(fromMountPoint, toMountPoint string) (err error)
 	GetEphemeralDiskPath(diskSettings boshsettings.DiskSettings) string
-	IsMountPoint(path string) (result bool, err error)
+	IsMountPoint(path string) (partitionPath string, result bool, err error)
 	IsPersistentDiskMounted(diskSettings boshsettings.DiskSettings) (result bool, err error)
+	IsPersistentDiskMountable(diskSettings boshsettings.DiskSettings) (bool, error)
 
 	GetFileContentsFromCDROM(filePath string) (contents []byte, err error)
 	GetFilesContentsFromDisk(diskPath string, fileNames []string) (contents [][]byte, err error)
@@ -54,9 +57,14 @@ type Platform interface {
 	GetDefaultNetwork() (boshsettings.Network, error)
 	GetConfiguredNetworkInterfaces() ([]string, error)
 	PrepareForNetworkingChange() error
+	DeleteARPEntryWithIP(ip string) error
 
 	// Additional monit management
 	GetMonitCredentials() (username, password string, err error)
 
 	GetCertManager() cert.Manager
+
+	GetHostPublicKey() (string, error)
+
+	RemoveDevTools(packageFileListPath string) error
 }

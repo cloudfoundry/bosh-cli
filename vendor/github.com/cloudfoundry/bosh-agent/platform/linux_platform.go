@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -41,6 +41,7 @@ const (
 	sshAuthKeysFilePermissions = os.FileMode(0600)
 
 	minRootEphemeralSpaceInBytes = uint64(1024 * 1024 * 1024)
+	maxFdiskPartitionSize        = uint64(2 * 1024 * 1024 * 1024 * 1024)
 )
 
 type LinuxOptions struct {
@@ -60,9 +61,15 @@ type LinuxOptions struct {
 	// ephemeral disk
 	CreatePartitionIfNoEphemeralDisk bool
 
+	// When set to true the agent will skip both root and ephemeral disk partitioning
+	SkipDiskSetup bool
+
 	// Strategy for resolving device paths;
 	// possible values: virtio, scsi, ''
 	DevicePathResolutionType string
+
+	// Device prexix when using virtio (defaults to 'virtio')
+	VirtioDevicePrefix string
 }
 
 type linux struct {
@@ -81,6 +88,7 @@ type linux struct {
 	devicePathResolver     boshdpresolv.DevicePathResolver
 	diskScanDuration       time.Duration
 	options                LinuxOptions
+	state                  *BootstrapState
 	logger                 boshlog.Logger
 	defaultNetworkResolver boshsettings.DefaultNetworkResolver
 }
@@ -100,6 +108,7 @@ func NewLinuxPlatform(
 	monitRetryStrategy boshretry.RetryStrategy,
 	devicePathResolver boshdpresolv.DevicePathResolver,
 	diskScanDuration time.Duration,
+	state *BootstrapState,
 	options LinuxOptions,
 	logger boshlog.Logger,
 	defaultNetworkResolver boshsettings.DefaultNetworkResolver,
@@ -119,6 +128,7 @@ func NewLinuxPlatform(
 		monitRetryStrategy:     monitRetryStrategy,
 		devicePathResolver:     devicePathResolver,
 		diskScanDuration:       diskScanDuration,
+		state:                  state,
 		options:                options,
 		logger:                 logger,
 		defaultNetworkResolver: defaultNetworkResolver,
@@ -180,6 +190,15 @@ func (p linux) GetCertManager() boshcert.Manager {
 	return p.certManager
 }
 
+func (p linux) GetHostPublicKey() (string, error) {
+	hostPublicKeyPath := "/etc/ssh/ssh_host_rsa_key.pub"
+	hostPublicKey, err := p.fs.ReadFileString(hostPublicKeyPath)
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "Unable to read host public key file: %s", hostPublicKeyPath)
+	}
+	return hostPublicKey, nil
+}
+
 func (p linux) SetupRuntimeConfiguration() (err error) {
 	_, _, _, err = p.cmdRunner.RunCommand("bosh-agent-rc")
 	if err != nil {
@@ -188,11 +207,10 @@ func (p linux) SetupRuntimeConfiguration() (err error) {
 	return
 }
 
-func (p linux) CreateUser(username, password, basePath string) (err error) {
-	p.fs.MkdirAll(basePath, userBaseDirPermissions)
+func (p linux) CreateUser(username, password, basePath string) error {
+	err := p.fs.MkdirAll(basePath, userBaseDirPermissions)
 	if err != nil {
-		err = bosherr.WrapError(err, "Making user base path")
-		return
+		return bosherr.WrapError(err, "Making user base path")
 	}
 
 	args := []string{"-m", "-b", basePath, "-s", "/bin/bash"}
@@ -205,37 +223,37 @@ func (p linux) CreateUser(username, password, basePath string) (err error) {
 
 	_, _, _, err = p.cmdRunner.RunCommand("useradd", args...)
 	if err != nil {
-		err = bosherr.WrapError(err, "Shelling out to useradd")
-		return
+		return bosherr.WrapError(err, "Shelling out to useradd")
 	}
-	return
+	return nil
 }
 
-func (p linux) AddUserToGroups(username string, groups []string) (err error) {
-	_, _, _, err = p.cmdRunner.RunCommand("usermod", "-G", strings.Join(groups, ","), username)
+func (p linux) AddUserToGroups(username string, groups []string) error {
+	_, _, _, err := p.cmdRunner.RunCommand("usermod", "-G", strings.Join(groups, ","), username)
 	if err != nil {
-		err = bosherr.WrapError(err, "Shelling out to usermod")
+		return bosherr.WrapError(err, "Shelling out to usermod")
 	}
-	return
+	return nil
 }
 
-func (p linux) DeleteEphemeralUsersMatching(reg string) (err error) {
+func (p linux) DeleteEphemeralUsersMatching(reg string) error {
 	compiledReg, err := regexp.Compile(reg)
 	if err != nil {
-		err = bosherr.WrapError(err, "Compiling regexp")
-		return
+		return bosherr.WrapError(err, "Compiling regexp")
 	}
 
 	matchingUsers, err := p.findEphemeralUsersMatching(compiledReg)
 	if err != nil {
-		err = bosherr.WrapError(err, "Finding ephemeral users")
-		return
+		return bosherr.WrapError(err, "Finding ephemeral users")
 	}
 
 	for _, user := range matchingUsers {
-		p.deleteUser(user)
+		err = p.deleteUser(user)
+		if err != nil {
+			return bosherr.WrapError(err, "Deleting user")
+		}
 	}
-	return
+	return nil
 }
 
 func (p linux) deleteUser(user string) (err error) {
@@ -262,28 +280,86 @@ func (p linux) findEphemeralUsersMatching(reg *regexp.Regexp) (matchingUsers []s
 	return
 }
 
-func (p linux) SetupSSH(publicKey, username string) (err error) {
+func (p linux) SetupRootDisk(ephemeralDiskPath string) error {
+	if p.options.SkipDiskSetup {
+		return nil
+	}
+
+	//if there is ephemeral disk we can safely autogrow, if not we should not.
+	if (ephemeralDiskPath == "") && (p.options.CreatePartitionIfNoEphemeralDisk == true) {
+		p.logger.Info(logTag, "No Ephemeral Disk provided, Skipping growing of the Root Filesystem")
+		return nil
+	}
+
+	// in case growpart is not available for another flavour of linux, don't stop the agent from running,
+	// without this integration-test would not run since the bosh-lite vm doesn't have it
+	if p.cmdRunner.CommandExists("growpart") == false {
+		p.logger.Info(logTag, "The program 'growpart' is not installed, Root Filesystem cannot be grown")
+		return nil
+	}
+
+	rootDevicePath, _, err := p.findRootDevicePathAndNumber()
+	if err != nil {
+		return bosherr.WrapError(err, "findRootDevicePath")
+	}
+
+	stdout, _, _, err := p.cmdRunner.RunCommand(
+		"growpart",
+		rootDevicePath,
+		"1",
+	)
+
+	if err != nil {
+		if strings.Contains(stdout, "NOCHANGE") == false {
+			return bosherr.WrapError(err, "growpart")
+		}
+	}
+
+	_, _, _, err = p.cmdRunner.RunCommand(
+		"resize2fs",
+		"-f",
+		fmt.Sprintf("%s1", rootDevicePath),
+	)
+
+	if err != nil {
+		return bosherr.WrapError(err, "resize2fs")
+	}
+
+	return nil
+}
+
+func (p linux) SetupSSH(publicKey, username string) error {
 	homeDir, err := p.fs.HomeDir(username)
 	if err != nil {
-		err = bosherr.WrapError(err, "Finding home dir for user")
-		return
+		return bosherr.WrapError(err, "Finding home dir for user")
 	}
 
-	sshPath := filepath.Join(homeDir, ".ssh")
-	p.fs.MkdirAll(sshPath, sshDirPermissions)
-	p.fs.Chown(sshPath, username)
+	sshPath := path.Join(homeDir, ".ssh")
+	err = p.fs.MkdirAll(sshPath, sshDirPermissions)
+	if err != nil {
+		return bosherr.WrapError(err, "Making ssh directory")
+	}
+	err = p.fs.Chown(sshPath, username)
+	if err != nil {
+		return bosherr.WrapError(err, "Chowning ssh directory")
+	}
 
-	authKeysPath := filepath.Join(sshPath, "authorized_keys")
+	authKeysPath := path.Join(sshPath, "authorized_keys")
 	err = p.fs.WriteFileString(authKeysPath, publicKey)
 	if err != nil {
-		err = bosherr.WrapError(err, "Creating authorized_keys file")
-		return
+		return bosherr.WrapError(err, "Creating authorized_keys file")
 	}
 
-	p.fs.Chown(authKeysPath, username)
-	p.fs.Chmod(authKeysPath, sshAuthKeysFilePermissions)
+	err = p.fs.Chown(authKeysPath, username)
+	if err != nil {
+		return bosherr.WrapError(err, "Chowning key path")
+	}
+	err = p.fs.Chmod(authKeysPath, sshAuthKeysFilePermissions)
+	if err != nil {
+		return bosherr.WrapError(err, "Chmoding key path")
+	}
 
-	return
+	return nil
 }
 
 func (p linux) SetUserPassword(user, encryptedPwd string) (err error) {
@@ -294,33 +370,39 @@ func (p linux) SetUserPassword(user, encryptedPwd string) (err error) {
 	return
 }
 
-func (p linux) SetupHostname(hostname string) (err error) {
-	_, _, _, err = p.cmdRunner.RunCommand("hostname", hostname)
-	if err != nil {
-		err = bosherr.WrapError(err, "Shelling out to hostname")
-		return
+func (p linux) SetupHostname(hostname string) error {
+	if !p.state.Linux.HostsConfigured {
+		_, _, _, err := p.cmdRunner.RunCommand("hostname", hostname)
+		if err != nil {
+			return bosherr.WrapError(err, "Setting hostname")
+		}
+
+		err = p.fs.WriteFileString("/etc/hostname", hostname)
+		if err != nil {
+			return bosherr.WrapError(err, "Writing to /etc/hostname")
+		}
+
+		buffer := bytes.NewBuffer([]byte{})
+		t := template.Must(template.New("etc-hosts").Parse(etcHostsTemplate))
+
+		err = t.Execute(buffer, hostname)
+		if err != nil {
+			return bosherr.WrapError(err, "Generating config from template")
+		}
+
+		err = p.fs.WriteFile("/etc/hosts", buffer.Bytes())
+		if err != nil {
+			return bosherr.WrapError(err, "Writing to /etc/hosts")
+		}
+
+		p.state.Linux.HostsConfigured = true
+		err = p.state.SaveState()
+		if err != nil {
+			return bosherr.WrapError(err, "Setting up hostname")
+		}
 	}
 
-	err = p.fs.WriteFileString("/etc/hostname", hostname)
-	if err != nil {
-		err = bosherr.WrapError(err, "Writing /etc/hostname")
-		return
-	}
-
-	buffer := bytes.NewBuffer([]byte{})
-	t := template.Must(template.New("etc-hosts").Parse(etcHostsTemplate))
-
-	err = t.Execute(buffer, hostname)
-	if err != nil {
-		err = bosherr.WrapError(err, "Generating config from template")
-		return
-	}
-
-	err = p.fs.WriteFile("/etc/hosts", buffer.Bytes())
-	if err != nil {
-		err = bosherr.WrapError(err, "Writing to /etc/hosts")
-	}
-	return
+	return nil
 }
 
 const etcHostsTemplate = `127.0.0.1 localhost {{ . }}
@@ -349,7 +431,7 @@ func (p linux) SetupLogrotate(groupName, basePath, size string) (err error) {
 		return
 	}
 
-	err = p.fs.WriteFile(filepath.Join("/etc/logrotate.d", groupName), buffer.Bytes())
+	err = p.fs.WriteFile(path.Join("/etc/logrotate.d", groupName), buffer.Bytes())
 	if err != nil {
 		err = bosherr.WrapError(err, "Writing to /etc/logrotate.d")
 		return
@@ -359,9 +441,10 @@ func (p linux) SetupLogrotate(groupName, basePath, size string) (err error) {
 }
 
 // Logrotate config file - /etc/logrotate.d/<group-name>
+// Stemcell stage logrotate_config configures logrotate to run every hour
 const etcLogrotateDTemplate = `# Generated by bosh-agent
 
-{{ .BasePath }}/data/sys/log/*.log {{ .BasePath }}/data/sys/log/*/*.log {{ .BasePath }}/data/sys/log/*/*/*.log {
+{{ .BasePath }}/data/sys/log/*.log {{ .BasePath }}/data/sys/log/.*.log {{ .BasePath }}/data/sys/log/*/*.log {{ .BasePath }}/data/sys/log/*/.*.log {{ .BasePath }}/data/sys/log/*/*/*.log {{ .BasePath }}/data/sys/log/*/*/.*.log {
   missingok
   rotate 7
   compress
@@ -372,7 +455,7 @@ const etcLogrotateDTemplate = `# Generated by bosh-agent
 `
 
 func (p linux) SetTimeWithNtpServers(servers []string) (err error) {
-	serversFilePath := filepath.Join(p.dirProvider.BaseDir(), "/bosh/etc/ntpserver")
+	serversFilePath := path.Join(p.dirProvider.BaseDir(), "/bosh/etc/ntpserver")
 	if len(servers) == 0 {
 		return
 	}
@@ -389,6 +472,10 @@ func (p linux) SetTimeWithNtpServers(servers []string) (err error) {
 }
 
 func (p linux) SetupEphemeralDiskWithPath(realPath string) error {
+	if p.options.SkipDiskSetup {
+		return nil
+	}
+
 	p.logger.Info(logTag, "Setting up ephemeral disk...")
 	mountPoint := p.dirProvider.DataDir()
 
@@ -462,12 +549,69 @@ func (p linux) SetupEphemeralDiskWithPath(realPath string) error {
 	return nil
 }
 
+func (p linux) SetupRawEphemeralDisks(devices []boshsettings.DiskSettings) (err error) {
+	if p.options.SkipDiskSetup {
+		return nil
+	}
+
+	p.logger.Info(logTag, "Setting up raw ephemeral disks")
+
+	for i, device := range devices {
+		realPath, _, err := p.devicePathResolver.GetRealDevicePath(device)
+		if err != nil {
+			return bosherr.WrapError(err, "Getting real device path")
+		}
+
+		// check if device is already partitioned correctly
+		stdout, stderr, _, err := p.cmdRunner.RunCommand(
+			"parted",
+			"-s",
+			realPath,
+			"p",
+		)
+
+		if err != nil {
+			// "unrecognised disk label" is acceptable, since the disk may not have been partitioned
+			if strings.Contains(stdout, "unrecognised disk label") == false &&
+				strings.Contains(stderr, "unrecognised disk label") == false {
+				return bosherr.WrapError(err, "Setting up raw ephemeral disks")
+			}
+		}
+
+		if strings.Contains(stdout, "Partition Table: gpt") && strings.Contains(stdout, "raw-ephemeral-") {
+			continue
+		}
+
+		// change to gpt partition type, change units to percentage, make partition with name and span from 0-100%
+		p.logger.Info(logTag, "Creating partition on `%s'", realPath)
+		_, _, _, err = p.cmdRunner.RunCommand(
+			"parted",
+			"-s",
+			realPath,
+			"mklabel",
+			"gpt",
+			"unit",
+			"%",
+			"mkpart",
+			fmt.Sprintf("raw-ephemeral-%d", i),
+			"0",
+			"100",
+		)
+
+		if err != nil {
+			return bosherr.WrapError(err, "Setting up raw ephemeral disks")
+		}
+	}
+
+	return nil
+}
+
 func (p linux) SetupDataDir() error {
 	dataDir := p.dirProvider.DataDir()
 
-	sysDataDir := filepath.Join(dataDir, "sys")
+	sysDataDir := path.Join(dataDir, "sys")
 
-	logDir := filepath.Join(sysDataDir, "log")
+	logDir := path.Join(sysDataDir, "log")
 	err := p.fs.MkdirAll(logDir, logDirPermissions)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Making %s dir", logDir)
@@ -488,7 +632,7 @@ func (p linux) SetupDataDir() error {
 		return err
 	}
 
-	sysDir := filepath.Join(filepath.Dir(dataDir), "sys")
+	sysDir := path.Join(path.Dir(dataDir), "sys")
 	err = p.fs.Symlink(sysDataDir, sysDir)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Symlinking '%s' to '%s'", sysDir, sysDataDir)
@@ -498,9 +642,9 @@ func (p linux) SetupDataDir() error {
 }
 
 func (p linux) setupRunDir(sysDir string) error {
-	runDir := filepath.Join(sysDir, "run")
+	runDir := path.Join(sysDir, "run")
 
-	runDirIsMounted, err := p.IsMountPoint(runDir)
+	_, runDirIsMounted, err := p.IsMountPoint(runDir)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Checking for mount point %s", runDir)
 	}
@@ -528,7 +672,7 @@ func (p linux) setupRunDir(sysDir string) error {
 func (p linux) SetupTmpDir() error {
 	systemTmpDir := "/tmp"
 	boshTmpDir := p.dirProvider.TmpDir()
-	boshRootTmpPath := filepath.Join(p.dirProvider.DataDir(), "root_tmp")
+	boshRootTmpPath := path.Join(p.dirProvider.DataDir(), "root_tmp")
 
 	err := p.fs.MkdirAll(boshTmpDir, tmpDirPermissions)
 	if err != nil {
@@ -555,38 +699,34 @@ func (p linux) SetupTmpDir() error {
 		return nil
 	}
 
-	systemTmpDirIsMounted, err := p.IsMountPoint(systemTmpDir)
+	_, _, _, err = p.cmdRunner.RunCommand("mkdir", "-p", boshRootTmpPath)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Checking for mount point %s", systemTmpDir)
+		return bosherr.WrapError(err, "Creating root tmp dir")
 	}
 
-	if !systemTmpDirIsMounted {
-		// If it's not mounted on /tmp, blow it away
-		_, _, _, err = p.cmdRunner.RunCommand("truncate", "-s", "128M", boshRootTmpPath)
-		if err != nil {
-			return bosherr.WrapError(err, "Truncating root tmp dir")
-		}
+	bindMounter := boshdisk.NewLinuxBindMounter(p.diskManager.GetMounter())
+	mounted, err := bindMounter.IsMounted(boshRootTmpPath)
 
+	if !mounted && err == nil {
+		// change permissions
 		_, _, _, err = p.cmdRunner.RunCommand("chmod", "0700", boshRootTmpPath)
 		if err != nil {
 			return bosherr.WrapError(err, "Chmoding root tmp dir")
 		}
 
-		_, _, _, err = p.cmdRunner.RunCommand("mke2fs", "-t", "ext4", "-m", "1", "-F", boshRootTmpPath)
+		// mount
+		err = bindMounter.Mount(boshRootTmpPath, systemTmpDir)
 		if err != nil {
-			return bosherr.WrapError(err, "Creating root tmp dir filesystem")
+			return bosherr.WrapError(err, "Bind mounting root tmp dir over /tmp")
 		}
 
-		err = p.diskManager.GetMounter().Mount(boshRootTmpPath, systemTmpDir, "-t", "ext4", "-o", "loop")
-		if err != nil {
-			return bosherr.WrapError(err, "Mounting root tmp dir over /tmp")
-		}
-
-		// Change permissions for new mount point
+		// change permissions for mount point
 		err = p.changeTmpDirPermissions(systemTmpDir)
 		if err != nil {
 			return err
 		}
+	} else if err != nil {
+		return err
 	}
 
 	return nil
@@ -607,16 +747,36 @@ func (p linux) changeTmpDirPermissions(path string) error {
 }
 
 func (p linux) MountPersistentDisk(diskSetting boshsettings.DiskSettings, mountPoint string) error {
-	p.logger.Debug(logTag, "Mounting persistent disk %s at %s", diskSetting.Path, mountPoint)
-
-	err := p.fs.MkdirAll(mountPoint, persistentDiskPermissions)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Creating directory %s", mountPoint)
-	}
+	p.logger.Debug(logTag, "Mounting persistent disk %+v at %s", diskSetting, mountPoint)
 
 	realPath, _, err := p.devicePathResolver.GetRealDevicePath(diskSetting)
 	if err != nil {
 		return bosherr.WrapError(err, "Getting real device path")
+	}
+
+	devicePath, isMountPoint, err := p.IsMountPoint(mountPoint)
+	if err != nil {
+		return bosherr.WrapError(err, "Checking mount point")
+	}
+	p.logger.Info(logTag, "realPath = %s, devicePath = %s, isMountPoint = %s", realPath, devicePath, isMountPoint)
+
+	partitionPath := realPath + "1"
+	if strings.Contains(realPath, "/dev/mapper/") {
+		partitionPath = realPath + "-part1"
+	}
+
+	if isMountPoint {
+		if partitionPath == devicePath {
+			p.logger.Info(logTag, "device: %s is already mounted on %s, skipping mounting", devicePath, mountPoint)
+			return nil
+		}
+
+		mountPoint = p.dirProvider.StoreMigrationDir()
+	}
+
+	err = p.fs.MkdirAll(mountPoint, persistentDiskPermissions)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Creating directory %s", mountPoint)
 	}
 
 	if !p.options.UsePreformattedPersistentDisk {
@@ -624,16 +784,34 @@ func (p linux) MountPersistentDisk(diskSetting boshsettings.DiskSettings, mountP
 			{Type: boshdisk.PartitionTypeLinux},
 		}
 
-		err = p.diskManager.GetPartitioner().Partition(realPath, partitions)
+		diskSize, err := p.diskManager.GetDiskUtil(realPath).GetBlockDeviceSize()
+
+		p.logger.Debug(logTag, "Persistent disk size to be partitioned is: %d, and error is: %v", diskSize, err)
+
+		if err != nil || diskSize < maxFdiskPartitionSize {
+			p.logger.Debug(logTag, "fdisk partitioner was chosen")
+			err = p.diskManager.GetPartitioner().Partition(realPath, partitions)
+		} else {
+			p.logger.Debug(logTag, "parted partitioner was chosen")
+			err = p.diskManager.GetPartedPartitioner().Partition(realPath, partitions)
+		}
+
 		if err != nil {
 			return bosherr.WrapError(err, "Partitioning disk")
 		}
 
-		partitionPath := realPath + "1"
+		persistentDiskFS := diskSetting.FileSystemType
+		switch persistentDiskFS {
+		case boshdisk.FileSystemExt4, boshdisk.FileSystemXFS:
+		case boshdisk.FileSystemDefault:
+			persistentDiskFS = boshdisk.FileSystemExt4
+		default:
+			return bosherr.Error(fmt.Sprintf(`The filesystem type "%s" is not supported`, diskSetting.FileSystemType))
+		}
 
-		err = p.diskManager.GetFormatter().Format(partitionPath, boshdisk.FileSystemExt4)
+		err = p.diskManager.GetFormatter().Format(partitionPath, persistentDiskFS)
 		if err != nil {
-			return bosherr.WrapError(err, "Formatting partition with ext4")
+			return bosherr.WrapError(err, fmt.Sprintf("Formatting partition with %s", diskSetting.FileSystemType))
 		}
 
 		realPath = partitionPath
@@ -648,7 +826,7 @@ func (p linux) MountPersistentDisk(diskSetting boshsettings.DiskSettings, mountP
 }
 
 func (p linux) UnmountPersistentDisk(diskSettings boshsettings.DiskSettings) (bool, error) {
-	p.logger.Debug(logTag, "Unmounting persistent disk %s", diskSettings.Path)
+	p.logger.Debug(logTag, "Unmounting persistent disk %+v", diskSettings)
 
 	realPath, timedOut, err := p.devicePathResolver.GetRealDevicePath(diskSettings)
 	if timedOut {
@@ -659,17 +837,17 @@ func (p linux) UnmountPersistentDisk(diskSettings boshsettings.DiskSettings) (bo
 	}
 
 	if !p.options.UsePreformattedPersistentDisk {
-		realPath += "1"
+		if strings.Contains(realPath, "/dev/mapper/") {
+			realPath = realPath + "-part1"
+		} else {
+			realPath += "1"
+		}
 	}
 
 	return p.diskManager.GetMounter().Unmount(realPath)
 }
 
 func (p linux) GetEphemeralDiskPath(diskSettings boshsettings.DiskSettings) string {
-	if len(diskSettings.Path) == 0 {
-		return ""
-	}
-
 	realPath, _, err := p.devicePathResolver.GetRealDevicePath(diskSettings)
 	if err != nil {
 		return ""
@@ -678,7 +856,22 @@ func (p linux) GetEphemeralDiskPath(diskSettings boshsettings.DiskSettings) stri
 	return realPath
 }
 
-func (p linux) IsMountPoint(path string) (bool, error) {
+func (p linux) IsPersistentDiskMountable(diskSettings boshsettings.DiskSettings) (bool, error) {
+	realPath, _, err := p.devicePathResolver.GetRealDevicePath(diskSettings)
+	if err != nil {
+		return false, bosherr.WrapErrorf(err, "Validating path: %s", diskSettings.Path)
+	}
+
+	stdout, stderr, _, _ := p.cmdRunner.RunCommand("sfdisk", "-d", realPath)
+	if strings.Contains(stderr, "unrecognized partition table type") {
+		return false, nil
+	}
+
+	lines := len(strings.Split(stdout, "\n"))
+	return lines > 4, nil
+}
+
+func (p linux) IsMountPoint(path string) (string, bool, error) {
 	return p.diskManager.GetMounter().IsMountPoint(path)
 }
 
@@ -714,10 +907,10 @@ func (p linux) MigratePersistentDisk(fromMountPoint, toMountPoint string) (err e
 }
 
 func (p linux) IsPersistentDiskMounted(diskSettings boshsettings.DiskSettings) (bool, error) {
-	p.logger.Debug(logTag, "Checking whether persistent disk %s is mounted", diskSettings.Path)
+	p.logger.Debug(logTag, "Checking whether persistent disk %+v is mounted", diskSettings)
 	realPath, timedOut, err := p.devicePathResolver.GetRealDevicePath(diskSettings)
 	if timedOut {
-		p.logger.Debug(logTag, "Timed out resolving device path %s, ignoring", diskSettings.Path)
+		p.logger.Debug(logTag, "Timed out resolving device path for %+v, ignoring", diskSettings)
 		return false, nil
 	}
 	if err != nil {
@@ -725,14 +918,18 @@ func (p linux) IsPersistentDiskMounted(diskSettings boshsettings.DiskSettings) (
 	}
 
 	if !p.options.UsePreformattedPersistentDisk {
-		realPath += "1"
+		if strings.Contains(realPath, "/dev/mapper/") {
+			realPath = realPath + "-part1"
+		} else {
+			realPath += "1"
+		}
 	}
 
 	return p.diskManager.GetMounter().IsMounted(realPath)
 }
 
 func (p linux) StartMonit() error {
-	err := p.fs.Symlink(filepath.Join("/etc", "sv", "monit"), filepath.Join("/etc", "service", "monit"))
+	err := p.fs.Symlink(path.Join("/etc", "sv", "monit"), path.Join("/etc", "service", "monit"))
 	if err != nil {
 		return bosherr.WrapError(err, "Symlinking /etc/service/monit to /etc/sv/monit")
 	}
@@ -746,19 +943,17 @@ func (p linux) StartMonit() error {
 }
 
 func (p linux) SetupMonitUser() error {
-	monitUserFilePath := filepath.Join(p.dirProvider.BaseDir(), "monit", "monit.user")
-	if !p.fs.FileExists(monitUserFilePath) {
-		err := p.fs.WriteFileString(monitUserFilePath, "vcap:random-password")
-		if err != nil {
-			return bosherr.WrapError(err, "Writing monit user file")
-		}
+	monitUserFilePath := path.Join(p.dirProvider.BaseDir(), "monit", "monit.user")
+	err := p.fs.WriteFileString(monitUserFilePath, "vcap:random-password")
+	if err != nil {
+		return bosherr.WrapError(err, "Writing monit user file")
 	}
 
 	return nil
 }
 
 func (p linux) GetMonitCredentials() (username, password string, err error) {
-	monitUserFilePath := filepath.Join(p.dirProvider.BaseDir(), "monit", "monit.user")
+	monitUserFilePath := path.Join(p.dirProvider.BaseDir(), "monit", "monit.user")
 	credContent, err := p.fs.ReadFileString(monitUserFilePath)
 	if err != nil {
 		err = bosherr.WrapError(err, "Reading monit user file")
@@ -780,6 +975,15 @@ func (p linux) PrepareForNetworkingChange() error {
 	err := p.fs.RemoveAll("/etc/udev/rules.d/70-persistent-net.rules")
 	if err != nil {
 		return bosherr.WrapError(err, "Removing network rules file")
+	}
+
+	return nil
+}
+
+func (p linux) DeleteARPEntryWithIP(ip string) error {
+	_, _, _, err := p.cmdRunner.RunCommand("arp", "-d", ip)
+	if err != nil {
+		return bosherr.WrapError(err, "Deleting arp entry")
 	}
 
 	return nil
@@ -808,11 +1012,10 @@ func (p linux) calculateEphemeralDiskPartitionSizes(diskSizeInBytes uint64) (uin
 	return swapSizeInBytes, linuxSizeInBytes, nil
 }
 
-func (p linux) findRootDevicePath() (string, error) {
+func (p linux) findRootDevicePathAndNumber() (string, int, error) {
 	mounts, err := p.diskManager.GetMountsSearcher().SearchMounts()
-
 	if err != nil {
-		return "", bosherr.WrapError(err, "Searching mounts")
+		return "", 0, bosherr.WrapError(err, "Searching mounts")
 	}
 
 	for _, mount := range mounts {
@@ -821,28 +1024,34 @@ func (p linux) findRootDevicePath() (string, error) {
 
 			stdout, _, _, err := p.cmdRunner.RunCommand("readlink", "-f", mount.PartitionPath)
 			if err != nil {
-				return "", bosherr.WrapError(err, "Shelling out to readlink")
+				return "", 0, bosherr.WrapError(err, "Shelling out to readlink")
 			}
 			rootPartition := strings.Trim(stdout, "\n")
 			p.logger.Debug(logTag, "Symlink is: `%s'", rootPartition)
 
-			validRootPartition := regexp.MustCompile(`^/dev/[a-z]+1$`)
+			validRootPartition := regexp.MustCompile(`^/dev/[a-z]+\d$`)
 			if !validRootPartition.MatchString(rootPartition) {
-				return "", bosherr.Error("Root partition is not the first partition")
+				return "", 0, bosherr.Error("Root partition has an invalid name" + rootPartition)
 			}
 
-			return strings.Trim(rootPartition, "1"), nil
+			devNum, err := strconv.Atoi(rootPartition[len(rootPartition)-1:])
+			if err != nil {
+				return "", 0, bosherr.WrapError(err, "Parsing device number failed")
+			}
+
+			devPath := rootPartition[:len(rootPartition)-1]
+
+			return devPath, devNum, nil
 		}
 	}
-
-	return "", bosherr.Error("Getting root partition device")
+	return "", 0, bosherr.Error("Getting root partition device")
 }
 
 func (p linux) createEphemeralPartitionsOnRootDevice() (string, string, error) {
 	p.logger.Info(logTag, "Creating swap & ephemeral partitions on root disk...")
 	p.logger.Debug(logTag, "Determining root device")
 
-	rootDevicePath, err := p.findRootDevicePath()
+	rootDevicePath, rootDeviceNumber, err := p.findRootDevicePathAndNumber()
 	if err != nil {
 		return "", "", bosherr.WrapError(err, "Finding root partition device")
 	}
@@ -878,8 +1087,8 @@ func (p linux) createEphemeralPartitionsOnRootDevice() (string, string, error) {
 		return "", "", bosherr.WrapErrorf(err, "Partitioning root device `%s'", rootDevicePath)
 	}
 
-	swapPartitionPath := rootDevicePath + "2"
-	dataPartitionPath := rootDevicePath + "3"
+	swapPartitionPath := rootDevicePath + strconv.Itoa(rootDeviceNumber+1)
+	dataPartitionPath := rootDevicePath + strconv.Itoa(rootDeviceNumber+2)
 	return swapPartitionPath, dataPartitionPath, nil
 }
 
@@ -911,6 +1120,24 @@ func (p linux) partitionEphemeralDisk(realPath string) (string, string, error) {
 	swapPartitionPath := realPath + "1"
 	dataPartitionPath := realPath + "2"
 	return swapPartitionPath, dataPartitionPath, nil
+}
+
+func (p linux) RemoveDevTools(packageFileListPath string) error {
+	content, err := p.fs.ReadFileString(packageFileListPath)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Unable to read Development Tools list file: %s", packageFileListPath)
+	}
+	content = strings.TrimSpace(content)
+	pkgFileList := strings.Split(content, "\n")
+
+	for _, pkgFile := range pkgFileList {
+		_, _, _, err = p.cmdRunner.RunCommand("rm", "-rf", pkgFile)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Unable to remove package file: %s", pkgFile)
+		}
+	}
+
+	return nil
 }
 
 type insufficientSpaceError struct {

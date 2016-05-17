@@ -2,7 +2,7 @@ package uuid
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	gouuid "github.com/cloudfoundry/bosh-utils/internal/github.com/nu7hatch/gouuid"
+	gouuid "github.com/nu7hatch/gouuid"
 )
 
 type uuidV4Generator struct {

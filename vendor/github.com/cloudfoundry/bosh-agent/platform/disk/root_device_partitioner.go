@@ -26,13 +26,6 @@ func NewRootDevicePartitioner(logger boshlog.Logger, cmdRunner boshsys.CmdRunner
 	}
 }
 
-type existingPartition struct {
-	Index        int
-	SizeInBytes  uint64
-	StartInBytes uint64
-	EndInBytes   uint64
-}
-
 func (p rootDevicePartitioner) Partition(devicePath string, partitions []Partition) error {
 	existingPartitions, deviceFullSizeInBytes, err := p.getPartitions(devicePath)
 	if err != nil {
@@ -152,6 +145,10 @@ func (p rootDevicePartitioner) getPartitions(devicePath string) (
 	partitionLines := allLines[2 : len(allLines)-1]
 
 	for _, partitionLine := range partitionLines {
+		// ignore PReP partition on ppc64le
+		if strings.Contains(partitionLine, "prep") {
+			continue
+		}
 		partitionInfo := strings.Split(partitionLine, ":")
 		partitionIndex, err := strconv.Atoi(partitionInfo[0])
 		if err != nil {

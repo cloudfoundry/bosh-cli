@@ -37,7 +37,9 @@ func (r agentRequest) Send(method string, arguments []interface{}, response Resp
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Performing request to agent endpoint '%s'", r.endpoint)
 	}
-	defer httpResponse.Body.Close()
+	defer func() {
+		_ = httpResponse.Body.Close()
+	}()
 
 	if httpResponse.StatusCode != http.StatusOK {
 		return bosherr.Errorf("Agent responded with non-successful status code: %d", httpResponse.StatusCode)

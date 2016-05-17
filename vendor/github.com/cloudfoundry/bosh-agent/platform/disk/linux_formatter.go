@@ -1,11 +1,9 @@
 package disk
 
 import (
-	"fmt"
-	"strings"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"regexp"
 )
 
 type linuxFormatter struct {
@@ -21,7 +19,18 @@ func NewLinuxFormatter(runner boshsys.CmdRunner, fs boshsys.FileSystem) Formatte
 }
 
 func (f linuxFormatter) Format(partitionPath string, fsType FileSystemType) (err error) {
-	if f.partitionHasGivenType(partitionPath, fsType) {
+	existingFsType, err := f.getPartitionFormatType(partitionPath)
+	if err != nil {
+		return bosherr.WrapError(err, "Checking filesystem format of partition")
+	}
+
+	if fsType == FileSystemSwap {
+		if existingFsType == FileSystemSwap {
+			return
+		}
+		// swap is not user-configured, so we're not concerned about reformatting
+	} else if existingFsType == FileSystemExt4 || existingFsType == FileSystemXFS {
+		// never reformat if it is already formatted in a supported format
 		return
 	}
 
@@ -34,22 +43,40 @@ func (f linuxFormatter) Format(partitionPath string, fsType FileSystemType) (err
 
 	case FileSystemExt4:
 		if f.fs.FileExists("/sys/fs/ext4/features/lazy_itable_init") {
-			_, _, _, err = f.runner.RunCommand("mke2fs", "-t", "ext4", "-j", "-E", "lazy_itable_init=1", partitionPath)
+			_, _, _, err = f.runner.RunCommand("mke2fs", "-t", string(fsType), "-j", "-E", "lazy_itable_init=1", partitionPath)
 		} else {
-			_, _, _, err = f.runner.RunCommand("mke2fs", "-t", "ext4", "-j", partitionPath)
+			_, _, _, err = f.runner.RunCommand("mke2fs", "-t", string(fsType), "-j", partitionPath)
 		}
 		if err != nil {
 			err = bosherr.WrapError(err, "Shelling out to mke2fs")
+		}
+
+	case FileSystemXFS:
+		_, _, _, err = f.runner.RunCommand("mkfs.xfs", partitionPath)
+		if err != nil {
+			err = bosherr.WrapError(err, "Shelling out to mkfs.xfs")
 		}
 	}
 	return
 }
 
-func (f linuxFormatter) partitionHasGivenType(partitionPath string, fsType FileSystemType) bool {
-	stdout, _, _, err := f.runner.RunCommand("blkid", "-p", partitionPath)
+func (f linuxFormatter) getPartitionFormatType(partitionPath string) (FileSystemType, error) {
+	stdout, stderr, exitStatus, err := f.runner.RunCommand("blkid", "-p", partitionPath)
+
 	if err != nil {
-		return false
+		if exitStatus == 2 && stderr == "" {
+			// in that case we expect the device not to have any file system
+			return "", nil
+		}
+		return "", err
 	}
 
-	return strings.Contains(stdout, fmt.Sprintf(` TYPE="%s"`, fsType))
+	re := regexp.MustCompile(" TYPE=\"([^\"]+)\"")
+	match := re.FindStringSubmatch(stdout)
+
+	if nil == match {
+		return "", nil
+	}
+
+	return FileSystemType(match[1]), nil
 }

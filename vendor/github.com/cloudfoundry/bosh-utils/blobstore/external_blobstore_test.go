@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	boshassert "github.com/cloudfoundry/bosh-utils/assert"
 	. "github.com/cloudfoundry/bosh-utils/blobstore"

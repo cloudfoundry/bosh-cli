@@ -14,6 +14,8 @@ type FakeDiskManager struct {
 	FakeRootDevicePartitioner *FakePartitioner
 	FakeDiskUtil              *fakedevutil.FakeDeviceUtil
 	DiskUtilDiskPath          string
+	PartedPartitionerCalled   bool
+	PartitionerCalled         bool
 }
 
 func NewFakeDiskManager() *FakeDiskManager {
@@ -24,10 +26,18 @@ func NewFakeDiskManager() *FakeDiskManager {
 		FakeMountsSearcher:        &FakeMountsSearcher{},
 		FakeRootDevicePartitioner: NewFakePartitioner(),
 		FakeDiskUtil:              fakedevutil.NewFakeDeviceUtil(),
+		PartedPartitionerCalled:   false,
+		PartitionerCalled:         false,
 	}
 }
 
 func (m *FakeDiskManager) GetPartitioner() boshdisk.Partitioner {
+	m.PartitionerCalled = true
+	return m.FakePartitioner
+}
+
+func (m *FakeDiskManager) GetPartedPartitioner() boshdisk.Partitioner {
+	m.PartedPartitionerCalled = true
 	return m.FakePartitioner
 }
 

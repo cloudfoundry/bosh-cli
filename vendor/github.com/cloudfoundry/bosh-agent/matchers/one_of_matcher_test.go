@@ -7,8 +7,6 @@ import (
 	. "github.com/cloudfoundry/bosh-agent/matchers"
 
 	"fmt"
-
-	"github.com/onsi/gomega/internal/fakematcher"
 )
 
 var _ = Describe("matchers", func() {
@@ -16,11 +14,11 @@ var _ = Describe("matchers", func() {
 	var _ = Describe("Match", func() {
 
 		Context("when no sub-matchers match", func() {
-			var fakematcher1 = &fakematcher.FakeMatcher{
+			var fakematcher1 = &FakeMatcher{
 				MatchesToReturn: false,
 				ErrToReturn:     nil,
 			}
-			var fakematcher2 = &fakematcher.FakeMatcher{
+			var fakematcher2 = &FakeMatcher{
 				MatchesToReturn: false,
 				ErrToReturn:     nil,
 			}
@@ -38,15 +36,15 @@ var _ = Describe("matchers", func() {
 		})
 
 		Context("when at least one sub-matcher matches", func() {
-			var fakematcher1 = &fakematcher.FakeMatcher{
+			var fakematcher1 = &FakeMatcher{
 				MatchesToReturn: false,
 				ErrToReturn:     nil,
 			}
-			var fakematcher2 = &fakematcher.FakeMatcher{
+			var fakematcher2 = &FakeMatcher{
 				MatchesToReturn: true,
 				ErrToReturn:     nil,
 			}
-			var fakematcher3 = &fakematcher.FakeMatcher{
+			var fakematcher3 = &FakeMatcher{
 				MatchesToReturn: false,
 				ErrToReturn:     nil,
 			}
@@ -66,15 +64,15 @@ var _ = Describe("matchers", func() {
 
 		Context("when at least one sub-matcher errors", func() {
 			var error = fmt.Errorf("Fake Error")
-			var fakematcher1 = &fakematcher.FakeMatcher{
+			var fakematcher1 = &FakeMatcher{
 				MatchesToReturn: false,
 				ErrToReturn:     nil,
 			}
-			var fakematcher2 = &fakematcher.FakeMatcher{
+			var fakematcher2 = &FakeMatcher{
 				MatchesToReturn: false,
 				ErrToReturn:     error,
 			}
-			var fakematcher3 = &fakematcher.FakeMatcher{
+			var fakematcher3 = &FakeMatcher{
 				MatchesToReturn: true,
 				ErrToReturn:     nil,
 			}
@@ -151,3 +149,23 @@ or
 		})
 	})
 })
+
+type FakeMatcher struct {
+	ReceivedActual  interface{}
+	MatchesToReturn bool
+	ErrToReturn     error
+}
+
+func (matcher *FakeMatcher) Match(actual interface{}) (bool, error) {
+	matcher.ReceivedActual = actual
+
+	return matcher.MatchesToReturn, matcher.ErrToReturn
+}
+
+func (matcher *FakeMatcher) FailureMessage(actual interface{}) string {
+	return fmt.Sprintf("positive: %v", actual)
+}
+
+func (matcher *FakeMatcher) NegatedFailureMessage(actual interface{}) string {
+	return fmt.Sprintf("negative: %v", actual)
+}

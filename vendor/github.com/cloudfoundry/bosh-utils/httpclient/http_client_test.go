@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	. "github.com/cloudfoundry/bosh-utils/httpclient"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/ginkgo"
-	. "github.com/cloudfoundry/bosh-utils/internal/github.com/onsi/gomega"
 )
 
 var _ = Describe("HttpClient", func() {
@@ -20,7 +20,7 @@ var _ = Describe("HttpClient", func() {
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		httpClient = NewHTTPClient(DefaultClient, logger)
-		fakeServer = newFakeServer("localhost:6305")
+		fakeServer = newFakeServer("localhost:0")
 
 		readyCh := make(chan error)
 		go fakeServer.Start(readyCh)
@@ -37,7 +37,7 @@ var _ = Describe("HttpClient", func() {
 			fakeServer.SetResponseBody("fake-post-response")
 			fakeServer.SetResponseStatus(200)
 
-			response, err := httpClient.Post("http://localhost:6305/fake-path", []byte("fake-post-request"))
+			response, err := httpClient.Post("http://"+fakeServer.Listener.Addr().String()+"/fake-path", []byte("fake-post-request"))
 			Expect(err).ToNot(HaveOccurred())
 
 			defer response.Body.Close()
@@ -62,7 +62,7 @@ var _ = Describe("HttpClient", func() {
 			fakeServer.SetResponseBody("fake-get-response")
 			fakeServer.SetResponseStatus(200)
 
-			response, err := httpClient.Get("http://localhost:6305/fake-path")
+			response, err := httpClient.Get("http://" + fakeServer.Listener.Addr().String() + "/fake-path")
 			Expect(err).ToNot(HaveOccurred())
 
 			defer response.Body.Close()
@@ -95,7 +95,7 @@ type receivedRequest struct {
 }
 
 type fakeServer struct {
-	listener         net.Listener
+	Listener         net.Listener
 	endpoint         string
 	ReceivedRequests []receivedRequest
 	responseBody     string
@@ -112,7 +112,7 @@ func newFakeServer(endpoint string) *fakeServer {
 
 func (s *fakeServer) Start(readyErrCh chan error) {
 	var err error
-	s.listener, err = net.Listen("tcp", s.endpoint)
+	s.Listener, err = net.Listen("tcp", s.endpoint)
 	if err != nil {
 		readyErrCh <- err
 		return
@@ -140,11 +140,11 @@ func (s *fakeServer) Start(readyErrCh chan error) {
 		w.Write([]byte(s.responseBody))
 	})
 
-	httpServer.Serve(s.listener)
+	httpServer.Serve(s.Listener)
 }
 
 func (s *fakeServer) Stop() {
-	s.listener.Close()
+	s.Listener.Close()
 }
 
 func (s *fakeServer) SetResponseStatus(code int) {

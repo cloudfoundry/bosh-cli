@@ -137,16 +137,16 @@ var _ = Describe("LinuxCdrom", func() {
 		})
 
 		JustBeforeEach(func() {
-			runner.AddCmdResult("eject /dev/sr0", ejectResults)
+			runner.AddCmdResult("eject -v /dev/sr0", ejectResults)
 		})
 
-		It("runs the mount command", func() {
+		It("runs the eject command", func() {
 			err := cd.Eject()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(runner.RunCommands).To(Equal([][]string{{"eject", "/dev/sr0"}}))
+			Expect(runner.RunCommands).To(Equal([][]string{{"eject", "-v", "/dev/sr0"}}))
 		})
 
-		Context("when mount command errors", func() {
+		Context("when eject command errors", func() {
 			BeforeEach(func() {
 				ejectResults = fakesys.FakeCmdResult{
 					Stderr: "failed to eject",

@@ -9,6 +9,10 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
+type PublicKeyContent struct {
+	PublicKey string `json:"public_key"`
+}
+
 type fileMetadataService struct {
 	metaDataFilePath string
 	userDataFilePath string
@@ -31,9 +35,8 @@ func NewFileMetadataService(
 		userDataFilePath: userDataFilePath,
 		settingsFilePath: settingsFilePath,
 		fs:               fs,
-
-		logTag: "fileMetadataService",
-		logger: logger,
+		logTag:           "fileMetadataService",
+		logger:           logger,
 	}
 }
 
@@ -42,7 +45,19 @@ func (ms fileMetadataService) Load() error {
 }
 
 func (ms fileMetadataService) GetPublicKey() (string, error) {
-	return "", nil
+	var p PublicKeyContent
+
+	contents, err := ms.fs.ReadFile(ms.settingsFilePath)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Reading metadata file")
+	}
+
+	err = json.Unmarshal([]byte(contents), &p)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Unmarshalling metadata")
+	}
+
+	return p.PublicKey, nil
 }
 
 func (ms fileMetadataService) GetInstanceID() (string, error) {
@@ -64,7 +79,21 @@ func (ms fileMetadataService) GetInstanceID() (string, error) {
 }
 
 func (ms fileMetadataService) GetServerName() (string, error) {
-	return "", nil
+	var userData UserDataContentsType
+
+	contents, err := ms.fs.ReadFile(ms.userDataFilePath)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Reading user data")
+	}
+
+	err = json.Unmarshal([]byte(contents), &userData)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Unmarshalling user data")
+	}
+
+	ms.logger.Debug(ms.logTag, "Read user data '%#v'", userData)
+
+	return userData.Server.Name, nil
 }
 
 func (ms fileMetadataService) GetRegistryEndpoint() (string, error) {
@@ -105,4 +134,6 @@ func (ms fileMetadataService) GetNetworks() (boshsettings.Networks, error) {
 	return userData.Networks, nil
 }
 
-func (ms fileMetadataService) IsAvailable() bool { return true }
+func (ms fileMetadataService) IsAvailable() bool {
+	return ms.fs.FileExists(ms.settingsFilePath)
+}

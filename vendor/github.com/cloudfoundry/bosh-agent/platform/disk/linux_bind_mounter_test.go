@@ -97,10 +97,12 @@ var _ = Describe("linuxBindMounter", func() {
 		It("delegates to mounter", func() {
 			delegateMounter.IsMountPointErr = delegateErr
 			delegateMounter.IsMountPointResult = true
+			delegateMounter.IsMountPointPartitionPath = "fake-partition-path"
 
-			isMountPoint, err := mounter.IsMountPoint("fake-device-path")
+			partitionPath, isMountPoint, err := mounter.IsMountPoint("fake-device-path")
 
 			// Outputs
+			Expect(partitionPath).To(Equal("fake-partition-path"))
 			Expect(isMountPoint).To(BeTrue())
 			Expect(err).To(Equal(delegateErr))
 

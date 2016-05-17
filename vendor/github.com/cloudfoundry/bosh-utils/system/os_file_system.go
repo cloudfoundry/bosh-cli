@@ -11,15 +11,16 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"errors"
 )
 
 type osFileSystem struct {
-	logger boshlog.Logger
-	logTag string
-	tempRoot string
+	logger           boshlog.Logger
+	logTag           string
+	tempRoot         string
 	requiresTempRoot bool
 }
 
@@ -50,21 +51,18 @@ func (fs *osFileSystem) HomeDir(username string) (string, error) {
 func (fs *osFileSystem) ExpandPath(path string) (string, error) {
 	fs.logger.Debug(fs.logTag, "Expanding path for '%s'", path)
 
-	var err error
-	if strings.IndexRune(path, '~') == 0 {
-		currentUserHome, err := fs.HomeDir("")
+	if strings.HasPrefix(path, "~") {
+		home, err := fs.HomeDir("")
 		if err != nil {
 			return "", bosherr.WrapError(err, "Getting current user home dir")
 		}
-
-		path = filepath.Clean(strings.Replace(path, "~", currentUserHome, 1))
+		path = filepath.Join(home, path[1:])
 	}
 
-	path, err = filepath.Abs(path)
+	path, err := filepath.Abs(path)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Getting absolute path")
 	}
-
 	return path, nil
 }
 
@@ -223,29 +221,27 @@ func (fs *osFileSystem) Rename(oldPath, newPath string) (err error) {
 func (fs *osFileSystem) Symlink(oldPath, newPath string) error {
 	fs.logger.Debug(fs.logTag, "Symlinking oldPath %s with newPath %s", oldPath, newPath)
 
-	actualOldPath, err := filepath.EvalSymlinks(oldPath)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Evaluating symlinks for %s", oldPath)
-	}
-
-	existingTargetedPath, err := filepath.EvalSymlinks(newPath)
-	if err == nil {
-		if existingTargetedPath == actualOldPath {
-			return nil
+	if fi, err := os.Lstat(newPath); err == nil {
+		if fi.Mode()&os.ModeSymlink != 0 {
+			// Symlink
+			new, err := os.Readlink(newPath)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Reading link for %s", newPath)
+			}
+			if filepath.Clean(oldPath) == filepath.Clean(new) {
+				return nil
+			}
 		}
-
-		err = os.Remove(newPath)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Failed to delete symlimk at %s", newPath)
+		if err := os.Remove(newPath); err != nil {
+			return bosherr.WrapErrorf(err, "Removing new path at %s", newPath)
 		}
 	}
-
 	containingDir := filepath.Dir(newPath)
 	if !fs.FileExists(containingDir) {
 		fs.MkdirAll(containingDir, os.FileMode(0700))
 	}
 
-	return os.Symlink(oldPath, newPath)
+	return symlink(oldPath, newPath)
 }
 
 func (fs *osFileSystem) ReadLink(symlinkPath string) (targetPath string, err error) {

@@ -2,7 +2,7 @@ package assert
 
 import (
 	"encoding/json"
-	"github.com/cloudfoundry/bosh-utils/internal/github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"strings"
 )
 

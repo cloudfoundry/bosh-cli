@@ -7,6 +7,7 @@ import (
 type Manager interface {
 	GetPartitioner() Partitioner
 	GetRootDevicePartitioner() Partitioner
+	GetPartedPartitioner() Partitioner
 	GetFormatter() Formatter
 	GetMounter() Mounter
 	GetMountsSearcher() MountsSearcher

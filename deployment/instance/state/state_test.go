@@ -4,7 +4,6 @@ import (
 	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -15,7 +14,7 @@ var _ = Describe("State", func() {
 			networkInterfaces := []NetworkRef{
 				{
 					Name: "fake-network-name",
-					Interface: biproperty.Map{
+					Interface: map[string]interface{}{
 						"ip":   "fake-ip",
 						"type": "dynamic",
 					},
@@ -65,8 +64,8 @@ var _ = Describe("State", func() {
 			Expect(applySpec).To(Equal(bias.ApplySpec{
 				Deployment: "fake-deployment-name",
 				Index:      0,
-				Networks: map[string]biproperty.Map{
-					"fake-network-name": biproperty.Map{
+				Networks: map[string]interface{}{
+					"fake-network-name": map[string]interface{}{
 						"ip":   "fake-ip",
 						"type": "dynamic",
 					},

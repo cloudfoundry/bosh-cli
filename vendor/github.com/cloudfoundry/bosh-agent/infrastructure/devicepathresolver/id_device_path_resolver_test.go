@@ -19,6 +19,7 @@ var _ = Describe("IDDevicePathResolver", func() {
 	var (
 		fs           *fakesys.FakeFileSystem
 		udev         *fakeudev.FakeUdevDevice
+		devicePrefix string
 		diskSettings boshsettings.DiskSettings
 		pathResolver DevicePathResolver
 	)
@@ -26,10 +27,14 @@ var _ = Describe("IDDevicePathResolver", func() {
 	BeforeEach(func() {
 		udev = fakeudev.NewFakeUdevDevice()
 		fs = fakesys.NewFakeFileSystem()
-		pathResolver = NewIDDevicePathResolver(500*time.Millisecond, udev, fs)
 		diskSettings = boshsettings.DiskSettings{
 			ID: "fake-disk-id-include-truncate",
 		}
+		devicePrefix = ""
+	})
+
+	JustBeforeEach(func() {
+		pathResolver = NewIDDevicePathResolver(500*time.Millisecond, devicePrefix, udev, fs)
 	})
 
 	Describe("GetRealDevicePath", func() {
@@ -43,17 +48,37 @@ var _ = Describe("IDDevicePathResolver", func() {
 			BeforeEach(func() {
 				err := fs.MkdirAll("fake-device-path", os.FileMode(0750))
 				Expect(err).ToNot(HaveOccurred())
-
-				err = fs.Symlink("fake-device-path", "/dev/disk/by-id/virtio-fake-disk-id-include")
-				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("returns the path ", func() {
-				path, timeout, err := pathResolver.GetRealDevicePath(diskSettings)
-				Expect(err).ToNot(HaveOccurred())
+			Context("when using the default device prefix", func() {
+				BeforeEach(func() {
+					err := fs.Symlink("fake-device-path", "/dev/disk/by-id/virtio-fake-disk-id-include")
+					Expect(err).ToNot(HaveOccurred())
+				})
 
-				Expect(path).To(Equal("fake-device-path"))
-				Expect(timeout).To(BeFalse())
+				It("returns the path", func() {
+					path, timeout, err := pathResolver.GetRealDevicePath(diskSettings)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(path).To(Equal("fake-device-path"))
+					Expect(timeout).To(BeFalse())
+				})
+			})
+
+			Context("when using a custom device prefix", func() {
+				BeforeEach(func() {
+					devicePrefix = "prefix"
+					err := fs.Symlink("fake-device-path", "/dev/disk/by-id/prefix-fake-disk-id-include")
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("returns the path", func() {
+					path, timeout, err := pathResolver.GetRealDevicePath(diskSettings)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(path).To(Equal("fake-device-path"))
+					Expect(timeout).To(BeFalse())
+				})
 			})
 		})
 

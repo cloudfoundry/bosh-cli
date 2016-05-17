@@ -113,7 +113,7 @@ var _ = Describe("Manager", func() {
 				Deployment: "test-release",
 				Index:      jobIndex,
 				Packages:   map[string]bias.Blob{},
-				Networks: map[string]biproperty.Map{
+				Networks: map[string]interface{}{
 					"network-1": biproperty.Map{
 						"cloud_properties": biproperty.Map{},
 						"type":             "dynamic",

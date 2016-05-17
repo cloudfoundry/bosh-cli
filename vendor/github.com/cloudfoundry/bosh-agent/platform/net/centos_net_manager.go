@@ -2,7 +2,7 @@ package net
 
 import (
 	"bytes"
-	"path/filepath"
+	"path"
 	"strings"
 	"text/template"
 
@@ -22,6 +22,8 @@ type centosNetManager struct {
 	routesSearcher                RoutesSearcher
 	ipResolver                    boship.Resolver
 	interfaceConfigurationCreator InterfaceConfigurationCreator
+	interfaceAddressesValidator   boship.InterfaceAddressesValidator
+	dnsValidator                  DNSValidator
 	addressBroadcaster            bosharp.AddressBroadcaster
 	logger                        boshlog.Logger
 }
@@ -31,6 +33,8 @@ func NewCentosNetManager(
 	cmdRunner boshsys.CmdRunner,
 	ipResolver boship.Resolver,
 	interfaceConfigurationCreator InterfaceConfigurationCreator,
+	interfaceAddressesValidator boship.InterfaceAddressesValidator,
+	dnsValidator DNSValidator,
 	addressBroadcaster bosharp.AddressBroadcaster,
 	logger boshlog.Logger,
 ) Manager {
@@ -39,6 +43,8 @@ func NewCentosNetManager(
 		cmdRunner:                     cmdRunner,
 		ipResolver:                    ipResolver,
 		interfaceConfigurationCreator: interfaceConfigurationCreator,
+		interfaceAddressesValidator:   interfaceAddressesValidator,
+		dnsValidator:                  dnsValidator,
 		addressBroadcaster:            addressBroadcaster,
 		logger:                        logger,
 	}
@@ -78,7 +84,19 @@ func (net centosNetManager) SetupNetworking(networks boshsettings.Networks, errC
 		net.restartNetworkingInterfaces()
 	}
 
-	net.broadcastIps(staticInterfaceConfigurations, dhcpInterfaceConfigurations, errCh)
+	staticAddresses, dynamicAddresses := net.ifaceAddresses(staticInterfaceConfigurations, dhcpInterfaceConfigurations)
+
+	err = net.interfaceAddressesValidator.Validate(staticAddresses)
+	if err != nil {
+		return bosherr.WrapError(err, "Validating static network configuration")
+	}
+
+	err = net.dnsValidator.Validate(dnsServers)
+	if err != nil {
+		return bosherr.WrapError(err, "Validating dns configuration")
+	}
+
+	net.broadcastIps(append(staticAddresses, dynamicAddresses...), errCh)
 
 	return nil
 }
@@ -110,8 +128,8 @@ const centosStaticIfcfgTemplate = `DEVICE={{ .Name }}
 BOOTPROTO=static
 IPADDR={{ .Address }}
 NETMASK={{ .Netmask }}
-BROADCAST={{ .Broadcast }}
-GATEWAY={{ .Gateway }}
+BROADCAST={{ .Broadcast }}{{if .IsDefaultForGateway}}
+GATEWAY={{ .Gateway }}{{end}}
 ONBOOT=yes
 PEERDNS=no{{ range .DNSServers }}
 DNS{{ .Index }}={{ .Address }}{{ end }}
@@ -136,7 +154,7 @@ func newDNSConfigs(dnsServers []string) []dnsConfig {
 }
 
 func ifcfgFilePath(name string) string {
-	return filepath.Join("/etc/sysconfig/network-scripts", "ifcfg-"+name)
+	return path.Join("/etc/sysconfig/network-scripts", "ifcfg-"+name)
 }
 
 func (net centosNetManager) writeIfcfgFile(name string, t *template.Template, config interface{}) (bool, error) {
@@ -205,15 +223,7 @@ func (net centosNetManager) buildInterfaces(networks boshsettings.Networks) ([]S
 	return staticInterfaceConfigurations, dhcpInterfaceConfigurations, nil
 }
 
-func (net centosNetManager) broadcastIps(staticInterfaceConfigurations []StaticInterfaceConfiguration, dhcpInterfaceConfigurations []DHCPInterfaceConfiguration, errCh chan error) {
-	addresses := []boship.InterfaceAddress{}
-	for _, iface := range staticInterfaceConfigurations {
-		addresses = append(addresses, boship.NewSimpleInterfaceAddress(iface.Name, iface.Address))
-	}
-	for _, iface := range dhcpInterfaceConfigurations {
-		addresses = append(addresses, boship.NewResolvingInterfaceAddress(iface.Name, net.ipResolver))
-	}
-
+func (net centosNetManager) broadcastIps(addresses []boship.InterfaceAddress, errCh chan error) {
 	go func() {
 		net.addressBroadcaster.BroadcastMACAddresses(addresses)
 		if errCh != nil {
@@ -266,7 +276,7 @@ func (net centosNetManager) writeDHCPConfiguration(dnsServers []string, dhcpInte
 
 	for i := range dhcpInterfaceConfigurations {
 		name := dhcpInterfaceConfigurations[i].Name
-		interfaceDhclientConfigFile := filepath.Join("/etc/dhcp/", "dhclient-"+name+".conf")
+		interfaceDhclientConfigFile := path.Join("/etc/dhcp/", "dhclient-"+name+".conf")
 		err = net.fs.Symlink(dhclientConfigFile, interfaceDhclientConfigFile)
 		if err != nil {
 			return changed, bosherr.WrapErrorf(err, "Symlinking '%s' to '%s'", interfaceDhclientConfigFile, dhclientConfigFile)
@@ -286,20 +296,33 @@ func (net centosNetManager) detectMacAddresses() (map[string]string, error) {
 
 	var macAddress string
 	for _, filePath := range filePaths {
-		isPhysicalDevice := net.fs.FileExists(filepath.Join(filePath, "device"))
+		isPhysicalDevice := net.fs.FileExists(path.Join(filePath, "device"))
 
 		if isPhysicalDevice {
-			macAddress, err = net.fs.ReadFileString(filepath.Join(filePath, "address"))
+			macAddress, err = net.fs.ReadFileString(path.Join(filePath, "address"))
 			if err != nil {
 				return addresses, bosherr.WrapError(err, "Reading mac address from file")
 			}
 
 			macAddress = strings.Trim(macAddress, "\n")
 
-			interfaceName := filepath.Base(filePath)
+			interfaceName := path.Base(filePath)
 			addresses[macAddress] = interfaceName
 		}
 	}
 
 	return addresses, nil
+}
+
+func (net centosNetManager) ifaceAddresses(staticConfigs []StaticInterfaceConfiguration, dhcpConfigs []DHCPInterfaceConfiguration) ([]boship.InterfaceAddress, []boship.InterfaceAddress) {
+	staticAddresses := []boship.InterfaceAddress{}
+	for _, iface := range staticConfigs {
+		staticAddresses = append(staticAddresses, boship.NewSimpleInterfaceAddress(iface.Name, iface.Address))
+	}
+	dynamicAddresses := []boship.InterfaceAddress{}
+	for _, iface := range dhcpConfigs {
+		dynamicAddresses = append(dynamicAddresses, boship.NewResolvingInterfaceAddress(iface.Name, net.ipResolver))
+	}
+
+	return staticAddresses, dynamicAddresses
 }

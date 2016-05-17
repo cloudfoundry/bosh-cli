@@ -19,10 +19,13 @@ type FakeCmdRunner struct {
 	RunComplexCommands   []boshsys.Command
 	RunCommands          [][]string
 	RunCommandsWithInput [][]string
+	runCommandCallbacks  map[string]FakeCmdCallback
 
 	CommandExistsValue bool
 	AvailableCommands  map[string]bool
 }
+
+type FakeCmdCallback func()
 
 type FakeCmdResult struct {
 	Stdout     string
@@ -70,9 +73,10 @@ func (p *FakeProcess) TerminateNicely(killGracePeriod time.Duration) error {
 
 func NewFakeCmdRunner() *FakeCmdRunner {
 	return &FakeCmdRunner{
-		AvailableCommands: map[string]bool{},
-		commandResults:    map[string][]FakeCmdResult{},
-		processes:         map[string][]*FakeProcess{},
+		AvailableCommands:   map[string]bool{},
+		commandResults:      map[string][]FakeCmdResult{},
+		runCommandCallbacks: map[string]FakeCmdCallback{},
+		processes:           map[string][]*FakeProcess{},
 	}
 }
 
@@ -83,6 +87,9 @@ func (r *FakeCmdRunner) RunComplexCommand(cmd boshsys.Command) (string, string, 
 	r.RunComplexCommands = append(r.RunComplexCommands, cmd)
 
 	runCmd := append([]string{cmd.Name}, cmd.Args...)
+
+	r.runCallbackForCmd(runCmd)
+
 	stdout, stderr, exitstatus, err := r.getOutputsForCmd(runCmd)
 
 	if cmd.Stdout != nil {
@@ -103,13 +110,21 @@ func (r *FakeCmdRunner) RunComplexCommandAsync(cmd boshsys.Command) (boshsys.Pro
 	r.RunComplexCommands = append(r.RunComplexCommands, cmd)
 
 	runCmd := append([]string{cmd.Name}, cmd.Args...)
+
+	r.runCallbackForCmd(runCmd)
+
 	fullCmd := strings.Join(runCmd, " ")
 	results, found := r.processes[fullCmd]
 	if !found {
 		panic(fmt.Sprintf("Failed to find process for %s", fullCmd))
 	}
 
-	return results[0], nil
+	for _, proc := range results {
+		if !proc.Waited {
+			return proc, nil
+		}
+	}
+	panic(fmt.Sprintf("Failed to find available process for %s", fullCmd))
 }
 
 func (r *FakeCmdRunner) RunCommand(cmdName string, args ...string) (string, string, int, error) {
@@ -118,6 +133,8 @@ func (r *FakeCmdRunner) RunCommand(cmdName string, args ...string) (string, stri
 
 	runCmd := append([]string{cmdName}, args...)
 	r.RunCommands = append(r.RunCommands, runCmd)
+
+	r.runCallbackForCmd(runCmd)
 
 	return r.getOutputsForCmd(runCmd)
 }
@@ -128,6 +145,8 @@ func (r *FakeCmdRunner) RunCommandWithInput(input, cmdName string, args ...strin
 
 	runCmd := append([]string{input, cmdName}, args...)
 	r.RunCommandsWithInput = append(r.RunCommandsWithInput, runCmd)
+
+	r.runCallbackForCmd(runCmd)
 
 	return r.getOutputsForCmd(runCmd)
 }
@@ -152,6 +171,10 @@ func (r *FakeCmdRunner) AddProcess(fullCmd string, process *FakeProcess) {
 	r.processes[fullCmd] = append(processes, process)
 }
 
+func (r *FakeCmdRunner) SetCmdCallback(fullCmd string, callback FakeCmdCallback) {
+	r.runCommandCallbacks[fullCmd] = callback
+}
+
 func (r *FakeCmdRunner) getOutputsForCmd(runCmd []string) (string, string, int, error) {
 	fullCmd := strings.Join(runCmd, " ")
 	results, found := r.commandResults[fullCmd]
@@ -170,4 +193,12 @@ func (r *FakeCmdRunner) getOutputsForCmd(runCmd []string) (string, string, int, 
 	}
 
 	return "", "", -1, nil
+}
+
+func (r *FakeCmdRunner) runCallbackForCmd(runCmd []string) {
+	fullCmd := strings.Join(runCmd, " ")
+	runCmdCallback, found := r.runCommandCallbacks[fullCmd]
+	if found {
+		runCmdCallback()
+	}
 }

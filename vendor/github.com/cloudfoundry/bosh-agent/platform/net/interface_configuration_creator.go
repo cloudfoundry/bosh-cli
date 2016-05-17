@@ -8,13 +8,14 @@ import (
 )
 
 type StaticInterfaceConfiguration struct {
-	Name      string
-	Address   string
-	Netmask   string
-	Network   string
-	Broadcast string
-	Mac       string
-	Gateway   string
+	Name                string
+	Address             string
+	Netmask             string
+	Network             string
+	Broadcast           string
+	IsDefaultForGateway bool
+	Mac                 string
+	Gateway             string
 }
 
 type StaticInterfaceConfigurations []StaticInterfaceConfiguration
@@ -79,14 +80,16 @@ func (creator interfaceConfigurationCreator) createInterfaceConfiguration(static
 		if err != nil {
 			return nil, nil, bosherr.WrapError(err, "Calculating Network and Broadcast")
 		}
+
 		staticConfigs = append(staticConfigs, StaticInterfaceConfiguration{
-			Name:      ifaceName,
-			Address:   networkSettings.IP,
-			Netmask:   networkSettings.Netmask,
-			Network:   networkAddress,
-			Broadcast: broadcastAddress,
-			Mac:       networkSettings.Mac,
-			Gateway:   networkSettings.Gateway,
+			Name:                ifaceName,
+			Address:             networkSettings.IP,
+			Netmask:             networkSettings.Netmask,
+			Network:             networkAddress,
+			IsDefaultForGateway: networkSettings.IsDefaultFor("gateway"),
+			Broadcast:           broadcastAddress,
+			Mac:                 networkSettings.Mac,
+			Gateway:             networkSettings.Gateway,
 		})
 	}
 	return staticConfigs, dhcpConfigs, nil
