@@ -271,7 +271,6 @@ var _ = Describe("bosh-init", func() {
 	})
 
 	Context("when deploying with a compiled release", func() {
-
 		AfterEach(func() {
 			flushLog(cmdEnv["BOSH_INIT_LOG_PATH"])
 
