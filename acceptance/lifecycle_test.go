@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"strings"
 	"text/template"
@@ -114,35 +113,43 @@ var _ = Describe("bosh-init", func() {
 		testEnv.WriteContent("test-compiled-manifest.yml", buffer)
 	}
 
-	var deploy = func(manifestFile string) (stdout string) {
-		os.Stdout.WriteString("\n---DEPLOY---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := io.MultiWriter(outBuffer, os.Stdout)
+	var deploy = func(manifestFile string) string {
+		fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
+
+		stdout := &bytes.Buffer{}
+		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
+
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path(manifestFile))
-		println((string)(outBuffer.Bytes()))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		return outBuffer.String()
+
+		return stdout.String()
 	}
 
-	var expectDeployToError = func() (stdout string) {
-		os.Stdout.WriteString("\n---DEPLOY---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := io.MultiWriter(outBuffer, os.Stdout)
+	var expectDeployToError = func() string {
+		fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
+
+		stdout := &bytes.Buffer{}
+		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
+
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"))
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
-		return outBuffer.String()
+
+		return stdout.String()
 	}
 
-	var deleteDeployment = func() (stdout string) {
-		os.Stdout.WriteString("\n---DELETE---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := io.MultiWriter(outBuffer, os.Stdout)
+	var deleteDeployment = func() string {
+		fmt.Fprintf(GinkgoWriter, "\n--- DELETE DEPLOYMENT ---\n")
+
+		stdout := &bytes.Buffer{}
+		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
+
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		return outBuffer.String()
+
+		return stdout.String()
 	}
 
 	var shutdownAgent = func() {
@@ -183,7 +190,6 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	BeforeSuite(func() {
-		// writing to GinkgoWriter prints on test failure or when using verbose mode (-v)
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
 		fileSystem = boshsys.NewOsFileSystem(logger)
 
