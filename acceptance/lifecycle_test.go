@@ -62,8 +62,8 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	type manifestContext struct {
-		CPIReleaseURL            string
-		CPIReleaseSHA1           string
+		CpiReleaseURL            string
+		CpiReleaseSHA1           string
 		DummyReleasePath         string
 		DummyTooReleasePath      string
 		DummyCompiledReleasePath string
@@ -72,11 +72,11 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	var prepareDeploymentManifest = func(context manifestContext, sourceManifestPath string) []byte {
-		if config.IsLocalCPIRelease() {
-			context.CPIReleaseURL = "file://" + testEnv.Path("cpi-release.tgz")
+		if config.IsLocalCpiRelease() {
+			context.CpiReleaseURL = "file://" + testEnv.Path("cpi-release.tgz")
 		} else {
-			context.CPIReleaseURL = config.CPIReleaseURL
-			context.CPIReleaseSHA1 = config.CPIReleaseSHA1
+			context.CpiReleaseURL = config.CpiReleaseURL
+			context.CpiReleaseSHA1 = config.CpiReleaseSHA1
 		}
 
 		if config.IsLocalStemcell() {
@@ -256,8 +256,8 @@ var _ = Describe("bosh-init", func() {
 			err = testEnv.Copy("stemcell.tgz", config.StemcellPath)
 			Expect(err).NotTo(HaveOccurred())
 		}
-		if config.IsLocalCPIRelease() {
-			err = testEnv.Copy("cpi-release.tgz", config.CPIReleasePath)
+		if config.IsLocalCpiRelease() {
+			err = testEnv.Copy("cpi-release.tgz", config.CpiReleasePath)
 			Expect(err).NotTo(HaveOccurred())
 		}
 		err = testEnv.Copy("dummy-release.tgz", config.DummyReleasePath)
@@ -297,7 +297,7 @@ var _ = Describe("bosh-init", func() {
 			nextStep := func() int { stepIndex++; return stepIndex }
 
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-			if !config.IsLocalCPIRelease() {
+			if !config.IsLocalCpiRelease() {
 				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
@@ -382,7 +382,7 @@ var _ = Describe("bosh-init", func() {
 			nextStep := func() int { stepIndex++; return stepIndex }
 
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-			if !config.IsLocalCPIRelease() {
+			if !config.IsLocalCpiRelease() {
 				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))

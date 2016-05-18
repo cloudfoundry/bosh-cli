@@ -16,9 +16,9 @@ type Config struct {
 	StemcellURL              string `json:"stemcell_url"`
 	StemcellSHA1             string `json:"stemcell_sha1"`
 	StemcellPath             string `json:"stemcell_path"`
-	CPIReleaseURL            string `json:"cpi_release_url"`
-	CPIReleaseSHA1           string `json:"cpi_release_sha1"`
-	CPIReleasePath           string `json:"cpi_release_path"`
+	CpiReleaseURL            string `json:"cpi_release_url"`
+	CpiReleaseSHA1           string `json:"cpi_release_sha1"`
+	CpiReleasePath           string `json:"cpi_release_path"`
 	DummyReleasePath         string `json:"dummy_release_path"`
 	DummyTooReleasePath      string `json:"dummy_too_release_path"`
 	DummyCompiledReleasePath string `json:"dummy_compiled_release_path"`
@@ -44,8 +44,8 @@ func NewConfig(fs boshsys.FileSystem) (*Config, error) {
 	return &config, nil
 }
 
-func (c *Config) IsLocalCPIRelease() bool {
-	return c.CPIReleasePath != ""
+func (c *Config) IsLocalCpiRelease() bool {
+	return c.CpiReleasePath != ""
 }
 
 func (c *Config) IsLocalStemcell() bool {
@@ -69,7 +69,7 @@ func (c *Config) Validate() error {
 		return errors.New("Must provide 'stemcell_url' or 'stemcell_path' in config")
 	}
 
-	if c.CPIReleaseURL == "" && c.CPIReleasePath == "" {
+	if c.CpiReleaseURL == "" && c.CpiReleasePath == "" {
 		return errors.New("Must provide 'cpi_release_url' or 'cpi_release_path' in config")
 	}
 
