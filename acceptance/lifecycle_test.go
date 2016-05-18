@@ -3,6 +3,7 @@ package acceptance_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strings"
@@ -116,7 +117,7 @@ var _ = Describe("bosh-init", func() {
 	var deploy = func(manifestFile string) (stdout string) {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		multiWriter := io.MultiWriter(outBuffer, os.Stdout)
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path(manifestFile))
 		println((string)(outBuffer.Bytes()))
 		Expect(err).ToNot(HaveOccurred())
@@ -127,7 +128,7 @@ var _ = Describe("bosh-init", func() {
 	var expectDeployToError = func() (stdout string) {
 		os.Stdout.WriteString("\n---DEPLOY---\n")
 		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		multiWriter := io.MultiWriter(outBuffer, os.Stdout)
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"))
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
@@ -137,7 +138,7 @@ var _ = Describe("bosh-init", func() {
 	var deleteDeployment = func() (stdout string) {
 		os.Stdout.WriteString("\n---DELETE---\n")
 		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+		multiWriter := io.MultiWriter(outBuffer, os.Stdout)
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
