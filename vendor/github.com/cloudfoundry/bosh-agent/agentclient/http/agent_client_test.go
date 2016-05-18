@@ -771,4 +771,58 @@ var _ = Describe("AgentClient", func() {
 			})
 		})
 	})
+
+	Describe("RunScript", func() {
+		It("sends a run_script message to the agent", func() {
+			// run_script
+			fakeHTTPClient.SetPostBehavior(`{"value":{"agent_task_id":"fake-agent-task-id","state":"running"}}`, 200, nil)
+
+			// get_task
+			fakeHTTPClient.SetPostBehavior(`{"value":{}}`, 200, nil)
+
+			err := agentClient.RunScript("the-script", map[string]interface{}{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeHTTPClient.PostInputs).To(HaveLen(2))
+			Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+			var request AgentRequestMessage
+			err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(request).To(Equal(AgentRequestMessage{
+				Method:    "run_script",
+				Arguments: []interface{}{"the-script", map[string]interface{}{}},
+				ReplyTo:   "fake-uuid",
+			}))
+		})
+
+		It("returns an error if an error occurs", func() {
+			fakeHTTPClient.SetPostBehavior("", 0, errors.New("connection reset by peer"))
+
+			err := agentClient.RunScript("the-script", map[string]interface{}{})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("connection reset by peer"))
+
+			Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
+			Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+			var request AgentRequestMessage
+			err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(request).To(Equal(AgentRequestMessage{
+				Method:    "run_script",
+				Arguments: []interface{}{"the-script", map[string]interface{}{}},
+				ReplyTo:   "fake-uuid",
+			}))
+		})
+
+		It("does not return an error if the error is 'unknown message'", func() {
+			fakeHTTPClient.SetPostBehavior(`{"exception":{"message":"Agent responded with error: unknown message run_script"}}`, 200, nil)
+
+			err := agentClient.RunScript("the-script", map[string]interface{}{})
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
 })

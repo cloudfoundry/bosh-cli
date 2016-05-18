@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
@@ -136,59 +137,14 @@ func (c *agentClient) UpdateSettings(settings settings.Settings) error {
 
 func (c *agentClient) RunScript(scriptName string, options map[string]interface{}) error {
 	_, err := c.sendAsyncTaskMessage("run_script", []interface{}{scriptName, options})
+
+	if err != nil && strings.Contains(err.Error(), "unknown message") {
+		// ignore 'unknown message' errors for backwards compatibility with older stemcells
+		c.logger.Warn(c.logTag, "Ignoring run_script 'unknown message' error from the agent: %s. Received while trying to run: %s", err.Error(), scriptName)
+		return nil
+	}
+
 	return err
-}
-
-func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) (value map[string]interface{}, err error) {
-	var response TaskResponse
-	err = c.agentRequest.Send(method, arguments, &response)
-	if err != nil {
-		return value, bosherr.WrapErrorf(err, "Sending '%s' to the agent", method)
-	}
-
-	agentTaskID, err := response.TaskID()
-	if err != nil {
-		return value, bosherr.WrapError(err, "Getting agent task id")
-	}
-
-	sendErrors := 0
-	getTaskRetryable := boshretry.NewRetryable(func() (bool, error) {
-		var response TaskResponse
-		err = c.agentRequest.Send("get_task", []interface{}{agentTaskID}, &response)
-		if err != nil {
-			sendErrors++
-			shouldRetry := sendErrors <= c.toleratedErrorCount
-			err = bosherr.WrapError(err, "Sending 'get_task' to the agent")
-			msg := fmt.Sprintf("Error occured sending get_task. Error retry %d of %d", sendErrors, c.toleratedErrorCount)
-			c.logger.Debug(c.logTag, msg, err)
-			return shouldRetry, err
-		}
-		sendErrors = 0
-
-		c.logger.Debug(c.logTag, "get_task response value: %#v", response.Value)
-
-		taskState, err := response.TaskState()
-		if err != nil {
-			return false, bosherr.WrapError(err, "Getting task state")
-		}
-
-		if taskState != "running" {
-			var ok bool
-			value, ok = response.Value.(map[string]interface{})
-			if !ok {
-				c.logger.Warn(c.logTag, "Unable to parse get_task response value: %#v", response.Value)
-			}
-			return true, nil
-		}
-
-		return true, bosherr.Errorf("Task %s is still running", method)
-	})
-
-	getTaskRetryStrategy := boshretry.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)
-	// cannot call getTaskRetryStrategy.Try in the return statement due to gccgo
-	// execution order issues: https://code.google.com/p/go/issues/detail?id=8698&thanks=8698&ts=1410376474
-	err = getTaskRetryStrategy.Try()
-	return value, err
 }
 
 func (c *agentClient) CompilePackage(packageSource agentclient.BlobRef, compiledPackageDependencies []agentclient.BlobRef) (compiledPackageRef agentclient.BlobRef, err error) {
@@ -243,4 +199,56 @@ func (c *agentClient) CompilePackage(packageSource agentclient.BlobRef, compiled
 func (c *agentClient) DeleteARPEntries(ips []string) error {
 	_, err := c.sendAsyncTaskMessage("delete_arp_entries", []interface{}{map[string][]string{"ips": ips}})
 	return err
+}
+
+func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) (value map[string]interface{}, err error) {
+	var response TaskResponse
+	err = c.agentRequest.Send(method, arguments, &response)
+	if err != nil {
+		return value, bosherr.WrapErrorf(err, "Sending '%s' to the agent", method)
+	}
+
+	agentTaskID, err := response.TaskID()
+	if err != nil {
+		return value, bosherr.WrapError(err, "Getting agent task id")
+	}
+
+	sendErrors := 0
+	getTaskRetryable := boshretry.NewRetryable(func() (bool, error) {
+		var response TaskResponse
+		err = c.agentRequest.Send("get_task", []interface{}{agentTaskID}, &response)
+		if err != nil {
+			sendErrors++
+			shouldRetry := sendErrors <= c.toleratedErrorCount
+			err = bosherr.WrapError(err, "Sending 'get_task' to the agent")
+			msg := fmt.Sprintf("Error occured sending get_task. Error retry %d of %d", sendErrors, c.toleratedErrorCount)
+			c.logger.Debug(c.logTag, msg, err)
+			return shouldRetry, err
+		}
+		sendErrors = 0
+
+		c.logger.Debug(c.logTag, "get_task response value: %#v", response.Value)
+
+		taskState, err := response.TaskState()
+		if err != nil {
+			return false, bosherr.WrapError(err, "Getting task state")
+		}
+
+		if taskState != "running" {
+			var ok bool
+			value, ok = response.Value.(map[string]interface{})
+			if !ok {
+				c.logger.Warn(c.logTag, "Unable to parse get_task response value: %#v", response.Value)
+			}
+			return true, nil
+		}
+
+		return true, bosherr.Errorf("Task %s is still running", method)
+	})
+
+	getTaskRetryStrategy := boshretry.NewUnlimitedRetryStrategy(c.getTaskDelay, getTaskRetryable, c.logger)
+	// cannot call getTaskRetryStrategy.Try in the return statement due to gccgo
+	// execution order issues: https://code.google.com/p/go/issues/detail?id=8698&thanks=8698&ts=1410376474
+	err = getTaskRetryStrategy.Try()
+	return value, err
 }
