@@ -86,10 +86,11 @@ var _ = Describe("bosh-init", func() {
 			context.StemcellSHA1 = config.StemcellSHA1
 		}
 
-		buffer := bytes.NewBuffer([]byte{})
+		buffer := &bytes.Buffer{}
 		t := template.Must(template.ParseFiles(sourceManifestPath))
 		err := t.Execute(buffer, context)
 		Expect(err).ToNot(HaveOccurred())
+
 		return buffer.Bytes()
 	}
 
