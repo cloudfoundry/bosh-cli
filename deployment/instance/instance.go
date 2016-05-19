@@ -177,6 +177,11 @@ func (i *instance) UpdateJobs(
 			return bosherr.WrapError(err, "Starting the agent")
 		}
 
+		err = i.vm.RunScript("post-start", map[string]interface{}{})
+		if err != nil {
+			return bosherr.WrapError(err, "Running the post-start script")
+		}
+
 		return nil
 	})
 	if err != nil {

@@ -57,7 +57,7 @@ type FakeVM struct {
 	MigrateDiskErr         error
 
 	RunScriptInputs []string
-	RunScriptErr    error
+	RunScriptErrors map[string]error
 
 	GetStateResult biagentclient.AgentState
 	GetStateCalled int
@@ -107,6 +107,7 @@ func NewFakeVM(cid string) *FakeVM {
 		attachDiskBehavior:    map[string]error{},
 		detachDiskBehavior:    map[string]error{},
 		cid:                   cid,
+		RunScriptErrors:       map[string]error{},
 	}
 }
 
@@ -201,7 +202,7 @@ func (vm *FakeVM) Disks() ([]bidisk.Disk, error) {
 
 func (vm *FakeVM) RunScript(script string, options map[string]interface{}) error {
 	vm.RunScriptInputs = append(vm.RunScriptInputs, script)
-	return vm.RunScriptErr
+	return vm.RunScriptErrors[script]
 }
 
 func (vm *FakeVM) Delete() error {
