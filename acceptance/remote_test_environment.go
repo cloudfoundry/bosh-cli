@@ -63,9 +63,11 @@ func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 		srcPath,
 		fmt.Sprintf("%s@%s:%s", e.vmUsername, e.vmIP, e.Path(destName)),
 	)
+
 	if exitCode != 0 {
 		return fmt.Errorf("scp of '%s' to '%s' failed", srcPath, destName)
 	}
+
 	return err
 }
 
@@ -74,11 +76,14 @@ func (e remoteTestEnvironment) WriteContent(destName string, contents []byte) er
 	if err != nil {
 		return err
 	}
+
 	defer e.fileSystem.RemoveAll(tmpFile.Name())
+
 	_, err = tmpFile.Write(contents)
 	if err != nil {
 		return err
 	}
+
 	err = tmpFile.Close()
 	if err != nil {
 		return err

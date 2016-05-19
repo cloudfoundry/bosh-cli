@@ -28,8 +28,10 @@ var _ = Describe("UnmountDiskAction", func() {
 				Disks: boshsettings.Disks{
 					Persistent: map[string]interface{}{
 						"vol-123": map[string]interface{}{
-							"volume_id": "2",
-							"path":      "/dev/sdf",
+							"volume_id":      "2",
+							"path":           "/dev/sdf",
+							"lun":            "0",
+							"host_device_id": "fake-host-device-id",
 						},
 					},
 				},
@@ -45,6 +47,8 @@ var _ = Describe("UnmountDiskAction", func() {
 			VolumeID:       "2",
 			Path:           "/dev/sdf",
 			FileSystemType: "ext4",
+			Lun:            "0",
+			HostDeviceID:   "fake-host-device-id",
 		}
 	})
 
@@ -61,7 +65,7 @@ var _ = Describe("UnmountDiskAction", func() {
 
 		result, err := action.Run("vol-123")
 		Expect(err).ToNot(HaveOccurred())
-		boshassert.MatchesJSONString(GinkgoT(), result, `{"message":"Unmounted partition of {ID:vol-123 DeviceID: VolumeID:2 Path:/dev/sdf FileSystemType:ext4}"}`)
+		boshassert.MatchesJSONString(GinkgoT(), result, `{"message":"Unmounted partition of {ID:vol-123 DeviceID: VolumeID:2 Lun:0 HostDeviceID:fake-host-device-id Path:/dev/sdf FileSystemType:ext4}"}`)
 
 		Expect(platform.UnmountPersistentDiskSettings).To(Equal(expectedDiskSettings))
 	})
@@ -71,7 +75,7 @@ var _ = Describe("UnmountDiskAction", func() {
 
 		result, err := action.Run("vol-123")
 		Expect(err).ToNot(HaveOccurred())
-		boshassert.MatchesJSONString(GinkgoT(), result, `{"message":"Partition of {ID:vol-123 DeviceID: VolumeID:2 Path:/dev/sdf FileSystemType:ext4} is not mounted"}`)
+		boshassert.MatchesJSONString(GinkgoT(), result, `{"message":"Partition of {ID:vol-123 DeviceID: VolumeID:2 Lun:0 HostDeviceID:fake-host-device-id Path:/dev/sdf FileSystemType:ext4} is not mounted"}`)
 
 		Expect(platform.UnmountPersistentDiskSettings).To(Equal(expectedDiskSettings))
 	})

@@ -153,7 +153,7 @@ func init() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(app.GetPlatform().GetDevicePathResolver()).To(
-					BeAssignableToTypeOf(devicepathresolver.NewScsiDevicePathResolver(nil, nil)))
+					BeAssignableToTypeOf(devicepathresolver.NewScsiDevicePathResolver(nil, nil, nil)))
 			})
 		})
 

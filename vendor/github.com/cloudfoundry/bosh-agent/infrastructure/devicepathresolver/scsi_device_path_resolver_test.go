@@ -15,6 +15,7 @@ var _ = Describe("scsiDevicePathResolver", func() {
 		scsiDevicePathResolver         DevicePathResolver
 		scsiIDDevicePathResolver       *fakedpresolv.FakeDevicePathResolver
 		scsiVolumeIDDevicePathResolver *fakedpresolv.FakeDevicePathResolver
+		scsiLunDevicePathResolver      *fakedpresolv.FakeDevicePathResolver
 
 		diskSettings boshsettings.DiskSettings
 	)
@@ -22,7 +23,8 @@ var _ = Describe("scsiDevicePathResolver", func() {
 	BeforeEach(func() {
 		scsiIDDevicePathResolver = fakedpresolv.NewFakeDevicePathResolver()
 		scsiVolumeIDDevicePathResolver = fakedpresolv.NewFakeDevicePathResolver()
-		scsiDevicePathResolver = NewScsiDevicePathResolver(scsiVolumeIDDevicePathResolver, scsiIDDevicePathResolver)
+		scsiLunDevicePathResolver = fakedpresolv.NewFakeDevicePathResolver()
+		scsiDevicePathResolver = NewScsiDevicePathResolver(scsiVolumeIDDevicePathResolver, scsiIDDevicePathResolver, scsiLunDevicePathResolver)
 	})
 
 	Describe("GetRealDevicePath", func() {
@@ -62,7 +64,43 @@ var _ = Describe("scsiDevicePathResolver", func() {
 			})
 		})
 
-		Context("when diskSettings does not provides id nor volume_id", func() {
+		Context("when diskSettings does not provides id nor volume_id but lun", func() {
+			Context("When both lun and scsi_host_id are provided", func() {
+				BeforeEach(func() {
+					diskSettings = boshsettings.DiskSettings{
+						Lun:          "fake-lun-id",
+						HostDeviceID: "fake-host-device-id",
+					}
+				})
+
+				It("returns the path using SCSILunDevicePathResolver", func() {
+					scsiLunDevicePathResolver.RealDevicePath = "fake-lun-resolved-device-path"
+					realPath, timeout, err := scsiDevicePathResolver.GetRealDevicePath(diskSettings)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(timeout).To(BeFalse())
+					Expect(realPath).To(Equal("fake-lun-resolved-device-path"))
+
+					Expect(scsiLunDevicePathResolver.GetRealDevicePathDiskSettings).To(Equal(diskSettings))
+				})
+			})
+
+			Context("When scsi_host_id is not provided", func() {
+				BeforeEach(func() {
+					diskSettings = boshsettings.DiskSettings{
+						Lun: "fake-lun-id",
+					}
+				})
+
+				It("returns an error", func() {
+					realPath, timeout, err := scsiDevicePathResolver.GetRealDevicePath(diskSettings)
+					Expect(err).To(HaveOccurred())
+					Expect(timeout).To(BeFalse())
+					Expect(realPath).To(Equal(""))
+				})
+			})
+		})
+
+		Context("when diskSettings does not provides id, volume_id nor (lun, scsi_host_id)", func() {
 			BeforeEach(func() {
 				diskSettings = boshsettings.DiskSettings{}
 			})

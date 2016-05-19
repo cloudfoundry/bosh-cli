@@ -3,8 +3,8 @@ name: sample-release
 
 releases:
 - name: bosh-warden-cpi
-  url: {{ .CpiReleaseURL }}
-  sha1: {{ .CpiReleaseSHA1 }}
+  url: {{ .CPIReleaseURL }}
+  sha1: {{ .CPIReleaseSHA1 }}
 - name: sample-release
   url: file://{{ .DummyCompiledReleasePath }}
 

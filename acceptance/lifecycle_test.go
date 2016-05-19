@@ -3,7 +3,7 @@ package acceptance_test
 import (
 	"bytes"
 	"fmt"
-	"os"
+	"io"
 	"regexp"
 	"strings"
 	"text/template"
@@ -62,8 +62,8 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	type manifestContext struct {
-		CpiReleaseURL            string
-		CpiReleaseSHA1           string
+		CPIReleaseURL            string
+		CPIReleaseSHA1           string
 		DummyReleasePath         string
 		DummyTooReleasePath      string
 		DummyCompiledReleasePath string
@@ -72,11 +72,11 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	var prepareDeploymentManifest = func(context manifestContext, sourceManifestPath string) []byte {
-		if config.IsLocalCpiRelease() {
-			context.CpiReleaseURL = "file://" + testEnv.Path("cpi-release.tgz")
+		if config.IsLocalCPIRelease() {
+			context.CPIReleaseURL = "file://" + testEnv.Path("cpi-release.tgz")
 		} else {
-			context.CpiReleaseURL = config.CpiReleaseURL
-			context.CpiReleaseSHA1 = config.CpiReleaseSHA1
+			context.CPIReleaseURL = config.CPIReleaseURL
+			context.CPIReleaseSHA1 = config.CPIReleaseSHA1
 		}
 
 		if config.IsLocalStemcell() {
@@ -86,10 +86,11 @@ var _ = Describe("bosh-init", func() {
 			context.StemcellSHA1 = config.StemcellSHA1
 		}
 
-		buffer := bytes.NewBuffer([]byte{})
+		buffer := &bytes.Buffer{}
 		t := template.Must(template.ParseFiles(sourceManifestPath))
 		err := t.Execute(buffer, context)
 		Expect(err).ToNot(HaveOccurred())
+
 		return buffer.Bytes()
 	}
 
@@ -113,35 +114,43 @@ var _ = Describe("bosh-init", func() {
 		testEnv.WriteContent("test-compiled-manifest.yml", buffer)
 	}
 
-	var deploy = func(manifestFile string) (stdout string) {
-		os.Stdout.WriteString("\n---DEPLOY---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+	var deploy = func(manifestFile string) string {
+		fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
+
+		stdout := &bytes.Buffer{}
+		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
+
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path(manifestFile))
-		println((string)(outBuffer.Bytes()))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		return outBuffer.String()
+
+		return stdout.String()
 	}
 
-	var expectDeployToError = func() (stdout string) {
-		os.Stdout.WriteString("\n---DEPLOY---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+	var expectDeployToError = func() string {
+		fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
+
+		stdout := &bytes.Buffer{}
+		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
+
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "deploy", testEnv.Path("test-manifest.yml"))
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
-		return outBuffer.String()
+
+		return stdout.String()
 	}
 
-	var deleteDeployment = func() (stdout string) {
-		os.Stdout.WriteString("\n---DELETE---\n")
-		outBuffer := bytes.NewBufferString("")
-		multiWriter := NewMultiWriter(outBuffer, os.Stdout)
+	var deleteDeployment = func() string {
+		fmt.Fprintf(GinkgoWriter, "\n--- DELETE DEPLOYMENT ---\n")
+
+		stdout := &bytes.Buffer{}
+		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
+
 		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh-init"), "delete", testEnv.Path("test-manifest.yml"))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
-		return outBuffer.String()
+
+		return stdout.String()
 	}
 
 	var shutdownAgent = func() {
@@ -182,7 +191,6 @@ var _ = Describe("bosh-init", func() {
 	}
 
 	BeforeSuite(func() {
-		// writing to GinkgoWriter prints on test failure or when using verbose mode (-v)
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
 		fileSystem = boshsys.NewOsFileSystem(logger)
 
@@ -248,8 +256,8 @@ var _ = Describe("bosh-init", func() {
 			err = testEnv.Copy("stemcell.tgz", config.StemcellPath)
 			Expect(err).NotTo(HaveOccurred())
 		}
-		if config.IsLocalCpiRelease() {
-			err = testEnv.Copy("cpi-release.tgz", config.CpiReleasePath)
+		if config.IsLocalCPIRelease() {
+			err = testEnv.Copy("cpi-release.tgz", config.CPIReleasePath)
 			Expect(err).NotTo(HaveOccurred())
 		}
 		err = testEnv.Copy("dummy-release.tgz", config.DummyReleasePath)
@@ -263,7 +271,6 @@ var _ = Describe("bosh-init", func() {
 	})
 
 	Context("when deploying with a compiled release", func() {
-
 		AfterEach(func() {
 			flushLog(cmdEnv["BOSH_INIT_LOG_PATH"])
 
@@ -280,10 +287,7 @@ var _ = Describe("bosh-init", func() {
 		It("is able to deploy given many variances with compiled releases", func() {
 			updateCompiledReleaseDeploymentManifest("./assets/sample-release-compiled-manifest.yml")
 
-			println("#################################################################")
-			println("it can deploy compiled releases successfully with expected output")
-			println("#################################################################")
-
+			By("deploying compiled releases successfully with expected output")
 			stdout := deploy("test-compiled-manifest.yml")
 			outputLines := strings.Split(stdout, "\n")
 			numOutputLines := len(outputLines)
@@ -293,7 +297,7 @@ var _ = Describe("bosh-init", func() {
 			nextStep := func() int { stepIndex++; return stepIndex }
 
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-			if !config.IsLocalCpiRelease() {
+			if !config.IsLocalCPIRelease() {
 				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
@@ -334,17 +338,13 @@ var _ = Describe("bosh-init", func() {
 
 			Expect(outputLines[numOutputLines-2]).To(MatchRegexp("^Cleaning up rendered CPI jobs" + stageFinishedPattern))
 
-			println("#################################################")
-			println("it sets the ssh password")
-			println("#################################################")
+			By("setting the ssh password")
 			stdout, _, exitCode, err := instanceSSH.RunCommand("echo ssh-succeeded")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(exitCode).To(Equal(0))
 			Expect(stdout).To(ContainSubstring("ssh-succeeded"))
 
-			println("#################################################")
-			println("when there are no changes, it skips deploy")
-			println("#################################################")
+			By("skipping the deploy if there are no changes")
 			stdout = deploy("test-compiled-manifest.yml")
 
 			Expect(stdout).To(ContainSubstring("No deployment, stemcell or release changes. Skipping deploy."))
@@ -372,9 +372,7 @@ var _ = Describe("bosh-init", func() {
 		It("is able to deploy given many variances", func() {
 			updateDeploymentManifest("./assets/manifest.yml")
 
-			println("#################################################")
-			println("it can deploy successfully with expected output")
-			println("#################################################")
+			By("deploying sucessfully with the expected output")
 			stdout := deploy(deploymentManifest)
 			outputLines := strings.Split(stdout, "\n")
 			numOutputLines := len(outputLines)
@@ -384,7 +382,7 @@ var _ = Describe("bosh-init", func() {
 			nextStep := func() int { stepIndex++; return stepIndex }
 
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-			if !config.IsLocalCpiRelease() {
+			if !config.IsLocalCPIRelease() {
 				Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Downloading release 'bosh-warden-cpi'"))
 			}
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
@@ -426,26 +424,20 @@ var _ = Describe("bosh-init", func() {
 
 			Expect(outputLines[numOutputLines-2]).To(MatchRegexp("^Cleaning up rendered CPI jobs" + stageFinishedPattern))
 
-			println("#################################################")
-			println("it sets the ssh password")
-			println("#################################################")
+			By("setting the ssh password")
 			stdout, _, exitCode, err := instanceSSH.RunCommand("echo ssh-succeeded")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(exitCode).To(Equal(0))
 			Expect(stdout).To(ContainSubstring("ssh-succeeded"))
 
-			println("#################################################")
-			println("when there are no changes, it skips deploy")
-			println("#################################################")
+			By("skipping the deploy if there are no changes")
 			stdout = deploy(deploymentManifest)
 
 			Expect(stdout).To(ContainSubstring("No deployment, stemcell or release changes. Skipping deploy."))
 			Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
 			Expect(stdout).ToNot(ContainSubstring("Started deploying"))
 
-			println("#################################################")
-			println("when updating with property changes, it deletes the old VM")
-			println("#################################################")
+			By("deleting the old VM if updating with a property change")
 			updateDeploymentManifest("./assets/modified_manifest.yml")
 
 			stdout = deploy(deploymentManifest)
@@ -456,9 +448,7 @@ var _ = Describe("bosh-init", func() {
 
 			Expect(stdout).ToNot(ContainSubstring("Creating disk"))
 
-			println("#################################################")
-			println("when updating with disk size changed, it migrates the disk")
-			println("#################################################")
+			By("migrating the disk if the disk size has changed")
 			updateDeploymentManifest("./assets/modified_disk_manifest.yml")
 
 			stdout = deploy(deploymentManifest)
@@ -471,11 +461,8 @@ var _ = Describe("bosh-init", func() {
 			Expect(stdout).To(ContainSubstring("Migrating disk"))
 			Expect(stdout).To(ContainSubstring("Deleting disk"))
 
-			println("#################################################")
-			println("when re-deploying without a working agent, it deletes the vm")
-			println("#################################################")
+			By("deleting the agent when deploying without a working agent")
 			shutdownAgent()
-
 			updateDeploymentManifest("./assets/modified_manifest.yml")
 
 			stdout = deploy(deploymentManifest)
@@ -485,9 +472,7 @@ var _ = Describe("bosh-init", func() {
 			Expect(stdout).To(ContainSubstring("Creating VM for instance 'dummy_job/0' from stemcell"))
 			Expect(stdout).To(ContainSubstring("Finished deploying"))
 
-			println("#################################################")
-			println("it can delete all vms, disk, and stemcells")
-			println("#################################################")
+			By("deleting all VMs, disks, and stemcells")
 			stdout = deleteDeployment()
 
 			Expect(stdout).To(ContainSubstring("Stopping jobs on instance"))
@@ -579,6 +564,5 @@ Command 'deploy' failed:
 		stdout := deleteDeployment()
 
 		Expect(stdout).To(ContainSubstring("No deployment state file found"))
-
 	})
 })
