@@ -507,8 +507,8 @@ cloud_provider:
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
+				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 			)
 		}
 
@@ -554,8 +554,8 @@ cloud_provider:
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
+				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 			)
 		}
 
@@ -597,8 +597,8 @@ cloud_provider:
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
+				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 			)
 		}
 
@@ -708,8 +708,8 @@ cloud_provider:
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
+				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 			)
 		}
 
@@ -768,8 +768,8 @@ cloud_provider:
 				mockAgentClient.EXPECT().Apply(applySpec),
 				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
+				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
 			)
 		}
 
