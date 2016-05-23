@@ -166,6 +166,10 @@ type BoshEnv struct {
 	RemoveDevTools   bool   `json:"remove_dev_tools"`
 }
 
+type DNSRecords struct {
+	Records [][2]string `json:"records"`
+}
+
 type NetworkType string
 
 const (

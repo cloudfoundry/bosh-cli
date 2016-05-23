@@ -9,5 +9,5 @@ import (
 
 func TestAgentclient(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "AgentClient Suite")
+	RunSpecs(t, "Agent Client Suite")
 }

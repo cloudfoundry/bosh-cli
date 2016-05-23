@@ -4,29 +4,40 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-agent/platform/net"
+	"github.com/pivotal-golang/clock/fakeclock"
+
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+
+	. "github.com/cloudfoundry/bosh-agent/platform/net"
 )
 
 var _ = Describe("WindowsNetManager", func() {
 	var (
 		scriptRunner *fakesys.FakeScriptRunner
+		clock        *fakeclock.FakeClock
 		netManager   Manager
 	)
 
 	BeforeEach(func() {
 		scriptRunner = fakesys.NewFakeScriptRunner()
+		clock = fakeclock.NewFakeClock(time.Now())
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		netManager = NewWindowsNetManager(scriptRunner, logger)
+		netManager = NewWindowsNetManager(scriptRunner, logger, clock)
 	})
 
 	Describe("SetupNetworking", func() {
+		setupNetworking := func(networks boshsettings.Networks) error {
+			// Allow 5 seconds to pass so that the Sleep() in the function can pass.
+			go clock.WaitForWatcherAndIncrement(5 * time.Second)
+			return netManager.SetupNetworking(networks, nil)
+		}
 
 		Describe("Setting NIC settings", func() {
 			network1 := boshsettings.Network{
@@ -54,7 +65,7 @@ var _ = Describe("WindowsNetManager", func() {
 			}
 
 			It("sets the IP address and netmask on all interfaces, and the gateway on the default gateway interface", func() {
-				err := netManager.SetupNetworking(boshsettings.Networks{"net1": network1, "net2": network2, "vip": vip}, nil)
+				err := setupNetworking(boshsettings.Networks{"net1": network1, "net2": network2, "vip": vip})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(scriptRunner.RunScripts).To(ContainElement(`
@@ -71,7 +82,7 @@ netsh interface ip set address $connectionName static 192.168.50.50 255.255.255.
 			})
 
 			It("sets the gateway when there is only one network and it is not the default for gateway", func() {
-				err := netManager.SetupNetworking(boshsettings.Networks{"net": network2, "vip": vip}, nil)
+				err := setupNetworking(boshsettings.Networks{"net": network2, "vip": vip})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(scriptRunner.RunScripts).To(ContainElement(`
 $connectionName=(get-wmiobject win32_networkadapter | where-object {$_.MacAddress -eq '99:55:C3:5A:52:7A'}).netconnectionid
@@ -80,7 +91,7 @@ netsh interface ip set address $connectionName static 192.168.20.20 255.255.255.
 			})
 
 			It("ignores VIP networks", func() {
-				err := netManager.SetupNetworking(boshsettings.Networks{"vip": vip}, nil)
+				err := setupNetworking(boshsettings.Networks{"vip": vip})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(scriptRunner.RunScripts).To(Equal([]string{`
 [array]$interfaces = Get-DNSClientServerAddress
@@ -92,7 +103,8 @@ foreach($interface in $interfaces) {
 
 			It("returns an error when configuring fails", func() {
 				scriptRunner.RegisterRunScriptError(fmt.Sprintf(NicSettingsTemplate, network1.Mac, network1.IP, network1.Netmask, network1.Gateway), errors.New("fake-err"))
-				err := netManager.SetupNetworking(boshsettings.Networks{"static-1": network1}, nil)
+
+				err := setupNetworking(boshsettings.Networks{"static-1": network1})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Configuring interface: fake-err"))
 			})
@@ -106,7 +118,7 @@ foreach($interface in $interfaces) {
 					Default: []string{"gateway", "dns"},
 				}
 
-				err := netManager.SetupNetworking(boshsettings.Networks{"net1": network}, nil)
+				err := setupNetworking(boshsettings.Networks{"net1": network})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(scriptRunner.RunScripts).To(ContainElement(`
@@ -125,7 +137,7 @@ foreach($interface in $interfaces) {
 					Default: []string{"gateway", "dns"},
 				}
 
-				err := netManager.SetupNetworking(boshsettings.Networks{"manual-1": network}, nil)
+				err := setupNetworking(boshsettings.Networks{"manual-1": network})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(scriptRunner.RunScripts).To(ContainElement(`
@@ -143,7 +155,7 @@ foreach($interface in $interfaces) {
 					Default: []string{"gateway", "dns"},
 				}
 
-				err := netManager.SetupNetworking(boshsettings.Networks{"static-1": network}, nil)
+				err := setupNetworking(boshsettings.Networks{"static-1": network})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(scriptRunner.RunScripts).To(ContainElement(`
@@ -163,7 +175,7 @@ foreach($interface in $interfaces) {
 
 				scriptRunner.RegisterRunScriptError(fmt.Sprintf(SetDNSTemplate, strings.Join(network.DNS, `","`)), errors.New("fake-err"))
 
-				err := netManager.SetupNetworking(boshsettings.Networks{"static-1": network}, nil)
+				err := setupNetworking(boshsettings.Networks{"static-1": network})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Configuring DNS servers: fake-err"))
 			})
@@ -173,7 +185,7 @@ foreach($interface in $interfaces) {
 
 				scriptRunner.RegisterRunScriptError(ResetDNSTemplate, errors.New("fake-err"))
 
-				err := netManager.SetupNetworking(boshsettings.Networks{"static-1": network}, nil)
+				err := setupNetworking(boshsettings.Networks{"static-1": network})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Resetting DNS servers: fake-err"))
 			})
@@ -187,7 +199,7 @@ foreach($interface in $interfaces) {
 					Default: []string{"gateway"},
 				}
 
-				err := netManager.SetupNetworking(boshsettings.Networks{"static-1": network}, nil)
+				err := setupNetworking(boshsettings.Networks{"static-1": network})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(scriptRunner.RunScripts).To(ContainElement(`
@@ -212,7 +224,7 @@ foreach($interface in $interfaces) {
 					Default: []string{"gateway"},
 				}
 
-				err := netManager.SetupNetworking(boshsettings.Networks{"man-1": network1, "man-2": network2}, nil)
+				err := setupNetworking(boshsettings.Networks{"man-1": network1, "man-2": network2})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(scriptRunner.RunScripts).To(ContainElement(`
@@ -237,7 +249,7 @@ foreach($interface in $interfaces) {
 					Default: []string{"gateway", "dns"},
 				}
 
-				err := netManager.SetupNetworking(boshsettings.Networks{"static-1": network1, "vip-1": network2}, nil)
+				err := setupNetworking(boshsettings.Networks{"static-1": network1, "vip-1": network2})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(scriptRunner.RunScripts).To(ContainElement(`
@@ -251,7 +263,7 @@ foreach($interface in $interfaces) {
 
 		Context("when there are no networks", func() {
 			It("resets DNS", func() {
-				err := netManager.SetupNetworking(boshsettings.Networks{}, nil)
+				err := setupNetworking(boshsettings.Networks{})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(scriptRunner.RunScripts).To(Equal([]string{`

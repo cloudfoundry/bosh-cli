@@ -197,64 +197,64 @@ func (w *windowsJobSupervisor) Reload() error {
 
 func (w *windowsJobSupervisor) Start() error {
 
-	_, _, _, err := s.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", autoStartJobScript)
+	_, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", autoStartJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Starting windows job process")
 	}
-	_, _, _, err = s.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", startJobScript)
+	_, _, _, err = w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", startJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Starting windows job process")
 	}
 
-	err = s.fs.RemoveAll(s.stoppedFilePath())
+	err = w.fs.RemoveAll(w.stoppedFilePath())
 	if err != nil {
 		return bosherr.WrapError(err, "Removing stopped file")
 	}
 
-	s.stateSet(stateEnabled)
+	w.stateSet(stateEnabled)
 	return nil
 }
 
 func (w *windowsJobSupervisor) Stop() error {
 
-	_, _, _, err := s.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", unmonitorJobScript)
+	_, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", unmonitorJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Disabling services")
 	}
-	_, _, _, err = s.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", stopJobScript)
+	_, _, _, err = w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", stopJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Stopping services")
 	}
-	if err := s.fs.WriteFileString(s.stoppedFilePath(), ""); err != nil {
+	if err := w.fs.WriteFileString(w.stoppedFilePath(), ""); err != nil {
 		return bosherr.WrapError(err, "Removing stop services")
 	}
 	return nil
 }
 
 func (w *windowsJobSupervisor) Unmonitor() error {
-	s.stateSet(stateDisabled)
-	_, _, _, err := s.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", unmonitorJobScript)
+	w.stateSet(stateDisabled)
+	_, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", unmonitorJobScript)
 	return err
 }
 
 func (w *windowsJobSupervisor) Status() (status string) {
-	if s.fs.FileExists(s.stoppedFilePath()) {
+	if w.fs.FileExists(w.stoppedFilePath()) {
 		return "stopped"
 	}
 
-	stdout, _, _, err := s.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", getStatusScript)
+	stdout, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", getStatusScript)
 	if err != nil {
 		return "failing"
 	}
 
 	stdout = strings.TrimSpace(stdout)
 	if len(stdout) == 0 {
-		s.logger.Debug(s.logTag, "No statuses reported for job processes")
+		w.logger.Debug(w.logTag, "No statuses reported for job processes")
 		return "running"
 	}
 
 	statuses := strings.Split(stdout, "\r\n")
-	s.logger.Debug(s.logTag, "Got statuses %#v", statuses)
+	w.logger.Debug(w.logTag, "Got statuses %#v", statuses)
 
 	for _, status := range statuses {
 		if status != "Running" {
@@ -280,7 +280,7 @@ func SvcStateString(s svc.State) string {
 }
 
 func (w *windowsJobSupervisor) Processes() ([]Process, error) {
-	stdout, _, _, err := s.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", listAllJobsScript)
+	stdout, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", listAllJobsScript)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Listing windows job process")
 	}
@@ -322,13 +322,13 @@ func (w *windowsJobSupervisor) Processes() ([]Process, error) {
 }
 
 func (w *windowsJobSupervisor) AddJob(jobName string, jobIndex int, configPath string) error {
-	configFileContents, err := s.fs.ReadFile(configPath)
+	configFileContents, err := w.fs.ReadFile(configPath)
 	if err != nil {
 		return err
 	}
 
 	if len(configFileContents) == 0 {
-		s.logger.Debug(s.logTag, "Skipping job configuration for %q, empty monit config file %q", jobName, configPath)
+		w.logger.Debug(w.logTag, "Skipping job configuration for %q, empty monit config file %q", jobName, configPath)
 		return nil
 	}
 
@@ -340,8 +340,8 @@ func (w *windowsJobSupervisor) AddJob(jobName string, jobIndex int, configPath s
 
 	var buf bytes.Buffer
 	for _, process := range processConfig.Processes {
-		logPath := path.Join(s.dirProvider.LogsDir(), jobName, process.Name)
-		err := s.fs.MkdirAll(logPath, os.FileMode(0750))
+		logPath := path.Join(w.dirProvider.LogsDir(), jobName, process.Name)
+		err := w.fs.MkdirAll(logPath, os.FileMode(0750))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating log directory for service '%s'", process.Name)
 		}
@@ -352,36 +352,36 @@ func (w *windowsJobSupervisor) AddJob(jobName string, jobIndex int, configPath s
 			return bosherr.WrapErrorf(err, "Rendering service config template for service '%s'", process.Name)
 		}
 
-		s.logger.Debug(s.logTag, "Configuring service wrapper for job %q with configPath %q", jobName, configPath)
+		w.logger.Debug(w.logTag, "Configuring service wrapper for job %q with configPath %q", jobName, configPath)
 
 		jobDir := filepath.Dir(configPath)
 
 		processDir := filepath.Join(jobDir, process.Name)
-		err = s.fs.MkdirAll(processDir, os.FileMode(0750))
+		err = w.fs.MkdirAll(processDir, os.FileMode(0750))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating job directory for service '%s' at '%s'", process.Name, processDir)
 		}
 
 		serviceWrapperConfigFile := filepath.Join(processDir, serviceWrapperConfigFileName)
-		err = s.fs.WriteFile(serviceWrapperConfigFile, buf.Bytes())
+		err = w.fs.WriteFile(serviceWrapperConfigFile, buf.Bytes())
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Saving service config file for service '%s'", process.Name)
 		}
 
-		err = s.fs.WriteFileString(filepath.Join(processDir, serviceWrapperAppConfigFileName), serviceWrapperAppConfigBody)
+		err = w.fs.WriteFileString(filepath.Join(processDir, serviceWrapperAppConfigFileName), serviceWrapperAppConfigBody)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Saving app runtime config file for service '%s'", process.Name)
 		}
 
-		serviceWrapperExePath := filepath.Join(s.dirProvider.BoshBinDir(), serviceWrapperExeFileName)
-		err = s.fs.CopyFile(serviceWrapperExePath, filepath.Join(processDir, serviceWrapperExeFileName))
+		serviceWrapperExePath := filepath.Join(w.dirProvider.BoshBinDir(), serviceWrapperExeFileName)
+		err = w.fs.CopyFile(serviceWrapperExePath, filepath.Join(processDir, serviceWrapperExeFileName))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Copying service wrapper in job directory '%s'", processDir)
 		}
 
 		cmdToRun := filepath.Join(processDir, serviceWrapperExeFileName)
 
-		_, _, _, err = s.cmdRunner.RunCommand(cmdToRun, "install")
+		_, _, _, err = w.cmdRunner.RunCommand(cmdToRun, "install")
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating service '%s'", process.Name)
 		}
@@ -395,7 +395,7 @@ func (w *windowsJobSupervisor) RemoveAllJobs() error {
 	const MaxRetries = 100
 	const RetryInterval = time.Millisecond * 5
 
-	_, _, _, err := s.cmdRunner.RunCommand(
+	_, _, _, err := w.cmdRunner.RunCommand(
 		"powershell",
 		"-noprofile",
 		"-noninteractive",
@@ -409,7 +409,7 @@ func (w *windowsJobSupervisor) RemoveAllJobs() error {
 	i := 0
 	start := time.Now()
 	for {
-		stdout, _, _, err := s.cmdRunner.RunCommand(
+		stdout, _, _, err := w.cmdRunner.RunCommand(
 			"powershell",
 			"-noprofile",
 			"-noninteractive",
@@ -428,13 +428,13 @@ func (w *windowsJobSupervisor) RemoveAllJobs() error {
 			return bosherr.Errorf("removing Windows job supervisor services after %d attempts",
 				MaxRetries)
 		}
-		s.logger.Debug(s.logTag, "Waiting for services to be deleted: attempt (%d) time (%s)",
+		w.logger.Debug(w.logTag, "Waiting for services to be deleted: attempt (%d) time (%s)",
 			i, time.Since(start))
 
 		time.Sleep(RetryInterval)
 	}
 
-	s.logger.Debug(s.logTag, "Removed Windows job supervisor services: attempts (%d) time (%s)",
+	w.logger.Debug(w.logTag, "Removed Windows job supervisor services: attempts (%d) time (%s)",
 		i, time.Since(start))
 
 	return nil
@@ -447,15 +447,15 @@ type windowsServiceEvent struct {
 }
 
 func (w *windowsJobSupervisor) MonitorJobFailures(handler JobFailureHandler) error {
-	hl := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	hl := http.HandlerFunc(func(writer http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
-		if s.stateIs(stateDisabled) {
+		if w.stateIs(stateDisabled) {
 			return
 		}
 		var event windowsServiceEvent
 		err := json.NewDecoder(r.Body).Decode(&event)
 		if err != nil {
-			s.logger.Error(s.logTag, "MonitorJobFailures received unknown request: %s", err)
+			w.logger.Error(w.logTag, "MonitorJobFailures received unknown request: %s", err)
 			return
 		}
 		handler(boshalert.MonitAlert{
@@ -467,11 +467,11 @@ func (w *windowsJobSupervisor) MonitorJobFailures(handler JobFailureHandler) err
 			Description: fmt.Sprintf("exited with code %d", event.ExitCode),
 		})
 	})
-	server := http_server.New(fmt.Sprintf("localhost:%d", s.jobFailuresServerPort), hl)
+	server := http_server.New(fmt.Sprintf("localhost:%d", w.jobFailuresServerPort), hl)
 	process := ifrit.Invoke(server)
 	for {
 		select {
-		case <-s.cancelServer:
+		case <-w.cancelServer:
 			process.Signal(os.Kill)
 		case err := <-process.Wait():
 			if err != nil {
@@ -483,5 +483,5 @@ func (w *windowsJobSupervisor) MonitorJobFailures(handler JobFailureHandler) err
 }
 
 func (w *windowsJobSupervisor) stoppedFilePath() string {
-	return filepath.Join(s.dirProvider.MonitDir(), "stopped")
+	return filepath.Join(w.dirProvider.MonitDir(), "stopped")
 }

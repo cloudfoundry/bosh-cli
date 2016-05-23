@@ -9,5 +9,5 @@ import (
 
 func TestHttpsdispatcher(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Httpsdispatcher Suite")
+	RunSpecs(t, "HTTPS Dispatcher Suite")
 }

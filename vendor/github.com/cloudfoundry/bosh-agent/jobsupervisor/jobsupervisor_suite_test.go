@@ -9,5 +9,5 @@ import (
 
 func TestJobsupervisor(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Jobsupervisor Suite")
+	RunSpecs(t, "Job Supervisor Suite")
 }

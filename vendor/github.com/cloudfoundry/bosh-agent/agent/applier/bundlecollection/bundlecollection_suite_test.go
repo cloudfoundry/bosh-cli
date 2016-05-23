@@ -9,5 +9,5 @@ import (
 
 func TestBundlecollection(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Bundlecollection Suite")
+	RunSpecs(t, "Bundle Collection Suite")
 }

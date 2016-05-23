@@ -9,5 +9,5 @@ import (
 
 func TestDevicepathresolver(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Devicepathresolver Suite")
+	RunSpecs(t, "Device Path Resolver Suite")
 }

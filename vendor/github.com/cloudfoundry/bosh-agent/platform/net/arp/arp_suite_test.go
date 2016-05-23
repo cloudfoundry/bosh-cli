@@ -9,5 +9,5 @@ import (
 
 func TestPlatform(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Arp Suite")
+	RunSpecs(t, "ARP Suite")
 }

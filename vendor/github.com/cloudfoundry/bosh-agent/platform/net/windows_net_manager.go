@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pivotal-golang/clock"
+
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -14,13 +16,17 @@ import (
 type WindowsNetManager struct {
 	scriptRunner boshsys.ScriptRunner
 
+	clock clock.Clock
+
 	logTag string
 	logger boshlog.Logger
 }
 
-func NewWindowsNetManager(scriptRunner boshsys.ScriptRunner, logger boshlog.Logger) Manager {
+func NewWindowsNetManager(scriptRunner boshsys.ScriptRunner, logger boshlog.Logger, clock clock.Clock) Manager {
 	return WindowsNetManager{
 		scriptRunner: scriptRunner,
+
+		clock: clock,
 
 		logTag: "WindowsNetManager",
 		logger: logger,
@@ -67,7 +73,7 @@ func (net WindowsNetManager) SetupNetworking(networks boshsettings.Networks, err
 
 	dnsNetwork, _ := nonVipNetworks.DefaultNetworkFor("dns")
 	dns := net.setupDNS(dnsNetwork)
-	time.Sleep(5 * time.Second)
+	net.clock.Sleep(5 * time.Second)
 	return dns
 }
 

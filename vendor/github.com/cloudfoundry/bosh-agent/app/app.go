@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pivotal-golang/clock"
+
 	boshagent "github.com/cloudfoundry/bosh-agent/agent"
 	boshaction "github.com/cloudfoundry/bosh-agent/agent/action"
 	boshapplier "github.com/cloudfoundry/bosh-agent/agent/applier"
@@ -33,7 +35,6 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	sigar "github.com/cloudfoundry/gosigar"
-	"github.com/pivotal-golang/clock"
 )
 
 type App interface {
@@ -82,7 +83,9 @@ func (app *app) Setup(args []string) error {
 		return bosherr.WrapError(err, "Loading state")
 	}
 
-	platformProvider := boshplatform.NewProvider(app.logger, app.dirProvider, statsCollector, scriptCommandFactory, app.fs, config.Platform, state)
+	timeService := clock.NewClock()
+
+	platformProvider := boshplatform.NewProvider(app.logger, app.dirProvider, statsCollector, scriptCommandFactory, app.fs, config.Platform, state, timeService)
 
 	app.platform, err = platformProvider.Get(opts.PlatformName)
 	if err != nil {
@@ -167,8 +170,6 @@ func (app *app) Setup(args []string) error {
 		app.platform.GetFs(),
 		specFilePath,
 	)
-
-	timeService := clock.NewClock()
 
 	jobScriptProvider := boshscript.NewConcreteJobScriptProvider(
 		app.platform.GetRunner(),

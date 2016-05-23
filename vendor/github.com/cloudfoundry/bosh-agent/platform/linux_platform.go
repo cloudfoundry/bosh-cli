@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
 
 	boshdpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	boshcert "github.com/cloudfoundry/bosh-agent/platform/cert"
@@ -26,6 +25,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 const (
@@ -86,11 +86,11 @@ type linux struct {
 	certManager            boshcert.Manager
 	monitRetryStrategy     boshretry.RetryStrategy
 	devicePathResolver     boshdpresolv.DevicePathResolver
-	diskScanDuration       time.Duration
 	options                LinuxOptions
 	state                  *BootstrapState
 	logger                 boshlog.Logger
 	defaultNetworkResolver boshsettings.DefaultNetworkResolver
+	uuidGenerator          boshuuid.Generator
 }
 
 func NewLinuxPlatform(
@@ -107,11 +107,11 @@ func NewLinuxPlatform(
 	certManager boshcert.Manager,
 	monitRetryStrategy boshretry.RetryStrategy,
 	devicePathResolver boshdpresolv.DevicePathResolver,
-	diskScanDuration time.Duration,
 	state *BootstrapState,
 	options LinuxOptions,
 	logger boshlog.Logger,
 	defaultNetworkResolver boshsettings.DefaultNetworkResolver,
+	uuidGenerator boshuuid.Generator,
 ) Platform {
 	return &linux{
 		fs:                     fs,
@@ -127,11 +127,11 @@ func NewLinuxPlatform(
 		certManager:            certManager,
 		monitRetryStrategy:     monitRetryStrategy,
 		devicePathResolver:     devicePathResolver,
-		diskScanDuration:       diskScanDuration,
 		state:                  state,
 		options:                options,
 		logger:                 logger,
 		defaultNetworkResolver: defaultNetworkResolver,
+		uuidGenerator:          uuidGenerator,
 	}
 }
 
@@ -370,6 +370,46 @@ func (p linux) SetUserPassword(user, encryptedPwd string) (err error) {
 	return
 }
 
+const EtcHostsTemplate = `127.0.0.1 localhost {{ . }}
+
+# The following lines are desirable for IPv6 capable hosts
+::1 localhost ip6-localhost ip6-loopback {{ . }}
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+ff02::3 ip6-allhosts
+`
+
+func (p linux) SaveDNSRecords(dnsRecords boshsettings.DNSRecords, hostname string) error {
+	dnsRecordsContents, err := p.generateDefaultEtcHosts(hostname)
+	if err != nil {
+		return bosherr.WrapError(err, "Generating default /etc/hosts")
+	}
+
+	for _, dnsRecord := range dnsRecords.Records {
+		dnsRecordsContents.WriteString(fmt.Sprintf("%s %s\n", dnsRecord[0], dnsRecord[1]))
+	}
+
+	uuid, err := p.uuidGenerator.Generate()
+	if err != nil {
+		return bosherr.WrapError(err, "Generating UUID")
+	}
+
+	etcHostsUUIDFileName := fmt.Sprintf("/etc/hosts-%s", uuid)
+	err = p.fs.WriteFile(etcHostsUUIDFileName, dnsRecordsContents.Bytes())
+	if err != nil {
+		return bosherr.WrapError(err, fmt.Sprintf("Writing to %s", etcHostsUUIDFileName))
+	}
+
+	err = p.fs.Rename(etcHostsUUIDFileName, "/etc/hosts")
+	if err != nil {
+		return bosherr.WrapError(err, fmt.Sprintf("Renaming %s to /etc/hosts", etcHostsUUIDFileName))
+	}
+
+	return nil
+}
+
 func (p linux) SetupHostname(hostname string) error {
 	if !p.state.Linux.HostsConfigured {
 		_, _, _, err := p.cmdRunner.RunCommand("hostname", hostname)
@@ -382,12 +422,9 @@ func (p linux) SetupHostname(hostname string) error {
 			return bosherr.WrapError(err, "Writing to /etc/hostname")
 		}
 
-		buffer := bytes.NewBuffer([]byte{})
-		t := template.Must(template.New("etc-hosts").Parse(etcHostsTemplate))
-
-		err = t.Execute(buffer, hostname)
+		buffer, err := p.generateDefaultEtcHosts(hostname)
 		if err != nil {
-			return bosherr.WrapError(err, "Generating config from template")
+			return err
 		}
 
 		err = p.fs.WriteFile("/etc/hosts", buffer.Bytes())
@@ -404,17 +441,6 @@ func (p linux) SetupHostname(hostname string) error {
 
 	return nil
 }
-
-const etcHostsTemplate = `127.0.0.1 localhost {{ . }}
-
-# The following lines are desirable for IPv6 capable hosts
-::1 localhost ip6-localhost ip6-loopback {{ . }}
-fe00::0 ip6-localnet
-ff00::0 ip6-mcastprefix
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
-ff02::3 ip6-allhosts
-`
 
 func (p linux) SetupLogrotate(groupName, basePath, size string) (err error) {
 	buffer := bytes.NewBuffer([]byte{})
@@ -1138,6 +1164,18 @@ func (p linux) RemoveDevTools(packageFileListPath string) error {
 	}
 
 	return nil
+}
+
+func (p linux) generateDefaultEtcHosts(hostname string) (*bytes.Buffer, error) {
+	buffer := bytes.NewBuffer([]byte{})
+	t := template.Must(template.New("etc-hosts").Parse(EtcHostsTemplate))
+
+	err := t.Execute(buffer, hostname)
+	if err != nil {
+		return nil, err
+	}
+
+	return buffer, nil
 }
 
 type insufficientSpaceError struct {

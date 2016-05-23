@@ -9,5 +9,5 @@ import (
 
 func TestCdrom(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cdrom Suite")
+	RunSpecs(t, "CD-ROM Suite")
 }

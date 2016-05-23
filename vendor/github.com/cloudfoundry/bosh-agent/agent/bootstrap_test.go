@@ -39,6 +39,7 @@ import (
 	boshsigar "github.com/cloudfoundry/bosh-agent/sigar"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 func init() {
@@ -500,6 +501,8 @@ func init() {
 
 				devicePathResolver := devicepathresolver.NewIdentityDevicePathResolver()
 
+				fakeUUIDGenerator := boshuuid.NewGenerator()
+
 				routesSearcher := boshnet.NewCmdRoutesSearcher(runner)
 				defaultNetworkResolver = boshnet.NewDefaultNetworkResolver(routesSearcher, ipResolver)
 				state, err := boshplatform.NewBootstrapState(fs, "/tmp/agent_state.json")
@@ -519,11 +522,11 @@ func init() {
 					ubuntuCertManager,
 					monitRetryStrategy,
 					devicePathResolver,
-					500*time.Millisecond,
 					state,
 					linuxOptions,
 					logger,
 					defaultNetworkResolver,
+					fakeUUIDGenerator,
 				)
 			})
 

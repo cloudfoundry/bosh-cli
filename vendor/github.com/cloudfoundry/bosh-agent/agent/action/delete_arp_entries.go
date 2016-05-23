@@ -21,7 +21,7 @@ func NewDeleteARPEntries(platform boshplatform.Platform) DeleteARPEntriesAction 
 }
 
 func (a DeleteARPEntriesAction) IsAsynchronous() bool {
-	return true
+	return false
 }
 
 func (a DeleteARPEntriesAction) IsPersistent() bool {
@@ -34,9 +34,7 @@ func (a DeleteARPEntriesAction) Run(args DeleteARPEntriesActionArgs) (interface{
 		a.platform.DeleteARPEntryWithIP(address)
 	}
 
-	resultMap := map[string]interface{}{}
-
-	return resultMap, nil
+	return map[string]interface{}{}, nil
 }
 
 func (a DeleteARPEntriesAction) Resume() (interface{}, error) {

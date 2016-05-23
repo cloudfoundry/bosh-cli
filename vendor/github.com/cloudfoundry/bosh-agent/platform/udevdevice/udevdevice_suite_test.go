@@ -9,5 +9,5 @@ import (
 
 func TestUdevdevice(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Udevdevice Suite")
+	RunSpecs(t, "udev Device Suite")
 }

@@ -43,6 +43,10 @@ type FakeAgentClient struct {
 
 	DeleteARPEntriesCalledTimes int
 	deleteARPEntriesErr         error
+
+	SyncDNSCount               int
+	syncDNSBlobID, syncDNSSHA1 string
+	syncDNSError               error
 }
 
 type pingResponse struct {
@@ -147,6 +151,17 @@ func (c *FakeAgentClient) CompilePackage(
 	err error,
 ) {
 	return agentclient.BlobRef{}, nil
+}
+
+func (c *FakeAgentClient) SyncDNS(blobID, sha1 string) error {
+	c.SyncDNSCount++
+	return c.syncDNSError
+}
+
+func (c *FakeAgentClient) SetSyncDNS(blobID, sha1 string, err error) {
+	c.syncDNSBlobID = blobID
+	c.syncDNSSHA1 = sha1
+	c.syncDNSError = err
 }
 
 func (c *FakeAgentClient) SetPingBehavior(response string, err error) {

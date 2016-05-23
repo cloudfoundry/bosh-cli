@@ -9,5 +9,5 @@ import (
 
 func TestPlatform(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cert Suite")
+	RunSpecs(t, "Certificate Suite")
 }

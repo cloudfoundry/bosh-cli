@@ -5,22 +5,23 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-agent/agent/action"
+
+	boshscript "github.com/cloudfoundry/bosh-agent/agent/script"
+	boshntp "github.com/cloudfoundry/bosh-agent/platform/ntp"
+	boshdir "github.com/cloudfoundry/bosh-agent/settings/directories"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
 	fakeas "github.com/cloudfoundry/bosh-agent/agent/applier/applyspec/fakes"
 	fakeappl "github.com/cloudfoundry/bosh-agent/agent/applier/fakes"
 	fakecomp "github.com/cloudfoundry/bosh-agent/agent/compiler/fakes"
-	boshscript "github.com/cloudfoundry/bosh-agent/agent/script"
-
 	fakescript "github.com/cloudfoundry/bosh-agent/agent/script/fakes"
 	faketask "github.com/cloudfoundry/bosh-agent/agent/task/fakes"
 	fakejobsuper "github.com/cloudfoundry/bosh-agent/jobsupervisor/fakes"
 	fakenotif "github.com/cloudfoundry/bosh-agent/notification/fakes"
 	fakeplatform "github.com/cloudfoundry/bosh-agent/platform/fakes"
-	boshntp "github.com/cloudfoundry/bosh-agent/platform/ntp"
-	boshdir "github.com/cloudfoundry/bosh-agent/settings/directories"
 	fakesettings "github.com/cloudfoundry/bosh-agent/settings/fakes"
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 //go:generate counterfeiter -o fakes/fake_clock.go ../../vendor/github.com/pivotal-golang/clock Clock
@@ -210,5 +211,11 @@ var _ = Describe("concreteFactory", func() {
 		action, err := factory.Create("delete_arp_entries")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(action).To(Equal(NewDeleteARPEntries(platform)))
+	})
+
+	It("sync_dns", func() {
+		action, err := factory.Create("sync_dns")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(action).To(Equal(NewSyncDNS(blobstore, settingsService, platform, logger)))
 	})
 })

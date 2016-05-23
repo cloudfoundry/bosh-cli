@@ -1,8 +1,9 @@
 package platform
 
 import (
-	boshdpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	"github.com/cloudfoundry/bosh-agent/platform/cert"
+
+	boshdpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	boshvitals "github.com/cloudfoundry/bosh-agent/platform/vitals"
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshdir "github.com/cloudfoundry/bosh-agent/settings/directories"
@@ -58,6 +59,7 @@ type Platform interface {
 	GetConfiguredNetworkInterfaces() ([]string, error)
 	PrepareForNetworkingChange() error
 	DeleteARPEntryWithIP(ip string) error
+	SaveDNSRecords(dnsRecords boshsettings.DNSRecords, hostname string) error
 
 	// Additional monit management
 	GetMonitCredentials() (username, password string, err error)

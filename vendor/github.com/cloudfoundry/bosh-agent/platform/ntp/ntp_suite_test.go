@@ -9,5 +9,5 @@ import (
 
 func TestNtp(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Ntp Suite")
+	RunSpecs(t, "NTP Suite")
 }

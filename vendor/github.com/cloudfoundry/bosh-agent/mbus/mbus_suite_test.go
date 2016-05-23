@@ -9,5 +9,5 @@ import (
 
 func TestMbus(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Mbus Suite")
+	RunSpecs(t, "Message Bus Suite")
 }

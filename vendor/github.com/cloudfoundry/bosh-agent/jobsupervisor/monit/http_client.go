@@ -8,8 +8,7 @@ import (
 	"path"
 	"strings"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data" // translations between char sets
+	"golang.org/x/net/html/charset"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshhttp "github.com/cloudfoundry/bosh-utils/http"
@@ -149,7 +148,7 @@ func (c httpClient) status() (status, error) {
 	}
 
 	decoder := xml.NewDecoder(response.Body)
-	decoder.CharsetReader = charset.NewReader
+	decoder.CharsetReader = charset.NewReaderLabel
 
 	var st status
 

@@ -9,5 +9,5 @@ import (
 
 func TestAgentLogger(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "AgentLogger Suite")
+	RunSpecs(t, "Agent Logger Suite")
 }

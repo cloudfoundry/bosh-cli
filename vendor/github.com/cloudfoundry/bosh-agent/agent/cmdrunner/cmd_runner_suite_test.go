@@ -9,5 +9,5 @@ import (
 
 func TestCompiler(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cmdrunner Suite")
+	RunSpecs(t, "Command Runner Suite")
 }

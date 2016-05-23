@@ -197,8 +197,16 @@ func (c *agentClient) CompilePackage(packageSource agentclient.BlobRef, compiled
 }
 
 func (c *agentClient) DeleteARPEntries(ips []string) error {
-	_, err := c.sendAsyncTaskMessage("delete_arp_entries", []interface{}{map[string][]string{"ips": ips}})
-	return err
+	return c.agentRequest.Send("delete_arp_entries", []interface{}{map[string][]string{"ips": ips}}, &TaskResponse{})
+}
+
+func (c *agentClient) SyncDNS(blobID, sha1 string) error {
+	err := c.agentRequest.Send("sync_dns", []interface{}{blobID, sha1}, &SyncDNSResponse{})
+	if err != nil {
+		return bosherr.WrapError(err, "Sending 'sync_dns' to the agent")
+	}
+
+	return nil
 }
 
 func (c *agentClient) sendAsyncTaskMessage(method string, arguments []interface{}) (value map[string]interface{}, err error) {

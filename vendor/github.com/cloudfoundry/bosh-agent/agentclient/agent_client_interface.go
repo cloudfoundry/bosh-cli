@@ -19,6 +19,7 @@ type AgentClient interface {
 	MigrateDisk() error
 	CompilePackage(packageSource BlobRef, compiledPackageDependencies []BlobRef) (compiledPackageRef BlobRef, err error)
 	DeleteARPEntries(ips []string) error
+	SyncDNS(blobID, sha1 string) error
 	UpdateSettings(settings settings.Settings) error
 	RunScript(scriptName string, options map[string]interface{}) error
 }

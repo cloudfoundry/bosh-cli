@@ -77,10 +77,13 @@ func NewFactory(
 			// ARP cache management
 			"delete_arp_entries": NewDeleteARPEntries(platform),
 
-			// Networkingconcrete_factory_test.go
+			// Networking
 			"prepare_network_change":     NewPrepareNetworkChange(platform.GetFs(), settingsService, NewAgentKiller()),
 			"prepare_configure_networks": NewPrepareConfigureNetworks(platform, settingsService),
 			"configure_networks":         NewConfigureNetworks(NewAgentKiller()),
+
+			// DNS
+			"sync_dns": NewSyncDNS(blobstore, settingsService, platform, logger),
 		},
 	}
 	return

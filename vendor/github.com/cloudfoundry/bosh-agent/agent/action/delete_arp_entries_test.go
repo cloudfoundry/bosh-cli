@@ -26,8 +26,8 @@ func init() {
 			}
 		})
 
-		It("is asynchronous", func() {
-			Expect(action.IsAsynchronous()).To(BeTrue())
+		It("is synchronous so that is it is not queued", func() {
+			Expect(action.IsAsynchronous()).To(BeFalse())
 		})
 
 		It("is not persistent", func() {
