@@ -18,13 +18,13 @@ var _ = Describe("GetStateRetryable", func() {
 		)
 
 		BeforeEach(func() {
-			fakeAgentClient = fakeagentclient.NewFakeAgentClient()
+			fakeAgentClient = &fakeagentclient.FakeAgentClient{}
 			getStateRetryable = NewGetStateRetryable(fakeAgentClient)
 		})
 
 		Context("when get_state fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetGetStateBehavior(AgentState{}, errors.New("fake-get-state-error"))
+				fakeAgentClient.GetStateReturns(AgentState{}, errors.New("fake-get-state-error"))
 			})
 
 			It("returns an error", func() {
@@ -32,33 +32,33 @@ var _ = Describe("GetStateRetryable", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(isRetryable).To(BeFalse())
 				Expect(err.Error()).To(ContainSubstring("fake-get-state-error"))
-				Expect(fakeAgentClient.GetStateCalledTimes).To(Equal(1))
+				Expect(fakeAgentClient.GetStateCallCount()).To(Equal(1))
 			})
 		})
 
 		Context("when get_state returns state as pending", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetGetStateBehavior(AgentState{JobState: "pending"}, nil)
+				fakeAgentClient.GetStateReturns(AgentState{JobState: "pending"}, nil)
 			})
 
 			It("returns retryable error", func() {
 				isRetryable, err := getStateRetryable.Attempt()
 				Expect(err).To(HaveOccurred())
 				Expect(isRetryable).To(BeTrue())
-				Expect(fakeAgentClient.GetStateCalledTimes).To(Equal(1))
+				Expect(fakeAgentClient.GetStateCallCount()).To(Equal(1))
 			})
 		})
 
 		Context("when get_state returns state as running", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetGetStateBehavior(AgentState{JobState: "running"}, nil)
+				fakeAgentClient.GetStateReturns(AgentState{JobState: "running"}, nil)
 			})
 
 			It("returns no error", func() {
 				isRetryable, err := getStateRetryable.Attempt()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isRetryable).To(BeTrue())
-				Expect(fakeAgentClient.GetStateCalledTimes).To(Equal(1))
+				Expect(fakeAgentClient.GetStateCallCount()).To(Equal(1))
 			})
 		})
 	})

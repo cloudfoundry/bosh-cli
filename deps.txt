@@ -1,4 +1,4 @@
-github.com/cloudfoundry/bosh-agent/...:387c28f
+github.com/cloudfoundry/bosh-agent/...:48f77a9
 github.com/cloudfoundry/bosh-davcli/...:6b59ec2
 github.com/cloudfoundry/bosh-utils/...:1085987
 github.com/golang/mock/gomock:15f8b22

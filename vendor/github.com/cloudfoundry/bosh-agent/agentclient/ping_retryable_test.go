@@ -18,7 +18,7 @@ var _ = Describe("PingRetryable", func() {
 		)
 
 		BeforeEach(func() {
-			fakeAgentClient = fakeagentclient.NewFakeAgentClient()
+			fakeAgentClient = &fakeagentclient.FakeAgentClient{}
 			pingRetryable = NewPingRetryable(fakeAgentClient)
 		})
 
@@ -26,12 +26,12 @@ var _ = Describe("PingRetryable", func() {
 			isRetryable, err := pingRetryable.Attempt()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(isRetryable).To(BeTrue())
-			Expect(fakeAgentClient.PingCalledCount).To(Equal(1))
+			Expect(fakeAgentClient.PingCallCount()).To(Equal(1))
 		})
 
 		Context("when pinging fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetPingBehavior("", errors.New("fake-agent-client-ping-error"))
+				fakeAgentClient.PingReturns("", errors.New("fake-agent-client-ping-error"))
 			})
 
 			It("returns an error", func() {
