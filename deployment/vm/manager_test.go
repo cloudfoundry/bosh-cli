@@ -41,7 +41,7 @@ var _ = Describe("Manager", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebicloud.NewFakeCloud()
-		fakeAgentClient = fakebiagentclient.NewFakeAgentClient()
+		fakeAgentClient = &fakebiagentclient.FakeAgentClient{}
 		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
 
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}

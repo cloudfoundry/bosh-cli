@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"time"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-agent/agentclient/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
 	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"

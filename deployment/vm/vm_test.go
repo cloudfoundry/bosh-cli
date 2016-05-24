@@ -40,7 +40,7 @@ var _ = Describe("VM", func() {
 	)
 
 	BeforeEach(func() {
-		fakeAgentClient = fakebiagentclient.NewFakeAgentClient()
+		fakeAgentClient = &fakebiagentclient.FakeAgentClient{}
 
 		// apply spec is only being passed to the agent client, so it doesn't need much content for testing
 		applySpec = bias.ApplySpec{
@@ -130,12 +130,12 @@ var _ = Describe("VM", func() {
 		It("stops agent services", func() {
 			err := vm.Stop()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.StopCalled).To(BeTrue())
+			Expect(fakeAgentClient.StopCallCount()).To(Equal(1))
 		})
 
 		Context("when stopping an agent fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetStopBehavior(errors.New("fake-stop-error"))
+				fakeAgentClient.StopReturns(errors.New("fake-stop-error"))
 			})
 
 			It("returns an error", func() {
@@ -150,12 +150,12 @@ var _ = Describe("VM", func() {
 		It("sends apply spec to the agent", func() {
 			err := vm.Apply(applySpec)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.ApplyApplySpec).To(Equal(applySpec))
+			Expect(fakeAgentClient.ApplyArgsForCall(0)).To(Equal(applySpec))
 		})
 
 		Context("when sending apply spec to the agent fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.ApplyErr = errors.New("fake-agent-apply-err")
+				fakeAgentClient.ApplyReturns(errors.New("fake-agent-apply-err"))
 			})
 
 			It("returns an error", func() {
@@ -170,12 +170,12 @@ var _ = Describe("VM", func() {
 		It("starts agent services", func() {
 			err := vm.Start()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.StartCalled).To(BeTrue())
+			Expect(fakeAgentClient.StartCallCount()).To(Equal(1))
 		})
 
 		Context("when starting an agent fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetStartBehavior(errors.New("fake-start-error"))
+				fakeAgentClient.StartReturns(errors.New("fake-start-error"))
 			})
 
 			It("returns an error", func() {
@@ -187,16 +187,27 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("WaitToBeRunning", func() {
+		var invocations int
 		BeforeEach(func() {
-			fakeAgentClient.SetGetStateBehavior(biagentclient.AgentState{JobState: "pending"}, nil)
-			fakeAgentClient.SetGetStateBehavior(biagentclient.AgentState{JobState: "pending"}, nil)
-			fakeAgentClient.SetGetStateBehavior(biagentclient.AgentState{JobState: "running"}, nil)
+			responses := []struct{
+				state biagentclient.AgentState
+				err error
+			} {
+				{biagentclient.AgentState{JobState: "pending"}, nil},
+				{biagentclient.AgentState{JobState: "pending"}, nil},
+				{biagentclient.AgentState{JobState: "running"}, nil},
+			}
+			fakeAgentClient.GetStateStub = func() (biagentclient.AgentState, error) {
+				i := responses[invocations]
+				invocations++
+				return i.state, i.err
+			}
 		})
 
 		It("waits until agent reports state as running", func() {
 			err := vm.WaitToBeRunning(5, 0)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.GetStateCalledTimes).To(Equal(3))
+			Expect(invocations).To(Equal(3))
 		})
 	})
 
@@ -219,7 +230,7 @@ var _ = Describe("VM", func() {
 		It("sends mount disk to the agent", func() {
 			err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.MountDiskCID).To(Equal("fake-disk-cid"))
+			Expect(fakeAgentClient.MountDiskArgsForCall(0)).To(Equal("fake-disk-cid"))
 		})
 
 		Context("when attaching disk to cloud fails", func() {
@@ -236,7 +247,7 @@ var _ = Describe("VM", func() {
 
 		Context("when mounting disk fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetMountDiskBehavior(errors.New("fake-mount-error"))
+				fakeAgentClient.MountDiskReturns(errors.New("fake-mount-error"))
 			})
 
 			It("returns an error", func() {
@@ -286,12 +297,12 @@ var _ = Describe("VM", func() {
 		It("sends unmount disk to the agent", func() {
 			err := vm.UnmountDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.UnmountDiskCID).To(Equal("fake-disk-cid"))
+			Expect(fakeAgentClient.UnmountDiskArgsForCall(0)).To(Equal("fake-disk-cid"))
 		})
 
 		Context("when unmounting disk fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetUnmountDiskBehavior(errors.New("fake-unmount-error"))
+				fakeAgentClient.UnmountDiskReturns(errors.New("fake-unmount-error"))
 			})
 
 			It("returns an error", func() {
@@ -304,7 +315,7 @@ var _ = Describe("VM", func() {
 
 	Describe("Disks", func() {
 		BeforeEach(func() {
-			fakeAgentClient.SetListDiskBehavior([]string{"fake-disk-cid-1", "fake-disk-cid-2"}, nil)
+			fakeAgentClient.ListDiskReturns([]string{"fake-disk-cid-1", "fake-disk-cid-2"}, nil)
 		})
 
 		It("returns disks that are reported by the agent", func() {
@@ -317,7 +328,7 @@ var _ = Describe("VM", func() {
 
 		Context("when listing disks fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetListDiskBehavior([]string{}, errors.New("fake-list-disk-error"))
+				fakeAgentClient.ListDiskReturns([]string{}, errors.New("fake-list-disk-error"))
 			})
 
 			It("returns an error", func() {
@@ -400,12 +411,12 @@ var _ = Describe("VM", func() {
 		It("sends migrate_disk to the agent", func() {
 			err := vm.MigrateDisk()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeAgentClient.MigrateDiskCalledTimes).To(Equal(1))
+			Expect(fakeAgentClient.MigrateDiskCallCount()).To(Equal(1))
 		})
 
 		Context("when migrating disk fails", func() {
 			BeforeEach(func() {
-				fakeAgentClient.SetMigrateDiskBehavior(errors.New("fake-migrate-error"))
+				fakeAgentClient.MigrateDiskReturns(errors.New("fake-migrate-error"))
 			})
 
 			It("returns an error", func() {
@@ -418,7 +429,7 @@ var _ = Describe("VM", func() {
 
 	Describe("GetState", func() {
 		BeforeEach(func() {
-			fakeAgentClient.SetGetStateBehavior(biagentclient.AgentState{JobState: "testing"}, nil)
+			fakeAgentClient.GetStateReturns(biagentclient.AgentState{JobState: "testing"}, nil)
 		})
 
 		It("sends get_state to the agent", func() {

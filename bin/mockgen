@@ -41,3 +41,21 @@ for srcFile in ${srcFiles[*]}; do
   sed -i "" -e "s%github.com/cloudfoundry/bosh-init/vendor/%%" $destFile
   $bin/go fmt $destFile
 done
+
+
+
+# Until gomock has support for mocking a vendored dependency, we have to generate the mock manually.
+(
+
+  initRootDir=$PWD
+  echo "Generating agentclient mocks."
+
+  echo "mkdir -p agentclient/mocks"
+  mkdir -p agentclient/mocks
+
+  echo "cd vendor/github.com/cloudfoundry/bosh-agent"
+  cd vendor/github.com/cloudfoundry/bosh-agent
+
+  echo "mockgen -package mocks -destination $initRootDir/agentclient/mocks/mocks.go github.com/cloudfoundry/bosh-agent/agentclient AgentClient"
+  mockgen -package mocks -destination $initRootDir/agentclient/mocks/mocks.go github.com/cloudfoundry/bosh-agent/agentclient AgentClient
+)
