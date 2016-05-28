@@ -35,6 +35,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
 	"errors"
+
 	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
@@ -296,7 +297,7 @@ cloud_provider:
 
 			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
 			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
-			mockBlobstoreFactory.EXPECT().Create(mbusURL).Return(mockBlobstore, nil).AnyTimes()
+			mockBlobstoreFactory.EXPECT().Create(mbusURL, gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
 
 			mockDeploymentManagerFactory = mock_deployment.NewMockManagerFactory(mockCtrl)
 			mockDeploymentManager = mock_deployment.NewMockManager(mockCtrl)

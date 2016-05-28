@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	. "github.com/cloudfoundry/bosh-utils/httpclient"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var _ = Describe("HttpClient", func() {
@@ -30,6 +30,29 @@ var _ = Describe("HttpClient", func() {
 
 	AfterEach(func() {
 		fakeServer.Stop()
+	})
+
+	Describe("DefaultClient", func() {
+		It("is a singleton http client", func() {
+			var client http.Client
+			client = DefaultClient
+
+			Expect(client).To(Equal(DefaultClient))
+		})
+	})
+
+	Describe("CreateDefaultClient", func() {
+		It("creates a new http client", func() {
+			var (
+				first  http.Client
+				second http.Client
+			)
+
+			first = CreateDefaultClient()
+			second = CreateDefaultClient()
+
+			Expect(first).ToNot(Equal(second))
+		})
 	})
 
 	Describe("Post", func() {

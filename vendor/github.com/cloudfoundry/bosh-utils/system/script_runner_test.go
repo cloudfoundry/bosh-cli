@@ -1,128 +1,93 @@
 package system_test
 
 import (
-	"errors"
-	"os"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/cloudfoundry/bosh-utils/system"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
-var _ = Describe("ScriptRunner", func() {
-	var (
-		cmdRunner    *fakesys.FakeCmdRunner
-		fs           *fakesys.FakeFileSystem
-		scriptRunner ScriptRunner
-		logger       boshlog.Logger
-	)
+var _ = Describe("ConcreteScriptRunner", func() {
 
-	BeforeEach(func() {
-		scriptCommandFactory := &fakesys.FakeCommandFactory{}
-		scriptCommandFactory.ReturnExtension = ".fake-ext"
+	Describe("ScriptRunner", func() {
 
-		cmdRunner = fakesys.NewFakeCmdRunner()
+		var runner ScriptRunner
+		BeforeEach(func() {
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			runner = NewConcreteScriptRunner(
+				NewExecCmdRunner(logger),
+				NewOsFileSystem(logger),
+				logger,
+			)
+		})
 
-		fs = fakesys.NewFakeFileSystem()
-
-		var err error
-		fs.ReturnTempFile, err = fs.OpenFile("/fake-temp-file", os.O_WRONLY, os.ModePerm)
-		Expect(err).NotTo(HaveOccurred())
-
-		logger = boshlog.NewLogger(boshlog.LevelNone)
-		scriptRunner = NewConcreteScriptRunner(scriptCommandFactory, cmdRunner, fs, logger)
-	})
-
-	Describe("RunCommand", func() {
-		It("runs a successful script command and doesnt return an error", func() {
-			script := `
-Write-Output stdout
-[Console]::Error.WriteLine('stderr')
-`
-
-			cmdRunner.AddCmdResult("/fake-temp-file.fake-ext", fakesys.FakeCmdResult{
-				Stdout:     "stdout",
-				Stderr:     "stderr",
-				ExitStatus: 0,
-			})
-
-			var scriptContent string
-			cmdCallback := func() {
-				var err error
-				scriptContent, err = fs.ReadFileString("/fake-temp-file.fake-ext")
-				Expect(err).NotTo(HaveOccurred())
+		It("runs a valid script", func() {
+			var scriptBody string
+			if Windows {
+				scriptBody = "Write-Output stdout\r\n[Console]::Error.WriteLine('stderr')"
+			} else {
+				scriptBody = "#!/bin/bash\n(>&1 echo 'stdout')\n(>&2 echo 'stderr')"
 			}
-			cmdRunner.SetCmdCallback("/fake-temp-file.fake-ext", cmdCallback)
-
-			stdout, stderr, err := scriptRunner.Run(script)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(stdout).To(Equal("stdout"))
-			Expect(stderr).To(Equal("stderr"))
-
-			Expect(scriptContent).To(Equal(script))
-		})
-
-		It("runs a failing Powershell command and returns error", func() {
-			cmdRunner.AddCmdResult("/fake-temp-file.fake-ext", fakesys.FakeCmdResult{
-				Error: errors.New("failed"),
-			})
-			_, _, err := scriptRunner.Run("")
-
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("failed"))
-		})
-
-		It("cleans temporary files", func() {
-			_, _, err := scriptRunner.Run("")
+			stdout, stderr, err := runner.Run(scriptBody)
 			Expect(err).ToNot(HaveOccurred())
-
-			Expect(fs.FileExists("/fake-temp-file")).To(BeFalse())
-			Expect(fs.FileExists("/fake-temp-file.fake-ext")).To(BeFalse())
+			Expect(strings.TrimSpace(stdout)).To(Equal("stdout"))
+			Expect(strings.TrimSpace(stderr)).To(Equal("stderr"))
 		})
 
-		Context("filesystem errors", func() {
-			Context("when creating Tempfile fails", func() {
-				It("errors out", func() {
-					fs.TempFileError = errors.New("boo")
+		It("runs an invalid script and returns an error", func() {
+			scriptBody := "Blah-Blah-I-Dont-Exist 'stdout'"
+			_, _, err := runner.Run(scriptBody)
+			Expect(err).To(HaveOccurred())
+		})
 
-					_, _, err := scriptRunner.Run("")
-					Expect(err.Error()).To(Equal("Creating tempfile: boo"))
-				})
-			})
+		It("runs a multi-line script with variable assignement", func() {
+			var scriptBody string
+			if Windows {
+				scriptBody = `
+$MY_STDOUT=@"
+stdout
+"@
+$MY_STDERR="stderr"
+try {
+	Write-Output "${MY_STDOUT}"
+	[Console]::Error.WriteLine("${MY_STDERR}")
+} catch {
+	$Host.UI.WriteErrorLine($_.Exception.Message)
+	Exit 1
+}
+Exit 0`
+			} else {
+				scriptBody = `
+#!/usr/bin/env bash
 
-			Context("when writing to the Tempfile fails", func() {
-				It("errors out", func() {
-					fs.WriteFileError = errors.New("foo")
+MY_STD=\
+"std"
+export MY_STDOUT="${MY_STD}out"
+export MY_STDERR="${MY_STD}err"
+echo "$MY_STDOUT"
+(>&2 echo \
+"$MY_STDERR")`
+			}
 
-					_, _, err := scriptRunner.Run("")
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Writing to tempfile: foo"))
-				})
-			})
+			stdout, stderr, err := runner.Run(scriptBody)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(strings.TrimSpace(stdout)).To(Equal("stdout"))
+			Expect(strings.TrimSpace(stderr)).To(Equal("stderr"))
+		})
 
-			Context("when closing Tempfile fails", func() {
-				It("errors out", func() {
-					tempFile := fs.ReturnTempFile.(*fakesys.FakeFile)
-					tempFile.CloseErr = errors.New("fake-close-error")
-
-					_, _, err := scriptRunner.Run("")
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Closing tempfile: fake-close-error"))
-				})
-			})
-
-			Context("when renaming Tempfile fails", func() {
-				It("errors out", func() {
-					fs.RenameError = errors.New("fake-rename-error")
-
-					_, _, err := scriptRunner.Run("")
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Renaming tempfile: fake-rename-error"))
-				})
-			})
+		It("returns an error when there is non-zero exit code", func() {
+			var scriptBody string
+			if Windows {
+				scriptBody = "Start-Sleep -Milliseconds 250\r\n[Console]::Error.WriteLine('stderr')\r\nExit 1"
+			} else {
+				scriptBody = "#!/bin/bash\n(>&2 echo 'stderr')\nexit 1"
+			}
+			_, stderr, err := runner.Run(scriptBody)
+			Expect(err).To(HaveOccurred())
+			Expect(strings.TrimSpace(stderr)).To(Equal("stderr"))
 		})
 	})
 })

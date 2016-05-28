@@ -11,17 +11,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-var DefaultClient = http.Client{
-	Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		Proxy:           http.ProxyFromEnvironment,
-		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 0,
-		}).Dial,
-		TLSHandshakeTimeout: 10 * time.Second,
-	},
-}
+var DefaultClient = CreateDefaultClient()
 
 type HTTPClient interface {
 	Post(endpoint string, payload []byte) (*http.Response, error)
@@ -34,6 +24,20 @@ type httpClient struct {
 	client http.Client
 	logger boshlog.Logger
 	logTag string
+}
+
+func CreateDefaultClient() http.Client {
+	return http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			Proxy:           http.ProxyFromEnvironment,
+			Dial: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 0,
+			}).Dial,
+			TLSHandshakeTimeout: 10 * time.Second,
+		},
+	}
 }
 
 func NewHTTPClient(client http.Client, logger boshlog.Logger) HTTPClient {

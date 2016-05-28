@@ -4,8 +4,8 @@
 package mocks
 
 import (
-	job "github.com/cloudfoundry/bosh-init/release/job"
-	job0 "github.com/cloudfoundry/bosh-init/state/job"
+	job0 "github.com/cloudfoundry/bosh-init/release/job"
+	job "github.com/cloudfoundry/bosh-init/state/job"
 	ui "github.com/cloudfoundry/bosh-init/ui"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -31,9 +31,9 @@ func (_m *MockDependencyCompiler) EXPECT() *_MockDependencyCompilerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDependencyCompiler) Compile(_param0 []job.Job, _param1 ui.Stage) ([]job0.CompiledPackageRef, error) {
+func (_m *MockDependencyCompiler) Compile(_param0 []job0.Job, _param1 ui.Stage) ([]job.CompiledPackageRef, error) {
 	ret := _m.ctrl.Call(_m, "Compile", _param0, _param1)
-	ret0, _ := ret[0].([]job0.CompiledPackageRef)
+	ret0, _ := ret[0].([]job.CompiledPackageRef)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

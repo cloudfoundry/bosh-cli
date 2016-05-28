@@ -3,9 +3,10 @@ package blobstore_test
 import (
 	. "github.com/cloudfoundry/bosh-init/blobstore"
 
+	"net/http"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"net/http"
 
 	boshdavcli "github.com/cloudfoundry/bosh-davcli/client"
 	boshdavcliconf "github.com/cloudfoundry/bosh-davcli/config"
@@ -36,7 +37,7 @@ var _ = Describe("BlobstoreFactory", func() {
 	Describe("Create", func() {
 		Context("when username and password are provided", func() {
 			It("returns the blobstore", func() {
-				blobstore, err := blobstoreFactory.Create("https://fake-user:fake-password@fake-host:1234")
+				blobstore, err := blobstoreFactory.Create("https://fake-user:fake-password@fake-host:1234", httpClient)
 				Expect(err).ToNot(HaveOccurred())
 				davClient := boshdavcli.NewClient(boshdavcliconf.Config{
 					Endpoint: "https://fake-host:1234/blobs",
@@ -58,7 +59,7 @@ var _ = Describe("BlobstoreFactory", func() {
 				}, &httpClient)
 				expectedBlobstore := NewBlobstore(davClient, fakeUUIDGenerator, fs, logger)
 
-				blobstore, err := blobstoreFactory.Create("https://fake-host:1234")
+				blobstore, err := blobstoreFactory.Create("https://fake-host:1234", httpClient)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobstore).To(Equal(expectedBlobstore))
 			})

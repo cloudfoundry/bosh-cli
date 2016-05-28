@@ -18,6 +18,7 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
@@ -239,7 +240,7 @@ func (c *DeploymentPreparer) deploy(
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
-	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus)
+	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, bihttpclient.CreateDefaultClient())
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blobstore client")
 	}

@@ -13,6 +13,7 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
@@ -196,7 +197,7 @@ func (c *deploymentDeleter) deploymentManager(installation biinstall.Installatio
 	agentClient := c.agentClientFactory.NewAgentClient(directorID, installationMbus)
 
 	c.logger.Debug(c.logTag, "Creating blobstore client...")
-	blobstore, err := c.blobstoreFactory.Create(installationMbus)
+	blobstore, err := c.blobstoreFactory.Create(installationMbus, bihttpclient.CreateDefaultClient())
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating blobstore client")
 	}

@@ -6,6 +6,7 @@ package mocks
 import (
 	blobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	gomock "github.com/golang/mock/gomock"
+	http "net/http"
 )
 
 // Mock of Factory interface
@@ -29,15 +30,15 @@ func (_m *MockFactory) EXPECT() *_MockFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockFactory) Create(_param0 string) (blobstore.Blobstore, error) {
-	ret := _m.ctrl.Call(_m, "Create", _param0)
+func (_m *MockFactory) Create(_param0 string, _param1 http.Client) (blobstore.Blobstore, error) {
+	ret := _m.ctrl.Call(_m, "Create", _param0, _param1)
 	ret0, _ := ret[0].(blobstore.Blobstore)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockFactoryRecorder) Create(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Create", arg0)
+func (_mr *_MockFactoryRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Create", arg0, arg1)
 }
 
 // Mock of Blobstore interface
