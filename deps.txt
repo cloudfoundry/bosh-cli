@@ -8,4 +8,16 @@ github.com/onsi/gomega:f4f1cae
 golang.org/x/crypto/ssh:1e856cb
 gopkg.in/check.v1:8d49746
 github.com/pivotal-golang/yaml:8b09e4a
+github.com/vito/go-interact/interact:0eb3903
+github.com/cheggaaa/pb:c1f48d5
+github.com/cppforlife/go-semi-semantic/version:6d81a57
+github.com/dustin/go-humanize:9436b7a
+github.com/fatih/color:533cd7f
+github.com/hashicorp/go-multierror:d30f099
+github.com/jessevdk/go-flags:b9b882a
+github.com/mattn/go-isatty:56b76bd
+github.com/mattn/go-colorable:e8a10dd
+github.com/aws/aws-sdk-go:665c623
+github.com/go-ini/ini:12f418c
+github.com/jmespath/go-jmespath:0b12d6b
 github.com/charlievieth/fs/...:1c3b3f1
