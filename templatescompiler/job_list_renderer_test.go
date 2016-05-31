@@ -1,17 +1,17 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/templatescompiler"
-
-	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	boshreljob "github.com/cloudfoundry/bosh-init/release/job"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 )
 
 var _ = Describe("JobListRenderer", func() {
@@ -30,7 +30,7 @@ var _ = Describe("JobListRenderer", func() {
 
 		mockJobRenderer *mock_template.MockJobRenderer
 
-		releaseJobs          []bireljob.Job
+		releaseJobs          []boshreljob.Job
 		releaseJobProperties map[string]*biproperty.Map
 		jobProperties        biproperty.Map
 		globalProperties     biproperty.Map
@@ -41,7 +41,6 @@ var _ = Describe("JobListRenderer", func() {
 
 		jobListRenderer JobListRenderer
 
-		//		expectRender0 *gomock.Call
 		expectRender1 *gomock.Call
 	)
 
@@ -50,9 +49,9 @@ var _ = Describe("JobListRenderer", func() {
 		mockJobRenderer = mock_template.NewMockJobRenderer(mockCtrl)
 
 		// release jobs are just passed through to JobRenderer.Render, so they do not need real contents
-		releaseJobs = []bireljob.Job{
-			{Name: "fake-release-job-name-0"},
-			{Name: "fake-release-job-name-1"},
+		releaseJobs = []boshreljob.Job{
+			*boshreljob.NewJob(NewResource("fake-release-job-name-0", "", nil)),
+			*boshreljob.NewJob(NewResource("fake-release-job-name-1", "", nil)),
 		}
 
 		releaseJobProperties = map[string]*biproperty.Map{
@@ -82,8 +81,8 @@ var _ = Describe("JobListRenderer", func() {
 	})
 
 	JustBeforeEach(func() {
-		mockJobRenderer.EXPECT().Render(releaseJobs[0], releaseJobProperties[releaseJobs[0].Name], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[0], nil)
-		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], releaseJobProperties[releaseJobs[1].Name], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[1], nil)
+		mockJobRenderer.EXPECT().Render(releaseJobs[0], releaseJobProperties[releaseJobs[0].Name()], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[0], nil)
+		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], releaseJobProperties[releaseJobs[1].Name()], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[1], nil)
 	})
 
 	Describe("Render", func() {

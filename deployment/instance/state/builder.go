@@ -2,7 +2,9 @@ package state
 
 import (
 	"errors"
+
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
@@ -92,6 +94,7 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 	}
 
 	compiledDeploymentPackageRefs := make([]PackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
+
 	for i, compiledPackageRef := range compiledPackageRefs {
 		compiledDeploymentPackageRefs[i] = PackageRef{
 			Name:    compiledPackageRef.Name,
@@ -105,10 +108,11 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 
 	// convert array to array
 	renderedJobRefs := make([]JobRef, len(releaseJobs), len(releaseJobs))
+
 	for i, releaseJob := range releaseJobs {
 		renderedJobRefs[i] = JobRef{
-			Name:    releaseJob.Name,
-			Version: releaseJob.Fingerprint,
+			Name:    releaseJob.Name(),
+			Version: releaseJob.Fingerprint(),
 		}
 	}
 

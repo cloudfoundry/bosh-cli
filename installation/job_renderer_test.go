@@ -1,24 +1,22 @@
 package installation_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	"github.com/cloudfoundry/bosh-init/installation"
-
-	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
-	"github.com/golang/mock/gomock"
-
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
 	fakeboshblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
 	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
+	"github.com/cloudfoundry/bosh-init/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
@@ -38,7 +36,7 @@ var _ = Describe("JobRenderer", func() {
 		fakeCompressor      *fakeboshcmd.FakeCompressor
 		fakeBlobstore       *fakeboshblob.FakeBlobstore
 
-		fakeFS *fakeboshsys.FakeFileSystem
+		fs *fakeboshsys.FakeFileSystem
 
 		logger boshlog.Logger
 
@@ -50,9 +48,6 @@ var _ = Describe("JobRenderer", func() {
 		manifest  biinstallmanifest.Manifest
 		fakeStage *fakebiui.FakeStage
 
-		releasePackage1 *birelpkg.Package
-		releasePackage2 *birelpkg.Package
-
 		renderedJobList bitemplate.RenderedJobList
 	)
 
@@ -61,7 +56,7 @@ var _ = Describe("JobRenderer", func() {
 		fakeCompressor = fakeboshcmd.NewFakeCompressor()
 		fakeBlobstore = fakeboshblob.NewFakeBlobstore()
 
-		fakeFS = fakeboshsys.NewFakeFileSystem()
+		fs = fakeboshsys.NewFakeFileSystem()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -78,36 +73,16 @@ var _ = Describe("JobRenderer", func() {
 			},
 		}
 
-		releasePackage1 = &birelpkg.Package{
-			Name:          "fake-release-package-name-1",
-			Fingerprint:   "fake-release-package-fingerprint-1",
-			SHA1:          "fake-release-package-sha1-1",
-			Dependencies:  []*birelpkg.Package{},
-			ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-1",
-		}
+		pkg1 := birelpkg.NewPackage(NewResource("pkg1-name", "pkg1-fp", nil), nil)
+		pkg2 := birelpkg.NewPackage(NewResource("pkg2-name", "pkg2-fp", nil), []string{"pkg1-name"})
+		pkg2.AttachDependencies([]*birelpkg.Package{pkg1})
 
-		releasePackage2 = &birelpkg.Package{
-			Name:          "fake-release-package-name-2",
-			Fingerprint:   "fake-release-package-fingerprint-2",
-			SHA1:          "fake-release-package-sha1-2",
-			Dependencies:  []*birelpkg.Package{releasePackage1},
-			ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-2",
-		}
+		job := bireljob.NewJob(NewResource("cpi", "fake-release-job-fingerprint", nil))
+		job.PackageNames = []string{"pkg2-name"}
+		job.AttachPackages([]*birelpkg.Package{pkg2})
 
-		releaseJob = bireljob.Job{
-			Name:          "cpi",
-			Fingerprint:   "fake-release-job-fingerprint",
-			SHA1:          "fake-release-job-sha1",
-			ExtractedPath: "/extracted-release-path/extracted_jobs/cpi",
-			Templates: map[string]string{
-				"cpi.erb":     "bin/cpi",
-				"cpi.yml.erb": "config/cpi.yml",
-			},
-			PackageNames: []string{releasePackage2.Name},
-			Packages:     []*birelpkg.Package{releasePackage2},
-			Properties:   map[string]bireljob.PropertyDefinition{},
-		}
-		releaseJobs = []bireljob.Job{releaseJob}
+		releaseJob = *job
+		releaseJobs = []bireljob.Job{*job}
 	})
 
 	JustBeforeEach(func() {
@@ -128,7 +103,7 @@ var _ = Describe("JobRenderer", func() {
 		address := ""
 
 		renderedJobList = bitemplate.NewRenderedJobList()
-		renderedJobList.Add(bitemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fakeFS, logger))
+		renderedJobList.Add(bitemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fs, logger))
 
 		mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address).Return(renderedJobList, nil).AnyTimes()
 

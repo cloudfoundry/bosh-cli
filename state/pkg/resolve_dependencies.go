@@ -4,13 +4,14 @@ import (
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
-func ResolveDependencies(pkg *birelpkg.Package) []*birelpkg.Package {
-	return reverse(resolveInner(pkg, []*birelpkg.Package{}))
+func ResolveDependencies(pkg birelpkg.Compilable) []birelpkg.Compilable {
+	return reverse(resolveInner(pkg, []birelpkg.Compilable{}))
 }
 
-func resolveInner(pkg *birelpkg.Package, noFollow []*birelpkg.Package) []*birelpkg.Package {
-	all := []*birelpkg.Package{}
-	for _, depPkg := range pkg.Dependencies {
+func resolveInner(pkg birelpkg.Compilable, noFollow []birelpkg.Compilable) []birelpkg.Compilable {
+	all := []birelpkg.Compilable{}
+
+	for _, depPkg := range pkg.Deps() {
 		if !contains(all, depPkg) && !contains(noFollow, depPkg) {
 			all = append(all, depPkg)
 
@@ -26,10 +27,11 @@ func resolveInner(pkg *birelpkg.Package, noFollow []*birelpkg.Package) []*birelp
 			all = append(all[:i], all[i+1:]...)
 		}
 	}
+
 	return all
 }
 
-func contains(list []*birelpkg.Package, element *birelpkg.Package) bool {
+func contains(list []birelpkg.Compilable, element birelpkg.Compilable) bool {
 	for _, pkg := range list {
 		if element == pkg {
 			return true
@@ -38,8 +40,8 @@ func contains(list []*birelpkg.Package, element *birelpkg.Package) bool {
 	return false
 }
 
-func joinUnique(a []*birelpkg.Package, b []*birelpkg.Package) []*birelpkg.Package {
-	joined := []*birelpkg.Package{}
+func joinUnique(a []birelpkg.Compilable, b []birelpkg.Compilable) []birelpkg.Compilable {
+	joined := []birelpkg.Compilable{}
 	joined = append(joined, a...)
 	for _, pkg := range b {
 		if !contains(a, pkg) {
@@ -49,7 +51,7 @@ func joinUnique(a []*birelpkg.Package, b []*birelpkg.Package) []*birelpkg.Packag
 	return joined
 }
 
-func reverse(a []*birelpkg.Package) []*birelpkg.Package {
+func reverse(a []birelpkg.Compilable) []birelpkg.Compilable {
 	for i := len(a)/2 - 1; i >= 0; i-- {
 		opp := len(a) - 1 - i
 		a[i], a[opp] = a[opp], a[i]

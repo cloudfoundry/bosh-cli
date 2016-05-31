@@ -17,9 +17,7 @@ type validator struct {
 }
 
 func NewValidator(logger boshlog.Logger) Validator {
-	return &validator{
-		logger: logger,
-	}
+	return &validator{logger: logger}
 }
 
 func (v *validator) Validate(manifest Manifest) error {

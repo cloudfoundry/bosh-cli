@@ -6,37 +6,38 @@ import (
 	"io/ioutil"
 	"os"
 
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	. "github.com/cloudfoundry/bosh-init/templatescompiler"
-	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	boshreljob "github.com/cloudfoundry/bosh-init/release/job"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
+	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 )
 
 var _ = Describe("JobEvaluationContext", func() {
 	var (
 		generatedContext RootContext
 
-		releaseJob              bireljob.Job
+		releaseJob              *boshreljob.Job
 		jobProperties           *biproperty.Map
 		instanceGroupProperties biproperty.Map
 		deploymentProperties    biproperty.Map
 	)
+
 	BeforeEach(func() {
 		generatedContext = RootContext{}
 
-		releaseJob = bireljob.Job{
-			Name: "fake-job-name",
-			Properties: map[string]bireljob.PropertyDefinition{
-				"property1.subproperty1": bireljob.PropertyDefinition{
-					Default: "spec-default",
-				},
-				"property2.subproperty2": bireljob.PropertyDefinition{
-					Default: "spec-default",
-				},
+		releaseJob = boshreljob.NewJob(NewResource("fake-job-name", "", nil))
+		releaseJob.Properties = map[string]boshreljob.PropertyDefinition{
+			"property1.subproperty1": boshreljob.PropertyDefinition{
+				Default: "spec-default",
+			},
+			"property2.subproperty2": boshreljob.PropertyDefinition{
+				Default: "spec-default",
 			},
 		}
 
@@ -51,7 +52,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
 		jobEvaluationContext := NewJobEvaluationContext(
-			releaseJob,
+			*releaseJob,
 			jobProperties,
 			instanceGroupProperties,
 			deploymentProperties,
@@ -88,6 +89,7 @@ var _ = Describe("JobEvaluationContext", func() {
 	})
 
 	var erbRenderer erbrenderer.ERBRenderer
+
 	getValueFor := func(key string) string {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs := boshsys.NewOsFileSystem(logger)
@@ -109,7 +111,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		defer os.Remove(destFile.Name())
 
 		jobEvaluationContext := NewJobEvaluationContext(
-			releaseJob,
+			*releaseJob,
 			jobProperties,
 			instanceGroupProperties,
 			deploymentProperties,

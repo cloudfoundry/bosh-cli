@@ -2,7 +2,7 @@ package testutils
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/pivotal-golang/yaml"
+	"gopkg.in/yaml.v2"
 )
 
 func MarshalToString(input interface{}) (string, error) {

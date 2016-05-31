@@ -39,7 +39,7 @@ func NewJobRenderer(
 func (r *jobRenderer) Render(releaseJob bireljob.Job, releaseJobProperties *biproperty.Map, jobProperties biproperty.Map, globalProperties biproperty.Map, deploymentName string, address string) (RenderedJob, error) {
 	context := NewJobEvaluationContext(releaseJob, releaseJobProperties, jobProperties, globalProperties, deploymentName, address, r.logger)
 
-	sourcePath := releaseJob.ExtractedPath
+	sourcePath := releaseJob.ExtractedPath()
 
 	destinationPath, err := r.fs.TempDir("rendered-jobs")
 	if err != nil {

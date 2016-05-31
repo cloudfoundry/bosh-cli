@@ -27,7 +27,7 @@ type Provider interface {
 	Get(Source, biui.Stage) (path string, err error)
 }
 
-var HTTPClient = http.Client{
+var HTTPClient = &http.Client{
 	Transport: &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
@@ -65,8 +65,9 @@ func NewProvider(
 		sha1Calculator:   sha1Calculator,
 		downloadAttempts: downloadAttempts,
 		delayTimeout:     delayTimeout,
-		logger:           logger,
-		logTag:           "tarballProvider",
+
+		logTag: "tarballProvider",
+		logger: logger,
 	}
 }
 
@@ -89,24 +90,28 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 	}
 
 	var cachedPath string
+
 	err := stage.Perform(fmt.Sprintf("Downloading %s", source.Description()), func() error {
 		var found bool
+
 		cachedPath, found = p.cache.Get(source)
 		if found {
 			p.logger.Debug(p.logTag, "Using the tarball from cache: '%s'", cachedPath)
 			return biui.NewSkipStageError(bosherr.Error("Already downloaded"), "Found in local cache")
 		}
 
-		retryStrategy := boshretry.NewAttemptRetryStrategy(p.downloadAttempts, p.delayTimeout, p.downloadRetryable(source), p.logger)
+		retryStrategy := boshretry.NewAttemptRetryStrategy(
+			p.downloadAttempts, p.delayTimeout, p.downloadRetryable(source), p.logger)
+
 		err := retryStrategy.Try()
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Failed to download from '%s'", source.GetURL())
 		}
 
 		p.logger.Debug(p.logTag, "Using the downloaded tarball: '%s'", cachedPath)
+
 		return nil
 	})
-
 	if err != nil {
 		return "", err
 	}
@@ -120,6 +125,7 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 		if err != nil {
 			return true, bosherr.WrapError(err, "Unable to create temporary file")
 		}
+
 		defer func() {
 			if err = p.fs.RemoveAll(downloadedFile.Name()); err != nil {
 				p.logger.Warn(p.logTag, "Failed to remove downloaded file: %s", err.Error())
@@ -130,6 +136,7 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 		if err != nil {
 			return true, bosherr.WrapError(err, "Unable to download")
 		}
+
 		defer func() {
 			if err = response.Body.Close(); err != nil {
 				p.logger.Warn(p.logTag, "Failed to close download response body: %s", err.Error())

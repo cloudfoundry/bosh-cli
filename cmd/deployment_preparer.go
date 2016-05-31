@@ -1,9 +1,11 @@
 package cmd
 
 import (
-	"strings"
-
 	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
 	biconfig "github.com/cloudfoundry/bosh-init/config"
@@ -11,15 +13,13 @@ import (
 	bidepl "github.com/cloudfoundry/bosh-init/deployment"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	biinstall "github.com/cloudfoundry/bosh-init/installation"
+	boshinst "github.com/cloudfoundry/bosh-init/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func NewDeploymentPreparer(
@@ -28,7 +28,7 @@ func NewDeploymentPreparer(
 	logTag string,
 	deploymentStateService biconfig.DeploymentStateService,
 	legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator,
-	releaseManager birel.Manager,
+	releaseManager boshinst.ReleaseManager,
 	deploymentRecord bidepl.Record,
 	cloudFactory bicloud.Factory,
 	stemcellManagerFactory bistemcell.ManagerFactory,
@@ -37,8 +37,9 @@ func NewDeploymentPreparer(
 	blobstoreFactory biblobstore.Factory,
 	deployer bidepl.Deployer,
 	deploymentManifestPath string,
+	deploymentVars boshtpl.Variables,
 	cpiInstaller bicpirel.CpiInstaller,
-	releaseFetcher birel.Fetcher,
+	releaseFetcher boshinst.ReleaseFetcher,
 	stemcellFetcher bistemcell.Fetcher,
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser,
 	deploymentManifestParser DeploymentManifestParser,
@@ -60,6 +61,7 @@ func NewDeploymentPreparer(
 		blobstoreFactory:                        blobstoreFactory,
 		deployer:                                deployer,
 		deploymentManifestPath:                  deploymentManifestPath,
+		deploymentVars:                          deploymentVars,
 		cpiInstaller:                            cpiInstaller,
 		releaseFetcher:                          releaseFetcher,
 		stemcellFetcher:                         stemcellFetcher,
@@ -76,7 +78,7 @@ type DeploymentPreparer struct {
 	logTag                                  string
 	deploymentStateService                  biconfig.DeploymentStateService
 	legacyDeploymentStateMigrator           biconfig.LegacyDeploymentStateMigrator
-	releaseManager                          birel.Manager
+	releaseManager                          boshinst.ReleaseManager
 	deploymentRecord                        bidepl.Record
 	cloudFactory                            bicloud.Factory
 	stemcellManagerFactory                  bistemcell.ManagerFactory
@@ -85,8 +87,9 @@ type DeploymentPreparer struct {
 	blobstoreFactory                        biblobstore.Factory
 	deployer                                bidepl.Deployer
 	deploymentManifestPath                  string
+	deploymentVars                          boshtpl.Variables
 	cpiInstaller                            bicpirel.CpiInstaller
-	releaseFetcher                          birel.Fetcher
+	releaseFetcher                          boshinst.ReleaseFetcher
 	stemcellFetcher                         bistemcell.Fetcher
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser
 	deploymentManifestParser                DeploymentManifestParser
@@ -136,7 +139,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 	)
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var releaseSetManifest birelsetmanifest.Manifest
-		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath)
+		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath, c.deploymentVars)
 		if err != nil {
 			return err
 		}
@@ -153,32 +156,12 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 			return err
 		}
 
-		deploymentManifest, err = c.deploymentManifestParser.GetDeploymentManifest(c.deploymentManifestPath, releaseSetManifest, stage)
+		deploymentManifest, err = c.deploymentManifestParser.GetDeploymentManifest(c.deploymentManifestPath, c.deploymentVars, releaseSetManifest, stage)
 		if err != nil {
 			return err
 		}
 
 		extractedStemcell, err = c.stemcellFetcher.GetStemcell(deploymentManifest, stage)
-
-		nonCpiReleasesMap, _ := deploymentManifest.GetListOfTemplateReleases()
-		delete(nonCpiReleasesMap, installationManifest.Template.Release) // remove CPI release from nonCpiReleasesMap
-
-		for _, release := range c.releaseManager.List() {
-			if _, ok := nonCpiReleasesMap[release.Name()]; ok {
-				if release.IsCompiled() {
-					compilationOsAndVersion := release.Packages()[0].Stemcell
-					if strings.ToLower(compilationOsAndVersion) != strings.ToLower(extractedStemcell.OsAndVersion()) {
-						return bosherr.Errorf("OS/Version mismatch between deployment stemcell and compiled package stemcell for release '%s'", release.Name())
-					}
-				}
-			} else {
-				// It is a CPI release, check if it is compiled
-				if release.IsCompiled() {
-					return bosherr.Errorf("CPI is not allowed to be a compiled release. The provided CPI release '%s' is compiled", release.Name())
-				}
-			}
-		}
-
 		return err
 	})
 	if err != nil {

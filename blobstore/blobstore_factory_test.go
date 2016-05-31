@@ -19,7 +19,7 @@ import (
 var _ = Describe("BlobstoreFactory", func() {
 	var (
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
-		httpClient        http.Client
+		httpClient        *http.Client
 		fs                *fakesys.FakeFileSystem
 		logger            boshlog.Logger
 		blobstoreFactory  Factory
@@ -30,7 +30,6 @@ var _ = Describe("BlobstoreFactory", func() {
 		fs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		httpClient = bihttpclient.DefaultClient
-
 		blobstoreFactory = NewBlobstoreFactory(fakeUUIDGenerator, fs, logger)
 	})
 
@@ -43,7 +42,7 @@ var _ = Describe("BlobstoreFactory", func() {
 					Endpoint: "https://fake-host:1234/blobs",
 					User:     "fake-user",
 					Password: "fake-password",
-				}, &httpClient, logger)
+				}, httpClient, logger)
 				expectedBlobstore := NewBlobstore(davClient, fakeUUIDGenerator, fs, logger)
 				Expect(blobstore).To(Equal(expectedBlobstore))
 			})
@@ -56,7 +55,7 @@ var _ = Describe("BlobstoreFactory", func() {
 					Endpoint: "https://fake-host:1234/blobs",
 					User:     "",
 					Password: "",
-				}, &httpClient, logger)
+				}, httpClient, logger)
 				expectedBlobstore := NewBlobstore(davClient, fakeUUIDGenerator, fs, logger)
 
 				blobstore, err := blobstoreFactory.Create("https://fake-host:1234", httpClient)

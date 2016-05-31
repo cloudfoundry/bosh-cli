@@ -48,10 +48,10 @@ func (r *jobListRenderer) Render(
 
 	// render all the jobs' templates
 	for _, releaseJob := range releaseJobs {
-		renderedJob, err := r.jobRenderer.Render(releaseJob, releaseJobProperties[releaseJob.Name], jobProperties, globalProperties, deploymentName, address)
+		renderedJob, err := r.jobRenderer.Render(releaseJob, releaseJobProperties[releaseJob.Name()], jobProperties, globalProperties, deploymentName, address)
 		if err != nil {
 			defer renderedJobList.DeleteSilently()
-			return renderedJobList, bosherr.WrapErrorf(err, "Rendering templates for job '%s/%s'", releaseJob.Name, releaseJob.Fingerprint)
+			return renderedJobList, bosherr.WrapErrorf(err, "Rendering templates for job '%s/%s'", releaseJob.Name(), releaseJob.Fingerprint())
 		}
 		renderedJobList.Add(renderedJob)
 	}

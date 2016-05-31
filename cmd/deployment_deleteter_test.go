@@ -1,46 +1,45 @@
 package cmd_test
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	bicmd "github.com/cloudfoundry/bosh-init/cmd"
-
 	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-init/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
-	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
-	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
-	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
-	"github.com/golang/mock/gomock"
-
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
-	biinstall "github.com/cloudfoundry/bosh-init/installation"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
-	birel "github.com/cloudfoundry/bosh-init/release"
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
-	"errors"
-
+	mock_agentclient "github.com/cloudfoundry/bosh-init/agentclient/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
+	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	boshrel "github.com/cloudfoundry/bosh-init/release"
+	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 )
 
 var _ = Describe("DeploymentDeleter", func() {
@@ -58,12 +57,12 @@ var _ = Describe("DeploymentDeleter", func() {
 		var (
 			fs                          *fakesys.FakeFileSystem
 			logger                      boshlog.Logger
+			releaseReader               *fakerel.FakeReader
 			releaseManager              birel.Manager
 			mockCpiInstaller            *mock_install.MockInstaller
 			mockCpiUninstaller          *mock_install.MockUninstaller
 			mockInstallerFactory        *mock_install.MockInstallerFactory
 			mockCloudFactory            *mock_cloud.MockFactory
-			mockReleaseExtractor        *mock_release.MockExtractor
 			fakeUUIDGenerator           *fakeuuid.FakeGenerator
 			setupDeploymentStateService biconfig.DeploymentStateService
 			fakeInstallation            *fakecmd.FakeInstallation
@@ -88,9 +87,8 @@ var _ = Describe("DeploymentDeleter", func() {
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentStatePath    string
 
-			expectCPIExtractRelease *gomock.Call
-			expectCPIInstall        *gomock.Call
-			expectNewCloud          *gomock.Call
+			expectCPIInstall *gomock.Call
+			expectNewCloud   *gomock.Call
 
 			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 		)
@@ -116,27 +114,28 @@ cloud_provider:
 		}
 
 		var allowCPIToBeExtracted = func() {
+			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "job-fp", nil))
+			job.Templates = map[string]string{"templates/cpi.erb": "bin/cpi"}
+
 			cpiRelease := birel.NewRelease(
 				"fake-cpi-release-name",
 				"fake-cpi-release-version",
-				[]bireljob.Job{
-					{
-						Name: "fake-cpi-release-job-name",
-						Templates: map[string]string{
-							"templates/cpi.erb": "bin/cpi",
-						},
-					},
-				},
+				"fake-sha",
+				false,
+				[]*bireljob.Job{job},
 				[]*birelpkg.Package{},
+				[]*birelpkg.CompiledPackage{},
+				nil,
 				"fake-cpi-extracted-dir",
 				fs,
-				false,
 			)
 
-			expectCPIExtractRelease = mockReleaseExtractor.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
+			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+				Expect(path).To(Equal("/fake-cpi-release.tgz"))
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
 				Expect(err).ToNot(HaveOccurred())
-			}).Return(cpiRelease, nil).AnyTimes()
+				return cpiRelease, nil
+			}
 		}
 
 		var allowCPIToBeInstalled = func() {
@@ -177,7 +176,7 @@ cloud_provider:
 				InstallerFactory: mockInstallerFactory,
 				Validator:        bicpirel.NewValidator(),
 			}
-			releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
+			releaseFetcher := biinstall.NewReleaseFetcher(tarballProvider, releaseReader, releaseManager)
 			releaseSetAndInstallationManifestParser := bicmd.ReleaseSetAndInstallationManifestParser{
 				ReleaseSetParser:   releaseSetParser,
 				InstallationParser: installationParser,
@@ -203,6 +202,7 @@ cloud_provider:
 				mockBlobstoreFactory,
 				mockDeploymentManagerFactory,
 				deploymentManifestPath,
+				boshtpl.Variables{},
 				cpiInstaller,
 				mockCpiUninstaller,
 				releaseFetcher,
@@ -303,8 +303,8 @@ cloud_provider:
 			mockDeploymentManager = mock_deployment.NewMockManager(mockCtrl)
 			mockDeployment = mock_deployment.NewMockDeployment(mockCtrl)
 
-			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
-			releaseManager = birel.NewManager(logger)
+			releaseReader = &fakerel.FakeReader{}
+			releaseManager = biinstall.NewReleaseManager(logger)
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
@@ -373,7 +373,6 @@ cloud_provider:
 					expectDeleteAndCleanup(true)
 
 					gomock.InOrder(
-						expectCPIExtractRelease.Times(1),
 						expectCPIInstall.Times(1),
 						expectNewCloud.Times(1),
 					)

@@ -16,8 +16,9 @@ type Stage interface {
 type stage struct {
 	ui          UI
 	timeService clock.Clock
-	logger      boshlog.Logger
-	logTag      string
+
+	logTag string
+	logger boshlog.Logger
 
 	simpleMode bool
 }
@@ -26,9 +27,11 @@ func NewStage(ui UI, timeService clock.Clock, logger boshlog.Logger) Stage {
 	return &stage{
 		ui:          ui,
 		timeService: timeService,
-		logger:      logger,
-		logTag:      "stage",
-		simpleMode:  true,
+
+		logTag: "stage",
+		logger: logger,
+
+		simpleMode: true,
 	}
 }
 

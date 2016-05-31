@@ -1,16 +1,18 @@
 package manifest
 
 import (
-	biutil "github.com/cloudfoundry/bosh-init/common/util"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	biutil "github.com/cloudfoundry/bosh-init/common/util"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	"gopkg.in/yaml.v2"
 )
 
 type Parser interface {
-	Parse(path string) (Manifest, error)
+	Parse(string, boshtpl.Variables) (Manifest, error)
 }
 
 type parser struct {
@@ -116,17 +118,26 @@ func NewParser(fs boshsys.FileSystem, logger boshlog.Logger) Parser {
 	}
 }
 
-func (p *parser) Parse(path string) (Manifest, error) {
+func (p *parser) Parse(path string, vars boshtpl.Variables) (Manifest, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
 	}
 
+	tpl := boshtpl.NewTemplate(contents)
+
+	bytes, err := tpl.Evaluate(vars)
+	if err != nil {
+		return Manifest{}, bosherr.WrapErrorf(err, "Evaluating manifest")
+	}
+
 	comboManifest := manifest{}
-	err = yaml.Unmarshal(contents, &comboManifest)
+
+	err = yaml.Unmarshal(bytes, &comboManifest)
 	if err != nil {
 		return Manifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
+
 	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest: %#v", comboManifest)
 
 	deploymentManifest, err := p.parseDeploymentManifest(comboManifest, path)

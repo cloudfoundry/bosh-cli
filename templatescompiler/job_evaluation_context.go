@@ -68,8 +68,8 @@ func NewJobEvaluationContext(
 		globalProperties:     globalProperties,
 		deploymentName:       deploymentName,
 		address:              address,
-		logger:               logger,
 		logTag:               "jobEvaluationContext",
+		logger:               logger,
 	}
 }
 
@@ -81,7 +81,7 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 		ID:                "unknown",
 		AZ:                "unknown",
 		Bootstrap:         true,
-		JobContext:        jobContext{Name: ec.releaseJob.Name},
+		JobContext:        jobContext{Name: ec.releaseJob.Name()},
 		Deployment:        ec.deploymentName,
 		NetworkContexts:   ec.buildNetworkContexts(),
 		GlobalProperties:  ec.globalProperties,

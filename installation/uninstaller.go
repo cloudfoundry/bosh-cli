@@ -10,16 +10,18 @@ type Uninstaller interface {
 }
 
 type uninstaller struct {
-	fs     boshsys.FileSystem
-	logger boshlog.Logger
+	fs boshsys.FileSystem
+
 	logTag string
+	logger boshlog.Logger
 }
 
 func NewUninstaller(fs boshsys.FileSystem, logger boshlog.Logger) Uninstaller {
 	return &uninstaller{
-		fs:     fs,
-		logger: logger,
+		fs: fs,
+
 		logTag: "uninstaller",
+		logger: logger,
 	}
 }
 
@@ -31,5 +33,6 @@ func (u *uninstaller) Uninstall(installationTarget Target) error {
 	}
 
 	u.logger.Info(u.logTag, "Successfully uninstalled CPI from '%s'", installationTarget.Path())
+
 	return nil
 }

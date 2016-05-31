@@ -1,0 +1,226 @@
+package cmd_test
+
+import (
+	"errors"
+	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-init/cmd"
+	boshdir "github.com/cloudfoundry/bosh-init/director"
+	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
+	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
+)
+
+var _ = Describe("TasksCmd", func() {
+	var (
+		ui       *fakeui.FakeUI
+		director *fakedir.FakeDirector
+		command  TasksCmd
+	)
+
+	BeforeEach(func() {
+		ui = &fakeui.FakeUI{}
+		director = &fakedir.FakeDirector{}
+		command = NewTasksCmd(ui, director)
+	})
+
+	Describe("Run", func() {
+		var (
+			opts TasksOpts
+		)
+
+		BeforeEach(func() {
+			opts = TasksOpts{}
+		})
+
+		act := func() error { return command.Run(opts) }
+
+		Context("when current tasks are requested", func() {
+			It("lists current tasks", func() {
+				tasks := []boshdir.Task{
+					&fakedir.FakeTask{
+						IDStub: func() int { return 4 },
+						CreatedAtStub: func() time.Time {
+							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+						},
+
+						StateStub: func() string { return "state" },
+						UserStub:  func() string { return "user" },
+
+						DescriptionStub: func() string { return "description" },
+						ResultStub:      func() string { return "result" },
+					},
+					&fakedir.FakeTask{
+						IDStub: func() int { return 5 },
+						CreatedAtStub: func() time.Time {
+							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+						},
+
+						StateStub:   func() string { return "error" },
+						IsErrorStub: func() bool { return true },
+						UserStub:    func() string { return "user2" },
+
+						DescriptionStub: func() string { return "description2" },
+						ResultStub:      func() string { return "result2" },
+					},
+				}
+
+				director.CurrentTasksReturns(tasks, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(ui.Table).To(Equal(boshtbl.Table{
+					Content: "tasks",
+
+					Header: []string{"#", "State", "Created At", "User", "Description", "Result"},
+
+					SortBy: []boshtbl.ColumnSort{{Column: 0}},
+
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.ValueInt{4},
+							boshtbl.ValueFmt{V: boshtbl.ValueString{"state"}, Error: false},
+							boshtbl.ValueTime{time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+							boshtbl.ValueString{"user"},
+							boshtbl.ValueString{"description"},
+							boshtbl.ValueString{"result"},
+						},
+						{
+							boshtbl.ValueInt{5},
+							boshtbl.ValueFmt{V: boshtbl.ValueString{"error"}, Error: true},
+							boshtbl.ValueTime{time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+							boshtbl.ValueString{"user2"},
+							boshtbl.ValueString{"description2"},
+							boshtbl.ValueString{"result2"},
+						},
+					},
+				}))
+			})
+
+			It("filters tasks based on 'all' option", func() {
+				director.CurrentTasksReturns(nil, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(false))
+
+				opts.All = true
+
+				err = act()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(director.CurrentTasksArgsForCall(1)).To(Equal(true))
+			})
+
+			It("returns error if tasks cannot be retrieved", func() {
+				director.CurrentTasksReturns(nil, errors.New("fake-err"))
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+		})
+
+		Context("when recent tasks are requested", func() {
+			BeforeEach(func() {
+				recent := 30
+				opts.Recent = &recent
+			})
+
+			It("lists recent tasks", func() {
+				tasks := []boshdir.Task{
+					&fakedir.FakeTask{
+						IDStub: func() int { return 4 },
+						CreatedAtStub: func() time.Time {
+							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+						},
+
+						StateStub: func() string { return "state" },
+						UserStub:  func() string { return "user" },
+
+						DescriptionStub: func() string { return "description" },
+						ResultStub:      func() string { return "result" },
+					},
+					&fakedir.FakeTask{
+						IDStub: func() int { return 5 },
+						CreatedAtStub: func() time.Time {
+							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+						},
+
+						StateStub:   func() string { return "error" },
+						IsErrorStub: func() bool { return true },
+						UserStub:    func() string { return "user2" },
+
+						DescriptionStub: func() string { return "description2" },
+						ResultStub:      func() string { return "result2" },
+					},
+				}
+
+				director.RecentTasksReturns(tasks, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(ui.Table).To(Equal(boshtbl.Table{
+					Content: "tasks",
+
+					Header: []string{"#", "State", "Created At", "User", "Description", "Result"},
+
+					SortBy: []boshtbl.ColumnSort{{Column: 0}},
+
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.ValueInt{4},
+							boshtbl.ValueFmt{V: boshtbl.ValueString{"state"}, Error: false},
+							boshtbl.ValueTime{time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+							boshtbl.ValueString{"user"},
+							boshtbl.ValueString{"description"},
+							boshtbl.ValueString{"result"},
+						},
+						{
+							boshtbl.ValueInt{5},
+							boshtbl.ValueFmt{V: boshtbl.ValueString{"error"}, Error: true},
+							boshtbl.ValueTime{time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+							boshtbl.ValueString{"user2"},
+							boshtbl.ValueString{"description2"},
+							boshtbl.ValueString{"result2"},
+						},
+					},
+				}))
+			})
+
+			It("filters tasks based on 'all' option", func() {
+				director.RecentTasksReturns(nil, nil)
+
+				Expect(act()).ToNot(HaveOccurred())
+				_, includeAll := director.RecentTasksArgsForCall(0)
+				Expect(includeAll).To(Equal(false))
+
+				opts.All = true
+
+				Expect(act()).ToNot(HaveOccurred())
+				_, includeAll = director.RecentTasksArgsForCall(1)
+				Expect(includeAll).To(Equal(true))
+			})
+
+			It("requests specific number of tasks", func() {
+				director.RecentTasksReturns(nil, nil)
+
+				Expect(act()).ToNot(HaveOccurred())
+				limit, _ := director.RecentTasksArgsForCall(0)
+				Expect(limit).To(Equal(30))
+			})
+
+			It("returns error if tasks cannot be retrieved", func() {
+				director.RecentTasksReturns(nil, errors.New("fake-err"))
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+		})
+	})
+})

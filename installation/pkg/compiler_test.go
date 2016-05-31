@@ -1,26 +1,25 @@
 package pkg_test
 
 import (
-	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
-	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"errors"
+	"path"
 	"path/filepath"
 
-	"errors"
-	"fmt"
-	"path"
-
-	"github.com/cloudfoundry/bosh-init/installation/blobextract/fakeblobextract"
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
+	"github.com/cloudfoundry/bosh-init/installation/blobextract/fakeblobextract"
 	. "github.com/cloudfoundry/bosh-init/installation/pkg"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
+	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
 )
 
 var _ = Describe("PackageCompiler", func() {
@@ -66,14 +65,10 @@ var _ = Describe("PackageCompiler", func() {
 
 		mockCompiledPackageRepo = mock_state_package.NewMockCompiledPackageRepo(mockCtrl)
 
-		dependency1 = &birelpkg.Package{
-			Name:        "fake-package-name-dependency-1",
-			Fingerprint: "fake-package-fingerprint-dependency-1",
-		}
-		dependency2 = &birelpkg.Package{
-			Name:        "fake-package-name-dependency-2",
-			Fingerprint: "fake-package-fingerprint-dependency-2",
-		}
+		dependency1 = birelpkg.NewPackage(NewResource("pkg-dep1-name", "", nil), nil)
+		dependency2 = birelpkg.NewPackage(NewResource("pkg-dep2-name", "", nil), nil)
+		pkg = birelpkg.NewExtractedPackage(NewResource("pkg1-name", "", nil), []string{"pkg-dep1-name", "pkg-dep2-name"}, "/pkg-dir", fs)
+		pkg.AttachDependencies([]*birelpkg.Package{dependency1, dependency2})
 
 		compiler = NewPackageCompiler(
 			runner,
@@ -85,12 +80,6 @@ var _ = Describe("PackageCompiler", func() {
 			fakeExtractor,
 			logger,
 		)
-
-		pkg = &birelpkg.Package{
-			Name:          "fake-package-1",
-			ExtractedPath: "/fake/path",
-			Dependencies:  []*birelpkg.Package{dependency1, dependency2},
-		}
 	})
 
 	Describe("Compile", func() {
@@ -106,27 +95,27 @@ var _ = Describe("PackageCompiler", func() {
 		)
 
 		BeforeEach(func() {
-			installPath = path.Join(packagesDir, pkg.Name)
+			installPath = path.Join(packagesDir, "pkg1-name")
 			compiledPackageTarballPath = path.Join(packagesDir, "new-tarball.tgz")
 		})
 
 		JustBeforeEach(func() {
-			expectFind = mockCompiledPackageRepo.EXPECT().Find(*pkg).Return(bistatepkg.CompiledPackageRecord{}, false, nil).AnyTimes()
+			expectFind = mockCompiledPackageRepo.EXPECT().Find(pkg).Return(bistatepkg.CompiledPackageRecord{}, false, nil).AnyTimes()
 
 			dep1 = bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-dependency-blobstore-id-1",
 				BlobSHA1: "fake-dependency-sha1-1",
 			}
-			mockCompiledPackageRepo.EXPECT().Find(*dependency1).Return(dep1, true, nil).AnyTimes()
+			mockCompiledPackageRepo.EXPECT().Find(dependency1).Return(dep1, true, nil).AnyTimes()
 
 			dep2 = bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-dependency-blobstore-id-2",
 				BlobSHA1: "fake-dependency-sha1-2",
 			}
-			mockCompiledPackageRepo.EXPECT().Find(*dependency2).Return(dep2, true, nil).AnyTimes()
+			mockCompiledPackageRepo.EXPECT().Find(dependency2).Return(dep2, true, nil).AnyTimes()
 
 			// packaging file created when source is extracted
-			fs.WriteFileString(path.Join(pkg.ExtractedPath, "packaging"), "")
+			fs.WriteFileString("/pkg-dir/packaging", "")
 
 			compressor.CompressFilesInDirTarballPath = compiledPackageTarballPath
 
@@ -134,7 +123,7 @@ var _ = Describe("PackageCompiler", func() {
 				BlobID:   "fake-blob-id",
 				BlobSHA1: "fake-fingerprint",
 			}
-			expectSave = mockCompiledPackageRepo.EXPECT().Save(*pkg, record).AnyTimes()
+			expectSave = mockCompiledPackageRepo.EXPECT().Save(pkg, record).AnyTimes()
 		})
 
 		Context("when the compiled package repo already has the package", func() {
@@ -160,12 +149,12 @@ var _ = Describe("PackageCompiler", func() {
 			blobstoreID, sha1, jobPath := fakeExtractor.ExtractArgsForCall(0)
 			Expect(blobstoreID).To(Equal(dep1.BlobID))
 			Expect(sha1).To(Equal(dep1.BlobSHA1))
-			Expect(jobPath).To(Equal(filepath.Join(packagesDir, "fake-package-name-dependency-1")))
+			Expect(jobPath).To(Equal(filepath.Join(packagesDir, "pkg-dep1-name")))
 
 			blobstoreID, sha1, jobPath = fakeExtractor.ExtractArgsForCall(1)
 			Expect(blobstoreID).To(Equal(dep2.BlobID))
 			Expect(sha1).To(Equal(dep2.BlobSHA1))
-			Expect(jobPath).To(Equal(filepath.Join(packagesDir, "fake-package-name-dependency-2")))
+			Expect(jobPath).To(Equal(filepath.Join(packagesDir, "pkg-dep2-name")))
 		})
 
 		It("runs the packaging script in package extractedPath dir", func() {
@@ -176,14 +165,14 @@ var _ = Describe("PackageCompiler", func() {
 				Name: "bash",
 				Args: []string{"-x", "packaging"},
 				Env: map[string]string{
-					"BOSH_COMPILE_TARGET": pkg.ExtractedPath,
+					"BOSH_COMPILE_TARGET": "/pkg-dir",
 					"BOSH_INSTALL_TARGET": installPath,
-					"BOSH_PACKAGE_NAME":   pkg.Name,
+					"BOSH_PACKAGE_NAME":   "pkg1-name",
 					"BOSH_PACKAGES_DIR":   packagesDir,
 					"PATH":                "/usr/local/bin:/usr/bin:/bin",
 				},
 				UseIsolatedEnv: true,
-				WorkingDir:     pkg.ExtractedPath,
+				WorkingDir:     "/pkg-dir",
 			}
 
 			Expect(runner.RunComplexCommands).To(HaveLen(1))
@@ -243,14 +232,14 @@ var _ = Describe("PackageCompiler", func() {
 
 		Context("when the packaging script does not exist", func() {
 			JustBeforeEach(func() {
-				err := fs.RemoveAll(path.Join(pkg.ExtractedPath, "packaging"))
+				err := fs.RemoveAll(path.Join("/pkg-dir", "packaging"))
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns error", func() {
 				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Packaging script for package 'fake-package-1' not found"))
+				Expect(err.Error()).To(ContainSubstring("Packaging script for package 'pkg1-name' not found"))
 			})
 		})
 
@@ -330,7 +319,7 @@ var _ = Describe("PackageCompiler", func() {
 			It("returns an error", func() {
 				_, _, err := compiler.Compile(pkg)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Attempting to find compiled package '%s'", pkg.Name)))
+				Expect(err.Error()).To(ContainSubstring("Attempting to find compiled package 'pkg1-name'"))
 				Expect(err.Error()).To(ContainSubstring("fake-error"))
 			})
 		})

@@ -1,15 +1,92 @@
 package pkg
 
+import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+)
+
 type Package struct {
-	Name          string
-	Fingerprint   string
-	SHA1          string
-	Stemcell      string
-	Dependencies  []*Package
-	ExtractedPath string
-	ArchivePath   string
+	resource Resource
+
+	Dependencies    []*Package
+	dependencyNames []string
+
+	extractedPath string
+	fs            boshsys.FileSystem
 }
 
-func (p Package) String() string {
-	return p.Name
+func NewPackage(resource Resource, dependencyNames []string) *Package {
+	return &Package{
+		resource: resource,
+
+		Dependencies:    []*Package{},
+		dependencyNames: dependencyNames,
+	}
+}
+
+func NewExtractedPackage(resource Resource, dependencyNames []string, extractedPath string, fs boshsys.FileSystem) *Package {
+	return &Package{
+		resource: resource,
+
+		Dependencies:    []*Package{},
+		dependencyNames: dependencyNames,
+
+		extractedPath: extractedPath,
+		fs:            fs,
+	}
+}
+
+func (p Package) String() string { return p.Name() }
+
+func (p Package) Name() string        { return p.resource.Name() }
+func (p Package) Fingerprint() string { return p.resource.Fingerprint() }
+
+func (p *Package) ArchivePath() string { return p.resource.ArchivePath() }
+func (p *Package) ArchiveSHA1() string { return p.resource.ArchiveSHA1() }
+
+func (p *Package) Build(dev, final ArchiveIndex) error { return p.resource.Build(dev, final) }
+func (p *Package) Finalize(final ArchiveIndex) error   { return p.resource.Finalize(final) }
+
+func (p *Package) AttachDependencies(packages []*Package) error {
+	for _, pkgName := range p.dependencyNames {
+		var found bool
+
+		for _, pkg := range packages {
+			if pkg.Name() == pkgName {
+				p.Dependencies = append(p.Dependencies, pkg)
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			errMsg := "Expected to find package '%s' since it's a dependency of package '%s'"
+			return bosherr.Errorf(errMsg, pkgName, p.Name())
+		}
+	}
+
+	return nil
+}
+
+func (p *Package) DependencyNames() []string { return p.dependencyNames }
+
+func (p *Package) Deps() []Compilable {
+	var coms []Compilable
+	for _, dep := range p.Dependencies {
+		coms = append(coms, dep)
+	}
+	return coms
+}
+
+func (p *Package) IsCompiled() bool { return false }
+
+func (p *Package) ExtractedPath() string { return p.extractedPath }
+
+func (p *Package) CleanUp() error {
+	if p.fs != nil && len(p.extractedPath) > 0 {
+		return p.fs.RemoveAll(p.extractedPath)
+	}
+	return nil
 }

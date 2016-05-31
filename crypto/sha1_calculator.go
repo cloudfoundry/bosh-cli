@@ -12,7 +12,8 @@ import (
 )
 
 type SHA1Calculator interface {
-	Calculate(filePath string) (string, error)
+	Calculate(string) (string, error)
+	CalculateString(string) string
 }
 
 type sha1Calculator struct {
@@ -20,9 +21,7 @@ type sha1Calculator struct {
 }
 
 func NewSha1Calculator(fs boshsys.FileSystem) SHA1Calculator {
-	return sha1Calculator{
-		fs: fs,
-	}
+	return sha1Calculator{fs: fs}
 }
 
 func (c sha1Calculator) Calculate(filePath string) (string, error) {
@@ -62,6 +61,17 @@ func (c sha1Calculator) Calculate(filePath string) (string, error) {
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
+}
+
+func (c sha1Calculator) CalculateString(data string) string {
+	h := sha1.New()
+
+	_, err := h.Write([]byte(data))
+	if err != nil {
+		panic("According to the docs sha1.Write will never return an error")
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func (c sha1Calculator) populateSha1(filePath string, hash hash.Hash) error {

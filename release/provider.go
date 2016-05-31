@@ -1,0 +1,86 @@
+package release
+
+import (
+	gopath "path"
+
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
+	boshjob "github.com/cloudfoundry/bosh-init/release/job"
+	boshlic "github.com/cloudfoundry/bosh-init/release/license"
+	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+)
+
+type Provider struct {
+	fingerprinter Fingerprinter
+
+	cmdRunner  boshsys.CmdRunner
+	compressor boshcmd.Compressor
+	sha1calc   bicrypto.SHA1Calculator
+	fs         boshsys.FileSystem
+	logger     boshlog.Logger
+}
+
+func NewProvider(
+	cmdRunner boshsys.CmdRunner,
+	compressor boshcmd.Compressor,
+	sha1calc bicrypto.SHA1Calculator,
+	fs boshsys.FileSystem,
+	logger boshlog.Logger,
+) Provider {
+	fingerprinter := NewFingerprinterImpl(sha1calc, fs)
+
+	return Provider{
+		fingerprinter: fingerprinter,
+		cmdRunner:     cmdRunner,
+		compressor:    compressor,
+		sha1calc:      sha1calc,
+		fs:            fs,
+		logger:        logger,
+	}
+}
+
+func (p Provider) NewMultiReader(dirPath string) MultiReader {
+	opts := MultiReaderOpts{
+		ArchiveReader:  p.NewArchiveReader(),
+		ManifestReader: p.NewManifestReader(),
+		DirReader:      p.NewDirReader(dirPath),
+	}
+	return NewMultiReader(opts, p.fs)
+}
+
+func (p Provider) NewExtractingArchiveReader() ArchiveReader { return p.archiveReader(true) }
+func (p Provider) NewArchiveReader() ArchiveReader           { return p.archiveReader(false) }
+
+func (p Provider) archiveReader(extracting bool) ArchiveReader {
+	jobReader := boshjob.NewArchiveReaderImpl(extracting, p.compressor, p.fs)
+	pkgReader := boshpkg.NewArchiveReaderImpl(extracting, p.compressor, p.fs)
+	return NewArchiveReader(jobReader, pkgReader, p.compressor, p.fs, p.logger)
+}
+
+func (p Provider) NewDirReader(dirPath string) DirReader {
+	archiveFactory := func(files []File, prepFiles []File, chunks []string) Archive {
+		return NewArchiveImpl(
+			files, prepFiles, chunks, dirPath, p.fingerprinter, p.compressor, p.sha1calc, p.cmdRunner, p.fs)
+	}
+
+	srcDirPath := gopath.Join(dirPath, "src")
+	blobsDirPath := gopath.Join(dirPath, "blobs")
+
+	jobDirReader := boshjob.NewDirReaderImpl(archiveFactory, p.fs)
+	pkgDirReader := boshpkg.NewDirReaderImpl(archiveFactory, srcDirPath, blobsDirPath, p.fs)
+	licDirReader := boshlic.NewDirReaderImpl(archiveFactory, p.fs)
+
+	return NewDirReader(jobDirReader, pkgDirReader, licDirReader, p.fs, p.logger)
+}
+
+func (p Provider) NewManifestReader() ManifestReader {
+	return NewManifestReader(p.fs, p.logger)
+}
+
+func (p Provider) NewArchiveWriter() ArchiveWriter {
+	return NewArchiveWriter(p.compressor, p.fs, p.logger)
+}

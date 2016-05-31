@@ -36,10 +36,12 @@ func (j *renderedJobList) Delete() error {
 	for _, renderedJob := range j.renderedJobs {
 		err := renderedJob.Delete()
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Deleting rendered job '%s'", renderedJob.Job().Name)
+			return bosherr.WrapErrorf(err, "Deleting rendered job '%s'", renderedJob.Job().Name())
 		}
 	}
+
 	j.renderedJobs = []RenderedJob{}
+
 	return nil
 }
 

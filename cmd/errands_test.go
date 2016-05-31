@@ -1,0 +1,65 @@
+package cmd_test
+
+import (
+	"errors"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-init/cmd"
+	boshdir "github.com/cloudfoundry/bosh-init/director"
+	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
+	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
+)
+
+var _ = Describe("ErrandsCmd", func() {
+	var (
+		ui         *fakeui.FakeUI
+		deployment *fakedir.FakeDeployment
+		command    ErrandsCmd
+	)
+
+	BeforeEach(func() {
+		ui = &fakeui.FakeUI{}
+		deployment = &fakedir.FakeDeployment{}
+		command = NewErrandsCmd(ui, deployment)
+	})
+
+	Describe("Run", func() {
+		act := func() error { return command.Run() }
+
+		It("lists current errands", func() {
+			errands := []boshdir.Errand{
+				{
+					Name: "some-errand",
+				},
+			}
+
+			deployment.ErrandsReturns(errands, nil)
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ui.Table).To(Equal(boshtbl.Table{
+				Content: "errands",
+
+				Header: []string{"Name"},
+
+				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+
+				Rows: [][]boshtbl.Value{
+					{boshtbl.ValueString{"some-errand"}},
+				},
+			}))
+		})
+
+		It("returns error if errands cannot be retrieved", func() {
+			deployment.ErrandsReturns(nil, errors.New("fake-err"))
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+	})
+})

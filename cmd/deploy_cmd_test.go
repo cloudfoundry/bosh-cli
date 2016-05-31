@@ -5,62 +5,58 @@ import (
 	"fmt"
 	"path/filepath"
 
-	bicmd "github.com/cloudfoundry/bosh-init/cmd"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/cloudfoundry/bosh-init/crypto"
-	"github.com/cloudfoundry/bosh-init/deployment"
-	"github.com/golang/mock/gomock"
 	"github.com/onsi/gomega/gbytes"
 
 	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	mock_agentclient "github.com/cloudfoundry/bosh-init/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
-	mock_config "github.com/cloudfoundry/bosh-init/config/mocks"
-	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
-	mock_vm "github.com/cloudfoundry/bosh-init/deployment/vm/mocks"
-	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
-	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
-	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
-	mock_stemcell "github.com/cloudfoundry/bosh-init/stemcell/mocks"
-
 	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	biinstall "github.com/cloudfoundry/bosh-init/installation"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
-	birel "github.com/cloudfoundry/bosh-init/release"
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	bipkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-
 	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
+	bicmd "github.com/cloudfoundry/bosh-init/cmd"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	mock_config "github.com/cloudfoundry/bosh-init/config/mocks"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
+	"github.com/cloudfoundry/bosh-init/crypto"
+	"github.com/cloudfoundry/bosh-init/deployment"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	fakebideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
 	fakebideplval "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
+	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
+	mock_vm "github.com/cloudfoundry/bosh-init/deployment/vm/mocks"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	fakebiinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest/fakes"
+	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
+	mock_registry "github.com/cloudfoundry/bosh-init/registry/mocks"
+	boshrel "github.com/cloudfoundry/bosh-init/release"
 	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
+	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest/fakes"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
+	mock_stemcell "github.com/cloudfoundry/bosh-init/stemcell/mocks"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )
 
-var _ = Describe("DeployCmd", rootDesc)
-
-func rootDesc() {
+var _ = Describe("DeployCmd", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {
@@ -73,8 +69,8 @@ func rootDesc() {
 
 	Describe("Run", func() {
 		var (
-			command        bicmd.Cmd
-			fakeFs         *fakesys.FakeFileSystem
+			command        *bicmd.DeployCmd
+			fs             *fakesys.FakeFileSystem
 			stdOut         *gbytes.Buffer
 			stdErr         *gbytes.Buffer
 			userInterface  biui.UI
@@ -84,16 +80,16 @@ func rootDesc() {
 			mockDeployer              *mock_deployment.MockDeployer
 			mockInstaller             *mock_install.MockInstaller
 			mockInstallerFactory      *mock_install.MockInstallerFactory
-			mockReleaseExtractor      *mock_release.MockExtractor
-			releaseManager            birel.Manager
+			releaseReader             *fakerel.FakeReader
+			releaseManager            biinstall.ReleaseManager
 			mockRegistryServerManager *mock_registry.MockServerManager
 			mockRegistryServer        *mock_registry.MockServer
 			mockAgentClient           *mock_agentclient.MockAgentClient
 			mockAgentClientFactory    *mock_httpagent.MockAgentClientFactory
 			mockCloudFactory          *mock_cloud.MockFactory
 
-			fakeCPIRelease *fakebirel.FakeRelease
-			logger         boshlog.Logger
+			cpiRelease *fakebirel.FakeRelease
+			logger     boshlog.Logger
 
 			mockBlobstoreFactory *mock_blobstore.MockFactory
 			mockBlobstore        *mock_blobstore.MockBlobstore
@@ -134,10 +130,11 @@ func rootDesc() {
 
 			cloudStemcell bistemcell.CloudStemcell
 
+			defaultCreateEnvOpts bicmd.CreateEnvOpts
+
 			expectLegacyMigrate        *gomock.Call
 			expectStemcellUpload       *gomock.Call
 			expectStemcellDeleteUnused *gomock.Call
-			expectCPIReleaseExtract    *gomock.Call
 			expectInstall              *gomock.Call
 			expectNewCloud             *gomock.Call
 		)
@@ -147,22 +144,22 @@ func rootDesc() {
 			stdOut = gbytes.NewBuffer()
 			stdErr = gbytes.NewBuffer()
 			userInterface = biui.NewWriterUI(stdOut, stdErr, logger)
-			fakeFs = fakesys.NewFakeFileSystem()
-			fakeFs.EnableStrictTempRootBehavior()
+			fs = fakesys.NewFakeFileSystem()
+			fs.EnableStrictTempRootBehavior()
 			deploymentManifestPath = "/path/to/manifest.yml"
 			deploymentStatePath = "/path/to/manifest-state.json"
-			fakeFs.RegisterOpenFile(deploymentManifestPath, &fakesys.FakeFile{
+			fs.RegisterOpenFile(deploymentManifestPath, &fakesys.FakeFile{
 				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
 			})
 
-			fakeFs.WriteFileString(deploymentManifestPath, "")
+			fs.WriteFileString(deploymentManifestPath, "")
 
 			mockDeployer = mock_deployment.NewMockDeployer(mockCtrl)
 			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
 
-			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
-			releaseManager = birel.NewManager(logger)
+			releaseReader = &fakerel.FakeReader{}
+			releaseManager = biinstall.NewReleaseManager(logger)
 
 			mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 			mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
@@ -193,13 +190,13 @@ func rootDesc() {
 
 			configUUIDGenerator = &fakeuuid.FakeGenerator{}
 			configUUIDGenerator.GeneratedUUID = directorID
-			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 
 			fakeDeploymentValidator = fakebideplval.NewFakeValidator()
 
 			fakeStage = fakebiui.NewFakeStage()
 
-			sha1Calculator = crypto.NewSha1Calculator(fakeFs)
+			sha1Calculator = crypto.NewSha1Calculator(fs)
 			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
 			var err error
@@ -216,18 +213,17 @@ func rootDesc() {
 					Version:         "fake-stemcell-version",
 					SHA1:            "fake-stemcell-sha1",
 					CloudProperties: biproperty.Map{},
-					OS:              "ubuntu-trusty",
 				},
 				"fake-extracted-path",
-				fakeFs,
+				fs,
 			)
 
 			// create input files
-			fakeFs.WriteFileString(cpiReleaseTarballPath, "")
-			fakeFs.WriteFileString(stemcellTarballPath, "")
+			fs.WriteFileString(cpiReleaseTarballPath, "")
+			fs.WriteFileString(stemcellTarballPath, "")
 
 			// deployment exists
-			fakeFs.WriteFileString(deploymentManifestPath, "")
+			fs.WriteFileString(deploymentManifestPath, "")
 
 			// deployment is valid
 			fakeDeploymentValidator.SetValidateBehavior([]fakebideplval.ValidateOutput{
@@ -238,7 +234,7 @@ func rootDesc() {
 			})
 
 			// stemcell exists
-			fakeFs.WriteFile(stemcellTarballPath, []byte{})
+			fs.WriteFile(stemcellTarballPath, []byte{})
 
 			releaseSetManifest = birelsetmanifest.Manifest{
 				Releases: []birelmanifest.ReleaseRef{
@@ -277,43 +273,56 @@ func rootDesc() {
 			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
 
 			// parsed/extracted CPI release
-			fakeCPIRelease = fakebirel.NewFakeRelease()
-			fakeCPIRelease.ReleaseName = "fake-cpi-release-name"
-			fakeCPIRelease.ReleaseVersion = "1.0"
-			fakeCPIRelease.ReleaseIsCompiled = false
-			fakeCPIRelease.ReleaseJobs = []bireljob.Job{
-				{
-					Name: "fake-cpi-release-job-name",
-					Templates: map[string]string{
-						"templates/cpi.erb": "bin/cpi",
-					},
-				},
+			cpiRelease = &fakebirel.FakeRelease{}
+			cpiRelease.NameReturns("fake-cpi-release-name")
+			cpiRelease.VersionReturns("1.0")
+
+			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "job-fp", nil))
+			job.Templates = map[string]string{"templates/cpi.erb": "bin/cpi"}
+			cpiRelease.JobsReturns([]*bireljob.Job{job})
+			cpiRelease.FindJobByNameStub = func(jobName string) (bireljob.Job, bool) {
+				for _, job := range cpiRelease.Jobs() {
+					if job.Name() == jobName {
+						return *job, true
+					}
+				}
+				return bireljob.Job{}, false
+			}
+
+			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+				Expect(path).To(Equal(cpiReleaseTarballPath))
+				return cpiRelease, nil
 			}
 
 			cloud = bicloud.NewCloud(fakebicloud.NewFakeCPICmdRunner(), "fake-director-id", logger)
+			cloudStemcell = fakebistemcell.NewFakeCloudStemcell(
+				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
 
-			cloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
+			defaultCreateEnvOpts = bicmd.CreateEnvOpts{
+				Args: bicmd.CreateEnvArgs{
+					Manifest: bicmd.FileBytesArg{Path: deploymentManifestPath},
+				},
+			}
 		})
 
 		JustBeforeEach(func() {
-
-			doGet := func(deploymentManifestPath string) (bicmd.DeploymentPreparer, error) {
-				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fakeFs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables) bicmd.DeploymentPreparer {
+				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
 				stemcellRepo := biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 				deploymentRecord := deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
 
 				fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
-				tarballCache := bitarball.NewCache("fake-base-path", fakeFs, logger)
-				tarballProvider := bitarball.NewProvider(tarballCache, fakeFs, fakeHTTPClient, sha1Calculator, 1, 0, logger)
+				tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
+				tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, sha1Calculator, 1, 0, logger)
 
 				cpiInstaller := bicpirel.CpiInstaller{
 					ReleaseManager:   releaseManager,
 					InstallerFactory: mockInstallerFactory,
 					Validator:        bicpirel.NewValidator(),
 				}
-				releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
+				releaseFetcher := biinstall.NewReleaseFetcher(tarballProvider, releaseReader, releaseManager)
 				stemcellFetcher := bistemcell.Fetcher{
 					TarballProvider:   tarballProvider,
 					StemcellExtractor: fakeStemcellExtractor,
@@ -336,7 +345,7 @@ func rootDesc() {
 					fakeInstallationUUIDGenerator,
 					filepath.Join("fake-install-dir"),
 				)
-				tempRootConfigurator := bicmd.NewTempRootConfigurator(fakeFs)
+				tempRootConfigurator := bicmd.NewTempRootConfigurator(fs)
 
 				return bicmd.NewDeploymentPreparer(
 					userInterface,
@@ -353,6 +362,7 @@ func rootDesc() {
 					mockBlobstoreFactory,
 					mockDeployer,
 					deploymentManifestPath,
+					deploymentVars,
 					cpiInstaller,
 					releaseFetcher,
 					stemcellFetcher,
@@ -360,10 +370,10 @@ func rootDesc() {
 					deploymentManifestParser,
 					tempRootConfigurator,
 					targetProvider,
-				), nil
+				)
 			}
 
-			command = bicmd.NewDeployCmd(userInterface, fakeFs, logger, doGet)
+			command = bicmd.NewDeployCmd(userInterface, doGet)
 
 			expectLegacyMigrate = mockLegacyDeploymentStateMigrator.EXPECT().MigrateIfExists("/path/to/bosh-deployments.yml").AnyTimes()
 
@@ -412,13 +422,11 @@ func rootDesc() {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(mockDeployment, nil).AnyTimes()
 
-			expectCPIReleaseExtract = mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(fakeCPIRelease, nil).AnyTimes()
-
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(cloud, nil).AnyTimes()
 		})
 
 		It("prints the deployment manifest and state file", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
@@ -426,23 +434,23 @@ func rootDesc() {
 		})
 
 		It("does not migrate the legacy bosh-deployments.yml if manifest-state.json exists", func() {
-			err := fakeFs.WriteFileString(deploymentStatePath, "{}")
+			err := fs.WriteFileString(deploymentStatePath, "{}")
 			Expect(err).ToNot(HaveOccurred())
 
 			expectLegacyMigrate.Times(0)
 
-			err = command.Run(fakeStage, []string{deploymentManifestPath})
+			err = command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
 		It("migrates the legacy bosh-deployments.yml if manifest-state.json does not exist", func() {
-			err := fakeFs.RemoveAll(deploymentStatePath)
+			err := fs.RemoveAll(deploymentStatePath)
 			Expect(err).ToNot(HaveOccurred())
 
 			expectLegacyMigrate.Return(true, nil).Times(1)
 
-			err = command.Run(fakeStage, []string{deploymentManifestPath})
+			err = command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 
@@ -452,34 +460,34 @@ func rootDesc() {
 		})
 
 		It("sets the temp root", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeFs.TempRootPath).To(Equal("fake-install-dir/fake-installation-id/tmp"))
+			Expect(fs.TempRootPath).To(Equal("fake-install-dir/fake-installation-id/tmp"))
 		})
 
 		Context("when setting the temp root fails", func() {
 			It("returns an error", func() {
-				fakeFs.ChangeTempRootErr = errors.New("fake ChangeTempRootErr")
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				fs.ChangeTempRootErr = errors.New("fake ChangeTempRootErr")
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Setting temp root: fake ChangeTempRootErr"))
 			})
 		})
 
 		It("parses the installation manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
 		It("parses the deployment manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
 		})
 
 		It("validates bosh deployment manifest", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebideplval.ValidateInput{
 				{Manifest: boshDeploymentManifest, ReleaseSetManifest: releaseSetManifest},
@@ -487,7 +495,7 @@ func rootDesc() {
 		})
 
 		It("validates jobs in manifest refer to job in releases", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeDeploymentValidator.ValidateReleaseJobsInputs).To(Equal([]fakebideplval.ValidateReleaseJobsInput{
 				{Manifest: boshDeploymentManifest, ReleaseManager: releaseManager},
@@ -495,7 +503,7 @@ func rootDesc() {
 		})
 
 		It("logs validating stages", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
@@ -511,23 +519,16 @@ func rootDesc() {
 			}))
 		})
 
-		It("extracts CPI release tarball", func() {
-			expectCPIReleaseExtract.Times(1)
-
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		It("installs the CPI locally", func() {
 			expectInstall.Times(1)
 			expectNewCloud.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("adds a new 'installing CPI' event logger stage", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
@@ -537,7 +538,7 @@ func rootDesc() {
 		})
 
 		It("adds a new 'Starting registry' event logger stage", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls[2]).To(Equal(&fakebiui.PerformCall{
@@ -559,19 +560,19 @@ func rootDesc() {
 				mockRegistryServerManager.EXPECT().Start("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
 				mockRegistryServer.EXPECT().Stop()
 
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
 		It("deletes the extracted CPI release", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeCPIRelease.DeleteCalled).To(BeTrue())
+			Expect(cpiRelease.CleanUpCallCount()).To(Equal(1))
 		})
 
 		It("extracts the stemcell", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStemcellExtractor.ExtractInputs).To(Equal([]fakebistemcell.ExtractInput{
 				{TarballPath: stemcellTarballPath},
@@ -581,12 +582,12 @@ func rootDesc() {
 		It("uploads the stemcell", func() {
 			expectStemcellUpload.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("adds a new 'deploying' event logger stage", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls[3]).To(Equal(&fakebiui.PerformCall{
@@ -598,12 +599,12 @@ func rootDesc() {
 		It("deploys", func() {
 			expectDeploy.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("updates the deployment record", func() {
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
 			deploymentState, err := setupDeploymentStateService.Load()
@@ -613,8 +614,8 @@ func rootDesc() {
 			Expect(deploymentState.Releases).To(Equal([]biconfig.ReleaseRecord{
 				{
 					ID:      "fake-uuid-0",
-					Name:    fakeCPIRelease.Name(),
-					Version: fakeCPIRelease.Version(),
+					Name:    cpiRelease.Name(),
+					Version: cpiRelease.Version(),
 				},
 			}))
 		})
@@ -622,7 +623,7 @@ func rootDesc() {
 		It("deletes unused stemcells", func() {
 			expectStemcellDeleteUnused.Times(1)
 
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
+			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -633,8 +634,8 @@ func rootDesc() {
 					CurrentReleaseIDs: []string{"my-release-id-1"},
 					Releases: []biconfig.ReleaseRecord{{
 						ID:      "my-release-id-1",
-						Name:    fakeCPIRelease.Name(),
-						Version: fakeCPIRelease.Version(),
+						Name:    cpiRelease.Name(),
+						Version: cpiRelease.Version(),
 					}},
 					CurrentStemcellID: "my-stemcellRecordID",
 					Stemcells: []biconfig.StemcellRecord{{
@@ -652,7 +653,7 @@ func rootDesc() {
 			It("skips deploy", func() {
 				expectDeploy.Times(0)
 
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 			})
@@ -664,7 +665,7 @@ func rootDesc() {
 			})
 
 			It("returns error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Parsing deployment manifest"))
 				Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
@@ -674,15 +675,13 @@ func rootDesc() {
 
 		Context("when the cpi release does not contain a 'cpi' job", func() {
 			BeforeEach(func() {
-				fakeCPIRelease.ReleaseJobs = []bireljob.Job{
-					{
-						Name: "not-cpi",
-					},
-				}
+				cpiRelease.JobsReturns([]*bireljob.Job{
+					bireljob.NewJob(NewResource("not-cpi", "job-fp", nil)),
+				})
 			})
 
 			It("returns error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Invalid CPI release 'fake-cpi-release-name': CPI release must contain specified job 'fake-cpi-release-job-name'"))
 			})
@@ -690,22 +689,31 @@ func rootDesc() {
 
 		Context("when multiple releases are given", func() {
 			var (
-				otherReleaseTarballPath   string
-				fakeOtherRelease          *fakebirel.FakeRelease
-				expectOtherReleaseExtract *gomock.Call
+				otherReleaseTarballPath string
+				otherRelease            *fakebirel.FakeRelease
 			)
 
 			BeforeEach(func() {
 				otherReleaseTarballPath = "/path/to/other-release.tgz"
+				fs.WriteFileString(otherReleaseTarballPath, "")
 
-				fakeFs.WriteFileString(otherReleaseTarballPath, "")
+				otherRelease = &fakebirel.FakeRelease{}
+				otherRelease.NameReturns("other-release")
+				otherRelease.VersionReturns("1234")
+				otherRelease.JobsReturns([]*bireljob.Job{
+					bireljob.NewJob(NewResource("not-cpi", "job-fp", nil)),
+				})
 
-				fakeOtherRelease = fakebirel.New("other-release", "1234")
-				fakeOtherRelease.ReleaseJobs = []bireljob.Job{{Name: "not-cpi"}}
-
-				expectOtherReleaseExtract = mockReleaseExtractor.EXPECT().Extract(
-					otherReleaseTarballPath,
-				).Return(fakeOtherRelease, nil).AnyTimes()
+				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+					switch path {
+					case cpiReleaseTarballPath:
+						return cpiRelease, nil
+					case otherReleaseTarballPath:
+						return otherRelease, nil
+					default:
+						panic(fmt.Sprintf("Unexpected release reading for path '%s'", path))
+					}
+				}
 
 				releaseSetManifest = birelsetmanifest.Manifest{
 					Releases: []birelmanifest.ReleaseRef{
@@ -721,24 +729,16 @@ func rootDesc() {
 				}
 			})
 
-			It("extracts all the release tarballs", func() {
-				expectCPIReleaseExtract.Times(1)
-				expectOtherReleaseExtract.Times(1)
-
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
-				Expect(err).NotTo(HaveOccurred())
-			})
-
 			It("installs the CPI release locally", func() {
 				expectInstall.Times(1)
 				expectNewCloud.Times(1)
 
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("updates the deployment record", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
 
 				deploymentState, err := setupDeploymentStateService.Load()
@@ -748,13 +748,13 @@ func rootDesc() {
 				Expect(deploymentState.Releases).To(Equal([]biconfig.ReleaseRecord{
 					{
 						ID:      "fake-uuid-0",
-						Name:    fakeCPIRelease.Name(),
-						Version: fakeCPIRelease.Version(),
+						Name:    cpiRelease.Name(),
+						Version: cpiRelease.Version(),
 					},
 					{
 						ID:      "fake-uuid-1",
-						Name:    fakeOtherRelease.Name(),
-						Version: fakeOtherRelease.Version(),
+						Name:    otherRelease.Name(),
+						Version: otherRelease.Version(),
 					},
 				}))
 			})
@@ -762,19 +762,19 @@ func rootDesc() {
 			Context("when one of the releases in the deployment has changed", func() {
 				JustBeforeEach(func() {
 					olderReleaseVersion := "1233"
-					Expect(fakeOtherRelease.Version()).ToNot(Equal(olderReleaseVersion))
+					Expect(otherRelease.Version()).ToNot(Equal(olderReleaseVersion))
 					previousDeploymentState := biconfig.DeploymentState{
 						DirectorID:        directorID,
 						CurrentReleaseIDs: []string{"existing-release-id-1", "existing-release-id-2"},
 						Releases: []biconfig.ReleaseRecord{
 							{
 								ID:      "existing-release-id-1",
-								Name:    fakeCPIRelease.Name(),
-								Version: fakeCPIRelease.Version(),
+								Name:    cpiRelease.Name(),
+								Version: cpiRelease.Version(),
 							},
 							{
 								ID:      "existing-release-id-2",
-								Name:    fakeOtherRelease.Name(),
+								Name:    otherRelease.Name(),
 								Version: olderReleaseVersion,
 							},
 						},
@@ -792,7 +792,7 @@ func rootDesc() {
 				})
 
 				It("updates the deployment record, clearing out unused releases", func() {
-					err := command.Run(fakeStage, []string{deploymentManifestPath})
+					err := command.Run(fakeStage, defaultCreateEnvOpts)
 					Expect(err).NotTo(HaveOccurred())
 
 					deploymentState, err := setupDeploymentStateService.Load()
@@ -807,8 +807,8 @@ func rootDesc() {
 					}
 					Expect(deploymentState.CurrentReleaseIDs).To(ConsistOf(ids))
 					Expect(keys).To(ConsistOf([]string{
-						fmt.Sprintf("%s-%s", fakeCPIRelease.Name(), fakeCPIRelease.Version()),
-						fmt.Sprintf("%s-%s", fakeOtherRelease.Name(), fakeOtherRelease.Version()),
+						fmt.Sprintf("%s-%s", cpiRelease.Name(), cpiRelease.Version()),
+						fmt.Sprintf("%s-%s", otherRelease.Name(), otherRelease.Version()),
 					}))
 				})
 			})
@@ -821,13 +821,13 @@ func rootDesc() {
 						Releases: []biconfig.ReleaseRecord{
 							{
 								ID:      "my-release-id-1",
-								Name:    fakeCPIRelease.Name(),
-								Version: fakeCPIRelease.Version(),
+								Name:    cpiRelease.Name(),
+								Version: cpiRelease.Version(),
 							},
 							{
 								ID:      "my-release-id-2",
-								Name:    fakeOtherRelease.Name(),
-								Version: fakeOtherRelease.Version(),
+								Name:    otherRelease.Name(),
+								Version: otherRelease.Version(),
 							},
 						},
 						CurrentStemcellID: "my-stemcellRecordID",
@@ -846,7 +846,7 @@ func rootDesc() {
 				It("skips deploy", func() {
 					expectDeploy.Times(0)
 
-					err := command.Run(fakeStage, []string{deploymentManifestPath})
+					err := command.Run(fakeStage, defaultCreateEnvOpts)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
@@ -864,7 +864,7 @@ func rootDesc() {
 			})
 
 			It("returns an error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Release name 'fake-other-cpi-release-name' does not match the name in release tarball 'fake-cpi-release-name'"))
 			})
@@ -876,7 +876,7 @@ func rootDesc() {
 			})
 
 			It("returns error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("no-stemcell-there"))
 
@@ -888,11 +888,14 @@ func rootDesc() {
 
 		Context("when release file does not exist", func() {
 			BeforeEach(func() {
-				mockReleaseExtractor.EXPECT().Extract(cpiReleaseTarballPath).Return(nil, errors.New("not there"))
+				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal(cpiReleaseTarballPath))
+					return nil, errors.New("not there")
+				}
 			})
 
 			It("returns error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("not there"))
 
@@ -904,11 +907,11 @@ func rootDesc() {
 
 		Context("when the deployment state file does not exist", func() {
 			BeforeEach(func() {
-				fakeFs.RemoveAll(deploymentStatePath)
+				fs.RemoveAll(deploymentStatePath)
 			})
 
 			It("creates a deployment state", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				deploymentState, err := setupDeploymentStateService.Load()
@@ -916,15 +919,6 @@ func rootDesc() {
 
 				Expect(deploymentState.DirectorID).To(Equal(directorID))
 			})
-		})
-
-		It("returns err when the deployment manifest does not exist", func() {
-			fakeFs.RemoveAll(deploymentManifestPath)
-
-			err := command.Run(fakeStage, []string{deploymentManifestPath})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Deployment manifest does not exist at '/path/to/manifest.yml'"))
-			Expect(stdErr).To(gbytes.Say("Deployment '/path/to/manifest.yml' does not exist"))
 		})
 
 		Context("when the deployment manifest is invalid", func() {
@@ -935,13 +929,13 @@ func rootDesc() {
 			})
 
 			It("returns err", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-deployment-validation-error"))
 			})
 
 			It("logs the failed event log", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 
 				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
@@ -958,13 +952,13 @@ func rootDesc() {
 			})
 
 			It("returns err", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-jobs-validation-error"))
 			})
 
 			It("logs the failed event log", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 
 				performCall := fakeStage.PerformCalls[0].Stage.PerformCalls[2]
@@ -973,23 +967,13 @@ func rootDesc() {
 			})
 		})
 
-		It("returns err when number of arguments is not equal 1", func() {
-			err := command.Run(fakeStage, []string{})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
-
-			err = command.Run(fakeStage, []string{"1", "2"})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
-		})
-
 		Context("when uploading stemcell fails", func() {
 			JustBeforeEach(func() {
 				expectStemcellUpload.Return(nil, bosherr.Error("fake-upload-error"))
 			})
 
 			It("returns an error", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-upload-error"))
 			})
@@ -1011,8 +995,8 @@ func rootDesc() {
 					CurrentReleaseIDs: []string{"my-release-id-1"},
 					Releases: []biconfig.ReleaseRecord{{
 						ID:      "my-release-id-1",
-						Name:    fakeCPIRelease.Name(),
-						Version: fakeCPIRelease.Version(),
+						Name:    cpiRelease.Name(),
+						Version: cpiRelease.Version(),
 					}},
 					CurrentManifestSHA1: "fake-manifest-sha",
 				}
@@ -1021,7 +1005,7 @@ func rootDesc() {
 			})
 
 			It("clears the deployment record", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-deploy-error"))
 
@@ -1033,99 +1017,5 @@ func rootDesc() {
 				Expect(deploymentState.CurrentReleaseIDs).To(Equal([]string{}))
 			})
 		})
-
-		Context("when compiled releases are being used", func() {
-
-			var (
-				otherReleaseTarballPath   string
-				fakeOtherRelease          *fakebirel.FakeRelease
-				expectOtherReleaseExtract *gomock.Call
-			)
-
-			BeforeEach(func() {
-				otherReleaseTarballPath = "/path/to/other-release.tgz"
-
-				fakeFs.WriteFileString(otherReleaseTarballPath, "")
-
-				fakeOtherRelease = fakebirel.New("other-release", "1234")
-
-				fakeOtherRelease.ReleaseIsCompiled = true
-				fakeOtherRelease.ReleaseJobs = []bireljob.Job{{Name: "not-cpi"}}
-				fakeOtherRelease.ReleasePackages = []*bipkg.Package{
-					{
-						Stemcell: "ubuntu-trusty/fake-stemcell-version",
-					},
-				}
-				expectOtherReleaseExtract = mockReleaseExtractor.EXPECT().Extract(
-					otherReleaseTarballPath,
-				).Return(fakeOtherRelease, nil).AnyTimes()
-
-				releaseSetManifest = birelsetmanifest.Manifest{
-					Releases: []birelmanifest.ReleaseRef{
-						{
-							Name: "fake-cpi-release-name",
-							URL:  "file://" + cpiReleaseTarballPath,
-						},
-						{
-							Name: "other-release",
-							URL:  "file://" + otherReleaseTarballPath,
-						},
-					},
-				}
-
-				boshDeploymentManifest = bideplmanifest.Manifest{
-					Name: "fake-deployment-name",
-					Jobs: []bideplmanifest.Job{
-						{
-							Name: "fake-job-name",
-							Templates: []bideplmanifest.ReleaseJobRef{
-								{
-									Release: "other-release",
-								},
-							},
-						},
-					},
-					ResourcePools: []bideplmanifest.ResourcePool{
-						{
-							Stemcell: bideplmanifest.StemcellRef{
-								URL: "file://" + stemcellTarballPath,
-							},
-						},
-					},
-				}
-			})
-
-			It("extracts the compiled release tarball", func() {
-				expectOtherReleaseExtract.Times(1)
-
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("parse compiled releases correctly", func() {
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("returns error if compiled package stemcell does not match the deployment stemcell", func() {
-				fakeOtherRelease.ReleasePackages = []*bipkg.Package{
-					{
-						Stemcell: "ubuntu-trusty/wrong-version",
-					},
-				}
-
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("OS/Version mismatch between deployment stemcell and compiled package stemcell for release 'other-release'"))
-			})
-
-			It("returns error if CPI release is compiled", func() {
-				fakeCPIRelease.ReleaseIsCompiled = true
-
-				err := command.Run(fakeStage, []string{deploymentManifestPath})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("CPI is not allowed to be a compiled release. The provided CPI release 'fake-cpi-release-name' is compiled"))
-			})
-		})
 	})
-}
+})

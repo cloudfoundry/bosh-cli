@@ -3,16 +3,17 @@ package manifest_test
 import (
 	"errors"
 
-	"github.com/cloudfoundry/bosh-init/installation/manifest"
-	"github.com/cloudfoundry/bosh-init/installation/manifest/fakes"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	"github.com/cloudfoundry/bosh-init/installation/manifest"
+	"github.com/cloudfoundry/bosh-init/installation/manifest/fakes"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 type manifestFixtures struct {
@@ -73,7 +74,7 @@ cloud_provider:
 	Describe("#Parse", func() {
 		Context("when combo manifest path does not exist", func() {
 			It("returns an error", func() {
-				_, err := parser.Parse(comboManifestPath, releaseSetManifest)
+				_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -85,7 +86,7 @@ cloud_provider:
 			})
 
 			It("returns an error", func() {
-				_, err := parser.Parse(comboManifestPath, releaseSetManifest)
+				_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -96,7 +97,7 @@ cloud_provider:
 			})
 
 			It("parses installation from combo manifest", func() {
-				installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
+				installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -136,7 +137,7 @@ cloud_provider:
 				})
 
 				It("generates registry config and populates properties in manifest with absolute path for private_key", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
+					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -189,7 +190,7 @@ cloud_provider:
 				})
 
 				It("generates registry config and populates properties in manifest with expanded path for private_key", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
+					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -243,7 +244,7 @@ cloud_provider:
 				})
 
 				It("generates registry config and populates properties in manifest with expanded path for private_key", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
+					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -297,7 +298,7 @@ cloud_provider:
 				})
 
 				It("returns an error", func() {
-					_, err := parser.Parse(comboManifestPath, releaseSetManifest)
+					_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("Expanding private_key path: fake-expand-error"))
 				})
@@ -309,7 +310,7 @@ cloud_provider:
 				})
 
 				It("does not expand the path", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, releaseSetManifest)
+					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(installationManifest.Registry.SSHTunnel.PrivateKey).To(Equal(""))
@@ -324,9 +325,61 @@ cloud_provider:
 				{Err: errors.New("nope")},
 			})
 
-			_, err := parser.Parse(comboManifestPath, releaseSetManifest)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Validating installation manifest: nope"))
+		})
+
+		It("interpolates variables and later resolves their values", func() {
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+			fakeFs.ExpandPathExpanded = "/Users/foo/tmp/fake-ssh-key.pem"
+
+			comboManifestPath := "/path/to/fake-deployment-yml"
+
+			fakeFs.WriteFileString(comboManifestPath, `---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: {{url}}
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
+
+			installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{"url": "~/tmp/fake-ssh-key.pem"}, releaseSetManifest)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(installationManifest).To(Equal(manifest.Manifest{
+				Name: "fake-deployment-name",
+				Template: manifest.ReleaseJobRef{
+					Name:    "fake-cpi-job-name",
+					Release: "fake-cpi-release-name",
+				},
+				Properties: biproperty.Map{
+					"registry": biproperty.Map{
+						"host":     "127.0.0.1",
+						"port":     6901,
+						"username": "registry",
+						"password": "fake-uuid",
+					},
+				},
+				Registry: manifest.Registry{
+					SSHTunnel: manifest.SSHTunnel{
+						Host:       "54.34.56.8",
+						Port:       22,
+						User:       "fake-ssh-user",
+						PrivateKey: "/Users/foo/tmp/fake-ssh-key.pem",
+					},
+					Host:     "127.0.0.1",
+					Port:     6901,
+					Username: "registry",
+					Password: "fake-uuid",
+				},
+				Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+			}))
 		})
 	})
 })

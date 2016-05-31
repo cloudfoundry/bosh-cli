@@ -105,6 +105,7 @@ func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (Ren
 	if err != nil {
 		return RenderedJobRef{}, bosherr.WrapError(err, "Compressing rendered job templates")
 	}
+
 	defer func() {
 		_ = b.compressor.CleanUp(tarballPath)
 	}()
@@ -117,8 +118,8 @@ func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (Ren
 	releaseJob := renderedJob.Job()
 
 	return RenderedJobRef{
-		Name:        releaseJob.Name,
-		Version:     releaseJob.Fingerprint,
+		Name:        releaseJob.Name(),
+		Version:     releaseJob.Fingerprint(),
 		BlobstoreID: blobID,
 		SHA1:        blobSHA1,
 	}, nil

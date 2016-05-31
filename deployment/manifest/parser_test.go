@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -33,7 +34,7 @@ var _ = Describe("Parser", func() {
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -44,7 +45,7 @@ var _ = Describe("Parser", func() {
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -106,7 +107,7 @@ properties:
 	})
 
 	It("parses deployment manifest from combo manifest file", func() {
-		deploymentManifest, err := parser.Parse(comboManifestPath)
+		deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(deploymentManifest).To(Equal(Manifest{
@@ -215,7 +216,7 @@ resource_pools:
 			fakeFs.WriteFileString(comboManifestPath, contents)
 		})
 		It("it does not change the url", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath)
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploymentManifest).To(Equal(Manifest{
 
@@ -258,7 +259,7 @@ resource_pools:
 				fakeFs.WriteFileString(comboManifestPath, contents)
 			})
 			It("it does not expand the path to be relative to the manifest path", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath)
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(deploymentManifest).To(Equal(Manifest{
 
@@ -300,7 +301,7 @@ resource_pools:
 				fakeFs.WriteFileString(comboManifestPath, contents)
 			})
 			It("it does not expand the path to be relative to the manifest path", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath)
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(deploymentManifest).To(Equal(Manifest{
 
@@ -343,7 +344,7 @@ resource_pools:
 				fakeFs.WriteFileString(comboManifestPath, contents)
 			})
 			It("it does not expand the path to be relative to the manifest path", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath)
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(deploymentManifest).To(Equal(Manifest{
 
@@ -383,7 +384,7 @@ properties:
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Parsing global manifest properties"))
 		})
@@ -402,7 +403,7 @@ jobs:
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Parsing job 'fake-deployment-job' properties"))
 		})
@@ -421,7 +422,7 @@ networks:
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Parsing network 'fake-network' cloud_properties"))
 		})
@@ -440,7 +441,7 @@ resource_pools:
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Parsing resource_pool 'fake-resource-pool' cloud_properties"))
 		})
@@ -459,7 +460,7 @@ resource_pools:
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Parsing resource_pool 'fake-resource-pool' env"))
 		})
@@ -478,7 +479,7 @@ disk_pools:
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Parsing disk_pool 'fake-disk-pool' cloud_properties"))
 		})
@@ -494,7 +495,7 @@ name: fake-deployment-name
 		})
 
 		It("uses default values", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath)
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(deploymentManifest.Name).To(Equal("fake-deployment-name"))
@@ -514,7 +515,7 @@ instance_groups:
 		})
 
 		It("treats instance groups as jobs", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath)
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploymentManifest.Jobs[0].Name).To(Equal("jobby"))
 		})
@@ -533,7 +534,7 @@ instance_groups:
 		})
 
 		It("treats instance groups as jobs", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath)
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploymentManifest.Jobs[0].Templates[0].Name).To(Equal("job1"))
 		})
@@ -554,7 +555,7 @@ instance_groups:
 		})
 
 		It("parses the property", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath)
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect((*deploymentManifest.Jobs[0].Templates[0].Properties)["key1"]).To(Equal("value1"))
 		})
@@ -574,7 +575,7 @@ instance_groups:
 		})
 
 		It("parses the properties as an empty map", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath)
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*deploymentManifest.Jobs[0].Templates[0].Properties).To(BeEmpty())
 		})
@@ -593,7 +594,7 @@ instance_groups:
 		})
 
 		It("parses the properties as nil", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath)
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploymentManifest.Jobs[0].Templates[0].Properties).To(BeNil())
 		})
@@ -614,7 +615,7 @@ instance_groups:
 		})
 
 		It("throws an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deployment specifies both jobs and instance_groups keys, only one is allowed"))
 		})
@@ -636,9 +637,44 @@ jobs:
 		})
 
 		It("throws an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deployment specifies both templates and jobs keys for instance_group jobby, only one is allowed"))
 		})
+	})
+
+	It("interpolates variables and later resolves their values", func() {
+		path := "/path/to/fake-deployment-yml"
+		fakeFs.WriteFileString(path, `---
+name: fake-deployment-manifest
+resource_pools:
+- name: fake-resource-pool-name
+  stemcell:
+    url: {{url}}
+`)
+
+		manifest, err := parser.Parse(path, boshtpl.Variables{"url": "file://stemcell.tgz"})
+		Expect(err).ToNot(HaveOccurred())
+		Expect(manifest).To(Equal(Manifest{
+			Name:       "fake-deployment-manifest",
+			Properties: biproperty.Map{},
+			Jobs:       []Job{},
+			Networks:   []Network{},
+			DiskPools:  []DiskPool{},
+			ResourcePools: []ResourcePool{
+				{
+					Name:            "fake-resource-pool-name",
+					CloudProperties: biproperty.Map{},
+					Env:             biproperty.Map{},
+					Stemcell: StemcellRef{
+						URL:  "file:///path/to/stemcell.tgz",
+						SHA1: "",
+					},
+				},
+			},
+			Update: Update{
+				UpdateWatchTime: WatchTime{Start: 0, End: 300000},
+			},
+		}))
 	})
 })

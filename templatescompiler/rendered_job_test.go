@@ -1,48 +1,38 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/templatescompiler"
-
 	"bytes"
 	"os"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	boshreljob "github.com/cloudfoundry/bosh-init/release/job"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 )
 
 var _ = Describe("RenderedJob", func() {
 	var (
-		outBuffer *bytes.Buffer
-		errBuffer *bytes.Buffer
-		logger    boshlog.Logger
-		fs        *fakeboshsys.FakeFileSystem
-
-		releaseJob bireljob.Job
-
+		outBuffer       *bytes.Buffer
+		errBuffer       *bytes.Buffer
+		logger          boshlog.Logger
+		fs              *fakeboshsys.FakeFileSystem
+		releaseJob      boshreljob.Job
 		renderedJobPath string
-
-		renderedJob RenderedJob
+		renderedJob     RenderedJob
 	)
 
 	BeforeEach(func() {
 		outBuffer = bytes.NewBufferString("")
 		errBuffer = bytes.NewBufferString("")
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
-
 		fs = fakeboshsys.NewFakeFileSystem()
-
-		releaseJob = bireljob.Job{
-			Name: "fake-job-name",
-		}
-
+		releaseJob = *boshreljob.NewJob(NewResource("fake-job-name", "", nil))
 		renderedJobPath = "fake-path"
-
 		renderedJob = NewRenderedJob(releaseJob, renderedJobPath, fs, logger)
 	})
 

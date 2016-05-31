@@ -14,7 +14,11 @@ type remotePackageCompiler struct {
 	packageRepo bistatepkg.CompiledPackageRepo
 }
 
-func NewRemotePackageCompiler(blobstore biblobstore.Blobstore, agentClient biagentclient.AgentClient, packageRepo bistatepkg.CompiledPackageRepo) bistatepkg.Compiler {
+func NewRemotePackageCompiler(
+	blobstore biblobstore.Blobstore,
+	agentClient biagentclient.AgentClient,
+	packageRepo bistatepkg.CompiledPackageRepo,
+) bistatepkg.Compiler {
 	return &remotePackageCompiler{
 		blobstore:   blobstore,
 		agentClient: agentClient,
@@ -22,49 +26,52 @@ func NewRemotePackageCompiler(blobstore biblobstore.Blobstore, agentClient biage
 	}
 }
 
-func (c *remotePackageCompiler) Compile(releasePackage *birelpkg.Package) (record bistatepkg.CompiledPackageRecord, isAlreadyCompiled bool, err error) {
+func (c *remotePackageCompiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageRecord, bool, error) {
+	var record bistatepkg.CompiledPackageRecord
 
-	blobID, err := c.blobstore.Add(releasePackage.ArchivePath)
+	blobID, err := c.blobstore.Add(pkg.ArchivePath())
 	if err != nil {
-		return bistatepkg.CompiledPackageRecord{}, false, bosherr.WrapErrorf(err, "Adding release package archive '%s' to blobstore", releasePackage.ArchivePath)
+		return bistatepkg.CompiledPackageRecord{}, false, bosherr.WrapErrorf(err, "Adding release package archive '%s' to blobstore", pkg.ArchivePath())
 	}
 
 	packageSource := biagentclient.BlobRef{
-		Name:        releasePackage.Name,
-		Version:     releasePackage.Fingerprint,
-		SHA1:        releasePackage.SHA1,
+		Name:        pkg.Name(),
+		Version:     pkg.Fingerprint(),
+		SHA1:        pkg.ArchiveSHA1(),
 		BlobstoreID: blobID,
 	}
 
-	// If the package is a source package
-	if releasePackage.Stemcell == "" {
+	var isAlreadyCompiled bool
+
+	if !pkg.IsCompiled() {
 		// Resolve dependencies from map of previously compiled packages.
-		// Only install the package's immediate dependencies when compiling (not all transitive dependencies).
-		packageDependencies := make([]biagentclient.BlobRef, len(releasePackage.Dependencies), len(releasePackage.Dependencies))
-		for i, dependency := range releasePackage.Dependencies {
-			compiledPackageRecord, found, err := c.packageRepo.Find(*dependency)
+		// Only install the package's immediate dependencies.
+		packageDependencies := make([]biagentclient.BlobRef, len(pkg.Deps()), len(pkg.Deps()))
+
+		for i, pkgDep := range pkg.Deps() {
+			compiledPackageRecord, found, err := c.packageRepo.Find(pkgDep)
 			if err != nil {
 				return record, false, bosherr.WrapErrorf(
 					err,
-					"Finding compiled package '%s/%s' as dependency for '%s/%s'",
-					dependency.Name,
-					dependency.Fingerprint,
-					releasePackage.Name,
-					releasePackage.Fingerprint,
+					"Finding compiled package '%s/%s' as pkgDep for '%s/%s'",
+					pkgDep.Name(),
+					pkgDep.Fingerprint(),
+					pkg.Name(),
+					pkg.Fingerprint(),
 				)
 			}
 			if !found {
 				return record, false, bosherr.Errorf(
 					"Remote compilation failure: Package '%s/%s' requires package '%s/%s', but it has not been compiled",
-					releasePackage.Name,
-					releasePackage.Fingerprint,
-					dependency.Name,
-					dependency.Fingerprint,
+					pkg.Name(),
+					pkg.Fingerprint(),
+					pkgDep.Name(),
+					pkgDep.Fingerprint(),
 				)
 			}
 			packageDependencies[i] = biagentclient.BlobRef{
-				Name:        dependency.Name,
-				Version:     dependency.Fingerprint,
+				Name:        pkgDep.Name(),
+				Version:     pkgDep.Fingerprint(),
 				BlobstoreID: compiledPackageRecord.BlobID,
 				SHA1:        compiledPackageRecord.BlobSHA1,
 			}
@@ -72,24 +79,25 @@ func (c *remotePackageCompiler) Compile(releasePackage *birelpkg.Package) (recor
 
 		compiledPackageRef, err := c.agentClient.CompilePackage(packageSource, packageDependencies)
 		if err != nil {
-			return record, false, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", releasePackage.Name)
+			return record, false, bosherr.WrapErrorf(err, "Remotely compiling package '%s' with the agent", pkg.Name())
 		}
+
 		record = bistatepkg.CompiledPackageRecord{
 			BlobID:   compiledPackageRef.BlobstoreID,
 			BlobSHA1: compiledPackageRef.SHA1,
 		}
 	} else {
-		// If it is a compiled package
+		isAlreadyCompiled = true
+
 		record = bistatepkg.CompiledPackageRecord{
 			BlobID:   blobID,
-			BlobSHA1: releasePackage.SHA1,
+			BlobSHA1: pkg.ArchiveSHA1(),
 		}
-		isAlreadyCompiled = true
 	}
 
-	err = c.packageRepo.Save(*releasePackage, record)
+	err = c.packageRepo.Save(pkg, record)
 	if err != nil {
-		return record, isAlreadyCompiled, bosherr.WrapErrorf(err, "Saving compiled package record %#v of package %#v", record, releasePackage)
+		return record, isAlreadyCompiled, bosherr.WrapErrorf(err, "Saving compiled package record '%#v' of package '%#v'", record, pkg)
 	}
 
 	return record, isAlreadyCompiled, nil

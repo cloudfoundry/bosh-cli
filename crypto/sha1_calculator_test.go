@@ -4,21 +4,22 @@ import (
 	"errors"
 	"os"
 
-	. "github.com/cloudfoundry/bosh-init/crypto"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-init/crypto"
 )
 
 var _ = Describe("Sha1Calculator", func() {
 	var (
-		fs             *fakesys.FakeFileSystem
-		sha1Calculator SHA1Calculator
+		fs       *fakesys.FakeFileSystem
+		sha1Calc SHA1Calculator
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		sha1Calculator = NewSha1Calculator(fs)
+		sha1Calc = NewSha1Calculator(fs)
 	})
 
 	Describe("Calculate", func() {
@@ -42,7 +43,7 @@ var _ = Describe("Sha1Calculator", func() {
 			})
 
 			It("returns sha1 of the all files in the directory", func() {
-				sha1, err := sha1Calculator.Calculate("/fake-templates-dir")
+				sha1, err := sha1Calc.Calculate("/fake-templates-dir")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(sha1).To(Equal("bc0646cd41b98cd6c878db7a0573eca345f78200"))
 			})
@@ -57,7 +58,7 @@ var _ = Describe("Sha1Calculator", func() {
 			})
 
 			It("returns sha1 of the file", func() {
-				sha1, err := sha1Calculator.Calculate("/fake-archived-templates-path")
+				sha1, err := sha1Calc.Calculate("/fake-archived-templates-path")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(sha1).To(Equal("4603db250d7b5b78dfe17869649784353177b549"))
 			})
@@ -69,10 +70,16 @@ var _ = Describe("Sha1Calculator", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := sha1Calculator.Calculate("/fake-archived-templates-path")
+				_, err := sha1Calc.Calculate("/fake-archived-templates-path")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-open-file-error"))
 			})
+		})
+	})
+
+	Describe("CalculateString", func() {
+		It("returns sha1 of data", func() {
+			Expect(sha1Calc.CalculateString("data")).To(Equal("a17c9aaa61e80a1bf71d0d850af4e5baa9800bbd"))
 		})
 	})
 })

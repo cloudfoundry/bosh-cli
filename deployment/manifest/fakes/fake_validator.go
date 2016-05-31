@@ -1,10 +1,11 @@
 package fakes
 
 import (
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	birel "github.com/cloudfoundry/bosh-init/release"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 type FakeValidator struct {
@@ -30,7 +31,7 @@ type ValidateInput struct {
 
 type ValidateReleaseJobsInput struct {
 	Manifest       bideplmanifest.Manifest
-	ReleaseManager birel.Manager
+	ReleaseManager biinstall.ReleaseManager
 }
 
 type ValidateOutput struct {
@@ -55,7 +56,7 @@ func (v *FakeValidator) Validate(manifest bideplmanifest.Manifest, releaseSetMan
 	return validateOutput.Err
 }
 
-func (v *FakeValidator) ValidateReleaseJobs(manifest bideplmanifest.Manifest, releaseManager birel.Manager) error {
+func (v *FakeValidator) ValidateReleaseJobs(manifest bideplmanifest.Manifest, releaseManager biinstall.ReleaseManager) error {
 	v.ValidateReleaseJobsInputs = append(v.ValidateReleaseJobsInputs, ValidateReleaseJobsInput{
 		Manifest:       manifest,
 		ReleaseManager: releaseManager,

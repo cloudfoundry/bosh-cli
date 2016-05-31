@@ -16,8 +16,8 @@ type CompiledPackageRecord struct {
 }
 
 type CompiledPackageRepo interface {
-	Save(birelpkg.Package, CompiledPackageRecord) error
-	Find(birelpkg.Package) (CompiledPackageRecord, bool, error)
+	Save(birelpkg.Compilable, CompiledPackageRecord) error
+	Find(birelpkg.Compilable) (CompiledPackageRecord, bool, error)
 }
 
 type compiledPackageRepo struct {
@@ -28,7 +28,7 @@ func NewCompiledPackageRepo(index biindex.Index) CompiledPackageRepo {
 	return &compiledPackageRepo{index: index}
 }
 
-func (cpr *compiledPackageRepo) Save(pkg birelpkg.Package, record CompiledPackageRecord) error {
+func (cpr *compiledPackageRepo) Save(pkg birelpkg.Compilable, record CompiledPackageRecord) error {
 	err := cpr.index.Save(cpr.pkgKey(pkg), record)
 
 	if err != nil {
@@ -38,7 +38,7 @@ func (cpr *compiledPackageRepo) Save(pkg birelpkg.Package, record CompiledPackag
 	return nil
 }
 
-func (cpr *compiledPackageRepo) Find(pkg birelpkg.Package) (CompiledPackageRecord, bool, error) {
+func (cpr *compiledPackageRepo) Find(pkg birelpkg.Compilable) (CompiledPackageRecord, bool, error) {
 	var record CompiledPackageRecord
 
 	err := cpr.index.Find(cpr.pkgKey(pkg), &record)
@@ -61,19 +61,22 @@ type packageToCompiledPackageKey struct {
 	DependencyKey      string
 }
 
-func (cpr compiledPackageRepo) pkgKey(pkg birelpkg.Package) packageToCompiledPackageKey {
+func (cpr compiledPackageRepo) pkgKey(pkg birelpkg.Compilable) packageToCompiledPackageKey {
 	return packageToCompiledPackageKey{
-		PackageName:        pkg.Name,
-		PackageFingerprint: pkg.Fingerprint,
-		DependencyKey:      cpr.convertToDependencyKey(ResolveDependencies(&pkg)),
+		PackageName:        pkg.Name(),
+		PackageFingerprint: pkg.Fingerprint(),
+		DependencyKey:      cpr.convertToDependencyKey(ResolveDependencies(pkg)),
 	}
 }
 
-func (cpr compiledPackageRepo) convertToDependencyKey(packages []*birelpkg.Package) string {
+func (cpr compiledPackageRepo) convertToDependencyKey(packages []birelpkg.Compilable) string {
 	dependencyKeys := []string{}
+
 	for _, pkg := range packages {
-		dependencyKeys = append(dependencyKeys, fmt.Sprintf("%s:%s", pkg.Name, pkg.Fingerprint))
+		dependencyKeys = append(dependencyKeys, fmt.Sprintf("%s:%s", pkg.Name(), pkg.Fingerprint()))
 	}
+
 	sort.Strings(dependencyKeys)
+
 	return strings.Join(dependencyKeys, ",")
 }

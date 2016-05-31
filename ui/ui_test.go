@@ -1,14 +1,15 @@
 package ui_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/ui"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"bytes"
 	"io"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-init/ui"
+	. "github.com/cloudfoundry/bosh-init/ui/table"
 )
 
 var _ = Describe("UI", func() {
@@ -42,7 +43,7 @@ var _ = Describe("UI", func() {
 			Expect(uiErrBuffer.String()).To(ContainSubstring("fake-error-line\n"))
 		})
 
-		Context("when writing errors", func() {
+		Context("when writing fails", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiErr = writer
@@ -66,7 +67,7 @@ var _ = Describe("UI", func() {
 			Expect(uiOutBuffer.String()).To(ContainSubstring("fake-line\n"))
 		})
 
-		Context("when writing errors", func() {
+		Context("when writing fails", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiOut = writer
@@ -90,7 +91,7 @@ var _ = Describe("UI", func() {
 			Expect(uiOutBuffer.String()).To(ContainSubstring("fake-start"))
 		})
 
-		Context("when writing errors", func() {
+		Context("when writing fails", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiOut = writer
@@ -114,7 +115,7 @@ var _ = Describe("UI", func() {
 			Expect(uiOutBuffer.String()).To(ContainSubstring("fake-end\n"))
 		})
 
-		Context("when writing errors", func() {
+		Context("when writing fails", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiOut = writer
@@ -129,6 +130,98 @@ var _ = Describe("UI", func() {
 				Expect(logOutBuffer.String()).To(Equal(""))
 				Expect(logErrBuffer.String()).To(ContainSubstring("UI.EndLinef failed (message='fake-start')"))
 			})
+		})
+	})
+
+	Describe("PrintBlock", func() {
+		It("prints to outWriter as is", func() {
+			ui.PrintBlock("block")
+			Expect(uiOutBuffer.String()).To(Equal("block"))
+			Expect(uiErrBuffer.String()).To(Equal(""))
+		})
+
+		Context("when writing fails", func() {
+			BeforeEach(func() {
+				reader, writer := io.Pipe()
+				uiOut = writer
+				reader.Close()
+			})
+
+			It("logs an error", func() {
+				ui.PrintBlock("block")
+				Expect(uiOutBuffer.String()).To(Equal(""))
+				Expect(uiErrBuffer.String()).To(Equal(""))
+				Expect(logOutBuffer.String()).To(Equal(""))
+				Expect(logErrBuffer.String()).To(ContainSubstring("UI.PrintBlock failed (message='block')"))
+			})
+		})
+	})
+
+	Describe("PrintErrorBlock", func() {
+		It("prints to outWriter as is", func() {
+			ui.PrintErrorBlock("block")
+			Expect(uiOutBuffer.String()).To(Equal("block"))
+			Expect(uiErrBuffer.String()).To(Equal(""))
+		})
+
+		Context("when writing fails", func() {
+			BeforeEach(func() {
+				reader, writer := io.Pipe()
+				uiOut = writer
+				reader.Close()
+			})
+
+			It("logs an error", func() {
+				ui.PrintErrorBlock("block")
+				Expect(uiOutBuffer.String()).To(Equal(""))
+				Expect(uiErrBuffer.String()).To(Equal(""))
+				Expect(logOutBuffer.String()).To(Equal(""))
+				Expect(logErrBuffer.String()).To(ContainSubstring("UI.PrintErrorBlock failed (message='block')"))
+			})
+		})
+	})
+
+	Describe("PrintTable", func() {
+		It("prints table", func() {
+			table := Table{
+				Title:   "Title",
+				Content: "things",
+				Header:  []string{"Header1", "Header2"},
+
+				Rows: [][]Value{
+					{ValueString{"r1c1"}, ValueString{"r1c2"}},
+					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+				},
+
+				Notes:         []string{"note1", "note2"},
+				BackgroundStr: ".",
+				BorderStr:     "|",
+			}
+			ui.PrintTable(table)
+			Expect("\n" + uiOutBuffer.String()).To(Equal(`
+Title
+
+Header1|Header2|
+r1c1...|r1c2...|
+r2c1...|r2c2...|
+
+note1
+note2
+
+2 things
+`))
+		})
+	})
+
+	Describe("IsInteractive", func() {
+		It("returns true", func() {
+			Expect(ui.IsInteractive()).To(BeTrue())
+		})
+	})
+
+	Describe("Flush", func() {
+		It("does nothing", func() {
+			Expect(func() { ui.Flush() }).ToNot(Panic())
 		})
 	})
 })

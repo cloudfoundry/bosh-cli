@@ -3,8 +3,6 @@ package templatescompiler_test
 import (
 	"path/filepath"
 
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -12,16 +10,18 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebirender "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
-
+	boshreljob "github.com/cloudfoundry/bosh-init/release/job"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
+	bierbrenderer "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	fakebirender "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer/fakes"
 )
 
 var _ = Describe("JobRenderer", func() {
 	var (
 		jobRenderer          JobRenderer
 		fakeERBRenderer      *fakebirender.FakeERBRenderer
-		job                  bireljob.Job
+		job                  *boshreljob.Job
 		context              bierbrenderer.TemplateEvaluationContext
 		fs                   *fakesys.FakeFileSystem
 		releaseJobProperties biproperty.Map
@@ -49,17 +49,14 @@ var _ = Describe("JobRenderer", func() {
 			"fake-property-key": "fake-global-property-value",
 		}
 
-		job = bireljob.Job{
-			Name: "fake-release-job-name",
-			Templates: map[string]string{
-				"director.yml.erb": "config/director.yml",
-			},
-			ExtractedPath: srcPath,
+		job = boshreljob.NewExtractedJob(NewResourceWithBuiltArchive("cpi", "job-fp", "path", "sha1"), srcPath, fs)
+		job.Templates = map[string]string{
+			"director.yml.erb": "config/director.yml",
 		}
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		context = NewJobEvaluationContext(job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", logger)
+		context = NewJobEvaluationContext(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", logger)
 
 		fakeERBRenderer = fakebirender.NewFakeERBRender()
 
@@ -90,7 +87,7 @@ var _ = Describe("JobRenderer", func() {
 
 	Describe("Render", func() {
 		It("renders job templates", func() {
-			renderedjob, err := jobRenderer.Render(job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+			renderedjob, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebirender.RenderInput{
@@ -118,7 +115,7 @@ var _ = Describe("JobRenderer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := jobRenderer.Render(job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+				_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-render-error"))
 			})

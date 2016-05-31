@@ -50,43 +50,47 @@ func NewPackageCompiler(
 	}
 }
 
-func (c *compiler) Compile(pkg *birelpkg.Package) (bistatepkg.CompiledPackageRecord, bool, error) {
-
+func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageRecord, bool, error) {
 	// This is a variable being used now to fulfill the requirement of the compiler_interface compile method
 	// to indicate whether the package is already compiled. Compiled CPI releases are not currently allowed.
 	// No other packages, but CPI ones, are currently being compiled locally.
 	isCompiledPackage := false
 
-	c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name, pkg.Fingerprint)
-	record, found, err := c.compiledPackageRepo.Find(*pkg)
+	c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name(), pkg.Fingerprint())
+
+	record, found, err := c.compiledPackageRepo.Find(pkg)
 	if err != nil {
-		return record, isCompiledPackage, bosherr.WrapErrorf(err, "Attempting to find compiled package '%s'", pkg.Name)
-	}
-	if found {
+		return record, isCompiledPackage, bosherr.WrapErrorf(err, "Attempting to find compiled package '%s'", pkg.Name())
+	} else if found {
 		return record, isCompiledPackage, nil
 	}
 
-	c.logger.Debug(c.logTag, "Installing dependencies of package '%s/%s'", pkg.Name, pkg.Fingerprint)
-	err = c.installPackages(pkg.Dependencies)
+	c.logger.Debug(c.logTag, "Installing dependencies of package '%s/%s'", pkg.Name(), pkg.Fingerprint())
+
+	err = c.installPackages(pkg.Deps())
 	if err != nil {
-		return record, isCompiledPackage, bosherr.WrapErrorf(err, "Installing dependencies of package '%s'", pkg.Name)
+		return record, isCompiledPackage, bosherr.WrapErrorf(err, "Installing dependencies of package '%s'", pkg.Name())
 	}
+
 	defer func() {
 		if err = c.fileSystem.RemoveAll(c.packagesDir); err != nil {
 			c.logger.Warn(c.logTag, "Failed to remove packages dir: %s", err.Error())
 		}
 	}()
 
-	c.logger.Debug(c.logTag, "Compiling package '%s/%s'", pkg.Name, pkg.Fingerprint)
-	installDir := path.Join(c.packagesDir, pkg.Name)
+	c.logger.Debug(c.logTag, "Compiling package '%s/%s'", pkg.Name(), pkg.Fingerprint())
+
+	installDir := path.Join(c.packagesDir, pkg.Name())
+
 	err = c.fileSystem.MkdirAll(installDir, os.ModePerm)
 	if err != nil {
 		return record, isCompiledPackage, bosherr.WrapError(err, "Creating package install dir")
 	}
 
-	packageSrcDir := pkg.ExtractedPath
+	packageSrcDir := pkg.(*birelpkg.Package).ExtractedPath()
+
 	if !c.fileSystem.FileExists(path.Join(packageSrcDir, "packaging")) {
-		return record, isCompiledPackage, bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name)
+		return record, isCompiledPackage, bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name())
 	}
 
 	cmd := boshsys.Command{
@@ -95,7 +99,7 @@ func (c *compiler) Compile(pkg *birelpkg.Package) (bistatepkg.CompiledPackageRec
 		Env: map[string]string{
 			"BOSH_COMPILE_TARGET": packageSrcDir,
 			"BOSH_INSTALL_TARGET": installDir,
-			"BOSH_PACKAGE_NAME":   pkg.Name,
+			"BOSH_PACKAGE_NAME":   pkg.Name(),
 			"BOSH_PACKAGES_DIR":   c.packagesDir,
 			"PATH":                "/usr/local/bin:/usr/bin:/bin",
 		},
@@ -112,6 +116,7 @@ func (c *compiler) Compile(pkg *birelpkg.Package) (bistatepkg.CompiledPackageRec
 	if err != nil {
 		return record, isCompiledPackage, bosherr.WrapError(err, "Compressing compiled package")
 	}
+
 	defer func() {
 		if err = c.compressor.CleanUp(tarball); err != nil {
 			c.logger.Warn(c.logTag, "Failed to clean up tarball: %s", err.Error())
@@ -127,7 +132,8 @@ func (c *compiler) Compile(pkg *birelpkg.Package) (bistatepkg.CompiledPackageRec
 		BlobID:   blobID,
 		BlobSHA1: blobSHA1,
 	}
-	err = c.compiledPackageRepo.Save(*pkg, record)
+
+	err = c.compiledPackageRepo.Save(pkg, record)
 	if err != nil {
 		return record, isCompiledPackage, bosherr.WrapError(err, "Saving compiled package")
 	}
@@ -135,22 +141,22 @@ func (c *compiler) Compile(pkg *birelpkg.Package) (bistatepkg.CompiledPackageRec
 	return record, isCompiledPackage, nil
 }
 
-func (c *compiler) installPackages(packages []*birelpkg.Package) error {
+func (c *compiler) installPackages(packages []birelpkg.Compilable) error {
 	for _, pkg := range packages {
-		c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name, pkg.Fingerprint)
-		record, found, err := c.compiledPackageRepo.Find(*pkg)
+		c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name(), pkg.Fingerprint())
+
+		record, found, err := c.compiledPackageRepo.Find(pkg)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Attempting to find compiled package '%s'", pkg.Name)
-		}
-		if !found {
-			return bosherr.Errorf("Finding compiled package '%s'", pkg.Name)
+			return bosherr.WrapErrorf(err, "Attempting to find compiled package '%s'", pkg.Name())
+		} else if !found {
+			return bosherr.Errorf("Finding compiled package '%s'", pkg.Name())
 		}
 
-		c.logger.Debug(c.logTag, "Installing package '%s/%s'", pkg.Name, pkg.Fingerprint)
+		c.logger.Debug(c.logTag, "Installing package '%s/%s'", pkg.Name(), pkg.Fingerprint())
 
-		err = c.blobExtractor.Extract(record.BlobID, record.BlobSHA1, filepath.Join(c.packagesDir, pkg.Name))
+		err = c.blobExtractor.Extract(record.BlobID, record.BlobSHA1, filepath.Join(c.packagesDir, pkg.Name()))
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Installing package '%s' into '%s'", pkg.Name, c.packagesDir)
+			return bosherr.WrapErrorf(err, "Installing package '%s' into '%s'", pkg.Name(), c.packagesDir)
 		}
 	}
 

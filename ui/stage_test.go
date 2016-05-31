@@ -1,12 +1,13 @@
 package ui_test
 
 import (
+	"bytes"
+	"strings"
+	"time"
+
 	. "github.com/cloudfoundry/bosh-init/ui"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"bytes"
-	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -174,14 +175,14 @@ Finished Complex stage 1 (00:02:00)
 			expectedOutput := `
 Started Complex stage 1
   Simple stage A... Finished (00:01:00)
-  
+  #
   Started Complex stage B
     Simple stage X... Finished (00:01:00)
     Simple stage Y... Finished (00:01:00)
   Finished Complex stage B (00:02:00)
 Finished Complex stage 1 (00:03:00)
 `
-			Expect(uiOut.String()).To(Equal(expectedOutput))
+			Expect(uiOut.String()).To(Equal(strings.Replace(expectedOutput, "#", "", -1)))
 			Expect(actionsPerformed).To(Equal([]string{"A", "X", "Y"}))
 		})
 

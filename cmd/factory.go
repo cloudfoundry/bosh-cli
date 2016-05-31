@@ -1,665 +1,479 @@
 package cmd
 
 import (
-	"path/filepath"
-	"time"
+	"fmt"
+	"reflect"
 
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
-	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
-	bidepl "github.com/cloudfoundry/bosh-init/deployment"
-	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	biinstancestate "github.com/cloudfoundry/bosh-init/deployment/instance/state"
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
-	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	biindex "github.com/cloudfoundry/bosh-init/index"
-	biinstall "github.com/cloudfoundry/bosh-init/installation"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
-	biregistry "github.com/cloudfoundry/bosh-init/registry"
-	birel "github.com/cloudfoundry/bosh-init/release"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
-	bitemplateerb "github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
-	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-golang/clock"
+	cmdconf "github.com/cloudfoundry/bosh-init/cmd/config"
+	boshdir "github.com/cloudfoundry/bosh-init/director"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	boshrel "github.com/cloudfoundry/bosh-init/release"
+	boshreldir "github.com/cloudfoundry/bosh-init/releasedir"
+	boshssh "github.com/cloudfoundry/bosh-init/ssh"
+	boshui "github.com/cloudfoundry/bosh-init/ui"
+	boshuit "github.com/cloudfoundry/bosh-init/ui/task"
+	goflags "github.com/jessevdk/go-flags"
 )
 
-type Factory interface {
-	CreateCommand(name string) (Cmd, error)
+type Factory struct {
+	opts *BoshOpts
 }
 
-type factory struct {
-	commands               CommandList
-	fs                     boshsys.FileSystem
-	ui                     biui.UI
-	timeService            clock.Clock
-	logger                 boshlog.Logger
-	uuidGenerator          boshuuid.Generator
-	workspaceRootPath      string
-	runner                 boshsys.CmdRunner
-	compressor             boshcmd.Compressor
-	agentClientFactory     bihttpagent.AgentClientFactory
-	registryServerManager  biregistry.ServerManager
-	sshTunnelFactory       bisshtunnel.Factory
-	instanceFactory        biinstance.Factory
-	instanceManagerFactory biinstance.ManagerFactory
-	deploymentFactory      bidepl.Factory
-	blobstoreFactory       biblobstore.Factory
-	eventLogger            biui.Stage
-	releaseExtractor       birel.Extractor
-	releaseManager         birel.Manager
-	releaseSetParser       birelsetmanifest.Parser
-	releaseJobResolver     bideplrel.JobResolver
-	installationParser     biinstallmanifest.Parser
-	deploymentParser       bideplmanifest.Parser
-	releaseSetValidator    birelsetmanifest.Validator
-	installationValidator  biinstallmanifest.Validator
-	deploymentValidator    bideplmanifest.Validator
-	cloudFactory           bicloud.Factory
-	stateBuilderFactory    biinstancestate.BuilderFactory
-	compiledPackageRepo    bistatepkg.CompiledPackageRepo
-	tarballProvider        bitarball.Provider
-	cpiReleaseValidator    *bicpirel.Validator
-}
+func NewFactory(deps BasicDeps) Factory {
+	var opts BoshOpts
 
-func NewFactory(
-	fs boshsys.FileSystem,
-	ui biui.UI,
-	timeService clock.Clock,
-	logger boshlog.Logger,
-	uuidGenerator boshuuid.Generator,
-	workspaceRootPath string,
-) Factory {
-	f := &factory{
-		fs:                fs,
-		ui:                ui,
-		timeService:       timeService,
-		logger:            logger,
-		uuidGenerator:     uuidGenerator,
-		workspaceRootPath: workspaceRootPath,
-	}
-	f.commands = CommandList{
-		"deploy":  f.createDeployCmd,
-		"delete":  f.createDeleteCmd,
-		"help":    f.createHelpCmd,
-		"version": f.createVersionCmd,
-	}
-	return f
-}
-
-type CommandList map[string](func() (Cmd, error))
-
-func (cl CommandList) Create(name string) (Cmd, error) {
-	if cl[name] == nil {
-		return nil, bosherr.Errorf("Command '%s' unknown. See 'bosh-init help'", name)
+	goflags.FactoryFunc = func(val interface{}) {
+		stype := reflect.Indirect(reflect.ValueOf(val))
+		if stype.Kind() == reflect.Struct {
+			field := stype.FieldByName("FS")
+			if field.IsValid() {
+				field.Set(reflect.ValueOf(deps.FS))
+			}
+		}
 	}
 
-	return cl[name]()
-}
+	globalOptsFuncCalled := false
 
-func (f *factory) CreateCommand(name string) (Cmd, error) {
-	return f.commands.Create(name)
-}
+	globalOptsFunc := func(nextFunc func() error) func() error {
+		return func() error {
+			if globalOptsFuncCalled {
+				return nextFunc()
+			}
 
-func (f *factory) createDeployCmd() (Cmd, error) {
-	getter := func(deploymentManifestPath string) (DeploymentPreparer, error) {
-		f := &deploymentManagerFactory2{f: f, deploymentManifestPath: deploymentManifestPath}
-		deploymentPreparer, err := f.loadDeploymentPreparer()
-		if err != nil {
-			return deploymentPreparer, err
+			globalOptsFuncCalled = true
+
+			deps.UI.EnableColor()
+
+			if opts.JSONOpt {
+				deps.UI.EnableJSON()
+			}
+
+			if opts.NonInteractiveOpt {
+				deps.UI.EnableNonInteractive()
+			}
+
+			tmpDirPath, err := deps.FS.ExpandPath("~/.bosh/tmp")
+			if err != nil {
+				return err
+			}
+
+			err = deps.FS.ChangeTempRoot(tmpDirPath)
+			if err != nil {
+				return err
+			}
+
+			return nextFunc()
+		}
+	}
+
+	configFunc := func(nextFunc func(cmdconf.Config) error) func() error {
+		return globalOptsFunc(func() error {
+			config, err := cmdconf.NewFSConfigFromPath(opts.ConfigPathOpt, deps.FS)
+			if err != nil {
+				return err
+			}
+
+			return nextFunc(config)
+		})
+	}
+
+	sessFunc := func(nextFunc func(Session) error) func() error {
+		return configFunc(func(config cmdconf.Config) error {
+			sess := NewSessionFromOpts(opts, config, deps.UI, true, true, deps.FS, deps.Logger)
+			return nextFunc(sess)
+		})
+	}
+
+	directorFunc := func(nextFunc func(boshdir.Director) error) func() error {
+		return sessFunc(func(sess Session) error {
+			director, err := sess.Director()
+			if err != nil {
+				return err
+			}
+
+			return nextFunc(director)
+		})
+	}
+
+	deploymentFunc := func(nextFunc func(boshdir.Deployment) error) func() error {
+		return sessFunc(func(sess Session) error {
+			deployment, err := sess.Deployment()
+			if err != nil {
+				return err
+			}
+
+			return nextFunc(deployment)
+		})
+	}
+
+	directorAndDeploymentFunc := func(nextFunc func(boshdir.Director, boshdir.Deployment) error) func() error {
+		return sessFunc(func(sess Session) error {
+			director, err := sess.Director()
+			if err != nil {
+				return err
+			}
+
+			deployment, err := sess.Deployment()
+			if err != nil {
+				return err
+			}
+
+			return nextFunc(director, deployment)
+		})
+	}
+
+	releaseProvidersFunc := func(nextFunc func(boshrel.Provider, boshreldir.Provider) error) func() error {
+		return globalOptsFunc(func() error {
+			indexReporter := boshui.NewIndexReporter(deps.UI)
+			blobsReporter := boshui.NewBlobsReporter(deps.UI)
+			releaseIndexReporter := boshui.NewReleaseIndexReporter(deps.UI)
+
+			releaseProvider := boshrel.NewProvider(
+				deps.CmdRunner, deps.Compressor, deps.SHA1Calc, deps.FS, deps.Logger)
+
+			releaseDirProvider := boshreldir.NewProvider(
+				indexReporter, releaseIndexReporter, blobsReporter, releaseProvider,
+				deps.SHA1Calc, deps.CmdRunner, deps.UUIDGen, deps.FS, deps.Logger)
+
+			return nextFunc(releaseProvider, releaseDirProvider)
+		})
+	}
+
+	blobsDirFunc := func(nextFunc func(boshreldir.BlobsDir) error) func(DirOrCWDArg) error {
+		return func(dir DirOrCWDArg) error {
+			return releaseProvidersFunc(func(_ boshrel.Provider, relDirProv boshreldir.Provider) error {
+				return nextFunc(relDirProv.NewFSBlobsDir(dir.Path))
+			})()
+		}
+	}
+
+	releaseDirFunc := func(nextFunc func(boshreldir.ReleaseDir) error) func(DirOrCWDArg) error {
+		return func(dir DirOrCWDArg) error {
+			return releaseProvidersFunc(func(_ boshrel.Provider, relDirProv boshreldir.Provider) error {
+				return nextFunc(relDirProv.NewFSReleaseDir(dir.Path))
+			})()
+		}
+	}
+
+	opts.VersionOpt = func() error {
+		return &goflags.Error{
+			Type:    goflags.ErrHelp,
+			Message: fmt.Sprintf("version %s", VersionLabel),
+		}
+	}
+
+	opts.CreateEnv.call = globalOptsFunc(func() error {
+		envProvider := func(path string, vars boshtpl.Variables) DeploymentPreparer {
+			return NewEnvFactory(deps, path, vars).Preparer()
 		}
 
-		return deploymentPreparer, nil
-	}
-	return NewDeployCmd(f.ui, f.fs, f.logger, getter), nil
-}
+		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
+		return NewDeployCmd(deps.UI, envProvider).Run(stage, opts.CreateEnv)
+	})
 
-func (f *factory) createDeleteCmd() (Cmd, error) {
-	getter := func(deploymentManifestPath string) (DeploymentDeleter, error) {
-		f := &deploymentManagerFactory2{f: f, deploymentManifestPath: deploymentManifestPath}
-		deploymentDeleter, err := f.loadDeploymentDeleter()
-		if err != nil {
-			return deploymentDeleter, err
+	opts.DeleteEnv.call = globalOptsFunc(func() error {
+		envProvider := func(path string, vars boshtpl.Variables) DeploymentDeleter {
+			return NewEnvFactory(deps, path, vars).Deleter()
 		}
-		return deploymentDeleter, nil
+
+		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
+		return NewDeleteCmd(deps.UI, envProvider).Run(stage, opts.DeleteEnv)
+	})
+
+	opts.Targets.call = configFunc(func(config cmdconf.Config) error {
+		return NewTargetsCmd(config, deps.UI).Run()
+	})
+
+	opts.Target.call = configFunc(func(config cmdconf.Config) error {
+		sessionFactory := func(config cmdconf.Config) Session {
+			return NewSessionFromOpts(opts, config, deps.UI, false, false, deps.FS, deps.Logger)
+		}
+
+		return NewTargetCmd(sessionFactory, config, deps.UI).Run(opts.Target)
+	})
+
+	opts.LogIn.call = configFunc(func(config cmdconf.Config) error {
+		sessionFactory := func(config cmdconf.Config) Session {
+			return NewSessionFromOpts(opts, config, deps.UI, true, true, deps.FS, deps.Logger)
+		}
+
+		basicStrategy := NewBasicLoginStrategy(sessionFactory, config, deps.UI)
+		uaaStrategy := NewUAALoginStrategy(sessionFactory, config, deps.UI, deps.Logger)
+
+		sess := NewSessionFromOpts(opts, config, deps.UI, true, true, deps.FS, deps.Logger)
+
+		anonDirector, err := sess.AnonymousDirector()
+		if err != nil {
+			return err
+		}
+
+		return NewLogInCmd(basicStrategy, uaaStrategy, anonDirector).Run()
+	})
+
+	opts.LogOut.call = configFunc(func(config cmdconf.Config) error {
+		sess := NewSessionFromOpts(opts, config, deps.UI, true, true, deps.FS, deps.Logger)
+		return NewLogOutCmd(sess.Target(), config, deps.UI).Run()
+	})
+
+	opts.Task.call = directorFunc(func(director boshdir.Director) error {
+		eventsTaskReporter := boshuit.NewReporter(deps.UI, true)
+		plainTaskReporter := boshuit.NewReporter(deps.UI, false)
+		return NewTaskCmd(eventsTaskReporter, plainTaskReporter, director).Run(opts.Task)
+	})
+
+	opts.Tasks.call = directorFunc(func(director boshdir.Director) error {
+		return NewTasksCmd(deps.UI, director).Run(opts.Tasks)
+	})
+
+	opts.CancelTask.call = directorFunc(func(director boshdir.Director) error {
+		return NewCancelTaskCmd(director).Run(opts.CancelTask)
+	})
+
+	opts.Deployment.call = configFunc(func(config cmdconf.Config) error {
+		sessionFactory := func(config cmdconf.Config) Session {
+			return NewSessionFromOpts(opts, config, deps.UI, true, false, deps.FS, deps.Logger)
+		}
+
+		return NewDeploymentCmd(sessionFactory, config, deps.UI).Run(opts.Deployment)
+	})
+
+	opts.Deployments.call = directorFunc(func(director boshdir.Director) error {
+		return NewDeploymentsCmd(deps.UI, director).Run()
+	})
+
+	opts.DeleteDeployment.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewDeleteDeploymentCmd(deps.UI, dep).Run(opts.DeleteDeployment)
+	})
+
+	opts.Releases.call = directorFunc(func(director boshdir.Director) error {
+		return NewReleasesCmd(deps.UI, director).Run()
+	})
+
+	opts.UploadRelease.call = func(dir DirOrCWDArg) error {
+		return releaseProvidersFunc(func(relProv boshrel.Provider, relDirProv boshreldir.Provider) error {
+			return directorFunc(func(director boshdir.Director) error {
+				releaseReader := relDirProv.NewReleaseReader(dir.Path)
+				releaseWriter := relProv.NewArchiveWriter()
+				releaseDir := relDirProv.NewFSReleaseDir(dir.Path)
+
+				releaseArchiveFactory := func(path string) boshdir.ReleaseArchive {
+					return boshdir.NewFSReleaseArchive(path, deps.FS)
+				}
+
+				cmd := NewUploadReleaseCmd(
+					releaseReader, releaseWriter, releaseDir, director, releaseArchiveFactory, deps.UI)
+
+				return cmd.Run(opts.UploadRelease)
+			})()
+		})()
 	}
 
-	return NewDeleteCmd(f.ui, f.fs, f.logger, getter), nil
-}
+	opts.DeleteRelease.call = directorFunc(func(director boshdir.Director) error {
+		return NewDeleteReleaseCmd(deps.UI, director).Run(opts.DeleteRelease)
+	})
 
-func (f *factory) createHelpCmd() (Cmd, error) {
-	return NewHelpCmd(f.ui, f.commands), nil
-}
+	opts.Stemcells.call = directorFunc(func(director boshdir.Director) error {
+		return NewStemcellsCmd(deps.UI, director).Run()
+	})
 
-func (f *factory) createVersionCmd() (Cmd, error) {
-	return NewVersionCmd(f.ui), nil
-}
+	opts.UploadStemcell.call = directorFunc(func(director boshdir.Director) error {
+		stemcellArchiveFactory := func(path string) boshdir.StemcellArchive {
+			return boshdir.NewFSStemcellArchive(path, deps.FS)
+		}
 
-func (f *factory) loadCMDRunner() boshsys.CmdRunner {
-	if f.runner != nil {
-		return f.runner
-	}
-	f.runner = boshsys.NewExecCmdRunner(f.logger)
-	return f.runner
-}
+		return NewUploadStemcellCmd(director, stemcellArchiveFactory, deps.UI).Run(opts.UploadStemcell)
+	})
 
-func (f *factory) loadCompressor() boshcmd.Compressor {
-	if f.compressor != nil {
-		return f.compressor
-	}
-	f.compressor = boshcmd.NewTarballCompressor(f.loadCMDRunner(), f.fs)
-	return f.compressor
-}
+	opts.DeleteStemcell.call = directorFunc(func(director boshdir.Director) error {
+		return NewDeleteStemcellCmd(deps.UI, director).Run(opts.DeleteStemcell)
+	})
 
-func (f *factory) loadCompiledPackageRepo() bistatepkg.CompiledPackageRepo {
-	if f.compiledPackageRepo != nil {
-		return f.compiledPackageRepo
-	}
+	opts.Locks.call = directorFunc(func(director boshdir.Director) error {
+		return NewLocksCmd(deps.UI, director).Run()
+	})
 
-	index := biindex.NewInMemoryIndex()
-	f.compiledPackageRepo = bistatepkg.NewCompiledPackageRepo(index)
-	return f.compiledPackageRepo
-}
+	opts.Errands.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewErrandsCmd(deps.UI, dep).Run()
+	})
 
-func (f *factory) loadRegistryServerManager() biregistry.ServerManager {
-	if f.registryServerManager != nil {
-		return f.registryServerManager
-	}
+	opts.RunErrand.call = directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
+		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
+		return NewRunErrandCmd(dep, downloader, deps.UI).Run(opts.RunErrand)
+	})
 
-	f.registryServerManager = biregistry.NewServerManager(f.logger)
-	return f.registryServerManager
-}
+	opts.Disks.call = directorFunc(func(director boshdir.Director) error {
+		return NewDisksCmd(deps.UI, director).Run(opts.Disks)
+	})
 
-func (f *factory) loadSSHTunnelFactory() bisshtunnel.Factory {
-	if f.sshTunnelFactory != nil {
-		return f.sshTunnelFactory
-	}
+	opts.DeleteDisk.call = directorFunc(func(director boshdir.Director) error {
+		return NewDeleteDiskCmd(deps.UI, director).Run(opts.DeleteDisk)
+	})
 
-	f.sshTunnelFactory = bisshtunnel.NewFactory(f.logger)
-	return f.sshTunnelFactory
-}
+	opts.Snapshots.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewSnapshotsCmd(deps.UI, dep).Run(opts.Snapshots)
+	})
 
-func (f *factory) loadInstanceManagerFactory() biinstance.ManagerFactory {
-	if f.instanceManagerFactory != nil {
-		return f.instanceManagerFactory
-	}
+	opts.TakeSnapshot.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewTakeSnapshotCmd(dep).Run(opts.TakeSnapshot)
+	})
 
-	f.instanceManagerFactory = biinstance.NewManagerFactory(
-		f.loadSSHTunnelFactory(),
-		f.loadInstanceFactory(),
-		f.logger,
-	)
-	return f.instanceManagerFactory
-}
+	opts.DeleteSnapshot.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewDeleteSnapshotCmd(deps.UI, dep).Run(opts.DeleteSnapshot)
+	})
 
-func (f *factory) loadInstanceFactory() biinstance.Factory {
-	if f.instanceFactory != nil {
-		return f.instanceFactory
-	}
+	opts.DeleteSnapshots.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewDeleteSnapshotsCmd(deps.UI, dep).Run()
+	})
 
-	f.instanceFactory = biinstance.NewFactory(
-		f.loadBuilderFactory(),
-	)
-	return f.instanceFactory
-}
+	opts.CloudConfig.call = directorFunc(func(director boshdir.Director) error {
+		return NewCloudConfigCmd(deps.UI, director).Run()
+	})
 
-func (f *factory) loadReleaseJobResolver() bideplrel.JobResolver {
-	if f.releaseJobResolver != nil {
-		return f.releaseJobResolver
-	}
+	opts.UpdateCloudConfig.call = directorFunc(func(director boshdir.Director) error {
+		return NewUpdateCloudConfigCmd(deps.UI, director).Run(opts.UpdateCloudConfig)
+	})
 
-	f.releaseJobResolver = bideplrel.NewJobResolver(f.loadReleaseManager())
-	return f.releaseJobResolver
-}
+	opts.RuntimeConfig.call = directorFunc(func(director boshdir.Director) error {
+		return NewRuntimeConfigCmd(deps.UI, director).Run()
+	})
 
-func (f *factory) loadBuilderFactory() biinstancestate.BuilderFactory {
-	if f.stateBuilderFactory != nil {
-		return f.stateBuilderFactory
-	}
+	opts.UpdateRuntimeConfig.call = directorFunc(func(director boshdir.Director) error {
+		return NewUpdateRuntimeConfigCmd(deps.UI, director).Run(opts.UpdateRuntimeConfig)
+	})
 
-	erbRenderer := bitemplateerb.NewERBRenderer(f.fs, f.loadCMDRunner(), f.logger)
-	jobRenderer := bitemplate.NewJobRenderer(erbRenderer, f.fs, f.logger)
-	jobListRenderer := bitemplate.NewJobListRenderer(jobRenderer, f.logger)
+	opts.Manifest.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewManifestCmd(deps.UI, dep).Run()
+	})
 
-	sha1Calculator := bicrypto.NewSha1Calculator(f.fs)
+	opts.InspectRelease.call = directorFunc(func(director boshdir.Director) error {
+		return NewInspectReleaseCmd(deps.UI, director).Run(opts.InspectRelease)
+	})
 
-	renderedJobListCompressor := bitemplate.NewRenderedJobListCompressor(
-		f.fs,
-		f.loadCompressor(),
-		sha1Calculator,
-		f.logger,
-	)
+	opts.VMs.call = directorFunc(func(director boshdir.Director) error {
+		return NewVMsCmd(deps.UI, director).Run(opts.VMs)
+	})
 
-	f.stateBuilderFactory = biinstancestate.NewBuilderFactory(
-		f.loadCompiledPackageRepo(),
-		f.loadReleaseJobResolver(),
-		jobListRenderer,
-		renderedJobListCompressor,
-		f.logger,
-	)
-	return f.stateBuilderFactory
-}
+	opts.Instances.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewInstancesCmd(deps.UI, dep).Run(opts.Instances)
+	})
 
-func (f *factory) loadDeploymentFactory() bidepl.Factory {
-	if f.deploymentFactory != nil {
-		return f.deploymentFactory
-	}
+	opts.VMResurrection.call = directorFunc(func(director boshdir.Director) error {
+		return NewVMResurrectionCmd(director).Run(opts.VMResurrection)
+	})
 
-	pingTimeout := 10 * time.Second
-	pingDelay := 500 * time.Millisecond
+	opts.Deploy.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewDeploy2Cmd(deps.UI, dep).Run(opts.Deploy)
+	})
 
-	f.deploymentFactory = bidepl.NewFactory(
-		pingTimeout,
-		pingDelay,
-	)
-	return f.deploymentFactory
-}
+	opts.Start.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewStartCmd(deps.UI, dep).Run(opts.Start)
+	})
 
-func (f *factory) loadAgentClientFactory() bihttpagent.AgentClientFactory {
-	if f.agentClientFactory != nil {
-		return f.agentClientFactory
-	}
+	opts.Stop.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewStopCmd(deps.UI, dep).Run(opts.Stop)
+	})
 
-	f.agentClientFactory = bihttpagent.NewAgentClientFactory(1*time.Second, f.logger)
-	return f.agentClientFactory
-}
+	opts.Restart.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewRestartCmd(deps.UI, dep).Run(opts.Restart)
+	})
 
-func (f *factory) loadBlobstoreFactory() biblobstore.Factory {
-	if f.blobstoreFactory != nil {
-		return f.blobstoreFactory
-	}
+	opts.Recreate.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewRecreateCmd(deps.UI, dep).Run(opts.Recreate)
+	})
 
-	f.blobstoreFactory = biblobstore.NewBlobstoreFactory(f.uuidGenerator, f.fs, f.logger)
-	return f.blobstoreFactory
-}
-func (f *factory) loadCPIReleaseValidator() bicpirel.Validator {
-	if f.cpiReleaseValidator != nil {
-		return *f.cpiReleaseValidator
-	}
-	x := bicpirel.NewValidator()
-	f.cpiReleaseValidator = &x
-	return *f.cpiReleaseValidator
-}
+	opts.CloudCheck.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		return NewCloudCheckCmd(dep, deps.UI).Run(opts.CloudCheck)
+	})
 
-func (f *factory) loadReleaseExtractor() birel.Extractor {
-	if f.releaseExtractor != nil {
-		return f.releaseExtractor
-	}
+	opts.CleanUp.call = directorFunc(func(director boshdir.Director) error {
+		return NewCleanUpCmd(deps.UI, director).Run(opts.CleanUp)
+	})
 
-	releaseValidator := birel.NewValidator(f.fs)
-	f.releaseExtractor = birel.NewExtractor(f.fs, f.loadCompressor(), releaseValidator, f.logger)
-	return f.releaseExtractor
-}
+	opts.Logs.call = directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
+		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
+		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
+		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
+		return NewLogsCmd(dep, downloader, deps.UUIDGen, nonIntSSHRunner).Run(opts.Logs)
+	})
 
-func (f *factory) loadTarballProvider() bitarball.Provider {
-	if f.tarballProvider != nil {
-		return f.tarballProvider
-	}
+	opts.SSH.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
+		intSSHRunner := sshProvider.NewSSHRunner(true)
+		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
+		resultsSSHRunner := sshProvider.NewResultsSSHRunner(false)
+		return NewSSHCmd(dep, deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI).Run(opts.SSH)
+	})
 
-	tarballCacheBasePath := filepath.Join(f.workspaceRootPath, "downloads")
-	tarballCache := bitarball.NewCache(tarballCacheBasePath, f.fs, f.logger)
-	httpClient := bihttpclient.NewHTTPClient(bitarball.HTTPClient, f.logger)
-	sha1Calculator := bicrypto.NewSha1Calculator(f.fs)
-	f.tarballProvider = bitarball.NewProvider(tarballCache, f.fs, httpClient, sha1Calculator, 3, 500*time.Millisecond, f.logger)
-	return f.tarballProvider
-}
+	opts.SCP.call = deploymentFunc(func(dep boshdir.Deployment) error {
+		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
+		scpRunner := sshProvider.NewSCPRunner()
+		return NewSCPCmd(dep, deps.UUIDGen, scpRunner, deps.UI).Run(opts.SCP)
+	})
 
-func (f *factory) loadReleaseManager() birel.Manager {
-	if f.releaseManager != nil {
-		return f.releaseManager
+	opts.ExportRelease.call = directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
+		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
+		return NewExportReleaseCmd(dep, downloader).Run(opts.ExportRelease)
+	})
+
+	opts.InitRelease.call = releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
+		return NewInitReleaseCmd(releaseDir).Run(opts.InitRelease)
+	})
+
+	opts.ResetRelease.call = releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
+		return NewResetReleaseCmd(releaseDir).Run(opts.ResetRelease)
+	})
+
+	opts.GenerateJob.call = releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
+		return NewGenerateJobCmd(releaseDir).Run(opts.GenerateJob)
+	})
+
+	opts.GeneratePackage.call = releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
+		return NewGeneratePackageCmd(releaseDir).Run(opts.GeneratePackage)
+	})
+
+	opts.FinalizeRelease.call = func(dir DirOrCWDArg) error {
+		return releaseProvidersFunc(func(relProv boshrel.Provider, relDirProv boshreldir.Provider) error {
+			releaseReader := relDirProv.NewReleaseReader(dir.Path)
+			releaseDir := relDirProv.NewFSReleaseDir(dir.Path)
+			return NewFinalizeReleaseCmd(releaseReader, releaseDir, deps.UI).Run(opts.FinalizeRelease)
+		})()
 	}
 
-	f.releaseManager = birel.NewManager(f.logger)
-	return f.releaseManager
-}
-
-func (f *factory) loadReleaseSetParser() birelsetmanifest.Parser {
-	if f.releaseSetParser != nil {
-		return f.releaseSetParser
+	opts.CreateRelease.call = func(dir DirOrCWDArg) error {
+		return releaseProvidersFunc(func(relProv boshrel.Provider, relDirProv boshreldir.Provider) error {
+			releaseReader := relDirProv.NewReleaseReader(dir.Path)
+			releaseDir := relDirProv.NewFSReleaseDir(dir.Path)
+			return NewCreateReleaseCmd(releaseReader, releaseDir, deps.UI).Run(opts.CreateRelease)
+		})()
 	}
 
-	f.releaseSetParser = birelsetmanifest.NewParser(f.fs, f.logger, f.loadReleaseSetValidator())
-	return f.releaseSetParser
+	opts.Blobs.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+		return NewBlobsCmd(blobsDir, deps.UI).Run()
+	})
+
+	opts.AddBlob.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+		return NewAddBlobCmd(blobsDir, deps.FS, deps.UI).Run(opts.AddBlob)
+	})
+
+	opts.RemoveBlob.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+		return NewRemoveBlobCmd(blobsDir, deps.UI).Run(opts.RemoveBlob)
+	})
+
+	opts.UploadBlobs.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+		return NewUploadBlobsCmd(blobsDir).Run()
+	})
+
+	opts.SyncBlobs.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+		return NewSyncBlobsCmd(blobsDir).Run()
+	})
+
+	return Factory{opts: &opts}
 }
 
-func (f *factory) loadInstallationParser() biinstallmanifest.Parser {
-	if f.installationParser != nil {
-		return f.installationParser
-	}
+func (f Factory) RunCommand(args []string) error {
+	parser := goflags.NewParser(f.opts, goflags.HelpFlag|goflags.PassDoubleDash)
 
-	uuidGenerator := boshuuid.NewGenerator()
-	f.installationParser = biinstallmanifest.NewParser(f.fs, uuidGenerator, f.logger, f.loadInstallationValidator())
-	return f.installationParser
-}
+	_, err := parser.ParseArgs(args)
 
-func (f *factory) loadDeploymentParser() bideplmanifest.Parser {
-	if f.deploymentParser != nil {
-		return f.deploymentParser
-	}
-
-	f.deploymentParser = bideplmanifest.NewParser(f.fs, f.logger)
-	return f.deploymentParser
-}
-
-func (f *factory) loadInstallationValidator() biinstallmanifest.Validator {
-	if f.installationValidator != nil {
-		return f.installationValidator
-	}
-
-	f.installationValidator = biinstallmanifest.NewValidator(f.logger)
-	return f.installationValidator
-}
-
-func (f *factory) loadDeploymentValidator() bideplmanifest.Validator {
-	if f.deploymentValidator != nil {
-		return f.deploymentValidator
-	}
-
-	f.deploymentValidator = bideplmanifest.NewValidator(f.logger)
-	return f.deploymentValidator
-}
-
-func (f *factory) loadReleaseSetValidator() birelsetmanifest.Validator {
-	if f.releaseSetValidator != nil {
-		return f.releaseSetValidator
-	}
-
-	f.releaseSetValidator = birelsetmanifest.NewValidator(f.logger)
-	return f.releaseSetValidator
-}
-
-func (f *factory) loadCloudFactory() bicloud.Factory {
-	if f.cloudFactory != nil {
-		return f.cloudFactory
-	}
-
-	f.cloudFactory = bicloud.NewFactory(f.fs, f.loadCMDRunner(), f.logger)
-	return f.cloudFactory
-}
-
-type deploymentManagerFactory2 struct {
-	f                             *factory
-	deploymentManifestPath        string
-	deploymentStateService        biconfig.DeploymentStateService
-	legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator
-	vmRepo                        biconfig.VMRepo
-	stemcellRepo                  biconfig.StemcellRepo
-	diskRepo                      biconfig.DiskRepo
-	diskDeployer                  bivm.DiskDeployer
-	diskManagerFactory            bidisk.ManagerFactory
-	deploymentManagerFactory      bidepl.ManagerFactory
-	vmManagerFactory              bivm.ManagerFactory
-	stemcellManagerFactory        bistemcell.ManagerFactory
-	installerFactory              biinstall.InstallerFactory
-	deployer                      bidepl.Deployer
-}
-
-func (d *deploymentManagerFactory2) loadDeploymentPreparer() (DeploymentPreparer, error) {
-	deploymentRepo := biconfig.NewDeploymentRepo(d.loadDeploymentStateService())
-	releaseRepo := biconfig.NewReleaseRepo(d.loadDeploymentStateService(), d.f.uuidGenerator)
-	sha1Calculator := bicrypto.NewSha1Calculator(d.f.fs)
-	deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, d.loadStemcellRepo(), sha1Calculator)
-	cpiInstaller, err := d.loadCpiInstaller()
-	if err != nil {
-		return DeploymentPreparer{}, err
-	}
-
-	return NewDeploymentPreparer(
-		d.f.ui,
-		d.f.logger,
-		"DeploymentPreparer",
-		d.loadDeploymentStateService(),
-		d.loadLegacyDeploymentStateMigrator(),
-		d.f.loadReleaseManager(),
-		deploymentRecord,
-		d.f.loadCloudFactory(),
-		d.loadStemcellManagerFactory(),
-		d.f.loadAgentClientFactory(),
-		d.loadVMManagerFactory(),
-		d.f.loadBlobstoreFactory(),
-		d.loadDeployer(),
-		d.deploymentManifestPath,
-		cpiInstaller,
-		d.loadReleaseFetcher(),
-		d.loadStemcellFetcher(),
-		d.loadReleaseSetAndInstallationManifestParser(),
-		d.loadDeploymentManifestParser(),
-		NewTempRootConfigurator(d.f.fs),
-		d.loadTargetProvider(),
-	), nil
-}
-
-func (d *deploymentManagerFactory2) loadDeploymentDeleter() (DeploymentDeleter, error) {
-	cpiInstaller, err := d.loadCpiInstaller()
-	if err != nil {
-		return nil, err
-	}
-	return NewDeploymentDeleter(
-		d.f.ui,
-		"DeploymentDeleter",
-		d.f.logger,
-		d.loadDeploymentStateService(),
-		d.f.loadReleaseManager(),
-		d.f.loadCloudFactory(),
-		d.f.loadAgentClientFactory(),
-		d.f.loadBlobstoreFactory(),
-		d.loadDeploymentManagerFactory(),
-		d.deploymentManifestPath,
-		cpiInstaller,
-		d.loadCpiUninstaller(),
-		d.loadReleaseFetcher(),
-		d.loadReleaseSetAndInstallationManifestParser(),
-		NewTempRootConfigurator(d.f.fs),
-		d.loadTargetProvider(),
-	), nil
-}
-
-func (d *deploymentManagerFactory2) loadDeploymentStateService() biconfig.DeploymentStateService {
-	if d.deploymentStateService != nil {
-		return d.deploymentStateService
-	}
-
-	d.deploymentStateService = biconfig.NewFileSystemDeploymentStateService(
-		d.f.fs,
-		d.f.uuidGenerator,
-		d.f.logger,
-		biconfig.DeploymentStatePath(d.deploymentManifestPath),
-	)
-	return d.deploymentStateService
-}
-
-func (d *deploymentManagerFactory2) loadLegacyDeploymentStateMigrator() biconfig.LegacyDeploymentStateMigrator {
-	if d.legacyDeploymentStateMigrator != nil {
-		return d.legacyDeploymentStateMigrator
-	}
-
-	d.legacyDeploymentStateMigrator = biconfig.NewLegacyDeploymentStateMigrator(
-		d.loadDeploymentStateService(),
-		d.f.fs,
-		d.f.uuidGenerator,
-		d.f.logger,
-	)
-	return d.legacyDeploymentStateMigrator
-}
-
-func (d *deploymentManagerFactory2) loadStemcellRepo() biconfig.StemcellRepo {
-	if d.stemcellRepo != nil {
-		return d.stemcellRepo
-	}
-	d.stemcellRepo = biconfig.NewStemcellRepo(d.loadDeploymentStateService(), d.f.uuidGenerator)
-	return d.stemcellRepo
-}
-
-func (d *deploymentManagerFactory2) loadVMRepo() biconfig.VMRepo {
-	if d.vmRepo != nil {
-		return d.vmRepo
-	}
-	d.vmRepo = biconfig.NewVMRepo(d.loadDeploymentStateService())
-	return d.vmRepo
-}
-
-func (d *deploymentManagerFactory2) loadDiskRepo() biconfig.DiskRepo {
-	if d.diskRepo != nil {
-		return d.diskRepo
-	}
-	d.diskRepo = biconfig.NewDiskRepo(d.loadDeploymentStateService(), d.f.uuidGenerator)
-	return d.diskRepo
-}
-
-func (d *deploymentManagerFactory2) loadDiskDeployer() bivm.DiskDeployer {
-	if d.diskDeployer != nil {
-		return d.diskDeployer
-	}
-
-	d.diskDeployer = bivm.NewDiskDeployer(d.loadDiskManagerFactory(), d.loadDiskRepo(), d.f.logger)
-	return d.diskDeployer
-}
-
-func (d *deploymentManagerFactory2) loadDiskManagerFactory() bidisk.ManagerFactory {
-	if d.diskManagerFactory != nil {
-		return d.diskManagerFactory
-	}
-
-	d.diskManagerFactory = bidisk.NewManagerFactory(d.loadDiskRepo(), d.f.logger)
-	return d.diskManagerFactory
-}
-
-func (d *deploymentManagerFactory2) loadDeploymentManagerFactory() bidepl.ManagerFactory {
-	if d.deploymentManagerFactory != nil {
-		return d.deploymentManagerFactory
-	}
-
-	d.deploymentManagerFactory = bidepl.NewManagerFactory(
-		d.loadVMManagerFactory(),
-		d.f.loadInstanceManagerFactory(),
-		d.loadDiskManagerFactory(),
-		d.loadStemcellManagerFactory(),
-		d.f.loadDeploymentFactory(),
-	)
-	return d.deploymentManagerFactory
-}
-
-func (d *deploymentManagerFactory2) loadVMManagerFactory() bivm.ManagerFactory {
-	if d.vmManagerFactory != nil {
-		return d.vmManagerFactory
-	}
-
-	d.vmManagerFactory = bivm.NewManagerFactory(
-		d.loadVMRepo(),
-		d.loadStemcellRepo(),
-		d.loadDiskDeployer(),
-		d.f.uuidGenerator,
-		d.f.fs,
-		d.f.logger,
-	)
-	return d.vmManagerFactory
-}
-
-func (d *deploymentManagerFactory2) loadStemcellManagerFactory() bistemcell.ManagerFactory {
-	if d.stemcellManagerFactory != nil {
-		return d.stemcellManagerFactory
-	}
-
-	d.stemcellManagerFactory = bistemcell.NewManagerFactory(d.loadStemcellRepo())
-	return d.stemcellManagerFactory
-}
-
-func (d *deploymentManagerFactory2) loadDeployer() bidepl.Deployer {
-	if d.deployer != nil {
-		return d.deployer
-	}
-
-	d.deployer = bidepl.NewDeployer(
-		d.loadVMManagerFactory(),
-		d.f.loadInstanceManagerFactory(),
-		d.f.loadDeploymentFactory(),
-		d.f.logger,
-	)
-	return d.deployer
-}
-
-func (d *deploymentManagerFactory2) loadInstallerFactory() biinstall.InstallerFactory {
-	if d.installerFactory != nil {
-		return d.installerFactory
-	}
-
-	d.installerFactory = biinstall.NewInstallerFactory(
-		d.f.ui,
-		d.f.loadCMDRunner(),
-		d.f.loadCompressor(),
-		d.f.loadReleaseJobResolver(),
-		d.f.uuidGenerator,
-		d.f.loadRegistryServerManager(),
-		d.f.logger,
-		d.f.fs,
-	)
-	return d.installerFactory
-}
-
-func (d *deploymentManagerFactory2) loadTargetProvider() biinstall.TargetProvider {
-	return biinstall.NewTargetProvider(
-		d.loadDeploymentStateService(),
-		d.f.uuidGenerator,
-		filepath.Join(d.f.workspaceRootPath, "installations"),
-	)
-}
-
-func (d *deploymentManagerFactory2) loadCpiUninstaller() biinstall.Uninstaller {
-	return biinstall.NewUninstaller(d.f.fs, d.f.logger)
-}
-
-func (d *deploymentManagerFactory2) loadCpiInstaller() (bicpirel.CpiInstaller, error) {
-	return bicpirel.CpiInstaller{
-		ReleaseManager:   d.f.loadReleaseManager(),
-		InstallerFactory: d.loadInstallerFactory(),
-		Validator:        bicpirel.NewValidator(),
-	}, nil
-}
-
-func (d *deploymentManagerFactory2) loadReleaseFetcher() birel.Fetcher {
-	return birel.NewFetcher(
-		d.f.loadTarballProvider(),
-		d.f.loadReleaseExtractor(),
-		d.f.loadReleaseManager(),
-	)
-}
-
-func (d *deploymentManagerFactory2) loadStemcellFetcher() bistemcell.Fetcher {
-	stemcellReader := bistemcell.NewReader(d.f.loadCompressor(), d.f.fs)
-	stemcellExtractor := bistemcell.NewExtractor(stemcellReader, d.f.fs)
-
-	return bistemcell.Fetcher{
-		TarballProvider:   d.f.loadTarballProvider(),
-		StemcellExtractor: stemcellExtractor,
-	}
-}
-
-func (d *deploymentManagerFactory2) loadReleaseSetAndInstallationManifestParser() ReleaseSetAndInstallationManifestParser {
-	return ReleaseSetAndInstallationManifestParser{
-		ReleaseSetParser:   d.f.loadReleaseSetParser(),
-		InstallationParser: d.f.loadInstallationParser(),
-	}
-}
-
-func (d *deploymentManagerFactory2) loadDeploymentManifestParser() DeploymentManifestParser {
-	return DeploymentManifestParser{
-		DeploymentParser:    d.f.loadDeploymentParser(),
-		DeploymentValidator: d.f.loadDeploymentValidator(),
-		ReleaseManager:      d.f.loadReleaseManager(),
-	}
+	return err
 }

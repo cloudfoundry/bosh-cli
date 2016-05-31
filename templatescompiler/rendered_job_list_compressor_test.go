@@ -1,22 +1,22 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/templatescompiler"
-
 	"bytes"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"os"
 	"path/filepath"
 
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 )
 
 var _ = Describe("RenderedJobListCompressor", func() {
@@ -64,7 +64,8 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				// create rendered job with 2 rendered scripts
 				renderedJobDir0, err := fs.TempDir("RenderedJobListCompressorTest")
 				Expect(err).ToNot(HaveOccurred())
-				renderedJob0 := NewRenderedJob(bireljob.Job{Name: "fake-job-name-0"}, renderedJobDir0, fs, logger)
+				job0 := bireljob.NewJob(NewResource("fake-job-name-0", "", nil))
+				renderedJob0 := NewRenderedJob(*job0, renderedJobDir0, fs, logger)
 				defer func() { err := renderedJob0.Delete(); Expect(err).ToNot(HaveOccurred()) }()
 				err = fs.WriteFileString(filepath.Join(renderedJobDir0, "script-0"), "fake-rendered-job-0-script-0-content")
 				Expect(err).ToNot(HaveOccurred())
@@ -75,7 +76,8 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				// create another rendered job with 1 rendered script
 				renderedJobDir1, err := fs.TempDir("RenderedJobListCompressorTest")
 				Expect(err).ToNot(HaveOccurred())
-				renderedJob1 := NewRenderedJob(bireljob.Job{Name: "fake-job-name-1"}, renderedJobDir1, fs, logger)
+				job1 := bireljob.NewJob(NewResource("fake-job-name-1", "", nil))
+				renderedJob1 := NewRenderedJob(*job1, renderedJobDir1, fs, logger)
 				defer func() { err := renderedJob1.Delete(); Expect(err).ToNot(HaveOccurred()) }()
 				err = fs.WriteFileString(filepath.Join(renderedJobDir1, "script-0"), "fake-rendered-job-1-script-0-content")
 				Expect(err).ToNot(HaveOccurred())

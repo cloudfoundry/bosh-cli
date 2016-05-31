@@ -2,19 +2,19 @@ package config_test
 
 import (
 	"errors"
-	. "github.com/cloudfoundry/bosh-init/config"
-	"github.com/cloudfoundry/bosh-init/release"
-	fakerelease "github.com/cloudfoundry/bosh-init/release/fakes"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-init/config"
+	"github.com/cloudfoundry/bosh-init/release"
+	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
 )
 
-var _ = Describe("ReleaseRepo", rootDesc)
-
-func rootDesc() {
+var _ = Describe("ReleaseRepo", func() {
 	var (
 		repo                   ReleaseRepo
 		deploymentStateService DeploymentStateService
@@ -88,8 +88,14 @@ func rootDesc() {
 		Context("when there are no existing releases", func() {
 			It("saves the provided releases to the config file", func() {
 				err := repo.Update([]release.Release{
-					fakerelease.New("name1", "1"),
-					fakerelease.New("name2", "2"),
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name1" },
+						VersionStub: func() string { return "1" },
+					},
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name2" },
+						VersionStub: func() string { return "2" },
+					},
 				})
 				Expect(err).ToNot(HaveOccurred())
 				conf, err := deploymentStateService.Load()
@@ -128,8 +134,14 @@ func rootDesc() {
 
 			It("saves the provided releases to the config file", func() {
 				err := repo.Update([]release.Release{
-					fakerelease.New("name1", "1"),
-					fakerelease.New("name2", "2"),
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name1" },
+						VersionStub: func() string { return "1" },
+					},
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name2" },
+						VersionStub: func() string { return "2" },
+					},
 				})
 				Expect(err).ToNot(HaveOccurred())
 				conf, err := deploymentStateService.Load()
@@ -155,8 +167,14 @@ func rootDesc() {
 
 			It("saves the provided releases to the config file", func() {
 				err := repo.Update([]release.Release{
-					fakerelease.New("name1", "1"),
-					fakerelease.New("name2", "2"),
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name1" },
+						VersionStub: func() string { return "1" },
+					},
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name2" },
+						VersionStub: func() string { return "2" },
+					},
 				})
 				Expect(err).ToNot(HaveOccurred())
 				conf, err := deploymentStateService.Load()
@@ -183,8 +201,14 @@ func rootDesc() {
 
 			It("saves the provided releases to the config file", func() {
 				err := repo.Update([]release.Release{
-					fakerelease.New("name1", "1"),
-					fakerelease.New("name2", "2"),
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name1" },
+						VersionStub: func() string { return "1" },
+					},
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name2" },
+						VersionStub: func() string { return "2" },
+					},
 				})
 				Expect(err).ToNot(HaveOccurred())
 				conf, err := deploymentStateService.Load()
@@ -209,8 +233,14 @@ func rootDesc() {
 
 			It("saves the provided releases to the config file", func() {
 				err := repo.Update([]release.Release{
-					fakerelease.New("name1", "1"),
-					fakerelease.New("name2", "2"),
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name1" },
+						VersionStub: func() string { return "1" },
+					},
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name2" },
+						VersionStub: func() string { return "2" },
+					},
 				})
 				Expect(err).ToNot(HaveOccurred())
 				conf, err := deploymentStateService.Load()
@@ -229,12 +259,18 @@ func rootDesc() {
 
 			It("returns an error", func() {
 				err := repo.Update([]release.Release{
-					fakerelease.New("name1", "1"),
-					fakerelease.New("name2", "2"),
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name1" },
+						VersionStub: func() string { return "1" },
+					},
+					&fakerel.FakeRelease{
+						NameStub:    func() string { return "name2" },
+						VersionStub: func() string { return "2" },
+					},
 				})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("kaboom"))
 			})
 		})
 	})
-}
+})

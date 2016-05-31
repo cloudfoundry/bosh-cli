@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -e
+
+bin=$(dirname $0)
+
+$bin/counterfeiter cmd Session
+$bin/counterfeiter cmd SessionContext
+$bin/counterfeiter cmd Downloader
+$bin/counterfeiter cmd LoginStrategy
+$bin/counterfeiter cmd/config Config
+
+$bin/counterfeiter director Adjustment
+$bin/counterfeiter director AdjustedClient
+$bin/counterfeiter director Director
+$bin/counterfeiter director Deployment
+$bin/counterfeiter director Release
+$bin/counterfeiter director ReleaseSeries
+$bin/counterfeiter director ReleaseArchive
+$bin/counterfeiter director Stemcell
+$bin/counterfeiter director StemcellArchive
+$bin/counterfeiter director Task
+$bin/counterfeiter director OrphanedDisk
+$bin/counterfeiter director FileReporter
+$bin/counterfeiter director TaskReporter
+
+$bin/counterfeiter uaa UAA
+$bin/counterfeiter uaa Token
+$bin/counterfeiter uaa AccessToken
+
+$bin/counterfeiter releasedir ReleaseDir
+$bin/counterfeiter releasedir Config
+$bin/counterfeiter releasedir Generator
+$bin/counterfeiter releasedir GitRepo
+$bin/counterfeiter releasedir ReleaseIndex
+$bin/counterfeiter releasedir ReleaseIndexReporter
+$bin/counterfeiter releasedir BlobsDir
+$bin/counterfeiter releasedir BlobsDirReporter
+$bin/counterfeiter releasedir/index Index
+$bin/counterfeiter releasedir/index IndexBlobs
+$bin/counterfeiter releasedir/index Reporter
+
+$bin/counterfeiter release Reader
+$bin/counterfeiter release Writer
+$bin/counterfeiter release Release
+$bin/counterfeiter release/resource Archive
+$bin/counterfeiter release/resource ArchiveIndex
+$bin/counterfeiter release/resource Resource
+$bin/counterfeiter release/resource Fingerprinter
+$bin/counterfeiter release/job ArchiveReader
+$bin/counterfeiter release/job DirReader
+$bin/counterfeiter release/pkg ArchiveReader
+$bin/counterfeiter release/pkg DirReader
+$bin/counterfeiter release/pkg Compilable
+$bin/counterfeiter release/license DirReader
+
+$bin/counterfeiter ssh Runner
+$bin/counterfeiter ssh SCPRunner
+$bin/counterfeiter ssh Session
+
+$bin/counterfeiter ui/task Reporter
+
+go fmt github.com/cloudfoundry/bosh-init/...

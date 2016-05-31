@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-init/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type DeploymentManifestParser struct {
@@ -14,13 +16,15 @@ type DeploymentManifestParser struct {
 	ReleaseManager      birel.Manager
 }
 
-func (y DeploymentManifestParser) GetDeploymentManifest(deploymentManifestPath string, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, error) {
+func (y DeploymentManifestParser) GetDeploymentManifest(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, error) {
 	var deploymentManifest bideplmanifest.Manifest
+
 	err := stage.Perform("Validating deployment manifest", func() error {
 		var err error
-		deploymentManifest, err = y.DeploymentParser.Parse(deploymentManifestPath)
+
+		deploymentManifest, err = y.DeploymentParser.Parse(path, vars)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", deploymentManifestPath)
+			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", path)
 		}
 
 		err = y.DeploymentValidator.Validate(deploymentManifest, releaseSetManifest)

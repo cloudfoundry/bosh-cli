@@ -1,19 +1,18 @@
 package job_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/state/job"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
-	"github.com/golang/mock/gomock"
-
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	boshreljob "github.com/cloudfoundry/bosh-init/release/job"
+	boshrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-init/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-
-	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	mock_state_package "github.com/cloudfoundry/bosh-init/state/pkg/mocks"
+	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
 var _ = Describe("DependencyCompiler", func() {
@@ -32,14 +31,13 @@ var _ = Describe("DependencyCompiler", func() {
 		logger              boshlog.Logger
 
 		dependencyCompiler DependencyCompiler
+		stage              *fakeui.FakeStage
 
-		releaseJobs []bireljob.Job
-		fakeStage   *fakebiui.FakeStage
+		pkg1 *boshrelpkg.Package
+		pkg2 *boshrelpkg.Package
 
-		releasePackage1 *birelpkg.Package
-		releasePackage2 *birelpkg.Package
-
-		releaseJob bireljob.Job
+		job  *boshreljob.Job
+		jobs []boshreljob.Job
 
 		expectCompilePkg1 *gomock.Call
 		expectCompilePkg2 *gomock.Call
@@ -51,38 +49,15 @@ var _ = Describe("DependencyCompiler", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		dependencyCompiler = NewDependencyCompiler(mockPackageCompiler, logger)
 
-		fakeStage = fakebiui.NewFakeStage()
+		stage = fakeui.NewFakeStage()
 
-		releasePackage1 = &birelpkg.Package{
-			Name:          "fake-release-package-name-1",
-			Fingerprint:   "fake-release-package-fingerprint-1",
-			SHA1:          "fake-release-package-sha1-1",
-			Dependencies:  []*birelpkg.Package{},
-			ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-1",
-		}
-
-		releasePackage2 = &birelpkg.Package{
-			Name:          "fake-release-package-name-2",
-			Fingerprint:   "fake-release-package-fingerprint-2",
-			SHA1:          "fake-release-package-sha1-2",
-			Dependencies:  []*birelpkg.Package{releasePackage1},
-			ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-2",
-		}
-
-		releaseJob = bireljob.Job{
-			Name:          "cpi",
-			Fingerprint:   "fake-release-job-fingerprint",
-			SHA1:          "fake-release-job-sha1",
-			ExtractedPath: "/extracted-release-path/extracted_jobs/cpi",
-			Templates: map[string]string{
-				"cpi.erb":     "bin/cpi",
-				"cpi.yml.erb": "config/cpi.yml",
-			},
-			PackageNames: []string{releasePackage2.Name},
-			Packages:     []*birelpkg.Package{releasePackage2},
-			Properties:   map[string]bireljob.PropertyDefinition{},
-		}
-		releaseJobs = []bireljob.Job{releaseJob}
+		pkg1 = newPkg("pkg1-name", "pkg1-fp", nil)
+		pkg2 = newPkg("pkg2-name", "pkg2-fp", []string{"pkg1-name"})
+		pkg2.AttachDependencies([]*boshrelpkg.Package{pkg1})
+		job = boshreljob.NewJob(NewResourceWithBuiltArchive("cpi", "job-fp", "path", "sha1"))
+		job.PackageNames = []string{"pkg2-name"}
+		job.AttachPackages([]*boshrelpkg.Package{pkg2})
+		jobs = []boshreljob.Job{*job}
 	})
 
 	JustBeforeEach(func() {
@@ -90,13 +65,13 @@ var _ = Describe("DependencyCompiler", func() {
 			BlobID:   "fake-compiled-package-blobstore-id-1",
 			BlobSHA1: "fake-compiled-package-sha1-1",
 		}
-		expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(releasePackage1).Return(compiledPackageRecord1, false, nil).AnyTimes()
+		expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(pkg1).Return(compiledPackageRecord1, false, nil).AnyTimes()
 
 		compiledPackageRecord2 := bistatepkg.CompiledPackageRecord{
 			BlobID:   "fake-compiled-package-blobstore-id-2",
 			BlobSHA1: "fake-compiled-package-sha1-2",
 		}
-		expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(releasePackage2).Return(compiledPackageRecord2, false, nil).AnyTimes()
+		expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(pkg2).Return(compiledPackageRecord2, false, nil).AnyTimes()
 	})
 
 	It("compiles all the job dependencies (packages) such that no package is compiled before its dependencies", func() {
@@ -105,24 +80,24 @@ var _ = Describe("DependencyCompiler", func() {
 			expectCompilePkg2.Times(1),
 		)
 
-		_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+		_, err := dependencyCompiler.Compile(jobs, stage)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
 	It("returns references to the compiled packages", func() {
-		compiledPackageRefs, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+		compiledPackageRefs, err := dependencyCompiler.Compile(jobs, stage)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(compiledPackageRefs).To(Equal([]CompiledPackageRef{
 			{
-				Name:        "fake-release-package-name-1",
-				Version:     "fake-release-package-fingerprint-1",
+				Name:        "pkg1-name",
+				Version:     "pkg1-fp",
 				BlobstoreID: "fake-compiled-package-blobstore-id-1",
 				SHA1:        "fake-compiled-package-sha1-1",
 			},
 			{
-				Name:        "fake-release-package-name-2",
-				Version:     "fake-release-package-fingerprint-2",
+				Name:        "pkg2-name",
+				Version:     "pkg2-fp",
 				BlobstoreID: "fake-compiled-package-blobstore-id-2",
 				SHA1:        "fake-compiled-package-sha1-2",
 			},
@@ -130,96 +105,72 @@ var _ = Describe("DependencyCompiler", func() {
 	})
 
 	It("logs compile stages", func() {
-		_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+		_, err := dependencyCompiler.Compile(jobs, stage)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
-			{Name: "Compiling package 'fake-release-package-name-1/fake-release-package-fingerprint-1'"},
-			{Name: "Compiling package 'fake-release-package-name-2/fake-release-package-fingerprint-2'"},
+		Expect(stage.PerformCalls).To(Equal([]*fakeui.PerformCall{
+			{Name: "Compiling package 'pkg1-name/pkg1-fp'"},
+			{Name: "Compiling package 'pkg2-name/pkg2-fp'"},
 		}))
 	})
 
-	Context("Graph with circular dependency", func() {
+	Context("when packages are in circular dependency", func() {
 		var (
-			package1,
-			package2,
-			package3 *birelpkg.Package
+			pkg1, pkg2, pkg3 *boshrelpkg.Package
 		)
+
 		BeforeEach(func() {
-			package1 = &birelpkg.Package{
-				Name:         "fake-package-name-1",
-				Dependencies: []*birelpkg.Package{},
-			}
-			package2 = &birelpkg.Package{
-				Name:         "fake-package-name-2",
-				Dependencies: []*birelpkg.Package{package1},
-			}
-			package3 = &birelpkg.Package{
-				Name:         "fake-package-name-3",
-				Dependencies: []*birelpkg.Package{package2},
-			}
+			pkg1 = newPkg("pkg1-name", "pkg1-fp", []string{"pkg3-name"})
+			pkg2 = newPkg("pkg2-name", "pkg2-fp", []string{"pkg1-name"})
+			pkg3 = newPkg("pkg3-name", "pkg3-fp", []string{"pkg2-name"})
+			pkg1.AttachDependencies([]*boshrelpkg.Package{pkg3})
+			pkg2.AttachDependencies([]*boshrelpkg.Package{pkg1})
+			pkg3.AttachDependencies([]*boshrelpkg.Package{pkg2})
 
-			package1.Dependencies = append(package1.Dependencies, package3)
-
-			releaseJob = bireljob.Job{
-				Name:          "cpi",
-				Fingerprint:   "fake-release-job-fingerprint",
-				SHA1:          "fake-release-job-sha1",
-				ExtractedPath: "/extracted-release-path/extracted_jobs/cpi",
-				Templates: map[string]string{
-					"cpi.erb":     "bin/cpi",
-					"cpi.yml.erb": "config/cpi.yml",
-				},
-				PackageNames: []string{releasePackage2.Name},
-				Packages:     []*birelpkg.Package{package1, package2, package3},
-				Properties:   map[string]bireljob.PropertyDefinition{},
-			}
-
+			job = boshreljob.NewJob(NewResourceWithBuiltArchive("cpi", "job-fp", "path", "sha1"))
+			job.PackageNames = []string{"pkg2-name"}
+			job.AttachPackages([]*boshrelpkg.Package{pkg1, pkg2, pkg3})
+			jobs = []boshreljob.Job{*job}
 		})
 
 		It("returns an error", func() {
-			releaseJobs = []bireljob.Job{releaseJob}
-			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
-			Expect(err).NotTo(BeNil())
-
+			_, err := dependencyCompiler.Compile(jobs, stage)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	Context("when a compiled releases is provided", func() {
-
 		BeforeEach(func() {
 			compiledPackageRecord1 := bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-compiled-package-blobstore-id-1",
 				BlobSHA1: "fake-compiled-package-sha1-1",
 			}
-			expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(releasePackage1).Return(compiledPackageRecord1, true, nil).AnyTimes()
+			expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(pkg1).Return(compiledPackageRecord1, true, nil).AnyTimes()
 
 			compiledPackageRecord2 := bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-compiled-package-blobstore-id-2",
 				BlobSHA1: "fake-compiled-package-sha1-2",
 			}
-			expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(releasePackage2).Return(compiledPackageRecord2, true, nil).AnyTimes()
+			expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(pkg2).Return(compiledPackageRecord2, true, nil).AnyTimes()
 		})
 
 		It("skips compiling the packages in the release", func() {
-			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+			_, err := dependencyCompiler.Compile(jobs, stage)
 			Expect(err).ToNot(HaveOccurred())
 
-			for _, call := range fakeStage.PerformCalls {
-				Expect(call.SkipError.Error()).To(MatchRegexp("Package already compiled: Package 'fake-release-package-name-\\d' is already compiled. Skipped compilation"))
+			for _, call := range stage.PerformCalls {
+				Expect(call.SkipError).To(HaveOccurred())
+				Expect(call.SkipError.Error()).To(MatchRegexp("Package already compiled: Package 'pkg\\d-name' is already compiled. Skipped compilation"))
 			}
 		})
 	})
 
 	Context("when multiple jobs depend on the same package", func() {
 		JustBeforeEach(func() {
-			releaseJob2 := bireljob.Job{
-				Name:         "fake-other-job",
-				Fingerprint:  "fake-other-job-fingerprint",
-				PackageNames: []string{releasePackage2.Name},
-				Packages:     []*birelpkg.Package{releasePackage2},
-			}
-			releaseJobs = append(releaseJobs, releaseJob2)
+			job2 := boshreljob.NewJob(NewResourceWithBuiltArchive("job2-name", "job2-fp", "", ""))
+			job2.PackageNames = []string{"pkg2-name"}
+			job2.AttachPackages([]*boshrelpkg.Package{pkg2})
+			jobs = append(jobs, *job2)
 		})
 
 		It("only compiles each package once", func() {
@@ -228,30 +179,23 @@ var _ = Describe("DependencyCompiler", func() {
 				expectCompilePkg2.Times(1),
 			)
 
-			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+			_, err := dependencyCompiler.Compile(jobs, stage)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 
 	Context("when multiple packages depend on the same package", func() {
 		var (
-			releasePackage3 *birelpkg.Package
-
+			pkg3              *boshrelpkg.Package
 			expectCompilePkg3 *gomock.Call
 		)
 
 		BeforeEach(func() {
-			releasePackage3 = &birelpkg.Package{
-				Name:          "fake-release-package-name-3",
-				Fingerprint:   "fake-release-package-fingerprint-3",
-				SHA1:          "fake-release-package-sha1-3",
-				Dependencies:  []*birelpkg.Package{releasePackage1},
-				ExtractedPath: "/extracted-release-path/extracted_packages/fake-release-package-name-3",
-			}
+			pkg3 = newPkg("pkg3-name", "pkg3-fp", []string{"pkg1-name"})
+			pkg3.AttachDependencies([]*boshrelpkg.Package{pkg1})
 
-			releaseJob.PackageNames = append(releaseJob.PackageNames, releasePackage3.Name)
-			releaseJob.Packages = append(releaseJob.Packages, releasePackage3)
-			releaseJobs = []bireljob.Job{releaseJob}
+			job.PackageNames = append(job.PackageNames, pkg3.Name())
+			job.AttachPackages([]*boshrelpkg.Package{pkg1, pkg2, pkg3})
 		})
 
 		JustBeforeEach(func() {
@@ -259,7 +203,7 @@ var _ = Describe("DependencyCompiler", func() {
 				BlobID:   "fake-compiled-package-blobstore-id-3",
 				BlobSHA1: "fake-compiled-package-sha1-3",
 			}
-			expectCompilePkg3 = mockPackageCompiler.EXPECT().Compile(releasePackage3).Return(compiledPackageRecord3, false, nil).AnyTimes()
+			expectCompilePkg3 = mockPackageCompiler.EXPECT().Compile(pkg3).Return(compiledPackageRecord3, false, nil).AnyTimes()
 		})
 
 		It("only compiles each package once", func() {
@@ -267,7 +211,7 @@ var _ = Describe("DependencyCompiler", func() {
 			expectCompilePkg2.After(expectCompilePkg1)
 			expectCompilePkg3.After(expectCompilePkg1)
 
-			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+			_, err := dependencyCompiler.Compile(jobs, stage)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})

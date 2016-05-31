@@ -1,78 +1,57 @@
 package main
 
 import (
+	"fmt"
 	"os"
-	"path"
-	"strings"
+	"os/signal"
+	"runtime/debug"
+	"syscall"
 
-	bicmd "github.com/cloudfoundry/bosh-init/cmd"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshlogfile "github.com/cloudfoundry/bosh-utils/logger/file"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-golang/clock"
 
-	"os/signal"
-	"syscall"
-
+	boshcmd "github.com/cloudfoundry/bosh-init/cmd"
 	bilog "github.com/cloudfoundry/bosh-init/logger"
-	biui "github.com/cloudfoundry/bosh-init/ui"
-	biuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
+	boshui "github.com/cloudfoundry/bosh-init/ui"
+	boshuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
-
-const mainLogTag = "main"
 
 func main() {
 	logger := newLogger()
-	defer logger.HandlePanic("Main")
-	fileSystem := boshsys.NewOsFileSystemWithStrictTempRoot(logger)
-	workspaceRootPath := path.Join(os.Getenv("HOME"), ".bosh_init")
-	ui := biui.NewConsoleUI(logger)
+	defer handlePanic()
 
-	timeService := clock.NewClock()
+	ui := boshui.NewConfUI(logger)
+	defer ui.Flush()
 
-	cmdFactory := bicmd.NewFactory(
-		fileSystem,
-		ui,
-		timeService,
-		logger,
-		boshuuid.NewGenerator(),
-		workspaceRootPath,
-	)
+	cmdFactory := boshcmd.NewFactory(boshcmd.NewBasicDeps(ui, logger))
 
-	cmdRunner := bicmd.NewRunner(cmdFactory)
-	stage := biui.NewStage(ui, timeService, logger)
-	err := cmdRunner.Run(stage, os.Args[1:]...)
+	err := cmdFactory.RunCommand(os.Args[1:])
 	if err != nil {
-		displayHelpFunc := func() {
-			if strings.Contains(err.Error(), "Invalid usage") {
-				ui.ErrorLinef("")
-				helpErr := cmdRunner.Run(stage, append([]string{"help"}, os.Args[1:]...)...)
-				if helpErr != nil {
-					logger.Error(mainLogTag, "Couldn't print help: %s", helpErr.Error())
-				}
-			}
-		}
-		fail(err, ui, logger, displayHelpFunc)
+		fail(err, ui, logger)
+	} else {
+		success(ui, logger)
 	}
 }
 
 func newLogger() boshlog.Logger {
-	logLevelString := os.Getenv("BOSH_INIT_LOG_LEVEL")
 	level := boshlog.LevelNone
+
+	logLevelString := os.Getenv("BOSH_LOG_LEVEL")
+
 	if logLevelString != "" {
 		var err error
 		level, err = boshlog.Levelify(logLevelString)
 		if err != nil {
-			err = bosherr.WrapError(err, "Invalid BOSH_INIT_LOG_LEVEL value")
+			err = bosherr.WrapError(err, "Invalid BOSH_LOG_LEVEL value")
 			logger := boshlog.NewLogger(boshlog.LevelError)
-			ui := biui.NewConsoleUI(logger)
-			fail(err, ui, logger, nil)
+			ui := boshui.NewConsoleUI(logger)
+			fail(err, ui, logger)
 		}
 	}
 
-	logPath := os.Getenv("BOSH_INIT_LOG_PATH")
+	logPath := os.Getenv("BOSH_LOG_PATH")
 	if logPath != "" {
 		return newSignalableFileLogger(logPath, level)
 	}
@@ -90,25 +69,57 @@ func newSignalableLogger(logger boshlog.Logger) boshlog.Logger {
 func newSignalableFileLogger(logPath string, level boshlog.LogLevel) boshlog.Logger {
 	// Log file logger errors to the STDERR logger
 	logger := boshlog.NewLogger(boshlog.LevelError)
-	fileSystem := boshsys.NewOsFileSystem(logger)
+	fs := boshsys.NewOsFileSystem(logger)
 
-	// log file will be closed by process exit
-	// log file readable by all
-	logfileLogger, _, err := boshlogfile.New(level, logPath, boshlogfile.DefaultLogFileMode, fileSystem)
+	// Log file will be closed by process exit
+	// Log file readable by all
+	logfileLogger, _, err := boshlogfile.New(level, logPath, boshlogfile.DefaultLogFileMode, fs)
 	if err != nil {
 		logger := boshlog.NewLogger(boshlog.LevelError)
-		ui := biui.NewConsoleUI(logger)
-		fail(err, ui, logger, nil)
+		ui := boshui.NewConsoleUI(logger)
+		fail(err, ui, logger)
 	}
+
 	return newSignalableLogger(logfileLogger)
 }
 
-func fail(err error, ui biui.UI, logger boshlog.Logger, callback func()) {
-	logger.Error(mainLogTag, err.Error())
-	ui.ErrorLinef("")
-	ui.ErrorLinef(biuifmt.MultilineError(err))
-	if callback != nil {
-		callback()
+func handlePanic() {
+	panic := recover()
+
+	if panic != nil {
+		var msg string
+
+		switch obj := panic.(type) {
+		case string:
+			msg = obj
+		case fmt.Stringer:
+			msg = obj.String()
+		case error:
+			msg = obj.Error()
+		default:
+			msg = fmt.Sprintf("%#v", obj)
+		}
+
+		// Always output to regardless of main logger's level
+		logger := boshlog.NewLogger(boshlog.LevelError)
+		logger.ErrorWithDetails("CLI", "Panic: %s", msg, debug.Stack())
+
+		ui := boshui.NewConsoleUI(logger)
+		fail(nil, ui, logger)
 	}
+}
+
+func fail(err error, ui boshui.UI, logger boshlog.Logger) {
+	if err != nil {
+		logger.Error("CLI", err.Error())
+		ui.ErrorLinef(boshuifmt.MultilineError(err))
+	}
+	ui.ErrorLinef("Exit code 1")
+	ui.Flush() // todo make sure UI is flushed
 	os.Exit(1)
+}
+
+func success(ui boshui.UI, logger boshlog.Logger) {
+	logger.Debug("CLI", "Succeeded")
+	ui.PrintLinef("Succeeded")
 }

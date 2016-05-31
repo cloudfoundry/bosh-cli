@@ -2,6 +2,7 @@ package fakes
 
 import (
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 )
 
 type FakeParser struct {
@@ -14,7 +15,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string) (bideplmanifest.Manifest, error) {
+func (p *FakeParser) Parse(path string, vars boshtpl.Variables) (bideplmanifest.Manifest, error) {
 	p.ParsePath = path
 	return p.ParseManifest, p.ParseErr
 }

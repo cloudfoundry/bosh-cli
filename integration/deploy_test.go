@@ -1,8 +1,6 @@
 package integration_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/cmd"
-
 	"bytes"
 	"io/ioutil"
 	"net/http"
@@ -13,51 +11,53 @@ import (
 	"text/template"
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
-
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-init/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
-	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
-	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
-	mock_release "github.com/cloudfoundry/bosh-init/release/mocks"
-	"github.com/golang/mock/gomock"
-
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
-	bidepl "github.com/cloudfoundry/bosh-init/deployment"
-	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
-	biinstall "github.com/cloudfoundry/bosh-init/installation"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
-	biregistry "github.com/cloudfoundry/bosh-init/registry"
-	birel "github.com/cloudfoundry/bosh-init/release"
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	biui "github.com/cloudfoundry/bosh-init/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	bihttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-init/agentclient/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	mock_cloud "github.com/cloudfoundry/bosh-init/cloud/mocks"
+	. "github.com/cloudfoundry/bosh-init/cmd"
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicpirel "github.com/cloudfoundry/bosh-init/cpi/release"
 	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
+	bidepl "github.com/cloudfoundry/bosh-init/deployment"
+	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
+	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
+	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	biinstall "github.com/cloudfoundry/bosh-init/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
+	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
+	biregistry "github.com/cloudfoundry/bosh-init/registry"
+	birel "github.com/cloudfoundry/bosh-init/release"
+	boshrel "github.com/cloudfoundry/bosh-init/release"
+	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
+	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
+	biui "github.com/cloudfoundry/bosh-init/ui"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 )
 
 var _ = Describe("bosh-init", func() {
@@ -85,7 +85,7 @@ var _ = Describe("bosh-init", func() {
 			mockCloud              *mock_cloud.MockCloud
 			mockAgentClient        *mock_agentclient.MockAgentClient
 			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
-			mockReleaseExtractor   *mock_release.MockExtractor
+			releaseReader          *fakerel.FakeReader
 
 			mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
 			mockStateBuilder        *mock_instance_state.MockBuilder
@@ -240,35 +240,29 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
-			cpiPackage := birelpkg.Package{
-				Name:          "fake-package-name",
-				Fingerprint:   "fake-package-fingerprint-cpi",
-				SHA1:          "fake-package-sha1-cpi",
-				Dependencies:  []*birelpkg.Package{},
-				ExtractedPath: "fake-package-extracted-path-cpi",
-				ArchivePath:   "fake-package-archive-path-cpi",
-			}
+			cpiPackage := birelpkg.NewPackage(NewResource("fake-package-name", "fake-package-fingerprint-cpi", nil), nil)
+			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "", nil))
+			job.Templates = map[string]string{"templates/cpi.erb": "bin/cpi"}
+			job.PackageNames = []string{"fake-package-name"}
+			job.AttachPackages([]*birelpkg.Package{cpiPackage})
 			cpiRelease := birel.NewRelease(
 				"fake-cpi-release-name",
 				"1.1",
-				[]bireljob.Job{
-					{
-						Name: "fake-cpi-release-job-name",
-						Templates: map[string]string{
-							"cpi.erb": "bin/cpi",
-						},
-						Packages: []*birelpkg.Package{&cpiPackage},
-					},
-				},
-				[]*birelpkg.Package{&cpiPackage},
+				"commit",
+				false,
+				[]*bireljob.Job{job},
+				[]*birelpkg.Package{cpiPackage},
+				nil,
+				nil,
 				"fake-cpi-extracted-dir",
 				fs,
-				false,
 			)
-			mockReleaseExtractor.EXPECT().Extract("/fake-cpi-release.tgz").Do(func(_ string) {
+			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+				Expect(path).To(Equal("/fake-cpi-release.tgz"))
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
 				Expect(err).ToNot(HaveOccurred())
-			}).Return(cpiRelease, nil).AnyTimes()
+				return cpiRelease, nil
+			}
 
 			installationManifest := biinstallmanifest.Manifest{
 				Name: "test-deployment",
@@ -375,7 +369,7 @@ cloud_provider:
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 
-		var newDeployCmd = func() Cmd {
+		var newDeployCmd = func() *DeployCmd {
 			deploymentParser := bideplmanifest.NewParser(fs, logger)
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
@@ -394,7 +388,7 @@ cloud_provider:
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
-			doGet := func(deploymentManifestPath string) (DeploymentPreparer, error) {
+			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables) DeploymentPreparer {
 				// todo: figure this out?
 				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				vmRepo = biconfig.NewVMRepo(deploymentStateService)
@@ -424,7 +418,7 @@ cloud_provider:
 					InstallerFactory: mockInstallerFactory,
 					Validator:        bicpirel.NewValidator(),
 				}
-				releaseFetcher := birel.NewFetcher(tarballProvider, mockReleaseExtractor, releaseManager)
+				releaseFetcher := biinstall.NewReleaseFetcher(tarballProvider, releaseReader, releaseManager)
 				stemcellFetcher := bistemcell.Fetcher{
 					TarballProvider:   tarballProvider,
 					StemcellExtractor: fakeStemcellExtractor,
@@ -465,6 +459,7 @@ cloud_provider:
 					mockBlobstoreFactory,
 					deployer,
 					deploymentManifestPath,
+					deploymentVars,
 					cpiInstaller,
 					releaseFetcher,
 					stemcellFetcher,
@@ -472,15 +467,10 @@ cloud_provider:
 					deploymentManifestParser,
 					tempRootConfigurator,
 					targetProvider,
-				), nil
+				)
 			}
 
-			return NewDeployCmd(
-				ui,
-				fs,
-				logger,
-				doGet,
-			)
+			return NewDeployCmd(ui, doGet)
 		}
 
 		var expectDeployFlow = func() {
@@ -804,8 +794,8 @@ cloud_provider:
 
 			registryServerManager = biregistry.NewServerManager(logger)
 
-			mockReleaseExtractor = mock_release.NewMockExtractor(mockCtrl)
-			releaseManager = birel.NewManager(logger)
+			releaseReader = &fakerel.FakeReader{}
+			releaseManager = biinstall.NewReleaseManager(logger)
 
 			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
 			mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
@@ -845,7 +835,7 @@ cloud_provider:
 		It("executes the cloud & agent client calls in the expected order", func() {
 			expectDeployFlow()
 
-			err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+			err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -858,32 +848,32 @@ cloud_provider:
 				err := fs.WriteFileString(otherReleaseTarballPath, "fake-other-tgz-content")
 				Expect(err).ToNot(HaveOccurred())
 
+				job := bireljob.NewJob(NewResource("other", "", nil))
+
 				otherRelease := birel.NewRelease(
 					"fake-other-release-name",
 					"1.2",
-					[]bireljob.Job{
-						{
-							Name: "other",
-							Templates: map[string]string{
-								"other.erb": "bin/other",
-							},
-						},
-					},
+					"commit",
+					false,
+					[]*bireljob.Job{job},
 					[]*birelpkg.Package{},
+					nil,
+					nil,
 					"fake-other-extracted-dir",
 					fs,
-					false,
 				)
-				mockReleaseExtractor.EXPECT().Extract(otherReleaseTarballPath).Do(func(_ string) {
+				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal(otherReleaseTarballPath))
 					err := fs.MkdirAll("fake-other-extracted-dir", os.ModePerm)
 					Expect(err).ToNot(HaveOccurred())
-				}).Return(otherRelease, nil).AnyTimes()
+					return otherRelease, nil
+				}
 			})
 
 			It("extracts all provided releases & finds the cpi release before executing the expected cloud & agent client commands", func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+				err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -902,7 +892,7 @@ cloud_provider:
 				// new directorID will be generated
 				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+				err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.FileExists(deploymentStatePath)).To(BeTrue())
@@ -917,7 +907,7 @@ cloud_provider:
 			JustBeforeEach(func() {
 				expectDeployFlow()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+				err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -929,7 +919,7 @@ cloud_provider:
 				It("migrates the disk content", func() {
 					expectDeployWithDiskMigration()
 
-					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+					err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -937,7 +927,7 @@ cloud_provider:
 					It("migrates the disk content, but does not shutdown the old VM", func() {
 						expectDeployWithDiskMigrationMissingVM()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+						err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 						Expect(err).ToNot(HaveOccurred())
 					})
 
@@ -949,7 +939,7 @@ cloud_provider:
 							Message: "fake-vm-not-found-message",
 						}))
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+						err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 						Expect(err).ToNot(HaveOccurred())
 					})
 				})
@@ -960,7 +950,7 @@ cloud_provider:
 					It("returns an error when attach_disk fails with a DiskNotFound error", func() {
 						expectDeployWithNoDiskToMigrate()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+						err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-disk-not-found-message"))
 					})
@@ -970,7 +960,7 @@ cloud_provider:
 					JustBeforeEach(func() {
 						expectDeployWithDiskMigrationFailure()
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+						err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migration-error"))
 
@@ -984,7 +974,7 @@ cloud_provider:
 
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
 
-						err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+						err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 						Expect(err).ToNot(HaveOccurred())
 
 						diskRecord, found, err := diskRepo.FindCurrent()
@@ -1015,7 +1005,7 @@ cloud_provider:
 				It("skips the deploy", func() {
 					expectNoDeployHappened()
 
-					err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+					err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 					Expect(err).ToNot(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
@@ -1026,7 +1016,7 @@ cloud_provider:
 			It("makes the registry available for all CPI commands", func() {
 				expectDeployFlowWithRegistry()
 
-				err := newDeployCmd().Run(fakeStage, []string{deploymentManifestPath})
+				err := newDeployCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -1116,4 +1106,8 @@ func (s *SSHConfig) runCommand(args ...string) (string, error) {
 	}
 
 	return strings.TrimSpace(stdout.String()), nil
+}
+
+func newDeployOpts(path string) CreateEnvOpts {
+	return CreateEnvOpts{Args: CreateEnvArgs{Manifest: FileBytesArg{Path: path}}}
 }

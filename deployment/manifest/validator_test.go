@@ -1,34 +1,34 @@
 package manifest_test
 
 import (
-	birel "github.com/cloudfoundry/bosh-init/release"
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
-
 	. "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	boshinst "github.com/cloudfoundry/bosh-init/installation"
+	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
+	boshjob "github.com/cloudfoundry/bosh-init/release/job"
+	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
 var _ = Describe("Validator", func() {
 	var (
 		logger         boshlog.Logger
-		releaseManager birel.Manager
+		releaseManager boshinst.ReleaseManager
 		validator      Validator
 
 		validManifest           Manifest
 		validReleaseSetManifest birelsetmanifest.Manifest
-		fakeRelease             *fakebirel.FakeRelease
+		release                 *fakerel.FakeRelease
 	)
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		releaseManager = birel.NewManager(logger)
+		releaseManager = boshinst.NewReleaseManager(logger)
 		validManifest = Manifest{
 			Name: "fake-deployment-name",
 			Networks: []Network{
@@ -106,9 +106,14 @@ var _ = Describe("Validator", func() {
 			},
 		}
 
-		fakeRelease = fakebirel.New("fake-release-name", "1.0")
-		fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
-		releaseManager.Add(fakeRelease)
+		release = &fakerel.FakeRelease{
+			NameStub:    func() string { return "fake-release-name" },
+			VersionStub: func() string { return "1.0" },
+		}
+		release.JobsReturns([]*boshjob.Job{
+			boshjob.NewJob(NewResource("fake-job-name", "", nil)),
+		})
+		releaseManager.Add(release)
 		validator = NewValidator(logger)
 	})
 
@@ -1016,9 +1021,14 @@ var _ = Describe("Validator", func() {
 				{Name: "fake-other-job-name", Release: "fake-release-name"},
 			}
 
-			fakeRelease = fakebirel.New("fake-release-name", "1.0")
-			fakeRelease.ReleaseJobs = []bireljob.Job{{Name: "fake-job-name"}}
-			releaseManager.Add(fakeRelease)
+			release = &fakerel.FakeRelease{
+				NameStub:    func() string { return "fake-release-name" },
+				VersionStub: func() string { return "1.0" },
+			}
+			release.JobsReturns([]*boshjob.Job{
+				boshjob.NewJob(NewResource("fake-job-name", "", nil)),
+			})
+			releaseManager.Add(release)
 
 			err := validator.ValidateReleaseJobs(deploymentManifest, releaseManager)
 			Expect(err).To(HaveOccurred())

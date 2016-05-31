@@ -2,19 +2,22 @@ package logger
 
 import (
 	"fmt"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"os"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func NewSignalableLogger(logger boshlog.Logger, signalChannel chan os.Signal) (boshlog.Logger, chan bool) {
+func NewSignalableLogger(logger boshlog.Logger, sigCh chan os.Signal) (boshlog.Logger, chan bool) {
 	doneChannel := make(chan bool, 1)
+
 	go func() {
 		for {
-			<-signalChannel
+			<-sigCh
 			fmt.Println("Received SIGHUP - toggling debug output")
 			logger.ToggleForcedDebug()
 			doneChannel <- true
 		}
 	}()
+
 	return logger, doneChannel
 }

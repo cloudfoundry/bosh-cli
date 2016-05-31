@@ -30,7 +30,7 @@ func (_m *MockCompiler) EXPECT() *_MockCompilerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCompiler) Compile(_param0 *pkg.Package) (pkg0.CompiledPackageRecord, bool, error) {
+func (_m *MockCompiler) Compile(_param0 pkg.Compilable) (pkg0.CompiledPackageRecord, bool, error) {
 	ret := _m.ctrl.Call(_m, "Compile", _param0)
 	ret0, _ := ret[0].(pkg0.CompiledPackageRecord)
 	ret1, _ := ret[1].(bool)
@@ -63,7 +63,7 @@ func (_m *MockCompiledPackageRepo) EXPECT() *_MockCompiledPackageRepoRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCompiledPackageRepo) Find(_param0 pkg.Package) (pkg0.CompiledPackageRecord, bool, error) {
+func (_m *MockCompiledPackageRepo) Find(_param0 pkg.Compilable) (pkg0.CompiledPackageRecord, bool, error) {
 	ret := _m.ctrl.Call(_m, "Find", _param0)
 	ret0, _ := ret[0].(pkg0.CompiledPackageRecord)
 	ret1, _ := ret[1].(bool)
@@ -75,7 +75,7 @@ func (_mr *_MockCompiledPackageRepoRecorder) Find(arg0 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Find", arg0)
 }
 
-func (_m *MockCompiledPackageRepo) Save(_param0 pkg.Package, _param1 pkg0.CompiledPackageRecord) error {
+func (_m *MockCompiledPackageRepo) Save(_param0 pkg.Compilable, _param1 pkg0.CompiledPackageRecord) error {
 	ret := _m.ctrl.Call(_m, "Save", _param0, _param1)
 	ret0, _ := ret[0].(error)
 	return ret0

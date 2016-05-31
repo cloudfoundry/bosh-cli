@@ -1,6 +1,7 @@
 package fakes
 
 import (
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 )
 
@@ -14,7 +15,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string) (birelsetmanifest.Manifest, error) {
+func (p *FakeParser) Parse(path string, vars boshtpl.Variables) (birelsetmanifest.Manifest, error) {
 	p.ParsePath = path
 	return p.ParseManifest, p.ParseErr
 }

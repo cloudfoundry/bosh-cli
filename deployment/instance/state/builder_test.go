@@ -1,31 +1,28 @@
 package state_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
-
-	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
-	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
-	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
-	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
+	biac "github.com/cloudfoundry/bosh-agent/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biac "github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
+	. "github.com/cloudfoundry/bosh-init/deployment/instance/state"
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	mock_deployment_release "github.com/cloudfoundry/bosh-init/deployment/release/mocks"
+	boshjob "github.com/cloudfoundry/bosh-init/release/job"
+	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
 	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-
+	mock_state_job "github.com/cloudfoundry/bosh-init/state/job/mocks"
+	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
-var _ = Describe("Builder", describeBuilder)
-
-func describeBuilder() {
+var _ = Describe("Builder", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {
@@ -82,7 +79,7 @@ func describeBuilder() {
 						},
 						Templates: []bideplmanifest.ReleaseJobRef{
 							{
-								Name:    "fake-release-job-name",
+								Name:    "job-name",
 								Release: "fake-release-name",
 								Properties: &biproperty.Map{
 									"fake-template-property": "fake-template-property-value",
@@ -154,12 +151,11 @@ func describeBuilder() {
 			deploymentManifest bideplmanifest.Manifest
 			fakeStage          *fakebiui.FakeStage
 
-			releasePackageLibyaml *birelpkg.Package
-			releasePackageRuby    *birelpkg.Package
-			releasePackageCPI     *birelpkg.Package
-
-			agentState biac.AgentState
-			expectedIP string
+			agentState            biac.AgentState
+			expectedIP            string
+			releasePackageLibyaml *boshpkg.Package
+			releasePackageRuby    *boshpkg.Package
+			releasePackageCPI     *boshpkg.Package
 
 			expectCompile *gomock.Call
 		)
@@ -185,7 +181,7 @@ func describeBuilder() {
 						},
 						Templates: []bideplmanifest.ReleaseJobRef{
 							{
-								Name:    "fake-release-job-name",
+								Name:    "job-name",
 								Release: "fake-release-name",
 								Properties: &biproperty.Map{
 									"fake-template-property": "fake-template-property-value",
@@ -230,62 +226,49 @@ func describeBuilder() {
 				logger,
 			)
 
-			releasePackageLibyaml = &birelpkg.Package{
-				Name:         "libyaml",
-				Fingerprint:  "fake-package-source-fingerprint-libyaml",
-				SHA1:         "fake-package-source-sha1-libyaml",
-				Dependencies: []*birelpkg.Package{},
-				ArchivePath:  "fake-package-archive-path-libyaml", // only required by compiler...
-			}
-			releasePackageRuby = &birelpkg.Package{
-				Name:         "ruby",
-				Fingerprint:  "fake-package-source-fingerprint-ruby",
-				SHA1:         "fake-package-source-sha1-ruby",
-				Dependencies: []*birelpkg.Package{releasePackageLibyaml},
-				ArchivePath:  "fake-package-archive-path-ruby", // only required by compiler...
-			}
-			releasePackageCPI = &birelpkg.Package{
-				Name:         "cpi",
-				Fingerprint:  "fake-package-source-fingerprint-cpi",
-				SHA1:         "fake-package-source-sha1-cpi",
-				Dependencies: []*birelpkg.Package{releasePackageRuby},
-				ArchivePath:  "fake-package-archive-path-cpi", // only required by compiler...
-			}
+			releasePackageLibyaml = boshpkg.NewPackage(NewResourceWithBuiltArchive(
+				"libyaml", "libyaml-fp", "libyaml-path", "libyaml-sha1"), nil)
+
+			releasePackageRuby = boshpkg.NewPackage(NewResourceWithBuiltArchive(
+				"ruby", "ruby-fp", "ruby-path", "ruby-sha1"), []string{"libyaml"})
+			releasePackageRuby.AttachDependencies([]*boshpkg.Package{releasePackageLibyaml})
+
+			releasePackageCPI = boshpkg.NewPackage(NewResourceWithBuiltArchive(
+				"cpi", "cpi-fp", "cpi-path", "cpi-sha1"), []string{"ruby"})
+			releasePackageCPI.AttachDependencies([]*boshpkg.Package{releasePackageRuby})
 		})
 
 		JustBeforeEach(func() {
-			releaseJob := bireljob.Job{
-				Name:        "fake-release-job-name",
-				Fingerprint: "fake-release-job-source-fingerprint",
-				Packages:    []*birelpkg.Package{releasePackageCPI, releasePackageRuby},
-			}
-			mockReleaseJobResolver.EXPECT().Resolve("fake-release-job-name", "fake-release-name").Return(releaseJob, nil)
+			releaseJob := *boshjob.NewJob(NewResource("job-name", "job-fp", nil))
+			releaseJob.AttachPackages([]*boshpkg.Package{releasePackageCPI, releasePackageRuby})
 
-			releaseJobs := []bireljob.Job{releaseJob}
+			mockReleaseJobResolver.EXPECT().Resolve("job-name", "fake-release-name").Return(releaseJob, nil)
+
+			releaseJobs := []boshjob.Job{releaseJob}
 			compiledPackageRefs := []bistatejob.CompiledPackageRef{
 				{
 					Name:        "libyaml",
-					Version:     "fake-package-source-fingerprint-libyaml",
-					BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
-					SHA1:        "fake-package-compiled-archive-sha1-libyaml",
+					Version:     "libyaml-fp",
+					BlobstoreID: "libyaml-blob-id",
+					SHA1:        "libyaml-sha1",
 				},
 				{
 					Name:        "ruby",
-					Version:     "fake-package-source-fingerprint-ruby",
-					BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
-					SHA1:        "fake-package-compiled-archive-sha1-ruby",
+					Version:     "ruby-fp",
+					BlobstoreID: "ruby-blob-id",
+					SHA1:        "ruby-sha1",
 				},
 				{
 					Name:        "cpi",
-					Version:     "fake-package-source-fingerprint-cpi",
-					BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
-					SHA1:        "fake-package-compiled-archive-sha1-cpi",
+					Version:     "cpi-fp",
+					BlobstoreID: "cpi-bosh-id",
+					SHA1:        "cpi-sha1",
 				},
 			}
 			expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, fakeStage).Return(compiledPackageRefs, nil).AnyTimes()
 
 			releaseJobProperties := map[string]*biproperty.Map{
-				"fake-release-job-name": &biproperty.Map{
+				"job-name": &biproperty.Map{
 					"fake-template-property": "fake-template-property-value",
 				},
 			}
@@ -412,8 +395,8 @@ func describeBuilder() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.RenderedJobs()).To(ContainElement(JobRef{
-				Name:    "fake-release-job-name",
-				Version: "fake-release-job-source-fingerprint",
+				Name:    "job-name",
+				Version: "job-fp",
 			}))
 
 			// multiple jobs are rendered in a single archive
@@ -440,18 +423,18 @@ func describeBuilder() {
 
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 				Name:    "cpi",
-				Version: "fake-package-source-fingerprint-cpi",
+				Version: "cpi-fp",
 				Archive: BlobRef{
-					SHA1:        "fake-package-compiled-archive-sha1-cpi",
-					BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
+					SHA1:        "cpi-sha1",
+					BlobstoreID: "cpi-bosh-id",
 				},
 			}))
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 				Name:    "ruby",
-				Version: "fake-package-source-fingerprint-ruby",
+				Version: "ruby-fp",
 				Archive: BlobRef{
-					SHA1:        "fake-package-compiled-archive-sha1-ruby",
-					BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
+					SHA1:        "ruby-sha1",
+					BlobstoreID: "ruby-blob-id",
 				},
 			}))
 		})
@@ -462,26 +445,26 @@ func describeBuilder() {
 
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 				Name:    "cpi",
-				Version: "fake-package-source-fingerprint-cpi",
+				Version: "cpi-fp",
 				Archive: BlobRef{
-					SHA1:        "fake-package-compiled-archive-sha1-cpi",
-					BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
+					SHA1:        "cpi-sha1",
+					BlobstoreID: "cpi-bosh-id",
 				},
 			}))
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 				Name:    "ruby",
-				Version: "fake-package-source-fingerprint-ruby",
+				Version: "ruby-fp",
 				Archive: BlobRef{
-					SHA1:        "fake-package-compiled-archive-sha1-ruby",
-					BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
+					SHA1:        "ruby-sha1",
+					BlobstoreID: "ruby-blob-id",
 				},
 			}))
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 				Name:    "libyaml",
-				Version: "fake-package-source-fingerprint-libyaml",
+				Version: "libyaml-fp",
 				Archive: BlobRef{
-					SHA1:        "fake-package-compiled-archive-sha1-libyaml",
-					BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
+					SHA1:        "libyaml-sha1",
+					BlobstoreID: "libyaml-blob-id",
 				},
 			}))
 			Expect(state.CompiledPackages()).To(HaveLen(3))
@@ -498,26 +481,26 @@ func describeBuilder() {
 
 				Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 					Name:    "cpi",
-					Version: "fake-package-source-fingerprint-cpi",
+					Version: "cpi-fp",
 					Archive: BlobRef{
-						SHA1:        "fake-package-compiled-archive-sha1-cpi",
-						BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
+						SHA1:        "cpi-sha1",
+						BlobstoreID: "cpi-bosh-id",
 					},
 				}))
 				Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 					Name:    "ruby",
-					Version: "fake-package-source-fingerprint-ruby",
+					Version: "ruby-fp",
 					Archive: BlobRef{
-						SHA1:        "fake-package-compiled-archive-sha1-ruby",
-						BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
+						SHA1:        "ruby-sha1",
+						BlobstoreID: "ruby-blob-id",
 					},
 				}))
 				Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
 					Name:    "libyaml",
-					Version: "fake-package-source-fingerprint-libyaml",
+					Version: "libyaml-fp",
 					Archive: BlobRef{
-						SHA1:        "fake-package-compiled-archive-sha1-libyaml",
-						BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
+						SHA1:        "libyaml-sha1",
+						BlobstoreID: "libyaml-blob-id",
 					},
 				}))
 				Expect(state.CompiledPackages()).To(HaveLen(3))
@@ -545,29 +528,29 @@ func describeBuilder() {
 					Name: "fake-deployment-job-name",
 					Templates: []bias.Blob{
 						{
-							Name:    "fake-release-job-name",
-							Version: "fake-release-job-source-fingerprint",
+							Name:    "job-name",
+							Version: "job-fp",
 						},
 					},
 				},
 				Packages: map[string]bias.Blob{
 					"cpi": bias.Blob{
 						Name:        "cpi",
-						Version:     "fake-package-source-fingerprint-cpi",
-						SHA1:        "fake-package-compiled-archive-sha1-cpi",
-						BlobstoreID: "fake-package-compiled-archive-blob-id-cpi",
+						Version:     "cpi-fp",
+						SHA1:        "cpi-sha1",
+						BlobstoreID: "cpi-bosh-id",
 					},
 					"ruby": bias.Blob{
 						Name:        "ruby",
-						Version:     "fake-package-source-fingerprint-ruby",
-						SHA1:        "fake-package-compiled-archive-sha1-ruby",
-						BlobstoreID: "fake-package-compiled-archive-blob-id-ruby",
+						Version:     "ruby-fp",
+						SHA1:        "ruby-sha1",
+						BlobstoreID: "ruby-blob-id",
 					},
 					"libyaml": bias.Blob{
 						Name:        "libyaml",
-						Version:     "fake-package-source-fingerprint-libyaml",
-						SHA1:        "fake-package-compiled-archive-sha1-libyaml",
-						BlobstoreID: "fake-package-compiled-archive-blob-id-libyaml",
+						Version:     "libyaml-fp",
+						SHA1:        "libyaml-sha1",
+						BlobstoreID: "libyaml-blob-id",
 					},
 				},
 				RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{
@@ -578,4 +561,4 @@ func describeBuilder() {
 			}))
 		})
 	})
-}
+})

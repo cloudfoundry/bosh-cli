@@ -3,39 +3,37 @@ package deployment_test
 import (
 	"errors"
 
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	"github.com/cloudfoundry/bosh-init/release"
-	fakebirel "github.com/cloudfoundry/bosh-init/release/fakes"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	biconfig "github.com/cloudfoundry/bosh-init/config"
+	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
+	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	. "github.com/cloudfoundry/bosh-init/deployment"
+	boshrel "github.com/cloudfoundry/bosh-init/release"
+	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
+	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
 )
 
-var _ = Describe("Record", rootDesc)
-
-func rootDesc() {
+var _ = Describe("Record", func() {
 	var (
-		fakeRelease        *fakebirel.FakeRelease
+		release            *fakerel.FakeRelease
 		stemcell           bistemcell.ExtractedStemcell
 		deploymentRepo     *fakebiconfig.FakeDeploymentRepo
 		releaseRepo        *fakebiconfig.FakeReleaseRepo
 		stemcellRepo       *fakebiconfig.FakeStemcellRepo
 		fakeSHA1Calculator *fakebicrypto.FakeSha1Calculator
 		deploymentRecord   Record
-		releases           []release.Release
+		releases           []boshrel.Release
 	)
 
 	BeforeEach(func() {
-		fakeRelease = &fakebirel.FakeRelease{
-			ReleaseName:    "fake-release-name",
-			ReleaseVersion: "fake-release-version",
+		release = &fakerel.FakeRelease{
+			NameStub:    func() string { return "fake-release-name" },
+			VersionStub: func() string { return "fake-release-version" },
 		}
-		releases = []release.Release{fakeRelease}
+		releases = []boshrel.Release{release}
 		fakeFS := fakesys.NewFakeFileSystem()
 		stemcell = bistemcell.NewExtractedStemcell(
 			bistemcell.Manifest{
@@ -88,8 +86,8 @@ func rootDesc() {
 				BeforeEach(func() {
 					releaseRecords := []biconfig.ReleaseRecord{{
 						ID:      "fake-release-id",
-						Name:    fakeRelease.Name(),
-						Version: fakeRelease.Version(),
+						Name:    release.Name(),
+						Version: release.Version(),
 					}}
 					releaseRepo.ListReturns(releaseRecords, nil)
 				})
@@ -103,10 +101,10 @@ func rootDesc() {
 
 			Context("when a different version of the same release is currently deployed", func() {
 				BeforeEach(func() {
-					Expect("other-version").ToNot(Equal(fakeRelease.Version()))
+					Expect("other-version").ToNot(Equal(release.Version()))
 					releaseRecords := []biconfig.ReleaseRecord{{
 						ID:      "fake-release-id-2",
-						Name:    fakeRelease.Name(),
+						Name:    release.Name(),
 						Version: "other-version",
 					}}
 					releaseRepo.ListReturns(releaseRecords, nil)
@@ -121,11 +119,11 @@ func rootDesc() {
 
 			Context("when a same version of a different release is currently deployed", func() {
 				BeforeEach(func() {
-					Expect("other-release").ToNot(Equal(fakeRelease.Name()))
+					Expect("other-release").ToNot(Equal(release.Name()))
 					releaseRecords := []biconfig.ReleaseRecord{{
 						ID:      "fake-release-id-2",
 						Name:    "other-release",
-						Version: fakeRelease.Version(),
+						Version: release.Version(),
 					}}
 					releaseRepo.ListReturns(releaseRecords, nil)
 				})
@@ -138,23 +136,23 @@ func rootDesc() {
 			})
 
 			Context("when deploying multiple releases", func() {
-				var otherFakeRelease *fakebirel.FakeRelease
+				var otherRelease *fakerel.FakeRelease
 
 				BeforeEach(func() {
-					otherFakeRelease = &fakebirel.FakeRelease{
-						ReleaseName:    "other-fake-release-name",
-						ReleaseVersion: "other-fake-release-version",
+					otherRelease = &fakerel.FakeRelease{
+						NameStub:    func() string { return "other-fake-release-name" },
+						VersionStub: func() string { return "other-fake-release-version" },
 					}
 					releaseRecords := []biconfig.ReleaseRecord{
 						{
 							ID:      "fake-release-id-1",
-							Name:    fakeRelease.Name(),
-							Version: fakeRelease.Version(),
+							Name:    release.Name(),
+							Version: release.Version(),
 						},
 						{
 							ID:      "other-fake-release-id-1",
-							Name:    otherFakeRelease.Name(),
-							Version: otherFakeRelease.Version(),
+							Name:    otherRelease.Name(),
+							Version: otherRelease.Version(),
 						},
 					}
 					releaseRepo.ListReturns(releaseRecords, nil)
@@ -163,9 +161,9 @@ func rootDesc() {
 				Context("when the same releases are currently deployed", func() {
 					Context("(in the same order)", func() {
 						BeforeEach(func() {
-							releases = []release.Release{
-								fakeRelease,
-								otherFakeRelease,
+							releases = []boshrel.Release{
+								release,
+								otherRelease,
 							}
 						})
 
@@ -178,9 +176,9 @@ func rootDesc() {
 
 					Context("(in a different order)", func() {
 						BeforeEach(func() {
-							releases = []release.Release{
-								otherFakeRelease,
-								fakeRelease,
+							releases = []boshrel.Release{
+								otherRelease,
+								release,
 							}
 						})
 
@@ -193,8 +191,8 @@ func rootDesc() {
 
 					Context("when a superset of releases is currently deployed", func() {
 						BeforeEach(func() {
-							releases = []release.Release{
-								fakeRelease,
+							releases = []boshrel.Release{
+								release,
 							}
 						})
 
@@ -404,7 +402,7 @@ func rootDesc() {
 			err := deploymentRecord.Clear()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseRepo.UpdateCallCount()).To(Equal(1))
-			Expect(releaseRepo.UpdateArgsForCall(0)).To(Equal([]release.Release{}))
+			Expect(releaseRepo.UpdateArgsForCall(0)).To(Equal([]boshrel.Release{}))
 		})
 
 		Context("when clearing manifest hash fails", func() {
@@ -431,4 +429,4 @@ func rootDesc() {
 			})
 		})
 	})
-}
+})

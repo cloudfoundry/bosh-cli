@@ -18,8 +18,9 @@ type renderedJobListCompressor struct {
 	fs             boshsys.FileSystem
 	compressor     boshcmd.Compressor
 	sha1Calculator bicrypto.SHA1Calculator
-	logger         boshlog.Logger
-	logTag         string
+
+	logTag string
+	logger boshlog.Logger
 }
 
 func NewRenderedJobListCompressor(
@@ -32,8 +33,9 @@ func NewRenderedJobListCompressor(
 		fs:             fs,
 		compressor:     compressor,
 		sha1Calculator: sha1Calculator,
-		logger:         logger,
-		logTag:         "renderedJobListCompressor",
+
+		logTag: "renderedJobListCompressor",
+		logger: logger,
 	}
 }
 
@@ -44,6 +46,7 @@ func (c *renderedJobListCompressor) Compress(list RenderedJobList) (RenderedJobL
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating rendered job directory")
 	}
+
 	defer func() {
 		err := c.fs.RemoveAll(renderedJobListDir)
 		if err != nil {
@@ -53,7 +56,7 @@ func (c *renderedJobListCompressor) Compress(list RenderedJobList) (RenderedJobL
 
 	// copy rendered job templates into a sub-dir
 	for _, renderedJob := range list.All() {
-		err = c.fs.CopyDir(renderedJob.Path(), filepath.Join(renderedJobListDir, renderedJob.Job().Name))
+		err = c.fs.CopyDir(renderedJob.Path(), filepath.Join(renderedJobListDir, renderedJob.Job().Name()))
 		if err != nil {
 			return nil, bosherr.WrapError(err, "Creating rendered job directory")
 		}

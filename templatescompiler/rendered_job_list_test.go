@@ -1,19 +1,18 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/templatescompiler"
-
 	"bytes"
 	"os"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 )
 
 var _ = Describe("RenderedJobList", func() {
@@ -30,16 +29,16 @@ var _ = Describe("RenderedJobList", func() {
 		outBuffer = bytes.NewBufferString("")
 		errBuffer = bytes.NewBufferString("")
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
-
 		fs = fakeboshsys.NewFakeFileSystem()
-
 		renderedJobList = NewRenderedJobList()
 	})
 
 	Describe("All", func() {
 		It("returns the added rendered jobs", func() {
-			renderedJob0 := NewRenderedJob(bireljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
-			renderedJob1 := NewRenderedJob(bireljob.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
+			job0 := bireljob.NewJob(NewResource("fake-job-0", "", nil))
+			renderedJob0 := NewRenderedJob(*job0, "fake-path-0", fs, logger)
+			job1 := bireljob.NewJob(NewResource("fake-job-1", "", nil))
+			renderedJob1 := NewRenderedJob(*job1, "fake-path-1", fs, logger)
 			renderedJobList.Add(renderedJob0)
 			renderedJobList.Add(renderedJob1)
 
@@ -58,8 +57,10 @@ var _ = Describe("RenderedJobList", func() {
 			err = fs.MkdirAll("fake-path-1", os.ModePerm)
 			Expect(err).ToNot(HaveOccurred())
 
-			renderedJob0 := NewRenderedJob(bireljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
-			renderedJob1 := NewRenderedJob(bireljob.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
+			job0 := bireljob.NewJob(NewResource("fake-job-0", "", nil))
+			renderedJob0 := NewRenderedJob(*job0, "fake-path-0", fs, logger)
+			job1 := bireljob.NewJob(NewResource("fake-job-0", "", nil))
+			renderedJob1 := NewRenderedJob(*job1, "fake-path-1", fs, logger)
 			renderedJobList.Add(renderedJob0)
 			renderedJobList.Add(renderedJob1)
 
@@ -78,7 +79,8 @@ var _ = Describe("RenderedJobList", func() {
 			})
 
 			It("returns an error", func() {
-				renderedJob0 := NewRenderedJob(bireljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
+				job0 := bireljob.NewJob(NewResource("fake-job-0", "", nil))
+				renderedJob0 := NewRenderedJob(*job0, "fake-path-0", fs, logger)
 				renderedJobList.Add(renderedJob0)
 
 				err := renderedJobList.Delete()
@@ -96,8 +98,10 @@ var _ = Describe("RenderedJobList", func() {
 			err = fs.MkdirAll("fake-path-1", os.ModePerm)
 			Expect(err).ToNot(HaveOccurred())
 
-			renderedJob0 := NewRenderedJob(bireljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
-			renderedJob1 := NewRenderedJob(bireljob.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
+			job0 := bireljob.NewJob(NewResource("fake-job-0", "", nil))
+			renderedJob0 := NewRenderedJob(*job0, "fake-path-0", fs, logger)
+			job1 := bireljob.NewJob(NewResource("fake-job-1", "", nil))
+			renderedJob1 := NewRenderedJob(*job1, "fake-path-1", fs, logger)
 			renderedJobList.Add(renderedJob0)
 			renderedJobList.Add(renderedJob1)
 
@@ -115,8 +119,10 @@ var _ = Describe("RenderedJobList", func() {
 			})
 
 			It("logs all the errors", func() {
-				renderedJob0 := NewRenderedJob(bireljob.Job{Name: "fake-job-0"}, "fake-path-0", fs, logger)
-				renderedJob1 := NewRenderedJob(bireljob.Job{Name: "fake-job-1"}, "fake-path-1", fs, logger)
+				job0 := bireljob.NewJob(NewResource("fake-job-0", "", nil))
+				renderedJob0 := NewRenderedJob(*job0, "fake-path-0", fs, logger)
+				job1 := bireljob.NewJob(NewResource("fake-job-1", "", nil))
+				renderedJob1 := NewRenderedJob(*job1, "fake-path-1", fs, logger)
 				renderedJobList.Add(renderedJob0)
 				renderedJobList.Add(renderedJob1)
 

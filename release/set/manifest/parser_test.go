@@ -3,33 +3,35 @@ package manifest_test
 import (
 	"errors"
 
-	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
 	"github.com/cloudfoundry/bosh-init/release/set/manifest"
 	"github.com/cloudfoundry/bosh-init/release/set/manifest/fakes"
 )
 
 var _ = Describe("Parser", func() {
-	comboManifestPath := "/path/to/manifest/fake-deployment-manifest"
 	var (
-		fakeFs        *fakesys.FakeFileSystem
-		parser        manifest.Parser
-		fakeValidator *fakes.FakeValidator
+		fs        *fakesys.FakeFileSystem
+		validator *fakes.FakeValidator
+		parser    manifest.Parser
 	)
 
+	comboManifestPath := "/path/to/manifest/fake-deployment-manifest"
+
 	BeforeEach(func() {
-		fakeFs = fakesys.NewFakeFileSystem()
+		validator = fakes.NewFakeValidator()
+		validator.SetValidateBehavior([]fakes.ValidateOutput{{Err: nil}})
+
+		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		fakeValidator = fakes.NewFakeValidator()
-		fakeValidator.SetValidateBehavior([]fakes.ValidateOutput{
-			{Err: nil},
-		})
-		parser = manifest.NewParser(fakeFs, logger, fakeValidator)
-		fakeFs.WriteFileString(comboManifestPath, `
+		parser = manifest.NewParser(fs, logger, validator)
+
+		fs.WriteFileString(comboManifestPath, `
 ---
 releases:
 - name: fake-release-name-1
@@ -50,23 +52,23 @@ name: unknown-keys-are-ignored
 
 	Context("when combo manifest path does not exist", func() {
 		BeforeEach(func() {
-			err := fakeFs.RemoveAll(comboManifestPath)
+			err := fs.RemoveAll(comboManifestPath)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	Context("when parser fails to read the combo manifest file", func() {
 		BeforeEach(func() {
-			fakeFs.ReadFileError = errors.New("fake-read-file-error")
+			fs.ReadFileError = errors.New("fake-read-file-error")
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath)
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -74,7 +76,7 @@ name: unknown-keys-are-ignored
 	Context("when release url points to a local file", func() {
 		Context("when release file path begins with 'file://~' or 'file:///'", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(comboManifestPath, `
+				fs.WriteFileString(comboManifestPath, `
 ---
 releases:
 - name: fake-release-name-1
@@ -87,11 +89,11 @@ releases:
 			})
 
 			It("does not change release url", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath)
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentManifest).To(Equal(manifest.Manifest{
-					Releases: []birelmanifest.ReleaseRef{
+					Releases: []boshman.ReleaseRef{
 						{
 							Name: "fake-release-name-1",
 							URL:  "file://~/absolute-path/fake-release-1.tgz",
@@ -109,7 +111,7 @@ releases:
 
 		Context("when release file path does not begin with 'file://~' or 'file:///'", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(comboManifestPath, `
+				fs.WriteFileString(comboManifestPath, `
 ---
 releases:
 - name: fake-release-name-3
@@ -119,11 +121,11 @@ releases:
 			})
 
 			It("changes release url to include absolute path to manifest directory", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath)
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentManifest).To(Equal(manifest.Manifest{
-					Releases: []birelmanifest.ReleaseRef{
+					Releases: []boshman.ReleaseRef{
 						{
 							Name: "fake-release-name-3",
 							URL:  "file:///path/to/manifest/relative-path/fake-release-3.tgz",
@@ -134,9 +136,10 @@ releases:
 			})
 		})
 	})
+
 	Context("when release url points to an http url", func() {
 		BeforeEach(func() {
-			fakeFs.WriteFileString(comboManifestPath, `
+			fs.WriteFileString(comboManifestPath, `
 ---
 releases:
 - name: fake-release-name-4
@@ -146,11 +149,11 @@ releases:
 		})
 
 		It("does not change the release url", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath)
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(deploymentManifest).To(Equal(manifest.Manifest{
-				Releases: []birelmanifest.ReleaseRef{
+				Releases: []boshman.ReleaseRef{
 					{
 						Name: "fake-release-name-4",
 						URL:  "http://fake-url/fake-release-4.tgz",
@@ -162,11 +165,11 @@ releases:
 	})
 
 	It("parses release set manifest from combo manifest file", func() {
-		deploymentManifest, err := parser.Parse(comboManifestPath)
+		deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(deploymentManifest).To(Equal(manifest.Manifest{
-			Releases: []birelmanifest.ReleaseRef{
+			Releases: []boshman.ReleaseRef{
 				{
 					Name: "fake-release-name-1",
 					URL:  "file://~/absolute-path/fake-release-1.tgz",
@@ -191,12 +194,34 @@ releases:
 		}))
 	})
 
+	It("interpolates variables and later resolves their values", func() {
+		fs.WriteFileString(comboManifestPath, `---
+releases:
+- name: release-name
+  url: {{url}}
+  sha1: release-sha1
+`)
+
+		deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{"url": "file://file.tgz"})
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(deploymentManifest).To(Equal(manifest.Manifest{
+			Releases: []boshman.ReleaseRef{
+				{
+					Name: "release-name",
+					URL:  "file:///path/to/manifest/file.tgz",
+					SHA1: "release-sha1",
+				},
+			},
+		}))
+	})
+
 	It("handles errors validating the release set manifest", func() {
-		fakeValidator.SetValidateBehavior([]fakes.ValidateOutput{
+		validator.SetValidateBehavior([]fakes.ValidateOutput{
 			{Err: errors.New("couldn't validate that")},
 		})
 
-		_, err := parser.Parse(comboManifestPath)
+		_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Validating release set manifest: couldn't validate that"))
 	})

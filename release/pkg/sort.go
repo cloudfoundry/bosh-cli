@@ -6,11 +6,11 @@ import (
 )
 
 // Topologically sorts an array of packages
-func Sort(releasePackages []*Package) ([]*Package, error) {
-	sortedPackages := []*Package{}
+func Sort(releasePackages []Compilable) ([]Compilable, error) {
+	sortedPackages := []Compilable{}
 
 	incomingEdges, outgoingEdges := getEdgeMaps(releasePackages)
-	noIncomingEdgesSet := []*Package{}
+	noIncomingEdgesSet := []Compilable{}
 
 	for pkg, edgeList := range incomingEdges {
 		if len(edgeList) == 0 {
@@ -21,7 +21,7 @@ func Sort(releasePackages []*Package) ([]*Package, error) {
 		elem := noIncomingEdgesSet[0]
 		noIncomingEdgesSet = noIncomingEdgesSet[1:]
 
-		sortedPackages = append([]*Package{elem}, sortedPackages...)
+		sortedPackages = append([]Compilable{elem}, sortedPackages...)
 
 		for _, pkg := range outgoingEdges[elem] {
 			incomingEdges[pkg] = removeFromList(incomingEdges[pkg], elem)
@@ -38,7 +38,7 @@ func Sort(releasePackages []*Package) ([]*Package, error) {
 	return sortedPackages, nil
 }
 
-func removeFromList(packageList []*Package, pkg *Package) []*Package {
+func removeFromList(packageList []Compilable, pkg Compilable) []Compilable {
 	for idx, elem := range packageList {
 		if elem == pkg {
 			return append(packageList[:idx], packageList[idx+1:]...)
@@ -47,17 +47,17 @@ func removeFromList(packageList []*Package, pkg *Package) []*Package {
 	panic(fmt.Sprintf("Expected %s to be in dependency graph", pkg.Name))
 }
 
-func getEdgeMaps(releasePackages []*Package) (map[*Package][]*Package, map[*Package][]*Package) {
-	incomingEdges := make(map[*Package][]*Package)
-	outgoingEdges := make(map[*Package][]*Package)
+func getEdgeMaps(releasePackages []Compilable) (map[Compilable][]Compilable, map[Compilable][]Compilable) {
+	incomingEdges := make(map[Compilable][]Compilable)
+	outgoingEdges := make(map[Compilable][]Compilable)
 
 	for _, pkg := range releasePackages {
-		incomingEdges[pkg] = []*Package{}
+		incomingEdges[pkg] = []Compilable{}
 	}
 
 	for _, pkg := range releasePackages {
-		if pkg.Dependencies != nil {
-			for _, dep := range pkg.Dependencies {
+		if pkg.Deps() != nil {
+			for _, dep := range pkg.Deps() {
 				incomingEdges[dep] = append(incomingEdges[dep], pkg)
 				outgoingEdges[pkg] = append(outgoingEdges[pkg], dep)
 			}

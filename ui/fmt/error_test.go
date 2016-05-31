@@ -1,18 +1,18 @@
 package fmt_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/ui/fmt"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	. "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
 
-var _ = Describe("MultilineError", describeMultilineError)
-
-func describeMultilineError() {
-	var err error
+var _ = Describe("MultilineError", func() {
+	var (
+		err error
+	)
 
 	It("returns a simple single-line message string (depth=0)", func() {
 		err = bosherr.Error("omg")
@@ -70,4 +70,4 @@ func describeMultilineError() {
 			Expect(MultilineError(err)).To(Equal("outer omg:\n  Error Executing Command:\n    fake-cmd --flag with some args\n  StdOut:\n    some\n    multiline\n    stdout\n  StdErr:\n    some\n    multiline\n    stderr"))
 		})
 	})
-}
+})

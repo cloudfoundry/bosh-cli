@@ -30,7 +30,7 @@ func (_m *MockFactory) EXPECT() *_MockFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockFactory) Create(_param0 string, _param1 http.Client) (blobstore.Blobstore, error) {
+func (_m *MockFactory) Create(_param0 string, _param1 *http.Client) (blobstore.Blobstore, error) {
 	ret := _m.ctrl.Call(_m, "Create", _param0, _param1)
 	ret0, _ := ret[0].(blobstore.Blobstore)
 	ret1, _ := ret[1].(error)

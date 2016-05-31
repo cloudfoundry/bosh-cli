@@ -3,22 +3,24 @@ package pkg_test
 import (
 	"fmt"
 
-	. "github.com/cloudfoundry/bosh-init/release/pkg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	gomegafmt "github.com/onsi/gomega/format"
+
+	. "github.com/cloudfoundry/bosh-init/release/pkg"
+	. "github.com/cloudfoundry/bosh-init/release/resource"
 )
 
 var _ = Describe("Sort", func() {
 	var (
-		packages []*Package
+		pkg1, pkg2 *Package
+		pkgs       []Compilable
 	)
 
 	gomegafmt.UseStringerRepresentation = true
 
-	var indexOf = func(packages []*Package, pkg *Package) int {
-		for index, currentPkg := range packages {
+	var indexOf = func(pkgs []Compilable, pkg Compilable) int {
+		for index, currentPkg := range pkgs {
 			if currentPkg == pkg {
 				return index
 			}
@@ -26,362 +28,333 @@ var _ = Describe("Sort", func() {
 		return -1
 	}
 
-	var expectSorted = func(sortedPackages []*Package) {
-		for _, pkg := range packages {
+	var expectSorted = func(sortedPackages []Compilable) {
+		for _, pkg := range pkgs {
 			sortedIndex := indexOf(sortedPackages, pkg)
-			for _, dependencyPkg := range pkg.Dependencies {
-				errorMessage := fmt.Sprintf("Package '%s' should be compiled after package '%s'", pkg.Name, dependencyPkg.Name)
+			for _, dependencyPkg := range pkg.Deps() {
+				errorMessage := fmt.Sprintf("Package '%s' should be compiled after package '%s'", pkg.Name(), dependencyPkg.Name())
 				Expect(sortedIndex).To(BeNumerically(">", indexOf(sortedPackages, dependencyPkg)), errorMessage)
 			}
 		}
 	}
 
-	var package1, package2 Package
+	newPkg := func(name string) *Package {
+		return NewPackage(NewResource(name, "", nil), nil)
+	}
 
 	BeforeEach(func() {
-		package1 = Package{
-			Name: "fake-package-name-1",
-		}
-		package2 = Package{
-			Name: "fake-package-name-2",
-		}
-		packages = []*Package{&package1, &package2}
+		pkg1 = newPkg("fake-pkg-1")
+		pkg2 = newPkg("fake-pkg-2")
+		pkgs = []Compilable{pkg1, pkg2}
 	})
 
-	Context("disjoint packages have a valid compilation sequence", func() {
+	Context("disjoint pkgs have a valid compilation sequence", func() {
 		It("returns an ordered set of package compilation", func() {
-			sortedPackages, _ := Sort(packages)
-
-			Expect(sortedPackages).To(ContainElement(&package1))
-			Expect(sortedPackages).To(ContainElement(&package2))
+			sortedPackages, err := Sort(pkgs)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(sortedPackages).To(ContainElement(pkg1))
+			Expect(sortedPackages).To(ContainElement(pkg2))
 		})
 	})
 
-	Context("dependent packages", func() {
+	Context("dependent pkgs", func() {
 		BeforeEach(func() {
-			package1.Dependencies = []*Package{&package2}
+			pkg1.Dependencies = []*Package{pkg2}
 		})
 
 		It("returns an ordered set of package compilation", func() {
-			sortedPackages, _ := Sort(packages)
-
-			Expect(sortedPackages).To(Equal([]*Package{&package2, &package1}))
+			sortedPackages, err := Sort(pkgs)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(sortedPackages).To(Equal([]Compilable{pkg2, pkg1}))
 		})
 	})
 
-	Context("complex graph of dependent packages", func() {
-		var package3, package4 Package
-
-		BeforeEach(func() {
-			package1.Dependencies = []*Package{&package2, &package3}
-			package3 = Package{
-				Name: "fake-package-name-3",
-			}
-			package4 = Package{
-				Name:         "fake-package-name-4",
-				Dependencies: []*Package{&package3, &package2},
-			}
-			packages = []*Package{&package1, &package2, &package3, &package4}
-		})
-
-		It("returns an ordered set of package compilation", func() {
-			sortedPackages, _ := Sort(packages)
-
-			expectSorted(sortedPackages)
-		})
-	})
-
-	Context("graph with transitively dependent packages", func() {
-		var package3, package4, package5 Package
-
-		BeforeEach(func() {
-			package3 = Package{
-				Name: "fake-package-name-3",
-			}
-			package4 = Package{
-				Name: "fake-package-name-4",
-			}
-			package5 = Package{
-				Name: "fake-package-name-5",
-			}
-
-			package3.Dependencies = []*Package{&package2}
-			package2.Dependencies = []*Package{&package1}
-
-			package5.Dependencies = []*Package{&package2}
-
-			packages = []*Package{&package1, &package2, &package3, &package4, &package5}
-		})
-
-		It("returns an ordered set of package compilation", func() {
-			sortedPackages, _ := Sort(packages)
-
-			expectSorted(sortedPackages)
-		})
-	})
-
-	Context("graph from a BOSH release", func() {
-		BeforeEach(func() {
-			nginx := Package{Name: "nginx"}
-			genisoimage := Package{Name: "genisoimage"}
-			powerdns := Package{Name: "powerdns"}
-			ruby := Package{Name: "ruby"}
-
-			blobstore := Package{
-				Name:         "blobstore",
-				Dependencies: []*Package{&ruby},
-			}
-
-			mysql := Package{Name: "mysql"}
-
-			nats := Package{
-				Name:         "nats",
-				Dependencies: []*Package{&ruby},
-			}
-
-			common := Package{Name: "common"}
-			redis := Package{Name: "redis"}
-			libpq := Package{Name: "libpq"}
-			postgres := Package{Name: "postgres"}
-
-			registry := Package{
-				Name:         "registry",
-				Dependencies: []*Package{&libpq, &mysql, &ruby},
-			}
-
-			director := Package{
-				Name:         "director",
-				Dependencies: []*Package{&libpq, &mysql, &ruby},
-			}
-
-			healthMonitor := Package{
-				Name:         "health_monitor",
-				Dependencies: []*Package{&ruby},
-			}
-
-			packages = []*Package{
-				&nginx,
-				&genisoimage,
-				&powerdns,
-				&blobstore, // before ruby
-				&ruby,
-				&mysql,
-				&nats,
-				&common,
-				&director, // before libpq, postgres; after ruby
-				&redis,
-				&registry, // before libpq, postgres; after ruby
-				&libpq,
-				&postgres,
-				&healthMonitor, // after ruby, libpq, postgres
-			}
-		})
-
-		It("orders BOSH release packages for compilation (example)", func() {
-			sortedPackages, _ := Sort(packages)
-
-			expectSorted(sortedPackages)
-		})
-	})
-
-	Context("graph with sibling dependencies", func() {
+	Context("complex graph of dependent pkgs", func() {
 		var (
-			golang, runC, garden, guardian Package
+			package3, package4 *Package
 		)
 
 		BeforeEach(func() {
-			golang = Package{Name: "golang"}
+			package3 = newPkg("fake-pkg-3")
+			pkg1.Dependencies = []*Package{pkg2, package3}
+			package4 = newPkg("fake-pkg-4")
+			package4.Dependencies = []*Package{package3, pkg2}
+			pkgs = []Compilable{pkg1, pkg2, package3, package4}
+		})
 
-			runC = Package{
-				Name:         "runC",
-				Dependencies: []*Package{&golang},
-			}
+		It("returns an ordered set of package compilation", func() {
+			sortedPackages, err := Sort(pkgs)
+			Expect(err).ToNot(HaveOccurred())
+			expectSorted(sortedPackages)
+		})
+	})
 
-			guardian = Package{
-				Name:         "guardian",
-				Dependencies: []*Package{&runC, &golang},
-			}
+	Context("cicular dependencies", func() {
+		var (
+			pkg3 *Package
+		)
 
-			garden = Package{
-				Name:         "garden",
-				Dependencies: []*Package{&guardian},
-			}
+		BeforeEach(func() {
+			pkg1 = newPkg("pkg1-name")
+			pkg2 = newPkg("pkg2-name")
+			pkg3 = newPkg("pkg3-name")
+			pkg1.Dependencies = []*Package{pkg3}
+			pkg2.Dependencies = []*Package{pkg1}
+			pkg3.Dependencies = []*Package{pkg2}
+			pkgs = []Compilable{pkg1, pkg2, pkg3}
+		})
 
-			packages = []*Package{
-				&guardian,
-				&garden,
-				&runC,
-				&golang,
+		It("returns an error", func() {
+			_, err := Sort(pkgs)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Circular dependency detected while sorting packages"))
+		})
+	})
+
+	Context("graph with transitively dependent pkgs", func() {
+		var (
+			package3, package4, package5 *Package
+		)
+
+		BeforeEach(func() {
+			pkg2.Dependencies = []*Package{pkg1}
+			package3 = newPkg("fake-pkg-3")
+			package3.Dependencies = []*Package{pkg2}
+			package4 = newPkg("fake-pkg-4")
+			package5 = newPkg("fake-pkg-5")
+			package5.Dependencies = []*Package{pkg2}
+			pkgs = []Compilable{pkg1, pkg2, package3, package4, package5}
+		})
+
+		It("returns an ordered set of package compilation", func() {
+			sortedPackages, err := Sort(pkgs)
+			Expect(err).ToNot(HaveOccurred())
+			expectSorted(sortedPackages)
+		})
+	})
+
+	Context("graph from a bosh-release (real life example)", func() {
+		BeforeEach(func() {
+			nginx := newPkg("nginx")
+			genisoimage := newPkg("genisoimage")
+			powerdns := newPkg("powerdns")
+			ruby := newPkg("ruby")
+
+			blobstore := newPkg("blobstore")
+			blobstore.Dependencies = []*Package{ruby}
+
+			mysql := newPkg("mysql")
+
+			nats := newPkg("nats")
+			nats.Dependencies = []*Package{ruby}
+
+			common := newPkg("common")
+			redis := newPkg("redis")
+			libpq := newPkg("libpq")
+			postgres := newPkg("postgres")
+
+			registry := newPkg("registry")
+			registry.Dependencies = []*Package{libpq, mysql, ruby}
+
+			director := newPkg("director")
+			director.Dependencies = []*Package{libpq, mysql, ruby}
+
+			healthMonitor := newPkg("health_monitor")
+			healthMonitor.Dependencies = []*Package{ruby}
+
+			pkgs = []Compilable{
+				nginx,
+				genisoimage,
+				powerdns,
+				blobstore, // before ruby
+				ruby,
+				mysql,
+				nats,
+				common,
+				director, // before libpq, postgres; after ruby
+				redis,
+				registry, // before libpq, postgres; after ruby
+				libpq,
+				postgres,
+				healthMonitor, // after ruby, libpq, postgres
 			}
+		})
+
+		It("orders bosh-release pkgs for compilation", func() {
+			sortedPackages, err := Sort(pkgs)
+			Expect(err).ToNot(HaveOccurred())
+			expectSorted(sortedPackages)
+		})
+	})
+
+	Context("graph with sibling dependencies (real life example)", func() {
+		var (
+			golang, runC, garden, guardian *Package
+		)
+
+		BeforeEach(func() {
+			golang = newPkg("golang")
+
+			runC = newPkg("runC")
+			runC.Dependencies = []*Package{golang}
+
+			guardian = newPkg("guardian")
+			guardian.Dependencies = []*Package{runC, golang}
+
+			garden = newPkg("garden")
+			garden.Dependencies = []*Package{guardian}
+
+			pkgs = []Compilable{guardian, garden, runC, golang}
 		})
 
 		It("orders the packages as: golang, runC, guardian, garden", func() {
-			sortedPackages, _ := Sort(packages)
-
-			Expect(sortedPackages[0].Name).To(Equal(golang.Name))
-			Expect(sortedPackages[1].Name).To(Equal(runC.Name))
-			Expect(sortedPackages[2].Name).To(Equal(guardian.Name))
-			Expect(sortedPackages[3].Name).To(Equal(garden.Name))
+			sortedPackages, err := Sort(pkgs)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(sortedPackages[0].Name()).To(Equal(golang.Name()))
+			Expect(sortedPackages[1].Name()).To(Equal(runC.Name()))
+			Expect(sortedPackages[2].Name()).To(Equal(guardian.Name()))
+			Expect(sortedPackages[3].Name()).To(Equal(garden.Name()))
 		})
 	})
 
-	Context("Graph with circular dependency", func() {
+	Context("graph with circular dependency", func() {
 		var (
-			package1,
-			package2,
-			package3 Package
+			package1, package2, package3 *Package
 		)
+
 		BeforeEach(func() {
-			package1 = Package{
-				Name:         "fake-package-name-1",
-				Dependencies: []*Package{},
-			}
-			package2 = Package{
-				Name:         "fake-package-name-2",
-				Dependencies: []*Package{&package1},
-			}
-			package3 = Package{
-				Name:         "fake-package-name-3",
-				Dependencies: []*Package{&package2},
-			}
+			package1 = newPkg("fake-package-name-1")
 
-			package1.Dependencies = append(package1.Dependencies, &package3)
+			package2 = newPkg("fake-package-name-2")
+			package2.Dependencies = []*Package{package1}
+
+			package3 = newPkg("fake-package-name-3")
+			package3.Dependencies = []*Package{package2}
+
+			package1.Dependencies = []*Package{package3}
 		})
-		It("returns an error", func() {
-			packages := []*Package{
-				&package1,
-				&package2,
-				&package3,
-			}
-			_, err := Sort(packages)
-			Expect(err).NotTo(BeNil())
 
+		It("returns an error", func() {
+			_, err := Sort([]Compilable{package1, package2, package3})
+			Expect(err).NotTo(BeNil())
 		})
 	})
 
-	Context("Graph from a CPI release", func() {
-		var packages []*Package
+	Context("graph from a CPI release", func() {
 		BeforeEach(func() {
-			pid_utils := Package{Name: "pid_utils"}
+			pid_utils := newPkg("pid_utils")
 
-			iptables := Package{Name: "iptables"}
+			iptables := newPkg("iptables")
 
-			bosh_io_release_resource := Package{Name: "bosh_io_release_resource"}
+			bosh_io_release_resource := newPkg("bosh_io_release_resource")
 
-			s3_resource := Package{Name: "s3_resource"}
+			s3_resource := newPkg("s3_resource")
 
-			bosh_io_stemcell_resource := Package{Name: "bosh_io_stemcell_resource"}
+			bosh_io_stemcell_resource := newPkg("bosh_io_stemcell_resource")
 
-			golang := Package{Name: "golang"}
+			golang := newPkg("golang")
 
-			baggageclaim := Package{
-				Name:         "baggageclaim",
-				Dependencies: []*Package{&golang},
+			baggageclaim := newPkg("baggageclaim")
+			baggageclaim.Dependencies = []*Package{golang}
+
+			jettison := newPkg("jettison")
+			jettison.Dependencies = []*Package{golang}
+
+			cf_resource := newPkg("cf_resource")
+
+			golang_161 := newPkg("golang_1.6.1")
+
+			runc := newPkg("runc")
+			runc.Dependencies = []*Package{golang_161}
+
+			guardian := newPkg("guardian")
+			guardian.Dependencies = []*Package{golang_161, runc}
+
+			btrfs_tools := newPkg("btrfs_tools")
+
+			docker_image_resource := newPkg("docker_image_resource")
+
+			resource_discovery := newPkg("resource_discovery")
+			resource_discovery.Dependencies = []*Package{golang}
+
+			github_release_resource := newPkg("github_release_resource")
+
+			shadow := newPkg("shadow")
+
+			vagrant_cloud_resource := newPkg("vagrant_cloud_resource")
+
+			pool_resource := newPkg("pool_resource")
+
+			bosh_deployment_resource := newPkg("bosh_deployment_resource")
+
+			generated_worker_key := newPkg("generated_worker_key")
+
+			archive_resource := newPkg("archive_resource")
+
+			time_resource := newPkg("time_resource")
+
+			git_resource := newPkg("git_resource")
+
+			busybox := newPkg("busybox")
+
+			semver_resource := newPkg("semver_resource")
+
+			hg_resource := newPkg("hg_resource")
+
+			tar := newPkg("tar")
+
+			tracker_resource := newPkg("tracker_resource")
+
+			pkgs = []Compilable{
+				bosh_io_release_resource,
+				guardian,
+				iptables,
+				pid_utils,
+				jettison,
+				docker_image_resource,
+				github_release_resource,
+				vagrant_cloud_resource,
+				golang,
+				generated_worker_key,
+				golang_161,
+				git_resource,
+				semver_resource,
+				tar,
+				tracker_resource,
+				shadow,
+				cf_resource,
+				pool_resource,
+				baggageclaim,
+				bosh_deployment_resource,
+				bosh_io_stemcell_resource,
+				archive_resource,
+				s3_resource,
+				time_resource,
+				btrfs_tools,
+				busybox,
+				resource_discovery,
+				hg_resource,
+				runc,
 			}
-
-			jettison := Package{
-				Name:         "jettison",
-				Dependencies: []*Package{&golang},
-			}
-			cf_resource := Package{Name: "cf_resource"}
-
-			golang_161 := Package{Name: "golang_1.6.1"}
-
-			runc := Package{
-				Name:         "runc",
-				Dependencies: []*Package{&golang_161},
-			}
-
-			guardian := Package{
-				Name:         "guardian",
-				Dependencies: []*Package{&golang_161, &runc},
-			}
-
-			btrfs_tools := Package{Name: "btrfs_tools"}
-
-			docker_image_resource := Package{Name: "docker_image_resource"}
-
-			resource_discovery := Package{
-				Name:         "resource_discovery",
-				Dependencies: []*Package{&golang},
-			}
-
-			github_release_resource := Package{Name: "github_release_resource"}
-
-			shadow := Package{Name: "shadow"}
-
-			vagrant_cloud_resource := Package{Name: "vagrant_cloud_resource"}
-
-			pool_resource := Package{Name: "pool_resource"}
-
-			bosh_deployment_resource := Package{Name: "bosh_deployment_resource"}
-
-			generated_worker_key := Package{Name: "generated_worker_key"}
-
-			archive_resource := Package{Name: "archive_resource"}
-
-			time_resource := Package{Name: "time_resource"}
-
-			git_resource := Package{Name: "git_resource"}
-
-			busybox := Package{Name: "busybox"}
-
-			semver_resource := Package{Name: "semver_resource"}
-
-			hg_resource := Package{Name: "hg_resource"}
-
-			tar := Package{Name: "tar"}
-
-			tracker_resource := Package{Name: "tracker_resource"}
-
-			packages = []*Package{
-				&bosh_io_release_resource,
-				&guardian,
-				&iptables,
-				&pid_utils,
-				&jettison,
-				&docker_image_resource,
-				&github_release_resource,
-				&vagrant_cloud_resource,
-				&golang,
-				&generated_worker_key,
-				&golang_161,
-				&git_resource,
-				&semver_resource,
-				&tar,
-				&tracker_resource,
-				&shadow,
-				&cf_resource,
-				&pool_resource,
-				&baggageclaim,
-				&bosh_deployment_resource,
-				&bosh_io_stemcell_resource,
-				&archive_resource,
-				&s3_resource,
-				&time_resource,
-				&btrfs_tools,
-				&busybox,
-				&resource_discovery,
-				&hg_resource,
-				&runc}
 		})
 
-		It("should sort the packages correctly", func() {
+		It("sorts the packages correctly", func() {
 			hasBeenLoaded := map[string]bool{}
 
-			for _, pkg := range packages {
-				hasBeenLoaded[pkg.Name] = false
+			for _, pkg := range pkgs {
+				hasBeenLoaded[pkg.Name()] = false
 			}
 
-			sortedPackages, _ := Sort(packages)
+			sortedPackages, err := Sort(pkgs)
+			Expect(err).ToNot(HaveOccurred())
 
 			for _, pkg := range sortedPackages {
-				if pkg.Dependencies != nil {
-					for _, dep := range pkg.Dependencies {
-						Expect(hasBeenLoaded[dep.Name]).To(BeTrue())
+				if pkg.Deps() != nil {
+					for _, dep := range pkg.Deps() {
+						Expect(hasBeenLoaded[dep.Name()]).To(BeTrue())
 					}
 				}
-				hasBeenLoaded[pkg.Name] = true
+				hasBeenLoaded[pkg.Name()] = true
 			}
 		})
 	})

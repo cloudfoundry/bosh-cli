@@ -11,6 +11,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/golang/mock/gomock"
 
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
@@ -37,13 +38,14 @@ var _ = Describe("DeleteCmd", func() {
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 		)
 
-		var newDeleteCmd = func() bicmd.Cmd {
-			doGetFunc := func(deploymentManifestPath string) (bicmd.DeploymentDeleter, error) {
-				Expect(deploymentManifestPath).To(Equal(deploymentManifestPath))
-				return mockDeploymentDeleter, nil
+		var newDeleteCmd = func() *bicmd.DeleteCmd {
+			doGetFunc := func(path string, vars boshtpl.Variables) bicmd.DeploymentDeleter {
+				Expect(path).To(Equal(deploymentManifestPath))
+				Expect(vars).To(Equal(boshtpl.Variables{"key": "value"}))
+				return mockDeploymentDeleter
 			}
 
-			return bicmd.NewDeleteCmd(fakeUI, fs, logger, doGetFunc)
+			return bicmd.NewDeleteCmd(fakeUI, doGetFunc)
 		}
 
 		var writeDeploymentManifest = func() {
@@ -59,41 +61,32 @@ var _ = Describe("DeleteCmd", func() {
 			writeDeploymentManifest()
 		})
 
-		Context("when the deployment manifest does not exist", func() {
-			It("returns an error", func() {
-				err := newDeleteCmd().Run(fakeStage, []string{"/garbage"})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Deployment manifest does not exist at '/garbage'"))
-				Expect(fakeUI.Errors).To(ContainElement("Deployment '/garbage' does not exist"))
+		It("sends the manifest on to the deleter", func() {
+			mockDeploymentDeleter.EXPECT().DeleteDeployment(fakeStage).Return(nil)
+			newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
+				Args: bicmd.DeleteEnvArgs{
+					Manifest: bicmd.FileBytesArg{Path: deploymentManifestPath},
+				},
+				VarFlags: bicmd.VarFlags{
+					VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
+				},
 			})
 		})
 
-		Context("when the deployment manifest exists", func() {
+		Context("when the deployment deleter returns an error", func() {
 			It("sends the manifest on to the deleter", func() {
-				mockDeploymentDeleter.EXPECT().DeleteDeployment(fakeStage).Return(nil)
-				newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
-			})
-
-			Context("when the deployment deleter returns an error", func() {
-				It("sends the manifest on to the deleter", func() {
-					err := bosherr.Error("boom")
-					mockDeploymentDeleter.EXPECT().DeleteDeployment(fakeStage).Return(err)
-					returnedErr := newDeleteCmd().Run(fakeStage, []string{deploymentManifestPath})
-					Expect(returnedErr).To(Equal(err))
+				err := bosherr.Error("boom")
+				mockDeploymentDeleter.EXPECT().DeleteDeployment(fakeStage).Return(err)
+				returnedErr := newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
+					Args: bicmd.DeleteEnvArgs{
+						Manifest: bicmd.FileBytesArg{Path: deploymentManifestPath},
+					},
+					VarFlags: bicmd.VarFlags{
+						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
+					},
 				})
+				Expect(returnedErr).To(Equal(err))
 			})
-		})
-
-		It("returns err unless exactly 1 arguments is given", func() {
-			command := newDeleteCmd()
-
-			err := command.Run(fakeStage, []string{})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
-
-			err = command.Run(fakeStage, []string{"1", "2"})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Invalid usage"))
 		})
 	})
 })

@@ -1,0 +1,61 @@
+package cmd_test
+
+import (
+	"errors"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-init/cmd"
+	fakecmdconf "github.com/cloudfoundry/bosh-init/cmd/config/fakes"
+	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+)
+
+var _ = Describe("LogOutCmd", func() {
+	var (
+		config  *fakecmdconf.FakeConfig
+		ui      *fakeui.FakeUI
+		command LogOutCmd
+	)
+
+	BeforeEach(func() {
+		config = &fakecmdconf.FakeConfig{}
+		ui = &fakeui.FakeUI{}
+		command = NewLogOutCmd("target", config, ui)
+	})
+
+	Describe("Run", func() {
+		var (
+			updatedConfig *fakecmdconf.FakeConfig
+		)
+
+		BeforeEach(func() {
+			updatedConfig = &fakecmdconf.FakeConfig{}
+			config.UnsetCredentialsReturns(updatedConfig)
+		})
+
+		act := func() error { return command.Run() }
+
+		It("unsets credentials for the specific target and saves config", func() {
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(config.UnsetCredentialsCallCount()).To(Equal(1))
+			Expect(config.UnsetCredentialsArgsForCall(0)).To(Equal("target"))
+
+			Expect(updatedConfig.SaveCallCount()).To(Equal(1))
+
+			Expect(ui.Said).To(Equal([]string{"Logged out from 'target'"}))
+		})
+
+		It("returns error if saving config failed", func() {
+			updatedConfig.SaveReturns(errors.New("fake-err"))
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+			Expect(ui.Said).To(BeEmpty())
+		})
+	})
+})
