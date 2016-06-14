@@ -1,6 +1,6 @@
 github.com/cloudfoundry/bosh-agent/...:48f77a9
-github.com/cloudfoundry/bosh-davcli/...:6b59ec2
-github.com/cloudfoundry/bosh-utils/...:b7e9fd0
+github.com/cloudfoundry/bosh-davcli/...:37f54c6
+github.com/cloudfoundry/bosh-utils/...:25afa23
 github.com/golang/mock/gomock:15f8b22
 github.com/mitchellh/mapstructure:2caf8ef
 github.com/onsi/ginkgo:fbb6632
@@ -8,4 +8,3 @@ github.com/onsi/gomega:f4f1cae
 golang.org/x/crypto/ssh:1e856cb
 gopkg.in/check.v1:8d49746
 github.com/pivotal-golang/yaml:8b09e4a
-github.com/cloudfoundry/bosh-davcli...:37f54c6

@@ -39,6 +39,13 @@ var _ = Describe("HttpClient", func() {
 
 			Expect(client).To(Equal(DefaultClient))
 		})
+
+		It("disables keep alive", func() {
+			var client http.Client
+			client = DefaultClient
+
+			Expect(client.Transport.(*http.Transport).DisableKeepAlives).To(Equal(true))
+		})
 	})
 
 	Describe("CreateDefaultClient", func() {

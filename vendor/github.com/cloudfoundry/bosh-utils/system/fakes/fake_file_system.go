@@ -68,8 +68,9 @@ type FakeFileSystem struct {
 
 	ReadLinkError error
 
-	TempFileError  error
-	ReturnTempFile boshsys.File
+	TempFileError   error
+	ReturnTempFile  boshsys.File
+	ReturnTempFiles []boshsys.File
 
 	TempDirDir   string
 	TempDirDirs  []string
@@ -436,7 +437,8 @@ func (fs *FakeFileSystem) Rename(oldPath, newPath string) error {
 	oldPath = fs.fileRegistry.UnifiedPath(oldPath)
 	newPath = fs.fileRegistry.UnifiedPath(newPath)
 
-	if fs.fileRegistry.Get(gopath.Dir(newPath)) == nil {
+	parentDir := gopath.Dir(newPath)
+	if parentDir != "." && fs.fileRegistry.Get(parentDir) == nil {
 		return errors.New("Parent directory does not exist")
 	}
 
@@ -554,6 +556,9 @@ func (fs *FakeFileSystem) TempFile(prefix string) (file boshsys.File, err error)
 
 	if fs.ReturnTempFile != nil {
 		file = fs.ReturnTempFile
+	} else if len(fs.ReturnTempFiles) != 0 {
+		file = fs.ReturnTempFiles[0]
+		fs.ReturnTempFiles = fs.ReturnTempFiles[1:]
 	} else {
 		file, err = os.Open(os.DevNull)
 		if err != nil {

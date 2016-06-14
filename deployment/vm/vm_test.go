@@ -189,10 +189,10 @@ var _ = Describe("VM", func() {
 	Describe("WaitToBeRunning", func() {
 		var invocations int
 		BeforeEach(func() {
-			responses := []struct{
+			responses := []struct {
 				state biagentclient.AgentState
-				err error
-			} {
+				err   error
+			}{
 				{biagentclient.AgentState{JobState: "pending"}, nil},
 				{biagentclient.AgentState{JobState: "pending"}, nil},
 				{biagentclient.AgentState{JobState: "running"}, nil},

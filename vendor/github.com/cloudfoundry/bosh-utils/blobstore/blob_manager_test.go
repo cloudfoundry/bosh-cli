@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 
 	. "github.com/cloudfoundry/bosh-utils/blobstore"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshsysfake "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Blob Manager", func() {

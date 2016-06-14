@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -42,7 +43,7 @@ func (r execCmdRunner) RunComplexCommandAsync(cmd Command) (Process, error) {
 }
 
 func (r execCmdRunner) RunCommand(cmdName string, args ...string) (string, string, int, error) {
-	process := NewExecProcess(exec.Command(cmdName, args...), r.logger)
+	process := NewExecProcess(newExecCmd(cmdName, args...), r.logger)
 
 	err := process.Start()
 	if err != nil {
@@ -69,7 +70,7 @@ func (r execCmdRunner) CommandExists(cmdName string) bool {
 }
 
 func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
-	execCmd := exec.Command(cmd.Name, cmd.Args...)
+	execCmd := newExecCmd(cmd.Name, cmd.Args...)
 
 	if cmd.Stdin != nil {
 		execCmd.Stdin = cmd.Stdin
@@ -89,6 +90,9 @@ func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 
 	if !cmd.UseIsolatedEnv {
 		env = os.Environ()
+	}
+	if cmd.UseIsolatedEnv && runtime.GOOS == "windows" {
+		panic("UseIsolatedEnv is not supported on Windows")
 	}
 
 	for name, value := range cmd.Env {

@@ -27,8 +27,8 @@ var windowsCommands = map[string]Command{
 		Args: []string{"[Console]::Error.WriteLine('error-output')"},
 	},
 	"exit": Command{
-		Name: "powershell",
-		Args: []string{fmt.Sprintf("exit %d", ErrExitCode)},
+		Name: fmt.Sprintf("exit %d", ErrExitCode),
+		Args: []string{},
 	},
 	"ls": Command{
 		Name:       "powershell",
@@ -133,14 +133,18 @@ var _ = Describe("execCmdRunner", func() {
 		It("runs complex command with specific env", func() {
 			cmd := GetPlatformCommand("env")
 			cmd.UseIsolatedEnv = true
-			stdout, stderr, status, err := runner.RunComplexCommand(cmd)
-			Expect(err).ToNot(HaveOccurred())
+			if runtime.GOOS == "windows" {
+				Expect(func() { runner.RunComplexCommand(cmd) }).To(Panic())
+			} else {
+				stdout, stderr, status, err := runner.RunComplexCommand(cmd)
+				Expect(err).ToNot(HaveOccurred())
 
-			envVars := parseEnvFields(stdout)
-			Expect(envVars).To(HaveKeyWithValue("FOO", "BAR"))
-			Expect(envVars).ToNot(HaveKey("PATH"))
-			Expect(stderr).To(BeEmpty())
-			Expect(status).To(Equal(0))
+				envVars := parseEnvFields(stdout)
+				Expect(envVars).To(HaveKeyWithValue("FOO", "BAR"))
+				Expect(envVars).ToNot(HaveKey("PATH"))
+				Expect(stderr).To(BeEmpty())
+				Expect(status).To(Equal(0))
+			}
 		})
 
 		It("run complex command with stdin", func() {
@@ -289,6 +293,9 @@ var _ = Describe("execCmdRunner", func() {
 			stdout, stderr, status, err := runner.RunCommand(FalseExePath, "second arg")
 			Expect(err).To(HaveOccurred())
 			errMsg := fmt.Sprintf("Running command: '%s second arg', stdout: '', stderr: '': exit status 1", FalseExePath)
+			if runtime.GOOS == "windows" {
+				errMsg = fmt.Sprintf("Running command: 'powershell %s second arg', stdout: '', stderr: '': exit status 1", FalseExePath)
+			}
 			Expect(err.Error()).To(Equal(errMsg))
 			Expect(stderr).To(BeEmpty())
 			Expect(stdout).To(BeEmpty())
@@ -298,10 +305,12 @@ var _ = Describe("execCmdRunner", func() {
 		It("run command with cmd not found", func() {
 			stdout, stderr, status, err := runner.RunCommand("something that does not exist")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("not found"))
-			Expect(stderr).To(BeEmpty())
+			Expect(err.Error()).To(Or(ContainSubstring("not found"), ContainSubstring("ObjectNotFound")))
+			if runtime.GOOS != "windows" {
+				Expect(stderr).To(BeEmpty())
+			}
 			Expect(stdout).To(BeEmpty())
-			Expect(status).To(Equal(-1))
+			Expect(status).ToNot(Equal(0))
 		})
 	})
 
