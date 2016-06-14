@@ -5,4 +5,4 @@ set -e
 bin=$(dirname $0)
 
 echo -e "\n Testing packages..."
-$bin/env ginkgo -r $race -trace $@
+$bin/env ginkgo -r $race -trace -skipPackage vendor $@

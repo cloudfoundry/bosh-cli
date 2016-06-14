@@ -8,10 +8,12 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	davconf "github.com/cloudfoundry/bosh-davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshhttp "github.com/cloudfoundry/bosh-utils/http"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Client interface {
@@ -19,10 +21,23 @@ type Client interface {
 	Put(path string, content io.ReadCloser, contentLength int64) (err error)
 }
 
-func NewClient(config davconf.Config, httpClient boshhttp.Client) (c Client) {
+func NewClient(config davconf.Config, httpClient boshhttp.Client, logger boshlog.Logger) (c Client) {
+	if config.RetryAttempts == 0 {
+		config.RetryAttempts = 3
+	}
+
+	// @todo should a logger now be passed in to this client?
+	duration := time.Duration(0)
+	retryClient := boshhttp.NewRetryClient(
+		httpClient,
+		config.RetryAttempts,
+		duration,
+		logger,
+	)
+
 	return client{
 		config:     config,
-		httpClient: httpClient,
+		httpClient: retryClient,
 	}
 }
 

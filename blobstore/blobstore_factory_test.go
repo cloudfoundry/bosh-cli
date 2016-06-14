@@ -43,7 +43,7 @@ var _ = Describe("BlobstoreFactory", func() {
 					Endpoint: "https://fake-host:1234/blobs",
 					User:     "fake-user",
 					Password: "fake-password",
-				}, &httpClient)
+				}, &httpClient, logger)
 				expectedBlobstore := NewBlobstore(davClient, fakeUUIDGenerator, fs, logger)
 				Expect(blobstore).To(Equal(expectedBlobstore))
 			})
@@ -56,7 +56,7 @@ var _ = Describe("BlobstoreFactory", func() {
 					Endpoint: "https://fake-host:1234/blobs",
 					User:     "",
 					Password: "",
-				}, &httpClient)
+				}, &httpClient, logger)
 				expectedBlobstore := NewBlobstore(davClient, fakeUUIDGenerator, fs, logger)
 
 				blobstore, err := blobstoreFactory.Create("https://fake-host:1234", httpClient)

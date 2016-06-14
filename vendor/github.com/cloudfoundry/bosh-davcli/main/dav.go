@@ -6,10 +6,12 @@ import (
 
 	"github.com/cloudfoundry/bosh-davcli/app"
 	"github.com/cloudfoundry/bosh-davcli/cmd"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func main() {
-	cmdFactory := cmd.NewFactory()
+	logger := boshlog.NewLogger(boshlog.LevelNone)
+	cmdFactory := cmd.NewFactory(logger)
 
 	cmdRunner := cmd.NewRunner(cmdFactory)
 

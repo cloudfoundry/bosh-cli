@@ -13,10 +13,12 @@ import (
 	. "github.com/cloudfoundry/bosh-davcli/cmd"
 	testcmd "github.com/cloudfoundry/bosh-davcli/cmd/testing"
 	davconf "github.com/cloudfoundry/bosh-davcli/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func runPut(config davconf.Config, args []string) error {
-	factory := NewFactory()
+	logger := boshlog.NewLogger(boshlog.LevelNone)
+	factory := NewFactory(logger)
 	factory.SetConfig(config)
 
 	cmd, err := factory.Create("put")

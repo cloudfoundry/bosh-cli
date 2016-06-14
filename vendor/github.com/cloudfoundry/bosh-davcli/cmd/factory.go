@@ -6,6 +6,7 @@ import (
 
 	davclient "github.com/cloudfoundry/bosh-davcli/client"
 	davconf "github.com/cloudfoundry/bosh-davcli/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Factory interface {
@@ -13,13 +14,17 @@ type Factory interface {
 	SetConfig(config davconf.Config)
 }
 
-func NewFactory() (f Factory) {
-	return &factory{cmds: make(map[string]Cmd)}
+func NewFactory(logger boshlog.Logger) Factory {
+	return &factory{
+		cmds:   make(map[string]Cmd),
+		logger: logger,
+	}
 }
 
 type factory struct {
 	config davconf.Config
 	cmds   map[string]Cmd
+	logger boshlog.Logger
 }
 
 func (f *factory) Create(name string) (cmd Cmd, err error) {
@@ -31,7 +36,7 @@ func (f *factory) Create(name string) (cmd Cmd, err error) {
 }
 
 func (f *factory) SetConfig(config davconf.Config) {
-	client := davclient.NewClient(config, http.DefaultClient)
+	client := davclient.NewClient(config, http.DefaultClient, f.logger)
 
 	f.cmds = map[string]Cmd{
 		"put": newPutCmd(client),

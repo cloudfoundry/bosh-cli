@@ -8,11 +8,13 @@ import (
 
 	. "github.com/cloudfoundry/bosh-davcli/cmd"
 	davconf "github.com/cloudfoundry/bosh-davcli/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func buildFactory() (factory Factory) {
 	config := davconf.Config{User: "some user"}
-	factory = NewFactory()
+	logger := boshlog.NewLogger(boshlog.LevelNone)
+	factory = NewFactory(logger)
 	factory.SetConfig(config)
 	return
 }
