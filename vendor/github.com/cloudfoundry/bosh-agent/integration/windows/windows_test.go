@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/bosh-agent/agent/action"
-	boshalert "github.com/cloudfoundry/bosh-agent/agent/alert"
 	"github.com/cloudfoundry/bosh-agent/integration/windows/utils"
 	boshfileutil "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -168,17 +167,13 @@ var _ = Describe("An Agent running on Windows", func() {
 
 		Eventually(func() string { return natsClient.GetState().JobState }, 30*time.Second, 1*time.Second).Should(Equal("failing"))
 
-		expected := boshalert.Alert{
-			Title: "crash-service - pid failed - Start",
-		}
-
 		Eventually(func() (string, error) {
 			alert, err := natsClient.GetNextAlert(10 * time.Second)
 			if err != nil {
 				return "", err
 			}
 			return alert.Title, nil
-		}).Should(Equal(expected.Title))
+		}).Should(MatchRegexp(`crash-service \(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\) - pid failed - Start`))
 
 		err = natsClient.RunStop()
 		Expect(err).NotTo(HaveOccurred())
@@ -236,5 +231,34 @@ var _ = Describe("An Agent running on Windows", func() {
 		out, err := ioutil.ReadFile(filepath.Join(tarPath, fileName))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(out)).To(ContainSubstring(fileContents))
+	})
+
+	It("Includes the default IP in the 'get_state' response", func() {
+		getNetworkProperty := func(key string) func() string {
+			return func() string {
+				message := fmt.Sprintf(`{"method":"get_state","arguments":["full"],"reply_to":"%s"}`, senderID)
+				rawResponse, err := natsClient.SendRawMessage(message)
+				Expect(err).NotTo(HaveOccurred())
+
+				response := map[string]action.GetStateV1ApplySpec{}
+				err = json.Unmarshal(rawResponse, &response)
+				Expect(err).NotTo(HaveOccurred())
+
+				for _, spec := range response["value"].NetworkSpecs {
+					field, ok := spec.Fields[key]
+					if !ok {
+						return ""
+					}
+					if val, ok := field.(string); ok {
+						return val
+					}
+				}
+				return ""
+			}
+		}
+
+		Eventually(getNetworkProperty("ip"), 30*time.Second, 1*time.Second).ShouldNot(BeEmpty())
+		Eventually(getNetworkProperty("gateway"), 30*time.Second, 1*time.Second).ShouldNot(BeEmpty())
+		Eventually(getNetworkProperty("netmask"), 30*time.Second, 1*time.Second).ShouldNot(BeEmpty())
 	})
 })

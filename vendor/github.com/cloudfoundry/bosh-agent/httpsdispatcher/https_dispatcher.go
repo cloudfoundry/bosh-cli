@@ -1,7 +1,10 @@
 package httpsdispatcher
 
 import (
+	"crypto/subtle"
 	"crypto/tls"
+	"encoding/base64"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -10,12 +13,15 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
+const httpsDispatcherLogTag = "HTTPS Dispatcher"
+
 type HTTPSDispatcher struct {
-	httpServer *http.Server
-	mux        *http.ServeMux
-	host       string
-	listener   net.Listener
-	logger     boshlog.Logger
+	httpServer                  *http.Server
+	mux                         *http.ServeMux
+	listener                    net.Listener
+	logger                      boshlog.Logger
+	baseURL                     *url.URL
+	expectedAuthorizationHeader string
 }
 
 type HTTPHandlerFunc func(writer http.ResponseWriter, request *http.Request)
@@ -38,26 +44,29 @@ func NewHTTPSDispatcher(baseURL *url.URL, logger boshlog.Logger) *HTTPSDispatche
 		},
 		PreferServerCipherSuites: true,
 	}
-	return NewHTTPSDispatcherWithConfig(tlsConfig, baseURL, logger)
-}
-
-func NewHTTPSDispatcherWithConfig(tlsConfig *tls.Config, baseURL *url.URL, logger boshlog.Logger) *HTTPSDispatcher {
 	httpServer := &http.Server{
 		TLSConfig: tlsConfig,
 	}
 	mux := http.NewServeMux()
 	httpServer.Handler = mux
 
+	expectedUsername := baseURL.User.Username()
+	expectedPassword, _ := baseURL.User.Password()
+	auth := fmt.Sprintf("%s:%s", expectedUsername, expectedPassword)
+	encodedAuth := base64.StdEncoding.EncodeToString([]byte(auth))
+	expectedAuthorizationHeader := fmt.Sprintf("Basic %s", encodedAuth)
+
 	return &HTTPSDispatcher{
-		httpServer: httpServer,
-		mux:        mux,
-		host:       baseURL.Host,
-		logger:     logger,
+		httpServer:                  httpServer,
+		mux:                         mux,
+		logger:                      logger,
+		baseURL:                     baseURL,
+		expectedAuthorizationHeader: expectedAuthorizationHeader,
 	}
 }
 
 func (h *HTTPSDispatcher) Start() error {
-	tcpListener, err := net.Listen("tcp", h.host)
+	tcpListener, err := net.Listen("tcp", h.baseURL.Host)
 	if err != nil {
 		return bosherr.WrapError(err, "Starting HTTP listener")
 	}
@@ -85,6 +94,26 @@ func (h *HTTPSDispatcher) Stop() {
 	}
 }
 
+func (h *HTTPSDispatcher) requestNotAuthorized(request *http.Request) bool {
+	return h.constantTimeEquals(h.expectedAuthorizationHeader, request.Header.Get("Authorization"))
+}
+
+func (h *HTTPSDispatcher) constantTimeEquals(a, b string) bool {
+	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) != 1
+}
+
 func (h *HTTPSDispatcher) AddRoute(route string, handler HTTPHandlerFunc) {
-	h.mux.HandleFunc(route, handler)
+	authWrapper := func(w http.ResponseWriter, r *http.Request) {
+		h.logger.Info(httpsDispatcherLogTag, fmt.Sprintf("%s %s", r.Method, r.URL.Path))
+
+		if h.requestNotAuthorized(r) {
+			w.Header().Add("WWW-Authenticate", `Basic realm=""`)
+			w.WriteHeader(401)
+			return
+		}
+
+		handler(w, r)
+	}
+
+	h.mux.HandleFunc(route, authWrapper)
 }

@@ -10,7 +10,6 @@ import (
 	boshntp "github.com/cloudfoundry/bosh-agent/platform/ntp"
 	boshdir "github.com/cloudfoundry/bosh-agent/settings/directories"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	fakeas "github.com/cloudfoundry/bosh-agent/agent/applier/applyspec/fakes"
 	fakeappl "github.com/cloudfoundry/bosh-agent/agent/applier/fakes"
@@ -66,7 +65,6 @@ var _ = Describe("concreteFactory", func() {
 			jobSupervisor,
 			specService,
 			jobScriptProvider,
-			boshsys.NewScriptCommandFactory("linux"),
 			logger,
 		)
 	})

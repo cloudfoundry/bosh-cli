@@ -83,7 +83,9 @@ const (
                 ],
                 "version": "8fe0a4982b28ffe4e59d7c1e573c4f30a526770d"
             },
-            "networks": {},
+            "networks": {
+            	"diego1": {}
+            },
 			"rendered_templates_archive": {
 					"blobstore_id": "{{ .RenderedTemplatesArchiveBlobstoreID }}",
 					"sha1": "{{ .RenderedTemplatesArchiveSHA1 }}"

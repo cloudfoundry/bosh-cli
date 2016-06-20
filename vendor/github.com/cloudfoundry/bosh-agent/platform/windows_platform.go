@@ -1,6 +1,9 @@
 package platform
 
 import (
+	"fmt"
+	"strings"
+
 	boshdpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	boshcert "github.com/cloudfoundry/bosh-agent/platform/cert"
 	boshnet "github.com/cloudfoundry/bosh-agent/platform/net"
@@ -9,22 +12,24 @@ import (
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshdir "github.com/cloudfoundry/bosh-agent/settings/directories"
 	boshdirs "github.com/cloudfoundry/bosh-agent/settings/directories"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type WindowsPlatform struct {
-	collector          boshstats.Collector
-	fs                 boshsys.FileSystem
-	cmdRunner          boshsys.CmdRunner
-	compressor         boshcmd.Compressor
-	copier             boshcmd.Copier
-	dirProvider        boshdirs.Provider
-	vitalsService      boshvitals.Service
-	netManager         boshnet.Manager
-	devicePathResolver boshdpresolv.DevicePathResolver
-	certManager        boshcert.Manager
+	collector              boshstats.Collector
+	fs                     boshsys.FileSystem
+	cmdRunner              boshsys.CmdRunner
+	compressor             boshcmd.Compressor
+	copier                 boshcmd.Copier
+	dirProvider            boshdirs.Provider
+	vitalsService          boshvitals.Service
+	netManager             boshnet.Manager
+	devicePathResolver     boshdpresolv.DevicePathResolver
+	certManager            boshcert.Manager
+	defaultNetworkResolver boshsettings.DefaultNetworkResolver
 }
 
 func NewWindowsPlatform(
@@ -35,18 +40,20 @@ func NewWindowsPlatform(
 	netManager boshnet.Manager,
 	devicePathResolver boshdpresolv.DevicePathResolver,
 	logger boshlog.Logger,
+	defaultNetworkResolver boshsettings.DefaultNetworkResolver,
 ) Platform {
 	return &WindowsPlatform{
-		fs:                 fs,
-		cmdRunner:          cmdRunner,
-		collector:          collector,
-		compressor:         boshcmd.NewTarballCompressor(cmdRunner, fs),
-		copier:             boshcmd.NewGenericCpCopier(fs, logger),
-		dirProvider:        dirProvider,
-		netManager:         netManager,
-		devicePathResolver: devicePathResolver,
-		vitalsService:      boshvitals.NewService(collector, dirProvider),
-		certManager:        boshcert.NewDummyCertManager(fs, cmdRunner, 0, logger),
+		fs:                     fs,
+		cmdRunner:              cmdRunner,
+		collector:              collector,
+		compressor:             boshcmd.NewTarballCompressor(cmdRunner, fs),
+		copier:                 boshcmd.NewGenericCpCopier(fs, logger),
+		dirProvider:            dirProvider,
+		netManager:             netManager,
+		devicePathResolver:     devicePathResolver,
+		vitalsService:          boshvitals.NewService(collector, dirProvider),
+		certManager:            boshcert.NewDummyCertManager(fs, cmdRunner, 0, logger),
+		defaultNetworkResolver: defaultNetworkResolver,
 	}
 }
 
@@ -131,6 +138,43 @@ func (p WindowsPlatform) SetupLogrotate(groupName, basePath, size string) (err e
 }
 
 func (p WindowsPlatform) SetTimeWithNtpServers(servers []string) (err error) {
+	if len(servers) == 0 {
+		return
+	}
+	var (
+		stderr string
+	)
+	ntpServers := strings.Join(servers, " ")
+	_, stderr, _, err = p.cmdRunner.RunCommand("powershell.exe",
+		"new-netfirewallrule",
+		"-displayname", "NTP",
+		"-direction", "outbound",
+		"-action", "allow",
+		"-protocol", "udp",
+		"-RemotePort", "123")
+	if err != nil {
+		err = bosherr.WrapErrorf(err, "SetTimeWithNtpServers  %s", stderr)
+		return
+	}
+
+	_, _, _, _ = p.cmdRunner.RunCommand("net", "stop", "w32time")
+	manualPeerList := fmt.Sprintf("/manualpeerlist:\"%s\"", ntpServers)
+	_, stderr, _, err = p.cmdRunner.RunCommand("w32tm", "/config", "/syncfromflags:manual", manualPeerList)
+	if err != nil {
+		err = bosherr.WrapErrorf(err, "SetTimeWithNtpServers %s", stderr)
+		return
+	}
+	_, _, _, _ = p.cmdRunner.RunCommand("net", "start", "w32time")
+	_, stderr, _, err = p.cmdRunner.RunCommand("w32tm", "/config", "/update")
+	if err != nil {
+		err = bosherr.WrapErrorf(err, "SetTimeWithNtpServers %s", stderr)
+		return
+	}
+	_, stderr, _, err = p.cmdRunner.RunCommand("w32tm", "/resync", "/rediscover")
+	if err != nil {
+		err = bosherr.WrapErrorf(err, "SetTimeWithNtpServers %s", stderr)
+		return
+	}
 	return
 }
 
@@ -211,7 +255,7 @@ func (p WindowsPlatform) RemoveDevTools(packageFileListPath string) error {
 }
 
 func (p WindowsPlatform) GetDefaultNetwork() (boshsettings.Network, error) {
-	return boshsettings.Network{}, nil
+	return p.defaultNetworkResolver.GetDefaultNetwork()
 }
 
 func (p WindowsPlatform) GetHostPublicKey() (string, error) {

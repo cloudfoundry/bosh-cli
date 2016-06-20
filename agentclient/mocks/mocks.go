@@ -145,10 +145,11 @@ func (_mr *_MockAgentClientRecorder) Stop() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Stop")
 }
 
-func (_m *MockAgentClient) SyncDNS(_param0 string, _param1 string) error {
+func (_m *MockAgentClient) SyncDNS(_param0 string, _param1 string) (string, error) {
 	ret := _m.ctrl.Call(_m, "SyncDNS", _param0, _param1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockAgentClientRecorder) SyncDNS(arg0, arg1 interface{}) *gomock.Call {

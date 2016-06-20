@@ -9,8 +9,8 @@ import (
 	. "github.com/cloudfoundry/bosh-agent/agent/action"
 
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
+	fakelogger "github.com/cloudfoundry/bosh-agent/logger/fakes"
 	fakeplatform "github.com/cloudfoundry/bosh-agent/platform/fakes"
 	fakesettings "github.com/cloudfoundry/bosh-agent/settings/fakes"
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -24,12 +24,11 @@ var _ = Describe("SyncDNS", func() {
 		fakeSettingsService *fakesettings.FakeSettingsService
 		fakePlatform        *fakeplatform.FakePlatform
 		fakeFileSystem      *fakesys.FakeFileSystem
-		logger              boshlog.Logger
+		logger              *fakelogger.FakeLogger
 	)
 
 	BeforeEach(func() {
-		logger = boshlog.NewLogger(boshlog.LevelNone)
-
+		logger = &fakelogger.FakeLogger{}
 		fakeBlobstore = fakeblobstore.NewFakeBlobstore()
 		fakeSettingsService = &fakesettings.FakeSettingsService{}
 		fakePlatform = fakeplatform.NewFakePlatform()
@@ -81,7 +80,7 @@ var _ = Describe("SyncDNS", func() {
 			It("accesses the blobstore and fetches DNS records", func() {
 				response, err := syncDNS.Run("fake-blobstore-id", "fake-fingerprint")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(Equal(map[string]interface{}{}))
+				Expect(response).To(Equal("synced"))
 
 				Expect(fakeBlobstore.GetBlobIDs).To(ContainElement("fake-blobstore-id"))
 				Expect(fakeBlobstore.GetFingerprints).To(ContainElement("fake-fingerprint"))
@@ -93,7 +92,7 @@ var _ = Describe("SyncDNS", func() {
 			It("reads the DNS records from the blobstore file", func() {
 				response, err := syncDNS.Run("fake-blobstore-id", "fake-fingerprint")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(Equal(map[string]interface{}{}))
+				Expect(response).To(Equal("synced"))
 
 				Expect(fakeBlobstore.GetError).ToNot(HaveOccurred())
 				Expect(fakeBlobstore.GetFileName).To(Equal("fake-blobstore-file-path"))
@@ -105,33 +104,31 @@ var _ = Describe("SyncDNS", func() {
 
 				response, err := syncDNS.Run("fake-blobstore-id", "fake-fingerprint")
 				Expect(err).To(HaveOccurred())
-				Expect(response).To(Equal(map[string]interface{}{}))
+				Expect(response).To(Equal(""))
 				Expect(err.Error()).To(ContainSubstring("Reading fileName"))
 			})
 
-			It("loads the agent settings", func() {
-				response, err := syncDNS.Run("fake-blobstore-id", "fake-fingerprint")
+			It("deletes the file once read", func() {
+				_, err := syncDNS.Run("fake-blobstore-id", "fake-fingerprint")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(Equal(map[string]interface{}{}))
 
-				Expect(fakeSettingsService.SettingsWereLoaded).To(BeTrue())
-				Expect(fakeSettingsService.LoadSettingsError).To(BeNil())
+				Expect(fakeFileSystem.FileExists("fake-blobstore-file-path")).To(BeFalse())
 			})
 
-			It("fails loading the agent settings", func() {
-				fakeSettingsService.LoadSettingsError = errors.New("fake-error")
-
+			It("logs when the dns blob file can't be deleted", func() {
+				fakeFileSystem.RegisterRemoveAllError("fake-blobstore-file-path", errors.New("fake-file-path-error"))
 				_, err := syncDNS.Run("fake-blobstore-id", "fake-fingerprint")
-				Expect(err).To(HaveOccurred())
+				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeSettingsService.SettingsWereLoaded).To(BeTrue())
-				Expect(err.Error()).To(ContainSubstring("Loading settings"))
+				tag, message, _ := logger.InfoArgsForCall(0)
+				Expect(tag).To(Equal("Sync DNS action"))
+				Expect(message).To(Equal("Failed to remove dns blob file at path 'fake-blobstore-file-path'"))
 			})
 
 			It("saves DNS records to the platform", func() {
 				response, err := syncDNS.Run("fake-blobstore-id", "fake-fingerprint")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(Equal(map[string]interface{}{}))
+				Expect(response).To(Equal("synced"))
 
 				Expect(fakePlatform.SaveDNSRecordsError).To(BeNil())
 				Expect(fakePlatform.SaveDNSRecordsDNSRecords).To(Equal(boshsettings.DNSRecords{

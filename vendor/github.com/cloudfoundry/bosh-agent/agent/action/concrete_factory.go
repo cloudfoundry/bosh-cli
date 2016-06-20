@@ -14,7 +14,6 @@ import (
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type concreteFactory struct {
@@ -32,7 +31,6 @@ func NewFactory(
 	jobSupervisor boshjobsuper.JobSupervisor,
 	specService boshas.V1Service,
 	jobScriptProvider boshscript.JobScriptProvider,
-	scriptCommandFactory boshsys.ScriptCommandFactory,
 	logger boshlog.Logger,
 ) (factory Factory) {
 	compressor := platform.GetCompressor()
@@ -61,7 +59,7 @@ func NewFactory(
 			"stop":       NewStop(jobSupervisor),
 			"drain":      NewDrain(notifier, specService, jobScriptProvider, jobSupervisor, logger),
 			"get_state":  NewGetState(settingsService, specService, jobSupervisor, vitalsService, ntpService),
-			"run_errand": NewRunErrand(specService, dirProvider.JobsDir(), scriptCommandFactory, platform.GetRunner(), logger),
+			"run_errand": NewRunErrand(specService, dirProvider.JobsDir(), platform.GetRunner(), logger),
 			"run_script": NewRunScript(jobScriptProvider, specService, logger),
 
 			// Compilation

@@ -1,9 +1,21 @@
+resource_types:
+- name: ami-resource
+  type: docker-image
+  source:
+    repository: pivotalgreenhouse/ami-resource
+    tag: latest
+
 resources:
-- name: bosh-agent-windows
+- name: bosh-agent
   type: git
   source:
-    branch: windows
+    branch: master
     uri: https://github.com/cloudfoundry/bosh-agent.git
+- name: stemcell-builder
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry-incubator/bosh-windows-stemcell-builder.git
 - name: bosh-agent-zip-version
   type: semver
   source:
@@ -53,19 +65,42 @@ resources:
     username: {{BOSH_USER}}
     password: {{BOSH_PASSWORD}}
     deployment: sample-errand-windows-deployment
+    resources:
+- name: windows-ami
+  type: ami-resource
+  source:
+    access_key_id: {{AWS_ACCESS_KEY}}
+    secret_access_key: {{AWS_SECRET_KEY}}
+    region: us-east-1
+    search_options:
+      filters:
+      - {name: "name", values: ["Windows_Server-2012-R2_RTM-English-64Bit-Base*"]}
+      - {name: "state", values: ["available"]}
+      owners:
+      - amazon
+- name: bosh-aws-stemcell-version
+  type: semver
+  source:
+    bucket: bosh-windows-stemcells
+    key: versions/bosh-aws-stemcell-version
+    access_key_id: {{AWS_ACCESS_KEY}}
+    secret_access_key: {{AWS_SECRET_KEY}}
+- name: bosh-aws-stemcell
+  type: s3
+  source:
+    bucket: bosh-windows-stemcells
+    regexp: light-bosh-stemcell-(.*)-aws-xen-hvm-windows2012R2-go_agent.tgz
+    access_key_id: {{AWS_ACCESS_KEY}}
+    secret_access_key: {{AWS_SECRET_KEY}}
 
 jobs:
-- name: test-compile-and-push
+- name: compile-and-push
   serial: true
   plan:
   - get: bosh-agent
-    trigger: true
-    resource: bosh-agent-windows
   - put: bosh-agent-zip-version
     params:
       bump: patch
-  - task: test-unit
-    file: bosh-agent/ci/tasks/test-unit-windows.yml
   - task: compile-agent
     privileged: true
     file: bosh-agent/ci/tasks/compile-agent-windows.yml
@@ -73,44 +108,19 @@ jobs:
     params:
       file: compiled-agent-zip/bosh-windows-integration-v*.zip
 
-- name: test-integration
-  serial: true
-  plan:
-  - get: bosh-agent
-    resource: bosh-agent-windows
-  - get: bosh-agent-deps-zip
-  - get: bosh-agent-zip
-    passed:
-    - test-compile-and-push
-    trigger: true
-  - task: test-integration
-    privileged: true
-    file: bosh-agent/ci/tasks/test-integration-windows.yml
-    config:
-      params:
-        AWS_ACCESS_KEY: {{AWS_ACCESS_KEY}}
-        AWS_SECRET_KEY: {{AWS_SECRET_KEY}}
-        AWS_SUBNET: subnet-110fae67
-        AWS_SSH_KEY: {{AWS_SSH_KEY}}
-        KEYPAIR_NAME: agent-integration
-        NATS_ELASTIC_IP: 52.23.114.20
-        VAGRANT_PROVIDER: aws
-        WINRM_PASSWORD: {{WINRM_PASSWORD}}
-
 - name: create-vsphere-stemcell-and-push
   serial: true
   plan:
   - get: bosh-agent
     tags: [vsphere-windows]
-    resource: bosh-agent-windows
+    passed: [compile-and-push]
+  - get: stemcell-builder
   - get: bosh-agent-deps-zip
     tags: [vsphere-windows]
-    passed:
-    - test-integration
   - get: bosh-agent-zip
     tags: [vsphere-windows]
-    passed:
-    - test-integration
+    passed: [compile-and-push]
+    trigger: true
   - get: ovftool-linux
     tags: [vsphere-windows]
   - put: bosh-vsphere-stemcell-version
@@ -119,25 +129,24 @@ jobs:
       bump: patch
   - task: create-vsphere-stemcell
     privileged: true
-    file: bosh-agent/ci/tasks/create-vsphere-stemcell-windows.yml
+    file: stemcell-builder/tasks/create-vsphere-stemcell.yml
     tags: [vsphere-windows]
-    config:
-      params: &vagrant-vsphere-params
-        VCENTER_HOST: {{VCENTER_HOST}}
-        VCENTER_COMPUTE_RESOURCE: {{VCENTER_COMPUTE_RESOURCE}}
-        VCENTER_DATACENTER: {{VCENTER_DATACENTER}}
-        VCENTER_RESOURCE_POOL: {{VCENTER_RESOURCE_POOL}}
-        VCENTER_TEMPLATE_NAME: {{VCENTER_TEMPLATE_NAME}}
-        VCENTER_PASSWORD: {{VCENTER_PASSWORD}}
-        VCENTER_USERNAME: {{VCENTER_USERNAME}}
-        VCENTER_FINGERPRINT: {{VCENTER_FINGERPRINT}}
-        VCENTER_VM_BASE_PATH: {{VCENTER_VM_BASE_PATH}}
-        VCENTER_VM_NAME: {{VCENTER_VM_NAME}}
-        WINRM_PASSWORD: {{WINRM_PASSWORD}}
-        WINRM_USERNAME: {{WINRM_USERNAME}}
-        VAGRANT_HOME: ./vagrant_home/.vagrant.d/
-        VAGRANT_DOTFILE_PATH: ./vagrant_home/.vagrant/
-        VAGRANT_VAGRANTFILE: ./gopath/src/github.com/cloudfoundry/bosh-agent/ci/Vagrantfile-vsphere-windows
+    params: &vagrant-vsphere-params
+      VCENTER_HOST: {{VCENTER_HOST}}
+      VCENTER_COMPUTE_RESOURCE: {{VCENTER_COMPUTE_RESOURCE}}
+      VCENTER_DATACENTER: {{VCENTER_DATACENTER}}
+      VCENTER_RESOURCE_POOL: {{VCENTER_RESOURCE_POOL}}
+      VCENTER_TEMPLATE_NAME: {{VCENTER_TEMPLATE_NAME}}
+      VCENTER_PASSWORD: {{VCENTER_PASSWORD}}
+      VCENTER_USERNAME: {{VCENTER_USERNAME}}
+      VCENTER_FINGERPRINT: {{VCENTER_FINGERPRINT}}
+      VCENTER_VM_BASE_PATH: {{VCENTER_VM_BASE_PATH}}
+      VCENTER_VM_NAME: {{VCENTER_VM_NAME}}
+      WINRM_PASSWORD: {{WINRM_PASSWORD}}
+      WINRM_USERNAME: {{WINRM_USERNAME}}
+      VAGRANT_HOME: ./vagrant_home/.vagrant.d/
+      VAGRANT_DOTFILE_PATH: ./vagrant_home/.vagrant/
+      VAGRANT_VAGRANTFILE: ./stemcell-builder/vsphere/Vagrantfile
     ensure:
       task: vagrant-destroy-vsphere
       tags: [vsphere-windows]
@@ -151,24 +160,21 @@ jobs:
           - -c
           - vagrant destroy --force
         inputs:
-        - name: bosh-agent
-          path: gopath/src/github.com/cloudfoundry/bosh-agent
+        - name: stemcell-builder
         - name: vagrant_home
   - put: bosh-vsphere-stemcell
     params:
-      from: /bosh-vsphere-stemcell/bosh-stemcell-(.*)-vsphere-esxi-windows2012R2-go_agent.tgz
-      to: /
+      file: bosh-vsphere-stemcell/bosh-stemcell-*-vsphere-esxi-windows2012R2-go_agent.tgz
 - name: test-vsphere-stemcell
   serial: true
   plan:
   - get: bosh-agent
     tags: [vsphere-windows]
-    resource: bosh-agent-windows
+    passed: [create-vsphere-stemcell-and-push]
   - get: bosh-vsphere-stemcell
     tags: [vsphere-windows]
     trigger: true
-    passed:
-    - create-vsphere-stemcell-and-push
+    passed: [create-vsphere-stemcell-and-push]
   - task: create-vsphere-errand-release
     file: bosh-agent/ci/tasks/create-vsphere-errand-release-windows.yml
     tags: [vsphere-windows]
@@ -235,3 +241,30 @@ jobs:
           DIRECTOR_IP: {{DIRECTOR_IP}}
           BOSH_USER: {{BOSH_USER}}
           BOSH_PASSWORD: {{BOSH_PASSWORD}}
+
+- name: create-aws-stemcell
+  plan:
+  - aggregate:
+    - get: windows-ami
+    - get: stemcell-builder
+    - get: bosh-agent
+      passed: [compile-and-push]
+    - put: version
+      resource: bosh-aws-stemcell-version
+      params:
+        bump: patch
+    - get: bosh-agent-zip
+      passed: [compile-and-push]
+      trigger: true
+    - get: bosh-agent-deps-zip
+  - task: create-stemcell
+    file: stemcell-builder/tasks/create-aws-stemcell.yml
+    params:
+      OUTPUT_DIR: bosh-aws-stemcell
+      AWS_ACCESS_KEY: {{AWS_ACCESS_KEY}}
+      AWS_SECRET_KEY: {{AWS_SECRET_KEY}}
+      VPC_ID: vpc-3e38385b
+      SUBNET_ID: subnet-110fae67
+  - put: bosh-aws-stemcell
+    params:
+      file: bosh-aws-stemcell/light-bosh-stemcell-*-aws-xen-hvm-windows2012R2-go_agent.tgz

@@ -29,7 +29,6 @@ var _ = Describe("ConcreteJobScriptProvider", func() {
 			runner,
 			fs,
 			dirProvider,
-			&fakesys.FakeCommandFactory{},
 			&fakeaction.FakeClock{},
 			logger,
 		)
@@ -39,7 +38,9 @@ var _ = Describe("ConcreteJobScriptProvider", func() {
 		It("returns script with relative job paths to the base directory", func() {
 			script := scriptProvider.NewScript("myjob", "the-best-hook-ever")
 			Expect(script.Tag()).To(Equal("myjob"))
-			Expect(script.Path()).To(Equal("/the/base/dir/jobs/myjob/bin/the-best-hook-ever"))
+
+			expPath := "/the/base/dir/jobs/myjob/bin/the-best-hook-ever" + boshscript.ScriptExt
+			Expect(script.Path()).To(Equal(expPath))
 		})
 	})
 
@@ -48,7 +49,9 @@ var _ = Describe("ConcreteJobScriptProvider", func() {
 			params := &fakedrain.FakeScriptParams{}
 			script := scriptProvider.NewDrainScript("foo", params)
 			Expect(script.Tag()).To(Equal("foo"))
-			Expect(script.Path()).To(Equal("/the/base/dir/jobs/foo/bin/drain"))
+
+			expPath := "/the/base/dir/jobs/foo/bin/drain" + boshscript.ScriptExt
+			Expect(script.Path()).To(Equal(expPath))
 			Expect(script.(boshdrain.ConcreteScript).Params()).To(Equal(params))
 		})
 	})

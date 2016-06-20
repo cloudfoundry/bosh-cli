@@ -197,11 +197,11 @@ func (w *windowsJobSupervisor) Reload() error {
 
 func (w *windowsJobSupervisor) Start() error {
 
-	_, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", autoStartJobScript)
+	_, _, _, err := w.cmdRunner.RunCommand("-Command", autoStartJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Starting windows job process")
 	}
-	_, _, _, err = w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", startJobScript)
+	_, _, _, err = w.cmdRunner.RunCommand("-Command", startJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Starting windows job process")
 	}
@@ -217,11 +217,11 @@ func (w *windowsJobSupervisor) Start() error {
 
 func (w *windowsJobSupervisor) Stop() error {
 
-	_, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", unmonitorJobScript)
+	_, _, _, err := w.cmdRunner.RunCommand("-Command", unmonitorJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Disabling services")
 	}
-	_, _, _, err = w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", stopJobScript)
+	_, _, _, err = w.cmdRunner.RunCommand("-Command", stopJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Stopping services")
 	}
@@ -233,7 +233,7 @@ func (w *windowsJobSupervisor) Stop() error {
 
 func (w *windowsJobSupervisor) Unmonitor() error {
 	w.stateSet(stateDisabled)
-	_, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", unmonitorJobScript)
+	_, _, _, err := w.cmdRunner.RunCommand("-Command", unmonitorJobScript)
 	return err
 }
 
@@ -242,7 +242,7 @@ func (w *windowsJobSupervisor) Status() (status string) {
 		return "stopped"
 	}
 
-	stdout, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", getStatusScript)
+	stdout, _, _, err := w.cmdRunner.RunCommand("-Command", getStatusScript)
 	if err != nil {
 		return "failing"
 	}
@@ -280,7 +280,7 @@ func SvcStateString(s svc.State) string {
 }
 
 func (w *windowsJobSupervisor) Processes() ([]Process, error) {
-	stdout, _, _, err := w.cmdRunner.RunCommand("powershell", "-noprofile", "-noninteractive", "/C", listAllJobsScript)
+	stdout, _, _, err := w.cmdRunner.RunCommand("-Command", listAllJobsScript)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Listing windows job process")
 	}
@@ -395,13 +395,7 @@ func (w *windowsJobSupervisor) RemoveAllJobs() error {
 	const MaxRetries = 100
 	const RetryInterval = time.Millisecond * 5
 
-	_, _, _, err := w.cmdRunner.RunCommand(
-		"powershell",
-		"-noprofile",
-		"-noninteractive",
-		"/C",
-		deleteAllJobsScript,
-	)
+	_, _, _, err := w.cmdRunner.RunCommand("-Command", deleteAllJobsScript)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Removing Windows job supervisor services")
 	}
@@ -409,13 +403,7 @@ func (w *windowsJobSupervisor) RemoveAllJobs() error {
 	i := 0
 	start := time.Now()
 	for {
-		stdout, _, _, err := w.cmdRunner.RunCommand(
-			"powershell",
-			"-noprofile",
-			"-noninteractive",
-			"/C",
-			waitForDeleteAllScript,
-		)
+		stdout, _, _, err := w.cmdRunner.RunCommand("-Command", waitForDeleteAllScript)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Checking if Windows job supervisor services exist")
 		}

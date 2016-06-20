@@ -207,7 +207,7 @@ func (ms httpMetadataService) getUserData() (UserDataContentsType, error) {
 
 	err = json.Unmarshal(userDataBytes, &userData)
 	if err != nil {
-		return userData, bosherr.WrapError(err, "Unmarshalling user data")
+		return userData, bosherr.WrapErrorf(err, "Unmarshalling user data '%s'", string(userDataBytes))
 	}
 
 	return userData, nil

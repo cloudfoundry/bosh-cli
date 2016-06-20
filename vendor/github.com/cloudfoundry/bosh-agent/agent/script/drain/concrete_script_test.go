@@ -18,13 +18,12 @@ import (
 
 var _ = Describe("ConcreteScript", func() {
 	var (
-		fs                   *fakesys.FakeFileSystem
-		runner               *fakesys.FakeCmdRunner
-		params               ScriptParams
-		fakeClock            *fakeaction.FakeClock
-		script               ConcreteScript
-		exampleSpec          func() applyspec.V1ApplySpec
-		scriptCommandFactory boshsys.ScriptCommandFactory
+		fs          *fakesys.FakeFileSystem
+		runner      *fakesys.FakeCmdRunner
+		params      ScriptParams
+		fakeClock   *fakeaction.FakeClock
+		script      ConcreteScript
+		exampleSpec func() applyspec.V1ApplySpec
 	)
 
 	BeforeEach(func() {
@@ -32,12 +31,11 @@ var _ = Describe("ConcreteScript", func() {
 		runner = fakesys.NewFakeCmdRunner()
 		params = &fakes.FakeScriptParams{}
 		fakeClock = &fakeaction.FakeClock{}
-		scriptCommandFactory = boshsys.NewScriptCommandFactory("linux")
 	})
 
 	JustBeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		script = NewConcreteScript(fs, runner, scriptCommandFactory, "my-tag", "/fake/script", params, fakeClock, logger)
+		script = NewConcreteScript(fs, runner, "my-tag", "/fake/script", params, fakeClock, logger)
 	})
 
 	Describe("Tag", func() {

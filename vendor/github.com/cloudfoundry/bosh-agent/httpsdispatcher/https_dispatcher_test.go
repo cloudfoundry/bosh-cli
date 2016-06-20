@@ -12,10 +12,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	boshdispatcher "github.com/cloudfoundry/bosh-agent/httpsdispatcher"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	fakelogger "github.com/cloudfoundry/bosh-agent/logger/fakes"
 )
 
-const targetURL = "https://127.0.0.1:7789"
+const targetURL = "https://user:pass@127.0.0.1:7789"
 
 // Confirm the targetURL is valid and can be listened on before running tests.
 func init() {
@@ -33,10 +33,11 @@ func init() {
 var _ = Describe("HTTPSDispatcher", func() {
 	var (
 		dispatcher *boshdispatcher.HTTPSDispatcher
+		logger     *fakelogger.FakeLogger
 	)
 
 	BeforeEach(func() {
-		logger := boshlog.NewLogger(boshlog.LevelNone)
+		logger = &fakelogger.FakeLogger{}
 		serverURL, err := url.Parse(targetURL)
 		Expect(err).ToNot(HaveOccurred())
 		dispatcher = boshdispatcher.NewHTTPSDispatcher(serverURL, logger)
@@ -193,6 +194,33 @@ var _ = Describe("HTTPSDispatcher", func() {
 		client := getHTTPClientWithConfig(tlsConfig)
 		_, err := client.Get(targetURL + "/example")
 		Expect(err).ToNot(HaveOccurred())
+	})
+
+	It("logs the request", func() {
+		handler := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) }
+		dispatcher.AddRoute("/example", handler)
+		client := getHTTPClient()
+		_, err := client.Get(targetURL + "/example")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(logger.InfoCallCount()).To(Equal(1))
+		tag, message, _ := logger.InfoArgsForCall(0)
+		Expect(message).To(Equal("GET /example"))
+		Expect(tag).To(Equal("HTTPS Dispatcher"))
+	})
+
+	Context("When the basic authorization is wrong", func() {
+		It("returns 401", func() {
+			dispatcher.AddRoute("/example", func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(500)
+			})
+			client := getHTTPClient()
+
+			response, err := client.Get("https://bad:creds@127.0.0.1:7789/example")
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(response.StatusCode).To(BeNumerically("==", 401))
+			Expect(response.Header.Get("WWW-Authenticate")).To(Equal(`Basic realm=""`))
+		})
 	})
 })
 

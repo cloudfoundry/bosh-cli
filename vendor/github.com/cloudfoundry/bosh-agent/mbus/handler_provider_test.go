@@ -45,10 +45,10 @@ var _ = Describe("HandlerProvider", func() {
 		})
 
 		It("returns https handler", func() {
-			url, err := gourl.Parse("https://lol")
+			url, err := gourl.Parse("https://foo:bar@lol")
 			Expect(err).ToNot(HaveOccurred())
 
-			settingsService.Settings.Mbus = "https://lol"
+			settingsService.Settings.Mbus = "https://foo:bar@lol"
 			handler, err := provider.Get(platform, dirProvider)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(handler).To(Equal(micro.NewHTTPSHandler(url, logger, platform.GetFs(), dirProvider)))

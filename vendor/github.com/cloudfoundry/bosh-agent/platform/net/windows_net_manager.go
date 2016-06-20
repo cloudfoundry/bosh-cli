@@ -2,6 +2,7 @@ package net
 
 import (
 	"fmt"
+	gonet "net"
 	"strings"
 	"time"
 
@@ -13,23 +14,57 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
-type WindowsNetManager struct {
-	scriptRunner boshsys.ScriptRunner
-
-	clock clock.Clock
-
-	logTag string
-	logger boshlog.Logger
+type MACAddressDetector interface {
+	MACAddresses() (map[string]string, error)
 }
 
-func NewWindowsNetManager(scriptRunner boshsys.ScriptRunner, logger boshlog.Logger, clock clock.Clock) Manager {
+func NewMACAddressDetector() MACAddressDetector {
+	return macAddressDetector{}
+}
+
+type macAddressDetector struct{}
+
+func (m macAddressDetector) MACAddresses() (map[string]string, error) {
+	ifs, err := gonet.Interfaces()
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Detecting Mac Addresses")
+	}
+	macs := make(map[string]string, len(ifs))
+	for _, f := range ifs {
+		macs[f.HardwareAddr.String()] = f.Name
+	}
+	return macs, nil
+}
+
+type NetworkInterfaces func() ([]gonet.Interface, error)
+
+func NewNetworkInterfaces() NetworkInterfaces {
+	return gonet.Interfaces
+}
+
+type WindowsNetManager struct {
+	runner                        boshsys.CmdRunner
+	interfaceConfigurationCreator InterfaceConfigurationCreator
+	macAddressDetector            MACAddressDetector
+	logTag                        string
+	logger                        boshlog.Logger
+	clock                         clock.Clock
+}
+
+func NewWindowsNetManager(
+	runner boshsys.CmdRunner,
+	interfaceConfigurationCreator InterfaceConfigurationCreator,
+	macAddressDetector MACAddressDetector,
+	logger boshlog.Logger,
+	clock clock.Clock,
+) Manager {
 	return WindowsNetManager{
-		scriptRunner: scriptRunner,
-
-		clock: clock,
-
-		logTag: "WindowsNetManager",
-		logger: logger,
+		runner: runner,
+		interfaceConfigurationCreator: interfaceConfigurationCreator,
+		macAddressDetector:            macAddressDetector,
+		logTag:                        "WindowsNetManager",
+		logger:                        logger,
+		clock:                         clock,
 	}
 }
 
@@ -55,10 +90,17 @@ netsh interface ip set address $connectionName static %s %s %s
 `
 )
 
-func (net WindowsNetManager) SetupNetworking(networks boshsettings.Networks, errCh chan error) error {
+func (net WindowsNetManager) GetConfiguredNetworkInterfaces() ([]string, error) {
+	panic("Not implemented")
+}
 
+func (net WindowsNetManager) ComputeNetworkConfig(networks boshsettings.Networks) (
+	[]StaticInterfaceConfiguration,
+	[]DHCPInterfaceConfiguration,
+	[]string,
+	error,
+) {
 	nonVipNetworks := boshsettings.Networks{}
-
 	for networkName, networkSettings := range networks {
 		if networkSettings.IsVIP() {
 			continue
@@ -66,25 +108,49 @@ func (net WindowsNetManager) SetupNetworking(networks boshsettings.Networks, err
 		nonVipNetworks[networkName] = networkSettings
 	}
 
-	err := net.setupInterfaces(nonVipNetworks)
+	staticConfigs, dhcpConfigs, err := net.buildInterfaces(nonVipNetworks)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	dnsNetwork, _ := nonVipNetworks.DefaultNetworkFor("dns")
+	dnsServers := dnsNetwork.DNS
+	return staticConfigs, dhcpConfigs, dnsServers, nil
+
+}
+
+func (net WindowsNetManager) SetupNetworking(networks boshsettings.Networks, errCh chan error) error {
+	nonVipNetworks := boshsettings.Networks{}
+	for networkName, networkSettings := range networks {
+		if networkSettings.IsVIP() {
+			continue
+		}
+		nonVipNetworks[networkName] = networkSettings
+	}
+	staticConfigs, _, dnsServers, err := net.ComputeNetworkConfig(networks)
+	if err != nil {
+		return bosherr.WrapError(err, "Computing network configuration")
+	}
+	err = net.setupInterfaces(staticConfigs)
 	if err != nil {
 		return err
 	}
 
-	dnsNetwork, _ := nonVipNetworks.DefaultNetworkFor("dns")
-	dns := net.setupDNS(dnsNetwork)
+	dns := net.setupDNS(dnsServers)
 	net.clock.Sleep(5 * time.Second)
 	return dns
 }
 
-func (net WindowsNetManager) setupInterfaces(networks boshsettings.Networks) error {
-	for _, network := range networks {
+func (net WindowsNetManager) setupInterfaces(staticConfigs []StaticInterfaceConfiguration) error {
+	for _, conf := range staticConfigs {
 		var gateway string
-
-		if network.IsDefaultFor("gateway") || len(networks) == 1 {
-			gateway = network.Gateway
+		if conf.IsDefaultForGateway {
+			gateway = conf.Gateway
 		}
-		_, _, err := net.scriptRunner.Run(fmt.Sprintf(NicSettingsTemplate, network.Mac, network.IP, network.Netmask, gateway))
+
+		content := fmt.Sprintf(NicSettingsTemplate, conf.Mac, conf.Address, conf.Netmask, gateway)
+
+		_, _, _, err := net.runner.RunCommand("-Command", content)
 		if err != nil {
 			return bosherr.WrapError(err, "Configuring interface")
 		}
@@ -92,21 +158,37 @@ func (net WindowsNetManager) setupInterfaces(networks boshsettings.Networks) err
 	return nil
 }
 
-func (net WindowsNetManager) setupDNS(dnsNetwork boshsettings.Network) error {
-	if len(dnsNetwork.DNS) > 0 {
-		_, _, err := net.scriptRunner.Run(fmt.Sprintf(SetDNSTemplate, strings.Join(dnsNetwork.DNS, `","`)))
-		if err != nil {
-			return bosherr.WrapError(err, "Configuring DNS servers")
-		}
-	} else {
-		_, _, err := net.scriptRunner.Run(ResetDNSTemplate)
-		if err != nil {
-			return bosherr.WrapError(err, "Resetting DNS servers")
-		}
+func (net WindowsNetManager) buildInterfaces(networks boshsettings.Networks) (
+	[]StaticInterfaceConfiguration,
+	[]DHCPInterfaceConfiguration,
+	error,
+) {
+
+	interfacesByMacAddress, err := net.macAddressDetector.MACAddresses()
+	if err != nil {
+		return nil, nil, bosherr.WrapError(err, "Getting network interfaces")
 	}
-	return nil
+
+	staticConfigs, dhcpConfigs, err := net.interfaceConfigurationCreator.CreateInterfaceConfigurations(
+		networks, interfacesByMacAddress)
+	if err != nil {
+		return nil, nil, bosherr.WrapError(err, "Creating interface configurations")
+	}
+
+	return staticConfigs, dhcpConfigs, nil
 }
 
-func (net WindowsNetManager) GetConfiguredNetworkInterfaces() ([]string, error) {
-	panic("Not implemented")
+func (net WindowsNetManager) setupDNS(dnsServers []string) error {
+	var content string
+	if len(dnsServers) > 0 {
+		content = fmt.Sprintf(SetDNSTemplate, strings.Join(dnsServers, `","`))
+	} else {
+		content = ResetDNSTemplate
+	}
+
+	_, _, _, err := net.runner.RunCommand("-Command", content)
+	if err != nil {
+		return bosherr.WrapError(err, "Setting DNS servers")
+	}
+	return nil
 }

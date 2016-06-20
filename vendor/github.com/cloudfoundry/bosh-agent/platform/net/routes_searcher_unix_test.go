@@ -1,3 +1,5 @@
+// +build !windows
+
 package net_test
 
 import (
@@ -18,7 +20,7 @@ var _ = Describe("cmdRoutesSeacher", func() {
 
 	BeforeEach(func() {
 		runner = fakesys.NewFakeCmdRunner()
-		searcher = NewCmdRoutesSearcher(runner)
+		searcher = NewRoutesSearcher(runner)
 	})
 
 	Describe("SearchRoutes", func() {

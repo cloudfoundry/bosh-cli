@@ -18,6 +18,7 @@ type SyncDNS struct {
 	settingsService boshsettings.Service
 	platform        boshplat.Platform
 	logger          boshlog.Logger
+	logTag          string
 }
 
 func NewSyncDNS(blobstore boshblob.Blobstore, settingsService boshsettings.Service, platform boshplat.Platform, logger boshlog.Logger) SyncDNS {
@@ -26,6 +27,7 @@ func NewSyncDNS(blobstore boshblob.Blobstore, settingsService boshsettings.Servi
 		settingsService: settingsService,
 		platform:        platform,
 		logger:          logger,
+		logTag:          "Sync DNS action",
 	}
 }
 
@@ -45,32 +47,34 @@ func (a SyncDNS) Cancel() error {
 	return errors.New("Not supported")
 }
 
-func (a SyncDNS) Run(blobID, sha1 string) (interface{}, error) {
+func (a SyncDNS) Run(blobID, sha1 string) (string, error) {
 	fileName, err := a.blobstore.Get(blobID, sha1)
 	if err != nil {
-		return map[string]interface{}{}, bosherr.WrapError(err, fmt.Sprintf("Getting %s from blobstore", blobID))
+		return "", bosherr.WrapErrorf(err, "Getting %s from blobstore", blobID)
 	}
 
-	contents, err := a.platform.GetFs().ReadFile(fileName)
+	fs := a.platform.GetFs()
+
+	contents, err := fs.ReadFile(fileName)
 	if err != nil {
-		return map[string]interface{}{}, bosherr.WrapError(err, fmt.Sprintf("Reading fileName %s from blobstore", fileName))
+		return "", bosherr.WrapErrorf(err, "Reading fileName %s from blobstore", fileName)
+	}
+
+	err = fs.RemoveAll(fileName)
+	if err != nil {
+		a.logger.Info(a.logTag, fmt.Sprintf("Failed to remove dns blob file at path '%s'", fileName))
 	}
 
 	dnsRecords := boshsettings.DNSRecords{}
 	err = json.Unmarshal(contents, &dnsRecords)
 	if err != nil {
-		return map[string]interface{}{}, bosherr.WrapError(err, "Unmarshalling DNS records")
-	}
-
-	err = a.settingsService.LoadSettings()
-	if err != nil {
-		return map[string]interface{}{}, bosherr.WrapError(err, "Loading settings")
+		return "", bosherr.WrapError(err, "Unmarshalling DNS records")
 	}
 
 	err = a.platform.SaveDNSRecords(dnsRecords, a.settingsService.GetSettings().AgentID)
 	if err != nil {
-		return map[string]interface{}{}, bosherr.WrapError(err, "Saving DNS records in platform")
+		return "", bosherr.WrapError(err, "Saving DNS records in platform")
 	}
 
-	return map[string]interface{}{}, nil
+	return "synced", nil
 }

@@ -1,3 +1,5 @@
+// +build !windows
+
 package net
 
 import (
@@ -13,7 +15,7 @@ type cmdRoutesSearcher struct {
 	runner boshsys.CmdRunner
 }
 
-func NewCmdRoutesSearcher(runner boshsys.CmdRunner) RoutesSearcher {
+func NewRoutesSearcher(runner boshsys.CmdRunner) RoutesSearcher {
 	return cmdRoutesSearcher{runner}
 }
 

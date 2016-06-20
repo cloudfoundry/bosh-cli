@@ -71,6 +71,16 @@ setup_bosh_directory = <<-SHELL
   mkdir C:\\var\\vcap\\bosh\\log
 SHELL
 
+add_bosh_to_path = <<-SHELL
+if ((Get-Command "tar.exe" -ErrorAction SilentlyContinue) -eq $null)
+{
+  $OldPath=(Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment' -Name PATH).Path
+  $AddedFolder='C:\\bosh'
+  $NewPath=$OldPath+';'+$AddedFolder
+  Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\Environment' -Name PATH -Value $newPath
+}
+SHELL
+
 download_agent = <<-SHELL
   Add-Type -AssemblyName System.IO.Compression.FileSystem
   function Unzip
@@ -143,7 +153,6 @@ New-Item -ItemType file -path "C:\\bosh\\settings.json" -Value @"
       "preconfigured": false
     }
   },
-  "ntp": ["0.pool.ntp.org", "1.pool.ntp.org"],
   "mbus": "nats://#{nats_private_ip}:4222",
   "vm": {
     "name": "vm-1f1aaed4-b479-4cf5-b73e-a7cbf0abf4ae"
@@ -228,7 +237,7 @@ Vagrant.configure(2) do |config|
     end
 
     agent.vm.provider :aws do |aws, override|
-      aws.ami = "ami-3586ac5f"
+      aws.ami = "ami-c8a9baa2"
       override.vm.box = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
       override.winrm.password = winrm_password
       override.winrm.username = winrm_username
@@ -243,6 +252,7 @@ Vagrant.configure(2) do |config|
     agent.vm.provision "shell", inline: configure_security_settings
     agent.vm.provision "shell", inline: remove_agent_service
     agent.vm.provision "shell", inline: setup_bosh_directory
+    agent.vm.provision "shell", inline: add_bosh_to_path
     if agent_zip_url
       agent.vm.provision "shell", inline: download_agent
     else

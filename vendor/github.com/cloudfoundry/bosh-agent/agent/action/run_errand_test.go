@@ -17,18 +17,16 @@ import (
 
 var _ = Describe("RunErrand", func() {
 	var (
-		specService          *fakeas.FakeV1Service
-		cmdRunner            *fakesys.FakeCmdRunner
-		action               RunErrandAction
-		scriptCommandFactory boshsys.ScriptCommandFactory
+		specService *fakeas.FakeV1Service
+		cmdRunner   *fakesys.FakeCmdRunner
+		action      RunErrandAction
 	)
 
 	BeforeEach(func() {
 		specService = fakeas.NewFakeV1Service()
 		cmdRunner = fakesys.NewFakeCmdRunner()
-		scriptCommandFactory = boshsys.NewScriptCommandFactory("linux")
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		action = NewRunErrand(specService, "/fake-jobs-dir", scriptCommandFactory, cmdRunner, logger)
+		action = NewRunErrand(specService, "/fake-jobs-dir", cmdRunner, logger)
 	})
 
 	It("is asynchronous", func() {
@@ -74,14 +72,9 @@ var _ = Describe("RunErrand", func() {
 					It("runs errand script with properly configured environment", func() {
 						_, err := action.Run()
 						Expect(err).ToNot(HaveOccurred())
-						Expect(cmdRunner.RunComplexCommands).To(Equal([]boshsys.Command{
-							boshsys.Command{
-								Name: "/fake-jobs-dir/fake-job-name/bin/run",
-								Env: map[string]string{
-									"PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
-								},
-							},
-						}))
+						cmd := cmdRunner.RunComplexCommands[0]
+						env := map[string]string{"PATH": "/usr/sbin:/usr/bin:/sbin:/bin"}
+						Expect(cmd.Env).To(Equal(env))
 					})
 				})
 

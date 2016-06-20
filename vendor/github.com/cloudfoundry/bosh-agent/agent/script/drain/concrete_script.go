@@ -12,9 +12,8 @@ import (
 )
 
 type ConcreteScript struct {
-	fs                   boshsys.FileSystem
-	runner               boshsys.CmdRunner
-	scriptCommandFactory boshsys.ScriptCommandFactory
+	fs     boshsys.FileSystem
+	runner boshsys.CmdRunner
 
 	tag    string
 	path   string
@@ -30,7 +29,6 @@ type ConcreteScript struct {
 func NewConcreteScript(
 	fs boshsys.FileSystem,
 	runner boshsys.CmdRunner,
-	scriptCommandFactory boshsys.ScriptCommandFactory,
 	tag string,
 	path string,
 	params ScriptParams,
@@ -38,9 +36,8 @@ func NewConcreteScript(
 	logger boshlog.Logger,
 ) ConcreteScript {
 	return ConcreteScript{
-		fs:                   fs,
-		runner:               runner,
-		scriptCommandFactory: scriptCommandFactory,
+		fs:     fs,
+		runner: runner,
 
 		tag:    tag,
 		path:   path,
@@ -90,9 +87,11 @@ func (s ConcreteScript) runOnce(params ScriptParams) (int, error) {
 	hashChange := params.HashChange()
 	updatedPkgs := params.UpdatedPackages()
 
-	command := s.scriptCommandFactory.New(s.path)
-	command.Env = map[string]string{
-		"PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
+	command := boshsys.Command{
+		Name: s.path,
+		Env: map[string]string{
+			"PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
+		},
 	}
 
 	jobState, err := params.JobState()

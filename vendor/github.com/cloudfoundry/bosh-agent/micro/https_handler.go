@@ -2,7 +2,6 @@ package micro
 
 import (
 	"bufio"
-	"encoding/base64"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -66,25 +65,10 @@ func (h HTTPSHandler) Send(target boshhandler.Target, topic boshhandler.Topic, m
 	return nil
 }
 
-func (h HTTPSHandler) requestNotAuthorized(request *http.Request) bool {
-	username := h.parsedURL.User.Username()
-	password, _ := h.parsedURL.User.Password()
-	auth := username + ":" + password
-	expectedAuthorizationHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(auth))
-
-	return expectedAuthorizationHeader != request.Header.Get("Authorization")
-}
-
-func (h HTTPSHandler) agentHandler(handlerFunc boshhandler.Func) (agentHandler func(http.ResponseWriter, *http.Request)) {
-	agentHandler = func(w http.ResponseWriter, r *http.Request) {
+func (h HTTPSHandler) agentHandler(handlerFunc boshhandler.Func) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			w.WriteHeader(404)
-			return
-		}
-
-		if h.requestNotAuthorized(r) {
-			w.Header().Add("WWW-Authenticate", `Basic realm=""`)
-			w.WriteHeader(401)
 			return
 		}
 
@@ -113,7 +97,6 @@ func (h HTTPSHandler) agentHandler(handlerFunc boshhandler.Func) (agentHandler f
 			h.logger.Error("https_handler", err.Error())
 		}
 	}
-	return
 }
 
 func (h HTTPSHandler) blobsHandler() (blobsHandler func(http.ResponseWriter, *http.Request)) {

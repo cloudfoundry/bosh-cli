@@ -2,6 +2,7 @@ package compiler_test
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"runtime"
 
@@ -217,15 +218,15 @@ func init() {
 			})
 
 			Context("when packaging script exists", func() {
+				const packagingScriptContents = "hi"
 				BeforeEach(func() {
 					compressor.DecompressFileToDirCallBack = func() {
 						filename := "/fake-compile-dir/pkg_name/" + PackagingScriptName
-						fs.WriteFileString(filename, "hi")
+						fs.WriteFileString(filename, packagingScriptContents)
 					}
 				})
 
 				It("runs packaging script ", func() {
-
 					_, _, err := compiler.Compile(pkg, pkgDeps)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -239,16 +240,17 @@ func init() {
 						WorkingDir: "/fake-compile-dir/pkg_name",
 					}
 
+					cmd := runner.RunCommands[0]
 					if runtime.GOOS == "windows" {
 						expectedCmd.Name = "powershell"
-						expectedCmd.Args = []string{"-NoProfile", "-NonInteractive", "-command", "iex ((get-content packaging) -join \"`n\")"}
+						expectedCmd.Args = []string{"-command", fmt.Sprintf(`"iex (get-content -raw %s)"`, PackagingScriptName)}
 					} else {
 						expectedCmd.Name = "bash"
 						expectedCmd.Args = []string{"-x", PackagingScriptName}
 					}
 
+					Expect(cmd).To(Equal(expectedCmd))
 					Expect(len(runner.RunCommands)).To(Equal(1))
-					Expect(runner.RunCommands[0]).To(Equal(expectedCmd))
 					Expect(runner.RunCommandJobName).To(Equal("compilation"))
 					Expect(runner.RunCommandTaskName).To(Equal(PackagingScriptName))
 				})

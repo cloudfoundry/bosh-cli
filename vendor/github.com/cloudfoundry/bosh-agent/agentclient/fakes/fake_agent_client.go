@@ -91,14 +91,15 @@ type FakeAgentClient struct {
 	deleteARPEntriesReturns struct {
 		result1 error
 	}
-	SyncDNSStub        func(blobID, sha1 string) error
+	SyncDNSStub        func(blobID, sha1 string) (string, error)
 	syncDNSMutex       sync.RWMutex
 	syncDNSArgsForCall []struct {
 		blobID string
 		sha1   string
 	}
 	syncDNSReturns struct {
-		result1 error
+		result1 string
+		result2 error
 	}
 	UpdateSettingsStub        func(settings settings.Settings) error
 	updateSettingsMutex       sync.RWMutex
@@ -428,7 +429,7 @@ func (fake *FakeAgentClient) DeleteARPEntriesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAgentClient) SyncDNS(blobID string, sha1 string) error {
+func (fake *FakeAgentClient) SyncDNS(blobID string, sha1 string) (string, error) {
 	fake.syncDNSMutex.Lock()
 	fake.syncDNSArgsForCall = append(fake.syncDNSArgsForCall, struct {
 		blobID string
@@ -438,7 +439,7 @@ func (fake *FakeAgentClient) SyncDNS(blobID string, sha1 string) error {
 	if fake.SyncDNSStub != nil {
 		return fake.SyncDNSStub(blobID, sha1)
 	} else {
-		return fake.syncDNSReturns.result1
+		return fake.syncDNSReturns.result1, fake.syncDNSReturns.result2
 	}
 }
 
@@ -454,11 +455,12 @@ func (fake *FakeAgentClient) SyncDNSArgsForCall(i int) (string, string) {
 	return fake.syncDNSArgsForCall[i].blobID, fake.syncDNSArgsForCall[i].sha1
 }
 
-func (fake *FakeAgentClient) SyncDNSReturns(result1 error) {
+func (fake *FakeAgentClient) SyncDNSReturns(result1 string, result2 error) {
 	fake.SyncDNSStub = nil
 	fake.syncDNSReturns = struct {
-		result1 error
-	}{result1}
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeAgentClient) UpdateSettings(settings1 settings.Settings) error {

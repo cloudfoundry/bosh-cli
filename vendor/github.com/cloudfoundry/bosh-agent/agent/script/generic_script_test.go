@@ -13,24 +13,21 @@ import (
 
 var _ = Describe("GenericScript", func() {
 	var (
-		fs                   *fakesys.FakeFileSystem
-		cmdRunner            *fakesys.FakeCmdRunner
-		scriptCommandFactory *fakesys.FakeCommandFactory
-		genericScript        boshscript.GenericScript
-		stdoutLogPath        string
-		stderrLogPath        string
+		fs            *fakesys.FakeFileSystem
+		cmdRunner     *fakesys.FakeCmdRunner
+		genericScript boshscript.GenericScript
+		stdoutLogPath string
+		stderrLogPath string
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		cmdRunner = fakesys.NewFakeCmdRunner()
-		scriptCommandFactory = &fakesys.FakeCommandFactory{}
 		stdoutLogPath = filepath.Join("base", "stdout", "logdir", "stdout.log")
 		stderrLogPath = filepath.Join("base", "stderr", "logdir", "stderr.log")
 		genericScript = boshscript.NewScript(
 			fs,
 			cmdRunner,
-			scriptCommandFactory,
 			"my-tag",
 			"/path-to-script",
 			stdoutLogPath,

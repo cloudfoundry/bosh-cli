@@ -300,7 +300,7 @@ var _ = Describe("WindowsJobSupervisor", func() {
 
 				for _, proc := range conf.Processes {
 					stdout, _, _, err := runner.RunCommand(
-						"powershell", "/C", "get-wmiobject", "win32_service", "-filter",
+						"/C", "get-wmiobject", "win32_service", "-filter",
 						fmt.Sprintf(`"name='%s'"`, proc.Name), "-property", "StartMode",
 					)
 					Expect(err).ToNot(HaveOccurred())

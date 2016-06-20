@@ -13,9 +13,8 @@ const (
 )
 
 type GenericScript struct {
-	fs                   boshsys.FileSystem
-	runner               boshsys.CmdRunner
-	scriptCommandFactory boshsys.ScriptCommandFactory
+	fs     boshsys.FileSystem
+	runner boshsys.CmdRunner
 
 	tag  string
 	path string
@@ -27,16 +26,14 @@ type GenericScript struct {
 func NewScript(
 	fs boshsys.FileSystem,
 	runner boshsys.CmdRunner,
-	scriptCommandFactory boshsys.ScriptCommandFactory,
 	tag string,
 	path string,
 	stdoutLogPath string,
 	stderrLogPath string,
 ) GenericScript {
 	return GenericScript{
-		fs:                   fs,
-		runner:               runner,
-		scriptCommandFactory: scriptCommandFactory,
+		fs:     fs,
+		runner: runner,
 
 		tag:  tag,
 		path: path,
@@ -77,13 +74,14 @@ func (s GenericScript) Run() error {
 		_ = stderrFile.Close()
 	}()
 
-	command := s.scriptCommandFactory.New(s.path)
-	command.Env = map[string]string{
-		"PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
+	command := boshsys.Command{
+		Name: s.path,
+		Env: map[string]string{
+			"PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+		Stdout: stdoutFile,
+		Stderr: stderrFile,
 	}
-	command.Stdout = stdoutFile
-	command.Stderr = stderrFile
-
 	_, _, _, err = s.runner.RunComplexCommand(command)
 
 	return err

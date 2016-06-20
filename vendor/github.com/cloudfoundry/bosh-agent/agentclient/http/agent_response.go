@@ -35,7 +35,7 @@ func (r *SimpleTaskResponse) Unmarshal(message []byte) error {
 }
 
 type SyncDNSResponse struct {
-	Value     map[string]interface{}
+	Value     string
 	Exception *exception
 }
 

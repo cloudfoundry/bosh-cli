@@ -76,16 +76,13 @@ func (app *app) Setup(args []string) error {
 
 	statsCollector := boshsigar.NewSigarStatsCollector(&sigar.ConcreteSigar{})
 
-	scriptCommandFactory := boshsys.NewScriptCommandFactory(opts.PlatformName)
-
 	state, err := boshplatform.NewBootstrapState(app.fs, filepath.Join(app.dirProvider.BoshDir(), "agent_state.json"))
 	if err != nil {
 		return bosherr.WrapError(err, "Loading state")
 	}
 
 	timeService := clock.NewClock()
-
-	platformProvider := boshplatform.NewProvider(app.logger, app.dirProvider, statsCollector, scriptCommandFactory, app.fs, config.Platform, state, timeService)
+	platformProvider := boshplatform.NewProvider(app.logger, app.dirProvider, statsCollector, app.fs, config.Platform, state, timeService)
 
 	app.platform, err = platformProvider.Get(opts.PlatformName)
 	if err != nil {
@@ -175,7 +172,6 @@ func (app *app) Setup(args []string) error {
 		app.platform.GetRunner(),
 		app.platform.GetFs(),
 		app.platform.GetDirProvider(),
-		scriptCommandFactory,
 		timeService,
 		app.logger,
 	)
@@ -191,7 +187,6 @@ func (app *app) Setup(args []string) error {
 		jobSupervisor,
 		specService,
 		jobScriptProvider,
-		scriptCommandFactory,
 		app.logger,
 	)
 

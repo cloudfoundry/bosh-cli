@@ -14,11 +14,10 @@ import (
 const runErrandActionLogTag = "runErrandAction"
 
 type RunErrandAction struct {
-	specService          boshas.V1Service
-	jobsDir              string
-	scriptCommandFactory boshsys.ScriptCommandFactory
-	cmdRunner            boshsys.CmdRunner
-	logger               boshlog.Logger
+	specService boshas.V1Service
+	jobsDir     string
+	cmdRunner   boshsys.CmdRunner
+	logger      boshlog.Logger
 
 	cancelCh chan struct{}
 }
@@ -26,16 +25,14 @@ type RunErrandAction struct {
 func NewRunErrand(
 	specService boshas.V1Service,
 	jobsDir string,
-	scriptCommandFactory boshsys.ScriptCommandFactory,
 	cmdRunner boshsys.CmdRunner,
 	logger boshlog.Logger,
 ) RunErrandAction {
 	return RunErrandAction{
-		specService:          specService,
-		jobsDir:              jobsDir,
-		scriptCommandFactory: scriptCommandFactory,
-		cmdRunner:            cmdRunner,
-		logger:               logger,
+		specService: specService,
+		jobsDir:     jobsDir,
+		cmdRunner:   cmdRunner,
+		logger:      logger,
 
 		// Initialize channel in a constructor to avoid race
 		// between initializing in Run()/Cancel()
@@ -67,9 +64,11 @@ func (a RunErrandAction) Run() (ErrandResult, error) {
 		return ErrandResult{}, bosherr.Error("At least one job template is required to run an errand")
 	}
 
-	command := a.scriptCommandFactory.New(path.Join(a.jobsDir, currentSpec.JobSpec.Template, "bin", "run"))
-	command.Env = map[string]string{
-		"PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
+	command := boshsys.Command{
+		Name: path.Join(a.jobsDir, currentSpec.JobSpec.Template, "bin", "run"),
+		Env: map[string]string{
+			"PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
+		},
 	}
 
 	process, err := a.cmdRunner.RunComplexCommandAsync(command)
