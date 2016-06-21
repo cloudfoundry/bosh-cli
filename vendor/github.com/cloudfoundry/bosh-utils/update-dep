@@ -2,15 +2,15 @@
 
 set -e -x
 
-if [  $# -ne 1 ]; then 
-	echo "Must provide package name as argument." 
-	echo -e "\nUsage:\n$0 PACKAGE_NAME \n" 
+if [  $# -ne 1 ]; then
+	echo "Must provide package name as argument."
+	echo -e "\nUsage:\n$0 PACKAGE_NAME \n"
 	exit 1
 fi
 
 package_name=$1
 
-go get -d -t ${package_name}
+go get -u -d -t ${package_name}
 
 package_path=$(echo ${package_name} | sed 's/\.\.\.$//')
 
@@ -43,4 +43,4 @@ set -e
 
 if [ $found -ne 0 ]; then
 	echo $package_name:$sha >> deps.txt
-fi	
+fi

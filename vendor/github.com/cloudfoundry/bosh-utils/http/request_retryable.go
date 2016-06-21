@@ -70,6 +70,7 @@ func (r *requestRetryable) Attempt() (bool, error) {
 
 	// close previous attempt's response body to prevent HTTP client resource leaks
 	if r.response != nil {
+		ioutil.ReadAll(r.response.Body)
 		r.response.Body.Close()
 	}
 

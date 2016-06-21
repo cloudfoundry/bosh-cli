@@ -8,8 +8,9 @@ import (
 )
 
 type bytesReadCloser struct {
-	reader io.Reader
-	closed bool
+	reader     io.Reader
+	closed     bool
+	readLength int
 }
 
 func NewBytesReadCloser(content []byte) io.ReadCloser {
@@ -40,5 +41,12 @@ func (s *bytesReadCloser) Read(p []byte) (n int, err error) {
 		return 0, errors.New("already closed")
 	}
 
-	return s.reader.Read(p)
+	n, err = s.reader.Read(p)
+	s.readLength += n
+
+	return
+}
+
+func (s *bytesReadCloser) ReadLength() int {
+	return s.readLength
 }

@@ -228,7 +228,9 @@ var _ = Describe("tarballCompressor", func() {
 			fs := fakesys.NewFakeFileSystem()
 			compressor := NewTarballCompressor(cmdRunner, fs)
 
-			fs.RemoveAllError = errors.New("fake-remove-all-err")
+			fs.RemoveAllStub = func(_ string) error {
+				return errors.New("fake-remove-all-err")
+			}
 
 			err := compressor.CleanUp("/fake-tarball.tar")
 			Expect(err).To(MatchError("fake-remove-all-err"))
