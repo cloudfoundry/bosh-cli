@@ -5,7 +5,7 @@ import (
 )
 
 func ResolveDependencies(pkg *birelpkg.Package) []*birelpkg.Package {
-	return resolveInner(pkg, []*birelpkg.Package{})
+	return reverse(resolveInner(pkg, []*birelpkg.Package{}))
 }
 
 func resolveInner(pkg *birelpkg.Package, noFollow []*birelpkg.Package) []*birelpkg.Package {
@@ -47,4 +47,13 @@ func joinUnique(a []*birelpkg.Package, b []*birelpkg.Package) []*birelpkg.Packag
 		}
 	}
 	return joined
+}
+
+func reverse(a []*birelpkg.Package) []*birelpkg.Package {
+	for i := len(a)/2-1; i >= 0; i-- {
+		opp := len(a)-1-i
+		a[i], a[opp] = a[opp], a[i]
+	}
+
+	return a
 }

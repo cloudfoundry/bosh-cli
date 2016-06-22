@@ -1,11 +1,12 @@
 package pkg_test
 
 import (
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-init/state/pkg"
+
+	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
 var _ = Describe("DependencyResolver", func() {
@@ -26,9 +27,7 @@ var _ = Describe("DependencyResolver", func() {
 		b.Dependencies = []*birelpkg.Package{&c}
 
 		deps := ResolveDependencies(&a)
-		Expect(deps).To(ContainElement(&b))
-		Expect(deps).To(ContainElement(&c))
-		Expect(len(deps)).To(Equal(2))
+		Expect(deps).To(Equal([]*birelpkg.Package{&c, &b}))
 	})
 
 	It("supports simple cycles", func() {
@@ -39,8 +38,7 @@ var _ = Describe("DependencyResolver", func() {
 
 		deps := ResolveDependencies(&a)
 		Expect(deps).ToNot(ContainElement(&a))
-		Expect(deps).To(ContainElement(&b))
-		Expect(len(deps)).To(Equal(1))
+		Expect(deps).To(Equal([]*birelpkg.Package{&b}))
 	})
 
 	It("supports triangular cycles", func() {
@@ -53,8 +51,21 @@ var _ = Describe("DependencyResolver", func() {
 
 		deps := ResolveDependencies(&a)
 		Expect(deps).ToNot(ContainElement(&a))
-		Expect(deps).To(ContainElement(&b))
-		Expect(deps).To(ContainElement(&c))
-		Expect(len(deps)).To(Equal(2))
+		Expect(deps).To(Equal([]*birelpkg.Package{&c, &b}))
+	})
+
+	It("supports sibling dependencies", func(){
+		a := birelpkg.Package{Name: "a"}
+		b := birelpkg.Package{Name: "b"}
+		c := birelpkg.Package{Name: "c"}
+		d := birelpkg.Package{Name: "d"}
+
+		a.Dependencies = []*birelpkg.Package{&b, &c}
+		b.Dependencies = []*birelpkg.Package{&c, &d}
+		c.Dependencies = []*birelpkg.Package{&d}
+
+		deps := ResolveDependencies(&a)
+		Expect(deps).ToNot(ContainElement(&a))
+		Expect(deps).To(Equal([]*birelpkg.Package{&d, &c, &b}))
 	})
 })
