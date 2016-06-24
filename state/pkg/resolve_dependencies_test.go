@@ -54,6 +54,18 @@ var _ = Describe("DependencyResolver", func() {
 		Expect(deps).To(Equal([]*birelpkg.Package{&c, &b}))
 	})
 
+	It("supports no cycles", func() {
+		a := birelpkg.Package{Name: "a"}
+		b := birelpkg.Package{Name: "b"}
+		c := birelpkg.Package{Name: "c"}
+		a.Dependencies = []*birelpkg.Package{&b, &c}
+		c.Dependencies = []*birelpkg.Package{&b}
+
+		deps := ResolveDependencies(&a)
+		Expect(deps).ToNot(ContainElement(&a))
+		Expect(deps).To(Equal([]*birelpkg.Package{&c, &b}))
+	})
+
 	It("supports diamond cycles", func(){
 		a := birelpkg.Package{Name: "a"}
 		b := birelpkg.Package{Name: "b"}

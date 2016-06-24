@@ -183,4 +183,45 @@ var _ = Describe("Sort", func() {
 			expectSorted(sortedPackages)
 		})
 	})
+
+	Context("graph with sibbling dependencies", func() {
+		var (
+			golang, runC, garden, guardian Package
+		)
+
+		BeforeEach(func() {
+			golang = Package{Name: "golang"}
+
+			runC = Package{
+				Name: "runC",
+				Dependencies: []*Package{&golang},
+			}
+
+			guardian = Package{
+				Name: "guardian",
+				Dependencies: []*Package{&runC, &golang},
+			}
+
+			garden = Package{
+				Name: "garden",
+				Dependencies: []*Package{&guardian},
+			}
+
+			packages = []*Package{
+				&guardian,
+				&garden,
+				&runC,
+				&golang,
+			}
+		})
+
+		It("orders the packages as: golang, runC, guardian, garden", func(){
+			sortedPackages := Sort(packages)
+
+			Expect(sortedPackages[0].Name).To(Equal(golang.Name))
+			Expect(sortedPackages[1].Name).To(Equal(runC.Name))
+			Expect(sortedPackages[2].Name).To(Equal(guardian.Name))
+			Expect(sortedPackages[3].Name).To(Equal(garden.Name))
+		})
+	})
 })

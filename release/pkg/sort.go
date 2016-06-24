@@ -26,14 +26,23 @@ func (p compilablePackages) Less(i, j int) bool {
 	a := p[i]
 	b := p[j]
 
-	if len(a.Dependencies) == 0 && len(b.Dependencies) > 0 {
-		return true
+	return !isDependent(a, b)
+}
+
+func isDependent(targetPackage, basePackage *Package) bool {
+	if len(targetPackage.Dependencies) == 0 {
+		return false
 	}
 
-	for _, pkg := range b.Dependencies {
-		if pkg == a {
+	for _, pkg := range targetPackage.Dependencies {
+		if basePackage == pkg {
 			return true
+		} else {
+			if isDependent(pkg, basePackage){
+				return true
+			}
 		}
 	}
+
 	return false
 }
