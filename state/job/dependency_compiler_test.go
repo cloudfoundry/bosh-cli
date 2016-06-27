@@ -139,6 +139,52 @@ var _ = Describe("DependencyCompiler", func() {
 		}))
 	})
 
+	Context("Graph with circular dependency", func(){
+		var (
+			package1,
+			package2,
+			package3 *birelpkg.Package
+		)
+		BeforeEach(func(){
+			package1 = &birelpkg.Package{
+				Name: "fake-package-name-1",
+				Dependencies: []*birelpkg.Package{},
+			}
+			package2 = &birelpkg.Package{
+				Name: "fake-package-name-2",
+				Dependencies: []*birelpkg.Package{package1},
+			}
+			package3 = &birelpkg.Package{
+				Name: "fake-package-name-3",
+				Dependencies: []*birelpkg.Package{package2},
+			}
+
+			package1.Dependencies = append(package1.Dependencies, package3)
+
+			releaseJob = bireljob.Job{
+				Name:          "cpi",
+				Fingerprint:   "fake-release-job-fingerprint",
+				SHA1:          "fake-release-job-sha1",
+				ExtractedPath: "/extracted-release-path/extracted_jobs/cpi",
+				Templates: map[string]string{
+					"cpi.erb":     "bin/cpi",
+					"cpi.yml.erb": "config/cpi.yml",
+				},
+				PackageNames: []string{releasePackage2.Name},
+				Packages:     []*birelpkg.Package{package1, package2, package3},
+				Properties:   map[string]bireljob.PropertyDefinition{},
+			}
+
+		})
+
+		It("returns an error", func() {
+			releaseJobs = []bireljob.Job{releaseJob}
+			_, err := dependencyCompiler.Compile(releaseJobs, fakeStage)
+			Expect(err).NotTo(BeNil())
+
+		})
+	})
+
 	Context("when a compiled releases is provided", func() {
 
 		BeforeEach(func() {
@@ -163,7 +209,6 @@ var _ = Describe("DependencyCompiler", func() {
 				Expect(call.SkipError.Error()).To(MatchRegexp("Package already compiled: Package 'fake-release-package-name-\\d' is already compiled. Skipped compilation"))
 			}
 		})
-
 	})
 
 	Context("when multiple jobs depend on the same package", func() {
