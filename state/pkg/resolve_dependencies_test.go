@@ -66,7 +66,7 @@ var _ = Describe("DependencyResolver", func() {
 		Expect(deps).To(Equal([]*birelpkg.Package{&c, &b}))
 	})
 
-	It("supports diamond cycles", func(){
+	It("supports diamond cycles", func() {
 		a := birelpkg.Package{Name: "a"}
 		b := birelpkg.Package{Name: "b"}
 		c := birelpkg.Package{Name: "c"}
@@ -82,7 +82,7 @@ var _ = Describe("DependencyResolver", func() {
 		Expect(deps).To(Equal([]*birelpkg.Package{&b, &d, &c}))
 	})
 
-	It("supports sibling dependencies", func(){
+	It("supports sibling dependencies", func() {
 		a := birelpkg.Package{Name: "a"}
 		b := birelpkg.Package{Name: "b"}
 		c := birelpkg.Package{Name: "c"}

@@ -53,7 +53,7 @@ func (c *dependencyCompiler) Compile(releaseJobs []bireljob.Job, stage biui.Stag
 }
 
 // resolveJobPackageCompilationDependencies returns all packages required by all specified jobs, in compilation order (reverse dependency order)
-func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bireljob.Job) (sortedPackages []*birelpkg.Package, err error) {
+func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bireljob.Job) ([]*birelpkg.Package, error) {
 	// collect and de-dupe all required packages (dependencies of jobs)
 	packageMap := map[string]*birelpkg.Package{}
 	for _, releaseJob := range releaseJobs {
@@ -71,7 +71,10 @@ func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bir
 	}
 
 	// sort in compilation order
-	sortedPackages, err = birelpkg.Sort(packages)
+	sortedPackages, err := birelpkg.Sort(packages)
+	if err != nil {
+		return nil, err
+	}
 
 	pkgs := []string{}
 	for _, pkg := range sortedPackages {
@@ -79,7 +82,7 @@ func (c *dependencyCompiler) resolveJobCompilationDependencies(releaseJobs []bir
 	}
 	c.logger.Debug(c.logTag, "Sorted dependencies:\n%s", strings.Join(pkgs, "\n"))
 
-	return
+	return sortedPackages, nil
 }
 
 // resolvePackageDependencies adds the releasePackage's dependencies to the packageMap recursively

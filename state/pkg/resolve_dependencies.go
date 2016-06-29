@@ -1,7 +1,6 @@
 package pkg
 
 import (
-
 	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 )
 
@@ -51,8 +50,8 @@ func joinUnique(a []*birelpkg.Package, b []*birelpkg.Package) []*birelpkg.Packag
 }
 
 func reverse(a []*birelpkg.Package) []*birelpkg.Package {
-	for i := len(a)/2-1; i >= 0; i-- {
-		opp := len(a)-1-i
+	for i := len(a)/2 - 1; i >= 0; i-- {
+		opp := len(a) - 1 - i
 		a[i], a[opp] = a[opp], a[i]
 	}
 

@@ -2,12 +2,12 @@ package pkg
 
 import (
 	"errors"
+	"fmt"
 )
 
 // Topologically sorts an array of packages
-func Sort(releasePackages []*Package) (sortedPackages []*Package, err error){
-	err = nil
-	sortedPackages = []*Package{}
+func Sort(releasePackages []*Package) ([]*Package, error) {
+	sortedPackages := []*Package{}
 
 	incomingEdges, outgoingEdges := getEdgeMaps(releasePackages)
 	noIncomingEdgesSet := []*Package{}
@@ -17,8 +17,7 @@ func Sort(releasePackages []*Package) (sortedPackages []*Package, err error){
 			noIncomingEdgesSet = append(noIncomingEdgesSet, pkg)
 		}
 	}
-	size := len(noIncomingEdgesSet)
-	for size > 0 {
+	for len(noIncomingEdgesSet) > 0 {
 		elem := noIncomingEdgesSet[0]
 		noIncomingEdgesSet = noIncomingEdgesSet[1:]
 
@@ -30,28 +29,27 @@ func Sort(releasePackages []*Package) (sortedPackages []*Package, err error){
 				noIncomingEdgesSet = append(noIncomingEdgesSet, pkg)
 			}
 		}
-		size = len(noIncomingEdgesSet)
 	}
 	for _, edges := range incomingEdges {
 		if len(edges) > 0 {
-			err = errors.New("Circular dependency detected.")
+			return nil, errors.New("Circular dependency detected while sorting packages")
 		}
 	}
-	return
+	return sortedPackages, nil
 }
 
-func removeFromList(packageList []*Package, pkg *Package) []*Package{
+func removeFromList(packageList []*Package, pkg *Package) []*Package {
 	for idx, elem := range packageList {
 		if elem == pkg {
-			packageList = append(packageList[:idx], packageList[idx+1:]...)
+			return append(packageList[:idx], packageList[idx+1:]...)
 		}
 	}
-	return packageList
+	panic(fmt.Sprintf("Expected %s to be in dependency graph", pkg.Name))
 }
 
-func getEdgeMaps(releasePackages []*Package) (incomingEdges, outgoingEdges  map[*Package][]*Package){
-	incomingEdges = make(map[*Package][]*Package)
-	outgoingEdges = make(map[*Package][]*Package)
+func getEdgeMaps(releasePackages []*Package) (map[*Package][]*Package, map[*Package][]*Package) {
+	incomingEdges := make(map[*Package][]*Package)
+	outgoingEdges := make(map[*Package][]*Package)
 
 	for _, pkg := range releasePackages {
 		incomingEdges[pkg] = []*Package{}
@@ -65,5 +63,5 @@ func getEdgeMaps(releasePackages []*Package) (incomingEdges, outgoingEdges  map[
 			}
 		}
 	}
-	return
+	return incomingEdges, outgoingEdges
 }

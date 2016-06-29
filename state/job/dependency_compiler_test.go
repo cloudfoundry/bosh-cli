@@ -139,23 +139,23 @@ var _ = Describe("DependencyCompiler", func() {
 		}))
 	})
 
-	Context("Graph with circular dependency", func(){
+	Context("Graph with circular dependency", func() {
 		var (
 			package1,
 			package2,
 			package3 *birelpkg.Package
 		)
-		BeforeEach(func(){
+		BeforeEach(func() {
 			package1 = &birelpkg.Package{
-				Name: "fake-package-name-1",
+				Name:         "fake-package-name-1",
 				Dependencies: []*birelpkg.Package{},
 			}
 			package2 = &birelpkg.Package{
-				Name: "fake-package-name-2",
+				Name:         "fake-package-name-2",
 				Dependencies: []*birelpkg.Package{package1},
 			}
 			package3 = &birelpkg.Package{
-				Name: "fake-package-name-3",
+				Name:         "fake-package-name-3",
 				Dependencies: []*birelpkg.Package{package2},
 			}
 

@@ -184,7 +184,7 @@ var _ = Describe("Sort", func() {
 		})
 	})
 
-	Context("graph with sibbling dependencies", func() {
+	Context("graph with sibling dependencies", func() {
 		var (
 			golang, runC, garden, guardian Package
 		)
@@ -193,17 +193,17 @@ var _ = Describe("Sort", func() {
 			golang = Package{Name: "golang"}
 
 			runC = Package{
-				Name: "runC",
+				Name:         "runC",
 				Dependencies: []*Package{&golang},
 			}
 
 			guardian = Package{
-				Name: "guardian",
+				Name:         "guardian",
 				Dependencies: []*Package{&runC, &golang},
 			}
 
 			garden = Package{
-				Name: "garden",
+				Name:         "garden",
 				Dependencies: []*Package{&guardian},
 			}
 
@@ -215,7 +215,7 @@ var _ = Describe("Sort", func() {
 			}
 		})
 
-		It("orders the packages as: golang, runC, guardian, garden", func(){
+		It("orders the packages as: golang, runC, guardian, garden", func() {
 			sortedPackages, _ := Sort(packages)
 
 			Expect(sortedPackages[0].Name).To(Equal(golang.Name))
@@ -225,23 +225,23 @@ var _ = Describe("Sort", func() {
 		})
 	})
 
-	Context("Graph with circular dependency", func(){
+	Context("Graph with circular dependency", func() {
 		var (
 			package1,
 			package2,
 			package3 Package
 		)
-		BeforeEach(func(){
+		BeforeEach(func() {
 			package1 = Package{
-				Name: "fake-package-name-1",
+				Name:         "fake-package-name-1",
 				Dependencies: []*Package{},
 			}
 			package2 = Package{
-				Name: "fake-package-name-2",
+				Name:         "fake-package-name-2",
 				Dependencies: []*Package{&package1},
 			}
 			package3 = Package{
-				Name: "fake-package-name-3",
+				Name:         "fake-package-name-3",
 				Dependencies: []*Package{&package2},
 			}
 
@@ -259,80 +259,80 @@ var _ = Describe("Sort", func() {
 		})
 	})
 
-	Context("Graph from a CPI release", func(){
-		var packages []*Package;
-		BeforeEach(func(){
-			pid_utils := Package{ Name: "pid_utils",}
+	Context("Graph from a CPI release", func() {
+		var packages []*Package
+		BeforeEach(func() {
+			pid_utils := Package{Name: "pid_utils"}
 
-			iptables := Package{ Name: "iptables",}
+			iptables := Package{Name: "iptables"}
 
-			bosh_io_release_resource := Package{ Name: "bosh_io_release_resource",}
+			bosh_io_release_resource := Package{Name: "bosh_io_release_resource"}
 
-			s3_resource := Package{ Name: "s3_resource",}
+			s3_resource := Package{Name: "s3_resource"}
 
-			bosh_io_stemcell_resource := Package{ Name: "bosh_io_stemcell_resource",}
+			bosh_io_stemcell_resource := Package{Name: "bosh_io_stemcell_resource"}
 
 			golang := Package{Name: "golang"}
 
 			baggageclaim := Package{
-				Name: "baggageclaim",
+				Name:         "baggageclaim",
 				Dependencies: []*Package{&golang},
 			}
 
 			jettison := Package{
-				Name: "jettison",
+				Name:         "jettison",
 				Dependencies: []*Package{&golang},
 			}
-			cf_resource := Package{ Name: "cf_resource",}
+			cf_resource := Package{Name: "cf_resource"}
 
-			golang_161 := Package{ Name: "golang_1.6.1",}
+			golang_161 := Package{Name: "golang_1.6.1"}
 
 			runc := Package{
-				Name: "runc",
+				Name:         "runc",
 				Dependencies: []*Package{&golang_161},
 			}
 
 			guardian := Package{
-				Name: "guardian",
+				Name:         "guardian",
 				Dependencies: []*Package{&golang_161, &runc},
 			}
 
-			btrfs_tools := Package{ Name: "btrfs_tools",}
+			btrfs_tools := Package{Name: "btrfs_tools"}
 
-			docker_image_resource := Package{ Name: "docker_image_resource",}
+			docker_image_resource := Package{Name: "docker_image_resource"}
 
 			resource_discovery := Package{
-				Name: "resource_discovery",
+				Name:         "resource_discovery",
 				Dependencies: []*Package{&golang},
 			}
 
-			github_release_resource := Package{ Name: "github_release_resource",}
+			github_release_resource := Package{Name: "github_release_resource"}
 
-			shadow := Package{ Name: "shadow",}
+			shadow := Package{Name: "shadow"}
 
-			vagrant_cloud_resource := Package{ Name: "vagrant_cloud_resource",}
+			vagrant_cloud_resource := Package{Name: "vagrant_cloud_resource"}
 
-			pool_resource := Package{ Name: "pool_resource",}
+			pool_resource := Package{Name: "pool_resource"}
 
-			bosh_deployment_resource := Package{ Name: "bosh_deployment_resource",}
+			bosh_deployment_resource := Package{Name: "bosh_deployment_resource"}
 
-			generated_worker_key := Package{ Name: "generated_worker_key",}
+			generated_worker_key := Package{Name: "generated_worker_key"}
 
-			archive_resource := Package{ Name: "archive_resource",}
+			archive_resource := Package{Name: "archive_resource"}
 
-			time_resource := Package{ Name: "time_resource",}
+			time_resource := Package{Name: "time_resource"}
 
-			git_resource := Package{ Name: "git_resource",}
+			git_resource := Package{Name: "git_resource"}
 
-			busybox := Package{ Name: "busybox",}
+			busybox := Package{Name: "busybox"}
 
-			semver_resource := Package{ Name: "semver_resource",}
+			semver_resource := Package{Name: "semver_resource"}
 
-			hg_resource := Package{ Name: "hg_resource",}
+			hg_resource := Package{Name: "hg_resource"}
 
-			tar := Package{ Name: "tar",}
+			tar := Package{Name: "tar"}
 
-			tracker_resource := Package{ Name: "tracker_resource",}
+			tracker_resource := Package{Name: "tracker_resource"}
 
 			packages = []*Package{
 				&bosh_io_release_resource,
@@ -366,7 +366,7 @@ var _ = Describe("Sort", func() {
 				&runc}
 		})
 
-		It("should sort the packages correctly", func(){
+		It("should sort the packages correctly", func() {
 			hasBeenLoaded := map[string]bool{}
 
 			for _, pkg := range packages {
@@ -378,7 +378,6 @@ var _ = Describe("Sort", func() {
 			for _, pkg := range sortedPackages {
 				if pkg.Dependencies != nil {
 					for _, dep := range pkg.Dependencies {
-						fmt.Printf("Expected %s dependency %s to have been loaded\n", pkg.Name, dep.Name)
 						Expect(hasBeenLoaded[dep.Name]).To(BeTrue())
 					}
 				}
