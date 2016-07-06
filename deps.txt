@@ -8,3 +8,4 @@ github.com/onsi/gomega:f4f1cae
 golang.org/x/crypto/ssh:1e856cb
 gopkg.in/check.v1:8d49746
 github.com/pivotal-golang/yaml:8b09e4a
+github.com/charlievieth/fs/...:1c3b3f1
