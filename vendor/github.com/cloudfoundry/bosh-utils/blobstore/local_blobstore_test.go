@@ -178,7 +178,9 @@ var _ = Describe("localBlobstore", func() {
 		})
 
 		It("returns an error if removing the blob fails", func() {
-			fs.RemoveAllError = errors.New("failed to remove")
+			fs.RemoveAllStub = func(_ string) error {
+				return errors.New("failed to remove")
+			}
 			fs.WriteFileString("/fake-file.txt", "fake-file-contents")
 			blobID, _, err := blobstore.Create("/fake-file.txt")
 			Expect(err).ToNot(HaveOccurred())

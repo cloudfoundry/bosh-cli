@@ -13,6 +13,7 @@ import (
 
 	"errors"
 
+	fsWrapper "github.com/charlievieth/fs"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
@@ -67,7 +68,7 @@ func (fs *osFileSystem) ExpandPath(path string) (string, error) {
 }
 
 func (fs *osFileSystem) MkdirAll(path string, perm os.FileMode) (err error) {
-	fs.logger.Debug(fs.logTag, "Making dir %s with perm %d", path, perm)
+	fs.logger.Debug(fs.logTag, "Making dir %s with perm %#o", path, perm)
 	return os.MkdirAll(path, perm)
 }
 
@@ -204,7 +205,7 @@ func (fs *osFileSystem) ReadFile(path string) (content []byte, err error) {
 func (fs *osFileSystem) FileExists(path string) bool {
 	fs.logger.Debug(fs.logTag, "Checking if file exists %s", path)
 
-	_, err := os.Stat(path)
+	_, err := fs.Stat(path)
 	if err != nil {
 		return !os.IsNotExist(err)
 	}
@@ -276,7 +277,7 @@ func (fs *osFileSystem) CopyFile(srcPath, dstPath string) error {
 func (fs *osFileSystem) CopyDir(srcPath, dstPath string) error {
 	fs.logger.Debug(fs.logTag, "Copying dir '%s' to '%s'", srcPath, dstPath)
 
-	sourceInfo, err := os.Stat(srcPath)
+	sourceInfo, err := fs.Stat(srcPath)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Reading dir stats for '%s'", srcPath)
 	}
@@ -354,8 +355,12 @@ func (f *osFileSystem) ChangeTempRoot(tempRootPath string) error {
 
 func (fs *osFileSystem) RemoveAll(fileOrDir string) (err error) {
 	fs.logger.Debug(fs.logTag, "Remove all %s", fileOrDir)
-	err = os.RemoveAll(fileOrDir)
+	err = fsWrapper.RemoveAll(fileOrDir)
 	return
+}
+
+func (fs *osFileSystem) Stat(fileOrDir string) (fileInfo os.FileInfo, err error) {
+	return fsWrapper.Stat(fileOrDir)
 }
 
 func (fs *osFileSystem) Glob(pattern string) (matches []string, err error) {
@@ -368,7 +373,7 @@ func (fs *osFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
 }
 
 func (fs *osFileSystem) filesAreIdentical(newContent []byte, filePath string) bool {
-	existingStat, err := os.Stat(filePath)
+	existingStat, err := fs.Stat(filePath)
 	if err != nil || int64(len(newContent)) != existingStat.Size() {
 		return false
 	}

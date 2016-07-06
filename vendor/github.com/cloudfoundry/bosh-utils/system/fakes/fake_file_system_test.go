@@ -1,6 +1,7 @@
 package fakes_test
 
 import (
+	"errors"
 	"os"
 	"path"
 
@@ -85,6 +86,31 @@ var _ = Describe("FakeFileSystem", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fs.FileExists("foobar")).To(BeFalse())
+		})
+
+		Context("RemoveAllStub", func() {
+			It("calls it and performs its normal behavior as well", func() {
+				called := false
+				fs.RemoveAllStub = func(path string) error {
+					called = true
+					return nil
+				}
+				fs.WriteFileString("foobar", "asdfghjk")
+
+				err := fs.RemoveAll("foobar")
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fs.FileExists("foobar")).To(BeFalse())
+				Expect(called).To(BeTrue())
+			})
+
+			It("supports returning an error", func() {
+				fs.RemoveAllStub = func(path string) error {
+					return errors.New("ERR")
+				}
+				err := fs.RemoveAll("foobar")
+				Expect(err).To(MatchError("ERR"))
+			})
 		})
 	})
 

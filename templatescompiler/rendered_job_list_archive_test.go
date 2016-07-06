@@ -4,9 +4,10 @@ import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	"bytes"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"os"
 
 	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
 	"github.com/golang/mock/gomock"
@@ -99,7 +100,9 @@ var _ = Describe("RenderedJobListArchive", func() {
 
 		Context("when deleting from the file system fails", func() {
 			JustBeforeEach(func() {
-				fs.RemoveAllError = bosherr.Error("fake-delete-error")
+				fs.RemoveAllStub = func(_ string) error {
+					return bosherr.Error("fake-delete-error")
+				}
 			})
 
 			It("returns an error", func() {
@@ -121,7 +124,9 @@ var _ = Describe("RenderedJobListArchive", func() {
 
 		Context("when deleting from the file system fails", func() {
 			JustBeforeEach(func() {
-				fs.RemoveAllError = bosherr.Error("fake-delete-error")
+				fs.RemoveAllStub = func(_ string) error {
+					return bosherr.Error("fake-delete-error")
+				}
 			})
 
 			It("logs the error", func() {

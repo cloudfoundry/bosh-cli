@@ -209,7 +209,9 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 		})
 
 		It("returns error if delete opertation fails to remove file", func() {
-			fakeFs.RemoveAllError = errors.New("Could not do that Dave")
+			fakeFs.RemoveAllStub = func(_ string) error {
+				return errors.New("Could not do that Dave")
+			}
 
 			Expect(service.Exists()).To(BeFalse())
 
