@@ -2,10 +2,11 @@ package installation_test
 
 import (
 	"errors"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"log"
 	"path/filepath"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-init/installation"
 	"github.com/cloudfoundry/bosh-utils/logger"
@@ -47,7 +48,9 @@ var _ = Describe("Uninstaller", func() {
 			boshlogger := logger.New(logger.LevelInfo, goLogger, goLogger)
 
 			fs := fakes.NewFakeFileSystem()
-			fs.RemoveAllError = errors.New("can't remove that")
+			fs.RemoveAllStub = func(_ string) error {
+				return errors.New("can't remove that")
+			}
 
 			installationTarget := installation.NewTarget("/not/a/path")
 

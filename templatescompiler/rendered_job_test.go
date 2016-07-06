@@ -4,9 +4,10 @@ import (
 	. "github.com/cloudfoundry/bosh-init/templatescompiler"
 
 	"bytes"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"os"
 
 	bireljob "github.com/cloudfoundry/bosh-init/release/job"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -69,7 +70,9 @@ var _ = Describe("RenderedJob", func() {
 
 		Context("when deleting from the file system fails", func() {
 			JustBeforeEach(func() {
-				fs.RemoveAllError = bosherr.Error("fake-delete-error")
+				fs.RemoveAllStub = func(_ string) error {
+					return bosherr.Error("fake-delete-error")
+				}
 			})
 
 			It("returns an error", func() {
@@ -91,7 +94,9 @@ var _ = Describe("RenderedJob", func() {
 
 		Context("when deleting from the file system fails", func() {
 			JustBeforeEach(func() {
-				fs.RemoveAllError = bosherr.Error("fake-delete-error")
+				fs.RemoveAllStub = func(_ string) error {
+					return bosherr.Error("fake-delete-error")
+				}
 			})
 
 			It("logs the error", func() {

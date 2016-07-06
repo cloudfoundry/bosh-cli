@@ -110,6 +110,24 @@ var _ = Describe("RequestRetryable", func() {
 				Expect(originalResp.Body.(ClosedChecker).Closed()).To(BeTrue())
 				Expect(requestRetryable.Response().Body.(ClosedChecker).Closed()).To(BeFalse())
 			})
+
+			It("fully reads the previous response body on subsequent attempts", func() {
+				// go1.5+ fails the next request with `request canceled` if you do not fully read the
+				// prior requests body; ref https://marc.ttias.be/golang-nuts/2016-02/msg00256.php
+				type readLengthCloser interface {
+					ReadLength() int
+				}
+
+				_, err := requestRetryable.Attempt()
+				Expect(err).To(HaveOccurred())
+				originalRespBody := requestRetryable.Response().Body.(readLengthCloser)
+				Expect(originalRespBody.ReadLength()).To(Equal(0))
+
+				_, err = requestRetryable.Attempt()
+				Expect(err).To(HaveOccurred())
+				Expect(originalRespBody.ReadLength()).To(Equal(18))
+				Expect(requestRetryable.Response().Body.(readLengthCloser).ReadLength()).To(Equal(0))
+			})
 		})
 	})
 })
