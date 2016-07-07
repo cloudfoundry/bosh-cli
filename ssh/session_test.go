@@ -248,7 +248,7 @@ var _ = Describe("SessionImpl", func() {
 		It("returns error if deleting private key file fails but still deletes known hosts file", func() {
 			fs.RemoveAllStub = func(path string) error {
 				if path == "/tmp/priv-key" {
-					return errors.New("fake-err")	
+					return errors.New("fake-err")
 				}
 				return nil
 			}

@@ -158,10 +158,10 @@ var _ = Describe("InstancesCmd", func() {
 					Content: "vms",
 
 					HeaderVals: []boshtbl.Value{
-						boshtbl.ValueString{"Instance"},
-						boshtbl.ValueString{"State"},
-						boshtbl.ValueString{"AZ"},
-						boshtbl.ValueString{"IPs"},
+						boshtbl.NewValueString("Instance"),
+						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("AZ"),
+						boshtbl.NewValueString("IPs"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -171,33 +171,33 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/1"},
+							FirstColumn: boshtbl.NewValueString("job-name/1"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/1"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-state"}, true, nil},
+									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 									boshtbl.ValueString{},
-									boshtbl.ValueStrings{[]string{"in1-ip1", "in1-ip2"}},
+									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/2"},
+							FirstColumn: boshtbl.NewValueString("job-name/2"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/2"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in2-state"}, true, nil},
-									boshtbl.ValueString{"in2-az"},
-									boshtbl.ValueStrings{[]string{"in2-ip1"}},
+									boshtbl.NewValueString("job-name/2"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueString("in2-az"),
+									boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"?/?"},
+							FirstColumn: boshtbl.NewValueString("?/?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"?/?"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"unresponsive agent"}, true, nil},
+									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 								},
@@ -218,11 +218,11 @@ var _ = Describe("InstancesCmd", func() {
 					Content: "vms",
 
 					HeaderVals: []boshtbl.Value{
-						boshtbl.ValueString{"Instance"},
-						boshtbl.ValueString{"Process"},
-						boshtbl.ValueString{"State"},
-						boshtbl.ValueString{"AZ"},
-						boshtbl.ValueString{"IPs"},
+						boshtbl.NewValueString("Instance"),
+						boshtbl.NewValueString("Process"),
+						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("AZ"),
+						boshtbl.NewValueString("IPs"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -232,57 +232,57 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/1"},
+							FirstColumn: boshtbl.NewValueString("job-name/1"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/1"},
+									boshtbl.NewValueString("job-name/1"),
 									boshtbl.ValueString{},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-state"}, true, nil},
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 									boshtbl.ValueString{},
-									boshtbl.ValueStrings{[]string{"in1-ip1", "in1-ip2"}},
+									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								},
 								{
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in1-proc1-name"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-proc1-state"}, true, nil},
+									boshtbl.NewValueString("in1-proc1-name"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-proc1-state"), true),
 									nil,
 									nil,
 								},
 								{
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in1-proc2-name"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-proc2-state"}, true, nil},
+									boshtbl.NewValueString("in1-proc2-name"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-proc2-state"), true),
 									nil,
 									nil,
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/2"},
+							FirstColumn: boshtbl.NewValueString("job-name/2"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/2"},
+									boshtbl.NewValueString("job-name/2"),
 									boshtbl.ValueString{},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in2-state"}, true, nil},
-									boshtbl.ValueString{"in2-az"},
-									boshtbl.ValueStrings{[]string{"in2-ip1"}},
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueString("in2-az"),
+									boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								},
 								{
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in2-proc1-name"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in2-proc1-state"}, true, nil},
+									boshtbl.NewValueString("in2-proc1-name"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-proc1-state"), true),
 									nil,
 									nil,
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"?/?"},
+							FirstColumn: boshtbl.NewValueString("?/?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"?/?"},
+									boshtbl.NewValueString("?/?"),
 									boshtbl.ValueString{},
-									boshtbl.ValueFmt{boshtbl.ValueString{"unresponsive agent"}, true, nil},
+									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 								},
@@ -303,15 +303,15 @@ var _ = Describe("InstancesCmd", func() {
 					Content: "vms",
 
 					HeaderVals: []boshtbl.Value{
-						boshtbl.ValueString{"Instance"},
-						boshtbl.ValueString{"State"},
-						boshtbl.ValueString{"AZ"},
-						boshtbl.ValueString{"IPs"},
-						boshtbl.ValueString{"VM CID"},
-						boshtbl.ValueString{"VM Type"},
-						boshtbl.ValueString{"Disk CID"},
-						boshtbl.ValueString{"Agent ID"},
-						boshtbl.ValueString{"Resurrection\nPaused"},
+						boshtbl.NewValueString("Instance"),
+						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("AZ"),
+						boshtbl.NewValueString("IPs"),
+						boshtbl.NewValueString("VM CID"),
+						boshtbl.NewValueString("VM Type"),
+						boshtbl.NewValueString("Disk CID"),
+						boshtbl.NewValueString("Agent ID"),
+						boshtbl.NewValueString("Resurrection\nPaused"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -321,50 +321,50 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/1"},
+							FirstColumn: boshtbl.NewValueString("job-name/1"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/1"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-state"}, true, nil},
+									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 									boshtbl.ValueString{},
-									boshtbl.ValueStrings{[]string{"in1-ip1", "in1-ip2"}},
-									boshtbl.ValueString{"in1-cid"},
-									boshtbl.ValueString{"in1-rp"},
+									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
+									boshtbl.NewValueString("in1-cid"),
+									boshtbl.NewValueString("in1-rp"),
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in1-agent-id"},
-									boshtbl.ValueBool{false},
+									boshtbl.NewValueString("in1-agent-id"),
+									boshtbl.NewValueBool(false),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/2"},
+							FirstColumn: boshtbl.NewValueString("job-name/2"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/2"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in2-state"}, true, nil},
-									boshtbl.ValueString{"in2-az"},
-									boshtbl.ValueStrings{[]string{"in2-ip1"}},
-									boshtbl.ValueString{"in2-cid"},
-									boshtbl.ValueString{"in2-rp"},
+									boshtbl.NewValueString("job-name/2"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueString("in2-az"),
+									boshtbl.NewValueStrings([]string{"in2-ip1"}),
+									boshtbl.NewValueString("in2-cid"),
+									boshtbl.NewValueString("in2-rp"),
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in2-agent-id"},
-									boshtbl.ValueBool{true},
+									boshtbl.NewValueString("in2-agent-id"),
+									boshtbl.NewValueBool(true),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"?/?"},
+							FirstColumn: boshtbl.NewValueString("?/?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"?/?"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"unresponsive agent"}, true, nil},
+									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 									boshtbl.ValueString{},
 									boshtbl.ValueString{},
 									boshtbl.ValueString{},
 									boshtbl.ValueString{},
-									boshtbl.ValueBool{false},
+									boshtbl.NewValueBool(false),
 								},
 							},
 						},
@@ -383,11 +383,11 @@ var _ = Describe("InstancesCmd", func() {
 					Content: "vms",
 
 					HeaderVals: []boshtbl.Value{
-						boshtbl.ValueString{"Instance"},
-						boshtbl.ValueString{"State"},
-						boshtbl.ValueString{"AZ"},
-						boshtbl.ValueString{"IPs"},
-						boshtbl.ValueString{"DNS A Records"},
+						boshtbl.NewValueString("Instance"),
+						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("AZ"),
+						boshtbl.NewValueString("IPs"),
+						boshtbl.NewValueString("DNS A Records"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -397,35 +397,35 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/1"},
+							FirstColumn: boshtbl.NewValueString("job-name/1"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/1"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-state"}, true, nil},
+									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 									boshtbl.ValueString{},
-									boshtbl.ValueStrings{[]string{"in1-ip1", "in1-ip2"}},
-									boshtbl.ValueStrings{[]string{"in1-dns1", "in1-dns2"}},
+									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
+									boshtbl.NewValueStrings([]string{"in1-dns1", "in1-dns2"}),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/2"},
+							FirstColumn: boshtbl.NewValueString("job-name/2"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/2"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in2-state"}, true, nil},
-									boshtbl.ValueString{"in2-az"},
-									boshtbl.ValueStrings{[]string{"in2-ip1"}},
-									boshtbl.ValueStrings{[]string{"in2-dns1"}},
+									boshtbl.NewValueString("job-name/2"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueString("in2-az"),
+									boshtbl.NewValueStrings([]string{"in2-ip1"}),
+									boshtbl.NewValueStrings([]string{"in2-dns1"}),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"?/?"},
+							FirstColumn: boshtbl.NewValueString("?/?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"?/?"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"unresponsive agent"}, true, nil},
+									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 									boshtbl.ValueStrings{},
@@ -448,22 +448,22 @@ var _ = Describe("InstancesCmd", func() {
 					Content: "vms",
 
 					HeaderVals: []boshtbl.Value{
-						boshtbl.ValueString{"Instance"},
-						boshtbl.ValueString{"Process"},
-						boshtbl.ValueString{"State"},
-						boshtbl.ValueString{"AZ"},
-						boshtbl.ValueString{"IPs"},
-						boshtbl.ValueString{"Uptime"},
-						boshtbl.ValueString{"Load\n(1m, 5m, 15m)"},
-						boshtbl.ValueString{"CPU\nTotal"},
-						boshtbl.ValueString{"CPU\nUser"},
-						boshtbl.ValueString{"CPU\nSys"},
-						boshtbl.ValueString{"CPU\nWait"},
-						boshtbl.ValueString{"Memory\nUsage"},
-						boshtbl.ValueString{"Swap\nUsage"},
-						boshtbl.ValueString{"System\nDisk Usage"},
-						boshtbl.ValueString{"Ephemeral\nDisk Usage"},
-						boshtbl.ValueString{"Persistent\nDisk Usage"},
+						boshtbl.NewValueString("Instance"),
+						boshtbl.NewValueString("Process"),
+						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("AZ"),
+						boshtbl.NewValueString("IPs"),
+						boshtbl.NewValueString("Uptime"),
+						boshtbl.NewValueString("Load\n(1m, 5m, 15m)"),
+						boshtbl.NewValueString("CPU\nTotal"),
+						boshtbl.NewValueString("CPU\nUser"),
+						boshtbl.NewValueString("CPU\nSys"),
+						boshtbl.NewValueString("CPU\nWait"),
+						boshtbl.NewValueString("Memory\nUsage"),
+						boshtbl.NewValueString("Swap\nUsage"),
+						boshtbl.NewValueString("System\nDisk Usage"),
+						boshtbl.NewValueString("Ephemeral\nDisk Usage"),
+						boshtbl.NewValueString("Persistent\nDisk Usage"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -473,16 +473,16 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/1"},
+							FirstColumn: boshtbl.NewValueString("job-name/1"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/1"},
+									boshtbl.NewValueString("job-name/1"),
 									boshtbl.ValueString{},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-state"}, true, nil},
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 									boshtbl.ValueString{},
-									boshtbl.ValueStrings{[]string{"in1-ip1", "in1-ip2"}},
+									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 									ValueUptime{},
-									boshtbl.ValueString{"0.02, 0.06, 0.11"},
+									boshtbl.NewValueString("0.02, 0.06, 0.11"),
 									ValueCPUTotal{},
 									NewValueStringPercent("1.2"),
 									NewValueStringPercent("0.3"),
@@ -495,8 +495,8 @@ var _ = Describe("InstancesCmd", func() {
 								},
 								{
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in1-proc1-name"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-proc1-state"}, true, nil},
+									boshtbl.NewValueString("in1-proc1-name"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-proc1-state"), true),
 									nil,
 									nil,
 									ValueUptime{&procUptime},
@@ -513,8 +513,8 @@ var _ = Describe("InstancesCmd", func() {
 								},
 								{
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in1-proc2-name"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-proc2-state"}, true, nil},
+									boshtbl.NewValueString("in1-proc2-name"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-proc2-state"), true),
 									nil,
 									nil,
 									ValueUptime{},
@@ -532,16 +532,16 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/2"},
+							FirstColumn: boshtbl.NewValueString("job-name/2"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/2"},
+									boshtbl.NewValueString("job-name/2"),
 									boshtbl.ValueString{},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in2-state"}, true, nil},
-									boshtbl.ValueString{"in2-az"},
-									boshtbl.ValueStrings{[]string{"in2-ip1"}},
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueString("in2-az"),
+									boshtbl.NewValueStrings([]string{"in2-ip1"}),
 									ValueUptime{},
-									boshtbl.ValueString{"0.52, 0.56, 0.51"},
+									boshtbl.NewValueString("0.52, 0.56, 0.51"),
 									ValueCPUTotal{},
 									NewValueStringPercent("51.2"),
 									NewValueStringPercent("50.3"),
@@ -554,8 +554,8 @@ var _ = Describe("InstancesCmd", func() {
 								},
 								{
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in2-proc1-name"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in2-proc1-state"}, true, nil},
+									boshtbl.NewValueString("in2-proc1-name"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-proc1-state"), true),
 									nil,
 									nil,
 									ValueUptime{},
@@ -573,12 +573,12 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"?/?"},
+							FirstColumn: boshtbl.NewValueString("?/?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"?/?"},
+									boshtbl.NewValueString("?/?"),
 									boshtbl.ValueString{},
-									boshtbl.ValueFmt{boshtbl.ValueString{"unresponsive agent"}, true, nil},
+									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 									ValueUptime{},
@@ -614,10 +614,10 @@ var _ = Describe("InstancesCmd", func() {
 					Content: "vms",
 
 					HeaderVals: []boshtbl.Value{
-						boshtbl.ValueString{"Instance"},
-						boshtbl.ValueString{"State"},
-						boshtbl.ValueString{"AZ"},
-						boshtbl.ValueString{"IPs"},
+						boshtbl.NewValueString("Instance"),
+						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("AZ"),
+						boshtbl.NewValueString("IPs"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -627,22 +627,22 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/1"},
+							FirstColumn: boshtbl.NewValueString("job-name/1"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/1"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-state"}, true, nil},
+									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 									boshtbl.ValueString{},
-									boshtbl.ValueStrings{[]string{"in1-ip1", "in1-ip2"}},
+									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"?/?"},
+							FirstColumn: boshtbl.NewValueString("?/?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"?/?"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"unresponsive agent"}, true, nil},
+									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 								},
@@ -671,11 +671,11 @@ var _ = Describe("InstancesCmd", func() {
 					Content: "vms",
 
 					HeaderVals: []boshtbl.Value{
-						boshtbl.ValueString{"Instance"},
-						boshtbl.ValueString{"Process"},
-						boshtbl.ValueString{"State"},
-						boshtbl.ValueString{"AZ"},
-						boshtbl.ValueString{"IPs"},
+						boshtbl.NewValueString("Instance"),
+						boshtbl.NewValueString("Process"),
+						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("AZ"),
+						boshtbl.NewValueString("IPs"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -685,31 +685,31 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.ValueString{"job-name/1"},
+							FirstColumn: boshtbl.NewValueString("job-name/1"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"job-name/1"},
+									boshtbl.NewValueString("job-name/1"),
 									boshtbl.ValueString{},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-state"}, true, nil},
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 									boshtbl.ValueString{},
-									boshtbl.ValueStrings{[]string{"in1-ip1", "in1-ip2"}},
+									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								},
 								{
 									boshtbl.ValueString{},
-									boshtbl.ValueString{"in1-proc2-name"},
-									boshtbl.ValueFmt{boshtbl.ValueString{"in1-proc2-state"}, true, nil},
+									boshtbl.NewValueString("in1-proc2-name"),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-proc2-state"), true),
 									nil,
 									nil,
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"?/?"},
+							FirstColumn: boshtbl.NewValueString("?/?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"?/?"},
+									boshtbl.NewValueString("?/?"),
 									boshtbl.ValueString{},
-									boshtbl.ValueFmt{boshtbl.ValueString{"unresponsive agent"}, true, nil},
+									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 								},

@@ -78,10 +78,10 @@ var _ = Describe("DeploymentsCmd", func() {
 
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"dep1"},
-						boshtbl.ValueStrings{[]string{"rel1/rel1-ver", "rel2/rel2-ver"}},
-						boshtbl.ValueStrings{[]string{"stemcell1/stemcell1-ver", "stemcell2/stemcell2-ver"}},
-						boshtbl.ValueString{"cloud-config"},
+						boshtbl.NewValueString("dep1"),
+						boshtbl.NewValueStrings([]string{"rel1/rel1-ver", "rel2/rel2-ver"}),
+						boshtbl.NewValueStrings([]string{"stemcell1/stemcell1-ver", "stemcell2/stemcell2-ver"}),
+						boshtbl.NewValueString("cloud-config"),
 					},
 				},
 			}))

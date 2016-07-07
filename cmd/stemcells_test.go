@@ -75,40 +75,40 @@ var _ = Describe("StemcellsCmd", func() {
 
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"stem1"},
-						boshtbl.ValueSuffix{
-							boshtbl.ValueVersion{semver.MustNewVersionFromString("stem1-ver")},
+						boshtbl.NewValueString("stem1"),
+						boshtbl.NewValueSuffix(
+							boshtbl.NewValueVersion(semver.MustNewVersionFromString("stem1-ver")),
 							"stem1-ver-mark*",
-						},
-						boshtbl.ValueString{"stem1-os"},
-						boshtbl.ValueString{"stem1-cid"},
+						),
+						boshtbl.NewValueString("stem1-os"),
+						boshtbl.NewValueString("stem1-cid"),
 					},
 					{
-						boshtbl.ValueString{"stem2"},
-						boshtbl.ValueSuffix{
-							boshtbl.ValueVersion{semver.MustNewVersionFromString("stem2-ver")},
+						boshtbl.NewValueString("stem2"),
+						boshtbl.NewValueSuffix(
+							boshtbl.NewValueVersion(semver.MustNewVersionFromString("stem2-ver")),
 							"",
-						},
-						boshtbl.ValueString{"stem2-os"},
-						boshtbl.ValueString{"stem2-cid"},
+						),
+						boshtbl.NewValueString("stem2-os"),
+						boshtbl.NewValueString("stem2-cid"),
 					},
 					{
-						boshtbl.ValueString{"stem3"},
-						boshtbl.ValueSuffix{
-							boshtbl.ValueVersion{semver.MustNewVersionFromString("stem3-ver")},
+						boshtbl.NewValueString("stem3"),
+						boshtbl.NewValueSuffix(
+							boshtbl.NewValueVersion(semver.MustNewVersionFromString("stem3-ver")),
 							"",
-						},
-						boshtbl.ValueString{"stem3-os"},
-						boshtbl.ValueString{"stem3-cid"},
+						),
+						boshtbl.NewValueString("stem3-os"),
+						boshtbl.NewValueString("stem3-cid"),
 					},
 					{
-						boshtbl.ValueString{"stem4"},
-						boshtbl.ValueSuffix{
-							boshtbl.ValueVersion{semver.MustNewVersionFromString("stem4-ver")},
+						boshtbl.NewValueString("stem4"),
+						boshtbl.NewValueSuffix(
+							boshtbl.NewValueVersion(semver.MustNewVersionFromString("stem4-ver")),
 							"",
-						},
-						boshtbl.ValueString{""},
-						boshtbl.ValueString{"stem4-cid"},
+						),
+						boshtbl.NewValueString(""),
+						boshtbl.NewValueString("stem4-cid"),
 					},
 				},
 

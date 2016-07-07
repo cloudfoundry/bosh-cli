@@ -35,12 +35,12 @@ func (c DisksCmd) Run(opts DisksOpts) error {
 
 	for _, d := range disks {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{d.CID()},
-			boshtbl.ValueBytes{d.Size()},
-			boshtbl.ValueString{d.Deployment().Name()},
-			boshtbl.ValueString{d.InstanceName()},
-			boshtbl.ValueString{d.AZName()},
-			boshtbl.ValueTime{d.OrphanedAt()},
+			boshtbl.NewValueString(d.CID()),
+			boshtbl.NewValueBytes(d.Size()),
+			boshtbl.NewValueString(d.Deployment().Name()),
+			boshtbl.NewValueString(d.InstanceName()),
+			boshtbl.NewValueString(d.AZName()),
+			boshtbl.NewValueTime(d.OrphanedAt()),
 		})
 	}
 

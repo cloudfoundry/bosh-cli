@@ -39,12 +39,12 @@ func (c ReleasesCmd) Run() error {
 
 	for _, rel := range releases {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{rel.Name()},
-			boshtbl.ValueSuffix{
-				boshtbl.ValueVersion{rel.Version()},
+			boshtbl.NewValueString(rel.Name()),
+			boshtbl.NewValueSuffix(
+				boshtbl.NewValueVersion(rel.Version()),
 				rel.VersionMark("*"),
-			},
-			boshtbl.ValueString{rel.CommitHashWithMark("+")},
+			),
+			boshtbl.NewValueString(rel.CommitHashWithMark("+")),
 		})
 	}
 

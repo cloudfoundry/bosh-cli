@@ -53,9 +53,9 @@ var _ = Describe("LocksCmd", func() {
 
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"deployment"},
-						boshtbl.ValueString{"some-deployment:20"},
-						boshtbl.ValueTime{time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+						boshtbl.NewValueString("deployment"),
+						boshtbl.NewValueString("some-deployment:20"),
+						boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
 					},
 				},
 			}))

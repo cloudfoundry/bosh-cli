@@ -45,12 +45,12 @@ var _ = Describe("TargetsCmd", func() {
 
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"target1-url"},
-						boshtbl.ValueString{"target1-alias"},
+						boshtbl.NewValueString("target1-url"),
+						boshtbl.NewValueString("target1-alias"),
 					},
 					{
-						boshtbl.ValueString{"target2-url"},
-						boshtbl.ValueString{"target2-alias"},
+						boshtbl.NewValueString("target2-url"),
+						boshtbl.NewValueString("target2-alias"),
 					},
 				},
 			}))

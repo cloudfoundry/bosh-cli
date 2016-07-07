@@ -72,10 +72,10 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{
-						{boshtbl.ValueString{"Name"}, boshtbl.ValueString{"rel"}},
-						{boshtbl.ValueString{"Version"}, boshtbl.ValueString{"ver"}},
-						{boshtbl.ValueString{"Commit Hash"}, boshtbl.ValueString{"commit"}},
-						{boshtbl.ValueString{"Archive"}, boshtbl.ValueString{"/archive-path"}},
+						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("rel")},
+						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("ver")},
+						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+						{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/archive-path")},
 					},
 				}))
 			})
@@ -115,9 +115,9 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{
-						{boshtbl.ValueString{"Name"}, boshtbl.ValueString{"default-rel-name"}},
-						{boshtbl.ValueString{"Version"}, boshtbl.ValueString{"next-dev+ver"}},
-						{boshtbl.ValueString{"Commit Hash"}, boshtbl.ValueString{"commit"}},
+						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
+						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("next-dev+ver")},
+						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
 					},
 				}))
 			})
@@ -141,9 +141,9 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{
-						{boshtbl.ValueString{"Name"}, boshtbl.ValueString{"custom-name"}},
-						{boshtbl.ValueString{"Version"}, boshtbl.ValueString{"custom-ver"}},
-						{boshtbl.ValueString{"Commit Hash"}, boshtbl.ValueString{"commit"}},
+						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("custom-name")},
+						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("custom-ver")},
+						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
 					},
 				}))
 			})
@@ -172,9 +172,9 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{
-						{boshtbl.ValueString{"Name"}, boshtbl.ValueString{"default-rel-name"}},
-						{boshtbl.ValueString{"Version"}, boshtbl.ValueString{"ts-ver"}},
-						{boshtbl.ValueString{"Commit Hash"}, boshtbl.ValueString{"commit"}},
+						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
+						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("ts-ver")},
+						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
 					},
 				}))
 			})
@@ -206,9 +206,9 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{
-						{boshtbl.ValueString{"Name"}, boshtbl.ValueString{"default-rel-name"}},
-						{boshtbl.ValueString{"Version"}, boshtbl.ValueString{"next-final+ver"}},
-						{boshtbl.ValueString{"Commit Hash"}, boshtbl.ValueString{"commit"}},
+						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
+						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("next-final+ver")},
+						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
 					},
 				}))
 			})
@@ -240,9 +240,9 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{
-						{boshtbl.ValueString{"Name"}, boshtbl.ValueString{"default-rel-name"}},
-						{boshtbl.ValueString{"Version"}, boshtbl.ValueString{"custom-ver"}},
-						{boshtbl.ValueString{"Commit Hash"}, boshtbl.ValueString{"commit"}},
+						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
+						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("custom-ver")},
+						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
 					},
 				}))
 			})
@@ -272,10 +272,10 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{
-						{boshtbl.ValueString{"Name"}, boshtbl.ValueString{"default-rel-name"}},
-						{boshtbl.ValueString{"Version"}, boshtbl.ValueString{"next-final+ver"}},
-						{boshtbl.ValueString{"Commit Hash"}, boshtbl.ValueString{"commit"}},
-						{boshtbl.ValueString{"Archive"}, boshtbl.ValueString{"/archive-path"}},
+						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
+						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("next-final+ver")},
+						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+						{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/archive-path")},
 					},
 				}))
 			})

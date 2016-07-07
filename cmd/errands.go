@@ -29,7 +29,7 @@ func (c ErrandsCmd) Run() error {
 
 	for _, e := range errands {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{e.Name},
+			boshtbl.NewValueString(e.Name),
 		})
 	}
 

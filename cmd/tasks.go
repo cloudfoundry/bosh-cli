@@ -35,15 +35,15 @@ func (c TasksCmd) printTable(tasks []boshdir.Task, err error) error {
 
 	for _, t := range tasks {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueInt{t.ID()},
+			boshtbl.NewValueInt(t.ID()),
 			boshtbl.ValueFmt{
-				V:     boshtbl.ValueString{t.State()},
+				V:     boshtbl.NewValueString(t.State()),
 				Error: t.IsError(),
 			},
-			boshtbl.ValueTime{t.CreatedAt()},
-			boshtbl.ValueString{t.User()},
-			boshtbl.ValueString{t.Description()},
-			boshtbl.ValueString{t.Result()},
+			boshtbl.NewValueTime(t.CreatedAt()),
+			boshtbl.NewValueString(t.User()),
+			boshtbl.NewValueString(t.Description()),
+			boshtbl.NewValueString(t.Result()),
 		})
 	}
 

@@ -51,20 +51,20 @@ var _ = Describe("ReleaseTables", func() {
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"Name"},
-						boshtbl.ValueString{"rel"},
+						boshtbl.NewValueString("Name"),
+						boshtbl.NewValueString("rel"),
 					},
 					{
-						boshtbl.ValueString{"Version"},
-						boshtbl.ValueString{"ver"},
+						boshtbl.NewValueString("Version"),
+						boshtbl.NewValueString("ver"),
 					},
 					{
-						boshtbl.ValueString{"Commit Hash"},
-						boshtbl.ValueString{"commit"},
+						boshtbl.NewValueString("Commit Hash"),
+						boshtbl.NewValueString("commit"),
 					},
 					{
-						boshtbl.ValueString{"Archive"},
-						boshtbl.ValueString{"/archive-path"},
+						boshtbl.NewValueString("Archive"),
+						boshtbl.NewValueString("/archive-path"),
 					},
 				},
 			}))
@@ -75,9 +75,9 @@ var _ = Describe("ReleaseTables", func() {
 				SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"job-name/job-fp"},
-						boshtbl.ValueString{"job-sha1"},
-						boshtbl.ValueString{""},
+						boshtbl.NewValueString("job-name/job-fp"),
+						boshtbl.NewValueString("job-sha1"),
+						boshtbl.NewValueString(""),
 					},
 				},
 			}))
@@ -88,9 +88,9 @@ var _ = Describe("ReleaseTables", func() {
 				SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"pkg-name/pkg-fp"},
-						boshtbl.ValueString{"pkg-sha1"},
-						boshtbl.ValueString{""},
+						boshtbl.NewValueString("pkg-name/pkg-fp"),
+						boshtbl.NewValueString("pkg-sha1"),
+						boshtbl.NewValueString(""),
 					},
 				},
 			}))
@@ -102,16 +102,16 @@ var _ = Describe("ReleaseTables", func() {
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"Name"},
-						boshtbl.ValueString{"rel"},
+						boshtbl.NewValueString("Name"),
+						boshtbl.NewValueString("rel"),
 					},
 					{
-						boshtbl.ValueString{"Version"},
-						boshtbl.ValueString{"ver"},
+						boshtbl.NewValueString("Version"),
+						boshtbl.NewValueString("ver"),
 					},
 					{
-						boshtbl.ValueString{"Commit Hash"},
-						boshtbl.ValueString{"commit"},
+						boshtbl.NewValueString("Commit Hash"),
+						boshtbl.NewValueString("commit"),
 					},
 				},
 			}))

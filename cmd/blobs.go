@@ -39,10 +39,10 @@ func (c BlobsCmd) Run() error {
 		}
 
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{blob.Path},
-			boshtbl.ValueBytes{uint64(blob.Size)},
-			boshtbl.ValueString{blobID},
-			boshtbl.ValueString{blob.SHA1},
+			boshtbl.NewValueString(blob.Path),
+			boshtbl.NewValueBytes(uint64(blob.Size)),
+			boshtbl.NewValueString(blobID),
+			boshtbl.NewValueString(blob.SHA1),
 		})
 	}
 

@@ -19,24 +19,24 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 	summaryTable := boshtbl.Table{
 		Rows: [][]boshtbl.Value{
 			{
-				boshtbl.ValueString{"Name"},
-				boshtbl.ValueString{t.Release.Name()},
+				boshtbl.NewValueString("Name"),
+				boshtbl.NewValueString(t.Release.Name()),
 			},
 			{
-				boshtbl.ValueString{"Version"},
-				boshtbl.ValueString{t.Release.Version()},
+				boshtbl.NewValueString("Version"),
+				boshtbl.NewValueString(t.Release.Version()),
 			},
 			{
-				boshtbl.ValueString{"Commit Hash"},
-				boshtbl.ValueString{t.Release.CommitHashWithMark("+")},
+				boshtbl.NewValueString("Commit Hash"),
+				boshtbl.NewValueString(t.Release.CommitHashWithMark("+")),
 			},
 		},
 	}
 
 	if len(t.ArchivePath) > 0 {
 		summaryTable.Rows = append(summaryTable.Rows, []boshtbl.Value{
-			boshtbl.ValueString{"Archive"},
-			boshtbl.ValueString{t.ArchivePath},
+			boshtbl.NewValueString("Archive"),
+			boshtbl.NewValueString(t.ArchivePath),
 		})
 	}
 
@@ -48,9 +48,9 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 
 	for _, job := range t.Release.Jobs() {
 		jobsTable.Rows = append(jobsTable.Rows, []boshtbl.Value{
-			boshtbl.ValueString{fmt.Sprintf("%s/%s", job.Name(), job.Fingerprint())},
-			boshtbl.ValueString{job.ArchiveSHA1()},
-			boshtbl.ValueString{t.sumPkgNames(job.Packages)},
+			boshtbl.NewValueString(fmt.Sprintf("%s/%s", job.Name(), job.Fingerprint())),
+			boshtbl.NewValueString(job.ArchiveSHA1()),
+			boshtbl.NewValueString(t.sumPkgNames(job.Packages)),
 		})
 	}
 
@@ -62,9 +62,9 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 
 	for _, pkg := range t.Release.Packages() {
 		pkgsTable.Rows = append(pkgsTable.Rows, []boshtbl.Value{
-			boshtbl.ValueString{fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())},
-			boshtbl.ValueString{pkg.ArchiveSHA1()},
-			boshtbl.ValueString{t.sumPkgDependencyNames(pkg.Dependencies)},
+			boshtbl.NewValueString(fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())),
+			boshtbl.NewValueString(pkg.ArchiveSHA1()),
+			boshtbl.NewValueString(t.sumPkgDependencyNames(pkg.Dependencies)),
 		})
 	}
 

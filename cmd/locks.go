@@ -31,9 +31,9 @@ func (c LocksCmd) Run() error {
 
 	for _, l := range locks {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{l.Type},
-			boshtbl.ValueString{strings.Join(l.Resource, ":")},
-			boshtbl.ValueTime{l.ExpiresAt},
+			boshtbl.NewValueString(l.Type),
+			boshtbl.NewValueString(strings.Join(l.Resource, ":")),
+			boshtbl.NewValueTime(l.ExpiresAt),
 		})
 	}
 

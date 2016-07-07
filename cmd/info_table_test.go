@@ -41,28 +41,28 @@ var _ = Describe("InfoTable", func() {
 			Expect(ui.Table.Header).To(BeEmpty())
 			Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
 				{
-					boshtbl.ValueString{"Name"},
-					boshtbl.ValueString{"director-name"},
+					boshtbl.NewValueString("Name"),
+					boshtbl.NewValueString("director-name"),
 				},
 				{
-					boshtbl.ValueString{"UUID"},
-					boshtbl.ValueString{"director-uuid"},
+					boshtbl.NewValueString("UUID"),
+					boshtbl.NewValueString("director-uuid"),
 				},
 				{
-					boshtbl.ValueString{"Version"},
-					boshtbl.ValueString{"director-version"},
+					boshtbl.NewValueString("Version"),
+					boshtbl.NewValueString("director-version"),
 				},
 				{
-					boshtbl.ValueString{"CPI"},
-					boshtbl.ValueString{"cpi"},
+					boshtbl.NewValueString("CPI"),
+					boshtbl.NewValueString("cpi"),
 				},
 				{
-					boshtbl.ValueString{"Features"},
-					boshtbl.ValueStrings{[]string{"compiled_pkgs: disabled", "snapshots: enabled"}},
+					boshtbl.NewValueString("Features"),
+					boshtbl.NewValueStrings([]string{"compiled_pkgs: disabled", "snapshots: enabled"}),
 				},
 				{
-					boshtbl.ValueString{"User"},
-					boshtbl.ValueString{"user"},
+					boshtbl.NewValueString("User"),
+					boshtbl.NewValueString("user"),
 				},
 			}))
 		})
@@ -79,20 +79,20 @@ var _ = Describe("InfoTable", func() {
 			Expect(ui.Table.Header).To(BeEmpty())
 			Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
 				{
-					boshtbl.ValueString{"Name"},
-					boshtbl.ValueString{"director-name"},
+					boshtbl.NewValueString("Name"),
+					boshtbl.NewValueString("director-name"),
 				},
 				{
-					boshtbl.ValueString{"UUID"},
-					boshtbl.ValueString{"director-uuid"},
+					boshtbl.NewValueString("UUID"),
+					boshtbl.NewValueString("director-uuid"),
 				},
 				{
-					boshtbl.ValueString{"Version"},
-					boshtbl.ValueString{"director-version"},
+					boshtbl.NewValueString("Version"),
+					boshtbl.NewValueString("director-version"),
 				},
 				{
-					boshtbl.ValueString{"User"},
-					boshtbl.ValueString{"(not logged in)"},
+					boshtbl.NewValueString("User"),
+					boshtbl.NewValueString("(not logged in)"),
 				},
 			}))
 		})

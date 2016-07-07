@@ -57,10 +57,10 @@ var _ = Describe("SnapshotsCmd", func() {
 
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"some-job/10"},
-						boshtbl.ValueString{"some-cid"},
-						boshtbl.ValueTime{time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
-						boshtbl.ValueBool{true},
+						boshtbl.NewValueString("some-job/10"),
+						boshtbl.NewValueString("some-cid"),
+						boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
+						boshtbl.NewValueBool(true),
 					},
 				},
 			}))

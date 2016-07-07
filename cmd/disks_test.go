@@ -77,12 +77,12 @@ var _ = Describe("DisksCmd", func() {
 
 					Rows: [][]boshtbl.Value{
 						{
-							boshtbl.ValueString{"cid"},
-							boshtbl.ValueBytes{100},
-							boshtbl.ValueString{"deployment"},
-							boshtbl.ValueString{"instance"},
-							boshtbl.ValueString{"az"},
-							boshtbl.ValueTime{time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+							boshtbl.NewValueString("cid"),
+							boshtbl.NewValueBytes(100),
+							boshtbl.NewValueString("deployment"),
+							boshtbl.NewValueString("instance"),
+							boshtbl.NewValueString("az"),
+							boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
 						},
 					},
 				}))

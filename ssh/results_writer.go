@@ -37,11 +37,11 @@ func (w *ResultsWriter) Flush() {
 
 	for _, inst := range w.instances {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{inst.Instance()},
-			boshtbl.ValueString{inst.StdoutAsString()},
-			boshtbl.ValueString{inst.StderrAsString()},
-			boshtbl.ValueInt{inst.ExitStatus()},
-			boshtbl.ValueError{inst.Error()},
+			boshtbl.NewValueString(inst.Instance()),
+			boshtbl.NewValueString(inst.StdoutAsString()),
+			boshtbl.NewValueString(inst.StderrAsString()),
+			boshtbl.NewValueInt(inst.ExitStatus()),
+			boshtbl.NewValueError(inst.Error()),
 		})
 	}
 

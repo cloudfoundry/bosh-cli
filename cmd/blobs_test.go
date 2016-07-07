@@ -61,16 +61,16 @@ var _ = Describe("BlobsCmd", func() {
 
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"fake-path"},
-						boshtbl.ValueBytes{100},
-						boshtbl.ValueString{"fake-blob-id"},
-						boshtbl.ValueString{"fake-sha1"},
+						boshtbl.NewValueString("fake-path"),
+						boshtbl.NewValueBytes(100),
+						boshtbl.NewValueString("fake-blob-id"),
+						boshtbl.NewValueString("fake-sha1"),
 					},
 					{
-						boshtbl.ValueString{"dir/fake-path"},
-						boshtbl.ValueBytes{1000},
-						boshtbl.ValueString{"(local)"},
-						boshtbl.ValueString{"fake-sha2"},
+						boshtbl.NewValueString("dir/fake-path"),
+						boshtbl.NewValueBytes(1000),
+						boshtbl.NewValueString("(local)"),
+						boshtbl.NewValueString("fake-sha2"),
 					},
 				},
 			}))

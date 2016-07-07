@@ -49,7 +49,7 @@ var _ = Describe("ErrandsCmd", func() {
 				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
 				Rows: [][]boshtbl.Value{
-					{boshtbl.ValueString{"some-errand"}},
+					{boshtbl.NewValueString("some-errand")},
 				},
 			}))
 		})

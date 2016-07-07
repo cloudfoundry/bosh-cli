@@ -5,11 +5,15 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"time"
 
+	semver "github.com/cppforlife/go-semi-semantic/version"
 	"github.com/dustin/go-humanize"
 
 	boshuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
+
+func NewValueString(s string) ValueString { return ValueString{S: s} }
 
 func (t ValueString) String() string { return t.S }
 func (t ValueString) Value() Value   { return t }
@@ -26,6 +30,8 @@ func (t ValueString) Compare(other Value) int {
 	}
 }
 
+func NewValueStrings(s []string) ValueStrings { return ValueStrings{S: s} }
+
 func (t ValueStrings) String() string { return strings.Join(t.S, "\n") }
 func (t ValueStrings) Value() Value   { return t }
 
@@ -40,6 +46,8 @@ func (t ValueStrings) Compare(other Value) int {
 		return 1
 	}
 }
+
+func NewValueInt(i int) ValueInt { return ValueInt{I: i} }
 
 func (t ValueInt) String() string { return strconv.Itoa(t.I) }
 func (t ValueInt) Value() Value   { return t }
@@ -56,6 +64,8 @@ func (t ValueInt) Compare(other Value) int {
 	}
 }
 
+func NewValueBytes(i uint64) ValueBytes { return ValueBytes{I: i} }
+
 func (t ValueBytes) String() string { return humanize.Bytes(t.I) }
 func (t ValueBytes) Value() Value   { return t }
 
@@ -70,6 +80,8 @@ func (t ValueBytes) Compare(other Value) int {
 		return 1
 	}
 }
+
+func NewValueTime(t time.Time) ValueTime { return ValueTime{T: t} }
 
 func (t ValueTime) String() string { return t.T.Format(boshuifmt.TimeFullFmt) }
 func (t ValueTime) Value() Value   { return t }
@@ -86,6 +98,8 @@ func (t ValueTime) Compare(other Value) int {
 	}
 }
 
+func NewValueBool(b bool) ValueBool { return ValueBool{B: b} }
+
 func (t ValueBool) String() string { return fmt.Sprintf("%t", t.B) }
 func (t ValueBool) Value() Value   { return t }
 
@@ -101,12 +115,16 @@ func (t ValueBool) Compare(other Value) int {
 	}
 }
 
+func NewValueVersion(v semver.Version) ValueVersion { return ValueVersion{V: v} }
+
 func (t ValueVersion) String() string { return t.V.String() }
 func (t ValueVersion) Value() Value   { return t }
 
 func (t ValueVersion) Compare(other Value) int {
 	return t.V.Compare(other.(ValueVersion).V)
 }
+
+func NewValueError(e error) ValueError { return ValueError{E: e} }
 
 func (t ValueError) String() string {
 	if t.E != nil {
@@ -122,6 +140,8 @@ func (t ValueNone) String() string          { return "" }
 func (t ValueNone) Value() Value            { return t }
 func (t ValueNone) Compare(other Value) int { panic("Never callled") }
 
+func NewValueFmt(v Value, error bool) ValueFmt { return ValueFmt{V: v, Error: error} }
+
 func (t ValueFmt) String() string          { return t.V.String() }
 func (t ValueFmt) Value() Value            { return t.V }
 func (t ValueFmt) Compare(other Value) int { panic("Never called") }
@@ -132,6 +152,8 @@ func (t ValueFmt) Fprintf(w io.Writer, pattern string, rest ...interface{}) (int
 	}
 	return fmt.Fprintf(w, "%s", t.Func(pattern, rest...))
 }
+
+func NewValueSuffix(v Value, s string) ValueSuffix { return ValueSuffix{V: v, Suffix: s} }
 
 func (t ValueSuffix) String() string {
 	str := t.V.String()

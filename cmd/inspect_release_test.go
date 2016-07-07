@@ -105,9 +105,9 @@ var _ = Describe("InspectReleaseCmd", func() {
 
 					Rows: [][]boshtbl.Value{
 						{
-							boshtbl.ValueString{"some-job-name/some-job-fingerprint"},
-							boshtbl.ValueString{"some-job-blob-id"},
-							boshtbl.ValueString{"some-job-blob-sha1"},
+							boshtbl.NewValueString("some-job-name/some-job-fingerprint"),
+							boshtbl.NewValueString("some-job-blob-id"),
+							boshtbl.NewValueString("some-job-blob-sha1"),
 						},
 					},
 				},
@@ -120,32 +120,32 @@ var _ = Describe("InspectReleaseCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.ValueString{"some-pkg1-name/some-pkg1-fingerprint"},
+							FirstColumn: boshtbl.NewValueString("some-pkg1-name/some-pkg1-fingerprint"),
 
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{""},
-									boshtbl.ValueString{"(source)"},
-									boshtbl.ValueString{"some-pkg1-blob-id"},
-									boshtbl.ValueString{"some-pkg1-blob-sha1"},
+									boshtbl.NewValueString(""),
+									boshtbl.NewValueString("(source)"),
+									boshtbl.NewValueString("some-pkg1-blob-id"),
+									boshtbl.NewValueString("some-pkg1-blob-sha1"),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.ValueString{"some-pkg2-name/some-pkg2-fingerprint"},
+							FirstColumn: boshtbl.NewValueString("some-pkg2-name/some-pkg2-fingerprint"),
 
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{""},
-									boshtbl.ValueString{"(source)"},
-									boshtbl.ValueString{"some-pkg2-blob-id"},
-									boshtbl.ValueString{"some-pkg2-blob-sha1"},
+									boshtbl.NewValueString(""),
+									boshtbl.NewValueString("(source)"),
+									boshtbl.NewValueString("some-pkg2-blob-id"),
+									boshtbl.NewValueString("some-pkg2-blob-sha1"),
 								},
 								{
-									boshtbl.ValueString{""},
-									boshtbl.ValueString{"some-stemcell-name/some-stemcell-version"},
-									boshtbl.ValueString{"some-compiled-pkg-blob-id"},
-									boshtbl.ValueString{"some-compiled-pkg-blob-sha1"},
+									boshtbl.NewValueString(""),
+									boshtbl.NewValueString("some-stemcell-name/some-stemcell-version"),
+									boshtbl.NewValueString("some-compiled-pkg-blob-id"),
+									boshtbl.NewValueString("some-compiled-pkg-blob-sha1"),
 								},
 							},
 						},

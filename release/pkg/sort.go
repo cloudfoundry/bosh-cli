@@ -44,7 +44,7 @@ func removeFromList(packageList []Compilable, pkg Compilable) []Compilable {
 			return append(packageList[:idx], packageList[idx+1:]...)
 		}
 	}
-	panic(fmt.Sprintf("Expected %s to be in dependency graph", pkg.Name))
+	panic(fmt.Sprintf("Expected %s to be in dependency graph", pkg.Name()))
 }
 
 func getEdgeMaps(releasePackages []Compilable) (map[Compilable][]Compilable, map[Compilable][]Compilable) {

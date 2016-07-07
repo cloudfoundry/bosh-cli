@@ -39,10 +39,10 @@ func (t DeploymentsTable) Print() error {
 		}
 
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{d.Name()},
-			boshtbl.ValueStrings{t.takeReleases(releases)},
-			boshtbl.ValueStrings{t.takeStemcells(stemcells)},
-			boshtbl.ValueString{config},
+			boshtbl.NewValueString(d.Name()),
+			boshtbl.NewValueStrings(t.takeReleases(releases)),
+			boshtbl.NewValueStrings(t.takeStemcells(stemcells)),
+			boshtbl.NewValueString(config),
 		})
 	}
 

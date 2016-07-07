@@ -28,10 +28,10 @@ func (c SnapshotsCmd) Run(opts SnapshotsOpts) error {
 
 	for _, s := range snapshots {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{s.InstanceDesc()},
-			boshtbl.ValueString{s.CID},
-			boshtbl.ValueTime{s.CreatedAt},
-			boshtbl.ValueBool{s.Clean},
+			boshtbl.NewValueString(s.InstanceDesc()),
+			boshtbl.NewValueString(s.CID),
+			boshtbl.NewValueTime(s.CreatedAt),
+			boshtbl.NewValueBool(s.Clean),
 		})
 	}
 

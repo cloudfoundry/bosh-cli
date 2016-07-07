@@ -44,38 +44,38 @@ type InstanceTableValues struct {
 }
 
 var InstanceTableHeader = InstanceTableValues{
-	Name:    boshtbl.ValueString{"Instance"},
-	Process: boshtbl.ValueString{"Process"},
+	Name:    boshtbl.NewValueString("Instance"),
+	Process: boshtbl.NewValueString("Process"),
 
-	State:  boshtbl.ValueString{"State"},
-	AZ:     boshtbl.ValueString{"AZ"},
-	VMType: boshtbl.ValueString{"VM Type"},
-	IPs:    boshtbl.ValueString{"IPs"},
+	State:  boshtbl.NewValueString("State"),
+	AZ:     boshtbl.NewValueString("AZ"),
+	VMType: boshtbl.NewValueString("VM Type"),
+	IPs:    boshtbl.NewValueString("IPs"),
 
 	// Details
-	VMCID:        boshtbl.ValueString{"VM CID"},
-	DiskCID:      boshtbl.ValueString{"Disk CID"},
-	AgentID:      boshtbl.ValueString{"Agent ID"},
-	Resurrection: boshtbl.ValueString{"Resurrection\nPaused"},
+	VMCID:        boshtbl.NewValueString("VM CID"),
+	DiskCID:      boshtbl.NewValueString("Disk CID"),
+	AgentID:      boshtbl.NewValueString("Agent ID"),
+	Resurrection: boshtbl.NewValueString("Resurrection\nPaused"),
 
 	// DNS
-	DNS: boshtbl.ValueString{"DNS A Records"},
+	DNS: boshtbl.NewValueString("DNS A Records"),
 
 	// Vitals
-	Uptime: boshtbl.ValueString{"Uptime"}, // only for Process
-	Load:   boshtbl.ValueString{"Load\n(1m, 5m, 15m)"},
+	Uptime: boshtbl.NewValueString("Uptime"), // only for Process
+	Load:   boshtbl.NewValueString("Load\n(1m, 5m, 15m)"),
 
-	CPUTotal: boshtbl.ValueString{"CPU\nTotal"}, // only for Process
-	CPUUser:  boshtbl.ValueString{"CPU\nUser"},
-	CPUSys:   boshtbl.ValueString{"CPU\nSys"},
-	CPUWait:  boshtbl.ValueString{"CPU\nWait"},
+	CPUTotal: boshtbl.NewValueString("CPU\nTotal"), // only for Process
+	CPUUser:  boshtbl.NewValueString("CPU\nUser"),
+	CPUSys:   boshtbl.NewValueString("CPU\nSys"),
+	CPUWait:  boshtbl.NewValueString("CPU\nWait"),
 
-	Memory: boshtbl.ValueString{"Memory\nUsage"},
-	Swap:   boshtbl.ValueString{"Swap\nUsage"},
+	Memory: boshtbl.NewValueString("Memory\nUsage"),
+	Swap:   boshtbl.NewValueString("Swap\nUsage"),
 
-	SystemDisk:     boshtbl.ValueString{"System\nDisk Usage"},
-	EphemeralDisk:  boshtbl.ValueString{"Ephemeral\nDisk Usage"},
-	PersistentDisk: boshtbl.ValueString{"Persistent\nDisk Usage"},
+	SystemDisk:     boshtbl.NewValueString("System\nDisk Usage"),
+	EphemeralDisk:  boshtbl.NewValueString("Ephemeral\nDisk Usage"),
+	PersistentDisk: boshtbl.NewValueString("Persistent\nDisk Usage"),
 }
 
 type InstanceTable struct {
@@ -92,26 +92,26 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		Process: boshtbl.ValueString{},
 
 		State: boshtbl.ValueFmt{
-			V:     boshtbl.ValueString{i.State},
+			V:     boshtbl.NewValueString(i.State),
 			Error: !i.IsRunning(),
 		},
 
-		AZ:     boshtbl.ValueString{i.AZ},
-		VMType: boshtbl.ValueString{i.VMType},
-		IPs:    boshtbl.ValueStrings{i.IPs},
+		AZ:     boshtbl.NewValueString(i.AZ),
+		VMType: boshtbl.NewValueString(i.VMType),
+		IPs:    boshtbl.NewValueStrings(i.IPs),
 
 		// Details
-		VMCID:        boshtbl.ValueString{i.VMID},
-		DiskCID:      boshtbl.ValueString{i.DiskID},
-		AgentID:      boshtbl.ValueString{i.AgentID},
-		Resurrection: boshtbl.ValueBool{i.ResurrectionPaused},
+		VMCID:        boshtbl.NewValueString(i.VMID),
+		DiskCID:      boshtbl.NewValueString(i.DiskID),
+		AgentID:      boshtbl.NewValueString(i.AgentID),
+		Resurrection: boshtbl.NewValueBool(i.ResurrectionPaused),
 
 		// DNS
-		DNS: boshtbl.ValueStrings{i.DNS},
+		DNS: boshtbl.NewValueStrings(i.DNS),
 
 		// Vitals
 		Uptime: ValueUptime{i.Vitals.Uptime.Seconds},
-		Load:   boshtbl.ValueString{strings.Join(i.Vitals.Load, ", ")},
+		Load:   boshtbl.NewValueString(strings.Join(i.Vitals.Load, ", ")),
 
 		CPUTotal: ValueCPUTotal{i.Vitals.CPU.Total},
 		CPUUser:  NewValueStringPercent(i.Vitals.CPU.User),
@@ -127,7 +127,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 	}
 
 	if len(i.VMType) == 0 {
-		vals.VMType = boshtbl.ValueString{i.ResourcePool}
+		vals.VMType = boshtbl.NewValueString(i.ResourcePool)
 	}
 
 	return vals
@@ -162,16 +162,16 @@ func (t InstanceTable) buildName(i boshdir.VMInfo) boshtbl.ValueString {
 		}
 	}
 
-	return boshtbl.ValueString{name}
+	return boshtbl.NewValueString(name)
 }
 
 func (t InstanceTable) ForProcess(p boshdir.VMInfoProcess) InstanceTableValues {
 	return InstanceTableValues{
 		Name:    boshtbl.ValueString{},
-		Process: boshtbl.ValueString{p.Name},
+		Process: boshtbl.NewValueString(p.Name),
 
 		State: boshtbl.ValueFmt{
-			V:     boshtbl.ValueString{p.State},
+			V:     boshtbl.NewValueString(p.State),
 			Error: !p.IsRunning(),
 		},
 

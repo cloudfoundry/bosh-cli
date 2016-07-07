@@ -83,36 +83,36 @@ var _ = Describe("ReleasesCmd", func() {
 
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.ValueString{"rel1"},
-						boshtbl.ValueSuffix{
-							boshtbl.ValueVersion{semver.MustNewVersionFromString("rel1-ver1")},
+						boshtbl.NewValueString("rel1"),
+						boshtbl.NewValueSuffix(
+							boshtbl.NewValueVersion(semver.MustNewVersionFromString("rel1-ver1")),
 							"rel1-ver1-mark*",
-						},
-						boshtbl.ValueString{"rel1-hash1+"},
+						),
+						boshtbl.NewValueString("rel1-hash1+"),
 					},
 					{
-						boshtbl.ValueString{"rel1"},
-						boshtbl.ValueSuffix{
-							boshtbl.ValueVersion{semver.MustNewVersionFromString("rel1-ver2")},
+						boshtbl.NewValueString("rel1"),
+						boshtbl.NewValueSuffix(
+							boshtbl.NewValueVersion(semver.MustNewVersionFromString("rel1-ver2")),
 							"rel1-ver2-mark*",
-						},
-						boshtbl.ValueString{"rel1-hash2+"},
+						),
+						boshtbl.NewValueString("rel1-hash2+"),
 					},
 					{
-						boshtbl.ValueString{"rel2"},
-						boshtbl.ValueSuffix{
-							boshtbl.ValueVersion{semver.MustNewVersionFromString("rel2-ver1")},
+						boshtbl.NewValueString("rel2"),
+						boshtbl.NewValueSuffix(
+							boshtbl.NewValueVersion(semver.MustNewVersionFromString("rel2-ver1")),
 							"rel2-ver1-mark",
-						},
-						boshtbl.ValueString{"rel2-hash1"},
+						),
+						boshtbl.NewValueString("rel2-hash1"),
 					},
 					{
-						boshtbl.ValueString{"rel2"},
-						boshtbl.ValueSuffix{
-							boshtbl.ValueVersion{semver.MustNewVersionFromString("rel2-ver2")},
+						boshtbl.NewValueString("rel2"),
+						boshtbl.NewValueSuffix(
+							boshtbl.NewValueVersion(semver.MustNewVersionFromString("rel2-ver2")),
 							"rel2-ver2-mark",
-						},
-						boshtbl.ValueString{"rel2-hash2"},
+						),
+						boshtbl.NewValueString("rel2-hash2"),
 					},
 				},
 

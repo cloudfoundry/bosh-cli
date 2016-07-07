@@ -31,9 +31,9 @@ func (c CloudCheckCmd) Run(opts CloudCheckOpts) error {
 
 	for _, p := range probs {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueInt{p.ID},
-			boshtbl.ValueString{p.Type},
-			boshtbl.ValueString{p.Description},
+			boshtbl.NewValueInt(p.ID),
+			boshtbl.NewValueString(p.Type),
+			boshtbl.NewValueString(p.Description),
 		})
 	}
 

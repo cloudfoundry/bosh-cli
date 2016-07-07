@@ -18,24 +18,24 @@ func (t InfoTable) Print() {
 	table := boshtbl.Table{
 		Rows: [][]boshtbl.Value{
 			{
-				boshtbl.ValueString{"Name"},
-				boshtbl.ValueString{t.Info.Name},
+				boshtbl.NewValueString("Name"),
+				boshtbl.NewValueString(t.Info.Name),
 			},
 			{
-				boshtbl.ValueString{"UUID"},
-				boshtbl.ValueString{t.Info.UUID},
+				boshtbl.NewValueString("UUID"),
+				boshtbl.NewValueString(t.Info.UUID),
 			},
 			{
-				boshtbl.ValueString{"Version"},
-				boshtbl.ValueString{t.Info.Version},
+				boshtbl.NewValueString("Version"),
+				boshtbl.NewValueString(t.Info.Version),
 			},
 		},
 	}
 
 	if len(t.Info.CPI) > 0 {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{"CPI"},
-			boshtbl.ValueString{t.Info.CPI},
+			boshtbl.NewValueString("CPI"),
+			boshtbl.NewValueString(t.Info.CPI),
 		})
 	}
 
@@ -54,20 +54,20 @@ func (t InfoTable) Print() {
 		sort.Sort(InfoFeatureSorting(desc))
 
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{"Features"},
-			boshtbl.ValueStrings{desc},
+			boshtbl.NewValueString("Features"),
+			boshtbl.NewValueStrings(desc),
 		})
 	}
 
 	if len(t.Info.User) > 0 {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{"User"},
-			boshtbl.ValueString{t.Info.User},
+			boshtbl.NewValueString("User"),
+			boshtbl.NewValueString(t.Info.User),
 		})
 	} else {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{"User"},
-			boshtbl.ValueString{"(not logged in)"},
+			boshtbl.NewValueString("User"),
+			boshtbl.NewValueString("(not logged in)"),
 		})
 	}
 

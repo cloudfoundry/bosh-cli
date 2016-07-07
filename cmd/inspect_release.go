@@ -36,9 +36,9 @@ func (c InspectReleaseCmd) Run(opts InspectReleaseOpts) error {
 
 	for _, j := range jobs {
 		jobsTable.Rows = append(jobsTable.Rows, []boshtbl.Value{
-			boshtbl.ValueString{fmt.Sprintf("%s/%s", j.Name, j.Fingerprint)},
-			boshtbl.ValueString{j.BlobstoreID},
-			boshtbl.ValueString{j.SHA1},
+			boshtbl.NewValueString(fmt.Sprintf("%s/%s", j.Name, j.Fingerprint)),
+			boshtbl.NewValueString(j.BlobstoreID),
+			boshtbl.NewValueString(j.SHA1),
 		})
 	}
 
@@ -55,24 +55,24 @@ func (c InspectReleaseCmd) Run(opts InspectReleaseOpts) error {
 
 	for _, p := range pkgs {
 		section := boshtbl.Section{
-			FirstColumn: boshtbl.ValueString{fmt.Sprintf("%s/%s", p.Name, p.Fingerprint)},
+			FirstColumn: boshtbl.NewValueString(fmt.Sprintf("%s/%s", p.Name, p.Fingerprint)),
 
 			Rows: [][]boshtbl.Value{
 				{
-					boshtbl.ValueString{""},
-					boshtbl.ValueString{"(source)"},
-					boshtbl.ValueString{p.BlobstoreID},
-					boshtbl.ValueString{p.SHA1},
+					boshtbl.NewValueString(""),
+					boshtbl.NewValueString("(source)"),
+					boshtbl.NewValueString(p.BlobstoreID),
+					boshtbl.NewValueString(p.SHA1),
 				},
 			},
 		}
 
 		for _, cp := range p.CompiledPackages {
 			section.Rows = append(section.Rows, []boshtbl.Value{
-				boshtbl.ValueString{""},
-				boshtbl.ValueString{cp.StemcellSlug.String()},
-				boshtbl.ValueString{cp.BlobstoreID},
-				boshtbl.ValueString{cp.SHA1},
+				boshtbl.NewValueString(""),
+				boshtbl.NewValueString(cp.StemcellSlug.String()),
+				boshtbl.NewValueString(cp.BlobstoreID),
+				boshtbl.NewValueString(cp.SHA1),
 			})
 		}
 

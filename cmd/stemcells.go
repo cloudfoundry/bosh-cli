@@ -36,13 +36,13 @@ func (c StemcellsCmd) Run() error {
 
 	for _, stem := range stemcells {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{stem.Name()},
-			boshtbl.ValueSuffix{
-				boshtbl.ValueVersion{stem.Version()},
+			boshtbl.NewValueString(stem.Name()),
+			boshtbl.NewValueSuffix(
+				boshtbl.NewValueVersion(stem.Version()),
 				stem.VersionMark("*"),
-			},
-			boshtbl.ValueString{stem.OSName()},
-			boshtbl.ValueString{stem.CID()},
+			),
+			boshtbl.NewValueString(stem.OSName()),
+			boshtbl.NewValueString(stem.CID()),
 		})
 	}
 

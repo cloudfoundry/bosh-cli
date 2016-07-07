@@ -26,8 +26,8 @@ func (c TargetsCmd) Run() error {
 
 	for _, t := range targets {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.ValueString{t.URL},
-			boshtbl.ValueString{t.Alias},
+			boshtbl.NewValueString(t.URL),
+			boshtbl.NewValueString(t.Alias),
 		})
 	}
 

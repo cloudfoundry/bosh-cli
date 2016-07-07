@@ -86,14 +86,14 @@ var _ = Describe("CloudCheckCmd", func() {
 
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueInt{3},
-									boshtbl.ValueString{"unresponsive_agent"},
-									boshtbl.ValueString{"problem1-desc"},
+									boshtbl.NewValueInt(3),
+									boshtbl.NewValueString("unresponsive_agent"),
+									boshtbl.NewValueString("problem1-desc"),
 								},
 								{
-									boshtbl.ValueInt{4},
-									boshtbl.ValueString{"missing_vm"},
-									boshtbl.ValueString{"problem2-desc"},
+									boshtbl.NewValueInt(4),
+									boshtbl.NewValueString("missing_vm"),
+									boshtbl.NewValueString("problem2-desc"),
 								},
 							},
 						}))
@@ -210,14 +210,14 @@ var _ = Describe("CloudCheckCmd", func() {
 
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueInt{3},
-									boshtbl.ValueString{"unresponsive_agent"},
-									boshtbl.ValueString{"problem1-desc"},
+									boshtbl.NewValueInt(3),
+									boshtbl.NewValueString("unresponsive_agent"),
+									boshtbl.NewValueString("problem1-desc"),
 								},
 								{
-									boshtbl.ValueInt{4},
-									boshtbl.ValueString{"missing_vm"},
-									boshtbl.ValueString{"problem2-desc"},
+									boshtbl.NewValueInt(4),
+									boshtbl.NewValueString("missing_vm"),
+									boshtbl.NewValueString("problem2-desc"),
 								},
 							},
 						}))
@@ -348,14 +348,14 @@ var _ = Describe("CloudCheckCmd", func() {
 
 					Rows: [][]boshtbl.Value{
 						{
-							boshtbl.ValueInt{3},
-							boshtbl.ValueString{"unresponsive_agent"},
-							boshtbl.ValueString{"problem1-desc"},
+							boshtbl.NewValueInt(3),
+							boshtbl.NewValueString("unresponsive_agent"),
+							boshtbl.NewValueString("problem1-desc"),
 						},
 						{
-							boshtbl.ValueInt{4},
-							boshtbl.ValueString{"missing_vm"},
-							boshtbl.ValueString{"problem2-desc"},
+							boshtbl.NewValueInt(4),
+							boshtbl.NewValueString("missing_vm"),
+							boshtbl.NewValueString("problem2-desc"),
 						},
 					},
 				}))

@@ -31,7 +31,7 @@ type ValueUptime struct {
 }
 
 func NewValueStringPercent(str string) boshtbl.Value {
-	return boshtbl.ValueSuffix{boshtbl.ValueString{str}, "%"}
+	return boshtbl.NewValueSuffix(boshtbl.NewValueString(str), "%")
 }
 
 func (t ValueCPUTotal) String() string {

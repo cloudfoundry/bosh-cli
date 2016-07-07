@@ -60,5 +60,5 @@ func (j *renderedJob) DeleteSilently() {
 }
 
 func (j *renderedJob) String() string {
-	return fmt.Sprintf("renderedJob{job: '%s', path: '%s'}", j.job.Name, j.path)
+	return fmt.Sprintf("renderedJob{job: '%s', path: '%s'}", j.job.Name(), j.path)
 }

@@ -117,20 +117,20 @@ var _ = Describe("TargetCmd", func() {
 					Expect(ui.Table).To(Equal(boshtbl.Table{
 						Rows: [][]boshtbl.Value{
 							{
-								boshtbl.ValueString{"Name"},
-								boshtbl.ValueString{"director-name"},
+								boshtbl.NewValueString("Name"),
+								boshtbl.NewValueString("director-name"),
 							},
 							{
-								boshtbl.ValueString{"UUID"},
-								boshtbl.ValueString{"director-uuid"},
+								boshtbl.NewValueString("UUID"),
+								boshtbl.NewValueString("director-uuid"),
 							},
 							{
-								boshtbl.ValueString{"Version"},
-								boshtbl.ValueString{"director-version"},
+								boshtbl.NewValueString("Version"),
+								boshtbl.NewValueString("director-version"),
 							},
 							{
-								boshtbl.ValueString{"User"},
-								boshtbl.ValueString{"(not logged in)"},
+								boshtbl.NewValueString("User"),
+								boshtbl.NewValueString("(not logged in)"),
 							},
 						},
 					}))
@@ -193,20 +193,20 @@ var _ = Describe("TargetCmd", func() {
 						Expect(ui.Table).To(Equal(boshtbl.Table{
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.ValueString{"Name"},
-									boshtbl.ValueString{"director-name"},
+									boshtbl.NewValueString("Name"),
+									boshtbl.NewValueString("director-name"),
 								},
 								{
-									boshtbl.ValueString{"UUID"},
-									boshtbl.ValueString{"director-uuid"},
+									boshtbl.NewValueString("UUID"),
+									boshtbl.NewValueString("director-uuid"),
 								},
 								{
-									boshtbl.ValueString{"Version"},
-									boshtbl.ValueString{"director-version"},
+									boshtbl.NewValueString("Version"),
+									boshtbl.NewValueString("director-version"),
 								},
 								{
-									boshtbl.ValueString{"User"},
-									boshtbl.ValueString{"(not logged in)"},
+									boshtbl.NewValueString("User"),
+									boshtbl.NewValueString("(not logged in)"),
 								},
 							},
 						}))
@@ -280,20 +280,20 @@ var _ = Describe("TargetCmd", func() {
 					Expect(ui.Table).To(Equal(boshtbl.Table{
 						Rows: [][]boshtbl.Value{
 							{
-								boshtbl.ValueString{"Name"},
-								boshtbl.ValueString{"director-name"},
+								boshtbl.NewValueString("Name"),
+								boshtbl.NewValueString("director-name"),
 							},
 							{
-								boshtbl.ValueString{"UUID"},
-								boshtbl.ValueString{"director-uuid"},
+								boshtbl.NewValueString("UUID"),
+								boshtbl.NewValueString("director-uuid"),
 							},
 							{
-								boshtbl.ValueString{"Version"},
-								boshtbl.ValueString{"director-version"},
+								boshtbl.NewValueString("Version"),
+								boshtbl.NewValueString("director-version"),
 							},
 							{
-								boshtbl.ValueString{"User"},
-								boshtbl.ValueString{"(not logged in)"},
+								boshtbl.NewValueString("User"),
+								boshtbl.NewValueString("(not logged in)"),
 							},
 						},
 					}))
@@ -347,20 +347,20 @@ var _ = Describe("TargetCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{
 						{
-							boshtbl.ValueString{"Name"},
-							boshtbl.ValueString{"director-name"},
+							boshtbl.NewValueString("Name"),
+							boshtbl.NewValueString("director-name"),
 						},
 						{
-							boshtbl.ValueString{"UUID"},
-							boshtbl.ValueString{"director-uuid"},
+							boshtbl.NewValueString("UUID"),
+							boshtbl.NewValueString("director-uuid"),
 						},
 						{
-							boshtbl.ValueString{"Version"},
-							boshtbl.ValueString{"director-version"},
+							boshtbl.NewValueString("Version"),
+							boshtbl.NewValueString("director-version"),
 						},
 						{
-							boshtbl.ValueString{"User"},
-							boshtbl.ValueString{"(not logged in)"},
+							boshtbl.NewValueString("User"),
+							boshtbl.NewValueString("(not logged in)"),
 						},
 					},
 				}))
