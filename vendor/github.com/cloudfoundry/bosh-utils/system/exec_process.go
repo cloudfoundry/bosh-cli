@@ -18,16 +18,19 @@ type execProcess struct {
 	cmd          *exec.Cmd
 	stdoutWriter *bytes.Buffer
 	stderrWriter *bytes.Buffer
+	keepAttached bool
 	pid          int
+	pgid         int
 	logger       boshlog.Logger
 	waitCh       chan Result
 }
 
-func NewExecProcess(cmd *exec.Cmd, logger boshlog.Logger) *execProcess {
+func NewExecProcess(cmd *exec.Cmd, keepAttached bool, logger boshlog.Logger) *execProcess {
 	return &execProcess{
 		cmd:          cmd,
 		stdoutWriter: bytes.NewBufferString(""),
 		stderrWriter: bytes.NewBufferString(""),
+		keepAttached: keepAttached,
 		logger:       logger,
 	}
 }

@@ -13,6 +13,9 @@ type Command struct {
 
 	WorkingDir string
 
+	// On Linux when enabled inherits process group
+	KeepAttached bool
+
 	Stdin io.Reader
 
 	// Full stdout and stderr will be captured to memory

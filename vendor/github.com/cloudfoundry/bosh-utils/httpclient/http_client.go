@@ -13,21 +13,25 @@ import (
 
 var DefaultClient = CreateDefaultClient()
 
+type Client interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
 type HTTPClient interface {
 	Post(endpoint string, payload []byte) (*http.Response, error)
+	PostCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error)
+
 	Put(endpoint string, payload []byte) (*http.Response, error)
+	PutCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error)
+
 	Get(endpoint string) (*http.Response, error)
+	GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error)
+
 	Delete(endpoint string) (*http.Response, error)
 }
 
-type httpClient struct {
-	client http.Client
-	logger boshlog.Logger
-	logTag string
-}
-
-func CreateDefaultClient() http.Client {
-	return http.Client{
+func CreateDefaultClient() *http.Client {
+	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			Proxy:           http.ProxyFromEnvironment,
@@ -41,7 +45,13 @@ func CreateDefaultClient() http.Client {
 	}
 }
 
-func NewHTTPClient(client http.Client, logger boshlog.Logger) HTTPClient {
+type httpClient struct {
+	client Client
+	logger boshlog.Logger
+	logTag string
+}
+
+func NewHTTPClient(client Client, logger boshlog.Logger) HTTPClient {
 	return httpClient{
 		client: client,
 		logger: logger,
@@ -50,39 +60,74 @@ func NewHTTPClient(client http.Client, logger boshlog.Logger) HTTPClient {
 }
 
 func (c httpClient) Post(endpoint string, payload []byte) (*http.Response, error) {
+	return c.PostCustomized(endpoint, payload, nil)
+}
+
+func (c httpClient) PostCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
 	postPayload := strings.NewReader(string(payload))
-	c.logger.Debug(c.logTag, "Sending POST request with body %s, endpoint %s", payload, endpoint)
+
+	c.logger.Debug(c.logTag, "Sending POST request to endpoint '%s' with body '%s'", endpoint, payload)
 
 	request, err := http.NewRequest("POST", endpoint, postPayload)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating POST request")
 	}
 
+	if f != nil {
+		f(request)
+	}
+
 	response, err := c.client.Do(request)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Performing POST request")
 	}
+
 	return response, nil
 }
 
 func (c httpClient) Put(endpoint string, payload []byte) (*http.Response, error) {
-	postPayload := strings.NewReader(string(payload))
-	c.logger.Debug(c.logTag, "Sending PUT request with body %s, endpoint %s", payload, endpoint)
+	return c.PutCustomized(endpoint, payload, nil)
+}
 
-	request, err := http.NewRequest("PUT", endpoint, postPayload)
+func (c httpClient) PutCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
+	putPayload := strings.NewReader(string(payload))
+
+	c.logger.Debug(c.logTag, "Sending PUT request to endpoint '%s' with body '%s'", endpoint, payload)
+
+	request, err := http.NewRequest("PUT", endpoint, putPayload)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating POST request")
+		return nil, bosherr.WrapError(err, "Creating PUT request")
+	}
+
+	if f != nil {
+		f(request)
 	}
 
 	response, err := c.client.Do(request)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing POST request")
+		return nil, bosherr.WrapError(err, "Performing PUT request")
 	}
+
 	return response, nil
 }
 
 func (c httpClient) Get(endpoint string) (*http.Response, error) {
-	response, err := http.Get(endpoint)
+	return c.GetCustomized(endpoint, nil)
+}
+
+func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
+	c.logger.Debug(c.logTag, "Sending GET request to endpoint '%s'", endpoint)
+
+	request, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Creating GET request")
+	}
+
+	if f != nil {
+		f(request)
+	}
+
+	response, err := c.client.Do(request)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Performing GET request")
 	}

@@ -19,7 +19,7 @@ func NewExecCmdRunner(logger boshlog.Logger) CmdRunner {
 }
 
 func (r execCmdRunner) RunComplexCommand(cmd Command) (string, string, int, error) {
-	process := NewExecProcess(r.buildComplexCommand(cmd), r.logger)
+	process := NewExecProcess(r.buildComplexCommand(cmd), cmd.KeepAttached, r.logger)
 
 	err := process.Start()
 	if err != nil {
@@ -32,7 +32,7 @@ func (r execCmdRunner) RunComplexCommand(cmd Command) (string, string, int, erro
 }
 
 func (r execCmdRunner) RunComplexCommandAsync(cmd Command) (Process, error) {
-	process := NewExecProcess(r.buildComplexCommand(cmd), r.logger)
+	process := NewExecProcess(r.buildComplexCommand(cmd), cmd.KeepAttached, r.logger)
 
 	err := process.Start()
 	if err != nil {
@@ -43,16 +43,7 @@ func (r execCmdRunner) RunComplexCommandAsync(cmd Command) (Process, error) {
 }
 
 func (r execCmdRunner) RunCommand(cmdName string, args ...string) (string, string, int, error) {
-	process := NewExecProcess(newExecCmd(cmdName, args...), r.logger)
-
-	err := process.Start()
-	if err != nil {
-		return "", "", -1, err
-	}
-
-	result := <-process.Wait()
-
-	return result.Stdout, result.Stderr, result.ExitStatus, result.Error
+	return r.RunComplexCommand(Command{Name: cmdName, Args: args})
 }
 
 func (r execCmdRunner) RunCommandWithInput(input, cmdName string, args ...string) (string, string, int, error) {

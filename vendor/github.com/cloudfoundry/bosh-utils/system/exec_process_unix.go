@@ -20,16 +20,26 @@ func (p *execProcess) Start() error {
 	}
 
 	cmdString := strings.Join(p.cmd.Args, " ")
-	p.logger.Debug(execProcessLogTag, "Running command: %s", cmdString)
+	p.logger.Debug(execProcessLogTag, "Running command '%s'", cmdString)
 
-	p.cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if !p.keepAttached {
+		p.cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	}
 
 	err := p.cmd.Start()
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Starting command %s", cmdString)
+		return bosherr.WrapErrorf(err, "Starting command '%s'", cmdString)
 	}
 
-	p.pid = p.cmd.Process.Pid
+	if !p.keepAttached {
+		p.pgid = p.cmd.Process.Pid
+	} else {
+		p.pgid, err = syscall.Getpgid(p.pid)
+		if err != nil {
+			p.logger.Error(execProcessLogTag, "Failed to retrieve pgid for command '%s'", cmdString)
+			p.pgid = -1
+		}
+	}
 
 	return nil
 }
@@ -44,7 +54,7 @@ func (p *execProcess) TerminateNicely(killGracePeriod time.Duration) error {
 
 	err := p.signalGroup(syscall.SIGTERM)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Sending SIGTERM to process group %d", p.pid)
+		return bosherr.WrapErrorf(err, "Sending SIGTERM to process group %d", p.pgid)
 	}
 
 	terminatedCh := make(chan struct{})
@@ -72,7 +82,7 @@ func (p *execProcess) TerminateNicely(killGracePeriod time.Duration) error {
 
 		err = p.signalGroup(syscall.SIGKILL)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Sending SIGKILL to process group %d", p.pid)
+			return bosherr.WrapErrorf(err, "Sending SIGKILL to process group %d", p.pgid)
 		}
 	}
 
@@ -89,7 +99,7 @@ func (p *execProcess) TerminateNicely(killGracePeriod time.Duration) error {
 
 // signalGroup does not return an error if the process group does not exist
 func (p *execProcess) signalGroup(sig syscall.Signal) error {
-	err := syscall.Kill(-p.pid, sig)
+	err := syscall.Kill(-p.pgid, sig)
 	if p.isGroupDoesNotExistError(err) {
 		return nil
 	}
@@ -97,7 +107,7 @@ func (p *execProcess) signalGroup(sig syscall.Signal) error {
 }
 
 func (p *execProcess) groupExists() bool {
-	err := syscall.Kill(-p.pid, syscall.Signal(0))
+	err := syscall.Kill(-p.pgid, syscall.Signal(0))
 	if p.isGroupDoesNotExistError(err) {
 		return false
 	}

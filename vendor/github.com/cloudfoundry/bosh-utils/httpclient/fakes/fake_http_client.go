@@ -64,6 +64,18 @@ func (c *FakeHTTPClient) Post(endpoint string, payload []byte) (*http.Response, 
 	return postReturn.response, postReturn.err
 }
 
+func (c *FakeHTTPClient) PostCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
+	c.PostInputs = append(c.PostInputs, postInput{
+		Payload:  payload,
+		Endpoint: endpoint,
+	})
+
+	postReturn := c.postOutputs[0]
+	c.postOutputs = c.postOutputs[1:]
+
+	return postReturn.response, postReturn.err
+}
+
 func (c *FakeHTTPClient) Get(endpoint string) (*http.Response, error) {
 	c.GetInputs = append(c.GetInputs, getInput{
 		Endpoint: endpoint,
@@ -75,7 +87,30 @@ func (c *FakeHTTPClient) Get(endpoint string) (*http.Response, error) {
 	return getReturn.response, getReturn.err
 }
 
+func (c *FakeHTTPClient) GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
+	c.GetInputs = append(c.GetInputs, getInput{
+		Endpoint: endpoint,
+	})
+
+	getReturn := c.getOutputs[0]
+	c.getOutputs = c.getOutputs[1:]
+
+	return getReturn.response, getReturn.err
+}
+
 func (c *FakeHTTPClient) Put(endpoint string, payload []byte) (*http.Response, error) {
+	c.PutInputs = append(c.PutInputs, putInput{
+		Payload:  payload,
+		Endpoint: endpoint,
+	})
+
+	putReturn := c.putOutputs[0]
+	c.putOutputs = c.putOutputs[1:]
+
+	return putReturn.response, putReturn.err
+}
+
+func (c *FakeHTTPClient) PutCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
 	c.PutInputs = append(c.PutInputs, putInput{
 		Payload:  payload,
 		Endpoint: endpoint,

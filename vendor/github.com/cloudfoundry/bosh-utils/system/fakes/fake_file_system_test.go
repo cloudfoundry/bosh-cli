@@ -154,4 +154,23 @@ var _ = Describe("FakeFileSystem", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
+	Describe("GlobStub", func() {
+		It("should allow glob to be replaced with a custom callback", func() {
+			fs.GlobStub = func(pattern string) ([]string, error) {
+				fs.GlobStub = nil
+				return []string{}, errors.New("Oh noes!")
+			}
+			fs.SetGlob("glob/pattern", []string{"matchingFile1", "matchingFile2"})
+
+			matches, err := fs.Glob("glob/pattern")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Oh noes!"))
+			Expect(matches).To(BeEmpty())
+
+			matches, err = fs.Glob("glob/pattern")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(matches)).To(Equal(2))
+		})
+	})
 })

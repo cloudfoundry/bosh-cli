@@ -166,6 +166,22 @@ var _ = Describe("OS FileSystem", func() {
 		Expect(readFile(createdFile)).To(Equal("testing new file"))
 	})
 
+	Describe("Stat", func() {
+		It("returns file info", func() {
+			osFs := createOsFs()
+			testPath := filepath.Join(os.TempDir(), "OpenFileTestFile")
+
+			file, err := osFs.OpenFile(testPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
+			Expect(err).ToNot(HaveOccurred())
+			defer file.Close()
+			defer os.Remove(testPath)
+
+			info, err := osFs.Stat(testPath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(info.Mode()).To(Equal(os.FileMode(0644)))
+		})
+	})
+
 	Context("the file already exists and is not write only", func() {
 		It("writes to file", func() {
 			osFs := createOsFs()

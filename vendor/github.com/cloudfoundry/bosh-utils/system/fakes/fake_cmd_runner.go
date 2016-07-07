@@ -2,6 +2,7 @@ package fakes
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"sync"
 	"time"
@@ -37,6 +38,8 @@ type FakeCmdResult struct {
 }
 
 type FakeProcess struct {
+	StartErr error
+
 	WaitCh chan boshsys.Result
 
 	Waited     bool
@@ -46,6 +49,9 @@ type FakeProcess struct {
 	TerminatedNicelyCallBack       func(*FakeProcess)
 	TerminateNicelyKillGracePeriod time.Duration
 	TerminateNicelyErr             error
+
+	Stdout io.Writer
+	Stderr io.Writer
 }
 
 func (p *FakeProcess) Wait() <-chan boshsys.Result {
@@ -114,16 +120,21 @@ func (r *FakeCmdRunner) RunComplexCommandAsync(cmd boshsys.Command) (boshsys.Pro
 	r.runCallbackForCmd(runCmd)
 
 	fullCmd := strings.Join(runCmd, " ")
+
 	results, found := r.processes[fullCmd]
 	if !found {
 		panic(fmt.Sprintf("Failed to find process for %s", fullCmd))
 	}
 
+	results[0].Stdout = cmd.Stdout
+	results[0].Stderr = cmd.Stderr
+
 	for _, proc := range results {
 		if !proc.Waited {
-			return proc, nil
+			return proc, proc.StartErr
 		}
 	}
+
 	panic(fmt.Sprintf("Failed to find available process for %s", fullCmd))
 }
 

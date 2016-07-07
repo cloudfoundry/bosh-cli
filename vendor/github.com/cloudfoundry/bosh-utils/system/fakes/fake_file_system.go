@@ -22,6 +22,8 @@ type FakeFileType string
 
 type removeAllFn func(path string) error
 
+type globFn func(pattern string) ([]string, error)
+
 const (
 	FakeFileTypeFile    FakeFileType = "file"
 	FakeFileTypeSymlink FakeFileType = "symlink"
@@ -65,21 +67,22 @@ type FakeFileSystem struct {
 	RenameOldPaths []string
 	RenameNewPaths []string
 
-	RemoveAllError       error
-	removeAllErrorByPath map[string]error
-	RemoveAllStub        removeAllFn
+	RemoveAllStub removeAllFn
 
 	ReadLinkError error
 
-	TempFileError   error
-	ReturnTempFile  boshsys.File
-	ReturnTempFiles []boshsys.File
+	TempFileError           error
+	ReturnTempFile          boshsys.File
+	ReturnTempFiles         []boshsys.File
+	ReturnTempFilesByPrefix map[string]boshsys.File
 
 	TempDirDir   string
 	TempDirDirs  []string
 	TempDirError error
 
 	GlobErr  error
+	GlobStub globFn
+	GlobErrs map[string]error
 	globsMap map[string][][]string
 
 	WalkErr error
@@ -109,6 +112,10 @@ func (stats FakeFileStats) StringContents() string {
 type FakeFileInfo struct {
 	os.FileInfo
 	file FakeFile
+}
+
+func (fi FakeFileInfo) Mode() os.FileMode {
+	return fi.file.Stats.FileMode
 }
 
 func (fi FakeFileInfo) Size() int64 {
@@ -184,6 +191,14 @@ func (f *FakeFile) ReadAt(b []byte, offset int64) (int, error) {
 	return len(f.Contents[offset:]), f.ReadAtErr
 }
 
+func (f *FakeFile) WriteAt(b []byte, offset int64) (int, error) {
+	return len(b), nil
+}
+
+func (f *FakeFile) Seek(int64, int) (int64, error) {
+	return 0, nil
+}
+
 func (f *FakeFile) Close() error {
 	if f.Stats != nil {
 		f.Stats.Open = false
@@ -197,13 +212,13 @@ func (f FakeFile) Stat() (os.FileInfo, error) {
 
 func NewFakeFileSystem() *FakeFileSystem {
 	return &FakeFileSystem{
-		fileRegistry:         NewFakeFileStatsRegistry(),
-		openFileRegsitry:     NewFakeFileRegistry(),
-		globsMap:             map[string][][]string{},
-		readFileErrorByPath:  map[string]error{},
-		removeAllErrorByPath: map[string]error{},
-		mkdirAllErrorByPath:  map[string]error{},
-		WriteFileErrors:      map[string]error{},
+		fileRegistry:        NewFakeFileStatsRegistry(),
+		openFileRegsitry:    NewFakeFileRegistry(),
+		GlobErrs:            map[string]error{},
+		globsMap:            map[string][][]string{},
+		readFileErrorByPath: map[string]error{},
+		mkdirAllErrorByPath: map[string]error{},
+		WriteFileErrors:     map[string]error{},
 	}
 }
 
@@ -284,13 +299,31 @@ func (fs *FakeFileSystem) OpenFile(path string, flag int, perm os.FileMode) (bos
 	stats.Flags = flag
 	stats.FileType = FakeFileTypeFile
 
-	if openFile := fs.openFileRegsitry.Get(path); openFile != nil {
+	openFile := fs.openFileRegsitry.Get(path)
+	if openFile != nil {
 		return openFile, nil
 	}
 	file := NewFakeFile(path, fs)
 
 	fs.RegisterOpenFile(path, file)
 	return file, nil
+}
+
+func (fs *FakeFileSystem) Stat(path string) (os.FileInfo, error) {
+	fs.filesLock.Lock()
+	defer fs.filesLock.Unlock()
+
+	openFile := fs.openFileRegsitry.Get(path)
+	if openFile != nil {
+		return openFile.Stat()
+	}
+
+	stats := fs.fileRegistry.Get(path)
+	if stats == nil {
+		panic(fmt.Sprintf("Unexpected Stat call for path '%s' that does not exist", path))
+	}
+
+	return NewFakeFile(path, fs).Stat()
 }
 
 func (fs *FakeFileSystem) Chown(path, username string) error {
@@ -329,20 +362,22 @@ func (fs *FakeFileSystem) Chmod(path string, perm os.FileMode) error {
 	return nil
 }
 
-func (fs *FakeFileSystem) WriteFileString(path, content string) (err error) {
+func (fs *FakeFileSystem) WriteFileString(path, content string) error {
 	return fs.WriteFile(path, []byte(content))
 }
 
-func (fs *FakeFileSystem) WriteFile(path string, content []byte) (err error) {
+func (fs *FakeFileSystem) WriteFile(path string, content []byte) error {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
-	if error := fs.WriteFileError; error != nil {
-		return error
+	err := fs.WriteFileError
+	if err != nil {
+		return err
 	}
 
-	if error := fs.WriteFileErrors[path]; error != nil {
-		return error
+	err = fs.WriteFileErrors[path]
+	if err != nil {
+		return err
 	}
 
 	path = fs.fileRegistry.UnifiedPath(path)
@@ -357,7 +392,7 @@ func (fs *FakeFileSystem) WriteFile(path string, content []byte) (err error) {
 	return nil
 }
 
-func (fs *FakeFileSystem) writeDir(path string) (err error) {
+func (fs *FakeFileSystem) writeDir(path string) error {
 	parent := gopath.Dir(path)
 
 	grandparent := gopath.Dir(parent)
@@ -378,8 +413,9 @@ func (fs *FakeFileSystem) ConvergeFileContents(path string, content []byte) (boo
 		return false, fs.WriteFileError
 	}
 
-	if error := fs.WriteFileErrors[path]; error != nil {
-		return false, error
+	err := fs.WriteFileErrors[path]
+	if err != nil {
+		return false, err
 	}
 
 	stats := fs.getOrCreateFile(path)
@@ -557,7 +593,9 @@ func (fs *FakeFileSystem) TempFile(prefix string) (file boshsys.File, err error)
 		return nil, errors.New("Temp file was requested without having set a temp root")
 	}
 
-	if fs.ReturnTempFile != nil {
+	if fs.ReturnTempFilesByPrefix != nil {
+		file = fs.ReturnTempFilesByPrefix[prefix]
+	} else if fs.ReturnTempFile != nil {
 		file = fs.ReturnTempFile
 	} else if len(fs.ReturnTempFiles) != 0 {
 		file = fs.ReturnTempFiles[0]
@@ -613,13 +651,6 @@ func (fs *FakeFileSystem) TempDir(prefix string) (string, error) {
 	return path, nil
 }
 
-func (fs *FakeFileSystem) RegisterRemoveAllError(path string, err error) {
-	if _, ok := fs.removeAllErrorByPath[path]; ok {
-		panic(fmt.Sprintf("RemoveAll error is already set for path: %s", path))
-	}
-	fs.removeAllErrorByPath[path] = err
-}
-
 func (fs *FakeFileSystem) RemoveAll(path string) error {
 	if path == "" {
 		panic("RemoveAll requires path")
@@ -635,20 +666,8 @@ func (fs *FakeFileSystem) RemoveAll(path string) error {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
-	if fs.RemoveAllError != nil {
-		return fs.RemoveAllError
-	}
-
 	path = fs.fileRegistry.UnifiedPath(path)
-	if fs.removeAllErrorByPath[path] != nil {
-		return fs.removeAllErrorByPath[path]
-	}
-
 	return fs.removeAll(path)
-}
-
-func (fs *FakeFileSystem) Stat(fileOrDir string) (os.FileInfo, error) {
-	return nil, nil
 }
 
 func (fs *FakeFileSystem) removeAll(path string) error {
@@ -677,6 +696,13 @@ func (fs *FakeFileSystem) removeAll(path string) error {
 }
 
 func (fs *FakeFileSystem) Glob(pattern string) (matches []string, err error) {
+	if fs.GlobStub != nil {
+		_, err = fs.GlobStub(pattern)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	remainingMatches, found := fs.globsMap[pattern]
 	if found {
 		matches = remainingMatches[0]
@@ -685,6 +711,9 @@ func (fs *FakeFileSystem) Glob(pattern string) (matches []string, err error) {
 		}
 	} else {
 		matches = []string{}
+	}
+	if err, ok := fs.GlobErrs[pattern]; ok {
+		return matches, err
 	}
 	return matches, fs.GlobErr
 }
