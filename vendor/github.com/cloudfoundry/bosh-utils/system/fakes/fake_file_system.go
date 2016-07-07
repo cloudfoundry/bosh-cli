@@ -72,6 +72,7 @@ type FakeFileSystem struct {
 	ReadLinkError error
 
 	TempFileError           error
+	TempFileErrorsByPrefix  map[string]error
 	ReturnTempFile          boshsys.File
 	ReturnTempFiles         []boshsys.File
 	ReturnTempFilesByPrefix map[string]boshsys.File
@@ -212,13 +213,14 @@ func (f FakeFile) Stat() (os.FileInfo, error) {
 
 func NewFakeFileSystem() *FakeFileSystem {
 	return &FakeFileSystem{
-		fileRegistry:        NewFakeFileStatsRegistry(),
-		openFileRegsitry:    NewFakeFileRegistry(),
-		GlobErrs:            map[string]error{},
-		globsMap:            map[string][][]string{},
-		readFileErrorByPath: map[string]error{},
-		mkdirAllErrorByPath: map[string]error{},
-		WriteFileErrors:     map[string]error{},
+		fileRegistry:           NewFakeFileStatsRegistry(),
+		openFileRegsitry:       NewFakeFileRegistry(),
+		GlobErrs:               map[string]error{},
+		globsMap:               map[string][][]string{},
+		readFileErrorByPath:    map[string]error{},
+		mkdirAllErrorByPath:    map[string]error{},
+		WriteFileErrors:        map[string]error{},
+		TempFileErrorsByPrefix: map[string]error{},
 	}
 }
 
@@ -587,6 +589,10 @@ func (fs *FakeFileSystem) TempFile(prefix string) (file boshsys.File, err error)
 
 	if fs.TempFileError != nil {
 		return nil, fs.TempFileError
+	}
+
+	if fs.TempFileErrorsByPrefix[prefix] != nil {
+		return nil, fs.TempFileErrorsByPrefix[prefix]
 	}
 
 	if fs.strictTempRoot && fs.TempRootPath == "" {
