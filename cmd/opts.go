@@ -29,6 +29,7 @@ type BoshOpts struct {
 
 	// Output formatting
 	JSONOpt           bool `long:"json"                      description:"Output as JSON"`
+	TTYOpt            bool `long:"tty"                       description:"Force TTY-like output"`
 	NoColorOpt        bool `long:"no-color"                  description:"Toggle colorized output"`
 	NonInteractiveOpt bool `long:"non-interactive" short:"n" description:"Don't ask for user input"`
 

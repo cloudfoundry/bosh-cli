@@ -8,6 +8,7 @@ import (
 
 type ConfUI struct {
 	parent UI
+	isTTY  bool
 	logger boshlog.Logger
 }
 
@@ -17,11 +18,13 @@ func NewConfUI(logger boshlog.Logger) *ConfUI {
 	writerUI := NewConsoleUI(logger)
 	ui = NewPaddingUI(writerUI)
 
-	if !writerUI.IsTTY() {
-		ui = NewNonTTYUI(ui)
-	}
+	return &ConfUI{ui, writerUI.IsTTY(), logger}
+}
 
-	return &ConfUI{ui, logger}
+func (ui *ConfUI) EnableTTY(force bool) {
+	if !ui.isTTY && !force {
+		ui.parent = NewNonTTYUI(ui.parent)
+	}
 }
 
 func (ui *ConfUI) EnableColor() {

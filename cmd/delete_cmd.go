@@ -15,7 +15,7 @@ func NewDeleteCmd(ui boshui.UI, envProvider func(string, boshtpl.Variables) Depl
 }
 
 func (c *DeleteCmd) Run(stage boshui.Stage, opts DeleteEnvOpts) error {
-	c.ui.PrintLinef("Deployment manifest: '%s'", opts.Args.Manifest.Path)
+	c.ui.BeginLinef("Deployment manifest: '%s'\n", opts.Args.Manifest.Path)
 
 	depDeleter := c.envProvider(opts.Args.Manifest.Path, opts.VarFlags.AsVariables())
 

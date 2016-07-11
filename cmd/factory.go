@@ -42,6 +42,8 @@ func NewFactory(deps BasicDeps) Factory {
 
 			globalOptsFuncCalled = true
 
+			deps.UI.EnableTTY(opts.TTYOpt)
+
 			deps.UI.EnableColor()
 
 			if opts.JSONOpt {

@@ -98,7 +98,7 @@ type DeploymentPreparer struct {
 }
 
 func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
-	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
+	c.ui.BeginLinef("Deployment state: '%s'\n", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
 		migrated, err := c.legacyDeploymentStateMigrator.MigrateIfExists(biconfig.LegacyDeploymentStatePath(c.deploymentManifestPath))
@@ -106,7 +106,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 			return bosherr.WrapError(err, "Migrating legacy deployment state file")
 		}
 		if migrated {
-			c.ui.PrintLinef("Migrated legacy deployments file: '%s'", biconfig.LegacyDeploymentStatePath(c.deploymentManifestPath))
+			c.ui.BeginLinef("Migrated legacy deployments file: '%s'\n", biconfig.LegacyDeploymentStatePath(c.deploymentManifestPath))
 		}
 	}
 
@@ -180,7 +180,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 	}
 
 	if isDeployed {
-		c.ui.PrintLinef("No deployment, stemcell or release changes. Skipping deploy.")
+		c.ui.BeginLinef("No deployment, stemcell or release changes. Skipping deploy.\n")
 		return nil
 	}
 

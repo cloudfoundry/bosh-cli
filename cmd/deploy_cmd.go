@@ -15,7 +15,7 @@ func NewDeployCmd(ui boshui.UI, envProvider func(string, boshtpl.Variables) Depl
 }
 
 func (c *DeployCmd) Run(stage boshui.Stage, opts CreateEnvOpts) error {
-	c.ui.PrintLinef("Deployment manifest: '%s'", opts.Args.Manifest.Path)
+	c.ui.BeginLinef("Deployment manifest: '%s'\n", opts.Args.Manifest.Path)
 
 	depPreparer := c.envProvider(opts.Args.Manifest.Path, opts.VarFlags.AsVariables())
 

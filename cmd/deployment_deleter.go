@@ -84,10 +84,10 @@ type deploymentDeleter struct {
 }
 
 func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
-	c.ui.PrintLinef("Deployment state: '%s'", c.deploymentStateService.Path())
+	c.ui.BeginLinef("Deployment state: '%s'\n", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
-		c.ui.PrintLinef("No deployment state file found.")
+		c.ui.BeginLinef("No deployment state file found.\n")
 		return nil
 	}
 

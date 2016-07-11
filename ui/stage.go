@@ -38,7 +38,7 @@ func NewStage(ui UI, timeService clock.Clock, logger boshlog.Logger) Stage {
 func (s *stage) Perform(name string, closure func() error) error {
 	if !s.simpleMode {
 		// enter simple mode (only line break if exiting complex mode)
-		s.ui.PrintLinef("")
+		s.ui.BeginLinef("\n")
 		s.simpleMode = true
 	}
 
@@ -60,17 +60,17 @@ func (s *stage) Perform(name string, closure func() error) error {
 
 func (s *stage) PerformComplex(name string, closure func(Stage) error) error {
 	// exit simple mode (always line break when entering a new complex stage)
-	s.ui.PrintLinef("")
+	s.ui.BeginLinef("\n")
 	s.simpleMode = false
 
-	s.ui.PrintLinef("Started %s", name)
+	s.ui.BeginLinef("Started %s\n", name)
 	startTime := s.timeService.Now()
 	err := closure(s.newSubStage())
 	if err != nil {
-		s.ui.PrintLinef("Failed %s (%s)", name, s.elapsedSince(startTime))
+		s.ui.BeginLinef("Failed %s (%s)\n", name, s.elapsedSince(startTime))
 		return err
 	}
-	s.ui.PrintLinef("Finished %s (%s)", name, s.elapsedSince(startTime))
+	s.ui.BeginLinef("Finished %s (%s)\n", name, s.elapsedSince(startTime))
 	return nil
 }
 
