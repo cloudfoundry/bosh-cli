@@ -4,7 +4,7 @@ platform: linux
 image: docker:///bosh/init
 
 inputs:
-- name: bosh-init
+- name: bosh-cli
   path: gopath/src/github.com/cloudfoundry/bosh-init
 
 params:
