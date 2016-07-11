@@ -7,9 +7,5 @@ inputs:
 - name: bosh-cli
   path: gopath/src/github.com/cloudfoundry/bosh-init
 
-params:
-  BOX_TYPE: virtualbox
-  PROVIDER: virtualbox
-
 run:
   path: gopath/src/github.com/cloudfoundry/bosh-init/ci/tasks/test-integration.sh
