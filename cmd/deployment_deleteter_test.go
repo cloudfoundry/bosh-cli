@@ -238,7 +238,7 @@ cloud_provider:
 
 		var expectValidationInstallationDeletionEvents = func() {
 			Expect(fakeUI.Said).To(Equal([]string{
-				"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'",
+				"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'\n",
 			}))
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
@@ -337,8 +337,8 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeUI.Said).To(Equal([]string{
-						"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'",
-						"No deployment state file found.",
+						"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'\n",
+						"No deployment state file found.\n",
 					}))
 				})
 			})
