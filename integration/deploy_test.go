@@ -60,7 +60,7 @@ import (
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
-var _ = Describe("bosh-init", func() {
+var _ = Describe("bosh", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {

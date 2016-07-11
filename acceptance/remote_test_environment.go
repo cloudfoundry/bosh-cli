@@ -72,7 +72,7 @@ func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 }
 
 func (e remoteTestEnvironment) WriteContent(destName string, contents []byte) error {
-	tmpFile, err := e.fileSystem.TempFile("bosh-init-acceptance")
+	tmpFile, err := e.fileSystem.TempFile("bosh-cli-acceptance")
 	if err != nil {
 		return err
 	}

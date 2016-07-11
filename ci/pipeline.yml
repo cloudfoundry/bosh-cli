@@ -3,32 +3,32 @@ jobs:
   - name: test-unit
     public: true
     plan:
-      - get: bosh-init
+      - get: bosh-cli
         trigger: true
       - task: test-unit
-        file: bosh-init/ci/tasks/test-unit.yml
+        file: bosh-cli/ci/tasks/test-unit.yml
 
   - name: test-integration
     public: true
     plan:
-      - get: bosh-init
+      - get: bosh-cli
         trigger: true
       - task: test-integration
-        file: bosh-init/ci/tasks/test-integration.yml
+        file: bosh-cli/ci/tasks/test-integration.yml
         privileged: true
 
   - name: test-acceptance
     public: true
     plan:
       - aggregate:
-        - get: bosh-init
+        - get: bosh-cli
           passed: [test-unit,test-integration]
           trigger: true
         - get: bosh-warden-cpi-release
           trigger: true
       - aggregate:
         - task: test-acceptance
-          file: bosh-init/ci/tasks/test-acceptance.yml
+          file: bosh-cli/ci/tasks/test-acceptance.yml
           privileged: true
           params:
             BOSH_AWS_ACCESS_KEY_ID:     {{aws_ec2_acceptance_tests_access_key}}
@@ -42,7 +42,7 @@ jobs:
     public: true
     plan:
       - aggregate:
-        - get: bosh-init
+        - get: bosh-cli
           passed: [test-acceptance]
           trigger: true
         - get: version-semver
@@ -50,13 +50,13 @@ jobs:
       - {put: version-semver, params: {file: version-semver/number}}
       - aggregate:
         - task: build-linux
-          file: bosh-init/ci/tasks/build-linux.yml
+          file: bosh-cli/ci/tasks/build-linux.yml
         - task: build-darwin
-          file: bosh-init/ci/tasks/build-darwin.yml
+          file: bosh-cli/ci/tasks/build-darwin.yml
       - aggregate:
-        - {put: release-bucket-linux, params: {file: compiled-linux/bosh-init-*-linux-amd64}}
-        - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-init-*-darwin-amd64}}
-        - {put: bosh-init-promoted, params: {repository: bosh-init, tag: version-semver/number, tag_prefix: v}}
+        - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
+        - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
+#        - {put: bosh-cli-promoted, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
 
   - name: bump-minor
     public: true
@@ -73,7 +73,7 @@ jobs:
       - {put: version-semver, params: {file: version-semver/number}}
 
 resources:
-  - name: bosh-init
+  - name: bosh-cli
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-init
@@ -84,7 +84,7 @@ resources:
     source:
       repository: cppforlife/bosh-warden-cpi-release
 
-  - name: bosh-init-promoted
+  - name: bosh-cli-promoted
     type: git
     source:
       uri: git@github.com:cloudfoundry/bosh-init.git
@@ -94,7 +94,7 @@ resources:
   - name: release-bucket-linux
     type: s3
     source:
-      regexp: bosh-init-(.*)-linux-amd64
+      regexp: bosh-cli-(.*)-linux-amd64
       bucket: {{aws_s3_release_bucket}}
       region_name: {{aws_s3_release_bucket_region}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
@@ -103,7 +103,7 @@ resources:
   - name: release-bucket-darwin
     type: s3
     source:
-      regexp: bosh-init-(.*)-darwin-amd64
+      regexp: bosh-cli-(.*)-darwin-amd64
       bucket: {{aws_s3_release_bucket}}
       region_name: {{aws_s3_release_bucket_region}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
@@ -112,8 +112,8 @@ resources:
   - name: version-semver
     type: semver
     source:
-      initial_version: 0.0.8
-      key: current-version
+      initial_version: 0.0.1
+      key: cli-current-version
       bucket: {{aws_s3_release_bucket}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
       secret_access_key: {{aws_s3_release_bucket_secret_key}}

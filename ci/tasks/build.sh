@@ -9,7 +9,7 @@ base=`pwd`
 
 semver=`cat version-semver/number`
 timestamp=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
-filename="bosh-init-${semver}-${GOOS}-${GOARCH}"
+filename="bosh-cli-${semver}-${GOOS}-${GOARCH}"
 
 cd gopath/src/github.com/cloudfoundry/bosh-init
 
@@ -21,4 +21,4 @@ sed 's/\[DEV BUILD\]/'"$version"'/' cmd/version.go > cmd/version.tmp && mv cmd/v
 
 bin/build
 
-mv out/bosh-init $base/compiled-${GOOS}/${filename}
+mv out/bosh $base/compiled-${GOOS}/${filename}
