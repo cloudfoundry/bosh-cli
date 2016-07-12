@@ -23,6 +23,7 @@ func BuildExecutableForArch(arch string) error {
 	if session.ExitCode() != 0 {
 		return fmt.Errorf("Failed to build bosh-init:\nstdout:\n%s\nstderr:\n%s", session.Out.Contents(), session.Err.Contents())
 	}
+
 	return err
 }
 
@@ -31,8 +32,7 @@ func RunBoshInit(args ...string) (*gexec.Session, error) {
 }
 
 func RunCommand(cmd string, args ...string) (*gexec.Session, error) {
-	command := exec.Command(cmd, args...)
-	return RunComplexCommand(command)
+	return RunComplexCommand(exec.Command(cmd, args...))
 }
 
 func RunComplexCommand(cmd *exec.Cmd) (*gexec.Session, error) {
@@ -41,6 +41,7 @@ func RunComplexCommand(cmd *exec.Cmd) (*gexec.Session, error) {
 		return nil, err
 	}
 
-	session.Wait(20 * time.Second)
+	session.Wait(60 * time.Second)
+
 	return session, nil
 }
