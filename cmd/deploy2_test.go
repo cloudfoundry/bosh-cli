@@ -85,7 +85,7 @@ var _ = Describe("Deploy2Cmd", func() {
 
 		It("deploys manifest with evaluated vars", func() {
 			opts.Args.Manifest = FileBytesArg{
-				Bytes: []byte("name: dep\nname1: {{name1}}\nname2: {{name2}}"),
+				Bytes: []byte("name: dep\nname1: ((name1))\nname2: ((name2))"),
 			}
 
 			opts.VarKVs = []boshtpl.VarKV{

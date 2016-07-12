@@ -52,7 +52,7 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 
 		It("updates runtime config with evaluated vars", func() {
 			opts.Args.RuntimeConfig = FileBytesArg{
-				Bytes: []byte("name1: {{name1}}\nname2: {{name2}}"),
+				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
 
 			opts.VarKVs = []boshtpl.VarKV{

@@ -52,7 +52,7 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 
 		It("updated runtime config with evaluated vars", func() {
 			opts.Args.CloudConfig = FileBytesArg{
-				Bytes: []byte("name1: {{name1}}\nname2: {{name2}}"),
+				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
 
 			opts.VarKVs = []boshtpl.VarKV{

@@ -346,7 +346,7 @@ cloud_provider:
     host: 54.34.56.8
     port: 22
     user: fake-ssh-user
-    private_key: {{url}}
+    private_key: ((url))
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
 
