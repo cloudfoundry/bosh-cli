@@ -92,19 +92,28 @@ func (r DirReader) newJobs(packages []*boshpkg.Package, jobMatches []string) ([]
 	var errs []error
 
 	for _, jobMatch := range jobMatches {
-		job, err := r.jobDirReader.Read(jobMatch)
+
+		info, err := r.fs.Stat(jobMatch)
 		if err != nil {
 			errs = append(errs, bosherr.WrapErrorf(err, "Reading job from '%s'", jobMatch))
 			continue
 		}
 
-		err = job.AttachPackages(packages)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
+		if info.IsDir() {
+			job, err := r.jobDirReader.Read(jobMatch)
+			if err != nil {
+				errs = append(errs, bosherr.WrapErrorf(err, "Reading job from '%s'", jobMatch))
+				continue
+			}
 
-		jobs = append(jobs, job)
+			err = job.AttachPackages(packages)
+			if err != nil {
+				errs = append(errs, err)
+				continue
+			}
+
+			jobs = append(jobs, job)
+		}
 	}
 
 	if len(errs) > 0 {
@@ -119,13 +128,21 @@ func (r DirReader) newPackages(pkgMatches []string) ([]*boshpkg.Package, error) 
 	var errs []error
 
 	for _, pkgMatch := range pkgMatches {
-		pkg, err := r.pkgDirReader.Read(pkgMatch)
+		info, err := r.fs.Stat(pkgMatch)
 		if err != nil {
 			errs = append(errs, bosherr.WrapErrorf(err, "Reading package from '%s'", pkgMatch))
 			continue
 		}
 
-		packages = append(packages, pkg)
+		if info.IsDir() {
+			pkg, err := r.pkgDirReader.Read(pkgMatch)
+			if err != nil {
+				errs = append(errs, bosherr.WrapErrorf(err, "Reading package from '%s'", pkgMatch))
+				continue
+			}
+
+			packages = append(packages, pkg)
+		}
 	}
 
 	for _, pkg := range packages {

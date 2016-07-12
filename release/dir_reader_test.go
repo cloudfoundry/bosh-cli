@@ -43,6 +43,14 @@ var _ = Describe("DirReader", func() {
 	Describe("Read", func() {
 		act := func() (Release, error) { return reader.Read("/release") }
 
+		var (
+			job1 *boshjob.Job
+			job2 *boshjob.Job
+			pkg1 *boshpkg.Package
+			pkg2 *boshpkg.Package
+			lic  *boshlic.License
+		)
+
 		BeforeEach(func() {
 			fs.SetGlob("/release/jobs/*", []string{
 				"/release/jobs/job1",
@@ -53,17 +61,21 @@ var _ = Describe("DirReader", func() {
 				"/release/packages/pkg1",
 				"/release/packages/pkg2",
 			})
-		})
 
-		It("returns a release from the given directory", func() {
-			job1 := boshjob.NewJob(NewResource("job1", "job1-fp", nil))
+			fs.MkdirAll("/release/jobs/job1", os.ModeDir)
+			fs.MkdirAll("/release/jobs/job2", os.ModeDir)
+
+			fs.MkdirAll("/release/packages/pkg1", os.ModeDir)
+			fs.MkdirAll("/release/packages/pkg2", os.ModeDir)
+
+			job1 = boshjob.NewJob(NewResource("job1", "job1-fp", nil))
 			job1.PackageNames = []string{"pkg1"}
-			job2 := boshjob.NewJob(NewResource("job2", "job2-fp", nil))
+			job2 = boshjob.NewJob(NewResource("job2", "job2-fp", nil))
 
-			pkg1 := boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), []string{"pkg2"})
-			pkg2 := boshpkg.NewPackage(NewResource("pkg2", "pkg2-fp", nil), nil)
+			pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), []string{"pkg2"})
+			pkg2 = boshpkg.NewPackage(NewResource("pkg2", "pkg2-fp", nil), nil)
 
-			lic := boshlic.NewLicense(NewResource("lic", "lic-fp", nil))
+			lic = boshlic.NewLicense(NewResource("lic", "lic-fp", nil))
 
 			jobReader.ReadStub = func(path string) (*boshjob.Job, error) {
 				if path == "/release/jobs/job1" {
@@ -91,7 +103,9 @@ var _ = Describe("DirReader", func() {
 				}
 				panic("Unexpected license")
 			}
+		})
 
+		It("returns a release from the given directory", func() {
 			release, err := act()
 			Expect(err).NotTo(HaveOccurred())
 
@@ -109,73 +123,147 @@ var _ = Describe("DirReader", func() {
 			Expect(pkg1.Dependencies).To(Equal([]*boshpkg.Package{pkg2}))
 		})
 
-		It("returns empty release if there are no jobs or packages", func() {
-			fs.SetGlob("/release/jobs/*", []string{})
-			fs.SetGlob("/release/packages/*", []string{})
+		Context("there are no jobs or packages", func() {
+			BeforeEach(func() {
+				fs.SetGlob("/release/jobs/*", []string{})
+				fs.SetGlob("/release/packages/*", []string{})
 
-			release, err := act()
-			Expect(err).NotTo(HaveOccurred())
+				licReader.ReadStub = nil
+				licReader.ReadReturns(nil, nil)
+			})
 
-			Expect(release.Name()).To(BeEmpty())
-			Expect(release.Version()).To(BeEmpty())
-			Expect(release.CommitHashWithMark("*")).To(BeEmpty())
-			Expect(release.Jobs()).To(BeEmpty())
-			Expect(release.Packages()).To(BeEmpty())
-			Expect(release.CompiledPackages()).To(BeEmpty())
-			Expect(release.IsCompiled()).To(BeFalse())
-			Expect(release.License()).To(BeNil())
+			It("returns empty release", func() {
+
+				release, err := act()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(release.Name()).To(BeEmpty())
+				Expect(release.Version()).To(BeEmpty())
+				Expect(release.CommitHashWithMark("*")).To(BeEmpty())
+				Expect(release.Jobs()).To(BeEmpty())
+				Expect(release.Packages()).To(BeEmpty())
+				Expect(release.CompiledPackages()).To(BeEmpty())
+				Expect(release.IsCompiled()).To(BeFalse())
+				Expect(release.License()).To(BeNil())
+			})
 		})
 
-		It("returns errors for each invalid job and package", func() {
-			jobReader.ReadReturns(nil, errors.New("job-err"))
-			pkgReader.ReadReturns(nil, errors.New("pkg-err"))
+		Context("There are invalid jobs and packages", func() {
+			BeforeEach(func() {
+				jobReader.ReadReturns(nil, errors.New("job-err"))
+				pkgReader.ReadReturns(nil, errors.New("pkg-err"))
+			})
 
-			_, err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Reading job from '/release/jobs/job1'"))
-			Expect(err.Error()).To(ContainSubstring("Reading job from '/release/jobs/job2'"))
-			Expect(err.Error()).To(ContainSubstring("Reading package from '/release/packages/pkg1'"))
-			Expect(err.Error()).To(ContainSubstring("Reading package from '/release/packages/pkg2'"))
+			It("returns errors for each invalid job and package", func() {
+				_, err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Reading job from '/release/jobs/job1'"))
+				Expect(err.Error()).To(ContainSubstring("Reading job from '/release/jobs/job2'"))
+				Expect(err.Error()).To(ContainSubstring("Reading package from '/release/packages/pkg1'"))
+				Expect(err.Error()).To(ContainSubstring("Reading package from '/release/packages/pkg2'"))
+			})
 		})
 
-		It("returns error if job's pkg dependencies cannot be satisfied", func() {
-			job1 := boshjob.NewJob(NewResource("job1", "job1-fp", nil))
-			job1.PackageNames = []string{"pkg-with-other-name"}
-			jobReader.ReadReturns(job1, nil)
+		Context("a jobs package deps cannot be satisfied", func() {
+			BeforeEach(func() {
+				job1 = boshjob.NewJob(NewResource("job1", "job1-fp", nil))
+				job1.PackageNames = []string{"pkg-with-other-name"}
+				jobReader.ReadReturns(job1, nil)
 
-			pkg1 := boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), nil)
-			pkgReader.ReadReturns(pkg1, nil)
+				pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), nil)
+				pkgReader.ReadReturns(pkg1, nil)
+			})
 
-			_, err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(
-				"Expected to find package 'pkg-with-other-name' since it's a dependency of job 'job1'"))
+			It("returns error", func() {
+				_, err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(
+					"Expected to find package 'pkg-with-other-name' since it's a dependency of job 'job1'"))
+			})
 		})
 
-		It("returns error if pkg's pkg dependencies cannot be satisfied", func() {
-			job1 := boshjob.NewJob(NewResource("job1", "job1-fp", nil))
-			jobReader.ReadReturns(job1, nil)
+		Context("the pkg's pkg dependencies cannot be satisfied", func() {
+			BeforeEach(func() {
+				job1 = boshjob.NewJob(NewResource("job1", "job1-fp", nil))
+				jobReader.ReadReturns(job1, nil)
 
-			pkg1 := boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), []string{"pkg-with-other-name"})
-			pkgReader.ReadReturns(pkg1, nil)
+				pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), []string{"pkg-with-other-name"})
+				pkgReader.ReadReturns(pkg1, nil)
+			})
 
-			_, err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(
-				"Expected to find package 'pkg-with-other-name' since it's a dependency of package 'pkg1'"))
+			It("returns error", func() {
+				_, err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(
+					"Expected to find package 'pkg-with-other-name' since it's a dependency of package 'pkg1'"))
+			})
 		})
 
-		It("returns a release that does nothing for cleanup", func() {
-			fs.SetGlob("/release/jobs/*", []string{})
-			fs.SetGlob("/release/packages/*", []string{})
+		Context("cleanup", func() {
+			BeforeEach(func() {
+				fs.SetGlob("/release/jobs/*", []string{})
+				fs.SetGlob("/release/packages/*", []string{})
 
-			fs.MkdirAll("/release", os.ModeDir)
+				fs.MkdirAll("/release", os.ModeDir)
+			})
 
-			release, err := reader.Read("/release")
-			Expect(err).NotTo(HaveOccurred())
+			It("returns a release that does nothing", func() {
+				release, err := reader.Read("/release")
+				Expect(err).NotTo(HaveOccurred())
 
-			Expect(release.CleanUp()).ToNot(HaveOccurred())
-			Expect(fs.FileExists("/release")).To(BeTrue())
+				Expect(release.CleanUp()).ToNot(HaveOccurred())
+				Expect(fs.FileExists("/release")).To(BeTrue())
+			})
+		})
+
+		Context("There is a job that is not a directory", func() {
+			BeforeEach(func() {
+				fs.SetGlob("/release/jobs/*", []string{
+					"/release/jobs/job1",
+					"/release/jobs/job2",
+					"/release/jobs/lol",
+				})
+
+				fs.MkdirAll("/release/jobs/job1", os.ModeDir)
+				fs.MkdirAll("/release/jobs/job2", os.ModeDir)
+
+				fs.WriteFileString("/release/jobs/lol", "why did the chicken cross the road?")
+			})
+
+			It("ignores the non-dir input", func() {
+				release, err := act()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(release.Jobs()).To(Equal([]*boshjob.Job{job1, job2}))
+				// job and pkg dependencies are resolved
+				Expect(job1.Packages).To(Equal([]boshpkg.Compilable{pkg1}))
+				Expect(pkg1.Dependencies).To(Equal([]*boshpkg.Package{pkg2}))
+			})
+		})
+
+		Context("There is a package that is not a directory", func() {
+			BeforeEach(func() {
+				fs.SetGlob("/release/packages/*", []string{
+					"/release/packages/pkg1",
+					"/release/packages/pkg2",
+					"/release/packages/lol",
+				})
+
+				fs.MkdirAll("/release/packages/pkg1", os.ModeDir)
+				fs.MkdirAll("/release/packages/pkg2", os.ModeDir)
+
+				fs.WriteFileString("/release/packages/lol", "why did the chicken cross the road?")
+			})
+
+			It("ignores the non-dir input", func() {
+				release, err := act()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(release.Packages()).To(Equal([]*boshpkg.Package{pkg1, pkg2}))
+				// job and pkg dependencies are resolved
+				Expect(job1.Packages).To(Equal([]boshpkg.Compilable{pkg1}))
+				Expect(pkg1.Dependencies).To(Equal([]*boshpkg.Package{pkg2}))
+			})
 		})
 	})
 })
