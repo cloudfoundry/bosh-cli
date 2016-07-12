@@ -51,8 +51,13 @@ jobs:
       - aggregate:
         - task: build-linux
           file: bosh-cli/ci/tasks/build-linux.yml
+          params:
+            BOSHIO_BEARER_TOKEN: {{boshio_bearer_token}}
         - task: build-darwin
           file: bosh-cli/ci/tasks/build-darwin.yml
+          params:
+            BOSHIO_BEARER_TOKEN: {{boshio_bearer_token}}
+
       - aggregate:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
         - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}

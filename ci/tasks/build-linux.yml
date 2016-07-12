@@ -14,6 +14,7 @@ outputs:
 params:
   GOOS:   linux
   GOARCH: amd64
+  BOSHIO_BEARER_TOKEN: replace_me
 
 run:
   path: gopath/src/github.com/cloudfoundry/bosh-init/ci/tasks/build.sh
