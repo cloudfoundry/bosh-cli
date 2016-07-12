@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
-var templateFormatRegex = regexp.MustCompile(`\{\{([-\w\p{L}]+)\}\}`)
+var templateFormatRegex = regexp.MustCompile(`\(\(([-\w\p{L}]+)\)\)`)
 
 type Template struct {
 	bytes []byte

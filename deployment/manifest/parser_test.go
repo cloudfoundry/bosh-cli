@@ -650,7 +650,7 @@ name: fake-deployment-manifest
 resource_pools:
 - name: fake-resource-pool-name
   stemcell:
-    url: {{url}}
+    url: ((url))
 `)
 
 		manifest, err := parser.Parse(path, boshtpl.Variables{"url": "file://stemcell.tgz"})
