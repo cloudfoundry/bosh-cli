@@ -198,7 +198,7 @@ releases:
 		fs.WriteFileString(comboManifestPath, `---
 releases:
 - name: release-name
-  url: {{url}}
+  url: ((url))
   sha1: release-sha1
 `)
 
