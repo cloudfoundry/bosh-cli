@@ -86,7 +86,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 	filesByRelPath := map[string]File{}
 
 	for _, glob := range manifest.Files {
-		srcDirMatches, err := r.fs.Glob(gopath.Join(r.srcDirPath, glob))
+		srcDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.srcDirPath, glob))
 		if err != nil {
 			return manifest, nil, nil, bosherr.WrapErrorf(err, "Listing package files in src")
 		}
@@ -98,7 +98,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 			}
 		}
 
-		blobsDirMatches, err := r.fs.Glob(gopath.Join(r.blobsDirPath, glob))
+		blobsDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.blobsDirPath, glob))
 		if err != nil {
 			return manifest, nil, nil, bosherr.WrapErrorf(err, "Listing package files in blobs")
 		}
@@ -114,7 +114,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 	var excludedFiles []File
 
 	for _, glob := range manifest.ExcludedFiles {
-		srcDirMatches, err := r.fs.Glob(gopath.Join(r.srcDirPath, glob))
+		srcDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.srcDirPath, glob))
 		if err != nil {
 			return manifest, nil, nil, bosherr.WrapErrorf(err, "Listing package excluded files in src")
 		}
@@ -124,7 +124,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 			excludedFiles = append(excludedFiles, file)
 		}
 
-		blobsDirMatches, err := r.fs.Glob(gopath.Join(r.blobsDirPath, glob))
+		blobsDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.blobsDirPath, glob))
 		if err != nil {
 			return manifest, nil, nil, bosherr.WrapErrorf(err, "Listing package excluded files in blobs")
 		}
