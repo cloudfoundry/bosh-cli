@@ -13,6 +13,7 @@ import (
 
 	"errors"
 
+	"github.com/bmatcuk/doublestar"
 	fsWrapper "github.com/charlievieth/fs"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -370,6 +371,11 @@ func (fs *osFileSystem) RemoveAll(fileOrDir string) (err error) {
 func (fs *osFileSystem) Glob(pattern string) (matches []string, err error) {
 	fs.logger.Debug(fs.logTag, "Glob '%s'", pattern)
 	return filepath.Glob(pattern)
+}
+
+func (fs *osFileSystem) RecursiveGlob(pattern string) (matches []string, err error) {
+	fs.logger.Debug(fs.logTag, "RecursiveGlob '%s'", pattern)
+	return doublestar.Glob(pattern)
 }
 
 func (fs *osFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {

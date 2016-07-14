@@ -57,5 +57,6 @@ type FileSystem interface {
 	ChangeTempRoot(path string) error
 
 	Glob(pattern string) (matches []string, err error)
+	RecursiveGlob(pattern string) (matches []string, err error)
 	Walk(root string, walkFunc filepath.WalkFunc) error
 }
