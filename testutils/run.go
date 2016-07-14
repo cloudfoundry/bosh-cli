@@ -37,7 +37,7 @@ func RunComplexCommand(cmd *exec.Cmd) (*gexec.Session, error) {
 		return nil, err
 	}
 
-	session.Wait(60 * time.Second)
+	session.Wait(120 * time.Second)
 
 	return session, nil
 }
