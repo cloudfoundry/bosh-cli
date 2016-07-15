@@ -33,6 +33,29 @@ var _ = Describe("VarsFileArg", func() {
 			}))
 		})
 
+		It("returns objects", func() {
+			fs.WriteFileString("/some/path", "name1: \n  key: value")
+
+			err := (&arg).UnmarshalFlag("/some/path")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg.Vars["name1"]).To(Equal(map[interface{}]interface{}{"key": "value"}))
+		})
+
+		It("returns yaml parsed objects of expect type", func() {
+			fs.WriteFileString("/some/path", "name1: 1\nname2: nil\nname3: true\nname4: \"\"\nname5: \nname6: ~\n")
+
+			err := (&arg).UnmarshalFlag("/some/path")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg.Vars).To(Equal(Variables{
+				"name1": 1,
+				"name2": "nil",
+				"name3": true,
+				"name4": "",
+				"name5": nil,
+				"name6": nil,
+			}))
+		})
+
 		It("returns an error if reading file fails", func() {
 			fs.WriteFileString("/some/path", "content")
 			fs.ReadFileError = errors.New("fake-err")
@@ -44,11 +67,10 @@ var _ = Describe("VarsFileArg", func() {
 
 		It("returns an error if parsing file fails", func() {
 			fs.WriteFileString("/some/path", "content")
-			fs.ReadFileError = errors.New("fake-err")
 
 			err := (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			Expect(err.Error()).To(ContainSubstring("Deserializing variables file '/some/path'"))
 		})
 
 		It("returns an error when it's empty", func() {

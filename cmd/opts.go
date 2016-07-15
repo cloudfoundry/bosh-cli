@@ -53,9 +53,10 @@ type BoshOpts struct {
 	CancelTask CancelTaskOpts `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
 
 	// Misc
-	Locks   LocksOpts   `command:"locks"    alias:"ls"                 description:"List current locks"`
-	CleanUp CleanUpOpts `command:"clean-up" alias:"cl" alias:"cleanup" description:"Clean up releases, stemcells, disks, etc."`
-	BackUp  BackUpOpts  `command:"back-up"  alias:"bu" alias:"backup"  description:"Backup the Director to a tarball"`
+	Locks         LocksOpts         `command:"locks"    alias:"ls"                 description:"List current locks"`
+	CleanUp       CleanUpOpts       `command:"clean-up" alias:"cl" alias:"cleanup" description:"Clean up releases, stemcells, disks, etc."`
+	BackUp        BackUpOpts        `command:"back-up"  alias:"bu" alias:"backup"  description:"Backup the Director to a tarball"`
+	BuildManifest BuildManifestOpts `command:"build-manifest"  alias:"bm" hidden:"yes" description:"Interpolates variables into a manifest template."`
 
 	// Cloud config
 	CloudConfig       CloudConfigOpts       `command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`
@@ -251,9 +252,22 @@ type BackUpArgs struct {
 	Path string `positional-arg-name:"PATH"`
 }
 
-func (o LocksOpts) Execute(_ []string) error   { return o.call() }
-func (o CleanUpOpts) Execute(_ []string) error { return o.call() }
-func (o BackUpOpts) Execute(_ []string) error  { return o.call() }
+type BuildManifestOpts struct {
+	Args BuildManifestArgs `positional-args:"true" required:"true"`
+
+	VarFlags
+
+	call func() error
+}
+
+type BuildManifestArgs struct {
+	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a template that will be interpolated"`
+}
+
+func (o LocksOpts) Execute(_ []string) error         { return o.call() }
+func (o CleanUpOpts) Execute(_ []string) error       { return o.call() }
+func (o BackUpOpts) Execute(_ []string) error        { return o.call() }
+func (o BuildManifestOpts) Execute(_ []string) error { return o.call() }
 
 // Cloud config
 type CloudConfigOpts struct {

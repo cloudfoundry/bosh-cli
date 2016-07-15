@@ -50,7 +50,7 @@ var _ = Describe("Deploy2Cmd", func() {
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
 			bytes, recreate, sd := deployment.UpdateArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name: dep")))
+			Expect(bytes).To(Equal([]byte("name: dep\n")))
 			Expect(recreate).To(BeFalse())
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
 		})
@@ -64,7 +64,7 @@ var _ = Describe("Deploy2Cmd", func() {
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
 			bytes, recreate, sd := deployment.UpdateArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name: dep")))
+			Expect(bytes).To(Equal([]byte("name: dep\n")))
 			Expect(recreate).To(BeTrue())
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
 		})
@@ -78,14 +78,14 @@ var _ = Describe("Deploy2Cmd", func() {
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
 			bytes, recreate, sd := deployment.UpdateArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name: dep")))
+			Expect(bytes).To(Equal([]byte("name: dep\n")))
 			Expect(recreate).To(BeFalse())
 			Expect(sd).To(Equal(boshdir.SkipDrain{All: true}))
 		})
 
 		It("deploys manifest with evaluated vars", func() {
 			opts.Args.Manifest = FileBytesArg{
-				Bytes: []byte("name: dep\nname1: ((name1))\nname2: ((name2))"),
+				Bytes: []byte("name: dep\nname1: ((name1))\nname2: ((name2))\n"),
 			}
 
 			opts.VarKVs = []boshtpl.VarKV{
@@ -93,8 +93,8 @@ var _ = Describe("Deploy2Cmd", func() {
 			}
 
 			opts.VarsFiles = []boshtpl.VarsFileArg{
-				{Vars: boshtpl.Variables(map[string]string{"name1": "val1-from-file"})},
-				{Vars: boshtpl.Variables(map[string]string{"name2": "val2-from-file"})},
+				{Vars: boshtpl.Variables(map[string]interface{}{"name1": "val1-from-file"})},
+				{Vars: boshtpl.Variables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
 			err := act()
@@ -103,7 +103,7 @@ var _ = Describe("Deploy2Cmd", func() {
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
 			bytes, _, _ := deployment.UpdateArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name: dep\nname1: \"val1-from-kv\"\nname2: \"val2-from-file\"")))
+			Expect(bytes).To(Equal([]byte("name: dep\nname1: val1-from-kv\nname2: val2-from-file\n")))
 		})
 
 		It("does not deploy if name specified in the manifest does not match deployment's name", func() {

@@ -16,11 +16,11 @@ var _ = Describe("Template", func() {
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte(`"foo"`)))
+		Expect(result).To(Equal([]byte("foo\n")))
 	})
 
 	It("can template multiple values into a byte slice", func() {
-		template := NewTemplate([]byte("((key))=((value))"))
+		template := NewTemplate([]byte("((key)): ((value))"))
 		variables := Variables{
 			"key":   "foo",
 			"value": "bar",
@@ -28,7 +28,79 @@ var _ = Describe("Template", func() {
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte(`"foo"="bar"`)))
+		Expect(result).To(Equal([]byte("foo: bar\n")))
+	})
+
+	It("can template boolean values into a byte slice", func() {
+		template := NewTemplate([]byte("otherstuff: ((boule))"))
+		variables := Variables{
+			"boule": true,
+		}
+		result, err := template.Evaluate(variables)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("otherstuff: true\n")))
+	})
+
+	It("can template a different data types into a byte slice", func() {
+		hashValue := map[string]interface{}{"key2": []string{"value1", "value2"}}
+		template := NewTemplate([]byte("name1: ((name1))\nname2: ((name2))\nname3: ((name3))\nname4: ((name4))\nname5: ((name5))\nname6: ((name6))\n"))
+		variables := Variables{
+			"name1": 1,
+			"name2": "nil",
+			"name3": true,
+			"name4": "",
+			"name5": nil,
+			"name6": map[string]interface{}{"key": hashValue},
+		}
+		result, err := template.Evaluate(variables)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte(`name1: 1
+name2: nil
+name3: true
+name4: ""
+name5: null
+name6:
+  key:
+    key2:
+    - value1
+    - value2
+`)))
+	})
+
+	Context("When template is a string", func() {
+		It("returns it", func() {
+			template := NewTemplate([]byte(`"string with a ((key))"`))
+			variables := Variables{
+				"key": "not key",
+			}
+			result, err := template.Evaluate(variables)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal([]byte("string with a ((key))\n")))
+		})
+	})
+	Context("When template is a number", func() {
+		It("returns it", func() {
+			template := NewTemplate([]byte(`1234`))
+			variables := Variables{
+				"key": "not key",
+			}
+			result, err := template.Evaluate(variables)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal([]byte("1234\n")))
+		})
+	})
+
+	Context("When variable has nil as value for key", func() {
+		It("uses null", func() {
+			template := NewTemplate([]byte("((key)): value"))
+			variables := Variables{
+				"key": nil,
+			}
+
+			result, err := template.Evaluate(variables)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal([]byte("null: value\n")))
+		})
 	})
 
 	It("can template unicode values into a byte slice", func() {
@@ -39,11 +111,11 @@ var _ = Describe("Template", func() {
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte(`"☃"`)))
+		Expect(result).To(Equal([]byte("☃\n")))
 	})
 
 	It("can template keys with dashes and underscores into a byte slice", func() {
-		template := NewTemplate([]byte("((with-a-dash)) = ((with_an_underscore))"))
+		template := NewTemplate([]byte("((with-a-dash)): ((with_an_underscore))"))
 		variables := Variables{
 			"with-a-dash":        "dash",
 			"with_an_underscore": "underscore",
@@ -51,18 +123,18 @@ var _ = Describe("Template", func() {
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte(`"dash" = "underscore"`)))
+		Expect(result).To(Equal([]byte("dash: underscore\n")))
 	})
 
 	It("can template the same value multiple times into a byte slice", func() {
-		template := NewTemplate([]byte("((key))=((key))"))
+		template := NewTemplate([]byte("((key)): ((key))"))
 		variables := Variables{
 			"key": "foo",
 		}
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte(`"foo"="foo"`)))
+		Expect(result).To(Equal([]byte("foo: foo\n")))
 	})
 
 	It("can template values with strange newlines", func() {
@@ -73,20 +145,7 @@ var _ = Describe("Template", func() {
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte(`"this\nhas\nmany\nlines"`)))
-	})
-
-	It("raises an error for each variable that is undefined", func() {
-		template := NewTemplate([]byte("((not-specified-one))((not-specified-two))"))
-		variables := Variables{}
-		errorMsg := `2 error(s) occurred:
-
-* unbound variable in template: 'not-specified-one'
-* unbound variable in template: 'not-specified-two'`
-
-		_, err := template.Evaluate(variables)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal(errorMsg))
+		Expect(result).To(Equal([]byte("|-\n  this\n  has\n  many\n  lines\n")))
 	})
 
 	It("ignores an invalid input", func() {
@@ -95,6 +154,6 @@ var _ = Describe("Template", func() {
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("(()")))
+		Expect(result).To(Equal([]byte("(()\n")))
 	})
 })

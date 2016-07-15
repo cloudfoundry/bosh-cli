@@ -1,6 +1,6 @@
 package template
 
-type Variables map[string]string
+type Variables map[string]interface{}
 
 func (v Variables) Merge(other Variables) Variables {
 	merged := Variables{}

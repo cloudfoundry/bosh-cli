@@ -47,7 +47,7 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 			Expect(director.UpdateCloudConfigCallCount()).To(Equal(1))
 
 			bytes := director.UpdateCloudConfigArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("cloud-config")))
+			Expect(bytes).To(Equal([]byte("cloud-config\n")))
 		})
 
 		It("updated runtime config with evaluated vars", func() {
@@ -60,8 +60,8 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 			}
 
 			opts.VarsFiles = []boshtpl.VarsFileArg{
-				{Vars: boshtpl.Variables(map[string]string{"name1": "val1-from-file"})},
-				{Vars: boshtpl.Variables(map[string]string{"name2": "val2-from-file"})},
+				{Vars: boshtpl.Variables(map[string]interface{}{"name1": "val1-from-file"})},
+				{Vars: boshtpl.Variables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
 			err := act()
@@ -70,7 +70,7 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 			Expect(director.UpdateCloudConfigCallCount()).To(Equal(1))
 
 			bytes := director.UpdateCloudConfigArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name1: \"val1-from-kv\"\nname2: \"val2-from-file\"")))
+			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\n")))
 		})
 
 		It("does not stop if confirmation is rejected", func() {

@@ -327,6 +327,10 @@ func NewFactory(deps BasicDeps) Factory {
 		return NewDeleteSnapshotsCmd(deps.UI, dep).Run()
 	})
 
+	opts.BuildManifest.call = func() error {
+		return NewBuildManifestCmd(deps.UI).Run(opts.BuildManifest)
+	}
+
 	opts.CloudConfig.call = directorFunc(func(director boshdir.Director) error {
 		return NewCloudConfigCmd(deps.UI, director).Run()
 	})

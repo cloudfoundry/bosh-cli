@@ -47,7 +47,7 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(1))
 
 			bytes := director.UpdateRuntimeConfigArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("runtime-config")))
+			Expect(bytes).To(Equal([]byte("runtime-config\n")))
 		})
 
 		It("updates runtime config with evaluated vars", func() {
@@ -60,8 +60,8 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			}
 
 			opts.VarsFiles = []boshtpl.VarsFileArg{
-				{Vars: boshtpl.Variables(map[string]string{"name1": "val1-from-file"})},
-				{Vars: boshtpl.Variables(map[string]string{"name2": "val2-from-file"})},
+				{Vars: boshtpl.Variables(map[string]interface{}{"name1": "val1-from-file"})},
+				{Vars: boshtpl.Variables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
 			err := act()
@@ -70,7 +70,7 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(1))
 
 			bytes := director.UpdateRuntimeConfigArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name1: \"val1-from-kv\"\nname2: \"val2-from-file\"")))
+			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\n")))
 		})
 
 		It("does not stop if confirmation is rejected", func() {
