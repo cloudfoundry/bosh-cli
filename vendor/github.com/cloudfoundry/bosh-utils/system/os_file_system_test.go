@@ -168,6 +168,10 @@ var _ = Describe("OS FileSystem", func() {
 
 	Describe("Stat", func() {
 		It("returns file info", func() {
+			if Windows {
+				Skip("Pending on Windows")
+			}
+
 			osFs := createOsFs()
 			testPath := filepath.Join(os.TempDir(), "OpenFileTestFile")
 

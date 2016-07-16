@@ -6,14 +6,14 @@ import (
 	"net"
 	"net/http"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-utils/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-var _ = Describe("HttpClient", func() {
+var _ = Describe("HTTPClient", func() {
 	var (
 		httpClient HTTPClient
 		serv       *fakeServer
@@ -21,41 +21,19 @@ var _ = Describe("HttpClient", func() {
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		httpClient = NewHTTPClient(DefaultClient, logger)
-		serv = newFakeServer("localhost:0")
+		httpClient = NewHTTPClient(CreateDefaultClientInsecureSkipVerify(), logger)
 
+		serv = newFakeServer("localhost:0")
 		readyCh := make(chan error)
 		go serv.Start(readyCh)
 
 		err := <-readyCh
+
 		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
 		serv.Stop()
-	})
-
-	Describe("DefaultClient", func() {
-		It("is a singleton http client", func() {
-			client := DefaultClient
-			Expect(client).ToNot(BeNil())
-			Expect(client).To(Equal(DefaultClient))
-		})
-
-		It("disables keep alive", func() {
-			var client *http.Client
-			client = DefaultClient
-
-			Expect(client.Transport.(*http.Transport).DisableKeepAlives).To(Equal(true))
-		})
-	})
-
-	Describe("CreateDefaultClient", func() {
-		It("creates a new http client", func() {
-			first := CreateDefaultClient()
-			second := CreateDefaultClient()
-			Expect(first).ToNot(Equal(second))
-		})
 	})
 
 	Describe("Post/PostCustomized", func() {
@@ -241,6 +219,7 @@ var _ = Describe("HttpClient", func() {
 			))
 		})
 	})
+
 })
 
 type receivedRequestBody struct {

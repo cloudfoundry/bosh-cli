@@ -1,21 +1,12 @@
 package httpclient
 
 import (
-	"crypto/tls"
-	"net"
 	"net/http"
 	"strings"
-	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
-
-var DefaultClient = CreateDefaultClient()
-
-type Client interface {
-	Do(*http.Request) (*http.Response, error)
-}
 
 type HTTPClient interface {
 	Post(endpoint string, payload []byte) (*http.Response, error)
@@ -28,21 +19,6 @@ type HTTPClient interface {
 	GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error)
 
 	Delete(endpoint string) (*http.Response, error)
-}
-
-func CreateDefaultClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			Proxy:           http.ProxyFromEnvironment,
-			Dial: (&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 0,
-			}).Dial,
-			TLSHandshakeTimeout: 10 * time.Second,
-			DisableKeepAlives:   true,
-		},
-	}
 }
 
 type httpClient struct {

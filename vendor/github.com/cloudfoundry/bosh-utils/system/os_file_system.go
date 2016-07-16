@@ -116,7 +116,7 @@ func (fs *osFileSystem) OpenFile(path string, flag int, perm os.FileMode) (File,
 
 func (fs *osFileSystem) Stat(path string) (os.FileInfo, error) {
 	fs.logger.Debug(fs.logTag, "Stat '%s'", path)
-	return os.Stat(path)
+	return fsWrapper.Stat(path)
 }
 
 func (fs *osFileSystem) WriteFileString(path, content string) (err error) {
