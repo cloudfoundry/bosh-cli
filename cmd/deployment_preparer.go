@@ -223,7 +223,7 @@ func (c *DeploymentPreparer) deploy(
 	agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
-	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, bihttpclient.CreateDefaultClient())
+	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, bihttpclient.CreateDefaultClientInsecureSkipVerify())
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blobstore client")
 	}

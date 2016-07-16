@@ -1,12 +1,8 @@
 package uaa
 
 import (
-	"crypto/tls"
 	"fmt"
-	"net"
-	"net/http"
 	"net/url"
-	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
@@ -52,25 +48,15 @@ func (f Factory) httpClient(config Config) (Client, error) {
 		f.logger.Debug(f.logTag, "Using custom root CAs")
 	}
 
-	httpTransport := &http.Transport{
-		TLSClientConfig:     &tls.Config{RootCAs: certPool},
-		TLSHandshakeTimeout: 10 * time.Second,
+	rawClient := boshhttp.CreateDefaultClient(certPool)
 
-		Dial:  (&net.Dialer{Timeout: 30 * time.Second, KeepAlive: 0}).Dial,
-		Proxy: http.ProxyFromEnvironment,
-	}
+	httpClient := boshhttp.NewHTTPClient(rawClient, f.logger)
 
 	endpoint := url.URL{
 		Scheme: "https",
 		Host:   fmt.Sprintf("%s:%d", config.Host, config.Port),
 		User:   url.UserPassword(config.Client, config.ClientSecret),
 	}
-
-	rawClient := &http.Client{
-		Transport: httpTransport,
-	}
-
-	httpClient := boshhttp.NewHTTPClient(rawClient, f.logger)
 
 	return NewClient(endpoint.String(), httpClient, f.logger), nil
 }
