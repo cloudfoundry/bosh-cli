@@ -43,7 +43,7 @@ var _ = Describe("Template", func() {
 
 	It("can template a different data types into a byte slice", func() {
 		hashValue := map[string]interface{}{"key2": []string{"value1", "value2"}}
-		template := NewTemplate([]byte("name1: ((name1))\nname2: ((name2))\nname3: ((name3))\nname4: ((name4))\nname5: ((name5))\nname6: ((name6))\n"))
+		template := NewTemplate([]byte("name1: ((name1))\nname2: ((name2))\nname3: ((name3))\nname4: ((name4))\nname5: ((name5))\nname6: ((name6))\n1234: value\n"))
 		variables := Variables{
 			"name1": 1,
 			"name2": "nil",
@@ -54,7 +54,8 @@ var _ = Describe("Template", func() {
 		}
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte(`name1: 1
+		Expect(result).To(Equal([]byte(`1234: value
+name1: 1
 name2: nil
 name3: true
 name4: ""

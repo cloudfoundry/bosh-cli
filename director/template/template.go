@@ -3,10 +3,7 @@ package template
 import (
 	"gopkg.in/yaml.v2"
 
-	"fmt"
 	"regexp"
-
-	"github.com/hashicorp/go-multierror"
 )
 
 var templateFormatRegex = regexp.MustCompile(`^\(\(([-\w\p{L}]+)\)\)$`)
@@ -27,60 +24,52 @@ func (t Template) Evaluate(vars Variables) ([]byte, error) {
 		return nil, err
 	}
 
-	compiledTemplate, err := evaluate(templateYaml, vars)
-	if err != nil {
-		return nil, err
-	}
+	compiledTemplate := t.interpolate(templateYaml, vars)
 
 	return yaml.Marshal(compiledTemplate)
 }
 
-func evaluate(node interface{}, vars Variables) (interface{}, error) {
-	var errs error
-	var err error
+func (t Template) interpolate(node interface{}, vars Variables) interface{} {
 	switch node.(type) {
 	case map[interface{}]interface{}:
 		nodeMap := node.(map[interface{}]interface{})
 		for k, v := range nodeMap {
-			evaluatedValue, err := evaluate(v, vars)
-			if err != nil {
-				errs = multierror.Append(errs, err)
-			}
-
-			newKey, ok := needsEvaluation(fmt.Sprintf("%v", k))
+			evaluatedValue := t.interpolate(v, vars)
+			keyAsString, ok := k.(string)
 			if ok {
-				foundVarKey, exists := vars[newKey]
-				if exists {
-					delete(nodeMap, k)
-					k = foundVarKey
+				newKey, ok := t.needsEvaluation(keyAsString)
+				if ok {
+					foundVarKey, exists := vars[newKey]
+					if exists {
+						delete(nodeMap, k)
+						k = foundVarKey
+					}
 				}
 			}
+
 			nodeMap[k] = evaluatedValue
 		}
 	case []interface{}:
 		nodeArray := node.([]interface{})
 		for i, x := range nodeArray {
-			nodeArray[i], err = evaluate(x, vars)
-			if err != nil {
-				errs = multierror.Append(errs, err)
-			}
+			nodeArray[i] = t.interpolate(x, vars)
 		}
 	case string:
-		key, found := needsEvaluation(node.(string))
+		key, found := t.needsEvaluation(node.(string))
 		if found {
 			foundVar, exists := vars[key]
 			if exists {
-				return foundVar, nil
+				return foundVar
 			}
 		}
 	default:
 	}
 
-	return node, errs
+	return node
 }
 
-func needsEvaluation(str string) (string, bool) {
-	found := templateFormatRegex.FindAllSubmatch([]byte(str), 1)
+func (t Template) needsEvaluation(value string) (string, bool) {
+	found := templateFormatRegex.FindAllSubmatch([]byte(value), 1)
 	if len(found) != 0 && len(found[0]) != 0 {
 		return string(found[0][1]), true
 	}
