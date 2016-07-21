@@ -4,12 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-init/release/pkg"
 	. "github.com/cloudfoundry/bosh-init/release/resource"
+
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeres "github.com/cloudfoundry/bosh-init/release/resource/fakes"
 )
 
@@ -32,10 +33,42 @@ var _ = Describe("DirReaderImpl", func() {
 			return archive
 		}
 		fs = fakesys.NewFakeFileSystem()
+
 		reader = NewDirReaderImpl(archiveFactory, "/src", "/blobs", fs)
 	})
 
 	Describe("Read", func() {
+
+		Context("when packaging path contains folders", func() {
+			var err error
+
+			BeforeEach(func(){
+				fs.WriteFileString("/dir/spec", `---
+name: name
+dependencies: [pkg1, pkg2]
+files:
+- "**/*"
+excluded_files: [ex-file1, ex-file2]
+`)
+				fs.SetGlob("/src/**/*", []string{"/src/directory"})
+				err = fs.MkdirAll("/src/directory", 0777)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = fs.WriteFileString("/dir/packaging", "")
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("ignores it", func(){
+				_, err = reader.Read("/dir")
+				Expect(err).NotTo(HaveOccurred())
+
+
+				Expect(collectedFiles).To(Equal([]File{
+					File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
+				}))
+			})
+		})
+
 		It("returns a package with the details collected from a directory", func() {
 			fs.WriteFileString("/dir/spec", `---
 name: name
