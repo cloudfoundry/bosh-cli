@@ -4,7 +4,6 @@ import (
 	// goflags "github.com/jessevdk/go-flags" // use goflags.Filename
 
 	boshdir "github.com/cloudfoundry/bosh-init/director"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 )
 
 type BoshOpts struct {
@@ -816,9 +815,3 @@ func (o AddBlobOpts) Execute(_ []string) error     { return o.call(o.Directory) 
 func (o RemoveBlobOpts) Execute(_ []string) error  { return o.call(o.Directory) }
 func (o SyncBlobsOpts) Execute(_ []string) error   { return o.call(o.Directory) }
 func (o UploadBlobsOpts) Execute(_ []string) error { return o.call(o.Directory) }
-
-// Shared
-type VarFlags struct {
-	VarKVs    []boshtpl.VarKV       `long:"var"       short:"v" value-name:"[SECRET=KEY]" description:"Variable flag that can be used for filling in template values in configuration"`
-	VarsFiles []boshtpl.VarsFileArg `long:"var-files" short:"l"                           description:"Variable flag that can be used for filling in template values in configuration from a YAML file"`
-}
