@@ -40,5 +40,15 @@ var _ = Describe("VarKV", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Expected var 'name=' to specify non-empty value"))
 		})
+		Context("When key/value is a yml", func() {
+			It("works", func() {
+				err := (&arg).UnmarshalFlag("name=key1: 1\nkey2: true\nkey3:\n  key31: str")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(arg.Value.(map[interface{}]interface{})["key1"]).To(Equal(1))
+				Expect(arg.Value.(map[interface{}]interface{})["key2"]).To(Equal(true))
+				val3 := arg.Value.(map[interface{}]interface{})["key3"]
+				Expect(val3).To(Equal(map[interface{}]interface{}{ "key31": "str"}))
+			})
+		})
 	})
 })

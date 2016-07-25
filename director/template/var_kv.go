@@ -5,7 +5,6 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"gopkg.in/yaml.v2"
-	"fmt"
 )
 
 type VarKV struct {
@@ -30,12 +29,12 @@ func (a *VarKV) UnmarshalFlag(data string) error {
 			"Expected var '%s' to specify non-empty value", data)
 	}
 
-	var vars map[string]interface{}
-	err := yaml.Unmarshal([]byte(fmt.Sprintf("{%v: %v}", pieces[0], pieces[1])), &vars)
+	var vars interface{}
+	err := yaml.Unmarshal([]byte(pieces[1]), &vars)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Deserializing variables '%s'", data)
 	}
-	*a = VarKV{Name: pieces[0], Value: vars[pieces[0]]}
+	*a = VarKV{Name: pieces[0], Value: vars}
 
 	return nil
 }
