@@ -10,8 +10,8 @@ import (
 	. "github.com/cloudfoundry/bosh-init/release/pkg"
 	. "github.com/cloudfoundry/bosh-init/release/resource"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeres "github.com/cloudfoundry/bosh-init/release/resource/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("DirReaderImpl", func() {
@@ -42,7 +42,7 @@ var _ = Describe("DirReaderImpl", func() {
 		Context("when packaging path contains folders", func() {
 			var err error
 
-			BeforeEach(func(){
+			BeforeEach(func() {
 				fs.WriteFileString("/dir/spec", `---
 name: name
 dependencies: [pkg1, pkg2]
@@ -58,10 +58,9 @@ excluded_files: [ex-file1, ex-file2]
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			It("ignores it", func(){
+			It("ignores it", func() {
 				_, err = reader.Read("/dir")
 				Expect(err).NotTo(HaveOccurred())
-
 
 				Expect(collectedFiles).To(Equal([]File{
 					File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},

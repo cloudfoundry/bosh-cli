@@ -47,7 +47,7 @@ var _ = Describe("VarKV", func() {
 				Expect(arg.Value.(map[interface{}]interface{})["key1"]).To(Equal(1))
 				Expect(arg.Value.(map[interface{}]interface{})["key2"]).To(Equal(true))
 				val3 := arg.Value.(map[interface{}]interface{})["key3"]
-				Expect(val3).To(Equal(map[interface{}]interface{}{ "key31": "str"}))
+				Expect(val3).To(Equal(map[interface{}]interface{}{"key31": "str"}))
 			})
 		})
 	})

@@ -4,7 +4,6 @@ import (
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 )
 
-
 // Shared
 type VarFlags struct {
 	VarKVs    []boshtpl.VarKV       `long:"var"       short:"v" value-name:"[SECRET=KEY]" description:"Variable flag that can be used for filling in template values in configuration"`

@@ -6,9 +6,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	"errors"
 	. "github.com/cloudfoundry/bosh-init/release/pkg/manifest"
 	. "github.com/cloudfoundry/bosh-init/release/resource"
-	"errors"
 )
 
 type DirReaderImpl struct {
