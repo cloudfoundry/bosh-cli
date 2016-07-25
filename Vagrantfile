@@ -11,6 +11,11 @@ Vagrant.configure('2') do |config|
   config.vm.provider :aws do |v, override|
     v.tags = { 'PipelineName' => 'bosh-init' }
     v.associate_public_ip = true
+
+    v.access_key_id = ENV['BOSH_AWS_ACCESS_KEY_ID'] || ''
+    v.secret_access_key = ENV['BOSH_AWS_SECRET_ACCESS_KEY'] || ''
+    v.subnet_id = ENV['BOSH_LITE_SUBNET_ID'] || ''
+    v.ami = ''
   end
 
   config.vm.synced_folder Dir.pwd, '/vagrant', disabled: true
