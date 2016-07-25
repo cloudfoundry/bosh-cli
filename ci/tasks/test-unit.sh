@@ -2,6 +2,8 @@
 
 set -e -x
 
+source ~/.bashrc
+
 export PATH=/usr/local/ruby/bin:/usr/local/go/bin:$PATH
 export GOPATH=$(pwd)/gopath
 
