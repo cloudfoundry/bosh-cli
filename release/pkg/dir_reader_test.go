@@ -80,7 +80,6 @@ excluded_files: [ex-file1, ex-file2]
 					_, err = reader.Read("/dir")
 					Expect(err).NotTo(HaveOccurred())
 
-
 					Expect(collectedFiles).To(Equal([]File{
 						File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
 						File{Path: "/blobs/directory/f1", DirPath: "/blobs", RelativePath: "directory/f1"},
@@ -88,7 +87,6 @@ excluded_files: [ex-file1, ex-file2]
 				})
 			})
 		})
-
 
 		It("returns a package with the details collected from a directory", func() {
 			fs.WriteFileString("/dir/spec", `---

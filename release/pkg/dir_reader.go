@@ -20,6 +20,10 @@ type DirReaderImpl struct {
 	fs boshsys.FileSystem
 }
 
+var (
+	fileNotFoundError = errors.New("File Not Found")
+)
+
 func NewDirReaderImpl(
 	archiveFactory ArchiveFunc,
 	srcDirPath string,
@@ -67,7 +71,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 	packagingPath := gopath.Join(path, "packaging")
 	files, err = r.checkAndFilterDir(packagingPath, path)
 	if err != nil {
-		if err.Error() == "File not found" {
+		if err == fileNotFoundError {
 			return manifest, nil, nil, bosherr.Errorf(
 				"Expected to find '%s' for package '%s'", packagingPath, manifest.Name)
 		}
@@ -77,10 +81,8 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 
 	prePackagingPath := gopath.Join(path, "pre_packaging")
 	prepFiles, err = r.checkAndFilterDir(prePackagingPath, path) //can proceed if there is no pre_packaging
-	if err != nil {
-		if err.Error() != "File not found" {
-			return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
-		}
+	if err != nil && err != fileNotFoundError {
+		return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
 	}
 
 	files = append(files, prepFiles...)
@@ -199,14 +201,13 @@ func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]File, erro
 		return files, nil
 	}
 
-	return []File{}, errors.New("File not found")
+	return []File{}, fileNotFoundError
 }
 
 func (r DirReaderImpl) isDir(path string) (bool, error) {
 	info, err := r.fs.Stat(path)
 	if err != nil {
-		return false, err;
+		return false, err
 	}
 	return info.IsDir(), nil
 }
-
