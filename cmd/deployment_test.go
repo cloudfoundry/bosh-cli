@@ -47,7 +47,7 @@ var _ = Describe("DeploymentCmd", func() {
 			initialSession = &fakecmd.FakeSession{}
 			sessions[config] = initialSession
 
-			initialSession.TargetReturns("target-url")
+			initialSession.EnvironmentReturns("target-url")
 		})
 
 		act := func() error { return command.Run(opts) }
@@ -75,8 +75,8 @@ var _ = Describe("DeploymentCmd", func() {
 
 					Expect(config.SetDeploymentCallCount()).To(Equal(1))
 
-					target, nameOrPath := config.SetDeploymentArgsForCall(0)
-					Expect(target).To(Equal("target-url"))
+					environment, nameOrPath := config.SetDeploymentArgsForCall(0)
+					Expect(environment).To(Equal("target-url"))
 					Expect(nameOrPath).To(Equal("deployment-name"))
 
 					Expect(updatedConfig.SaveCallCount()).To(Equal(1))

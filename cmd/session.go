@@ -14,9 +14,9 @@ import (
 type SessionImpl struct {
 	context SessionContext
 
-	ui              boshui.UI
-	printTarget     bool
-	printDeployment bool
+	ui               boshui.UI
+	printEnvironment bool
+	printDeployment  bool
 
 	logger boshlog.Logger
 
@@ -27,23 +27,23 @@ type SessionImpl struct {
 func NewSessionImpl(
 	context SessionContext,
 	ui boshui.UI,
-	printTarget bool,
+	printEnvironment bool,
 	printDeployment bool,
 	logger boshlog.Logger,
 ) *SessionImpl {
 	return &SessionImpl{
 		context: context,
 
-		ui:              ui,
-		printTarget:     printTarget,
-		printDeployment: printDeployment,
+		ui:               ui,
+		printEnvironment: printEnvironment,
+		printDeployment:  printDeployment,
 
 		logger: logger,
 	}
 }
 
-func (c SessionImpl) Target() string {
-	return c.context.Target()
+func (c SessionImpl) Environment() string {
+	return c.context.Environment()
 }
 
 func (c SessionImpl) Credentials() cmdconf.Creds {
@@ -91,7 +91,7 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 		return c.director, nil
 	}
 
-	dirConfig, err := boshdir.NewConfigFromURL(c.Target())
+	dirConfig, err := boshdir.NewConfigFromURL(c.Environment())
 	if err != nil {
 		return nil, err
 	}
@@ -117,8 +117,8 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 		}
 	}
 
-	if c.printTarget {
-		c.ui.PrintLinef("Using target '%s' as %s", c.Target(), creds.Description())
+	if c.printEnvironment {
+		c.ui.PrintLinef("Using target '%s' as %s", c.Environment(), creds.Description())
 	}
 
 	taskReporter := boshuit.NewReporter(c.ui, true)
@@ -136,7 +136,7 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 }
 
 func (c SessionImpl) AnonymousDirector() (boshdir.Director, error) {
-	dirConfig, err := boshdir.NewConfigFromURL(c.Target())
+	dirConfig, err := boshdir.NewConfigFromURL(c.Environment())
 	if err != nil {
 		return nil, err
 	}

@@ -182,16 +182,16 @@ func NewFactory(deps BasicDeps) Factory {
 		return NewDeleteCmd(deps.UI, envProvider).Run(stage, opts.DeleteEnv)
 	})
 
-	opts.Targets.call = configFunc(func(config cmdconf.Config) error {
-		return NewTargetsCmd(config, deps.UI).Run()
+	opts.Environments.call = configFunc(func(config cmdconf.Config) error {
+		return NewEnvironmentsCmd(config, deps.UI).Run()
 	})
 
-	opts.Target.call = configFunc(func(config cmdconf.Config) error {
+	opts.Environment.call = configFunc(func(config cmdconf.Config) error {
 		sessionFactory := func(config cmdconf.Config) Session {
 			return NewSessionFromOpts(opts, config, deps.UI, false, false, deps.FS, deps.Logger)
 		}
 
-		return NewTargetCmd(sessionFactory, config, deps.UI).Run(opts.Target)
+		return NewEnvironmentCmd(sessionFactory, config, deps.UI).Run(opts.Environment)
 	})
 
 	opts.LogIn.call = configFunc(func(config cmdconf.Config) error {
@@ -214,7 +214,7 @@ func NewFactory(deps BasicDeps) Factory {
 
 	opts.LogOut.call = configFunc(func(config cmdconf.Config) error {
 		sess := NewSessionFromOpts(opts, config, deps.UI, true, true, deps.FS, deps.Logger)
-		return NewLogOutCmd(sess.Target(), config, deps.UI).Run()
+		return NewLogOutCmd(sess.Environment(), config, deps.UI).Run()
 	})
 
 	opts.Task.call = directorFunc(func(director boshdir.Director) error {

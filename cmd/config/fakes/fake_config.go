@@ -8,34 +8,34 @@ import (
 )
 
 type FakeConfig struct {
-	TargetStub        func() string
-	targetMutex       sync.RWMutex
-	targetArgsForCall []struct{}
-	targetReturns     struct {
+	EnvironmentStub        func() string
+	environmentMutex       sync.RWMutex
+	environmentArgsForCall []struct{}
+	environmentReturns     struct {
 		result1 string
 	}
-	TargetsStub        func() []config.Target
-	targetsMutex       sync.RWMutex
-	targetsArgsForCall []struct{}
-	targetsReturns     struct {
-		result1 []config.Target
+	EnvironmentsStub        func() []config.Environment
+	environmentsMutex       sync.RWMutex
+	environmentsArgsForCall []struct{}
+	environmentsReturns     struct {
+		result1 []config.Environment
 	}
-	ResolveTargetStub        func(urlOrAlias string) string
-	resolveTargetMutex       sync.RWMutex
-	resolveTargetArgsForCall []struct {
+	ResolveEnvironmentStub        func(urlOrAlias string) string
+	resolveEnvironmentMutex       sync.RWMutex
+	resolveEnvironmentArgsForCall []struct {
 		urlOrAlias string
 	}
-	resolveTargetReturns struct {
+	resolveEnvironmentReturns struct {
 		result1 string
 	}
-	SetTargetStub        func(urlOrAlias, alias, caCert string) config.Config
-	setTargetMutex       sync.RWMutex
-	setTargetArgsForCall []struct {
+	SetEnvironmentStub        func(urlOrAlias, alias, caCert string) config.Config
+	setEnvironmentMutex       sync.RWMutex
+	setEnvironmentArgsForCall []struct {
 		urlOrAlias string
 		alias      string
 		caCert     string
 	}
-	setTargetReturns struct {
+	setEnvironmentReturns struct {
 		result1 config.Config
 	}
 	CACertStub        func(url string) string
@@ -96,116 +96,116 @@ type FakeConfig struct {
 	}
 }
 
-func (fake *FakeConfig) Target() string {
-	fake.targetMutex.Lock()
-	fake.targetArgsForCall = append(fake.targetArgsForCall, struct{}{})
-	fake.targetMutex.Unlock()
-	if fake.TargetStub != nil {
-		return fake.TargetStub()
+func (fake *FakeConfig) Environment() string {
+	fake.environmentMutex.Lock()
+	fake.environmentArgsForCall = append(fake.environmentArgsForCall, struct{}{})
+	fake.environmentMutex.Unlock()
+	if fake.EnvironmentStub != nil {
+		return fake.EnvironmentStub()
 	} else {
-		return fake.targetReturns.result1
+		return fake.environmentReturns.result1
 	}
 }
 
-func (fake *FakeConfig) TargetCallCount() int {
-	fake.targetMutex.RLock()
-	defer fake.targetMutex.RUnlock()
-	return len(fake.targetArgsForCall)
+func (fake *FakeConfig) EnvironmentCallCount() int {
+	fake.environmentMutex.RLock()
+	defer fake.environmentMutex.RUnlock()
+	return len(fake.environmentArgsForCall)
 }
 
-func (fake *FakeConfig) TargetReturns(result1 string) {
-	fake.TargetStub = nil
-	fake.targetReturns = struct {
+func (fake *FakeConfig) EnvironmentReturns(result1 string) {
+	fake.EnvironmentStub = nil
+	fake.environmentReturns = struct {
 		result1 string
 	}{result1}
 }
 
-func (fake *FakeConfig) Targets() []config.Target {
-	fake.targetsMutex.Lock()
-	fake.targetsArgsForCall = append(fake.targetsArgsForCall, struct{}{})
-	fake.targetsMutex.Unlock()
-	if fake.TargetsStub != nil {
-		return fake.TargetsStub()
+func (fake *FakeConfig) Environments() []config.Environment {
+	fake.environmentsMutex.Lock()
+	fake.environmentsArgsForCall = append(fake.environmentsArgsForCall, struct{}{})
+	fake.environmentsMutex.Unlock()
+	if fake.EnvironmentsStub != nil {
+		return fake.EnvironmentsStub()
 	} else {
-		return fake.targetsReturns.result1
+		return fake.environmentsReturns.result1
 	}
 }
 
-func (fake *FakeConfig) TargetsCallCount() int {
-	fake.targetsMutex.RLock()
-	defer fake.targetsMutex.RUnlock()
-	return len(fake.targetsArgsForCall)
+func (fake *FakeConfig) EnvironmentsCallCount() int {
+	fake.environmentsMutex.RLock()
+	defer fake.environmentsMutex.RUnlock()
+	return len(fake.environmentsArgsForCall)
 }
 
-func (fake *FakeConfig) TargetsReturns(result1 []config.Target) {
-	fake.TargetsStub = nil
-	fake.targetsReturns = struct {
-		result1 []config.Target
+func (fake *FakeConfig) EnvironmentsReturns(result1 []config.Environment) {
+	fake.EnvironmentsStub = nil
+	fake.environmentsReturns = struct {
+		result1 []config.Environment
 	}{result1}
 }
 
-func (fake *FakeConfig) ResolveTarget(urlOrAlias string) string {
-	fake.resolveTargetMutex.Lock()
-	fake.resolveTargetArgsForCall = append(fake.resolveTargetArgsForCall, struct {
+func (fake *FakeConfig) ResolveEnvironment(urlOrAlias string) string {
+	fake.resolveEnvironmentMutex.Lock()
+	fake.resolveEnvironmentArgsForCall = append(fake.resolveEnvironmentArgsForCall, struct {
 		urlOrAlias string
 	}{urlOrAlias})
-	fake.resolveTargetMutex.Unlock()
-	if fake.ResolveTargetStub != nil {
-		return fake.ResolveTargetStub(urlOrAlias)
+	fake.resolveEnvironmentMutex.Unlock()
+	if fake.ResolveEnvironmentStub != nil {
+		return fake.ResolveEnvironmentStub(urlOrAlias)
 	} else {
-		return fake.resolveTargetReturns.result1
+		return fake.resolveEnvironmentReturns.result1
 	}
 }
 
-func (fake *FakeConfig) ResolveTargetCallCount() int {
-	fake.resolveTargetMutex.RLock()
-	defer fake.resolveTargetMutex.RUnlock()
-	return len(fake.resolveTargetArgsForCall)
+func (fake *FakeConfig) ResolveEnvironmentCallCount() int {
+	fake.resolveEnvironmentMutex.RLock()
+	defer fake.resolveEnvironmentMutex.RUnlock()
+	return len(fake.resolveEnvironmentArgsForCall)
 }
 
-func (fake *FakeConfig) ResolveTargetArgsForCall(i int) string {
-	fake.resolveTargetMutex.RLock()
-	defer fake.resolveTargetMutex.RUnlock()
-	return fake.resolveTargetArgsForCall[i].urlOrAlias
+func (fake *FakeConfig) ResolveEnvironmentArgsForCall(i int) string {
+	fake.resolveEnvironmentMutex.RLock()
+	defer fake.resolveEnvironmentMutex.RUnlock()
+	return fake.resolveEnvironmentArgsForCall[i].urlOrAlias
 }
 
-func (fake *FakeConfig) ResolveTargetReturns(result1 string) {
-	fake.ResolveTargetStub = nil
-	fake.resolveTargetReturns = struct {
+func (fake *FakeConfig) ResolveEnvironmentReturns(result1 string) {
+	fake.ResolveEnvironmentStub = nil
+	fake.resolveEnvironmentReturns = struct {
 		result1 string
 	}{result1}
 }
 
-func (fake *FakeConfig) SetTarget(urlOrAlias string, alias string, caCert string) config.Config {
-	fake.setTargetMutex.Lock()
-	fake.setTargetArgsForCall = append(fake.setTargetArgsForCall, struct {
+func (fake *FakeConfig) SetEnvironment(urlOrAlias string, alias string, caCert string) config.Config {
+	fake.setEnvironmentMutex.Lock()
+	fake.setEnvironmentArgsForCall = append(fake.setEnvironmentArgsForCall, struct {
 		urlOrAlias string
 		alias      string
 		caCert     string
 	}{urlOrAlias, alias, caCert})
-	fake.setTargetMutex.Unlock()
-	if fake.SetTargetStub != nil {
-		return fake.SetTargetStub(urlOrAlias, alias, caCert)
+	fake.setEnvironmentMutex.Unlock()
+	if fake.SetEnvironmentStub != nil {
+		return fake.SetEnvironmentStub(urlOrAlias, alias, caCert)
 	} else {
-		return fake.setTargetReturns.result1
+		return fake.setEnvironmentReturns.result1
 	}
 }
 
-func (fake *FakeConfig) SetTargetCallCount() int {
-	fake.setTargetMutex.RLock()
-	defer fake.setTargetMutex.RUnlock()
-	return len(fake.setTargetArgsForCall)
+func (fake *FakeConfig) SetEnvironmentCallCount() int {
+	fake.setEnvironmentMutex.RLock()
+	defer fake.setEnvironmentMutex.RUnlock()
+	return len(fake.setEnvironmentArgsForCall)
 }
 
-func (fake *FakeConfig) SetTargetArgsForCall(i int) (string, string, string) {
-	fake.setTargetMutex.RLock()
-	defer fake.setTargetMutex.RUnlock()
-	return fake.setTargetArgsForCall[i].urlOrAlias, fake.setTargetArgsForCall[i].alias, fake.setTargetArgsForCall[i].caCert
+func (fake *FakeConfig) SetEnvironmentArgsForCall(i int) (string, string, string) {
+	fake.setEnvironmentMutex.RLock()
+	defer fake.setEnvironmentMutex.RUnlock()
+	return fake.setEnvironmentArgsForCall[i].urlOrAlias, fake.setEnvironmentArgsForCall[i].alias, fake.setEnvironmentArgsForCall[i].caCert
 }
 
-func (fake *FakeConfig) SetTargetReturns(result1 config.Config) {
-	fake.SetTargetStub = nil
-	fake.setTargetReturns = struct {
+func (fake *FakeConfig) SetEnvironmentReturns(result1 config.Config) {
+	fake.SetEnvironmentStub = nil
+	fake.setEnvironmentReturns = struct {
 		result1 config.Config
 	}{result1}
 }

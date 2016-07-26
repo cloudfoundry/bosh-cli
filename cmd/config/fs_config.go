@@ -9,8 +9,8 @@ import (
 )
 
 /*
-current_target: https://192.168.50.4:25555
-targets:
+current_environment: https://192.168.50.4:25555
+environments:
 - url: https://192.168.50.4:25555
   ca_cert: |...
   current_deployment: test
@@ -26,13 +26,13 @@ type FSConfig struct {
 }
 
 type fsConfigSchema struct {
-	// Target is always a full URL
-	CurrentTarget string `yaml:"current_target,omitempty"`
+	// Environment is always a full URL
+	CurrentEnvironment string `yaml:"current_environment,omitempty"`
 
-	Targets []fsConfigSchema_Target `yaml:"targets"`
+	Environments []fsConfigSchema_Environment `yaml:"environments"`
 }
 
-type fsConfigSchema_Target struct {
+type fsConfigSchema_Environment struct {
 	URL    string `yaml:"url"`
 	CACert string `yaml:"ca_cert,omitempty"`
 
@@ -69,51 +69,51 @@ func NewFSConfigFromPath(path string, fs boshsys.FileSystem) (FSConfig, error) {
 	return FSConfig{path: absPath, fs: fs, schema: schema}, nil
 }
 
-func (c FSConfig) Target() string { return c.schema.CurrentTarget }
+func (c FSConfig) Environment() string { return c.schema.CurrentEnvironment }
 
-func (c FSConfig) Targets() []Target {
-	targets := []Target{}
+func (c FSConfig) Environments() []Environment {
+	environments := []Environment{}
 
-	for _, tg := range c.schema.Targets {
-		targets = append(targets, Target{URL: tg.URL, Alias: tg.Alias})
+	for _, tg := range c.schema.Environments {
+		environments = append(environments, Environment{URL: tg.URL, Alias: tg.Alias})
 	}
 
-	return targets
+	return environments
 }
 
-func (c FSConfig) ResolveTarget(urlOrAlias string) string {
-	_, tg := c.findOrCreateTarget(urlOrAlias)
+func (c FSConfig) ResolveEnvironment(urlOrAlias string) string {
+	_, tg := c.findOrCreateEnvironment(urlOrAlias)
 
 	return tg.URL
 }
 
-func (c FSConfig) SetTarget(urlOrAlias, alias, caCert string) Config {
+func (c FSConfig) SetEnvironment(urlOrAlias, alias, caCert string) Config {
 	config := c.deepCopy()
 
 	var url string
 
 	// If url is not provided, url might actually be an alias
 	if len(alias) == 0 {
-		url = c.ResolveTarget(urlOrAlias)
+		url = c.ResolveEnvironment(urlOrAlias)
 	} else {
 		url = urlOrAlias
 
-		i, tg := config.findOrCreateTarget(url)
+		i, tg := config.findOrCreateEnvironment(url)
 		tg.Alias = alias
-		config.schema.Targets[i] = tg
+		config.schema.Environments[i] = tg
 	}
 
-	config.schema.CurrentTarget = url
+	config.schema.CurrentEnvironment = url
 
-	i, tg := config.findOrCreateTarget(url)
+	i, tg := config.findOrCreateEnvironment(url)
 	tg.CACert = c.readCACert(caCert)
-	config.schema.Targets[i] = tg
+	config.schema.Environments[i] = tg
 
 	return config
 }
 
 func (c FSConfig) CACert(urlOrAlias string) string {
-	_, tg := c.findOrCreateTarget(urlOrAlias)
+	_, tg := c.findOrCreateEnvironment(urlOrAlias)
 
 	return c.readCACert(tg.CACert)
 }
@@ -132,7 +132,7 @@ func (c FSConfig) readCACert(caCert string) string {
 }
 
 func (c FSConfig) Credentials(urlOrAlias string) Creds {
-	_, tg := c.findOrCreateTarget(urlOrAlias)
+	_, tg := c.findOrCreateEnvironment(urlOrAlias)
 
 	return Creds{
 		Username: tg.Username,
@@ -145,11 +145,11 @@ func (c FSConfig) Credentials(urlOrAlias string) Creds {
 func (c FSConfig) SetCredentials(urlOrAlias string, creds Creds) Config {
 	config := c.deepCopy()
 
-	i, tg := config.findOrCreateTarget(urlOrAlias)
+	i, tg := config.findOrCreateEnvironment(urlOrAlias)
 	tg.Username = creds.Username
 	tg.Password = creds.Password
 	tg.RefreshToken = creds.RefreshToken
-	config.schema.Targets[i] = tg
+	config.schema.Environments[i] = tg
 
 	return config
 }
@@ -157,17 +157,17 @@ func (c FSConfig) SetCredentials(urlOrAlias string, creds Creds) Config {
 func (c FSConfig) UnsetCredentials(urlOrAlias string) Config {
 	config := c.deepCopy()
 
-	i, tg := config.findOrCreateTarget(urlOrAlias)
+	i, tg := config.findOrCreateEnvironment(urlOrAlias)
 	tg.Username = ""
 	tg.Password = ""
 	tg.RefreshToken = ""
-	config.schema.Targets[i] = tg
+	config.schema.Environments[i] = tg
 
 	return config
 }
 
 func (c FSConfig) Deployment(urlOrAlias string) string {
-	_, tg := c.findOrCreateTarget(urlOrAlias)
+	_, tg := c.findOrCreateEnvironment(urlOrAlias)
 
 	return tg.CurrentDeployment
 }
@@ -175,9 +175,9 @@ func (c FSConfig) Deployment(urlOrAlias string) string {
 func (c FSConfig) SetDeployment(urlOrAlias, nameOrPath string) Config {
 	config := c.deepCopy()
 
-	i, tg := config.findOrCreateTarget(urlOrAlias)
+	i, tg := config.findOrCreateEnvironment(urlOrAlias)
 	tg.CurrentDeployment = nameOrPath
-	config.schema.Targets[i] = tg
+	config.schema.Environments[i] = tg
 
 	return config
 }
@@ -196,16 +196,16 @@ func (c FSConfig) Save() error {
 	return nil
 }
 
-func (c *FSConfig) findOrCreateTarget(urlOrAlias string) (int, fsConfigSchema_Target) {
-	for i, tg := range c.schema.Targets {
+func (c *FSConfig) findOrCreateEnvironment(urlOrAlias string) (int, fsConfigSchema_Environment) {
+	for i, tg := range c.schema.Environments {
 		if urlOrAlias == tg.URL || urlOrAlias == tg.Alias {
 			return i, tg
 		}
 	}
 
-	tg := fsConfigSchema_Target{URL: urlOrAlias}
-	c.schema.Targets = append(c.schema.Targets, tg)
-	return len(c.schema.Targets) - 1, tg
+	tg := fsConfigSchema_Environment{URL: urlOrAlias}
+	c.schema.Environments = append(c.schema.Environments, tg)
+	return len(c.schema.Environments) - 1, tg
 }
 
 func (c FSConfig) deepCopy() FSConfig {

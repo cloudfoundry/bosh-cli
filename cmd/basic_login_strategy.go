@@ -32,7 +32,7 @@ func (s BasicLoginStrategy) Try() error {
 	initialCreds := sess.Credentials()
 
 	for {
-		authed, err := s.tryOnce(sess.Target(), initialCreds)
+		authed, err := s.tryOnce(sess.Environment(), initialCreds)
 		if err != nil {
 			return err
 		}
@@ -47,13 +47,13 @@ func (s BasicLoginStrategy) Try() error {
 	}
 }
 
-func (s BasicLoginStrategy) tryOnce(target string, creds cmdconf.Creds) (bool, error) {
+func (s BasicLoginStrategy) tryOnce(environment string, creds cmdconf.Creds) (bool, error) {
 	creds, err := s.askForCreds(creds)
 	if err != nil {
 		return false, err
 	}
 
-	updatedConfig := s.config.SetCredentials(target, creds)
+	updatedConfig := s.config.SetCredentials(environment, creds)
 
 	sess := s.sessionFactory(updatedConfig)
 
@@ -68,7 +68,7 @@ func (s BasicLoginStrategy) tryOnce(target string, creds cmdconf.Creds) (bool, e
 	}
 
 	if !authed {
-		s.ui.ErrorLinef("Failed to login to '%s'", target)
+		s.ui.ErrorLinef("Failed to login to '%s'", environment)
 		return false, nil
 	}
 
@@ -77,7 +77,7 @@ func (s BasicLoginStrategy) tryOnce(target string, creds cmdconf.Creds) (bool, e
 		return false, err
 	}
 
-	s.ui.PrintLinef("Logged in to '%s'", target)
+	s.ui.PrintLinef("Logged in to '%s'", environment)
 
 	return true, nil
 }

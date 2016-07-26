@@ -12,31 +12,33 @@ type FakeConfig2 struct {
 }
 
 type ConfigContents struct {
-	TargetURL    string
-	TargetAlias  string
-	TargetCACert string
+	EnvironmentURL    string
+	EnvironmentAlias  string
+	EnvironmentCACert string
 
 	Called bool
 }
 
-func (f *FakeConfig2) Target() string { return f.Existing.TargetURL }
+func (f *FakeConfig2) Environment() string {
+	return f.Existing.EnvironmentURL
+}
 
-func (f *FakeConfig2) Targets() []config.Target {
+func (f *FakeConfig2) Environments() []config.Environment {
 	panic("Not implemented")
 }
 
-func (f *FakeConfig2) ResolveTarget(targetOrName string) string {
+func (f *FakeConfig2) ResolveEnvironment(environmentOrName string) string {
 	return ""
 }
 
-func (f *FakeConfig2) SetTarget(target, alias, caCert string) config.Config {
+func (f *FakeConfig2) SetEnvironment(environment, alias, caCert string) config.Config {
 	f.Saved = &ConfigContents{}
 
 	return &FakeConfig2{
 		Existing: ConfigContents{
-			TargetURL:    target,
-			TargetAlias:  alias,
-			TargetCACert: caCert,
+			EnvironmentURL:    environment,
+			EnvironmentAlias:  alias,
+			EnvironmentCACert: caCert,
 		},
 
 		Saved:   f.Saved,
@@ -44,34 +46,34 @@ func (f *FakeConfig2) SetTarget(target, alias, caCert string) config.Config {
 	}
 }
 
-func (f *FakeConfig2) CACert(target string) string {
-	return f.Existing.TargetCACert
+func (f *FakeConfig2) CACert(environment string) string {
+	return f.Existing.EnvironmentCACert
 }
 
-func (f *FakeConfig2) Credentials(target string) config.Creds {
+func (f *FakeConfig2) Credentials(environment string) config.Creds {
 	panic("Not implemented")
 }
 
-func (f *FakeConfig2) SetCredentials(target string, creds config.Creds) config.Config {
+func (f *FakeConfig2) SetCredentials(environment string, creds config.Creds) config.Config {
 	panic("Not implemented")
 }
 
-func (f *FakeConfig2) UnsetCredentials(target string) config.Config {
+func (f *FakeConfig2) UnsetCredentials(environment string) config.Config {
 	panic("Not implemented")
 }
 
-func (f *FakeConfig2) Deployment(target string) string {
+func (f *FakeConfig2) Deployment(environment string) string {
 	panic("Not implemented")
 }
 
-func (f *FakeConfig2) SetDeployment(target string, nameOrPath string) config.Config {
+func (f *FakeConfig2) SetDeployment(environment string, nameOrPath string) config.Config {
 	panic("Not implemented")
 }
 
 func (f *FakeConfig2) Save() error {
-	f.Saved.TargetURL = f.Existing.TargetURL
-	f.Saved.TargetAlias = f.Existing.TargetAlias
-	f.Saved.TargetCACert = f.Existing.TargetCACert
+	f.Saved.EnvironmentURL = f.Existing.EnvironmentURL
+	f.Saved.EnvironmentAlias = f.Existing.EnvironmentAlias
+	f.Saved.EnvironmentCACert = f.Existing.EnvironmentCACert
 	f.Saved.Called = true
 	return f.SaveErr
 }

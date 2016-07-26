@@ -75,7 +75,7 @@ func (c UAALoginStrategy) tryUser(sess Session, uaa boshuaa.UAA) error {
 	}
 
 	for {
-		authed, err := c.tryUserOnce(sess.Target(), prompts, uaa)
+		authed, err := c.tryUserOnce(sess.Environment(), prompts, uaa)
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func (c UAALoginStrategy) tryUser(sess Session, uaa boshuaa.UAA) error {
 	}
 }
 
-func (c UAALoginStrategy) tryUserOnce(target string, prompts []boshuaa.Prompt, uaa boshuaa.UAA) (bool, error) {
+func (c UAALoginStrategy) tryUserOnce(environment string, prompts []boshuaa.Prompt, uaa boshuaa.UAA) (bool, error) {
 	var answers []boshuaa.PromptAnswer
 
 	for _, prompt := range prompts {
@@ -119,7 +119,7 @@ func (c UAALoginStrategy) tryUserOnce(target string, prompts []boshuaa.Prompt, u
 		RefreshToken: accessToken.RefreshToken().Value(),
 	}
 
-	updatedConfig := c.config.SetCredentials(target, creds)
+	updatedConfig := c.config.SetCredentials(environment, creds)
 
 	err = updatedConfig.Save()
 	if err != nil {

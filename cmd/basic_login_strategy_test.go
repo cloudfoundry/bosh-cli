@@ -45,12 +45,12 @@ var _ = Describe("BasicLoginStrategy", func() {
 			initialSession = &fakecmd.FakeSession{}
 			sessions[config] = initialSession
 
-			initialSession.TargetReturns("target")
+			initialSession.EnvironmentReturns("target")
 
 			updatedConfig = &fakecmdconf.FakeConfig{}
-			config.SetCredentialsStub = func(target string, creds cmdconf.Creds) cmdconf.Config {
+			config.SetCredentialsStub = func(environment string, creds cmdconf.Creds) cmdconf.Config {
 				updatedConfig.CredentialsStub = func(t string) cmdconf.Creds {
-					return map[string]cmdconf.Creds{target: creds}[t]
+					return map[string]cmdconf.Creds{environment: creds}[t]
 				}
 				return updatedConfig
 			}
@@ -64,7 +64,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 
 		act := func() error { return strategy.Try() }
 
-		itLogsInOrErrs := func(expectedTarget, expectedUsername, expectedPassword string) {
+		itLogsInOrErrs := func(expectedEnvironment, expectedUsername, expectedPassword string) {
 			Context("when credentials are correct", func() {
 				BeforeEach(func() {
 					director.IsAuthenticatedReturns(true, nil)
@@ -74,7 +74,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Said).To(Equal([]string{fmt.Sprintf("Logged in to '%s'", expectedTarget)}))
+					Expect(ui.Said).To(Equal([]string{fmt.Sprintf("Logged in to '%s'", expectedEnvironment)}))
 				})
 
 				It("saves the config with new credentials", func() {
@@ -82,7 +82,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(updatedConfig.SaveCallCount()).To(Equal(1))
-					Expect(updatedConfig.Credentials(expectedTarget)).To(Equal(cmdconf.Creds{
+					Expect(updatedConfig.Credentials(expectedEnvironment)).To(Equal(cmdconf.Creds{
 						Username: expectedUsername,
 						Password: expectedPassword,
 					}))
@@ -104,7 +104,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 			})
 		}
 
-		itKeepsAsking := func(expectedTarget, expectedUsername, expectedPassword string) {
+		itKeepsAsking := func(expectedEnvironment, expectedUsername, expectedPassword string) {
 			Context("when credentials are not correct", func() {
 				BeforeEach(func() {
 					tries := []bool{false, false, true}
@@ -133,7 +133,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(updatedConfig.SaveCallCount()).To(Equal(1))
-					Expect(updatedConfig.Credentials(expectedTarget)).To(Equal(cmdconf.Creds{
+					Expect(updatedConfig.Credentials(expectedEnvironment)).To(Equal(cmdconf.Creds{
 						Username: expectedUsername,
 						Password: expectedPassword,
 					}))

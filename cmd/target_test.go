@@ -21,7 +21,7 @@ var _ = Describe("TargetCmd", func() {
 		sessions map[*fakecmdconf.FakeConfig2]*fakecmd.FakeSession
 		config   *fakecmdconf.FakeConfig2
 		ui       *fakeui.FakeUI
-		command  TargetCmd
+		command  EnvironmentCmd
 	)
 
 	BeforeEach(func() {
@@ -44,26 +44,26 @@ var _ = Describe("TargetCmd", func() {
 
 		config = &fakecmdconf.FakeConfig2{
 			Existing: fakecmdconf.ConfigContents{
-				TargetURL:    "curr-target-url",
-				TargetCACert: "curr-ca-cert",
+				EnvironmentURL:    "curr-target-url",
+				EnvironmentCACert: "curr-ca-cert",
 			},
 		}
 
 		ui = &fakeui.FakeUI{}
 
-		command = NewTargetCmd(sessionFactory, config, ui)
+		command = NewEnvironmentCmd(sessionFactory, config, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts            TargetOpts
+			opts            EnvironmentOpts
 			updatedSession  *fakecmd.FakeSession
 			updatedConfig   *fakecmdconf.FakeConfig2
 			updatedDirector *fakedir.FakeDirector
 		)
 
 		BeforeEach(func() {
-			opts = TargetOpts{}
+			opts = EnvironmentOpts{}
 		})
 
 		act := func() error { return command.Run(opts) }
@@ -75,8 +75,8 @@ var _ = Describe("TargetCmd", func() {
 
 				updatedConfig = &fakecmdconf.FakeConfig2{
 					Existing: fakecmdconf.ConfigContents{
-						TargetURL:   "target-url",
-						TargetAlias: "target-alias",
+						EnvironmentURL:   "target-url",
+						EnvironmentAlias: "target-alias",
 					},
 				}
 
@@ -84,7 +84,7 @@ var _ = Describe("TargetCmd", func() {
 
 				updatedSession = &fakecmd.FakeSession{}
 				updatedSession.DirectorReturns(updatedDirector, nil)
-				updatedSession.TargetReturns("target-url")
+				updatedSession.EnvironmentReturns("target-url")
 
 				sessions[updatedConfig] = updatedSession
 			})
@@ -103,9 +103,9 @@ var _ = Describe("TargetCmd", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(config.Saved.TargetURL).To(Equal("target-url"))
-					Expect(config.Saved.TargetAlias).To(Equal("target-alias"))
-					Expect(config.Saved.TargetCACert).To(Equal(""))
+					Expect(config.Saved.EnvironmentURL).To(Equal("target-url"))
+					Expect(config.Saved.EnvironmentAlias).To(Equal("target-alias"))
+					Expect(config.Saved.EnvironmentCACert).To(Equal(""))
 				})
 
 				It("shows current target and director info", func() {
@@ -149,9 +149,9 @@ var _ = Describe("TargetCmd", func() {
 
 					altUpdatedConfig = &fakecmdconf.FakeConfig2{
 						Existing: fakecmdconf.ConfigContents{
-							TargetURL:    "target-url",
-							TargetAlias:  "target-alias",
-							TargetCACert: "curr-ca-cert",
+							EnvironmentURL:    "target-url",
+							EnvironmentAlias:  "target-alias",
+							EnvironmentCACert: "curr-ca-cert",
 						},
 					}
 
@@ -159,7 +159,7 @@ var _ = Describe("TargetCmd", func() {
 
 					altUpdatedSession = &fakecmd.FakeSession{}
 					altUpdatedSession.DirectorReturns(altUpdatedDirector, nil)
-					altUpdatedSession.TargetReturns("target-url")
+					altUpdatedSession.EnvironmentReturns("target-url")
 
 					sessions[altUpdatedConfig] = altUpdatedSession
 				})
@@ -178,9 +178,9 @@ var _ = Describe("TargetCmd", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(config.Saved.TargetURL).To(Equal("target-url"))
-						Expect(config.Saved.TargetAlias).To(Equal("target-alias"))
-						Expect(config.Saved.TargetCACert).To(Equal("curr-ca-cert"))
+						Expect(config.Saved.EnvironmentURL).To(Equal("target-url"))
+						Expect(config.Saved.EnvironmentAlias).To(Equal("target-alias"))
+						Expect(config.Saved.EnvironmentCACert).To(Equal("curr-ca-cert"))
 						Expect(config.Saved.Called).To(BeTrue())
 					})
 
@@ -237,9 +237,9 @@ var _ = Describe("TargetCmd", func() {
 
 				updatedConfig = &fakecmdconf.FakeConfig2{
 					Existing: fakecmdconf.ConfigContents{
-						TargetURL:    "target-url",
-						TargetAlias:  "target-alias",
-						TargetCACert: "target-ca-cert",
+						EnvironmentURL:    "target-url",
+						EnvironmentAlias:  "target-alias",
+						EnvironmentCACert: "target-ca-cert",
 					},
 				}
 
@@ -247,7 +247,7 @@ var _ = Describe("TargetCmd", func() {
 
 				updatedSession = &fakecmd.FakeSession{}
 				updatedSession.DirectorReturns(updatedDirector, nil)
-				updatedSession.TargetReturns("target-url")
+				updatedSession.EnvironmentReturns("target-url")
 
 				sessions[updatedConfig] = updatedSession
 			})
@@ -266,9 +266,9 @@ var _ = Describe("TargetCmd", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(config.Saved.TargetURL).To(Equal("target-url"))
-					Expect(config.Saved.TargetAlias).To(Equal("target-alias"))
-					Expect(config.Saved.TargetCACert).To(Equal("target-ca-cert"))
+					Expect(config.Saved.EnvironmentURL).To(Equal("target-url"))
+					Expect(config.Saved.EnvironmentAlias).To(Equal("target-alias"))
+					Expect(config.Saved.EnvironmentCACert).To(Equal("target-ca-cert"))
 				})
 
 				It("shows current target and director info", func() {
@@ -325,7 +325,7 @@ var _ = Describe("TargetCmd", func() {
 
 				initialSession := &fakecmd.FakeSession{}
 				initialSession.DirectorReturns(director, nil)
-				initialSession.TargetReturns("target-url")
+				initialSession.EnvironmentReturns("target-url")
 
 				sessions[config] = initialSession
 			})

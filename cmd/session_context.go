@@ -22,16 +22,16 @@ func NewSessionContextImpl(
 	return &SessionContextImpl{opts: opts, config: config, fs: fs}
 }
 
-func (c SessionContextImpl) Target() string {
-	if len(c.opts.TargetOpt) > 0 {
-		return c.config.ResolveTarget(c.opts.TargetOpt)
+func (c SessionContextImpl) Environment() string {
+	if len(c.opts.EnvironmentOpt) > 0 {
+		return c.config.ResolveEnvironment(c.opts.EnvironmentOpt)
 	}
 
-	return c.config.Target()
+	return c.config.Environment()
 }
 
 func (c SessionContextImpl) Credentials() cmdconf.Creds {
-	creds := c.config.Credentials(c.Target())
+	creds := c.config.Credentials(c.Environment())
 
 	if len(c.opts.UsernameOpt) > 0 {
 		creds.Username = c.opts.UsernameOpt
@@ -65,7 +65,7 @@ func (c SessionContextImpl) CACert() string {
 		return caCert
 	}
 
-	return c.config.CACert(c.Target())
+	return c.config.CACert(c.Environment())
 }
 
 func (c SessionContextImpl) Deployment() string {
@@ -73,7 +73,7 @@ func (c SessionContextImpl) Deployment() string {
 		return c.opts.DeploymentOpt
 	}
 
-	return c.config.Deployment(c.Target())
+	return c.config.Deployment(c.Environment())
 }
 
 func (c SessionContextImpl) isFilePath(path string) bool {

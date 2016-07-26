@@ -23,7 +23,7 @@ var _ = Describe("SessionContextImpl", func() {
 	BeforeEach(func() {
 		opts = BoshOpts{}
 		config = &fakeconf.FakeConfig{
-			ResolveTargetStub: func(in string) string { return in },
+			ResolveEnvironmentStub: func(in string) string { return in },
 		}
 		fs = fakesys.NewFakeFileSystem()
 		context = nil
@@ -33,35 +33,35 @@ var _ = Describe("SessionContextImpl", func() {
 
 	Describe("Target", func() {
 		It("returns resolved global option if provided", func() {
-			config.TargetReturns("config-url")
+			config.EnvironmentReturns("config-url")
 
-			config.ResolveTargetStub = func(in string) string {
+			config.ResolveEnvironmentStub = func(in string) string {
 				Expect(in).To(Equal("opt-alias"))
 				return "resolved-url"
 			}
 
-			opts.TargetOpt = "opt-alias"
+			opts.EnvironmentOpt = "opt-alias"
 
-			Expect(build().Target()).To(Equal("resolved-url"))
+			Expect(build().Environment()).To(Equal("resolved-url"))
 		})
 
 		It("uses config value if no global option is provided", func() {
-			config.TargetReturns("config-url")
+			config.EnvironmentReturns("config-url")
 
-			Expect(build().Target()).To(Equal("config-url"))
+			Expect(build().Environment()).To(Equal("config-url"))
 		})
 
 		It("returns empty string if neither global option or config value is set", func() {
-			Expect(build().Target()).To(Equal(""))
+			Expect(build().Environment()).To(Equal(""))
 		})
 	})
 
 	Describe("Credentials", func() {
 		It("defaults to config credentials for config target", func() {
-			config.TargetReturns("config-url")
+			config.EnvironmentReturns("config-url")
 
-			config.CredentialsStub = func(target string) cmdconf.Creds {
-				Expect(target).To(Equal("config-url"))
+			config.CredentialsStub = func(environment string) cmdconf.Creds {
+				Expect(environment).To(Equal("config-url"))
 				return cmdconf.Creds{Username: "config-username"}
 			}
 
@@ -69,12 +69,12 @@ var _ = Describe("SessionContextImpl", func() {
 		})
 
 		It("prefers to use target from global option and returns config credentials", func() {
-			config.CredentialsStub = func(target string) cmdconf.Creds {
-				Expect(target).To(Equal("opt-url"))
+			config.CredentialsStub = func(environment string) cmdconf.Creds {
+				Expect(environment).To(Equal("opt-url"))
 				return cmdconf.Creds{Username: "config-username"}
 			}
 
-			opts.TargetOpt = "opt-url"
+			opts.EnvironmentOpt = "opt-url"
 
 			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Username: "config-username"}))
 		})
@@ -127,7 +127,7 @@ var _ = Describe("SessionContextImpl", func() {
 
 	Describe("CACert", func() {
 		BeforeEach(func() {
-			opts.TargetOpt = "opt-url"
+			opts.EnvironmentOpt = "opt-url"
 		})
 
 		It("returns global option if provided as non-file-path", func() {
@@ -160,8 +160,8 @@ var _ = Describe("SessionContextImpl", func() {
 		})
 
 		It("uses config value for current target if no global option is provided", func() {
-			config.CACertStub = func(target string) string {
-				Expect(target).To(Equal("opt-url"))
+			config.CACertStub = func(environment string) string {
+				Expect(environment).To(Equal("opt-url"))
 				return "config-cert"
 			}
 
@@ -175,7 +175,7 @@ var _ = Describe("SessionContextImpl", func() {
 
 	Describe("Deployment", func() {
 		BeforeEach(func() {
-			opts.TargetOpt = "opt-url"
+			opts.EnvironmentOpt = "opt-url"
 		})
 
 		It("returns global option if provided", func() {
@@ -187,8 +187,8 @@ var _ = Describe("SessionContextImpl", func() {
 		})
 
 		It("uses config value for current target if no global option is provided", func() {
-			config.DeploymentStub = func(target string) string {
-				Expect(target).To(Equal("opt-url"))
+			config.DeploymentStub = func(environment string) string {
+				Expect(environment).To(Equal("opt-url"))
 				return "config-dep"
 			}
 

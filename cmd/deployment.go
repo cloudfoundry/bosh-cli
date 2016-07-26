@@ -46,7 +46,7 @@ func (c DeploymentCmd) show() error {
 func (c DeploymentCmd) set(opts DeploymentOpts) error {
 	sess := c.sessionFactory(c.config)
 
-	updatedConfig := c.config.SetDeployment(sess.Target(), opts.Args.NameOrPath)
+	updatedConfig := c.config.SetDeployment(sess.Environment(), opts.Args.NameOrPath)
 
 	sess = c.sessionFactory(updatedConfig)
 

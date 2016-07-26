@@ -5,29 +5,29 @@ import (
 	boshui "github.com/cloudfoundry/bosh-init/ui"
 )
 
-type TargetCmd struct {
+type EnvironmentCmd struct {
 	sessionFactory func(cmdconf.Config) Session
 
 	config cmdconf.Config
 	ui     boshui.UI
 }
 
-func NewTargetCmd(
+func NewEnvironmentCmd(
 	sessionFactory func(cmdconf.Config) Session,
 	config cmdconf.Config,
 	ui boshui.UI,
-) TargetCmd {
-	return TargetCmd{sessionFactory: sessionFactory, config: config, ui: ui}
+) EnvironmentCmd {
+	return EnvironmentCmd{sessionFactory: sessionFactory, config: config, ui: ui}
 }
 
-func (c TargetCmd) Run(opts TargetOpts) error {
+func (c EnvironmentCmd) Run(opts EnvironmentOpts) error {
 	args := opts.Args
 
 	if len(args.URL) == 0 {
 		return c.show()
 	}
 
-	updatedConfig := c.config.SetTarget(args.URL, args.Alias, opts.CACert.Path)
+	updatedConfig := c.config.SetEnvironment(args.URL, args.Alias, opts.CACert.Path)
 
 	err := c.set(updatedConfig)
 	if err != nil {
@@ -37,9 +37,9 @@ func (c TargetCmd) Run(opts TargetOpts) error {
 		}
 
 		// Otherwise try existing CA cert if user is just switching between targets
-		existingCACert := c.config.CACert(c.config.ResolveTarget(args.URL))
+		existingCACert := c.config.CACert(c.config.ResolveEnvironment(args.URL))
 
-		updatedConfig = c.config.SetTarget(args.URL, args.Alias, existingCACert)
+		updatedConfig = c.config.SetEnvironment(args.URL, args.Alias, existingCACert)
 
 		altErr := c.set(updatedConfig)
 		if altErr != nil {
@@ -51,10 +51,10 @@ func (c TargetCmd) Run(opts TargetOpts) error {
 	return nil
 }
 
-func (c TargetCmd) show() error {
+func (c EnvironmentCmd) show() error {
 	sess := c.sessionFactory(c.config)
 
-	c.ui.PrintLinef("Current target is '%s'", sess.Target())
+	c.ui.PrintLinef("Current target is '%s'", sess.Environment())
 
 	director, err := sess.Director()
 	if err != nil {
@@ -71,7 +71,7 @@ func (c TargetCmd) show() error {
 	return nil
 }
 
-func (c TargetCmd) set(updatedConfig cmdconf.Config) error {
+func (c EnvironmentCmd) set(updatedConfig cmdconf.Config) error {
 	sess := c.sessionFactory(updatedConfig)
 
 	director, err := sess.Director()
@@ -89,7 +89,7 @@ func (c TargetCmd) set(updatedConfig cmdconf.Config) error {
 		return err
 	}
 
-	c.ui.PrintLinef("Target set to '%s'", sess.Target())
+	c.ui.PrintLinef("Target set to '%s'", sess.Environment())
 
 	InfoTable{info, c.ui}.Print()
 

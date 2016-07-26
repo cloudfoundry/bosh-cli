@@ -17,21 +17,21 @@ import (
 
 var _ = Describe("SessionImpl", func() {
 	var (
-		context         *fakecmd.FakeSessionContext
-		ui              *fakeui.FakeUI
-		printTarget     bool
-		printDeployment bool
-		logger          boshlog.Logger
-		sess            *SessionImpl
+		context          *fakecmd.FakeSessionContext
+		ui               *fakeui.FakeUI
+		printEnvironment bool
+		printDeployment  bool
+		logger           boshlog.Logger
+		sess             *SessionImpl
 	)
 
 	BeforeEach(func() {
 		context = &fakecmd.FakeSessionContext{}
 		ui = &fakeui.FakeUI{}
-		printTarget = false
+		printEnvironment = false
 		printDeployment = false
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		sess = NewSessionImpl(context, ui, printTarget, printDeployment, logger)
+		sess = NewSessionImpl(context, ui, printEnvironment, printDeployment, logger)
 	})
 
 	Describe("UAA", func() {
@@ -39,7 +39,7 @@ var _ = Describe("SessionImpl", func() {
 			server, caCert := BuildSSLServer()
 			defer server.Close()
 
-			context.TargetReturns(server.URL())
+			context.EnvironmentReturns(server.URL())
 			context.CACertReturns(caCert)
 			context.CredentialsReturns(cmdconf.Creds{Client: "client", ClientSecret: "client-secret"})
 
@@ -74,7 +74,7 @@ var _ = Describe("SessionImpl", func() {
 			server, caCert := BuildSSLServer()
 			defer server.Close()
 
-			context.TargetReturns(server.URL())
+			context.EnvironmentReturns(server.URL())
 			context.CACertReturns(caCert)
 
 			server.AppendHandlers(
@@ -106,7 +106,7 @@ var _ = Describe("SessionImpl", func() {
 		})
 
 		It("returns error if Director configuration fails", func() {
-			context.TargetReturns("")
+			context.EnvironmentReturns("")
 
 			_, err := sess.UAA()
 			Expect(err).To(HaveOccurred())
@@ -119,7 +119,7 @@ var _ = Describe("SessionImpl", func() {
 			server, caCert := BuildSSLServer()
 			defer server.Close()
 
-			context.TargetReturns(server.URL())
+			context.EnvironmentReturns(server.URL())
 			context.CACertReturns(caCert)
 			context.CredentialsReturns(cmdconf.Creds{Username: "username", Password: "password"})
 
@@ -142,7 +142,7 @@ var _ = Describe("SessionImpl", func() {
 			server, caCert := BuildSSLServer()
 			defer server.Close()
 
-			context.TargetReturns(server.URL())
+			context.EnvironmentReturns(server.URL())
 			context.CACertReturns(caCert)
 			context.CredentialsReturns(cmdconf.Creds{Client: "client", ClientSecret: "client-secret"})
 
@@ -183,7 +183,7 @@ var _ = Describe("SessionImpl", func() {
 			server, caCert := BuildSSLServer()
 			defer server.Close()
 
-			context.TargetReturns(server.URL())
+			context.EnvironmentReturns(server.URL())
 			context.CACertReturns(caCert)
 			context.CredentialsReturns(cmdconf.Creds{RefreshToken: "bearer rt-val"})
 
@@ -222,7 +222,7 @@ var _ = Describe("SessionImpl", func() {
 		})
 
 		It("returns error if Director configuration fails", func() {
-			context.TargetReturns("")
+			context.EnvironmentReturns("")
 
 			_, err := sess.Director()
 			Expect(err).To(HaveOccurred())
@@ -235,7 +235,7 @@ var _ = Describe("SessionImpl", func() {
 			server, caCert := BuildSSLServer()
 			defer server.Close()
 
-			context.TargetReturns(server.URL())
+			context.EnvironmentReturns(server.URL())
 			context.CACertReturns(caCert)
 
 			server.AppendHandlers(
@@ -259,7 +259,7 @@ var _ = Describe("SessionImpl", func() {
 		})
 
 		It("returns error if Director configuration fails", func() {
-			context.TargetReturns("")
+			context.EnvironmentReturns("")
 
 			_, err := sess.AnonymousDirector()
 			Expect(err).To(HaveOccurred())
@@ -272,7 +272,7 @@ var _ = Describe("SessionImpl", func() {
 			server, caCert := BuildSSLServer()
 			defer server.Close()
 
-			context.TargetReturns(server.URL())
+			context.EnvironmentReturns(server.URL())
 			context.CACertReturns(caCert)
 			context.CredentialsReturns(cmdconf.Creds{Username: "username", Password: "password"})
 			context.DeploymentReturns("config-dep")
@@ -293,7 +293,7 @@ var _ = Describe("SessionImpl", func() {
 		})
 
 		It("returns error if Director configuration fails", func() {
-			context.TargetReturns("")
+			context.EnvironmentReturns("")
 			context.DeploymentReturns("config-dep")
 
 			_, err := sess.Deployment()
@@ -302,7 +302,7 @@ var _ = Describe("SessionImpl", func() {
 		})
 
 		It("returns error if deployment fails", func() {
-			context.TargetReturns("config-url")
+			context.EnvironmentReturns("config-url")
 			context.DeploymentReturns("")
 
 			_, err := sess.Deployment()

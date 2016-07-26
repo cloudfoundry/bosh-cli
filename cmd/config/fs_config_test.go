@@ -28,8 +28,8 @@ var _ = Describe("NewFSConfigFromPath", func() {
 
 		config, err := NewFSConfigFromPath("/no_config", fs)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(config.Target()).To(BeEmpty())
-		Expect(config.Targets()).To(BeEmpty())
+		Expect(config.Environment()).To(BeEmpty())
+		Expect(config.Environments()).To(BeEmpty())
 	})
 
 	It("returns error if expanding path fails", func() {
@@ -81,17 +81,17 @@ var _ = Describe("FSConfig", func() {
 
 	Describe("Tagrets", func() {
 		It("returns empty list if there are no remembered targets", func() {
-			Expect(config.Targets()).To(BeEmpty())
+			Expect(config.Environments()).To(BeEmpty())
 		})
 
 		It("returns list of previously remembered targets", func() {
-			updatedConfig := config.SetTarget("url1", "", "")
-			updatedConfig = updatedConfig.SetTarget("url2", "", "")
-			updatedConfig = updatedConfig.SetTarget("url3", "alias3", "")
-			Expect(updatedConfig.Targets()).To(Equal([]Target{
-				Target{URL: "url1", Alias: ""},
-				Target{URL: "url2", Alias: ""},
-				Target{URL: "url3", Alias: "alias3"},
+			updatedConfig := config.SetEnvironment("url1", "", "")
+			updatedConfig = updatedConfig.SetEnvironment("url2", "", "")
+			updatedConfig = updatedConfig.SetEnvironment("url3", "alias3", "")
+			Expect(updatedConfig.Environments()).To(Equal([]Environment{
+				Environment{URL: "url1", Alias: ""},
+				Environment{URL: "url2", Alias: ""},
+				Environment{URL: "url3", Alias: "alias3"},
 			}))
 
 			err := updatedConfig.Save()
@@ -99,48 +99,48 @@ var _ = Describe("FSConfig", func() {
 
 			reloadedConfig := readConfig()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(reloadedConfig.Targets()).To(Equal([]Target{
-				Target{URL: "url1", Alias: ""},
-				Target{URL: "url2", Alias: ""},
-				Target{URL: "url3", Alias: "alias3"},
+			Expect(reloadedConfig.Environments()).To(Equal([]Environment{
+				Environment{URL: "url1", Alias: ""},
+				Environment{URL: "url2", Alias: ""},
+				Environment{URL: "url3", Alias: "alias3"},
 			}))
 		})
 	})
 
 	Describe("SetTarget/Target/CACert", func() {
 		It("returns empty if file does not exist", func() {
-			Expect(config.Target()).To(Equal(""))
+			Expect(config.Environment()).To(Equal(""))
 		})
 
 		It("returns saved url", func() {
-			updatedConfig := config.SetTarget("url", "", "")
-			Expect(updatedConfig.Target()).To(Equal("url"))
+			updatedConfig := config.SetEnvironment("url", "", "")
+			Expect(updatedConfig.Environment()).To(Equal("url"))
 
 			err := updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(reloadedConfig.Target()).To(Equal("url"))
+			Expect(reloadedConfig.Environment()).To(Equal("url"))
 		})
 
 		It("returns saved url based on the alias, resolving to previously saved url", func() {
-			updatedConfig := config.SetTarget("url1", "alias1", "")
-			updatedConfig = updatedConfig.SetTarget("url2", "alias2", "")
-			updatedConfig = updatedConfig.SetTarget("alias1", "", "")
-			Expect(updatedConfig.Target()).To(Equal("url1"))
+			updatedConfig := config.SetEnvironment("url1", "alias1", "")
+			updatedConfig = updatedConfig.SetEnvironment("url2", "alias2", "")
+			updatedConfig = updatedConfig.SetEnvironment("alias1", "", "")
+			Expect(updatedConfig.Environment()).To(Equal("url1"))
 
 			err := updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(reloadedConfig.Target()).To(Equal("url1"))
+			Expect(reloadedConfig.Environment()).To(Equal("url1"))
 		})
 
 		It("saves empty CA certificate", func() {
-			updatedConfig := config.SetTarget("url", "", "")
-			Expect(updatedConfig.Target()).To(Equal("url"))
+			updatedConfig := config.SetEnvironment("url", "", "")
+			Expect(updatedConfig.Environment()).To(Equal("url"))
 			Expect(updatedConfig.CACert("url")).To(Equal(""))
 
 			err := updatedConfig.Save()
@@ -155,8 +155,8 @@ var _ = Describe("FSConfig", func() {
 		validCACert := "BEGIN\nca-cert"
 
 		It("saves non-empty CA certificate and then unsets it", func() {
-			updatedConfig := config.SetTarget("url", "", validCACert)
-			Expect(updatedConfig.Target()).To(Equal("url"))
+			updatedConfig := config.SetEnvironment("url", "", validCACert)
+			Expect(updatedConfig.Environment()).To(Equal("url"))
 			Expect(updatedConfig.CACert("url")).To(Equal(validCACert))
 
 			err := updatedConfig.Save()
@@ -166,8 +166,8 @@ var _ = Describe("FSConfig", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(reloadedConfig.CACert("url")).To(Equal(validCACert))
 
-			updatedConfig = reloadedConfig.SetTarget("url", "", "")
-			Expect(updatedConfig.Target()).To(Equal("url"))
+			updatedConfig = reloadedConfig.SetEnvironment("url", "", "")
+			Expect(updatedConfig.Environment()).To(Equal("url"))
 			Expect(updatedConfig.CACert("url")).To(Equal(""))
 
 			err = updatedConfig.Save()
@@ -181,7 +181,7 @@ var _ = Describe("FSConfig", func() {
 		It("saves CA cert via file path and does not need file system later", func() {
 			fs.WriteFileString("/ca-cert", validCACert)
 
-			updatedConfig := config.SetTarget("url", "", "/ca-cert")
+			updatedConfig := config.SetEnvironment("url", "", "/ca-cert")
 			Expect(updatedConfig.CACert("url")).To(Equal(validCACert))
 
 			err := updatedConfig.Save()
@@ -196,8 +196,8 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns CA cert for alias", func() {
-			updatedConfig := config.SetTarget("url", "alias", validCACert)
-			Expect(updatedConfig.Target()).To(Equal("url"))
+			updatedConfig := config.SetEnvironment("url", "alias", validCACert)
+			Expect(updatedConfig.Environment()).To(Equal("url"))
 			Expect(updatedConfig.CACert("alias")).To(Equal(validCACert))
 
 			err := updatedConfig.Save()
@@ -207,8 +207,8 @@ var _ = Describe("FSConfig", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(reloadedConfig.CACert("alias")).To(Equal(validCACert))
 
-			updatedConfig = reloadedConfig.SetTarget("url", "alias", "")
-			Expect(updatedConfig.Target()).To(Equal("url"))
+			updatedConfig = reloadedConfig.SetEnvironment("url", "alias", "")
+			Expect(updatedConfig.Environment()).To(Equal("url"))
 			Expect(updatedConfig.CACert("alias")).To(Equal(""))
 
 			err = updatedConfig.Save()
@@ -220,30 +220,30 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("does not update existing config when target is set", func() {
-			updatedConfig := config.SetTarget("url", "", "")
-			Expect(updatedConfig.Target()).To(Equal("url"))
+			updatedConfig := config.SetEnvironment("url", "", "")
+			Expect(updatedConfig.Environment()).To(Equal("url"))
 
 			err := updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(config.Target()).To(Equal(""))
+			Expect(config.Environment()).To(Equal(""))
 		})
 	})
 
 	Describe("ResolveTarget", func() {
 		It("returns url if it's a known url", func() {
-			updatedConfig := config.SetTarget("url", "", "")
-			Expect(updatedConfig.ResolveTarget("url")).To(Equal("url"))
+			updatedConfig := config.SetEnvironment("url", "", "")
+			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
 		})
 
 		It("returns aliased url", func() {
-			updatedConfig := config.SetTarget("url", "alias", "")
-			updatedConfig = updatedConfig.SetTarget("url2", "alias2", "")
-			Expect(updatedConfig.ResolveTarget("alias")).To(Equal("url"))
+			updatedConfig := config.SetEnvironment("url", "alias", "")
+			updatedConfig = updatedConfig.SetEnvironment("url2", "alias2", "")
+			Expect(updatedConfig.ResolveEnvironment("alias")).To(Equal("url"))
 		})
 
 		It("returns input when it's not an alias or url", func() {
-			Expect(config.ResolveTarget("unknown")).To(Equal("unknown"))
+			Expect(config.ResolveEnvironment("unknown")).To(Equal("unknown"))
 		})
 	})
 
@@ -253,7 +253,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns empty if target is found but creds are not set", func() {
-			updatedConfig := config.SetTarget("url", "", "")
+			updatedConfig := config.SetEnvironment("url", "", "")
 			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{}))
 
 			err := updatedConfig.Save()
@@ -275,7 +275,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds with username/password if target is found and basic creds are set", func() {
-			updatedConfig := config.SetTarget("url", "", "")
+			updatedConfig := config.SetEnvironment("url", "", "")
 			updatedConfig = config.SetCredentials("url", Creds{Username: "user", Password: "pass"})
 			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{Username: "user", Password: "pass"}))
 
@@ -298,7 +298,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds with token if target is found and token is set", func() {
-			updatedConfig := config.SetTarget("url", "", "")
+			updatedConfig := config.SetEnvironment("url", "", "")
 			updatedConfig = config.SetCredentials("url", Creds{RefreshToken: "token"})
 			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{RefreshToken: "token"}))
 
@@ -321,7 +321,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds for alias if target is found and token is set", func() {
-			updatedConfig := config.SetTarget("url", "alias", "")
+			updatedConfig := config.SetEnvironment("url", "alias", "")
 			updatedConfig = config.SetCredentials("alias", Creds{RefreshToken: "token"})
 			Expect(updatedConfig.Credentials("alias")).To(Equal(Creds{RefreshToken: "token"}))
 
@@ -344,7 +344,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("does not update existing config when creds are set", func() {
-			updatedConfig := config.SetTarget("url", "", "")
+			updatedConfig := config.SetEnvironment("url", "", "")
 			updatedConfig = config.SetCredentials("url", Creds{Username: "user"})
 			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{Username: "user"}))
 
@@ -361,7 +361,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns empty if target is found but deployment is not set", func() {
-			updatedConfig := config.SetTarget("url", "", "")
+			updatedConfig := config.SetEnvironment("url", "", "")
 			Expect(updatedConfig.Deployment("url")).To(Equal(""))
 
 			err := updatedConfig.Save()
@@ -373,7 +373,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns deployment if target is found and deployment is set", func() {
-			updatedConfig := config.SetTarget("url", "", "")
+			updatedConfig := config.SetEnvironment("url", "", "")
 			updatedConfig = config.SetDeployment("url", "deployment")
 			Expect(updatedConfig.Deployment("url")).To(Equal("deployment"))
 
@@ -386,7 +386,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns deployment for alias if target is found and deployment is set", func() {
-			updatedConfig := config.SetTarget("url", "alias", "")
+			updatedConfig := config.SetEnvironment("url", "alias", "")
 			updatedConfig = config.SetDeployment("alias", "deployment")
 			Expect(updatedConfig.Deployment("alias")).To(Equal("deployment"))
 
@@ -399,7 +399,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("does not update existing config when deployment is set", func() {
-			updatedConfig := config.SetTarget("url", "", "")
+			updatedConfig := config.SetEnvironment("url", "", "")
 			updatedConfig = config.SetDeployment("url", "deployment")
 			Expect(updatedConfig.Deployment("url")).To(Equal("deployment"))
 

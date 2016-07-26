@@ -9,10 +9,10 @@ import (
 )
 
 type FakeSessionContext struct {
-	TargetStub        func() string
-	targetMutex       sync.RWMutex
-	targetArgsForCall []struct{}
-	targetReturns     struct {
+	EnvironmentStub        func() string
+	environmentMutex       sync.RWMutex
+	environmentArgsForCall []struct{}
+	environmentReturns     struct {
 		result1 string
 	}
 	CACertStub        func() string
@@ -35,26 +35,26 @@ type FakeSessionContext struct {
 	}
 }
 
-func (fake *FakeSessionContext) Target() string {
-	fake.targetMutex.Lock()
-	fake.targetArgsForCall = append(fake.targetArgsForCall, struct{}{})
-	fake.targetMutex.Unlock()
-	if fake.TargetStub != nil {
-		return fake.TargetStub()
+func (fake *FakeSessionContext) Environment() string {
+	fake.environmentMutex.Lock()
+	fake.environmentArgsForCall = append(fake.environmentArgsForCall, struct{}{})
+	fake.environmentMutex.Unlock()
+	if fake.EnvironmentStub != nil {
+		return fake.EnvironmentStub()
 	} else {
-		return fake.targetReturns.result1
+		return fake.environmentReturns.result1
 	}
 }
 
-func (fake *FakeSessionContext) TargetCallCount() int {
-	fake.targetMutex.RLock()
-	defer fake.targetMutex.RUnlock()
-	return len(fake.targetArgsForCall)
+func (fake *FakeSessionContext) EnvironmentCallCount() int {
+	fake.environmentMutex.RLock()
+	defer fake.environmentMutex.RUnlock()
+	return len(fake.environmentArgsForCall)
 }
 
-func (fake *FakeSessionContext) TargetReturns(result1 string) {
-	fake.TargetStub = nil
-	fake.targetReturns = struct {
+func (fake *FakeSessionContext) EnvironmentReturns(result1 string) {
+	fake.EnvironmentStub = nil
+	fake.environmentReturns = struct {
 		result1 string
 	}{result1}
 }

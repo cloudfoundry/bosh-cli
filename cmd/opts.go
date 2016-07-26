@@ -13,8 +13,8 @@ type BoshOpts struct {
 
 	ConfigPathOpt string `long:"config" description:"Config file path" env:"BOSH_CONFIG" default:"~/.bosh/config"`
 
-	TargetOpt string `long:"environment" short:"e" description:"Director environment name or URL"`
-	CACertOpt string `long:"ca-cert"               description:"Director CA certificate path or value"`
+	EnvironmentOpt string `long:"environment" short:"e" description:"Director environment name or URL"`
+	CACertOpt      string `long:"ca-cert"               description:"Director CA certificate path or value"`
 
 	// Specify basic credentaials
 	UsernameOpt string `long:"user"     description:"Override username" env:"BOSH_USER"`
@@ -39,12 +39,12 @@ type BoshOpts struct {
 	DeleteEnv DeleteEnvOpts `command:"delete-env" description:"Delete BOSH environment"`
 
 	// Targets
-	Target  TargetOpts  `command:"env"  alias:"target"  alias:"tg"  description:"Set or show current target"`
-	Targets TargetsOpts `command:"envs" alias:"targets" alias:"tgs" description:"List targets"`
+	Environment  EnvironmentOpts  `command:"env"  alias:"target"  alias:"tg"  description:"Set or show current environment"`
+	Environments EnvironmentsOpts `command:"envs" alias:"targets" alias:"tgs" description:"List environments"`
 
 	// Authentication
-	LogIn  LogInOpts  `command:"log-in"  alias:"login" alias:"l" description:"Log in to targeted Director"`
-	LogOut LogOutOpts `command:"log-out" alias:"logout"          description:"Forget saved credentials for targeted Director"`
+	LogIn  LogInOpts  `command:"log-in"  alias:"login" alias:"l" description:"Log in"`
+	LogOut LogOutOpts `command:"log-out" alias:"logout"          description:"Forget saved credentials for Director in the current environment"`
 
 	// Tasks
 	Task       TaskOpts       `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
@@ -163,20 +163,20 @@ func (o CreateEnvOpts) Execute(_ []string) error { return o.call() }
 func (o DeleteEnvOpts) Execute(_ []string) error { return o.call() }
 
 // Target
-type TargetOpts struct {
-	Args TargetArgs `positional-args:"true"`
+type EnvironmentOpts struct {
+	Args EnvironmentArgs `positional-args:"true"`
 
 	CACert FileBytesArg `long:"ca-cert" short:"c" description:"CA certificate path to verify SSL connection to the Director and UAA"`
 
 	call func() error
 }
 
-type TargetArgs struct {
+type EnvironmentArgs struct {
 	URL   string `positional-arg-name:"URL"   description:"Director URL (e.g.: https://192.168.50.4:25555 or 192.168.50.4)"`
 	Alias string `positional-arg-name:"ALIAS" description:"Target alias"`
 }
 
-type TargetsOpts struct {
+type EnvironmentsOpts struct {
 	call func() error
 }
 
@@ -188,10 +188,10 @@ type LogOutOpts struct {
 	call func() error
 }
 
-func (o TargetOpts) Execute(_ []string) error  { return o.call() }
-func (o TargetsOpts) Execute(_ []string) error { return o.call() }
-func (o LogInOpts) Execute(_ []string) error   { return o.call() }
-func (o LogOutOpts) Execute(_ []string) error  { return o.call() }
+func (o EnvironmentOpts) Execute(_ []string) error  { return o.call() }
+func (o EnvironmentsOpts) Execute(_ []string) error { return o.call() }
+func (o LogInOpts) Execute(_ []string) error        { return o.call() }
+func (o LogOutOpts) Execute(_ []string) error       { return o.call() }
 
 // Tasks
 type TaskOpts struct {

@@ -6,17 +6,17 @@ import (
 	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
 )
 
-type TargetsCmd struct {
+type EnvironmentsCmd struct {
 	config cmdconf.Config
 	ui     boshui.UI
 }
 
-func NewTargetsCmd(config cmdconf.Config, ui boshui.UI) TargetsCmd {
-	return TargetsCmd{config: config, ui: ui}
+func NewEnvironmentsCmd(config cmdconf.Config, ui boshui.UI) EnvironmentsCmd {
+	return EnvironmentsCmd{config: config, ui: ui}
 }
 
-func (c TargetsCmd) Run() error {
-	targets := c.config.Targets()
+func (c EnvironmentsCmd) Run() error {
+	environments := c.config.Environments()
 
 	table := boshtbl.Table{
 		Content: "targets",
@@ -24,7 +24,7 @@ func (c TargetsCmd) Run() error {
 		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
-	for _, t := range targets {
+	for _, t := range environments {
 		table.Rows = append(table.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(t.URL),
 			boshtbl.NewValueString(t.Alias),

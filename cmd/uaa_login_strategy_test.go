@@ -50,12 +50,12 @@ var _ = Describe("UAALoginStrategy", func() {
 			uaa = &fakeuaa.FakeUAA{}
 			initialSession.UAAReturns(uaa, nil)
 
-			initialSession.TargetReturns("target")
+			initialSession.EnvironmentReturns("target")
 
 			updatedConfig = &fakecmdconf.FakeConfig{}
-			config.SetCredentialsStub = func(target string, creds cmdconf.Creds) cmdconf.Config {
+			config.SetCredentialsStub = func(environment string, creds cmdconf.Creds) cmdconf.Config {
 				updatedConfig.CredentialsStub = func(t string) cmdconf.Creds {
-					return map[string]cmdconf.Creds{target: creds}[t]
+					return map[string]cmdconf.Creds{environment: creds}[t]
 				}
 				return updatedConfig
 			}

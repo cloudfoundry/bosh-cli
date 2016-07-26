@@ -15,20 +15,20 @@ var _ = Describe("TargetsCmd", func() {
 	var (
 		config  *fakecmdconf.FakeConfig
 		ui      *fakeui.FakeUI
-		command TargetsCmd
+		command EnvironmentsCmd
 	)
 
 	BeforeEach(func() {
 		config = &fakecmdconf.FakeConfig{}
 		ui = &fakeui.FakeUI{}
-		command = NewTargetsCmd(config, ui)
+		command = NewEnvironmentsCmd(config, ui)
 	})
 
 	Describe("Run", func() {
 		act := func() error { return command.Run() }
 
 		It("lists targets", func() {
-			config.TargetsReturns([]cmdconf.Target{
+			config.EnvironmentsReturns([]cmdconf.Environment{
 				{Alias: "target1-alias", URL: "target1-url"},
 				{Alias: "target2-alias", URL: "target2-url"},
 			})

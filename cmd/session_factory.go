@@ -12,12 +12,12 @@ func NewSessionFromOpts(
 	opts BoshOpts,
 	config cmdconf.Config,
 	ui boshui.UI,
-	printTarget bool,
+	printEnvironment bool,
 	printDeployment bool,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) Session {
 	context := NewSessionContextImpl(opts, config, fs)
 
-	return NewSessionImpl(context, ui, printTarget, printDeployment, logger)
+	return NewSessionImpl(context, ui, printEnvironment, printDeployment, logger)
 }

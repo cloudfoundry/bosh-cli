@@ -9,7 +9,7 @@ import (
 //go:generate counterfeiter . SessionContext
 
 type SessionContext interface {
-	Target() string
+	Environment() string
 	CACert() string
 	Credentials() cmdconf.Creds
 
@@ -19,7 +19,7 @@ type SessionContext interface {
 //go:generate counterfeiter . Session
 
 type Session interface {
-	Target() string
+	Environment() string
 	Credentials() cmdconf.Creds
 
 	UAA() (boshuaa.UAA, error)

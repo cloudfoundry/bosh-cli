@@ -3,10 +3,10 @@ package config
 //go:generate counterfeiter . Config
 
 type Config interface {
-	Target() string
-	Targets() []Target
-	ResolveTarget(urlOrAlias string) string
-	SetTarget(urlOrAlias, alias, caCert string) Config
+	Environment() string
+	Environments() []Environment
+	ResolveEnvironment(urlOrAlias string) string
+	SetEnvironment(urlOrAlias, alias, caCert string) Config
 
 	CACert(url string) string
 
@@ -20,7 +20,7 @@ type Config interface {
 	Save() error
 }
 
-type Target struct {
+type Environment struct {
 	URL   string
 	Alias string
 }
