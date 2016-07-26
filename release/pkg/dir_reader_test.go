@@ -67,7 +67,29 @@ excluded_files: [ex-file1, ex-file2]
 					File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
 				}))
 			})
+
+			Context("When the src path is a folder and the blob path is a file", func() {
+				BeforeEach(func() {
+					err = fs.MkdirAll("/src/directory/f1/", 0777)
+					Expect(err).NotTo(HaveOccurred())
+					err = fs.WriteFileString("/blobs/directory/f1", "")
+					Expect(err).NotTo(HaveOccurred())
+					fs.SetGlob("/blobs/**/*", []string{"/blobs/directory", "/blobs/directory/f1"})
+					fs.SetGlob("/src/**/*", []string{"/src/directory", "/src/directory/f1"})
+				})
+				It("collects the blob file", func() {
+					_, err = reader.Read("/dir")
+					Expect(err).NotTo(HaveOccurred())
+
+
+					Expect(collectedFiles).To(Equal([]File{
+						File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
+						File{Path: "/blobs/directory/f1", DirPath: "/blobs", RelativePath: "directory/f1"},
+					}))
+				})
+			})
 		})
+
 
 		It("returns a package with the details collected from a directory", func() {
 			fs.WriteFileString("/dir/spec", `---

@@ -67,12 +67,22 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 	packagingPath := gopath.Join(path, "packaging")
 	files, err = r.checkAndFilterDir(packagingPath, path)
 	if err != nil {
-		return manifest, nil, nil, bosherr.Errorf(
-			"Expected to find '%s' for package '%s'", packagingPath, manifest.Name)
+		if err.Error() == "File not found" {
+			return manifest, nil, nil, bosherr.Errorf(
+				"Expected to find '%s' for package '%s'", packagingPath, manifest.Name)
+		}
+
+		return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
 	}
 
 	prePackagingPath := gopath.Join(path, "pre_packaging")
-	prepFiles, _ = r.checkAndFilterDir(prePackagingPath, path) //can proceed if there is no pre_packaging
+	prepFiles, err = r.checkAndFilterDir(prePackagingPath, path) //can proceed if there is no pre_packaging
+	if err != nil {
+		if err.Error() != "File not found" {
+			return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
+		}
+	}
+
 	files = append(files, prepFiles...)
 
 	filesByRelPath, err := r.applyFilesPattern(manifest)
@@ -97,9 +107,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 	}
 
 	for _, file := range filesByRelPath {
-		if !r.isDir(file.Path) {
-			files = append(files, file)
-		}
+		files = append(files, file)
 	}
 
 	return manifest, files, prepFiles, nil
@@ -114,9 +122,15 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 		}
 
 		for _, path := range srcDirMatches {
-			file := NewFile(path, r.srcDirPath)
-			if _, found := filesByRelPath[file.RelativePath]; !found {
-				filesByRelPath[file.RelativePath] = file
+			isDir, err := r.isDir(path)
+			if err != nil {
+				return map[string]File{}, bosherr.WrapErrorf(err, "Unknown error occurred")
+			}
+			if !isDir {
+				file := NewFile(path, r.srcDirPath)
+				if _, found := filesByRelPath[file.RelativePath]; !found {
+					filesByRelPath[file.RelativePath] = file
+				}
 			}
 		}
 
@@ -126,9 +140,15 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 		}
 
 		for _, path := range blobsDirMatches {
-			file := NewFile(path, r.blobsDirPath)
-			if _, found := filesByRelPath[file.RelativePath]; !found {
-				filesByRelPath[file.RelativePath] = file
+			isDir, err := r.isDir(path)
+			if err != nil {
+				return map[string]File{}, bosherr.WrapErrorf(err, "Unknown error occurred")
+			}
+			if !isDir {
+				file := NewFile(path, r.blobsDirPath)
+				if _, found := filesByRelPath[file.RelativePath]; !found {
+					filesByRelPath[file.RelativePath] = file
+				}
 			}
 		}
 	}
@@ -166,7 +186,12 @@ func (r DirReaderImpl) applyExcludedFilesPattern(manifest Manifest) ([]File, err
 func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]File, error) {
 	var files []File
 	if r.fs.FileExists(packagePath) {
-		if !r.isDir(packagePath) {
+		isDir, err := r.isDir(packagePath)
+		if err != nil {
+			return nil, err
+		}
+
+		if !isDir {
 			file := NewFile(packagePath, path)
 			file.ExcludeMode = true
 			files = append(files, file)
@@ -177,10 +202,11 @@ func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]File, erro
 	return []File{}, errors.New("File not found")
 }
 
-func (r DirReaderImpl) isDir(path string) bool {
+func (r DirReaderImpl) isDir(path string) (bool, error) {
 	info, err := r.fs.Stat(path)
 	if err != nil {
-		return false;
+		return false, err;
 	}
-	return info.IsDir()
+	return info.IsDir(), nil
 }
+
