@@ -11,11 +11,11 @@ import (
 )
 
 var _ = Describe("Deployment", func() {
-	 Describe("Diff", func() {
+	Describe("Diff", func() {
 
 		var (
 			deployment Deployment
-			server                               *ghttp.Server
+			server     *ghttp.Server
 		)
 
 		BeforeEach(func() {
@@ -37,7 +37,7 @@ var _ = Describe("Deployment", func() {
 			expectedDiffResponse = DeploymentDiffResponse{
 				Context: map[string]interface{}{
 					"context": map[string]interface{}{
-						"cloud_config_id": 2,
+						"cloud_config_id":   2,
 						"runtime_config_id": nil,
 					},
 				},
@@ -65,10 +65,10 @@ var _ = Describe("Deployment", func() {
 
 				diff, err := deployment.Diff([]byte("manifest"), true)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(diff).To(Equal( DeploymentDiff(expectedDiffResponse.Diff)))
+				Expect(diff).To(Equal(DiffLines(expectedDiffResponse.Diff)))
 			})
 
-			It("returns redacted diff if redact is true", func(){
+			It("returns redacted diff if redact is true", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/deployments/dep1/diff"),
@@ -84,24 +84,27 @@ var _ = Describe("Deployment", func() {
 
 				diff, err := deployment.Diff([]byte("manifest"), false)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(diff).To(Equal( DeploymentDiff(expectedDiffResponse.Diff)))
+				Expect(diff).To(Equal(DiffLines(expectedDiffResponse.Diff)))
 			})
 
 			It("returns error if response is non-200", func() {
-				AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"), server)
+				AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep1/diff"), server)
 
-				_, err := deployment.RunErrand("errand1", false)
+				_, err := deployment.Diff([]byte(""), false)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(
-					"Running errand 'errand1': Director responded with non-successful status code"))
+				Expect(err.Error()).To(ContainSubstring("Fetching diff result: Director responded with non-successful status code '400'"))
 			})
 
 			It("returns error if task result cannot be unmarshalled", func() {
-				ConfigureTaskResult(ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"), "", server)
-
-				_, err := deployment.RunErrand("errand1", false)
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/deployments/dep1/diff"),
+						ghttp.RespondWith(http.StatusOK, ""),
+					),
+				)
+				_, err := deployment.Diff([]byte(""), false)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unmarshaling errand result"))
+				Expect(err.Error()).To(ContainSubstring("Fetching diff result: Unmarshaling Director response"))
 			})
 
 		})

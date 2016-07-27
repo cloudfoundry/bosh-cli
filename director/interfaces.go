@@ -83,7 +83,7 @@ type Deployment interface {
 	Name() string
 	Manifest() (string, error)
 	CloudConfig() (string, error)
-	Diff([]byte, bool) (DeploymentDiff, error)
+	Diff([]byte, bool) (DiffLines, error)
 
 	Releases() ([]Release, error)
 	ExportRelease(ReleaseSlug, OSVersionSlug) (ExportReleaseResult, error)

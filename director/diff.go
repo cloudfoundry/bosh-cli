@@ -5,7 +5,7 @@ import (
 	"net/http"
 	gourl "net/url"
 
-	//bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type DeploymentDiffResponse struct {
@@ -13,15 +13,15 @@ type DeploymentDiffResponse struct {
 	Diff    [][]interface{}        `json:"diff"`
 }
 
-type DeploymentDiff [][]interface{}
+type DiffLines [][]interface{}
 
-func (d DeploymentImpl) Diff(manifest []byte, doNotRedact bool) (DeploymentDiff, error) {
+func (d DeploymentImpl) Diff(manifest []byte, doNotRedact bool) (DiffLines, error) {
 	resp, err := d.client.Diff(manifest, d.name, doNotRedact)
 	if err != nil {
-		//return DeploymentDiff{}, err
+		return DiffLines{}, err
 	}
 
-	return DeploymentDiff(resp.Diff), nil
+	return DiffLines(resp.Diff), nil
 }
 
 func (c Client) Diff(manifest []byte, deploymentName string, doNotRedact bool) (DeploymentDiffResponse, error) {
@@ -37,14 +37,14 @@ func (c Client) Diff(manifest []byte, deploymentName string, doNotRedact bool) (
 		query.Add("redact", "true")
 	}
 
-	path := fmt.Sprintf("/deployments/%s/diff?%s", deploymentName,query.Encode())
+	path := fmt.Sprintf("/deployments/%s/diff?%s", deploymentName, query.Encode())
 
-	var response DeploymentDiffResponse
+	var resp DeploymentDiffResponse
 
-	err := c.clientRequest.Post(path, manifest, setHeaders, &response)
+	err := c.clientRequest.Post(path, manifest, setHeaders, &resp)
 	if err != nil {
-		//return response, bosherr.WrapErrorf(err, "making request")
+		return resp, bosherr.WrapErrorf(err, "Fetching diff result")
 	}
 
-	return response, nil
+	return resp, nil
 }
