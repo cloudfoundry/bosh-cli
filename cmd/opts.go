@@ -38,9 +38,9 @@ type BoshOpts struct {
 	CreateEnv CreateEnvOpts `command:"create-env" description:"Create or update BOSH environment"`
 	DeleteEnv DeleteEnvOpts `command:"delete-env" description:"Delete BOSH environment"`
 
-	// Targets
-	Environment  EnvironmentOpts  `command:"env"  alias:"target"  alias:"tg"  description:"Set or show current environment"`
-	Environments EnvironmentsOpts `command:"envs" alias:"targets" alias:"tgs" description:"List environments"`
+	// Environments
+	Environment  EnvironmentOpts  `command:"environment" alias:"env" description:"Set or show current environment"`
+	Environments EnvironmentsOpts `command:"environments" alias:"envs" description:"List environments"`
 
 	// Authentication
 	LogIn  LogInOpts  `command:"log-in"  alias:"login" alias:"l" description:"Log in"`
@@ -162,7 +162,7 @@ type DeleteEnvArgs struct {
 func (o CreateEnvOpts) Execute(_ []string) error { return o.call() }
 func (o DeleteEnvOpts) Execute(_ []string) error { return o.call() }
 
-// Target
+// Environment
 type EnvironmentOpts struct {
 	Args EnvironmentArgs `positional-args:"true"`
 
@@ -173,7 +173,7 @@ type EnvironmentOpts struct {
 
 type EnvironmentArgs struct {
 	URL   string `positional-arg-name:"URL"   description:"Director URL (e.g.: https://192.168.50.4:25555 or 192.168.50.4)"`
-	Alias string `positional-arg-name:"ALIAS" description:"Target alias"`
+	Alias string `positional-arg-name:"ALIAS" description:"Environment alias"`
 }
 
 type EnvironmentsOpts struct {

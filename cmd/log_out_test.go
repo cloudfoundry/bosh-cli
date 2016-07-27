@@ -21,7 +21,7 @@ var _ = Describe("LogOutCmd", func() {
 	BeforeEach(func() {
 		config = &fakecmdconf.FakeConfig{}
 		ui = &fakeui.FakeUI{}
-		command = NewLogOutCmd("target", config, ui)
+		command = NewLogOutCmd("environment", config, ui)
 	})
 
 	Describe("Run", func() {
@@ -36,16 +36,16 @@ var _ = Describe("LogOutCmd", func() {
 
 		act := func() error { return command.Run() }
 
-		It("unsets credentials for the specific target and saves config", func() {
+		It("unsets credentials for the specific environment and saves config", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(config.UnsetCredentialsCallCount()).To(Equal(1))
-			Expect(config.UnsetCredentialsArgsForCall(0)).To(Equal("target"))
+			Expect(config.UnsetCredentialsArgsForCall(0)).To(Equal("environment"))
 
 			Expect(updatedConfig.SaveCallCount()).To(Equal(1))
 
-			Expect(ui.Said).To(Equal([]string{"Logged out from 'target'"}))
+			Expect(ui.Said).To(Equal([]string{"Logged out from 'environment'"}))
 		})
 
 		It("returns error if saving config failed", func() {

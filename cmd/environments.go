@@ -19,7 +19,7 @@ func (c EnvironmentsCmd) Run() error {
 	environments := c.config.Environments()
 
 	table := boshtbl.Table{
-		Content: "targets",
+		Content: "environments",
 		Header:  []string{"URL", "Alias"},
 		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}

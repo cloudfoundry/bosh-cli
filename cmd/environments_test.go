@@ -11,7 +11,7 @@ import (
 	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
 )
 
-var _ = Describe("TargetsCmd", func() {
+var _ = Describe("EnvironmentsCmd", func() {
 	var (
 		config  *fakecmdconf.FakeConfig
 		ui      *fakeui.FakeUI
@@ -27,17 +27,17 @@ var _ = Describe("TargetsCmd", func() {
 	Describe("Run", func() {
 		act := func() error { return command.Run() }
 
-		It("lists targets", func() {
+		It("lists environments", func() {
 			config.EnvironmentsReturns([]cmdconf.Environment{
-				{Alias: "target1-alias", URL: "target1-url"},
-				{Alias: "target2-alias", URL: "target2-url"},
+				{Alias: "environment1-alias", URL: "environment1-url"},
+				{Alias: "environment2-alias", URL: "environment2-url"},
 			})
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Table).To(Equal(boshtbl.Table{
-				Content: "targets",
+				Content: "environments",
 
 				Header: []string{"URL", "Alias"},
 
@@ -45,12 +45,12 @@ var _ = Describe("TargetsCmd", func() {
 
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("target1-url"),
-						boshtbl.NewValueString("target1-alias"),
+						boshtbl.NewValueString("environment1-url"),
+						boshtbl.NewValueString("environment1-alias"),
 					},
 					{
-						boshtbl.NewValueString("target2-url"),
-						boshtbl.NewValueString("target2-alias"),
+						boshtbl.NewValueString("environment2-url"),
+						boshtbl.NewValueString("environment2-alias"),
 					},
 				},
 			}))

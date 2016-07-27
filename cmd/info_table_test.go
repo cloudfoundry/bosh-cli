@@ -20,7 +20,7 @@ var _ = Describe("InfoTable", func() {
 	})
 
 	Describe("Print", func() {
-		It("shows full information about target", func() {
+		It("shows full information about environment", func() {
 			info := boshdir.Info{
 				Name:    "director-name",
 				UUID:    "director-uuid",
@@ -67,7 +67,7 @@ var _ = Describe("InfoTable", func() {
 			}))
 		})
 
-		It("shows partial information about target when not all of it is available", func() {
+		It("shows partial information about environment when not all of it is available", func() {
 			info := boshdir.Info{
 				Name:    "director-name",
 				UUID:    "director-uuid",

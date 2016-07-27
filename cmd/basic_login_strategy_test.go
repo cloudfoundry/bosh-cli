@@ -45,7 +45,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 			initialSession = &fakecmd.FakeSession{}
 			sessions[config] = initialSession
 
-			initialSession.EnvironmentReturns("target")
+			initialSession.EnvironmentReturns("environment")
 
 			updatedConfig = &fakecmdconf.FakeConfig{}
 			config.SetCredentialsStub = func(environment string, creds cmdconf.Creds) cmdconf.Config {
@@ -121,11 +121,11 @@ var _ = Describe("BasicLoginStrategy", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Errors).To(Equal([]string{
-						"Failed to login to 'target'",
-						"Failed to login to 'target'",
+						"Failed to login to 'environment'",
+						"Failed to login to 'environment'",
 					}))
 
-					Expect(ui.Said).To(Equal([]string{"Logged in to 'target'"}))
+					Expect(ui.Said).To(Equal([]string{"Logged in to 'environment'"}))
 				})
 
 				It("only saves config upon successful log in", func() {
@@ -152,7 +152,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Invalid credentials"))
 
-					Expect(ui.Errors).To(Equal([]string{"Failed to login to 'target'"}))
+					Expect(ui.Errors).To(Equal([]string{"Failed to login to 'environment'"}))
 				})
 
 				It("does not save config with new credentials", func() {
@@ -179,8 +179,8 @@ var _ = Describe("BasicLoginStrategy", func() {
 				}
 			})
 
-			itLogsInOrErrs("target", "asked-username1", "asked-password1")
-			itKeepsAsking("target", "asked-username3", "asked-password3")
+			itLogsInOrErrs("environment", "asked-username1", "asked-password1")
+			itKeepsAsking("environment", "asked-username3", "asked-password3")
 		})
 
 		Context("when global flags or config values are set", func() {
@@ -193,7 +193,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 				}
 			})
 
-			itLogsInOrErrs("target", "global-username", "global-password")
+			itLogsInOrErrs("environment", "global-username", "global-password")
 			itErrsWithoutAsking()
 		})
 	})

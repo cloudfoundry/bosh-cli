@@ -36,7 +36,7 @@ func (c EnvironmentCmd) Run(opts EnvironmentOpts) error {
 			return err
 		}
 
-		// Otherwise try existing CA cert if user is just switching between targets
+		// Otherwise try existing CA cert if user is just switching between environments
 		existingCACert := c.config.CACert(c.config.ResolveEnvironment(args.URL))
 
 		updatedConfig = c.config.SetEnvironment(args.URL, args.Alias, existingCACert)
@@ -54,7 +54,7 @@ func (c EnvironmentCmd) Run(opts EnvironmentOpts) error {
 func (c EnvironmentCmd) show() error {
 	sess := c.sessionFactory(c.config)
 
-	c.ui.PrintLinef("Current target is '%s'", sess.Environment())
+	c.ui.PrintLinef("Current environment is '%s'", sess.Environment())
 
 	director, err := sess.Director()
 	if err != nil {
@@ -89,7 +89,7 @@ func (c EnvironmentCmd) set(updatedConfig cmdconf.Config) error {
 		return err
 	}
 
-	c.ui.PrintLinef("Target set to '%s'", sess.Environment())
+	c.ui.PrintLinef("Environment set to '%s'", sess.Environment())
 
 	InfoTable{info, c.ui}.Print()
 

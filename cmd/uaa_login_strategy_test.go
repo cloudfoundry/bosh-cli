@@ -50,7 +50,7 @@ var _ = Describe("UAALoginStrategy", func() {
 			uaa = &fakeuaa.FakeUAA{}
 			initialSession.UAAReturns(uaa, nil)
 
-			initialSession.EnvironmentReturns("target")
+			initialSession.EnvironmentReturns("environment")
 
 			updatedConfig = &fakecmdconf.FakeConfig{}
 			config.SetCredentialsStub = func(environment string, creds cmdconf.Creds) cmdconf.Config {
@@ -132,7 +132,7 @@ var _ = Describe("UAALoginStrategy", func() {
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(updatedConfig.SaveCallCount()).To(Equal(1))
-						Expect(updatedConfig.Credentials("target")).To(
+						Expect(updatedConfig.Credentials("environment")).To(
 							Equal(cmdconf.Creds{RefreshToken: "refresh-token"}))
 					})
 				})
@@ -170,7 +170,7 @@ var _ = Describe("UAALoginStrategy", func() {
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(updatedConfig.SaveCallCount()).To(Equal(1))
-						Expect(updatedConfig.Credentials("target")).To(Equal(cmdconf.Creds{
+						Expect(updatedConfig.Credentials("environment")).To(Equal(cmdconf.Creds{
 							RefreshToken: "refresh-token",
 						}))
 					})

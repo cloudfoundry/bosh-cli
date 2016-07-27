@@ -16,7 +16,7 @@ import (
 	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
 )
 
-var _ = Describe("TargetCmd", func() {
+var _ = Describe("EnvironmentCmd", func() {
 	var (
 		sessions map[*fakecmdconf.FakeConfig2]*fakecmd.FakeSession
 		config   *fakecmdconf.FakeConfig2
@@ -44,7 +44,7 @@ var _ = Describe("TargetCmd", func() {
 
 		config = &fakecmdconf.FakeConfig2{
 			Existing: fakecmdconf.ConfigContents{
-				EnvironmentURL:    "curr-target-url",
+				EnvironmentURL:    "curr-environment-url",
 				EnvironmentCACert: "curr-ca-cert",
 			},
 		}
@@ -70,13 +70,13 @@ var _ = Describe("TargetCmd", func() {
 
 		Context("when URL / name args are given without CA cert", func() {
 			BeforeEach(func() {
-				opts.Args.URL = "target-url"
-				opts.Args.Alias = "target-alias"
+				opts.Args.URL = "environment-url"
+				opts.Args.Alias = "environment-alias"
 
 				updatedConfig = &fakecmdconf.FakeConfig2{
 					Existing: fakecmdconf.ConfigContents{
-						EnvironmentURL:   "target-url",
-						EnvironmentAlias: "target-alias",
+						EnvironmentURL:   "environment-url",
+						EnvironmentAlias: "environment-alias",
 					},
 				}
 
@@ -84,12 +84,12 @@ var _ = Describe("TargetCmd", func() {
 
 				updatedSession = &fakecmd.FakeSession{}
 				updatedSession.DirectorReturns(updatedDirector, nil)
-				updatedSession.EnvironmentReturns("target-url")
+				updatedSession.EnvironmentReturns("environment-url")
 
 				sessions[updatedConfig] = updatedSession
 			})
 
-			Context("when target is reachable", func() {
+			Context("when environment is reachable", func() {
 				BeforeEach(func() {
 					info := boshdir.Info{
 						Name:    "director-name",
@@ -99,20 +99,20 @@ var _ = Describe("TargetCmd", func() {
 					updatedDirector.InfoReturns(info, nil)
 				})
 
-				It("sets and saves current target", func() {
+				It("sets and saves current environment", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(config.Saved.EnvironmentURL).To(Equal("target-url"))
-					Expect(config.Saved.EnvironmentAlias).To(Equal("target-alias"))
+					Expect(config.Saved.EnvironmentURL).To(Equal("environment-url"))
+					Expect(config.Saved.EnvironmentAlias).To(Equal("environment-alias"))
 					Expect(config.Saved.EnvironmentCACert).To(Equal(""))
 				})
 
-				It("shows current target and director info", func() {
+				It("shows current environment and director info", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Said).To(Equal([]string{"Target set to 'target-url'"}))
+					Expect(ui.Said).To(Equal([]string{"Environment set to 'environment-url'"}))
 
 					Expect(ui.Table).To(Equal(boshtbl.Table{
 						Rows: [][]boshtbl.Value{
@@ -137,7 +137,7 @@ var _ = Describe("TargetCmd", func() {
 				})
 			})
 
-			Context("when target is not reachable", func() {
+			Context("when environment is not reachable", func() {
 				var (
 					altUpdatedSession  *fakecmd.FakeSession
 					altUpdatedConfig   *fakecmdconf.FakeConfig2
@@ -149,8 +149,8 @@ var _ = Describe("TargetCmd", func() {
 
 					altUpdatedConfig = &fakecmdconf.FakeConfig2{
 						Existing: fakecmdconf.ConfigContents{
-							EnvironmentURL:    "target-url",
-							EnvironmentAlias:  "target-alias",
+							EnvironmentURL:    "environment-url",
+							EnvironmentAlias:  "environment-alias",
 							EnvironmentCACert: "curr-ca-cert",
 						},
 					}
@@ -159,12 +159,12 @@ var _ = Describe("TargetCmd", func() {
 
 					altUpdatedSession = &fakecmd.FakeSession{}
 					altUpdatedSession.DirectorReturns(altUpdatedDirector, nil)
-					altUpdatedSession.EnvironmentReturns("target-url")
+					altUpdatedSession.EnvironmentReturns("environment-url")
 
 					sessions[altUpdatedConfig] = altUpdatedSession
 				})
 
-				Context("when target using existing certificate is reachable", func() {
+				Context("when environment using existing certificate is reachable", func() {
 					BeforeEach(func() {
 						info := boshdir.Info{
 							Name:    "director-name",
@@ -174,21 +174,21 @@ var _ = Describe("TargetCmd", func() {
 						altUpdatedDirector.InfoReturns(info, nil)
 					})
 
-					It("sets and saves current target with existing certificate", func() {
+					It("sets and saves current environment with existing certificate", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(config.Saved.EnvironmentURL).To(Equal("target-url"))
-						Expect(config.Saved.EnvironmentAlias).To(Equal("target-alias"))
+						Expect(config.Saved.EnvironmentURL).To(Equal("environment-url"))
+						Expect(config.Saved.EnvironmentAlias).To(Equal("environment-alias"))
 						Expect(config.Saved.EnvironmentCACert).To(Equal("curr-ca-cert"))
 						Expect(config.Saved.Called).To(BeTrue())
 					})
 
-					It("shows current target and director info", func() {
+					It("shows current environment and director info", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.Said).To(Equal([]string{"Target set to 'target-url'"}))
+						Expect(ui.Said).To(Equal([]string{"Environment set to 'environment-url'"}))
 
 						Expect(ui.Table).To(Equal(boshtbl.Table{
 							Rows: [][]boshtbl.Value{
@@ -213,7 +213,7 @@ var _ = Describe("TargetCmd", func() {
 					})
 				})
 
-				Context("when target using existing certificate is not reachable", func() {
+				Context("when environment using existing certificate is not reachable", func() {
 					BeforeEach(func() {
 						altUpdatedDirector.InfoReturns(boshdir.Info{}, errors.New("fake-alt-err"))
 					})
@@ -231,15 +231,15 @@ var _ = Describe("TargetCmd", func() {
 
 		Context("when URL / name / CA cert args are given", func() {
 			BeforeEach(func() {
-				opts.Args.URL = "target-url"
-				opts.Args.Alias = "target-alias"
-				opts.CACert = FileBytesArg{Path: "target-ca-cert"}
+				opts.Args.URL = "environment-url"
+				opts.Args.Alias = "environment-alias"
+				opts.CACert = FileBytesArg{Path: "environment-ca-cert"}
 
 				updatedConfig = &fakecmdconf.FakeConfig2{
 					Existing: fakecmdconf.ConfigContents{
-						EnvironmentURL:    "target-url",
-						EnvironmentAlias:  "target-alias",
-						EnvironmentCACert: "target-ca-cert",
+						EnvironmentURL:    "environment-url",
+						EnvironmentAlias:  "environment-alias",
+						EnvironmentCACert: "environment-ca-cert",
 					},
 				}
 
@@ -247,12 +247,12 @@ var _ = Describe("TargetCmd", func() {
 
 				updatedSession = &fakecmd.FakeSession{}
 				updatedSession.DirectorReturns(updatedDirector, nil)
-				updatedSession.EnvironmentReturns("target-url")
+				updatedSession.EnvironmentReturns("environment-url")
 
 				sessions[updatedConfig] = updatedSession
 			})
 
-			Context("when target is reachable", func() {
+			Context("when environment is reachable", func() {
 				BeforeEach(func() {
 					info := boshdir.Info{
 						Name:    "director-name",
@@ -262,20 +262,20 @@ var _ = Describe("TargetCmd", func() {
 					updatedDirector.InfoReturns(info, nil)
 				})
 
-				It("sets and saves current target", func() {
+				It("sets and saves environment environment", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(config.Saved.EnvironmentURL).To(Equal("target-url"))
-					Expect(config.Saved.EnvironmentAlias).To(Equal("target-alias"))
-					Expect(config.Saved.EnvironmentCACert).To(Equal("target-ca-cert"))
+					Expect(config.Saved.EnvironmentURL).To(Equal("environment-url"))
+					Expect(config.Saved.EnvironmentAlias).To(Equal("environment-alias"))
+					Expect(config.Saved.EnvironmentCACert).To(Equal("environment-ca-cert"))
 				})
 
-				It("shows current target and director info", func() {
+				It("shows current environment and director info", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Said).To(Equal([]string{"Target set to 'target-url'"}))
+					Expect(ui.Said).To(Equal([]string{"Environment set to 'environment-url'"}))
 
 					Expect(ui.Table).To(Equal(boshtbl.Table{
 						Rows: [][]boshtbl.Value{
@@ -300,7 +300,7 @@ var _ = Describe("TargetCmd", func() {
 				})
 			})
 
-			Context("when target is not reachable", func() {
+			Context("when environment is not reachable", func() {
 				BeforeEach(func() {
 					updatedDirector.InfoReturns(boshdir.Info{}, errors.New("fake-err"))
 				})
@@ -325,12 +325,12 @@ var _ = Describe("TargetCmd", func() {
 
 				initialSession := &fakecmd.FakeSession{}
 				initialSession.DirectorReturns(director, nil)
-				initialSession.EnvironmentReturns("target-url")
+				initialSession.EnvironmentReturns("environment-url")
 
 				sessions[config] = initialSession
 			})
 
-			It("shows current target and director info", func() {
+			It("shows current environment and director info", func() {
 				info := boshdir.Info{
 					Name:    "director-name",
 					UUID:    "director-uuid",
@@ -342,7 +342,7 @@ var _ = Describe("TargetCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Said).To(Equal([]string{"Current target is 'target-url'"}))
+				Expect(ui.Said).To(Equal([]string{"Current environment is 'environment-url'"}))
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Rows: [][]boshtbl.Value{

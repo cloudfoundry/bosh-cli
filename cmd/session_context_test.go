@@ -31,7 +31,7 @@ var _ = Describe("SessionContextImpl", func() {
 
 	build := func() *SessionContextImpl { return NewSessionContextImpl(opts, config, fs) }
 
-	Describe("Target", func() {
+	Describe("Environment", func() {
 		It("returns resolved global option if provided", func() {
 			config.EnvironmentReturns("config-url")
 
@@ -57,7 +57,7 @@ var _ = Describe("SessionContextImpl", func() {
 	})
 
 	Describe("Credentials", func() {
-		It("defaults to config credentials for config target", func() {
+		It("defaults to config credentials for config environment", func() {
 			config.EnvironmentReturns("config-url")
 
 			config.CredentialsStub = func(environment string) cmdconf.Creds {
@@ -68,7 +68,7 @@ var _ = Describe("SessionContextImpl", func() {
 			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Username: "config-username"}))
 		})
 
-		It("prefers to use target from global option and returns config credentials", func() {
+		It("prefers to use environment from global option and returns config credentials", func() {
 			config.CredentialsStub = func(environment string) cmdconf.Creds {
 				Expect(environment).To(Equal("opt-url"))
 				return cmdconf.Creds{Username: "config-username"}
@@ -159,7 +159,7 @@ var _ = Describe("SessionContextImpl", func() {
 			Expect(build().CACert()).To(Equal(""))
 		})
 
-		It("uses config value for current target if no global option is provided", func() {
+		It("uses config value for current environment if no global option is provided", func() {
 			config.CACertStub = func(environment string) string {
 				Expect(environment).To(Equal("opt-url"))
 				return "config-cert"
@@ -186,7 +186,7 @@ var _ = Describe("SessionContextImpl", func() {
 			Expect(build().Deployment()).To(Equal("opt-dep"))
 		})
 
-		It("uses config value for current target if no global option is provided", func() {
+		It("uses config value for current environment if no global option is provided", func() {
 			config.DeploymentStub = func(environment string) string {
 				Expect(environment).To(Equal("opt-url"))
 				return "config-dep"

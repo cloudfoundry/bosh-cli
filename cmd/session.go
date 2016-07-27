@@ -118,7 +118,7 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 	}
 
 	if c.printEnvironment {
-		c.ui.PrintLinef("Using target '%s' as %s", c.Environment(), creds.Description())
+		c.ui.PrintLinef("Using environment '%s' as %s", c.Environment(), creds.Description())
 	}
 
 	taskReporter := boshuit.NewReporter(c.ui, true)
