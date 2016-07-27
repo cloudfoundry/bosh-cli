@@ -44,11 +44,11 @@ func (c Deploy2Cmd) Run(opts DeployOpts) error {
 		lineMod, _ := line[1].(string)
 
 		if lineMod == "added" {
-			c.ui.PrintLinef("+ %s", line[0])
+			c.ui.BeginLinef("+ %s\n", line[0])
 		} else if lineMod == "removed" {
-			c.ui.PrintLinef("- %s", line[0])
+			c.ui.BeginLinef("- %s\n", line[0])
 		} else {
-			c.ui.PrintLinef("%s", line[0])
+			c.ui.BeginLinef("  %s\n", line[0])
 		}
 	}
 
