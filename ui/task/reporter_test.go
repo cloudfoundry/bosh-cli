@@ -191,5 +191,31 @@ Duration 00:01:08
 Task 2663 error
 `))
 		})
+
+		It("renders error events", func() {
+			deployExample := `
+{"time":1468888884,"type":"deprecation","message":"Ignoring cloud config. Manifest contains 'networks' section."}
+{"time":1468888884,"error":{"code":100,"message":"Failed to find keys in the config server: bool, bool2"}}
+{"time":1468888884,"error":{"code":100,"message":"Failed to wang chung tonite"}}
+`
+
+			reporter.TaskStarted(2663)
+			reporter.TaskOutputChunk(2663, []byte(deployExample))
+			reporter.TaskFinished(2663, "error")
+			Expect(outBuf.String()).To(Equal(`Task 2663
+
+00:41:24 | Deprecation: Ignoring cloud config. Manifest contains 'networks' section.
+
+00:41:24 | Error: Failed to find keys in the config server: bool, bool2
+
+00:41:24 | Error: Failed to wang chung tonite
+
+Started  Tue Jul 19 00:41:24 UTC 2016
+Finished Tue Jul 19 00:41:24 UTC 2016
+Duration 00:00:00
+
+Task 2663 error
+`))
+		})
 	})
 })

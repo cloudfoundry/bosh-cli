@@ -10,61 +10,72 @@ import (
 )
 
 var _ = Describe("Event", func() {
-	Describe("IsSame", func() {
-		It("returns false if stage is different", func() {
-			e1 := boshuit.Event{Stage: "stage1"}
-			e2 := boshuit.Event{Stage: "stage2"}
-			Expect(e1.IsSame(e2)).To(BeFalse())
+	Describe("sameness", func() {
+		var e1, e2 boshuit.Event
+
+		BeforeEach(func() {
+			e1 = boshuit.Event{Stage: "stage", Task: "task", Tags: []string{"tag1", "tag2"}}
+			e2 = boshuit.Event{Stage: "stage", Task: "task", Tags: []string{"tag1", "tag2"}}
 		})
 
-		It("returns false if stage is same but tags are different", func() {
-			e1 := boshuit.Event{Stage: "stage", Tags: []string{"tag1"}}
-			e2 := boshuit.Event{Stage: "stage", Tags: []string{"tag1", "tag2"}}
-			Expect(e1.IsSame(e2)).To(BeFalse())
+		Describe("IsSame", func() {
+			It("returns true if stage, tags, and task are same", func() {
+				Expect(e1.IsSame(e2)).To(BeTrue())
+			})
+
+			It("returns false if stage is different", func() {
+				e2.Stage = "stage2"
+				Expect(e1.IsSame(e2)).To(BeFalse())
+			})
+
+			It("returns false if tags are different", func() {
+				e2.Tags = []string{"tag1"}
+				Expect(e1.IsSame(e2)).To(BeFalse())
+			})
+
+			It("returns false if stage, and tags are same but task is different", func() {
+				e2.Task = "barf"
+				Expect(e1.IsSame(e2)).To(BeFalse())
+			})
+
+			It("returns true if stage is same and tags are empty", func() {
+				e1.Tags = []string{}
+				e2.Tags = []string{}
+				Expect(e1.IsSame(e2)).To(BeTrue())
+			})
+
+			It("returns false if one is an error and one is not", func() {
+				e2 := boshuit.Event{Error: &boshuit.EventError{Code: 42, Message: "nope nope nope"}}
+				Expect(e1.IsSame(e2)).To(BeFalse())
+			})
 		})
 
-		It("returns false if stage and tags are same but task is different", func() {
-			e1 := boshuit.Event{Stage: "stage", Task: "task1", Tags: []string{"tag"}}
-			e2 := boshuit.Event{Stage: "stage", Task: "task2", Tags: []string{"tag"}}
-			Expect(e1.IsSame(e2)).To(BeFalse())
-		})
+		Describe("IsSameGroup", func() {
+			It("returns false if both stage are empty", func() {
+				e1.Stage = ""
+				e2.Stage = ""
+				Expect(e1.IsSame(e2)).To(BeFalse())
+			})
 
-		It("returns true if stage is same and tags are empty", func() {
-			e1 := boshuit.Event{Stage: "stage", Task: "task"}
-			e2 := boshuit.Event{Stage: "stage", Task: "task"}
-			Expect(e1.IsSame(e2)).To(BeTrue())
-		})
+			It("returns true if stage and tags are same", func() {
+				Expect(e1.IsSameGroup(e2)).To(BeTrue())
+			})
 
-		It("returns true if stage tags, task are same", func() {
-			e1 := boshuit.Event{Stage: "stage", Task: "task", Tags: []string{"tag1", "tag2"}}
-			e2 := boshuit.Event{Stage: "stage", Task: "task", Tags: []string{"tag1", "tag2"}}
-			Expect(e1.IsSame(e2)).To(BeTrue())
-		})
-	})
+			It("returns false if stage is different", func() {
+				e2.Stage = "Offstage"
+				Expect(e1.IsSameGroup(e2)).To(BeFalse())
+			})
 
-	Describe("IsSameGroup", func() {
-		It("returns false if stage is different", func() {
-			e1 := boshuit.Event{Stage: "stage1"}
-			e2 := boshuit.Event{Stage: "stage2"}
-			Expect(e1.IsSameGroup(e2)).To(BeFalse())
-		})
+			It("returns false if stage is same but tags are different", func() {
+				e2.Tags = []string{"noththesamevalue"}
+				Expect(e1.IsSameGroup(e2)).To(BeFalse())
+			})
 
-		It("returns false if stage is same but tags are different", func() {
-			e1 := boshuit.Event{Stage: "stage", Tags: []string{"tag1"}}
-			e2 := boshuit.Event{Stage: "stage", Tags: []string{"tag1", "tag2"}}
-			Expect(e1.IsSameGroup(e2)).To(BeFalse())
-		})
-
-		It("returns true if stage is same and tags are empty", func() {
-			e1 := boshuit.Event{Stage: "stage"}
-			e2 := boshuit.Event{Stage: "stage"}
-			Expect(e1.IsSameGroup(e2)).To(BeTrue())
-		})
-
-		It("returns true if stage and tags are same", func() {
-			e1 := boshuit.Event{Stage: "stage", Tags: []string{"tag1", "tag2"}}
-			e2 := boshuit.Event{Stage: "stage", Tags: []string{"tag1", "tag2"}}
-			Expect(e1.IsSameGroup(e2)).To(BeTrue())
+			It("returns true if stage is same and tags are empty", func() {
+				e1.Tags = []string{}
+				e2.Tags = []string{}
+				Expect(e1.IsSameGroup(e2)).To(BeTrue())
+			})
 		})
 	})
 

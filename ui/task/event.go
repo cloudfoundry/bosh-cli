@@ -51,7 +51,7 @@ func (e Event) IsSame(other Event) bool {
 }
 
 func (e Event) IsSameGroup(other Event) bool {
-	return e.Stage == other.Stage && reflect.DeepEqual(e.Tags, other.Tags)
+	return len(e.Stage) != 0 && e.Stage == other.Stage && reflect.DeepEqual(e.Tags, other.Tags)
 }
 
 func (e Event) Time() time.Time {
