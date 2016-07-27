@@ -24,7 +24,7 @@ type BoshOpts struct {
 	UAAClientOpt       string `long:"uaa-client"        description:"Override UAA client"        env:"BOSH_CLIENT"`
 	UAAClientSecretOpt string `long:"uaa-client-secret" description:"Override UAA client secret" env:"BOSH_CLIENT_SECRET"`
 
-	DeploymentOpt string `long:"deployment" short:"d" description:"Deployment name or manifest path"`
+	DeploymentOpt string `long:"deployment" short:"d" description:"Deployment name"`
 
 	// Output formatting
 	JSONOpt           bool `long:"json"                      description:"Output as JSON"`
@@ -253,7 +253,6 @@ type BackUpArgs struct {
 
 type BuildManifestOpts struct {
 	Args BuildManifestArgs `positional-args:"true" required:"true"`
-
 	VarFlags
 
 	call func() error
@@ -317,9 +316,8 @@ type DeployOpts struct {
 
 	VarFlags
 
-	Recreate   bool `long:"recreate"    description:"Recreate all VMs in deployment"`
-	RedactDiff bool `long:"redact-diff" description:"Redact manifest value changes in deployment"`
-	NoRedact   bool `long:"no-redact"   description:"Show non-redacted manifest diff"`
+	Recreate  bool              `long:"recreate"    description:"Recreate all VMs in deployment"`
+	NoRedact  bool              `long:"no-redact"   description:"Show non-redacted manifest diff"`
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 
 	call func() error

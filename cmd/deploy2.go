@@ -35,7 +35,7 @@ func (c Deploy2Cmd) Run(opts DeployOpts) error {
 		return bosherr.Errorf(errMsg, c.deployment.Name(), man.Name)
 	}
 
-	diff, err := c.deployment.Diff(bytes, opts.RedactDiff)
+	diff, err := c.deployment.Diff(bytes, opts.NoRedact)
 	if err != nil {
 		return bosherr.WrapError(err, "Diffing manifest")
 	}
