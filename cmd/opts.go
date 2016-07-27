@@ -319,7 +319,7 @@ type DeployOpts struct {
 
 	Recreate   bool `long:"recreate"    description:"Recreate all VMs in deployment"`
 	RedactDiff bool `long:"redact-diff" description:"Redact manifest value changes in deployment"`
-
+	NoRedact   bool `long:"no-redact"   description:"Show non-redacted manifest diff"`
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 
 	call func() error

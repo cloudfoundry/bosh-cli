@@ -35,6 +35,23 @@ func (c Deploy2Cmd) Run(opts DeployOpts) error {
 		return bosherr.Errorf(errMsg, c.deployment.Name(), man.Name)
 	}
 
+	diff, err := c.deployment.Diff(bytes, opts.RedactDiff)
+	if err != nil {
+		return bosherr.WrapError(err, "Diffing manifest")
+	}
+
+	for _, line := range diff {
+		lineMod, _ := line[1].(string)
+
+		if lineMod == "added" {
+			c.ui.PrintLinef("+ %s", line[0])
+		} else if lineMod == "removed" {
+			c.ui.PrintLinef("- %s", line[0])
+		} else {
+			c.ui.PrintLinef("%s", line[0])
+		}
+	}
+
 	err = c.ui.AskForConfirmation()
 	if err != nil {
 		return err

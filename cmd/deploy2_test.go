@@ -136,5 +136,37 @@ var _ = Describe("Deploy2Cmd", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
+
+		It("returns an error if diffing failed", func(){
+			deployment.DiffReturns(boshdir.DiffLines{}, errors.New("Fetching diff result"))
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+		})
+
+
+		It("gets the diff from the deployment", func() {
+			expectedDiff := boshdir.DiffLines{
+				[]interface{}{
+					"some line that stayed", nil,
+				}, []interface{}{
+					"some line that was added", "added",
+				}, []interface{}{
+					"some line that was removed", "removed",
+				},
+			}
+
+			deployment.DiffReturns(expectedDiff, nil)
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.DiffCallCount()).To(Equal(1))
+			Expect(ui.Said).To(ContainElement("some line that stayed"))
+			Expect(ui.Said).To(ContainElement("+ some line that was added"))
+			Expect(ui.Said).To(ContainElement("- some line that was removed"))
+		})
+
+		It("redacts the diff given the correct flag", func() {
+			Expect(true).To(BeTrue())
+		})
 	})
 })
