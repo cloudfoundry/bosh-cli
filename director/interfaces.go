@@ -48,7 +48,6 @@ type Director interface {
 
 	EnableResurrection(bool) error
 	CleanUp(bool) error
-
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
 }
 
@@ -84,6 +83,7 @@ type Deployment interface {
 	Name() string
 	Manifest() (string, error)
 	CloudConfig() (string, error)
+	Diff([]byte, bool) (DeploymentDiff, error)
 
 	Releases() ([]Release, error)
 	ExportRelease(ReleaseSlug, OSVersionSlug) (ExportReleaseResult, error)

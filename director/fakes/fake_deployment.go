@@ -28,6 +28,16 @@ type FakeDeployment struct {
 		result1 string
 		result2 error
 	}
+	DiffStub        func([]byte, bool) (director.DeploymentDiff, error)
+	diffMutex       sync.RWMutex
+	diffArgsForCall []struct {
+		arg1 []byte
+		arg2 bool
+	}
+	diffReturns struct {
+		result1 director.DeploymentDiff
+		result2 error
+	}
 	ReleasesStub        func() ([]director.Release, error)
 	releasesMutex       sync.RWMutex
 	releasesArgsForCall []struct{}
@@ -294,6 +304,40 @@ func (fake *FakeDeployment) CloudConfigReturns(result1 string, result2 error) {
 	fake.CloudConfigStub = nil
 	fake.cloudConfigReturns = struct {
 		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) Diff(arg1 []byte, arg2 bool) (director.DeploymentDiff, error) {
+	fake.diffMutex.Lock()
+	fake.diffArgsForCall = append(fake.diffArgsForCall, struct {
+		arg1 []byte
+		arg2 bool
+	}{arg1, arg2})
+	fake.diffMutex.Unlock()
+	if fake.DiffStub != nil {
+		return fake.DiffStub(arg1, arg2)
+	} else {
+		return fake.diffReturns.result1, fake.diffReturns.result2
+	}
+}
+
+func (fake *FakeDeployment) DiffCallCount() int {
+	fake.diffMutex.RLock()
+	defer fake.diffMutex.RUnlock()
+	return len(fake.diffArgsForCall)
+}
+
+func (fake *FakeDeployment) DiffArgsForCall(i int) ([]byte, bool) {
+	fake.diffMutex.RLock()
+	defer fake.diffMutex.RUnlock()
+	return fake.diffArgsForCall[i].arg1, fake.diffArgsForCall[i].arg2
+}
+
+func (fake *FakeDeployment) DiffReturns(result1 director.DeploymentDiff, result2 error) {
+	fake.DiffStub = nil
+	fake.diffReturns = struct {
+		result1 director.DeploymentDiff
 		result2 error
 	}{result1, result2}
 }

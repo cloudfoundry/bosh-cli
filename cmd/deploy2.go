@@ -35,6 +35,9 @@ func (c Deploy2Cmd) Run(opts DeployOpts) error {
 		return bosherr.Errorf(errMsg, c.deployment.Name(), man.Name)
 	}
 
+	//todo: show diff
+// diff := deployment.director.Diff()
+		// display(diff)
 	err = c.ui.AskForConfirmation()
 	if err != nil {
 		return err
