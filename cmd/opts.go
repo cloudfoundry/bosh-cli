@@ -2,7 +2,6 @@ package cmd
 
 import (
 	// goflags "github.com/jessevdk/go-flags" // use goflags.Filename
-
 	boshdir "github.com/cloudfoundry/bosh-init/director"
 )
 
@@ -72,6 +71,9 @@ type BoshOpts struct {
 
 	Deploy   DeployOpts   `command:"deploy"   alias:"d"                                       description:"Deploy according to the currently selected deployment manifest"`
 	Manifest ManifestOpts `command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`
+
+	// Events
+	Events EventsOpts `command:"events"	alias:"ev"	description:"Show all deployment events"`
 
 	// Stemcells
 	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss" alias:"stems" description:"List stemcells"`
@@ -353,6 +355,13 @@ func (o DeploymentsOpts) Execute(_ []string) error         { return o.call() }
 func (o DeployOpts) Execute(_ []string) error              { return o.call() }
 func (o ManifestOpts) Execute(_ []string) error            { return o.call() }
 func (o DeleteDeploymentOpts) Execute(_ []string) error    { return o.call() }
+
+// Events
+type EventsOpts struct {
+	call func() error
+}
+
+func (o EventsOpts) Execute(_ []string) error { return o.call() }
 
 // Stemcells
 type StemcellsOpts struct {

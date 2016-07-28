@@ -256,6 +256,11 @@ type FakeDirector struct {
 	downloadResourceUncheckedReturns struct {
 		result1 error
 	}
+	EventsStub        func(includeAll bool) ([]director.Event, error)
+	eventsReturns struct {
+					result1 []director.Event
+					result2 error
+				}
 }
 
 func (fake *FakeDirector) IsAuthenticated() (bool, error) {
@@ -1146,5 +1151,33 @@ func (fake *FakeDirector) DownloadResourceUncheckedReturns(result1 error) {
 		result1 error
 	}{result1}
 }
+
+//func (fake *FakeDirector) Events(includeAll bool) ([]director.Task, error) {
+//	fake.currentTasksMutex.Lock()
+//	fake.currentTasksArgsForCall = append(fake.currentTasksArgsForCall, struct {
+//		includeAll bool
+//	}{includeAll})
+//	fake.currentTasksMutex.Unlock()
+//	if fake.CurrentTasksStub != nil {
+//		return fake.CurrentTasksStub(includeAll)
+//	} else {
+//		return fake.currentTasksReturns.result1, fake.currentTasksReturns.result2
+//	}
+//}
+
+func (fake *FakeDirector) EventsArgsForCall(i int) bool {
+	fake.currentTasksMutex.RLock()
+	defer fake.currentTasksMutex.RUnlock()
+	return fake.currentTasksArgsForCall[i].includeAll
+}
+
+func (fake *FakeDirector) EventsReturns(result1 []director.Event, result2 error) {
+	fake.EventsStub = nil
+	fake.eventsReturns = struct {
+		result1 []director.Event
+		result2 error
+	}{result1, result2}
+}
+
 
 var _ director.Director = new(FakeDirector)

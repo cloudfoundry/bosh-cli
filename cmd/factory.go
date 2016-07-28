@@ -473,6 +473,10 @@ func NewFactory(deps BasicDeps) Factory {
 		return NewSyncBlobsCmd(blobsDir).Run()
 	})
 
+	opts.Events.call = directorFunc(func(director boshdir.Director) error {
+		return NewEventsCmd(deps.UI, director).Run(opts.Events)
+	})
+
 	return Factory{opts: &opts}
 }
 

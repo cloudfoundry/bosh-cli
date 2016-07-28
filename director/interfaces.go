@@ -196,3 +196,24 @@ type OrphanedDisk interface {
 
 	Delete() error
 }
+
+//TODO: change the member functions.
+type Event interface {
+	ID() int
+	CreatedAt() time.Time
+
+	State() string
+	IsError() bool
+	User() string
+
+	Description() string
+	Result() string
+
+	EventOutput(TaskReporter) error
+	CPIOutput(TaskReporter) error
+	DebugOutput(TaskReporter) error
+	ResultOutput(TaskReporter) error
+	RawOutput(TaskReporter) error
+
+	Cancel() error
+}
