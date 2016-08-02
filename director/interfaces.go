@@ -20,6 +20,8 @@ type Director interface {
 	RecentTasks(limit int, includeAll bool) ([]Task, error)
 	FindTask(int) (Task, error)
 
+	Events(int, time.Time, time.Time, string, string, string) ([]Event, error)
+
 	Deployments() ([]Deployment, error)
 	FindDeployment(string) (Deployment, error)
 
@@ -197,23 +199,17 @@ type OrphanedDisk interface {
 	Delete() error
 }
 
-//TODO: change the member functions.
+//go:generate counterfeiter . Event
+
 type Event interface {
-	ID() int
-	CreatedAt() time.Time
-
-	State() string
-	IsError() bool
+	Id() int
+	Timestamp() time.Time
 	User() string
-
-	Description() string
-	Result() string
-
-	EventOutput(TaskReporter) error
-	CPIOutput(TaskReporter) error
-	DebugOutput(TaskReporter) error
-	ResultOutput(TaskReporter) error
-	RawOutput(TaskReporter) error
-
-	Cancel() error
+	Action() string
+	ObjectType() string
+	ObjectName() string
+	Task() string
+	Deployment() string
+	Instance() string
+	Context() map[string]interface{}
 }
