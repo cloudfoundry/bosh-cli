@@ -4,23 +4,10 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-init/director"
 	boshui "github.com/cloudfoundry/bosh-init/ui"
 	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
-	//"time"
+	//"fmt"
+	//"encoding/json"
+	"fmt"
 )
-
-//TODO: change the member functions.
-
-//type Event struct {
-//	Id         int
-//	Timestamp  time.Time
-//	User       string
-//	Action     string
-//	ObjectType string
-//	ObjectName string
-//	Task       string
-//	Deployment string
-//	Instance   string
-//	Context    map[string]interface{}
-//}
 
 type EventsCmd struct {
 	ui       boshui.UI
@@ -32,7 +19,14 @@ func NewEventsCmd(ui boshui.UI, director boshdir.Director) EventsCmd {
 }
 
 func (c EventsCmd) Run(opts EventsOpts) error {
-	return c.printTable(c.director.Events(opts.BeforeId, opts.Before, opts.After, opts.Deployment, opts.Task, opts.Instance))
+	directorOpts := make(map[string]interface{})
+	directorOpts["beforeId"] = opts.BeforeId
+	directorOpts["before"] = opts.Before
+	directorOpts["after"] = opts.After
+	directorOpts["deployment"] = opts.Deployment
+	directorOpts["task"] = opts.Task
+	directorOpts["instance"] = opts.Instance
+	return c.printTable(c.director.Events(directorOpts))
 }
 
 func (c EventsCmd) printTable(events []boshdir.Event, err error) error {
@@ -57,7 +51,8 @@ func (c EventsCmd) printTable(events []boshdir.Event, err error) error {
 			boshtbl.NewValueString(e.Task()),
 			boshtbl.NewValueString(e.Deployment()),
 			boshtbl.NewValueString(e.Instance()),
-			boshtbl.NewValueString("e.Context()"), //TODO: Print context hash
+
+			boshtbl.NewValueString(fmt.Sprintf("%v", e.Context())),
 		})
 	}
 

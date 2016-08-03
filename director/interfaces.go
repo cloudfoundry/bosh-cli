@@ -20,7 +20,7 @@ type Director interface {
 	RecentTasks(limit int, includeAll bool) ([]Task, error)
 	FindTask(int) (Task, error)
 
-	Events(int, time.Time, time.Time, string, string, string) ([]Event, error)
+	Events(map[string]interface{}) ([]Event, error) //TODO: Think about turning this back into a struct.
 
 	Deployments() ([]Deployment, error)
 	FindDeployment(string) (Deployment, error)

@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-init/director"
-	"time"
+//	"time"
 )
 
 type FakeDirector struct {
@@ -449,7 +449,7 @@ func (fake *FakeDirector) FindTaskReturns(result1 director.Task, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) Events(int, time.Time, time.Time, string, string, string) ([]director.Event, error) {
+func (fake *FakeDirector) Events(map[string]interface{}) ([]director.Event, error) {
 	fake.eventsMutex.Lock()
 	fake.eventsArgsForCall = append(fake.eventsArgsForCall, struct{}{})
 	fake.recordInvocation("Events", []interface{}{})
