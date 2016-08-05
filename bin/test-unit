@@ -4,5 +4,13 @@ set -e
 
 bin=$(dirname $0)
 
+reformatted_packages="$($bin/go fmt $($bin/go list github.com/cloudfoundry/bosh-init/... | grep -v /vendor/))"
+
+if [[ $reformatted_packages = *[![:space:]]* ]]; then
+  echo "go fmt reformatted the following packages, please format and run again:"
+  echo $reformatted_packages
+  exit 1
+fi
+
 echo -e "\n Running unit tests..."
 $bin/env ginkgo -r $race -trace -skipPackage="acceptance,integration,vendor" $@
