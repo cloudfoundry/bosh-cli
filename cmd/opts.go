@@ -2,8 +2,8 @@ package cmd
 
 import (
 	// goflags "github.com/jessevdk/go-flags" // use goflags.Filename
+
 	boshdir "github.com/cloudfoundry/bosh-init/director"
-	"time"
 )
 
 type BoshOpts struct {
@@ -72,9 +72,6 @@ type BoshOpts struct {
 
 	Deploy   DeployOpts   `command:"deploy"   alias:"d"                                       description:"Deploy according to the currently selected deployment manifest"`
 	Manifest ManifestOpts `command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`
-
-	// Events
-	Events EventsOpts `command:"events" alias:"ev" description:"Show all deployment events"`
 
 	// Stemcells
 	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss" alias:"stems" description:"List stemcells"`
@@ -356,20 +353,6 @@ func (o DeploymentsOpts) Execute(_ []string) error         { return o.call() }
 func (o DeployOpts) Execute(_ []string) error              { return o.call() }
 func (o ManifestOpts) Execute(_ []string) error            { return o.call() }
 func (o DeleteDeploymentOpts) Execute(_ []string) error    { return o.call() }
-
-// Events
-type EventsOpts struct {
-	BeforeId   int       `long:"before-id" description:"Show all events with id less or equal to given id"`
-	Before     time.Time `long:"before" description:"Show all events by the given timestamp (ex: 2016-05-08 17:26:32)"`
-	After      time.Time `long:"after" description:"Show all events after the given timestamp (ex: 2016-05-08 17:26:32)"`
-	Deployment string    `long:"deployment" description:"Filter all events by the Deployment Name"`
-	Task       string    `long:"task" description:"Filter all events by the task id"`
-	Instance   string    `long:"instance" description:"Filter all events by the instance job_name/id"`
-
-	call func() error
-}
-
-func (o EventsOpts) Execute(_ []string) error { return o.call() }
 
 // Stemcells
 type StemcellsOpts struct {

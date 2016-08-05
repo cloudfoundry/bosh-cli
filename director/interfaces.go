@@ -20,8 +20,6 @@ type Director interface {
 	RecentTasks(limit int, includeAll bool) ([]Task, error)
 	FindTask(int) (Task, error)
 
-	Events(map[string]interface{}) ([]Event, error) //TODO: Think about turning this back into a struct.
-
 	Deployments() ([]Deployment, error)
 	FindDeployment(string) (Deployment, error)
 
@@ -197,19 +195,4 @@ type OrphanedDisk interface {
 	OrphanedAt() time.Time
 
 	Delete() error
-}
-
-//go:generate counterfeiter . Event
-
-type Event interface {
-	Id() int
-	Timestamp() time.Time
-	User() string
-	Action() string
-	ObjectType() string
-	ObjectName() string
-	Task() string
-	Deployment() string
-	Instance() string
-	Context() map[string]interface{}
 }
