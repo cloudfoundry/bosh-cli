@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"errors"
 	cmdconf "github.com/cloudfoundry/bosh-init/cmd/config"
 	boshdir "github.com/cloudfoundry/bosh-init/director"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
@@ -33,6 +34,31 @@ func NewFactory(deps BasicDeps) Factory {
 	}
 
 	globalOptsFuncCalled := false
+
+	rejectExtraArgsFunc := func(nextFunc func() error) func(extraArgs []string) error {
+		return func(extraArgs []string) error {
+			if len(extraArgs) > 0 {
+				return errors.New("Extra arguments are not supported for this command")
+			}
+
+			return nextFunc()
+		}
+	}
+
+	rejectExtraArgsWithDirectoryFunc := func(nextFunc func(DirOrCWDArg) error) func(extraArgs []string, dir DirOrCWDArg) error {
+		return func(extraArgs []string, dir DirOrCWDArg) error {
+			rejectExtraArgs := rejectExtraArgsFunc(func() error {
+				return nil
+			})
+
+			err := rejectExtraArgs(extraArgs)
+			if err != nil {
+				return err
+			}
+
+			return nextFunc(dir)
+		}
+	}
 
 	globalOptsFunc := func(nextFunc func() error) func() error {
 		return func() error {
@@ -164,37 +190,37 @@ func NewFactory(deps BasicDeps) Factory {
 		}
 	}
 
-	opts.CreateEnv.call = globalOptsFunc(func() error {
+	opts.CreateEnv.call = rejectExtraArgsFunc(globalOptsFunc(func() error {
 		envProvider := func(path string, vars boshtpl.Variables) DeploymentPreparer {
 			return NewEnvFactory(deps, path, vars).Preparer()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
 		return NewDeployCmd(deps.UI, envProvider).Run(stage, opts.CreateEnv)
-	})
+	}))
 
-	opts.DeleteEnv.call = globalOptsFunc(func() error {
+	opts.DeleteEnv.call = rejectExtraArgsFunc(globalOptsFunc(func() error {
 		envProvider := func(path string, vars boshtpl.Variables) DeploymentDeleter {
 			return NewEnvFactory(deps, path, vars).Deleter()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
 		return NewDeleteCmd(deps.UI, envProvider).Run(stage, opts.DeleteEnv)
-	})
+	}))
 
-	opts.Environments.call = configFunc(func(config cmdconf.Config) error {
+	opts.Environments.call = rejectExtraArgsFunc(configFunc(func(config cmdconf.Config) error {
 		return NewEnvironmentsCmd(config, deps.UI).Run()
-	})
+	}))
 
-	opts.Environment.call = configFunc(func(config cmdconf.Config) error {
+	opts.Environment.call = rejectExtraArgsFunc(configFunc(func(config cmdconf.Config) error {
 		sessionFactory := func(config cmdconf.Config) Session {
 			return NewSessionFromOpts(opts, config, deps.UI, false, false, deps.FS, deps.Logger)
 		}
 
 		return NewEnvironmentCmd(sessionFactory, config, deps.UI).Run(opts.Environment)
-	})
+	}))
 
-	opts.LogIn.call = configFunc(func(config cmdconf.Config) error {
+	opts.LogIn.call = rejectExtraArgsFunc(configFunc(func(config cmdconf.Config) error {
 		sessionFactory := func(config cmdconf.Config) Session {
 			return NewSessionFromOpts(opts, config, deps.UI, true, true, deps.FS, deps.Logger)
 		}
@@ -210,48 +236,48 @@ func NewFactory(deps BasicDeps) Factory {
 		}
 
 		return NewLogInCmd(basicStrategy, uaaStrategy, anonDirector).Run()
-	})
+	}))
 
-	opts.LogOut.call = configFunc(func(config cmdconf.Config) error {
+	opts.LogOut.call = rejectExtraArgsFunc(configFunc(func(config cmdconf.Config) error {
 		sess := NewSessionFromOpts(opts, config, deps.UI, true, true, deps.FS, deps.Logger)
 		return NewLogOutCmd(sess.Environment(), config, deps.UI).Run()
-	})
+	}))
 
-	opts.Task.call = directorFunc(func(director boshdir.Director) error {
+	opts.Task.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		eventsTaskReporter := boshuit.NewReporter(deps.UI, true)
 		plainTaskReporter := boshuit.NewReporter(deps.UI, false)
 		return NewTaskCmd(eventsTaskReporter, plainTaskReporter, director).Run(opts.Task)
-	})
+	}))
 
-	opts.Tasks.call = directorFunc(func(director boshdir.Director) error {
+	opts.Tasks.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewTasksCmd(deps.UI, director).Run(opts.Tasks)
-	})
+	}))
 
-	opts.CancelTask.call = directorFunc(func(director boshdir.Director) error {
+	opts.CancelTask.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewCancelTaskCmd(director).Run(opts.CancelTask)
-	})
+	}))
 
-	opts.Deployment.call = configFunc(func(config cmdconf.Config) error {
+	opts.Deployment.call = rejectExtraArgsFunc(configFunc(func(config cmdconf.Config) error {
 		sessionFactory := func(config cmdconf.Config) Session {
 			return NewSessionFromOpts(opts, config, deps.UI, true, false, deps.FS, deps.Logger)
 		}
 
 		return NewDeploymentCmd(sessionFactory, config, deps.UI).Run(opts.Deployment)
-	})
+	}))
 
-	opts.Deployments.call = directorFunc(func(director boshdir.Director) error {
+	opts.Deployments.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewDeploymentsCmd(deps.UI, director).Run()
-	})
+	}))
 
-	opts.DeleteDeployment.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.DeleteDeployment.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewDeleteDeploymentCmd(deps.UI, dep).Run(opts.DeleteDeployment)
-	})
+	}))
 
-	opts.Releases.call = directorFunc(func(director boshdir.Director) error {
+	opts.Releases.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewReleasesCmd(deps.UI, director).Run()
-	})
+	}))
 
-	opts.UploadRelease.call = func(dir DirOrCWDArg) error {
+	opts.UploadRelease.call = rejectExtraArgsWithDirectoryFunc(func(dir DirOrCWDArg) error {
 		return releaseProvidersFunc(func(relProv boshrel.Provider, relDirProv boshreldir.Provider) error {
 			return directorFunc(func(director boshdir.Director) error {
 				releaseReader := relDirProv.NewReleaseReader(dir.Path)
@@ -268,139 +294,139 @@ func NewFactory(deps BasicDeps) Factory {
 				return cmd.Run(opts.UploadRelease)
 			})()
 		})()
-	}
+	})
 
-	opts.DeleteRelease.call = directorFunc(func(director boshdir.Director) error {
+	opts.DeleteRelease.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewDeleteReleaseCmd(deps.UI, director).Run(opts.DeleteRelease)
-	})
+	}))
 
-	opts.Stemcells.call = directorFunc(func(director boshdir.Director) error {
+	opts.Stemcells.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewStemcellsCmd(deps.UI, director).Run()
-	})
+	}))
 
-	opts.UploadStemcell.call = directorFunc(func(director boshdir.Director) error {
+	opts.UploadStemcell.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		stemcellArchiveFactory := func(path string) boshdir.StemcellArchive {
 			return boshdir.NewFSStemcellArchive(path, deps.FS)
 		}
 
 		return NewUploadStemcellCmd(director, stemcellArchiveFactory, deps.UI).Run(opts.UploadStemcell)
-	})
+	}))
 
-	opts.DeleteStemcell.call = directorFunc(func(director boshdir.Director) error {
+	opts.DeleteStemcell.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewDeleteStemcellCmd(deps.UI, director).Run(opts.DeleteStemcell)
-	})
+	}))
 
-	opts.Locks.call = directorFunc(func(director boshdir.Director) error {
+	opts.Locks.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewLocksCmd(deps.UI, director).Run()
-	})
+	}))
 
-	opts.Errands.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Errands.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewErrandsCmd(deps.UI, dep).Run()
-	})
+	}))
 
-	opts.RunErrand.call = directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
+	opts.RunErrand.call = rejectExtraArgsFunc(directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
 		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
 		return NewRunErrandCmd(dep, downloader, deps.UI).Run(opts.RunErrand)
-	})
+	}))
 
-	opts.Disks.call = directorFunc(func(director boshdir.Director) error {
+	opts.Disks.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewDisksCmd(deps.UI, director).Run(opts.Disks)
-	})
+	}))
 
-	opts.DeleteDisk.call = directorFunc(func(director boshdir.Director) error {
+	opts.DeleteDisk.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewDeleteDiskCmd(deps.UI, director).Run(opts.DeleteDisk)
-	})
+	}))
 
-	opts.Snapshots.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Snapshots.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewSnapshotsCmd(deps.UI, dep).Run(opts.Snapshots)
-	})
+	}))
 
-	opts.TakeSnapshot.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.TakeSnapshot.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewTakeSnapshotCmd(dep).Run(opts.TakeSnapshot)
-	})
+	}))
 
-	opts.DeleteSnapshot.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.DeleteSnapshot.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewDeleteSnapshotCmd(deps.UI, dep).Run(opts.DeleteSnapshot)
-	})
+	}))
 
-	opts.DeleteSnapshots.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.DeleteSnapshots.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewDeleteSnapshotsCmd(deps.UI, dep).Run()
-	})
+	}))
 
-	opts.BuildManifest.call = globalOptsFunc(func() error {
+	opts.BuildManifest.call = rejectExtraArgsFunc(globalOptsFunc(func() error {
 		return NewBuildManifestCmd(deps.UI).Run(opts.BuildManifest)
-	})
+	}))
 
-	opts.CloudConfig.call = directorFunc(func(director boshdir.Director) error {
+	opts.CloudConfig.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewCloudConfigCmd(deps.UI, director).Run()
-	})
+	}))
 
-	opts.UpdateCloudConfig.call = directorFunc(func(director boshdir.Director) error {
+	opts.UpdateCloudConfig.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewUpdateCloudConfigCmd(deps.UI, director).Run(opts.UpdateCloudConfig)
-	})
+	}))
 
-	opts.RuntimeConfig.call = directorFunc(func(director boshdir.Director) error {
+	opts.RuntimeConfig.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewRuntimeConfigCmd(deps.UI, director).Run()
-	})
+	}))
 
-	opts.UpdateRuntimeConfig.call = directorFunc(func(director boshdir.Director) error {
+	opts.UpdateRuntimeConfig.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewUpdateRuntimeConfigCmd(deps.UI, director).Run(opts.UpdateRuntimeConfig)
-	})
+	}))
 
-	opts.Manifest.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Manifest.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewManifestCmd(deps.UI, dep).Run()
-	})
+	}))
 
-	opts.InspectRelease.call = directorFunc(func(director boshdir.Director) error {
+	opts.InspectRelease.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewInspectReleaseCmd(deps.UI, director).Run(opts.InspectRelease)
-	})
+	}))
 
-	opts.VMs.call = directorFunc(func(director boshdir.Director) error {
+	opts.VMs.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewVMsCmd(deps.UI, director).Run(opts.VMs)
-	})
+	}))
 
-	opts.Instances.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Instances.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewInstancesCmd(deps.UI, dep).Run(opts.Instances)
-	})
+	}))
 
-	opts.VMResurrection.call = directorFunc(func(director boshdir.Director) error {
+	opts.VMResurrection.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewVMResurrectionCmd(director).Run(opts.VMResurrection)
-	})
+	}))
 
-	opts.Deploy.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Deploy.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewDeploy2Cmd(deps.UI, dep).Run(opts.Deploy)
-	})
+	}))
 
-	opts.Start.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Start.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewStartCmd(deps.UI, dep).Run(opts.Start)
-	})
+	}))
 
-	opts.Stop.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Stop.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewStopCmd(deps.UI, dep).Run(opts.Stop)
-	})
+	}))
 
-	opts.Restart.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Restart.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewRestartCmd(deps.UI, dep).Run(opts.Restart)
-	})
+	}))
 
-	opts.Recreate.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.Recreate.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewRecreateCmd(deps.UI, dep).Run(opts.Recreate)
-	})
+	}))
 
-	opts.CloudCheck.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.CloudCheck.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		return NewCloudCheckCmd(dep, deps.UI).Run(opts.CloudCheck)
-	})
+	}))
 
-	opts.CleanUp.call = directorFunc(func(director boshdir.Director) error {
+	opts.CleanUp.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
 		return NewCleanUpCmd(deps.UI, director).Run(opts.CleanUp)
-	})
+	}))
 
-	opts.Logs.call = directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
+	opts.Logs.call = rejectExtraArgsFunc(directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
 		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
 		return NewLogsCmd(dep, downloader, deps.UUIDGen, nonIntSSHRunner).Run(opts.Logs)
-	})
+	}))
 
 	opts.SSH.call = deploymentFunc(func(dep boshdir.Deployment) error {
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
@@ -410,68 +436,68 @@ func NewFactory(deps BasicDeps) Factory {
 		return NewSSHCmd(dep, deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI).Run(opts.SSH)
 	})
 
-	opts.SCP.call = deploymentFunc(func(dep boshdir.Deployment) error {
+	opts.SCP.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		scpRunner := sshProvider.NewSCPRunner()
 		return NewSCPCmd(dep, deps.UUIDGen, scpRunner, deps.UI).Run(opts.SCP)
-	})
+	}))
 
-	opts.ExportRelease.call = directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
+	opts.ExportRelease.call = rejectExtraArgsFunc(directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
 		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
 		return NewExportReleaseCmd(dep, downloader).Run(opts.ExportRelease)
-	})
+	}))
 
-	opts.InitRelease.call = releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
+	opts.InitRelease.call = rejectExtraArgsWithDirectoryFunc(releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
 		return NewInitReleaseCmd(releaseDir).Run(opts.InitRelease)
-	})
+	}))
 
-	opts.ResetRelease.call = releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
+	opts.ResetRelease.call = rejectExtraArgsWithDirectoryFunc(releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
 		return NewResetReleaseCmd(releaseDir).Run(opts.ResetRelease)
-	})
+	}))
 
-	opts.GenerateJob.call = releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
+	opts.GenerateJob.call = rejectExtraArgsWithDirectoryFunc(releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
 		return NewGenerateJobCmd(releaseDir).Run(opts.GenerateJob)
-	})
+	}))
 
-	opts.GeneratePackage.call = releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
+	opts.GeneratePackage.call = rejectExtraArgsWithDirectoryFunc(releaseDirFunc(func(releaseDir boshreldir.ReleaseDir) error {
 		return NewGeneratePackageCmd(releaseDir).Run(opts.GeneratePackage)
-	})
+	}))
 
-	opts.FinalizeRelease.call = func(dir DirOrCWDArg) error {
+	opts.FinalizeRelease.call = rejectExtraArgsWithDirectoryFunc(func(dir DirOrCWDArg) error {
 		return releaseProvidersFunc(func(relProv boshrel.Provider, relDirProv boshreldir.Provider) error {
 			releaseReader := relDirProv.NewReleaseReader(dir.Path)
 			releaseDir := relDirProv.NewFSReleaseDir(dir.Path)
 			return NewFinalizeReleaseCmd(releaseReader, releaseDir, deps.UI).Run(opts.FinalizeRelease)
 		})()
-	}
+	})
 
-	opts.CreateRelease.call = func(dir DirOrCWDArg) error {
+	opts.CreateRelease.call = rejectExtraArgsWithDirectoryFunc(func(dir DirOrCWDArg) error {
 		return releaseProvidersFunc(func(relProv boshrel.Provider, relDirProv boshreldir.Provider) error {
 			releaseReader := relDirProv.NewReleaseReader(dir.Path)
 			releaseDir := relDirProv.NewFSReleaseDir(dir.Path)
 			return NewCreateReleaseCmd(releaseReader, releaseDir, deps.UI).Run(opts.CreateRelease)
 		})()
-	}
+	})
 
-	opts.Blobs.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+	opts.Blobs.call = rejectExtraArgsWithDirectoryFunc(blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
 		return NewBlobsCmd(blobsDir, deps.UI).Run()
-	})
+	}))
 
-	opts.AddBlob.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+	opts.AddBlob.call = rejectExtraArgsWithDirectoryFunc(blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
 		return NewAddBlobCmd(blobsDir, deps.FS, deps.UI).Run(opts.AddBlob)
-	})
+	}))
 
-	opts.RemoveBlob.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+	opts.RemoveBlob.call = rejectExtraArgsWithDirectoryFunc(blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
 		return NewRemoveBlobCmd(blobsDir, deps.UI).Run(opts.RemoveBlob)
-	})
+	}))
 
-	opts.UploadBlobs.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+	opts.UploadBlobs.call = rejectExtraArgsWithDirectoryFunc(blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
 		return NewUploadBlobsCmd(blobsDir).Run()
-	})
+	}))
 
-	opts.SyncBlobs.call = blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
+	opts.SyncBlobs.call = rejectExtraArgsWithDirectoryFunc(blobsDirFunc(func(blobsDir boshreldir.BlobsDir) error {
 		return NewSyncBlobsCmd(blobsDir).Run()
-	})
+	}))
 
 	return Factory{opts: &opts}
 }

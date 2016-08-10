@@ -140,7 +140,7 @@ type CreateEnvOpts struct {
 
 	VarFlags
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type CreateEnvArgs struct {
@@ -152,15 +152,15 @@ type DeleteEnvOpts struct {
 
 	VarFlags
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeleteEnvArgs struct {
 	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a manifest file"`
 }
 
-func (o CreateEnvOpts) Execute(_ []string) error { return o.call() }
-func (o DeleteEnvOpts) Execute(_ []string) error { return o.call() }
+func (o CreateEnvOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
+func (o DeleteEnvOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Environment
 type EnvironmentOpts struct {
@@ -168,7 +168,7 @@ type EnvironmentOpts struct {
 
 	CACert FileBytesArg `long:"ca-cert" short:"c" description:"CA certificate path to verify SSL connection to the Director and UAA"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type EnvironmentArgs struct {
@@ -177,21 +177,21 @@ type EnvironmentArgs struct {
 }
 
 type EnvironmentsOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type LogInOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type LogOutOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
-func (o EnvironmentOpts) Execute(_ []string) error  { return o.call() }
-func (o EnvironmentsOpts) Execute(_ []string) error { return o.call() }
-func (o LogInOpts) Execute(_ []string) error        { return o.call() }
-func (o LogOutOpts) Execute(_ []string) error       { return o.call() }
+func (o EnvironmentOpts) Execute(extraArgs []string) error  { return o.call(extraArgs) }
+func (o EnvironmentsOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
+func (o LogInOpts) Execute(extraArgs []string) error        { return o.call(extraArgs) }
+func (o LogOutOpts) Execute(extraArgs []string) error       { return o.call(extraArgs) }
 
 // Tasks
 type TaskOpts struct {
@@ -205,7 +205,7 @@ type TaskOpts struct {
 
 	All bool `long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type TaskArgs struct {
@@ -217,26 +217,26 @@ type TasksOpts struct {
 
 	All bool `long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type CancelTaskOpts struct {
 	Args TaskArgs `positional-args:"true" required:"true"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
-func (o TaskOpts) Execute(_ []string) error       { return o.call() }
-func (o TasksOpts) Execute(_ []string) error      { return o.call() }
-func (o CancelTaskOpts) Execute(_ []string) error { return o.call() }
+func (o TaskOpts) Execute(extraArgs []string) error       { return o.call(extraArgs) }
+func (o TasksOpts) Execute(extraArgs []string) error      { return o.call(extraArgs) }
+func (o CancelTaskOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Misc
 type LocksOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type CleanUpOpts struct {
 	All  bool `long:"all" description:"Remove all unused releases, stemcells, etc.; otherwise most recent resources will be kept"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type BackUpOpts struct {
@@ -244,7 +244,7 @@ type BackUpOpts struct {
 
 	Force bool `long:"force" description:"Overwrite if the backup file already exists"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type BackUpArgs struct {
@@ -255,21 +255,22 @@ type BuildManifestOpts struct {
 	Args BuildManifestArgs `positional-args:"true" required:"true"`
 	VarFlags
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type BuildManifestArgs struct {
 	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a template that will be interpolated"`
 }
 
-func (o LocksOpts) Execute(_ []string) error         { return o.call() }
-func (o CleanUpOpts) Execute(_ []string) error       { return o.call() }
-func (o BackUpOpts) Execute(_ []string) error        { return o.call() }
-func (o BuildManifestOpts) Execute(_ []string) error { return o.call() }
+func (o LocksOpts) Execute(extraArgs []string) error   { return o.call(extraArgs) }
+func (o CleanUpOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
+
+func (o BackUpOpts) Execute(extraArgs []string) error        { return o.call(extraArgs) }
+func (o BuildManifestOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Cloud config
 type CloudConfigOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type UpdateCloudConfigOpts struct {
@@ -277,7 +278,7 @@ type UpdateCloudConfigOpts struct {
 
 	VarFlags
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type UpdateCloudConfigArgs struct {
@@ -286,7 +287,7 @@ type UpdateCloudConfigArgs struct {
 
 // Runtime config
 type RuntimeConfigOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type UpdateRuntimeConfigOpts struct {
@@ -294,7 +295,7 @@ type UpdateRuntimeConfigOpts struct {
 
 	VarFlags
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type UpdateRuntimeConfigArgs struct {
@@ -304,11 +305,11 @@ type UpdateRuntimeConfigArgs struct {
 // Deployments
 type DeploymentOpts struct {
 	Args DeploymentArgs `positional-args:"true"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeploymentsOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeployOpts struct {
@@ -320,7 +321,7 @@ type DeployOpts struct {
 	NoRedact  bool              `long:"no-redact"   description:"Show non-redacted manifest diff"`
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeployArgs struct {
@@ -328,12 +329,12 @@ type DeployArgs struct {
 }
 
 type ManifestOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeleteDeploymentOpts struct {
 	Force bool `long:"force" description:"Ignore errors"`
-	call  func() error
+	call  func(extraArgs []string) error
 }
 
 type DeploymentArgs struct {
@@ -344,19 +345,19 @@ type DeploymentNameArgs struct {
 	Name string `positional-arg-name:"NAME"`
 }
 
-func (o CloudConfigOpts) Execute(_ []string) error         { return o.call() }
-func (o UpdateCloudConfigOpts) Execute(_ []string) error   { return o.call() }
-func (o RuntimeConfigOpts) Execute(_ []string) error       { return o.call() }
-func (o UpdateRuntimeConfigOpts) Execute(_ []string) error { return o.call() }
-func (o DeploymentOpts) Execute(_ []string) error          { return o.call() }
-func (o DeploymentsOpts) Execute(_ []string) error         { return o.call() }
-func (o DeployOpts) Execute(_ []string) error              { return o.call() }
-func (o ManifestOpts) Execute(_ []string) error            { return o.call() }
-func (o DeleteDeploymentOpts) Execute(_ []string) error    { return o.call() }
+func (o CloudConfigOpts) Execute(extraArgs []string) error         { return o.call(extraArgs) }
+func (o UpdateCloudConfigOpts) Execute(extraArgs []string) error   { return o.call(extraArgs) }
+func (o RuntimeConfigOpts) Execute(extraArgs []string) error       { return o.call(extraArgs) }
+func (o UpdateRuntimeConfigOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
+func (o DeploymentOpts) Execute(extraArgs []string) error          { return o.call(extraArgs) }
+func (o DeploymentsOpts) Execute(extraArgs []string) error         { return o.call(extraArgs) }
+func (o DeployOpts) Execute(extraArgs []string) error              { return o.call(extraArgs) }
+func (o ManifestOpts) Execute(extraArgs []string) error            { return o.call(extraArgs) }
+func (o DeleteDeploymentOpts) Execute(extraArgs []string) error    { return o.call(extraArgs) }
 
 // Stemcells
 type StemcellsOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type UploadStemcellOpts struct {
@@ -369,7 +370,7 @@ type UploadStemcellOpts struct {
 
 	SHA1 string `long:"sha1" description:"SHA1 of the remote stemcell (is not used with local files)"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type UploadStemcellArgs struct {
@@ -381,20 +382,20 @@ type DeleteStemcellOpts struct {
 
 	Force bool `long:"force" description:"Ignore errors"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeleteStemcellArgs struct {
 	Slug boshdir.StemcellSlug `positional-arg-name:"NAME/VERSION"`
 }
 
-func (o StemcellsOpts) Execute(_ []string) error      { return o.call() }
-func (o UploadStemcellOpts) Execute(_ []string) error { return o.call() }
-func (o DeleteStemcellOpts) Execute(_ []string) error { return o.call() }
+func (o StemcellsOpts) Execute(extraArgs []string) error      { return o.call(extraArgs) }
+func (o UploadStemcellOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
+func (o DeleteStemcellOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Releases
 type ReleasesOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type UploadReleaseOpts struct {
@@ -411,11 +412,11 @@ type UploadReleaseOpts struct {
 
 	SHA1 string `long:"sha1" description:"SHA1 of the remote release (is not used with local files)"`
 
-	call func(DirOrCWDArg) error
+	call func([]string, DirOrCWDArg) error
 }
 
 type UploadReleaseArgs struct {
-	URL URLArg `positional-args-name:"URL" description:"Path to a local file or URL"`
+	URL URLArg `positional-arg-name:"URL" description:"Path to a local file or URL"`
 }
 
 type DeleteReleaseOpts struct {
@@ -423,7 +424,7 @@ type DeleteReleaseOpts struct {
 
 	Force bool `long:"force" description:"Ignore errors"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeleteReleaseArgs struct {
@@ -435,7 +436,7 @@ type ExportReleaseOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Destination directory" default:"."`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type ExportReleaseArgs struct {
@@ -445,22 +446,22 @@ type ExportReleaseArgs struct {
 
 type InspectReleaseOpts struct {
 	Args InspectReleaseArgs `positional-args:"true" required:"true"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type InspectReleaseArgs struct {
 	Slug boshdir.ReleaseSlug `positional-arg-name:"NAME/VERSION"`
 }
 
-func (o ReleasesOpts) Execute(_ []string) error       { return o.call() }
-func (o UploadReleaseOpts) Execute(_ []string) error  { return o.call(o.Directory) }
-func (o DeleteReleaseOpts) Execute(_ []string) error  { return o.call() }
-func (o ExportReleaseOpts) Execute(_ []string) error  { return o.call() }
-func (o InspectReleaseOpts) Execute(_ []string) error { return o.call() }
+func (o ReleasesOpts) Execute(extraArgs []string) error       { return o.call(extraArgs) }
+func (o UploadReleaseOpts) Execute(extraArgs []string) error  { return o.call(extraArgs, o.Directory) }
+func (o DeleteReleaseOpts) Execute(extraArgs []string) error  { return o.call(extraArgs) }
+func (o ExportReleaseOpts) Execute(extraArgs []string) error  { return o.call(extraArgs) }
+func (o InspectReleaseOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Errands
 type ErrandsOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type RunErrandOpts struct {
@@ -471,48 +472,48 @@ type RunErrandOpts struct {
 	DownloadLogs  bool        `long:"download-logs" description:"Download logs"`
 	LogsDirectory DirOrCWDArg `long:"logs-dir" description:"Destination directory for logs" default:"."`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type RunErrandArgs struct {
 	Name string `positional-arg-name:"NAME"`
 }
 
-func (o ErrandsOpts) Execute(_ []string) error   { return o.call() }
-func (o RunErrandOpts) Execute(_ []string) error { return o.call() }
+func (o ErrandsOpts) Execute(extraArgs []string) error   { return o.call(extraArgs) }
+func (o RunErrandOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Disks
 type DisksOpts struct {
 	Orphaned bool `long:"orphaned" short:"o" description:"List orphaned disks"`
-	call     func() error
+	call     func(extraArgs []string) error
 }
 
 type DeleteDiskOpts struct {
 	Args DeleteDiskArgs `positional-args:"true" required:"true"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeleteDiskArgs struct {
 	CID string `positional-arg-name:"CID"`
 }
 
-func (o DisksOpts) Execute(_ []string) error      { return o.call() }
-func (o DeleteDiskOpts) Execute(_ []string) error { return o.call() }
+func (o DisksOpts) Execute(extraArgs []string) error      { return o.call(extraArgs) }
+func (o DeleteDiskOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Snapshots
 type SnapshotsOpts struct {
 	Args InstanceSlugArgs `positional-args:"true"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type TakeSnapshotOpts struct {
 	Args InstanceSlugArgs `positional-args:"true"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeleteSnapshotOpts struct {
 	Args DeleteSnapshotArgs `positional-args:"true" required:"true"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type DeleteSnapshotArgs struct {
@@ -520,17 +521,17 @@ type DeleteSnapshotArgs struct {
 }
 
 type DeleteSnapshotsOpts struct {
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type InstanceSlugArgs struct {
 	Slug boshdir.InstanceSlug `positional-arg-name:"POOL/ID"`
 }
 
-func (o SnapshotsOpts) Execute(_ []string) error       { return o.call() }
-func (o TakeSnapshotOpts) Execute(_ []string) error    { return o.call() }
-func (o DeleteSnapshotOpts) Execute(_ []string) error  { return o.call() }
-func (o DeleteSnapshotsOpts) Execute(_ []string) error { return o.call() }
+func (o SnapshotsOpts) Execute(extraArgs []string) error       { return o.call(extraArgs) }
+func (o TakeSnapshotOpts) Execute(extraArgs []string) error    { return o.call(extraArgs) }
+func (o DeleteSnapshotOpts) Execute(extraArgs []string) error  { return o.call(extraArgs) }
+func (o DeleteSnapshotsOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Instances
 type InstancesOpts struct {
@@ -540,7 +541,7 @@ type InstancesOpts struct {
 	Processes bool `long:"ps"      short:"p" description:"Show processes"`
 	Failing   bool `long:"failing" short:"f" description:"Only show failing instances"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type VMsOpts struct {
@@ -548,25 +549,25 @@ type VMsOpts struct {
 	DNS     bool `long:"dns"               description:"Show DNS A records"`
 	Vitals  bool `long:"vitals"  short:"v" description:"Show vitals"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type CloudCheckOpts struct {
 	Auto   bool `long:"auto"   short:"a" description:"Resolve problems automatically"`
 	Report bool `long:"report" short:"r" description:"Only generate report; don't attempt to resolve problems"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
-func (o InstancesOpts) Execute(_ []string) error      { return o.call() }
-func (o VMsOpts) Execute(_ []string) error            { return o.call() }
-func (o VMResurrectionOpts) Execute(_ []string) error { return o.call() }
-func (o CloudCheckOpts) Execute(_ []string) error     { return o.call() }
+func (o InstancesOpts) Execute(extraArgs []string) error      { return o.call(extraArgs) }
+func (o VMsOpts) Execute(extraArgs []string) error            { return o.call(extraArgs) }
+func (o VMResurrectionOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
+func (o CloudCheckOpts) Execute(extraArgs []string) error     { return o.call(extraArgs) }
 
 // Instance management
 type VMResurrectionOpts struct {
 	Args VMResurrectionArgs `positional-args:"true" required:"true"`
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type VMResurrectionArgs struct {
@@ -588,7 +589,7 @@ type LogsOpts struct {
 
 	GatewayFlags
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type StartOpts struct {
@@ -596,7 +597,7 @@ type StartOpts struct {
 
 	Force bool `long:"force" description:"No-op for backwards compatibility"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type StopOpts struct {
@@ -608,7 +609,7 @@ type StopOpts struct {
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type RestartOpts struct {
@@ -617,7 +618,7 @@ type RestartOpts struct {
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type RecreateOpts struct {
@@ -626,18 +627,18 @@ type RecreateOpts struct {
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type AllOrPoolOrInstanceSlugArgs struct {
 	Slug boshdir.AllOrPoolOrInstanceSlug `positional-arg-name:"[POOL[/ID]]"`
 }
 
-func (o LogsOpts) Execute(_ []string) error     { return o.call() }
-func (o StartOpts) Execute(_ []string) error    { return o.call() }
-func (o StopOpts) Execute(_ []string) error     { return o.call() }
-func (o RestartOpts) Execute(_ []string) error  { return o.call() }
-func (o RecreateOpts) Execute(_ []string) error { return o.call() }
+func (o LogsOpts) Execute(extraArgs []string) error     { return o.call(extraArgs) }
+func (o StartOpts) Execute(extraArgs []string) error    { return o.call(extraArgs) }
+func (o StopOpts) Execute(extraArgs []string) error     { return o.call(extraArgs) }
+func (o RestartOpts) Execute(extraArgs []string) error  { return o.call(extraArgs) }
+func (o RecreateOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // SSH instance
 type SSHOpts struct {
@@ -660,7 +661,7 @@ type SCPOpts struct {
 
 	GatewayFlags
 
-	call func() error
+	call func(extraArgs []string) error
 }
 
 type SCPArgs struct {
@@ -682,7 +683,7 @@ func (o *SSHOpts) Execute(rest []string) error {
 	return o.call()
 }
 
-func (o SCPOpts) Execute(_ []string) error { return o.call() }
+func (o SCPOpts) Execute(extraArgs []string) error { return o.call(extraArgs) }
 
 // Release creation
 type InitReleaseOpts struct {
@@ -690,12 +691,12 @@ type InitReleaseOpts struct {
 
 	Git bool `long:"git" description:"Initialize git repository"`
 
-	call func(DirOrCWDArg) error
+	call func([]string, DirOrCWDArg) error
 }
 
 type ResetReleaseOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
-	call      func(DirOrCWDArg) error
+	call      func([]string, DirOrCWDArg) error
 }
 
 type GenerateJobOpts struct {
@@ -703,7 +704,7 @@ type GenerateJobOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
-	call func(DirOrCWDArg) error
+	call func([]string, DirOrCWDArg) error
 }
 
 type GenerateJobArgs struct {
@@ -715,7 +716,7 @@ type GeneratePackageOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
-	call func(DirOrCWDArg) error
+	call func([]string, DirOrCWDArg) error
 }
 
 type GeneratePackageArgs struct {
@@ -737,7 +738,7 @@ type CreateReleaseOpts struct {
 
 	Force bool `long:"force" description:"Ignore Git dirty state check"`
 
-	call func(DirOrCWDArg) error
+	call func([]string, DirOrCWDArg) error
 }
 
 type CreateReleaseArgs struct {
@@ -754,23 +755,24 @@ type FinalizeReleaseOpts struct {
 
 	Force bool `long:"force" description:"Ignore Git dirty state check"`
 
-	call func(DirOrCWDArg) error
+	call func([]string, DirOrCWDArg) error
 }
 
 type FinalizeReleaseArgs struct {
 	Path string `positional-arg-name:"PATH"`
 }
 
-func (o InitReleaseOpts) Execute(_ []string) error     { return o.call(o.Directory) }
-func (o GenerateJobOpts) Execute(_ []string) error     { return o.call(o.Directory) }
-func (o GeneratePackageOpts) Execute(_ []string) error { return o.call(o.Directory) }
-func (o CreateReleaseOpts) Execute(_ []string) error   { return o.call(o.Directory) }
-func (o FinalizeReleaseOpts) Execute(_ []string) error { return o.call(o.Directory) }
+func (o InitReleaseOpts) Execute(extraArgs []string) error     { return o.call(extraArgs, o.Directory) }
+func (o GenerateJobOpts) Execute(extraArgs []string) error     { return o.call(extraArgs, o.Directory) }
+func (o GeneratePackageOpts) Execute(extraArgs []string) error { return o.call(extraArgs, o.Directory) }
+func (o CreateReleaseOpts) Execute(extraArgs []string) error   { return o.call(extraArgs, o.Directory) }
+func (o FinalizeReleaseOpts) Execute(extraArgs []string) error { return o.call(extraArgs, o.Directory) }
+func (o ResetReleaseOpts) Execute(extraArgs []string) error    { return o.call(extraArgs, o.Directory) }
 
 // Blobs
 type BlobsOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
-	call      func(DirOrCWDArg) error
+	call      func([]string, DirOrCWDArg) error
 }
 
 type AddBlobOpts struct {
@@ -778,7 +780,7 @@ type AddBlobOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
-	call func(DirOrCWDArg) error
+	call func([]string, DirOrCWDArg) error
 }
 
 type AddBlobArgs struct {
@@ -791,7 +793,7 @@ type RemoveBlobOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
-	call func(DirOrCWDArg) error
+	call func([]string, DirOrCWDArg) error
 }
 
 type RemoveBlobArgs struct {
@@ -800,16 +802,16 @@ type RemoveBlobArgs struct {
 
 type SyncBlobsOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
-	call      func(DirOrCWDArg) error
+	call      func([]string, DirOrCWDArg) error
 }
 
 type UploadBlobsOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
-	call      func(DirOrCWDArg) error
+	call      func([]string, DirOrCWDArg) error
 }
 
-func (o BlobsOpts) Execute(_ []string) error       { return o.call(o.Directory) }
-func (o AddBlobOpts) Execute(_ []string) error     { return o.call(o.Directory) }
-func (o RemoveBlobOpts) Execute(_ []string) error  { return o.call(o.Directory) }
-func (o SyncBlobsOpts) Execute(_ []string) error   { return o.call(o.Directory) }
-func (o UploadBlobsOpts) Execute(_ []string) error { return o.call(o.Directory) }
+func (o BlobsOpts) Execute(extraArgs []string) error       { return o.call(extraArgs, o.Directory) }
+func (o AddBlobOpts) Execute(extraArgs []string) error     { return o.call(extraArgs, o.Directory) }
+func (o RemoveBlobOpts) Execute(extraArgs []string) error  { return o.call(extraArgs, o.Directory) }
+func (o SyncBlobsOpts) Execute(extraArgs []string) error   { return o.call(extraArgs, o.Directory) }
+func (o UploadBlobsOpts) Execute(extraArgs []string) error { return o.call(extraArgs, o.Directory) }
