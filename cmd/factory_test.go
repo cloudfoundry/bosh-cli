@@ -27,10 +27,11 @@ var _ = Describe("Factory", func() {
 		AssertFailsWithExtraArguments := func(command string, args []string) func() {
 			return func() {
 				commandWithArgs := append([]string{command}, args...)
-				err := cmdFactory.RunCommand(append(commandWithArgs, "more", "args", "thatarebad"))
+				err := cmdFactory.RunCommand(append(commandWithArgs, "more", "args", "thatarebad", "moreargs"))
 
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Extra arguments are not supported for this command"))
+				Expect(err.Error()).To(ContainSubstring("Extra arguments are not supported for this command:"))
+				Expect(err.Error()).To(ContainSubstring("thatarebad, moreargs"))
 			}
 		}
 

@@ -14,6 +14,7 @@ import (
 	boshui "github.com/cloudfoundry/bosh-init/ui"
 	boshuit "github.com/cloudfoundry/bosh-init/ui/task"
 	goflags "github.com/jessevdk/go-flags"
+	"strings"
 )
 
 type Factory struct {
@@ -38,7 +39,8 @@ func NewFactory(deps BasicDeps) Factory {
 	rejectExtraArgsFunc := func(nextFunc func() error) func(extraArgs []string) error {
 		return func(extraArgs []string) error {
 			if len(extraArgs) > 0 {
-				return errors.New("Extra arguments are not supported for this command")
+				return errors.New(fmt.Sprintf("Extra arguments are not supported for this command: %s",
+					strings.Join(extraArgs, ", ")))
 			}
 
 			return nextFunc()
