@@ -18,25 +18,25 @@ type deploymentRecord struct {
 	deploymentRepo biconfig.DeploymentRepo
 	releaseRepo    biconfig.ReleaseRepo
 	stemcellRepo   biconfig.StemcellRepo
-	sha1Calculator bicrypto.SHA1Calculator
+	shaCalculator  bicrypto.SHA1Calculator
 }
 
 func NewRecord(
 	deploymentRepo biconfig.DeploymentRepo,
 	releaseRepo biconfig.ReleaseRepo,
 	stemcellRepo biconfig.StemcellRepo,
-	sha1Calculator bicrypto.SHA1Calculator,
+	shaCalculator bicrypto.SHA1Calculator,
 ) Record {
 	return &deploymentRecord{
 		deploymentRepo: deploymentRepo,
 		releaseRepo:    releaseRepo,
 		stemcellRepo:   stemcellRepo,
-		sha1Calculator: sha1Calculator,
+		shaCalculator:  shaCalculator,
 	}
 }
 
 func (v *deploymentRecord) IsDeployed(manifestPath string, releases []birel.Release, stemcell bistemcell.ExtractedStemcell) (bool, error) {
-	manifestSHA1, found, err := v.deploymentRepo.FindCurrent()
+	manifestSHA, found, err := v.deploymentRepo.FindCurrent()
 	if err != nil {
 		return false, bosherr.WrapError(err, "Finding sha1 of currently deployed manifest")
 	}
@@ -45,12 +45,12 @@ func (v *deploymentRecord) IsDeployed(manifestPath string, releases []birel.Rele
 		return false, nil
 	}
 
-	newSHA1, err := v.sha1Calculator.Calculate(manifestPath)
+	newSHA, err := v.shaCalculator.Calculate(manifestPath)
 	if err != nil {
 		return false, bosherr.WrapError(err, "Calculating sha1 of current deployment manifest")
 	}
 
-	if manifestSHA1 != newSHA1 {
+	if manifestSHA != newSHA {
 		return false, nil
 	}
 
@@ -111,12 +111,12 @@ func (v *deploymentRecord) Clear() error {
 }
 
 func (v *deploymentRecord) Update(manifestPath string, releases []birel.Release) error {
-	manifestSHA1, err := v.sha1Calculator.Calculate(manifestPath)
+	manifestSHA, err := v.shaCalculator.Calculate(manifestPath)
 	if err != nil {
 		return bosherr.WrapError(err, "Calculating sha1 of current deployment manifest")
 	}
 
-	err = v.deploymentRepo.UpdateCurrent(manifestSHA1)
+	err = v.deploymentRepo.UpdateCurrent(manifestSHA)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving sha1 of deployed manifest")
 	}

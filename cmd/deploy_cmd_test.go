@@ -75,7 +75,7 @@ var _ = Describe("DeployCmd", func() {
 			stdErr         *gbytes.Buffer
 			userInterface  biui.UI
 			sha1Calculator crypto.SHA1Calculator
-			manifestSHA1   string
+			manifestSHA    string
 
 			mockDeployer              *mock_deployment.MockDeployer
 			mockInstaller             *mock_install.MockInstaller
@@ -200,7 +200,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
 			var err error
-			manifestSHA1, err = sha1Calculator.Calculate(deploymentManifestPath)
+			manifestSHA, err = sha1Calculator.Calculate(deploymentManifestPath)
 			Expect(err).ToNot(HaveOccurred())
 
 			cpiReleaseTarballPath = "/release/tarball/path"
@@ -610,7 +610,7 @@ var _ = Describe("DeployCmd", func() {
 			deploymentState, err := setupDeploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(deploymentState.CurrentManifestSHA1).To(Equal(manifestSHA1))
+			Expect(deploymentState.CurrentManifestSHA).To(Equal(manifestSHA))
 			Expect(deploymentState.Releases).To(Equal([]biconfig.ReleaseRecord{
 				{
 					ID:      "fake-uuid-0",
@@ -643,7 +643,7 @@ var _ = Describe("DeployCmd", func() {
 						Name:    cloudStemcell.Name(),
 						Version: cloudStemcell.Version(),
 					}},
-					CurrentManifestSHA1: manifestSHA1,
+					CurrentManifestSHA: manifestSHA,
 				}
 
 				err := setupDeploymentStateService.Save(previousDeploymentState)
@@ -744,7 +744,7 @@ var _ = Describe("DeployCmd", func() {
 				deploymentState, err := setupDeploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentState.CurrentManifestSHA1).To(Equal(manifestSHA1))
+				Expect(deploymentState.CurrentManifestSHA).To(Equal(manifestSHA))
 				Expect(deploymentState.Releases).To(Equal([]biconfig.ReleaseRecord{
 					{
 						ID:      "fake-uuid-0",
@@ -784,7 +784,7 @@ var _ = Describe("DeployCmd", func() {
 							Name:    cloudStemcell.Name(),
 							Version: cloudStemcell.Version(),
 						}},
-						CurrentManifestSHA1: manifestSHA1,
+						CurrentManifestSHA: manifestSHA,
 					}
 
 					err := setupDeploymentStateService.Save(previousDeploymentState)
@@ -798,7 +798,7 @@ var _ = Describe("DeployCmd", func() {
 					deploymentState, err := setupDeploymentStateService.Load()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(deploymentState.CurrentManifestSHA1).To(Equal(manifestSHA1))
+					Expect(deploymentState.CurrentManifestSHA).To(Equal(manifestSHA))
 					keys := []string{}
 					ids := []string{}
 					for _, releaseRecord := range deploymentState.Releases {
@@ -836,7 +836,7 @@ var _ = Describe("DeployCmd", func() {
 							Name:    cloudStemcell.Name(),
 							Version: cloudStemcell.Version(),
 						}},
-						CurrentManifestSHA1: manifestSHA1,
+						CurrentManifestSHA: manifestSHA,
 					}
 
 					err := setupDeploymentStateService.Save(previousDeploymentState)
@@ -998,7 +998,7 @@ var _ = Describe("DeployCmd", func() {
 						Name:    cpiRelease.Name(),
 						Version: cpiRelease.Version(),
 					}},
-					CurrentManifestSHA1: "fake-manifest-sha",
+					CurrentManifestSHA: "fake-manifest-sha",
 				}
 
 				setupDeploymentStateService.Save(previousDeploymentState)
@@ -1012,7 +1012,7 @@ var _ = Describe("DeployCmd", func() {
 				deploymentState, err := setupDeploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deploymentState.CurrentManifestSHA1).To(Equal(""))
+				Expect(deploymentState.CurrentManifestSHA).To(Equal(""))
 				Expect(deploymentState.Releases).To(Equal([]biconfig.ReleaseRecord{}))
 				Expect(deploymentState.CurrentReleaseIDs).To(Equal([]string{}))
 			})

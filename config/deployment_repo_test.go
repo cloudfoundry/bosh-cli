@@ -34,8 +34,8 @@ var _ = Describe("DeploymentRepo", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedConfig := DeploymentState{
-				DirectorID:          "fake-uuid-0",
-				CurrentManifestSHA1: "fake-manifest-sha1",
+				DirectorID:         "fake-uuid-0",
+				CurrentManifestSHA: "fake-manifest-sha1",
 			}
 			Expect(deploymentState).To(Equal(expectedConfig))
 		})

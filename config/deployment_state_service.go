@@ -5,16 +5,16 @@ import (
 )
 
 type DeploymentState struct {
-	DirectorID          string           `json:"director_id"`
-	InstallationID      string           `json:"installation_id"`
-	CurrentVMCID        string           `json:"current_vm_cid"`
-	CurrentStemcellID   string           `json:"current_stemcell_id"`
-	CurrentDiskID       string           `json:"current_disk_id"`
-	CurrentReleaseIDs   []string         `json:"current_release_ids"`
-	CurrentManifestSHA1 string           `json:"current_manifest_sha1"`
-	Disks               []DiskRecord     `json:"disks"`
-	Stemcells           []StemcellRecord `json:"stemcells"`
-	Releases            []ReleaseRecord  `json:"releases"`
+	DirectorID         string           `json:"director_id"`
+	InstallationID     string           `json:"installation_id"`
+	CurrentVMCID       string           `json:"current_vm_cid"`
+	CurrentStemcellID  string           `json:"current_stemcell_id"`
+	CurrentDiskID      string           `json:"current_disk_id"`
+	CurrentReleaseIDs  []string         `json:"current_release_ids"`
+	CurrentManifestSHA string           `json:"current_manifest_sha"`
+	Disks              []DiskRecord     `json:"disks"`
+	Stemcells          []StemcellRecord `json:"stemcells"`
+	Releases           []ReleaseRecord  `json:"releases"`
 }
 
 type StemcellRecord struct {

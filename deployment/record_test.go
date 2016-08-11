@@ -327,7 +327,7 @@ var _ = Describe("Record", func() {
 		It("calculates and updates sha1 of currently deployed manifest", func() {
 			err := deploymentRecord.Update("fake-manifest-path", releases)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deploymentRepo.UpdateCurrentManifestSHA1).To(Equal("fake-manifest-sha1"))
+			Expect(deploymentRepo.UpdateCurrentManifestSHA).To(Equal("fake-manifest-sha1"))
 		})
 
 		It("passes the releases to the release repo", func() {
@@ -391,11 +391,11 @@ var _ = Describe("Record", func() {
 
 	Describe("Clear", func() {
 		It("clears manifest hash", func() {
-			deploymentRepo.UpdateCurrentManifestSHA1 = "initial-sha1"
+			deploymentRepo.UpdateCurrentManifestSHA = "initial-sha"
 
 			err := deploymentRecord.Clear()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deploymentRepo.UpdateCurrentManifestSHA1).To(Equal(""))
+			Expect(deploymentRepo.UpdateCurrentManifestSHA).To(Equal(""))
 		})
 
 		It("clears releases list", func() {

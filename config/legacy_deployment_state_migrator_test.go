@@ -118,7 +118,7 @@ registry_instances:
     "current_stemcell_id": "",
     "current_disk_id": "",
     "current_release_ids": null,
-    "current_manifest_sha1": "",
+    "current_manifest_sha": "",
     "disks": \[\],
     "stemcells": \[\],
     "releases": \[\]
@@ -170,7 +170,7 @@ registry_instances:
     "current_stemcell_id": "",
     "current_disk_id": "",
     "current_release_ids": null,
-    "current_manifest_sha1": "",
+    "current_manifest_sha": "",
     "disks": \[\],
     "stemcells": \[\],
     "releases": \[\]
@@ -222,7 +222,7 @@ registry_instances:
     "current_stemcell_id": "",
     "current_disk_id": "",
     "current_release_ids": null,
-    "current_manifest_sha1": "",
+    "current_manifest_sha": "",
     "disks": \[\],
     "stemcells": \[\],
     "releases": \[\]
@@ -274,7 +274,7 @@ registry_instances:
     "current_stemcell_id": "",
     "current_disk_id": "fake-uuid-0",
     "current_release_ids": null,
-    "current_manifest_sha1": "",
+    "current_manifest_sha": "",
     "disks": \[
         {
             "id": "fake-uuid-0",
@@ -340,7 +340,7 @@ registry_instances:
     "current_stemcell_id": "",
     "current_disk_id": "",
     "current_release_ids": null,
-    "current_manifest_sha1": "",
+    "current_manifest_sha": "",
     "disks": \[\],
     "stemcells": \[\],
     "releases": \[\]
@@ -392,7 +392,7 @@ registry_instances:
     "current_stemcell_id": "",
     "current_disk_id": "fake-uuid-0",
     "current_release_ids": null,
-    "current_manifest_sha1": "",
+    "current_manifest_sha": "",
     "disks": \[
         {
             "id": "fake-uuid-0",
@@ -451,7 +451,7 @@ registry_instances:
     "current_stemcell_id": "",
     "current_disk_id": "",
     "current_release_ids": null,
-    "current_manifest_sha1": "",
+    "current_manifest_sha": "",
     "disks": \[\],
     "stemcells": \[\],
     "releases": \[\]
@@ -503,7 +503,7 @@ registry_instances:
     "current_stemcell_id": "",
     "current_disk_id": "",
     "current_release_ids": null,
-    "current_manifest_sha1": "",
+    "current_manifest_sha": "",
     "disks": \[\],
     "stemcells": \[
         {
