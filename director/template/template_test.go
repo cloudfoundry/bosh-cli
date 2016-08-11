@@ -16,7 +16,7 @@ var _ = Describe("Template", func() {
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("foo\n")))
+		Expect(result.Content()).To(Equal([]byte("foo\n")))
 	})
 
 	It("can template multiple values into a byte slice", func() {
@@ -28,7 +28,7 @@ var _ = Describe("Template", func() {
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("foo: bar\n")))
+		Expect(result.Content()).To(Equal([]byte("foo: bar\n")))
 	})
 
 	It("can template boolean values into a byte slice", func() {
@@ -38,7 +38,7 @@ var _ = Describe("Template", func() {
 		}
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("otherstuff: true\n")))
+		Expect(result.Content()).To(Equal([]byte("otherstuff: true\n")))
 	})
 
 	It("can template a different data types into a byte slice", func() {
@@ -54,7 +54,7 @@ var _ = Describe("Template", func() {
 		}
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte(`1234: value
+		Expect(result.Content()).To(Equal([]byte(`1234: value
 name1: 1
 name2: nil
 name3: true
@@ -76,7 +76,7 @@ name6:
 			}
 			result, err := template.Evaluate(variables)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal([]byte("string with a ((key))\n")))
+			Expect(result.Content()).To(Equal([]byte("string with a ((key))\n")))
 		})
 	})
 	Context("When template is a number", func() {
@@ -87,7 +87,7 @@ name6:
 			}
 			result, err := template.Evaluate(variables)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal([]byte("1234\n")))
+			Expect(result.Content()).To(Equal([]byte("1234\n")))
 		})
 	})
 
@@ -100,7 +100,7 @@ name6:
 
 			result, err := template.Evaluate(variables)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal([]byte("null: value\n")))
+			Expect(result.Content()).To(Equal([]byte("null: value\n")))
 		})
 	})
 
@@ -112,7 +112,7 @@ name6:
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("☃\n")))
+		Expect(result.Content()).To(Equal([]byte("☃\n")))
 	})
 
 	It("can template keys with dashes and underscores into a byte slice", func() {
@@ -124,7 +124,7 @@ name6:
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("dash: underscore\n")))
+		Expect(result.Content()).To(Equal([]byte("dash: underscore\n")))
 	})
 
 	It("can template the same value multiple times into a byte slice", func() {
@@ -135,7 +135,7 @@ name6:
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("foo: foo\n")))
+		Expect(result.Content()).To(Equal([]byte("foo: foo\n")))
 	})
 
 	It("can template values with strange newlines", func() {
@@ -146,7 +146,7 @@ name6:
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("|-\n  this\n  has\n  many\n  lines\n")))
+		Expect(result.Content()).To(Equal([]byte("|-\n  this\n  has\n  many\n  lines\n")))
 	})
 
 	It("ignores an invalid input", func() {
@@ -155,6 +155,6 @@ name6:
 
 		result, err := template.Evaluate(variables)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal([]byte("(()\n")))
+		Expect(result.Content()).To(Equal([]byte("(()\n")))
 	})
 })

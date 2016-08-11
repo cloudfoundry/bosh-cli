@@ -45,11 +45,12 @@ func (p *parser) Parse(path string, vars boshtpl.Variables) (Manifest, error) {
 
 	tpl := boshtpl.NewTemplate(contents)
 
-	bytes, err := tpl.Evaluate(vars)
+	result, err := tpl.Evaluate(vars)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Evaluating manifest")
 	}
 
+	bytes := result.Content()
 	comboManifest := manifest{}
 
 	err = yaml.Unmarshal(bytes, &comboManifest)

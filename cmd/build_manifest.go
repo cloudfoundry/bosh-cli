@@ -25,6 +25,6 @@ func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
 		return err
 	}
 
-	c.ui.PrintBlock(string(evaluatedManifest))
+	c.ui.PrintBlock(string(evaluatedManifest.Content()))
 	return nil
 }

@@ -20,7 +20,7 @@ func NewUpdateCloudConfigCmd(ui boshui.UI, director boshdir.Director) UpdateClou
 func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.CloudConfig.Bytes)
 
-	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
+	result, err := tpl.Evaluate(opts.VarFlags.AsVariables())
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating cloud config")
 	}
@@ -30,5 +30,5 @@ func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 		return err
 	}
 
-	return c.director.UpdateCloudConfig(bytes)
+	return c.director.UpdateCloudConfig(result.Content())
 }

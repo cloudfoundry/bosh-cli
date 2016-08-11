@@ -12,21 +12,33 @@ type Template struct {
 	bytes []byte
 }
 
+type InterpolatedTemplate struct {
+	content []byte
+}
+
+func (t *InterpolatedTemplate) Content() []byte {
+	return t.content
+}
+
 func NewTemplate(bytes []byte) Template {
 	return Template{bytes: bytes}
 }
 
-func (t Template) Evaluate(vars Variables) ([]byte, error) {
+func (t Template) Evaluate(vars Variables) (InterpolatedTemplate, error) {
 	var templateYaml interface{}
 
 	err := yaml.Unmarshal(t.bytes, &templateYaml)
 	if err != nil {
-		return nil, err
+		return InterpolatedTemplate{}, err
 	}
 
 	compiledTemplate := t.interpolate(templateYaml, vars)
 
-	return yaml.Marshal(compiledTemplate)
+	bytes, err := yaml.Marshal(compiledTemplate)
+	if err != nil {
+		return InterpolatedTemplate{}, err
+	}
+	return InterpolatedTemplate{content: bytes}, nil
 }
 
 func (t Template) interpolate(node interface{}, vars Variables) interface{} {
