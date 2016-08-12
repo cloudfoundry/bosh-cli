@@ -14,6 +14,16 @@ name: some-deployment
 
 type Manifest struct {
 	Name string
+
+	Releases []ManifestRelease
+}
+
+type ManifestRelease struct {
+	Name    string
+	Version string
+
+	URL  string
+	SHA1 string
 }
 
 func NewManifestFromPath(path string, fs boshsys.FileSystem) (Manifest, error) {

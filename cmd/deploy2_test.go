@@ -2,11 +2,13 @@ package cmd_test
 
 import (
 	"errors"
+	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-init/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
 	boshdir "github.com/cloudfoundry/bosh-init/director"
 	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
@@ -15,9 +17,10 @@ import (
 
 var _ = Describe("Deploy2Cmd", func() {
 	var (
-		ui         *fakeui.FakeUI
-		deployment *fakedir.FakeDeployment
-		command    Deploy2Cmd
+		ui               *fakeui.FakeUI
+		deployment       *fakedir.FakeDeployment
+		uploadReleaseCmd *fakecmd.FakeReleaseUploadingCmd
+		command          Deploy2Cmd
 	)
 
 	BeforeEach(func() {
@@ -25,7 +28,8 @@ var _ = Describe("Deploy2Cmd", func() {
 		deployment = &fakedir.FakeDeployment{
 			NameStub: func() string { return "dep" },
 		}
-		command = NewDeploy2Cmd(ui, deployment)
+		uploadReleaseCmd = &fakecmd.FakeReleaseUploadingCmd{}
+		command = NewDeploy2Cmd(ui, deployment, uploadReleaseCmd)
 	})
 
 	Describe("Run", func() {
@@ -119,22 +123,26 @@ var _ = Describe("Deploy2Cmd", func() {
 			Expect(deployment.UpdateCallCount()).To(Equal(0))
 		})
 
-		It("does not deploy if confirmation is rejected", func() {
+		It("does not upload releases and deploy if confirmation is rejected", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte(`
+name: dep
+releases:
+- name: capi
+  sha1: capi-sha1
+  url: https://capi-url
+  version: 1+capi
+`),
+			}
+
 			ui.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("stop"))
 
+			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
 			Expect(deployment.UpdateCallCount()).To(Equal(0))
-		})
-
-		It("returns error if deploying failed", func() {
-			deployment.UpdateReturns(errors.New("fake-err"))
-
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
 		It("returns an error if diffing failed", func() {
@@ -162,6 +170,90 @@ var _ = Describe("Deploy2Cmd", func() {
 			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
 			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
 			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+		})
+
+		It("uploads remote releases", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte(`
+name: dep
+releases:
+- name: capi
+  sha1: capi-sha1
+  url: https://capi-url
+  version: 1+capi
+- name: consul
+  sha1: consul-sha1
+  url: https://consul-url
+  version: 1+consul
+`),
+			}
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(2))
+
+			Expect(uploadReleaseCmd.RunArgsForCall(0)).To(Equal(UploadReleaseOpts{
+				Name:    "capi",
+				Args:    UploadReleaseArgs{URL: URLArg("https://capi-url")},
+				SHA1:    "capi-sha1",
+				Version: VersionArg(semver.MustNewVersionFromString("1+capi")),
+			}))
+
+			Expect(uploadReleaseCmd.RunArgsForCall(1)).To(Equal(UploadReleaseOpts{
+				Name:    "consul",
+				Args:    UploadReleaseArgs{URL: URLArg("https://consul-url")},
+				SHA1:    "consul-sha1",
+				Version: VersionArg(semver.MustNewVersionFromString("1+consul")),
+			}))
+		})
+
+		It("returns error and does not deploy if uploading release fails", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte(`
+name: dep
+releases:
+- name: capi
+  sha1: capi-sha1
+  url: https://capi-url
+  version: 1+capi
+`),
+			}
+			uploadReleaseCmd.RunReturns(errors.New("fake-err"))
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+			Expect(deployment.UpdateCallCount()).To(Equal(0))
+		})
+
+		It("returns an error if release version cannot be parsed", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte(`
+name: dep
+releases:
+- name: capi
+  sha1: capi-sha1
+  url: https://capi-url
+  version: 1+capi+capi
+`),
+			}
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Expected version '1+capi+capi' to match version format"))
+
+			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
+			Expect(deployment.UpdateCallCount()).To(Equal(0))
+		})
+
+		It("returns error if deploying failed", func() {
+			deployment.UpdateReturns(errors.New("fake-err"))
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 	})
 })

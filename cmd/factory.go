@@ -395,8 +395,9 @@ func NewFactory(deps BasicDeps) Factory {
 		return NewVMResurrectionCmd(director).Run(opts.VMResurrection)
 	}))
 
-	opts.Deploy.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
-		return NewDeploy2Cmd(deps.UI, dep).Run(opts.Deploy)
+	opts.Deploy.call = rejectExtraArgsFunc(directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
+		uploadReleaseCmd := NewUploadReleaseCmd(nil, nil, nil, director, nil, deps.UI)
+		return NewDeploy2Cmd(deps.UI, dep, uploadReleaseCmd).Run(opts.Deploy)
 	}))
 
 	opts.Start.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
