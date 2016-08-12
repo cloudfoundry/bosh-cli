@@ -8,6 +8,7 @@ counterfeiter cmd Session
 counterfeiter cmd SessionContext
 counterfeiter cmd Downloader
 counterfeiter cmd LoginStrategy
+counterfeiter cmd ReleaseUploadingCmd
 counterfeiter cmd/config Config
 
 counterfeiter director Adjustment

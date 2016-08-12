@@ -89,6 +89,15 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(fix).To(BeFalse())
 			})
 
+			It("uploads given release even if reader is nil", func() {
+				command = NewUploadReleaseCmd(nil, nil, nil, director, nil, ui)
+
+				err := command.Run(opts)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(director.UploadReleaseURLCallCount()).To(Equal(1))
+			})
+
 			It("uploads given release with a fix flag without checking if release exists", func() {
 				opts.Fix = true
 
@@ -198,6 +207,14 @@ var _ = Describe("UploadReleaseCmd", func() {
 						return boshman.Manifest{Name: "rel"}
 					},
 				}
+			})
+
+			It("returns an error if reader is nil", func() {
+				command = NewUploadReleaseCmd(nil, nil, nil, director, nil, ui)
+
+				err := command.Run(opts)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Cannot upload non-remote release './some-file.tgz'"))
 			})
 
 			It("uploads given release", func() {

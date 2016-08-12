@@ -46,6 +46,10 @@ func (c UploadReleaseCmd) Run(opts UploadReleaseOpts) error {
 		return c.uploadRemote(string(opts.Args.URL), opts)
 	}
 
+	if c.releaseReader == nil {
+		return bosherr.Errorf("Cannot upload non-remote release '%s'", opts.Args.URL)
+	}
+
 	return c.uploadFile(opts.Args.URL.FilePath(), opts.Rebase, opts.Fix)
 }
 
