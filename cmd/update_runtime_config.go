@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	boshdir "github.com/cloudfoundry/bosh-init/director"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
@@ -9,20 +10,26 @@ import (
 )
 
 type UpdateRuntimeConfigCmd struct {
-	ui       boshui.UI
-	director boshdir.Director
+	ui               boshui.UI
+	director         boshdir.Director
+	uploadReleaseCmd ReleaseUploadingCmd
 }
 
-func NewUpdateRuntimeConfigCmd(ui boshui.UI, director boshdir.Director) UpdateRuntimeConfigCmd {
-	return UpdateRuntimeConfigCmd{ui: ui, director: director}
+func NewUpdateRuntimeConfigCmd(ui boshui.UI, director boshdir.Director, uploadReleaseCmd ReleaseUploadingCmd) UpdateRuntimeConfigCmd {
+	return UpdateRuntimeConfigCmd{ui: ui, director: director, uploadReleaseCmd: uploadReleaseCmd}
 }
 
 func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.RuntimeConfig.Bytes)
 
-	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
+	rcBytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating runtime config")
+	}
+
+	rc, err := boshdir.NewRuntimeConfigManifestFromBytes(rcBytes)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Checking runtime config")
 	}
 
 	err = c.ui.AskForConfirmation()
@@ -30,5 +37,29 @@ func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 		return err
 	}
 
-	return c.director.UpdateRuntimeConfig(bytes)
+	for _, rel := range rc.Releases {
+		err = c.uploadRelease(rel)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Uploading release '%s/%s'", rel.Name, rel.Version)
+		}
+	}
+
+	return c.director.UpdateRuntimeConfig(rcBytes)
+}
+
+func (c UpdateRuntimeConfigCmd) uploadRelease(rel boshdir.RuntimeConfigManifestRelease) error {
+	ver, err := semver.NewVersionFromString(rel.Version)
+	if err != nil {
+		return err
+	}
+
+	opts := UploadReleaseOpts{
+		Name:    rel.Name,
+		Version: VersionArg(ver),
+
+		Args: UploadReleaseArgs{URL: URLArg(rel.URL)},
+		SHA1: rel.SHA1,
+	}
+
+	return c.uploadReleaseCmd.Run(opts)
 }
