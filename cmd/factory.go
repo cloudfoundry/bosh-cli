@@ -371,8 +371,9 @@ func NewFactory(deps BasicDeps) Factory {
 		return NewRuntimeConfigCmd(deps.UI, director).Run()
 	}))
 
-	opts.UpdateRuntimeConfig.call = rejectExtraArgsFunc(directorFunc(func(director boshdir.Director) error {
-		return NewUpdateRuntimeConfigCmd(deps.UI, director).Run(opts.UpdateRuntimeConfig)
+	opts.UpdateRuntimeConfig.call = rejectExtraArgsFunc(directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
+		uploadReleaseCmd := NewUploadReleaseCmd(nil, nil, nil, director, nil, deps.UI)
+		return NewUpdateRuntimeConfigCmd(deps.UI, director, uploadReleaseCmd).Run(opts.UpdateRuntimeConfig)
 	}))
 
 	opts.Manifest.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
