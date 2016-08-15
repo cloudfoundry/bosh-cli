@@ -77,7 +77,7 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\n")))
 		})
 
-		It("uploads remote releases", func() {
+		It("uploads remote releases skipping releases without url", func() {
 			opts.Args.RuntimeConfig = FileBytesArg{
 				Bytes: []byte(`
 releases:
@@ -85,6 +85,8 @@ releases:
   sha1: capi-sha1
   url: https://capi-url
   version: 1+capi
+- name: rel-without-upload
+  version: 1+rel
 - name: consul
   sha1: consul-sha1
   url: https://consul-url

@@ -75,6 +75,10 @@ func (c Deploy2Cmd) uploadRelease(rel boshdir.ManifestRelease) error {
 		SHA1: rel.SHA1,
 	}
 
+	if opts.Args.URL.IsEmpty() {
+		return nil
+	}
+
 	return c.uploadReleaseCmd.Run(opts)
 }
 

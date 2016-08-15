@@ -61,5 +61,9 @@ func (c UpdateRuntimeConfigCmd) uploadRelease(rel boshdir.RuntimeConfigManifestR
 		SHA1: rel.SHA1,
 	}
 
+	if opts.Args.URL.IsEmpty() {
+		return nil
+	}
+
 	return c.uploadReleaseCmd.Run(opts)
 }
