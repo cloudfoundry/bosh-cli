@@ -4,6 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bidepltpl "github.com/cloudfoundry/bosh-init/deployment/template"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
@@ -14,15 +15,29 @@ type DeploymentManifestParser struct {
 	DeploymentParser    bideplmanifest.Parser
 	DeploymentValidator bideplmanifest.Validator
 	ReleaseManager      birel.Manager
+	TemplateFactory     bidepltpl.DeploymentTemplateFactory
 }
 
-func (y DeploymentManifestParser) GetDeploymentManifest(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, error) {
+func (y DeploymentManifestParser) GetDeploymentManifest(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error) {
 	var deploymentManifest bideplmanifest.Manifest
+	var manifestSHA string
 
 	err := stage.Perform("Validating deployment manifest", func() error {
 		var err error
 
-		deploymentManifest, err = y.DeploymentParser.Parse(path, vars)
+		template, err := y.TemplateFactory.NewTemplateFromPath(path)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Evaluating manifest")
+		}
+
+		interpolatedTemplate, err := template.Evaluate(vars)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Interpolating manifest '%s'", path)
+		}
+
+		manifestSHA = interpolatedTemplate.SHA()
+
+		deploymentManifest, err = y.DeploymentParser.Parse(interpolatedTemplate, path)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", path)
 		}
@@ -40,8 +55,8 @@ func (y DeploymentManifestParser) GetDeploymentManifest(path string, vars boshtp
 		return nil
 	})
 	if err != nil {
-		return bideplmanifest.Manifest{}, err
+		return bideplmanifest.Manifest{}, "", err
 	}
 
-	return deploymentManifest, nil
+	return deploymentManifest, manifestSHA, nil
 }

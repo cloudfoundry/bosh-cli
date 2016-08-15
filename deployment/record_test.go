@@ -9,7 +9,6 @@ import (
 
 	biconfig "github.com/cloudfoundry/bosh-init/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	. "github.com/cloudfoundry/bosh-init/deployment"
 	boshrel "github.com/cloudfoundry/bosh-init/release"
 	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
@@ -18,14 +17,13 @@ import (
 
 var _ = Describe("Record", func() {
 	var (
-		release            *fakerel.FakeRelease
-		stemcell           bistemcell.ExtractedStemcell
-		deploymentRepo     *fakebiconfig.FakeDeploymentRepo
-		releaseRepo        *fakebiconfig.FakeReleaseRepo
-		stemcellRepo       *fakebiconfig.FakeStemcellRepo
-		fakeSHA1Calculator *fakebicrypto.FakeSha1Calculator
-		deploymentRecord   Record
-		releases           []boshrel.Release
+		release          *fakerel.FakeRelease
+		stemcell         bistemcell.ExtractedStemcell
+		deploymentRepo   *fakebiconfig.FakeDeploymentRepo
+		releaseRepo      *fakebiconfig.FakeReleaseRepo
+		stemcellRepo     *fakebiconfig.FakeStemcellRepo
+		deploymentRecord Record
+		releases         []boshrel.Release
 	)
 
 	BeforeEach(func() {
@@ -46,8 +44,7 @@ var _ = Describe("Record", func() {
 		deploymentRepo = fakebiconfig.NewFakeDeploymentRepo()
 		releaseRepo = &fakebiconfig.FakeReleaseRepo{}
 		stemcellRepo = fakebiconfig.NewFakeStemcellRepo()
-		fakeSHA1Calculator = fakebicrypto.NewFakeSha1Calculator()
-		deploymentRecord = NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
+		deploymentRecord = NewRecord(deploymentRepo, releaseRepo, stemcellRepo)
 	})
 
 	Describe("IsDeployed", func() {
@@ -61,12 +58,6 @@ var _ = Describe("Record", func() {
 			stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
 
 			deploymentRepo.SetFindCurrentBehavior("fake-manifest-sha1", true, nil)
-			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-				"fake-manifest-path": fakebicrypto.CalculateInput{
-					Sha1: "fake-manifest-sha1",
-					Err:  nil,
-				},
-			})
 		})
 
 		Context("when the stemcell and manifest do not change", func() {
@@ -76,7 +67,7 @@ var _ = Describe("Record", func() {
 				})
 
 				It("returns false", func() {
-					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(isDeployed).To(BeFalse())
 				})
@@ -93,7 +84,7 @@ var _ = Describe("Record", func() {
 				})
 
 				It("returns true", func() {
-					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(isDeployed).To(BeTrue())
 				})
@@ -111,7 +102,7 @@ var _ = Describe("Record", func() {
 				})
 
 				It("returns false", func() {
-					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(isDeployed).To(BeFalse())
 				})
@@ -129,7 +120,7 @@ var _ = Describe("Record", func() {
 				})
 
 				It("returns false", func() {
-					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+					isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(isDeployed).To(BeFalse())
 				})
@@ -168,7 +159,7 @@ var _ = Describe("Record", func() {
 						})
 
 						It("returns true", func() {
-							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 							Expect(err).ToNot(HaveOccurred())
 							Expect(isDeployed).To(BeTrue())
 						})
@@ -183,7 +174,7 @@ var _ = Describe("Record", func() {
 						})
 
 						It("returns true", func() {
-							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 							Expect(err).ToNot(HaveOccurred())
 							Expect(isDeployed).To(BeTrue())
 						})
@@ -197,24 +188,12 @@ var _ = Describe("Record", func() {
 						})
 
 						It("returns false", func() {
-							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+							isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 							Expect(err).ToNot(HaveOccurred())
 							Expect(isDeployed).To(BeFalse())
 						})
 					})
 				})
-			})
-		})
-
-		Context("when getting current deployment manifest sha1 fails", func() {
-			BeforeEach(func() {
-				deploymentRepo.SetFindCurrentBehavior("fake-manifest-path", true, errors.New("fake-find-error"))
-			})
-
-			It("returns an error", func() {
-				_, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-find-error"))
 			})
 		})
 
@@ -224,26 +203,9 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isDeployed).To(BeFalse())
-			})
-		})
-
-		Context("when calculating the deployment manifest sha1 fails", func() {
-			BeforeEach(func() {
-				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-					"fake-manifest-path": fakebicrypto.CalculateInput{
-						Sha1: "",
-						Err:  errors.New("fake-calculate-error"),
-					},
-				})
-			})
-
-			It("returns an error", func() {
-				_, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-calculate-error"))
 			})
 		})
 
@@ -253,7 +215,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isDeployed).To(BeFalse())
 			})
@@ -265,7 +227,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+				_, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-find-error"))
 			})
@@ -277,7 +239,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isDeployed).To(BeFalse())
 			})
@@ -295,7 +257,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns false", func() {
-				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+				isDeployed, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(isDeployed).To(BeFalse())
 			})
@@ -307,7 +269,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := deploymentRecord.IsDeployed("fake-manifest-path", releases, stemcell)
+				_, err := deploymentRecord.IsDeployed("fake-manifest-sha1", releases, stemcell)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-find-error"))
 			})
@@ -315,17 +277,8 @@ var _ = Describe("Record", func() {
 	})
 
 	Describe("Update", func() {
-		BeforeEach(func() {
-			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-				"fake-manifest-path": fakebicrypto.CalculateInput{
-					Sha1: "fake-manifest-sha1",
-					Err:  nil,
-				},
-			})
-		})
-
 		It("calculates and updates sha1 of currently deployed manifest", func() {
-			err := deploymentRecord.Update("fake-manifest-path", releases)
+			err := deploymentRecord.Update("fake-manifest-sha1", releases)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deploymentRepo.UpdateCurrentManifestSHA).To(Equal("fake-manifest-sha1"))
 		})
@@ -337,41 +290,19 @@ var _ = Describe("Record", func() {
 			Expect(releaseRepo.UpdateArgsForCall(0)).To(Equal(releases))
 		})
 
-		Context("when calculating the deployment manifest sha1 fails", func() {
-			BeforeEach(func() {
-				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-					"fake-manifest-path": fakebicrypto.CalculateInput{
-						Sha1: "",
-						Err:  errors.New("fake-calculate-error"),
-					},
-				})
-			})
-
-			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", releases)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-calculate-error"))
-			})
-
-			It("does not update the release records", func() {
-				deploymentRecord.Update("fake-manifest-path", releases)
-				Expect(releaseRepo.UpdateCallCount()).To(Equal(0))
-			})
-		})
-
 		Context("when updating currently deployed manifest sha1 fails", func() {
 			BeforeEach(func() {
 				deploymentRepo.UpdateCurrentErr = errors.New("fake-update-error")
 			})
 
 			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", releases)
+				err := deploymentRecord.Update("fake-manifest-sha1", releases)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
 			})
 
 			It("does not update the release records", func() {
-				deploymentRecord.Update("fake-manifest-path", releases)
+				deploymentRecord.Update("fake-manifest-sha1", releases)
 				Expect(releaseRepo.UpdateCallCount()).To(Equal(0))
 			})
 		})
@@ -382,7 +313,7 @@ var _ = Describe("Record", func() {
 			})
 
 			It("returns an error", func() {
-				err := deploymentRecord.Update("fake-manifest-path", releases)
+				err := deploymentRecord.Update("fake-manifest-sha1", releases)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
 			})

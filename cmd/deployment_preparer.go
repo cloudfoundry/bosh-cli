@@ -136,6 +136,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		extractedStemcell    bistemcell.ExtractedStemcell
 		deploymentManifest   bideplmanifest.Manifest
 		installationManifest biinstallmanifest.Manifest
+		manifestSHA          string
 	)
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var releaseSetManifest birelsetmanifest.Manifest
@@ -156,7 +157,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 			return err
 		}
 
-		deploymentManifest, err = c.deploymentManifestParser.GetDeploymentManifest(c.deploymentManifestPath, c.deploymentVars, releaseSetManifest, stage)
+		deploymentManifest, manifestSHA, err = c.deploymentManifestParser.GetDeploymentManifest(c.deploymentManifestPath, c.deploymentVars, releaseSetManifest, stage)
 		if err != nil {
 			return err
 		}
@@ -174,7 +175,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		}
 	}()
 
-	isDeployed, err := c.deploymentRecord.IsDeployed(c.deploymentManifestPath, c.releaseManager.List(), extractedStemcell)
+	isDeployed, err := c.deploymentRecord.IsDeployed(manifestSHA, c.releaseManager.List(), extractedStemcell)
 	if err != nil {
 		return bosherr.WrapError(err, "Checking if deployment has changed")
 	}
@@ -192,6 +193,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 				extractedStemcell,
 				installationManifest,
 				deploymentManifest,
+				manifestSHA,
 				stage)
 		})
 	})
@@ -206,6 +208,7 @@ func (c *DeploymentPreparer) deploy(
 	extractedStemcell bistemcell.ExtractedStemcell,
 	installationManifest biinstallmanifest.Manifest,
 	deploymentManifest bideplmanifest.Manifest,
+	manifestSHA string,
 	stage biui.Stage,
 ) (err error) {
 	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
@@ -247,7 +250,7 @@ func (c *DeploymentPreparer) deploy(
 			return bosherr.WrapError(err, "Deploying")
 		}
 
-		err = c.deploymentRecord.Update(c.deploymentManifestPath, c.releaseManager.List())
+		err = c.deploymentRecord.Update(manifestSHA, c.releaseManager.List())
 		if err != nil {
 			return bosherr.WrapError(err, "Updating deployment record")
 		}

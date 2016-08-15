@@ -20,11 +20,11 @@ func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
 
 	template := template.NewTemplate(opts.Args.Manifest.Bytes)
 
-	evaluatedManifest, err := template.Evaluate(variables)
+	bytes, err := template.Evaluate(variables)
 	if err != nil {
 		return err
 	}
 
-	c.ui.PrintBlock(string(evaluatedManifest.Content()))
+	c.ui.PrintBlock(string(bytes))
 	return nil
 }

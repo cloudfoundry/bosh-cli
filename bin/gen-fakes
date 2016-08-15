@@ -11,6 +11,9 @@ counterfeiter cmd LoginStrategy
 counterfeiter cmd ReleaseUploadingCmd
 counterfeiter cmd/config Config
 
+counterfeiter deployment/manifest Parser
+counterfeiter deployment/template DeploymentTemplateFactory
+
 counterfeiter director Adjustment
 counterfeiter director AdjustedClient
 counterfeiter director Director

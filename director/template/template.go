@@ -2,7 +2,6 @@ package template
 
 import (
 	"gopkg.in/yaml.v2"
-
 	"regexp"
 )
 
@@ -12,33 +11,25 @@ type Template struct {
 	bytes []byte
 }
 
-type InterpolatedTemplate struct {
-	content []byte
-}
-
-func (t *InterpolatedTemplate) Content() []byte {
-	return t.content
-}
-
 func NewTemplate(bytes []byte) Template {
 	return Template{bytes: bytes}
 }
 
-func (t Template) Evaluate(vars Variables) (InterpolatedTemplate, error) {
+func (t Template) Evaluate(vars Variables) ([]byte, error) {
 	var templateYaml interface{}
 
 	err := yaml.Unmarshal(t.bytes, &templateYaml)
 	if err != nil {
-		return InterpolatedTemplate{}, err
+		return []byte{}, err
 	}
 
 	compiledTemplate := t.interpolate(templateYaml, vars)
 
 	bytes, err := yaml.Marshal(compiledTemplate)
 	if err != nil {
-		return InterpolatedTemplate{}, err
+		return []byte{}, err
 	}
-	return InterpolatedTemplate{content: bytes}, nil
+	return bytes, nil
 }
 
 func (t Template) interpolate(node interface{}, vars Variables) interface{} {

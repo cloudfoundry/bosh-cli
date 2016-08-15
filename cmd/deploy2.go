@@ -26,13 +26,12 @@ func NewDeploy2Cmd(ui boshui.UI, deployment boshdir.Deployment, uploadReleaseCmd
 func (c Deploy2Cmd) Run(opts DeployOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
-	result, err := tpl.Evaluate(opts.VarFlags.AsVariables())
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating manifest")
 	}
 
-	manBytes := result.Content()
-	man, err := boshdir.NewManifestFromBytes(manBytes)
+	man, err := boshdir.NewManifestFromBytes(bytes)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Checking manifest")
 	}
@@ -42,7 +41,7 @@ func (c Deploy2Cmd) Run(opts DeployOpts) error {
 		return bosherr.Errorf(errMsg, c.deployment.Name(), man.Name)
 	}
 
-	err = c.printManifestDiff(manBytes, opts)
+	err = c.printManifestDiff(bytes, opts)
 	if err != nil {
 		return bosherr.WrapError(err, "Diffing manifest")
 	}
@@ -59,7 +58,7 @@ func (c Deploy2Cmd) Run(opts DeployOpts) error {
 		}
 	}
 
-	return c.deployment.Update(manBytes, opts.Recreate, opts.SkipDrain)
+	return c.deployment.Update(bytes, opts.Recreate, opts.SkipDrain)
 }
 
 func (c Deploy2Cmd) uploadRelease(rel boshdir.ManifestRelease) error {

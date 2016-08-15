@@ -22,13 +22,12 @@ func NewUpdateRuntimeConfigCmd(ui boshui.UI, director boshdir.Director, uploadRe
 func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.RuntimeConfig.Bytes)
 
-	interpolatedRuntimeConfig, err := tpl.Evaluate(opts.VarFlags.AsVariables())
+	runtimeConfigBytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating runtime config")
 	}
 
-	runtimeConfigBytes := interpolatedRuntimeConfig.Content()
-	rc, err := boshdir.NewRuntimeConfigManifestFromBytes(runtimeConfigBytes)
+	runtimeConfig, err := boshdir.NewRuntimeConfigManifestFromBytes(runtimeConfigBytes)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Checking runtime config")
 	}
@@ -38,7 +37,7 @@ func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 		return err
 	}
 
-	for _, rel := range rc.Releases {
+	for _, rel := range runtimeConfig.Releases {
 		err = c.uploadRelease(rel)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Uploading release '%s/%s'", rel.Name, rel.Version)

@@ -32,6 +32,8 @@ import (
 	fakebideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
 	fakebideplval "github.com/cloudfoundry/bosh-init/deployment/manifest/fakes"
 	mock_deployment "github.com/cloudfoundry/bosh-init/deployment/mocks"
+	bidepltpl "github.com/cloudfoundry/bosh-init/deployment/template"
+	fakebidepltpl "github.com/cloudfoundry/bosh-init/deployment/template/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
 	mock_vm "github.com/cloudfoundry/bosh-init/deployment/vm/mocks"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
@@ -103,6 +105,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeReleaseSetParser              *fakebirelsetmanifest.FakeParser
 			fakeInstallationParser            *fakebiinstallmanifest.FakeParser
 			fakeDeploymentParser              *fakebideplmanifest.FakeParser
+			fakeDeploymentTemplateFactory     *fakebidepltpl.FakeDeploymentTemplateFactory
 			mockLegacyDeploymentStateMigrator *mock_config.MockLegacyDeploymentStateMigrator
 			setupDeploymentStateService       biconfig.DeploymentStateService
 			fakeDeploymentValidator           *fakebideplval.FakeValidator
@@ -124,6 +127,7 @@ var _ = Describe("DeployCmd", func() {
 			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 
 			releaseSetManifest     birelsetmanifest.Manifest
+			template               bidepltpl.DeploymentTemplate
 			boshDeploymentManifest bideplmanifest.Manifest
 			installationManifest   biinstallmanifest.Manifest
 			cloud                  bicloud.Cloud
@@ -184,7 +188,8 @@ var _ = Describe("DeployCmd", func() {
 
 			fakeReleaseSetParser = fakebirelsetmanifest.NewFakeParser()
 			fakeInstallationParser = fakebiinstallmanifest.NewFakeParser()
-			fakeDeploymentParser = fakebideplmanifest.NewFakeParser()
+			fakeDeploymentParser = &fakebideplmanifest.FakeParser{}
+			fakeDeploymentTemplateFactory = &fakebidepltpl.FakeDeploymentTemplateFactory{}
 
 			mockLegacyDeploymentStateMigrator = mock_config.NewMockLegacyDeploymentStateMigrator(mockCtrl)
 
@@ -200,7 +205,7 @@ var _ = Describe("DeployCmd", func() {
 			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
 			var err error
-			manifestSHA, err = sha1Calculator.Calculate(deploymentManifestPath)
+			manifestSHA = "ed173647f91a1001fa3859cb7857b0318794a7e92b40412146a93bebfb052218c91c0299e7b495470bf67b462722b807e8db7b9df3b59866451efcf4ae9e27a4"
 			Expect(err).ToNot(HaveOccurred())
 
 			cpiReleaseTarballPath = "/release/tarball/path"
@@ -270,7 +275,8 @@ var _ = Describe("DeployCmd", func() {
 					},
 				},
 			}
-			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
+			fakeDeploymentTemplateFactory.NewTemplateFromPathReturns(template, nil)
+			fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
 
 			// parsed/extracted CPI release
 			cpiRelease = &fakebirel.FakeRelease{}
@@ -311,7 +317,7 @@ var _ = Describe("DeployCmd", func() {
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
 				stemcellRepo := biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
-				deploymentRecord := deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, sha1Calculator)
+				deploymentRecord := deployment.NewRecord(deploymentRepo, releaseRepo, stemcellRepo)
 
 				fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
 				tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
@@ -336,6 +342,7 @@ var _ = Describe("DeployCmd", func() {
 					DeploymentParser:    fakeDeploymentParser,
 					DeploymentValidator: fakeDeploymentValidator,
 					ReleaseManager:      releaseManager,
+					TemplateFactory:     fakeDeploymentTemplateFactory,
 				}
 
 				fakeInstallationUUIDGenerator := &fakeuuid.FakeGenerator{}
@@ -386,7 +393,9 @@ var _ = Describe("DeployCmd", func() {
 			expectStemcellDeleteUnused = mockStemcellManager.EXPECT().DeleteUnused(fakeStage).AnyTimes()
 
 			fakeReleaseSetParser.ParseManifest = releaseSetManifest
-			fakeDeploymentParser.ParseManifest = boshDeploymentManifest
+			template := bidepltpl.NewDeploymentTemplate([]byte("--- {\"test\":true}"))
+			fakeDeploymentTemplateFactory.NewTemplateFromPathReturns(template, nil)
+			fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
 			fakeInstallationParser.ParseManifest = installationManifest
 
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
@@ -483,7 +492,12 @@ var _ = Describe("DeployCmd", func() {
 		It("parses the deployment manifest", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
+			actualManifestPath := fakeDeploymentTemplateFactory.NewTemplateFromPathArgsForCall(0)
+			Expect(actualManifestPath).To(Equal(deploymentManifestPath))
+
+			actualInterpolatedTemplate, actualPath := fakeDeploymentParser.ParseArgsForCall(0)
+			Expect(actualInterpolatedTemplate.Content()).To(Equal([]byte("test: true\n")))
+			Expect(actualPath).To(Equal(deploymentManifestPath))
 		})
 
 		It("validates bosh deployment manifest", func() {
@@ -660,8 +674,10 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		Context("when parsing the cpi deployment manifest fails", func() {
-			BeforeEach(func() {
-				fakeDeploymentParser.ParseErr = bosherr.Error("fake-parse-error")
+			JustBeforeEach(func() {
+				manifest := bideplmanifest.Manifest{}
+				err := bosherr.Error("fake-parse-error")
+				fakeDeploymentParser.ParseReturns(manifest, err)
 			})
 
 			It("returns error", func() {
@@ -669,7 +685,8 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Parsing deployment manifest"))
 				Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
-				Expect(fakeDeploymentParser.ParsePath).To(Equal(deploymentManifestPath))
+				parsePath := fakeDeploymentTemplateFactory.NewTemplateFromPathArgsForCall(0)
+				Expect(parsePath).To(Equal(deploymentManifestPath))
 			})
 		})
 

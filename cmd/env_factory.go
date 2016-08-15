@@ -133,7 +133,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Var
 
 		deploymentRepo := biconfig.NewDeploymentRepo(f.deploymentStateService)
 		releaseRepo := biconfig.NewReleaseRepo(f.deploymentStateService, deps.UUIDGen)
-		f.deploymentRecord = bidepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, deps.SHA1Calc)
+		f.deploymentRecord = bidepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo)
 	}
 
 	{
