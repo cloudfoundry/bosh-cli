@@ -1,15 +1,11 @@
-package cmd
-
-import (
-	boshuaa "github.com/cloudfoundry/bosh-init/uaa"
-)
+package uaa
 
 type ClientTokenSession struct {
-	uaa       boshuaa.UAA
-	lastToken boshuaa.Token
+	uaa       UAA
+	lastToken Token
 }
 
-func NewClientTokenSession(uaa boshuaa.UAA) *ClientTokenSession {
+func NewClientTokenSession(uaa UAA) *ClientTokenSession {
 	return &ClientTokenSession{uaa: uaa}
 }
 

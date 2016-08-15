@@ -1,4 +1,4 @@
-package cmd_test
+package uaa_test
 
 import (
 	"errors"
@@ -6,19 +6,19 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
+	. "github.com/cloudfoundry/bosh-init/uaa"
 	fakeuaa "github.com/cloudfoundry/bosh-init/uaa/fakes"
 )
 
-var _ = Describe("AccessTokenSession", func() {
+var _ = Describe("ClientTokenSession", func() {
 	var (
-		initToken *fakeuaa.FakeAccessToken
-		sess      *AccessTokenSession
+		uaa  *fakeuaa.FakeUAA
+		sess *ClientTokenSession
 	)
 
 	BeforeEach(func() {
-		initToken = &fakeuaa.FakeAccessToken{}
-		sess = NewAccessTokenSession(initToken)
+		uaa = &fakeuaa.FakeUAA{}
+		sess = NewClientTokenSession(uaa)
 	})
 
 	Describe("TokenFunc", func() {
@@ -29,7 +29,7 @@ var _ = Describe("AccessTokenSession", func() {
 						TypeStub:  func() string { return "type1" },
 						ValueStub: func() string { return "value1" },
 					}
-					initToken.RefreshReturns(firstToken, nil)
+					uaa.ClientCredentialsGrantReturns(firstToken, nil)
 
 					header, err := sess.TokenFunc(true)
 					Expect(err).ToNot(HaveOccurred())
@@ -38,7 +38,7 @@ var _ = Describe("AccessTokenSession", func() {
 
 				It("returns an error if obtaining first token fails", func() {
 					firstToken := &fakeuaa.FakeAccessToken{}
-					initToken.RefreshReturns(firstToken, errors.New("fake-err"))
+					uaa.ClientCredentialsGrantReturns(firstToken, errors.New("fake-err"))
 
 					_, err := sess.TokenFunc(true)
 					Expect(err).To(HaveOccurred())
@@ -51,7 +51,7 @@ var _ = Describe("AccessTokenSession", func() {
 						TypeStub:  func() string { return "type1" },
 						ValueStub: func() string { return "value1" },
 					}
-					initToken.RefreshReturns(firstToken, nil)
+					uaa.ClientCredentialsGrantReturns(firstToken, nil)
 
 					header, err := sess.TokenFunc(false)
 					Expect(err).ToNot(HaveOccurred())
@@ -60,7 +60,7 @@ var _ = Describe("AccessTokenSession", func() {
 
 				It("returns an error if obtaining first token fails", func() {
 					firstToken := &fakeuaa.FakeAccessToken{}
-					initToken.RefreshReturns(firstToken, errors.New("fake-err"))
+					uaa.ClientCredentialsGrantReturns(firstToken, errors.New("fake-err"))
 
 					_, err := sess.TokenFunc(false)
 					Expect(err).To(HaveOccurred())
@@ -78,7 +78,7 @@ var _ = Describe("AccessTokenSession", func() {
 					TypeStub:  func() string { return "type1" },
 					ValueStub: func() string { return "value1" },
 				}
-				initToken.RefreshReturns(firstToken, nil)
+				uaa.ClientCredentialsGrantReturns(firstToken, nil)
 
 				_, err := sess.TokenFunc(false)
 				Expect(err).ToNot(HaveOccurred())
@@ -91,14 +91,12 @@ var _ = Describe("AccessTokenSession", func() {
 					Expect(header).To(Equal("type1 value1"))
 				})
 
-				It("does not try to refresh any token", func() {
-					Expect(initToken.RefreshCallCount()).To(Equal(1))
-					Expect(firstToken.RefreshCallCount()).To(Equal(0))
+				It("does not try to retrieve new token", func() {
+					Expect(uaa.ClientCredentialsGrantCallCount()).To(Equal(1))
 
 					_, err := sess.TokenFunc(false)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(initToken.RefreshCallCount()).To(Equal(1))
-					Expect(firstToken.RefreshCallCount()).To(Equal(0))
+					Expect(uaa.ClientCredentialsGrantCallCount()).To(Equal(1))
 				})
 			})
 
@@ -108,7 +106,7 @@ var _ = Describe("AccessTokenSession", func() {
 						TypeStub:  func() string { return "type2" },
 						ValueStub: func() string { return "value2" },
 					}
-					firstToken.RefreshReturns(secondToken, nil)
+					uaa.ClientCredentialsGrantReturns(secondToken, nil)
 
 					header, err := sess.TokenFunc(true)
 					Expect(err).ToNot(HaveOccurred())
@@ -117,7 +115,7 @@ var _ = Describe("AccessTokenSession", func() {
 
 				It("returns an error if obtaining first token fails", func() {
 					secondToken := &fakeuaa.FakeAccessToken{}
-					firstToken.RefreshReturns(secondToken, errors.New("fake-err"))
+					uaa.ClientCredentialsGrantReturns(secondToken, errors.New("fake-err"))
 
 					_, err := sess.TokenFunc(true)
 					Expect(err).To(HaveOccurred())

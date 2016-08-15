@@ -110,10 +110,10 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 		}
 
 		if creds.IsUAAClient() {
-			dirConfig.TokenFunc = NewClientTokenSession(uaa).TokenFunc
+			dirConfig.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
 		} else {
 			origToken := uaa.NewStaleAccessToken(creds.RefreshToken)
-			dirConfig.TokenFunc = NewAccessTokenSession(origToken).TokenFunc
+			dirConfig.TokenFunc = boshuaa.NewAccessTokenSession(origToken).TokenFunc
 		}
 	}
 

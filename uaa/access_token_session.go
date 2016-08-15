@@ -1,15 +1,11 @@
-package cmd
-
-import (
-	boshuaa "github.com/cloudfoundry/bosh-init/uaa"
-)
+package uaa
 
 type AccessTokenSession struct {
-	initToken boshuaa.StaleAccessToken
-	lastToken boshuaa.AccessToken
+	initToken StaleAccessToken
+	lastToken AccessToken
 }
 
-func NewAccessTokenSession(accessToken boshuaa.StaleAccessToken) *AccessTokenSession {
+func NewAccessTokenSession(accessToken StaleAccessToken) *AccessTokenSession {
 	return &AccessTokenSession{initToken: accessToken}
 }
 
