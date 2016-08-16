@@ -17,6 +17,7 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
 	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
 	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
+	bidepltpl "github.com/cloudfoundry/bosh-init/deployment/template"
 	bivm "github.com/cloudfoundry/bosh-init/deployment/vm"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	biindex "github.com/cloudfoundry/bosh-init/index"
@@ -213,6 +214,7 @@ func (f *envFactory) Preparer() DeploymentPreparer {
 			DeploymentParser:    bideplmanifest.NewParser(f.deps.FS, f.deps.Logger),
 			DeploymentValidator: bideplmanifest.NewValidator(f.deps.Logger),
 			ReleaseManager:      f.releaseManager,
+			TemplateFactory:     bidepltpl.NewTemplateFactory(f.deps.FS),
 		},
 		NewTempRootConfigurator(f.deps.FS),
 		f.targetProvider,
