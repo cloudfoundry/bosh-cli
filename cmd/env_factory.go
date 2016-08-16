@@ -210,12 +210,12 @@ func (f *envFactory) Preparer() DeploymentPreparer {
 		f.releaseFetcher,
 		f.stemcellFetcher,
 		f.installationManifestParser,
-		DeploymentManifestParser{
-			DeploymentParser:    bideplmanifest.NewParser(f.deps.FS, f.deps.Logger),
-			DeploymentValidator: bideplmanifest.NewValidator(f.deps.Logger),
-			ReleaseManager:      f.releaseManager,
-			TemplateFactory:     bidepltpl.NewDeploymentTemplateFactory(f.deps.FS),
-		},
+		NewDeploymentManifestParser(
+			bideplmanifest.NewParser(f.deps.FS, f.deps.Logger),
+			bideplmanifest.NewValidator(f.deps.Logger),
+			f.releaseManager,
+			bidepltpl.NewDeploymentTemplateFactory(f.deps.FS),
+		),
 		NewTempRootConfigurator(f.deps.FS),
 		f.targetProvider,
 	)

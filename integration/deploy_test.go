@@ -429,12 +429,12 @@ cloud_provider:
 					ReleaseSetParser:   releaseSetParser,
 					InstallationParser: installationParser,
 				}
-				deploymentManifestParser := DeploymentManifestParser{
-					DeploymentParser:    deploymentParser,
-					DeploymentValidator: deploymentValidator,
-					ReleaseManager:      releaseManager,
-					TemplateFactory:     bidepltpl.NewDeploymentTemplateFactory(fs),
-				}
+				deploymentManifestParser := NewDeploymentManifestParser(
+					deploymentParser,
+					deploymentValidator,
+					releaseManager,
+					bidepltpl.NewDeploymentTemplateFactory(fs),
+				)
 
 				installationUuidGenerator := fakeuuid.NewFakeGenerator()
 				installationUuidGenerator.GeneratedUUID = "fake-installation-id"

@@ -1,9 +1,6 @@
 package template
 
-import (
-	"crypto/sha512"
-	"fmt"
-)
+import ()
 
 type InterpolatedTemplate struct {
 	content []byte
@@ -18,13 +15,7 @@ func (t *InterpolatedTemplate) SHA() string {
 	return t.sha
 }
 
-func NewInterpolatedTemplate(content []byte) InterpolatedTemplate {
-	sha_512 := sha512.New()
-	_, err := sha_512.Write(content)
-	if err != nil {
-		panic("Error calculating sha_512 of interpolated template")
-	}
-	shaSumString := fmt.Sprintf("%x", sha_512.Sum(nil))
+func NewInterpolatedTemplate(content []byte, shaSumString string) InterpolatedTemplate {
 	return InterpolatedTemplate{
 		content: content,
 		sha:     shaSumString,

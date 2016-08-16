@@ -338,12 +338,12 @@ var _ = Describe("DeployCmd", func() {
 					InstallationParser: fakeInstallationParser,
 				}
 
-				deploymentManifestParser := bicmd.DeploymentManifestParser{
-					DeploymentParser:    fakeDeploymentParser,
-					DeploymentValidator: fakeDeploymentValidator,
-					ReleaseManager:      releaseManager,
-					TemplateFactory:     fakeDeploymentTemplateFactory,
-				}
+				deploymentManifestParser := bicmd.NewDeploymentManifestParser(
+					fakeDeploymentParser,
+					fakeDeploymentValidator,
+					releaseManager,
+					fakeDeploymentTemplateFactory,
+				)
 
 				fakeInstallationUUIDGenerator := &fakeuuid.FakeGenerator{}
 				fakeInstallationUUIDGenerator.GeneratedUUID = "fake-installation-id"

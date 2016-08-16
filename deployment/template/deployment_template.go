@@ -1,6 +1,8 @@
 package template
 
 import (
+	"crypto/sha512"
+	"fmt"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 )
 
@@ -17,5 +19,13 @@ func (t DeploymentTemplate) Evaluate(vars boshtpl.Variables) (InterpolatedTempla
 	if err != nil {
 		return InterpolatedTemplate{}, err
 	}
-	return NewInterpolatedTemplate(bytes), nil
+
+	sha_512 := sha512.New()
+	_, err = sha_512.Write(bytes)
+	if err != nil {
+		panic("Error calculating sha_512 of interpolated template")
+	}
+	shaSumString := fmt.Sprintf("%x", sha_512.Sum(nil))
+
+	return NewInterpolatedTemplate(bytes, shaSumString), nil
 }

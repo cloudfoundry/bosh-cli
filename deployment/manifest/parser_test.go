@@ -83,7 +83,7 @@ properties:
   foo:
     bar: baz
 `
-			interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+			interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 		})
 
 		It("parses deployment manifest from the interpolatedTemplate", func() {
@@ -193,7 +193,7 @@ resource_pools:
   stemcell:
     url: http://fake-url
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("it does not change the url", func() {
@@ -236,7 +236,7 @@ resource_pools:
   stemcell:
     url: file:///fake-absolute-path
 `
-					interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+					interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 				})
 
 				It("it does not expand the path to be relative to the manifest path", func() {
@@ -279,7 +279,7 @@ resource_pools:
   stemcell:
     url: file://~/fake-absolute-path
 `
-					interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+					interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 				})
 
 				It("it does not expand the path to be relative to the manifest path", func() {
@@ -323,7 +323,7 @@ resource_pools:
   stemcell:
     url: file://fake-relative-path
 `
-					interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+					interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 				})
 
 				It("it does not expand the path to be relative to the manifest path", func() {
@@ -363,7 +363,7 @@ resource_pools:
 properties:
   1: foo
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("returns an error", func() {
@@ -382,7 +382,7 @@ jobs:
   properties:
     1: foo
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("returns an error", func() {
@@ -401,7 +401,7 @@ resource_pools:
   cloud_properties:
     123: fake-property-value
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("returns an error", func() {
@@ -419,7 +419,7 @@ disk_pools:
   cloud_properties:
     123: fake-property-value
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("returns an error", func() {
@@ -435,7 +435,7 @@ disk_pools:
 ---
 name: fake-deployment-name
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("uses default values", func() {
@@ -455,7 +455,7 @@ name: fake-deployment-name
 instance_groups:
 - name: jobby
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("treats instance groups as jobs", func() {
@@ -473,7 +473,7 @@ instance_groups:
   jobs:
   - name: job1
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 
 			})
 
@@ -496,7 +496,7 @@ instance_groups:
     properties:
       key1: value1
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("parses the property", func() {
@@ -516,7 +516,7 @@ instance_groups:
   - name: job1
     properties: {}
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("parses the properties as an empty map", func() {
@@ -535,7 +535,7 @@ instance_groups:
   jobs:
   - name: job1
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("parses the properties as nil", func() {
@@ -556,7 +556,7 @@ instance_groups:
 - name: instancey
 
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("throws an error", func() {
@@ -578,7 +578,7 @@ jobs:
   - name: job1
 
 `
-				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents))
+				interpolatedTemplate = bidepltpl.NewInterpolatedTemplate([]byte(contents), "fake-sha")
 			})
 
 			It("throws an error", func() {

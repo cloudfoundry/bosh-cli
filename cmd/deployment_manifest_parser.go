@@ -11,21 +11,38 @@ import (
 	biui "github.com/cloudfoundry/bosh-init/ui"
 )
 
-type DeploymentManifestParser struct {
-	DeploymentParser    bideplmanifest.Parser
-	DeploymentValidator bideplmanifest.Validator
-	ReleaseManager      birel.Manager
-	TemplateFactory     bidepltpl.DeploymentTemplateFactory
+type DeploymentManifestParser interface {
+	GetDeploymentManifest(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error)
 }
 
-func (y DeploymentManifestParser) GetDeploymentManifest(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error) {
+type deploymentManifestParser struct {
+	deploymentParser    bideplmanifest.Parser
+	deploymentValidator bideplmanifest.Validator
+	releaseManager      birel.Manager
+	templateFactory     bidepltpl.DeploymentTemplateFactory
+}
+
+func NewDeploymentManifestParser(
+	deploymentParser bideplmanifest.Parser,
+	deploymentValidator bideplmanifest.Validator,
+	releaseManager birel.Manager,
+	templateFactory bidepltpl.DeploymentTemplateFactory) DeploymentManifestParser {
+	return deploymentManifestParser{
+		deploymentParser:    deploymentParser,
+		deploymentValidator: deploymentValidator,
+		releaseManager:      releaseManager,
+		templateFactory:     templateFactory,
+	}
+}
+
+func (y deploymentManifestParser) GetDeploymentManifest(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error) {
 	var deploymentManifest bideplmanifest.Manifest
 	var manifestSHA string
 
 	err := stage.Perform("Validating deployment manifest", func() error {
 		var err error
 
-		template, err := y.TemplateFactory.NewDeploymentTemplateFromPath(path)
+		template, err := y.templateFactory.NewDeploymentTemplateFromPath(path)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Evaluating manifest")
 		}
@@ -37,17 +54,17 @@ func (y DeploymentManifestParser) GetDeploymentManifest(path string, vars boshtp
 
 		manifestSHA = interpolatedTemplate.SHA()
 
-		deploymentManifest, err = y.DeploymentParser.Parse(interpolatedTemplate, path)
+		deploymentManifest, err = y.deploymentParser.Parse(interpolatedTemplate, path)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Parsing deployment manifest '%s'", path)
 		}
 
-		err = y.DeploymentValidator.Validate(deploymentManifest, releaseSetManifest)
+		err = y.deploymentValidator.Validate(deploymentManifest, releaseSetManifest)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
 
-		err = y.DeploymentValidator.ValidateReleaseJobs(deploymentManifest, y.ReleaseManager)
+		err = y.deploymentValidator.ValidateReleaseJobs(deploymentManifest, y.releaseManager)
 		if err != nil {
 			return bosherr.WrapError(err, "Validating deployment jobs refer to jobs in release")
 		}

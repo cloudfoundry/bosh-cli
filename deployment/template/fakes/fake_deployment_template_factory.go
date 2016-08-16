@@ -17,14 +17,6 @@ type FakeDeploymentTemplateFactory struct {
 		result1 template.DeploymentTemplate
 		result2 error
 	}
-	NewDeploymentTemplateFromBytesStub        func(bytes []byte) template.DeploymentTemplate
-	newDeploymentTemplateFromBytesMutex       sync.RWMutex
-	newDeploymentTemplateFromBytesArgsForCall []struct {
-		bytes []byte
-	}
-	newDeploymentTemplateFromBytesReturns struct {
-		result1 template.DeploymentTemplate
-	}
 }
 
 func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPath(path string) (template.DeploymentTemplate, error) {
@@ -58,38 +50,6 @@ func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathReturns(
 		result1 template.DeploymentTemplate
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromBytes(bytes []byte) template.DeploymentTemplate {
-	fake.newDeploymentTemplateFromBytesMutex.Lock()
-	fake.newDeploymentTemplateFromBytesArgsForCall = append(fake.newDeploymentTemplateFromBytesArgsForCall, struct {
-		bytes []byte
-	}{bytes})
-	fake.newDeploymentTemplateFromBytesMutex.Unlock()
-	if fake.NewDeploymentTemplateFromBytesStub != nil {
-		return fake.NewDeploymentTemplateFromBytesStub(bytes)
-	} else {
-		return fake.newDeploymentTemplateFromBytesReturns.result1
-	}
-}
-
-func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromBytesCallCount() int {
-	fake.newDeploymentTemplateFromBytesMutex.RLock()
-	defer fake.newDeploymentTemplateFromBytesMutex.RUnlock()
-	return len(fake.newDeploymentTemplateFromBytesArgsForCall)
-}
-
-func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromBytesArgsForCall(i int) []byte {
-	fake.newDeploymentTemplateFromBytesMutex.RLock()
-	defer fake.newDeploymentTemplateFromBytesMutex.RUnlock()
-	return fake.newDeploymentTemplateFromBytesArgsForCall[i].bytes
-}
-
-func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromBytesReturns(result1 template.DeploymentTemplate) {
-	fake.NewDeploymentTemplateFromBytesStub = nil
-	fake.newDeploymentTemplateFromBytesReturns = struct {
-		result1 template.DeploymentTemplate
-	}{result1}
 }
 
 var _ template.DeploymentTemplateFactory = new(FakeDeploymentTemplateFactory)
