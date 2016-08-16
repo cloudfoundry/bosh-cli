@@ -46,6 +46,7 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
 	mock_install "github.com/cloudfoundry/bosh-init/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
+	bidepltpl "github.com/cloudfoundry/bosh-init/deployment/template"
 	biregistry "github.com/cloudfoundry/bosh-init/registry"
 	birel "github.com/cloudfoundry/bosh-init/release"
 	boshrel "github.com/cloudfoundry/bosh-init/release"
@@ -398,7 +399,7 @@ cloud_provider:
 				releaseRepo = biconfig.NewReleaseRepo(deploymentStateService, fakeRepoUUIDGenerator)
 
 				legacyDeploymentStateMigrator = biconfig.NewLegacyDeploymentStateMigrator(deploymentStateService, fs, fakeUUIDGenerator, logger)
-				deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo, fakeSHA1Calculator)
+				deploymentRecord := bidepl.NewRecord(deploymentRepo, releaseRepo, stemcellRepo)
 				stemcellManagerFactory = bistemcell.NewManagerFactory(stemcellRepo)
 				diskManagerFactory = bidisk.NewManagerFactory(diskRepo, logger)
 				diskDeployer = bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
@@ -432,6 +433,7 @@ cloud_provider:
 					DeploymentParser:    deploymentParser,
 					DeploymentValidator: deploymentValidator,
 					ReleaseManager:      releaseManager,
+					TemplateFactory:     bidepltpl.NewDeploymentTemplateFactory(fs),
 				}
 
 				installationUuidGenerator := fakeuuid.NewFakeGenerator()

@@ -25,7 +25,7 @@ func (y DeploymentManifestParser) GetDeploymentManifest(path string, vars boshtp
 	err := stage.Perform("Validating deployment manifest", func() error {
 		var err error
 
-		template, err := y.TemplateFactory.NewTemplateFromPath(path)
+		template, err := y.TemplateFactory.NewDeploymentTemplateFromPath(path)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Evaluating manifest")
 		}

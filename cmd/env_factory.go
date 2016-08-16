@@ -214,7 +214,7 @@ func (f *envFactory) Preparer() DeploymentPreparer {
 			DeploymentParser:    bideplmanifest.NewParser(f.deps.FS, f.deps.Logger),
 			DeploymentValidator: bideplmanifest.NewValidator(f.deps.Logger),
 			ReleaseManager:      f.releaseManager,
-			TemplateFactory:     bidepltpl.NewTemplateFactory(f.deps.FS),
+			TemplateFactory:     bidepltpl.NewDeploymentTemplateFactory(f.deps.FS),
 		},
 		NewTempRootConfigurator(f.deps.FS),
 		f.targetProvider,

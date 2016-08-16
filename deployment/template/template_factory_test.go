@@ -20,7 +20,7 @@ var _ = Describe("TemplateFactory", func() {
 	BeforeEach(func() {
 		fileTemplatePath = "fake-deployment-path"
 		fakeFs = fakesys.NewFakeFileSystem()
-		templateFactory = NewTemplateFactory(fakeFs)
+		templateFactory = NewDeploymentTemplateFactory(fakeFs)
 	})
 
 	Context("NewTemplateFromPath", func() {
@@ -31,7 +31,7 @@ var _ = Describe("TemplateFactory", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := templateFactory.NewTemplateFromPath(fileTemplatePath)
+				_, err := templateFactory.NewDeploymentTemplateFromPath(fileTemplatePath)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -42,7 +42,7 @@ var _ = Describe("TemplateFactory", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := templateFactory.NewTemplateFromPath(fileTemplatePath)
+				_, err := templateFactory.NewDeploymentTemplateFromPath(fileTemplatePath)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -58,7 +58,7 @@ resource_pools:
     url: ((url))
 `)
 
-				template, err := templateFactory.NewTemplateFromPath(path)
+				template, err := templateFactory.NewDeploymentTemplateFromPath(path)
 				Expect(err).ToNot(HaveOccurred())
 				interpolatedTemplate, err := template.Evaluate(boshtpl.Variables{"url": "file://stemcell.tgz"})
 				Expect(err).ToNot(HaveOccurred())
