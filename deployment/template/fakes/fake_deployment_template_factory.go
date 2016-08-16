@@ -8,86 +8,86 @@ import (
 )
 
 type FakeDeploymentTemplateFactory struct {
-	NewTemplateFromPathStub        func(path string) (template.DeploymentTemplate, error)
-	newTemplateFromPathMutex       sync.RWMutex
-	newTemplateFromPathArgsForCall []struct {
+	NewDeploymentTemplateFromPathStub        func(path string) (template.DeploymentTemplate, error)
+	newDeploymentTemplateFromPathMutex       sync.RWMutex
+	newDeploymentTemplateFromPathArgsForCall []struct {
 		path string
 	}
-	newTemplateFromPathReturns struct {
+	newDeploymentTemplateFromPathReturns struct {
 		result1 template.DeploymentTemplate
 		result2 error
 	}
-	NewTemplateFromBytesStub        func(bytes []byte) template.DeploymentTemplate
-	newTemplateFromBytesMutex       sync.RWMutex
-	newTemplateFromBytesArgsForCall []struct {
+	NewDeploymentTemplateFromBytesStub        func(bytes []byte) template.DeploymentTemplate
+	newDeploymentTemplateFromBytesMutex       sync.RWMutex
+	newDeploymentTemplateFromBytesArgsForCall []struct {
 		bytes []byte
 	}
-	newTemplateFromBytesReturns struct {
+	newDeploymentTemplateFromBytesReturns struct {
 		result1 template.DeploymentTemplate
 	}
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewTemplateFromPath(path string) (template.DeploymentTemplate, error) {
-	fake.newTemplateFromPathMutex.Lock()
-	fake.newTemplateFromPathArgsForCall = append(fake.newTemplateFromPathArgsForCall, struct {
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPath(path string) (template.DeploymentTemplate, error) {
+	fake.newDeploymentTemplateFromPathMutex.Lock()
+	fake.newDeploymentTemplateFromPathArgsForCall = append(fake.newDeploymentTemplateFromPathArgsForCall, struct {
 		path string
 	}{path})
-	fake.newTemplateFromPathMutex.Unlock()
-	if fake.NewTemplateFromPathStub != nil {
-		return fake.NewTemplateFromPathStub(path)
+	fake.newDeploymentTemplateFromPathMutex.Unlock()
+	if fake.NewDeploymentTemplateFromPathStub != nil {
+		return fake.NewDeploymentTemplateFromPathStub(path)
 	} else {
-		return fake.newTemplateFromPathReturns.result1, fake.newTemplateFromPathReturns.result2
+		return fake.newDeploymentTemplateFromPathReturns.result1, fake.newDeploymentTemplateFromPathReturns.result2
 	}
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewTemplateFromPathCallCount() int {
-	fake.newTemplateFromPathMutex.RLock()
-	defer fake.newTemplateFromPathMutex.RUnlock()
-	return len(fake.newTemplateFromPathArgsForCall)
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathCallCount() int {
+	fake.newDeploymentTemplateFromPathMutex.RLock()
+	defer fake.newDeploymentTemplateFromPathMutex.RUnlock()
+	return len(fake.newDeploymentTemplateFromPathArgsForCall)
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewTemplateFromPathArgsForCall(i int) string {
-	fake.newTemplateFromPathMutex.RLock()
-	defer fake.newTemplateFromPathMutex.RUnlock()
-	return fake.newTemplateFromPathArgsForCall[i].path
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathArgsForCall(i int) string {
+	fake.newDeploymentTemplateFromPathMutex.RLock()
+	defer fake.newDeploymentTemplateFromPathMutex.RUnlock()
+	return fake.newDeploymentTemplateFromPathArgsForCall[i].path
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewTemplateFromPathReturns(result1 template.DeploymentTemplate, result2 error) {
-	fake.NewTemplateFromPathStub = nil
-	fake.newTemplateFromPathReturns = struct {
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathReturns(result1 template.DeploymentTemplate, result2 error) {
+	fake.NewDeploymentTemplateFromPathStub = nil
+	fake.newDeploymentTemplateFromPathReturns = struct {
 		result1 template.DeploymentTemplate
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewTemplateFromBytes(bytes []byte) template.DeploymentTemplate {
-	fake.newTemplateFromBytesMutex.Lock()
-	fake.newTemplateFromBytesArgsForCall = append(fake.newTemplateFromBytesArgsForCall, struct {
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromBytes(bytes []byte) template.DeploymentTemplate {
+	fake.newDeploymentTemplateFromBytesMutex.Lock()
+	fake.newDeploymentTemplateFromBytesArgsForCall = append(fake.newDeploymentTemplateFromBytesArgsForCall, struct {
 		bytes []byte
 	}{bytes})
-	fake.newTemplateFromBytesMutex.Unlock()
-	if fake.NewTemplateFromBytesStub != nil {
-		return fake.NewTemplateFromBytesStub(bytes)
+	fake.newDeploymentTemplateFromBytesMutex.Unlock()
+	if fake.NewDeploymentTemplateFromBytesStub != nil {
+		return fake.NewDeploymentTemplateFromBytesStub(bytes)
 	} else {
-		return fake.newTemplateFromBytesReturns.result1
+		return fake.newDeploymentTemplateFromBytesReturns.result1
 	}
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewTemplateFromBytesCallCount() int {
-	fake.newTemplateFromBytesMutex.RLock()
-	defer fake.newTemplateFromBytesMutex.RUnlock()
-	return len(fake.newTemplateFromBytesArgsForCall)
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromBytesCallCount() int {
+	fake.newDeploymentTemplateFromBytesMutex.RLock()
+	defer fake.newDeploymentTemplateFromBytesMutex.RUnlock()
+	return len(fake.newDeploymentTemplateFromBytesArgsForCall)
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewTemplateFromBytesArgsForCall(i int) []byte {
-	fake.newTemplateFromBytesMutex.RLock()
-	defer fake.newTemplateFromBytesMutex.RUnlock()
-	return fake.newTemplateFromBytesArgsForCall[i].bytes
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromBytesArgsForCall(i int) []byte {
+	fake.newDeploymentTemplateFromBytesMutex.RLock()
+	defer fake.newDeploymentTemplateFromBytesMutex.RUnlock()
+	return fake.newDeploymentTemplateFromBytesArgsForCall[i].bytes
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewTemplateFromBytesReturns(result1 template.DeploymentTemplate) {
-	fake.NewTemplateFromBytesStub = nil
-	fake.newTemplateFromBytesReturns = struct {
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromBytesReturns(result1 template.DeploymentTemplate) {
+	fake.NewDeploymentTemplateFromBytesStub = nil
+	fake.newDeploymentTemplateFromBytesReturns = struct {
 		result1 template.DeploymentTemplate
 	}{result1}
 }

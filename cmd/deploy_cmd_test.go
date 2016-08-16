@@ -275,7 +275,7 @@ var _ = Describe("DeployCmd", func() {
 					},
 				},
 			}
-			fakeDeploymentTemplateFactory.NewTemplateFromPathReturns(template, nil)
+			fakeDeploymentTemplateFactory.NewDeploymentTemplateFromPathReturns(template, nil)
 			fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
 
 			// parsed/extracted CPI release
@@ -394,7 +394,7 @@ var _ = Describe("DeployCmd", func() {
 
 			fakeReleaseSetParser.ParseManifest = releaseSetManifest
 			template := bidepltpl.NewDeploymentTemplate([]byte("--- {\"test\":true}"))
-			fakeDeploymentTemplateFactory.NewTemplateFromPathReturns(template, nil)
+			fakeDeploymentTemplateFactory.NewDeploymentTemplateFromPathReturns(template, nil)
 			fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
 			fakeInstallationParser.ParseManifest = installationManifest
 
@@ -492,7 +492,7 @@ var _ = Describe("DeployCmd", func() {
 		It("parses the deployment manifest", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			actualManifestPath := fakeDeploymentTemplateFactory.NewTemplateFromPathArgsForCall(0)
+			actualManifestPath := fakeDeploymentTemplateFactory.NewDeploymentTemplateFromPathArgsForCall(0)
 			Expect(actualManifestPath).To(Equal(deploymentManifestPath))
 
 			actualInterpolatedTemplate, actualPath := fakeDeploymentParser.ParseArgsForCall(0)
@@ -685,7 +685,7 @@ var _ = Describe("DeployCmd", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Parsing deployment manifest"))
 				Expect(err.Error()).To(ContainSubstring("fake-parse-error"))
-				parsePath := fakeDeploymentTemplateFactory.NewTemplateFromPathArgsForCall(0)
+				parsePath := fakeDeploymentTemplateFactory.NewDeploymentTemplateFromPathArgsForCall(0)
 				Expect(parsePath).To(Equal(deploymentManifestPath))
 			})
 		})
