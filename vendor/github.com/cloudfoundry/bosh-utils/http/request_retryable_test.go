@@ -14,8 +14,38 @@ import (
 
 	fakehttp "github.com/cloudfoundry/bosh-utils/http/fakes"
 
+	"bytes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"os"
 )
+
+type seekableReadClose struct {
+	Seeked     bool
+	content    []byte
+	readCloser io.ReadCloser
+}
+
+func NewSeekableReadClose(content []byte) *seekableReadClose {
+	return &seekableReadClose{
+		Seeked:     false,
+		content:    content,
+		readCloser: ioutil.NopCloser(bytes.NewReader(content)),
+	}
+}
+
+func (s *seekableReadClose) Seek(offset int64, whence int) (ret int64, err error) {
+	s.readCloser = ioutil.NopCloser(bytes.NewReader(s.content))
+	s.Seeked = true
+	return 0, nil
+}
+
+func (s *seekableReadClose) Read(p []byte) (n int, err error) {
+	return s.readCloser.Read(p)
+}
+
+func (s *seekableReadClose) Close() error {
+	return errors.New("This should not be called from this context.")
+}
 
 var _ = Describe("RequestRetryable", func() {
 	Describe("Attempt", func() {
@@ -23,11 +53,12 @@ var _ = Describe("RequestRetryable", func() {
 			requestRetryable RequestRetryable
 			request          *http.Request
 			fakeClient       *fakehttp.FakeClient
+			logger           boshlog.Logger
 		)
 
 		BeforeEach(func() {
 			fakeClient = fakehttp.NewFakeClient()
-			logger := boshlog.NewLogger(boshlog.LevelNone)
+			logger = boshlog.NewLogger(boshlog.LevelNone)
 
 			request = &http.Request{
 				Body: ioutil.NopCloser(strings.NewReader("fake-request-body")),
@@ -61,6 +92,85 @@ var _ = Describe("RequestRetryable", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-response-error"))
 				Expect(isRetryable).To(BeTrue())
+			})
+		})
+
+		Context("when the request body has a seek method", func() {
+			var (
+				seekableReaderCloser *seekableReadClose
+			)
+
+			It("os.File conforms to the Seekable interface", func() {
+				var seekable Seekable
+				seekable, err := ioutil.TempFile(os.TempDir(), "seekable")
+				Expect(err).ToNot(HaveOccurred())
+				_, err = seekable.Seek(0, 0)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			BeforeEach(func() {
+				seekableReaderCloser = NewSeekableReadClose([]byte("hello from seekable"))
+				request = &http.Request{
+					Body: seekableReaderCloser,
+				}
+				requestRetryable = NewRequestRetryable(request, fakeClient, logger)
+			})
+
+			Context("when the response status code is success", func() {
+				BeforeEach(func() {
+					fakeClient.SetMessage("fake-response-body")
+					fakeClient.StatusCode = 200
+				})
+
+				// It does not consume the whole body and store it in memory for future re-attempts, it seeks to the
+				// beginning of the body instead
+				It("seeks to the beginning of the request body uses the request body *as is*", func() {
+					_, err := requestRetryable.Attempt()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(seekableReaderCloser.Seeked).To(BeTrue())
+					Expect(fakeClient.RequestBodies[0]).To(Equal("hello from seekable"))
+				})
+			})
+
+			Context("when the response status code is not between 200 and 300", func() {
+				var (
+					isRetryable bool
+					err         error
+				)
+				BeforeEach(func() {
+					fakeClient.SetMessage("fake-response-body")
+					fakeClient.StatusCode = 404
+					isRetryable, err = requestRetryable.Attempt()
+				})
+
+				It("is retryable", func() {
+					Expect(err).To(HaveOccurred())
+					Expect(isRetryable).To(BeTrue())
+
+					resp := requestRetryable.Response()
+					Expect(readString(resp.Body)).To(Equal("fake-response-body"))
+					Expect(resp.StatusCode).To(Equal(404))
+				})
+
+				Context("when making another, successful, attempt", func() {
+					BeforeEach(func() {
+						fakeClient.SetMessage("fake-response-body")
+						fakeClient.StatusCode = 200
+						seekableReaderCloser.Seeked = false
+						_, err = requestRetryable.Attempt()
+					})
+
+					It("seeks back to the beginning and on the original request body", func() {
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(seekableReaderCloser.Seeked).To(BeTrue())
+						Expect(fakeClient.RequestBodies[1]).To(Equal("hello from seekable"))
+
+						resp := requestRetryable.Response()
+						Expect(resp.StatusCode).To(Equal(200))
+						Expect(readString(resp.Body)).To(Equal("fake-response-body"))
+					})
+				})
 			})
 		})
 

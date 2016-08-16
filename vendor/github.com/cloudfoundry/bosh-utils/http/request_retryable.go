@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"errors"
+	"io"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -25,10 +28,10 @@ type requestRetryable struct {
 	bodyBytes []byte // buffer request body to memory for retries
 	response  *http.Response
 
-	uuidGenerator boshuuid.Generator
-
-	logger boshlog.Logger
-	logTag string
+	uuidGenerator       boshuuid.Generator
+	seekableRequestBody io.ReadCloser
+	logger              boshlog.Logger
+	logTag              string
 }
 
 func NewRequestRetryable(
@@ -46,6 +49,10 @@ func NewRequestRetryable(
 	}
 }
 
+type Seekable interface {
+	Seek(offset int64, whence int) (ret int64, err error)
+}
+
 func (r *requestRetryable) Attempt() (bool, error) {
 	var err error
 
@@ -56,16 +63,34 @@ func (r *requestRetryable) Attempt() (bool, error) {
 		}
 	}
 
-	if r.request.Body != nil && r.bodyBytes == nil {
-		r.bodyBytes, err = ReadAndClose(r.request.Body)
-		if err != nil {
-			return false, bosherr.WrapError(err, "Buffering request body")
+	_, implementsSeekable := r.request.Body.(Seekable)
+	if r.seekableRequestBody != nil || implementsSeekable {
+		if r.seekableRequestBody == nil {
+			r.seekableRequestBody = r.request.Body
 		}
-	}
 
-	// reset request body, because readers cannot be re-read
-	if r.bodyBytes != nil {
-		r.request.Body = ioutil.NopCloser(bytes.NewReader(r.bodyBytes))
+		seekable, ok := r.seekableRequestBody.(Seekable)
+		if !ok {
+			return false, errors.New("Should never happen")
+		}
+		_, err := seekable.Seek(0, 0)
+		r.request.Body = ioutil.NopCloser(r.seekableRequestBody)
+
+		if err != nil {
+			return false, bosherr.WrapErrorf(err, "Seeking to begining of seekable request body during attempt %d", r.attempt)
+		}
+	} else {
+		if r.request.Body != nil && r.bodyBytes == nil {
+			r.bodyBytes, err = ReadAndClose(r.request.Body)
+			if err != nil {
+				return false, bosherr.WrapError(err, "Buffering request body")
+			}
+		}
+
+		// reset request body, because readers cannot be re-read
+		if r.bodyBytes != nil {
+			r.request.Body = ioutil.NopCloser(bytes.NewReader(r.bodyBytes))
+		}
 	}
 
 	// close previous attempt's response body to prevent HTTP client resource leaks
