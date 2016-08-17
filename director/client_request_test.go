@@ -10,7 +10,6 @@ import (
 	"time"
 
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -27,11 +26,16 @@ var _ = Describe("ClientRequest", func() {
 		buildReq func(FileReporter) ClientRequest
 		req      ClientRequest
 
+		logger   fakedir.Logger
+		logCalls []fakedir.LogCallArgs
+
 		locationHeader http.Header
 	)
 
 	BeforeEach(func() {
 		_, server = BuildServer()
+		logCalls = []fakedir.LogCallArgs{}
+		logger = fakedir.NewFakeLogger(&logCalls)
 
 		buildReq = func(fileReporter FileReporter) ClientRequest {
 			httpTransport := &http.Transport{
@@ -40,7 +44,6 @@ var _ = Describe("ClientRequest", func() {
 			}
 
 			rawClient := &http.Client{Transport: httpTransport}
-			logger := boshlog.NewLogger(boshlog.LevelNone)
 			httpClient := boshhttp.NewHTTPClient(rawClient, logger)
 			return NewClientRequest(server.URL(), httpClient, fileReporter, logger)
 		}
@@ -143,16 +146,16 @@ var _ = Describe("ClientRequest", func() {
 	})
 
 	Describe("RawGet", func() {
-		Context("when custom writer is not set", func() {
-			BeforeEach(func() {
-				server.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/path"),
-						ghttp.RespondWith(http.StatusOK, "body"),
-					),
-				)
-			})
+		BeforeEach(func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/path"),
+					ghttp.RespondWith(http.StatusOK, "body"),
+				),
+			)
+		})
 
+		Context("when custom writer is not set", func() {
 			It("returns full response body", func() {
 				body, resp, err := req.RawGet("/path", nil, nil)
 				Expect(err).ToNot(HaveOccurred())
@@ -172,15 +175,6 @@ var _ = Describe("ClientRequest", func() {
 		})
 
 		Context("when custom writer is set", func() {
-			BeforeEach(func() {
-				server.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/path"),
-						ghttp.RespondWith(http.StatusOK, "body"),
-					),
-				)
-			})
-
 			It("returns response body", func() {
 				buf := bytes.NewBufferString("")
 
@@ -210,6 +204,35 @@ var _ = Describe("ClientRequest", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(otherBuf.String()).To(Equal("body"))
+			})
+		})
+
+		Describe("Request logging", func() {
+			It("Sanitizes requests for logging", func() {
+
+
+
+				_, resp, err := req.RawGet("/path", nil, func(r *http.Request) {
+					r.Header.Add("Authorization", "basic=")
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resp).ToNot(BeNil())
+
+				host := resp.Request.Host
+				expectedLogCallArgs := fakedir.LogCallArgs{
+					LogLevel: "Debug",
+					Tag:      "director.clientRequest",
+					Msg:      "Dumping Director client request:\n%s",
+					Args: []string{
+						fmt.Sprintf("GET /path HTTP/1.1\r\nHost: %s\r\nAuthorization: [removed]\r\n\r\n", host),
+					},
+				}
+				actualLogCallArgs := (*logger.LogCallArgs)[1]
+
+				Expect(expectedLogCallArgs.LogLevel).To(Equal(actualLogCallArgs.LogLevel))
+				Expect(expectedLogCallArgs.Tag).To(Equal(actualLogCallArgs.Tag))
+				Expect(expectedLogCallArgs.Msg).To(Equal(actualLogCallArgs.Msg))
+				Expect(expectedLogCallArgs.Args[0]).To(Equal(actualLogCallArgs.Args[0]))
 			})
 		})
 	})

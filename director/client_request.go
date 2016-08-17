@@ -178,7 +178,9 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 
 	if out == nil {
 		if resp.Request != nil {
-			b, err := httputil.DumpRequest(resp.Request, true)
+			sanitizer := RequestSanitizer{Request: (*resp.Request)}
+			sanitizedRequest, _ := sanitizer.SanitizeRequest()
+			b, err := httputil.DumpRequest(&sanitizedRequest, true)
 			if err == nil {
 				r.logger.Debug(logTag, "Dumping Director client request:\n%s", string(b))
 			}
