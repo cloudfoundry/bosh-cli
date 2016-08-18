@@ -210,8 +210,6 @@ var _ = Describe("ClientRequest", func() {
 		Describe("Request logging", func() {
 			It("Sanitizes requests for logging", func() {
 
-
-
 				_, resp, err := req.RawGet("/path", nil, func(r *http.Request) {
 					r.Header.Add("Authorization", "basic=")
 				})
