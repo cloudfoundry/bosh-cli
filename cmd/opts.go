@@ -13,8 +13,8 @@ type BoshOpts struct {
 
 	ConfigPathOpt string `long:"config" description:"Config file path" env:"BOSH_CONFIG" default:"~/.bosh/config"`
 
-	EnvironmentOpt string `long:"environment" short:"e" description:"Director environment name or URL"`
-	CACertOpt      string `long:"ca-cert"               description:"Director CA certificate path or value"`
+	EnvironmentOpt string `long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`
+	CACertOpt      string `long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`
 
 	// Specify basic credentaials
 	UsernameOpt string `long:"user"     description:"Override username" env:"BOSH_USER"`

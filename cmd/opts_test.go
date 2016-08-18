@@ -44,7 +44,7 @@ var _ = Describe("Opts", func() {
 			Describe("EnvironmentOpt", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("EnvironmentOpt", opts)).To(Equal(
-						`long:"environment" short:"e" description:"Director environment name or URL"`,
+						`long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`,
 					))
 				})
 			})
@@ -52,7 +52,7 @@ var _ = Describe("Opts", func() {
 			Describe("CACertOpt", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("CACertOpt", opts)).To(Equal(
-						`long:"ca-cert"               description:"Director CA certificate path or value"`,
+						`long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`,
 					))
 				})
 			})
