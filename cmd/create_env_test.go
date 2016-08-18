@@ -58,7 +58,7 @@ import (
 	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
-var _ = Describe("DeployCmd", func() {
+var _ = Describe("CreateEnvCmd", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {
@@ -71,7 +71,7 @@ var _ = Describe("DeployCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			command        *bicmd.DeployCmd
+			command        *bicmd.CreateEnvCmd
 			fs             *fakesys.FakeFileSystem
 			stdOut         *gbytes.Buffer
 			stdErr         *gbytes.Buffer
@@ -380,7 +380,7 @@ var _ = Describe("DeployCmd", func() {
 				)
 			}
 
-			command = bicmd.NewDeployCmd(userInterface, doGet)
+			command = bicmd.NewCreateEnvCmd(userInterface, doGet)
 
 			expectLegacyMigrate = mockLegacyDeploymentStateMigrator.EXPECT().MigrateIfExists("/path/to/bosh-deployments.yml").AnyTimes()
 

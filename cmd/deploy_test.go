@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	. "github.com/onsi/ginkgo"
@@ -15,12 +16,12 @@ import (
 	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
 )
 
-var _ = Describe("Deploy2Cmd", func() {
+var _ = Describe("DeployCmd", func() {
 	var (
 		ui               *fakeui.FakeUI
 		deployment       *fakedir.FakeDeployment
 		uploadReleaseCmd *fakecmd.FakeReleaseUploadingCmd
-		command          Deploy2Cmd
+		command          DeployCmd
 	)
 
 	BeforeEach(func() {
@@ -29,7 +30,7 @@ var _ = Describe("Deploy2Cmd", func() {
 			NameStub: func() string { return "dep" },
 		}
 		uploadReleaseCmd = &fakecmd.FakeReleaseUploadingCmd{}
-		command = NewDeploy2Cmd(ui, deployment, uploadReleaseCmd)
+		command = NewDeployCmd(ui, deployment, uploadReleaseCmd)
 	})
 
 	Describe("Run", func() {

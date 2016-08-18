@@ -9,7 +9,7 @@ import (
 	boshui "github.com/cloudfoundry/bosh-init/ui"
 )
 
-type Deploy2Cmd struct {
+type DeployCmd struct {
 	ui               boshui.UI
 	deployment       boshdir.Deployment
 	uploadReleaseCmd ReleaseUploadingCmd
@@ -19,11 +19,11 @@ type ReleaseUploadingCmd interface {
 	Run(UploadReleaseOpts) error
 }
 
-func NewDeploy2Cmd(ui boshui.UI, deployment boshdir.Deployment, uploadReleaseCmd ReleaseUploadingCmd) Deploy2Cmd {
-	return Deploy2Cmd{ui: ui, deployment: deployment, uploadReleaseCmd: uploadReleaseCmd}
+func NewDeployCmd(ui boshui.UI, deployment boshdir.Deployment, uploadReleaseCmd ReleaseUploadingCmd) DeployCmd {
+	return DeployCmd{ui: ui, deployment: deployment, uploadReleaseCmd: uploadReleaseCmd}
 }
 
-func (c Deploy2Cmd) Run(opts DeployOpts) error {
+func (c DeployCmd) Run(opts DeployOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
 	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
@@ -61,7 +61,7 @@ func (c Deploy2Cmd) Run(opts DeployOpts) error {
 	return c.deployment.Update(bytes, opts.Recreate, opts.SkipDrain)
 }
 
-func (c Deploy2Cmd) uploadRelease(rel boshdir.ManifestRelease) error {
+func (c DeployCmd) uploadRelease(rel boshdir.ManifestRelease) error {
 	ver, err := semver.NewVersionFromString(rel.Version)
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func (c Deploy2Cmd) uploadRelease(rel boshdir.ManifestRelease) error {
 	return c.uploadReleaseCmd.Run(opts)
 }
 
-func (c Deploy2Cmd) printManifestDiff(bytes []byte, opts DeployOpts) error {
+func (c DeployCmd) printManifestDiff(bytes []byte, opts DeployOpts) error {
 	diff, err := c.deployment.Diff(bytes, opts.NoRedact)
 	if err != nil {
 		return err

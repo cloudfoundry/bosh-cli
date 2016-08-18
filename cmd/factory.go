@@ -5,6 +5,8 @@ import (
 	"reflect"
 
 	"errors"
+	"strings"
+
 	cmdconf "github.com/cloudfoundry/bosh-init/cmd/config"
 	boshdir "github.com/cloudfoundry/bosh-init/director"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
@@ -14,7 +16,6 @@ import (
 	boshui "github.com/cloudfoundry/bosh-init/ui"
 	boshuit "github.com/cloudfoundry/bosh-init/ui/task"
 	goflags "github.com/jessevdk/go-flags"
-	"strings"
 )
 
 type Factory struct {
@@ -198,7 +199,7 @@ func NewFactory(deps BasicDeps) Factory {
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
-		return NewDeployCmd(deps.UI, envProvider).Run(stage, opts.CreateEnv)
+		return NewCreateEnvCmd(deps.UI, envProvider).Run(stage, opts.CreateEnv)
 	}))
 
 	opts.DeleteEnv.call = rejectExtraArgsFunc(globalOptsFunc(func() error {
@@ -398,7 +399,7 @@ func NewFactory(deps BasicDeps) Factory {
 
 	opts.Deploy.call = rejectExtraArgsFunc(directorAndDeploymentFunc(func(director boshdir.Director, dep boshdir.Deployment) error {
 		uploadReleaseCmd := NewUploadReleaseCmd(nil, nil, nil, director, nil, deps.UI)
-		return NewDeploy2Cmd(deps.UI, dep, uploadReleaseCmd).Run(opts.Deploy)
+		return NewDeployCmd(deps.UI, dep, uploadReleaseCmd).Run(opts.Deploy)
 	}))
 
 	opts.Start.call = rejectExtraArgsFunc(deploymentFunc(func(dep boshdir.Deployment) error {
