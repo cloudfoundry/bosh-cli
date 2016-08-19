@@ -7,9 +7,9 @@ import (
 )
 
 type ComboWriter struct {
-	ui     UI
-	uiLock sync.Mutex
-	onNL   bool
+	ui        UI
+	uiLock    sync.Mutex
+	onNewLine bool
 }
 
 type prefixedWriter struct {
@@ -18,7 +18,7 @@ type prefixedWriter struct {
 }
 
 func NewComboWriter(ui UI) *ComboWriter {
-	return &ComboWriter{ui: ui, onNL: true}
+	return &ComboWriter{ui: ui, onNewLine: true}
 }
 
 func (w *ComboWriter) Writer(prefix string) io.Writer {
@@ -26,29 +26,30 @@ func (w *ComboWriter) Writer(prefix string) io.Writer {
 }
 
 func (s prefixedWriter) Write(bytes []byte) (int, error) {
+	if len(bytes) == 0 {
+		return 0, nil
+	}
+
 	s.w.uiLock.Lock()
 	defer s.w.uiLock.Unlock()
 
-	pieces := strings.Split(string(bytes), "\n")
+	lines := strings.Split(string(bytes), "\n")
 
-	for i, piece := range pieces {
-		if i == len(pieces)-1 {
-			if s.w.onNL {
-				if len(piece) > 0 {
-					s.w.ui.PrintBlock(s.prefix)
-					s.w.ui.PrintBlock(piece)
-					s.w.onNL = false
-				}
-			} else {
-				s.w.ui.PrintBlock(piece)
-			}
-		} else {
-			if s.w.onNL {
+	for i, line := range lines {
+		lastLine := i == len(lines)-1
+
+		if !lastLine || len(line) > 0 {
+			if s.w.onNewLine {
 				s.w.ui.PrintBlock(s.prefix)
 			}
-			s.w.ui.PrintBlock(piece)
-			s.w.ui.PrintBlock("\n")
-			s.w.onNL = true
+
+			s.w.ui.PrintBlock(line)
+			s.w.onNewLine = false
+
+			if !lastLine {
+				s.w.ui.PrintBlock("\n")
+				s.w.onNewLine = true
+			}
 		}
 	}
 
