@@ -85,6 +85,9 @@ func (i *instance) WaitUntilReady(
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s' to be ready", i.vm.CID())
 	err := stage.Perform(stepName, func() error {
 		if !registryConfig.IsEmpty() {
+			sshReadyErrCh := make(chan error)
+			sshErrCh := make(chan error)
+
 			sshTunnelOptions := bisshtunnel.Options{
 				Host:              registryConfig.SSHTunnel.Host,
 				Port:              registryConfig.SSHTunnel.Port,
@@ -95,8 +98,6 @@ func (i *instance) WaitUntilReady(
 				RemoteForwardPort: registryConfig.Port,
 			}
 			sshTunnel := i.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
-			sshReadyErrCh := make(chan error)
-			sshErrCh := make(chan error)
 			go sshTunnel.Start(sshReadyErrCh, sshErrCh)
 			defer func() {
 				if err := sshTunnel.Stop(); err != nil {

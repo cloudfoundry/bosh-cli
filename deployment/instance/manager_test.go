@@ -313,7 +313,7 @@ var _ = Describe("Manager", func() {
 						Host:       "fake-ssh-host",
 						Port:       123,
 						Password:   "fake-ssh-password",
-						PrivateKey: "fake-ssh-private-key-path",
+						PrivateKey: "---BEGIN PRIVATE KEY--- im a real key ---END PRIVATE KEY---",
 					},
 				}
 			})
@@ -333,7 +333,7 @@ var _ = Describe("Manager", func() {
 					Host:              "fake-ssh-host",
 					Port:              123,
 					Password:          "fake-ssh-password",
-					PrivateKey:        "fake-ssh-private-key-path",
+					PrivateKey:        "---BEGIN PRIVATE KEY--- im a real key ---END PRIVATE KEY---",
 					LocalForwardPort:  124,
 					RemoteForwardPort: 124,
 				}))

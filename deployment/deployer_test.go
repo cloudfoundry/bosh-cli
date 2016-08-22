@@ -100,7 +100,7 @@ var _ = Describe("Deployer", func() {
 		registryConfig = biinstallmanifest.Registry{
 			SSHTunnel: biinstallmanifest.SSHTunnel{
 				User:       "fake-ssh-username",
-				PrivateKey: "fake-private-key-path",
+				PrivateKey: "---BEGIN PRIVATE KEY--- qwerty ---END PRIVATE KEY---",
 				Password:   "fake-password",
 				Host:       "fake-ssh-host",
 				Port:       124,
@@ -223,7 +223,7 @@ var _ = Describe("Deployer", func() {
 				Port:     123,
 				SSHTunnel: biinstallmanifest.SSHTunnel{
 					User:       "fake-ssh-username",
-					PrivateKey: "fake-private-key-path",
+					PrivateKey: "---BEGIN PRIVATE KEY--- huzzah! ---END PRIVATE KEY---",
 					Password:   "fake-password",
 					Host:       "fake-ssh-host",
 					Port:       124,
@@ -237,7 +237,7 @@ var _ = Describe("Deployer", func() {
 			Expect(fakeSSHTunnel.Started).To(BeTrue())
 			Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bisshtunnel.Options{
 				User:              "fake-ssh-username",
-				PrivateKey:        "fake-private-key-path",
+				PrivateKey:        "---BEGIN PRIVATE KEY--- huzzah! ---END PRIVATE KEY---",
 				Password:          "fake-password",
 				Host:              "fake-ssh-host",
 				Port:              124,

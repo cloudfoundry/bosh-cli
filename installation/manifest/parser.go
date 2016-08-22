@@ -7,10 +7,12 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
+	"encoding/pem"
 	biutil "github.com/cloudfoundry/bosh-init/common/util"
 	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
 	"gopkg.in/yaml.v2"
+	"strings"
 )
 
 type Parser interface {
@@ -78,9 +80,21 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, releaseSetManifest b
 	p.logger.Debug(p.logTag, "Parsed installation manifest: %#v", comboManifest)
 
 	if comboManifest.CloudProvider.SSHTunnel.PrivateKey != "" {
-		comboManifest.CloudProvider.SSHTunnel.PrivateKey, err = biutil.AbsolutifyPath(path, comboManifest.CloudProvider.SSHTunnel.PrivateKey, p.fs)
-		if err != nil {
-			return Manifest{}, bosherr.WrapErrorf(err, "Expanding private_key path")
+		if strings.HasPrefix(comboManifest.CloudProvider.SSHTunnel.PrivateKey, "-----BEGIN RSA PRIVATE KEY-----") {
+			pkey, _ := pem.Decode([]byte(comboManifest.CloudProvider.SSHTunnel.PrivateKey))
+			if pkey == nil {
+				return Manifest{}, bosherr.Error("Invalid private key for ssh tunnel")
+			}
+		} else {
+			absolutePath, err := biutil.AbsolutifyPath(path, comboManifest.CloudProvider.SSHTunnel.PrivateKey, p.fs)
+			if err != nil {
+				return Manifest{}, bosherr.WrapErrorf(err, "Expanding private_key path")
+			}
+			keyContents, err := p.fs.ReadFile(absolutePath)
+			if err != nil {
+				return Manifest{}, bosherr.WrapErrorf(err, "Reading private key from %s", absolutePath)
+			}
+			comboManifest.CloudProvider.SSHTunnel.PrivateKey = string(keyContents)
 		}
 	}
 

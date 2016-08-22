@@ -117,9 +117,10 @@ cloud_provider:
 		})
 
 		Context("when ssh tunnel config is present", func() {
-			Context("with absolute private_key path", func() {
-				BeforeEach(func() {
-					fakeFs.WriteFileString(comboManifestPath, `
+			Context("with raw private key", func() {
+				Context("that is valid", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -130,50 +131,160 @@ cloud_provider:
     host: 54.34.56.8
     port: 22
     user: fake-ssh-user
-    private_key: /tmp/fake-ssh-key.pem
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIByQIBAAJhANs/tl5Tv7CD0Gz5TYocWZbGwHIjDU8dY1oszVMb8bhybfF4y88k
+      7oaFYlyZ0oZATpx1EGXZAcgDszq5XSXhYKWQL6+u0qEylWsbra7qQefm2+WbZDfh
+      ugqbt+kD0F6CjQIDAQABAmBS8yDxQShGBSjnAc9XUHCIvftzc1WGuCytokOwjOMA
+      ELMN59DcNzHTTUWwmTXwOwWPnz1c7PYRnFmy99dEcyWeugU0C5QS96XWwGdXcOjY
+      Kr1q/yDJZh416/nWkyGlIOECMQDvT36aXqf0xZHb47aEWmeezGS9IyK1BDMEqvcD
+      DNU/GK86ymoEqtIyQbnuBUqSbkUCMQDqigydhP7j1IGABdVrWXX/WFhABjAmNWrf
+      YYEecgjhjdM83QSkpwu7tYCHtZjny6kCMCZO6GpXurUxJ0823ZHEUxAVkg7A4B5w
+      BKa7o30GgeBu2CYmHuCOY8WNxfC3Qh+8rQIwGQIXTkR8GTbzh/8XPpcPaea1oj4G
+      rExN1PvElMZ8A/DncTnv4M6fBajYx5+pai3hAjBui9LTgI1fZeOtgBEo+Q3ZLm/O
+      bX621YeY03FF5+TCF6Zwk4yT/NWMwJz8Fpb9QQA=
+      -----END RSA PRIVATE KEY-----
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
-					fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+					})
+
+					It("sets the raw private key field", func() {
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(installationManifest).To(Equal(manifest.Manifest{
+							Name: "fake-deployment-name",
+							Template: manifest.ReleaseJobRef{
+								Name:    "fake-cpi-job-name",
+								Release: "fake-cpi-release-name",
+							},
+							Properties: biproperty.Map{
+								"registry": biproperty.Map{
+									"host":     "127.0.0.1",
+									"port":     6901,
+									"username": "registry",
+									"password": "fake-uuid",
+								},
+							},
+							Registry: manifest.Registry{
+								SSHTunnel: manifest.SSHTunnel{
+									Host: "54.34.56.8",
+									Port: 22,
+									User: "fake-ssh-user",
+									PrivateKey: `-----BEGIN RSA PRIVATE KEY-----
+MIIByQIBAAJhANs/tl5Tv7CD0Gz5TYocWZbGwHIjDU8dY1oszVMb8bhybfF4y88k
+7oaFYlyZ0oZATpx1EGXZAcgDszq5XSXhYKWQL6+u0qEylWsbra7qQefm2+WbZDfh
+ugqbt+kD0F6CjQIDAQABAmBS8yDxQShGBSjnAc9XUHCIvftzc1WGuCytokOwjOMA
+ELMN59DcNzHTTUWwmTXwOwWPnz1c7PYRnFmy99dEcyWeugU0C5QS96XWwGdXcOjY
+Kr1q/yDJZh416/nWkyGlIOECMQDvT36aXqf0xZHb47aEWmeezGS9IyK1BDMEqvcD
+DNU/GK86ymoEqtIyQbnuBUqSbkUCMQDqigydhP7j1IGABdVrWXX/WFhABjAmNWrf
+YYEecgjhjdM83QSkpwu7tYCHtZjny6kCMCZO6GpXurUxJ0823ZHEUxAVkg7A4B5w
+BKa7o30GgeBu2CYmHuCOY8WNxfC3Qh+8rQIwGQIXTkR8GTbzh/8XPpcPaea1oj4G
+rExN1PvElMZ8A/DncTnv4M6fBajYx5+pai3hAjBui9LTgI1fZeOtgBEo+Q3ZLm/O
+bX621YeY03FF5+TCF6Zwk4yT/NWMwJz8Fpb9QQA=
+-----END RSA PRIVATE KEY-----
+`,
+								},
+								Host:     "127.0.0.1",
+								Port:     6901,
+								Username: "registry",
+								Password: "fake-uuid",
+							},
+							Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+						}))
+
+					})
 				})
+				Context("that is invalid", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      no valid private key
+      -----END RSA PRIVATE KEY-----
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+					})
 
-				It("generates registry config and populates properties in manifest with absolute path for private_key", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
-					Expect(err).ToNot(HaveOccurred())
-
-					Expect(installationManifest).To(Equal(manifest.Manifest{
-						Name: "fake-deployment-name",
-						Template: manifest.ReleaseJobRef{
-							Name:    "fake-cpi-job-name",
-							Release: "fake-cpi-release-name",
-						},
-						Properties: biproperty.Map{
-							"registry": biproperty.Map{
-								"host":     "127.0.0.1",
-								"port":     6901,
-								"username": "registry",
-								"password": "fake-uuid",
-							},
-						},
-						Registry: manifest.Registry{
-							SSHTunnel: manifest.SSHTunnel{
-								Host:       "54.34.56.8",
-								Port:       22,
-								User:       "fake-ssh-user",
-								PrivateKey: "/tmp/fake-ssh-key.pem",
-							},
-							Host:     "127.0.0.1",
-							Port:     6901,
-							Username: "registry",
-							Password: "fake-uuid",
-						},
-						Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
-					}))
+					It("returns an error", func() {
+						_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(Equal("Invalid private key for ssh tunnel"))
+					})
 				})
 			})
 
-			Context("with relative private_key path", func() {
-				BeforeEach(func() {
-					fakeFs.WriteFileString(comboManifestPath, `---
+			Context("with private key path", func() {
+				Context("with absolute private_key path", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: /path/to/fake-ssh-key.pem
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+						fakeFs.WriteFileString("/path/to/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+					})
+
+					It("generates registry config and populates properties in manifest with absolute path for private_key", func() {
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(installationManifest).To(Equal(manifest.Manifest{
+							Name: "fake-deployment-name",
+							Template: manifest.ReleaseJobRef{
+								Name:    "fake-cpi-job-name",
+								Release: "fake-cpi-release-name",
+							},
+							Properties: biproperty.Map{
+								"registry": biproperty.Map{
+									"host":     "127.0.0.1",
+									"port":     6901,
+									"username": "registry",
+									"password": "fake-uuid",
+								},
+							},
+							Registry: manifest.Registry{
+								SSHTunnel: manifest.SSHTunnel{
+									Host:       "54.34.56.8",
+									Port:       22,
+									User:       "fake-ssh-user",
+									PrivateKey: "--- BEGIN KEY --- blah --- END KEY ---",
+								},
+								Host:     "127.0.0.1",
+								Port:     6901,
+								Username: "registry",
+								Password: "fake-uuid",
+							},
+							Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+						}))
+					})
+				})
+
+				Context("with relative private_key path", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
   template:
@@ -186,47 +297,48 @@ cloud_provider:
     private_key: tmp/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
-					fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+						fakeFs.WriteFileString("/path/to/tmp/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+					})
+
+					It("generates registry config and populates properties in manifest with expanded path for private_key", func() {
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(installationManifest).To(Equal(manifest.Manifest{
+							Name: "fake-deployment-name",
+							Template: manifest.ReleaseJobRef{
+								Name:    "fake-cpi-job-name",
+								Release: "fake-cpi-release-name",
+							},
+							Properties: biproperty.Map{
+								"registry": biproperty.Map{
+									"host":     "127.0.0.1",
+									"port":     6901,
+									"username": "registry",
+									"password": "fake-uuid",
+								},
+							},
+							Registry: manifest.Registry{
+								SSHTunnel: manifest.SSHTunnel{
+									Host:       "54.34.56.8",
+									Port:       22,
+									User:       "fake-ssh-user",
+									PrivateKey: "--- BEGIN KEY --- blah --- END KEY ---",
+								},
+								Host:     "127.0.0.1",
+								Port:     6901,
+								Username: "registry",
+								Password: "fake-uuid",
+							},
+							Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+						}))
+					})
 				})
 
-				It("generates registry config and populates properties in manifest with expanded path for private_key", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
-					Expect(err).ToNot(HaveOccurred())
-
-					Expect(installationManifest).To(Equal(manifest.Manifest{
-						Name: "fake-deployment-name",
-						Template: manifest.ReleaseJobRef{
-							Name:    "fake-cpi-job-name",
-							Release: "fake-cpi-release-name",
-						},
-						Properties: biproperty.Map{
-							"registry": biproperty.Map{
-								"host":     "127.0.0.1",
-								"port":     6901,
-								"username": "registry",
-								"password": "fake-uuid",
-							},
-						},
-						Registry: manifest.Registry{
-							SSHTunnel: manifest.SSHTunnel{
-								Host:       "54.34.56.8",
-								Port:       22,
-								User:       "fake-ssh-user",
-								PrivateKey: "/path/to/tmp/fake-ssh-key.pem",
-							},
-							Host:     "127.0.0.1",
-							Port:     6901,
-							Username: "registry",
-							Password: "fake-uuid",
-						},
-						Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
-					}))
-				})
-			})
-
-			Context("with private_key path beginning with '~'", func() {
-				BeforeEach(func() {
-					fakeFs.WriteFileString(comboManifestPath, `---
+				Context("with private_key path beginning with '~'", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
   template:
@@ -239,48 +351,49 @@ cloud_provider:
     private_key: ~/tmp/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
-					fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
-					fakeFs.ExpandPathExpanded = "/Users/foo/tmp/fake-ssh-key.pem"
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+						fakeFs.ExpandPathExpanded = "/Users/foo/tmp/fake-ssh-key.pem"
+						fakeFs.WriteFileString(fakeFs.ExpandPathExpanded, "--- BEGIN KEY --- blah --- END KEY ---")
+					})
+
+					It("generates registry config and populates properties in manifest with expanded path for private_key", func() {
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(installationManifest).To(Equal(manifest.Manifest{
+							Name: "fake-deployment-name",
+							Template: manifest.ReleaseJobRef{
+								Name:    "fake-cpi-job-name",
+								Release: "fake-cpi-release-name",
+							},
+							Properties: biproperty.Map{
+								"registry": biproperty.Map{
+									"host":     "127.0.0.1",
+									"port":     6901,
+									"username": "registry",
+									"password": "fake-uuid",
+								},
+							},
+							Registry: manifest.Registry{
+								SSHTunnel: manifest.SSHTunnel{
+									Host:       "54.34.56.8",
+									Port:       22,
+									User:       "fake-ssh-user",
+									PrivateKey: "--- BEGIN KEY --- blah --- END KEY ---",
+								},
+								Host:     "127.0.0.1",
+								Port:     6901,
+								Username: "registry",
+								Password: "fake-uuid",
+							},
+							Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+						}))
+					})
 				})
 
-				It("generates registry config and populates properties in manifest with expanded path for private_key", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
-					Expect(err).ToNot(HaveOccurred())
-
-					Expect(installationManifest).To(Equal(manifest.Manifest{
-						Name: "fake-deployment-name",
-						Template: manifest.ReleaseJobRef{
-							Name:    "fake-cpi-job-name",
-							Release: "fake-cpi-release-name",
-						},
-						Properties: biproperty.Map{
-							"registry": biproperty.Map{
-								"host":     "127.0.0.1",
-								"port":     6901,
-								"username": "registry",
-								"password": "fake-uuid",
-							},
-						},
-						Registry: manifest.Registry{
-							SSHTunnel: manifest.SSHTunnel{
-								Host:       "54.34.56.8",
-								Port:       22,
-								User:       "fake-ssh-user",
-								PrivateKey: "/Users/foo/tmp/fake-ssh-key.pem",
-							},
-							Host:     "127.0.0.1",
-							Port:     6901,
-							Username: "registry",
-							Password: "fake-uuid",
-						},
-						Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
-					}))
-				})
-			})
-
-			Context("when expanding to the home directory fails", func() {
-				BeforeEach(func() {
-					fakeFs.WriteFileString(comboManifestPath, `
+				Context("when expanding to the home directory fails", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -294,13 +407,37 @@ cloud_provider:
     private_key: ~/tmp/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
-					fakeFs.ExpandPathErr = errors.New("fake-expand-error")
+						fakeFs.ExpandPathErr = errors.New("fake-expand-error")
+					})
+
+					It("returns an error", func() {
+						_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(Equal("Expanding private_key path: fake-expand-error"))
+					})
 				})
 
-				It("returns an error", func() {
-					_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Expanding private_key path: fake-expand-error"))
+				Context("when file does not exist", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: /bar/fake-ssh-key.pem
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+					})
+					It("returns an error", func() {
+						_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, releaseSetManifest)
+						Expect(err.Error()).To(ContainSubstring("Reading private key from /bar/fake-ssh-key.pem"))
+					})
 				})
 			})
 
@@ -330,13 +467,12 @@ cloud_provider:
 			Expect(err.Error()).To(Equal("Validating installation manifest: nope"))
 		})
 
-		It("interpolates variables and later resolves their values", func() {
-			fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
-			fakeFs.ExpandPathExpanded = "/Users/foo/tmp/fake-ssh-key.pem"
+		Context("when interpolating variables", func() {
+			BeforeEach(func() {
+				fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+				fakeFs.ExpandPathExpanded = "/Users/foo/tmp/fake-ssh-key.pem"
 
-			comboManifestPath := "/path/to/fake-deployment-yml"
-
-			fakeFs.WriteFileString(comboManifestPath, `---
+				fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
   template:
@@ -349,37 +485,41 @@ cloud_provider:
     private_key: ((url))
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+				fakeFs.WriteFileString("/Users/foo/tmp/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+			})
 
-			installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{"url": "~/tmp/fake-ssh-key.pem"}, releaseSetManifest)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(installationManifest).To(Equal(manifest.Manifest{
-				Name: "fake-deployment-name",
-				Template: manifest.ReleaseJobRef{
-					Name:    "fake-cpi-job-name",
-					Release: "fake-cpi-release-name",
-				},
-				Properties: biproperty.Map{
-					"registry": biproperty.Map{
-						"host":     "127.0.0.1",
-						"port":     6901,
-						"username": "registry",
-						"password": "fake-uuid",
+			It("resolves their values", func() {
+				installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{"url": "~/tmp/fake-ssh-key.pem"}, releaseSetManifest)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(installationManifest).To(Equal(manifest.Manifest{
+					Name: "fake-deployment-name",
+					Template: manifest.ReleaseJobRef{
+						Name:    "fake-cpi-job-name",
+						Release: "fake-cpi-release-name",
 					},
-				},
-				Registry: manifest.Registry{
-					SSHTunnel: manifest.SSHTunnel{
-						Host:       "54.34.56.8",
-						Port:       22,
-						User:       "fake-ssh-user",
-						PrivateKey: "/Users/foo/tmp/fake-ssh-key.pem",
+					Properties: biproperty.Map{
+						"registry": biproperty.Map{
+							"host":     "127.0.0.1",
+							"port":     6901,
+							"username": "registry",
+							"password": "fake-uuid",
+						},
 					},
-					Host:     "127.0.0.1",
-					Port:     6901,
-					Username: "registry",
-					Password: "fake-uuid",
-				},
-				Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
-			}))
+					Registry: manifest.Registry{
+						SSHTunnel: manifest.SSHTunnel{
+							Host:       "54.34.56.8",
+							Port:       22,
+							User:       "fake-ssh-user",
+							PrivateKey: "--- BEGIN KEY --- blah --- END KEY ---",
+						},
+						Host:     "127.0.0.1",
+						Port:     6901,
+						Username: "registry",
+						Password: "fake-uuid",
+					},
+					Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+				}))
+			})
 		})
 	})
 })

@@ -3,7 +3,6 @@ package sshtunnel
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"strings"
 	"time"
@@ -35,17 +34,9 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 	authMethods := []ssh.AuthMethod{}
 
 	if s.options.PrivateKey != "" {
-		s.logger.Debug(s.logTag, "Reading private key file '%s'", s.options.PrivateKey)
-		keyContents, err := ioutil.ReadFile(s.options.PrivateKey)
+		signer, err := ssh.ParsePrivateKey([]byte(s.options.PrivateKey))
 		if err != nil {
-			readyErrCh <- bosherr.WrapErrorf(err, "Reading private key file '%s'", s.options.PrivateKey)
-			return
-		}
-
-		s.logger.Debug(s.logTag, "Parsing private key file '%s'", s.options.PrivateKey)
-		signer, err := ssh.ParsePrivateKey(keyContents)
-		if err != nil {
-			readyErrCh <- bosherr.WrapErrorf(err, "Parsing private key file '%s'", s.options.PrivateKey)
+			readyErrCh <- bosherr.WrapErrorf(err, "Parsing private key '%s'", s.options.PrivateKey)
 			return
 		}
 
