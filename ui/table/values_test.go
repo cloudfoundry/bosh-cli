@@ -194,6 +194,38 @@ var _ = Describe("ValueFmt", func() {
 	})
 })
 
+type failsToYAMLMarshal struct{}
+
+func (s failsToYAMLMarshal) MarshalYAML() (interface{}, error) {
+	return nil, errors.New("marshal-err")
+}
+
+var _ = Describe("ValueInterface", func() {
+	It("returns map as a string", func() {
+		i := map[string]interface{}{"key": "value", "num": 123}
+		Expect(ValueInterface{I: i}.String()).To(Equal("key: value\nnum: 123"))
+	})
+
+	It("returns nested items as a string", func() {
+		i := map[string]interface{}{"key": map[string]interface{}{"nested_key": "nested_value"}}
+		Expect(ValueInterface{I: i}.String()).To(Equal("key:\n  nested_key: nested_value"))
+	})
+
+	It("returns nested items as a string", func() {
+		i := failsToYAMLMarshal{}
+		Expect(ValueInterface{I: i}.String()).To(Equal(`<serilization error> : table_test.failsToYAMLMarshal{}`))
+	})
+
+	It("returns nil items as blank string", func() {
+		Expect(ValueInterface{I: nil}.String()).To(Equal(""))
+	})
+
+	It("returns an empty map as blank string", func() {
+		i := map[string]interface{}{}
+		Expect(ValueInterface{I: i}.String()).To(Equal(""))
+	})
+})
+
 var _ = Describe("ValueSuffix", func() {
 	It("returns formatted string with suffix", func() {
 		Expect(ValueSuffix{ValueInt{1}, "*"}.String()).To(Equal("1*"))

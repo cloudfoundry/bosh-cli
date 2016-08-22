@@ -13,7 +13,7 @@ import (
 	"io/ioutil"
 )
 
-type FakeIOReader struct {}
+type FakeIOReader struct{}
 
 func (reader FakeIOReader) Read(p []byte) (n int, err error) {
 	return 0, nil

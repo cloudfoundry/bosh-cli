@@ -58,6 +58,7 @@ var _ = Describe("Factory", func() {
 			"delete-deployment":     []string{},
 			"deploy":                []string{"/file"},
 			"manifest":              []string{},
+			"events":                []string{},
 			"stemcells":             []string{},
 			"upload-stemcell":       []string{"/file"},
 			"delete-stemcell":       []string{"name/version"},

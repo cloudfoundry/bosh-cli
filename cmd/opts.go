@@ -71,6 +71,9 @@ type BoshOpts struct {
 	Deploy   DeployOpts   `command:"deploy"   alias:"d"                                       description:"Deploy according to the currently selected deployment manifest"`
 	Manifest ManifestOpts `command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`
 
+	// Events
+	Events EventsOpts `command:"events" description:"List events"`
+
 	// Stemcells
 	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss" alias:"stems" description:"List stemcells"`
 	UploadStemcell UploadStemcellOpts `command:"upload-stemcell" alias:"us"               description:"Upload stemcell"`
@@ -323,6 +326,18 @@ type DeploymentArgs struct {
 
 type DeploymentNameArgs struct {
 	Name string `positional-arg-name:"NAME"`
+}
+
+// Events
+type EventsOpts struct {
+	BeforeID       *string `long:"before-id" description:"Show events with ID less than the given ID"`
+	Before         *string `long:"before" description:"Show events before the given timestamp (ex: 2016-05-08 17:26:32)"`
+	After          *string `long:"after" description:"Show events after the given timestamp (ex: 2016-05-08 17:26:32)"`
+	DeploymentName *string `long:"deployment" description:"Show events with the given deployment name"`
+	TaskID         *string `long:"task" description:"Show events with the given task ID"`
+	Instance       *string `long:"instance" description:"Show events with given instance"`
+
+	cmd
 }
 
 // Stemcells

@@ -58,6 +58,15 @@ type FakeDirector struct {
 		result1 director.Task
 		result2 error
 	}
+	EventsStub        func(director.EventsFilter) ([]director.Event, error)
+	eventsMutex       sync.RWMutex
+	eventsArgsForCall []struct {
+		arg1 director.EventsFilter
+	}
+	eventsReturns struct {
+		result1 []director.Event
+		result2 error
+	}
 	DeploymentsStub        func() ([]director.Deployment, error)
 	deploymentsMutex       sync.RWMutex
 	deploymentsArgsForCall []struct{}
@@ -429,6 +438,39 @@ func (fake *FakeDirector) FindTaskReturns(result1 director.Task, result2 error) 
 	fake.FindTaskStub = nil
 	fake.findTaskReturns = struct {
 		result1 director.Task
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) Events(arg1 director.EventsFilter) ([]director.Event, error) {
+	fake.eventsMutex.Lock()
+	fake.eventsArgsForCall = append(fake.eventsArgsForCall, struct {
+		arg1 director.EventsFilter
+	}{arg1})
+	fake.eventsMutex.Unlock()
+	if fake.EventsStub != nil {
+		return fake.EventsStub(arg1)
+	} else {
+		return fake.eventsReturns.result1, fake.eventsReturns.result2
+	}
+}
+
+func (fake *FakeDirector) EventsCallCount() int {
+	fake.eventsMutex.RLock()
+	defer fake.eventsMutex.RUnlock()
+	return len(fake.eventsArgsForCall)
+}
+
+func (fake *FakeDirector) EventsArgsForCall(i int) director.EventsFilter {
+	fake.eventsMutex.RLock()
+	defer fake.eventsMutex.RUnlock()
+	return fake.eventsArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) EventsReturns(result1 []director.Event, result2 error) {
+	fake.EventsStub = nil
+	fake.eventsReturns = struct {
+		result1 []director.Event
 		result2 error
 	}{result1, result2}
 }
