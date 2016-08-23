@@ -10,7 +10,14 @@ import (
 
 	. "github.com/cloudfoundry/bosh-init/director"
 	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
+	"io/ioutil"
 )
+
+type FakeIOReader struct {}
+
+func (reader FakeIOReader) Read(p []byte) (n int, err error) {
+	return 0, nil
+}
 
 var _ = Describe("AdjustableClient", func() {
 	var (
@@ -35,6 +42,28 @@ var _ = Describe("AdjustableClient", func() {
 				URL:    &gourl.URL{},
 				Header: http.Header(map[string][]string{}),
 			}
+		})
+
+		Context("if body is not empty", func() {
+			BeforeEach(func() {
+				reader := FakeIOReader{}
+				req.Body = ioutil.NopCloser(reader)
+			})
+
+			It("adjusts with retried true", func() {
+				adjustment.AdjustStub = func(reqToAdjust *http.Request, retried bool) error {
+					Expect(retried).To(BeTrue())
+					reqToAdjust.Header.Add("Adjustment", "1")
+					return nil
+				}
+
+				innerClient.DoStub = func(reqToExec *http.Request) (*http.Response, error) {
+					Expect(reqToExec.Header["Adjustment"]).To(Equal([]string{"1"}))
+					Expect(reqToExec.Body).ToNot(BeNil())
+					return nil, nil
+				}
+				client.Do(req)
+			})
 		})
 
 		It("adjusts request once before executing it", func() {

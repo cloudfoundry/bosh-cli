@@ -27,7 +27,9 @@ func NewAdjustableClient(client AdjustedClient, adjustment Adjustment) Adjustabl
 }
 
 func (c AdjustableClient) Do(req *http.Request) (*http.Response, error) {
-	err := c.adjustment.Adjust(req, false)
+	retried := req.Body != nil
+	err := c.adjustment.Adjust(req, retried)
+
 	if err != nil {
 		return nil, err
 	}
