@@ -92,7 +92,7 @@ var _ = Describe("Opts", func() {
 			Describe("DeploymentOpt", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("DeploymentOpt", opts)).To(Equal(
-						`long:"deployment" short:"d" description:"Deployment name"`,
+						`long:"deployment" short:"d" description:"Deployment name" env:"BOSH_DEPLOYMENT"`,
 					))
 				})
 			})

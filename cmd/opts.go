@@ -22,7 +22,7 @@ type BoshOpts struct {
 	UAAClientOpt       string `long:"uaa-client"        description:"Override UAA client"        env:"BOSH_CLIENT"`
 	UAAClientSecretOpt string `long:"uaa-client-secret" description:"Override UAA client secret" env:"BOSH_CLIENT_SECRET"`
 
-	DeploymentOpt string `long:"deployment" short:"d" description:"Deployment name"`
+	DeploymentOpt string `long:"deployment" short:"d" description:"Deployment name" env:"BOSH_DEPLOYMENT"`
 
 	// Output formatting
 	JSONOpt           bool `long:"json"                      description:"Output as JSON"`
