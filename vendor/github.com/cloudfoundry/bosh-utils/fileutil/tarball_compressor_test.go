@@ -108,7 +108,7 @@ var _ = Describe("tarballCompressor", func() {
 
 			contentElements := strings.Split(strings.TrimSpace(tarballContents), "\n")
 
-			Expect(contentElements).To(ConsistOf(
+			Expect(contentElements).To(Equal([]string{
 				"./",
 				"./app.stderr.log",
 				"./app.stdout.log",
@@ -121,7 +121,58 @@ var _ = Describe("tarballCompressor", func() {
 				"./other_logs/other_app.stderr.log",
 				"./other_logs/other_app.stdout.log",
 				"./other_logs/more_logs/more.stdout.log",
-			))
+			}))
+
+			_, _, _, err = cmdRunner.RunCommand("tar", "-xzpf", tgzName, "-C", dstDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			content, err := fs.ReadFileString(dstDir + "/app.stdout.log")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(content).To(ContainSubstring("this is app stdout"))
+
+			content, err = fs.ReadFileString(dstDir + "/app.stderr.log")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(content).To(ContainSubstring("this is app stderr"))
+
+			content, err = fs.ReadFileString(dstDir + "/other_logs/other_app.stdout.log")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(content).To(ContainSubstring("this is other app stdout"))
+		})
+	})
+
+	Describe("CompressSpecificFilesInDir", func() {
+		It("compresses the files in the given directory", func() {
+			srcDir := fixtureSrcDir()
+			files := []string{
+				"app.stderr.log",
+				"app.stdout.log",
+				"other_logs/",
+				"some_directory/",
+			}
+			tgzName, err := compressor.CompressSpecificFilesInDir(srcDir, files)
+			Expect(err).ToNot(HaveOccurred())
+			defer os.Remove(tgzName)
+
+			tarballContents, _, _, err := cmdRunner.RunCommand("tar", "-tf", tgzName)
+			Expect(err).ToNot(HaveOccurred())
+
+			contentElements := strings.Split(strings.TrimSpace(tarballContents), "\n")
+
+			Expect(contentElements).To(Equal([]string{
+				"app.stderr.log",
+				"app.stdout.log",
+				"other_logs/",
+				"other_logs/more_logs/",
+				"other_logs/other_app.stderr.log",
+				"other_logs/other_app.stdout.log",
+				"other_logs/more_logs/more.stdout.log",
+				"some_directory/",
+				"some_directory/sub_dir/",
+				"some_directory/sub_dir/other_sub_dir/",
+				"some_directory/sub_dir/other_sub_dir/.keep",
+			}))
+
+			_, _, _, err = cmdRunner.RunCommand("cp", tgzName, "/tmp")
 
 			_, _, _, err = cmdRunner.RunCommand("tar", "-xzpf", tgzName, "-C", dstDir)
 			Expect(err).ToNot(HaveOccurred())
