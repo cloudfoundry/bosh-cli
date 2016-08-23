@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/cloudfoundry/bosh-init/director/template"
+	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
 	boshui "github.com/cloudfoundry/bosh-init/ui"
 )
 
@@ -10,21 +10,18 @@ type BuildManifestCmd struct {
 }
 
 func NewBuildManifestCmd(ui boshui.UI) BuildManifestCmd {
-	return BuildManifestCmd{
-		ui: ui,
-	}
+	return BuildManifestCmd{ui: ui}
 }
 
 func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
-	variables := opts.VarFlags.AsVariables()
+	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
-	template := template.NewTemplate(opts.Args.Manifest.Bytes)
-
-	bytes, err := template.Evaluate(variables)
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
 	if err != nil {
 		return err
 	}
 
 	c.ui.PrintBlock(string(bytes))
+
 	return nil
 }

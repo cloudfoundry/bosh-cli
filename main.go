@@ -27,7 +27,12 @@ func main() {
 
 	cmdFactory := boshcmd.NewFactory(boshcmd.NewBasicDeps(ui, logger))
 
-	err := cmdFactory.RunCommand(os.Args[1:])
+	cmd, err := cmdFactory.New(os.Args[1:])
+	if err != nil {
+		fail(err, ui, logger)
+	}
+
+	err = cmd.Execute()
 	if err != nil {
 		fail(err, ui, logger)
 	} else {
