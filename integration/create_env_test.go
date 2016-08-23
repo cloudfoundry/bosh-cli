@@ -2,17 +2,12 @@ package integration_test
 
 import (
 	"bytes"
-	"io/ioutil"
-	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"text/template"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	bihttp "github.com/cloudfoundry/bosh-utils/httpclient"
 	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -151,8 +146,6 @@ var _ = Describe("bosh", func() {
 
 			expectHasVM1    *gomock.Call
 			expectDeleteVM1 *gomock.Call
-
-			sshConfig *SSHConfig
 		)
 
 		var manifestTemplate = `---
@@ -188,11 +181,6 @@ cloud_provider:
     name: fake-cpi-release-job-name
     release: fake-cpi-release-name
   mbus: http://fake-mbus-url
-  ssh_tunnel:
-    host: 127.0.0.1
-    port: 22
-    user: {{ .SSHTunnelUser }}
-    private_key: {{ .SSHTunnelPrivateKey }}
 `
 		type manifestContext struct {
 			DiskSize            int
@@ -211,9 +199,7 @@ cloud_provider:
 
 		var writeDeploymentManifest = func() {
 			context := manifestContext{
-				DiskSize:            1024,
-				SSHTunnelUser:       sshConfig.Username,
-				SSHTunnelPrivateKey: sshConfig.PrivateKey,
+				DiskSize: 1024,
 			}
 			updateManifest(context)
 
@@ -224,9 +210,7 @@ cloud_provider:
 
 		var writeDeploymentManifestWithLargerDisk = func() {
 			context := manifestContext{
-				DiskSize:            2048,
-				SSHTunnelUser:       sshConfig.Username,
-				SSHTunnelPrivateKey: sshConfig.PrivateKey,
+				DiskSize: 2048,
 			}
 			updateManifest(context)
 
@@ -271,27 +255,8 @@ cloud_provider:
 					Name:    "fake-cpi-release-job-name",
 					Release: "fake-cpi-release-name",
 				},
-				Registry: biinstallmanifest.Registry{
-					Username: "registry",
-					Password: "registry-password",
-					Host:     "127.0.0.1",
-					Port:     6901,
-					SSHTunnel: biinstallmanifest.SSHTunnel{
-						Host:       "127.0.0.1",
-						Port:       22,
-						User:       sshConfig.Username,
-						PrivateKey: sshConfig.PrivateKey,
-					},
-				},
-				Mbus: mbusURL,
-				Properties: biproperty.Map{
-					"registry": biproperty.Map{
-						"username": "registry",
-						"password": "registry-password",
-						"host":     "127.0.0.1",
-						"port":     6901,
-					},
-				},
+				Mbus:       mbusURL,
+				Properties: biproperty.Map{},
 			}
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := biinstall.NewTarget(installationPath)
@@ -705,71 +670,7 @@ cloud_provider:
 			)
 		}
 
-		var expectRegistryToWork = func() {
-			httpClient := bihttp.NewHTTPClient(bihttp.DefaultClient, logger)
-
-			endpoint := "http://registry:registry-password@127.0.0.1:6901/instances/fake-director-id/settings"
-
-			settingsBytes := []byte("fake-registry-contents") //usually json, but not required to be
-			response, err := httpClient.Put(endpoint, settingsBytes)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(response.StatusCode).To(Equal(http.StatusCreated))
-
-			response, err = httpClient.Get(endpoint)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(response.StatusCode).To(Equal(http.StatusOK))
-			responseBytes, err := ioutil.ReadAll(response.Body)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(responseBytes).To(Equal([]byte("{\"settings\":\"fake-registry-contents\",\"status\":\"ok\"}")))
-
-			response, err = httpClient.Delete(endpoint)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(response.StatusCode).To(Equal(http.StatusOK))
-		}
-
-		var expectDeployFlowWithRegistry = func() {
-			agentID := "fake-uuid-0"
-			vmCID := "fake-vm-cid-1"
-			diskCID := "fake-disk-cid-1"
-			diskSize := 1024
-
-			gomock.InOrder(
-				mockCloud.EXPECT().CreateStemcell(stemcellImagePath, stemcellCloudProperties).Do(
-					func(_, _ interface{}) { expectRegistryToWork() },
-				).Return(stemcellCID, nil),
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Do(
-					func(_, _, _, _, _ interface{}) { expectRegistryToWork() },
-				).Return(vmCID, nil),
-				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
-
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-
-				mockCloud.EXPECT().CreateDisk(diskSize, diskCloudProperties, vmCID).Do(
-					func(_, _, _ interface{}) { expectRegistryToWork() },
-				).Return(diskCID, nil),
-				mockCloud.EXPECT().AttachDisk(vmCID, diskCID).Do(
-					func(_, _ interface{}) { expectRegistryToWork() },
-				),
-
-				mockAgentClient.EXPECT().MountDisk(diskCID),
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().GetState(),
-				mockAgentClient.EXPECT().Stop().Do(
-					func() { expectRegistryToWork() },
-				),
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
-			)
-		}
-
 		BeforeEach(func() {
-			sshConfig = NewSSHConfig(originalHome)
-			err := sshConfig.Prepare()
-			Expect(err).ToNot(HaveOccurred())
-
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
 
@@ -821,11 +722,6 @@ cloud_provider:
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
 			writeStemcellReleaseTarball()
-		})
-
-		AfterEach(func() {
-			err := sshConfig.Restore()
-			Expect(err).ToNot(HaveOccurred())
 		})
 
 		JustBeforeEach(func() {
@@ -1013,102 +909,8 @@ cloud_provider:
 				})
 			})
 		})
-
-		Context("when the registry is configured", func() {
-			It("makes the registry available for all CPI commands", func() {
-				expectDeployFlowWithRegistry()
-
-				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
-				Expect(err).ToNot(HaveOccurred())
-			})
-		})
 	})
 })
-
-type SSHConfig struct {
-	Username   string
-	PrivateKey string
-	HomeDir    string
-
-	rsaKeyDir string
-}
-
-func NewSSHConfig(homeDir string) *SSHConfig {
-	return &SSHConfig{
-		HomeDir: homeDir,
-	}
-}
-
-func (s *SSHConfig) Prepare() error {
-	var err error
-	s.Username, err = s.runCommand("whoami")
-	if err != nil {
-		return err
-	}
-
-	s.rsaKeyDir, err = ioutil.TempDir("", "bosh-init-deploy-test")
-	if err != nil {
-		return err
-	}
-	s.PrivateKey = filepath.Join(s.rsaKeyDir, "id_rsa_bosh_init")
-
-	script := `
-ssh-keygen -f {{ .PrivateKey }} -N ""
-mkdir -p {{ .HomeDir }}/.ssh
-if [ -f {{ .HomeDir }}/.ssh/authorized_keys ]; then
-	cp {{ .HomeDir }}/.ssh/authorized_keys {{ .HomeDir }}/.ssh/authorized_keys_original
-fi
-cat {{ .PrivateKey }}.pub >> {{ .HomeDir }}/.ssh/authorized_keys
-`
-
-	err = s.runScript(script)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *SSHConfig) Restore() error {
-	script := `
-if [ -f {{ .HomeDir }}/.ssh/authorized_keys_original ]; then
-	mv {{ .HomeDir }}/.ssh/authorized_keys_original {{ .HomeDir }}/.ssh/authorized_keys
-else
-    rm {{ .HomeDir }}/.ssh/authorized_keys
-fi
-`
-	err := s.runScript(script)
-	if err != nil {
-		return err
-	}
-
-	err = os.RemoveAll(s.rsaKeyDir)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *SSHConfig) runScript(script string) error {
-	buffer := bytes.NewBuffer([]byte{})
-	t := template.Must(template.New("manifest").Parse(script))
-	t.Execute(buffer, s)
-	_, err := s.runCommand("sh", "-c", buffer.String())
-	return err
-}
-
-func (s *SSHConfig) runCommand(args ...string) (string, error) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	shCmd := exec.Command(args[0], args[1:]...)
-	shCmd.Stdout = &stdout
-	shCmd.Stderr = &stderr
-	if err := shCmd.Run(); err != nil {
-		println(stderr.String())
-		return "", err
-	}
-
-	return strings.TrimSpace(stdout.String()), nil
-}
 
 func newDeployOpts(path string) CreateEnvOpts {
 	return CreateEnvOpts{Args: CreateEnvArgs{Manifest: FileBytesArg{Path: path}}}
