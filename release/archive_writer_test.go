@@ -44,7 +44,7 @@ var _ = Describe("ArchiveWriter", func() {
 		act := func() (string, error) { return writer.Write(release, pkgFpsToSkip) }
 
 		BeforeEach(func() {
-			compressor.CompressFilesInDirTarballPath = "/release-archive"
+			compressor.CompressSpecificFilesInDirTarballPath = "/release-archive"
 		})
 
 		It("writes out release.MF", func() {
@@ -89,7 +89,7 @@ var _ = Describe("ArchiveWriter", func() {
 				},
 			})
 
-			compressor.CompressFilesInDirCallBack = func() {
+			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.ReadFileString("/staging-release/release.MF")).To(Equal(`name: name
 version: ver
 commit_hash: commit
@@ -139,10 +139,107 @@ license:
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
+		It("adds all files in correct order", func() {
+			compressed := false
+
+			release.ManifestReturns(boshman.Manifest{
+				Name:               "name",
+				Version:            "ver",
+				CommitHash:         "commit",
+				UncommittedChanges: true,
+				Jobs: []boshman.JobRef{
+					{
+						Name:        "job",
+						Version:     "job-version",
+						Fingerprint: "job-fp",
+						SHA1:        "job-sha1",
+					},
+				},
+				Packages: []boshman.PackageRef{
+					{
+						Name:         "pkg",
+						Version:      "pkg-version",
+						Fingerprint:  "pkg-fp",
+						SHA1:         "pkg-sha1",
+						Dependencies: []string{"pkg1"},
+					},
+				},
+				CompiledPkgs: []boshman.CompiledPackageRef{
+					{
+						Name:          "cp",
+						Version:       "cp-version",
+						Fingerprint:   "cp-fp",
+						SHA1:          "cp-sha1",
+						OSVersionSlug: "cp-os-slug",
+						Dependencies:  []string{"pkg1", "pkg2"},
+					},
+				},
+				License: &boshman.LicenseRef{
+					Version:     "lic-version",
+					Fingerprint: "lic-fp",
+					SHA1:        "lic-sha1",
+				},
+			})
+
+			compressor.CompressSpecificFilesInDirCallBack = func() {
+				compressed = true
+			}
+
+			fs.WriteFileString("/tmp/job1.tgz", "job1-content")
+			fs.WriteFileString("/tmp/job2.tgz", "job2-content")
+
+			release.JobsReturns([]*boshjob.Job{
+				boshjob.NewJob(NewResourceWithBuiltArchive("job1", "", "/tmp/job1.tgz", "")),
+				boshjob.NewJob(NewResourceWithBuiltArchive("job2", "", "/tmp/job2.tgz", "")),
+			})
+
+			fs.WriteFileString("/tmp/pkg1.tgz", "pkg1-content")
+			fs.WriteFileString("/tmp/pkg2.tgz", "pkg2-content")
+
+			release.PackagesReturns([]*boshpkg.Package{
+				boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg1", "", "/tmp/pkg1.tgz", ""), nil),
+				boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg2", "", "/tmp/pkg2.tgz", ""), nil),
+			})
+
+			fs.WriteFileString("/tmp/cp1.tgz", "cp1-content")
+			fs.WriteFileString("/tmp/cp2.tgz", "cp2-content")
+
+			release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{
+				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", "/tmp/cp1.tgz", "", nil),
+				boshpkg.NewCompiledPackageWithArchive("cp2", "", "", "/tmp/cp2.tgz", "", nil),
+			})
+
+			fs.WriteFileString("/tmp/lic.tgz", "license-content")
+
+			release.LicenseReturns(boshlic.NewLicense(
+				NewResourceWithBuiltArchive("lic", "", "/tmp/lic.tgz", "")))
+
+			compressor.DecompressFileToDirCallBack = func() {
+				fs.SetGlob("/staging-release/LICENSE*", []string{"/staging-release/LICENSE.md"})
+				fs.SetGlob("/staging-release/NOTICE*", []string{"/staging-release/NOTICE.md"})
+			}
+
+			path, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(path).To(Equal("/release-archive"))
+			Expect(compressor.CompressSpecificFilesInDirFiles).To(Equal([]string{
+				"release.MF",
+				"jobs",
+				"packages",
+				"compiled_packages",
+				"license.tgz",
+				"LICENSE.md",
+				"NOTICE.md",
+			}))
+
+			Expect(compressed).To(BeTrue())
+			Expect(fs.FileExists("/staging-release")).To(BeFalse())
+		})
+
 		It("does not include empty 'jobs', 'packages' or 'compiled_packages' directories", func() {
 			compressed := false
 
-			compressor.CompressFilesInDirCallBack = func() {
+			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.FileExists("/staging-release/jobs")).To(BeFalse())
 				Expect(fs.FileExists("/staging-release/packages")).To(BeFalse())
 				Expect(fs.FileExists("/staging-release/compiled_packages")).To(BeFalse())
@@ -167,7 +264,7 @@ license:
 				boshjob.NewJob(NewResourceWithBuiltArchive("job2", "", "/tmp/job2.tgz", "")),
 			})
 
-			compressor.CompressFilesInDirCallBack = func() {
+			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.FileExists("/staging-release/jobs")).To(BeTrue())
 				Expect(fs.ReadFileString("/staging-release/jobs/job1.tgz")).To(Equal("job1-content"))
 				Expect(fs.ReadFileString("/staging-release/jobs/job2.tgz")).To(Equal("job2-content"))
@@ -206,7 +303,7 @@ license:
 				boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg2", "", "/tmp/pkg2.tgz", ""), nil),
 			})
 
-			compressor.CompressFilesInDirCallBack = func() {
+			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.FileExists("/staging-release/packages")).To(BeTrue())
 				Expect(fs.ReadFileString("/staging-release/packages/pkg1.tgz")).To(Equal("pkg1-content"))
 				Expect(fs.ReadFileString("/staging-release/packages/pkg2.tgz")).To(Equal("pkg2-content"))
@@ -232,7 +329,7 @@ license:
 				boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg2", "pkg2-fp", "/tmp/pkg2.tgz", ""), nil),
 			})
 
-			compressor.CompressFilesInDirCallBack = func() {
+			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.FileExists("/staging-release/packages")).To(BeTrue())
 				Expect(fs.FileExists("/staging-release/packages/pkg1.tgz")).To(BeFalse())
 				Expect(fs.ReadFileString("/staging-release/packages/pkg2.tgz")).To(Equal("pkg2-content"))
@@ -271,7 +368,7 @@ license:
 				boshpkg.NewCompiledPackageWithArchive("cp2", "", "", "/tmp/cp2.tgz", "", nil),
 			})
 
-			compressor.CompressFilesInDirCallBack = func() {
+			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.FileExists("/staging-release/compiled_packages")).To(BeTrue())
 				Expect(fs.ReadFileString("/staging-release/compiled_packages/cp1.tgz")).To(Equal("cp1-content"))
 				Expect(fs.ReadFileString("/staging-release/compiled_packages/cp2.tgz")).To(Equal("cp2-content"))
@@ -297,7 +394,7 @@ license:
 				boshpkg.NewCompiledPackageWithArchive("cp2", "cp2-fp", "", "/tmp/cp2.tgz", "", nil),
 			})
 
-			compressor.CompressFilesInDirCallBack = func() {
+			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.FileExists("/staging-release/compiled_packages")).To(BeTrue())
 				Expect(fs.FileExists("/staging-release/compiled_packages/cp1.tgz")).To(BeFalse())
 				Expect(fs.ReadFileString("/staging-release/compiled_packages/cp2.tgz")).To(Equal("cp2-content"))
@@ -341,7 +438,7 @@ license:
 				decompressed = true
 			}
 
-			compressor.CompressFilesInDirCallBack = func() {
+			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.ReadFileString("/staging-release/license.tgz")).To(Equal("license-content"))
 				compressed = true
 			}

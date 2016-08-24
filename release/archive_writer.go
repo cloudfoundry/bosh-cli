@@ -13,11 +13,13 @@ import (
 	boshjob "github.com/cloudfoundry/bosh-init/release/job"
 	boshlic "github.com/cloudfoundry/bosh-init/release/license"
 	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	"path/filepath"
 )
 
 type ArchiveWriter struct {
-	compressor boshcmd.Compressor
-	fs         boshsys.FileSystem
+	compressor     boshcmd.Compressor
+	fs             boshsys.FileSystem
+	filesToInclude []string
 
 	logTag string
 	logger boshlog.Logger
@@ -49,31 +51,43 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 		return "", bosherr.WrapErrorf(err, "Writing release manifest '%s'", manifestPath)
 	}
 
-	err = w.writePackages(release.Packages(), pkgFpsToSkip, stagingDir)
-	if err != nil {
-		w.cleanUp(stagingDir)
-		return "", bosherr.WrapError(err, "Writing packages")
-	}
+	w.filesToInclude = w.appendFile("release.MF")
 
-	err = w.writeCompiledPackages(release.CompiledPackages(), pkgFpsToSkip, stagingDir)
-	if err != nil {
-		w.cleanUp(stagingDir)
-		return "", bosherr.WrapError(err, "Writing compiled packages")
-	}
-
-	err = w.writeJobs(release.Jobs(), stagingDir)
+	jobsFiles, err := w.writeJobs(release.Jobs(), stagingDir)
 	if err != nil {
 		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Writing jobs")
 	}
 
-	err = w.writeLicense(release.License(), stagingDir)
+	w.filesToInclude = w.appendFiles(jobsFiles)
+
+	packagesFiles, err := w.writePackages(release.Packages(), pkgFpsToSkip, stagingDir)
+	if err != nil {
+		w.cleanUp(stagingDir)
+		return "", bosherr.WrapError(err, "Writing packages")
+	}
+
+	w.filesToInclude = w.appendFiles(packagesFiles)
+
+	compiledPackagesFiles, err := w.writeCompiledPackages(release.CompiledPackages(), pkgFpsToSkip, stagingDir)
+	if err != nil {
+		w.cleanUp(stagingDir)
+		return "", bosherr.WrapError(err, "Writing compiled packages")
+	}
+
+	w.filesToInclude = w.appendFiles(compiledPackagesFiles)
+
+	licenseFiles, err := w.writeLicense(release.License(), stagingDir)
 	if err != nil {
 		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Writing license")
 	}
 
-	path, err := w.compressor.CompressFilesInDir(stagingDir)
+	w.filesToInclude = w.appendFiles(licenseFiles)
+
+	files := w.filesToInclude
+	path, err := w.compressor.CompressSpecificFilesInDir(stagingDir, files)
+
 	if err != nil {
 		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Compressing release")
@@ -91,39 +105,47 @@ func (w ArchiveWriter) cleanUp(stagingDir string) {
 	}
 }
 
-func (w ArchiveWriter) writeJobs(jobs []*boshjob.Job, stagingDir string) error {
+func (w ArchiveWriter) writeJobs(jobs []*boshjob.Job, stagingDir string) ([]string, error) {
+	var jobsFiles []string
+
 	if len(jobs) == 0 {
-		return nil
+		return jobsFiles, nil
 	}
 
 	jobsPath := gopath.Join(stagingDir, "jobs")
 
 	err := w.fs.MkdirAll(jobsPath, os.ModePerm)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating jobs/")
+		return jobsFiles, bosherr.WrapError(err, "Creating jobs/")
 	}
+
+	jobsFiles = append(jobsFiles, "jobs")
 
 	for _, job := range jobs {
 		err := w.fs.CopyFile(job.ArchivePath(), gopath.Join(jobsPath, job.Name()+".tgz"))
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Copying job '%s' archive into staging dir", job.Name())
+			return jobsFiles, bosherr.WrapErrorf(err, "Copying job '%s' archive into staging dir", job.Name())
 		}
 	}
 
-	return nil
+	return jobsFiles, nil
 }
 
-func (w ArchiveWriter) writePackages(packages []*boshpkg.Package, pkgFpsToSkip []string, stagingDir string) error {
+func (w ArchiveWriter) writePackages(packages []*boshpkg.Package, pkgFpsToSkip []string, stagingDir string) ([]string, error) {
+	var packagesFiles []string
+
 	if len(packages) == 0 {
-		return nil
+		return packagesFiles, nil
 	}
 
 	pkgsPath := gopath.Join(stagingDir, "packages")
 
 	err := w.fs.MkdirAll(pkgsPath, os.ModePerm)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating packages/")
+		return packagesFiles, bosherr.WrapError(err, "Creating packages/")
 	}
+
+	packagesFiles = append(packagesFiles, "packages")
 
 	for _, pkg := range packages {
 		if w.shouldSkip(pkg.Fingerprint(), pkgFpsToSkip) {
@@ -131,25 +153,29 @@ func (w ArchiveWriter) writePackages(packages []*boshpkg.Package, pkgFpsToSkip [
 		} else {
 			err := w.fs.CopyFile(pkg.ArchivePath(), gopath.Join(pkgsPath, pkg.Name()+".tgz"))
 			if err != nil {
-				return bosherr.WrapErrorf(err, "Copying package '%s' archive into staging dir", pkg.Name())
+				return packagesFiles, bosherr.WrapErrorf(err, "Copying package '%s' archive into staging dir", pkg.Name())
 			}
 		}
 	}
 
-	return nil
+	return packagesFiles, nil
 }
 
-func (w ArchiveWriter) writeCompiledPackages(compiledPkgs []*boshpkg.CompiledPackage, pkgFpsToSkip []string, stagingDir string) error {
+func (w ArchiveWriter) writeCompiledPackages(compiledPkgs []*boshpkg.CompiledPackage, pkgFpsToSkip []string, stagingDir string) ([]string, error) {
+	var compiledPackagesFiles []string
+
 	if len(compiledPkgs) == 0 {
-		return nil
+		return compiledPackagesFiles, nil
 	}
 
 	pkgsPath := gopath.Join(stagingDir, "compiled_packages")
 
 	err := w.fs.MkdirAll(pkgsPath, os.ModePerm)
 	if err != nil {
-		return bosherr.WrapError(err, "Creating compiled_packages/")
+		return compiledPackagesFiles, bosherr.WrapError(err, "Creating compiled_packages/")
 	}
+
+	compiledPackagesFiles = append(compiledPackagesFiles, "compiled_packages")
 
 	for _, compiledPkg := range compiledPkgs {
 		if w.shouldSkip(compiledPkg.Fingerprint(), pkgFpsToSkip) {
@@ -157,30 +183,44 @@ func (w ArchiveWriter) writeCompiledPackages(compiledPkgs []*boshpkg.CompiledPac
 		} else {
 			err := w.fs.CopyFile(compiledPkg.ArchivePath(), gopath.Join(pkgsPath, compiledPkg.Name()+".tgz"))
 			if err != nil {
-				return bosherr.WrapErrorf(err, "Copying compiled package '%s' archive into staging dir", compiledPkg.Name())
+				return compiledPackagesFiles, bosherr.WrapErrorf(err, "Copying compiled package '%s' archive into staging dir", compiledPkg.Name())
 			}
 		}
 	}
 
-	return nil
+	return compiledPackagesFiles, nil
 }
 
-func (w ArchiveWriter) writeLicense(license *boshlic.License, stagingDir string) error {
+func (w ArchiveWriter) writeLicense(license *boshlic.License, stagingDir string) ([]string, error) {
+	var licenseFiles []string
+
 	if license == nil {
-		return nil
+		return licenseFiles, nil
 	}
 
 	err := w.fs.CopyFile(license.ArchivePath(), gopath.Join(stagingDir, "license.tgz"))
 	if err != nil {
-		return bosherr.WrapError(err, "Copying license archive into staging dir")
+		return licenseFiles, bosherr.WrapError(err, "Copying license archive into staging dir")
 	}
+
+	licenseFiles = append(licenseFiles, "license.tgz")
 
 	err = w.compressor.DecompressFileToDir(license.ArchivePath(), stagingDir, boshcmd.CompressorOptions{})
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Decompressing license archive into staging dir")
+		return licenseFiles, bosherr.WrapErrorf(err, "Decompressing license archive into staging dir")
 	}
 
-	return nil
+	licenseFiles, err = w.appendMatchedFiles(licenseFiles, stagingDir, "LICENSE*")
+	if err != nil {
+		return licenseFiles, bosherr.WrapErrorf(err, "Reading LICENSE files")
+	}
+
+	licenseFiles, err = w.appendMatchedFiles(licenseFiles, stagingDir, "NOTICE*")
+	if err != nil {
+		return licenseFiles, bosherr.WrapErrorf(err, "Reading NOTICE files")
+	}
+
+	return licenseFiles, nil
 }
 
 func (w ArchiveWriter) shouldSkip(fp string, pkgFpsToSkip []string) bool {
@@ -190,4 +230,28 @@ func (w ArchiveWriter) shouldSkip(fp string, pkgFpsToSkip []string) bool {
 		}
 	}
 	return false
+}
+
+func (w ArchiveWriter) appendFile(filename string) []string {
+	return append(w.filesToInclude, filename)
+}
+
+func (w ArchiveWriter) appendFiles(filenames []string) []string {
+	for _, filename := range filenames {
+		w.filesToInclude = w.appendFile(filename)
+	}
+
+	return w.filesToInclude
+}
+
+func (w ArchiveWriter) appendMatchedFiles(files []string, stagingDir string, filePattern string) ([]string, error) {
+	noticeMatches, err := w.fs.Glob(gopath.Join(stagingDir, filePattern))
+	if err != nil {
+		return files, err
+	}
+	for _, file := range noticeMatches {
+		files = append(files, filepath.Base(file))
+	}
+
+	return files, nil
 }
