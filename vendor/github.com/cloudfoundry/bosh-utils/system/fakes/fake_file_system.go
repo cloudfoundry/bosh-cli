@@ -325,6 +325,32 @@ func (fs *FakeFileSystem) Stat(path string) (os.FileInfo, error) {
 		panic(fmt.Sprintf("Unexpected Stat call for path '%s' that does not exist", path))
 	}
 
+	if stats.FileType == FakeFileTypeSymlink {
+		targetStats := fs.fileRegistry.Get(stats.SymlinkTarget)
+		if targetStats == nil {
+			return nil, fmt.Errorf("stat: %s: no such file or directory", path)
+		}
+
+		stats = targetStats
+	}
+
+	return NewFakeFile(path, fs).Stat()
+}
+
+func (fs *FakeFileSystem) Lstat(path string) (os.FileInfo, error) {
+	fs.filesLock.Lock()
+	defer fs.filesLock.Unlock()
+
+	openFile := fs.openFileRegsitry.Get(path)
+	if openFile != nil {
+		return openFile.Stat()
+	}
+
+	stats := fs.fileRegistry.Get(path)
+	if stats == nil {
+		panic(fmt.Sprintf("Unexpected Stat call for path '%s' that does not exist", path))
+	}
+
 	return NewFakeFile(path, fs).Stat()
 }
 

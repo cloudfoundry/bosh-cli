@@ -1,6 +1,6 @@
 github.com/cloudfoundry/bosh-agent/...:50d8e5d
 github.com/cloudfoundry/bosh-davcli/...:37f54c6
-github.com/cloudfoundry/bosh-utils/...:89e55d8
+github.com/cloudfoundry/bosh-utils/...:60f8439
 github.com/golang/mock/gomock:15f8b22
 github.com/mitchellh/mapstructure:2caf8ef
 github.com/onsi/ginkgo:fbb6632

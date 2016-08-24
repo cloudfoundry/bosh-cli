@@ -173,4 +173,47 @@ var _ = Describe("FakeFileSystem", func() {
 			Expect(len(matches)).To(Equal(2))
 		})
 	})
+
+	Describe("Stat", func() {
+		It("errors when symlink targets do not exist", func() {
+			err := fs.Symlink("foobarbaz", "foobar")
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = fs.Stat("foobar")
+			Expect(err).To(HaveOccurred())
+
+		})
+		It("follows symlink target to show its stats", func() {
+			err := fs.WriteFileString("foobarbaz", "asdfghjk")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.Symlink("foobarbaz", "foobar")
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = fs.Stat("foobar")
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Describe("Lstat", func() {
+		It("returns symlink info to a target that does not exist", func() {
+			err := fs.Symlink("foobarbaz", "foobar")
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = fs.Lstat("foobar")
+			Expect(err).ToNot(HaveOccurred())
+
+		})
+
+		It("returns symlink info to a target that exists", func() {
+			err := fs.WriteFileString("foobarbaz", "asdfghjk")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.Symlink("foobarbaz", "foobar")
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = fs.Lstat("foobar")
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })

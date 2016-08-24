@@ -119,6 +119,11 @@ func (fs *osFileSystem) Stat(path string) (os.FileInfo, error) {
 	return fsWrapper.Stat(path)
 }
 
+func (fs *osFileSystem) Lstat(path string) (os.FileInfo, error) {
+	fs.logger.Debug(fs.logTag, "Lstat '%s'", path)
+	return fsWrapper.Lstat(path)
+}
+
 func (fs *osFileSystem) WriteFileString(path, content string) (err error) {
 	return fs.WriteFile(path, []byte(content))
 }
