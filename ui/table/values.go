@@ -3,12 +3,14 @@ package table
 import (
 	"fmt"
 	"io"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	"github.com/dustin/go-humanize"
+	"gopkg.in/yaml.v2"
 
 	boshuifmt "github.com/cloudfoundry/bosh-init/ui/fmt"
 )
@@ -133,12 +135,35 @@ func (t ValueError) String() string {
 	return ""
 }
 
+func NewValueInterface(i interface{}) ValueInterface { return ValueInterface{I: i} }
+
+func (t ValueInterface) String() string {
+	if t.I == nil {
+		return ""
+	}
+
+	val := reflect.ValueOf(t.I)
+
+	if val.Kind() == reflect.Map && val.Len() == 0 {
+		return ""
+	}
+
+	bytes, err := yaml.Marshal(t.I)
+	if err != nil {
+		return fmt.Sprintf("<serilization error> : %#v", t.I)
+	}
+
+	return strings.TrimSpace(string(bytes))
+}
+func (t ValueInterface) Value() Value            { return t }
+func (t ValueInterface) Compare(other Value) int { panic("Never called") }
+
 func (t ValueError) Value() Value            { return t }
-func (t ValueError) Compare(other Value) int { panic("Never callled") }
+func (t ValueError) Compare(other Value) int { panic("Never called") }
 
 func (t ValueNone) String() string          { return "" }
 func (t ValueNone) Value() Value            { return t }
-func (t ValueNone) Compare(other Value) int { panic("Never callled") }
+func (t ValueNone) Compare(other Value) int { panic("Never called") }
 
 func NewValueFmt(v Value, error bool) ValueFmt { return ValueFmt{V: v, Error: error} }
 

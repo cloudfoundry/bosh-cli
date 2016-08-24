@@ -202,6 +202,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *ManifestOpts:
 		return NewManifestCmd(deps.UI, c.deployment()).Run()
 
+	case *EventsOpts:
+		return NewEventsCmd(deps.UI, c.director()).Run(*opts)
+
 	case *InspectReleaseOpts:
 		return NewInspectReleaseCmd(deps.UI, c.director()).Run(*opts)
 

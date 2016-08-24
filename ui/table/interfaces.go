@@ -72,6 +72,10 @@ type ValueVersion struct {
 	V semver.Version
 }
 
+type ValueInterface struct {
+	I interface{}
+}
+
 type ValueError struct {
 	E error
 }
