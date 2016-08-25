@@ -14,3 +14,6 @@ fi
 
 echo -e "\n Running unit tests..."
 $bin/env ginkgo -r $race -trace -skipPackage="acceptance,integration,vendor" $@
+
+echo -e "\n Building docs example..."
+$bin/go build -o $bin/../out/example github.com/cloudfoundry/bosh-init/docs/

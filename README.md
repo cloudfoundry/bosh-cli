@@ -1,20 +1,22 @@
-# bosh-init
-
-`bosh-init` is a tool used to create and update the Director (its VM and persistent disk) in a BOSH environment.
+# bosh CLI
 
 * Documentation: [bosh.io/docs](https://bosh.io/docs)
-* IRC: [`#bosh` on freenode](http://webchat.freenode.net/?channels=bosh)
+* Slack: #bosh on <https://slack.cloudfoundry.org>
 * Mailing list: [cf-bosh](https://lists.cloudfoundry.org/pipermail/cf-bosh)
-* CI: [https://main.bosh-ci.cf-app.com/pipelines/bosh-init](https://main.bosh-ci.cf-app.com/pipelines/bosh-init)
-* Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/1133984)
+* CI: <https://main.bosh-ci.cf-app.com/pipelines/bosh-cli>
+* Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/956238)
 
 ## Usage
 
 Relevant documentation pages from bosh.io:
 
-- [Installing BOSH](http://bosh.io/docs#install)
-- [Install bosh-init](https://bosh.io/docs/install-bosh-init.html)
-- [Using bosh-init](https://bosh.io/docs/using-bosh-init.html)
+- [Installing BOSH](https://bosh.io/docs#install)
+
+## Client Library
+
+This project includes [`director`](director/interfaces.go) and [`uaa`](uaa/interfaces.go) packages meant to be used in your project for programmatic access to the Director API.
+
+See [](docs/example.go) for a live short usage example.
 
 ## Developer Notes
 
