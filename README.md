@@ -16,7 +16,7 @@ Relevant documentation pages from bosh.io:
 
 This project includes [`director`](director/interfaces.go) and [`uaa`](uaa/interfaces.go) packages meant to be used in your project for programmatic access to the Director API.
 
-See [](docs/example.go) for a live short usage example.
+See [docs/example.go](docs/example.go) for a live short usage example.
 
 ## Developer Notes
 
