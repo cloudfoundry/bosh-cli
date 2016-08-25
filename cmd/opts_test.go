@@ -2511,10 +2511,10 @@ var _ = Describe("Opts", func() {
 				})
 			})
 
-			Describe("WithTarball", func() {
+			Describe("Tarball", func() {
 				It("contains desired values", func() {
-					Expect(getStructTagForName("WithTarball", opts)).To(Equal(
-						`long:"with-tarball" description:"Create release tarball"`,
+					Expect(getStructTagForName("Tarball", opts)).To(Equal(
+						`long:"tarball" description:"Create release tarball"`,
 					))
 				})
 			})

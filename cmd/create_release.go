@@ -53,7 +53,7 @@ func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) error {
 
 	var archivePath string
 
-	if manifestGiven || opts.WithTarball {
+	if manifestGiven || opts.Tarball {
 		archivePath, err = c.releaseDir.BuildReleaseArchive(release)
 		if err != nil {
 			return err

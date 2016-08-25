@@ -249,7 +249,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 			It("builds release and archive if building archive is requested", func() {
 				opts.Final = true
-				opts.WithTarball = true
+				opts.Tarball = true
 
 				releaseDir.DefaultNameReturns("default-rel-name", nil)
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
@@ -308,7 +308,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 			})
 
 			It("returns error if building release archive fails", func() {
-				opts.WithTarball = true
+				opts.Tarball = true
 
 				releaseDir.DefaultNameReturns("default-rel-name", nil)
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
