@@ -50,7 +50,7 @@ var _ = Describe("Director", func() {
 		"instance_name": "instance2",
 		"az": "az2",
 
-		"orphaned_at": "2018-01-09 06:23:25 +0000"
+		"orphaned_at": "2016-08-25 00:17:16 UTC"
 	}
 ]`),
 				),
@@ -78,7 +78,7 @@ var _ = Describe("Director", func() {
 			Expect(disks[1].Deployment()).To(Equal(dep2))
 			Expect(disks[1].InstanceName()).To(Equal("instance2"))
 			Expect(disks[1].AZName()).To(Equal("az2"))
-			Expect(disks[1].OrphanedAt()).To(Equal(time.Date(2018, time.January, 9, 6, 23, 25, 0, time.UTC)))
+			Expect(disks[1].OrphanedAt()).To(Equal(time.Date(2016, time.August, 25, 0, 17, 16, 0, time.UTC)))
 		})
 
 		It("returns error if response is non-200", func() {

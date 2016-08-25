@@ -52,7 +52,7 @@ func (d DeploymentImpl) Snapshots() ([]Snapshot, error) {
 	}
 
 	for _, r := range resps {
-		createdAt, err := time.Parse("2006-01-02 15:04:05 -0700", r.CreatedAt)
+		createdAt, err := TimeParser{}.Parse(r.CreatedAt)
 		if err != nil {
 			return snaps, bosherr.WrapErrorf(err, "Converting created at '%s' to time", r.CreatedAt)
 		}

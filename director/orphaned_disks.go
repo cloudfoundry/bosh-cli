@@ -74,7 +74,7 @@ func (d DirectorImpl) OrphanedDisks() ([]OrphanedDisk, error) {
 	}
 
 	for _, r := range resps {
-		orphanedAt, err := time.Parse("2006-01-02 15:04:05 -0700", r.OrphanedAt)
+		orphanedAt, err := TimeParser{}.Parse(r.OrphanedAt)
 		if err != nil {
 			return disks, bosherr.WrapErrorf(err, "Converting orphaned at '%s' to time", r.OrphanedAt)
 		}
