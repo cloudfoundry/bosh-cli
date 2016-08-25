@@ -91,11 +91,11 @@ var _ = Describe("VMs", func() {
 
 				Timestamp: time.Time{},
 
-				JobName:   "job",
-				ID:        "id",
-				Index:     &index,
-				State:     "running",
-				Bootstrap: true,
+				JobName:      "job",
+				ID:           "id",
+				Index:        &index,
+				ProcessState: "running",
+				Bootstrap:    true,
 
 				IPs: []string{"ip"},
 				DNS: []string{"dns"},

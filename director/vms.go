@@ -14,16 +14,17 @@ type VMInfo struct {
 
 	Timestamp time.Time
 
-	JobName   string `json:"job_name"`
-	ID        string `json:"id"`
-	Index     *int   `json:"index"`
-	State     string `json:"job_state"` // e.g. "running"
-	Bootstrap bool
+	JobName      string `json:"job_name"`
+	ID           string `json:"id"`
+	Index        *int   `json:"index"`
+	ProcessState string `json:"job_state"` // e.g. "running"
+	Bootstrap    bool
 
 	IPs []string `json:"ips"`
 	DNS []string `json:"dns"`
 
 	AZ           string `json:"az"`
+	State        string `json:"state"`
 	VMID         string `json:"vm_cid"`
 	VMType       string `json:"vm_type"`
 	ResourcePool string `json:"resource_pool"`
@@ -86,7 +87,7 @@ type VMInfoVitalsUptime struct {
 }
 
 func (i VMInfo) IsRunning() bool {
-	if i.State != "running" {
+	if i.ProcessState != "running" {
 		return false
 	}
 

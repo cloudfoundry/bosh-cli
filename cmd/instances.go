@@ -29,7 +29,7 @@ func (c InstancesCmd) Run(opts InstancesOpts) error {
 	}
 
 	table := boshtbl.Table{
-		Content: "vms",
+		Content: "instances",
 
 		HeaderVals: instTable.AsValues(instTable.Header()),
 

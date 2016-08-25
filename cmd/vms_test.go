@@ -50,7 +50,7 @@ var _ = Describe("VMsCmd", func() {
 					{
 						JobName:      "job-name",
 						Index:        &index1,
-						State:        "in1-state",
+						ProcessState: "in1-state",
 						ResourcePool: "in1-rp",
 
 						IPs: []string{"in1-ip1", "in1-ip2"},
@@ -77,7 +77,7 @@ var _ = Describe("VMsCmd", func() {
 					{
 						JobName:      "job-name",
 						Index:        &index2,
-						State:        "in2-state",
+						ProcessState: "in2-state",
 						AZ:           "in2-az",
 						ResourcePool: "in2-rp",
 
@@ -105,7 +105,7 @@ var _ = Describe("VMsCmd", func() {
 					{
 						JobName:      "",
 						Index:        nil,
-						State:        "unresponsive agent",
+						ProcessState: "unresponsive agent",
 						ResourcePool: "",
 					},
 				}
@@ -130,7 +130,7 @@ var _ = Describe("VMsCmd", func() {
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 						boshtbl.NewValueString("VM CID"),
@@ -182,9 +182,10 @@ var _ = Describe("VMsCmd", func() {
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
+						boshtbl.NewValueString("State"),
 						boshtbl.NewValueString("VM CID"),
 						boshtbl.NewValueString("VM Type"),
 						boshtbl.NewValueString("Disk CID"),
@@ -200,6 +201,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 							boshtbl.ValueString{},
 							boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
+							boshtbl.NewValueFmt(boshtbl.NewValueString(""), true),
 							boshtbl.NewValueString("in1-cid"),
 							boshtbl.NewValueString("in1-rp"),
 							boshtbl.ValueString{},
@@ -211,6 +213,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
 							boshtbl.NewValueString("in2-az"),
 							boshtbl.NewValueStrings([]string{"in2-ip1"}),
+							boshtbl.NewValueFmt(boshtbl.NewValueString(""), true),
 							boshtbl.NewValueString("in2-cid"),
 							boshtbl.NewValueString("in2-rp"),
 							boshtbl.ValueString{},
@@ -222,6 +225,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 							boshtbl.ValueString{},
 							boshtbl.ValueStrings{},
+							boshtbl.NewValueFmt(boshtbl.NewValueString(""), true),
 							boshtbl.ValueString{},
 							boshtbl.ValueString{},
 							boshtbl.ValueString{},
@@ -246,7 +250,7 @@ var _ = Describe("VMsCmd", func() {
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 						boshtbl.NewValueString("VM CID"),
@@ -302,7 +306,7 @@ var _ = Describe("VMsCmd", func() {
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 						boshtbl.NewValueString("VM CID"),
