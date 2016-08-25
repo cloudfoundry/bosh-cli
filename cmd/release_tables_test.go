@@ -28,11 +28,22 @@ var _ = Describe("ReleaseTables", func() {
 		)
 
 		BeforeEach(func() {
+			pkg1 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
+				"pkg1-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil)
+
+			pkg2 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
+				"pkg2-name", "pkg2-fp", "pkg2-path", "pkg2-sha1"), []string{"pkg1-name"})
+
+			err := pkg2.AttachDependencies([]*boshpkg.Package{pkg1})
+			Expect(err).ToNot(HaveOccurred())
+
 			job := boshjob.NewJob(NewResourceWithBuiltArchive(
 				"job-name", "job-fp", "job-path", "job-sha1"))
 
-			pkg := boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"pkg-name", "pkg-fp", "pkg-path", "pkg-sha1"), nil)
+			job.PackageNames = []string{"pkg1-name", "pkg2-name"}
+
+			err = job.AttachPackages([]*boshpkg.Package{pkg1, pkg2})
+			Expect(err).ToNot(HaveOccurred())
 
 			release = &fakerel.FakeRelease{
 				NameStub:    func() string { return "rel" },
@@ -41,7 +52,7 @@ var _ = Describe("ReleaseTables", func() {
 				CommitHashWithMarkStub: func(string) string { return "commit" },
 
 				JobsStub:     func() []*boshjob.Job { return []*boshjob.Job{job} },
-				PackagesStub: func() []*boshpkg.Package { return []*boshpkg.Package{pkg} },
+				PackagesStub: func() []*boshpkg.Package { return []*boshpkg.Package{pkg1, pkg2} },
 			}
 		})
 
@@ -77,7 +88,7 @@ var _ = Describe("ReleaseTables", func() {
 					{
 						boshtbl.NewValueString("job-name/job-fp"),
 						boshtbl.NewValueString("job-sha1"),
-						boshtbl.NewValueString(""),
+						boshtbl.NewValueStrings([]string{"pkg1-name", "pkg2-name"}),
 					},
 				},
 			}))
@@ -88,9 +99,14 @@ var _ = Describe("ReleaseTables", func() {
 				SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("pkg-name/pkg-fp"),
-						boshtbl.NewValueString("pkg-sha1"),
-						boshtbl.NewValueString(""),
+						boshtbl.NewValueString("pkg1-name/pkg1-fp"),
+						boshtbl.NewValueString("pkg1-sha1"),
+						boshtbl.NewValueStrings(nil),
+					},
+					{
+						boshtbl.NewValueString("pkg2-name/pkg2-fp"),
+						boshtbl.NewValueString("pkg2-sha1"),
+						boshtbl.NewValueStrings([]string{"pkg1-name"}),
 					},
 				},
 			}))

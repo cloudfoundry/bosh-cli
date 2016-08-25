@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	boshrel "github.com/cloudfoundry/bosh-init/release"
 	boshrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
@@ -50,7 +49,7 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 		jobsTable.Rows = append(jobsTable.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(fmt.Sprintf("%s/%s", job.Name(), job.Fingerprint())),
 			boshtbl.NewValueString(job.ArchiveSHA1()),
-			boshtbl.NewValueString(t.sumPkgNames(job.Packages)),
+			boshtbl.NewValueStrings(t.sumPkgNames(job.Packages)),
 		})
 	}
 
@@ -64,7 +63,7 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 		pkgsTable.Rows = append(pkgsTable.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())),
 			boshtbl.NewValueString(pkg.ArchiveSHA1()),
-			boshtbl.NewValueString(t.sumPkgDependencyNames(pkg.Dependencies)),
+			boshtbl.NewValueStrings(t.sumPkgDependencyNames(pkg.Dependencies)),
 		})
 	}
 
@@ -73,18 +72,18 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 	ui.PrintTable(pkgsTable)
 }
 
-func (t ReleaseTables) sumPkgNames(packages []boshrelpkg.Compilable) string {
+func (t ReleaseTables) sumPkgNames(packages []boshrelpkg.Compilable) []string {
 	var names []string
 	for _, pkg := range packages {
 		names = append(names, pkg.Name())
 	}
-	return strings.Join(names, ", ")
+	return names
 }
 
-func (t ReleaseTables) sumPkgDependencyNames(packages []*boshrelpkg.Package) string {
+func (t ReleaseTables) sumPkgDependencyNames(packages []*boshrelpkg.Package) []string {
 	var names []string
 	for _, pkg := range packages {
 		names = append(names, pkg.Name())
 	}
-	return strings.Join(names, ", ")
+	return names
 }
