@@ -1,12 +1,14 @@
 package pkg
 
 import (
+	"os"
 	gopath "path"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	"errors"
+
 	. "github.com/cloudfoundry/bosh-init/release/pkg/manifest"
 	. "github.com/cloudfoundry/bosh-init/release/resource"
 )
@@ -124,11 +126,11 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 		}
 
 		for _, path := range srcDirMatches {
-			isDir, err := r.isDir(path)
+			isPackageableFile, err := r.isPackageableFile(path)
 			if err != nil {
 				return map[string]File{}, bosherr.WrapErrorf(err, "Unknown error occurred")
 			}
-			if !isDir {
+			if isPackageableFile {
 				file := NewFile(path, r.srcDirPath)
 				if _, found := filesByRelPath[file.RelativePath]; !found {
 					filesByRelPath[file.RelativePath] = file
@@ -142,11 +144,11 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 		}
 
 		for _, path := range blobsDirMatches {
-			isDir, err := r.isDir(path)
+			isPackageableFile, err := r.isPackageableFile(path)
 			if err != nil {
 				return map[string]File{}, bosherr.WrapErrorf(err, "Unknown error occurred")
 			}
-			if !isDir {
+			if isPackageableFile {
 				file := NewFile(path, r.blobsDirPath)
 				if _, found := filesByRelPath[file.RelativePath]; !found {
 					filesByRelPath[file.RelativePath] = file
@@ -188,12 +190,12 @@ func (r DirReaderImpl) applyExcludedFilesPattern(manifest Manifest) ([]File, err
 func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]File, error) {
 	var files []File
 	if r.fs.FileExists(packagePath) {
-		isDir, err := r.isDir(packagePath)
+		isPackageableFile, err := r.isPackageableFile(packagePath)
 		if err != nil {
 			return nil, err
 		}
 
-		if !isDir {
+		if isPackageableFile {
 			file := NewFile(packagePath, path)
 			file.ExcludeMode = true
 			files = append(files, file)
@@ -204,10 +206,10 @@ func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]File, erro
 	return []File{}, fileNotFoundError
 }
 
-func (r DirReaderImpl) isDir(path string) (bool, error) {
-	info, err := r.fs.Stat(path)
+func (r DirReaderImpl) isPackageableFile(path string) (bool, error) {
+	info, err := r.fs.Lstat(path)
 	if err != nil {
 		return false, err
 	}
-	return info.IsDir(), nil
+	return info.Mode()&os.ModeSymlink != 0 || !info.IsDir(), nil
 }

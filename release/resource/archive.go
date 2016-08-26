@@ -2,6 +2,7 @@ package resource
 
 import (
 	"os"
+
 	gopath "path"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -137,8 +138,8 @@ func (a ArchiveImpl) runPrepScripts(stagingDir string) error {
 	return nil
 }
 
-func (a ArchiveImpl) copyFile(file File, stagingDir string) error {
-	dstPath := gopath.Join(stagingDir, file.RelativePath)
+func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
+	dstPath := gopath.Join(stagingDir, sourceFile.RelativePath)
 	dstDir := gopath.Dir(dstPath)
 
 	err := a.fs.MkdirAll(dstDir, os.ModePerm)
@@ -146,28 +147,37 @@ func (a ArchiveImpl) copyFile(file File, stagingDir string) error {
 		return err
 	}
 
-	dirStat, err := a.fs.Stat(gopath.Dir(file.Path))
+	sourceDirStat, err := a.fs.Lstat(gopath.Dir(sourceFile.Path))
 	if err != nil {
 		return err
 	}
 
-	err = a.fs.Chmod(dstDir, dirStat.Mode())
+	err = a.fs.Chmod(dstDir, sourceDirStat.Mode())
 	if err != nil {
 		return err
 	}
 
-	err = a.fs.CopyFile(file.Path, dstPath)
+	sourceFileStat, err := a.fs.Lstat(sourceFile.Path)
 	if err != nil {
 		return err
 	}
 
-	fileStat, err := a.fs.Stat(file.Path)
-	if err != nil {
-		return err
-	}
+	if sourceFileStat.Mode()&os.ModeSymlink != 0 {
+		symlinkTarget, err := a.fs.Readlink(sourceFile.Path)
+		if err != nil {
+			return err
+		}
 
-	// Be very explicit about changing permissions for copied file
-	return a.fs.Chmod(dstPath, fileStat.Mode())
+		return a.fs.Symlink(symlinkTarget, dstPath)
+	} else {
+		err = a.fs.CopyFile(sourceFile.Path, dstPath)
+		if err != nil {
+			return err
+		}
+
+		// Be very explicit about changing permissions for copied file
+		return a.fs.Chmod(dstPath, sourceFileStat.Mode())
+	}
 }
 
 func (a ArchiveImpl) buildStagingArchive(stagingDir string) Archive {

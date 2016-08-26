@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"os"
 	gopath "path"
 	"sort"
 	"strings"
@@ -65,12 +66,21 @@ func (f FingerprinterImpl) fingerprintPath(file File) (string, error) {
 		result += file.RelativePath
 	}
 
-	fileInfo, err := f.fs.Stat(file.Path)
+	fileInfo, err := f.fs.Lstat(file.Path)
 	if err != nil {
 		return "", err
 	}
 
-	if !fileInfo.IsDir() {
+	if fileInfo.Mode()&os.ModeSymlink != 0 {
+		symlinkTarget, err := f.fs.Readlink(file.Path)
+		if err != nil {
+			return "", err
+		}
+
+		sha1 := f.sha1calc.CalculateString(symlinkTarget)
+
+		result += sha1
+	} else if !fileInfo.IsDir() {
 		sha1, err := f.sha1calc.Calculate(file.Path)
 		if err != nil {
 			return "", err
@@ -90,6 +100,8 @@ func (f FingerprinterImpl) fingerprintPath(file File) (string, error) {
 
 		if fileInfo.IsDir() {
 			modeStr = "40755"
+		} else if fileInfo.Mode()&os.ModeSymlink != 0 {
+			modeStr = "symlink"
 		} else if fileInfo.Mode()&0111 != 0 {
 			modeStr = "100755"
 		} else {

@@ -5,10 +5,10 @@ import (
 )
 
 type FakeCompressor struct {
-	CompressFilesInDirDir                 string
-	CompressFilesInDirTarballPath         string
-	CompressFilesInDirErr                 error
-	CompressFilesInDirCallBack            func()
+	CompressFilesInDirDir         string
+	CompressFilesInDirTarballPath string
+	CompressFilesInDirErr         error
+	CompressFilesInDirCallBack    func()
 
 	CompressSpecificFilesInDirDir         string
 	CompressSpecificFilesInDirFiles       []string
@@ -16,14 +16,14 @@ type FakeCompressor struct {
 	CompressSpecificFilesInDirErr         error
 	CompressSpecificFilesInDirCallBack    func()
 
-	DecompressFileToDirTarballPaths       []string
-	DecompressFileToDirDirs               []string
-	DecompressFileToDirOptions            []boshcmd.CompressorOptions
-	DecompressFileToDirErr                error
-	DecompressFileToDirCallBack           func()
+	DecompressFileToDirTarballPaths []string
+	DecompressFileToDirDirs         []string
+	DecompressFileToDirOptions      []boshcmd.CompressorOptions
+	DecompressFileToDirErr          error
+	DecompressFileToDirCallBack     func()
 
-	CleanUpTarballPath                    string
-	CleanUpErr                            error
+	CleanUpTarballPath string
+	CleanUpErr         error
 }
 
 func NewFakeCompressor() *FakeCompressor {

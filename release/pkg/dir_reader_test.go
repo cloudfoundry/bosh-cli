@@ -326,5 +326,39 @@ excluded_files: [ex-file1, ex-file2]
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
+
+		It("Include bad src symlinks", func() {
+			fs.WriteFileString("/dir/spec", `---
+name: name
+files: [in-file1, in-file2]
+`)
+
+			fs.WriteFileString("/dir/packaging", "")
+			fs.WriteFileString("/dir/pre_packaging", "")
+			fs.Symlink("/invalid/path", "/src/in-file1")
+			fs.WriteFileString("/blobs/in-file2", "")
+
+			fs.SetGlob("/src/in-file1", []string{"/src/in-file1"})
+			fs.SetGlob("/blobs/in-file2", []string{"/blobs/in-file2"})
+
+			archive.FingerprintReturns("fp", nil)
+
+			pkg, err := reader.Read("/dir")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+
+			Expect(collectedFiles).To(ConsistOf([]File{
+				File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
+				File{Path: "/dir/pre_packaging", DirPath: "/dir", RelativePath: "pre_packaging", ExcludeMode: true},
+				File{Path: "/src/in-file1", DirPath: "/src", RelativePath: "in-file1"},
+				File{Path: "/blobs/in-file2", DirPath: "/blobs", RelativePath: "in-file2"},
+			}))
+
+			Expect(collectedPrepFiles).To(Equal([]File{
+				File{Path: "/dir/pre_packaging", DirPath: "/dir", RelativePath: "pre_packaging", ExcludeMode: true},
+			}))
+
+			Expect(collectedChunks).To(BeEmpty())
+		})
 	})
 })

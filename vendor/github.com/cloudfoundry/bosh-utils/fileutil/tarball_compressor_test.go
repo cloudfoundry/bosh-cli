@@ -108,7 +108,7 @@ var _ = Describe("tarballCompressor", func() {
 
 			contentElements := strings.Split(strings.TrimSpace(tarballContents), "\n")
 
-			Expect(contentElements).To(Equal([]string{
+			Expect(contentElements).To(ConsistOf(
 				"./",
 				"./app.stderr.log",
 				"./app.stdout.log",
@@ -121,7 +121,7 @@ var _ = Describe("tarballCompressor", func() {
 				"./other_logs/other_app.stderr.log",
 				"./other_logs/other_app.stdout.log",
 				"./other_logs/more_logs/more.stdout.log",
-			}))
+			))
 
 			_, _, _, err = cmdRunner.RunCommand("tar", "-xzpf", tgzName, "-C", dstDir)
 			Expect(err).ToNot(HaveOccurred())
@@ -141,13 +141,12 @@ var _ = Describe("tarballCompressor", func() {
 	})
 
 	Describe("CompressSpecificFilesInDir", func() {
-		It("compresses the files in the given directory", func() {
+		It("compresses the given files in the given directory", func() {
 			srcDir := fixtureSrcDir()
 			files := []string{
-				"app.stderr.log",
 				"app.stdout.log",
-				"other_logs/",
 				"some_directory/",
+				"app.stderr.log",
 			}
 			tgzName, err := compressor.CompressSpecificFilesInDir(srcDir, files)
 			Expect(err).ToNot(HaveOccurred())
@@ -159,17 +158,12 @@ var _ = Describe("tarballCompressor", func() {
 			contentElements := strings.Split(strings.TrimSpace(tarballContents), "\n")
 
 			Expect(contentElements).To(Equal([]string{
-				"app.stderr.log",
 				"app.stdout.log",
-				"other_logs/",
-				"other_logs/more_logs/",
-				"other_logs/other_app.stderr.log",
-				"other_logs/other_app.stdout.log",
-				"other_logs/more_logs/more.stdout.log",
 				"some_directory/",
 				"some_directory/sub_dir/",
 				"some_directory/sub_dir/other_sub_dir/",
 				"some_directory/sub_dir/other_sub_dir/.keep",
+				"app.stderr.log",
 			}))
 
 			_, _, _, err = cmdRunner.RunCommand("cp", tgzName, "/tmp")
@@ -185,9 +179,9 @@ var _ = Describe("tarballCompressor", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(content).To(ContainSubstring("this is app stderr"))
 
-			content, err = fs.ReadFileString(dstDir + "/other_logs/other_app.stdout.log")
+			content, err = fs.ReadFileString(dstDir + "/some_directory/sub_dir/other_sub_dir/.keep")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(content).To(ContainSubstring("this is other app stdout"))
+			Expect(content).To(ContainSubstring("this is a .keep file"))
 		})
 	})
 

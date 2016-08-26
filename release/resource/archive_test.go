@@ -117,6 +117,18 @@ var _ = Describe("Archive", func() {
 			err = fs.WriteFileString(uniqueDir+"/dir/file3", "file3")
 			Expect(err).ToNot(HaveOccurred())
 
+			err = fs.MkdirAll(uniqueDir+"/dir/symlink-dir-target", os.FileMode(0744))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.Symlink("symlink-dir-target", uniqueDir+"/dir/symlink-dir")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.Symlink("../file1", uniqueDir+"/dir/symlink-file")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.Symlink("nonexistant-file", uniqueDir+"/dir/symlink-file-missing")
+			Expect(err).ToNot(HaveOccurred())
+
 			err = fs.WriteFileString(uniqueDir+"/run-build-dir", "echo -n $BUILD_DIR > build-dir")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -136,6 +148,9 @@ var _ = Describe("Archive", func() {
 					NewFile(uniqueDir+"/file1", uniqueDir),
 					NewFile(uniqueDir+"/dir/file2", uniqueDir),
 					NewFile(uniqueDir+"/dir/file3", uniqueDir),
+					NewFile(uniqueDir+"/dir/symlink-file", uniqueDir),
+					NewFile(uniqueDir+"/dir/symlink-file-missing", uniqueDir),
+					NewFile(uniqueDir+"/dir/symlink-dir", uniqueDir),
 				},
 				[]File{
 					NewFile(uniqueDir+"/run-build-dir", uniqueDir),
@@ -163,7 +178,7 @@ var _ = Describe("Archive", func() {
 		}
 
 		It("returns archive, sha1 when built successfully", func() {
-			archivePath, archiveSHA1, err := archive.Build("091fca50844cc19027cdb3c9984962987abe4833")
+			archivePath, archiveSHA1, err := archive.Build("31a86e1b2b76e47ca5455645bb35018fe7f73e5d")
 			Expect(err).ToNot(HaveOccurred())
 
 			actualArchiveSHA1, err := sha1calc.Calculate(archivePath)
@@ -181,8 +196,25 @@ var _ = Describe("Archive", func() {
 				Expect(fs.ReadFileString(decompPath + "/file1")).To(Equal("file1"))
 				Expect(fs.ReadFileString(decompPath + "/dir/file2")).To(Equal("file2"))
 
+				// Copies specified symlinks
+				stat, err := fs.Lstat(decompPath + "/dir/symlink-file")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stat.Mode()&os.ModeSymlink != 0).To(BeTrue())
+				Expect(fs.Readlink(decompPath + "/dir/symlink-file")).To(Equal("../file1"))
+
+				stat, err = fs.Lstat(decompPath + "/dir/symlink-file-missing")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stat.Mode()&os.ModeSymlink != 0).To(BeTrue())
+				Expect(fs.Readlink(decompPath + "/dir/symlink-file-missing")).To(Equal("nonexistant-file"))
+
+				stat, err = fs.Lstat(decompPath + "/dir/symlink-dir")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stat.Mode()&os.ModeSymlink != 0).To(BeTrue())
+				Expect(fs.Readlink(decompPath + "/dir/symlink-dir")).To(Equal("symlink-dir-target"))
+				Expect(fs.FileExists(decompPath + "/dir/simlink-dir-target")).To(BeFalse())
+
 				// Dir permissions
-				stat, err := fs.Stat(decompPath + "/dir")
+				stat, err = fs.Stat(decompPath + "/dir")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(modeAsStr(stat.Mode())).To(Equal("020000000744")) // 02... is for directory
 

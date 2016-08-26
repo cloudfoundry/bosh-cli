@@ -11,8 +11,8 @@ type tarballCompressor struct {
 }
 
 func NewTarballCompressor(
-cmdRunner boshsys.CmdRunner,
-fs boshsys.FileSystem,
+	cmdRunner boshsys.CmdRunner,
+	fs boshsys.FileSystem,
 ) Compressor {
 	return tarballCompressor{cmdRunner: cmdRunner, fs: fs}
 }

@@ -258,9 +258,13 @@ func (fs *osFileSystem) Symlink(oldPath, newPath string) error {
 	return symlink(oldPath, newPath)
 }
 
-func (fs *osFileSystem) ReadLink(symlinkPath string) (targetPath string, err error) {
+func (fs *osFileSystem) ReadAndFollowLink(symlinkPath string) (targetPath string, err error) {
 	targetPath, err = filepath.EvalSymlinks(symlinkPath)
 	return
+}
+
+func (fs *osFileSystem) Readlink(symlinkPath string) (targetPath string, err error) {
+	return os.Readlink(symlinkPath)
 }
 
 func (fs *osFileSystem) CopyFile(srcPath, dstPath string) error {

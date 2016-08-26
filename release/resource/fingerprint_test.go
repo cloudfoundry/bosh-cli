@@ -98,6 +98,36 @@ var _ = Describe("FingerprinterImpl", func() {
 		Expect(fp).To(Equal("fp"))
 	})
 
+	It("Includes symlink target in fingerprint calculation", func() {
+		files := []File{
+			NewFile("/tmp/regular", "/tmp"),
+			NewFile("/tmp/symlink", "/tmp"),
+		}
+
+		fs.WriteFileString("/tmp/regular", "")
+		fs.Symlink("nothing", "/tmp/symlink")
+
+		sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+			"/tmp/regular": fakecrypto.CalculateInput{Sha1: "regular-sha1"},
+		})
+
+		chunks := []string{
+			"v2", // version
+			"regular", "regular-sha1", "100644",
+			"symlink", "symlink-target-sha1", "symlink",
+			"chunk1", ",chunk2", // sorted chunks
+		}
+
+		sha1calc.CalculateStringInputs = map[string]string{
+			"nothing":                "symlink-target-sha1",
+			strings.Join(chunks, ""): "fp",
+		}
+
+		fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
+		Expect(err).ToNot(HaveOccurred())
+		Expect(fp).To(Equal("fp"))
+	})
+
 	It("returns error if stating file fails", func() {
 		fs.RegisterOpenFile("/tmp/file2", &fakesys.FakeFile{
 			StatErr: errors.New("fake-err"),

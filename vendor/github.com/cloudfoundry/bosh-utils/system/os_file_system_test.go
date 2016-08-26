@@ -427,27 +427,92 @@ var _ = Describe("OS FileSystem", func() {
 		})
 	})
 
-	It("read link", func() {
+	It("read and follow link", func() {
 		osFs := createOsFs()
-		filePath := filepath.Join(os.TempDir(), "SymlinkTestFile")
+		targetPath := filepath.Join(os.TempDir(), "SymlinkTestFile")
 		containingDir := filepath.Join(os.TempDir(), "SubDir")
-		os.Remove(containingDir)
 		symlinkPath := filepath.Join(containingDir, "SymlinkTestSymlink")
 
-		osFs.WriteFileString(filePath, "some content")
-		defer os.Remove(filePath)
+		osFs.WriteFileString(targetPath, "some content")
+		defer os.Remove(targetPath)
 
-		err := osFs.Symlink(filePath, symlinkPath)
+		err := osFs.Symlink(targetPath, symlinkPath)
 		Expect(err).ToNot(HaveOccurred())
+		defer os.Remove(symlinkPath)
 		defer os.Remove(containingDir)
 
-		actualFilePath, err := osFs.ReadLink(symlinkPath)
+		actualFilePath, err := osFs.ReadAndFollowLink(symlinkPath)
 		Expect(err).ToNot(HaveOccurred())
 
 		// on Mac OS /var -> private/var
-		absPath, err := filepath.EvalSymlinks(filePath)
+		absPath, err := filepath.EvalSymlinks(targetPath)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(actualFilePath).To(Equal(absPath))
+	})
+
+	Context("read link", func() {
+		var (
+			osFs          FileSystem
+			symlinkPath   string
+			containingDir string
+			targetPath    string
+		)
+
+		BeforeEach(func() {
+			osFs = createOsFs()
+			symlinkPath = filepath.Join(os.TempDir(), "SymlinkTestFile")
+			containingDir = filepath.Join(os.TempDir(), "SubDir")
+			targetPath = filepath.Join(containingDir, "TestSymlinkTarget")
+		})
+
+		AfterEach(func() {
+			os.Remove(symlinkPath)
+			os.Remove(targetPath)
+			os.Remove(containingDir)
+		})
+
+		Context("when the link does not exist", func() {
+			It("returns an error", func() {
+				Expect(osFs.FileExists(symlinkPath)).To(Equal(false))
+
+				_, err := osFs.Readlink(symlinkPath)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when the target path does not exist", func() {
+			It("returns the target path without error", func() {
+				err := osFs.Symlink(targetPath, symlinkPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				targetFilePath, err := osFs.Readlink(symlinkPath)
+
+				Expect(osFs.FileExists(targetPath)).To(Equal(false))
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(targetFilePath).To(Equal(targetPath))
+			})
+		})
+
+		Context("when the target path exists", func() {
+			It("returns the target path without error", func() {
+				err := osFs.MkdirAll(containingDir, os.FileMode(0700))
+				Expect(err).ToNot(HaveOccurred())
+
+				err = osFs.WriteFileString(targetPath, "test-data")
+				Expect(err).ToNot(HaveOccurred())
+
+				err = osFs.Symlink(targetPath, symlinkPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(osFs.FileExists(targetPath)).To(Equal(true))
+
+				targetFilePath, err := osFs.Readlink(symlinkPath)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(targetFilePath).To(Equal(targetPath))
+			})
+		})
 	})
 
 	It("temp file", func() {
