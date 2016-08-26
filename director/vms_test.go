@@ -2,7 +2,6 @@ package director_test
 
 import (
 	"strings"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -32,7 +31,6 @@ var _ = Describe("VMs", func() {
 	})
 
 	Describe("VMInfos", func() {
-
 		It("returns vm infos", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
@@ -89,8 +87,6 @@ var _ = Describe("VMs", func() {
 
 			Expect(infos[0]).To(Equal(VMInfo{
 				AgentID: "agent-id",
-
-				Timestamp: time.Time{},
 
 				JobName:      "job",
 				ID:           "id",

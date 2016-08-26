@@ -1,12 +1,13 @@
 package director_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/director"
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-	"strings"
-	"time"
+
+	. "github.com/cloudfoundry/bosh-init/director"
 )
 
 var _ = Describe("Instances", func() {
@@ -87,8 +88,6 @@ var _ = Describe("Instances", func() {
 			Expect(infos[0]).To(Equal(VMInfo{
 				AgentID: "agent-id",
 
-				Timestamp: time.Time{},
-
 				JobName:      "job",
 				ID:           "id",
 				Index:        &index,
@@ -128,62 +127,6 @@ var _ = Describe("Instances", func() {
 
 				ResurrectionPaused: true,
 			}))
-		})
-
-		Context("when the instances endpoint is not available", func() {
-			It("falls back to the vms endpoint", func() {
-				server.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/deployments/dep/instances", "format=full"),
-						ghttp.VerifyBasicAuth("username", "password"),
-						ghttp.RespondWith(404, nil),
-					),
-				)
-				ConfigureTaskResult(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/deployments/dep/vms", "format=full"),
-						ghttp.VerifyBasicAuth("username", "password"),
-					), strings.Replace(`{
-	"agent_id": "agent-id",
-	"job_name": "job",
-	"id": "id",
-	"index": 1,
-	"job_state": "running",
-	"bootstrap": true,
-	"ips": [ "ip" ],
-	"dns": [ "dns" ],
-	"az": "az",
-	"vm_cid": "vm-cid",
-	"disk_cid": "disk-cid",
-	"vm_type": "vm-type",
-	"resource_pool": "rp",
-	"processes": [{
-		"name": "service",
-		"state": "running",
-		"uptime": { "secs": 343020 },
-		"cpu": { "total": 10 },
-		"mem": { "percent": 0.5, "kb": 23952 }
-	}],
-	"vitals": {
-		"cpu": { "wait": "0.8", "user": "65.7", "sys": "4.5" },
-		"swap": { "percent": "5", "kb": "53580" },
-		"mem": { "percent": "33", "kb": "1342088" },
-		"uptime": { "secs": 10020 },
-		"load": [ "2.20", "1.63", "1.53" ],
-		"disk": {
-			"system": { "percent": "47", "inode_percent": "19" },
-			"ephemeral": { "percent": "47", "inode_percent": "19" }
-		}
-	},
-	"resurrection_paused": true
-}`, "\n", "", -1),
-					server,
-				)
-
-				infos, err := deployment.InstanceInfos()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(infos).To(HaveLen(1))
-			})
 		})
 
 		It("returns instance infos with running vms", func() {
