@@ -164,7 +164,7 @@ type DeleteEnvArgs struct {
 type EnvironmentOpts struct {
 	Args EnvironmentArgs `positional-args:"true"`
 
-	CACert FileBytesArg `long:"ca-cert" short:"c" description:"CA certificate path to verify SSL connection to the Director and UAA"`
+	CACert string
 
 	cmd
 }

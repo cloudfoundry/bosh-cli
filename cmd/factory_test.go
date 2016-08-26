@@ -166,6 +166,16 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
+	Describe("environment options", func() {
+		It("is passed the global CA cert", func() {
+			cmd, err := factory.New([]string{"environment", "--ca-cert", "ca-cert"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*EnvironmentOpts)
+			Expect(opts.CACert).To(Equal("ca-cert"))
+		})
+	})
+
 	Describe("help options", func() {
 		It("has a help flag", func() {
 			_, err := factory.New([]string{"--help"})

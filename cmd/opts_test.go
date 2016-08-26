@@ -708,14 +708,6 @@ var _ = Describe("Opts", func() {
 				})
 			})
 
-			Describe("CACert", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CACert", opts)).To(Equal(
-						`long:"ca-cert" short:"c" description:"CA certificate path to verify SSL connection to the Director and UAA"`,
-					))
-				})
-			})
-
 		})
 	})
 

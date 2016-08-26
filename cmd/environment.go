@@ -27,12 +27,12 @@ func (c EnvironmentCmd) Run(opts EnvironmentOpts) error {
 		return c.show()
 	}
 
-	updatedConfig := c.config.SetEnvironment(args.URL, args.Alias, opts.CACert.Path)
+	updatedConfig := c.config.SetEnvironment(args.URL, args.Alias, opts.CACert)
 
 	err := c.set(updatedConfig)
 	if err != nil {
 		// If CA cert is specified, fail immediately
-		if len(opts.CACert.Path) > 0 {
+		if len(opts.CACert) > 0 {
 			return err
 		}
 

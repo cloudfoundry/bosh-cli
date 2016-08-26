@@ -233,7 +233,7 @@ var _ = Describe("EnvironmentCmd", func() {
 			BeforeEach(func() {
 				opts.Args.URL = "environment-url"
 				opts.Args.Alias = "environment-alias"
-				opts.CACert = FileBytesArg{Path: "environment-ca-cert"}
+				opts.CACert = "environment-ca-cert"
 
 				updatedConfig = &fakecmdconf.FakeConfig2{
 					Existing: fakecmdconf.ConfigContents{
