@@ -10,7 +10,7 @@ import (
 	. "github.com/cloudfoundry/bosh-init/director"
 )
 
-var _ = Describe("VMs", func() {
+var _ = Describe("Instances", func() {
 	var (
 		director   Director
 		deployment Deployment
@@ -30,11 +30,11 @@ var _ = Describe("VMs", func() {
 		server.Close()
 	})
 
-	Describe("VMInfos", func() {
-		It("returns vm infos", func() {
+	Describe("InstanceInfos", func() {
+		It("returns instance infos", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/vms", "format=full"),
+					ghttp.VerifyRequest("GET", "/deployments/dep/instances", "format=full"),
 					ghttp.VerifyBasicAuth("username", "password"),
 				),
 				strings.Replace(`{
@@ -74,7 +74,7 @@ var _ = Describe("VMs", func() {
 				server,
 			)
 
-			infos, err := deployment.VMInfos()
+			infos, err := deployment.InstanceInfos()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(infos).To(HaveLen(1))
 
@@ -129,9 +129,9 @@ var _ = Describe("VMs", func() {
 			}))
 		})
 
-		It("returns vm infos with running vms", func() {
+		It("returns instance infos with running vms", func() {
 			ConfigureTaskResult(
-				ghttp.VerifyRequest("GET", "/deployments/dep/vms", "format=full"),
+				ghttp.VerifyRequest("GET", "/deployments/dep/instances", "format=full"),
 				`
 {"job_state":"running"}
 {"job_state":"running","processes":[{"state": "running"}]}
@@ -141,7 +141,7 @@ var _ = Describe("VMs", func() {
 				server,
 			)
 
-			infos, err := deployment.VMInfos()
+			infos, err := deployment.InstanceInfos()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(infos[0].IsRunning()).To(BeTrue())
 			Expect(infos[1].IsRunning()).To(BeTrue())
@@ -150,20 +150,20 @@ var _ = Describe("VMs", func() {
 		})
 
 		It("returns error if response is non-200", func() {
-			AppendBadRequest(ghttp.VerifyRequest("GET", "/deployments/dep/vms", "format=full"), server)
+			AppendBadRequest(ghttp.VerifyRequest("GET", "/deployments/dep/instances", "format=full"), server)
 
-			_, err := deployment.VMInfos()
+			_, err := deployment.InstanceInfos()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Listing deployment 'dep' vms infos: Director responded with non-successful status code"))
+				"Listing deployment 'dep' instances infos: Director responded with non-successful status code"))
 		})
 
 		It("returns error if infos cannot be unmarshalled", func() {
-			ConfigureTaskResult(ghttp.VerifyRequest("GET", "/deployments/dep/vms", "format=full"), `-`, server)
+			ConfigureTaskResult(ghttp.VerifyRequest("GET", "/deployments/dep/instances", "format=full"), `-`, server)
 
-			_, err := deployment.VMInfos()
+			_, err := deployment.InstanceInfos()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Unmarshaling vm info response"))
+			Expect(err.Error()).To(ContainSubstring("Unmarshaling instance info response"))
 		})
 	})
 })

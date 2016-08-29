@@ -16,7 +16,7 @@ func NewInstancesCmd(ui boshui.UI, deployment boshdir.Deployment) InstancesCmd {
 }
 
 func (c InstancesCmd) Run(opts InstancesOpts) error {
-	vmInfos, err := c.deployment.VMInfos()
+	instanceInfos, err := c.deployment.InstanceInfos()
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func (c InstancesCmd) Run(opts InstancesOpts) error {
 	}
 
 	table := boshtbl.Table{
-		Content: "vms",
+		Content: "instances",
 
 		HeaderVals: instTable.AsValues(instTable.Header()),
 
@@ -41,7 +41,7 @@ func (c InstancesCmd) Run(opts InstancesOpts) error {
 		Notes: []string{"(*) Bootstrap node"},
 	}
 
-	for _, info := range vmInfos {
+	for _, info := range instanceInfos {
 		if opts.Failing && info.IsRunning() {
 			continue
 		}

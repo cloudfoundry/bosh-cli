@@ -437,6 +437,10 @@ func (fake *FakeDeployment) VMInfos() ([]director.VMInfo, error) {
 	}
 }
 
+func (fake *FakeDeployment) InstanceInfos() ([]director.VMInfo, error) {
+	return fake.VMInfos()
+}
+
 func (fake *FakeDeployment) VMInfosCallCount() int {
 	fake.vMInfosMutex.RLock()
 	defer fake.vMInfosMutex.RUnlock()

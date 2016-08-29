@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
@@ -12,18 +11,17 @@ import (
 type VMInfo struct {
 	AgentID string `json:"agent_id"`
 
-	Timestamp time.Time
-
-	JobName   string `json:"job_name"`
-	ID        string `json:"id"`
-	Index     *int   `json:"index"`
-	State     string `json:"job_state"` // e.g. "running"
-	Bootstrap bool
+	JobName      string `json:"job_name"`
+	ID           string `json:"id"`
+	Index        *int   `json:"index"`
+	ProcessState string `json:"job_state"` // e.g. "running"
+	Bootstrap    bool
 
 	IPs []string `json:"ips"`
 	DNS []string `json:"dns"`
 
 	AZ           string `json:"az"`
+	State        string `json:"state"`
 	VMID         string `json:"vm_cid"`
 	VMType       string `json:"vm_type"`
 	ResourcePool string `json:"resource_pool"`
@@ -86,7 +84,7 @@ type VMInfoVitalsUptime struct {
 }
 
 func (i VMInfo) IsRunning() bool {
-	if i.State != "running" {
+	if i.ProcessState != "running" {
 		return false
 	}
 
@@ -109,26 +107,24 @@ func (d DeploymentImpl) VMInfos() ([]VMInfo, error) {
 		return nil, err
 	}
 
-	t := time.Now()
-
-	for _, info := range infos {
-		info.Timestamp = t
-	}
-
 	return infos, nil
 }
 
 func (c Client) DeploymentVMInfos(deploymentName string) ([]VMInfo, error) {
+	return c.deploymentResourceInfos(deploymentName, "vms")
+}
+
+func (c Client) deploymentResourceInfos(deploymentName string, resourceType string) ([]VMInfo, error) {
 	if len(deploymentName) == 0 {
 		return nil, bosherr.Error("Expected non-empty deployment name")
 	}
 
-	path := fmt.Sprintf("/deployments/%s/vms?format=full", deploymentName)
+	path := fmt.Sprintf("/deployments/%s/%s?format=full", deploymentName, resourceType)
 
 	_, resultBytes, err := c.taskClientRequest.GetResult(path)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(
-			err, "Listing deployment '%s' VMs infos", deploymentName)
+			err, "Listing deployment '%s' %s infos", deploymentName, resourceType)
 	}
 
 	var resps []VMInfo
@@ -143,7 +139,7 @@ func (c Client) DeploymentVMInfos(deploymentName string) ([]VMInfo, error) {
 		err := json.Unmarshal([]byte(piece), &resp)
 		if err != nil {
 			return nil, bosherr.WrapErrorf(
-				err, "Unmarshaling VM info response: '%s'", string(piece))
+				err, "Unmarshaling %s info response: '%s'", strings.TrimSuffix(resourceType, "s"), string(piece))
 		}
 
 		resps = append(resps, resp)

@@ -12,10 +12,11 @@ type InstanceTableValues struct {
 	Name    boshtbl.Value
 	Process boshtbl.Value
 
-	State  boshtbl.Value
-	AZ     boshtbl.Value
-	VMType boshtbl.Value
-	IPs    boshtbl.Value
+	ProcessState boshtbl.Value
+	State        boshtbl.Value
+	AZ           boshtbl.Value
+	VMType       boshtbl.Value
+	IPs          boshtbl.Value
 
 	// Details
 	VMCID        boshtbl.Value
@@ -47,12 +48,13 @@ var InstanceTableHeader = InstanceTableValues{
 	Name:    boshtbl.NewValueString("Instance"),
 	Process: boshtbl.NewValueString("Process"),
 
-	State:  boshtbl.NewValueString("State"),
-	AZ:     boshtbl.NewValueString("AZ"),
-	VMType: boshtbl.NewValueString("VM Type"),
-	IPs:    boshtbl.NewValueString("IPs"),
+	ProcessState: boshtbl.NewValueString("Process State"),
+	AZ:           boshtbl.NewValueString("AZ"),
+	VMType:       boshtbl.NewValueString("VM Type"),
+	IPs:          boshtbl.NewValueString("IPs"),
 
 	// Details
+	State:        boshtbl.NewValueString("State"),
 	VMCID:        boshtbl.NewValueString("VM CID"),
 	DiskCID:      boshtbl.NewValueString("Disk CID"),
 	AgentID:      boshtbl.NewValueString("Agent ID"),
@@ -91,8 +93,8 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		Name:    t.buildName(i),
 		Process: boshtbl.ValueString{},
 
-		State: boshtbl.ValueFmt{
-			V:     boshtbl.NewValueString(i.State),
+		ProcessState: boshtbl.ValueFmt{
+			V:     boshtbl.NewValueString(i.ProcessState),
 			Error: !i.IsRunning(),
 		},
 
@@ -101,6 +103,10 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		IPs:    boshtbl.NewValueStrings(i.IPs),
 
 		// Details
+		State: boshtbl.ValueFmt{
+			V:     boshtbl.NewValueString(i.State),
+			Error: !i.IsRunning(),
+		},
 		VMCID:        boshtbl.NewValueString(i.VMID),
 		DiskCID:      boshtbl.NewValueString(i.DiskID),
 		AgentID:      boshtbl.NewValueString(i.AgentID),
@@ -170,7 +176,7 @@ func (t InstanceTable) ForProcess(p boshdir.VMInfoProcess) InstanceTableValues {
 		Name:    boshtbl.ValueString{},
 		Process: boshtbl.NewValueString(p.Name),
 
-		State: boshtbl.ValueFmt{
+		ProcessState: boshtbl.ValueFmt{
 			V:     boshtbl.NewValueString(p.State),
 			Error: !p.IsRunning(),
 		},
@@ -190,10 +196,10 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 		result = append(result, v.Process)
 	}
 
-	result = append(result, []boshtbl.Value{v.State, v.AZ, v.IPs}...)
+	result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs}...)
 
 	if t.Details {
-		result = append(result, []boshtbl.Value{v.VMCID, v.VMType, v.DiskCID, v.AgentID, v.Resurrection}...)
+		result = append(result, []boshtbl.Value{v.State, v.VMCID, v.VMType, v.DiskCID, v.AgentID, v.Resurrection}...)
 	} else if t.VMDetails {
 		result = append(result, []boshtbl.Value{v.VMCID, v.VMType}...)
 	}

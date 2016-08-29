@@ -37,7 +37,7 @@ var _ = Describe("InstancesCmd", func() {
 
 		act := func() error { return command.Run(opts) }
 
-		Context("when VMs are successfully retrieved", func() {
+		Context("when instances are successfully retrieved", func() {
 			var (
 				infos          []boshdir.VMInfo
 				procCPUTotal   float64
@@ -59,12 +59,13 @@ var _ = Describe("InstancesCmd", func() {
 					{
 						JobName:      "job-name",
 						Index:        &index1,
-						State:        "in1-state",
+						ProcessState: "in1-process-state",
 						ResourcePool: "in1-rp",
 
 						IPs: []string{"in1-ip1", "in1-ip2"},
 						DNS: []string{"in1-dns1", "in1-dns2"},
 
+						State:              "in1-state",
 						VMID:               "in1-cid",
 						AgentID:            "in1-agent-id",
 						ResurrectionPaused: false,
@@ -108,13 +109,14 @@ var _ = Describe("InstancesCmd", func() {
 					{
 						JobName:      "job-name",
 						Index:        &index2,
-						State:        "in2-state",
+						ProcessState: "in2-process-state",
 						AZ:           "in2-az",
 						ResourcePool: "in2-rp",
 
 						IPs: []string{"in2-ip1"},
 						DNS: []string{"in2-dns1"},
 
+						State:              "in2-state",
 						VMID:               "in2-cid",
 						AgentID:            "in2-agent-id",
 						ResurrectionPaused: true,
@@ -143,7 +145,7 @@ var _ = Describe("InstancesCmd", func() {
 					{
 						JobName:      "",
 						Index:        nil,
-						State:        "unresponsive agent",
+						ProcessState: "unresponsive agent",
 						ResourcePool: "",
 					},
 				}
@@ -151,15 +153,15 @@ var _ = Describe("InstancesCmd", func() {
 				deployment.VMInfosReturns(infos, nil)
 			})
 
-			It("lists VMs for the deployment", func() {
+			It("lists instances for the deployment", func() {
 				Expect(act()).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Content: "vms",
+					Content: "instances",
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 					},
@@ -175,7 +177,7 @@ var _ = Describe("InstancesCmd", func() {
 							Rows: [][]boshtbl.Value{
 								{
 									boshtbl.NewValueString("job-name/1"),
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								},
@@ -186,7 +188,7 @@ var _ = Describe("InstancesCmd", func() {
 							Rows: [][]boshtbl.Value{
 								{
 									boshtbl.NewValueString("job-name/2"),
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
 									boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								},
@@ -209,18 +211,18 @@ var _ = Describe("InstancesCmd", func() {
 				}))
 			})
 
-			It("lists VMs with processes", func() {
+			It("lists instances with processes", func() {
 				opts.Processes = true
 
 				Expect(act()).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Content: "vms",
+					Content: "instances",
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
 						boshtbl.NewValueString("Process"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 					},
@@ -237,7 +239,7 @@ var _ = Describe("InstancesCmd", func() {
 								{
 									boshtbl.NewValueString("job-name/1"),
 									boshtbl.ValueString{},
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								},
@@ -263,7 +265,7 @@ var _ = Describe("InstancesCmd", func() {
 								{
 									boshtbl.NewValueString("job-name/2"),
 									boshtbl.ValueString{},
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
 									boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								},
@@ -294,19 +296,20 @@ var _ = Describe("InstancesCmd", func() {
 				}))
 			})
 
-			It("lists VMs for the deployment including details", func() {
+			It("lists instances for the deployment including details", func() {
 				opts.Details = true
 
 				Expect(act()).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Content: "vms",
+					Content: "instances",
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
+						boshtbl.NewValueString("State"),
 						boshtbl.NewValueString("VM CID"),
 						boshtbl.NewValueString("VM Type"),
 						boshtbl.NewValueString("Disk CID"),
@@ -325,9 +328,10 @@ var _ = Describe("InstancesCmd", func() {
 							Rows: [][]boshtbl.Value{
 								{
 									boshtbl.NewValueString("job-name/1"),
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
 									boshtbl.NewValueString("in1-cid"),
 									boshtbl.NewValueString("in1-rp"),
 									boshtbl.ValueString{},
@@ -341,9 +345,10 @@ var _ = Describe("InstancesCmd", func() {
 							Rows: [][]boshtbl.Value{
 								{
 									boshtbl.NewValueString("job-name/2"),
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
 									boshtbl.NewValueStrings([]string{"in2-ip1"}),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
 									boshtbl.NewValueString("in2-cid"),
 									boshtbl.NewValueString("in2-rp"),
 									boshtbl.ValueString{},
@@ -360,6 +365,7 @@ var _ = Describe("InstancesCmd", func() {
 									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
+									boshtbl.NewValueFmt(boshtbl.NewValueString(""), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueString{},
 									boshtbl.ValueString{},
@@ -374,17 +380,17 @@ var _ = Describe("InstancesCmd", func() {
 				}))
 			})
 
-			It("lists VMs for the deployment including dns", func() {
+			It("lists instances for the deployment including dns", func() {
 				opts.DNS = true
 
 				Expect(act()).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Content: "vms",
+					Content: "instances",
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 						boshtbl.NewValueString("DNS A Records"),
@@ -401,7 +407,7 @@ var _ = Describe("InstancesCmd", func() {
 							Rows: [][]boshtbl.Value{
 								{
 									boshtbl.NewValueString("job-name/1"),
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 									boshtbl.NewValueStrings([]string{"in1-dns1", "in1-dns2"}),
@@ -413,7 +419,7 @@ var _ = Describe("InstancesCmd", func() {
 							Rows: [][]boshtbl.Value{
 								{
 									boshtbl.NewValueString("job-name/2"),
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
 									boshtbl.NewValueStrings([]string{"in2-ip1"}),
 									boshtbl.NewValueStrings([]string{"in2-dns1"}),
@@ -438,19 +444,19 @@ var _ = Describe("InstancesCmd", func() {
 				}))
 			})
 
-			It("lists VMs for the deployment including vitals and processes", func() {
+			It("lists instances for the deployment including vitals and processes", func() {
 				opts.Vitals = true
 				opts.Processes = true
 
 				Expect(act()).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Content: "vms",
+					Content: "instances",
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
 						boshtbl.NewValueString("Process"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 						boshtbl.NewValueString("Uptime"),
@@ -478,7 +484,7 @@ var _ = Describe("InstancesCmd", func() {
 								{
 									boshtbl.NewValueString("job-name/1"),
 									boshtbl.ValueString{},
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 									ValueUptime{},
@@ -537,7 +543,7 @@ var _ = Describe("InstancesCmd", func() {
 								{
 									boshtbl.NewValueString("job-name/2"),
 									boshtbl.ValueString{},
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
 									boshtbl.NewValueStrings([]string{"in2-ip1"}),
 									ValueUptime{},
@@ -601,21 +607,21 @@ var _ = Describe("InstancesCmd", func() {
 				}))
 			})
 
-			It("lists failing (non-running) VMs", func() {
+			It("lists failing (non-running) instances", func() {
 				opts.Failing = true
 
 				// Hides second VM
-				infos[1].State = "running"
+				infos[1].ProcessState = "running"
 				infos[1].Processes[0].State = "running"
 
 				Expect(act()).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Content: "vms",
+					Content: "instances",
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 					},
@@ -631,7 +637,7 @@ var _ = Describe("InstancesCmd", func() {
 							Rows: [][]boshtbl.Value{
 								{
 									boshtbl.NewValueString("job-name/1"),
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								},
@@ -654,7 +660,7 @@ var _ = Describe("InstancesCmd", func() {
 				}))
 			})
 
-			It("includes failing processes when listing failing (non-running) VMs and processes", func() {
+			It("includes failing processes when listing failing (non-running) instances and processes", func() {
 				opts.Failing = true
 				opts.Processes = true
 
@@ -662,18 +668,18 @@ var _ = Describe("InstancesCmd", func() {
 				infos[0].Processes[0].State = "running"
 
 				// Hides second VM completely
-				infos[1].State = "running"
+				infos[1].ProcessState = "running"
 				infos[1].Processes[0].State = "running"
 
 				Expect(act()).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Content: "vms",
+					Content: "instances",
 
 					HeaderVals: []boshtbl.Value{
 						boshtbl.NewValueString("Instance"),
 						boshtbl.NewValueString("Process"),
-						boshtbl.NewValueString("State"),
+						boshtbl.NewValueString("Process State"),
 						boshtbl.NewValueString("AZ"),
 						boshtbl.NewValueString("IPs"),
 					},
@@ -690,7 +696,7 @@ var _ = Describe("InstancesCmd", func() {
 								{
 									boshtbl.NewValueString("job-name/1"),
 									boshtbl.ValueString{},
-									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								},
@@ -722,7 +728,7 @@ var _ = Describe("InstancesCmd", func() {
 			})
 		})
 
-		It("returns error if VMs cannot be retrieved", func() {
+		It("returns error if instances cannot be retrieved", func() {
 			deployment.VMInfosReturns(nil, errors.New("fake-err"))
 
 			err := act()
