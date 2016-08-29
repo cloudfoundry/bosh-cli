@@ -1,12 +1,33 @@
 package pkg_test
 
 import (
+	"fmt"
+	"sort"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-init/release/pkg"
 	boshres "github.com/cloudfoundry/bosh-init/release/resource"
 )
+
+var _ = Describe("Sorting Packages", func() {
+	Describe("a slice of Packages", func() {
+		var packages []*Package
+		var expectedPackages []*Package
+		BeforeEach(func() {
+			for i := 5; i >= 0; i-- {
+				packages = append(packages, NewPackage(boshres.NewResourceWithBuiltArchive(fmt.Sprintf("name%d", i), "fp", "path", "sha1"), []string{"pkg1"}))
+				expectedPackages = append(expectedPackages, NewPackage(boshres.NewResourceWithBuiltArchive(fmt.Sprintf("name%d", 5-i), "fp", "path", "sha1"), []string{"pkg1"}))
+			}
+		})
+
+		It("can be sorted by package name", func() {
+			sort.Sort(ByName(packages))
+			Expect(packages).To(Equal(expectedPackages))
+		})
+	})
+})
 
 var _ = Describe("Package", func() {
 	Describe("common methods", func() {

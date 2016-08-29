@@ -1,6 +1,9 @@
 package job_test
 
 import (
+	"fmt"
+	"sort"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -8,6 +11,24 @@ import (
 	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
 	. "github.com/cloudfoundry/bosh-init/release/resource"
 )
+
+var _ = Describe("Sorting Jobs", func() {
+	Describe("a slice of jobs", func() {
+		var jobs []*Job
+		var expectedJobs []*Job
+		BeforeEach(func() {
+			for i := 5; i >= 0; i-- {
+				jobs = append(jobs, NewJob(NewResourceWithBuiltArchive(fmt.Sprintf("name%d", i), "fp", "path", "sha1")))
+				expectedJobs = append(expectedJobs, NewJob(NewResourceWithBuiltArchive(fmt.Sprintf("name%d", 5-i), "fp", "path", "sha1")))
+			}
+		})
+
+		It("can be sorted by job name", func() {
+			sort.Sort(ByName(jobs))
+			Expect(jobs).To(Equal(expectedJobs))
+		})
+	})
+})
 
 var _ = Describe("Job", func() {
 	Describe("Name/Fingerprint/ArchivePath/ArchiveSHA1", func() {

@@ -53,20 +53,20 @@ var _ = Describe("DirReader", func() {
 
 		BeforeEach(func() {
 			fs.SetGlob("/release/jobs/*", []string{
-				"/release/jobs/job1",
 				"/release/jobs/job2",
+				"/release/jobs/job1",
 			})
 
 			fs.SetGlob("/release/packages/*", []string{
-				"/release/packages/pkg1",
 				"/release/packages/pkg2",
+				"/release/packages/pkg1",
 			})
 
-			fs.MkdirAll("/release/jobs/job1", os.ModeDir)
 			fs.MkdirAll("/release/jobs/job2", os.ModeDir)
+			fs.MkdirAll("/release/jobs/job1", os.ModeDir)
 
-			fs.MkdirAll("/release/packages/pkg1", os.ModeDir)
 			fs.MkdirAll("/release/packages/pkg2", os.ModeDir)
+			fs.MkdirAll("/release/packages/pkg1", os.ModeDir)
 
 			job1 = boshjob.NewJob(NewResource("job1", "job1-fp", nil))
 			job1.PackageNames = []string{"pkg1"}
@@ -106,6 +106,24 @@ var _ = Describe("DirReader", func() {
 		})
 
 		It("returns a release from the given directory", func() {
+			release, err := act()
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(release.Name()).To(BeEmpty())
+			Expect(release.Version()).To(BeEmpty())
+			Expect(release.CommitHashWithMark("*")).To(BeEmpty())
+			Expect(release.Jobs()).To(ConsistOf([]*boshjob.Job{job1, job2}))
+			Expect(release.Packages()).To(ConsistOf([]*boshpkg.Package{pkg1, pkg2}))
+			Expect(release.CompiledPackages()).To(BeEmpty())
+			Expect(release.IsCompiled()).To(BeFalse())
+			Expect(release.License()).To(Equal(lic))
+
+			// job and pkg dependencies are resolved
+			Expect(job1.Packages).To(Equal([]boshpkg.Compilable{pkg1}))
+			Expect(pkg1.Dependencies).To(Equal([]*boshpkg.Package{pkg2}))
+		})
+
+		It("orders jobs and packages alphabetically", func() {
 			release, err := act()
 			Expect(err).NotTo(HaveOccurred())
 

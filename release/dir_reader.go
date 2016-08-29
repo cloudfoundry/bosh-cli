@@ -2,6 +2,7 @@ package release
 
 import (
 	gopath "path"
+	"sort"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -120,6 +121,8 @@ func (r DirReader) newJobs(packages []*boshpkg.Package, jobMatches []string) ([]
 		return nil, bosherr.NewMultiError(errs...)
 	}
 
+	sort.Sort(boshjob.ByName(jobs))
+
 	return jobs, nil
 }
 
@@ -155,6 +158,8 @@ func (r DirReader) newPackages(pkgMatches []string) ([]*boshpkg.Package, error) 
 	if len(errs) > 0 {
 		return []*boshpkg.Package{}, bosherr.NewMultiError(errs...)
 	}
+
+	sort.Sort(boshpkg.ByName(packages))
 
 	return packages, nil
 }
