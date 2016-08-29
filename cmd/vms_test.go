@@ -50,7 +50,7 @@ var _ = Describe("VMsCmd", func() {
 					{
 						JobName:      "job-name",
 						Index:        &index1,
-						ProcessState: "in1-state",
+						ProcessState: "in1-process-state",
 						ResourcePool: "in1-rp",
 
 						IPs: []string{"in1-ip1", "in1-ip2"},
@@ -77,7 +77,7 @@ var _ = Describe("VMsCmd", func() {
 					{
 						JobName:      "job-name",
 						Index:        &index2,
-						ProcessState: "in2-state",
+						ProcessState: "in2-process-state",
 						AZ:           "in2-az",
 						ResourcePool: "in2-rp",
 
@@ -142,7 +142,7 @@ var _ = Describe("VMsCmd", func() {
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("job-name/1"),
-							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 							boshtbl.ValueString{},
 							boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 							boshtbl.NewValueString("in1-cid"),
@@ -150,7 +150,7 @@ var _ = Describe("VMsCmd", func() {
 						},
 						{
 							boshtbl.NewValueString("job-name/2"),
-							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 							boshtbl.NewValueString("in2-az"),
 							boshtbl.NewValueStrings([]string{"in2-ip1"}),
 							boshtbl.NewValueString("in2-cid"),
@@ -198,10 +198,10 @@ var _ = Describe("VMsCmd", func() {
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("job-name/1"),
-							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 							boshtbl.ValueString{},
 							boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
-							boshtbl.NewValueFmt(boshtbl.NewValueString(""), true),
+							boshtbl.NewValueString(""),
 							boshtbl.NewValueString("in1-cid"),
 							boshtbl.NewValueString("in1-rp"),
 							boshtbl.ValueString{},
@@ -210,10 +210,10 @@ var _ = Describe("VMsCmd", func() {
 						},
 						{
 							boshtbl.NewValueString("job-name/2"),
-							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 							boshtbl.NewValueString("in2-az"),
 							boshtbl.NewValueStrings([]string{"in2-ip1"}),
-							boshtbl.NewValueFmt(boshtbl.NewValueString(""), true),
+							boshtbl.NewValueString(""),
 							boshtbl.NewValueString("in2-cid"),
 							boshtbl.NewValueString("in2-rp"),
 							boshtbl.ValueString{},
@@ -225,7 +225,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 							boshtbl.ValueString{},
 							boshtbl.ValueStrings{},
-							boshtbl.NewValueFmt(boshtbl.NewValueString(""), true),
+							boshtbl.NewValueString(""),
 							boshtbl.ValueString{},
 							boshtbl.ValueString{},
 							boshtbl.ValueString{},
@@ -263,7 +263,7 @@ var _ = Describe("VMsCmd", func() {
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("job-name/1"),
-							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 							boshtbl.ValueString{},
 							boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 							boshtbl.NewValueString("in1-cid"),
@@ -272,7 +272,7 @@ var _ = Describe("VMsCmd", func() {
 						},
 						{
 							boshtbl.NewValueString("job-name/2"),
-							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 							boshtbl.NewValueString("in2-az"),
 							boshtbl.NewValueStrings([]string{"in2-ip1"}),
 							boshtbl.NewValueString("in2-cid"),
@@ -329,7 +329,7 @@ var _ = Describe("VMsCmd", func() {
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("job-name/1"),
-							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-state"), true),
+							boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 							boshtbl.ValueString{},
 							boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 							boshtbl.NewValueString("in1-cid"),
@@ -348,7 +348,7 @@ var _ = Describe("VMsCmd", func() {
 						},
 						{
 							boshtbl.NewValueString("job-name/2"),
-							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-state"), true),
+							boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 							boshtbl.NewValueString("in2-az"),
 							boshtbl.NewValueStrings([]string{"in2-ip1"}),
 							boshtbl.NewValueString("in2-cid"),

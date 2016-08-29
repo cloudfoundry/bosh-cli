@@ -103,10 +103,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		IPs:    boshtbl.NewValueStrings(i.IPs),
 
 		// Details
-		State: boshtbl.ValueFmt{
-			V:     boshtbl.NewValueString(i.State),
-			Error: !i.IsRunning(),
-		},
+		State:        boshtbl.NewValueString(i.State),
 		VMCID:        boshtbl.NewValueString(i.VMID),
 		DiskCID:      boshtbl.NewValueString(i.DiskID),
 		AgentID:      boshtbl.NewValueString(i.AgentID),
