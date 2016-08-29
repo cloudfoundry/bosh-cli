@@ -42,7 +42,7 @@ var _ = Describe("FSIndexBlobs", func() {
 				It("returns path to a downloaded blob if it already exists", func() {
 					fs.WriteFileString("/dir/sub-dir/sha1", "file")
 
-					path, err := blobs.Get("blob-id", "sha1")
+					path, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).ToNot(HaveOccurred())
 					Expect(path).To(Equal("/dir/sub-dir/sha1"))
 				})
@@ -53,7 +53,7 @@ var _ = Describe("FSIndexBlobs", func() {
 					})
 					fs.WriteFileString("/dir/sub-dir/sha1", "file")
 
-					_, err := blobs.Get("blob-id", "sha1")
+					_, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring(
 						"Expected local copy ('/dir/sub-dir/sha1') of blob 'blob-id' to have SHA1 'sha1' but was 'wrong-sha1'"))
@@ -65,7 +65,7 @@ var _ = Describe("FSIndexBlobs", func() {
 					})
 					fs.WriteFileString("/dir/sub-dir/sha1", "file")
 
-					_, err := blobs.Get("blob-id", "sha1")
+					_, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-err"))
 				})
@@ -74,7 +74,7 @@ var _ = Describe("FSIndexBlobs", func() {
 					fs.ExpandPathExpanded = "/full-dir"
 					fs.WriteFileString("/full-dir/sha1", "file")
 
-					path, err := blobs.Get("blob-id", "sha1")
+					path, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).ToNot(HaveOccurred())
 					Expect(path).To(Equal("/full-dir/sha1"))
 
@@ -84,7 +84,7 @@ var _ = Describe("FSIndexBlobs", func() {
 				It("returns error if expanding directory path fails", func() {
 					fs.ExpandPathErr = errors.New("fake-err")
 
-					_, err := blobs.Get("blob-id", "sha1")
+					_, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-err"))
 				})
@@ -92,7 +92,7 @@ var _ = Describe("FSIndexBlobs", func() {
 				It("returns error if creating directory fails", func() {
 					fs.MkdirAllError = errors.New("fake-err")
 
-					_, err := blobs.Get("blob-id", "sha1")
+					_, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-err"))
 				})
@@ -107,7 +107,7 @@ var _ = Describe("FSIndexBlobs", func() {
 			itChecksIfFileIsAlreadyDownloaded()
 
 			It("returns error if downloaded blob does not exist", func() {
-				_, err := blobs.Get("blob-id", "sha1")
+				_, err := blobs.Get("name", "blob-id", "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Cannot find blob 'blob-id' with SHA1 'sha1'"))
 			})
@@ -125,7 +125,7 @@ var _ = Describe("FSIndexBlobs", func() {
 				blobstore.GetFileName = "/tmp/downloaded-path"
 				fs.WriteFileString("/tmp/downloaded-path", "blob")
 
-				path, err := blobs.Get("blob-id", "sha1")
+				path, err := blobs.Get("name", "blob-id", "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(path).To(Equal("/dir/sub-dir/sha1"))
 
@@ -136,19 +136,19 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
 
 				kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("blob-id (sha1=sha1)"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 
 				kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("blob-id (sha1=sha1)"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 				Expect(err).To(BeNil())
 			})
 
 			It("returns error if downloading blob fails", func() {
 				blobstore.GetError = errors.New("fake-err")
 
-				_, err := blobs.Get("blob-id", "sha1")
+				_, err := blobs.Get("name", "blob-id", "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 				Expect(err.Error()).To(ContainSubstring("Downloading blob 'blob-id'"))
@@ -157,19 +157,19 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
 
 				kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("blob-id (sha1=sha1)"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 
 				kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("blob-id (sha1=sha1)"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 				Expect(err).ToNot(BeNil())
 			})
 
 			It("returns error if moving blob into cache fails", func() {
 				fs.RenameError = errors.New("fake-err")
 
-				_, err := blobs.Get("blob-id", "sha1")
+				_, err := blobs.Get("name", "blob-id", "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 				Expect(err.Error()).To(ContainSubstring("Moving blob 'blob-id'"))
@@ -178,12 +178,12 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
 
 				kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("blob-id (sha1=sha1)"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 
 				kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("blob-id (sha1=sha1)"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 				Expect(err).ToNot(BeNil())
 			})
 		})
