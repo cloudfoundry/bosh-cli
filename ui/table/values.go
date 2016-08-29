@@ -150,7 +150,7 @@ func (t ValueInterface) String() string {
 
 	bytes, err := yaml.Marshal(t.I)
 	if err != nil {
-		return fmt.Sprintf("<serilization error> : %#v", t.I)
+		return fmt.Sprintf("<serialization error> : %#v", t.I)
 	}
 
 	return strings.TrimSpace(string(bytes))

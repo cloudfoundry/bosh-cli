@@ -213,7 +213,7 @@ var _ = Describe("ValueInterface", func() {
 
 	It("returns nested items as a string", func() {
 		i := failsToYAMLMarshal{}
-		Expect(ValueInterface{I: i}.String()).To(Equal(`<serilization error> : table_test.failsToYAMLMarshal{}`))
+		Expect(ValueInterface{I: i}.String()).To(Equal(`<serialization error> : table_test.failsToYAMLMarshal{}`))
 	})
 
 	It("returns nil items as blank string", func() {
