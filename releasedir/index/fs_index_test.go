@@ -41,7 +41,8 @@ builds:
   fp: {version: fp, sha1: fp-sha1}
 format-version: "2"`)
 
-			blobs.GetStub = func(blobID, sha1 string) (string, error) {
+			blobs.GetStub = func(name string, blobID string, sha1 string) (string, error) {
+				Expect(name).To(Equal("name/fp"))
 				Expect(blobID).To(Equal(""))
 				Expect(sha1).To(Equal("fp-sha1"))
 				return "path", nil
@@ -77,7 +78,8 @@ builds:
   fp: {version: fp, sha1: fp-sha1, blobstore_id: fp-blob-id}
 format-version: "2"`)
 
-			blobs.GetStub = func(blobID, sha1 string) (string, error) {
+			blobs.GetStub = func(name string, blobID string, sha1 string) (string, error) {
+				Expect(name).To(Equal("name/fp"))
 				Expect(blobID).To(Equal("fp-blob-id"))
 				Expect(sha1).To(Equal("fp-sha1"))
 				return "path", nil

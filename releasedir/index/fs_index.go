@@ -94,7 +94,8 @@ func (i FSIndex) Find(name, fingerprint string) (string, string, error) {
 
 	for _, entry := range entries {
 		if entry.Version == fingerprint {
-			blobPath, err := i.blobs.Get(entry.BlobstoreID, entry.SHA1)
+			blobName := fmt.Sprintf("%s/%s", name, entry.Version)
+			blobPath, err := i.blobs.Get(blobName, entry.BlobstoreID, entry.SHA1)
 			if err != nil {
 				return "", "", err
 			}

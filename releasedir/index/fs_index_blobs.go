@@ -39,7 +39,7 @@ func NewFSIndexBlobs(
 }
 
 // Get gurantees that returned file matches requested SHA1.
-func (c FSIndexBlobs) Get(blobID, sha1 string) (string, error) {
+func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, error) {
 	dstPath, err := c.blobPath(sha1)
 	if err != nil {
 		return "", err
@@ -60,24 +60,24 @@ func (c FSIndexBlobs) Get(blobID, sha1 string) (string, error) {
 	}
 
 	if c.blobstore != nil && len(blobID) > 0 {
-		desc := fmt.Sprintf("%s (sha1=%s)", blobID, sha1)
+		desc := fmt.Sprintf("sha1=%s", sha1)
 
-		c.reporter.IndexEntryDownloadStarted("", desc)
+		c.reporter.IndexEntryDownloadStarted(name, desc)
 
 		// SHA1 expected to be checked via blobstore
 		path, err := c.blobstore.Get(blobID, sha1)
 		if err != nil {
-			c.reporter.IndexEntryDownloadFinished("", desc, err)
+			c.reporter.IndexEntryDownloadFinished(name, desc, err)
 			return "", bosherr.WrapErrorf(err, "Downloading blob '%s' with SHA1 '%s'", blobID, sha1)
 		}
 
 		err = c.fs.Rename(path, dstPath)
 		if err != nil {
-			c.reporter.IndexEntryDownloadFinished("", desc, err)
+			c.reporter.IndexEntryDownloadFinished(name, desc, err)
 			return "", bosherr.WrapErrorf(err, "Moving blob '%s' into cache", blobID)
 		}
 
-		c.reporter.IndexEntryDownloadFinished("", desc, nil)
+		c.reporter.IndexEntryDownloadFinished(name, desc, nil)
 
 		return dstPath, nil
 	}
