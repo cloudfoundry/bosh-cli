@@ -39,6 +39,7 @@ var _ = Describe("Director", func() {
 		"timestamp": 1440318199,
 		"state": "state1",
 		"user": "user1",
+		"deployment": "deployment1",
 		"description": "desc1",
 		"result": "result1"
 	},
@@ -47,6 +48,7 @@ var _ = Describe("Director", func() {
 		"timestamp": 1440318200,
 		"state": "state2",
 		"user": "user2",
+		"deployment": "deployment2",
 		"description": "desc2",
 		"result": "result2"
 	}
@@ -62,6 +64,7 @@ var _ = Describe("Director", func() {
 			Expect(tasks[0].CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
 			Expect(tasks[0].State()).To(Equal("state1"))
 			Expect(tasks[0].User()).To(Equal("user1"))
+			Expect(tasks[0].DeploymentName()).To(Equal("deployment1"))
 			Expect(tasks[0].Description()).To(Equal("desc1"))
 			Expect(tasks[0].Result()).To(Equal("result1"))
 
@@ -69,6 +72,7 @@ var _ = Describe("Director", func() {
 			Expect(tasks[1].CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[1].State()).To(Equal("state2"))
 			Expect(tasks[1].User()).To(Equal("user2"))
+			Expect(tasks[1].DeploymentName()).To(Equal("deployment2"))
 			Expect(tasks[1].Description()).To(Equal("desc2"))
 			Expect(tasks[1].Result()).To(Equal("result2"))
 		})
@@ -122,6 +126,7 @@ var _ = Describe("Director", func() {
 		"timestamp": 1440318199,
 		"state": "state1",
 		"user": "user1",
+		"deployment": "deployment1",
 		"description": "desc1",
 		"result": "result1"
 	},
@@ -130,6 +135,7 @@ var _ = Describe("Director", func() {
 		"timestamp": 1440318200,
 		"state": "state2",
 		"user": "user2",
+		"deployment": "deployment2",
 		"description": "desc2",
 		"result": "result2"
 	}
@@ -145,6 +151,7 @@ var _ = Describe("Director", func() {
 			Expect(tasks[0].CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
 			Expect(tasks[0].State()).To(Equal("state1"))
 			Expect(tasks[0].User()).To(Equal("user1"))
+			Expect(tasks[0].DeploymentName()).To(Equal("deployment1"))
 			Expect(tasks[0].Description()).To(Equal("desc1"))
 			Expect(tasks[0].Result()).To(Equal("result1"))
 
@@ -152,6 +159,7 @@ var _ = Describe("Director", func() {
 			Expect(tasks[1].CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[1].State()).To(Equal("state2"))
 			Expect(tasks[1].User()).To(Equal("user2"))
+			Expect(tasks[1].DeploymentName()).To(Equal("deployment2"))
 			Expect(tasks[1].Description()).To(Equal("desc2"))
 			Expect(tasks[1].Result()).To(Equal("result2"))
 		})
@@ -204,6 +212,7 @@ var _ = Describe("Director", func() {
 	"timestamp": 1440318199,
 	"state": "state1",
 	"user": "user1",
+	"deployment": "deployment1",
 	"description": "desc1",
 	"result": "result1"
 }`),
@@ -218,6 +227,7 @@ var _ = Describe("Director", func() {
 			Expect(task.State()).To(Equal("state1"))
 			Expect(task.IsError()).To(BeFalse())
 			Expect(task.User()).To(Equal("user1"))
+			Expect(task.DeploymentName()).To(Equal("deployment1"))
 			Expect(task.Description()).To(Equal("desc1"))
 			Expect(task.Result()).To(Equal("result1"))
 		})

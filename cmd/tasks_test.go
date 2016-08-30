@@ -47,8 +47,9 @@ var _ = Describe("TasksCmd", func() {
 							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
 
-						StateStub: func() string { return "state" },
-						UserStub:  func() string { return "user" },
+						StateStub:          func() string { return "state" },
+						UserStub:           func() string { return "user" },
+						DeploymentNameStub: func() string { return "deployment" },
 
 						DescriptionStub: func() string { return "description" },
 						ResultStub:      func() string { return "result" },
@@ -59,9 +60,10 @@ var _ = Describe("TasksCmd", func() {
 							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
 
-						StateStub:   func() string { return "error" },
-						IsErrorStub: func() bool { return true },
-						UserStub:    func() string { return "user2" },
+						StateStub:          func() string { return "error" },
+						IsErrorStub:        func() bool { return true },
+						UserStub:           func() string { return "user2" },
+						DeploymentNameStub: func() string { return "deployment2" },
 
 						DescriptionStub: func() string { return "description2" },
 						ResultStub:      func() string { return "result2" },
@@ -76,7 +78,7 @@ var _ = Describe("TasksCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "tasks",
 
-					Header: []string{"#", "State", "Created At", "User", "Description", "Result"},
+					Header: []string{"#", "State", "Created At", "User", "Deployment", "Description", "Result"},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0}},
 
@@ -86,6 +88,7 @@ var _ = Describe("TasksCmd", func() {
 							boshtbl.ValueFmt{V: boshtbl.NewValueString("state"), Error: false},
 							boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
 							boshtbl.NewValueString("user"),
+							boshtbl.NewValueString("deployment"),
 							boshtbl.NewValueString("description"),
 							boshtbl.NewValueString("result"),
 						},
@@ -94,6 +97,7 @@ var _ = Describe("TasksCmd", func() {
 							boshtbl.ValueFmt{V: boshtbl.NewValueString("error"), Error: true},
 							boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
 							boshtbl.NewValueString("user2"),
+							boshtbl.NewValueString("deployment2"),
 							boshtbl.NewValueString("description2"),
 							boshtbl.NewValueString("result2"),
 						},
@@ -138,8 +142,9 @@ var _ = Describe("TasksCmd", func() {
 							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
 
-						StateStub: func() string { return "state" },
-						UserStub:  func() string { return "user" },
+						StateStub:          func() string { return "state" },
+						UserStub:           func() string { return "user" },
+						DeploymentNameStub: func() string { return "deployment" },
 
 						DescriptionStub: func() string { return "description" },
 						ResultStub:      func() string { return "result" },
@@ -150,9 +155,10 @@ var _ = Describe("TasksCmd", func() {
 							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
 
-						StateStub:   func() string { return "error" },
-						IsErrorStub: func() bool { return true },
-						UserStub:    func() string { return "user2" },
+						StateStub:          func() string { return "error" },
+						IsErrorStub:        func() bool { return true },
+						UserStub:           func() string { return "user2" },
+						DeploymentNameStub: func() string { return "deployment2" },
 
 						DescriptionStub: func() string { return "description2" },
 						ResultStub:      func() string { return "result2" },
@@ -167,7 +173,7 @@ var _ = Describe("TasksCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "tasks",
 
-					Header: []string{"#", "State", "Created At", "User", "Description", "Result"},
+					Header: []string{"#", "State", "Created At", "User", "Deployment", "Description", "Result"},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0}},
 
@@ -177,6 +183,7 @@ var _ = Describe("TasksCmd", func() {
 							boshtbl.ValueFmt{V: boshtbl.NewValueString("state"), Error: false},
 							boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
 							boshtbl.NewValueString("user"),
+							boshtbl.NewValueString("deployment"),
 							boshtbl.NewValueString("description"),
 							boshtbl.NewValueString("result"),
 						},
@@ -185,6 +192,7 @@ var _ = Describe("TasksCmd", func() {
 							boshtbl.ValueFmt{V: boshtbl.NewValueString("error"), Error: true},
 							boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
 							boshtbl.NewValueString("user2"),
+							boshtbl.NewValueString("deployment2"),
 							boshtbl.NewValueString("description2"),
 							boshtbl.NewValueString("result2"),
 						},

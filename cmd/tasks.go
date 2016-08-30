@@ -29,7 +29,7 @@ func (c TasksCmd) printTable(tasks []boshdir.Task, err error) error {
 
 	table := boshtbl.Table{
 		Content: "tasks",
-		Header:  []string{"#", "State", "Created At", "User", "Description", "Result"},
+		Header:  []string{"#", "State", "Created At", "User", "Deployment", "Description", "Result"},
 		SortBy:  []boshtbl.ColumnSort{{Column: 0}},
 	}
 
@@ -42,6 +42,7 @@ func (c TasksCmd) printTable(tasks []boshdir.Task, err error) error {
 			},
 			boshtbl.NewValueTime(t.CreatedAt()),
 			boshtbl.NewValueString(t.User()),
+			boshtbl.NewValueString(t.DeploymentName()),
 			boshtbl.NewValueString(t.Description()),
 			boshtbl.NewValueString(t.Result()),
 		})

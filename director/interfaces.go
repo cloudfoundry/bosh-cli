@@ -164,6 +164,7 @@ type Task interface {
 	State() string
 	IsError() bool
 	User() string
+	DeploymentName() string
 
 	Description() string
 	Result() string

@@ -13,8 +13,9 @@ type TaskImpl struct {
 	id        int
 	createdAt time.Time
 
-	state string
-	user  string
+	state          string
+	user           string
+	deploymentName string
 
 	description string
 	result      string
@@ -29,7 +30,8 @@ func (t TaskImpl) IsError() bool {
 	return t.state == "error" || t.state == "timeout" || t.state == "cancelled"
 }
 
-func (t TaskImpl) User() string { return t.user }
+func (t TaskImpl) User() string           { return t.user }
+func (t TaskImpl) DeploymentName() string { return t.deploymentName }
 
 func (t TaskImpl) Description() string { return t.description }
 func (t TaskImpl) Result() string      { return t.result }
@@ -40,8 +42,9 @@ type TaskResp struct {
 	ID        int   // 165
 	Timestamp int64 // 1440318199
 
-	State string // e.g. "queued", "processing", "done", "error", "cancelled"
-	User  string // e.g. "admin"
+	State      string // e.g. "queued", "processing", "done", "error", "cancelled"
+	User       string // e.g. "admin"
+	Deployment string
 
 	Description string // e.g. "create release"
 	Result      string // e.g. "Created release `bosh-ui/0+dev.17'"
@@ -54,8 +57,9 @@ func NewTaskFromResp(client Client, r TaskResp) TaskImpl {
 		id:        r.ID,
 		createdAt: time.Unix(r.Timestamp, 0).UTC(),
 
-		state: r.State,
-		user:  r.User,
+		state:          r.State,
+		user:           r.User,
+		deploymentName: r.Deployment,
 
 		description: r.Description,
 		result:      r.Result,

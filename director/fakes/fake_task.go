@@ -39,6 +39,12 @@ type FakeTask struct {
 	userReturns     struct {
 		result1 string
 	}
+	DeploymentNameStub        func() string
+	deploymentNameMutex       sync.RWMutex
+	deploymentNameArgsForCall []struct{}
+	deploymentNameReturns     struct {
+		result1 string
+	}
 	DescriptionStub        func() string
 	descriptionMutex       sync.RWMutex
 	descriptionArgsForCall []struct{}
@@ -215,6 +221,30 @@ func (fake *FakeTask) UserCallCount() int {
 func (fake *FakeTask) UserReturns(result1 string) {
 	fake.UserStub = nil
 	fake.userReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeTask) DeploymentName() string {
+	fake.deploymentNameMutex.Lock()
+	fake.deploymentNameArgsForCall = append(fake.deploymentNameArgsForCall, struct{}{})
+	fake.deploymentNameMutex.Unlock()
+	if fake.DeploymentNameStub != nil {
+		return fake.DeploymentNameStub()
+	} else {
+		return fake.deploymentNameReturns.result1
+	}
+}
+
+func (fake *FakeTask) DeploymentNameCallCount() int {
+	fake.deploymentNameMutex.RLock()
+	defer fake.deploymentNameMutex.RUnlock()
+	return len(fake.deploymentNameArgsForCall)
+}
+
+func (fake *FakeTask) DeploymentNameReturns(result1 string) {
+	fake.DeploymentNameStub = nil
+	fake.deploymentNameReturns = struct {
 		result1 string
 	}{result1}
 }
