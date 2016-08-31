@@ -64,5 +64,5 @@ counterfeiter ssh Session
 
 counterfeiter ui/task Reporter
 
-go fmt github.com/cloudfoundry/bosh-init/...
+go fmt github.com/cloudfoundry/bosh-cli/...
 

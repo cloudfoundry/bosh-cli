@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bitestutils "github.com/cloudfoundry/bosh-cli/testutils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

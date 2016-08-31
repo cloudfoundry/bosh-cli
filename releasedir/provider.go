@@ -9,9 +9,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
-	boshrel "github.com/cloudfoundry/bosh-init/release"
-	boshidx "github.com/cloudfoundry/bosh-init/releasedir/index"
+	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
 )
 
 type Provider struct {

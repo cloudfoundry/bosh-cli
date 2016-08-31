@@ -8,9 +8,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	boshjob "github.com/cloudfoundry/bosh-init/release/job"
-	boshlic "github.com/cloudfoundry/bosh-init/release/license"
-	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 )
 
 type DirReader struct {

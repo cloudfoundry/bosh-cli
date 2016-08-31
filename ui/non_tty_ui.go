@@ -1,7 +1,7 @@
 package ui
 
 import (
-	. "github.com/cloudfoundry/bosh-init/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 type NonTTYUI struct {

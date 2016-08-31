@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/ui"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	. "github.com/cloudfoundry/bosh-init/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("NonTTYUI", func() {

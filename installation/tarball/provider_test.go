@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	fakebicrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	. "github.com/cloudfoundry/bosh-init/installation/tarball"
-	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	. "github.com/cloudfoundry/bosh-cli/installation/tarball"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"

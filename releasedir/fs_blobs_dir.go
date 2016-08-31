@@ -12,7 +12,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
+	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 )
 
 type FSBlobsDir struct {

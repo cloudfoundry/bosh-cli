@@ -11,7 +11,7 @@ semver=`cat version-semver/number`
 timestamp=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 filename="bosh-cli-${semver}-${GOOS}-${GOARCH}"
 
-cd gopath/src/github.com/cloudfoundry/bosh-init
+cd gopath/src/github.com/cloudfoundry/bosh-cli
 
 git_rev=`git rev-parse --short HEAD`
 version="${semver}-${git_rev}-${timestamp}"

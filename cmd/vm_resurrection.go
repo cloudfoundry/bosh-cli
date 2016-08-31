@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	boshdir "github.com/cloudfoundry/bosh-init/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 )
 
 type VMResurrectionCmd struct {

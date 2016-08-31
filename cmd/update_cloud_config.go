@@ -3,9 +3,9 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type UpdateCloudConfigCmd struct {

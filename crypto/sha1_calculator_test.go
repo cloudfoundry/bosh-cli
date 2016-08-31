@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/crypto"
+	. "github.com/cloudfoundry/bosh-cli/crypto"
 )
 
 var _ = Describe("Sha1Calculator", func() {

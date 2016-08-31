@@ -3,14 +3,14 @@ package cmd
 import (
 	"fmt"
 
-	cmdconf "github.com/cloudfoundry/bosh-init/cmd/config"
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	boshrel "github.com/cloudfoundry/bosh-init/release"
-	boshreldir "github.com/cloudfoundry/bosh-init/releasedir"
-	boshssh "github.com/cloudfoundry/bosh-init/ssh"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
-	boshuit "github.com/cloudfoundry/bosh-init/ui/task"
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
+	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
 )
 
 type Cmd struct {

@@ -1,9 +1,9 @@
 package installation
 
 import (
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
+	bistatejob "github.com/cloudfoundry/bosh-cli/state/job"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )

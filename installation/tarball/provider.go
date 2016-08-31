@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

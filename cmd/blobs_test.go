@@ -6,11 +6,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	boshreldir "github.com/cloudfoundry/bosh-init/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-init/releasedir/fakes"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("BlobsCmd", func() {

@@ -3,8 +3,8 @@ package fakes
 import (
 	"fmt"
 
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

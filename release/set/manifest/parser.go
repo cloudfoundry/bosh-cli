@@ -6,9 +6,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 
-	biutil "github.com/cloudfoundry/bosh-init/common/util"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
+	biutil "github.com/cloudfoundry/bosh-cli/common/util"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	birelmanifest "github.com/cloudfoundry/bosh-cli/release/manifest"
 )
 
 type Parser interface {

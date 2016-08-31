@@ -3,7 +3,7 @@ package template
 import (
 	"crypto/sha512"
 	"fmt"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 )
 
 type DeploymentTemplate struct {

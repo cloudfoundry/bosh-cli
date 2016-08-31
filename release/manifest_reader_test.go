@@ -6,11 +6,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release"
-	boshjob "github.com/cloudfoundry/bosh-init/release/job"
-	boshlic "github.com/cloudfoundry/bosh-init/release/license"
-	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/release"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 var _ = Describe("ManifestReader", func() {

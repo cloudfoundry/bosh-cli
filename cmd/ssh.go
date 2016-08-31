@@ -4,9 +4,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	boshssh "github.com/cloudfoundry/bosh-init/ssh"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type SSHCmd struct {

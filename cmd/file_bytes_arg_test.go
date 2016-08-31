@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
 )
 
 var _ = Describe("FileBytesArg", func() {

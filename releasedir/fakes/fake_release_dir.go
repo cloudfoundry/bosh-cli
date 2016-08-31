@@ -4,8 +4,8 @@ package fakes
 import (
 	"sync"
 
-	boshrel "github.com/cloudfoundry/bosh-init/release"
-	"github.com/cloudfoundry/bosh-init/releasedir"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/releasedir"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 )
 

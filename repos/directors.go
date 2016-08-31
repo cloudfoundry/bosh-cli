@@ -4,7 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	"github.com/cloudfoundry/bosh-init/director"
+	"github.com/cloudfoundry/bosh-cli/director"
 )
 
 type DirectorsRepo interface {

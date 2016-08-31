@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
+	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
 )
 
 type FakeBlobstoreFactory struct {

@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
 )
 
 //go:generate counterfeiter . Compilable

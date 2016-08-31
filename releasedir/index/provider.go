@@ -6,8 +6,8 @@ import (
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
-	boshrel "github.com/cloudfoundry/bosh-init/release"
+	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
 )
 
 type Provider struct {

@@ -3,8 +3,8 @@ package disk
 import (
 	"reflect"
 
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )

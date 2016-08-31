@@ -14,10 +14,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
-	fakecrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
-	fakeres "github.com/cloudfoundry/bosh-init/release/resource/fakes"
+	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
 )
 
 var _ = Describe("Archive", func() {

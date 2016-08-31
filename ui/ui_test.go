@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/ui"
-	. "github.com/cloudfoundry/bosh-init/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("UI", func() {

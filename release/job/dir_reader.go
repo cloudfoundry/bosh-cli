@@ -6,8 +6,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	boshjobman "github.com/cloudfoundry/bosh-init/release/job/manifest"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
+	boshjobman "github.com/cloudfoundry/bosh-cli/release/job/manifest"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 type DirReaderImpl struct {

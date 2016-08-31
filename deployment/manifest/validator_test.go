@@ -6,13 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	boshinst "github.com/cloudfoundry/bosh-init/installation"
-	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
-	boshjob "github.com/cloudfoundry/bosh-init/release/job"
-	birelmanifest "github.com/cloudfoundry/bosh-init/release/manifest"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	. "github.com/cloudfoundry/bosh-cli/deployment/manifest"
+	boshinst "github.com/cloudfoundry/bosh-cli/installation"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	birelmanifest "github.com/cloudfoundry/bosh-cli/release/manifest"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 )
 
 var _ = Describe("Validator", func() {

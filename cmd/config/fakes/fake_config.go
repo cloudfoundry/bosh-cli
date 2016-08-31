@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-init/cmd/config"
+	"github.com/cloudfoundry/bosh-cli/cmd/config"
 )
 
 type FakeConfig struct {

@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	cmdconf "github.com/cloudfoundry/bosh-init/cmd/config"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type LogOutCmd struct {

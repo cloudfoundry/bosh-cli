@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/director/template"
+	. "github.com/cloudfoundry/bosh-cli/director/template"
 )
 
 var _ = Describe("Template", func() {

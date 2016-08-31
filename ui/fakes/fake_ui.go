@@ -3,7 +3,7 @@ package fakes
 import (
 	"fmt"
 
-	. "github.com/cloudfoundry/bosh-init/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 type FakeUI struct {

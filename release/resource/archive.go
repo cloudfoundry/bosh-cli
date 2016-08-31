@@ -9,7 +9,7 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
+	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 )
 
 type ArchiveImpl struct {

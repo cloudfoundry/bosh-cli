@@ -4,6 +4,6 @@ set -e
 
 bin=$(dirname $0)
 
-$bin/go vet `go list ./... | grep -v "github.com/cloudfoundry/bosh-init/vendor" | xargs`
+$bin/go vet `go list ./... | grep -v "github.com/cloudfoundry/bosh-cli/vendor" | xargs`
 
 echo -e "\n All good"

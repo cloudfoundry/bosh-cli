@@ -5,7 +5,7 @@ image: docker:///bosh/init
 
 inputs:
 - name: bosh-cli
-  path: gopath/src/github.com/cloudfoundry/bosh-init
+  path: gopath/src/github.com/cloudfoundry/bosh-cli
 
 run:
-  path: gopath/src/github.com/cloudfoundry/bosh-init/ci/tasks/test-integration.sh
+  path: gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/test-integration.sh

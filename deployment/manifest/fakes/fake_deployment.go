@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 

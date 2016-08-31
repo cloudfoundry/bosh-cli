@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	cmdconf "github.com/cloudfoundry/bosh-init/cmd/config"
-	fakeconf "github.com/cloudfoundry/bosh-init/cmd/config/fakes"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	fakeconf "github.com/cloudfoundry/bosh-cli/cmd/config/fakes"
 )
 
 var _ = Describe("SessionContextImpl", func() {

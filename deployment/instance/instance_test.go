@@ -1,30 +1,30 @@
 package instance_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/deployment/instance"
+	. "github.com/cloudfoundry/bosh-cli/deployment/instance"
 
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-cli/deployment/instance/state/mocks"
 	"github.com/golang/mock/gomock"
 
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
+	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
-	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
-	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
+	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("Instance", func() {

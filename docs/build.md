@@ -14,10 +14,10 @@ Get Golang and its dependencies (Mac example, replace with your package manager 
 
 Clone and set up the repository:
 
-- `go get -d github.com/cloudfoundry/bosh-init`
-- `cd $GOPATH/src/github.com/cloudfoundry/bosh-init`
+- `go get -d github.com/cloudfoundry/bosh-cli`
+- `cd $GOPATH/src/github.com/cloudfoundry/bosh-cli`
 
-From here on out we assume you're working in `$GOPATH/src/github.com/cloudfoundry/bosh-init`
+From here on out we assume you're working in `$GOPATH/src/github.com/cloudfoundry/bosh-cli`
 
 To build the bosh-init cli:
 

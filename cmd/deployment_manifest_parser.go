@@ -3,12 +3,12 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bidepltpl "github.com/cloudfoundry/bosh-init/deployment/template"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	birel "github.com/cloudfoundry/bosh-init/release"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
+	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	birel "github.com/cloudfoundry/bosh-cli/release"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type DeploymentManifestParser interface {

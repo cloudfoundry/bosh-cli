@@ -3,9 +3,9 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
-	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 type CloudCheckCmd struct {

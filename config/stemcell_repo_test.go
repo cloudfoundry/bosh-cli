@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/config"
+	. "github.com/cloudfoundry/bosh-cli/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"

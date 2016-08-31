@@ -14,11 +14,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	. "github.com/cloudfoundry/bosh-init/ssh"
-	fakessh "github.com/cloudfoundry/bosh-init/ssh/fakes"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/ssh"
+	fakessh "github.com/cloudfoundry/bosh-cli/ssh/fakes"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("ComboRunner", func() {

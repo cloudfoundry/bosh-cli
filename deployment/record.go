@@ -1,9 +1,9 @@
 package deployment
 
 import (
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-	birel "github.com/cloudfoundry/bosh-init/release"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	birel "github.com/cloudfoundry/bosh-cli/release"
+	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

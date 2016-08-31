@@ -9,10 +9,10 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	cmdconf "github.com/cloudfoundry/bosh-init/cmd/config"
-	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("SessionImpl", func() {

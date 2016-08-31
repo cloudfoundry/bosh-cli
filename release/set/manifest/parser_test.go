@@ -8,10 +8,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
-	"github.com/cloudfoundry/bosh-init/release/set/manifest"
-	"github.com/cloudfoundry/bosh-init/release/set/manifest/fakes"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	"github.com/cloudfoundry/bosh-cli/release/set/manifest"
+	"github.com/cloudfoundry/bosh-cli/release/set/manifest/fakes"
 )
 
 var _ = Describe("Parser", func() {

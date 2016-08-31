@@ -81,7 +81,7 @@ resources:
   - name: bosh-cli
     type: git
     source:
-      uri: https://github.com/cloudfoundry/bosh-init
+      uri: https://github.com/cloudfoundry/bosh-cli
       branch: cli
 
   - name: bosh-warden-cpi-release

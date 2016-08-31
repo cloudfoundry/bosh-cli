@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshidx "github.com/cloudfoundry/bosh-init/releasedir/index"
-	fakeidx "github.com/cloudfoundry/bosh-init/releasedir/index/fakes"
+	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
+	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/fakes"
 )
 
 var _ = Describe("FSIndex", func() {

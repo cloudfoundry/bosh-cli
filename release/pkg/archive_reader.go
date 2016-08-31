@@ -5,8 +5,8 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 type ArchiveReaderImpl struct {

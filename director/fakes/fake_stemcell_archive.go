@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-init/director"
+	"github.com/cloudfoundry/bosh-cli/director"
 )
 
 type FakeStemcellArchive struct {

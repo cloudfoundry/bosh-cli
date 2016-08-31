@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	boshreldir "github.com/cloudfoundry/bosh-init/releasedir"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

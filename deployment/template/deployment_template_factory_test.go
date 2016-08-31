@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"errors"
-	. "github.com/cloudfoundry/bosh-init/deployment/template"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	. "github.com/cloudfoundry/bosh-cli/deployment/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 

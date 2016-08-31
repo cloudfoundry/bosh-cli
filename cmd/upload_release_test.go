@@ -8,14 +8,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
-	boshrel "github.com/cloudfoundry/bosh-init/release"
-	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
-	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
-	fakereldir "github.com/cloudfoundry/bosh-init/releasedir/fakes"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("UploadReleaseCmd", func() {

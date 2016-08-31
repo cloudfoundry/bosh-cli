@@ -1,33 +1,33 @@
 package instance_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/deployment/instance"
+	. "github.com/cloudfoundry/bosh-cli/deployment/instance"
 
 	"errors"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"time"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-init/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-init/blobstore/mocks"
-	mock_instance_state "github.com/cloudfoundry/bosh-init/deployment/instance/state/mocks"
+	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-cli/deployment/instance/state/mocks"
 	"github.com/golang/mock/gomock"
 
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
+	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
-	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
-	fakebisshtunnel "github.com/cloudfoundry/bosh-init/deployment/sshtunnel/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-	fakebistemcell "github.com/cloudfoundry/bosh-init/stemcell/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
+	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
+	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {

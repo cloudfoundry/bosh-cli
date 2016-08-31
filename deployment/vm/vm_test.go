@@ -3,26 +3,26 @@ package vm_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-init/deployment/vm"
+	. "github.com/cloudfoundry/bosh-cli/deployment/vm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
+	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
 	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
-	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
-	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	fakebidisk "github.com/cloudfoundry/bosh-init/deployment/disk/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-init/deployment/vm/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
+	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("VM", func() {

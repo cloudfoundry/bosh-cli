@@ -4,8 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release/license"
-	boshres "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/release/license"
+	boshres "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 var _ = Describe("License", func() {

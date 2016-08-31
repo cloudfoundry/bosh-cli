@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/ssh"
 
-	. "github.com/cloudfoundry/bosh-init/director"
+	. "github.com/cloudfoundry/bosh-cli/director"
 )
 
 var _ = Describe("NewSSHOpts", func() {

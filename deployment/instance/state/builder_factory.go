@@ -2,11 +2,11 @@ package state
 
 import (
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	biblobstore "github.com/cloudfoundry/bosh-init/blobstore"
-	bideplrel "github.com/cloudfoundry/bosh-init/deployment/release"
-	bistatejob "github.com/cloudfoundry/bosh-init/state/job"
-	bistatepkg "github.com/cloudfoundry/bosh-init/state/pkg"
-	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
+	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
+	bideplrel "github.com/cloudfoundry/bosh-cli/deployment/release"
+	bistatejob "github.com/cloudfoundry/bosh-cli/state/job"
+	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
+	bitemplate "github.com/cloudfoundry/bosh-cli/templatescompiler"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 

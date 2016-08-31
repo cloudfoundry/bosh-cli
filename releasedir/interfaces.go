@@ -5,8 +5,8 @@ import (
 
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	boshrel "github.com/cloudfoundry/bosh-init/release"
-	boshrelman "github.com/cloudfoundry/bosh-init/release/manifest"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 )
 
 //go:generate counterfeiter . ReleaseDir

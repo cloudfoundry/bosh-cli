@@ -8,9 +8,9 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
 	"encoding/pem"
-	biutil "github.com/cloudfoundry/bosh-init/common/util"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	biutil "github.com/cloudfoundry/bosh-cli/common/util"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	"gopkg.in/yaml.v2"
 	"strings"
 )

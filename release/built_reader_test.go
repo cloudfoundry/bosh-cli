@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release"
-	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
-	fakeres "github.com/cloudfoundry/bosh-init/release/resource/fakes"
+	. "github.com/cloudfoundry/bosh-cli/release"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
 )
 
 var _ = Describe("BuiltReader", func() {

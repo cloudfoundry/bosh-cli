@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("DeleteSnapshotCmd", func() {

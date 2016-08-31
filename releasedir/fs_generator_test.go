@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/releasedir"
+	. "github.com/cloudfoundry/bosh-cli/releasedir"
 )
 
 var _ = Describe("FSGenerator", func() {

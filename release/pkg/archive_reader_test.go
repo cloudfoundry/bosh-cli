@@ -10,9 +10,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
-	. "github.com/cloudfoundry/bosh-init/release/pkg"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	. "github.com/cloudfoundry/bosh-cli/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 var _ = Describe("ArchiveReaderImpl", func() {

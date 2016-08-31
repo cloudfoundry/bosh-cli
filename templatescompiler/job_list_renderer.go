@@ -1,7 +1,7 @@
 package templatescompiler
 
 import (
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
+	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"

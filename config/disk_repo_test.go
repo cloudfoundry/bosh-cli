@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	. "github.com/cloudfoundry/bosh-init/config"
+	. "github.com/cloudfoundry/bosh-cli/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

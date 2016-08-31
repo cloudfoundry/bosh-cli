@@ -1,19 +1,19 @@
 package cmd_test
 
 import (
-	bicmd "github.com/cloudfoundry/bosh-init/cmd"
+	bicmd "github.com/cloudfoundry/bosh-cli/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_cmd "github.com/cloudfoundry/bosh-init/cmd/mocks"
+	mock_cmd "github.com/cloudfoundry/bosh-cli/cmd/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/golang/mock/gomock"
 
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("DeleteCmd", func() {

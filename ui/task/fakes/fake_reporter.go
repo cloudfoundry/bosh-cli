@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-init/ui/task"
+	"github.com/cloudfoundry/bosh-cli/ui/task"
 )
 
 type FakeReporter struct {

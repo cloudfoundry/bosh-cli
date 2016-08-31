@@ -3,9 +3,9 @@ package fakes
 import (
 	"fmt"
 
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	bitestutils "github.com/cloudfoundry/bosh-init/testutils"
+	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
+	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
+	bitestutils "github.com/cloudfoundry/bosh-cli/testutils"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

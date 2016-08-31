@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 
-	boshrel "github.com/cloudfoundry/bosh-init/release"
-	boshrelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
-	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshrelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 type ReleaseTables struct {

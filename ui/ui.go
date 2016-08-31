@@ -10,7 +10,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/vito/go-interact/interact"
 
-	. "github.com/cloudfoundry/bosh-init/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 type WriterUI struct {

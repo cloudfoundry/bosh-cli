@@ -39,5 +39,5 @@ set -x
 
 export BOSH_LITE_PRIVATE_KEY=$tmpfile
 
-cd $GOPATH/src/github.com/cloudfoundry/bosh-init
+cd $GOPATH/src/github.com/cloudfoundry/bosh-cli
 base=$PWD ./bin/test-acceptance-with-vm --provider=aws

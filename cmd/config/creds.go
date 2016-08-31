@@ -3,7 +3,7 @@ package config
 import (
 	"strings"
 
-	boshuaa "github.com/cloudfoundry/bosh-init/uaa"
+	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 )
 
 type Creds struct {

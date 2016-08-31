@@ -9,14 +9,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release"
-	boshjob "github.com/cloudfoundry/bosh-init/release/job"
-	fakejob "github.com/cloudfoundry/bosh-init/release/job/fakes"
-	boshlic "github.com/cloudfoundry/bosh-init/release/license"
-	fakelic "github.com/cloudfoundry/bosh-init/release/license/fakes"
-	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	fakepkg "github.com/cloudfoundry/bosh-init/release/pkg/fakes"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/release"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	fakejob "github.com/cloudfoundry/bosh-cli/release/job/fakes"
+	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
+	fakelic "github.com/cloudfoundry/bosh-cli/release/license/fakes"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	fakepkg "github.com/cloudfoundry/bosh-cli/release/pkg/fakes"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 var _ = Describe("DirReader", func() {

@@ -7,8 +7,8 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-golang/clock"
 
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
+	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type BasicDeps struct {

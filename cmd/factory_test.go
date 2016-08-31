@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 var _ = Describe("Factory", func() {

@@ -4,13 +4,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
-	boshjob "github.com/cloudfoundry/bosh-init/release/job"
-	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("ReleaseTables", func() {

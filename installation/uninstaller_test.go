@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-init/installation"
+	"github.com/cloudfoundry/bosh-cli/installation"
 	"github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cloudfoundry/bosh-utils/system"
 	"github.com/cloudfoundry/bosh-utils/system/fakes"

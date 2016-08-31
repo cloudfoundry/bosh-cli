@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type FakeStage struct {

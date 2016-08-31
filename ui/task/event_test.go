@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshuit "github.com/cloudfoundry/bosh-init/ui/task"
+	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
 )
 
 var _ = Describe("Event", func() {

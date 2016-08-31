@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 )
 
 // Shared

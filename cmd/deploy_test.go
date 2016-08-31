@@ -8,12 +8,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	fakecmd "github.com/cloudfoundry/bosh-init/cmd/fakes"
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/fakes"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("DeployCmd", func() {

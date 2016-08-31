@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
+	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 )
 
 type FakeCPICmdRunner struct {

@@ -4,8 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/deployment/template"
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
+	. "github.com/cloudfoundry/bosh-cli/deployment/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 )
 
 var _ = Describe("DeploymentTemplate", func() {

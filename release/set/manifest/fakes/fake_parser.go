@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 )
 
 type FakeParser struct {

@@ -8,9 +8,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	binet "github.com/cloudfoundry/bosh-init/common/net"
-	boshinst "github.com/cloudfoundry/bosh-init/installation"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	binet "github.com/cloudfoundry/bosh-cli/common/net"
+	boshinst "github.com/cloudfoundry/bosh-cli/installation"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 )
 
 type Validator interface {

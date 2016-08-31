@@ -1,10 +1,10 @@
 package deployment
 
 import (
-	bidisk "github.com/cloudfoundry/bosh-init/deployment/disk"
-	biinstance "github.com/cloudfoundry/bosh-init/deployment/instance"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-cli/deployment/instance"
+	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

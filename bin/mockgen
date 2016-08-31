@@ -3,7 +3,7 @@
 set -e
 bin=$(dirname $0)
 
-rootPackage=github.com/cloudfoundry/bosh-init
+rootPackage=github.com/cloudfoundry/bosh-cli
 
 srcFiles=(
   config/LegacyDeploymentStateMigrator
@@ -38,7 +38,7 @@ for srcFile in ${srcFiles[*]}; do
   mkdir -p $srcDir/mocks
   echo $bin/env mockgen -package mocks -destination $destFile $rootPackage/$package $class
   $bin/env mockgen -package mocks -destination $destFile $rootPackage/$package $class
-  sed -i "" -e "s%github.com/cloudfoundry/bosh-init/vendor/%%" $destFile
+  sed -i "" -e "s%github.com/cloudfoundry/bosh-cli/vendor/%%" $destFile
   $bin/go fmt $destFile
 done
 

@@ -4,10 +4,10 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	boshrel "github.com/cloudfoundry/bosh-init/release"
-	boshreldir "github.com/cloudfoundry/bosh-init/releasedir"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type UploadReleaseCmd struct {

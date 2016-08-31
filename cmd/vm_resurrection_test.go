@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
 )
 
 var _ = Describe("VMResurrectionCmd", func() {

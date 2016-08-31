@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-init/releasedir"
+	"github.com/cloudfoundry/bosh-cli/releasedir"
 )
 
 type FakeBlobsDirReporter struct {

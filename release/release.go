@@ -3,10 +3,10 @@ package release
 import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birellic "github.com/cloudfoundry/bosh-init/release/license"
-	birelman "github.com/cloudfoundry/bosh-init/release/manifest"
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
+	birellic "github.com/cloudfoundry/bosh-cli/release/license"
+	birelman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 )
 
 type release struct {

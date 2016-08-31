@@ -9,8 +9,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakecrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 var _ = Describe("FingerprinterImpl", func() {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	boshui "github.com/cloudfoundry/bosh-init/ui"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type ReporterImpl struct {

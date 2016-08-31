@@ -1,8 +1,8 @@
 package disk
 
 import (
-	bicloud "github.com/cloudfoundry/bosh-init/cloud"
-	biconfig "github.com/cloudfoundry/bosh-init/config"
+	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 

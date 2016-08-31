@@ -1,10 +1,10 @@
 package release
 
 import (
-	biinstall "github.com/cloudfoundry/bosh-init/installation"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	birel "github.com/cloudfoundry/bosh-init/release"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	biinstall "github.com/cloudfoundry/bosh-cli/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
+	birel "github.com/cloudfoundry/bosh-cli/release"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

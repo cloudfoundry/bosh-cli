@@ -12,10 +12,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshreljob "github.com/cloudfoundry/bosh-init/release/job"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
-	. "github.com/cloudfoundry/bosh-init/templatescompiler"
-	"github.com/cloudfoundry/bosh-init/templatescompiler/erbrenderer"
+	boshreljob "github.com/cloudfoundry/bosh-cli/release/job"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/templatescompiler"
+	"github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
 )
 
 var _ = Describe("JobEvaluationContext", func() {

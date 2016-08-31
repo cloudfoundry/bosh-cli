@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release"
-	boshjob "github.com/cloudfoundry/bosh-init/release/job"
-	boshlic "github.com/cloudfoundry/bosh-init/release/license"
-	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
-	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
-	fakeres "github.com/cloudfoundry/bosh-init/release/resource/fakes"
+	. "github.com/cloudfoundry/bosh-cli/release"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
 )
 
 var _ = Describe("Release", func() {

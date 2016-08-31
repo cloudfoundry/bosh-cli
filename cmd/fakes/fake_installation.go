@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	biinstallation "github.com/cloudfoundry/bosh-init/installation"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	biinstallation "github.com/cloudfoundry/bosh-cli/installation"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 

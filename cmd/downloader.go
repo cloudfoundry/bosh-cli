@@ -10,9 +10,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"github.com/pivotal-golang/clock"
 
-	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type Downloader interface {

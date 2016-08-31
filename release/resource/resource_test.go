@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release/resource"
-	fakeres "github.com/cloudfoundry/bosh-init/release/resource/fakes"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
 )
 
 var _ = Describe("NewResource", func() {

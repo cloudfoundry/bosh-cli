@@ -10,10 +10,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	"github.com/cloudfoundry/bosh-init/installation/manifest"
-	"github.com/cloudfoundry/bosh-init/installation/manifest/fakes"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	"github.com/cloudfoundry/bosh-cli/installation/manifest"
+	"github.com/cloudfoundry/bosh-cli/installation/manifest/fakes"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 )
 
 type manifestFixtures struct {

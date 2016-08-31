@@ -1,9 +1,9 @@
 package stemcell
 
 import (
-	bideplmanifest "github.com/cloudfoundry/bosh-init/deployment/manifest"
-	bitarball "github.com/cloudfoundry/bosh-init/installation/tarball"
-	biui "github.com/cloudfoundry/bosh-init/ui"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
+	bitarball "github.com/cloudfoundry/bosh-cli/installation/tarball"
+	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

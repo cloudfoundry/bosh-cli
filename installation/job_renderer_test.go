@@ -10,14 +10,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-init/installation"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	bireljob "github.com/cloudfoundry/bosh-init/release/job"
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	. "github.com/cloudfoundry/bosh-init/release/resource"
-	bitemplate "github.com/cloudfoundry/bosh-init/templatescompiler"
-	mock_template "github.com/cloudfoundry/bosh-init/templatescompiler/mocks"
-	fakebiui "github.com/cloudfoundry/bosh-init/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
+	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
+	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	bitemplate "github.com/cloudfoundry/bosh-cli/templatescompiler"
+	mock_template "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("JobRenderer", func() {

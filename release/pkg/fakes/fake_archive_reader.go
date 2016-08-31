@@ -4,8 +4,8 @@ package fakes
 import (
 	"sync"
 
-	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
-	"github.com/cloudfoundry/bosh-init/release/pkg"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	"github.com/cloudfoundry/bosh-cli/release/pkg"
 )
 
 type FakeArchiveReader struct {

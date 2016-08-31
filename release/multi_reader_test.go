@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/release"
-	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
+	. "github.com/cloudfoundry/bosh-cli/release"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 )
 
 var _ = Describe("MultiReader", func() {

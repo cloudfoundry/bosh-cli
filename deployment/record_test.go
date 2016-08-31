@@ -7,12 +7,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	biconfig "github.com/cloudfoundry/bosh-init/config"
-	fakebiconfig "github.com/cloudfoundry/bosh-init/config/fakes"
-	. "github.com/cloudfoundry/bosh-init/deployment"
-	boshrel "github.com/cloudfoundry/bosh-init/release"
-	fakerel "github.com/cloudfoundry/bosh-init/release/fakes"
-	bistemcell "github.com/cloudfoundry/bosh-init/stemcell"
+	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
+	. "github.com/cloudfoundry/bosh-cli/deployment"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 )
 
 var _ = Describe("Record", func() {

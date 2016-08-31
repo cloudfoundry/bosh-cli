@@ -7,11 +7,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-init/cmd"
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	fakedir "github.com/cloudfoundry/bosh-init/director/fakes"
-	fakeui "github.com/cloudfoundry/bosh-init/ui/fakes"
-	boshtbl "github.com/cloudfoundry/bosh-init/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("SnapshotsCmd", func() {

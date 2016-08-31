@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	boshui "github.com/cloudfoundry/bosh-init/ui"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type CleanUpCmd struct {

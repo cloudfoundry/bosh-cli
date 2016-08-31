@@ -4,8 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshdir "github.com/cloudfoundry/bosh-init/director"
-	. "github.com/cloudfoundry/bosh-init/ssh"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/ssh"
 )
 
 var _ = Describe("SCPArgs", func() {

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloudfoundry/bosh-init/director"
+	"github.com/cloudfoundry/bosh-cli/director"
 )
 
 type FakeEvent struct {

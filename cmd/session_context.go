@@ -3,7 +3,7 @@ package cmd
 import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	cmdconf "github.com/cloudfoundry/bosh-init/cmd/config"
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 )
 
 // SessionContextImpl prefers options over config values

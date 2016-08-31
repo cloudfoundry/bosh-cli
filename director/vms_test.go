@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-init/director"
+	. "github.com/cloudfoundry/bosh-cli/director"
 )
 
 var _ = Describe("VMs", func() {

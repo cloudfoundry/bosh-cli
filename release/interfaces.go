@@ -1,11 +1,11 @@
 package release
 
 import (
-	boshjob "github.com/cloudfoundry/bosh-init/release/job"
-	boshlic "github.com/cloudfoundry/bosh-init/release/license"
-	boshman "github.com/cloudfoundry/bosh-init/release/manifest"
-	boshpkg "github.com/cloudfoundry/bosh-init/release/pkg"
-	boshres "github.com/cloudfoundry/bosh-init/release/resource"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	boshres "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 type Extractor interface {

@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-init/deployment/template"
+	"github.com/cloudfoundry/bosh-cli/deployment/template"
 )
 
 type FakeDeploymentTemplateFactory struct {

@@ -6,7 +6,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	boshdir "github.com/cloudfoundry/bosh-init/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 )
 
 type SCPArgs struct {

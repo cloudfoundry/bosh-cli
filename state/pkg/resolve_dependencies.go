@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	birelpkg "github.com/cloudfoundry/bosh-init/release/pkg"
+	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 )
 
 func ResolveDependencies(pkg birelpkg.Compilable) []birelpkg.Compilable {

@@ -3,9 +3,9 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	boshtpl "github.com/cloudfoundry/bosh-init/director/template"
-	biinstallmanifest "github.com/cloudfoundry/bosh-init/installation/manifest"
-	birelsetmanifest "github.com/cloudfoundry/bosh-init/release/set/manifest"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 )
 
 type ReleaseSetAndInstallationManifestParser struct {

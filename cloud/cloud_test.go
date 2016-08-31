@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebicloud "github.com/cloudfoundry/bosh-init/cloud/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
 
-	. "github.com/cloudfoundry/bosh-init/cloud"
+	. "github.com/cloudfoundry/bosh-cli/cloud"
 )
 
 var _ = Describe("Cloud", func() {

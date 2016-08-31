@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-init/release/resource"
+	"github.com/cloudfoundry/bosh-cli/release/resource"
 )
 
 type FakeArchiveIndex struct {

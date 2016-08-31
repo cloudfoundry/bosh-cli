@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-init/uaa"
+	"github.com/cloudfoundry/bosh-cli/uaa"
 )
 
 type FakeAccessToken struct {
