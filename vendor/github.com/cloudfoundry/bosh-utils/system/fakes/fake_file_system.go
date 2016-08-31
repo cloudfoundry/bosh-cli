@@ -59,7 +59,8 @@ type FakeFileSystem struct {
 	ChownErr error
 	ChmodErr error
 
-	CopyFileError error
+	CopyFileError     error
+	CopyFileCallCount int
 
 	CopyDirError error
 
@@ -581,6 +582,7 @@ func (fs *FakeFileSystem) ReadAndFollowLink(symlinkPath string) (string, error) 
 }
 
 func (fs *FakeFileSystem) CopyFile(srcPath, dstPath string) error {
+	fs.CopyFileCallCount++
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
