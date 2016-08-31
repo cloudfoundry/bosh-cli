@@ -706,7 +706,9 @@ var _ = Describe("FSGenerator", func() {
 
 		Context("when moving archive across devices", func() {
 			BeforeEach(func() {
-				fs.RenameError = syscall.Errno(0x12)
+				fs.RenameError = &os.LinkError{
+					Err: syscall.Errno(0x12),
+				}
 			})
 
 			It("moves release archive successfully", func() {

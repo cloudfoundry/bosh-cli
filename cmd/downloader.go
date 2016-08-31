@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"github.com/pivotal-golang/clock"
 
@@ -74,7 +75,7 @@ func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) err
 		return bosherr.Errorf("Expected file SHA1 to be '%s' but was '%s'", sha1, actualSHA1)
 	}
 
-	err = d.fs.Rename(tmpFile.Name(), dstFilePath)
+	err = boshfu.NewFileMover(d.fs).Move(tmpFile.Name(), dstFilePath)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Moving to final destination")
 	}

@@ -2,6 +2,7 @@ package fileutil_test
 
 import (
 	"errors"
+	"os"
 	"syscall"
 
 	. "github.com/onsi/ginkgo"
@@ -43,7 +44,9 @@ var _ = Describe("Mover", func() {
 
 	Context("when Rename fails due to EXDEV error", func() {
 		BeforeEach(func() {
-			fs.RenameError = syscall.Errno(0x12)
+			fs.RenameError = &os.LinkError{
+				Err: syscall.Errno(0x12),
+			}
 		})
 
 		It("moves the file", func() {

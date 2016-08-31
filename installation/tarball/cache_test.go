@@ -1,6 +1,9 @@
 package tarball_test
 
 import (
+	"os"
+	"syscall"
+
 	. "github.com/cloudfoundry/bosh-init/installation/tarball"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -95,5 +98,19 @@ var _ = Describe("Cache", func() {
 			description: "some tarball",
 		})).To(Equal("/fake-base-path/587cd74a86333e7f1ebca70474a1f4456e4b5d3e-fake-sha1"))
 		Expect(fs.FileExists("/fake-base-path/587cd74a86333e7f1ebca70474a1f4456e4b5d3e-fake-sha1")).To(BeTrue())
+	})
+
+	It("saves files across devices when necessary", func() {
+		fs.RenameError = &os.LinkError{
+			Err: syscall.Errno(0x12),
+		}
+		fs.WriteFileString("source-path", "")
+
+		err := cache.Save("source-path", &fakeSource{
+			sha1:        "fake-sha1",
+			url:         "http://foo.bar.com",
+			description: "some tarball",
+		})
+		Expect(err).ToNot(HaveOccurred())
 	})
 })

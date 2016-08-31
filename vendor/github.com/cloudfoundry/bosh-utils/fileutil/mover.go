@@ -1,6 +1,7 @@
 package fileutil
 
 import (
+	"os"
 	"syscall"
 
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -17,7 +18,12 @@ func NewFileMover(fs boshsys.FileSystem) fileMover {
 func (m fileMover) Move(oldPath, newPath string) error {
 	err := m.fs.Rename(oldPath, newPath)
 
-	switch err {
+	le, ok := err.(*os.LinkError)
+	if !ok {
+		return err
+	}
+
+	switch le.Err {
 	case syscall.Errno(0x12):
 		err = m.fs.CopyFile(oldPath, newPath)
 		if err != nil {

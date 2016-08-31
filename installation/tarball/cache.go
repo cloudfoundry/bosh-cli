@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
@@ -49,7 +50,7 @@ func (c *cache) Save(sourcePath string, source Source) error {
 		return bosherr.WrapErrorf(err, "Failed to create cache directory '%s'", c.basePath)
 	}
 
-	err = c.fs.Rename(sourcePath, c.Path(source))
+	err = boshfu.NewFileMover(c.fs).Move(sourcePath, c.Path(source))
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Failed to save tarball path '%s' in cache", sourcePath)
 	}

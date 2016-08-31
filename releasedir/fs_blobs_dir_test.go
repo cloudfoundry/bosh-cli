@@ -3,6 +3,7 @@ package releasedir_test
 import (
 	"errors"
 	"io/ioutil"
+	"os"
 	"strings"
 	"syscall"
 
@@ -237,7 +238,9 @@ already-downloaded.tgz:
 
 		Context("when moving temp blob file across devices into its final destination", func() {
 			BeforeEach(func() {
-				fs.RenameError = syscall.Errno(0x12) // Specific error for cross device renaming
+				fs.RenameError = &os.LinkError{
+					Err: syscall.Errno(0x12),
+				}
 			})
 
 			It("downloads all blobs without local blob copy", func() {

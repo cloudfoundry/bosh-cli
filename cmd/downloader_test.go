@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"syscall"
 	"time"
 
 	fakecrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
@@ -140,6 +141,40 @@ var _ = Describe("UIDownloader", func() {
 		})
 
 		Context("when SHA1 is not provided", func() {
+			act := func() error { return downloader.Download("fake-blob-id", "", "prefix", "/fake-dst-dir") }
+
+			It("downloads specified blob to a specific destination without checking SHA1", func() {
+				fs.ReturnTempFile = fakesys.NewFakeFile("/some-tmp-file", fs)
+
+				director.DownloadResourceUncheckedStub = func(_ string, out io.Writer) error {
+					out.Write([]byte("content"))
+					return nil
+				}
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fs.FileExists("/some-tmp-file")).To(BeFalse())
+				Expect(fs.FileExists(expectedPath)).To(BeTrue())
+				Expect(fs.ReadFileString(expectedPath)).To(Equal("content"))
+
+				blobID, _ := director.DownloadResourceUncheckedArgsForCall(0)
+				Expect(blobID).To(Equal("fake-blob-id"))
+
+				Expect(ui.Said).To(Equal([]string{
+					fmt.Sprintf("Downloading resource 'fake-blob-id' to '%s'...", expectedPath)}))
+			})
+
+			itReturnsErrs(act)
+		})
+
+		Context("when downloading across devices", func() {
+			BeforeEach(func() {
+				fs.RenameError = &os.LinkError{
+					Err: syscall.Errno(0x12),
+				}
+			})
+
 			act := func() error { return downloader.Download("fake-blob-id", "", "prefix", "/fake-dst-dir") }
 
 			It("downloads specified blob to a specific destination without checking SHA1", func() {

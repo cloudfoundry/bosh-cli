@@ -2,6 +2,7 @@ package index_test
 
 import (
 	"errors"
+	"os"
 	"syscall"
 
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -194,7 +195,9 @@ var _ = Describe("FSIndexBlobs", func() {
 
 			Context("when moving blob onto separate device", func() {
 				BeforeEach(func() {
-					fs.RenameError = syscall.Errno(0x12)
+					fs.RenameError = &os.LinkError{
+						Err: syscall.Errno(0x12),
+					}
 				})
 
 				It("It successfully moves blob", func() {
