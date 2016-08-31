@@ -182,7 +182,7 @@ var _ = Describe("Factory", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			opts := cmd.Opts.(*EventsOpts)
-			Expect(*opts.Deployment).To(Equal("deployment"))
+			Expect(opts.Deployment).To(Equal("deployment"))
 		})
 	})
 

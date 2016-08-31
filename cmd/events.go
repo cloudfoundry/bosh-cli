@@ -17,12 +17,12 @@ func NewEventsCmd(ui boshui.UI, director boshdir.Director) EventsCmd {
 
 func (c EventsCmd) Run(opts EventsOpts) error {
 	filter := boshdir.EventsFilter{
-		BeforeID:       opts.BeforeID,
-		Before:         opts.Before,
-		After:          opts.After,
-		DeploymentName: opts.Deployment,
-		TaskID:         opts.TaskID,
-		Instance:       opts.Instance,
+		BeforeID:   opts.BeforeID,
+		Before:     opts.Before,
+		After:      opts.After,
+		Deployment: opts.Deployment,
+		Task:       opts.Task,
+		Instance:   opts.Instance,
 	}
 
 	events, err := c.director.Events(filter)

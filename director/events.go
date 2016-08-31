@@ -92,23 +92,23 @@ func (c Client) Events(opts EventsFilter) ([]EventResp, error) {
 	}
 
 	q := u.Query()
-	if opts.BeforeID != nil {
-		q.Set("before_id", *opts.BeforeID)
+	if len(opts.BeforeID) > 0 {
+		q.Set("before_id", opts.BeforeID)
 	}
-	if opts.Before != nil {
-		q.Set("before_time", *opts.Before)
+	if len(opts.Before) > 0 {
+		q.Set("before_time", opts.Before)
 	}
-	if opts.After != nil {
-		q.Set("after_time", *opts.After)
+	if len(opts.After) > 0 {
+		q.Set("after_time", opts.After)
 	}
-	if opts.DeploymentName != nil {
-		q.Set("deployment", *opts.DeploymentName)
+	if len(opts.Deployment) > 0 {
+		q.Set("deployment", opts.Deployment)
 	}
-	if opts.TaskID != nil {
-		q.Set("task", *opts.TaskID)
+	if len(opts.Task) > 0 {
+		q.Set("task", opts.Task)
 	}
-	if opts.Instance != nil {
-		q.Set("instance", *opts.Instance)
+	if len(opts.Instance) > 0 {
+		q.Set("instance", opts.Instance)
 	}
 	u.RawQuery = q.Encode()
 

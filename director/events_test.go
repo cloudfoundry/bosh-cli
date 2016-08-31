@@ -2,7 +2,6 @@ package director_test
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -73,6 +72,7 @@ var _ = Describe("Director", func() {
 			Expect(events[0].DeploymentName()).To(Equal("fake-deployment"))
 			Expect(events[0].Instance()).To(Equal("fake-instance"))
 			Expect(events[0].Context()).To(Equal(map[string]interface{}{"fake-context-key": "fake-context-value"}))
+
 			Expect(events[1].ID()).To(Equal("2"))
 			Expect(events[1].ParentID()).To(Equal("1"))
 			Expect(events[1].Timestamp()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
@@ -87,8 +87,7 @@ var _ = Describe("Director", func() {
 		})
 
 		It("filters events based on 'before-id' option", func() {
-			beforeID := "3"
-			opts := EventsFilter{BeforeID: &beforeID}
+			opts := EventsFilter{BeforeID: "3"}
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
@@ -102,11 +101,10 @@ var _ = Describe("Director", func() {
 		})
 
 		It("filters events based on 'before' option", func() {
-			before := strconv.FormatInt(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC).Unix(), 10)
-			opts := EventsFilter{Before: &before}
+			opts := EventsFilter{Before: "1440318200"}
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/events", "before_time=1440318199"),
+					ghttp.VerifyRequest("GET", "/events", "before_time=1440318200"),
 					ghttp.RespondWith(http.StatusOK, `[]`),
 				),
 			)
@@ -116,8 +114,7 @@ var _ = Describe("Director", func() {
 		})
 
 		It("filters events based on 'after' option", func() {
-			after := strconv.FormatInt(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC).Unix(), 10)
-			opts := EventsFilter{After: &after}
+			opts := EventsFilter{After: "1440318200"}
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/events", "after_time=1440318200"),
@@ -129,9 +126,8 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("filters events based on 'deploymentName' option", func() {
-			deploymentName := "fake-deployment-2"
-			opts := EventsFilter{DeploymentName: &deploymentName}
+		It("filters events based on 'deployment' option", func() {
+			opts := EventsFilter{Deployment: "fake-deployment-2"}
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/events", "deployment=fake-deployment-2"),
@@ -144,9 +140,8 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("filters events based on 'taskID' option", func() {
-			taskID := "fake-task"
-			opts := EventsFilter{TaskID: &taskID}
+		It("filters events based on 'task' option", func() {
+			opts := EventsFilter{Task: "fake-task"}
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/events", "task=fake-task"),
@@ -159,8 +154,7 @@ var _ = Describe("Director", func() {
 		})
 
 		It("filters events based on 'instance' option", func() {
-			instance := "fake-instance-2"
-			opts := EventsFilter{Instance: &instance}
+			opts := EventsFilter{Instance: "fake-instance-2"}
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/events", "instance=fake-instance-2"),
@@ -173,33 +167,13 @@ var _ = Describe("Director", func() {
 		})
 
 		It("returns a single event based on multiple options", func() {
-			instance := "fake-instance-2"
-			deploymentName := "fake-deployment-2"
 			opts := EventsFilter{
-				Instance:       &instance,
-				DeploymentName: &deploymentName,
+				Instance:   "fake-instance-2",
+				Deployment: "fake-deployment-2",
 			}
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/events", "instance=fake-instance-2&deployment=fake-deployment-2"),
-					ghttp.RespondWith(http.StatusOK, `[]`),
-				),
-			)
-
-			_, err := director.Events(opts)
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("returns no events based on multiple options", func() {
-			instance := "fake-instance-2"
-			deploymentName := "fake-deployment"
-			opts := EventsFilter{
-				DeploymentName: &deploymentName,
-				Instance:       &instance,
-			}
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/events", "instance=fake-instance-2&deployment=fake-deployment"),
 					ghttp.RespondWith(http.StatusOK, `[]`),
 				),
 			)
@@ -231,5 +205,4 @@ var _ = Describe("Director", func() {
 				"Finding events: Unmarshaling Director response"))
 		})
 	})
-
 })

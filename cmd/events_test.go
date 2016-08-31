@@ -107,18 +107,12 @@ var _ = Describe("EventsCmd", func() {
 		})
 
 		It("filters events based on options", func() {
-			beforeID := "0"
-			before := time.Date(2050, time.November, 10, 23, 0, 0, 0, time.UTC).String()
-			after := time.Date(3055, time.November, 10, 23, 0, 0, 0, time.UTC).String()
-			deploymentName := "deployment"
-			taskID := "task"
-			instance := "instance2"
-			opts.BeforeID = &beforeID
-			opts.Before = &before
-			opts.After = &after
-			opts.Deployment = &deploymentName
-			opts.TaskID = &taskID
-			opts.Instance = &instance
+			opts.BeforeID = "0"
+			opts.Before = time.Date(2050, time.November, 10, 23, 0, 0, 0, time.UTC).String()
+			opts.After = time.Date(3055, time.November, 10, 23, 0, 0, 0, time.UTC).String()
+			opts.Deployment = "deployment"
+			opts.Task = "task"
+			opts.Instance = "instance2"
 
 			director.EventsReturns(nil, nil)
 
@@ -126,12 +120,12 @@ var _ = Describe("EventsCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(director.EventsArgsForCall(0)).To(Equal(boshdir.EventsFilter{
-				BeforeID:       &beforeID,
-				Before:         &before,
-				After:          &after,
-				DeploymentName: &deploymentName,
-				TaskID:         &taskID,
-				Instance:       &instance,
+				BeforeID:   "0",
+				Before:     time.Date(2050, time.November, 10, 23, 0, 0, 0, time.UTC).String(),
+				After:      time.Date(3055, time.November, 10, 23, 0, 0, 0, time.UTC).String(),
+				Deployment: "deployment",
+				Task:       "task",
+				Instance:   "instance2",
 			}))
 		})
 

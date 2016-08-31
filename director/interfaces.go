@@ -202,12 +202,12 @@ type OrphanedDisk interface {
 }
 
 type EventsFilter struct {
-	BeforeID       *string
-	Before         *string
-	After          *string
-	DeploymentName *string
-	TaskID         *string
-	Instance       *string
+	BeforeID   string
+	Before     string
+	After      string
+	Deployment string
+	Task       string
+	Instance   string
 }
 
 //go:generate counterfeiter . Event

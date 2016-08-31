@@ -42,8 +42,7 @@ func (f Factory) New(args []string) (Cmd, error) {
 		}
 
 		if opts, ok := command.(*EventsOpts); ok {
-			dep := cmd.BoshOpts.DeploymentOpt
-			opts.Deployment = &dep
+			opts.Deployment = cmd.BoshOpts.DeploymentOpt
 		}
 
 		if len(extraArgs) > 0 {
