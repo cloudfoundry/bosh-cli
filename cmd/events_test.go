@@ -35,10 +35,10 @@ var _ = Describe("EventsCmd", func() {
 				UserStub: func() string { return "user" },
 
 				ActionStub:         func() string { return "action" },
-				ObjectTypeStub:     func() string { return "object_type" },
-				ObjectNameStub:     func() string { return "object_name" },
-				TaskIDStub:         func() string { return "taskID" },
-				DeploymentNameStub: func() string { return "deploymentName" },
+				ObjectTypeStub:     func() string { return "object-type" },
+				ObjectNameStub:     func() string { return "object-name" },
+				TaskIDStub:         func() string { return "task" },
+				DeploymentNameStub: func() string { return "deployment" },
 				InstanceStub:       func() string { return "instance" },
 				ContextStub:        func() map[string]interface{} { return map[string]interface{}{"user": "bosh_z$"} },
 			},
@@ -49,8 +49,8 @@ var _ = Describe("EventsCmd", func() {
 				UserStub: func() string { return "user2" },
 
 				ActionStub:         func() string { return "action2" },
-				ObjectTypeStub:     func() string { return "object_type2" },
-				ObjectNameStub:     func() string { return "object_name2" },
+				ObjectTypeStub:     func() string { return "object-type2" },
+				ObjectNameStub:     func() string { return "object-name2" },
 				TaskIDStub:         func() string { return "task2" },
 				DeploymentNameStub: func() string { return "deployment2" },
 				InstanceStub:       func() string { return "instance2" },
@@ -83,10 +83,10 @@ var _ = Describe("EventsCmd", func() {
 						boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
 						boshtbl.NewValueString("user"),
 						boshtbl.NewValueString("action"),
-						boshtbl.NewValueString("object_type"),
-						boshtbl.NewValueString("object_name"),
-						boshtbl.NewValueString("taskID"),
-						boshtbl.NewValueString("deploymentName"),
+						boshtbl.NewValueString("object-type"),
+						boshtbl.NewValueString("object-name"),
+						boshtbl.NewValueString("task"),
+						boshtbl.NewValueString("deployment"),
 						boshtbl.NewValueString("instance"),
 						boshtbl.NewValueInterface(map[string]interface{}{"user": "bosh_z$"}),
 					},
@@ -95,8 +95,8 @@ var _ = Describe("EventsCmd", func() {
 						boshtbl.NewValueTime(time.Date(2090, time.November, 10, 23, 0, 0, 0, time.UTC)),
 						boshtbl.NewValueString("user2"),
 						boshtbl.NewValueString("action2"),
-						boshtbl.NewValueString("object_type2"),
-						boshtbl.NewValueString("object_name2"),
+						boshtbl.NewValueString("object-type2"),
+						boshtbl.NewValueString("object-name2"),
 						boshtbl.NewValueString("task2"),
 						boshtbl.NewValueString("deployment2"),
 						boshtbl.NewValueString("instance2"),
@@ -110,13 +110,13 @@ var _ = Describe("EventsCmd", func() {
 			beforeID := "0"
 			before := time.Date(2050, time.November, 10, 23, 0, 0, 0, time.UTC).String()
 			after := time.Date(3055, time.November, 10, 23, 0, 0, 0, time.UTC).String()
-			deploymentName := "deploymentName"
+			deploymentName := "deployment"
 			taskID := "task"
 			instance := "instance2"
 			opts.BeforeID = &beforeID
 			opts.Before = &before
 			opts.After = &after
-			opts.DeploymentName = &deploymentName
+			opts.Deployment = &deploymentName
 			opts.TaskID = &taskID
 			opts.Instance = &instance
 

@@ -41,6 +41,11 @@ func (f Factory) New(args []string) (Cmd, error) {
 			opts.CACert = cmd.BoshOpts.CACertOpt
 		}
 
+		if opts, ok := command.(*EventsOpts); ok {
+			dep := cmd.BoshOpts.DeploymentOpt
+			opts.Deployment = &dep
+		}
+
 		if len(extraArgs) > 0 {
 			errMsg := "Command '%T' does not support extra arguments: %s"
 			return fmt.Errorf(errMsg, command, strings.Join(extraArgs, ", "))

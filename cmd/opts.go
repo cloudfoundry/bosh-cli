@@ -190,11 +190,11 @@ type LogOutOpts struct {
 type TaskOpts struct {
 	Args TaskArgs `positional-args:"true"`
 
-	Event  bool `long:"event"  short:"e" description:"Track event log"`
-	CPI    bool `long:"cpi"    short:"c" description:"Track CPI log"`
-	Debug  bool `long:"debug"  short:"d" description:"Track debug log"`
-	Result bool `long:"result" short:"r" description:"Track result log"`
-	Raw    bool `long:"raw"              description:"Track raw log"`
+	Event  bool `long:"event"  description:"Track event log"`
+	CPI    bool `long:"cpi"    description:"Track CPI log"`
+	Debug  bool `long:"debug"  description:"Track debug log"`
+	Result bool `long:"result" description:"Track result log"`
+	Raw    bool `long:"raw"    description:"Track raw log"`
 
 	All bool `long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`
 
@@ -330,12 +330,12 @@ type DeploymentNameArgs struct {
 
 // Events
 type EventsOpts struct {
-	BeforeID       *string `long:"before-id" description:"Show events with ID less than the given ID"`
-	Before         *string `long:"before" description:"Show events before the given timestamp (ex: 2016-05-08 17:26:32)"`
-	After          *string `long:"after" description:"Show events after the given timestamp (ex: 2016-05-08 17:26:32)"`
-	DeploymentName *string `long:"deployment" description:"Show events with the given deployment name"`
-	TaskID         *string `long:"task" description:"Show events with the given task ID"`
-	Instance       *string `long:"instance" description:"Show events with given instance"`
+	BeforeID   *string `long:"before-id"  description:"Show events with ID less than the given ID"`
+	Before     *string `long:"before"     description:"Show events before the given timestamp (ex: 2016-05-08 17:26:32)"`
+	After      *string `long:"after"      description:"Show events after the given timestamp (ex: 2016-05-08 17:26:32)"`
+	Deployment *string
+	TaskID     *string `long:"task"       description:"Show events with the given task ID"`
+	Instance   *string `long:"instance"   description:"Show events with given instance"`
 
 	cmd
 }
@@ -501,7 +501,7 @@ type InstanceSlugArgs struct {
 type InstancesOpts struct {
 	Details   bool `long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`
 	DNS       bool `long:"dns"               description:"Show DNS A records"`
-	Vitals    bool `long:"vitals"  short:"v" description:"Show vitals"`
+	Vitals    bool `long:"vitals"            description:"Show vitals"`
 	Processes bool `long:"ps"      short:"p" description:"Show processes"`
 	Failing   bool `long:"failing" short:"f" description:"Only show failing instances"`
 	cmd
@@ -510,7 +510,7 @@ type InstancesOpts struct {
 type VMsOpts struct {
 	Details bool `long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`
 	DNS     bool `long:"dns"               description:"Show DNS A records"`
-	Vitals  bool `long:"vitals"  short:"v" description:"Show vitals"`
+	Vitals  bool `long:"vitals"            description:"Show vitals"`
 	cmd
 }
 
@@ -536,7 +536,7 @@ type LogsOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Destination directory" default:"."`
 
 	Follow bool `long:"follow" short:"f" description:"Follow logs via SSH"`
-	Num    int  `long:"num"    short:"n" description:"Last number of lines"`
+	Num    int  `long:"num"              description:"Last number of lines"`
 	Quiet  bool `long:"quiet"  short:"q" description:"Suppresses printing of headers when multiple files are being examined."`
 
 	Jobs    []string `long:"job"   description:"Limit to only specific jobs"`

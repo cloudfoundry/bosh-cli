@@ -20,7 +20,7 @@ func (c EventsCmd) Run(opts EventsOpts) error {
 		BeforeID:       opts.BeforeID,
 		Before:         opts.Before,
 		After:          opts.After,
-		DeploymentName: opts.DeploymentName,
+		DeploymentName: opts.Deployment,
 		TaskID:         opts.TaskID,
 		Instance:       opts.Instance,
 	}

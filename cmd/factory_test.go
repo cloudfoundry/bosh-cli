@@ -156,7 +156,7 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
-	Describe("create-env (command that uses FileBytesArg)", func() {
+	Describe("create-env command (command that uses FileBytesArg)", func() {
 		It("returns an error if it cannot read manifest", func() {
 			fs.ReadFileError = errors.New("fake-err")
 
@@ -166,13 +166,23 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
-	Describe("environment options", func() {
+	Describe("environment command", func() {
 		It("is passed the global CA cert", func() {
 			cmd, err := factory.New([]string{"environment", "--ca-cert", "ca-cert"})
 			Expect(err).ToNot(HaveOccurred())
 
 			opts := cmd.Opts.(*EnvironmentOpts)
 			Expect(opts.CACert).To(Equal("ca-cert"))
+		})
+	})
+
+	Describe("events command", func() {
+		It("is passed the deployment flag", func() {
+			cmd, err := factory.New([]string{"events", "--deployment", "deployment"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*EventsOpts)
+			Expect(*opts.Deployment).To(Equal("deployment"))
 		})
 	})
 

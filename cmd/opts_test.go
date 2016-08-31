@@ -1,9 +1,11 @@
 package cmd_test
 
 import (
+	"fmt"
+	"reflect"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"reflect"
 
 	. "github.com/cloudfoundry/bosh-init/cmd"
 )
@@ -21,6 +23,66 @@ var _ = Describe("Opts", func() {
 
 		BeforeEach(func() {
 			opts = &BoshOpts{}
+		})
+
+		It("long or short command options do not shadow global opts", func() {
+			globalLongOptNames := []string{}
+			globalShortOptNames := []string{}
+			cmdOptss := []reflect.Value{}
+
+			optsStruct := reflect.TypeOf(opts).Elem()
+
+			for i := 0; i < optsStruct.NumField(); i++ {
+				field := optsStruct.Field(i)
+				if field.Tag.Get("long") != "" {
+					globalLongOptNames = append(globalLongOptNames, field.Tag.Get("long"))
+				}
+				if field.Tag.Get("short") != "" {
+					globalShortOptNames = append(globalShortOptNames, field.Tag.Get("short"))
+				}
+				if field.Tag.Get("command") != "" {
+					m := reflect.ValueOf(opts).Elem().Field(i).Addr()
+					cmdOptss = append(cmdOptss, m)
+				}
+			}
+
+			var errs []string
+
+			for _, optName := range globalLongOptNames {
+				for _, cmdOpts := range cmdOptss {
+					cmdOptsStruct := reflect.TypeOf(cmdOpts.Interface()).Elem()
+
+					for i := 0; i < cmdOptsStruct.NumField(); i++ {
+						field := cmdOptsStruct.Field(i)
+
+						if field.Tag.Get("long") == optName {
+							errs = append(errs, fmt.Sprintf("Command '%s' shadows global long option '%s'", cmdOptsStruct.Name(), optName))
+						}
+					}
+				}
+			}
+
+			for _, optName := range globalShortOptNames {
+				for _, cmdOpts := range cmdOptss {
+					cmdOptsStruct := reflect.TypeOf(cmdOpts.Interface()).Elem()
+
+					for i := 0; i < cmdOptsStruct.NumField(); i++ {
+						field := cmdOptsStruct.Field(i)
+
+						if field.Tag.Get("short") == optName {
+							errs = append(errs, fmt.Sprintf("Command '%s' shadows global short option '%s'", cmdOptsStruct.Name(), optName))
+						}
+					}
+				}
+			}
+
+			// --version flag is a bit awkward so let's ignore conflicts
+			Expect(errs).To(Equal([]string{
+				"Command 'UploadStemcellOpts' shadows global long option 'version'",
+				"Command 'UploadReleaseOpts' shadows global long option 'version'",
+				"Command 'CreateReleaseOpts' shadows global long option 'version'",
+				"Command 'FinalizeReleaseOpts' shadows global long option 'version'",
+			}))
 		})
 
 		Describe("Tags (these are used by go flags)", func() {
@@ -759,7 +821,7 @@ var _ = Describe("Opts", func() {
 			Describe("Event", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Event", opts)).To(Equal(
-						`long:"event"  short:"e" description:"Track event log"`,
+						`long:"event"  description:"Track event log"`,
 					))
 				})
 			})
@@ -767,7 +829,7 @@ var _ = Describe("Opts", func() {
 			Describe("CPI", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("CPI", opts)).To(Equal(
-						`long:"cpi"    short:"c" description:"Track CPI log"`,
+						`long:"cpi"    description:"Track CPI log"`,
 					))
 				})
 			})
@@ -775,7 +837,7 @@ var _ = Describe("Opts", func() {
 			Describe("Debug", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Debug", opts)).To(Equal(
-						`long:"debug"  short:"d" description:"Track debug log"`,
+						`long:"debug"  description:"Track debug log"`,
 					))
 				})
 			})
@@ -783,7 +845,7 @@ var _ = Describe("Opts", func() {
 			Describe("Result", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Result", opts)).To(Equal(
-						`long:"result" short:"r" description:"Track result log"`,
+						`long:"result" description:"Track result log"`,
 					))
 				})
 			})
@@ -791,7 +853,7 @@ var _ = Describe("Opts", func() {
 			Describe("Raw", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Raw", opts)).To(Equal(
-						`long:"raw"              description:"Track raw log"`,
+						`long:"raw"    description:"Track raw log"`,
 					))
 				})
 			})
@@ -1810,7 +1872,7 @@ var _ = Describe("Opts", func() {
 			Describe("Vitals", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Vitals", opts)).To(Equal(
-						`long:"vitals"  short:"v" description:"Show vitals"`,
+						`long:"vitals"            description:"Show vitals"`,
 					))
 				})
 			})
@@ -1862,7 +1924,7 @@ var _ = Describe("Opts", func() {
 			Describe("Vitals", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Vitals", opts)).To(Equal(
-						`long:"vitals"  short:"v" description:"Show vitals"`,
+						`long:"vitals"            description:"Show vitals"`,
 					))
 				})
 			})
@@ -1974,7 +2036,7 @@ var _ = Describe("Opts", func() {
 			Describe("Num", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Num", opts)).To(Equal(
-						`long:"num"    short:"n" description:"Last number of lines"`,
+						`long:"num"              description:"Last number of lines"`,
 					))
 				})
 			})
