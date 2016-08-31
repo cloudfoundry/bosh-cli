@@ -2,6 +2,7 @@ package index_test
 
 import (
 	"errors"
+	"syscall"
 
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -145,46 +146,103 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(err).To(BeNil())
 			})
 
-			It("returns error if downloading blob fails", func() {
-				blobstore.GetError = errors.New("fake-err")
+			Context("when downloading blob fails", func() {
+				It("returns error", func() {
+					blobstore.GetError = errors.New("fake-err")
 
-				_, err := blobs.Get("name", "blob-id", "sha1")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
-				Expect(err.Error()).To(ContainSubstring("Downloading blob 'blob-id'"))
+					_, err := blobs.Get("name", "blob-id", "sha1")
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+					Expect(err.Error()).To(ContainSubstring("Downloading blob 'blob-id'"))
 
-				Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
-				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
+					Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
+					Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
 
-				kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
-				Expect(kind).To(Equal("name"))
-				Expect(desc).To(Equal("sha1=sha1"))
+					kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
+					Expect(kind).To(Equal("name"))
+					Expect(desc).To(Equal("sha1=sha1"))
 
-				kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
-				Expect(kind).To(Equal("name"))
-				Expect(desc).To(Equal("sha1=sha1"))
-				Expect(err).ToNot(BeNil())
+					kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
+					Expect(kind).To(Equal("name"))
+					Expect(desc).To(Equal("sha1=sha1"))
+					Expect(err).ToNot(BeNil())
+				})
 			})
 
-			It("returns error if moving blob into cache fails", func() {
-				fs.RenameError = errors.New("fake-err")
+			Context("when moving blob into cache fails for unknown reason", func() {
+				It("returns error", func() {
+					fs.RenameError = errors.New("fake-err")
 
-				_, err := blobs.Get("name", "blob-id", "sha1")
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
-				Expect(err.Error()).To(ContainSubstring("Moving blob 'blob-id'"))
+					_, err := blobs.Get("name", "blob-id", "sha1")
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+					Expect(err.Error()).To(ContainSubstring("Moving blob 'blob-id'"))
 
-				Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
-				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
+					Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
+					Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
 
-				kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
-				Expect(kind).To(Equal("name"))
-				Expect(desc).To(Equal("sha1=sha1"))
+					kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
+					Expect(kind).To(Equal("name"))
+					Expect(desc).To(Equal("sha1=sha1"))
 
-				kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
-				Expect(kind).To(Equal("name"))
-				Expect(desc).To(Equal("sha1=sha1"))
-				Expect(err).ToNot(BeNil())
+					kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
+					Expect(kind).To(Equal("name"))
+					Expect(desc).To(Equal("sha1=sha1"))
+					Expect(err).ToNot(BeNil())
+				})
+			})
+
+			Context("when moving blob onto separate device", func() {
+				BeforeEach(func() {
+					fs.RenameError = syscall.Errno(0x12)
+				})
+
+				It("It successfully moves blob", func() {
+					blobstore.GetFileName = "/tmp/downloaded-path"
+					fs.WriteFileString("/tmp/downloaded-path", "blob")
+
+					path, err := blobs.Get("name", "blob-id", "sha1")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(path).To(Equal("/dir/sub-dir/sha1"))
+
+					Expect(fs.ReadFileString("/dir/sub-dir/sha1")).To(Equal("blob"))
+					Expect(fs.FileExists("/tmp/downloaded-path")).To(BeFalse())
+
+					Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
+					Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
+
+					kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
+					Expect(kind).To(Equal("name"))
+					Expect(desc).To(Equal("sha1=sha1"))
+
+					kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
+					Expect(kind).To(Equal("name"))
+					Expect(desc).To(Equal("sha1=sha1"))
+					Expect(err).To(BeNil())
+				})
+
+				Context("when file copy across devices fails", func() {
+					It("returns error", func() {
+						fs.CopyFileError = errors.New("copy-err")
+
+						_, err := blobs.Get("name", "blob-id", "sha1")
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("copy-err"))
+						Expect(err.Error()).To(ContainSubstring("Moving blob 'blob-id'"))
+
+						Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
+						Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
+
+						kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
+						Expect(kind).To(Equal("name"))
+						Expect(desc).To(Equal("sha1=sha1"))
+
+						kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
+						Expect(kind).To(Equal("name"))
+						Expect(desc).To(Equal("sha1=sha1"))
+						Expect(err).ToNot(BeNil())
+					})
+				})
 			})
 		})
 	})

@@ -7,6 +7,7 @@ import (
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	bicrypto "github.com/cloudfoundry/bosh-init/crypto"
@@ -71,7 +72,7 @@ func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, erro
 			return "", bosherr.WrapErrorf(err, "Downloading blob '%s' with SHA1 '%s'", blobID, sha1)
 		}
 
-		err = c.fs.Rename(path, dstPath)
+		err = boshfu.NewFileMover(c.fs).Move(path, dstPath)
 		if err != nil {
 			c.reporter.IndexEntryDownloadFinished(name, desc, err)
 			return "", bosherr.WrapErrorf(err, "Moving blob '%s' into cache", blobID)

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
@@ -248,7 +249,7 @@ func (d FSReleaseDir) BuildReleaseArchive(release boshrel.Release) (string, erro
 		return "", err
 	}
 
-	err = d.fs.Rename(path, dstPath)
+	err = boshfu.NewFileMover(d.fs).Move(path, dstPath)
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Moving release archive to final destination")
 	}

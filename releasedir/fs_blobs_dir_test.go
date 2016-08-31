@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"strings"
+	"syscall"
 
 	fakecrypto "github.com/cloudfoundry/bosh-init/crypto/fakes"
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -172,66 +173,97 @@ already-downloaded.tgz:
 			}
 		})
 
-		It("returns error if downloading fails without creating any blob sub-dirs", func() {
-			blobstore.GetErrs = []error{errors.New("fake-err")}
+		Context("downloading fails", func() {
+			It("reports error", func() {
+				blobstore.GetErrs = []error{errors.New("fake-err")}
 
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-			Expect(fs.FileExists("/dir/blobs/dir")).To(BeFalse())
-			Expect(fs.FileExists("/dir/blobs/dir/file-in-directory.tgz")).To(BeFalse())
-			Expect(fs.FileExists("/dir/blobs/file-in-root.tgz")).To(BeFalse())
+				Expect(reporter.BlobDownloadStartedCallCount()).To(Equal(1))
+				Expect(reporter.BlobDownloadFinishedCallCount()).To(Equal(1))
+
+				path, size, blobID, sha1 := reporter.BlobDownloadStartedArgsForCall(0)
+				Expect(path).To(Equal("dir/file-in-directory.tgz"))
+				Expect(size).To(Equal(int64(133)))
+				Expect(blobID).To(Equal("blob1"))
+				Expect(sha1).To(Equal("blob1-sha"))
+
+				path, blobID, err = reporter.BlobDownloadFinishedArgsForCall(0)
+				Expect(path).To(Equal("dir/file-in-directory.tgz"))
+				Expect(blobID).To(Equal("blob1"))
+				Expect(err).To(HaveOccurred())
+			})
+
+			Context("without creating any blob sub-dirs", func() {
+				It("returns error", func() {
+					blobstore.GetErrs = []error{errors.New("fake-err")}
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+					Expect(fs.FileExists("/dir/blobs/dir")).To(BeFalse())
+					Expect(fs.FileExists("/dir/blobs/dir/file-in-directory.tgz")).To(BeFalse())
+					Expect(fs.FileExists("/dir/blobs/file-in-root.tgz")).To(BeFalse())
+				})
+			})
+
+			Context("without placing any local blobs", func() {
+				It("returns error", func() {
+					blobstore.GetErrs = []error{nil, errors.New("fake-err")}
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+					Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
+					Expect(fs.FileExists("/dir/blobs/dir/file-in-directory.tgz")).To(BeTrue())
+					Expect(fs.FileExists("/dir/blobs/file-in-root.tgz")).To(BeFalse())
+				})
+			})
 		})
 
-		It("returns error if downloading fails without placing any local blobs", func() {
-			blobstore.GetErrs = []error{nil, errors.New("fake-err")}
+		Context("when creating blob sub-dir fails", func() {
+			It("returns error", func() {
+				fs.MkdirAllError = errors.New("fake-err")
 
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
-
-			Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
-			Expect(fs.FileExists("/dir/blobs/dir/file-in-directory.tgz")).To(BeTrue())
-			Expect(fs.FileExists("/dir/blobs/file-in-root.tgz")).To(BeFalse())
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
 		})
 
-		It("reports error if downloading fails", func() {
-			blobstore.GetErrs = []error{errors.New("fake-err")}
+		Context("when moving temp blob file across devices into its final destination", func() {
+			BeforeEach(func() {
+				fs.RenameError = syscall.Errno(0x12) // Specific error for cross device renaming
+			})
 
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			It("downloads all blobs without local blob copy", func() {
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+			})
 
-			Expect(reporter.BlobDownloadStartedCallCount()).To(Equal(1))
-			Expect(reporter.BlobDownloadFinishedCallCount()).To(Equal(1))
+			Context("when copying blobs across devices fails", func() {
+				It("returns error", func() {
+					fs.CopyFileError = errors.New("failed to copy")
 
-			path, size, blobID, sha1 := reporter.BlobDownloadStartedArgsForCall(0)
-			Expect(path).To(Equal("dir/file-in-directory.tgz"))
-			Expect(size).To(Equal(int64(133)))
-			Expect(blobID).To(Equal("blob1"))
-			Expect(sha1).To(Equal("blob1-sha"))
-
-			path, blobID, err = reporter.BlobDownloadFinishedArgsForCall(0)
-			Expect(path).To(Equal("dir/file-in-directory.tgz"))
-			Expect(blobID).To(Equal("blob1"))
-			Expect(err).To(HaveOccurred())
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("failed to copy"))
+				})
+			})
 		})
 
-		It("returns error if creating blob sub-dirs fails", func() {
-			fs.MkdirAllError = errors.New("fake-err")
+		Context("when moving temp blob file into its final destination fails for an uncaught reason", func() {
+			It("returns error", func() {
+				fs.RenameError = errors.New("fake-err")
 
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
-		})
-
-		It("returns error if moving temp blob file into its final destination", func() {
-			fs.RenameError = errors.New("fake-err")
-
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
 		})
 	})
 

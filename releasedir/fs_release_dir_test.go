@@ -3,6 +3,7 @@ package releasedir_test
 import (
 	"errors"
 	"os"
+	"syscall"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	semver "github.com/cppforlife/go-semi-semantic/version"
@@ -683,28 +684,71 @@ var _ = Describe("FSGenerator", func() {
 			Expect(fs.ReadFileString("/tmp/final-archive-path")).To(Equal("archive"))
 		})
 
-		It("returns error if archive writing fails", func() {
-			writer.WriteReturns("", errors.New("fake-err"))
+		Context("when archive writing fails", func() {
+			It("returns error", func() {
+				writer.WriteReturns("", errors.New("fake-err"))
 
-			_, err := releaseDir.BuildReleaseArchive(release)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+				_, err := releaseDir.BuildReleaseArchive(release)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
 		})
 
-		It("returns error if archive writing fails", func() {
-			finalReleases.ArchivePathReturns("", errors.New("fake-err"))
+		Context("when obtaining final release archive path fails", func() {
+			It("returns error", func() {
+				finalReleases.ArchivePathReturns("", errors.New("fake-err"))
 
-			_, err := releaseDir.BuildReleaseArchive(release)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+				_, err := releaseDir.BuildReleaseArchive(release)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
 		})
 
-		It("returns error if moving archive to final destination fails", func() {
-			fs.RenameError = errors.New("fake-err")
+		Context("when moving archive across devices", func() {
+			BeforeEach(func() {
+				fs.RenameError = syscall.Errno(0x12)
+			})
 
-			_, err := releaseDir.BuildReleaseArchive(release)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			It("moves release archive successfully", func() {
+				writer.WriteStub = func(rel boshrel.Release, pkgFpsToSkip []string) (string, error) {
+					Expect(rel).To(Equal(release))
+					Expect(pkgFpsToSkip).To(BeNil())
+					fs.WriteFileString("/tmp/archive-path", "archive")
+					return "/tmp/archive-path", nil
+				}
+
+				finalReleases.ArchivePathStub = func(rel boshrel.Release) (string, error) {
+					Expect(rel).To(Equal(release))
+					return "/tmp/final-archive-path", nil
+				}
+
+				path, err := releaseDir.BuildReleaseArchive(release)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(path).To(Equal("/tmp/final-archive-path"))
+
+				Expect(fs.FileExists("/tmp/archive-path")).To(BeFalse())
+				Expect(fs.ReadFileString("/tmp/final-archive-path")).To(Equal("archive"))
+			})
+
+			Context("when copying across devices fails", func() {
+				It("returns error if moving archive to final destination fails", func() {
+					fs.CopyFileError = errors.New("copy-err")
+
+					_, err := releaseDir.BuildReleaseArchive(release)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("copy-err"))
+				})
+			})
+		})
+
+		Context("moving archive to final destination fails for unknown reason", func() {
+			It("returns error", func() {
+				fs.RenameError = errors.New("fake-err")
+
+				_, err := releaseDir.BuildReleaseArchive(release)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
 		})
 	})
 })

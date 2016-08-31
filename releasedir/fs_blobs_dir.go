@@ -8,6 +8,7 @@ import (
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 
@@ -265,7 +266,7 @@ func (d FSBlobsDir) moveBlobLocally(srcPath, dstPath string) error {
 		return bosherr.WrapErrorf(err, "Creating subdirs in blobs/")
 	}
 
-	err = d.fs.Rename(srcPath, dstPath)
+	err = boshfu.NewFileMover(d.fs).Move(srcPath, dstPath)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Moving temp blob to blobs/")
 	}
