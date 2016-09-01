@@ -159,7 +159,8 @@ type Stemcell interface {
 
 type Task interface {
 	ID() int
-	CreatedAt() time.Time
+	StartedAt() time.Time
+	LastActivityAt() time.Time
 
 	State() string
 	IsError() bool

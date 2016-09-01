@@ -36,7 +36,8 @@ var _ = Describe("Director", func() {
 					ghttp.RespondWith(http.StatusOK, `[
 	{
 		"id": 165,
-		"timestamp": 1440318199,
+		"started_at": 1440318199,
+		"timestamp": 1440318200,
 		"state": "state1",
 		"user": "user1",
 		"deployment": "deployment1",
@@ -45,6 +46,7 @@ var _ = Describe("Director", func() {
 	},
 	{
 		"id": 166,
+		"started_at": 1440318199,
 		"timestamp": 1440318200,
 		"state": "state2",
 		"user": "user2",
@@ -61,7 +63,8 @@ var _ = Describe("Director", func() {
 			Expect(tasks).To(HaveLen(2))
 
 			Expect(tasks[0].ID()).To(Equal(165))
-			Expect(tasks[0].CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(tasks[0].StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(tasks[0].LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[0].State()).To(Equal("state1"))
 			Expect(tasks[0].User()).To(Equal("user1"))
 			Expect(tasks[0].DeploymentName()).To(Equal("deployment1"))
@@ -69,7 +72,8 @@ var _ = Describe("Director", func() {
 			Expect(tasks[0].Result()).To(Equal("result1"))
 
 			Expect(tasks[1].ID()).To(Equal(166))
-			Expect(tasks[1].CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
+			Expect(tasks[1].StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(tasks[1].LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[1].State()).To(Equal("state2"))
 			Expect(tasks[1].User()).To(Equal("user2"))
 			Expect(tasks[1].DeploymentName()).To(Equal("deployment2"))
@@ -123,7 +127,8 @@ var _ = Describe("Director", func() {
 					ghttp.RespondWith(http.StatusOK, `[
 	{
 		"id": 165,
-		"timestamp": 1440318199,
+		"started_at": 1440318199,
+		"timestamp": 1440318200,
 		"state": "state1",
 		"user": "user1",
 		"deployment": "deployment1",
@@ -132,6 +137,7 @@ var _ = Describe("Director", func() {
 	},
 	{
 		"id": 166,
+		"started_at": 1440318199,
 		"timestamp": 1440318200,
 		"state": "state2",
 		"user": "user2",
@@ -148,7 +154,8 @@ var _ = Describe("Director", func() {
 			Expect(tasks).To(HaveLen(2))
 
 			Expect(tasks[0].ID()).To(Equal(165))
-			Expect(tasks[0].CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(tasks[0].StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(tasks[0].LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[0].State()).To(Equal("state1"))
 			Expect(tasks[0].User()).To(Equal("user1"))
 			Expect(tasks[0].DeploymentName()).To(Equal("deployment1"))
@@ -156,7 +163,8 @@ var _ = Describe("Director", func() {
 			Expect(tasks[0].Result()).To(Equal("result1"))
 
 			Expect(tasks[1].ID()).To(Equal(166))
-			Expect(tasks[1].CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
+			Expect(tasks[1].StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(tasks[1].LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[1].State()).To(Equal("state2"))
 			Expect(tasks[1].User()).To(Equal("user2"))
 			Expect(tasks[1].DeploymentName()).To(Equal("deployment2"))
@@ -209,7 +217,8 @@ var _ = Describe("Director", func() {
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `{
 	"id": 123,
-	"timestamp": 1440318199,
+	"started_at": 1440318199,
+	"timestamp": 1440318200,
 	"state": "state1",
 	"user": "user1",
 	"deployment": "deployment1",
@@ -223,7 +232,8 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(task.ID()).To(Equal(123))
-			Expect(task.CreatedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(task.StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(task.LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(task.State()).To(Equal("state1"))
 			Expect(task.IsError()).To(BeFalse())
 			Expect(task.User()).To(Equal("user1"))

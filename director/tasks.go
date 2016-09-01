@@ -10,8 +10,9 @@ import (
 type TaskImpl struct {
 	client Client
 
-	id        int
-	createdAt time.Time
+	id             int
+	startedAt      time.Time
+	lastActivityAt time.Time
 
 	state          string
 	user           string
@@ -21,8 +22,9 @@ type TaskImpl struct {
 	result      string
 }
 
-func (t TaskImpl) ID() int              { return t.id }
-func (t TaskImpl) CreatedAt() time.Time { return t.createdAt }
+func (t TaskImpl) ID() int                   { return t.id }
+func (t TaskImpl) StartedAt() time.Time      { return t.startedAt }
+func (t TaskImpl) LastActivityAt() time.Time { return t.lastActivityAt }
 
 func (t TaskImpl) State() string { return t.state }
 
@@ -39,8 +41,10 @@ func (t TaskImpl) Result() string      { return t.result }
 func (t TaskImpl) Cancel() error { return t.client.CancelTask(t.id) }
 
 type TaskResp struct {
-	ID        int   // 165
-	Timestamp int64 // 1440318199
+	ID int // 165
+
+	StartedAt      int64 `json:"started_at"` // 1440318199
+	LastActivityAt int64 `json:"timestamp"`  // 1440318199
 
 	State      string // e.g. "queued", "processing", "done", "error", "cancelled"
 	User       string // e.g. "admin"
@@ -54,8 +58,10 @@ func NewTaskFromResp(client Client, r TaskResp) TaskImpl {
 	return TaskImpl{
 		client: client,
 
-		id:        r.ID,
-		createdAt: time.Unix(r.Timestamp, 0).UTC(),
+		id: r.ID,
+
+		startedAt:      time.Unix(r.StartedAt, 0).UTC(),
+		lastActivityAt: time.Unix(r.LastActivityAt, 0).UTC(),
 
 		state:          r.State,
 		user:           r.User,
