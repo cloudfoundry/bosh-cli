@@ -69,6 +69,13 @@ type FakeDeployment struct {
 		result1 []director.VMInfo
 		result2 error
 	}
+	InstanceInfosStub        func() ([]director.VMInfo, error)
+	instanceInfosMutex       sync.RWMutex
+	instanceInfosArgsForCall []struct{}
+	instanceInfosReturns     struct {
+		result1 []director.VMInfo
+		result2 error
+	}
 	ErrandsStub        func() ([]director.Errand, error)
 	errandsMutex       sync.RWMutex
 	errandsArgsForCall []struct{}
@@ -437,10 +444,6 @@ func (fake *FakeDeployment) VMInfos() ([]director.VMInfo, error) {
 	}
 }
 
-func (fake *FakeDeployment) InstanceInfos() ([]director.VMInfo, error) {
-	return fake.VMInfos()
-}
-
 func (fake *FakeDeployment) VMInfosCallCount() int {
 	fake.vMInfosMutex.RLock()
 	defer fake.vMInfosMutex.RUnlock()
@@ -450,6 +453,31 @@ func (fake *FakeDeployment) VMInfosCallCount() int {
 func (fake *FakeDeployment) VMInfosReturns(result1 []director.VMInfo, result2 error) {
 	fake.VMInfosStub = nil
 	fake.vMInfosReturns = struct {
+		result1 []director.VMInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) InstanceInfos() ([]director.VMInfo, error) {
+	fake.instanceInfosMutex.Lock()
+	fake.instanceInfosArgsForCall = append(fake.instanceInfosArgsForCall, struct{}{})
+	fake.instanceInfosMutex.Unlock()
+	if fake.InstanceInfosStub != nil {
+		return fake.InstanceInfosStub()
+	} else {
+		return fake.instanceInfosReturns.result1, fake.instanceInfosReturns.result2
+	}
+}
+
+func (fake *FakeDeployment) InstanceInfosCallCount() int {
+	fake.instanceInfosMutex.RLock()
+	defer fake.instanceInfosMutex.RUnlock()
+	return len(fake.instanceInfosArgsForCall)
+}
+
+func (fake *FakeDeployment) InstanceInfosReturns(result1 []director.VMInfo, result2 error) {
+	fake.InstanceInfosStub = nil
+	fake.instanceInfosReturns = struct {
 		result1 []director.VMInfo
 		result2 error
 	}{result1, result2}

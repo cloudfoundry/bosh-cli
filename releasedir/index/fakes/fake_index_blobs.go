@@ -30,8 +30,6 @@ type FakeIndexBlobs struct {
 		result2 string
 		result3 error
 	}
-	invocations      map[string][][]interface{}
-	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeIndexBlobs) Get(name string, blobID string, sha1 string) (string, error) {
@@ -41,7 +39,6 @@ func (fake *FakeIndexBlobs) Get(name string, blobID string, sha1 string) (string
 		blobID string
 		sha1   string
 	}{name, blobID, sha1})
-	fake.recordInvocation("Get", []interface{}{name, blobID, sha1})
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
 		return fake.GetStub(name, blobID, sha1)
@@ -76,7 +73,6 @@ func (fake *FakeIndexBlobs) Add(path string, sha1 string) (string, string, error
 		path string
 		sha1 string
 	}{path, sha1})
-	fake.recordInvocation("Add", []interface{}{path, sha1})
 	fake.addMutex.Unlock()
 	if fake.AddStub != nil {
 		return fake.AddStub(path, sha1)
@@ -104,28 +100,6 @@ func (fake *FakeIndexBlobs) AddReturns(result1 string, result2 string, result3 e
 		result2 string
 		result3 error
 	}{result1, result2, result3}
-}
-
-func (fake *FakeIndexBlobs) Invocations() map[string][][]interface{} {
-	fake.invocationsMutex.RLock()
-	defer fake.invocationsMutex.RUnlock()
-	fake.getMutex.RLock()
-	defer fake.getMutex.RUnlock()
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	return fake.invocations
-}
-
-func (fake *FakeIndexBlobs) recordInvocation(key string, args []interface{}) {
-	fake.invocationsMutex.Lock()
-	defer fake.invocationsMutex.Unlock()
-	if fake.invocations == nil {
-		fake.invocations = map[string][][]interface{}{}
-	}
-	if fake.invocations[key] == nil {
-		fake.invocations[key] = [][]interface{}{}
-	}
-	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ index.IndexBlobs = new(FakeIndexBlobs)

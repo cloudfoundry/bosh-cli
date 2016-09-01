@@ -150,7 +150,7 @@ var _ = Describe("InstancesCmd", func() {
 					},
 				}
 
-				deployment.VMInfosReturns(infos, nil)
+				deployment.InstanceInfosReturns(infos, nil)
 			})
 
 			It("lists instances for the deployment", func() {
@@ -729,7 +729,7 @@ var _ = Describe("InstancesCmd", func() {
 		})
 
 		It("returns error if instances cannot be retrieved", func() {
-			deployment.VMInfosReturns(nil, errors.New("fake-err"))
+			deployment.InstanceInfosReturns(nil, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
