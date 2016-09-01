@@ -30,20 +30,20 @@ type FakeDirector struct {
 		result1 []director.Lock
 		result2 error
 	}
-	CurrentTasksStub        func(includeAll bool) ([]director.Task, error)
+	CurrentTasksStub        func(director.TasksFilter) ([]director.Task, error)
 	currentTasksMutex       sync.RWMutex
 	currentTasksArgsForCall []struct {
-		includeAll bool
+		arg1 director.TasksFilter
 	}
 	currentTasksReturns struct {
 		result1 []director.Task
 		result2 error
 	}
-	RecentTasksStub        func(limit int, includeAll bool) ([]director.Task, error)
+	RecentTasksStub        func(int, director.TasksFilter) ([]director.Task, error)
 	recentTasksMutex       sync.RWMutex
 	recentTasksArgsForCall []struct {
-		limit      int
-		includeAll bool
+		arg1 int
+		arg2 director.TasksFilter
 	}
 	recentTasksReturns struct {
 		result1 []director.Task
@@ -342,14 +342,14 @@ func (fake *FakeDirector) LocksReturns(result1 []director.Lock, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) CurrentTasks(includeAll bool) ([]director.Task, error) {
+func (fake *FakeDirector) CurrentTasks(arg1 director.TasksFilter) ([]director.Task, error) {
 	fake.currentTasksMutex.Lock()
 	fake.currentTasksArgsForCall = append(fake.currentTasksArgsForCall, struct {
-		includeAll bool
-	}{includeAll})
+		arg1 director.TasksFilter
+	}{arg1})
 	fake.currentTasksMutex.Unlock()
 	if fake.CurrentTasksStub != nil {
-		return fake.CurrentTasksStub(includeAll)
+		return fake.CurrentTasksStub(arg1)
 	} else {
 		return fake.currentTasksReturns.result1, fake.currentTasksReturns.result2
 	}
@@ -361,10 +361,10 @@ func (fake *FakeDirector) CurrentTasksCallCount() int {
 	return len(fake.currentTasksArgsForCall)
 }
 
-func (fake *FakeDirector) CurrentTasksArgsForCall(i int) bool {
+func (fake *FakeDirector) CurrentTasksArgsForCall(i int) director.TasksFilter {
 	fake.currentTasksMutex.RLock()
 	defer fake.currentTasksMutex.RUnlock()
-	return fake.currentTasksArgsForCall[i].includeAll
+	return fake.currentTasksArgsForCall[i].arg1
 }
 
 func (fake *FakeDirector) CurrentTasksReturns(result1 []director.Task, result2 error) {
@@ -375,15 +375,15 @@ func (fake *FakeDirector) CurrentTasksReturns(result1 []director.Task, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) RecentTasks(limit int, includeAll bool) ([]director.Task, error) {
+func (fake *FakeDirector) RecentTasks(arg1 int, arg2 director.TasksFilter) ([]director.Task, error) {
 	fake.recentTasksMutex.Lock()
 	fake.recentTasksArgsForCall = append(fake.recentTasksArgsForCall, struct {
-		limit      int
-		includeAll bool
-	}{limit, includeAll})
+		arg1 int
+		arg2 director.TasksFilter
+	}{arg1, arg2})
 	fake.recentTasksMutex.Unlock()
 	if fake.RecentTasksStub != nil {
-		return fake.RecentTasksStub(limit, includeAll)
+		return fake.RecentTasksStub(arg1, arg2)
 	} else {
 		return fake.recentTasksReturns.result1, fake.recentTasksReturns.result2
 	}
@@ -395,10 +395,10 @@ func (fake *FakeDirector) RecentTasksCallCount() int {
 	return len(fake.recentTasksArgsForCall)
 }
 
-func (fake *FakeDirector) RecentTasksArgsForCall(i int) (int, bool) {
+func (fake *FakeDirector) RecentTasksArgsForCall(i int) (int, director.TasksFilter) {
 	fake.recentTasksMutex.RLock()
 	defer fake.recentTasksMutex.RUnlock()
-	return fake.recentTasksArgsForCall[i].limit, fake.recentTasksArgsForCall[i].includeAll
+	return fake.recentTasksArgsForCall[i].arg1, fake.recentTasksArgsForCall[i].arg2
 }
 
 func (fake *FakeDirector) RecentTasksReturns(result1 []director.Task, result2 error) {

@@ -113,18 +113,22 @@ var _ = Describe("TasksCmd", func() {
 				}))
 			})
 
-			It("filters tasks based on 'all' option", func() {
+			It("filters tasks based options", func() {
 				director.CurrentTasksReturns(nil, nil)
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(false))
+				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(boshdir.TasksFilter{}))
 
 				opts.All = true
+				opts.Deployment = "deployment"
 
 				err = act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(director.CurrentTasksArgsForCall(1)).To(Equal(true))
+				Expect(director.CurrentTasksArgsForCall(1)).To(Equal(boshdir.TasksFilter{
+					All:        true,
+					Deployment: "deployment",
+				}))
 			})
 
 			It("returns error if tasks cannot be retrieved", func() {
@@ -216,18 +220,22 @@ var _ = Describe("TasksCmd", func() {
 				}))
 			})
 
-			It("filters tasks based on 'all' option", func() {
+			It("filters tasks based on options", func() {
 				director.RecentTasksReturns(nil, nil)
 
 				Expect(act()).ToNot(HaveOccurred())
-				_, includeAll := director.RecentTasksArgsForCall(0)
-				Expect(includeAll).To(Equal(false))
+				_, filter := director.RecentTasksArgsForCall(0)
+				Expect(filter).To(Equal(boshdir.TasksFilter{}))
 
 				opts.All = true
+				opts.Deployment = "deployment"
 
 				Expect(act()).ToNot(HaveOccurred())
-				_, includeAll = director.RecentTasksArgsForCall(1)
-				Expect(includeAll).To(Equal(true))
+				_, filter = director.RecentTasksArgsForCall(1)
+				Expect(filter).To(Equal(boshdir.TasksFilter{
+					All:        true,
+					Deployment: "deployment",
+				}))
 			})
 
 			It("requests specific number of tasks", func() {

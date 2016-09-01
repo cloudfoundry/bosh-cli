@@ -2,6 +2,7 @@ package director
 
 import (
 	"fmt"
+	gourl "net/url"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -72,10 +73,10 @@ func NewTaskFromResp(client Client, r TaskResp) TaskImpl {
 	}
 }
 
-func (d DirectorImpl) CurrentTasks(includeAll bool) ([]Task, error) {
+func (d DirectorImpl) CurrentTasks(filter TasksFilter) ([]Task, error) {
 	tasks := []Task{}
 
-	taskResps, err := d.client.CurrentTasks(includeAll)
+	taskResps, err := d.client.CurrentTasks(filter)
 	if err != nil {
 		return tasks, err
 	}
@@ -87,10 +88,10 @@ func (d DirectorImpl) CurrentTasks(includeAll bool) ([]Task, error) {
 	return tasks, nil
 }
 
-func (d DirectorImpl) RecentTasks(limit int, includeAll bool) ([]Task, error) {
+func (d DirectorImpl) RecentTasks(limit int, filter TasksFilter) ([]Task, error) {
 	tasks := []Task{}
 
-	taskResps, err := d.client.RecentTasks(limit, includeAll)
+	taskResps, err := d.client.RecentTasks(limit, filter)
 	if err != nil {
 		return tasks, err
 	}
@@ -131,11 +132,19 @@ func (t TaskImpl) RawOutput(taskReporter TaskReporter) error {
 	return t.client.TaskOutput(t.id, "raw", taskReporter)
 }
 
-func (c Client) CurrentTasks(includeAll bool) ([]TaskResp, error) {
+func (c Client) CurrentTasks(filter TasksFilter) ([]TaskResp, error) {
 	var tasks []TaskResp
 
-	path := "/tasks?state=processing,cancelling,queued&verbose=" +
-		c.taskVerbosity(includeAll)
+	query := gourl.Values{}
+
+	query.Add("state", "processing,cancelling,queued")
+	query.Add("verbose", c.taskVerbosity(filter.All))
+
+	if len(filter.Deployment) > 0 {
+		query.Add("deployment", filter.Deployment)
+	}
+
+	path := fmt.Sprintf("/tasks?%s", query.Encode())
 
 	err := c.clientRequest.Get(path, &tasks)
 	if err != nil {
@@ -145,11 +154,19 @@ func (c Client) CurrentTasks(includeAll bool) ([]TaskResp, error) {
 	return tasks, nil
 }
 
-func (c Client) RecentTasks(limit int, includeAll bool) ([]TaskResp, error) {
+func (c Client) RecentTasks(limit int, filter TasksFilter) ([]TaskResp, error) {
 	var tasks []TaskResp
 
-	path := fmt.Sprintf("/tasks?limit=%d&verbose=%s",
-		limit, c.taskVerbosity(includeAll))
+	query := gourl.Values{}
+
+	query.Add("limit", fmt.Sprintf("%d", limit))
+	query.Add("verbose", c.taskVerbosity(filter.All))
+
+	if len(filter.Deployment) > 0 {
+		query.Add("deployment", filter.Deployment)
+	}
+
+	path := fmt.Sprintf("/tasks?%s", query.Encode())
 
 	err := c.clientRequest.Get(path, &tasks)
 	if err != nil {

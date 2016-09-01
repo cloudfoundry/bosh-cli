@@ -16,10 +16,15 @@ func NewTasksCmd(ui boshui.UI, director boshdir.Director) TasksCmd {
 }
 
 func (c TasksCmd) Run(opts TasksOpts) error {
-	if opts.Recent != nil {
-		return c.printTable(c.director.RecentTasks(*opts.Recent, opts.All))
+	filter := boshdir.TasksFilter{
+		All:        opts.All,
+		Deployment: opts.Deployment,
 	}
-	return c.printTable(c.director.CurrentTasks(opts.All))
+
+	if opts.Recent != nil {
+		return c.printTable(c.director.RecentTasks(*opts.Recent, filter))
+	}
+	return c.printTable(c.director.CurrentTasks(filter))
 }
 
 func (c TasksCmd) printTable(tasks []boshdir.Task, err error) error {

@@ -186,6 +186,16 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
+	Describe("tasks command", func() {
+		It("is passed the deployment flag", func() {
+			cmd, err := factory.New([]string{"tasks", "--deployment", "deployment"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*TasksOpts)
+			Expect(opts.Deployment).To(Equal("deployment"))
+		})
+	})
+
 	Describe("help options", func() {
 		It("has a help flag", func() {
 			_, err := factory.New([]string{"--help"})

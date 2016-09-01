@@ -31,7 +31,7 @@ func (c TaskCmd) Run(opts TaskOpts) error {
 	var err error
 
 	if opts.Args.ID == 0 {
-		tasks, err := c.director.CurrentTasks(opts.All)
+		tasks, err := c.director.CurrentTasks(boshdir.TasksFilter{All: opts.All})
 		if err != nil {
 			return err
 		}

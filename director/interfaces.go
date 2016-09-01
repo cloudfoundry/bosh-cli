@@ -16,8 +16,8 @@ type Director interface {
 
 	Locks() ([]Lock, error)
 
-	CurrentTasks(includeAll bool) ([]Task, error)
-	RecentTasks(limit int, includeAll bool) ([]Task, error)
+	CurrentTasks(TasksFilter) ([]Task, error)
+	RecentTasks(int, TasksFilter) ([]Task, error)
 	FindTask(int) (Task, error)
 
 	Events(EventsFilter) ([]Event, error)
@@ -155,6 +155,11 @@ type Stemcell interface {
 	CID() string
 
 	Delete(force bool) error
+}
+
+type TasksFilter struct {
+	All        bool
+	Deployment string
 }
 
 type Task interface {

@@ -206,9 +206,9 @@ type TaskArgs struct {
 }
 
 type TasksOpts struct {
-	Recent *int `long:"recent" short:"r" description:"Number of tasks to show" optional:"true" optional-value:"30"`
-
-	All bool `long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`
+	Recent     *int `long:"recent" short:"r" description:"Number of tasks to show" optional:"true" optional-value:"30"`
+	All        bool `long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`
+	Deployment string
 
 	cmd
 }

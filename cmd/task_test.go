@@ -242,13 +242,13 @@ var _ = Describe("TaskCmd", func() {
 			It("filters tasks based on 'all' option", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(false))
+				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(boshdir.TasksFilter{}))
 
 				opts.All = true
 
 				err = act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(director.CurrentTasksArgsForCall(1)).To(Equal(true))
+				Expect(director.CurrentTasksArgsForCall(1)).To(Equal(boshdir.TasksFilter{All: true}))
 			})
 
 			It("returns error if there are no current tasks", func() {

@@ -58,7 +58,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			tasks, err := director.CurrentTasks(false)
+			tasks, err := director.CurrentTasks(TasksFilter{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(tasks).To(HaveLen(2))
 
@@ -90,14 +90,27 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			_, err := director.CurrentTasks(true)
+			_, err := director.CurrentTasks(TasksFilter{All: true})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("includes tasks for specific deployment when requested", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks", "state=processing,cancelling,queued&verbose=1&deployment=deployment"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, "[]"),
+				),
+			)
+
+			_, err := director.CurrentTasks(TasksFilter{Deployment: "deployment"})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/tasks"), server)
 
-			_, err := director.CurrentTasks(false)
+			_, err := director.CurrentTasks(TasksFilter{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding current tasks: Director responded with non-successful status code"))
@@ -111,7 +124,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			_, err := director.CurrentTasks(false)
+			_, err := director.CurrentTasks(TasksFilter{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding current tasks: Unmarshaling Director response"))
@@ -149,7 +162,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			tasks, err := director.RecentTasks(10, false)
+			tasks, err := director.RecentTasks(10, TasksFilter{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(tasks).To(HaveLen(2))
 
@@ -181,14 +194,27 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			_, err := director.RecentTasks(10, true)
+			_, err := director.RecentTasks(10, TasksFilter{All: true})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("includes tasks for specific deployment when requested", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks", "limit=10&verbose=1&deployment=deployment"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, "[]"),
+				),
+			)
+
+			_, err := director.RecentTasks(10, TasksFilter{Deployment: "deployment"})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/tasks"), server)
 
-			_, err := director.RecentTasks(10, false)
+			_, err := director.RecentTasks(10, TasksFilter{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding recent tasks: Director responded with non-successful status code"))
@@ -202,7 +228,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			_, err := director.RecentTasks(10, false)
+			_, err := director.RecentTasks(10, TasksFilter{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding recent tasks: Unmarshaling Director response"))

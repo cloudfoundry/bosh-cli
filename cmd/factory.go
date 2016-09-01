@@ -45,6 +45,10 @@ func (f Factory) New(args []string) (Cmd, error) {
 			opts.Deployment = cmd.BoshOpts.DeploymentOpt
 		}
 
+		if opts, ok := command.(*TasksOpts); ok {
+			opts.Deployment = cmd.BoshOpts.DeploymentOpt
+		}
+
 		if len(extraArgs) > 0 {
 			errMsg := "Command '%T' does not support extra arguments: %s"
 			return fmt.Errorf(errMsg, command, strings.Join(extraArgs, ", "))
