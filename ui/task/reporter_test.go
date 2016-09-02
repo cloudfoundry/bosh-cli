@@ -172,13 +172,9 @@ Task 123 state
 19:09:27 | Preparing deployment: Binding properties (00:00:00)
 19:09:27 | Preparing deployment: Binding unallocated VMs (00:00:00)
 19:09:27 | Preparing deployment: Binding instance networks (00:00:00)
-
 19:09:27 | Preparing package compilation: Finding packages to compile (00:00:00)
-
 19:09:27 | Preparing DNS: Binding DNS (00:00:00)
-
 19:09:27 | Preparing configuration: Binding configuration (00:00:01)
-
 19:09:28 | Updating job job: job/0 (canary) (00:01:07)
             L Error: 'job/0' is not running after update
 

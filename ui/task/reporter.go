@@ -99,8 +99,11 @@ func (r *ReporterImpl) showEvent(str string) {
 				"\n            L Error: %s", event.Data.Error))
 		}
 	} else {
-		if r.lastEvent != nil && !r.lastEvent.IsSameGroup(event) && event.IsWorthKeeping() {
-			r.ui.PrintBlock("\n")
+		if r.lastEvent != nil && event.IsWorthKeeping() {
+			if event.Type == EventTypeDeprecation || event.Error != nil {
+				// Some spacing around deprecations and errors
+				r.ui.PrintBlock("\n")
+			}
 		}
 
 		prefix := fmt.Sprintf("\n%s | ", event.TimeAsHoursStr())
