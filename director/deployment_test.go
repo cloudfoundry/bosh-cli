@@ -504,10 +504,10 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("succeeds updating deployment with recreate and skip drain flags", func() {
+		It("succeeds updating deployment with recreate, fix and skip drain flags", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&skip_drain=*"),
+					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&fix=true&skip_drain=*"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -520,6 +520,7 @@ var _ = Describe("Deployment", func() {
 
 			updateOpts := UpdateOpts{
 				Recreate:  true,
+				Fix:       true,
 				SkipDrain: SkipDrain{All: true},
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)

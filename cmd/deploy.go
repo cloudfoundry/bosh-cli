@@ -60,6 +60,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 
 	updateOpts := boshdir.UpdateOpts{
 		Recreate:  opts.Recreate,
+		Fix:       opts.Fix,
 		SkipDrain: opts.SkipDrain,
 	}
 

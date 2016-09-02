@@ -1164,7 +1164,7 @@ var _ = Describe("Opts", func() {
 			Describe("Recreate", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Recreate", opts)).To(Equal(
-						`long:"recreate"    description:"Recreate all VMs in deployment"`,
+						`long:"recreate"   description:"Recreate all VMs in deployment"`,
 					))
 				})
 			})
@@ -1172,7 +1172,7 @@ var _ = Describe("Opts", func() {
 			Describe("NoRedact", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("NoRedact", opts)).To(Equal(
-						`long:"no-redact"   description:"Show non-redacted manifest diff"`,
+						`long:"no-redact" description:"Show non-redacted manifest diff"`,
 					))
 				})
 			})

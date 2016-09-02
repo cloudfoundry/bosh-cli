@@ -58,20 +58,9 @@ var _ = Describe("DeployCmd", func() {
 			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{}))
 		})
 
-		It("deploys manifest allowing to recreate", func() {
+		It("deploys manifest allowing to recreate, fix, and skip drain", func() {
 			opts.Recreate = true
-
-			err := act()
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(deployment.UpdateCallCount()).To(Equal(1))
-
-			bytes, updateOpts := deployment.UpdateArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name: dep\n")))
-			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{Recreate: true}))
-		})
-
-		It("deploys manifest allowing to skip drain scripts", func() {
+			opts.Fix = true
 			opts.SkipDrain = boshdir.SkipDrain{All: true}
 
 			err := act()
@@ -82,6 +71,8 @@ var _ = Describe("DeployCmd", func() {
 			bytes, updateOpts := deployment.UpdateArgsForCall(0)
 			Expect(bytes).To(Equal([]byte("name: dep\n")))
 			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Recreate:  true,
+				Fix:       true,
 				SkipDrain: boshdir.SkipDrain{All: true},
 			}))
 		})

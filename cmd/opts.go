@@ -300,8 +300,10 @@ type DeployOpts struct {
 
 	VarFlags
 
-	Recreate  bool              `long:"recreate"    description:"Recreate all VMs in deployment"`
-	NoRedact  bool              `long:"no-redact"   description:"Show non-redacted manifest diff"`
+	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
+
+	Recreate  bool              `long:"recreate"   description:"Recreate all VMs in deployment"`
+	Fix       bool              `long:"fix"        description:"Recreate unresponsive instances"`
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 
 	cmd

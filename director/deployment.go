@@ -383,6 +383,10 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 		query.Add("recreate", "true")
 	}
 
+	if opts.Fix {
+		query.Add("fix", "true")
+	}
+
 	if len(opts.SkipDrain.AsQueryValue()) > 0 {
 		query.Add("skip_drain", opts.SkipDrain.AsQueryValue())
 	}
