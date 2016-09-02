@@ -221,12 +221,11 @@ type FakeDeployment struct {
 	enableResurrectionReturns struct {
 		result1 error
 	}
-	UpdateStub        func(manifest []byte, recreate bool, sd director.SkipDrain) error
+	UpdateStub        func(manifest []byte, opts director.UpdateOpts) error
 	updateMutex       sync.RWMutex
 	updateArgsForCall []struct {
 		manifest []byte
-		recreate bool
-		sd       director.SkipDrain
+		opts     director.UpdateOpts
 	}
 	updateReturns struct {
 		result1 error
@@ -1006,16 +1005,15 @@ func (fake *FakeDeployment) EnableResurrectionReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Update(manifest []byte, recreate bool, sd director.SkipDrain) error {
+func (fake *FakeDeployment) Update(manifest []byte, opts director.UpdateOpts) error {
 	fake.updateMutex.Lock()
 	fake.updateArgsForCall = append(fake.updateArgsForCall, struct {
 		manifest []byte
-		recreate bool
-		sd       director.SkipDrain
-	}{manifest, recreate, sd})
+		opts     director.UpdateOpts
+	}{manifest, opts})
 	fake.updateMutex.Unlock()
 	if fake.UpdateStub != nil {
-		return fake.UpdateStub(manifest, recreate, sd)
+		return fake.UpdateStub(manifest, opts)
 	} else {
 		return fake.updateReturns.result1
 	}
@@ -1027,10 +1025,10 @@ func (fake *FakeDeployment) UpdateCallCount() int {
 	return len(fake.updateArgsForCall)
 }
 
-func (fake *FakeDeployment) UpdateArgsForCall(i int) ([]byte, bool, director.SkipDrain) {
+func (fake *FakeDeployment) UpdateArgsForCall(i int) ([]byte, director.UpdateOpts) {
 	fake.updateMutex.RLock()
 	defer fake.updateMutex.RUnlock()
-	return fake.updateArgsForCall[i].manifest, fake.updateArgsForCall[i].recreate, fake.updateArgsForCall[i].sd
+	return fake.updateArgsForCall[i].manifest, fake.updateArgsForCall[i].opts
 }
 
 func (fake *FakeDeployment) UpdateReturns(result1 error) {

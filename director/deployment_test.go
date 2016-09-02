@@ -500,7 +500,7 @@ var _ = Describe("Deployment", func() {
 				server,
 			)
 
-			err := deployment.Update([]byte("manifest"), false, SkipDrain{})
+			err := deployment.Update([]byte("manifest"), UpdateOpts{})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -518,14 +518,18 @@ var _ = Describe("Deployment", func() {
 				server,
 			)
 
-			err := deployment.Update([]byte("manifest"), true, SkipDrain{All: true})
+			updateOpts := UpdateOpts{
+				Recreate:  true,
+				SkipDrain: SkipDrain{All: true},
+			}
+			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if task response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments"), server)
 
-			err := deployment.Update([]byte("manifest"), false, SkipDrain{})
+			err := deployment.Update([]byte("manifest"), UpdateOpts{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Updating deployment"))
 		})

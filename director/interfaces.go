@@ -119,8 +119,14 @@ type Deployment interface {
 	TakeSnapshot(InstanceSlug) error
 	EnableResurrection(InstanceSlug, bool) error
 
-	Update(manifest []byte, recreate bool, sd SkipDrain) error
+	Update(manifest []byte, opts UpdateOpts) error
 	Delete(force bool) error
+}
+
+type UpdateOpts struct {
+	Recreate  bool
+	Fix       bool
+	SkipDrain SkipDrain
 }
 
 //go:generate counterfeiter . ReleaseSeries

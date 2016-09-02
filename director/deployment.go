@@ -158,8 +158,8 @@ func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug) (Ex
 	return ExportReleaseResult{BlobstoreID: resp.BlobstoreID, SHA1: resp.SHA1}, nil
 }
 
-func (d DeploymentImpl) Update(manifest []byte, recreate bool, sd SkipDrain) error {
-	return d.client.UpdateDeployment(manifest, recreate, sd)
+func (d DeploymentImpl) Update(manifest []byte, opts UpdateOpts) error {
+	return d.client.UpdateDeployment(manifest, opts)
 }
 
 func (d DeploymentImpl) Delete(force bool) error {
@@ -376,15 +376,15 @@ func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSV
 	return resp, nil
 }
 
-func (c Client) UpdateDeployment(manifest []byte, recreate bool, sd SkipDrain) error {
+func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 	query := gourl.Values{}
 
-	if recreate {
+	if opts.Recreate {
 		query.Add("recreate", "true")
 	}
 
-	if len(sd.AsQueryValue()) > 0 {
-		query.Add("skip_drain", sd.AsQueryValue())
+	if len(opts.SkipDrain.AsQueryValue()) > 0 {
+		query.Add("skip_drain", opts.SkipDrain.AsQueryValue())
 	}
 
 	path := fmt.Sprintf("/deployments?%s", query.Encode())

@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	semver "github.com/cppforlife/go-semi-semantic/version"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -54,10 +53,9 @@ var _ = Describe("DeployCmd", func() {
 
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
-			bytes, recreate, sd := deployment.UpdateArgsForCall(0)
+			bytes, updateOpts := deployment.UpdateArgsForCall(0)
 			Expect(bytes).To(Equal([]byte("name: dep\n")))
-			Expect(recreate).To(BeFalse())
-			Expect(sd).To(Equal(boshdir.SkipDrain{}))
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{}))
 		})
 
 		It("deploys manifest allowing to recreate", func() {
@@ -68,10 +66,9 @@ var _ = Describe("DeployCmd", func() {
 
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
-			bytes, recreate, sd := deployment.UpdateArgsForCall(0)
+			bytes, updateOpts := deployment.UpdateArgsForCall(0)
 			Expect(bytes).To(Equal([]byte("name: dep\n")))
-			Expect(recreate).To(BeTrue())
-			Expect(sd).To(Equal(boshdir.SkipDrain{}))
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{Recreate: true}))
 		})
 
 		It("deploys manifest allowing to skip drain scripts", func() {
@@ -82,10 +79,11 @@ var _ = Describe("DeployCmd", func() {
 
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
-			bytes, recreate, sd := deployment.UpdateArgsForCall(0)
+			bytes, updateOpts := deployment.UpdateArgsForCall(0)
 			Expect(bytes).To(Equal([]byte("name: dep\n")))
-			Expect(recreate).To(BeFalse())
-			Expect(sd).To(Equal(boshdir.SkipDrain{All: true}))
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				SkipDrain: boshdir.SkipDrain{All: true},
+			}))
 		})
 
 		It("deploys manifest with evaluated vars", func() {
@@ -107,7 +105,7 @@ var _ = Describe("DeployCmd", func() {
 
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
-			bytes, _, _ := deployment.UpdateArgsForCall(0)
+			bytes, _ := deployment.UpdateArgsForCall(0)
 			Expect(bytes).To(Equal([]byte("name: dep\nname1: val1-from-kv\nname2: val2-from-file\n")))
 		})
 

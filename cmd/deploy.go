@@ -58,7 +58,12 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		}
 	}
 
-	return c.deployment.Update(bytes, opts.Recreate, opts.SkipDrain)
+	updateOpts := boshdir.UpdateOpts{
+		Recreate:  opts.Recreate,
+		SkipDrain: opts.SkipDrain,
+	}
+
+	return c.deployment.Update(bytes, updateOpts)
 }
 
 func (c DeployCmd) uploadRelease(rel boshdir.ManifestRelease) error {
