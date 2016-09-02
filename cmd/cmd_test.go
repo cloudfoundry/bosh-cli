@@ -11,6 +11,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("Cmd", func() {
@@ -54,6 +55,36 @@ var _ = Describe("Cmd", func() {
 			confUI.Flush()
 
 			Expect(ui.Blocks[0]).To(ContainSubstring(`Blocks": [`))
+		})
+
+		Describe("color", func() {
+			executeCmdAndPrintTable := func() {
+				err := cmd.Execute()
+				Expect(err).ToNot(HaveOccurred())
+
+				// Tables have emboldened header values
+				confUI.PrintTable(boshtbl.Table{Header: []string{"State"}})
+			}
+
+			It("has color in the output enabled by default", func() {
+				cmd.BoshOpts = &BoshOpts{}
+				cmd.Opts = &BuildManifestOpts{}
+
+				executeCmdAndPrintTable()
+
+				// Expect that header values are bold
+				Expect(ui.Tables[0].HeaderVals[0].(boshtbl.ValueFmt).Func).ToNot(BeNil())
+			})
+
+			It("allows to disable color in the output", func() {
+				cmd.BoshOpts = &BoshOpts{NoColorOpt: true}
+				cmd.Opts = &BuildManifestOpts{}
+
+				executeCmdAndPrintTable()
+
+				// Expect that header values are empty because they were not emboldened
+				Expect(ui.Tables[0].HeaderVals).To(BeEmpty())
+			})
 		})
 
 		It("returns error if changing tmp root fails", func() {

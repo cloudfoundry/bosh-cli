@@ -311,7 +311,9 @@ func (c Cmd) Execute() (cmdErr error) {
 func (c Cmd) configureUI() {
 	c.deps.UI.EnableTTY(c.BoshOpts.TTYOpt)
 
-	c.deps.UI.EnableColor()
+	if !c.BoshOpts.NoColorOpt {
+		c.deps.UI.EnableColor()
+	}
 
 	if c.BoshOpts.JSONOpt {
 		c.deps.UI.EnableJSON()
