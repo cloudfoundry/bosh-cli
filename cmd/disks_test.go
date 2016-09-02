@@ -78,7 +78,7 @@ var _ = Describe("DisksCmd", func() {
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("cid"),
-							boshtbl.NewValueBytes(100),
+							boshtbl.NewValueMegaBytes(100),
 							boshtbl.NewValueString("deployment"),
 							boshtbl.NewValueString("instance"),
 							boshtbl.NewValueString("az"),

@@ -36,7 +36,7 @@ func (c DisksCmd) Run(opts DisksOpts) error {
 	for _, d := range disks {
 		table.Rows = append(table.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(d.CID()),
-			boshtbl.NewValueBytes(d.Size()),
+			boshtbl.NewValueMegaBytes(d.Size()),
 			boshtbl.NewValueString(d.Deployment().Name()),
 			boshtbl.NewValueString(d.InstanceName()),
 			boshtbl.NewValueString(d.AZName()),
