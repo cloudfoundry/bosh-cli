@@ -62,9 +62,19 @@ func (ui *jsonUI) PrintErrorBlock(block string) {
 func (ui *jsonUI) PrintTable(table Table) {
 	table.FillFirstColumn = true
 
+	var header []string
+
+	if len(table.HeaderVals) > 0 {
+		for _, val := range table.HeaderVals {
+			header = append(header, val.String())
+		}
+	} else if len(table.Header) > 0 {
+		header = table.Header
+	}
+
 	resp := tableResp{
 		Content: table.Content,
-		Header:  table.Header,
+		Header:  header,
 		Rows:    ui.stringRows(table.AsRows()),
 		Notes:   table.Notes,
 	}

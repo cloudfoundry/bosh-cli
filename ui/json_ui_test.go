@@ -146,6 +146,44 @@ var _ = Describe("JSONUI", func() {
 			}))
 		})
 
+		It("includes HeaderVals in Tables", func() {
+			table := Table{
+				Content: "things",
+				HeaderVals: []Value{
+					ValueString{"Header1"},
+					ValueString{"Header2"},
+				},
+
+				Rows: [][]Value{
+					{ValueString{"r1c1"}, ValueString{"r1c2"}},
+					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+				},
+
+				Notes: []string{"note1", "note2"},
+			}
+
+			table2 := Table{
+				Content: "things2",
+			}
+
+			ui.PrintTable(table)
+			ui.PrintTable(table2)
+
+			Expect(finalOutput()).To(Equal(uiResp{
+				Tables: []tableResp{
+					{
+						Content: "things",
+						Header:  []string{"Header1", "Header2"},
+						Rows:    [][]string{{"r1c1", "r1c2"}, {"r2c1", "r2c2"}},
+						Notes:   []string{"note1", "note2"},
+					},
+					{
+						Content: "things2",
+					},
+				},
+			}))
+		})
+
 		It("includes in Tables when table has sections and fills in first column", func() {
 			table := Table{
 				Content: "things",
