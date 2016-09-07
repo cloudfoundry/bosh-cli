@@ -119,7 +119,10 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 
 func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, error) {
 	filesByRelPath := map[string]File{}
+
 	for _, glob := range manifest.Files {
+		matchingFilesFound := false
+
 		srcDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.srcDirPath, glob))
 		if err != nil {
 			return map[string]File{}, bosherr.WrapErrorf(err, "Listing package files in src")
@@ -128,9 +131,11 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 		for _, path := range srcDirMatches {
 			isPackageableFile, err := r.isPackageableFile(path)
 			if err != nil {
-				return map[string]File{}, bosherr.WrapErrorf(err, "Unknown error occurred")
+				return map[string]File{}, bosherr.WrapErrorf(err, "Checking file packageability")
 			}
+
 			if isPackageableFile {
+				matchingFilesFound = true
 				file := NewFile(path, r.srcDirPath)
 				if _, found := filesByRelPath[file.RelativePath]; !found {
 					filesByRelPath[file.RelativePath] = file
@@ -146,14 +151,20 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 		for _, path := range blobsDirMatches {
 			isPackageableFile, err := r.isPackageableFile(path)
 			if err != nil {
-				return map[string]File{}, bosherr.WrapErrorf(err, "Unknown error occurred")
+				return map[string]File{}, bosherr.WrapErrorf(err, "Checking file packageability")
 			}
+
 			if isPackageableFile {
+				matchingFilesFound = true
 				file := NewFile(path, r.blobsDirPath)
 				if _, found := filesByRelPath[file.RelativePath]; !found {
 					filesByRelPath[file.RelativePath] = file
 				}
 			}
+		}
+
+		if !matchingFilesFound {
+			return nil, bosherr.Errorf("Missing files for pattern '%s'", glob)
 		}
 	}
 
@@ -162,6 +173,7 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 
 func (r DirReaderImpl) applyExcludedFilesPattern(manifest Manifest) ([]File, error) {
 	var excludedFiles []File
+
 	for _, glob := range manifest.ExcludedFiles {
 		srcDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.srcDirPath, glob))
 		if err != nil {
@@ -189,6 +201,7 @@ func (r DirReaderImpl) applyExcludedFilesPattern(manifest Manifest) ([]File, err
 
 func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]File, error) {
 	var files []File
+
 	if r.fs.FileExists(packagePath) {
 		isPackageableFile, err := r.isPackageableFile(packagePath)
 		if err != nil {
@@ -211,5 +224,6 @@ func (r DirReaderImpl) isPackageableFile(path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return info.Mode()&os.ModeSymlink != 0 || !info.IsDir(), nil
 }

@@ -3,6 +3,7 @@ package pkg_test
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -38,56 +39,6 @@ var _ = Describe("DirReaderImpl", func() {
 	})
 
 	Describe("Read", func() {
-
-		Context("when packaging path contains folders", func() {
-			var err error
-
-			BeforeEach(func() {
-				fs.WriteFileString("/dir/spec", `---
-name: name
-dependencies: [pkg1, pkg2]
-files:
-- "**/*"
-excluded_files: [ex-file1, ex-file2]
-`)
-				fs.SetGlob("/src/**/*", []string{"/src/directory"})
-				err = fs.MkdirAll("/src/directory", 0777)
-				Expect(err).NotTo(HaveOccurred())
-
-				err = fs.WriteFileString("/dir/packaging", "")
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("ignores it", func() {
-				_, err = reader.Read("/dir")
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(collectedFiles).To(Equal([]File{
-					File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
-				}))
-			})
-
-			Context("When the src path is a folder and the blob path is a file", func() {
-				BeforeEach(func() {
-					err = fs.MkdirAll("/src/directory/f1/", 0777)
-					Expect(err).NotTo(HaveOccurred())
-					err = fs.WriteFileString("/blobs/directory/f1", "")
-					Expect(err).NotTo(HaveOccurred())
-					fs.SetGlob("/blobs/**/*", []string{"/blobs/directory", "/blobs/directory/f1"})
-					fs.SetGlob("/src/**/*", []string{"/src/directory", "/src/directory/f1"})
-				})
-				It("collects the blob file", func() {
-					_, err = reader.Read("/dir")
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(collectedFiles).To(Equal([]File{
-						File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
-						File{Path: "/blobs/directory/f1", DirPath: "/blobs", RelativePath: "directory/f1"},
-					}))
-				})
-			})
-		})
-
 		It("returns a package with the details collected from a directory", func() {
 			fs.WriteFileString("/dir/spec", `---
 name: name
@@ -97,6 +48,10 @@ excluded_files: [ex-file1, ex-file2]
 `)
 
 			fs.WriteFileString("/dir/packaging", "")
+			fs.WriteFileString("/src/in-file1", "")
+			fs.WriteFileString("/src/in-file2", "")
+			fs.SetGlob("/src/in-file1", []string{"/src/in-file1"})
+			fs.SetGlob("/src/in-file2", []string{"/src/in-file2"})
 
 			archive.FingerprintReturns("fp", nil)
 
@@ -107,6 +62,8 @@ excluded_files: [ex-file1, ex-file2]
 			Expect(collectedFiles).To(Equal([]File{
 				// does not include spec
 				File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
+				File{Path: "/src/in-file1", DirPath: "/src", RelativePath: "in-file1"},
+				File{Path: "/src/in-file2", DirPath: "/src", RelativePath: "in-file2"},
 			}))
 
 			Expect(collectedPrepFiles).To(BeEmpty())
@@ -201,6 +158,31 @@ files: [in-file1, in-file2]
 			Expect(collectedChunks).To(BeEmpty())
 		})
 
+		It("returns an error if glob doesnt match src or blob files", func() {
+			fs.WriteFileString("/dir/spec", `---
+name: name
+files: [in-file1, in-file2, missing-file2]
+`)
+
+			fs.WriteFileString("/dir/packaging", "")
+			fs.WriteFileString("/src/in-file1", "")
+			fs.WriteFileString("/blobs/in-file2", "")
+			fs.SetGlob("/src/in-file1", []string{"/src/in-file1"})
+			fs.SetGlob("/blobs/in-file2", []string{"/blobs/in-file2"})
+
+			// Directories are not packageable
+			fs.MkdirAll("/src/missing-file2", os.ModePerm)
+			fs.MkdirAll("/blobs/missing-file2", os.ModePerm)
+			fs.SetGlob("/src/missing-file2", []string{"/src/missing-file2"})
+			fs.SetGlob("/blobs/missing-file2", []string{"/blobs/missing-file2"})
+
+			archive.FingerprintReturns("fp", nil)
+
+			_, err := reader.Read("/dir")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Missing files for pattern 'missing-file2'"))
+		})
+
 		It("excludes files and blobs", func() {
 			fs.WriteFileString("/dir/spec", `---
 name: name
@@ -251,6 +233,40 @@ excluded_files: [ex-file1, ex-file2]
 
 			Expect(collectedPrepFiles).To(BeEmpty())
 			Expect(collectedChunks).To(BeEmpty())
+		})
+
+		It("matches files in blobs directory even if glob also matches empty folders in src directory", func() {
+			fs.WriteFileString("/dir/spec", `---
+name: name
+dependencies: [pkg1, pkg2]
+files:
+- "**/*"
+excluded_files: [ex-file1, ex-file2]
+`)
+			fs.SetGlob("/src/**/*", []string{"/src/directory"})
+
+			err := fs.MkdirAll("/src/directory", 0777)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = fs.WriteFileString("/dir/packaging", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			err = fs.MkdirAll("/src/directory/f1/", 0777)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = fs.WriteFileString("/blobs/directory/f1", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			fs.SetGlob("/blobs/**/*", []string{"/blobs/directory", "/blobs/directory/f1"})
+			fs.SetGlob("/src/**/*", []string{"/src/directory", "/src/directory/f1"})
+
+			_, err = reader.Read("/dir")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(collectedFiles).To(Equal([]File{
+				File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
+				File{Path: "/blobs/directory/f1", DirPath: "/blobs", RelativePath: "directory/f1"},
+			}))
 		})
 
 		It("returns error if packaging is included in specified files", func() {
@@ -304,9 +320,16 @@ excluded_files: [ex-file1, ex-file2]
 		}
 
 		for desc, pattern := range globErrChecks {
-			It(fmt.Sprintf("returns error if globbing %s fails", desc), func() {
+			desc, pattern := desc, pattern // copy
+
+			It(fmt.Sprintf("returns error if globbing '%s' fails", desc), func() {
 				fs.WriteFileString("/dir/spec", "name: name\nfiles: [file1]\nexcluded_files: [ex-file1]")
 				fs.WriteFileString("/dir/packaging", "")
+
+				fs.WriteFileString("/src/file1", "")
+				fs.WriteFileString("/blobs/file1", "")
+				fs.SetGlob("/src/file1", []string{"/src/file1"})
+				fs.SetGlob("/blobs/file1", []string{"/blobs/file1"})
 
 				fs.GlobErrs[pattern] = errors.New("fake-err")
 
@@ -327,7 +350,7 @@ excluded_files: [ex-file1, ex-file2]
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
-		It("Include bad src symlinks", func() {
+		It("include bad src symlinks", func() {
 			fs.WriteFileString("/dir/spec", `---
 name: name
 files: [in-file1, in-file2]
