@@ -77,7 +77,9 @@ func (d FSReleaseDir) Init(git bool) error {
 		}
 	}
 
-	err := d.config.SaveFinalName(gopath.Base(d.dirPath))
+	finalName := strings.TrimSuffix(gopath.Base(d.dirPath), "-release")
+
+	err := d.config.SaveFinalName(finalName)
 	if err != nil {
 		return err
 	}

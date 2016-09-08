@@ -87,6 +87,16 @@ var _ = Describe("FSGenerator", func() {
 			Expect(config.SaveFinalNameArgsForCall(0)).To(Equal("dir"))
 		})
 
+		It("saves release name to directory base name stripping '-release' suffix from the name", func() {
+			releaseDir := NewFSReleaseDir("/dir-release", config, gitRepo, blobsDir, gen, devReleases, finalReleases, finalIndicies, reader, writer, fs)
+
+			err := releaseDir.Init(true)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(config.SaveFinalNameCallCount()).To(Equal(1))
+			Expect(config.SaveFinalNameArgsForCall(0)).To(Equal("dir"))
+		})
+
 		It("returns error if saving final name fails", func() {
 			config.SaveFinalNameReturns(errors.New("fake-err"))
 
