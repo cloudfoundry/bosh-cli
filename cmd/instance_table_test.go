@@ -93,14 +93,14 @@ var _ = Describe("InstanceTable", func() {
 			})
 		})
 
-		Describe("disk cid", func() {
-			It("returns empty if disk cid is empty", func() {
-				Expect(tbl.ForVMInfo(info).DiskCID.String()).To(Equal(""))
+		Describe("disk cids", func() {
+			It("returns empty if disk cids is empty", func() {
+				Expect(tbl.ForVMInfo(info).DiskCIDs.String()).To(Equal(""))
 			})
 
-			It("returns disk cid if disk cid is non-empty", func() {
-				info.DiskID = "disk-cid"
-				Expect(tbl.ForVMInfo(info).DiskCID.String()).To(Equal("disk-cid"))
+			It("returns disk cid if disk cids is non-empty", func() {
+				info.DiskIDs = []string{"disk-cid1", "disk-cid2"}
+				Expect(tbl.ForVMInfo(info).DiskCIDs.String()).To(Equal("disk-cid1\ndisk-cid2"))
 			})
 		})
 	})

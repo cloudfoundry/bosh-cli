@@ -49,6 +49,7 @@ var _ = Describe("Instances", func() {
 	"az": "az",
 	"vm_cid": "vm-cid",
 	"disk_cid": "disk-cid",
+	"disk_cids": [ "disk-cid1", "disk-cid2" ],
 	"vm_type": "vm-type",
 	"resource_pool": "rp",
 	"processes": [{
@@ -102,6 +103,7 @@ var _ = Describe("Instances", func() {
 				VMType:       "vm-type",
 				ResourcePool: "rp",
 				DiskID:       "disk-cid",
+				DiskIDs:      []string{"disk-cid1", "disk-cid2"},
 
 				Processes: []VMInfoProcess{
 					VMInfoProcess{

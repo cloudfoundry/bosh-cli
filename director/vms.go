@@ -20,12 +20,13 @@ type VMInfo struct {
 	IPs []string `json:"ips"`
 	DNS []string `json:"dns"`
 
-	AZ           string `json:"az"`
-	State        string `json:"state"`
-	VMID         string `json:"vm_cid"`
-	VMType       string `json:"vm_type"`
-	ResourcePool string `json:"resource_pool"`
-	DiskID       string `json:"disk_cid"`
+	AZ           string   `json:"az"`
+	State        string   `json:"state"`
+	VMID         string   `json:"vm_cid"`
+	VMType       string   `json:"vm_type"`
+	ResourcePool string   `json:"resource_pool"`
+	DiskID       string   `json:"disk_cid"`
+	DiskIDs      []string `json:"disk_cids"`
 
 	Processes []VMInfoProcess
 
@@ -140,6 +141,10 @@ func (c Client) deploymentResourceInfos(deploymentName string, resourceType stri
 		if err != nil {
 			return nil, bosherr.WrapErrorf(
 				err, "Unmarshaling %s info response: '%s'", strings.TrimSuffix(resourceType, "s"), string(piece))
+		}
+
+		if len(resp.DiskIDs) == 0 && resp.DiskID != "" {
+			resp.DiskIDs = []string{resp.DiskID}
 		}
 
 		resps = append(resps, resp)
