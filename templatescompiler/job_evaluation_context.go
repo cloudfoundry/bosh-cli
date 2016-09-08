@@ -8,6 +8,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type jobEvaluationContext struct {
@@ -17,6 +18,7 @@ type jobEvaluationContext struct {
 	globalProperties     biproperty.Map
 	deploymentName       string
 	address              string
+	uuidGen              boshuuid.Generator
 	logger               boshlog.Logger
 	logTag               string
 }
@@ -59,6 +61,7 @@ func NewJobEvaluationContext(
 	globalProperties biproperty.Map,
 	deploymentName string,
 	address string,
+	uuidGen boshuuid.Generator,
 	logger boshlog.Logger,
 ) bierbrenderer.TemplateEvaluationContext {
 	return jobEvaluationContext{
@@ -68,6 +71,7 @@ func NewJobEvaluationContext(
 		globalProperties:     globalProperties,
 		deploymentName:       deploymentName,
 		address:              address,
+		uuidGen:              uuidGen,
 		logTag:               "jobEvaluationContext",
 		logger:               logger,
 	}
@@ -75,10 +79,10 @@ func NewJobEvaluationContext(
 
 func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 	defaultProperties := ec.propertyDefaults(ec.releaseJob.Properties)
+	var err error
 
 	context := RootContext{
 		Index:             0,
-		ID:                "unknown",
 		AZ:                "unknown",
 		Bootstrap:         true,
 		JobContext:        jobContext{Name: ec.releaseJob.Name()},
@@ -92,6 +96,11 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 
 	if len(ec.address) > 0 {
 		context.Address = ec.address
+	}
+
+	context.ID, err = ec.uuidGen.Generate()
+	if err != nil {
+		return []byte{}, bosherr.WrapErrorf(err, "Setting job eval context's ID to UUID: %#v", context)
 	}
 
 	ec.logger.Debug(ec.logTag, "Marshalling context %#v", context)

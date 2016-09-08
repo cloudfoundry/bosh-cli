@@ -146,7 +146,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Var
 
 	{
 		erbRenderer := bitemplateerb.NewERBRenderer(deps.FS, deps.CmdRunner, deps.Logger)
-		jobRenderer := bitemplate.NewJobRenderer(erbRenderer, deps.FS, deps.Logger)
+		jobRenderer := bitemplate.NewJobRenderer(erbRenderer, deps.FS, deps.UUIDGen, deps.Logger)
 
 		builderFactory := biinstancestate.NewBuilderFactory(
 			bistatepkg.NewCompiledPackageRepo(biindex.NewInMemoryIndex()),
