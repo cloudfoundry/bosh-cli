@@ -32,7 +32,7 @@ var _ = Describe("Cmd", func() {
 		deps := NewBasicDeps(confUI, logger)
 		deps.FS = fs
 
-		cmd = NewCmd(&BoshOpts{}, nil, deps)
+		cmd = NewCmd(BoshOpts{}, nil, deps)
 	})
 
 	Describe("Execute", func() {
@@ -45,8 +45,17 @@ var _ = Describe("Cmd", func() {
 			Expect(ui.Blocks).To(Equal([]string{"null\n"}))
 		})
 
+		It("prints message if specified", func() {
+			cmd.Opts = &MessageOpts{Message: "output"}
+
+			err := cmd.Execute()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ui.Blocks).To(Equal([]string{"output"}))
+		})
+
 		It("allows to enable json output", func() {
-			cmd.BoshOpts = &BoshOpts{JSONOpt: true}
+			cmd.BoshOpts = BoshOpts{JSONOpt: true}
 			cmd.Opts = &BuildManifestOpts{}
 
 			err := cmd.Execute()
@@ -67,7 +76,7 @@ var _ = Describe("Cmd", func() {
 			}
 
 			It("has color in the output enabled by default", func() {
-				cmd.BoshOpts = &BoshOpts{}
+				cmd.BoshOpts = BoshOpts{}
 				cmd.Opts = &BuildManifestOpts{}
 
 				executeCmdAndPrintTable()
@@ -77,7 +86,7 @@ var _ = Describe("Cmd", func() {
 			})
 
 			It("allows to disable color in the output", func() {
-				cmd.BoshOpts = &BoshOpts{NoColorOpt: true}
+				cmd.BoshOpts = BoshOpts{NoColorOpt: true}
 				cmd.Opts = &BuildManifestOpts{}
 
 				executeCmdAndPrintTable()

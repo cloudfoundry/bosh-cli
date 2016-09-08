@@ -198,27 +198,101 @@ var _ = Describe("Factory", func() {
 
 	Describe("help options", func() {
 		It("has a help flag", func() {
-			_, err := factory.New([]string{"--help"})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Usage:"))
-			Expect(err.Error()).To(ContainSubstring("Application Options:"))
-			Expect(err.Error()).To(ContainSubstring("Available commands:"))
+			cmd, err := factory.New([]string{"--help"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*MessageOpts)
+			Expect(opts.Message).To(ContainSubstring("Usage:"))
+			Expect(opts.Message).To(ContainSubstring("Application Options:"))
+			Expect(opts.Message).To(ContainSubstring("Available commands:"))
 		})
 
 		It("has a command help flag", func() {
-			_, err := factory.New([]string{"ssh", "--help"})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Usage:"))
-			Expect(err.Error()).To(ContainSubstring("Application Options:"))
-			Expect(err.Error()).To(ContainSubstring("[ssh command options]"))
+			cmd, err := factory.New([]string{"ssh", "--help"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*MessageOpts)
+			Expect(opts.Message).To(ContainSubstring("Usage:"))
+			Expect(opts.Message).To(ContainSubstring("Application Options:"))
+			Expect(opts.Message).To(ContainSubstring("[ssh command options]"))
 		})
 	})
 
 	Describe("version option", func() {
 		It("has a version flag", func() {
-			_, err := factory.New([]string{"--version"})
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("version [DEV BUILD]"))
+			cmd, err := factory.New([]string{"--version"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*MessageOpts)
+			Expect(opts.Message).To(Equal("version [DEV BUILD]\n"))
+		})
+	})
+
+	Describe("global options", func() {
+		clearNonGlobalOpts := func(boshOpts BoshOpts) BoshOpts {
+			boshOpts.VersionOpt = nil // can't compare functions
+			boshOpts.UploadRelease = UploadReleaseOpts{}
+			boshOpts.ExportRelease = ExportReleaseOpts{}
+			boshOpts.RunErrand = RunErrandOpts{}
+			boshOpts.Logs = LogsOpts{}
+			boshOpts.InitRelease = InitReleaseOpts{}
+			boshOpts.ResetRelease = ResetReleaseOpts{}
+			boshOpts.GenerateJob = GenerateJobOpts{}
+			boshOpts.GeneratePackage = GeneratePackageOpts{}
+			boshOpts.CreateRelease = CreateReleaseOpts{}
+			boshOpts.FinalizeRelease = FinalizeReleaseOpts{}
+			boshOpts.Blobs = BlobsOpts{}
+			boshOpts.AddBlob = AddBlobOpts{}
+			boshOpts.RemoveBlob = RemoveBlobOpts{}
+			boshOpts.SyncBlobs = SyncBlobsOpts{}
+			boshOpts.UploadBlobs = UploadBlobsOpts{}
+			return boshOpts
+		}
+
+		It("has set of default options", func() {
+			cmd, err := factory.New([]string{"locks"})
+			Expect(err).ToNot(HaveOccurred())
+
+			// Check against entire BoshOpts to avoid future missing assertions
+			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(BoshOpts{
+				ConfigPathOpt: "~/.bosh/config",
+			}))
+		})
+
+		It("can set variety of options", func() {
+			opts := []string{
+				"--config", "config",
+				"--environment", "env",
+				"--ca-cert", "ca-cert",
+				"--user", "user",
+				"--password", "password",
+				"--uaa-client", "uaa-client",
+				"--uaa-client-secret", "uaa-client-secret",
+				"--deployment", "dep",
+				"--json",
+				"--tty",
+				"--no-color",
+				"--non-interactive",
+				"locks",
+			}
+
+			cmd, err := factory.New(opts)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(BoshOpts{
+				ConfigPathOpt:      "config",
+				EnvironmentOpt:     "env",
+				CACertOpt:          "ca-cert",
+				UsernameOpt:        "user",
+				PasswordOpt:        "password",
+				UAAClientOpt:       "uaa-client",
+				UAAClientSecretOpt: "uaa-client-secret",
+				DeploymentOpt:      "dep",
+				JSONOpt:            true,
+				TTYOpt:             true,
+				NoColorOpt:         true,
+				NonInteractiveOpt:  true,
+			}))
 		})
 	})
 })

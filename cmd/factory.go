@@ -18,16 +18,18 @@ func NewFactory(deps BasicDeps) Factory {
 }
 
 func (f Factory) New(args []string) (Cmd, error) {
-	cmd := NewCmd(&BoshOpts{}, nil, f.deps)
+	var cmdOpts interface{}
 
-	cmd.BoshOpts.VersionOpt = func() error {
+	boshOpts := &BoshOpts{}
+
+	boshOpts.VersionOpt = func() error {
 		return &goflags.Error{
 			Type:    goflags.ErrHelp,
-			Message: fmt.Sprintf("version %s", VersionLabel),
+			Message: fmt.Sprintf("version %s\n", VersionLabel),
 		}
 	}
 
-	parser := goflags.NewParser(cmd.BoshOpts, goflags.HelpFlag|goflags.PassDoubleDash)
+	parser := goflags.NewParser(boshOpts, goflags.HelpFlag|goflags.PassDoubleDash)
 
 	parser.CommandHandler = func(command goflags.Commander, extraArgs []string) error {
 		if opts, ok := command.(*SSHOpts); ok {
@@ -38,15 +40,15 @@ func (f Factory) New(args []string) (Cmd, error) {
 		}
 
 		if opts, ok := command.(*EnvironmentOpts); ok {
-			opts.CACert = cmd.BoshOpts.CACertOpt
+			opts.CACert = boshOpts.CACertOpt
 		}
 
 		if opts, ok := command.(*EventsOpts); ok {
-			opts.Deployment = cmd.BoshOpts.DeploymentOpt
+			opts.Deployment = boshOpts.DeploymentOpt
 		}
 
 		if opts, ok := command.(*TasksOpts); ok {
-			opts.Deployment = cmd.BoshOpts.DeploymentOpt
+			opts.Deployment = boshOpts.DeploymentOpt
 		}
 
 		if len(extraArgs) > 0 {
@@ -54,7 +56,7 @@ func (f Factory) New(args []string) (Cmd, error) {
 			return fmt.Errorf(errMsg, command, strings.Join(extraArgs, ", "))
 		}
 
-		cmd.Opts = command
+		cmdOpts = command
 
 		return nil
 	}
@@ -71,5 +73,13 @@ func (f Factory) New(args []string) (Cmd, error) {
 
 	_, err := parser.ParseArgs(args)
 
-	return cmd, err
+	// --help and --version result in errors; turn them into successful output cmds
+	if typedErr, ok := err.(*goflags.Error); ok {
+		if typedErr.Type == goflags.ErrHelp {
+			cmdOpts = &MessageOpts{Message: typedErr.Message}
+			err = nil
+		}
+	}
+
+	return NewCmd(*boshOpts, cmdOpts, f.deps), err
 }

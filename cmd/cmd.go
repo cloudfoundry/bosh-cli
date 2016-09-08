@@ -14,13 +14,13 @@ import (
 )
 
 type Cmd struct {
-	BoshOpts *BoshOpts
+	BoshOpts BoshOpts
 	Opts     interface{}
 
 	deps BasicDeps
 }
 
-func NewCmd(boshOpts *BoshOpts, opts interface{}, deps BasicDeps) Cmd {
+func NewCmd(boshOpts BoshOpts, opts interface{}, deps BasicDeps) Cmd {
 	return Cmd{boshOpts, opts, deps}
 }
 
@@ -67,21 +67,21 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *EnvironmentOpts:
 		sessionFactory := func(config cmdconf.Config) Session {
-			return NewSessionFromOpts(*c.BoshOpts, config, deps.UI, false, false, deps.FS, deps.Logger)
+			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, false, false, deps.FS, deps.Logger)
 		}
 
 		return NewEnvironmentCmd(sessionFactory, c.config(), deps.UI).Run(*opts)
 
 	case *LogInOpts:
 		sessionFactory := func(config cmdconf.Config) Session {
-			return NewSessionFromOpts(*c.BoshOpts, config, deps.UI, true, true, deps.FS, deps.Logger)
+			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, true, deps.FS, deps.Logger)
 		}
 
 		config := c.config()
 		basicStrategy := NewBasicLoginStrategy(sessionFactory, config, deps.UI)
 		uaaStrategy := NewUAALoginStrategy(sessionFactory, config, deps.UI, deps.Logger)
 
-		sess := NewSessionFromOpts(*c.BoshOpts, c.config(), deps.UI, true, true, deps.FS, deps.Logger)
+		sess := NewSessionFromOpts(c.BoshOpts, c.config(), deps.UI, true, true, deps.FS, deps.Logger)
 
 		anonDirector, err := sess.AnonymousDirector()
 		if err != nil {
@@ -92,7 +92,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *LogOutOpts:
 		config := c.config()
-		sess := NewSessionFromOpts(*c.BoshOpts, config, deps.UI, true, true, deps.FS, deps.Logger)
+		sess := NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, true, deps.FS, deps.Logger)
 		return NewLogOutCmd(sess.Environment(), config, deps.UI).Run()
 
 	case *TaskOpts:
@@ -108,7 +108,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *DeploymentOpts:
 		sessionFactory := func(config cmdconf.Config) Session {
-			return NewSessionFromOpts(*c.BoshOpts, config, deps.UI, true, false, deps.FS, deps.Logger)
+			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, false, deps.FS, deps.Logger)
 		}
 
 		return NewDeploymentCmd(sessionFactory, c.config(), deps.UI).Run(*opts)
@@ -303,6 +303,10 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *SyncBlobsOpts:
 		return NewSyncBlobsCmd(c.blobsDir(opts.Directory)).Run()
 
+	case *MessageOpts:
+		deps.UI.PrintBlock(opts.Message)
+		return nil
+
 	default:
 		return fmt.Errorf("Unhandled command: %#v", c.Opts)
 	}
@@ -340,7 +344,7 @@ func (c Cmd) config() cmdconf.Config {
 }
 
 func (c Cmd) session() Session {
-	return NewSessionFromOpts(*c.BoshOpts, c.config(), c.deps.UI, true, true, c.deps.FS, c.deps.Logger)
+	return NewSessionFromOpts(c.BoshOpts, c.config(), c.deps.UI, true, true, c.deps.FS, c.deps.Logger)
 }
 
 func (c Cmd) director() boshdir.Director {

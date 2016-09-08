@@ -745,6 +745,11 @@ type UploadBlobsOpts struct {
 	cmd
 }
 
+// MessageOpts is used for version and help flags
+type MessageOpts struct {
+	Message string
+}
+
 type cmd struct{}
 
 // Execute is necessary for each command to be goflags.Commander
