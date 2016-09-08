@@ -10,6 +10,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type JobRenderer interface {
@@ -19,6 +20,7 @@ type JobRenderer interface {
 type jobRenderer struct {
 	erbRenderer bierbrenderer.ERBRenderer
 	fs          boshsys.FileSystem
+	uuidGen     boshuuid.Generator
 	logger      boshlog.Logger
 	logTag      string
 }
@@ -26,18 +28,20 @@ type jobRenderer struct {
 func NewJobRenderer(
 	erbRenderer bierbrenderer.ERBRenderer,
 	fs boshsys.FileSystem,
+	uuidGen boshuuid.Generator,
 	logger boshlog.Logger,
 ) JobRenderer {
 	return &jobRenderer{
 		erbRenderer: erbRenderer,
 		fs:          fs,
+		uuidGen:     uuidGen,
 		logger:      logger,
 		logTag:      "jobRenderer",
 	}
 }
 
 func (r *jobRenderer) Render(releaseJob bireljob.Job, releaseJobProperties *biproperty.Map, jobProperties biproperty.Map, globalProperties biproperty.Map, deploymentName string, address string) (RenderedJob, error) {
-	context := NewJobEvaluationContext(releaseJob, releaseJobProperties, jobProperties, globalProperties, deploymentName, address, r.logger)
+	context := NewJobEvaluationContext(releaseJob, releaseJobProperties, jobProperties, globalProperties, deploymentName, address, r.uuidGen, r.logger)
 
 	sourcePath := releaseJob.ExtractedPath()
 

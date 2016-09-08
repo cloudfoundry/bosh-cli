@@ -9,6 +9,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -16,21 +17,22 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/templatescompiler"
 	"github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
+	bierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
+	"github.com/cloudfoundry/bosh-utils/errors"
 )
 
 var _ = Describe("JobEvaluationContext", func() {
 	var (
-		generatedContext RootContext
-
 		releaseJob              *boshreljob.Job
 		jobProperties           *biproperty.Map
 		instanceGroupProperties biproperty.Map
 		deploymentProperties    biproperty.Map
+		erbRenderer             erbrenderer.ERBRenderer
+		jobEvaluationContext    bierbrenderer.TemplateEvaluationContext
+		uuidGen                 *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
-		generatedContext = RootContext{}
-
 		releaseJob = boshreljob.NewJob(NewResource("fake-job-name", "", nil))
 		releaseJob.Properties = map[string]boshreljob.PropertyDefinition{
 			"property1.subproperty1": boshreljob.PropertyDefinition{
@@ -45,50 +47,70 @@ var _ = Describe("JobEvaluationContext", func() {
 
 		instanceGroupProperties = biproperty.Map{}
 
+		uuidGen = fakeuuid.NewFakeGenerator()
 		jobProperties = nil
 	})
 
 	JustBeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		jobEvaluationContext := NewJobEvaluationContext(
+		jobEvaluationContext = NewJobEvaluationContext(
 			*releaseJob,
 			jobProperties,
 			instanceGroupProperties,
 			deploymentProperties,
 			"fake-deployment-name",
 			"1.2.3.4",
+			uuidGen,
 			logger,
 		)
+	})
 
+	act := func() RootContext {
 		generatedJSON, err := jobEvaluationContext.MarshalJSON()
 		Expect(err).ToNot(HaveOccurred())
 
+		generatedContext := RootContext{}
+
 		err = json.Unmarshal(generatedJSON, &generatedContext)
 		Expect(err).ToNot(HaveOccurred())
-	})
+
+		return generatedContext
+	}
 
 	It("it has a network context section with empty IP", func() {
+		generatedContext := act()
 		Expect(generatedContext.NetworkContexts["default"].IP).To(Equal(""))
 	})
 
 	It("it has address available in the spec", func() {
+		generatedContext := act()
 		Expect(generatedContext.Address).To(Equal("1.2.3.4"))
 	})
 
 	It("it has id available in the spec", func() {
-		Expect(generatedContext.ID).To(Equal("unknown"))
+		uuidGen.GeneratedUUID = "fake-uuid"
+		generatedContext := act()
+		Expect(generatedContext.ID).To(Equal("fake-uuid"))
 	})
 
 	It("it has az available in the spec", func() {
+		generatedContext := act()
 		Expect(generatedContext.AZ).To(Equal("unknown"))
 	})
 
 	It("it has bootstrap available in the spec", func() {
+		generatedContext := act()
 		Expect(generatedContext.Bootstrap).To(Equal(true))
 	})
-
-	var erbRenderer erbrenderer.ERBRenderer
+	Context("when the UUID generator raise an error", func() {
+		It("it raises an error", func() {
+			uuidGen.GenerateError = errors.Error("boom")
+			_, err := jobEvaluationContext.MarshalJSON()
+			Expect(err).To(HaveOccurred())
+			Ω(err.Error()).Should(ContainSubstring("Setting job eval context's ID to UUID"))
+		})
+	})
 
 	getValueFor := func(key string) string {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
@@ -117,6 +139,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			deploymentProperties,
 			"fake-deployment-name",
 			"1.2.3.4",
+			uuidGen,
 			logger,
 		)
 
@@ -143,8 +166,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		})
 
 		It("gives precedence to the instance group value", func() {
-			Expect(getValueFor("property1.subproperty1")).
-				To(Equal("value-from-cluster-properties"))
+			Expect(getValueFor("property1.subproperty1")).To(Equal("value-from-cluster-properties"))
 		})
 	})
 
@@ -158,8 +180,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		})
 
 		It("uses the value", func() {
-			Expect(getValueFor("property1.subproperty1")).
-				To(Equal("value-from-global-properties"))
+			Expect(getValueFor("property1.subproperty1")).To(Equal("value-from-global-properties"))
 		})
 	})
 
@@ -173,15 +194,13 @@ var _ = Describe("JobEvaluationContext", func() {
 		})
 
 		It("uses the value", func() {
-			Expect(getValueFor("property1.subproperty1")).
-				To(Equal("value-from-cluster-properties"))
+			Expect(getValueFor("property1.subproperty1")).To(Equal("value-from-cluster-properties"))
 		})
 	})
 
 	Context("when a property is not set", func() {
 		It("uses the release's default value", func() {
-			Expect(getValueFor("property1.subproperty1")).
-				To(Equal("spec-default"))
+			Expect(getValueFor("property1.subproperty1")).To(Equal("spec-default"))
 		})
 	})
 
@@ -195,8 +214,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		})
 
 		It("uses the value", func() {
-			Expect(getValueFor("property1.subproperty1")).
-				To(Equal("job-property"))
+			Expect(getValueFor("property1.subproperty1")).To(Equal("job-property"))
 		})
 
 		Context("when the instance group also sets a property", func() {
@@ -207,8 +225,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			}
 
 			It("is not used", func() {
-				Expect(getValueFor("property2.subproperty2")).
-					To(Equal("spec-default"))
+				Expect(getValueFor("property2.subproperty2")).To(Equal("spec-default"))
 			})
 		})
 	})
@@ -228,8 +245,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			})
 
 			It("does not use the instance group value", func() {
-				Expect(getValueFor("property1.subproperty1")).
-					To(Equal("spec-default"))
+				Expect(getValueFor("property1.subproperty1")).To(Equal("spec-default"))
 			})
 		})
 
@@ -243,8 +259,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			})
 
 			It("does not use the instance group value", func() {
-				Expect(getValueFor("property1.subproperty1")).
-					To(Equal("spec-default"))
+				Expect(getValueFor("property1.subproperty1")).To(Equal("spec-default"))
 			})
 		})
 	})

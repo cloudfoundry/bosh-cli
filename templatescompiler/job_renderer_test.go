@@ -56,12 +56,12 @@ var _ = Describe("JobRenderer", func() {
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		context = NewJobEvaluationContext(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", logger)
+		context = NewJobEvaluationContext(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", nil, logger)
 
 		fakeERBRenderer = fakebirender.NewFakeERBRender()
 
 		fs = fakesys.NewFakeFileSystem()
-		jobRenderer = NewJobRenderer(fakeERBRenderer, fs, logger)
+		jobRenderer = NewJobRenderer(fakeERBRenderer, fs, nil, logger)
 
 		fakeERBRenderer.SetRenderBehavior(
 			filepath.Join(srcPath, "templates/director.yml.erb"),
