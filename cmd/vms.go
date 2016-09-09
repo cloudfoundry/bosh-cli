@@ -18,11 +18,6 @@ func NewVMsCmd(ui boshui.UI, director boshdir.Director) VMsCmd {
 }
 
 func (c VMsCmd) Run(opts VMsOpts) error {
-	deployments, err := c.director.Deployments()
-	if err != nil {
-		return err
-	}
-
 	instTable := InstanceTable{
 		// VMs command should always show VM specifics
 		VMDetails: true,
@@ -32,32 +27,59 @@ func (c VMsCmd) Run(opts VMsOpts) error {
 		Vitals:  opts.Vitals,
 	}
 
-	for _, dep := range deployments {
-		vmInfos, err := dep.VMInfos()
+	if len(opts.Deployment) > 0 {
+		dep, err := c.director.FindDeployment(opts.Deployment)
 		if err != nil {
 			return err
 		}
 
-		table := boshtbl.Table{
-			Title: fmt.Sprintf("Deployment '%s'", dep.Name()),
-
-			Content: "vms",
-
-			HeaderVals: instTable.AsValues(instTable.Header()),
-
-			SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
-
-			Notes: []string{"(*) Bootstrap node"},
-		}
-
-		for _, info := range vmInfos {
-			row := instTable.AsValues(instTable.ForVMInfo(info))
-
-			table.Rows = append(table.Rows, row)
-		}
-
-		c.ui.PrintTable(table)
+		return c.printDeployment(dep, instTable)
 	}
+
+	return c.printDeployments(instTable)
+}
+
+func (c VMsCmd) printDeployments(instTable InstanceTable) error {
+	deployments, err := c.director.Deployments()
+	if err != nil {
+		return err
+	}
+
+	for _, dep := range deployments {
+		err := c.printDeployment(dep, instTable)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable) error {
+	vmInfos, err := dep.VMInfos()
+	if err != nil {
+		return err
+	}
+
+	table := boshtbl.Table{
+		Title: fmt.Sprintf("Deployment '%s'", dep.Name()),
+
+		Content: "vms",
+
+		HeaderVals: instTable.AsValues(instTable.Header()),
+
+		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+
+		Notes: []string{"(*) Bootstrap node"},
+	}
+
+	for _, info := range vmInfos {
+		row := instTable.AsValues(instTable.ForVMInfo(info))
+
+		table.Rows = append(table.Rows, row)
+	}
+
+	c.ui.PrintTable(table)
 
 	return nil
 }
