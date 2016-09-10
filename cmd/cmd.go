@@ -214,8 +214,8 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *InstancesOpts:
 		return NewInstancesCmd(deps.UI, c.deployment()).Run(*opts)
 
-	case *VMResurrectionOpts:
-		return NewVMResurrectionCmd(c.director()).Run(*opts)
+	case *UpdateResurrectionOpts:
+		return NewUpdateResurrectionCmd(c.director()).Run(*opts)
 
 	case *DeployOpts:
 		director, deployment := c.directorAndDeployment()

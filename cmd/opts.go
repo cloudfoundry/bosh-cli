@@ -101,10 +101,10 @@ type BoshOpts struct {
 	DeleteSnapshots DeleteSnapshotsOpts `command:"delete-snapshots" alias:"delsnaps" description:"Delete all snapshots in a deployment"`
 
 	// Instances
-	Instances      InstancesOpts      `command:"instances"       alias:"is" alias:"ins"         description:"List all instances in a deployment"`
-	VMs            VMsOpts            `command:"vms"                                            description:"List all VMs in all deployments"`
-	VMResurrection VMResurrectionOpts `command:"vm-resurrection" alias:"vmr"                    description:"Enable/disable resurrection for a given VM"`
-	CloudCheck     CloudCheckOpts     `command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"`
+	Instances          InstancesOpts          `command:"instances"       alias:"is" alias:"ins"         description:"List all instances in a deployment"`
+	VMs                VMsOpts                `command:"vms"                                            description:"List all VMs in all deployments"`
+	UpdateResurrection UpdateResurrectionOpts `command:"update-resurrection"                            description:"Enable/disable resurrection"`
+	CloudCheck         CloudCheckOpts         `command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"`
 
 	// Instance management
 	Logs     LogsOpts     `command:"logs"     description:"Fetch logs from instance(s)"`
@@ -524,12 +524,12 @@ type CloudCheckOpts struct {
 }
 
 // Instance management
-type VMResurrectionOpts struct {
-	Args VMResurrectionArgs `positional-args:"true" required:"true"`
+type UpdateResurrectionOpts struct {
+	Args UpdateResurrectionArgs `positional-args:"true" required:"true"`
 	cmd
 }
 
-type VMResurrectionArgs struct {
+type UpdateResurrectionArgs struct {
 	Enabled BoolArg `positional-arg-name:"on|off"`
 }
 

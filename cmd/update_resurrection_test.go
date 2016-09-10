@@ -10,24 +10,24 @@ import (
 	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
 )
 
-var _ = Describe("VMResurrectionCmd", func() {
+var _ = Describe("UpdateResurrectionCmd", func() {
 	var (
 		director *fakedir.FakeDirector
-		command  VMResurrectionCmd
+		command  UpdateResurrectionCmd
 	)
 
 	BeforeEach(func() {
 		director = &fakedir.FakeDirector{}
-		command = NewVMResurrectionCmd(director)
+		command = NewUpdateResurrectionCmd(director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts VMResurrectionOpts
+			opts UpdateResurrectionOpts
 		)
 
 		BeforeEach(func() {
-			opts = VMResurrectionOpts{}
+			opts = UpdateResurrectionOpts{}
 		})
 
 		act := func() error { return command.Run(opts) }

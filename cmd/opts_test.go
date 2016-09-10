@@ -511,10 +511,10 @@ var _ = Describe("Opts", func() {
 				})
 			})
 
-			Describe("VMResurrection", func() {
+			Describe("UpdateResurrection", func() {
 				It("contains desired values", func() {
-					Expect(getStructTagForName("VMResurrection", opts)).To(Equal(
-						`command:"vm-resurrection" alias:"vmr"                    description:"Enable/disable resurrection for a given VM"`,
+					Expect(getStructTagForName("UpdateResurrection", opts)).To(Equal(
+						`command:"update-resurrection"                            description:"Enable/disable resurrection"`,
 					))
 				})
 			})
@@ -1960,11 +1960,11 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("VMResurrectionOpts", func() {
-		var opts *VMResurrectionOpts
+	Describe("UpdateResurrectionOpts", func() {
+		var opts *UpdateResurrectionOpts
 
 		BeforeEach(func() {
-			opts = &VMResurrectionOpts{}
+			opts = &UpdateResurrectionOpts{}
 		})
 
 		Describe("Tags (these are used by go flags)", func() {
@@ -1980,11 +1980,11 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("VMResurrectionArgs", func() {
-		var opts *VMResurrectionArgs
+	Describe("UpdateResurrectionArgs", func() {
+		var opts *UpdateResurrectionArgs
 
 		BeforeEach(func() {
-			opts = &VMResurrectionArgs{}
+			opts = &UpdateResurrectionArgs{}
 		})
 
 		Describe("Tags (these are used by go flags)", func() {
