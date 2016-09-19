@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	bicmd "github.com/cloudfoundry/bosh-cli/cmd"
+	"github.com/cppforlife/go-patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -39,9 +40,10 @@ var _ = Describe("DeleteCmd", func() {
 		)
 
 		var newDeleteCmd = func() *bicmd.DeleteCmd {
-			doGetFunc := func(path string, vars boshtpl.Variables) bicmd.DeploymentDeleter {
+			doGetFunc := func(path string, vars boshtpl.Variables, ops patch.Ops) bicmd.DeploymentDeleter {
 				Expect(path).To(Equal(deploymentManifestPath))
 				Expect(vars).To(Equal(boshtpl.Variables{"key": "value"}))
+				Expect(ops).To(Equal(patch.Ops{patch.ErrOp{}}))
 				return mockDeploymentDeleter
 			}
 
@@ -70,6 +72,11 @@ var _ = Describe("DeleteCmd", func() {
 				VarFlags: bicmd.VarFlags{
 					VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
 				},
+				OpsFlags: bicmd.OpsFlags{
+					OpsFiles: []bicmd.OpsFileArg{
+						{Ops: patch.Ops{patch.ErrOp{}}},
+					},
+				},
 			})
 		})
 
@@ -83,6 +90,11 @@ var _ = Describe("DeleteCmd", func() {
 					},
 					VarFlags: bicmd.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
+					},
+					OpsFlags: bicmd.OpsFlags{
+						OpsFiles: []bicmd.OpsFileArg{
+							{Ops: patch.Ops{patch.ErrOp{}}},
+						},
 					},
 				})
 				Expect(returnedErr).To(Equal(err))

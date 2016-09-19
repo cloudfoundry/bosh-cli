@@ -13,6 +13,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/cppforlife/go-patch"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -354,7 +355,7 @@ cloud_provider:
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
-			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables) DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables, deploymentOps patch.Ops) DeploymentPreparer {
 				// todo: figure this out?
 				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				vmRepo = biconfig.NewVMRepo(deploymentStateService)
@@ -427,6 +428,7 @@ cloud_provider:
 					deployer,
 					deploymentManifestPath,
 					deploymentVars,
+					deploymentOps,
 					cpiInstaller,
 					releaseFetcher,
 					stemcellFetcher,

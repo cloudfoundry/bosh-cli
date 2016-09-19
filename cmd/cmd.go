@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/cppforlife/go-patch"
+
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
@@ -47,16 +49,16 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	switch opts := c.Opts.(type) {
 	case *CreateEnvOpts:
-		envProvider := func(path string, vars boshtpl.Variables) DeploymentPreparer {
-			return NewEnvFactory(deps, path, vars).Preparer()
+		envProvider := func(path string, vars boshtpl.Variables, ops patch.Ops) DeploymentPreparer {
+			return NewEnvFactory(deps, path, vars, ops).Preparer()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
 		return NewCreateEnvCmd(deps.UI, envProvider).Run(stage, *opts)
 
 	case *DeleteEnvOpts:
-		envProvider := func(path string, vars boshtpl.Variables) DeploymentDeleter {
-			return NewEnvFactory(deps, path, vars).Deleter()
+		envProvider := func(path string, vars boshtpl.Variables, ops patch.Ops) DeploymentDeleter {
+			return NewEnvFactory(deps, path, vars, ops).Deleter()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)

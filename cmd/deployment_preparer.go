@@ -5,6 +5,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/go-patch"
 
 	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
@@ -38,6 +39,7 @@ func NewDeploymentPreparer(
 	deployer bidepl.Deployer,
 	deploymentManifestPath string,
 	deploymentVars boshtpl.Variables,
+	deploymentOps patch.Ops,
 	cpiInstaller bicpirel.CpiInstaller,
 	releaseFetcher boshinst.ReleaseFetcher,
 	stemcellFetcher bistemcell.Fetcher,
@@ -62,6 +64,7 @@ func NewDeploymentPreparer(
 		deployer:                                deployer,
 		deploymentManifestPath:                  deploymentManifestPath,
 		deploymentVars:                          deploymentVars,
+		deploymentOps:                           deploymentOps,
 		cpiInstaller:                            cpiInstaller,
 		releaseFetcher:                          releaseFetcher,
 		stemcellFetcher:                         stemcellFetcher,
@@ -88,6 +91,7 @@ type DeploymentPreparer struct {
 	deployer                                bidepl.Deployer
 	deploymentManifestPath                  string
 	deploymentVars                          boshtpl.Variables
+	deploymentOps                           patch.Ops
 	cpiInstaller                            bicpirel.CpiInstaller
 	releaseFetcher                          boshinst.ReleaseFetcher
 	stemcellFetcher                         bistemcell.Fetcher
@@ -140,7 +144,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 	)
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var releaseSetManifest birelsetmanifest.Manifest
-		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath, c.deploymentVars)
+		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath, c.deploymentVars, c.deploymentOps)
 		if err != nil {
 			return err
 		}
@@ -157,7 +161,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 			return err
 		}
 
-		deploymentManifest, manifestSHA, err = c.deploymentManifestParser.GetDeploymentManifest(c.deploymentManifestPath, c.deploymentVars, releaseSetManifest, stage)
+		deploymentManifest, manifestSHA, err = c.deploymentManifestParser.GetDeploymentManifest(c.deploymentManifestPath, c.deploymentVars, c.deploymentOps, releaseSetManifest, stage)
 		if err != nil {
 			return err
 		}

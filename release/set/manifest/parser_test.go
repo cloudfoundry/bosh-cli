@@ -5,6 +5,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/cppforlife/go-patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -57,7 +58,7 @@ name: unknown-keys-are-ignored
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -68,7 +69,7 @@ name: unknown-keys-are-ignored
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
+			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -89,7 +90,7 @@ releases:
 			})
 
 			It("does not change release url", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentManifest).To(Equal(manifest.Manifest{
@@ -121,7 +122,7 @@ releases:
 			})
 
 			It("changes release url to include absolute path to manifest directory", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentManifest).To(Equal(manifest.Manifest{
@@ -149,7 +150,7 @@ releases:
 		})
 
 		It("does not change the release url", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(deploymentManifest).To(Equal(manifest.Manifest{
@@ -165,7 +166,7 @@ releases:
 	})
 
 	It("parses release set manifest from combo manifest file", func() {
-		deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
+		deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(deploymentManifest).To(Equal(manifest.Manifest{
@@ -202,13 +203,18 @@ releases:
   sha1: release-sha1
 `)
 
-		deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{"url": "file://file.tgz"})
+		vars := boshtpl.Variables{"url": "file://file.tgz"}
+		ops := patch.Ops{
+			patch.ReplaceOp{Path: patch.MustNewPointerFromString("/releases/0/name"), Value: "replaced-name"},
+		}
+
+		deploymentManifest, err := parser.Parse(comboManifestPath, vars, ops)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(deploymentManifest).To(Equal(manifest.Manifest{
 			Releases: []boshman.ReleaseRef{
 				{
-					Name: "release-name",
+					Name: "replaced-name",
 					URL:  "file:///path/to/manifest/file.tgz",
 					SHA1: "release-sha1",
 				},
@@ -221,7 +227,7 @@ releases:
 			{Err: errors.New("couldn't validate that")},
 		})
 
-		_, err := parser.Parse(comboManifestPath, boshtpl.Variables{})
+		_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Validating release set manifest: couldn't validate that"))
 	})

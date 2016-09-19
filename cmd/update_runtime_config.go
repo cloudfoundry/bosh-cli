@@ -22,7 +22,7 @@ func NewUpdateRuntimeConfigCmd(ui boshui.UI, director boshdir.Director, uploadRe
 func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.RuntimeConfig.Bytes)
 
-	runtimeConfigBytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
+	runtimeConfigBytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOps())
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating runtime config")
 	}

@@ -4,6 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cppforlife/go-patch"
 	"gopkg.in/yaml.v2"
 
 	biutil "github.com/cloudfoundry/bosh-cli/common/util"
@@ -12,7 +13,7 @@ import (
 )
 
 type Parser interface {
-	Parse(string, boshtpl.Variables) (Manifest, error)
+	Parse(string, boshtpl.Variables, patch.Ops) (Manifest, error)
 }
 
 type parser struct {
@@ -37,7 +38,7 @@ func NewParser(fs boshsys.FileSystem, logger boshlog.Logger, validator Validator
 	}
 }
 
-func (p *parser) Parse(path string, vars boshtpl.Variables) (Manifest, error) {
+func (p *parser) Parse(path string, vars boshtpl.Variables, ops patch.Ops) (Manifest, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
@@ -45,7 +46,7 @@ func (p *parser) Parse(path string, vars boshtpl.Variables) (Manifest, error) {
 
 	tpl := boshtpl.NewTemplate(contents)
 
-	bytes, err := tpl.Evaluate(vars)
+	bytes, err := tpl.Evaluate(vars, ops)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Evaluating manifest")
 	}

@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"errors"
 
+	"github.com/cppforlife/go-patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -50,7 +51,7 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("cloud-config\n")))
 		})
 
-		It("updated runtime config with evaluated vars", func() {
+		It("updates templated cloud config", func() {
 			opts.Args.CloudConfig = FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
@@ -64,13 +65,19 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 				{Vars: boshtpl.Variables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
+			opts.OpsFiles = []OpsFileArg{
+				{Ops: patch.Ops{patch.ReplaceOp{
+					Path: patch.MustNewPointerFromString("/xyz"), Value: "val"},
+				}},
+			}
+
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(director.UpdateCloudConfigCallCount()).To(Equal(1))
 
 			bytes := director.UpdateCloudConfigArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\n")))
+			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
 		It("does not stop if confirmation is rejected", func() {

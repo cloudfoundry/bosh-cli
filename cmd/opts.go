@@ -138,9 +138,8 @@ type BoshOpts struct {
 // Original bosh-init
 type CreateEnvOpts struct {
 	Args CreateEnvArgs `positional-args:"true" required:"true"`
-
 	VarFlags
-
+	OpsFlags
 	cmd
 }
 
@@ -150,9 +149,8 @@ type CreateEnvArgs struct {
 
 type DeleteEnvOpts struct {
 	Args DeleteEnvArgs `positional-args:"true" required:"true"`
-
 	VarFlags
-
+	OpsFlags
 	cmd
 }
 
@@ -244,6 +242,7 @@ type BackUpArgs struct {
 type BuildManifestOpts struct {
 	Args BuildManifestArgs `positional-args:"true" required:"true"`
 	VarFlags
+	OpsFlags
 	cmd
 }
 
@@ -258,9 +257,8 @@ type CloudConfigOpts struct {
 
 type UpdateCloudConfigOpts struct {
 	Args UpdateCloudConfigArgs `positional-args:"true" required:"true"`
-
 	VarFlags
-
+	OpsFlags
 	cmd
 }
 
@@ -275,9 +273,8 @@ type RuntimeConfigOpts struct {
 
 type UpdateRuntimeConfigOpts struct {
 	Args UpdateRuntimeConfigArgs `positional-args:"true" required:"true"`
-
 	VarFlags
-
+	OpsFlags
 	cmd
 }
 
@@ -299,6 +296,7 @@ type DeployOpts struct {
 	Args DeployArgs `positional-args:"true" required:"true"`
 
 	VarFlags
+	OpsFlags
 
 	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
 

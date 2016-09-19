@@ -5,6 +5,8 @@ import (
 	gopath "path"
 	"time"
 
+	"github.com/cppforlife/go-patch"
+
 	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
@@ -38,6 +40,7 @@ type envFactory struct {
 	deps         BasicDeps
 	manifestPath string
 	manifestVars boshtpl.Variables
+	manifestOps  patch.Ops
 
 	deploymentStateService     biconfig.DeploymentStateService
 	installationManifestParser ReleaseSetAndInstallationManifestParser
@@ -63,11 +66,12 @@ type envFactory struct {
 	deploymentRecord   bidepl.Record
 }
 
-func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Variables) *envFactory {
+func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Variables, manifestOps patch.Ops) *envFactory {
 	f := envFactory{
 		deps:         deps,
 		manifestPath: manifestPath,
 		manifestVars: manifestVars,
+		manifestOps:  manifestOps,
 	}
 
 	f.releaseManager = boshinst.NewReleaseManager(deps.Logger)
@@ -206,6 +210,7 @@ func (f *envFactory) Preparer() DeploymentPreparer {
 		),
 		f.manifestPath,
 		f.manifestVars,
+		f.manifestOps,
 		f.cpiInstaller,
 		f.releaseFetcher,
 		f.stemcellFetcher,
@@ -240,6 +245,7 @@ func (f *envFactory) Deleter() DeploymentDeleter {
 		),
 		f.manifestPath,
 		f.manifestVars,
+		f.manifestOps,
 		f.cpiInstaller,
 		boshinst.NewUninstaller(f.deps.FS, f.deps.Logger),
 		f.releaseFetcher,

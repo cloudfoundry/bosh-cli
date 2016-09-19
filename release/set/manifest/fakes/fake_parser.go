@@ -1,6 +1,8 @@
 package fakes
 
 import (
+	"github.com/cppforlife/go-patch"
+
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 )
@@ -15,7 +17,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string, vars boshtpl.Variables) (birelsetmanifest.Manifest, error) {
+func (p *FakeParser) Parse(path string, vars boshtpl.Variables, ops patch.Ops) (birelsetmanifest.Manifest, error) {
 	p.ParsePath = path
 	return p.ParseManifest, p.ParseErr
 }

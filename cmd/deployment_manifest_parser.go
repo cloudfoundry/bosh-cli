@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cppforlife/go-patch"
 
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"
@@ -12,7 +13,7 @@ import (
 )
 
 type DeploymentManifestParser interface {
-	GetDeploymentManifest(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error)
+	GetDeploymentManifest(path string, vars boshtpl.Variables, ops patch.Ops, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error)
 }
 
 type deploymentManifestParser struct {
@@ -35,7 +36,7 @@ func NewDeploymentManifestParser(
 	}
 }
 
-func (y deploymentManifestParser) GetDeploymentManifest(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error) {
+func (y deploymentManifestParser) GetDeploymentManifest(path string, vars boshtpl.Variables, ops patch.Ops, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error) {
 	var deploymentManifest bideplmanifest.Manifest
 	var manifestSHA string
 
@@ -47,9 +48,9 @@ func (y deploymentManifestParser) GetDeploymentManifest(path string, vars boshtp
 			return bosherr.WrapErrorf(err, "Evaluating manifest")
 		}
 
-		interpolatedTemplate, err := template.Evaluate(vars)
+		interpolatedTemplate, err := template.Evaluate(vars, ops)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Interpolating manifest '%s'", path)
+			return bosherr.WrapErrorf(err, "Evaluating manifest '%s'", path)
 		}
 
 		manifestSHA = interpolatedTemplate.SHA()

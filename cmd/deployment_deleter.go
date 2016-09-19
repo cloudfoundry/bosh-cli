@@ -5,6 +5,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/go-patch"
 
 	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
@@ -35,6 +36,7 @@ func NewDeploymentDeleter(
 	deploymentManagerFactory bidepl.ManagerFactory,
 	deploymentManifestPath string,
 	deploymentVars boshtpl.Variables,
+	deploymentOps patch.Ops,
 	cpiInstaller bicpirel.CpiInstaller,
 	cpiUninstaller biinstall.Uninstaller,
 	releaseFetcher boshinst.ReleaseFetcher,
@@ -54,6 +56,7 @@ func NewDeploymentDeleter(
 		deploymentManagerFactory:                deploymentManagerFactory,
 		deploymentManifestPath:                  deploymentManifestPath,
 		deploymentVars:                          deploymentVars,
+		deploymentOps:                           deploymentOps,
 		cpiInstaller:                            cpiInstaller,
 		cpiUninstaller:                          cpiUninstaller,
 		releaseFetcher:                          releaseFetcher,
@@ -75,6 +78,7 @@ type deploymentDeleter struct {
 	deploymentManagerFactory                bidepl.ManagerFactory
 	deploymentManifestPath                  string
 	deploymentVars                          boshtpl.Variables
+	deploymentOps                           patch.Ops
 	cpiInstaller                            bicpirel.CpiInstaller
 	cpiUninstaller                          biinstall.Uninstaller
 	releaseFetcher                          boshinst.ReleaseFetcher
@@ -117,7 +121,7 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var releaseSetManifest birelsetmanifest.Manifest
-		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath, c.deploymentVars)
+		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath, c.deploymentVars, c.deploymentOps)
 		if err != nil {
 			return err
 		}

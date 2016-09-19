@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"errors"
 
+	"github.com/cppforlife/go-patch"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -54,7 +55,7 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("runtime: config\n")))
 		})
 
-		It("updates runtime config with evaluated vars", func() {
+		It("updates templated runtime config", func() {
 			opts.Args.RuntimeConfig = FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
@@ -68,13 +69,19 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 				{Vars: boshtpl.Variables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
+			opts.OpsFiles = []OpsFileArg{
+				{Ops: patch.Ops{patch.ReplaceOp{
+					Path: patch.MustNewPointerFromString("/xyz"), Value: "val"},
+				}},
+			}
+
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(1))
 
 			bytes := director.UpdateRuntimeConfigArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\n")))
+			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
 		It("uploads remote releases skipping releases without url", func() {

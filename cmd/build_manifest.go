@@ -16,7 +16,7 @@ func NewBuildManifestCmd(ui boshui.UI) BuildManifestCmd {
 func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
-	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOps())
 	if err != nil {
 		return err
 	}

@@ -1,22 +1,24 @@
 package manifest
 
 import (
+	"encoding/pem"
+	"strings"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/cppforlife/go-patch"
+	"gopkg.in/yaml.v2"
 
-	"encoding/pem"
 	biutil "github.com/cloudfoundry/bosh-cli/common/util"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
-	"gopkg.in/yaml.v2"
-	"strings"
 )
 
 type Parser interface {
-	Parse(string, boshtpl.Variables, birelsetmanifest.Manifest) (Manifest, error)
+	Parse(string, boshtpl.Variables, patch.Ops, birelsetmanifest.Manifest) (Manifest, error)
 }
 
 type parser struct {
@@ -58,7 +60,7 @@ func NewParser(fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger b
 	}
 }
 
-func (p *parser) Parse(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest) (Manifest, error) {
+func (p *parser) Parse(path string, vars boshtpl.Variables, ops patch.Ops, releaseSetManifest birelsetmanifest.Manifest) (Manifest, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
@@ -66,7 +68,7 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, releaseSetManifest b
 
 	tpl := boshtpl.NewTemplate(contents)
 
-	bytes, err := tpl.Evaluate(vars)
+	bytes, err := tpl.Evaluate(vars, ops)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Evaluating manifest")
 	}

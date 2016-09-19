@@ -1,10 +1,12 @@
 package template_test
 
 import (
+	"errors"
+
+	"github.com/cppforlife/go-patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"errors"
 	. "github.com/cloudfoundry/bosh-cli/deployment/template"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -60,10 +62,16 @@ resource_pools:
 
 				template, err := templateFactory.NewDeploymentTemplateFromPath(path)
 				Expect(err).ToNot(HaveOccurred())
-				interpolatedTemplate, err := template.Evaluate(boshtpl.Variables{"url": "file://stemcell.tgz"})
+
+				vars := boshtpl.Variables{"url": "file://stemcell.tgz"}
+				ops := patch.Ops{
+					patch.ReplaceOp{Path: patch.MustNewPointerFromString("/name"), Value: "replaced-name"},
+				}
+
+				interpolatedTemplate, err := template.Evaluate(vars, ops)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(string(interpolatedTemplate.Content())).To(Equal(`name: fake-deployment-manifest
+				Expect(string(interpolatedTemplate.Content())).To(Equal(`name: replaced-name
 resource_pools:
 - name: fake-resource-pool-name
   stemcell:

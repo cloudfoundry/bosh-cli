@@ -26,7 +26,7 @@ func NewDeployCmd(ui boshui.UI, deployment boshdir.Deployment, uploadReleaseCmd 
 func (c DeployCmd) Run(opts DeployOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
-	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables())
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOps())
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating manifest")
 	}

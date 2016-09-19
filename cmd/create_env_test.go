@@ -11,6 +11,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/cppforlife/go-patch"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -312,7 +313,7 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		JustBeforeEach(func() {
-			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables) bicmd.DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables, deploymentOps patch.Ops) bicmd.DeploymentPreparer {
 				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
@@ -370,6 +371,7 @@ var _ = Describe("CreateEnvCmd", func() {
 					mockDeployer,
 					deploymentManifestPath,
 					deploymentVars,
+					deploymentOps,
 					cpiInstaller,
 					releaseFetcher,
 					stemcellFetcher,

@@ -12,6 +12,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/cppforlife/go-patch"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -203,6 +204,7 @@ cloud_provider:
 				mockDeploymentManagerFactory,
 				deploymentManifestPath,
 				boshtpl.Variables{},
+				patch.Ops{},
 				cpiInstaller,
 				mockCpiUninstaller,
 				releaseFetcher,

@@ -1,8 +1,10 @@
 package template
 
 import (
-	"gopkg.in/yaml.v2"
 	"regexp"
+
+	"github.com/cppforlife/go-patch"
+	"gopkg.in/yaml.v2"
 )
 
 var templateFormatRegex = regexp.MustCompile(`^\(\(([-\w\p{L}]+)\)\)$`)
@@ -15,20 +17,26 @@ func NewTemplate(bytes []byte) Template {
 	return Template{bytes: bytes}
 }
 
-func (t Template) Evaluate(vars Variables) ([]byte, error) {
-	var templateYaml interface{}
+func (t Template) Evaluate(vars Variables, ops patch.Ops) ([]byte, error) {
+	var obj interface{}
 
-	err := yaml.Unmarshal(t.bytes, &templateYaml)
+	err := yaml.Unmarshal(t.bytes, &obj)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	compiledTemplate := t.interpolate(templateYaml, vars)
-
-	bytes, err := yaml.Marshal(compiledTemplate)
+	obj, err = ops.Apply(obj)
 	if err != nil {
 		return []byte{}, err
 	}
+
+	obj = t.interpolate(obj, vars)
+
+	bytes, err := yaml.Marshal(obj)
+	if err != nil {
+		return []byte{}, err
+	}
+
 	return bytes, nil
 }
 
@@ -36,14 +44,13 @@ func (t Template) interpolate(node interface{}, vars Variables) interface{} {
 	switch node.(type) {
 	case map[interface{}]interface{}:
 		nodeMap := node.(map[interface{}]interface{})
+
 		for k, v := range nodeMap {
 			evaluatedValue := t.interpolate(v, vars)
-			keyAsString, ok := k.(string)
-			if ok {
-				newKey, ok := t.needsEvaluation(keyAsString)
-				if ok {
-					foundVarKey, exists := vars[newKey]
-					if exists {
+
+			if keyAsString, ok := k.(string); ok {
+				if newKey, eval := t.needsEvaluation(keyAsString); eval {
+					if foundVarKey, exists := vars[newKey]; exists {
 						delete(nodeMap, k)
 						k = foundVarKey
 					}
@@ -52,20 +59,20 @@ func (t Template) interpolate(node interface{}, vars Variables) interface{} {
 
 			nodeMap[k] = evaluatedValue
 		}
+
 	case []interface{}:
 		nodeArray := node.([]interface{})
+
 		for i, x := range nodeArray {
 			nodeArray[i] = t.interpolate(x, vars)
 		}
+
 	case string:
-		key, found := t.needsEvaluation(node.(string))
-		if found {
-			foundVar, exists := vars[key]
-			if exists {
+		if key, found := t.needsEvaluation(node.(string)); found {
+			if foundVar, exists := vars[key]; exists {
 				return foundVar
 			}
 		}
-	default:
 	}
 
 	return node
@@ -73,8 +80,10 @@ func (t Template) interpolate(node interface{}, vars Variables) interface{} {
 
 func (t Template) needsEvaluation(value string) (string, bool) {
 	found := templateFormatRegex.FindAllSubmatch([]byte(value), 1)
+
 	if len(found) != 0 && len(found[0]) != 0 {
 		return string(found[0][1]), true
 	}
+
 	return "", false
 }

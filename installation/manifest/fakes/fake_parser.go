@@ -1,6 +1,8 @@
 package fakes
 
 import (
+	"github.com/cppforlife/go-patch"
+
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
@@ -17,7 +19,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string, vars boshtpl.Variables, releaseSetManifest birelsetmanifest.Manifest) (biinstallmanifest.Manifest, error) {
+func (p *FakeParser) Parse(path string, vars boshtpl.Variables, ops patch.Ops, releaseSetManifest birelsetmanifest.Manifest) (biinstallmanifest.Manifest, error) {
 	p.ParsePath = path
 	p.ReleaseSetManifest = releaseSetManifest
 	return p.ParseManifest, p.ParseErr

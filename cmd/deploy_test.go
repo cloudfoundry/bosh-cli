@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"errors"
 
+	"github.com/cppforlife/go-patch"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -77,7 +78,7 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
-		It("deploys manifest with evaluated vars", func() {
+		It("deploys templated manifest", func() {
 			opts.Args.Manifest = FileBytesArg{
 				Bytes: []byte("name: dep\nname1: ((name1))\nname2: ((name2))\n"),
 			}
@@ -91,13 +92,19 @@ var _ = Describe("DeployCmd", func() {
 				{Vars: boshtpl.Variables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
+			opts.OpsFiles = []OpsFileArg{
+				{Ops: patch.Ops{patch.ReplaceOp{
+					Path: patch.MustNewPointerFromString("/xyz"), Value: "val"},
+				}},
+			}
+
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(deployment.UpdateCallCount()).To(Equal(1))
 
 			bytes, _ := deployment.UpdateArgsForCall(0)
-			Expect(bytes).To(Equal([]byte("name: dep\nname1: val1-from-kv\nname2: val2-from-file\n")))
+			Expect(bytes).To(Equal([]byte("name: dep\nname1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
 		It("does not deploy if name specified in the manifest does not match deployment's name", func() {
