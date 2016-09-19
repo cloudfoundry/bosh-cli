@@ -2,7 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"

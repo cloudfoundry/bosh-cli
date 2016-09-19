@@ -3,7 +3,7 @@ package cmd_test
 import (
 	"errors"
 
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

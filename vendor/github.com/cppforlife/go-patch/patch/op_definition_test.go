@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cppforlife/go-patch"
+	. "github.com/cppforlife/go-patch/patch"
 )
 
 var _ = Describe("NewOpsFromDefinitions", func() {

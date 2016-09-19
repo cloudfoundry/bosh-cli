@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"

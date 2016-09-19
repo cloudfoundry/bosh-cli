@@ -5,7 +5,7 @@ import (
   . "github.com/onsi/gomega"
   "gopkg.in/yaml.v2"
 
-  . "github.com/cppforlife/go-patch"
+  . "github.com/cppforlife/go-patch/patch"
 )
 
 var _ = Describe("Integration", func() {

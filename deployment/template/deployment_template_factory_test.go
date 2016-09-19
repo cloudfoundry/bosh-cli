@@ -3,7 +3,7 @@ package template_test
 import (
 	"errors"
 
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

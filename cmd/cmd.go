@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"

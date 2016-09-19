@@ -3,7 +3,7 @@ package template
 import (
 	"regexp"
 
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 	"gopkg.in/yaml.v2"
 )
 

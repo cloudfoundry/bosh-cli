@@ -5,7 +5,7 @@ import (
 	gopath "path"
 	"time"
 
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 
 	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"

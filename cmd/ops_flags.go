@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 )
 
 // Shared

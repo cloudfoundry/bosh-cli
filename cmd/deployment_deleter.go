@@ -5,7 +5,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 
 	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"

@@ -3,7 +3,7 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 	"gopkg.in/yaml.v2"
 )
 

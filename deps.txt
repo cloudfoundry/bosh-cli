@@ -23,4 +23,4 @@ github.com/jmespath/go-jmespath:0b12d6b
 github.com/charlievieth/fs/...:1c3b3f1
 github.com/hashicorp/errwrap/...:7554cd9
 github.com/bmatcuk/doublestar/...:044df0a
-github.com/cppforlife/go-patch:30148a3
+github.com/cppforlife/go-patch/patch:85bc9ad

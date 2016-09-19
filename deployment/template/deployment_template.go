@@ -4,7 +4,7 @@ import (
 	gosha512 "crypto/sha512"
 	"fmt"
 
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 )

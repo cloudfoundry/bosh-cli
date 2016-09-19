@@ -9,7 +9,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 	"gopkg.in/yaml.v2"
 
 	biutil "github.com/cloudfoundry/bosh-cli/common/util"

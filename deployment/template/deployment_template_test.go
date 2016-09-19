@@ -1,7 +1,7 @@
 package template_test
 
 import (
-	"github.com/cppforlife/go-patch"
+	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
