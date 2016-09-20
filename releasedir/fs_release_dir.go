@@ -1,6 +1,7 @@
 package releasedir
 
 import (
+	"fmt"
 	"os"
 	gopath "path"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
+	"github.com/pivotal-golang/clock"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 )
@@ -34,7 +36,8 @@ type FSReleaseDir struct {
 	releaseReader        boshrel.Reader
 	releaseArchiveWriter boshrel.Writer
 
-	fs boshsys.FileSystem
+	timeService clock.Clock
+	fs          boshsys.FileSystem
 }
 
 func NewFSReleaseDir(
@@ -48,6 +51,7 @@ func NewFSReleaseDir(
 	finalIndicies boshrel.ArchiveIndicies,
 	releaseReader boshrel.Reader,
 	releaseArchiveWriter boshrel.Writer,
+	timeService clock.Clock,
 	fs boshsys.FileSystem,
 ) FSReleaseDir {
 	return FSReleaseDir{
@@ -65,7 +69,8 @@ func NewFSReleaseDir(
 		releaseReader:        releaseReader,
 		releaseArchiveWriter: releaseArchiveWriter,
 
-		fs: fs,
+		timeService: timeService,
+		fs:          fs,
 	}
 }
 
@@ -139,8 +144,6 @@ func (d FSReleaseDir) NextFinalVersion(name string) (semver.Version, error) {
 }
 
 func (d FSReleaseDir) NextDevVersion(name string, timestamp bool) (semver.Version, error) {
-	// todo timestamp
-
 	lastVer, _, err := d.lastDevOrFinalVersion(name)
 	if err != nil {
 		return semver.Version{}, err
@@ -151,6 +154,20 @@ func (d FSReleaseDir) NextDevVersion(name string, timestamp bool) (semver.Versio
 	incVer, err := lastVer.IncrementPostRelease(DefaultDevPostRelease)
 	if err != nil {
 		return semver.Version{}, bosherr.WrapErrorf(err, "Incrementing last dev version")
+	}
+
+	if timestamp {
+		ts := d.timeService.Now().Unix()
+
+		postRelease, err := semver.NewVersionSegmentFromString(fmt.Sprintf("dev.%d", ts))
+		if err != nil {
+			panic(fmt.Sprintf("Failed to build post release version segment from timestamp (%d): %s", ts, err))
+		}
+
+		incVer, err = semver.NewVersion(incVer.Release.Copy(), incVer.PreRelease.Copy(), postRelease)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to build version: %s", err))
+		}
 	}
 
 	return incVer, nil

@@ -10,6 +10,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
@@ -26,8 +27,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 	BeforeEach(func() {
 		releaseReader = &fakerel.FakeReader{}
 		releaseDir = &fakereldir.FakeReleaseDir{}
+
+		releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
+			Expect(dir).To(Equal(DirOrCWDArg{Path: "/dir"}))
+			return releaseReader, releaseDir
+		}
+
 		ui = &fakeui.FakeUI{}
-		command = NewCreateReleaseCmd(releaseReader, releaseDir, ui)
+
+		command = NewCreateReleaseCmd(releaseDirFactory, ui)
 	})
 
 	Describe("Run", func() {
@@ -37,7 +45,9 @@ var _ = Describe("CreateReleaseCmd", func() {
 		)
 
 		BeforeEach(func() {
-			opts = CreateReleaseOpts{}
+			opts = CreateReleaseOpts{
+				Directory: DirOrCWDArg{Path: "/dir"},
+			}
 
 			release = &fakerel.FakeRelease{
 				NameStub:               func() string { return "rel" },
@@ -49,7 +59,10 @@ var _ = Describe("CreateReleaseCmd", func() {
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error {
+			_, err := command.Run(opts)
+			return err
+		}
 
 		Context("when manifest path is provided", func() {
 			BeforeEach(func() {

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
@@ -10,17 +9,21 @@ import (
 )
 
 type DeployCmd struct {
-	ui               boshui.UI
-	deployment       boshdir.Deployment
-	uploadReleaseCmd ReleaseUploadingCmd
+	ui              boshui.UI
+	deployment      boshdir.Deployment
+	releaseUploader ReleaseUploader
 }
 
-type ReleaseUploadingCmd interface {
-	Run(UploadReleaseOpts) error
+type ReleaseUploader interface {
+	UploadReleases([]byte) ([]byte, error)
 }
 
-func NewDeployCmd(ui boshui.UI, deployment boshdir.Deployment, uploadReleaseCmd ReleaseUploadingCmd) DeployCmd {
-	return DeployCmd{ui: ui, deployment: deployment, uploadReleaseCmd: uploadReleaseCmd}
+func NewDeployCmd(
+	ui boshui.UI,
+	deployment boshdir.Deployment,
+	releaseUploader ReleaseUploader,
+) DeployCmd {
+	return DeployCmd{ui, deployment, releaseUploader}
 }
 
 func (c DeployCmd) Run(opts DeployOpts) error {
@@ -31,14 +34,14 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return bosherr.WrapErrorf(err, "Evaluating manifest")
 	}
 
-	man, err := boshdir.NewManifestFromBytes(bytes)
+	err = c.checkDeploymentName(bytes)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Checking manifest")
+		return err
 	}
 
-	if man.Name != c.deployment.Name() {
-		errMsg := "Expected manifest to specify deployment name '%s' but was '%s'"
-		return bosherr.Errorf(errMsg, c.deployment.Name(), man.Name)
+	bytes, err = c.releaseUploader.UploadReleases(bytes)
+	if err != nil {
+		return err
 	}
 
 	err = c.printManifestDiff(bytes, opts)
@@ -51,13 +54,6 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return err
 	}
 
-	for _, rel := range man.Releases {
-		err = c.uploadRelease(rel)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Uploading release '%s/%s'", rel.Name, rel.Version)
-		}
-	}
-
 	updateOpts := boshdir.UpdateOpts{
 		Recreate:  opts.Recreate,
 		Fix:       opts.Fix,
@@ -67,25 +63,18 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 	return c.deployment.Update(bytes, updateOpts)
 }
 
-func (c DeployCmd) uploadRelease(rel boshdir.ManifestRelease) error {
-	ver, err := semver.NewVersionFromString(rel.Version)
+func (c DeployCmd) checkDeploymentName(bytes []byte) error {
+	manifest, err := boshdir.NewManifestFromBytes(bytes)
 	if err != nil {
-		return err
+		return bosherr.WrapErrorf(err, "Parsing manifest")
 	}
 
-	opts := UploadReleaseOpts{
-		Name:    rel.Name,
-		Version: VersionArg(ver),
-
-		Args: UploadReleaseArgs{URL: URLArg(rel.URL)},
-		SHA1: rel.SHA1,
+	if manifest.Name != c.deployment.Name() {
+		errMsg := "Expected manifest to specify deployment name '%s' but was '%s'"
+		return bosherr.Errorf(errMsg, c.deployment.Name(), manifest.Name)
 	}
 
-	if opts.Args.URL.IsEmpty() {
-		return nil
-	}
-
-	return c.uploadReleaseCmd.Run(opts)
+	return nil
 }
 
 func (c DeployCmd) printManifestDiff(bytes []byte, opts DeployOpts) error {

@@ -27,7 +27,8 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
 		uploadReleaseCmd = &fakecmd.FakeReleaseUploadingCmd{}
-		command = NewUpdateRuntimeConfigCmd(ui, director, uploadReleaseCmd)
+		releaseManager := NewReleaseManager(nil, uploadReleaseCmd)
+		command = NewUpdateRuntimeConfigCmd(ui, director, releaseManager)
 	})
 
 	Describe("Run", func() {

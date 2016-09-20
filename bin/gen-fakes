@@ -9,6 +9,7 @@ counterfeiter cmd SessionContext
 counterfeiter cmd Downloader
 counterfeiter cmd LoginStrategy
 counterfeiter cmd ReleaseUploadingCmd
+counterfeiter cmd ReleaseCreatingCmd
 counterfeiter cmd/config Config
 
 counterfeiter deployment/manifest Parser

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
 )
 
 type BoshOpts struct {
@@ -392,6 +393,8 @@ type UploadReleaseOpts struct {
 	Version VersionArg `long:"version"  description:"Version used in existence check (is not used with local release file)"`
 
 	SHA1 string `long:"sha1" description:"SHA1 of the remote release (is not used with local files)"`
+
+	Release boshrel.Release
 
 	cmd
 }

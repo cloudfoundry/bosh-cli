@@ -14,6 +14,7 @@ import (
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
@@ -32,8 +33,14 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 	BeforeEach(func() {
 		releaseReader = &fakerel.FakeReader{}
-		releaseWriter = &fakerel.FakeWriter{}
 		releaseDir = &fakereldir.FakeReleaseDir{}
+
+		releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
+			Expect(dir).To(Equal(DirOrCWDArg{Path: "/dir"}))
+			return releaseReader, releaseDir
+		}
+
+		releaseWriter = &fakerel.FakeWriter{}
 		director = &fakedir.FakeDirector{}
 		fs = fakesys.NewFakeFileSystem()
 
@@ -50,14 +57,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 		ui = &fakeui.FakeUI{}
 
-		command = NewUploadReleaseCmd(
-			releaseReader,
-			releaseWriter,
-			releaseDir,
-			director,
-			releaseArchiveFactory,
-			ui,
-		)
+		command = NewUploadReleaseCmd(releaseDirFactory, releaseWriter, director, releaseArchiveFactory, ui)
 	})
 
 	Describe("Run", func() {
@@ -66,7 +66,9 @@ var _ = Describe("UploadReleaseCmd", func() {
 		)
 
 		BeforeEach(func() {
-			opts = UploadReleaseOpts{}
+			opts = UploadReleaseOpts{
+				Directory: DirOrCWDArg{Path: "/dir"},
+			}
 		})
 
 		act := func() error { return command.Run(opts) }
@@ -90,7 +92,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads given release even if reader is nil", func() {
-				command = NewUploadReleaseCmd(nil, nil, nil, director, nil, ui)
+				command = NewUploadReleaseCmd(nil, nil, director, nil, ui)
 
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
@@ -210,7 +212,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("returns an error if reader is nil", func() {
-				command = NewUploadReleaseCmd(nil, nil, nil, director, nil, ui)
+				command = NewUploadReleaseCmd(nil, nil, director, nil, ui)
 
 				err := command.Run(opts)
 				Expect(err).To(HaveOccurred())

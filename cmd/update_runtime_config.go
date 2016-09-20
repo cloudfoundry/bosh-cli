@@ -2,7 +2,6 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
@@ -10,26 +9,26 @@ import (
 )
 
 type UpdateRuntimeConfigCmd struct {
-	ui               boshui.UI
-	director         boshdir.Director
-	uploadReleaseCmd ReleaseUploadingCmd
+	ui              boshui.UI
+	director        boshdir.Director
+	releaseUploader ReleaseUploader
 }
 
-func NewUpdateRuntimeConfigCmd(ui boshui.UI, director boshdir.Director, uploadReleaseCmd ReleaseUploadingCmd) UpdateRuntimeConfigCmd {
-	return UpdateRuntimeConfigCmd{ui: ui, director: director, uploadReleaseCmd: uploadReleaseCmd}
+func NewUpdateRuntimeConfigCmd(ui boshui.UI, director boshdir.Director, releaseUploader ReleaseUploader) UpdateRuntimeConfigCmd {
+	return UpdateRuntimeConfigCmd{ui: ui, director: director, releaseUploader: releaseUploader}
 }
 
 func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.RuntimeConfig.Bytes)
 
-	runtimeConfigBytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOps())
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOps())
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating runtime config")
 	}
 
-	runtimeConfig, err := boshdir.NewRuntimeConfigManifestFromBytes(runtimeConfigBytes)
+	bytes, err = c.releaseUploader.UploadReleases(bytes)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Checking runtime config")
+		return err
 	}
 
 	err = c.ui.AskForConfirmation()
@@ -37,33 +36,5 @@ func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 		return err
 	}
 
-	for _, rel := range runtimeConfig.Releases {
-		err = c.uploadRelease(rel)
-		if err != nil {
-			return bosherr.WrapErrorf(err, "Uploading release '%s/%s'", rel.Name, rel.Version)
-		}
-	}
-
-	return c.director.UpdateRuntimeConfig(runtimeConfigBytes)
-}
-
-func (c UpdateRuntimeConfigCmd) uploadRelease(rel boshdir.RuntimeConfigManifestRelease) error {
-	ver, err := semver.NewVersionFromString(rel.Version)
-	if err != nil {
-		return err
-	}
-
-	opts := UploadReleaseOpts{
-		Name:    rel.Name,
-		Version: VersionArg(ver),
-
-		Args: UploadReleaseArgs{URL: URLArg(rel.URL)},
-		SHA1: rel.SHA1,
-	}
-
-	if opts.Args.URL.IsEmpty() {
-		return nil
-	}
-
-	return c.uploadReleaseCmd.Run(opts)
+	return c.director.UpdateRuntimeConfig(bytes)
 }

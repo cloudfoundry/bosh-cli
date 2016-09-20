@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/pivotal-golang/clock"
 
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
@@ -21,10 +22,11 @@ type Provider struct {
 	releaseProvider      boshrel.Provider
 	sha1calc             bicrypto.SHA1Calculator
 
-	cmdRunner boshsys.CmdRunner
-	uuidGen   boshuuid.Generator
-	fs        boshsys.FileSystem
-	logger    boshlog.Logger
+	cmdRunner   boshsys.CmdRunner
+	uuidGen     boshuuid.Generator
+	timeService clock.Clock
+	fs          boshsys.FileSystem
+	logger      boshlog.Logger
 }
 
 func NewProvider(
@@ -35,6 +37,7 @@ func NewProvider(
 	sha1calc bicrypto.SHA1Calculator,
 	cmdRunner boshsys.CmdRunner,
 	uuidGen boshuuid.Generator,
+	timeService clock.Clock,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) Provider {
@@ -46,6 +49,7 @@ func NewProvider(
 		sha1calc:             sha1calc,
 		cmdRunner:            cmdRunner,
 		uuidGen:              uuidGen,
+		timeService:          timeService,
 		fs:                   fs,
 		logger:               logger,
 	}
@@ -69,7 +73,7 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 	archiveWriter := p.releaseProvider.NewArchiveWriter()
 
 	return NewFSReleaseDir(dirPath, p.newConfig(dirPath), gitRepo, blobsDir,
-		generator, devReleases, finalReleases, finalIndex, releaseReader, archiveWriter, p.fs)
+		generator, devReleases, finalReleases, finalIndex, releaseReader, archiveWriter, p.timeService, p.fs)
 }
 
 func (p Provider) NewFSBlobsDir(dirPath string) FSBlobsDir {

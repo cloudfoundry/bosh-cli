@@ -11,9 +11,8 @@ import (
 )
 
 type UploadReleaseCmd struct {
-	releaseReader        boshrel.Reader
+	releaseDirFactory    func(DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir)
 	releaseArchiveWriter boshrel.Writer
-	releaseDir           boshreldir.ReleaseDir
 
 	director              boshdir.Director
 	releaseArchiveFactory func(string) boshdir.ReleaseArchive
@@ -22,17 +21,15 @@ type UploadReleaseCmd struct {
 }
 
 func NewUploadReleaseCmd(
-	releaseReader boshrel.Reader,
+	releaseDirFactory func(DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir),
 	releaseArchiveWriter boshrel.Writer,
-	releaseDir boshreldir.ReleaseDir,
 	director boshdir.Director,
 	releaseArchiveFactory func(string) boshdir.ReleaseArchive,
 	ui boshui.UI,
 ) UploadReleaseCmd {
 	return UploadReleaseCmd{
-		releaseReader:        releaseReader,
+		releaseDirFactory:    releaseDirFactory,
 		releaseArchiveWriter: releaseArchiveWriter,
-		releaseDir:           releaseDir,
 
 		director:              director,
 		releaseArchiveFactory: releaseArchiveFactory,
@@ -42,15 +39,15 @@ func NewUploadReleaseCmd(
 }
 
 func (c UploadReleaseCmd) Run(opts UploadReleaseOpts) error {
+	if opts.Release != nil {
+		return c.uploadRelease(opts.Release, opts)
+	}
+
 	if opts.Args.URL.IsRemote() {
 		return c.uploadRemote(string(opts.Args.URL), opts)
 	}
 
-	if c.releaseReader == nil {
-		return bosherr.Errorf("Cannot upload non-remote release '%s'", opts.Args.URL)
-	}
-
-	return c.uploadFile(opts.Args.URL.FilePath(), opts.Rebase, opts.Fix)
+	return c.uploadFile(opts)
 }
 
 func (c UploadReleaseCmd) uploadRemote(url string, opts UploadReleaseOpts) error {
@@ -64,32 +61,45 @@ func (c UploadReleaseCmd) uploadRemote(url string, opts UploadReleaseOpts) error
 	return c.director.UploadReleaseURL(url, opts.SHA1, opts.Rebase, opts.Fix)
 }
 
-func (c UploadReleaseCmd) uploadFile(path string, rebase, fix bool) error {
+func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
+	path := opts.Args.URL.FilePath()
+
+	if c.releaseDirFactory == nil {
+		return bosherr.Errorf("Cannot upload non-remote release '%s'", path)
+	}
+
+	releaseReader, releaseDir := c.releaseDirFactory(opts.Directory)
+
 	var release boshrel.Release
 	var err error
 
 	if len(path) > 0 {
-		release, err = c.releaseReader.Read(path)
+		release, err = releaseReader.Read(path)
 		if err != nil {
 			return err
 		}
 	} else {
-		release, err = c.releaseDir.LastRelease()
+		release, err = releaseDir.LastRelease()
 		if err != nil {
 			return err
 		}
 	}
 
-	var pkgFpsToSkip []string
+	return c.uploadRelease(release, opts)
+}
 
-	if !fix {
+func (c UploadReleaseCmd) uploadRelease(release boshrel.Release, opts UploadReleaseOpts) error {
+	var pkgFpsToSkip []string
+	var err error
+
+	if !opts.Fix {
 		pkgFpsToSkip, err = c.director.MatchPackages(release.Manifest(), release.IsCompiled())
 		if err != nil {
 			return err
 		}
 	}
 
-	path, err = c.releaseArchiveWriter.Write(release, pkgFpsToSkip)
+	path, err := c.releaseArchiveWriter.Write(release, pkgFpsToSkip)
 	if err != nil {
 		return err
 	}
@@ -99,7 +109,7 @@ func (c UploadReleaseCmd) uploadFile(path string, rebase, fix bool) error {
 		return bosherr.WrapErrorf(err, "Opening release")
 	}
 
-	return c.director.UploadReleaseFile(file, rebase, fix)
+	return c.director.UploadReleaseFile(file, opts.Rebase, opts.Fix)
 }
 
 func (c UploadReleaseCmd) needToUpload(name, version string, fix bool) (bool, error) {

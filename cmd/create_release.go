@@ -9,44 +9,39 @@ import (
 )
 
 type CreateReleaseCmd struct {
-	releaseManifestReader boshrel.Reader
-	releaseDir            boshreldir.ReleaseDir
-	ui                    boshui.UI
+	releaseDirFactory func(DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir)
+	ui                boshui.UI
 }
 
 func NewCreateReleaseCmd(
-	releaseManifestReader boshrel.Reader,
-	releaseDir boshreldir.ReleaseDir,
+	releaseDirFactory func(DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir),
 	ui boshui.UI,
 ) CreateReleaseCmd {
-	return CreateReleaseCmd{
-		releaseManifestReader: releaseManifestReader,
-		releaseDir:            releaseDir,
-		ui:                    ui,
-	}
+	return CreateReleaseCmd{releaseDirFactory, ui}
 }
 
-func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) error {
+func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) (boshrel.Release, error) {
+	releaseManifestReader, releaseDir := c.releaseDirFactory(opts.Directory)
+	manifestGiven := len(opts.Args.Manifest.Path) > 0
+
 	var release boshrel.Release
 	var err error
 
-	manifestGiven := len(opts.Args.Manifest.Path) > 0
-
 	if manifestGiven {
-		release, err = c.releaseManifestReader.Read(opts.Args.Manifest.Path)
+		release, err = releaseManifestReader.Read(opts.Args.Manifest.Path)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
-		release, err = c.buildRelease(opts)
+		release, err = c.buildRelease(releaseDir, opts)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if opts.Final {
-			err = c.finalizeRelease(opts, release)
+			err = c.finalizeRelease(releaseDir, release, opts)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
@@ -54,24 +49,24 @@ func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) error {
 	var archivePath string
 
 	if manifestGiven || opts.Tarball {
-		archivePath, err = c.releaseDir.BuildReleaseArchive(release)
+		archivePath, err = releaseDir.BuildReleaseArchive(release)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	ReleaseTables{Release: release, ArchivePath: archivePath}.Print(c.ui)
 
-	return nil
+	return release, nil
 }
 
-func (c CreateReleaseCmd) buildRelease(opts CreateReleaseOpts) (boshrel.Release, error) {
+func (c CreateReleaseCmd) buildRelease(releaseDir boshreldir.ReleaseDir, opts CreateReleaseOpts) (boshrel.Release, error) {
 	var err error
 
 	name := opts.Name
 
 	if len(name) == 0 {
-		name, err = c.releaseDir.DefaultName()
+		name, err = releaseDir.DefaultName()
 		if err != nil {
 			return nil, err
 		}
@@ -80,20 +75,20 @@ func (c CreateReleaseCmd) buildRelease(opts CreateReleaseOpts) (boshrel.Release,
 	version := semver.Version(opts.Version)
 
 	if version.Empty() {
-		version, err = c.releaseDir.NextDevVersion(name, opts.TimestampVersion)
+		version, err = releaseDir.NextDevVersion(name, opts.TimestampVersion)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return c.releaseDir.BuildRelease(name, version, opts.Force)
+	return releaseDir.BuildRelease(name, version, opts.Force)
 }
 
-func (c CreateReleaseCmd) finalizeRelease(opts CreateReleaseOpts, release boshrel.Release) error {
+func (c CreateReleaseCmd) finalizeRelease(releaseDir boshreldir.ReleaseDir, release boshrel.Release, opts CreateReleaseOpts) error {
 	version := semver.Version(opts.Version)
 
 	if version.Empty() {
-		version, err := c.releaseDir.NextFinalVersion(release.Name())
+		version, err := releaseDir.NextFinalVersion(release.Name())
 		if err != nil {
 			return err
 		}
@@ -101,5 +96,5 @@ func (c CreateReleaseCmd) finalizeRelease(opts CreateReleaseOpts, release boshre
 		release.SetVersion(version.AsString())
 	}
 
-	return c.releaseDir.FinalizeRelease(release, opts.Force)
+	return releaseDir.FinalizeRelease(release, opts.Force)
 }

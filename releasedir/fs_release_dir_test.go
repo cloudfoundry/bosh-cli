@@ -4,11 +4,14 @@ import (
 	"errors"
 	"os"
 	"syscall"
+	"time"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/clock"
+	"github.com/pivotal-golang/clock/fakeclock"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
@@ -29,6 +32,7 @@ var _ = Describe("FSGenerator", func() {
 		finalIndicies boshrel.ArchiveIndicies
 		reader        *fakerel.FakeReader
 		writer        *fakerel.FakeWriter
+		timeService   clock.Clock
 		fs            *fakesys.FakeFileSystem
 		releaseDir    FSReleaseDir
 	)
@@ -45,20 +49,10 @@ var _ = Describe("FSGenerator", func() {
 		}
 		reader = &fakerel.FakeReader{}
 		writer = &fakerel.FakeWriter{}
+		timeService = fakeclock.NewFakeClock(time.Date(2009, time.November, 10, 23, 1, 2, 333, time.UTC))
 		fs = fakesys.NewFakeFileSystem()
 		releaseDir = NewFSReleaseDir(
-			"/dir",
-			config,
-			gitRepo,
-			blobsDir,
-			gen,
-			devReleases,
-			finalReleases,
-			finalIndicies,
-			reader,
-			writer,
-			fs,
-		)
+			"/dir", config, gitRepo, blobsDir, gen, devReleases, finalReleases, finalIndicies, reader, writer, timeService, fs)
 	})
 
 	Describe("Init", func() {
@@ -88,7 +82,8 @@ var _ = Describe("FSGenerator", func() {
 		})
 
 		It("saves release name to directory base name stripping '-release' suffix from the name", func() {
-			releaseDir := NewFSReleaseDir("/dir-release", config, gitRepo, blobsDir, gen, devReleases, finalReleases, finalIndicies, reader, writer, fs)
+			releaseDir := NewFSReleaseDir(
+				"/dir-release", config, gitRepo, blobsDir, gen, devReleases, finalReleases, finalIndicies, reader, writer, timeService, fs)
 
 			err := releaseDir.Init(true)
 			Expect(err).ToNot(HaveOccurred())
@@ -258,6 +253,18 @@ var _ = Describe("FSGenerator", func() {
 			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("1.1+dev.2").String()))
 		})
 
+		It("returns timestamp-ed dev version for specific release name", func() {
+			devReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+				Expect(name).To(Equal("rel1"))
+				lastVer := semver.MustNewVersionFromString("1.1+dev.1")
+				return &lastVer, nil
+			}
+
+			ver, err := releaseDir.NextDevVersion("rel1", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("1.1+dev.1257894062").String()))
+		})
+
 		It("returns incremented greater dev version compared to final version for specific release name", func() {
 			finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
 				Expect(name).To(Equal("rel1"))
@@ -298,6 +305,12 @@ var _ = Describe("FSGenerator", func() {
 			ver, err := releaseDir.NextDevVersion("rel1", false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("0+dev.1").String()))
+		})
+
+		It("returns first timestamp-ed dev version if there are no dev or final versions", func() {
+			ver, err := releaseDir.NextDevVersion("rel1", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("0+dev.1257894062").String()))
 		})
 
 		It("returns error if cannot find out last dev version", func() {

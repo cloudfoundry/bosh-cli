@@ -13,6 +13,8 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
@@ -21,6 +23,7 @@ var _ = Describe("DeployCmd", func() {
 		ui               *fakeui.FakeUI
 		deployment       *fakedir.FakeDeployment
 		uploadReleaseCmd *fakecmd.FakeReleaseUploadingCmd
+		createReleaseCmd *fakecmd.FakeReleaseCreatingCmd
 		command          DeployCmd
 	)
 
@@ -29,8 +32,21 @@ var _ = Describe("DeployCmd", func() {
 		deployment = &fakedir.FakeDeployment{
 			NameStub: func() string { return "dep" },
 		}
+
 		uploadReleaseCmd = &fakecmd.FakeReleaseUploadingCmd{}
-		command = NewDeployCmd(ui, deployment, uploadReleaseCmd)
+
+		createReleaseCmd = &fakecmd.FakeReleaseCreatingCmd{
+			RunStub: func(opts CreateReleaseOpts) (boshrel.Release, error) {
+				release := &fakerel.FakeRelease{
+					NameStub:    func() string { return opts.Name },
+					VersionStub: func() string { return opts.Name + "-created-ver" },
+				}
+				return release, nil
+			},
+		}
+
+		releaseManager := NewReleaseManager(createReleaseCmd, uploadReleaseCmd)
+		command = NewDeployCmd(ui, deployment, releaseManager)
 	})
 
 	Describe("Run", func() {
@@ -122,15 +138,15 @@ var _ = Describe("DeployCmd", func() {
 			Expect(deployment.UpdateCallCount()).To(Equal(0))
 		})
 
-		It("does not upload releases and deploy if confirmation is rejected", func() {
+		It("creates and uploads releases but does not deploy if confirmation is rejected", func() {
 			opts.Args.Manifest = FileBytesArg{
 				Bytes: []byte(`
 name: dep
 releases:
 - name: capi
   sha1: capi-sha1
-  url: https://capi-url
-  version: 1+capi
+  url: /capi-url
+  version: create
 `),
 			}
 
@@ -140,7 +156,8 @@ releases:
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("stop"))
 
-			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
+			Expect(createReleaseCmd.RunCallCount()).To(Equal(1))
+			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(1))
 			Expect(deployment.UpdateCallCount()).To(Equal(0))
 		})
 
@@ -186,13 +203,16 @@ releases:
   sha1: consul-sha1
   url: https://consul-url
   version: 1+consul
+- name: local
+  url: file:///local-dir
+  version: create
 `),
 			}
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(2))
+			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(3))
 
 			Expect(uploadReleaseCmd.RunArgsForCall(0)).To(Equal(UploadReleaseOpts{
 				Name:    "capi",
@@ -207,6 +227,59 @@ releases:
 				SHA1:    "consul-sha1",
 				Version: VersionArg(semver.MustNewVersionFromString("1+consul")),
 			}))
+
+			arg := uploadReleaseCmd.RunArgsForCall(2)
+			Expect(arg.Release.Name()).To(Equal("local"))
+			Expect(arg).To(Equal(UploadReleaseOpts{Release: arg.Release})) // only Release should be set
+		})
+
+		It("creates releases if version is 'create' skipping others", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte(`
+name: dep
+releases:
+- name: capi
+  url: file:///capi-dir
+  version: create
+- name: rel-without-upload
+  version: 1+rel
+- name: consul
+  url: /consul-dir # doesn't require file://
+  version: create
+`),
+			}
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(createReleaseCmd.RunCallCount()).To(Equal(2))
+
+			Expect(createReleaseCmd.RunArgsForCall(0)).To(Equal(CreateReleaseOpts{
+				Name:             "capi",
+				Directory:        DirOrCWDArg{Path: "/capi-dir"},
+				TimestampVersion: true,
+				Force:            true,
+			}))
+
+			Expect(createReleaseCmd.RunArgsForCall(1)).To(Equal(CreateReleaseOpts{
+				Name:             "consul",
+				Directory:        DirOrCWDArg{Path: "/consul-dir"},
+				TimestampVersion: true,
+				Force:            true,
+			}))
+
+			bytes, _ := deployment.UpdateArgsForCall(0)
+			Expect(bytes).To(Equal([]byte(`name: dep
+releases:
+- name: capi
+  url: file:///capi-dir
+  version: capi-created-ver
+- name: rel-without-upload
+  version: 1+rel
+- name: consul
+  url: /consul-dir
+  version: consul-created-ver
+`)))
 		})
 
 		It("returns error and does not deploy if uploading release fails", func() {
@@ -226,26 +299,6 @@ releases:
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-			Expect(deployment.UpdateCallCount()).To(Equal(0))
-		})
-
-		It("returns an error if release version cannot be parsed", func() {
-			opts.Args.Manifest = FileBytesArg{
-				Bytes: []byte(`
-name: dep
-releases:
-- name: capi
-  sha1: capi-sha1
-  url: https://capi-url
-  version: 1+capi+capi
-`),
-			}
-
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Expected version '1+capi+capi' to match version format"))
-
-			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
 			Expect(deployment.UpdateCallCount()).To(Equal(0))
 		})
 
