@@ -14,15 +14,15 @@ var _ = Describe("OpsFlags", func() {
 			flags := OpsFlags{
 				OpsFiles: []OpsFileArg{
 					{
-						Ops: patch.Ops{
+						Ops: patch.Ops([]patch.Op{
 							patch.RemoveOp{Path: patch.MustNewPointerFromString("/a")},
 							patch.RemoveOp{Path: patch.MustNewPointerFromString("/b")},
-						},
+						}),
 					},
 					{
-						Ops: patch.Ops{
+						Ops: patch.Ops([]patch.Op{
 							patch.RemoveOp{Path: patch.MustNewPointerFromString("/x")},
-						},
+						}),
 					},
 				},
 			}

@@ -66,9 +66,11 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 			}
 
 			opts.OpsFiles = []OpsFileArg{
-				{Ops: patch.Ops{patch.ReplaceOp{
-					Path: patch.MustNewPointerFromString("/xyz"), Value: "val"},
-				}},
+				{
+					Ops: patch.Ops([]patch.Op{
+						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/xyz"), Value: "val"},
+					}),
+				},
 			}
 
 			err := act()

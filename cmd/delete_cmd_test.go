@@ -74,7 +74,7 @@ var _ = Describe("DeleteCmd", func() {
 				},
 				OpsFlags: bicmd.OpsFlags{
 					OpsFiles: []bicmd.OpsFileArg{
-						{Ops: patch.Ops{patch.ErrOp{}}},
+						{Ops: patch.Ops([]patch.Op{patch.ErrOp{}})},
 					},
 				},
 			})
@@ -93,7 +93,7 @@ var _ = Describe("DeleteCmd", func() {
 					},
 					OpsFlags: bicmd.OpsFlags{
 						OpsFiles: []bicmd.OpsFileArg{
-							{Ops: patch.Ops{patch.ErrOp{}}},
+							{Ops: patch.Ops([]patch.Op{patch.ErrOp{}})},
 						},
 					},
 				})
