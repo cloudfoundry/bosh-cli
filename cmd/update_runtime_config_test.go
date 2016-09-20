@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/cppforlife/go-patch/patch"
-	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -17,18 +16,19 @@ import (
 
 var _ = Describe("UpdateRuntimeConfigCmd", func() {
 	var (
-		ui               *fakeui.FakeUI
-		director         *fakedir.FakeDirector
-		uploadReleaseCmd *fakecmd.FakeReleaseUploadingCmd
-		command          UpdateRuntimeConfigCmd
+		ui              *fakeui.FakeUI
+		director        *fakedir.FakeDirector
+		releaseUploader *fakecmd.FakeReleaseUploader
+		command         UpdateRuntimeConfigCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		uploadReleaseCmd = &fakecmd.FakeReleaseUploadingCmd{}
-		releaseManager := NewReleaseManager(nil, uploadReleaseCmd)
-		command = NewUpdateRuntimeConfigCmd(ui, director, releaseManager)
+		releaseUploader = &fakecmd.FakeReleaseUploader{
+			UploadReleasesStub: func(bytes []byte) ([]byte, error) { return bytes, nil },
+		}
+		command = NewUpdateRuntimeConfigCmd(ui, director, releaseUploader)
 	})
 
 	Describe("Run", func() {
@@ -87,44 +87,30 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
-		It("uploads remote releases skipping releases without url", func() {
+		It("uploads releases provided in the manifest after manifest has been interpolated", func() {
 			opts.Args.RuntimeConfig = FileBytesArg{
-				Bytes: []byte(`
-releases:
-- name: capi
-  sha1: capi-sha1
-  url: https://capi-url
-  version: 1+capi
-- name: rel-without-upload
-  version: 1+rel
-- name: consul
-  sha1: consul-sha1
-  url: https://consul-url
-  version: 1+consul
-`),
+				Bytes: []byte("before-upload-config: ((key))"),
 			}
+
+			opts.VarKVs = []boshtpl.VarKV{
+				{Name: "key", Value: "key-val"},
+			}
+
+			releaseUploader.UploadReleasesReturns([]byte("after-upload-config"), nil)
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(2))
+			bytes := releaseUploader.UploadReleasesArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("before-upload-config: key-val\n")))
 
-			Expect(uploadReleaseCmd.RunArgsForCall(0)).To(Equal(UploadReleaseOpts{
-				Name:    "capi",
-				Args:    UploadReleaseArgs{URL: URLArg("https://capi-url")},
-				SHA1:    "capi-sha1",
-				Version: VersionArg(semver.MustNewVersionFromString("1+capi")),
-			}))
+			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(1))
 
-			Expect(uploadReleaseCmd.RunArgsForCall(1)).To(Equal(UploadReleaseOpts{
-				Name:    "consul",
-				Args:    UploadReleaseArgs{URL: URLArg("https://consul-url")},
-				SHA1:    "consul-sha1",
-				Version: VersionArg(semver.MustNewVersionFromString("1+consul")),
-			}))
+			bytes = director.UpdateRuntimeConfigArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("after-upload-config")))
 		})
 
-		It("returns error and does not deploy if uploading release fails", func() {
+		It("returns error and does not deploy if uploading releases fails", func() {
 			opts.Args.RuntimeConfig = FileBytesArg{
 				Bytes: []byte(`
 releases:
@@ -134,32 +120,13 @@ releases:
   version: 1+capi
 `),
 			}
-			uploadReleaseCmd.RunReturns(errors.New("fake-err"))
+
+			releaseUploader.UploadReleasesReturns(nil, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(0))
-		})
-
-		It("returns an error if release version cannot be parsed", func() {
-			opts.Args.RuntimeConfig = FileBytesArg{
-				Bytes: []byte(`
-name: dep
-releases:
-- name: capi
-  sha1: capi-sha1
-  url: https://capi-url
-  version: 1+capi+capi
-`),
-			}
-
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Expected version '1+capi+capi' to match version format"))
-
-			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
 			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(0))
 		})
 
