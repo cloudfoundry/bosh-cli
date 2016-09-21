@@ -96,9 +96,9 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 			// equivalent to /releases/name=?/version
 			Path: patch.NewPointer([]patch.Token{
 				patch.RootToken{},
-				patch.KeyToken{Key: "releases", Expected: true},
+				patch.KeyToken{Key: "releases"},
 				patch.MatchingIndexToken{Key: "name", Value: rel.Name},
-				patch.KeyToken{Key: "version", Expected: true},
+				patch.KeyToken{Key: "version"},
 			}),
 			Value: release.Version(),
 		}

@@ -39,7 +39,7 @@ func NewPointerFromString(str string) (Pointer, error) {
 	tokenStrs := strings.Split(str, "/")
 	tokenStrs = tokenStrs[1:]
 
-	expecting := true
+	optional := false
 
 	for i, tok := range tokenStrs {
 		isLast := i == len(tokenStrs)-1
@@ -64,12 +64,12 @@ func NewPointerFromString(str string) (Pointer, error) {
 		}
 
 		if strings.HasSuffix(tok, "?") {
-			expecting = false
+			optional = true
 		}
 
 		token := KeyToken{
 			Key:      strings.TrimSuffix(tok, "?"),
-			Expected: expecting && !isLast,
+			Optional: optional,
 		}
 
 		tokens = append(tokens, token)
@@ -96,11 +96,9 @@ func (p Pointer) Tokens() []Token { return p.tokens }
 func (p Pointer) String() string {
 	var strs []string
 
-	expecting := true
+	optional := false
 
-	for i, token := range p.tokens {
-		isLast := i == len(p.tokens)-1
-
+	for _, token := range p.tokens {
 		switch typedToken := token.(type) {
 		case RootToken:
 			strs = append(strs, "")
@@ -116,10 +114,10 @@ func (p Pointer) String() string {
 
 		case KeyToken:
 			str := rfc6901Encoder.Replace(typedToken.Key)
-			if !isLast && !typedToken.Expected { // /key?/key2/key3
-				if expecting {
+			if typedToken.Optional { // /key?/key2/key3
+				if !optional {
 					str += "?"
-					expecting = false
+					optional = true
 				}
 			}
 			strs = append(strs, str)

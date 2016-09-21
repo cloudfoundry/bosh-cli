@@ -92,18 +92,20 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 				return nil, newOpMapMismatchTypeErr(tokens[:i+2], obj)
 			}
 
+			var found bool
+
+			obj, found = typedObj[typedToken.Key]
+			if !found && !typedToken.Optional {
+				errMsg := "Expected to find a map key '%s' for path '%s'"
+				return nil, fmt.Errorf(errMsg, typedToken.Key, NewPointer(tokens[:i+2]))
+			}
+
 			if isLast {
 				typedObj[typedToken.Key] = op.Value
 			} else {
-				var found bool
+				prevUpdate = func(newObj interface{}) { typedObj[typedToken.Key] = newObj }
 
-				obj, found = typedObj[typedToken.Key]
 				if !found {
-					if typedToken.Expected {
-						errMsg := "Expected to find a map key '%s' for path '%s'"
-						return nil, fmt.Errorf(errMsg, typedToken.Key, NewPointer(tokens[:i+2]))
-					}
-
 					// Determine what type of value to create based on next token
 					switch tokens[i+2].(type) {
 					case AfterLastIndexToken:
@@ -117,8 +119,6 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 
 					typedObj[typedToken.Key] = obj
 				}
-
-				prevUpdate = func(newObj interface{}) { typedObj[typedToken.Key] = newObj }
 			}
 
 		default:

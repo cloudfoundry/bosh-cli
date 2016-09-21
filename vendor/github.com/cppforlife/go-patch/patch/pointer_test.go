@@ -26,7 +26,7 @@ var testCases = []PointerTestCase{
 	{"/a~01b", []Token{RootToken{}, KeyToken{Key: "a~1b"}}},
 	{"/a~1b", []Token{RootToken{}, KeyToken{Key: "a/b"}}},
 
-	// Speacial chars
+	// Special chars
 	{"/c%d", []Token{RootToken{}, KeyToken{Key: "c%d"}}},
 	{"/e^f", []Token{RootToken{}, KeyToken{Key: "e^f"}}},
 	{"/g|h", []Token{RootToken{}, KeyToken{Key: "g|h"}}},
@@ -35,9 +35,14 @@ var testCases = []PointerTestCase{
 
 	// Maps
 	{"/key", []Token{RootToken{}, KeyToken{Key: "key"}}},
-	{"/key/", []Token{RootToken{}, KeyToken{Key: "key", Expected: true}, KeyToken{Key: ""}}},
-	{"/key/key2", []Token{RootToken{}, KeyToken{Key: "key", Expected: true}, KeyToken{Key: "key2"}}},
-	{"/key?/key2/key3", []Token{RootToken{}, KeyToken{Key: "key"}, KeyToken{Key: "key2"}, KeyToken{Key: "key3"}}},
+	{"/key/", []Token{RootToken{}, KeyToken{Key: "key"}, KeyToken{Key: ""}}},
+	{"/key/key2", []Token{RootToken{}, KeyToken{Key: "key"}, KeyToken{Key: "key2"}}},
+	{"/key?/key2/key3", []Token{
+		RootToken{},
+		KeyToken{Key: "key", Optional: true},
+		KeyToken{Key: "key2", Optional: true},
+		KeyToken{Key: "key3", Optional: true},
+	}},
 
 	// Array indices
 	{"/0", []Token{RootToken{}, IndexToken{0}}},
@@ -45,8 +50,8 @@ var testCases = []PointerTestCase{
 	{"/-2", []Token{RootToken{}, IndexToken{-2}}},
 
 	{"/-", []Token{RootToken{}, AfterLastIndexToken{}}},
-	{"/ary/-", []Token{RootToken{}, KeyToken{Key: "ary", Expected: true}, AfterLastIndexToken{}}},
-	{"/-/key", []Token{RootToken{}, KeyToken{Key: "-", Expected: true}, KeyToken{Key: "key"}}},
+	{"/ary/-", []Token{RootToken{}, KeyToken{Key: "ary"}, AfterLastIndexToken{}}},
+	{"/-/key", []Token{RootToken{}, KeyToken{Key: "-"}, KeyToken{Key: "key"}}},
 
 	// Matching index token
 	{"/name=val", []Token{RootToken{}, MatchingIndexToken{Key: "name", Value: "val"}}},
@@ -89,7 +94,11 @@ var _ = Describe("Pointer.String", func() {
 
 var _ = Describe("Pointer.Tokens", func() {
 	parsingTestCases := []PointerTestCase{
-		{"/key/key2?", []Token{RootToken{}, KeyToken{Key: "key", Expected: true}, KeyToken{Key: "key2"}}},
+		{"/key/key2?", []Token{
+			RootToken{},
+			KeyToken{Key: "key"},
+			KeyToken{Key: "key2", Optional: true},
+		}},
 	}
 
 	parsingTestCases = append(parsingTestCases, testCases...)

@@ -85,17 +85,21 @@ func (op RemoveOp) Apply(doc interface{}) (interface{}, error) {
 				return nil, newOpMapMismatchTypeErr(tokens[:i+2], obj)
 			}
 
+			var found bool
+
+			obj, found = typedObj[typedToken.Key]
+			if !found {
+				if typedToken.Optional {
+					return doc, nil
+				}
+
+				errMsg := "Expected to find a map key '%s' for path '%s'"
+				return nil, fmt.Errorf(errMsg, typedToken.Key, NewPointer(tokens[:i+2]))
+			}
+
 			if isLast {
 				delete(typedObj, typedToken.Key)
 			} else {
-				var found bool
-
-				obj, found = typedObj[typedToken.Key]
-				if !found {
-					errMsg := "Expected to find a map key '%s' for path '%s'"
-					return nil, fmt.Errorf(errMsg, typedToken.Key, NewPointer(tokens[:i+2]))
-				}
-
 				prevUpdate = func(newObj interface{}) { typedObj[typedToken.Key] = newObj }
 			}
 

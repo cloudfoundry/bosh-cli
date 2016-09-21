@@ -17,5 +17,5 @@ type MatchingIndexToken struct {
 
 type KeyToken struct {
 	Key      string
-	Expected bool
+	Optional bool
 }

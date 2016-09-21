@@ -73,7 +73,7 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			opts.OpsFiles = []OpsFileArg{
 				{
 					Ops: patch.Ops([]patch.Op{
-						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/xyz"), Value: "val"},
+						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/xyz?"), Value: "val"},
 					}),
 				},
 			}

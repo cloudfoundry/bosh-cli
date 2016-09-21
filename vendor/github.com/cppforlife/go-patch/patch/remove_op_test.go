@@ -204,7 +204,7 @@ var _ = Describe("RemoveOp.Apply", func() {
 				"xyz": "xyz",
 			}
 
-			res, err := RemoveOp{Path: MustNewPointerFromString("/abc/efg")}.Apply(doc)
+			res, err := RemoveOp{Path: MustNewPointerFromString("/abc/efg?")}.Apply(doc)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(res).To(Equal(map[interface{}]interface{}{
@@ -213,10 +213,36 @@ var _ = Describe("RemoveOp.Apply", func() {
 			}))
 		})
 
+		It("removes super nested map key that does not exist", func() {
+			doc := map[interface{}]interface{}{
+				"abc": map[interface{}]interface{}{
+					"efg": map[interface{}]interface{}{}, // wrong level
+				},
+			}
+
+			res, err := RemoveOp{Path: MustNewPointerFromString("/abc/opr?/efg")}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(res).To(Equal(map[interface{}]interface{}{
+				"abc": map[interface{}]interface{}{
+					"efg": map[interface{}]interface{}{}, // wrong level
+				},
+			}))
+		})
+
 		It("returns an error if parent key does not exist", func() {
 			doc := map[interface{}]interface{}{"xyz": "xyz"}
 
 			_, err := RemoveOp{Path: MustNewPointerFromString("/abc/efg")}.Apply(doc)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal(
+				"Expected to find a map key 'abc' for path '/abc'"))
+		})
+
+		It("returns an error if key does not exist", func() {
+			doc := map[interface{}]interface{}{"xyz": "xyz"}
+
+			_, err := RemoveOp{Path: MustNewPointerFromString("/abc")}.Apply(doc)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(
 				"Expected to find a map key 'abc' for path '/abc'"))

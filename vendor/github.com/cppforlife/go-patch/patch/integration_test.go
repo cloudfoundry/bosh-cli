@@ -1,16 +1,16 @@
 package patch_test
 
 import (
-  . "github.com/onsi/ginkgo"
-  . "github.com/onsi/gomega"
-  "gopkg.in/yaml.v2"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"gopkg.in/yaml.v2"
 
-  . "github.com/cppforlife/go-patch/patch"
+	. "github.com/cppforlife/go-patch/patch"
 )
 
 var _ = Describe("Integration", func() {
-  It("works in a basic way", func() {
-    inStr := `
+	It("works in a basic way", func() {
+		inStr := `
 releases:
 - name: capi
   version: 0.1
@@ -26,12 +26,12 @@ instance_groups:
   instances: 0
 `
 
-    var in interface{}
+		var in interface{}
 
-    err := yaml.Unmarshal([]byte(inStr), &in)
-    Expect(err).ToNot(HaveOccurred())
+		err := yaml.Unmarshal([]byte(inStr), &in)
+		Expect(err).ToNot(HaveOccurred())
 
-    ops1Str := `
+		ops1Str := `
 - type: replace
   path: /instance_groups/name=cloud_controller/instances
   value: 1
@@ -56,34 +56,34 @@ instance_groups:
     instances: 2
 `
 
-    var opDefs1 []OpDefinition
+		var opDefs1 []OpDefinition
 
-    err = yaml.Unmarshal([]byte(ops1Str), &opDefs1)
-    Expect(err).ToNot(HaveOccurred())
+		err = yaml.Unmarshal([]byte(ops1Str), &opDefs1)
+		Expect(err).ToNot(HaveOccurred())
 
-    ops1, err := NewOpsFromDefinitions(opDefs1)
-    Expect(err).ToNot(HaveOccurred())
+		ops1, err := NewOpsFromDefinitions(opDefs1)
+		Expect(err).ToNot(HaveOccurred())
 
-    ops2Str := `
+		ops2Str := `
 - type: replace
   path: /releases/name=capi/version
   value: latest
 `
 
-    var opDefs2 []OpDefinition
+		var opDefs2 []OpDefinition
 
-    err = yaml.Unmarshal([]byte(ops2Str), &opDefs2)
-    Expect(err).ToNot(HaveOccurred())
+		err = yaml.Unmarshal([]byte(ops2Str), &opDefs2)
+		Expect(err).ToNot(HaveOccurred())
 
-    ops2, err := NewOpsFromDefinitions(opDefs2)
-    Expect(err).ToNot(HaveOccurred())
+		ops2, err := NewOpsFromDefinitions(opDefs2)
+		Expect(err).ToNot(HaveOccurred())
 
-    ops := append(ops1, ops2...)
+		ops := append(ops1, ops2...)
 
-    res, err := ops.Apply(in)
-    Expect(err).ToNot(HaveOccurred())
+		res, err := ops.Apply(in)
+		Expect(err).ToNot(HaveOccurred())
 
-    outStr := `
+		outStr := `
 releases:
 - name: capi
   version: latest
@@ -109,11 +109,11 @@ instance_groups:
   instances: 2
 `
 
-    var out interface{}
+		var out interface{}
 
-    err = yaml.Unmarshal([]byte(outStr), &out)
-    Expect(err).ToNot(HaveOccurred())
+		err = yaml.Unmarshal([]byte(outStr), &out)
+		Expect(err).ToNot(HaveOccurred())
 
-    Expect(res).To(Equal(out))
-  })
+		Expect(res).To(Equal(out))
+	})
 })
