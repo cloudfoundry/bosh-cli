@@ -23,6 +23,12 @@ var _ = Describe("VarKV", func() {
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
 		})
 
+		It("sets name and value when value contains a `=`", func() {
+			err := (&arg).UnmarshalFlag("public_key=ssh-rsa G4/+VHa1aw==")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "public_key", Value: "ssh-rsa G4/+VHa1aw=="}))
+		})
+
 		It("returns error if string does not have 2 pieces", func() {
 			err := (&arg).UnmarshalFlag("val")
 			Expect(err).To(HaveOccurred())

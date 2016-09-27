@@ -13,7 +13,7 @@ type VarKV struct {
 }
 
 func (a *VarKV) UnmarshalFlag(data string) error {
-	pieces := strings.Split(data, "=")
+	pieces := strings.SplitN(data, "=", 2)
 	if len(pieces) != 2 {
 		return bosherr.Errorf(
 			"Expected var '%s' to be in format 'name=value'", data)
