@@ -6,7 +6,7 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update
-RUN apt-get -y upgrade; apt-get clean
+RUN apt-get -y upgrade && apt-get clean
 
 RUN apt-get install -y build-essential zlib1g-dev libssl-dev libxml2-dev libsqlite3-dev libxslt1-dev libpq-dev libmysqlclient-dev
 RUN apt-get install -y git curl wget tar
@@ -25,14 +25,14 @@ RUN cd /tmp && wget -q https://releases.hashicorp.com/vagrant/1.8.6/vagrant_1.8.
 RUN vagrant plugin install vagrant-aws
 
 # bosh-init dependencies
-RUN apt-get install -y mercurial; apt-get clean
+RUN apt-get install -y mercurial && apt-get clean
 # ...go
 ADD install-go.sh /tmp/install-go.sh
 RUN chmod a+x /tmp/install-go.sh
-RUN cd tmp; ./install-go.sh; rm install-go.sh
+RUN cd tmp && ./install-go.sh && rm install-go.sh
 
 # lifecycle ssh test
-RUN apt-get install -y sshpass; apt-get clean
+RUN apt-get install -y sshpass && apt-get clean
 
 # integration registry tests
 RUN apt-get install -y openssh-server
