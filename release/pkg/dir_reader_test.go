@@ -59,12 +59,12 @@ excluded_files: [ex-file1, ex-file2]
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), []string{"pkg1", "pkg2"})))
 
-			Expect(collectedFiles).To(Equal([]File{
+			Expect(collectedFiles).To(ConsistOf(
 				// does not include spec
 				File{Path: "/dir/packaging", DirPath: "/dir", RelativePath: "packaging", ExcludeMode: true},
 				File{Path: "/src/in-file1", DirPath: "/src", RelativePath: "in-file1"},
 				File{Path: "/src/in-file2", DirPath: "/src", RelativePath: "in-file2"},
-			}))
+			))
 
 			Expect(collectedPrepFiles).To(BeEmpty())
 			Expect(collectedChunks).To(Equal([]string{"pkg1", "pkg2"}))
