@@ -1,7 +1,11 @@
 ---
 platform: linux
 
-image: docker:///bosh/init
+image_resource:
+  type: docker-image
+  source:
+    repository: bosh/cli
+    tag: 'latest'
 
 inputs:
 - name: bosh-cli

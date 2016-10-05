@@ -18,7 +18,7 @@ echo "ENV:"
 echo `env`
 
 # Pushing to Docker Hub requires login
-DOCKER_IMAGE=${DOCKER_IMAGE:-bosh/init}
+DOCKER_IMAGE=${DOCKER_IMAGE:-bosh/cli}
 
 # To push to the Pivotal GoCD Docker Registry (behind firewall):
 # DOCKER_IMAGE=docker.gocd.cf-app.com:5000/bosh-init-container
