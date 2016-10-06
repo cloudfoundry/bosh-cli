@@ -1,0 +1,30 @@
+jobs:
+  - name: build-bosh-cli
+    public: true
+    serial: true
+    plan:
+      - get: bosh-cli-src
+        trigger: true
+      - put: bosh-cli
+        params:
+          build: "bosh-cli-src/ci/docker"
+        get_params:
+          skip_download: true
+
+resources:
+  - name: bosh-cli-src
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-cli.git
+      branch: develop
+      paths:
+        - "ci/docker"
+
+  - name: bosh-cli
+    type: docker-image
+    source:
+      repository: bosh/cli
+      email: {{dockerhub_email}}
+      username: {{dockerhub_username}}
+      password: {{dockerhub_password}}
+
