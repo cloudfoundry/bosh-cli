@@ -103,15 +103,14 @@ format-version: "2"`)
 			Expect(err).To(Equal(errors.New("fake-err")))
 		})
 
-		It("returns error if found entry does not have matching version with its build key", func() {
+		It("does not require version to equal entry key", func() {
 			fs.WriteFileString("/dir/name/index.yml", `---
 builds:
   fp: {version: other-fp}
 format-version: "2"`)
 
 			_, _, err := index.Find("name", "fp")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Internal inconsistency: version 'fp' vs 'other-fp'"))
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if name is empty", func() {

@@ -189,10 +189,6 @@ func (i FSIndex) entries(name string) ([]indexEntry, error) {
 	var entries []indexEntry
 
 	for versionKey, entry := range schema.Builds {
-		if versionKey != entry.Version {
-			return nil, bosherr.Errorf("Internal inconsistency: version '%s' vs '%s'", versionKey, entry.Version)
-		}
-
 		entries = append(entries, indexEntry{
 			Key:     versionKey,
 			Version: entry.Version,
