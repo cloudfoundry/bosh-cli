@@ -40,4 +40,5 @@ set -x
 export BOSH_LITE_PRIVATE_KEY=$tmpfile
 
 cd $GOPATH/src/github.com/cloudfoundry/bosh-cli
+./bin/require-ci-golang-version
 base=$PWD ./bin/test-acceptance-with-vm --provider=aws

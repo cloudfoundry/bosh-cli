@@ -12,6 +12,7 @@ timestamp=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 filename="bosh-cli-${semver}-${GOOS}-${GOARCH}"
 
 cd gopath/src/github.com/cloudfoundry/bosh-cli
+bin/require-ci-golang-version
 
 git_rev=`git rev-parse --short HEAD`
 version="${semver}-${git_rev}-${timestamp}"
