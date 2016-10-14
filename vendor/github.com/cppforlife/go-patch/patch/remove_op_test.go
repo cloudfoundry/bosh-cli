@@ -155,6 +155,25 @@ var _ = Describe("RemoveOp.Apply", func() {
 			}))
 		})
 
+		It("removes nested matching item that does not exist", func() {
+			doc := map[interface{}]interface{}{
+				"abc": []interface{}{
+					map[interface{}]interface{}{"opr": "opr"},
+				},
+				"xyz": "xyz",
+			}
+
+			res, err := RemoveOp{Path: MustNewPointerFromString("/abc/opr=not-opr?")}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(res).To(Equal(map[interface{}]interface{}{
+				"abc": []interface{}{
+					map[interface{}]interface{}{"opr": "opr"},
+				},
+				"xyz": "xyz",
+			}))
+		})
+
 		It("returns an error if it's not an array is being accessed", func() {
 			_, err := RemoveOp{Path: MustNewPointerFromString("/key=val")}.Apply(map[interface{}]interface{}{})
 			Expect(err).To(HaveOccurred())

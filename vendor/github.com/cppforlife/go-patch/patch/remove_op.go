@@ -62,6 +62,10 @@ func (op RemoveOp) Apply(doc interface{}) (interface{}, error) {
 				}
 			}
 
+			if typedToken.Optional && len(idxs) == 0 {
+				return doc, nil
+			}
+
 			if len(idxs) != 1 {
 				errMsg := "Expected to find exactly one matching array item for path '%s' but found %d"
 				return nil, fmt.Errorf(errMsg, NewPointer(tokens[:i+2]), len(idxs))

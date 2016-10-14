@@ -13,9 +13,12 @@ type AfterLastIndexToken struct{}
 type MatchingIndexToken struct {
 	Key   string
 	Value string
+
+	Optional bool
 }
 
 type KeyToken struct {
-	Key      string
+	Key string
+
 	Optional bool
 }

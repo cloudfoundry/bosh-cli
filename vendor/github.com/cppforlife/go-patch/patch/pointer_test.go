@@ -19,19 +19,8 @@ var testCases = []PointerTestCase{
 
 	// Root level
 	{"/", []Token{RootToken{}, KeyToken{Key: ""}}},
+	{"//", []Token{RootToken{}, KeyToken{Key: ""}, KeyToken{Key: ""}}},
 	{"/ ", []Token{RootToken{}, KeyToken{Key: " "}}},
-
-	// Escaping (todo support ~2 for '?'; ~3 for '=')
-	{"/m~0n", []Token{RootToken{}, KeyToken{Key: "m~n"}}},
-	{"/a~01b", []Token{RootToken{}, KeyToken{Key: "a~1b"}}},
-	{"/a~1b", []Token{RootToken{}, KeyToken{Key: "a/b"}}},
-
-	// Special chars
-	{"/c%d", []Token{RootToken{}, KeyToken{Key: "c%d"}}},
-	{"/e^f", []Token{RootToken{}, KeyToken{Key: "e^f"}}},
-	{"/g|h", []Token{RootToken{}, KeyToken{Key: "g|h"}}},
-	{"/i\\j", []Token{RootToken{}, KeyToken{Key: "i\\j"}}},
-	{"/k\"l", []Token{RootToken{}, KeyToken{Key: "k\"l"}}},
 
 	// Maps
 	{"/key", []Token{RootToken{}, KeyToken{Key: "key"}}},
@@ -55,10 +44,42 @@ var testCases = []PointerTestCase{
 
 	// Matching index token
 	{"/name=val", []Token{RootToken{}, MatchingIndexToken{Key: "name", Value: "val"}}},
+	{"/name=val?", []Token{RootToken{}, MatchingIndexToken{Key: "name", Value: "val", Optional: true}}},
+	{"/name=val?/name2=val", []Token{
+		RootToken{},
+		MatchingIndexToken{Key: "name", Value: "val", Optional: true},
+		MatchingIndexToken{Key: "name2", Value: "val", Optional: true},
+	}},
 	{"/=", []Token{RootToken{}, MatchingIndexToken{Key: "", Value: ""}}},
+	{"/=?", []Token{RootToken{}, MatchingIndexToken{Key: "", Value: "", Optional: true}}},
 	{"/name=", []Token{RootToken{}, MatchingIndexToken{Key: "name", Value: ""}}},
 	{"/=val", []Token{RootToken{}, MatchingIndexToken{Key: "", Value: "val"}}},
 	{"/==", []Token{RootToken{}, MatchingIndexToken{Key: "", Value: "="}}},
+
+	// Optionality
+	{"/key?/name=val", []Token{
+		RootToken{},
+		KeyToken{Key: "key", Optional: true},
+		MatchingIndexToken{Key: "name", Value: "val", Optional: true},
+	}},
+	{"/name=val?/key", []Token{
+		RootToken{},
+		MatchingIndexToken{Key: "name", Value: "val", Optional: true},
+		KeyToken{Key: "key", Optional: true},
+	}},
+
+	// Escaping (todo support ~2 for '?'; ~3 for '=')
+	{"/m~0n", []Token{RootToken{}, KeyToken{Key: "m~n"}}},
+	{"/a~01b", []Token{RootToken{}, KeyToken{Key: "a~1b"}}},
+	{"/a~1b", []Token{RootToken{}, KeyToken{Key: "a/b"}}},
+	{"/name~0n=val~0n", []Token{RootToken{}, MatchingIndexToken{Key: "name~n", Value: "val~n"}}},
+
+	// Special chars
+	{"/c%d", []Token{RootToken{}, KeyToken{Key: "c%d"}}},
+	{"/e^f", []Token{RootToken{}, KeyToken{Key: "e^f"}}},
+	{"/g|h", []Token{RootToken{}, KeyToken{Key: "g|h"}}},
+	{"/i\\j", []Token{RootToken{}, KeyToken{Key: "i\\j"}}},
+	{"/k\"l", []Token{RootToken{}, KeyToken{Key: "k\"l"}}},
 }
 
 var _ = Describe("NewPointer", func() {

@@ -75,7 +75,7 @@ var _ = Describe("ReplaceOp.Apply", func() {
 		})
 	})
 
-	Describe("array wtih after last item", func() {
+	Describe("array with after last item", func() {
 		It("appends new item", func() {
 			res, err := ReplaceOp{Path: MustNewPointerFromString("/-"), Value: 10}.Apply([]interface{}{})
 			Expect(err).ToNot(HaveOccurred())
@@ -146,7 +146,7 @@ var _ = Describe("ReplaceOp.Apply", func() {
 			}))
 		})
 
-		It("returns an error if no items found", func() {
+		It("returns an error if no items found and matching is not optional", func() {
 			doc := []interface{}{
 				map[interface{}]interface{}{"key": "val2"},
 				map[interface{}]interface{}{"key2": "val"},
@@ -205,6 +205,38 @@ var _ = Describe("ReplaceOp.Apply", func() {
 					},
 				},
 				map[interface{}]interface{}{"key": "val2"},
+			}))
+		})
+
+		It("appends missing matching item if it does not exist", func() {
+			doc := []interface{}{map[interface{}]interface{}{"xyz": "xyz"}}
+
+			res, err := ReplaceOp{Path: MustNewPointerFromString("/name=val?/efg"), Value: 1}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(res).To(Equal([]interface{}{
+				map[interface{}]interface{}{"xyz": "xyz"},
+				map[interface{}]interface{}{
+					"name": "val",
+					"efg":  1,
+				},
+			}))
+		})
+
+		It("appends nested missing matching item if it does not exist", func() {
+			doc := []interface{}{map[interface{}]interface{}{"xyz": "xyz"}}
+
+			res, err := ReplaceOp{Path: MustNewPointerFromString("/name=val?/efg/name=val"), Value: 1}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(res).To(Equal([]interface{}{
+				map[interface{}]interface{}{"xyz": "xyz"},
+				map[interface{}]interface{}{
+					"name": "val",
+					"efg": []interface{}{
+						map[interface{}]interface{}{"name": "val"},
+					},
+				},
 			}))
 		})
 
@@ -347,10 +379,10 @@ var _ = Describe("ReplaceOp.Apply", func() {
 		It("returns an error if missing key needs to be created but next access does not make sense", func() {
 			doc := map[interface{}]interface{}{"xyz": "xyz"}
 
-			_, err := ReplaceOp{Path: MustNewPointerFromString("/abc?/name=val"), Value: 1}.Apply(doc)
+			_, err := ReplaceOp{Path: MustNewPointerFromString("/abc?/0"), Value: 1}.Apply(doc)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(
-				"Expected to find key or after last index token at path '/abc?/name=val'"))
+				"Expected to find key, matching index or after last index token at path '/abc?/0'"))
 		})
 
 		It("returns an error if it's not a map when key is being accessed", func() {

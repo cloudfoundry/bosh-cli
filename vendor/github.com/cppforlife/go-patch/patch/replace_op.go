@@ -72,18 +72,24 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 				}
 			}
 
-			if len(idxs) != 1 {
-				errMsg := "Expected to find exactly one matching array item for path '%s' but found %d"
-				return nil, fmt.Errorf(errMsg, NewPointer(tokens[:i+2]), len(idxs))
-			}
-
-			idx := idxs[0]
-
-			if isLast {
-				typedObj[idx] = op.Value
-			} else {
-				obj = typedObj[idx]
+			if typedToken.Optional && len(idxs) == 0 {
+				obj = map[interface{}]interface{}{typedToken.Key: typedToken.Value}
+				prevUpdate(append(typedObj, obj))
 				// no need to change prevUpdate since matching item can only be a map
+			} else {
+				if len(idxs) != 1 {
+					errMsg := "Expected to find exactly one matching array item for path '%s' but found %d"
+					return nil, fmt.Errorf(errMsg, NewPointer(tokens[:i+2]), len(idxs))
+				}
+
+				idx := idxs[0]
+
+				if isLast {
+					typedObj[idx] = op.Value
+				} else {
+					obj = typedObj[idx]
+					// no need to change prevUpdate since matching item can only be a map
+				}
 			}
 
 		case KeyToken:
@@ -110,10 +116,12 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 					switch tokens[i+2].(type) {
 					case AfterLastIndexToken:
 						obj = []interface{}{}
+					case MatchingIndexToken:
+						obj = []interface{}{}
 					case KeyToken:
 						obj = map[interface{}]interface{}{}
 					default:
-						errMsg := "Expected to find key or after last index token at path '%s'"
+						errMsg := "Expected to find key, matching index or after last index token at path '%s'"
 						return nil, fmt.Errorf(errMsg, NewPointer(tokens[:i+3]))
 					}
 

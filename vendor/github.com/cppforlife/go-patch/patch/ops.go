@@ -7,6 +7,7 @@ type Op interface {
 }
 
 // Ensure basic operations implement Op
+var _ Op = Ops{}
 var _ Op = ReplaceOp{}
 var _ Op = RemoveOp{}
 var _ Op = ErrOp{}

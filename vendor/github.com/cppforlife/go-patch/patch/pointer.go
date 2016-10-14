@@ -46,17 +46,13 @@ func NewPointerFromString(str string) (Pointer, error) {
 
 		tok = rfc6901Decoder.Replace(tok)
 
+		// parse as after last index
 		if isLast && tok == "-" {
 			tokens = append(tokens, AfterLastIndexToken{})
 			continue
 		}
 
-		kv := strings.SplitN(tok, "=", 2)
-		if len(kv) == 2 {
-			tokens = append(tokens, MatchingIndexToken{Key: kv[0], Value: kv[1]})
-			continue
-		}
-
+		// parse as index
 		idx, err := strconv.Atoi(tok)
 		if err == nil {
 			tokens = append(tokens, IndexToken{idx})
@@ -67,6 +63,20 @@ func NewPointerFromString(str string) (Pointer, error) {
 			optional = true
 		}
 
+		// parse name=val
+		kv := strings.SplitN(tok, "=", 2)
+		if len(kv) == 2 {
+			token := MatchingIndexToken{
+				Key:      kv[0],
+				Value:    strings.TrimSuffix(kv[1], "?"),
+				Optional: optional,
+			}
+
+			tokens = append(tokens, token)
+			continue
+		}
+
+		// it's a map key
 		token := KeyToken{
 			Key:      strings.TrimSuffix(tok, "?"),
 			Optional: optional,
@@ -110,16 +120,28 @@ func (p Pointer) String() string {
 			strs = append(strs, "-")
 
 		case MatchingIndexToken:
-			strs = append(strs, fmt.Sprintf("%s=%s", typedToken.Key, typedToken.Value))
+			key := rfc6901Encoder.Replace(typedToken.Key)
+			val := rfc6901Encoder.Replace(typedToken.Value)
+
+			if typedToken.Optional {
+				if !optional {
+					val += "?"
+					optional = true
+				}
+			}
+
+			strs = append(strs, fmt.Sprintf("%s=%s", key, val))
 
 		case KeyToken:
 			str := rfc6901Encoder.Replace(typedToken.Key)
+
 			if typedToken.Optional { // /key?/key2/key3
 				if !optional {
 					str += "?"
 					optional = true
 				}
 			}
+
 			strs = append(strs, str)
 
 		default:
