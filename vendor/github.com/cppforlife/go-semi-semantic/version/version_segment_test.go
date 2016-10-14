@@ -42,6 +42,17 @@ var _ = Describe("NewVersionSegmentFromString", func() {
 
 		components = []VerSegComp{VerSegCompInt{0}, VerSegCompStr{"-1"}}
 		Expect(MustNewVersionSegmentFromString("0.-1").Components).To(Equal(components))
+
+		components = []VerSegComp{VerSegCompStr{"-0"}}
+		Expect(MustNewVersionSegmentFromString("-0").Components).To(Equal(components))
+	})
+
+	It("handles numbers that start with '0' as strings", func() {
+		components := []VerSegComp{VerSegCompStr{"0000"}}
+		Expect(MustNewVersionSegmentFromString("0000").Components).To(Equal(components))
+
+		components = []VerSegComp{VerSegCompStr{"01"}}
+		Expect(MustNewVersionSegmentFromString("01").Components).To(Equal(components))
 	})
 
 	It("handles alphanumerics, hyphens & underscores in components as strings", func() {

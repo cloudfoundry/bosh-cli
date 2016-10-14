@@ -10,7 +10,7 @@ gopkg.in/check.v1:8d49746
 github.com/pivotal-golang/yaml:8b09e4a
 github.com/vito/go-interact/interact:0eb3903
 github.com/cheggaaa/pb:c1f48d5
-github.com/cppforlife/go-semi-semantic/version:6d81a57
+github.com/cppforlife/go-semi-semantic/version:576b6af
 github.com/dustin/go-humanize:9436b7a
 github.com/fatih/color:533cd7f
 github.com/hashicorp/go-multierror:d30f099

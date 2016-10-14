@@ -7,13 +7,18 @@ import (
 )
 
 var (
-	verSegCompIntRegexp = regexp.MustCompile(`\A[0-9]+\z`)
+	verSegCompIntRegexp          = regexp.MustCompile(`\A[0-9]+\z`)
+	verSegCompIntZeroStartRegexp = regexp.MustCompile(`\A0+[0-9]+\z`)
 )
 
 type VerSegCompInt struct{ I int }
 
 func NewVerSegCompIntFromString(piece string) (VerSegCompInt, bool, error) {
 	if !verSegCompIntRegexp.MatchString(piece) {
+		return VerSegCompInt{}, false, nil
+	}
+
+	if verSegCompIntZeroStartRegexp.MatchString(piece) {
 		return VerSegCompInt{}, false, nil
 	}
 
