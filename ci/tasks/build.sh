@@ -25,7 +25,9 @@ bin/build
 shasum_value=`sha1sum out/bosh | cut -f 1 -d' '`
 
 set +x
-curl --fail -X POST "https://bosh.io/checksums/${filename}" -d "sha1=${shasum_value}" -H "Authorization: bearer ${BOSHIO_BEARER_TOKEN}"
+if [[ $SKIP_BOSH_IO = false ]]; then
+  curl --fail -X POST "https://bosh.io/checksums/${filename}" -d "sha1=${shasum_value}" -H "Authorization: bearer ${BOSHIO_BEARER_TOKEN}"
+fi
 set -x
 
 mv out/bosh $base/compiled-${GOOS}/${filename}
