@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	DefaultFinalVersion   = semver.MustNewVersionFromString("0")
+	DefaultFinalVersion   = semver.MustNewVersionFromString("1")
 	DefaultDevVersion     = semver.MustNewVersionFromString("0+dev.0")
 	DefaultDevPostRelease = semver.MustNewVersionSegmentFromString("dev.1")
 )

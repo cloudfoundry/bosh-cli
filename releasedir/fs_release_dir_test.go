@@ -202,12 +202,12 @@ var _ = Describe("FSGenerator", func() {
 			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("1.2").String()))
 		})
 
-		It("returns '0' if there are no versions so that when it's finalized it will be incremented to '1'", func() {
+		It("returns '1' if there are no versions so that when it's finalized it will be '1'", func() {
 			finalReleases.LastVersionReturns(nil, nil)
 
 			ver, err := releaseDir.NextFinalVersion("rel1")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("0").String()))
+			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("1").String()))
 		})
 
 		It("returns error if cannot find out last version", func() {
