@@ -226,7 +226,7 @@ var _ = Describe("Opts", func() {
 			Describe("LogIn", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("LogIn", opts)).To(Equal(
-						`command:"log-in"  alias:"login" alias:"l" description:"Log in"`,
+						`command:"log-in"  alias:"l" description:"Log in"`,
 					))
 				})
 			})
@@ -234,7 +234,7 @@ var _ = Describe("Opts", func() {
 			Describe("LogOut", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("LogOut", opts)).To(Equal(
-						`command:"log-out" alias:"logout"          description:"Forget saved credentials for Director in the current environment"`,
+						`command:"log-out"           description:"Forget saved credentials for Director in the current environment"`,
 					))
 				})
 			})
@@ -266,7 +266,7 @@ var _ = Describe("Opts", func() {
 			Describe("Locks", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("Locks", opts)).To(Equal(
-						`command:"locks"    alias:"ls"                 description:"List current locks"`,
+						`command:"locks"    alias:"ls" description:"List current locks"`,
 					))
 				})
 			})
@@ -274,7 +274,7 @@ var _ = Describe("Opts", func() {
 			Describe("CleanUp", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("CleanUp", opts)).To(Equal(
-						`command:"clean-up" alias:"cl" alias:"cleanup" description:"Clean up releases, stemcells, disks, etc."`,
+						`command:"clean-up" alias:"cl" description:"Clean up releases, stemcells, disks, etc."`,
 					))
 				})
 			})
@@ -282,7 +282,7 @@ var _ = Describe("Opts", func() {
 			Describe("BackUp", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("BackUp", opts)).To(Equal(
-						`command:"back-up"  alias:"bu" alias:"backup"  description:"Backup the Director to a tarball"`,
+						`command:"back-up"  alias:"bu" description:"Backup the Director to a tarball"`,
 					))
 				})
 			})

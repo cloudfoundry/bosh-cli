@@ -42,8 +42,8 @@ type BoshOpts struct {
 	Environments EnvironmentsOpts `command:"environments" alias:"envs" description:"List environments"`
 
 	// Authentication
-	LogIn  LogInOpts  `command:"log-in"  alias:"login" alias:"l" description:"Log in"`
-	LogOut LogOutOpts `command:"log-out" alias:"logout"          description:"Forget saved credentials for Director in the current environment"`
+	LogIn  LogInOpts  `command:"log-in"  alias:"l" description:"Log in"`
+	LogOut LogOutOpts `command:"log-out"           description:"Forget saved credentials for Director in the current environment"`
 
 	// Tasks
 	Task       TaskOpts       `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
@@ -51,9 +51,9 @@ type BoshOpts struct {
 	CancelTask CancelTaskOpts `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
 
 	// Misc
-	Locks         LocksOpts         `command:"locks"    alias:"ls"                 description:"List current locks"`
-	CleanUp       CleanUpOpts       `command:"clean-up" alias:"cl" alias:"cleanup" description:"Clean up releases, stemcells, disks, etc."`
-	BackUp        BackUpOpts        `command:"back-up"  alias:"bu" alias:"backup"  description:"Backup the Director to a tarball"`
+	Locks         LocksOpts         `command:"locks"    alias:"ls" description:"List current locks"`
+	CleanUp       CleanUpOpts       `command:"clean-up" alias:"cl" description:"Clean up releases, stemcells, disks, etc."`
+	BackUp        BackUpOpts        `command:"back-up"  alias:"bu" description:"Backup the Director to a tarball"`
 	BuildManifest BuildManifestOpts `command:"build-manifest"  alias:"bm" hidden:"yes" description:"Interpolates variables into a manifest template."`
 
 	// Cloud config
