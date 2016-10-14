@@ -18,6 +18,7 @@ outputs:
 params:
   GOOS:   linux
   GOARCH: amd64
+  CGO_ENABLED: 0
   BOSHIO_BEARER_TOKEN: replace_me
 
 run:
