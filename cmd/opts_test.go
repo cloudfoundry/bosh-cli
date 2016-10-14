@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -10,15 +11,17 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 )
 
+var (
+	dupSpaces = regexp.MustCompile("\\s{2,}")
+)
+
 func getStructTagForName(field string, opts interface{}) string {
 	st, _ := reflect.TypeOf(opts).Elem().FieldByName(field)
-
-	return string(st.Tag)
+	return dupSpaces.ReplaceAllString(string(st.Tag), " ")
 }
 
 var _ = Describe("Opts", func() {
 	Describe("BoshOpts", func() {
-
 		var opts *BoshOpts
 
 		BeforeEach(func() {
@@ -85,590 +88,587 @@ var _ = Describe("Opts", func() {
 			}))
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("VersionOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("VersionOpt", opts)).To(Equal(
-						`long:"version" short:"v" description:"Show CLI version"`,
-					))
-				})
+		Describe("VersionOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("VersionOpt", opts)).To(Equal(
+					`long:"version" short:"v" description:"Show CLI version"`,
+				))
+			})
+		})
+
+		Describe("ConfigPathOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ConfigPathOpt", opts)).To(Equal(
+					`long:"config" description:"Config file path" env:"BOSH_CONFIG" default:"~/.bosh/config"`,
+				))
+			})
+		})
+
+		Describe("EnvironmentOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("EnvironmentOpt", opts)).To(Equal(
+					`long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`,
+				))
+			})
+		})
+
+		Describe("CACertOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CACertOpt", opts)).To(Equal(
+					`long:"ca-cert" description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`,
+				))
+			})
+		})
+
+		Describe("UsernameOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UsernameOpt", opts)).To(Equal(
+					`long:"user" description:"Override username" env:"BOSH_USER"`,
+				))
+			})
+		})
+
+		Describe("PasswordOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("PasswordOpt", opts)).To(Equal(
+					`long:"password" description:"Override password" env:"BOSH_PASSWORD"`,
+				))
+			})
+		})
+
+		Describe("UAAClientOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UAAClientOpt", opts)).To(Equal(
+					`long:"uaa-client" description:"Override UAA client" env:"BOSH_CLIENT"`,
+				))
+			})
+		})
+
+		Describe("UAAClientSecretOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UAAClientSecretOpt", opts)).To(Equal(
+					`long:"uaa-client-secret" description:"Override UAA client secret" env:"BOSH_CLIENT_SECRET"`,
+				))
+			})
+		})
+
+		Describe("DeploymentOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeploymentOpt", opts)).To(Equal(
+					`long:"deployment" short:"d" description:"Deployment name" env:"BOSH_DEPLOYMENT"`,
+				))
+			})
+		})
+
+		Describe("JSONOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("JSONOpt", opts)).To(Equal(
+					`long:"json" description:"Output as JSON"`,
+				))
+			})
+		})
+
+		Describe("TTYOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("TTYOpt", opts)).To(Equal(
+					`long:"tty" description:"Force TTY-like output"`,
+				))
+			})
+		})
+
+		Describe("NoColorOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("NoColorOpt", opts)).To(Equal(
+					`long:"no-color" description:"Toggle colorized output"`,
+				))
+			})
+		})
+
+		Describe("NonInteractiveOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("NonInteractiveOpt", opts)).To(Equal(
+					`long:"non-interactive" short:"n" description:"Don't ask for user input"`,
+				))
 			})
-
-			Describe("ConfigPathOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("ConfigPathOpt", opts)).To(Equal(
-						`long:"config" description:"Config file path" env:"BOSH_CONFIG" default:"~/.bosh/config"`,
-					))
-				})
-			})
-
-			Describe("EnvironmentOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("EnvironmentOpt", opts)).To(Equal(
-						`long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`,
-					))
-				})
-			})
-
-			Describe("CACertOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CACertOpt", opts)).To(Equal(
-						`long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`,
-					))
-				})
-			})
-
-			Describe("UsernameOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UsernameOpt", opts)).To(Equal(
-						`long:"user"     description:"Override username" env:"BOSH_USER"`,
-					))
-				})
-			})
-
-			Describe("PasswordOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("PasswordOpt", opts)).To(Equal(
-						`long:"password" description:"Override password" env:"BOSH_PASSWORD"`,
-					))
-				})
-			})
-
-			Describe("UAAClientOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UAAClientOpt", opts)).To(Equal(
-						`long:"uaa-client"        description:"Override UAA client"        env:"BOSH_CLIENT"`,
-					))
-				})
-			})
-
-			Describe("UAAClientSecretOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UAAClientSecretOpt", opts)).To(Equal(
-						`long:"uaa-client-secret" description:"Override UAA client secret" env:"BOSH_CLIENT_SECRET"`,
-					))
-				})
-			})
-
-			Describe("DeploymentOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DeploymentOpt", opts)).To(Equal(
-						`long:"deployment" short:"d" description:"Deployment name" env:"BOSH_DEPLOYMENT"`,
-					))
-				})
-			})
-
-			Describe("JSONOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("JSONOpt", opts)).To(Equal(
-						`long:"json"                      description:"Output as JSON"`,
-					))
-				})
-			})
-
-			Describe("TTYOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("TTYOpt", opts)).To(Equal(
-						`long:"tty"                       description:"Force TTY-like output"`,
-					))
-				})
-			})
-
-			Describe("NoColorOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("NoColorOpt", opts)).To(Equal(
-						`long:"no-color"                  description:"Toggle colorized output"`,
-					))
-				})
-			})
-
-			Describe("NonInteractiveOpt", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("NonInteractiveOpt", opts)).To(Equal(
-						`long:"non-interactive" short:"n" description:"Don't ask for user input"`,
-					))
-				})
-			})
-
-			Describe("CreateEnv", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CreateEnv", opts)).To(Equal(
-						`command:"create-env" description:"Create or update BOSH environment"`,
-					))
-				})
+		})
+
+		Describe("CreateEnv", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CreateEnv", opts)).To(Equal(
+					`command:"create-env" description:"Create or update BOSH environment"`,
+				))
 			})
-
-			Describe("DeleteEnv", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DeleteEnv", opts)).To(Equal(
-						`command:"delete-env" description:"Delete BOSH environment"`,
-					))
-				})
+		})
+
+		Describe("DeleteEnv", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteEnv", opts)).To(Equal(
+					`command:"delete-env" description:"Delete BOSH environment"`,
+				))
 			})
-
-			Describe("Environment", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Environment", opts)).To(Equal(
-						`command:"environment" alias:"env" description:"Set or show current environment"`,
-					))
-				})
+		})
+
+		Describe("Environment", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Environment", opts)).To(Equal(
+					`command:"environment" alias:"env" description:"Set or show current environment"`,
+				))
 			})
-
-			Describe("Environments", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Environments", opts)).To(Equal(
-						`command:"environments" alias:"envs" description:"List environments"`,
-					))
-				})
+		})
+
+		Describe("Environments", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Environments", opts)).To(Equal(
+					`command:"environments" alias:"envs" description:"List environments"`,
+				))
 			})
-
-			Describe("LogIn", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("LogIn", opts)).To(Equal(
-						`command:"log-in"  alias:"l" description:"Log in"`,
-					))
-				})
+		})
+
+		Describe("LogIn", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("LogIn", opts)).To(Equal(
+					`command:"log-in" alias:"l" description:"Log in"`,
+				))
 			})
-
-			Describe("LogOut", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("LogOut", opts)).To(Equal(
-						`command:"log-out"           description:"Forget saved credentials for Director in the current environment"`,
-					))
-				})
+		})
+
+		Describe("LogOut", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("LogOut", opts)).To(Equal(
+					`command:"log-out" description:"Log out"`,
+				))
 			})
-
-			Describe("Task", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Task", opts)).To(Equal(
-						`command:"task"        alias:"t"  description:"Show task status and start tracking its output"`,
-					))
-				})
+		})
+
+		Describe("Task", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Task", opts)).To(Equal(
+					`command:"task" alias:"t" description:"Show task status and start tracking its output"`,
+				))
 			})
-
-			Describe("Tasks", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Tasks", opts)).To(Equal(
-						`command:"tasks"       alias:"ts" description:"List running or recent tasks"`,
-					))
-				})
+		})
+
+		Describe("Tasks", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Tasks", opts)).To(Equal(
+					`command:"tasks" alias:"ts" description:"List running or recent tasks"`,
+				))
 			})
-
-			Describe("CancelTask", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CancelTask", opts)).To(Equal(
-						`command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`,
-					))
-				})
+		})
+
+		Describe("CancelTask", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CancelTask", opts)).To(Equal(
+					`command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`,
+				))
 			})
-
-			Describe("Locks", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Locks", opts)).To(Equal(
-						`command:"locks"    alias:"ls" description:"List current locks"`,
-					))
-				})
+		})
+
+		Describe("Locks", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Locks", opts)).To(Equal(
+					`command:"locks" description:"List current locks"`,
+				))
 			})
-
-			Describe("CleanUp", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CleanUp", opts)).To(Equal(
-						`command:"clean-up" alias:"cl" description:"Clean up releases, stemcells, disks, etc."`,
-					))
-				})
+		})
+
+		Describe("CleanUp", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CleanUp", opts)).To(Equal(
+					`command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`,
+				))
 			})
-
-			Describe("BackUp", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("BackUp", opts)).To(Equal(
-						`command:"back-up"  alias:"bu" description:"Backup the Director to a tarball"`,
-					))
-				})
+		})
+
+		Describe("BackUp", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("BackUp", opts)).To(Equal(
+					`command:"back-up" description:"Back up the Director database to a tarball"`,
+				))
 			})
-
-			Describe("BuildManifest", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("BuildManifest", opts)).To(Equal(
-						`command:"build-manifest"  alias:"bm" hidden:"yes" description:"Interpolates variables into a manifest template."`,
-					))
-				})
+		})
+
+		Describe("BuildManifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("BuildManifest", opts)).To(Equal(
+					`command:"build-manifest" alias:"bm" description:"Interpolates variables into a manifest"`,
+				))
 			})
-
-			Describe("CloudConfig", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CloudConfig", opts)).To(Equal(
-						`command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`,
-					))
-				})
+		})
+
+		Describe("CloudConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CloudConfig", opts)).To(Equal(
+					`command:"cloud-config" alias:"cc" description:"Show current cloud config"`,
+				))
 			})
-
-			Describe("UpdateCloudConfig", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UpdateCloudConfig", opts)).To(Equal(
-						`command:"update-cloud-config" alias:"ucc" description:"Update current cloud config"`,
-					))
-				})
+		})
+
+		Describe("UpdateCloudConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UpdateCloudConfig", opts)).To(Equal(
+					`command:"update-cloud-config" alias:"ucc" description:"Update current cloud config"`,
+				))
 			})
-
-			Describe("RuntimeConfig", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("RuntimeConfig", opts)).To(Equal(
-						`command:"runtime-config"        alias:"rc"  description:"Show current runtime config"`,
-					))
-				})
+		})
+
+		Describe("RuntimeConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RuntimeConfig", opts)).To(Equal(
+					`command:"runtime-config" alias:"rc" description:"Show current runtime config"`,
+				))
 			})
-
-			Describe("UpdateRuntimeConfig", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UpdateRuntimeConfig", opts)).To(Equal(
-						`command:"update-runtime-config" alias:"urc" description:"Update current runtime config"`,
-					))
-				})
+		})
+
+		Describe("UpdateRuntimeConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UpdateRuntimeConfig", opts)).To(Equal(
+					`command:"update-runtime-config" alias:"urc" description:"Update current runtime config"`,
+				))
 			})
-
-			Describe("Deployment", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Deployment", opts)).To(Equal(
-						`command:"deployment"        alias:"dep"             description:"Set or show current deployment"`,
-					))
-				})
+		})
+
+		Describe("Deployment", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Deployment", opts)).To(Equal(
+					`command:"deployment" alias:"dep" description:"Set or show current deployment"`,
+				))
 			})
-
-			Describe("Deployments", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Deployments", opts)).To(Equal(
-						`command:"deployments"       alias:"ds" alias:"deps" description:"List deployments"`,
-					))
-				})
+		})
+
+		Describe("Deployments", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Deployments", opts)).To(Equal(
+					`command:"deployments" alias:"ds" alias:"deps" description:"List deployments"`,
+				))
 			})
-
-			Describe("DeleteDeployment", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DeleteDeployment", opts)).To(Equal(
-						`command:"delete-deployment" alias:"deld"            description:"Delete deployment"`,
-					))
-				})
+		})
+
+		Describe("DeleteDeployment", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteDeployment", opts)).To(Equal(
+					`command:"delete-deployment" alias:"deld" description:"Delete deployment"`,
+				))
 			})
-
-			Describe("Deploy", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Deploy", opts)).To(Equal(
-						`command:"deploy"   alias:"d"                                       description:"Deploy according to the currently selected deployment manifest"`,
-					))
-				})
+		})
+
+		Describe("Deploy", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Deploy", opts)).To(Equal(
+					`command:"deploy" alias:"d" description:"Deploy according to the currently selected deployment manifest"`,
+				))
 			})
-
-			Describe("Manifest", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Manifest", opts)).To(Equal(
-						`command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`,
-					))
-				})
+		})
+
+		Describe("Manifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Manifest", opts)).To(Equal(
+					`command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`,
+				))
 			})
-
-			Describe("Stemcells", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Stemcells", opts)).To(Equal(
-						`command:"stemcells"       alias:"ss" alias:"stems" description:"List stemcells"`,
-					))
-				})
+		})
+
+		Describe("Stemcells", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Stemcells", opts)).To(Equal(
+					`command:"stemcells" alias:"ss" alias:"stems" description:"List stemcells"`,
+				))
 			})
-
-			Describe("UploadStemcell", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UploadStemcell", opts)).To(Equal(
-						`command:"upload-stemcell" alias:"us"               description:"Upload stemcell"`,
-					))
-				})
+		})
+
+		Describe("UploadStemcell", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UploadStemcell", opts)).To(Equal(
+					`command:"upload-stemcell" alias:"us" description:"Upload stemcell"`,
+				))
 			})
-
-			Describe("DeleteStemcell", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DeleteStemcell", opts)).To(Equal(
-						`command:"delete-stemcell" alias:"dels"             description:"Delete stemcell"`,
-					))
-				})
+		})
+
+		Describe("DeleteStemcell", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteStemcell", opts)).To(Equal(
+					`command:"delete-stemcell" alias:"dels" description:"Delete stemcell"`,
+				))
 			})
-
-			Describe("Releases", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Releases", opts)).To(Equal(
-						`command:"releases"        alias:"rs" alias:"rels" description:"List releases"`,
-					))
-				})
+		})
+
+		Describe("Releases", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Releases", opts)).To(Equal(
+					`command:"releases" alias:"rs" alias:"rels" description:"List releases"`,
+				))
 			})
-
-			Describe("UploadRelease", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UploadRelease", opts)).To(Equal(
-						`command:"upload-release"  alias:"ur"              description:"Upload release"`,
-					))
-				})
+		})
+
+		Describe("UploadRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UploadRelease", opts)).To(Equal(
+					`command:"upload-release" alias:"ur" description:"Upload release"`,
+				))
 			})
-
-			Describe("ExportRelease", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("ExportRelease", opts)).To(Equal(
-						`command:"export-release"  alias:"expr"            description:"Export the compiled release to a tarball"`,
-					))
-				})
+		})
+
+		Describe("ExportRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ExportRelease", opts)).To(Equal(
+					`command:"export-release" alias:"expr" description:"Export the compiled release to a tarball"`,
+				))
 			})
-
-			Describe("InspectRelease", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("InspectRelease", opts)).To(Equal(
-						`command:"inspect-release" alias:"insr"            description:"List all jobs, packages, and compiled packages associated with a release"`,
-					))
-				})
+		})
+
+		Describe("InspectRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("InspectRelease", opts)).To(Equal(
+					`command:"inspect-release" alias:"insr" description:"List all jobs, packages, and compiled packages associated with a release"`,
+				))
 			})
-
-			Describe("DeleteRelease", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DeleteRelease", opts)).To(Equal(
-						`command:"delete-release"  alias:"delr"            description:"Delete release"`,
-					))
-				})
+		})
+
+		Describe("DeleteRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteRelease", opts)).To(Equal(
+					`command:"delete-release" alias:"delr" description:"Delete release"`,
+				))
 			})
-
-			Describe("Errands", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Errands", opts)).To(Equal(
-						`command:"errands"    alias:"es" alias:"errs" description:"List errands"`,
-					))
-				})
+		})
+
+		Describe("Errands", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Errands", opts)).To(Equal(
+					`command:"errands" alias:"es" alias:"errs" description:"List errands"`,
+				))
 			})
-
-			Describe("RunErrand", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("RunErrand", opts)).To(Equal(
-						`command:"run-errand" alias:"re"              description:"Run errand"`,
-					))
-				})
+		})
+
+		Describe("RunErrand", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RunErrand", opts)).To(Equal(
+					`command:"run-errand" alias:"re" description:"Run errand"`,
+				))
 			})
-
-			Describe("Disks", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Disks", opts)).To(Equal(
-						`command:"disks"       description:"List disks"`,
-					))
-				})
+		})
+
+		Describe("Disks", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Disks", opts)).To(Equal(
+					`command:"disks" description:"List disks"`,
+				))
 			})
-
-			Describe("DeleteDisk", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DeleteDisk", opts)).To(Equal(
-						`command:"delete-disk" description:"Delete disk"`,
-					))
-				})
+		})
+
+		Describe("DeleteDisk", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteDisk", opts)).To(Equal(
+					`command:"delete-disk" description:"Delete disk"`,
+				))
 			})
-
-			Describe("Snapshots", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Snapshots", opts)).To(Equal(
-						`command:"snapshots"        alias:"snaps"    description:"List snapshots"`,
-					))
-				})
+		})
+
+		Describe("Snapshots", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Snapshots", opts)).To(Equal(
+					`command:"snapshots" alias:"snaps" description:"List snapshots"`,
+				))
 			})
-
-			Describe("TakeSnapshot", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("TakeSnapshot", opts)).To(Equal(
-						`command:"take-snapshot"    alias:"tsnap"    description:"Take snapshot"`,
-					))
-				})
+		})
+
+		Describe("TakeSnapshot", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("TakeSnapshot", opts)).To(Equal(
+					`command:"take-snapshot" alias:"tsnap" description:"Take snapshot"`,
+				))
 			})
-
-			Describe("DeleteSnapshot", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DeleteSnapshot", opts)).To(Equal(
-						`command:"delete-snapshot"  alias:"delsnap"  description:"Delete snapshot"`,
-					))
-				})
+		})
+
+		Describe("DeleteSnapshot", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteSnapshot", opts)).To(Equal(
+					`command:"delete-snapshot" alias:"delsnap" description:"Delete snapshot"`,
+				))
 			})
-
-			Describe("DeleteSnapshots", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DeleteSnapshots", opts)).To(Equal(
-						`command:"delete-snapshots" alias:"delsnaps" description:"Delete all snapshots in a deployment"`,
-					))
-				})
+		})
+
+		Describe("DeleteSnapshots", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteSnapshots", opts)).To(Equal(
+					`command:"delete-snapshots" alias:"delsnaps" description:"Delete all snapshots in a deployment"`,
+				))
 			})
-
-			Describe("Instances", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Instances", opts)).To(Equal(
-						`command:"instances"       alias:"is" alias:"ins"         description:"List all instances in a deployment"`,
-					))
-				})
+		})
+
+		Describe("Instances", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Instances", opts)).To(Equal(
+					`command:"instances" alias:"is" alias:"ins" description:"List all instances in a deployment"`,
+				))
 			})
-
-			Describe("VMs", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("VMs", opts)).To(Equal(
-						`command:"vms"                                            description:"List all VMs in all deployments"`,
-					))
-				})
+		})
+
+		Describe("VMs", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("VMs", opts)).To(Equal(
+					`command:"vms" description:"List all VMs in all deployments"`,
+				))
 			})
-
-			Describe("UpdateResurrection", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UpdateResurrection", opts)).To(Equal(
-						`command:"update-resurrection"                            description:"Enable/disable resurrection"`,
-					))
-				})
+		})
+
+		Describe("UpdateResurrection", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UpdateResurrection", opts)).To(Equal(
+					`command:"update-resurrection" description:"Enable/disable resurrection"`,
+				))
 			})
-
-			Describe("CloudCheck", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CloudCheck", opts)).To(Equal(
-						`command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"`,
-					))
-				})
+		})
+
+		Describe("CloudCheck", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CloudCheck", opts)).To(Equal(
+					`command:"cloud-check" alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"`,
+				))
 			})
-
-			Describe("Logs", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Logs", opts)).To(Equal(
-						`command:"logs"     description:"Fetch logs from instance(s)"`,
-					))
-				})
+		})
+
+		Describe("Logs", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Logs", opts)).To(Equal(
+					`command:"logs" description:"Fetch logs from instance(s)"`,
+				))
 			})
-
-			Describe("Start", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Start", opts)).To(Equal(
-						`command:"start"    description:"Start instance(s)"`,
-					))
-				})
+		})
+
+		Describe("Start", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Start", opts)).To(Equal(
+					`command:"start" description:"Start instance(s)"`,
+				))
 			})
-
-			Describe("Stop", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Stop", opts)).To(Equal(
-						`command:"stop"     description:"Stop instance(s)"`,
-					))
-				})
+		})
+
+		Describe("Stop", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Stop", opts)).To(Equal(
+					`command:"stop" description:"Stop instance(s)"`,
+				))
 			})
-
-			Describe("Restart", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Restart", opts)).To(Equal(
-						`command:"restart"  description:"Restart instance(s)"`,
-					))
-				})
+		})
+
+		Describe("Restart", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Restart", opts)).To(Equal(
+					`command:"restart" description:"Restart instance(s)"`,
+				))
 			})
-
-			Describe("Recreate", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Recreate", opts)).To(Equal(
-						`command:"recreate" description:"Recreate instance(s)"`,
-					))
-				})
+		})
+
+		Describe("Recreate", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Recreate", opts)).To(Equal(
+					`command:"recreate" description:"Recreate instance(s)"`,
+				))
 			})
-
-			Describe("SSH", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SSH", opts)).To(Equal(
-						`command:"ssh" description:"SSH into instance(s)"`,
-					))
-				})
-			})
-
-			Describe("SCP", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SCP", opts)).To(Equal(
-						`command:"scp" description:"SCP to/from instance(s)"`,
-					))
-				})
-			})
-
-			Describe("InitRelease", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("InitRelease", opts)).To(Equal(
-						`command:"init-release"                  description:"Initialize release"`,
-					))
-				})
-			})
-
-			Describe("ResetRelease", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("ResetRelease", opts)).To(Equal(
-						`command:"reset-release"                 description:"Reset release"`,
-					))
-				})
-			})
-
-			Describe("GenerateJob", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("GenerateJob", opts)).To(Equal(
-						`command:"generate-job"     alias:"genj" description:"Generate job"`,
-					))
-				})
-			})
-
-			Describe("GeneratePackage", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("GeneratePackage", opts)).To(Equal(
-						`command:"generate-package" alias:"genp" description:"Generate package"`,
-					))
-				})
-			})
-
-			Describe("CreateRelease", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CreateRelease", opts)).To(Equal(
-						`command:"create-release"   alias:"cr"   description:"Create release"`,
-					))
-				})
-			})
-
-			Describe("FinalizeRelease", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("FinalizeRelease", opts)).To(Equal(
-						`command:"finalize-release" alias:"finr" description:"Create final release from dev release tarball"`,
-					))
-				})
-			})
-
-			Describe("Blobs", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Blobs", opts)).To(Equal(
-						`command:"blobs"        alias:"bls"  description:"List blobs"`,
-					))
-				})
-			})
-
-			Describe("AddBlob", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("AddBlob", opts)).To(Equal(
-						`command:"add-blob"     alias:"abl"  description:"Add blob"`,
-					))
-				})
-			})
-
-			Describe("RemoveBlob", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("RemoveBlob", opts)).To(Equal(
-						`command:"remove-blob"  alias:"rmbl" description:"Remove blob"`,
-					))
-				})
-			})
-
-			Describe("SyncBlobs", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SyncBlobs", opts)).To(Equal(
-						`command:"sync-blobs"   alias:"sbls" description:"Sync blobs"`,
-					))
-				})
-			})
-
-			Describe("UploadBlobs", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("UploadBlobs", opts)).To(Equal(
-						`command:"upload-blobs" alias:"ubls" description:"Upload blobs"`,
-					))
-				})
+		})
+
+		Describe("SSH", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SSH", opts)).To(Equal(
+					`command:"ssh" description:"SSH into instance(s)"`,
+				))
+			})
+		})
+
+		Describe("SCP", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SCP", opts)).To(Equal(
+					`command:"scp" description:"SCP to/from instance(s)"`,
+				))
+			})
+		})
+
+		Describe("InitRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("InitRelease", opts)).To(Equal(
+					`command:"init-release" description:"Initialize release"`,
+				))
+			})
+		})
+
+		Describe("ResetRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ResetRelease", opts)).To(Equal(
+					`command:"reset-release" description:"Reset release"`,
+				))
+			})
+		})
+
+		Describe("GenerateJob", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("GenerateJob", opts)).To(Equal(
+					`command:"generate-job" description:"Generate job"`,
+				))
+			})
+		})
+
+		Describe("GeneratePackage", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("GeneratePackage", opts)).To(Equal(
+					`command:"generate-package" description:"Generate package"`,
+				))
+			})
+		})
+
+		Describe("CreateRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CreateRelease", opts)).To(Equal(
+					`command:"create-release" alias:"cr" description:"Create release"`,
+				))
+			})
+		})
+
+		Describe("FinalizeRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("FinalizeRelease", opts)).To(Equal(
+					`command:"finalize-release" alias:"finr" description:"Create final release from dev release tarball"`,
+				))
+			})
+		})
+
+		Describe("Blobs", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Blobs", opts)).To(Equal(
+					`command:"blobs" description:"List blobs"`,
+				))
+			})
+		})
+
+		Describe("AddBlob", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("AddBlob", opts)).To(Equal(
+					`command:"add-blob" description:"Add blob"`,
+				))
+			})
+		})
+
+		Describe("RemoveBlob", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RemoveBlob", opts)).To(Equal(
+					`command:"remove-blob" description:"Remove blob"`,
+				))
+			})
+		})
+
+		Describe("SyncBlobs", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SyncBlobs", opts)).To(Equal(
+					`command:"sync-blobs" description:"Sync blobs"`,
+				))
+			})
+		})
+
+		Describe("UploadBlobs", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UploadBlobs", opts)).To(Equal(
+					`command:"upload-blobs" description:"Upload blobs"`,
+				))
 			})
 		})
 	})
@@ -680,16 +680,10 @@ var _ = Describe("Opts", func() {
 			opts = &CreateEnvOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -700,16 +694,12 @@ var _ = Describe("Opts", func() {
 			args = &CreateEnvArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Manifest", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Manifest", args)).To(Equal(
-						`positional-arg-name:"PATH" description:"Path to a manifest file"`,
-					))
-				})
+		Describe("Manifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Manifest", args)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a manifest file"`,
+				))
 			})
-
 		})
 	})
 
@@ -720,16 +710,10 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteEnvOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -740,16 +724,12 @@ var _ = Describe("Opts", func() {
 			args = &DeleteEnvArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Manifest", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Manifest", args)).To(Equal(
-						`positional-arg-name:"PATH" description:"Path to a manifest file"`,
-					))
-				})
+		Describe("Manifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Manifest", args)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a manifest file"`,
+				))
 			})
-
 		})
 	})
 
@@ -760,16 +740,10 @@ var _ = Describe("Opts", func() {
 			opts = &EnvironmentOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
-
 		})
 	})
 
@@ -780,24 +754,20 @@ var _ = Describe("Opts", func() {
 			args = &EnvironmentArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("URL", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("URL", args)).To(Equal(
-						`positional-arg-name:"URL"   description:"Director URL (e.g.: https://192.168.50.4:25555 or 192.168.50.4)"`,
-					))
-				})
+		Describe("URL", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("URL", args)).To(Equal(
+					`positional-arg-name:"URL" description:"Director URL (e.g.: https://192.168.50.4:25555 or 192.168.50.4)"`,
+				))
 			})
+		})
 
-			Describe("Alias", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Alias", args)).To(Equal(
-						`positional-arg-name:"ALIAS" description:"Environment alias"`,
-					))
-				})
+		Describe("Alias", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Alias", args)).To(Equal(
+					`positional-arg-name:"ALIAS" description:"Environment alias"`,
+				))
 			})
-
 		})
 	})
 
@@ -808,54 +778,49 @@ var _ = Describe("Opts", func() {
 			opts = &TaskOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("Event", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Event", opts)).To(Equal(
-						`long:"event"  description:"Track event log"`,
-					))
-				})
+		Describe("Event", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Event", opts)).To(Equal(
+					`long:"event" description:"Track event log"`,
+				))
 			})
+		})
 
-			Describe("CPI", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CPI", opts)).To(Equal(
-						`long:"cpi"    description:"Track CPI log"`,
-					))
-				})
+		Describe("CPI", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CPI", opts)).To(Equal(
+					`long:"cpi" description:"Track CPI log"`,
+				))
 			})
+		})
 
-			Describe("Debug", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Debug", opts)).To(Equal(
-						`long:"debug"  description:"Track debug log"`,
-					))
-				})
+		Describe("Debug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Debug", opts)).To(Equal(
+					`long:"debug" description:"Track debug log"`,
+				))
 			})
+		})
 
-			Describe("Result", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Result", opts)).To(Equal(
-						`long:"result" description:"Track result log"`,
-					))
-				})
+		Describe("Result", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Result", opts)).To(Equal(
+					`long:"result" description:"Track result log"`,
+				))
 			})
+		})
 
-			Describe("All", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("All", opts)).To(Equal(
-						`long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`,
-					))
-				})
+		Describe("All", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("All", opts)).To(Equal(
+					`long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`,
+				))
 			})
 		})
 	})
@@ -867,14 +832,11 @@ var _ = Describe("Opts", func() {
 			opts = &TaskArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("ID", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("ID", opts)).To(Equal(
-						`positional-arg-name:"ID"`,
-					))
-				})
+		Describe("ID", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ID", opts)).To(Equal(
+					`positional-arg-name:"ID"`,
+				))
 			})
 		})
 	})
@@ -886,24 +848,20 @@ var _ = Describe("Opts", func() {
 			opts = &TasksOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Recent", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Recent", opts)).To(Equal(
-						`long:"recent" short:"r" description:"Number of tasks to show" optional:"true" optional-value:"30"`,
-					))
-				})
+		Describe("Recent", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Recent", opts)).To(Equal(
+					`long:"recent" short:"r" description:"Number of tasks to show" optional:"true" optional-value:"30"`,
+				))
 			})
+		})
 
-			Describe("All", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("All", opts)).To(Equal(
-						`long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`,
-					))
-				})
+		Describe("All", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("All", opts)).To(Equal(
+					`long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`,
+				))
 			})
-
 		})
 	})
 
@@ -914,16 +872,10 @@ var _ = Describe("Opts", func() {
 			opts = &CancelTaskOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -934,16 +886,12 @@ var _ = Describe("Opts", func() {
 			opts = &CleanUpOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("All", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("All", opts)).To(Equal(
-						`long:"all" description:"Remove all unused releases, stemcells, etc.; otherwise most recent resources will be kept"`,
-					))
-				})
+		Describe("All", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("All", opts)).To(Equal(
+					`long:"all" description:"Remove all unused releases, stemcells, etc.; otherwise most recent resources will be kept"`,
+				))
 			})
-
 		})
 	})
 
@@ -954,24 +902,18 @@ var _ = Describe("Opts", func() {
 			opts = &BackUpOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force" description:"Overwrite if the backup file already exists"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"Overwrite if the backup file already exists"`,
+				))
 			})
-
 		})
 	})
 
@@ -982,16 +924,10 @@ var _ = Describe("Opts", func() {
 			opts = &BackUpArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Path", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Path", opts)).To(Equal(
-						`positional-arg-name:"PATH"`,
-					))
-				})
+		Describe("Path", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Path", opts)).To(Equal(`positional-arg-name:"PATH"`))
 			})
-
 		})
 	})
 
@@ -1002,16 +938,10 @@ var _ = Describe("Opts", func() {
 			opts = &BuildManifestOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -1022,16 +952,12 @@ var _ = Describe("Opts", func() {
 			opts = &BuildManifestArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Manifest", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Manifest", opts)).To(Equal(
-						`positional-arg-name:"PATH" description:"Path to a template that will be interpolated"`,
-					))
-				})
+		Describe("Manifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Manifest", opts)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a template that will be interpolated"`,
+				))
 			})
-
 		})
 	})
 
@@ -1042,16 +968,10 @@ var _ = Describe("Opts", func() {
 			opts = &UpdateCloudConfigOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -1062,16 +982,12 @@ var _ = Describe("Opts", func() {
 			opts = &UpdateCloudConfigArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("CloudConfig", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CloudConfig", opts)).To(Equal(
-						`positional-arg-name:"PATH" description:"Path to a cloud config file"`,
-					))
-				})
+		Describe("CloudConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CloudConfig", opts)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a cloud config file"`,
+				))
 			})
-
 		})
 	})
 
@@ -1082,16 +998,10 @@ var _ = Describe("Opts", func() {
 			opts = &UpdateRuntimeConfigOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -1102,16 +1012,12 @@ var _ = Describe("Opts", func() {
 			opts = &UpdateRuntimeConfigArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("RuntimeConfig", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("RuntimeConfig", opts)).To(Equal(
-						`positional-arg-name:"PATH" description:"Path to a runtime config file"`,
-					))
-				})
+		Describe("RuntimeConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RuntimeConfig", opts)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a runtime config file"`,
+				))
 			})
-
 		})
 	})
 
@@ -1122,16 +1028,10 @@ var _ = Describe("Opts", func() {
 			opts = &DeploymentOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
-
 		})
 	})
 
@@ -1142,40 +1042,34 @@ var _ = Describe("Opts", func() {
 			opts = &DeployOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Recreate", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Recreate", opts)).To(Equal(
-						`long:"recreate"   description:"Recreate all VMs in deployment"`,
-					))
-				})
+		Describe("Recreate", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Recreate", opts)).To(Equal(
+					`long:"recreate" description:"Recreate all VMs in deployment"`,
+				))
 			})
+		})
 
-			Describe("NoRedact", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("NoRedact", opts)).To(Equal(
-						`long:"no-redact" description:"Show non-redacted manifest diff"`,
-					))
-				})
+		Describe("NoRedact", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("NoRedact", opts)).To(Equal(
+					`long:"no-redact" description:"Show non-redacted manifest diff"`,
+				))
 			})
+		})
 
-			Describe("SkipDrain", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
-						`long:"skip-drain" description:"Skip running drain scripts"`,
-					))
-				})
+		Describe("SkipDrain", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+					`long:"skip-drain" description:"Skip running drain scripts"`,
+				))
 			})
-
 		})
 	})
 
@@ -1186,16 +1080,12 @@ var _ = Describe("Opts", func() {
 			opts = &DeployArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Manifest", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Manifest", opts)).To(Equal(
-						`positional-arg-name:"PATH" description:"Path to a manifest file"`,
-					))
-				})
+		Describe("Manifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Manifest", opts)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a manifest file"`,
+				))
 			})
-
 		})
 	})
 
@@ -1206,16 +1096,12 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteDeploymentOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force" description:"Ignore errors"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"Ignore errors"`,
+				))
 			})
-
 		})
 	})
 
@@ -1226,16 +1112,12 @@ var _ = Describe("Opts", func() {
 			opts = &DeploymentArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("NameOrPath", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("NameOrPath", opts)).To(Equal(
-						`positional-arg-name:"NAME"`,
-					))
-				})
+		Describe("NameOrPath", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("NameOrPath", opts)).To(Equal(
+					`positional-arg-name:"NAME"`,
+				))
 			})
-
 		})
 	})
 
@@ -1246,16 +1128,12 @@ var _ = Describe("Opts", func() {
 			opts = &DeploymentNameArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Name", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Name", opts)).To(Equal(
-						`positional-arg-name:"NAME"`,
-					))
-				})
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`positional-arg-name:"NAME"`,
+				))
 			})
-
 		})
 	})
 
@@ -1266,48 +1144,42 @@ var _ = Describe("Opts", func() {
 			opts = &UploadStemcellOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Fix", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Fix", opts)).To(Equal(
-						`long:"fix" description:"Replaces the stemcell if already exists"`,
-					))
-				})
+		Describe("Fix", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Fix", opts)).To(Equal(
+					`long:"fix" description:"Replaces the stemcell if already exists"`,
+				))
 			})
+		})
 
-			Describe("Name", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Name", opts)).To(Equal(
-						`long:"name"     description:"Name used in existence check (is not used with local stemcell file)"`,
-					))
-				})
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`long:"name" description:"Name used in existence check (is not used with local stemcell file)"`,
+				))
 			})
+		})
 
-			Describe("Version", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Version", opts)).To(Equal(
-						`long:"version"  description:"Version used in existence check (is not used with local stemcell file)"`,
-					))
-				})
+		Describe("Version", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Version", opts)).To(Equal(
+					`long:"version" description:"Version used in existence check (is not used with local stemcell file)"`,
+				))
 			})
+		})
 
-			Describe("SHA1", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SHA1", opts)).To(Equal(
-						`long:"sha1" description:"SHA1 of the remote stemcell (is not used with local files)"`,
-					))
-				})
+		Describe("SHA1", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SHA1", opts)).To(Equal(
+					`long:"sha1" description:"SHA1 of the remote stemcell (is not used with local files)"`,
+				))
 			})
-
 		})
 	})
 
@@ -1318,16 +1190,12 @@ var _ = Describe("Opts", func() {
 			opts = &UploadStemcellArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("URL", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("URL", opts)).To(Equal(
-						`positional-arg-name:"URL" description:"Path to a local file or URL"`,
-					))
-				})
+		Describe("URL", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("URL", opts)).To(Equal(
+					`positional-arg-name:"URL" description:"Path to a local file or URL"`,
+				))
 			})
-
 		})
 	})
 
@@ -1338,24 +1206,18 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteStemcellOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force" description:"Ignore errors"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"Ignore errors"`,
+				))
 			})
-
 		})
 	})
 
@@ -1366,16 +1228,12 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteStemcellArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Slug", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Slug", opts)).To(Equal(
-						`positional-arg-name:"NAME/VERSION"`,
-					))
-				})
+		Describe("Slug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Slug", opts)).To(Equal(
+					`positional-arg-name:"NAME/VERSION"`,
+				))
 			})
-
 		})
 	})
 
@@ -1386,64 +1244,58 @@ var _ = Describe("Opts", func() {
 			opts = &UploadReleaseOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"zzzRelease directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"zzzRelease directory path if not current working directory" default:"."`,
+				))
 			})
+		})
 
-			Describe("Rebase", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Rebase", opts)).To(Equal(
-						`long:"rebase" description:"Rebases this release onto the latest version known by the Director"`,
-					))
-				})
+		Describe("Rebase", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Rebase", opts)).To(Equal(
+					`long:"rebase" description:"Rebases this release onto the latest version known by the Director"`,
+				))
 			})
+		})
 
-			Describe("Fix", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Fix", opts)).To(Equal(
-						`long:"fix" description:"Replaces corrupt and missing jobs and packages"`,
-					))
-				})
+		Describe("Fix", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Fix", opts)).To(Equal(
+					`long:"fix" description:"Replaces corrupt and missing jobs and packages"`,
+				))
 			})
+		})
 
-			Describe("Name", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Name", opts)).To(Equal(
-						`long:"name"     description:"Name used in existence check (is not used with local release file)"`,
-					))
-				})
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`long:"name" description:"Name used in existence check (is not used with local release file)"`,
+				))
 			})
+		})
 
-			Describe("Version", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Version", opts)).To(Equal(
-						`long:"version"  description:"Version used in existence check (is not used with local release file)"`,
-					))
-				})
+		Describe("Version", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Version", opts)).To(Equal(
+					`long:"version" description:"Version used in existence check (is not used with local release file)"`,
+				))
 			})
+		})
 
-			Describe("SHA1", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SHA1", opts)).To(Equal(
-						`long:"sha1" description:"SHA1 of the remote release (is not used with local files)"`,
-					))
-				})
+		Describe("SHA1", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SHA1", opts)).To(Equal(
+					`long:"sha1" description:"SHA1 of the remote release (is not used with local files)"`,
+				))
 			})
-
 		})
 	})
 
@@ -1454,16 +1306,12 @@ var _ = Describe("Opts", func() {
 			opts = &UploadReleaseArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("URL", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("URL", opts)).To(Equal(
-						`positional-arg-name:"URL" description:"Path to a local file or URL"`,
-					))
-				})
+		Describe("URL", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("URL", opts)).To(Equal(
+					`positional-arg-name:"URL" description:"Path to a local file or URL"`,
+				))
 			})
-
 		})
 	})
 
@@ -1474,24 +1322,18 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteReleaseOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force" description:"Ignore errors"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"Ignore errors"`,
+				))
 			})
-
 		})
 	})
 
@@ -1502,16 +1344,12 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteReleaseArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Slug", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Slug", opts)).To(Equal(
-						`positional-arg-name:"NAME[/VERSION]"`,
-					))
-				})
+		Describe("Slug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Slug", opts)).To(Equal(
+					`positional-arg-name:"NAME[/VERSION]"`,
+				))
 			})
-
 		})
 	})
 
@@ -1522,24 +1360,18 @@ var _ = Describe("Opts", func() {
 			opts = &ExportReleaseOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Destination directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Destination directory" default:"."`,
+				))
 			})
-
 		})
 	})
 
@@ -1550,24 +1382,20 @@ var _ = Describe("Opts", func() {
 			opts = &ExportReleaseArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("ReleaseSlug", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("ReleaseSlug", opts)).To(Equal(
-						`positional-arg-name:"NAME/VERSION"`,
-					))
-				})
+		Describe("ReleaseSlug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ReleaseSlug", opts)).To(Equal(
+					`positional-arg-name:"NAME/VERSION"`,
+				))
 			})
+		})
 
-			Describe("OSVersionSlug", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("OSVersionSlug", opts)).To(Equal(
-						`positional-arg-name:"OS/VERSION"`,
-					))
-				})
+		Describe("OSVersionSlug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("OSVersionSlug", opts)).To(Equal(
+					`positional-arg-name:"OS/VERSION"`,
+				))
 			})
-
 		})
 	})
 
@@ -1578,16 +1406,10 @@ var _ = Describe("Opts", func() {
 			opts = &InspectReleaseOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -1598,16 +1420,12 @@ var _ = Describe("Opts", func() {
 			opts = &InspectReleaseArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Slug", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Slug", opts)).To(Equal(
-						`positional-arg-name:"NAME/VERSION"`,
-					))
-				})
+		Describe("Slug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Slug", opts)).To(Equal(
+					`positional-arg-name:"NAME/VERSION"`,
+				))
 			})
-
 		})
 	})
 
@@ -1618,40 +1436,34 @@ var _ = Describe("Opts", func() {
 			opts = &RunErrandOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("KeepAlive", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("KeepAlive", opts)).To(Equal(
-						`long:"keep-alive" description:"Use existing VM to run an errand and keep it after completion"`,
-					))
-				})
+		Describe("KeepAlive", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("KeepAlive", opts)).To(Equal(
+					`long:"keep-alive" description:"Use existing VM to run an errand and keep it after completion"`,
+				))
 			})
+		})
 
-			Describe("DownloadLogs", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DownloadLogs", opts)).To(Equal(
-						`long:"download-logs" description:"Download logs"`,
-					))
-				})
+		Describe("DownloadLogs", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DownloadLogs", opts)).To(Equal(
+					`long:"download-logs" description:"Download logs"`,
+				))
 			})
+		})
 
-			Describe("LogsDirectory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("LogsDirectory", opts)).To(Equal(
-						`long:"logs-dir" description:"Destination directory for logs" default:"."`,
-					))
-				})
+		Describe("LogsDirectory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("LogsDirectory", opts)).To(Equal(
+					`long:"logs-dir" description:"Destination directory for logs" default:"."`,
+				))
 			})
-
 		})
 	})
 
@@ -1662,16 +1474,12 @@ var _ = Describe("Opts", func() {
 			opts = &RunErrandArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Name", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Name", opts)).To(Equal(
-						`positional-arg-name:"NAME"`,
-					))
-				})
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`positional-arg-name:"NAME"`,
+				))
 			})
-
 		})
 	})
 
@@ -1682,16 +1490,12 @@ var _ = Describe("Opts", func() {
 			opts = &DisksOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Orphaned", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Orphaned", opts)).To(Equal(
-						`long:"orphaned" short:"o" description:"List orphaned disks"`,
-					))
-				})
+		Describe("Orphaned", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Orphaned", opts)).To(Equal(
+					`long:"orphaned" short:"o" description:"List orphaned disks"`,
+				))
 			})
-
 		})
 	})
 
@@ -1702,16 +1506,10 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteDiskOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -1722,16 +1520,12 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteDiskArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("CID", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CID", opts)).To(Equal(
-						`positional-arg-name:"CID"`,
-					))
-				})
+		Describe("CID", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CID", opts)).To(Equal(
+					`positional-arg-name:"CID"`,
+				))
 			})
-
 		})
 	})
 
@@ -1742,16 +1536,10 @@ var _ = Describe("Opts", func() {
 			opts = &SnapshotsOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
-
 		})
 	})
 
@@ -1762,16 +1550,10 @@ var _ = Describe("Opts", func() {
 			opts = &TakeSnapshotOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
-
 		})
 	})
 
@@ -1782,16 +1564,10 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteSnapshotOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -1802,16 +1578,12 @@ var _ = Describe("Opts", func() {
 			opts = &DeleteSnapshotArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("CID", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("CID", opts)).To(Equal(
-						`positional-arg-name:"CID"`,
-					))
-				})
+		Describe("CID", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CID", opts)).To(Equal(
+					`positional-arg-name:"CID"`,
+				))
 			})
-
 		})
 	})
 
@@ -1822,16 +1594,12 @@ var _ = Describe("Opts", func() {
 			opts = &InstanceSlugArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Slug", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Slug", opts)).To(Equal(
-						`positional-arg-name:"POOL/ID"`,
-					))
-				})
+		Describe("Slug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Slug", opts)).To(Equal(
+					`positional-arg-name:"POOL/ID"`,
+				))
 			})
-
 		})
 	})
 
@@ -1842,48 +1610,44 @@ var _ = Describe("Opts", func() {
 			opts = &InstancesOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Details", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Details", opts)).To(Equal(
-						`long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`,
-					))
-				})
+		Describe("Details", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Details", opts)).To(Equal(
+					`long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`,
+				))
 			})
+		})
 
-			Describe("DNS", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DNS", opts)).To(Equal(
-						`long:"dns"               description:"Show DNS A records"`,
-					))
-				})
+		Describe("DNS", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DNS", opts)).To(Equal(
+					`long:"dns" description:"Show DNS A records"`,
+				))
 			})
+		})
 
-			Describe("Vitals", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Vitals", opts)).To(Equal(
-						`long:"vitals"            description:"Show vitals"`,
-					))
-				})
+		Describe("Vitals", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Vitals", opts)).To(Equal(
+					`long:"vitals" description:"Show vitals"`,
+				))
 			})
+		})
 
-			Describe("Processes", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Processes", opts)).To(Equal(
-						`long:"ps"      short:"p" description:"Show processes"`,
-					))
-				})
+		Describe("Processes", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Processes", opts)).To(Equal(
+					`long:"ps" short:"p" description:"Show processes"`,
+				))
 			})
+		})
 
-			Describe("Failing", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Failing", opts)).To(Equal(
-						`long:"failing" short:"f" description:"Only show failing instances"`,
-					))
-				})
+		Describe("Failing", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Failing", opts)).To(Equal(
+					`long:"failing" short:"f" description:"Only show failing instances"`,
+				))
 			})
-
 		})
 	})
 
@@ -1894,32 +1658,28 @@ var _ = Describe("Opts", func() {
 			opts = &VMsOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Details", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Details", opts)).To(Equal(
-						`long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`,
-					))
-				})
+		Describe("Details", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Details", opts)).To(Equal(
+					`long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`,
+				))
 			})
+		})
 
-			Describe("DNS", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("DNS", opts)).To(Equal(
-						`long:"dns"               description:"Show DNS A records"`,
-					))
-				})
+		Describe("DNS", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DNS", opts)).To(Equal(
+					`long:"dns" description:"Show DNS A records"`,
+				))
 			})
+		})
 
-			Describe("Vitals", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Vitals", opts)).To(Equal(
-						`long:"vitals"            description:"Show vitals"`,
-					))
-				})
+		Describe("Vitals", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Vitals", opts)).To(Equal(
+					`long:"vitals" description:"Show vitals"`,
+				))
 			})
-
 		})
 	})
 
@@ -1930,24 +1690,20 @@ var _ = Describe("Opts", func() {
 			opts = &CloudCheckOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Auto", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Auto", opts)).To(Equal(
-						`long:"auto"   short:"a" description:"Resolve problems automatically"`,
-					))
-				})
+		Describe("Auto", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Auto", opts)).To(Equal(
+					`long:"auto" short:"a" description:"Resolve problems automatically"`,
+				))
 			})
+		})
 
-			Describe("Report", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Report", opts)).To(Equal(
-						`long:"report" short:"r" description:"Only generate report; don't attempt to resolve problems"`,
-					))
-				})
+		Describe("Report", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Report", opts)).To(Equal(
+					`long:"report" short:"r" description:"Only generate report; don't attempt to resolve problems"`,
+				))
 			})
-
 		})
 	})
 
@@ -1958,16 +1714,10 @@ var _ = Describe("Opts", func() {
 			opts = &UpdateResurrectionOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
-
 		})
 	})
 
@@ -1978,16 +1728,12 @@ var _ = Describe("Opts", func() {
 			opts = &UpdateResurrectionArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Enabled", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Enabled", opts)).To(Equal(
-						`positional-arg-name:"on|off"`,
-					))
-				})
+		Describe("Enabled", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Enabled", opts)).To(Equal(
+					`positional-arg-name:"on|off"`,
+				))
 			})
-
 		})
 	})
 
@@ -1998,72 +1744,66 @@ var _ = Describe("Opts", func() {
 			opts = &LogsOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Destination directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Destination directory" default:"."`,
+				))
 			})
+		})
 
-			Describe("Follow", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Follow", opts)).To(Equal(
-						`long:"follow" short:"f" description:"Follow logs via SSH"`,
-					))
-				})
+		Describe("Follow", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Follow", opts)).To(Equal(
+					`long:"follow" short:"f" description:"Follow logs via SSH"`,
+				))
 			})
+		})
 
-			Describe("Num", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Num", opts)).To(Equal(
-						`long:"num"              description:"Last number of lines"`,
-					))
-				})
+		Describe("Num", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Num", opts)).To(Equal(
+					`long:"num" description:"Last number of lines"`,
+				))
 			})
+		})
 
-			Describe("Quiet", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Quiet", opts)).To(Equal(
-						`long:"quiet"  short:"q" description:"Suppresses printing of headers when multiple files are being examined."`,
-					))
-				})
+		Describe("Quiet", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Quiet", opts)).To(Equal(
+					`long:"quiet" short:"q" description:"Suppresses printing of headers when multiple files are being examined"`,
+				))
 			})
+		})
 
-			Describe("Jobs", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Jobs", opts)).To(Equal(
-						`long:"job"   description:"Limit to only specific jobs"`,
-					))
-				})
+		Describe("Jobs", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Jobs", opts)).To(Equal(
+					`long:"job" description:"Limit to only specific jobs"`,
+				))
 			})
+		})
 
-			Describe("Filters", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Filters", opts)).To(Equal(
-						`long:"only"  description:"Filter logs (comma-separated)"`,
-					))
-				})
+		Describe("Filters", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Filters", opts)).To(Equal(
+					`long:"only" description:"Filter logs (comma-separated)"`,
+				))
 			})
+		})
 
-			Describe("Agent", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Agent", opts)).To(Equal(
-						`long:"agent" description:"Include only agent logs"`,
-					))
-				})
+		Describe("Agent", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Agent", opts)).To(Equal(
+					`long:"agent" description:"Include only agent logs"`,
+				))
 			})
-
 		})
 	})
 
@@ -2074,24 +1814,18 @@ var _ = Describe("Opts", func() {
 			opts = &StartOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force" description:"No-op for backwards compatibility"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"No-op for backwards compatibility"`,
+				))
 			})
-
 		})
 	})
 
@@ -2102,48 +1836,42 @@ var _ = Describe("Opts", func() {
 			opts = &StopOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("Soft", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Soft", opts)).To(Equal(
-						`long:"soft" description:"Stop process only (default)"`,
-					))
-				})
+		Describe("Soft", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Soft", opts)).To(Equal(
+					`long:"soft" description:"Stop process only (default)"`,
+				))
 			})
+		})
 
-			Describe("Hard", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Hard", opts)).To(Equal(
-						`long:"hard" description:"Delete VM (but keep persistent disk)"`,
-					))
-				})
+		Describe("Hard", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Hard", opts)).To(Equal(
+					`long:"hard" description:"Delete VM (but keep persistent disk)"`,
+				))
 			})
+		})
 
-			Describe("SkipDrain", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
-						`long:"skip-drain" description:"Skip running drain scripts"`,
-					))
-				})
+		Describe("SkipDrain", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+					`long:"skip-drain" description:"Skip running drain scripts"`,
+				))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force"      description:"No-op for backwards compatibility"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"No-op for backwards compatibility"`,
+				))
 			})
-
 		})
 	})
 
@@ -2154,32 +1882,26 @@ var _ = Describe("Opts", func() {
 			opts = &RestartOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("SkipDrain", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
-						`long:"skip-drain" description:"Skip running drain scripts"`,
-					))
-				})
+		Describe("SkipDrain", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+					`long:"skip-drain" description:"Skip running drain scripts"`,
+				))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force"      description:"No-op for backwards compatibility"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"No-op for backwards compatibility"`,
+				))
 			})
-
 		})
 	})
 
@@ -2190,32 +1912,26 @@ var _ = Describe("Opts", func() {
 			opts = &RecreateOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("SkipDrain", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
-						`long:"skip-drain" description:"Skip running drain scripts"`,
-					))
-				})
+		Describe("SkipDrain", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+					`long:"skip-drain" description:"Skip running drain scripts"`,
+				))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force"      description:"No-op for backwards compatibility"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"No-op for backwards compatibility"`,
+				))
 			})
-
 		})
 	})
 
@@ -2226,40 +1942,34 @@ var _ = Describe("Opts", func() {
 			opts = &SSHOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("Command", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Command", opts)).To(Equal(
-						`long:"command" short:"c" description:"Command"`,
-					))
-				})
+		Describe("Command", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Command", opts)).To(Equal(
+					`long:"command" short:"c" description:"Command"`,
+				))
 			})
+		})
 
-			Describe("RawOpts", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("RawOpts", opts)).To(Equal(
-						`long:"opts"              description:"Options to pass through to SSH"`,
-					))
-				})
+		Describe("RawOpts", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RawOpts", opts)).To(Equal(
+					`long:"opts" description:"Options to pass through to SSH"`,
+				))
 			})
+		})
 
-			Describe("Results", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Results", opts)).To(Equal(
-						`long:"results" short:"r" description:"Collect results into a table instead of streaming"`,
-					))
-				})
+		Describe("Results", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Results", opts)).To(Equal(
+					`long:"results" short:"r" description:"Collect results into a table instead of streaming"`,
+				))
 			})
-
 		})
 	})
 
@@ -2270,24 +1980,18 @@ var _ = Describe("Opts", func() {
 			opts = &SCPOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Recursive", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Recursive", opts)).To(Equal(
-						`long:"recursive" short:"r" description:"Recursively copy entire directories. Note that symbolic links encountered are followed in the tree traversal"`,
-					))
-				})
+		Describe("Recursive", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Recursive", opts)).To(Equal(
+					`long:"recursive" short:"r" description:"Recursively copy entire directories. Note that symbolic links encountered are followed in the tree traversal"`,
+				))
 			})
-
 		})
 	})
 
@@ -2298,16 +2002,10 @@ var _ = Describe("Opts", func() {
 			opts = &SCPArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Paths", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Paths", opts)).To(Equal(
-						`positional-arg-name:"PATH"`,
-					))
-				})
+		Describe("Paths", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Paths", opts)).To(Equal(`positional-arg-name:"PATH"`))
 			})
-
 		})
 	})
 
@@ -2318,40 +2016,36 @@ var _ = Describe("Opts", func() {
 			opts = &GatewayFlags{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Disable", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Disable", opts)).To(Equal(
-						`long:"gw-disable" description:"Disable usage of gateway connection"`,
-					))
-				})
+		Describe("Disable", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Disable", opts)).To(Equal(
+					`long:"gw-disable" description:"Disable usage of gateway connection"`,
+				))
 			})
+		})
 
-			Describe("Username", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Username", opts)).To(Equal(
-						`long:"gw-user"        description:"Username for gateway connection"`,
-					))
-				})
+		Describe("Username", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Username", opts)).To(Equal(
+					`long:"gw-user" description:"Username for gateway connection"`,
+				))
 			})
+		})
 
-			Describe("Host", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Host", opts)).To(Equal(
-						`long:"gw-host"        description:"Host for gateway connection"`,
-					))
-				})
+		Describe("Host", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Host", opts)).To(Equal(
+					`long:"gw-host" description:"Host for gateway connection"`,
+				))
 			})
+		})
 
-			Describe("PrivateKeyPath", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("PrivateKeyPath", opts)).To(Equal(
-						`long:"gw-private-key" description:"Private key path for gateway connection"`,
-					))
-				})
+		Describe("PrivateKeyPath", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("PrivateKeyPath", opts)).To(Equal(
+					`long:"gw-private-key" description:"Private key path for gateway connection"`,
+				))
 			})
-
 		})
 	})
 
@@ -2362,24 +2056,20 @@ var _ = Describe("Opts", func() {
 			opts = &InitReleaseOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
+		})
 
-			Describe("Git", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Git", opts)).To(Equal(
-						`long:"git" description:"Initialize git repository"`,
-					))
-				})
+		Describe("Git", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Git", opts)).To(Equal(
+					`long:"git" description:"Initialize git repository"`,
+				))
 			})
-
 		})
 	})
 
@@ -2390,16 +2080,12 @@ var _ = Describe("Opts", func() {
 			opts = &ResetReleaseOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
-
 		})
 	})
 
@@ -2410,24 +2096,18 @@ var _ = Describe("Opts", func() {
 			opts = &GenerateJobOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
-
 		})
 	})
 
@@ -2438,16 +2118,12 @@ var _ = Describe("Opts", func() {
 			opts = &GenerateJobArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Name", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Name", opts)).To(Equal(
-						`positional-arg-name:"NAME"`,
-					))
-				})
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`positional-arg-name:"NAME"`,
+				))
 			})
-
 		})
 	})
 
@@ -2458,24 +2134,18 @@ var _ = Describe("Opts", func() {
 			opts = &GeneratePackageOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
-
 		})
 	})
 
@@ -2486,16 +2156,12 @@ var _ = Describe("Opts", func() {
 			opts = &GeneratePackageArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Name", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Name", opts)).To(Equal(
-						`positional-arg-name:"NAME"`,
-					))
-				})
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`positional-arg-name:"NAME"`,
+				))
 			})
-
 		})
 	})
 
@@ -2506,72 +2172,66 @@ var _ = Describe("Opts", func() {
 			opts = &CreateReleaseOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
+		})
 
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
+		})
 
-			Describe("Name", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Name", opts)).To(Equal(
-						`long:"name"               description:"Custom release name"`,
-					))
-				})
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`long:"name" description:"Custom release name"`,
+				))
 			})
+		})
 
-			Describe("Version", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Version", opts)).To(Equal(
-						`long:"version"            description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`,
-					))
-				})
+		Describe("Version", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Version", opts)).To(Equal(
+					`long:"version" description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`,
+				))
 			})
+		})
 
-			Describe("TimestampVersion", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("TimestampVersion", opts)).To(Equal(
-						`long:"timestamp-version"  description:"Create release with the timestamp as the dev version (e.g.: 1+dev.TIMESTAMP)"`,
-					))
-				})
+		Describe("TimestampVersion", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("TimestampVersion", opts)).To(Equal(
+					`long:"timestamp-version" description:"Create release with the timestamp as the dev version (e.g.: 1+dev.TIMESTAMP)"`,
+				))
 			})
+		})
 
-			Describe("Final", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Final", opts)).To(Equal(
-						`long:"final" description:"Make it a final release"`,
-					))
-				})
+		Describe("Final", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Final", opts)).To(Equal(
+					`long:"final" description:"Make it a final release"`,
+				))
 			})
+		})
 
-			Describe("Tarball", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Tarball", opts)).To(Equal(
-						`long:"tarball" description:"Create release tarball"`,
-					))
-				})
+		Describe("Tarball", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Tarball", opts)).To(Equal(
+					`long:"tarball" description:"Create release tarball"`,
+				))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force" description:"Ignore Git dirty state check"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"Ignore Git dirty state check"`,
+				))
 			})
-
 		})
 	})
 
@@ -2582,16 +2242,10 @@ var _ = Describe("Opts", func() {
 			opts = &CreateReleaseArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Manifest", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Manifest", opts)).To(Equal(
-						`positional-arg-name:"PATH"`,
-					))
-				})
+		Describe("Manifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Manifest", opts)).To(Equal(`positional-arg-name:"PATH"`))
 			})
-
 		})
 	})
 
@@ -2602,48 +2256,42 @@ var _ = Describe("Opts", func() {
 			opts = &FinalizeReleaseOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
+		})
 
-			Describe("Name", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Name", opts)).To(Equal(
-						`long:"name"    description:"Custom release name"`,
-					))
-				})
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`long:"name" description:"Custom release name"`,
+				))
 			})
+		})
 
-			Describe("Version", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Version", opts)).To(Equal(
-						`long:"version" description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`,
-					))
-				})
+		Describe("Version", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Version", opts)).To(Equal(
+					`long:"version" description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`,
+				))
 			})
+		})
 
-			Describe("Force", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Force", opts)).To(Equal(
-						`long:"force" description:"Ignore Git dirty state check"`,
-					))
-				})
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"Ignore Git dirty state check"`,
+				))
 			})
-
 		})
 	})
 
@@ -2654,16 +2302,10 @@ var _ = Describe("Opts", func() {
 			opts = &FinalizeReleaseArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Path", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Path", opts)).To(Equal(
-						`positional-arg-name:"PATH"`,
-					))
-				})
+		Describe("Path", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Path", opts)).To(Equal(`positional-arg-name:"PATH"`))
 			})
-
 		})
 	})
 
@@ -2674,16 +2316,12 @@ var _ = Describe("Opts", func() {
 			opts = &BlobsOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
-
 		})
 	})
 
@@ -2694,24 +2332,18 @@ var _ = Describe("Opts", func() {
 			opts = &AddBlobArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Path", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Path", opts)).To(Equal(
-						`positional-arg-name:"PATH"`,
-					))
-				})
+		Describe("Path", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Path", opts)).To(Equal(`positional-arg-name:"PATH"`))
 			})
+		})
 
-			Describe("BlobsPath", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("BlobsPath", opts)).To(Equal(
-						`positional-arg-name:"BLOBS-PATH"`,
-					))
-				})
+		Describe("BlobsPath", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("BlobsPath", opts)).To(Equal(
+					`positional-arg-name:"BLOBS-PATH"`,
+				))
 			})
-
 		})
 	})
 
@@ -2722,24 +2354,18 @@ var _ = Describe("Opts", func() {
 			opts = &RemoveBlobOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Args", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Args", opts)).To(Equal(
-						`positional-args:"true" required:"true"`,
-					))
-				})
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
 
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
-
 		})
 	})
 
@@ -2750,16 +2376,12 @@ var _ = Describe("Opts", func() {
 			opts = &RemoveBlobArgs{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("BlobsPath", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("BlobsPath", opts)).To(Equal(
-						`positional-arg-name:"BLOBS-PATH"`,
-					))
-				})
+		Describe("BlobsPath", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("BlobsPath", opts)).To(Equal(
+					`positional-arg-name:"BLOBS-PATH"`,
+				))
 			})
-
 		})
 	})
 
@@ -2770,16 +2392,12 @@ var _ = Describe("Opts", func() {
 			opts = &SyncBlobsOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
-
 		})
 	})
 
@@ -2790,17 +2408,12 @@ var _ = Describe("Opts", func() {
 			opts = &UploadBlobsOpts{}
 		})
 
-		Describe("Tags (these are used by go flags)", func() {
-
-			Describe("Directory", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Directory", opts)).To(Equal(
-						`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-					))
-				})
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
 			})
-
 		})
 	})
-
 })

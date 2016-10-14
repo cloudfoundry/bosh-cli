@@ -38,12 +38,12 @@ type BoshOpts struct {
 	DeleteEnv DeleteEnvOpts `command:"delete-env" description:"Delete BOSH environment"`
 
 	// Environments
-	Environment  EnvironmentOpts  `command:"environment" alias:"env" description:"Set or show current environment"`
+	Environment  EnvironmentOpts  `command:"environment"  alias:"env"  description:"Set or show current environment"`
 	Environments EnvironmentsOpts `command:"environments" alias:"envs" description:"List environments"`
 
 	// Authentication
 	LogIn  LogInOpts  `command:"log-in"  alias:"l" description:"Log in"`
-	LogOut LogOutOpts `command:"log-out"           description:"Forget saved credentials for Director in the current environment"`
+	LogOut LogOutOpts `command:"log-out"           description:"Log out"`
 
 	// Tasks
 	Task       TaskOpts       `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
@@ -51,10 +51,9 @@ type BoshOpts struct {
 	CancelTask CancelTaskOpts `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
 
 	// Misc
-	Locks         LocksOpts         `command:"locks"    alias:"ls" description:"List current locks"`
-	CleanUp       CleanUpOpts       `command:"clean-up" alias:"cl" description:"Clean up releases, stemcells, disks, etc."`
-	BackUp        BackUpOpts        `command:"back-up"  alias:"bu" description:"Backup the Director to a tarball"`
-	BuildManifest BuildManifestOpts `command:"build-manifest"  alias:"bm" hidden:"yes" description:"Interpolates variables into a manifest template."`
+	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
+	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
+	BackUp  BackUpOpts  `command:"back-up"  description:"Back up the Director database to a tarball"`
 
 	// Cloud config
 	CloudConfig       CloudConfigOpts       `command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`
@@ -71,6 +70,8 @@ type BoshOpts struct {
 
 	Deploy   DeployOpts   `command:"deploy"   alias:"d"                                       description:"Deploy according to the currently selected deployment manifest"`
 	Manifest ManifestOpts `command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`
+
+	BuildManifest BuildManifestOpts `command:"build-manifest" alias:"bm" description:"Interpolates variables into a manifest"`
 
 	// Events
 	Events EventsOpts `command:"events" description:"List events"`
@@ -123,17 +124,17 @@ type BoshOpts struct {
 	// Release creation
 	InitRelease     InitReleaseOpts     `command:"init-release"                  description:"Initialize release"`
 	ResetRelease    ResetReleaseOpts    `command:"reset-release"                 description:"Reset release"`
-	GenerateJob     GenerateJobOpts     `command:"generate-job"     alias:"genj" description:"Generate job"`
-	GeneratePackage GeneratePackageOpts `command:"generate-package" alias:"genp" description:"Generate package"`
+	GenerateJob     GenerateJobOpts     `command:"generate-job"                  description:"Generate job"`
+	GeneratePackage GeneratePackageOpts `command:"generate-package"              description:"Generate package"`
 	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr"   description:"Create release"`
 	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release" alias:"finr" description:"Create final release from dev release tarball"`
 
 	// Blob management
-	Blobs       BlobsOpts       `command:"blobs"        alias:"bls"  description:"List blobs"`
-	AddBlob     AddBlobOpts     `command:"add-blob"     alias:"abl"  description:"Add blob"`
-	RemoveBlob  RemoveBlobOpts  `command:"remove-blob"  alias:"rmbl" description:"Remove blob"`
-	SyncBlobs   SyncBlobsOpts   `command:"sync-blobs"   alias:"sbls" description:"Sync blobs"`
-	UploadBlobs UploadBlobsOpts `command:"upload-blobs" alias:"ubls" description:"Upload blobs"`
+	Blobs       BlobsOpts       `command:"blobs"        description:"List blobs"`
+	AddBlob     AddBlobOpts     `command:"add-blob"     description:"Add blob"`
+	RemoveBlob  RemoveBlobOpts  `command:"remove-blob"  description:"Remove blob"`
+	SyncBlobs   SyncBlobsOpts   `command:"sync-blobs"   description:"Sync blobs"`
+	UploadBlobs UploadBlobsOpts `command:"upload-blobs" description:"Upload blobs"`
 }
 
 // Original bosh-init
@@ -540,7 +541,7 @@ type LogsOpts struct {
 
 	Follow bool `long:"follow" short:"f" description:"Follow logs via SSH"`
 	Num    int  `long:"num"              description:"Last number of lines"`
-	Quiet  bool `long:"quiet"  short:"q" description:"Suppresses printing of headers when multiple files are being examined."`
+	Quiet  bool `long:"quiet"  short:"q" description:"Suppresses printing of headers when multiple files are being examined"`
 
 	Jobs    []string `long:"job"   description:"Limit to only specific jobs"`
 	Filters []string `long:"only"  description:"Filter logs (comma-separated)"`
