@@ -316,15 +316,6 @@ var _ = Describe("Deployment", func() {
 
 			Describe(fmt.Sprintf("change state to '%s'", state), func() {
 				Describe("with successfully fetched manifest", func() {
-					BeforeEach(func() {
-						server.AppendHandlers(
-							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("GET", "/deployments/dep"),
-								ghttp.RespondWith(http.StatusOK, `{"manifest":"content"}`),
-							),
-						)
-					})
-
 					It("changes state for specific instance", func() {
 						slug = NewAllOrPoolOrInstanceSlug("job", "id")
 
@@ -335,7 +326,7 @@ var _ = Describe("Deployment", func() {
 								ghttp.VerifyHeader(http.Header{
 									"Content-Type": []string{"text/yaml"},
 								}),
-								ghttp.VerifyBody([]byte("content")),
+								ghttp.VerifyBody([]byte{}),
 							),
 							``,
 							server,
@@ -354,7 +345,7 @@ var _ = Describe("Deployment", func() {
 								ghttp.VerifyHeader(http.Header{
 									"Content-Type": []string{"text/yaml"},
 								}),
-								ghttp.VerifyBody([]byte("content")),
+								ghttp.VerifyBody([]byte{}),
 							),
 							``,
 							server,
@@ -373,7 +364,7 @@ var _ = Describe("Deployment", func() {
 								ghttp.VerifyHeader(http.Header{
 									"Content-Type": []string{"text/yaml"},
 								}),
-								ghttp.VerifyBody([]byte("content")),
+								ghttp.VerifyBody([]byte{}),
 							),
 							``,
 							server,
@@ -397,7 +388,7 @@ var _ = Describe("Deployment", func() {
 									ghttp.VerifyHeader(http.Header{
 										"Content-Type": []string{"text/yaml"},
 									}),
-									ghttp.VerifyBody([]byte("content")),
+									ghttp.VerifyBody([]byte{}),
 								),
 								``,
 								server,
@@ -414,14 +405,6 @@ var _ = Describe("Deployment", func() {
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("Changing state"))
 					})
-				})
-
-				It("returns an error if manifest response is non-200", func() {
-					AppendBadRequest(ghttp.VerifyRequest("GET", "/deployments/dep"), server)
-
-					err := stateFunc(deployment)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Fetching manifest"))
 				})
 			})
 		}

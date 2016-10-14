@@ -140,13 +140,8 @@ func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, for
 }
 
 func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool) error {
-	manifest, err := d.Manifest()
-	if err != nil {
-		return err
-	}
-
 	return d.client.ChangeJobState(
-		state, d.name, slug.Name(), slug.IndexOrID(), sd, force, []byte(manifest))
+		state, d.name, slug.Name(), slug.IndexOrID(), sd, force)
 }
 
 func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug) (ExportReleaseResult, error) {
@@ -272,7 +267,7 @@ func (c Client) EnableResurrection(deploymentName, job, indexOrID string, enable
 	return nil
 }
 
-func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd SkipDrain, force bool, manifest []byte) error {
+func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd SkipDrain, force bool) error {
 	if len(state) == 0 {
 		return bosherr.Error("Expected non-empty job state")
 	}
@@ -313,7 +308,7 @@ func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd 
 		req.Header.Add("Content-Type", "text/yaml")
 	}
 
-	_, err := c.taskClientRequest.PutResult(path, manifest, setHeaders)
+	_, err := c.taskClientRequest.PutResult(path, []byte{}, setHeaders)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Changing state")
 	}
