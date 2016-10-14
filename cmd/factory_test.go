@@ -157,12 +157,12 @@ var _ = Describe("Factory", func() {
 	})
 
 	Describe("create-env command (command that uses FileBytesArg)", func() {
-		It("returns an error if it cannot read manifest", func() {
+		It("returns *nice error from FileBytesArg* error if it cannot read manifest", func() {
 			fs.ReadFileError = errors.New("fake-err")
 
 			_, err := factory.New([]string{"create-env", "manifest.yml"})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("the required argument `PATH` was not provided"))
+			Expect(err.Error()).To(Equal("File not found: 'manifest.yml'"))
 		})
 	})
 
