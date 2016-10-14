@@ -315,32 +315,74 @@ var _ = Describe("Deployment", func() {
 			stateFunc := stateFunc
 
 			Describe(fmt.Sprintf("change state to '%s'", state), func() {
-				Describe("with successfully fetched manifest", func() {
-					It("changes state for specific instance", func() {
-						slug = NewAllOrPoolOrInstanceSlug("job", "id")
+				It("changes state for specific instance", func() {
+					slug = NewAllOrPoolOrInstanceSlug("job", "id")
 
-						ConfigureTaskResult(
-							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/job/id", fmt.Sprintf("state=%s", state)),
-								ghttp.VerifyBasicAuth("username", "password"),
-								ghttp.VerifyHeader(http.Header{
-									"Content-Type": []string{"text/yaml"},
-								}),
-								ghttp.VerifyBody([]byte{}),
-							),
-							``,
-							server,
-						)
+					ConfigureTaskResult(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/job/id", fmt.Sprintf("state=%s", state)),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.VerifyHeader(http.Header{
+								"Content-Type": []string{"text/yaml"},
+							}),
+							ghttp.VerifyBody([]byte{}),
+						),
+						``,
+						server,
+					)
 
-						Expect(stateFunc(deployment)).ToNot(HaveOccurred())
-					})
+					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+				})
 
-					It("changes state for the whole deployment", func() {
+				It("changes state for the whole deployment", func() {
+					slug = NewAllOrPoolOrInstanceSlug("", "")
+
+					ConfigureTaskResult(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*", fmt.Sprintf("state=%s", state)),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.VerifyHeader(http.Header{
+								"Content-Type": []string{"text/yaml"},
+							}),
+							ghttp.VerifyBody([]byte{}),
+						),
+						``,
+						server,
+					)
+
+					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+				})
+
+				It("changes state for all indicies of a job", func() {
+					slug = NewAllOrPoolOrInstanceSlug("job", "")
+
+					ConfigureTaskResult(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/job", fmt.Sprintf("state=%s", state)),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.VerifyHeader(http.Header{
+								"Content-Type": []string{"text/yaml"},
+							}),
+							ghttp.VerifyBody([]byte{}),
+						),
+						``,
+						server,
+					)
+
+					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+				})
+
+				if state != "started" {
+					It("changes state with skipping drain and forcing", func() {
 						slug = NewAllOrPoolOrInstanceSlug("", "")
+						sd = SkipDrain{All: true}
+						force = true
+
+						query := fmt.Sprintf("state=%s&skip_drain=*&force=true", state)
 
 						ConfigureTaskResult(
 							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*", fmt.Sprintf("state=%s", state)),
+								ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*", query),
 								ghttp.VerifyBasicAuth("username", "password"),
 								ghttp.VerifyHeader(http.Header{
 									"Content-Type": []string{"text/yaml"},
@@ -353,58 +395,14 @@ var _ = Describe("Deployment", func() {
 
 						Expect(stateFunc(deployment)).ToNot(HaveOccurred())
 					})
+				}
 
-					It("changes state for all indicies of a job", func() {
-						slug = NewAllOrPoolOrInstanceSlug("job", "")
+				It("returns an error if changing state response is non-200", func() {
+					AppendBadRequest(ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*"), server)
 
-						ConfigureTaskResult(
-							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/job", fmt.Sprintf("state=%s", state)),
-								ghttp.VerifyBasicAuth("username", "password"),
-								ghttp.VerifyHeader(http.Header{
-									"Content-Type": []string{"text/yaml"},
-								}),
-								ghttp.VerifyBody([]byte{}),
-							),
-							``,
-							server,
-						)
-
-						Expect(stateFunc(deployment)).ToNot(HaveOccurred())
-					})
-
-					if state != "started" {
-						It("changes state with skipping drain and forcing", func() {
-							slug = NewAllOrPoolOrInstanceSlug("", "")
-							sd = SkipDrain{All: true}
-							force = true
-
-							query := fmt.Sprintf("state=%s&skip_drain=*&force=true", state)
-
-							ConfigureTaskResult(
-								ghttp.CombineHandlers(
-									ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*", query),
-									ghttp.VerifyBasicAuth("username", "password"),
-									ghttp.VerifyHeader(http.Header{
-										"Content-Type": []string{"text/yaml"},
-									}),
-									ghttp.VerifyBody([]byte{}),
-								),
-								``,
-								server,
-							)
-
-							Expect(stateFunc(deployment)).ToNot(HaveOccurred())
-						})
-					}
-
-					It("returns an error if changing state response is non-200", func() {
-						AppendBadRequest(ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*"), server)
-
-						err := stateFunc(deployment)
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Changing state"))
-					})
+					err := stateFunc(deployment)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Changing state"))
 				})
 			})
 		}
