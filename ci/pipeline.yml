@@ -38,6 +38,75 @@ jobs:
             BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
             BOSH_LITE_PRIVATE_KEY_DATA: {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
 
+  - name: integration-2.3-postgres-gocli
+    public: true
+    serial: true
+    build_logs_to_retain: 250
+    plan:
+      - aggregate:
+        - get: bosh-src
+          trigger: true
+        - get: bosh-cli
+          passed: [test-unit,test-integration]
+          trigger: true
+      - task: build-linux
+        file: bosh-cli/ci/tasks/build-linux.yml
+        params:
+          SKIP_BOSH_IO: true
+          BOSHIO_BEARER_TOKEN:
+      - aggregate:
+        - task: test-group-1
+          privileged: true
+          input_mapping:
+            gocli-release-bucket-linux: compiled-linux
+          file: bosh-src/ci/tasks/test-integration-gocli.yml
+          tags: ["bosh-integration-1"]
+          params:
+            DB:           postgresql
+            RUBY_VERSION: 2.3.1
+            NUM_GROUPS: 24
+            GROUP:      1,4,7,10,13,16,19,22
+          on_failure:
+            put: slack-alert
+            params:
+              channel: {{slack_channel_name}}
+              icon_url: http://cl.ly/image/3e1h0H3H2s0P/concourse-logo.png
+              text: {{slack_failure_message}}
+        - task: test-group-2
+          privileged: true
+          input_mapping:
+            gocli-release-bucket-linux: compiled-linux
+          file: bosh-src/ci/tasks/test-integration-gocli.yml
+          tags: ["bosh-integration-2"]
+          params:
+            DB:           postgresql
+            RUBY_VERSION: 2.3.1
+            NUM_GROUPS: 24
+            GROUP:      2,5,8,11,14,17,20,23
+          on_failure:
+            put: slack-alert
+            params:
+              channel: {{slack_channel_name}}
+              icon_url: http://cl.ly/image/3e1h0H3H2s0P/concourse-logo.png
+              text: {{slack_failure_message}}
+        - task: test-group-3
+          privileged: true
+          input_mapping:
+            gocli-release-bucket-linux: compiled-linux
+          file: bosh-src/ci/tasks/test-integration-gocli.yml
+          tags: ["bosh-integration-3"]
+          params:
+            DB:           postgresql
+            RUBY_VERSION: 2.3.1
+            NUM_GROUPS: 24
+            GROUP:      3,6,9,12,15,18,21,24
+          on_failure:
+            put: slack-alert
+            params:
+              channel: {{slack_channel_name}}
+              icon_url: http://cl.ly/image/3e1h0H3H2s0P/concourse-logo.png
+              text: {{slack_failure_message}}
+
   - name: build
     public: true
     plan:
@@ -78,6 +147,12 @@ jobs:
       - {put: version-semver, params: {file: version-semver/number}}
 
 resources:
+  - name: bosh-src
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh.git
+      branch: candidate
+
   - name: bosh-cli
     type: git
     source:
