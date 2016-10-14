@@ -121,20 +121,6 @@ var _ = Describe("TaskCmd", func() {
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
 
-			It("shows task's 'raw' output if requested", func() {
-				opts.Raw = true
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(task.RawOutputArgsForCall(0)).To(Equal(plainRep))
-
-				task.RawOutputStub = func(boshdir.TaskReporter) error { return errors.New("fake-err") }
-
-				err = act()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
-			})
-
 			It("returns error if task cannot be retrieved", func() {
 				director.FindTaskReturns(nil, errors.New("fake-err"))
 
@@ -219,20 +205,6 @@ var _ = Describe("TaskCmd", func() {
 				Expect(task.ResultOutputArgsForCall(0)).To(Equal(plainRep))
 
 				task.ResultOutputStub = func(boshdir.TaskReporter) error { return errors.New("fake-err") }
-
-				err = act()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
-			})
-
-			It("shows task's 'raw' output if requested", func() {
-				opts.Raw = true
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(task.RawOutputArgsForCall(0)).To(Equal(plainRep))
-
-				task.RawOutputStub = func(boshdir.TaskReporter) error { return errors.New("fake-err") }
 
 				err = act()
 				Expect(err).To(HaveOccurred())

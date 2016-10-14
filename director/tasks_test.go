@@ -352,7 +352,6 @@ var _ = Describe("Task", func() {
 			"cpi":    func(t Task) error { return task.CPIOutput(reporter) },
 			"debug":  func(t Task) error { return task.DebugOutput(reporter) },
 			"result": func(t Task) error { return task.ResultOutput(reporter) },
-			"raw":    func(t Task) error { return task.RawOutput(reporter) },
 		}
 
 		for type_, typeFunc := range types {

@@ -850,14 +850,6 @@ var _ = Describe("Opts", func() {
 				})
 			})
 
-			Describe("Raw", func() {
-				It("contains desired values", func() {
-					Expect(getStructTagForName("Raw", opts)).To(Equal(
-						`long:"raw"    description:"Track raw log"`,
-					))
-				})
-			})
-
 			Describe("All", func() {
 				It("contains desired values", func() {
 					Expect(getStructTagForName("All", opts)).To(Equal(
@@ -865,7 +857,6 @@ var _ = Describe("Opts", func() {
 					))
 				})
 			})
-
 		})
 	})
 

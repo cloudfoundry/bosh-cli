@@ -57,8 +57,6 @@ func (c TaskCmd) Run(opts TaskOpts) error {
 		err = task.DebugOutput(c.plainTaskReporter)
 	case opts.Result:
 		err = task.ResultOutput(c.plainTaskReporter)
-	case opts.Raw:
-		err = task.RawOutput(c.plainTaskReporter)
 	default:
 		err = task.EventOutput(c.eventsTaskReporter)
 	}

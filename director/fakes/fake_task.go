@@ -95,14 +95,6 @@ type FakeTask struct {
 	resultOutputReturns struct {
 		result1 error
 	}
-	RawOutputStub        func(director.TaskReporter) error
-	rawOutputMutex       sync.RWMutex
-	rawOutputArgsForCall []struct {
-		arg1 director.TaskReporter
-	}
-	rawOutputReturns struct {
-		result1 error
-	}
 	CancelStub        func() error
 	cancelMutex       sync.RWMutex
 	cancelArgsForCall []struct{}
@@ -451,38 +443,6 @@ func (fake *FakeTask) ResultOutputArgsForCall(i int) director.TaskReporter {
 func (fake *FakeTask) ResultOutputReturns(result1 error) {
 	fake.ResultOutputStub = nil
 	fake.resultOutputReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeTask) RawOutput(arg1 director.TaskReporter) error {
-	fake.rawOutputMutex.Lock()
-	fake.rawOutputArgsForCall = append(fake.rawOutputArgsForCall, struct {
-		arg1 director.TaskReporter
-	}{arg1})
-	fake.rawOutputMutex.Unlock()
-	if fake.RawOutputStub != nil {
-		return fake.RawOutputStub(arg1)
-	} else {
-		return fake.rawOutputReturns.result1
-	}
-}
-
-func (fake *FakeTask) RawOutputCallCount() int {
-	fake.rawOutputMutex.RLock()
-	defer fake.rawOutputMutex.RUnlock()
-	return len(fake.rawOutputArgsForCall)
-}
-
-func (fake *FakeTask) RawOutputArgsForCall(i int) director.TaskReporter {
-	fake.rawOutputMutex.RLock()
-	defer fake.rawOutputMutex.RUnlock()
-	return fake.rawOutputArgsForCall[i].arg1
-}
-
-func (fake *FakeTask) RawOutputReturns(result1 error) {
-	fake.RawOutputStub = nil
-	fake.rawOutputReturns = struct {
 		result1 error
 	}{result1}
 }

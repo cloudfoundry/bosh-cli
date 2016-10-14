@@ -185,7 +185,6 @@ type Task interface {
 	CPIOutput(TaskReporter) error
 	DebugOutput(TaskReporter) error
 	ResultOutput(TaskReporter) error
-	RawOutput(TaskReporter) error
 
 	Cancel() error
 }

@@ -128,10 +128,6 @@ func (t TaskImpl) ResultOutput(taskReporter TaskReporter) error {
 	return t.client.TaskOutput(t.id, "result", taskReporter)
 }
 
-func (t TaskImpl) RawOutput(taskReporter TaskReporter) error {
-	return t.client.TaskOutput(t.id, "raw", taskReporter)
-}
-
 func (c Client) CurrentTasks(filter TasksFilter) ([]TaskResp, error) {
 	var tasks []TaskResp
 

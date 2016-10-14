@@ -193,7 +193,6 @@ type TaskOpts struct {
 	CPI    bool `long:"cpi"    description:"Track CPI log"`
 	Debug  bool `long:"debug"  description:"Track debug log"`
 	Result bool `long:"result" description:"Track result log"`
-	Raw    bool `long:"raw"    description:"Track raw log"`
 
 	All bool `long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`
 
