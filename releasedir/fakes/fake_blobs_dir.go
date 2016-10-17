@@ -22,10 +22,12 @@ type FakeBlobsDir struct {
 		result1 []releasedir.Blob
 		result2 error
 	}
-	DownloadBlobsStub        func() error
+	DownloadBlobsStub        func(numOfParallelWorkers int) error
 	downloadBlobsMutex       sync.RWMutex
-	downloadBlobsArgsForCall []struct{}
-	downloadBlobsReturns     struct {
+	downloadBlobsArgsForCall []struct {
+		numOfParallelWorkers int
+	}
+	downloadBlobsReturns struct {
 		result1 error
 	}
 	UploadBlobsStub        func() error
@@ -103,12 +105,14 @@ func (fake *FakeBlobsDir) BlobsReturns(result1 []releasedir.Blob, result2 error)
 	}{result1, result2}
 }
 
-func (fake *FakeBlobsDir) DownloadBlobs() error {
+func (fake *FakeBlobsDir) DownloadBlobs(numOfParallelWorkers int) error {
 	fake.downloadBlobsMutex.Lock()
-	fake.downloadBlobsArgsForCall = append(fake.downloadBlobsArgsForCall, struct{}{})
+	fake.downloadBlobsArgsForCall = append(fake.downloadBlobsArgsForCall, struct {
+		numOfParallelWorkers int
+	}{numOfParallelWorkers})
 	fake.downloadBlobsMutex.Unlock()
 	if fake.DownloadBlobsStub != nil {
-		return fake.DownloadBlobsStub()
+		return fake.DownloadBlobsStub(numOfParallelWorkers)
 	} else {
 		return fake.downloadBlobsReturns.result1
 	}
@@ -118,6 +122,12 @@ func (fake *FakeBlobsDir) DownloadBlobsCallCount() int {
 	fake.downloadBlobsMutex.RLock()
 	defer fake.downloadBlobsMutex.RUnlock()
 	return len(fake.downloadBlobsArgsForCall)
+}
+
+func (fake *FakeBlobsDir) DownloadBlobsArgsForCall(i int) int {
+	fake.downloadBlobsMutex.RLock()
+	defer fake.downloadBlobsMutex.RUnlock()
+	return fake.downloadBlobsArgsForCall[i].numOfParallelWorkers
 }
 
 func (fake *FakeBlobsDir) DownloadBlobsReturns(result1 error) {

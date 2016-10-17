@@ -14,7 +14,7 @@ func NewSyncBlobsCmd(blobsDir boshreldir.BlobsDir) SyncBlobsCmd {
 }
 
 func (c SyncBlobsCmd) Run() error {
-	err := c.blobsDir.DownloadBlobs()
+	err := c.blobsDir.DownloadBlobs(1)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Downloading blobs")
 	}

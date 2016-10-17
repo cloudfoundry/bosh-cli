@@ -36,18 +36,18 @@ golang/go1.5.1.linux-amd64.tar.gz:
 type fsBlobsDirSchema map[string]fsBlobsDirSchema_Blob
 
 type fsBlobsDirSchema_Blob struct {
-	Size int64 `yaml:"size"`
+	Size        int64 `yaml:"size"`
 
 	BlobstoreID string `yaml:"object_id,omitempty"`
 	SHA1        string `yaml:"sha"`
 }
 
 func NewFSBlobsDir(
-	dirPath string,
-	reporter BlobsDirReporter,
-	blobstore boshblob.Blobstore,
-	sha1calc bicrypto.SHA1Calculator,
-	fs boshsys.FileSystem,
+dirPath string,
+reporter BlobsDirReporter,
+blobstore boshblob.Blobstore,
+sha1calc bicrypto.SHA1Calculator,
+fs boshsys.FileSystem,
 ) FSBlobsDir {
 	return FSBlobsDir{
 		indexPath: gopath.Join(dirPath, "config", "blobs.yml"),
@@ -103,19 +103,49 @@ func (d FSBlobsDir) Blobs() ([]Blob, error) {
 	return blobs, nil
 }
 
-func (d FSBlobsDir) DownloadBlobs() error {
+func (d FSBlobsDir) DownloadBlobs(numOfParallelWorkers int) error {
 	blobs, err := d.Blobs()
 	if err != nil {
 		return err
 	}
 
-	for _, blob := range blobs {
-		if len(blob.BlobstoreID) > 0 {
-			err := d.downloadBlob(blob)
-			if err != nil {
-				return err
+	results := make(chan error, len(blobs))
+	jobs := make(chan Blob, numOfParallelWorkers)
+
+	defer close(results)
+	defer close(jobs)
+
+	worker := func(blobs chan Blob, results chan <- error) {
+		for blob := range blobs {
+			if len(blob.BlobstoreID) > 0 {
+				err := d.downloadBlob(blob)
+				if err != nil {
+					results <- err
+				}
 			}
+			results <- nil
 		}
+	}
+
+	for w := 0; w < numOfParallelWorkers; w++ {
+		go worker(jobs, results)
+	}
+
+	for _, blob := range blobs {
+		jobs <- blob
+	}
+
+	var errs []error
+	for i := 0; i < len(blobs); i++ {
+		err := <-results
+
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if errs != nil {
+		return bosherr.Errorf("Downloading blobs failed due to the following errors: %v", errs)
 	}
 
 	return nil
@@ -186,7 +216,7 @@ func (d FSBlobsDir) UntrackBlob(path string) error {
 
 	for i, blob := range blobs {
 		if blob.Path == path {
-			return d.save(append(blobs[:i], blobs[i+1:]...))
+			return d.save(append(blobs[:i], blobs[i + 1:]...))
 		}
 	}
 
@@ -300,6 +330,12 @@ func (d FSBlobsDir) save(blobs []Blob) error {
 
 type BlobSorting []Blob
 
-func (s BlobSorting) Len() int           { return len(s) }
-func (s BlobSorting) Less(i, j int) bool { return s[i].Path < s[j].Path }
-func (s BlobSorting) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s BlobSorting) Len() int {
+	return len(s)
+}
+func (s BlobSorting) Less(i, j int) bool {
+	return s[i].Path < s[j].Path
+}
+func (s BlobSorting) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}

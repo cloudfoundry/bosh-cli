@@ -70,7 +70,7 @@ type BlobsDir interface {
 	Init() error
 	Blobs() ([]Blob, error)
 
-	DownloadBlobs() error
+	DownloadBlobs(numOfParallelWorkers int) error
 	UploadBlobs() error
 
 	TrackBlob(string, io.ReadCloser) (Blob, error)

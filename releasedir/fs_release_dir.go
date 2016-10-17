@@ -200,7 +200,7 @@ func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bo
 		return nil, err
 	}
 
-	err = d.blobsDir.DownloadBlobs()
+	err = d.blobsDir.DownloadBlobs(1)
 	if err != nil {
 		return nil, err
 	}
