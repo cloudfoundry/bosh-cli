@@ -104,14 +104,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("ParallelOpt", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(
-					`long:"parallel" description:"Sets the max number of parallel downloads"`,
-				))
-			})
-		})
-
 		Describe("EnvironmentOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("EnvironmentOpt", opts)).To(Equal(
@@ -2404,6 +2396,14 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Directory", opts)).To(Equal(
 					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
+			})
+		})
+
+		Describe("Parallel", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(
+					`long:"parallel" description:"Sets the max number of parallel downloads" default:"5"`,
 				))
 			})
 		})

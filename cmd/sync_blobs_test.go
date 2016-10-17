@@ -13,22 +13,27 @@ import (
 var _ = Describe("SyncBlobsCmd", func() {
 	var (
 		blobsDir *fakereldir.FakeBlobsDir
-		command  SyncBlobsCmd
+		command SyncBlobsCmd
+		numOfWorkers int
 	)
 
 	BeforeEach(func() {
+		numOfWorkers = 5
 		blobsDir = &fakereldir.FakeBlobsDir{}
-		command = NewSyncBlobsCmd(blobsDir)
+		command = NewSyncBlobsCmd(blobsDir, numOfWorkers)
 	})
 
 	Describe("Run", func() {
-		act := func() error { return command.Run() }
+		act := func() error {
+			return command.Run()
+		}
 
 		It("downloads all blobs", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(blobsDir.DownloadBlobsCallCount()).To(Equal(1))
+			Expect(blobsDir.DownloadBlobsArgsForCall(0)).To(Equal(5))
 		})
 
 		It("returns error if download fails", func() {

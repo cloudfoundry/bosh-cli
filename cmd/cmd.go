@@ -314,7 +314,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewUploadBlobsCmd(c.blobsDir(opts.Directory)).Run()
 
 	case *SyncBlobsOpts:
-		return NewSyncBlobsCmd(c.blobsDir(opts.Directory)).Run()
+		return NewSyncBlobsCmd(c.blobsDir(opts.Directory), opts.ParallelOpt).Run()
 
 	case *MessageOpts:
 		deps.UI.PrintBlock(opts.Message)

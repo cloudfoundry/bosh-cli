@@ -11,7 +11,6 @@ type BoshOpts struct {
 	VersionOpt func() error `long:"version" short:"v" description:"Show CLI version"`
 
 	ConfigPathOpt string `long:"config" description:"Config file path" env:"BOSH_CONFIG" default:"~/.bosh/config"`
-	ParallelOpt string `long:"parallel" description:"Sets the max number of parallel downloads"`
 
 	EnvironmentOpt string `long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`
 	CACertOpt      string `long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`
@@ -740,6 +739,7 @@ type RemoveBlobArgs struct {
 
 type SyncBlobsOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+	ParallelOpt int `long:"parallel" description:"Sets the max number of parallel downloads" default:"5"`
 	cmd
 }
 
