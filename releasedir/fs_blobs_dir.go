@@ -145,7 +145,7 @@ func (d FSBlobsDir) DownloadBlobs(numOfParallelWorkers int) error {
 	}
 
 	if errs != nil {
-		return bosherr.Errorf("Downloading blobs failed due to the following errors: %v", errs)
+		return bosherr.NewMultiError(errs...)
 	}
 
 	return nil

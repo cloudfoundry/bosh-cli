@@ -201,7 +201,7 @@ already-downloaded.tgz:
 
 				err := act(1)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Downloading blobs failed due to the following errors: [Getting blob 'blob1' for path 'dir/file-in-directory.tgz': fake-err]"))
+				Expect(err.Error()).To(ContainSubstring("Getting blob 'blob1' for path 'dir/file-in-directory.tgz': fake-err"))
 
 				Expect(reporter.BlobDownloadStartedCallCount()).To(Equal(2))
 				Expect(reporter.BlobDownloadFinishedCallCount()).To(Equal(2))
@@ -213,7 +213,8 @@ already-downloaded.tgz:
 
 					err := act(1)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Downloading blobs failed due to the following errors: [Getting blob 'blob1' for path 'dir/file-in-directory.tgz': fake-err1 Getting blob 'blob2' for path 'file-in-root.tgz': fake-err2]"))
+					Expect(err.Error()).To(ContainSubstring("Getting blob 'blob1' for path 'dir/file-in-directory.tgz': fake-err1"))
+					Expect(err.Error()).To(ContainSubstring("Getting blob 'blob2' for path 'file-in-root.tgz': fake-err2"))
 
 					Expect(fs.FileExists("/dir/blobs/dir")).To(BeFalse())
 					Expect(fs.FileExists("/dir/blobs/dir/file-in-directory.tgz")).To(BeFalse())
