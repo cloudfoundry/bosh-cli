@@ -104,6 +104,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("ParallelOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(
+					`long:"parallel" description:"Sets the max number of parallel downloads"`,
+				))
+			})
+		})
+
 		Describe("EnvironmentOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("EnvironmentOpt", opts)).To(Equal(
