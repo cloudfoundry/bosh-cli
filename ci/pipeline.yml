@@ -46,6 +46,8 @@ jobs:
       - aggregate:
         - get: bosh-src
           trigger: true
+        - get: version-semver
+          params: {bump: patch}
         - get: bosh-cli
           passed: [test-unit,test-integration]
           trigger: true
@@ -112,7 +114,9 @@ jobs:
     plan:
       - aggregate:
         - get: bosh-cli
-          passed: [test-acceptance]
+          passed:
+           - test-acceptance
+           - integration-2.3-postgres-gocli
           trigger: true
         - get: version-semver
           params: {bump: patch}
@@ -188,6 +192,11 @@ resources:
       region_name: {{aws_s3_release_bucket_region}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
       secret_access_key: {{aws_s3_release_bucket_secret_key}}
+
+  - name: slack-alert
+    type: slack-notification
+    source:
+      url: {{slack_hook_url}}
 
   - name: version-semver
     type: semver
