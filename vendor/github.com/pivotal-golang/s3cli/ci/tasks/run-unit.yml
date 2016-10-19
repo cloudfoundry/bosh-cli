@@ -1,0 +1,10 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source: {repository: boshcpi/s3cli}
+inputs:
+- name: s3cli-src
+  path: src/github.com/pivotal-golang/s3cli
+run:
+  path: src/github.com/pivotal-golang/s3cli/ci/tasks/run-unit.sh

@@ -25,11 +25,19 @@ Otherwise if your Go environment does not have vendoring support enabled, or you
 If you're looking to retrieve just the SDK without any dependencies use the following command.
 
     go get -d github.com/aws/aws-sdk-go/
-    
+ 
 These two processes will still include the `vendor` folder and it should be deleted if its not going to be used by your environment.
 
     rm -rf $GOPATH/src/github.com/aws/aws-sdk-go/vendor
 
+## Reference Documentation
+[`Getting Started Guide`](https://aws.amazon.com/sdk-for-go/) - This document is a general introduction how to configure and make requests with the SDK. If this is your first time using the SDK, this documentation and the API documentation will help you get started. This document focuses on the syntax and behavior of the SDK. The [Service Developer Guide](https://aws.amazon.com/documentation/) will help you get started using specific AWS services.
+
+[`SDK API Reference Documentation`](https://docs.aws.amazon.com/sdk-for-go/api/) - Use this document to look up all API operation input and output parameters for AWS services supported by the SDK. The API reference also includes documentation of the SDK, and examples how to using the SDK, service client API operations, and API operation require parameters.
+
+[`Service Developer Guide`](https://aws.amazon.com/documentation/) - Use this documentation to learn how to interface with an AWS service. These are great guides both, if you're getting started with a service, or looking for more information on a service. You should not need this document for coding, though in some cases, services may supply helpful samples that you might want to look out for.
+
+[`SDK Examples`](https://github.com/aws/aws-sdk-go/tree/master/example) - Included in the SDK's repo are a several hand crafted examples using the SDK features and AWS services.
 
 ## Configuring Credentials
 
@@ -53,8 +61,8 @@ AWS_ACCESS_KEY_ID=AKID1234567890
 AWS_SECRET_ACCESS_KEY=MY-SECRET-KEY
 ```
 
-### AWS CLI config file (`~/.aws/config`)
-The AWS SDK for Go does not support the AWS CLI's config file. The SDK will not use any contents from this file. The SDK only supports the shared credentials file (`~/.aws/credentials`). #384 tracks this feature request discussion.
+### AWS shared config file (`~/.aws/config`)
+The AWS SDK for Go added support the shared config file in release [v1.3.0](https://github.com/aws/aws-sdk-go/releases/tag/v1.3.0). You can opt into enabling support for the shared config by setting the environment variable `AWS_SDK_LOAD_CONFIG` to a truthy value. See the [Session](https://github.com/aws/aws-sdk-go/wiki/sessions) wiki for more information about this feature.
 
 ## Using the Go SDK
 

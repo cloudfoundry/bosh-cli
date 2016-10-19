@@ -17,10 +17,12 @@ github.com/hashicorp/go-multierror:d30f099
 github.com/jessevdk/go-flags:4cc2832
 github.com/mattn/go-isatty:56b76bd
 github.com/mattn/go-colorable:e8a10dd
-github.com/aws/aws-sdk-go:665c623
 github.com/go-ini/ini:12f418c
 github.com/jmespath/go-jmespath:0b12d6b
 github.com/charlievieth/fs/...:1c3b3f1
 github.com/hashicorp/errwrap/...:7554cd9
 github.com/bmatcuk/doublestar/...:044df0a
 github.com/cppforlife/go-patch/patch:661a67c
+github.com/pivotal-golang/s3cli:90561c0
+github.com/golang/protobuf/proto:98fa357
+github.com/aws/aws-sdk-go:1a651d9

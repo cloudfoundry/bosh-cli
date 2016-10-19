@@ -7,16 +7,18 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/client/metadata"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
-	"github.com/aws/aws-sdk-go/private/signer/v4"
 )
 
-// You can create a user pool in Amazon Cognito Identity to manage directories
-// and users. You can authenticate a user to obtain tokens related to user identity
-// and access policies.
+// Using the Amazon Cognito Your User Pools API, you can create a user pool
+// to manage directories and users. You can authenticate a user to obtain tokens
+// related to user identity and access policies.
 //
 // This API reference provides information about user pools in Amazon Cognito
-// Identity, which is a new capability that is available as a beta.
+// Your User Pools.
+//
+// For more information, see the Amazon Cognito Documentation.
 //The service client's operations are safe to be used concurrently.
 // It is not safe to mutate any of the client's properties though.
 type CognitoIdentityProvider struct {
@@ -65,7 +67,7 @@ func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegio
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(jsonrpc.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(jsonrpc.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(jsonrpc.UnmarshalMetaHandler)

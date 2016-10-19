@@ -15,7 +15,30 @@ import (
 
 const opDeleteRule = "DeleteRule"
 
-// DeleteRuleRequest generates a request for the DeleteRule operation.
+// DeleteRuleRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteRule for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteRuleRequest method.
+//    req, resp := client.DeleteRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) DeleteRuleRequest(input *DeleteRuleInput) (req *request.Request, output *DeleteRuleOutput) {
 	op := &request.Operation{
 		Name:       opDeleteRule,
@@ -35,12 +58,29 @@ func (c *CloudWatchEvents) DeleteRuleRequest(input *DeleteRuleInput) (req *reque
 	return
 }
 
+// DeleteRule API operation for Amazon CloudWatch Events.
+//
 // Deletes a rule. You must remove all targets from a rule using RemoveTargets
 // before you can delete the rule.
 //
 //  Note: When you delete a rule, incoming events might still continue to match
 // to the deleted rule. Please allow a short period of time for changes to take
 // effect.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation DeleteRule for usage and error information.
+//
+// Returned Error Codes:
+//   * ConcurrentModificationException
+//   This exception occurs if there is concurrent modification on rule or target.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) DeleteRule(input *DeleteRuleInput) (*DeleteRuleOutput, error) {
 	req, out := c.DeleteRuleRequest(input)
 	err := req.Send()
@@ -49,7 +89,30 @@ func (c *CloudWatchEvents) DeleteRule(input *DeleteRuleInput) (*DeleteRuleOutput
 
 const opDescribeRule = "DescribeRule"
 
-// DescribeRuleRequest generates a request for the DescribeRule operation.
+// DescribeRuleRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeRule for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeRuleRequest method.
+//    req, resp := client.DescribeRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) DescribeRuleRequest(input *DescribeRuleInput) (req *request.Request, output *DescribeRuleOutput) {
 	op := &request.Operation{
 		Name:       opDescribeRule,
@@ -67,7 +130,24 @@ func (c *CloudWatchEvents) DescribeRuleRequest(input *DescribeRuleInput) (req *r
 	return
 }
 
+// DescribeRule API operation for Amazon CloudWatch Events.
+//
 // Describes the details of the specified rule.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation DescribeRule for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The rule does not exist.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) DescribeRule(input *DescribeRuleInput) (*DescribeRuleOutput, error) {
 	req, out := c.DescribeRuleRequest(input)
 	err := req.Send()
@@ -76,7 +156,30 @@ func (c *CloudWatchEvents) DescribeRule(input *DescribeRuleInput) (*DescribeRule
 
 const opDisableRule = "DisableRule"
 
-// DisableRuleRequest generates a request for the DisableRule operation.
+// DisableRuleRequest generates a "aws/request.Request" representing the
+// client's request for the DisableRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DisableRule for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DisableRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DisableRuleRequest method.
+//    req, resp := client.DisableRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) DisableRuleRequest(input *DisableRuleInput) (req *request.Request, output *DisableRuleOutput) {
 	op := &request.Operation{
 		Name:       opDisableRule,
@@ -96,12 +199,32 @@ func (c *CloudWatchEvents) DisableRuleRequest(input *DisableRuleInput) (req *req
 	return
 }
 
+// DisableRule API operation for Amazon CloudWatch Events.
+//
 // Disables a rule. A disabled rule won't match any events, and won't self-trigger
 // if it has a schedule expression.
 //
 //  Note: When you disable a rule, incoming events might still continue to
 // match to the disabled rule. Please allow a short period of time for changes
 // to take effect.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation DisableRule for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The rule does not exist.
+//
+//   * ConcurrentModificationException
+//   This exception occurs if there is concurrent modification on rule or target.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) DisableRule(input *DisableRuleInput) (*DisableRuleOutput, error) {
 	req, out := c.DisableRuleRequest(input)
 	err := req.Send()
@@ -110,7 +233,30 @@ func (c *CloudWatchEvents) DisableRule(input *DisableRuleInput) (*DisableRuleOut
 
 const opEnableRule = "EnableRule"
 
-// EnableRuleRequest generates a request for the EnableRule operation.
+// EnableRuleRequest generates a "aws/request.Request" representing the
+// client's request for the EnableRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See EnableRule for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the EnableRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the EnableRuleRequest method.
+//    req, resp := client.EnableRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) EnableRuleRequest(input *EnableRuleInput) (req *request.Request, output *EnableRuleOutput) {
 	op := &request.Operation{
 		Name:       opEnableRule,
@@ -130,11 +276,31 @@ func (c *CloudWatchEvents) EnableRuleRequest(input *EnableRuleInput) (req *reque
 	return
 }
 
+// EnableRule API operation for Amazon CloudWatch Events.
+//
 // Enables a rule. If the rule does not exist, the operation fails.
 //
 //  Note: When you enable a rule, incoming events might not immediately start
 // matching to a newly enabled rule. Please allow a short period of time for
 // changes to take effect.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation EnableRule for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The rule does not exist.
+//
+//   * ConcurrentModificationException
+//   This exception occurs if there is concurrent modification on rule or target.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) EnableRule(input *EnableRuleInput) (*EnableRuleOutput, error) {
 	req, out := c.EnableRuleRequest(input)
 	err := req.Send()
@@ -143,7 +309,30 @@ func (c *CloudWatchEvents) EnableRule(input *EnableRuleInput) (*EnableRuleOutput
 
 const opListRuleNamesByTarget = "ListRuleNamesByTarget"
 
-// ListRuleNamesByTargetRequest generates a request for the ListRuleNamesByTarget operation.
+// ListRuleNamesByTargetRequest generates a "aws/request.Request" representing the
+// client's request for the ListRuleNamesByTarget operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListRuleNamesByTarget for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListRuleNamesByTarget method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListRuleNamesByTargetRequest method.
+//    req, resp := client.ListRuleNamesByTargetRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) ListRuleNamesByTargetRequest(input *ListRuleNamesByTargetInput) (req *request.Request, output *ListRuleNamesByTargetOutput) {
 	op := &request.Operation{
 		Name:       opListRuleNamesByTarget,
@@ -161,12 +350,26 @@ func (c *CloudWatchEvents) ListRuleNamesByTargetRequest(input *ListRuleNamesByTa
 	return
 }
 
+// ListRuleNamesByTarget API operation for Amazon CloudWatch Events.
+//
 // Lists the names of the rules that the given target is put to. You can see
 // which of the rules in Amazon CloudWatch Events can invoke a specific target
 // in your account. If you have more rules in your account than the given limit,
 // the results will be paginated. In that case, use the next token returned
 // in the response and repeat ListRulesByTarget until the NextToken in the response
 // is returned as null.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation ListRuleNamesByTarget for usage and error information.
+//
+// Returned Error Codes:
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) ListRuleNamesByTarget(input *ListRuleNamesByTargetInput) (*ListRuleNamesByTargetOutput, error) {
 	req, out := c.ListRuleNamesByTargetRequest(input)
 	err := req.Send()
@@ -175,7 +378,30 @@ func (c *CloudWatchEvents) ListRuleNamesByTarget(input *ListRuleNamesByTargetInp
 
 const opListRules = "ListRules"
 
-// ListRulesRequest generates a request for the ListRules operation.
+// ListRulesRequest generates a "aws/request.Request" representing the
+// client's request for the ListRules operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListRules for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListRules method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListRulesRequest method.
+//    req, resp := client.ListRulesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) ListRulesRequest(input *ListRulesInput) (req *request.Request, output *ListRulesOutput) {
 	op := &request.Operation{
 		Name:       opListRules,
@@ -193,11 +419,25 @@ func (c *CloudWatchEvents) ListRulesRequest(input *ListRulesInput) (req *request
 	return
 }
 
+// ListRules API operation for Amazon CloudWatch Events.
+//
 // Lists the Amazon CloudWatch Events rules in your account. You can either
 // list all the rules or you can provide a prefix to match to the rule names.
 // If you have more rules in your account than the given limit, the results
 // will be paginated. In that case, use the next token returned in the response
 // and repeat ListRules until the NextToken in the response is returned as null.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation ListRules for usage and error information.
+//
+// Returned Error Codes:
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) ListRules(input *ListRulesInput) (*ListRulesOutput, error) {
 	req, out := c.ListRulesRequest(input)
 	err := req.Send()
@@ -206,7 +446,30 @@ func (c *CloudWatchEvents) ListRules(input *ListRulesInput) (*ListRulesOutput, e
 
 const opListTargetsByRule = "ListTargetsByRule"
 
-// ListTargetsByRuleRequest generates a request for the ListTargetsByRule operation.
+// ListTargetsByRuleRequest generates a "aws/request.Request" representing the
+// client's request for the ListTargetsByRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListTargetsByRule for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListTargetsByRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListTargetsByRuleRequest method.
+//    req, resp := client.ListTargetsByRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) ListTargetsByRuleRequest(input *ListTargetsByRuleInput) (req *request.Request, output *ListTargetsByRuleOutput) {
 	op := &request.Operation{
 		Name:       opListTargetsByRule,
@@ -224,7 +487,24 @@ func (c *CloudWatchEvents) ListTargetsByRuleRequest(input *ListTargetsByRuleInpu
 	return
 }
 
+// ListTargetsByRule API operation for Amazon CloudWatch Events.
+//
 // Lists of targets assigned to the rule.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation ListTargetsByRule for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The rule does not exist.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) ListTargetsByRule(input *ListTargetsByRuleInput) (*ListTargetsByRuleOutput, error) {
 	req, out := c.ListTargetsByRuleRequest(input)
 	err := req.Send()
@@ -233,7 +513,30 @@ func (c *CloudWatchEvents) ListTargetsByRule(input *ListTargetsByRuleInput) (*Li
 
 const opPutEvents = "PutEvents"
 
-// PutEventsRequest generates a request for the PutEvents operation.
+// PutEventsRequest generates a "aws/request.Request" representing the
+// client's request for the PutEvents operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See PutEvents for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the PutEvents method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the PutEventsRequest method.
+//    req, resp := client.PutEventsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) PutEventsRequest(input *PutEventsInput) (req *request.Request, output *PutEventsOutput) {
 	op := &request.Operation{
 		Name:       opPutEvents,
@@ -251,8 +554,22 @@ func (c *CloudWatchEvents) PutEventsRequest(input *PutEventsInput) (req *request
 	return
 }
 
+// PutEvents API operation for Amazon CloudWatch Events.
+//
 // Sends custom events to Amazon CloudWatch Events so that they can be matched
 // to rules.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation PutEvents for usage and error information.
+//
+// Returned Error Codes:
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) PutEvents(input *PutEventsInput) (*PutEventsOutput, error) {
 	req, out := c.PutEventsRequest(input)
 	err := req.Send()
@@ -261,7 +578,30 @@ func (c *CloudWatchEvents) PutEvents(input *PutEventsInput) (*PutEventsOutput, e
 
 const opPutRule = "PutRule"
 
-// PutRuleRequest generates a request for the PutRule operation.
+// PutRuleRequest generates a "aws/request.Request" representing the
+// client's request for the PutRule operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See PutRule for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the PutRule method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the PutRuleRequest method.
+//    req, resp := client.PutRuleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) PutRuleRequest(input *PutRuleInput) (req *request.Request, output *PutRuleOutput) {
 	op := &request.Operation{
 		Name:       opPutRule,
@@ -279,6 +619,8 @@ func (c *CloudWatchEvents) PutRuleRequest(input *PutRuleInput) (req *request.Req
 	return
 }
 
+// PutRule API operation for Amazon CloudWatch Events.
+//
 // Creates or updates a rule. Rules are enabled by default, or based on value
 // of the State parameter. You can disable a rule using DisableRule.
 //
@@ -297,6 +639,28 @@ func (c *CloudWatchEvents) PutRuleRequest(input *PutRuleInput) (req *request.Req
 // event patterns and rules. Be sure to use the correct ARN characters when
 // creating event patterns so that they match the ARN syntax in the event you
 // want to match.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation PutRule for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidEventPatternException
+//   The event pattern is invalid.
+//
+//   * LimitExceededException
+//   This exception occurs if you try to create more rules or add more targets
+//   to a rule than allowed by default.
+//
+//   * ConcurrentModificationException
+//   This exception occurs if there is concurrent modification on rule or target.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) PutRule(input *PutRuleInput) (*PutRuleOutput, error) {
 	req, out := c.PutRuleRequest(input)
 	err := req.Send()
@@ -305,7 +669,30 @@ func (c *CloudWatchEvents) PutRule(input *PutRuleInput) (*PutRuleOutput, error) 
 
 const opPutTargets = "PutTargets"
 
-// PutTargetsRequest generates a request for the PutTargets operation.
+// PutTargetsRequest generates a "aws/request.Request" representing the
+// client's request for the PutTargets operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See PutTargets for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the PutTargets method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the PutTargetsRequest method.
+//    req, resp := client.PutTargetsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *request.Request, output *PutTargetsOutput) {
 	op := &request.Operation{
 		Name:       opPutTargets,
@@ -323,6 +710,8 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 	return
 }
 
+// PutTargets API operation for Amazon CloudWatch Events.
+//
 // Adds target(s) to a rule. Targets are the resources that can be invoked when
 // a rule is triggered. For example, AWS Lambda functions, Amazon Kinesis streams,
 // and built-in targets. Updates the target(s) if they are already associated
@@ -347,6 +736,28 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 // is overridden with this constant.   Note: When you add targets to a rule,
 // when the associated rule triggers, new or updated targets might not be immediately
 // invoked. Please allow a short period of time for changes to take effect.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation PutTargets for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The rule does not exist.
+//
+//   * ConcurrentModificationException
+//   This exception occurs if there is concurrent modification on rule or target.
+//
+//   * LimitExceededException
+//   This exception occurs if you try to create more rules or add more targets
+//   to a rule than allowed by default.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) PutTargets(input *PutTargetsInput) (*PutTargetsOutput, error) {
 	req, out := c.PutTargetsRequest(input)
 	err := req.Send()
@@ -355,7 +766,30 @@ func (c *CloudWatchEvents) PutTargets(input *PutTargetsInput) (*PutTargetsOutput
 
 const opRemoveTargets = "RemoveTargets"
 
-// RemoveTargetsRequest generates a request for the RemoveTargets operation.
+// RemoveTargetsRequest generates a "aws/request.Request" representing the
+// client's request for the RemoveTargets operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See RemoveTargets for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the RemoveTargets method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the RemoveTargetsRequest method.
+//    req, resp := client.RemoveTargetsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) RemoveTargetsRequest(input *RemoveTargetsInput) (req *request.Request, output *RemoveTargetsOutput) {
 	op := &request.Operation{
 		Name:       opRemoveTargets,
@@ -373,12 +807,32 @@ func (c *CloudWatchEvents) RemoveTargetsRequest(input *RemoveTargetsInput) (req 
 	return
 }
 
+// RemoveTargets API operation for Amazon CloudWatch Events.
+//
 // Removes target(s) from a rule so that when the rule is triggered, those targets
 // will no longer be invoked.
 //
 //  Note: When you remove a target, when the associated rule triggers, removed
 // targets might still continue to be invoked. Please allow a short period of
 // time for changes to take effect.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation RemoveTargets for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundException
+//   The rule does not exist.
+//
+//   * ConcurrentModificationException
+//   This exception occurs if there is concurrent modification on rule or target.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) RemoveTargets(input *RemoveTargetsInput) (*RemoveTargetsOutput, error) {
 	req, out := c.RemoveTargetsRequest(input)
 	err := req.Send()
@@ -387,7 +841,30 @@ func (c *CloudWatchEvents) RemoveTargets(input *RemoveTargetsInput) (*RemoveTarg
 
 const opTestEventPattern = "TestEventPattern"
 
-// TestEventPatternRequest generates a request for the TestEventPattern operation.
+// TestEventPatternRequest generates a "aws/request.Request" representing the
+// client's request for the TestEventPattern operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See TestEventPattern for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the TestEventPattern method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the TestEventPatternRequest method.
+//    req, resp := client.TestEventPatternRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CloudWatchEvents) TestEventPatternRequest(input *TestEventPatternInput) (req *request.Request, output *TestEventPatternOutput) {
 	op := &request.Operation{
 		Name:       opTestEventPattern,
@@ -405,6 +882,8 @@ func (c *CloudWatchEvents) TestEventPatternRequest(input *TestEventPatternInput)
 	return
 }
 
+// TestEventPattern API operation for Amazon CloudWatch Events.
+//
 // Tests whether an event pattern matches the provided event.
 //
 //  Note: Most services in AWS treat : or / as the same character in Amazon
@@ -412,6 +891,21 @@ func (c *CloudWatchEvents) TestEventPatternRequest(input *TestEventPatternInput)
 // event patterns and rules. Be sure to use the correct ARN characters when
 // creating event patterns so that they match the ARN syntax in the event you
 // want to match.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon CloudWatch Events's
+// API operation TestEventPattern for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidEventPatternException
+//   The event pattern is invalid.
+//
+//   * InternalException
+//   This exception occurs due to unexpected causes.
+//
 func (c *CloudWatchEvents) TestEventPattern(input *TestEventPatternInput) (*TestEventPatternOutput, error) {
 	req, out := c.TestEventPatternRequest(input)
 	err := req.Send()
@@ -423,6 +917,8 @@ type DeleteRuleInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the rule to be deleted.
+	//
+	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
 }
 
@@ -471,6 +967,8 @@ type DescribeRuleInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the rule you want to describe details for.
+	//
+	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
 }
 
@@ -541,6 +1039,8 @@ type DisableRuleInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the rule you want to disable.
+	//
+	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
 }
 
@@ -589,6 +1089,8 @@ type EnableRuleInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the rule that you want to enable.
+	//
+	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
 }
 
@@ -645,6 +1147,8 @@ type ListRuleNamesByTargetInput struct {
 
 	// The Amazon Resource Name (ARN) of the target resource that you want to list
 	// the rules for.
+	//
+	// TargetArn is a required field
 	TargetArn *string `min:"1" type:"string" required:"true"`
 }
 
@@ -778,6 +1282,8 @@ type ListTargetsByRuleInput struct {
 	NextToken *string `min:"1" type:"string"`
 
 	// The name of the rule whose targets you want to list.
+	//
+	// Rule is a required field
 	Rule *string `min:"1" type:"string" required:"true"`
 }
 
@@ -841,6 +1347,8 @@ type PutEventsInput struct {
 	// The entry that defines an event in your system. You can specify several parameters
 	// for the entry such as the source and type of the event, resources associated
 	// with the event, and so on.
+	//
+	// Entries is a required field
 	Entries []*PutEventsRequestEntry `min:"1" type:"list" required:"true"`
 }
 
@@ -963,6 +1471,8 @@ type PutRuleInput struct {
 	EventPattern *string `type:"string"`
 
 	// The name of the rule that you are creating or updating.
+	//
+	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the IAM role associated with the rule.
@@ -1027,9 +1537,13 @@ type PutTargetsInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the rule you want to add targets to.
+	//
+	// Rule is a required field
 	Rule *string `min:"1" type:"string" required:"true"`
 
 	// List of targets you want to update or add to the rule.
+	//
+	// Targets is a required field
 	Targets []*Target `type:"list" required:"true"`
 }
 
@@ -1122,9 +1636,13 @@ type RemoveTargetsInput struct {
 	_ struct{} `type:"structure"`
 
 	// The list of target IDs to remove from the rule.
+	//
+	// Ids is a required field
 	Ids []*string `min:"1" type:"list" required:"true"`
 
 	// The name of the rule you want to remove targets from.
+	//
+	// Rule is a required field
 	Rule *string `min:"1" type:"string" required:"true"`
 }
 
@@ -1260,9 +1778,13 @@ type Target struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) associated of the target.
+	//
+	// Arn is a required field
 	Arn *string `min:"1" type:"string" required:"true"`
 
 	// The unique target assignment ID.
+	//
+	// Id is a required field
 	Id *string `min:"1" type:"string" required:"true"`
 
 	// Valid JSON text passed to the target. For more information about JSON text,
@@ -1312,9 +1834,13 @@ type TestEventPatternInput struct {
 	_ struct{} `type:"structure"`
 
 	// The event in the JSON format to test against the event pattern.
+	//
+	// Event is a required field
 	Event *string `type:"string" required:"true"`
 
 	// The event pattern you want to test.
+	//
+	// EventPattern is a required field
 	EventPattern *string `type:"string" required:"true"`
 }
 
@@ -1363,8 +1889,9 @@ func (s TestEventPatternOutput) GoString() string {
 }
 
 const (
-	// @enum RuleState
+	// RuleStateEnabled is a RuleState enum value
 	RuleStateEnabled = "ENABLED"
-	// @enum RuleState
+
+	// RuleStateDisabled is a RuleState enum value
 	RuleStateDisabled = "DISABLED"
 )

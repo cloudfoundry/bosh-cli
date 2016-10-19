@@ -13,7 +13,30 @@ import (
 
 const opAddTagsToResource = "AddTagsToResource"
 
-// AddTagsToResourceRequest generates a request for the AddTagsToResource operation.
+// AddTagsToResourceRequest generates a "aws/request.Request" representing the
+// client's request for the AddTagsToResource operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See AddTagsToResource for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the AddTagsToResource method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the AddTagsToResourceRequest method.
+//    req, resp := client.AddTagsToResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) AddTagsToResourceRequest(input *AddTagsToResourceInput) (req *request.Request, output *AddTagsToResourceOutput) {
 	op := &request.Operation{
 		Name:       opAddTagsToResource,
@@ -31,10 +54,24 @@ func (c *DatabaseMigrationService) AddTagsToResourceRequest(input *AddTagsToReso
 	return
 }
 
+// AddTagsToResource API operation for AWS Database Migration Service.
+//
 // Adds metadata tags to a DMS resource, including replication instance, endpoint,
 // security group, and migration task. These tags can also be used with cost
 // allocation reporting to track cost associated with DMS resources, or used
 // in a Condition statement in an IAM policy for DMS.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation AddTagsToResource for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) AddTagsToResource(input *AddTagsToResourceInput) (*AddTagsToResourceOutput, error) {
 	req, out := c.AddTagsToResourceRequest(input)
 	err := req.Send()
@@ -43,7 +80,30 @@ func (c *DatabaseMigrationService) AddTagsToResource(input *AddTagsToResourceInp
 
 const opCreateEndpoint = "CreateEndpoint"
 
-// CreateEndpointRequest generates a request for the CreateEndpoint operation.
+// CreateEndpointRequest generates a "aws/request.Request" representing the
+// client's request for the CreateEndpoint operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateEndpoint for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateEndpoint method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateEndpointRequest method.
+//    req, resp := client.CreateEndpointRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) CreateEndpointRequest(input *CreateEndpointInput) (req *request.Request, output *CreateEndpointOutput) {
 	op := &request.Operation{
 		Name:       opCreateEndpoint,
@@ -61,7 +121,34 @@ func (c *DatabaseMigrationService) CreateEndpointRequest(input *CreateEndpointIn
 	return
 }
 
+// CreateEndpoint API operation for AWS Database Migration Service.
+//
 // Creates an endpoint using the provided settings.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation CreateEndpoint for usage and error information.
+//
+// Returned Error Codes:
+//   * KMSKeyNotAccessibleFault
+//   AWS DMS cannot access the KMS key.
+//
+//   * ResourceAlreadyExistsFault
+//   The resource you are attempting to create already exists.
+//
+//   * ResourceQuotaExceededFault
+//   The quota for this resource quota has been exceeded.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) CreateEndpoint(input *CreateEndpointInput) (*CreateEndpointOutput, error) {
 	req, out := c.CreateEndpointRequest(input)
 	err := req.Send()
@@ -70,7 +157,30 @@ func (c *DatabaseMigrationService) CreateEndpoint(input *CreateEndpointInput) (*
 
 const opCreateReplicationInstance = "CreateReplicationInstance"
 
-// CreateReplicationInstanceRequest generates a request for the CreateReplicationInstance operation.
+// CreateReplicationInstanceRequest generates a "aws/request.Request" representing the
+// client's request for the CreateReplicationInstance operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateReplicationInstance for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateReplicationInstance method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateReplicationInstanceRequest method.
+//    req, resp := client.CreateReplicationInstanceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) CreateReplicationInstanceRequest(input *CreateReplicationInstanceInput) (req *request.Request, output *CreateReplicationInstanceOutput) {
 	op := &request.Operation{
 		Name:       opCreateReplicationInstance,
@@ -88,7 +198,50 @@ func (c *DatabaseMigrationService) CreateReplicationInstanceRequest(input *Creat
 	return
 }
 
+// CreateReplicationInstance API operation for AWS Database Migration Service.
+//
 // Creates the replication instance using the specified parameters.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation CreateReplicationInstance for usage and error information.
+//
+// Returned Error Codes:
+//   * AccessDeniedFault
+//   AWS DMS was denied access to the endpoint.
+//
+//   * ResourceAlreadyExistsFault
+//   The resource you are attempting to create already exists.
+//
+//   * InsufficientResourceCapacityFault
+//   There are not enough resources allocated to the database migration.
+//
+//   * ResourceQuotaExceededFault
+//   The quota for this resource quota has been exceeded.
+//
+//   * StorageQuotaExceededFault
+//   The storage quota has been exceeded.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * ReplicationSubnetGroupDoesNotCoverEnoughAZs
+//   The replication subnet group does not cover enough Availability Zones (AZs).
+//   Edit the replication subnet group and add more AZs.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * InvalidSubnet
+//   The subnet provided is invalid.
+//
+//   * KMSKeyNotAccessibleFault
+//   AWS DMS cannot access the KMS key.
+//
 func (c *DatabaseMigrationService) CreateReplicationInstance(input *CreateReplicationInstanceInput) (*CreateReplicationInstanceOutput, error) {
 	req, out := c.CreateReplicationInstanceRequest(input)
 	err := req.Send()
@@ -97,7 +250,30 @@ func (c *DatabaseMigrationService) CreateReplicationInstance(input *CreateReplic
 
 const opCreateReplicationSubnetGroup = "CreateReplicationSubnetGroup"
 
-// CreateReplicationSubnetGroupRequest generates a request for the CreateReplicationSubnetGroup operation.
+// CreateReplicationSubnetGroupRequest generates a "aws/request.Request" representing the
+// client's request for the CreateReplicationSubnetGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateReplicationSubnetGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateReplicationSubnetGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateReplicationSubnetGroupRequest method.
+//    req, resp := client.CreateReplicationSubnetGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) CreateReplicationSubnetGroupRequest(input *CreateReplicationSubnetGroupInput) (req *request.Request, output *CreateReplicationSubnetGroupOutput) {
 	op := &request.Operation{
 		Name:       opCreateReplicationSubnetGroup,
@@ -115,7 +291,37 @@ func (c *DatabaseMigrationService) CreateReplicationSubnetGroupRequest(input *Cr
 	return
 }
 
+// CreateReplicationSubnetGroup API operation for AWS Database Migration Service.
+//
 // Creates a replication subnet group given a list of the subnet IDs in a VPC.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation CreateReplicationSubnetGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * AccessDeniedFault
+//   AWS DMS was denied access to the endpoint.
+//
+//   * ResourceAlreadyExistsFault
+//   The resource you are attempting to create already exists.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * ResourceQuotaExceededFault
+//   The quota for this resource quota has been exceeded.
+//
+//   * ReplicationSubnetGroupDoesNotCoverEnoughAZs
+//   The replication subnet group does not cover enough Availability Zones (AZs).
+//   Edit the replication subnet group and add more AZs.
+//
+//   * InvalidSubnet
+//   The subnet provided is invalid.
+//
 func (c *DatabaseMigrationService) CreateReplicationSubnetGroup(input *CreateReplicationSubnetGroupInput) (*CreateReplicationSubnetGroupOutput, error) {
 	req, out := c.CreateReplicationSubnetGroupRequest(input)
 	err := req.Send()
@@ -124,7 +330,30 @@ func (c *DatabaseMigrationService) CreateReplicationSubnetGroup(input *CreateRep
 
 const opCreateReplicationTask = "CreateReplicationTask"
 
-// CreateReplicationTaskRequest generates a request for the CreateReplicationTask operation.
+// CreateReplicationTaskRequest generates a "aws/request.Request" representing the
+// client's request for the CreateReplicationTask operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateReplicationTask for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateReplicationTask method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateReplicationTaskRequest method.
+//    req, resp := client.CreateReplicationTaskRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) CreateReplicationTaskRequest(input *CreateReplicationTaskInput) (req *request.Request, output *CreateReplicationTaskOutput) {
 	op := &request.Operation{
 		Name:       opCreateReplicationTask,
@@ -142,16 +371,134 @@ func (c *DatabaseMigrationService) CreateReplicationTaskRequest(input *CreateRep
 	return
 }
 
+// CreateReplicationTask API operation for AWS Database Migration Service.
+//
 // Creates a replication task using the specified parameters.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation CreateReplicationTask for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceAlreadyExistsFault
+//   The resource you are attempting to create already exists.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * KMSKeyNotAccessibleFault
+//   AWS DMS cannot access the KMS key.
+//
+//   * ResourceQuotaExceededFault
+//   The quota for this resource quota has been exceeded.
+//
 func (c *DatabaseMigrationService) CreateReplicationTask(input *CreateReplicationTaskInput) (*CreateReplicationTaskOutput, error) {
 	req, out := c.CreateReplicationTaskRequest(input)
 	err := req.Send()
 	return out, err
 }
 
+const opDeleteCertificate = "DeleteCertificate"
+
+// DeleteCertificateRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteCertificate operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteCertificate for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteCertificate method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteCertificateRequest method.
+//    req, resp := client.DeleteCertificateRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DatabaseMigrationService) DeleteCertificateRequest(input *DeleteCertificateInput) (req *request.Request, output *DeleteCertificateOutput) {
+	op := &request.Operation{
+		Name:       opDeleteCertificate,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteCertificateInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DeleteCertificateOutput{}
+	req.Data = output
+	return
+}
+
+// DeleteCertificate API operation for AWS Database Migration Service.
+//
+// Deletes the specified certificate.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DeleteCertificate for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+func (c *DatabaseMigrationService) DeleteCertificate(input *DeleteCertificateInput) (*DeleteCertificateOutput, error) {
+	req, out := c.DeleteCertificateRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opDeleteEndpoint = "DeleteEndpoint"
 
-// DeleteEndpointRequest generates a request for the DeleteEndpoint operation.
+// DeleteEndpointRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteEndpoint operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteEndpoint for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteEndpoint method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteEndpointRequest method.
+//    req, resp := client.DeleteEndpointRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DeleteEndpointRequest(input *DeleteEndpointInput) (req *request.Request, output *DeleteEndpointOutput) {
 	op := &request.Operation{
 		Name:       opDeleteEndpoint,
@@ -169,10 +516,28 @@ func (c *DatabaseMigrationService) DeleteEndpointRequest(input *DeleteEndpointIn
 	return
 }
 
+// DeleteEndpoint API operation for AWS Database Migration Service.
+//
 // Deletes the specified endpoint.
 //
-// All tasks associated with the endpoint must be deleted before you can delete
+//  All tasks associated with the endpoint must be deleted before you can delete
 // the endpoint.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DeleteEndpoint for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
 func (c *DatabaseMigrationService) DeleteEndpoint(input *DeleteEndpointInput) (*DeleteEndpointOutput, error) {
 	req, out := c.DeleteEndpointRequest(input)
 	err := req.Send()
@@ -181,7 +546,30 @@ func (c *DatabaseMigrationService) DeleteEndpoint(input *DeleteEndpointInput) (*
 
 const opDeleteReplicationInstance = "DeleteReplicationInstance"
 
-// DeleteReplicationInstanceRequest generates a request for the DeleteReplicationInstance operation.
+// DeleteReplicationInstanceRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteReplicationInstance operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteReplicationInstance for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteReplicationInstance method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteReplicationInstanceRequest method.
+//    req, resp := client.DeleteReplicationInstanceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DeleteReplicationInstanceRequest(input *DeleteReplicationInstanceInput) (req *request.Request, output *DeleteReplicationInstanceOutput) {
 	op := &request.Operation{
 		Name:       opDeleteReplicationInstance,
@@ -199,10 +587,28 @@ func (c *DatabaseMigrationService) DeleteReplicationInstanceRequest(input *Delet
 	return
 }
 
+// DeleteReplicationInstance API operation for AWS Database Migration Service.
+//
 // Deletes the specified replication instance.
 //
-// You must delete any migration tasks that are associated with the replication
+//  You must delete any migration tasks that are associated with the replication
 // instance before you can delete it.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DeleteReplicationInstance for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DeleteReplicationInstance(input *DeleteReplicationInstanceInput) (*DeleteReplicationInstanceOutput, error) {
 	req, out := c.DeleteReplicationInstanceRequest(input)
 	err := req.Send()
@@ -211,7 +617,30 @@ func (c *DatabaseMigrationService) DeleteReplicationInstance(input *DeleteReplic
 
 const opDeleteReplicationSubnetGroup = "DeleteReplicationSubnetGroup"
 
-// DeleteReplicationSubnetGroupRequest generates a request for the DeleteReplicationSubnetGroup operation.
+// DeleteReplicationSubnetGroupRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteReplicationSubnetGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteReplicationSubnetGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteReplicationSubnetGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteReplicationSubnetGroupRequest method.
+//    req, resp := client.DeleteReplicationSubnetGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DeleteReplicationSubnetGroupRequest(input *DeleteReplicationSubnetGroupInput) (req *request.Request, output *DeleteReplicationSubnetGroupOutput) {
 	op := &request.Operation{
 		Name:       opDeleteReplicationSubnetGroup,
@@ -229,7 +658,25 @@ func (c *DatabaseMigrationService) DeleteReplicationSubnetGroupRequest(input *De
 	return
 }
 
+// DeleteReplicationSubnetGroup API operation for AWS Database Migration Service.
+//
 // Deletes a subnet group.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DeleteReplicationSubnetGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DeleteReplicationSubnetGroup(input *DeleteReplicationSubnetGroupInput) (*DeleteReplicationSubnetGroupOutput, error) {
 	req, out := c.DeleteReplicationSubnetGroupRequest(input)
 	err := req.Send()
@@ -238,7 +685,30 @@ func (c *DatabaseMigrationService) DeleteReplicationSubnetGroup(input *DeleteRep
 
 const opDeleteReplicationTask = "DeleteReplicationTask"
 
-// DeleteReplicationTaskRequest generates a request for the DeleteReplicationTask operation.
+// DeleteReplicationTaskRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteReplicationTask operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteReplicationTask for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteReplicationTask method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteReplicationTaskRequest method.
+//    req, resp := client.DeleteReplicationTaskRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DeleteReplicationTaskRequest(input *DeleteReplicationTaskInput) (req *request.Request, output *DeleteReplicationTaskOutput) {
 	op := &request.Operation{
 		Name:       opDeleteReplicationTask,
@@ -256,7 +726,25 @@ func (c *DatabaseMigrationService) DeleteReplicationTaskRequest(input *DeleteRep
 	return
 }
 
+// DeleteReplicationTask API operation for AWS Database Migration Service.
+//
 // Deletes the specified replication task.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DeleteReplicationTask for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
 func (c *DatabaseMigrationService) DeleteReplicationTask(input *DeleteReplicationTaskInput) (*DeleteReplicationTaskOutput, error) {
 	req, out := c.DeleteReplicationTaskRequest(input)
 	err := req.Send()
@@ -265,7 +753,30 @@ func (c *DatabaseMigrationService) DeleteReplicationTask(input *DeleteReplicatio
 
 const opDescribeAccountAttributes = "DescribeAccountAttributes"
 
-// DescribeAccountAttributesRequest generates a request for the DescribeAccountAttributes operation.
+// DescribeAccountAttributesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeAccountAttributes operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeAccountAttributes for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeAccountAttributes method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeAccountAttributesRequest method.
+//    req, resp := client.DescribeAccountAttributesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeAccountAttributesRequest(input *DescribeAccountAttributesInput) (req *request.Request, output *DescribeAccountAttributesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeAccountAttributes,
@@ -283,21 +794,117 @@ func (c *DatabaseMigrationService) DescribeAccountAttributesRequest(input *Descr
 	return
 }
 
+// DescribeAccountAttributes API operation for AWS Database Migration Service.
+//
 // Lists all of the AWS DMS attributes for a customer account. The attributes
 // include AWS DMS quotas for the account, such as the number of replication
 // instances allowed. The description for a quota includes the quota name, current
 // usage toward that quota, and the quota's maximum value.
 //
 // This command does not take any parameters.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeAccountAttributes for usage and error information.
 func (c *DatabaseMigrationService) DescribeAccountAttributes(input *DescribeAccountAttributesInput) (*DescribeAccountAttributesOutput, error) {
 	req, out := c.DescribeAccountAttributesRequest(input)
 	err := req.Send()
 	return out, err
 }
 
+const opDescribeCertificates = "DescribeCertificates"
+
+// DescribeCertificatesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeCertificates operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeCertificates for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeCertificates method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeCertificatesRequest method.
+//    req, resp := client.DescribeCertificatesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DatabaseMigrationService) DescribeCertificatesRequest(input *DescribeCertificatesInput) (req *request.Request, output *DescribeCertificatesOutput) {
+	op := &request.Operation{
+		Name:       opDescribeCertificates,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeCertificatesInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeCertificatesOutput{}
+	req.Data = output
+	return
+}
+
+// DescribeCertificates API operation for AWS Database Migration Service.
+//
+// Provides a description of the certificate.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeCertificates for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+func (c *DatabaseMigrationService) DescribeCertificates(input *DescribeCertificatesInput) (*DescribeCertificatesOutput, error) {
+	req, out := c.DescribeCertificatesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opDescribeConnections = "DescribeConnections"
 
-// DescribeConnectionsRequest generates a request for the DescribeConnections operation.
+// DescribeConnectionsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeConnections operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeConnections for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeConnections method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeConnectionsRequest method.
+//    req, resp := client.DescribeConnectionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeConnectionsRequest(input *DescribeConnectionsInput) (req *request.Request, output *DescribeConnectionsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeConnections,
@@ -315,8 +922,22 @@ func (c *DatabaseMigrationService) DescribeConnectionsRequest(input *DescribeCon
 	return
 }
 
+// DescribeConnections API operation for AWS Database Migration Service.
+//
 // Describes the status of the connections that have been made between the replication
 // instance and an endpoint. Connections are created when you test an endpoint.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeConnections for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DescribeConnections(input *DescribeConnectionsInput) (*DescribeConnectionsOutput, error) {
 	req, out := c.DescribeConnectionsRequest(input)
 	err := req.Send()
@@ -325,7 +946,30 @@ func (c *DatabaseMigrationService) DescribeConnections(input *DescribeConnection
 
 const opDescribeEndpointTypes = "DescribeEndpointTypes"
 
-// DescribeEndpointTypesRequest generates a request for the DescribeEndpointTypes operation.
+// DescribeEndpointTypesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeEndpointTypes operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeEndpointTypes for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeEndpointTypes method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeEndpointTypesRequest method.
+//    req, resp := client.DescribeEndpointTypesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeEndpointTypesRequest(input *DescribeEndpointTypesInput) (req *request.Request, output *DescribeEndpointTypesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeEndpointTypes,
@@ -343,7 +987,16 @@ func (c *DatabaseMigrationService) DescribeEndpointTypesRequest(input *DescribeE
 	return
 }
 
+// DescribeEndpointTypes API operation for AWS Database Migration Service.
+//
 // Returns information about the type of endpoints available.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeEndpointTypes for usage and error information.
 func (c *DatabaseMigrationService) DescribeEndpointTypes(input *DescribeEndpointTypesInput) (*DescribeEndpointTypesOutput, error) {
 	req, out := c.DescribeEndpointTypesRequest(input)
 	err := req.Send()
@@ -352,7 +1005,30 @@ func (c *DatabaseMigrationService) DescribeEndpointTypes(input *DescribeEndpoint
 
 const opDescribeEndpoints = "DescribeEndpoints"
 
-// DescribeEndpointsRequest generates a request for the DescribeEndpoints operation.
+// DescribeEndpointsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeEndpoints operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeEndpoints for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeEndpoints method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeEndpointsRequest method.
+//    req, resp := client.DescribeEndpointsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeEndpointsRequest(input *DescribeEndpointsInput) (req *request.Request, output *DescribeEndpointsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeEndpoints,
@@ -370,7 +1046,21 @@ func (c *DatabaseMigrationService) DescribeEndpointsRequest(input *DescribeEndpo
 	return
 }
 
+// DescribeEndpoints API operation for AWS Database Migration Service.
+//
 // Returns information about the endpoints for your account in the current region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeEndpoints for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DescribeEndpoints(input *DescribeEndpointsInput) (*DescribeEndpointsOutput, error) {
 	req, out := c.DescribeEndpointsRequest(input)
 	err := req.Send()
@@ -379,7 +1069,30 @@ func (c *DatabaseMigrationService) DescribeEndpoints(input *DescribeEndpointsInp
 
 const opDescribeOrderableReplicationInstances = "DescribeOrderableReplicationInstances"
 
-// DescribeOrderableReplicationInstancesRequest generates a request for the DescribeOrderableReplicationInstances operation.
+// DescribeOrderableReplicationInstancesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeOrderableReplicationInstances operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeOrderableReplicationInstances for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeOrderableReplicationInstances method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeOrderableReplicationInstancesRequest method.
+//    req, resp := client.DescribeOrderableReplicationInstancesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeOrderableReplicationInstancesRequest(input *DescribeOrderableReplicationInstancesInput) (req *request.Request, output *DescribeOrderableReplicationInstancesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeOrderableReplicationInstances,
@@ -397,8 +1110,17 @@ func (c *DatabaseMigrationService) DescribeOrderableReplicationInstancesRequest(
 	return
 }
 
+// DescribeOrderableReplicationInstances API operation for AWS Database Migration Service.
+//
 // Returns information about the replication instance types that can be created
 // in the specified region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeOrderableReplicationInstances for usage and error information.
 func (c *DatabaseMigrationService) DescribeOrderableReplicationInstances(input *DescribeOrderableReplicationInstancesInput) (*DescribeOrderableReplicationInstancesOutput, error) {
 	req, out := c.DescribeOrderableReplicationInstancesRequest(input)
 	err := req.Send()
@@ -407,7 +1129,30 @@ func (c *DatabaseMigrationService) DescribeOrderableReplicationInstances(input *
 
 const opDescribeRefreshSchemasStatus = "DescribeRefreshSchemasStatus"
 
-// DescribeRefreshSchemasStatusRequest generates a request for the DescribeRefreshSchemasStatus operation.
+// DescribeRefreshSchemasStatusRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeRefreshSchemasStatus operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeRefreshSchemasStatus for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeRefreshSchemasStatus method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeRefreshSchemasStatusRequest method.
+//    req, resp := client.DescribeRefreshSchemasStatusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeRefreshSchemasStatusRequest(input *DescribeRefreshSchemasStatusInput) (req *request.Request, output *DescribeRefreshSchemasStatusOutput) {
 	op := &request.Operation{
 		Name:       opDescribeRefreshSchemasStatus,
@@ -425,7 +1170,25 @@ func (c *DatabaseMigrationService) DescribeRefreshSchemasStatusRequest(input *De
 	return
 }
 
+// DescribeRefreshSchemasStatus API operation for AWS Database Migration Service.
+//
 // Returns the status of the RefreshSchemas operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeRefreshSchemasStatus for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DescribeRefreshSchemasStatus(input *DescribeRefreshSchemasStatusInput) (*DescribeRefreshSchemasStatusOutput, error) {
 	req, out := c.DescribeRefreshSchemasStatusRequest(input)
 	err := req.Send()
@@ -434,7 +1197,30 @@ func (c *DatabaseMigrationService) DescribeRefreshSchemasStatus(input *DescribeR
 
 const opDescribeReplicationInstances = "DescribeReplicationInstances"
 
-// DescribeReplicationInstancesRequest generates a request for the DescribeReplicationInstances operation.
+// DescribeReplicationInstancesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeReplicationInstances operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeReplicationInstances for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeReplicationInstances method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeReplicationInstancesRequest method.
+//    req, resp := client.DescribeReplicationInstancesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeReplicationInstancesRequest(input *DescribeReplicationInstancesInput) (req *request.Request, output *DescribeReplicationInstancesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeReplicationInstances,
@@ -452,8 +1238,22 @@ func (c *DatabaseMigrationService) DescribeReplicationInstancesRequest(input *De
 	return
 }
 
+// DescribeReplicationInstances API operation for AWS Database Migration Service.
+//
 // Returns information about replication instances for your account in the current
 // region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeReplicationInstances for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DescribeReplicationInstances(input *DescribeReplicationInstancesInput) (*DescribeReplicationInstancesOutput, error) {
 	req, out := c.DescribeReplicationInstancesRequest(input)
 	err := req.Send()
@@ -462,7 +1262,30 @@ func (c *DatabaseMigrationService) DescribeReplicationInstances(input *DescribeR
 
 const opDescribeReplicationSubnetGroups = "DescribeReplicationSubnetGroups"
 
-// DescribeReplicationSubnetGroupsRequest generates a request for the DescribeReplicationSubnetGroups operation.
+// DescribeReplicationSubnetGroupsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeReplicationSubnetGroups operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeReplicationSubnetGroups for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeReplicationSubnetGroups method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeReplicationSubnetGroupsRequest method.
+//    req, resp := client.DescribeReplicationSubnetGroupsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeReplicationSubnetGroupsRequest(input *DescribeReplicationSubnetGroupsInput) (req *request.Request, output *DescribeReplicationSubnetGroupsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeReplicationSubnetGroups,
@@ -480,7 +1303,21 @@ func (c *DatabaseMigrationService) DescribeReplicationSubnetGroupsRequest(input 
 	return
 }
 
+// DescribeReplicationSubnetGroups API operation for AWS Database Migration Service.
+//
 // Returns information about the replication subnet groups.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeReplicationSubnetGroups for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DescribeReplicationSubnetGroups(input *DescribeReplicationSubnetGroupsInput) (*DescribeReplicationSubnetGroupsOutput, error) {
 	req, out := c.DescribeReplicationSubnetGroupsRequest(input)
 	err := req.Send()
@@ -489,7 +1326,30 @@ func (c *DatabaseMigrationService) DescribeReplicationSubnetGroups(input *Descri
 
 const opDescribeReplicationTasks = "DescribeReplicationTasks"
 
-// DescribeReplicationTasksRequest generates a request for the DescribeReplicationTasks operation.
+// DescribeReplicationTasksRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeReplicationTasks operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeReplicationTasks for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeReplicationTasks method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeReplicationTasksRequest method.
+//    req, resp := client.DescribeReplicationTasksRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeReplicationTasksRequest(input *DescribeReplicationTasksInput) (req *request.Request, output *DescribeReplicationTasksOutput) {
 	op := &request.Operation{
 		Name:       opDescribeReplicationTasks,
@@ -507,8 +1367,22 @@ func (c *DatabaseMigrationService) DescribeReplicationTasksRequest(input *Descri
 	return
 }
 
+// DescribeReplicationTasks API operation for AWS Database Migration Service.
+//
 // Returns information about replication tasks for your account in the current
 // region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeReplicationTasks for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DescribeReplicationTasks(input *DescribeReplicationTasksInput) (*DescribeReplicationTasksOutput, error) {
 	req, out := c.DescribeReplicationTasksRequest(input)
 	err := req.Send()
@@ -517,7 +1391,30 @@ func (c *DatabaseMigrationService) DescribeReplicationTasks(input *DescribeRepli
 
 const opDescribeSchemas = "DescribeSchemas"
 
-// DescribeSchemasRequest generates a request for the DescribeSchemas operation.
+// DescribeSchemasRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeSchemas operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeSchemas for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeSchemas method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeSchemasRequest method.
+//    req, resp := client.DescribeSchemasRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeSchemasRequest(input *DescribeSchemasInput) (req *request.Request, output *DescribeSchemasOutput) {
 	op := &request.Operation{
 		Name:       opDescribeSchemas,
@@ -535,7 +1432,25 @@ func (c *DatabaseMigrationService) DescribeSchemasRequest(input *DescribeSchemas
 	return
 }
 
+// DescribeSchemas API operation for AWS Database Migration Service.
+//
 // Returns information about the schema for the specified endpoint.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeSchemas for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) DescribeSchemas(input *DescribeSchemasInput) (*DescribeSchemasOutput, error) {
 	req, out := c.DescribeSchemasRequest(input)
 	err := req.Send()
@@ -544,7 +1459,30 @@ func (c *DatabaseMigrationService) DescribeSchemas(input *DescribeSchemasInput) 
 
 const opDescribeTableStatistics = "DescribeTableStatistics"
 
-// DescribeTableStatisticsRequest generates a request for the DescribeTableStatistics operation.
+// DescribeTableStatisticsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeTableStatistics operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeTableStatistics for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeTableStatistics method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeTableStatisticsRequest method.
+//    req, resp := client.DescribeTableStatisticsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) DescribeTableStatisticsRequest(input *DescribeTableStatisticsInput) (req *request.Request, output *DescribeTableStatisticsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeTableStatistics,
@@ -562,17 +1500,125 @@ func (c *DatabaseMigrationService) DescribeTableStatisticsRequest(input *Describ
 	return
 }
 
+// DescribeTableStatistics API operation for AWS Database Migration Service.
+//
 // Returns table statistics on the database migration task, including table
 // name, rows inserted, rows updated, and rows deleted.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation DescribeTableStatistics for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
 func (c *DatabaseMigrationService) DescribeTableStatistics(input *DescribeTableStatisticsInput) (*DescribeTableStatisticsOutput, error) {
 	req, out := c.DescribeTableStatisticsRequest(input)
 	err := req.Send()
 	return out, err
 }
 
+const opImportCertificate = "ImportCertificate"
+
+// ImportCertificateRequest generates a "aws/request.Request" representing the
+// client's request for the ImportCertificate operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ImportCertificate for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ImportCertificate method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ImportCertificateRequest method.
+//    req, resp := client.ImportCertificateRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DatabaseMigrationService) ImportCertificateRequest(input *ImportCertificateInput) (req *request.Request, output *ImportCertificateOutput) {
+	op := &request.Operation{
+		Name:       opImportCertificate,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ImportCertificateInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ImportCertificateOutput{}
+	req.Data = output
+	return
+}
+
+// ImportCertificate API operation for AWS Database Migration Service.
+//
+// Uploads the specified certificate.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation ImportCertificate for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceAlreadyExistsFault
+//   The resource you are attempting to create already exists.
+//
+//   * InvalidCertificateFault
+//   The certificate was not valid.
+//
+func (c *DatabaseMigrationService) ImportCertificate(input *ImportCertificateInput) (*ImportCertificateOutput, error) {
+	req, out := c.ImportCertificateRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opListTagsForResource = "ListTagsForResource"
 
-// ListTagsForResourceRequest generates a request for the ListTagsForResource operation.
+// ListTagsForResourceRequest generates a "aws/request.Request" representing the
+// client's request for the ListTagsForResource operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListTagsForResource for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListTagsForResource method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListTagsForResourceRequest method.
+//    req, resp := client.ListTagsForResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
 	op := &request.Operation{
 		Name:       opListTagsForResource,
@@ -590,7 +1636,21 @@ func (c *DatabaseMigrationService) ListTagsForResourceRequest(input *ListTagsFor
 	return
 }
 
+// ListTagsForResource API operation for AWS Database Migration Service.
+//
 // Lists all tags for an AWS DMS resource.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation ListTagsForResource for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
 	req, out := c.ListTagsForResourceRequest(input)
 	err := req.Send()
@@ -599,7 +1659,30 @@ func (c *DatabaseMigrationService) ListTagsForResource(input *ListTagsForResourc
 
 const opModifyEndpoint = "ModifyEndpoint"
 
-// ModifyEndpointRequest generates a request for the ModifyEndpoint operation.
+// ModifyEndpointRequest generates a "aws/request.Request" representing the
+// client's request for the ModifyEndpoint operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ModifyEndpoint for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ModifyEndpoint method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ModifyEndpointRequest method.
+//    req, resp := client.ModifyEndpointRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) ModifyEndpointRequest(input *ModifyEndpointInput) (req *request.Request, output *ModifyEndpointOutput) {
 	op := &request.Operation{
 		Name:       opModifyEndpoint,
@@ -617,7 +1700,31 @@ func (c *DatabaseMigrationService) ModifyEndpointRequest(input *ModifyEndpointIn
 	return
 }
 
+// ModifyEndpoint API operation for AWS Database Migration Service.
+//
 // Modifies the specified endpoint.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation ModifyEndpoint for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * ResourceAlreadyExistsFault
+//   The resource you are attempting to create already exists.
+//
+//   * KMSKeyNotAccessibleFault
+//   AWS DMS cannot access the KMS key.
+//
 func (c *DatabaseMigrationService) ModifyEndpoint(input *ModifyEndpointInput) (*ModifyEndpointOutput, error) {
 	req, out := c.ModifyEndpointRequest(input)
 	err := req.Send()
@@ -626,7 +1733,30 @@ func (c *DatabaseMigrationService) ModifyEndpoint(input *ModifyEndpointInput) (*
 
 const opModifyReplicationInstance = "ModifyReplicationInstance"
 
-// ModifyReplicationInstanceRequest generates a request for the ModifyReplicationInstance operation.
+// ModifyReplicationInstanceRequest generates a "aws/request.Request" representing the
+// client's request for the ModifyReplicationInstance operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ModifyReplicationInstance for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ModifyReplicationInstance method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ModifyReplicationInstanceRequest method.
+//    req, resp := client.ModifyReplicationInstanceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) ModifyReplicationInstanceRequest(input *ModifyReplicationInstanceInput) (req *request.Request, output *ModifyReplicationInstanceOutput) {
 	op := &request.Operation{
 		Name:       opModifyReplicationInstance,
@@ -644,11 +1774,41 @@ func (c *DatabaseMigrationService) ModifyReplicationInstanceRequest(input *Modif
 	return
 }
 
+// ModifyReplicationInstance API operation for AWS Database Migration Service.
+//
 // Modifies the replication instance to apply new settings. You can change one
 // or more parameters by specifying these parameters and the new values in the
 // request.
 //
 // Some settings are applied during the maintenance window.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation ModifyReplicationInstance for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceAlreadyExistsFault
+//   The resource you are attempting to create already exists.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * InsufficientResourceCapacityFault
+//   There are not enough resources allocated to the database migration.
+//
+//   * StorageQuotaExceededFault
+//   The storage quota has been exceeded.
+//
+//   * UpgradeDependencyFailureFault
+//   An upgrade dependency is preventing the database migration.
+//
 func (c *DatabaseMigrationService) ModifyReplicationInstance(input *ModifyReplicationInstanceInput) (*ModifyReplicationInstanceOutput, error) {
 	req, out := c.ModifyReplicationInstanceRequest(input)
 	err := req.Send()
@@ -657,7 +1817,30 @@ func (c *DatabaseMigrationService) ModifyReplicationInstance(input *ModifyReplic
 
 const opModifyReplicationSubnetGroup = "ModifyReplicationSubnetGroup"
 
-// ModifyReplicationSubnetGroupRequest generates a request for the ModifyReplicationSubnetGroup operation.
+// ModifyReplicationSubnetGroupRequest generates a "aws/request.Request" representing the
+// client's request for the ModifyReplicationSubnetGroup operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ModifyReplicationSubnetGroup for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ModifyReplicationSubnetGroup method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ModifyReplicationSubnetGroupRequest method.
+//    req, resp := client.ModifyReplicationSubnetGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) ModifyReplicationSubnetGroupRequest(input *ModifyReplicationSubnetGroupInput) (req *request.Request, output *ModifyReplicationSubnetGroupOutput) {
 	op := &request.Operation{
 		Name:       opModifyReplicationSubnetGroup,
@@ -675,7 +1858,37 @@ func (c *DatabaseMigrationService) ModifyReplicationSubnetGroupRequest(input *Mo
 	return
 }
 
+// ModifyReplicationSubnetGroup API operation for AWS Database Migration Service.
+//
 // Modifies the settings for the specified replication subnet group.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation ModifyReplicationSubnetGroup for usage and error information.
+//
+// Returned Error Codes:
+//   * AccessDeniedFault
+//   AWS DMS was denied access to the endpoint.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * ResourceQuotaExceededFault
+//   The quota for this resource quota has been exceeded.
+//
+//   * SubnetAlreadyInUse
+//   The specified subnet is already in use.
+//
+//   * ReplicationSubnetGroupDoesNotCoverEnoughAZs
+//   The replication subnet group does not cover enough Availability Zones (AZs).
+//   Edit the replication subnet group and add more AZs.
+//
+//   * InvalidSubnet
+//   The subnet provided is invalid.
+//
 func (c *DatabaseMigrationService) ModifyReplicationSubnetGroup(input *ModifyReplicationSubnetGroupInput) (*ModifyReplicationSubnetGroupOutput, error) {
 	req, out := c.ModifyReplicationSubnetGroupRequest(input)
 	err := req.Send()
@@ -684,7 +1897,30 @@ func (c *DatabaseMigrationService) ModifyReplicationSubnetGroup(input *ModifyRep
 
 const opRefreshSchemas = "RefreshSchemas"
 
-// RefreshSchemasRequest generates a request for the RefreshSchemas operation.
+// RefreshSchemasRequest generates a "aws/request.Request" representing the
+// client's request for the RefreshSchemas operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See RefreshSchemas for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the RefreshSchemas method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the RefreshSchemasRequest method.
+//    req, resp := client.RefreshSchemasRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) RefreshSchemasRequest(input *RefreshSchemasInput) (req *request.Request, output *RefreshSchemasOutput) {
 	op := &request.Operation{
 		Name:       opRefreshSchemas,
@@ -702,9 +1938,33 @@ func (c *DatabaseMigrationService) RefreshSchemasRequest(input *RefreshSchemasIn
 	return
 }
 
+// RefreshSchemas API operation for AWS Database Migration Service.
+//
 // Populates the schema for the specified endpoint. This is an asynchronous
 // operation and can take several minutes. You can check the status of this
 // operation by calling the DescribeRefreshSchemasStatus operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation RefreshSchemas for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * KMSKeyNotAccessibleFault
+//   AWS DMS cannot access the KMS key.
+//
+//   * ResourceQuotaExceededFault
+//   The quota for this resource quota has been exceeded.
+//
 func (c *DatabaseMigrationService) RefreshSchemas(input *RefreshSchemasInput) (*RefreshSchemasOutput, error) {
 	req, out := c.RefreshSchemasRequest(input)
 	err := req.Send()
@@ -713,7 +1973,30 @@ func (c *DatabaseMigrationService) RefreshSchemas(input *RefreshSchemasInput) (*
 
 const opRemoveTagsFromResource = "RemoveTagsFromResource"
 
-// RemoveTagsFromResourceRequest generates a request for the RemoveTagsFromResource operation.
+// RemoveTagsFromResourceRequest generates a "aws/request.Request" representing the
+// client's request for the RemoveTagsFromResource operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See RemoveTagsFromResource for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the RemoveTagsFromResource method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the RemoveTagsFromResourceRequest method.
+//    req, resp := client.RemoveTagsFromResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) RemoveTagsFromResourceRequest(input *RemoveTagsFromResourceInput) (req *request.Request, output *RemoveTagsFromResourceOutput) {
 	op := &request.Operation{
 		Name:       opRemoveTagsFromResource,
@@ -731,7 +2014,21 @@ func (c *DatabaseMigrationService) RemoveTagsFromResourceRequest(input *RemoveTa
 	return
 }
 
+// RemoveTagsFromResource API operation for AWS Database Migration Service.
+//
 // Removes metadata tags from a DMS resource.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation RemoveTagsFromResource for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
 func (c *DatabaseMigrationService) RemoveTagsFromResource(input *RemoveTagsFromResourceInput) (*RemoveTagsFromResourceOutput, error) {
 	req, out := c.RemoveTagsFromResourceRequest(input)
 	err := req.Send()
@@ -740,7 +2037,30 @@ func (c *DatabaseMigrationService) RemoveTagsFromResource(input *RemoveTagsFromR
 
 const opStartReplicationTask = "StartReplicationTask"
 
-// StartReplicationTaskRequest generates a request for the StartReplicationTask operation.
+// StartReplicationTaskRequest generates a "aws/request.Request" representing the
+// client's request for the StartReplicationTask operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See StartReplicationTask for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the StartReplicationTask method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the StartReplicationTaskRequest method.
+//    req, resp := client.StartReplicationTaskRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) StartReplicationTaskRequest(input *StartReplicationTaskInput) (req *request.Request, output *StartReplicationTaskOutput) {
 	op := &request.Operation{
 		Name:       opStartReplicationTask,
@@ -758,7 +2078,25 @@ func (c *DatabaseMigrationService) StartReplicationTaskRequest(input *StartRepli
 	return
 }
 
+// StartReplicationTask API operation for AWS Database Migration Service.
+//
 // Starts the replication task.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation StartReplicationTask for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
 func (c *DatabaseMigrationService) StartReplicationTask(input *StartReplicationTaskInput) (*StartReplicationTaskOutput, error) {
 	req, out := c.StartReplicationTaskRequest(input)
 	err := req.Send()
@@ -767,7 +2105,30 @@ func (c *DatabaseMigrationService) StartReplicationTask(input *StartReplicationT
 
 const opStopReplicationTask = "StopReplicationTask"
 
-// StopReplicationTaskRequest generates a request for the StopReplicationTask operation.
+// StopReplicationTaskRequest generates a "aws/request.Request" representing the
+// client's request for the StopReplicationTask operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See StopReplicationTask for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the StopReplicationTask method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the StopReplicationTaskRequest method.
+//    req, resp := client.StopReplicationTaskRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) StopReplicationTaskRequest(input *StopReplicationTaskInput) (req *request.Request, output *StopReplicationTaskOutput) {
 	op := &request.Operation{
 		Name:       opStopReplicationTask,
@@ -785,7 +2146,25 @@ func (c *DatabaseMigrationService) StopReplicationTaskRequest(input *StopReplica
 	return
 }
 
+// StopReplicationTask API operation for AWS Database Migration Service.
+//
 // Stops the replication task.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation StopReplicationTask for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
 func (c *DatabaseMigrationService) StopReplicationTask(input *StopReplicationTaskInput) (*StopReplicationTaskOutput, error) {
 	req, out := c.StopReplicationTaskRequest(input)
 	err := req.Send()
@@ -794,7 +2173,30 @@ func (c *DatabaseMigrationService) StopReplicationTask(input *StopReplicationTas
 
 const opTestConnection = "TestConnection"
 
-// TestConnectionRequest generates a request for the TestConnection operation.
+// TestConnectionRequest generates a "aws/request.Request" representing the
+// client's request for the TestConnection operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See TestConnection for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the TestConnection method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the TestConnectionRequest method.
+//    req, resp := client.TestConnectionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DatabaseMigrationService) TestConnectionRequest(input *TestConnectionInput) (req *request.Request, output *TestConnectionOutput) {
 	op := &request.Operation{
 		Name:       opTestConnection,
@@ -812,7 +2214,31 @@ func (c *DatabaseMigrationService) TestConnectionRequest(input *TestConnectionIn
 	return
 }
 
+// TestConnection API operation for AWS Database Migration Service.
+//
 // Tests the connection between the replication instance and the endpoint.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Database Migration Service's
+// API operation TestConnection for usage and error information.
+//
+// Returned Error Codes:
+//   * ResourceNotFoundFault
+//   The resource could not be found.
+//
+//   * InvalidResourceStateFault
+//   The resource is in a state that prevents it from being used for database
+//   migration.
+//
+//   * KMSKeyNotAccessibleFault
+//   AWS DMS cannot access the KMS key.
+//
+//   * ResourceQuotaExceededFault
+//   The quota for this resource quota has been exceeded.
+//
 func (c *DatabaseMigrationService) TestConnection(input *TestConnectionInput) (*TestConnectionOutput, error) {
 	req, out := c.TestConnectionRequest(input)
 	err := req.Send()
@@ -850,9 +2276,13 @@ type AddTagsToResourceInput struct {
 	// The Amazon Resource Name (ARN) of the AWS DMS resource the tag is to be added
 	// to. AWS DMS resources include a replication instance, endpoint, and a replication
 	// task.
+	//
+	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 
 	// The tag to be assigned to the DMS resource.
+	//
+	// Tags is a required field
 	Tags []*Tag `locationNameList:"Tag" type:"list" required:"true"`
 }
 
@@ -913,6 +2343,49 @@ func (s AvailabilityZone) GoString() string {
 	return s.String()
 }
 
+// The SSL certificate that can be used to encrypt connections between the endpoints
+// and the replication instance.
+type Certificate struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) for the certificate.
+	CertificateArn *string `type:"string"`
+
+	// the date the certificate was created.
+	CertificateCreationDate *time.Time `type:"timestamp" timestampFormat:"unix"`
+
+	// The customer-assigned name of the certificate. Valid characters are [A-z_0-9].
+	CertificateIdentifier *string `type:"string"`
+
+	// The owner of the certificate.
+	CertificateOwner *string `type:"string"`
+
+	// The contents of the .pem X.509 certificate file.
+	CertificatePem *string `type:"string"`
+
+	// The key length of the cryptographic algorithm being used.
+	KeyLength *int64 `type:"integer"`
+
+	// The signing algorithm for the certificate.
+	SigningAlgorithm *string `type:"string"`
+
+	// The beginning date the certificate is valid.
+	ValidFromDate *time.Time `type:"timestamp" timestampFormat:"unix"`
+
+	// the final date the certificate is valid.
+	ValidToDate *time.Time `type:"timestamp" timestampFormat:"unix"`
+}
+
+// String returns the string representation
+func (s Certificate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Certificate) GoString() string {
+	return s.String()
+}
+
 type Connection struct {
 	_ struct{} `type:"structure"`
 
@@ -951,19 +2424,28 @@ func (s Connection) GoString() string {
 type CreateEndpointInput struct {
 	_ struct{} `type:"structure"`
 
+	// The Amazon Resource Number (ARN) for the certificate.
+	CertificateArn *string `type:"string"`
+
 	// The name of the endpoint database.
 	DatabaseName *string `type:"string"`
 
 	// The database endpoint identifier. Identifiers must begin with a letter; must
 	// contain only ASCII letters, digits, and hyphens; and must not end with a
 	// hyphen or contain two consecutive hyphens.
+	//
+	// EndpointIdentifier is a required field
 	EndpointIdentifier *string `type:"string" required:"true"`
 
 	// The type of endpoint.
+	//
+	// EndpointType is a required field
 	EndpointType *string `type:"string" required:"true" enum:"ReplicationEndpointTypeValue"`
 
 	// The type of engine for the endpoint. Valid values include MYSQL, ORACLE,
-	// POSTGRES, MARIADB, AURORA, SQLSERVER.
+	// POSTGRES, MARIADB, AURORA, REDSHIFT, and SQLSERVER.
+	//
+	// EngineName is a required field
 	EngineName *string `type:"string" required:"true"`
 
 	// Additional attributes associated with the connection.
@@ -977,18 +2459,33 @@ type CreateEndpointInput struct {
 	KmsKeyId *string `type:"string"`
 
 	// The password to be used to login to the endpoint database.
+	//
+	// Password is a required field
 	Password *string `type:"string" required:"true"`
 
 	// The port used by the endpoint database.
+	//
+	// Port is a required field
 	Port *int64 `type:"integer" required:"true"`
 
 	// The name of the server where the endpoint database resides.
+	//
+	// ServerName is a required field
 	ServerName *string `type:"string" required:"true"`
+
+	// The SSL mode to use for the SSL connection.
+	//
+	// SSL mode can be one of four values: none, require, verify-ca, verify-full.
+	//
+	// The default value is none.
+	SslMode *string `type:"string" enum:"DmsSslModeValue"`
 
 	// Tags to be added to the endpoint.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 
 	// The user name to be used to login to the endpoint database.
+	//
+	// Username is a required field
 	Username *string `type:"string" required:"true"`
 }
 
@@ -1065,7 +2562,7 @@ type CreateReplicationInstanceInput struct {
 
 	// The EC2 Availability Zone that the replication instance will be created in.
 	//
-	//  Default: A random, system-chosen Availability Zone in the endpoint's region.
+	// Default: A random, system-chosen Availability Zone in the endpoint's region.
 	//
 	//  Example: us-east-1d
 	AvailabilityZone *string `type:"string"`
@@ -1080,13 +2577,17 @@ type CreateReplicationInstanceInput struct {
 	// encryption key for each AWS region.
 	KmsKeyId *string `type:"string"`
 
+	// Specifies if the replication instance is a Multi-AZ deployment. You cannot
+	// set the AvailabilityZone parameter if the Multi-AZ parameter is set to true.
+	MultiAZ *bool `type:"boolean"`
+
 	// The weekly time range during which system maintenance can occur, in Universal
 	// Coordinated Time (UTC).
 	//
 	//  Format: ddd:hh24:mi-ddd:hh24:mi
 	//
-	//  Default: A 30-minute window selected at random from an 8-hour block of
-	// time per region, occurring on a random day of the week.
+	// Default: A 30-minute window selected at random from an 8-hour block of time
+	// per region, occurring on a random day of the week.
 	//
 	// Valid Days: Mon, Tue, Wed, Thu, Fri, Sat, Sun
 	//
@@ -1103,6 +2604,8 @@ type CreateReplicationInstanceInput struct {
 	//
 	//  Valid Values: dms.t2.micro | dms.t2.small | dms.t2.medium | dms.t2.large
 	// | dms.c4.large | dms.c4.xlarge | dms.c4.2xlarge | dms.c4.4xlarge
+	//
+	// ReplicationInstanceClass is a required field
 	ReplicationInstanceClass *string `type:"string" required:"true"`
 
 	// The replication instance identifier. This parameter is stored as a lowercase
@@ -1110,9 +2613,15 @@ type CreateReplicationInstanceInput struct {
 	//
 	// Constraints:
 	//
-	//  Must contain from 1 to 63 alphanumeric characters or hyphens. First character
-	// must be a letter. Cannot end with a hyphen or contain two consecutive hyphens.
-	//  Example: myrepinstance
+	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//
+	//   First character must be a letter.
+	//
+	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//
+	//   Example: myrepinstance
+	//
+	// ReplicationInstanceIdentifier is a required field
 	ReplicationInstanceIdentifier *string `type:"string" required:"true"`
 
 	// A subnet group to associate with the replication instance.
@@ -1120,6 +2629,11 @@ type CreateReplicationInstanceInput struct {
 
 	// Tags to be associated with the replication instance.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
+
+	// Specifies the VPC security group to be used with the replication instance.
+	// The VPC security group must work with the VPC containing the replication
+	// instance.
+	VpcSecurityGroupIds []*string `locationNameList:"VpcSecurityGroupId" type:"list"`
 }
 
 // String returns the string representation
@@ -1169,6 +2683,8 @@ type CreateReplicationSubnetGroupInput struct {
 	_ struct{} `type:"structure"`
 
 	// The description for the subnet group.
+	//
+	// ReplicationSubnetGroupDescription is a required field
 	ReplicationSubnetGroupDescription *string `type:"string" required:"true"`
 
 	// The name for the replication subnet group. This value is stored as a lowercase
@@ -1178,9 +2694,13 @@ type CreateReplicationSubnetGroupInput struct {
 	// spaces, underscores, or hyphens. Must not be "default".
 	//
 	// Example: mySubnetgroup
+	//
+	// ReplicationSubnetGroupIdentifier is a required field
 	ReplicationSubnetGroupIdentifier *string `type:"string" required:"true"`
 
 	// The EC2 subnet IDs for the subnet group.
+	//
+	// SubnetIds is a required field
 	SubnetIds []*string `locationNameList:"SubnetIdentifier" type:"list" required:"true"`
 
 	// The tag to be assigned to the subnet group.
@@ -1240,32 +2760,50 @@ type CreateReplicationTaskInput struct {
 	CdcStartTime *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// The migration type.
+	//
+	// MigrationType is a required field
 	MigrationType *string `type:"string" required:"true" enum:"MigrationTypeValue"`
 
 	// The Amazon Resource Name (ARN) of the replication instance.
+	//
+	// ReplicationInstanceArn is a required field
 	ReplicationInstanceArn *string `type:"string" required:"true"`
 
 	// The replication task identifier.
 	//
 	// Constraints:
 	//
-	//  Must contain from 1 to 63 alphanumeric characters or hyphens. First character
-	// must be a letter. Cannot end with a hyphen or contain two consecutive hyphens.
+	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//
+	//   First character must be a letter.
+	//
+	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//
+	// ReplicationTaskIdentifier is a required field
 	ReplicationTaskIdentifier *string `type:"string" required:"true"`
 
 	// Settings for the task, such as target metadata settings.
 	ReplicationTaskSettings *string `type:"string"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.
+	//
+	// SourceEndpointArn is a required field
 	SourceEndpointArn *string `type:"string" required:"true"`
 
-	// The path of the JSON file that contains the table mappings.
+	// The path of the JSON file that contains the table mappings. Preceed the path
+	// with "file://".
+	//
+	// For example, --table-mappings file://mappingfile.json
+	//
+	// TableMappings is a required field
 	TableMappings *string `type:"string" required:"true"`
 
 	// Tags to be added to the replication instance.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.
+	//
+	// TargetEndpointArn is a required field
 	TargetEndpointArn *string `type:"string" required:"true"`
 }
 
@@ -1324,10 +2862,61 @@ func (s CreateReplicationTaskOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteCertificateInput struct {
+	_ struct{} `type:"structure"`
+
+	// the Amazon Resource Name (ARN) of the deleted certificate.
+	//
+	// CertificateArn is a required field
+	CertificateArn *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteCertificateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteCertificateInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteCertificateInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteCertificateInput"}
+	if s.CertificateArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type DeleteCertificateOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The SSL certificate.
+	Certificate *Certificate `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteCertificateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteCertificateOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteEndpointInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.
+	//
+	// EndpointArn is a required field
 	EndpointArn *string `type:"string" required:"true"`
 }
 
@@ -1375,6 +2964,8 @@ type DeleteReplicationInstanceInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the replication instance to be deleted.
+	//
+	// ReplicationInstanceArn is a required field
 	ReplicationInstanceArn *string `type:"string" required:"true"`
 }
 
@@ -1422,6 +3013,8 @@ type DeleteReplicationSubnetGroupInput struct {
 	_ struct{} `type:"structure"`
 
 	// The subnet group name of the replication instance.
+	//
+	// ReplicationSubnetGroupIdentifier is a required field
 	ReplicationSubnetGroupIdentifier *string `type:"string" required:"true"`
 }
 
@@ -1466,6 +3059,8 @@ type DeleteReplicationTaskInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the replication task to be deleted.
+	//
+	// ReplicationTaskArn is a required field
 	ReplicationTaskArn *string `type:"string" required:"true"`
 }
 
@@ -1537,6 +3132,75 @@ func (s DescribeAccountAttributesOutput) String() string {
 
 // GoString returns the string representation
 func (s DescribeAccountAttributesOutput) GoString() string {
+	return s.String()
+}
+
+type DescribeCertificatesInput struct {
+	_ struct{} `type:"structure"`
+
+	// Filters applied to the certificate described in the form of key-value pairs.
+	Filters []*Filter `locationNameList:"Filter" type:"list"`
+
+	// An optional pagination token provided by a previous request. If this parameter
+	// is specified, the response includes only records beyond the marker, up to
+	// the value specified by MaxRecords.
+	Marker *string `type:"string"`
+
+	// The maximum number of records to include in the response. If more records
+	// exist than the specified MaxRecords value, a pagination token called a marker
+	// is included in the response so that the remaining results can be retrieved.
+	//
+	// Default: 10
+	MaxRecords *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s DescribeCertificatesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeCertificatesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeCertificatesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeCertificatesInput"}
+	if s.Filters != nil {
+		for i, v := range s.Filters {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Filters", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type DescribeCertificatesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The SSL certificates associated with the replication instance.
+	Certificates []*Certificate `locationNameList:"Certificate" type:"list"`
+
+	// The pagination token.
+	Marker *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeCertificatesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeCertificatesOutput) GoString() string {
 	return s.String()
 }
 
@@ -1819,6 +3483,8 @@ type DescribeRefreshSchemasStatusInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.
+	//
+	// EndpointArn is a required field
 	EndpointArn *string `type:"string" required:"true"`
 }
 
@@ -2091,6 +3757,8 @@ type DescribeSchemasInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.
+	//
+	// EndpointArn is a required field
 	EndpointArn *string `type:"string" required:"true"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -2171,6 +3839,8 @@ type DescribeTableStatisticsInput struct {
 	MaxRecords *int64 `type:"integer"`
 
 	// The Amazon Resource Name (ARN) of the replication task.
+	//
+	// ReplicationTaskArn is a required field
 	ReplicationTaskArn *string `type:"string" required:"true"`
 }
 
@@ -2225,6 +3895,9 @@ func (s DescribeTableStatisticsOutput) GoString() string {
 type Endpoint struct {
 	_ struct{} `type:"structure"`
 
+	// The Amazon Resource Name (ARN) used for SSL connection to the endpoint.
+	CertificateArn *string `type:"string"`
+
 	// The name of the database at the endpoint.
 	DatabaseName *string `type:"string"`
 
@@ -2258,6 +3931,13 @@ type Endpoint struct {
 	// The name of the server at the endpoint.
 	ServerName *string `type:"string"`
 
+	// The SSL mode used to connect to the endpoint.
+	//
+	// SSL mode can be one of four values: none, require, verify-ca, verify-full.
+	//
+	// The default value is none.
+	SslMode *string `type:"string" enum:"DmsSslModeValue"`
+
 	// The status of the endpoint.
 	Status *string `type:"string"`
 
@@ -2279,9 +3959,13 @@ type Filter struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the filter.
+	//
+	// Name is a required field
 	Name *string `type:"string" required:"true"`
 
 	// The filter value.
+	//
+	// Values is a required field
 	Values []*string `locationNameList:"Value" type:"list" required:"true"`
 }
 
@@ -2311,11 +3995,65 @@ func (s *Filter) Validate() error {
 	return nil
 }
 
+type ImportCertificateInput struct {
+	_ struct{} `type:"structure"`
+
+	// The customer-assigned name of the certificate. Valid characters are [A-z_0-9].
+	//
+	// CertificateIdentifier is a required field
+	CertificateIdentifier *string `type:"string" required:"true"`
+
+	// The contents of the .pem X.509 certificate file.
+	CertificatePem *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ImportCertificateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ImportCertificateInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ImportCertificateInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ImportCertificateInput"}
+	if s.CertificateIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type ImportCertificateOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The certificate to be uploaded.
+	Certificate *Certificate `type:"structure"`
+}
+
+// String returns the string representation
+func (s ImportCertificateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ImportCertificateOutput) GoString() string {
+	return s.String()
+}
+
 type ListTagsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the AWS DMS
 	// resource.
+	//
+	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 }
 
@@ -2362,10 +4100,15 @@ func (s ListTagsForResourceOutput) GoString() string {
 type ModifyEndpointInput struct {
 	_ struct{} `type:"structure"`
 
+	// The Amazon Resource Name (ARN) of the certificate used for SSL connection.
+	CertificateArn *string `type:"string"`
+
 	// The name of the endpoint database.
 	DatabaseName *string `type:"string"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.
+	//
+	// EndpointArn is a required field
 	EndpointArn *string `type:"string" required:"true"`
 
 	// The database endpoint identifier. Identifiers must begin with a letter; must
@@ -2377,7 +4120,7 @@ type ModifyEndpointInput struct {
 	EndpointType *string `type:"string" enum:"ReplicationEndpointTypeValue"`
 
 	// The type of engine for the endpoint. Valid values include MYSQL, ORACLE,
-	// POSTGRES.
+	// POSTGRES, MARIADB, AURORA, REDSHIFT, and SQLSERVER.
 	EngineName *string `type:"string"`
 
 	// Additional attributes associated with the connection.
@@ -2391,6 +4134,13 @@ type ModifyEndpointInput struct {
 
 	// The name of the server where the endpoint database resides.
 	ServerName *string `type:"string"`
+
+	// The SSL mode to be used.
+	//
+	// SSL mode can be one of four values: none, require, verify-ca, verify-full.
+	//
+	// The default value is none.
+	SslMode *string `type:"string" enum:"DmsSslModeValue"`
 
 	// The user name to be used to login to the endpoint database.
 	Username *string `type:"string"`
@@ -2468,6 +4218,10 @@ type ModifyReplicationInstanceInput struct {
 	// The engine version number of the replication instance.
 	EngineVersion *string `type:"string"`
 
+	// Specifies if the replication instance is a Multi-AZ deployment. You cannot
+	// set the AvailabilityZone parameter if the Multi-AZ parameter is set to true.
+	MultiAZ *bool `type:"boolean"`
+
 	// The weekly time range (in UTC) during which system maintenance can occur,
 	// which might result in an outage. Changing this parameter does not result
 	// in an outage, except in the following situation, and the change is asynchronously
@@ -2485,6 +4239,8 @@ type ModifyReplicationInstanceInput struct {
 	PreferredMaintenanceWindow *string `type:"string"`
 
 	// The Amazon Resource Name (ARN) of the replication instance.
+	//
+	// ReplicationInstanceArn is a required field
 	ReplicationInstanceArn *string `type:"string" required:"true"`
 
 	// The compute and memory capacity of the replication instance.
@@ -2496,6 +4252,11 @@ type ModifyReplicationInstanceInput struct {
 	// The replication instance identifier. This parameter is stored as a lowercase
 	// string.
 	ReplicationInstanceIdentifier *string `type:"string"`
+
+	// Specifies the VPC security group to be used with the replication instance.
+	// The VPC security group must work with the VPC containing the replication
+	// instance.
+	VpcSecurityGroupIds []*string `locationNameList:"VpcSecurityGroupId" type:"list"`
 }
 
 // String returns the string representation
@@ -2545,9 +4306,13 @@ type ModifyReplicationSubnetGroupInput struct {
 	ReplicationSubnetGroupDescription *string `type:"string"`
 
 	// The name of the replication instance subnet group.
+	//
+	// ReplicationSubnetGroupIdentifier is a required field
 	ReplicationSubnetGroupIdentifier *string `type:"string" required:"true"`
 
 	// A list of subnet IDs.
+	//
+	// SubnetIds is a required field
 	SubnetIds []*string `locationNameList:"SubnetIdentifier" type:"list" required:"true"`
 }
 
@@ -2640,9 +4405,13 @@ type RefreshSchemasInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.
+	//
+	// EndpointArn is a required field
 	EndpointArn *string `type:"string" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the replication instance.
+	//
+	// ReplicationInstanceArn is a required field
 	ReplicationInstanceArn *string `type:"string" required:"true"`
 }
 
@@ -2723,9 +4492,13 @@ type RemoveTagsFromResourceInput struct {
 
 	// >The Amazon Resource Name (ARN) of the AWS DMS resource the tag is to be
 	// removed from.
+	//
+	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 
 	// The tag key (name) of the tag to be removed.
+	//
+	// TagKeys is a required field
 	TagKeys []*string `type:"list" required:"true"`
 }
 
@@ -2796,6 +4569,10 @@ type ReplicationInstance struct {
 	// encryption key for each AWS region.
 	KmsKeyId *string `type:"string"`
 
+	// Specifies if the replication instance is a Multi-AZ deployment. You cannot
+	// set the AvailabilityZone parameter if the Multi-AZ parameter is set to true.
+	MultiAZ *bool `type:"boolean"`
+
 	// The pending modification values.
 	PendingModifiedValues *ReplicationPendingModifiedValues `type:"structure"`
 
@@ -2821,22 +4598,35 @@ type ReplicationInstance struct {
 	//
 	// Constraints:
 	//
-	//  Must contain from 1 to 63 alphanumeric characters or hyphens. First character
-	// must be a letter. Cannot end with a hyphen or contain two consecutive hyphens.
-	//  Example: myrepinstance
+	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//
+	//   First character must be a letter.
+	//
+	//   Cannot end with a hyphen or contain two consecutive hyphens.
+	//
+	//   Example: myrepinstance
 	ReplicationInstanceIdentifier *string `type:"string"`
 
 	// The private IP address of the replication instance.
-	ReplicationInstancePrivateIpAddress *string `type:"string"`
+	ReplicationInstancePrivateIpAddress *string `deprecated:"true" type:"string"`
+
+	// The private IP address of the replication instance.
+	ReplicationInstancePrivateIpAddresses []*string `type:"list"`
 
 	// The public IP address of the replication instance.
-	ReplicationInstancePublicIpAddress *string `type:"string"`
+	ReplicationInstancePublicIpAddress *string `deprecated:"true" type:"string"`
+
+	// The public IP address of the replication instance.
+	ReplicationInstancePublicIpAddresses []*string `type:"list"`
 
 	// The status of the replication instance.
 	ReplicationInstanceStatus *string `type:"string"`
 
 	// The subnet group for the replication instance.
 	ReplicationSubnetGroup *ReplicationSubnetGroup `type:"structure"`
+
+	// The VPC security group for the instance.
+	VpcSecurityGroups []*VpcSecurityGroupMembership `locationNameList:"VpcSecurityGroupMembership" type:"list"`
 }
 
 // String returns the string representation
@@ -2858,6 +4648,10 @@ type ReplicationPendingModifiedValues struct {
 
 	// The engine version number of the replication instance.
 	EngineVersion *string `type:"string"`
+
+	// Specifies if the replication instance is a Multi-AZ deployment. You cannot
+	// set the AvailabilityZone parameter if the Multi-AZ parameter is set to true.
+	MultiAZ *bool `type:"boolean"`
 
 	// The compute and memory capacity of the replication instance.
 	//
@@ -2927,8 +4721,11 @@ type ReplicationTask struct {
 	//
 	// Constraints:
 	//
-	//  Must contain from 1 to 63 alphanumeric characters or hyphens. First character
-	// must be a letter. Cannot end with a hyphen or contain two consecutive hyphens.
+	//   Must contain from 1 to 63 alphanumeric characters or hyphens.
+	//
+	//   First character must be a letter.
+	//
+	//   Cannot end with a hyphen or contain two consecutive hyphens.
 	ReplicationTaskIdentifier *string `type:"string"`
 
 	// The settings for the replication task.
@@ -3003,9 +4800,13 @@ type StartReplicationTaskInput struct {
 	CdcStartTime *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// The Amazon Resource Number (ARN) of the replication task to be started.
+	//
+	// ReplicationTaskArn is a required field
 	ReplicationTaskArn *string `type:"string" required:"true"`
 
 	// The type of replication task.
+	//
+	// StartReplicationTaskType is a required field
 	StartReplicationTaskType *string `type:"string" required:"true" enum:"StartReplicationTaskTypeValue"`
 }
 
@@ -3056,6 +4857,8 @@ type StopReplicationTaskInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Number(ARN) of the replication task to be stopped.
+	//
+	// ReplicationTaskArn is a required field
 	ReplicationTaskArn *string `type:"string" required:"true"`
 }
 
@@ -3217,9 +5020,13 @@ type TestConnectionInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) string that uniquely identifies the endpoint.
+	//
+	// EndpointArn is a required field
 	EndpointArn *string `type:"string" required:"true"`
 
-	// The Amazon Resource Number (ARN) of the replication instance.
+	// The Amazon Resource Name (ARN) of the replication instance.
+	//
+	// ReplicationInstanceArn is a required field
 	ReplicationInstanceArn *string `type:"string" required:"true"`
 }
 
@@ -3266,36 +5073,77 @@ func (s TestConnectionOutput) GoString() string {
 	return s.String()
 }
 
+type VpcSecurityGroupMembership struct {
+	_ struct{} `type:"structure"`
+
+	// The status of the VPC security group.
+	Status *string `type:"string"`
+
+	// The VPC security group Id.
+	VpcSecurityGroupId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s VpcSecurityGroupMembership) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VpcSecurityGroupMembership) GoString() string {
+	return s.String()
+}
+
 const (
-	// @enum MigrationTypeValue
+	// DmsSslModeValueNone is a DmsSslModeValue enum value
+	DmsSslModeValueNone = "none"
+
+	// DmsSslModeValueRequire is a DmsSslModeValue enum value
+	DmsSslModeValueRequire = "require"
+
+	// DmsSslModeValueVerifyCa is a DmsSslModeValue enum value
+	DmsSslModeValueVerifyCa = "verify-ca"
+
+	// DmsSslModeValueVerifyFull is a DmsSslModeValue enum value
+	DmsSslModeValueVerifyFull = "verify-full"
+)
+
+const (
+	// MigrationTypeValueFullLoad is a MigrationTypeValue enum value
 	MigrationTypeValueFullLoad = "full-load"
-	// @enum MigrationTypeValue
+
+	// MigrationTypeValueCdc is a MigrationTypeValue enum value
 	MigrationTypeValueCdc = "cdc"
-	// @enum MigrationTypeValue
+
+	// MigrationTypeValueFullLoadAndCdc is a MigrationTypeValue enum value
 	MigrationTypeValueFullLoadAndCdc = "full-load-and-cdc"
 )
 
 const (
-	// @enum RefreshSchemasStatusTypeValue
+	// RefreshSchemasStatusTypeValueSuccessful is a RefreshSchemasStatusTypeValue enum value
 	RefreshSchemasStatusTypeValueSuccessful = "successful"
-	// @enum RefreshSchemasStatusTypeValue
+
+	// RefreshSchemasStatusTypeValueFailed is a RefreshSchemasStatusTypeValue enum value
 	RefreshSchemasStatusTypeValueFailed = "failed"
-	// @enum RefreshSchemasStatusTypeValue
+
+	// RefreshSchemasStatusTypeValueRefreshing is a RefreshSchemasStatusTypeValue enum value
 	RefreshSchemasStatusTypeValueRefreshing = "refreshing"
 )
 
 const (
-	// @enum ReplicationEndpointTypeValue
+	// ReplicationEndpointTypeValueSource is a ReplicationEndpointTypeValue enum value
 	ReplicationEndpointTypeValueSource = "source"
-	// @enum ReplicationEndpointTypeValue
+
+	// ReplicationEndpointTypeValueTarget is a ReplicationEndpointTypeValue enum value
 	ReplicationEndpointTypeValueTarget = "target"
 )
 
 const (
-	// @enum StartReplicationTaskTypeValue
+	// StartReplicationTaskTypeValueStartReplication is a StartReplicationTaskTypeValue enum value
 	StartReplicationTaskTypeValueStartReplication = "start-replication"
-	// @enum StartReplicationTaskTypeValue
+
+	// StartReplicationTaskTypeValueResumeProcessing is a StartReplicationTaskTypeValue enum value
 	StartReplicationTaskTypeValueResumeProcessing = "resume-processing"
-	// @enum StartReplicationTaskTypeValue
+
+	// StartReplicationTaskTypeValueReloadTarget is a StartReplicationTaskTypeValue enum value
 	StartReplicationTaskTypeValueReloadTarget = "reload-target"
 )

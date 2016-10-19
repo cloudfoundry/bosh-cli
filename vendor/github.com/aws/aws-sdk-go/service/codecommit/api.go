@@ -14,7 +14,30 @@ import (
 
 const opBatchGetRepositories = "BatchGetRepositories"
 
-// BatchGetRepositoriesRequest generates a request for the BatchGetRepositories operation.
+// BatchGetRepositoriesRequest generates a "aws/request.Request" representing the
+// client's request for the BatchGetRepositories operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See BatchGetRepositories for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the BatchGetRepositories method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the BatchGetRepositoriesRequest method.
+//    req, resp := client.BatchGetRepositoriesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) BatchGetRepositoriesRequest(input *BatchGetRepositoriesInput) (req *request.Request, output *BatchGetRepositoriesOutput) {
 	op := &request.Operation{
 		Name:       opBatchGetRepositories,
@@ -32,6 +55,8 @@ func (c *CodeCommit) BatchGetRepositoriesRequest(input *BatchGetRepositoriesInpu
 	return
 }
 
+// BatchGetRepositories API operation for AWS CodeCommit.
+//
 // Returns information about one or more repositories.
 //
 // The description field for a repository accepts all HTML characters and all
@@ -39,6 +64,44 @@ func (c *CodeCommit) BatchGetRepositoriesRequest(input *BatchGetRepositoriesInpu
 // and display it in a web page could expose users to potentially malicious
 // code. Make sure that you HTML-encode the description field in any application
 // that uses this API to display the repository description on a web page.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation BatchGetRepositories for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNamesRequiredException
+//   A repository names object is required but was not specified.
+//
+//   * MaximumRepositoryNamesExceededException
+//   The maximum number of allowed repository names was exceeded. Currently, this
+//   number is 25.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) BatchGetRepositories(input *BatchGetRepositoriesInput) (*BatchGetRepositoriesOutput, error) {
 	req, out := c.BatchGetRepositoriesRequest(input)
 	err := req.Send()
@@ -47,7 +110,30 @@ func (c *CodeCommit) BatchGetRepositories(input *BatchGetRepositoriesInput) (*Ba
 
 const opCreateBranch = "CreateBranch"
 
-// CreateBranchRequest generates a request for the CreateBranch operation.
+// CreateBranchRequest generates a "aws/request.Request" representing the
+// client's request for the CreateBranch operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateBranch for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateBranch method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateBranchRequest method.
+//    req, resp := client.CreateBranchRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) CreateBranchRequest(input *CreateBranchInput) (req *request.Request, output *CreateBranchOutput) {
 	op := &request.Operation{
 		Name:       opCreateBranch,
@@ -67,10 +153,68 @@ func (c *CodeCommit) CreateBranchRequest(input *CreateBranchInput) (req *request
 	return
 }
 
+// CreateBranch API operation for AWS CodeCommit.
+//
 // Creates a new branch in a repository and points the branch to a commit.
 //
 // Calling the create branch operation does not set a repository's default
 // branch. To do this, call the update default branch operation.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation CreateBranch for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * BranchNameRequiredException
+//   A branch name is required but was not specified.
+//
+//   * BranchNameExistsException
+//   The specified branch name already exists.
+//
+//   * InvalidBranchNameException
+//   The specified branch name is not valid.
+//
+//   * CommitIdRequiredException
+//   A commit ID was not specified.
+//
+//   * CommitDoesNotExistException
+//   The specified commit does not exist or no commit was specified, and the specified
+//   repository has no default branch.
+//
+//   * InvalidCommitIdException
+//   The specified commit ID is not valid.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) CreateBranch(input *CreateBranchInput) (*CreateBranchOutput, error) {
 	req, out := c.CreateBranchRequest(input)
 	err := req.Send()
@@ -79,7 +223,30 @@ func (c *CodeCommit) CreateBranch(input *CreateBranchInput) (*CreateBranchOutput
 
 const opCreateRepository = "CreateRepository"
 
-// CreateRepositoryRequest generates a request for the CreateRepository operation.
+// CreateRepositoryRequest generates a "aws/request.Request" representing the
+// client's request for the CreateRepository operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateRepository for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateRepository method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateRepositoryRequest method.
+//    req, resp := client.CreateRepositoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) CreateRepositoryRequest(input *CreateRepositoryInput) (req *request.Request, output *CreateRepositoryOutput) {
 	op := &request.Operation{
 		Name:       opCreateRepository,
@@ -97,7 +264,52 @@ func (c *CodeCommit) CreateRepositoryRequest(input *CreateRepositoryInput) (req 
 	return
 }
 
+// CreateRepository API operation for AWS CodeCommit.
+//
 // Creates a new, empty repository.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation CreateRepository for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameExistsException
+//   The specified repository name already exists.
+//
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * InvalidRepositoryDescriptionException
+//   The specified repository description is not valid.
+//
+//   * RepositoryLimitExceededException
+//   A repository resource limit was exceeded.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) CreateRepository(input *CreateRepositoryInput) (*CreateRepositoryOutput, error) {
 	req, out := c.CreateRepositoryRequest(input)
 	err := req.Send()
@@ -106,7 +318,30 @@ func (c *CodeCommit) CreateRepository(input *CreateRepositoryInput) (*CreateRepo
 
 const opDeleteRepository = "DeleteRepository"
 
-// DeleteRepositoryRequest generates a request for the DeleteRepository operation.
+// DeleteRepositoryRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteRepository operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteRepository for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteRepository method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteRepositoryRequest method.
+//    req, resp := client.DeleteRepositoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) DeleteRepositoryRequest(input *DeleteRepositoryInput) (req *request.Request, output *DeleteRepositoryOutput) {
 	op := &request.Operation{
 		Name:       opDeleteRepository,
@@ -124,12 +359,48 @@ func (c *CodeCommit) DeleteRepositoryRequest(input *DeleteRepositoryInput) (req 
 	return
 }
 
+// DeleteRepository API operation for AWS CodeCommit.
+//
 // Deletes a repository. If a specified repository was already deleted, a null
 // repository ID will be returned.
 //
 // Deleting a repository also deletes all associated objects and metadata.
 // After a repository is deleted, all future push calls to the deleted repository
 // will fail.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation DeleteRepository for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) DeleteRepository(input *DeleteRepositoryInput) (*DeleteRepositoryOutput, error) {
 	req, out := c.DeleteRepositoryRequest(input)
 	err := req.Send()
@@ -138,7 +409,30 @@ func (c *CodeCommit) DeleteRepository(input *DeleteRepositoryInput) (*DeleteRepo
 
 const opGetBranch = "GetBranch"
 
-// GetBranchRequest generates a request for the GetBranch operation.
+// GetBranchRequest generates a "aws/request.Request" representing the
+// client's request for the GetBranch operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See GetBranch for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetBranch method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetBranchRequest method.
+//    req, resp := client.GetBranchRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) GetBranchRequest(input *GetBranchInput) (req *request.Request, output *GetBranchOutput) {
 	op := &request.Operation{
 		Name:       opGetBranch,
@@ -156,8 +450,56 @@ func (c *CodeCommit) GetBranchRequest(input *GetBranchInput) (req *request.Reque
 	return
 }
 
+// GetBranch API operation for AWS CodeCommit.
+//
 // Returns information about a repository branch, including its name and the
 // last commit ID.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation GetBranch for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * BranchNameRequiredException
+//   A branch name is required but was not specified.
+//
+//   * InvalidBranchNameException
+//   The specified branch name is not valid.
+//
+//   * BranchDoesNotExistException
+//   The specified branch does not exist.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) GetBranch(input *GetBranchInput) (*GetBranchOutput, error) {
 	req, out := c.GetBranchRequest(input)
 	err := req.Send()
@@ -166,7 +508,30 @@ func (c *CodeCommit) GetBranch(input *GetBranchInput) (*GetBranchOutput, error) 
 
 const opGetCommit = "GetCommit"
 
-// GetCommitRequest generates a request for the GetCommit operation.
+// GetCommitRequest generates a "aws/request.Request" representing the
+// client's request for the GetCommit operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See GetCommit for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetCommit method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetCommitRequest method.
+//    req, resp := client.GetCommitRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) GetCommitRequest(input *GetCommitInput) (req *request.Request, output *GetCommitOutput) {
 	op := &request.Operation{
 		Name:       opGetCommit,
@@ -184,8 +549,56 @@ func (c *CodeCommit) GetCommitRequest(input *GetCommitInput) (req *request.Reque
 	return
 }
 
+// GetCommit API operation for AWS CodeCommit.
+//
 // Returns information about a commit, including commit message and committer
 // information.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation GetCommit for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * CommitIdRequiredException
+//   A commit ID was not specified.
+//
+//   * InvalidCommitIdException
+//   The specified commit ID is not valid.
+//
+//   * CommitIdDoesNotExistException
+//   The specified commit ID does not exist.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) GetCommit(input *GetCommitInput) (*GetCommitOutput, error) {
 	req, out := c.GetCommitRequest(input)
 	err := req.Send()
@@ -194,7 +607,30 @@ func (c *CodeCommit) GetCommit(input *GetCommitInput) (*GetCommitOutput, error) 
 
 const opGetRepository = "GetRepository"
 
-// GetRepositoryRequest generates a request for the GetRepository operation.
+// GetRepositoryRequest generates a "aws/request.Request" representing the
+// client's request for the GetRepository operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See GetRepository for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetRepository method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetRepositoryRequest method.
+//    req, resp := client.GetRepositoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) GetRepositoryRequest(input *GetRepositoryInput) (req *request.Request, output *GetRepositoryOutput) {
 	op := &request.Operation{
 		Name:       opGetRepository,
@@ -212,6 +648,8 @@ func (c *CodeCommit) GetRepositoryRequest(input *GetRepositoryInput) (req *reque
 	return
 }
 
+// GetRepository API operation for AWS CodeCommit.
+//
 // Returns information about a repository.
 //
 // The description field for a repository accepts all HTML characters and all
@@ -219,6 +657,43 @@ func (c *CodeCommit) GetRepositoryRequest(input *GetRepositoryInput) (req *reque
 // and display it in a web page could expose users to potentially malicious
 // code. Make sure that you HTML-encode the description field in any application
 // that uses this API to display the repository description on a web page.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation GetRepository for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) GetRepository(input *GetRepositoryInput) (*GetRepositoryOutput, error) {
 	req, out := c.GetRepositoryRequest(input)
 	err := req.Send()
@@ -227,7 +702,30 @@ func (c *CodeCommit) GetRepository(input *GetRepositoryInput) (*GetRepositoryOut
 
 const opGetRepositoryTriggers = "GetRepositoryTriggers"
 
-// GetRepositoryTriggersRequest generates a request for the GetRepositoryTriggers operation.
+// GetRepositoryTriggersRequest generates a "aws/request.Request" representing the
+// client's request for the GetRepositoryTriggers operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See GetRepositoryTriggers for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetRepositoryTriggers method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetRepositoryTriggersRequest method.
+//    req, resp := client.GetRepositoryTriggersRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) GetRepositoryTriggersRequest(input *GetRepositoryTriggersInput) (req *request.Request, output *GetRepositoryTriggersOutput) {
 	op := &request.Operation{
 		Name:       opGetRepositoryTriggers,
@@ -245,7 +743,46 @@ func (c *CodeCommit) GetRepositoryTriggersRequest(input *GetRepositoryTriggersIn
 	return
 }
 
+// GetRepositoryTriggers API operation for AWS CodeCommit.
+//
 // Gets information about triggers configured for a repository.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation GetRepositoryTriggers for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) GetRepositoryTriggers(input *GetRepositoryTriggersInput) (*GetRepositoryTriggersOutput, error) {
 	req, out := c.GetRepositoryTriggersRequest(input)
 	err := req.Send()
@@ -254,7 +791,30 @@ func (c *CodeCommit) GetRepositoryTriggers(input *GetRepositoryTriggersInput) (*
 
 const opListBranches = "ListBranches"
 
-// ListBranchesRequest generates a request for the ListBranches operation.
+// ListBranchesRequest generates a "aws/request.Request" representing the
+// client's request for the ListBranches operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListBranches for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListBranches method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListBranchesRequest method.
+//    req, resp := client.ListBranchesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) ListBranchesRequest(input *ListBranchesInput) (req *request.Request, output *ListBranchesOutput) {
 	op := &request.Operation{
 		Name:       opListBranches,
@@ -278,13 +838,72 @@ func (c *CodeCommit) ListBranchesRequest(input *ListBranchesInput) (req *request
 	return
 }
 
+// ListBranches API operation for AWS CodeCommit.
+//
 // Gets information about one or more branches in a repository.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation ListBranches for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
+//   * InvalidContinuationTokenException
+//   The specified continuation token is not valid.
+//
 func (c *CodeCommit) ListBranches(input *ListBranchesInput) (*ListBranchesOutput, error) {
 	req, out := c.ListBranchesRequest(input)
 	err := req.Send()
 	return out, err
 }
 
+// ListBranchesPages iterates over the pages of a ListBranches operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListBranches method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListBranches operation.
+//    pageNum := 0
+//    err := client.ListBranchesPages(params,
+//        func(page *ListBranchesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
 func (c *CodeCommit) ListBranchesPages(input *ListBranchesInput, fn func(p *ListBranchesOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.ListBranchesRequest(input)
 	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
@@ -295,7 +914,30 @@ func (c *CodeCommit) ListBranchesPages(input *ListBranchesInput, fn func(p *List
 
 const opListRepositories = "ListRepositories"
 
-// ListRepositoriesRequest generates a request for the ListRepositories operation.
+// ListRepositoriesRequest generates a "aws/request.Request" representing the
+// client's request for the ListRepositories operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListRepositories for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListRepositories method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListRepositoriesRequest method.
+//    req, resp := client.ListRepositoriesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) ListRepositoriesRequest(input *ListRepositoriesInput) (req *request.Request, output *ListRepositoriesOutput) {
 	op := &request.Operation{
 		Name:       opListRepositories,
@@ -319,13 +961,50 @@ func (c *CodeCommit) ListRepositoriesRequest(input *ListRepositoriesInput) (req 
 	return
 }
 
+// ListRepositories API operation for AWS CodeCommit.
+//
 // Gets information about one or more repositories.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation ListRepositories for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidSortByException
+//   The specified sort by value is not valid.
+//
+//   * InvalidOrderException
+//   The specified sort order is not valid.
+//
+//   * InvalidContinuationTokenException
+//   The specified continuation token is not valid.
+//
 func (c *CodeCommit) ListRepositories(input *ListRepositoriesInput) (*ListRepositoriesOutput, error) {
 	req, out := c.ListRepositoriesRequest(input)
 	err := req.Send()
 	return out, err
 }
 
+// ListRepositoriesPages iterates over the pages of a ListRepositories operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListRepositories method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListRepositories operation.
+//    pageNum := 0
+//    err := client.ListRepositoriesPages(params,
+//        func(page *ListRepositoriesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
 func (c *CodeCommit) ListRepositoriesPages(input *ListRepositoriesInput, fn func(p *ListRepositoriesOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.ListRepositoriesRequest(input)
 	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
@@ -336,7 +1015,30 @@ func (c *CodeCommit) ListRepositoriesPages(input *ListRepositoriesInput, fn func
 
 const opPutRepositoryTriggers = "PutRepositoryTriggers"
 
-// PutRepositoryTriggersRequest generates a request for the PutRepositoryTriggers operation.
+// PutRepositoryTriggersRequest generates a "aws/request.Request" representing the
+// client's request for the PutRepositoryTriggers operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See PutRepositoryTriggers for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the PutRepositoryTriggers method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the PutRepositoryTriggersRequest method.
+//    req, resp := client.PutRepositoryTriggersRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) PutRepositoryTriggersRequest(input *PutRepositoryTriggersInput) (req *request.Request, output *PutRepositoryTriggersOutput) {
 	op := &request.Operation{
 		Name:       opPutRepositoryTriggers,
@@ -354,8 +1056,92 @@ func (c *CodeCommit) PutRepositoryTriggersRequest(input *PutRepositoryTriggersIn
 	return
 }
 
+// PutRepositoryTriggers API operation for AWS CodeCommit.
+//
 // Replaces all triggers for a repository. This can be used to create or delete
 // triggers.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation PutRepositoryTriggers for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * RepositoryTriggersListRequiredException
+//   The list of triggers for the repository is required but was not specified.
+//
+//   * MaximumRepositoryTriggersExceededException
+//   The number of triggers allowed for the repository was exceeded.
+//
+//   * InvalidRepositoryTriggerNameException
+//   The name of the trigger is not valid.
+//
+//   * InvalidRepositoryTriggerDestinationArnException
+//   The Amazon Resource Name (ARN) for the trigger is not valid for the specified
+//   destination. The most common reason for this error is that the ARN does not
+//   meet the requirements for the service type.
+//
+//   * InvalidRepositoryTriggerRegionException
+//   The region for the trigger target does not match the region for the repository.
+//   Triggers must be created in the same region as the target for the trigger.
+//
+//   * InvalidRepositoryTriggerCustomDataException
+//   The custom data provided for the trigger is not valid.
+//
+//   * MaximumBranchesExceededException
+//   The number of branches for the trigger was exceeded.
+//
+//   * InvalidRepositoryTriggerBranchNameException
+//   One or more branch names specified for the trigger is not valid.
+//
+//   * InvalidRepositoryTriggerEventsException
+//   One or more events specified for the trigger is not valid. Check to make
+//   sure that all events specified match the requirements for allowed events.
+//
+//   * RepositoryTriggerNameRequiredException
+//   A name for the trigger is required but was not specified.
+//
+//   * RepositoryTriggerDestinationArnRequiredException
+//   A destination ARN for the target service for the trigger is required but
+//   was not specified.
+//
+//   * RepositoryTriggerBranchNameListRequiredException
+//   At least one branch name is required but was not specified in the trigger
+//   configuration.
+//
+//   * RepositoryTriggerEventsListRequiredException
+//   At least one event for the trigger is required but was not specified.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) PutRepositoryTriggers(input *PutRepositoryTriggersInput) (*PutRepositoryTriggersOutput, error) {
 	req, out := c.PutRepositoryTriggersRequest(input)
 	err := req.Send()
@@ -364,7 +1150,30 @@ func (c *CodeCommit) PutRepositoryTriggers(input *PutRepositoryTriggersInput) (*
 
 const opTestRepositoryTriggers = "TestRepositoryTriggers"
 
-// TestRepositoryTriggersRequest generates a request for the TestRepositoryTriggers operation.
+// TestRepositoryTriggersRequest generates a "aws/request.Request" representing the
+// client's request for the TestRepositoryTriggers operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See TestRepositoryTriggers for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the TestRepositoryTriggers method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the TestRepositoryTriggersRequest method.
+//    req, resp := client.TestRepositoryTriggersRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) TestRepositoryTriggersRequest(input *TestRepositoryTriggersInput) (req *request.Request, output *TestRepositoryTriggersOutput) {
 	op := &request.Operation{
 		Name:       opTestRepositoryTriggers,
@@ -382,10 +1191,94 @@ func (c *CodeCommit) TestRepositoryTriggersRequest(input *TestRepositoryTriggers
 	return
 }
 
+// TestRepositoryTriggers API operation for AWS CodeCommit.
+//
 // Tests the functionality of repository triggers by sending information to
 // the trigger target. If real data is available in the repository, the test
 // will send data from the last commit. If no data is available, sample data
 // will be generated.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation TestRepositoryTriggers for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * RepositoryTriggersListRequiredException
+//   The list of triggers for the repository is required but was not specified.
+//
+//   * MaximumRepositoryTriggersExceededException
+//   The number of triggers allowed for the repository was exceeded.
+//
+//   * InvalidRepositoryTriggerNameException
+//   The name of the trigger is not valid.
+//
+//   * InvalidRepositoryTriggerDestinationArnException
+//   The Amazon Resource Name (ARN) for the trigger is not valid for the specified
+//   destination. The most common reason for this error is that the ARN does not
+//   meet the requirements for the service type.
+//
+//   * InvalidRepositoryTriggerRegionException
+//   The region for the trigger target does not match the region for the repository.
+//   Triggers must be created in the same region as the target for the trigger.
+//
+//   * InvalidRepositoryTriggerCustomDataException
+//   The custom data provided for the trigger is not valid.
+//
+//   * MaximumBranchesExceededException
+//   The number of branches for the trigger was exceeded.
+//
+//   * InvalidRepositoryTriggerBranchNameException
+//   One or more branch names specified for the trigger is not valid.
+//
+//   * InvalidRepositoryTriggerEventsException
+//   One or more events specified for the trigger is not valid. Check to make
+//   sure that all events specified match the requirements for allowed events.
+//
+//   * RepositoryTriggerNameRequiredException
+//   A name for the trigger is required but was not specified.
+//
+//   * RepositoryTriggerDestinationArnRequiredException
+//   A destination ARN for the target service for the trigger is required but
+//   was not specified.
+//
+//   * RepositoryTriggerBranchNameListRequiredException
+//   At least one branch name is required but was not specified in the trigger
+//   configuration.
+//
+//   * RepositoryTriggerEventsListRequiredException
+//   At least one event for the trigger is required but was not specified.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) TestRepositoryTriggers(input *TestRepositoryTriggersInput) (*TestRepositoryTriggersOutput, error) {
 	req, out := c.TestRepositoryTriggersRequest(input)
 	err := req.Send()
@@ -394,7 +1287,30 @@ func (c *CodeCommit) TestRepositoryTriggers(input *TestRepositoryTriggersInput) 
 
 const opUpdateDefaultBranch = "UpdateDefaultBranch"
 
-// UpdateDefaultBranchRequest generates a request for the UpdateDefaultBranch operation.
+// UpdateDefaultBranchRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateDefaultBranch operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateDefaultBranch for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateDefaultBranch method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateDefaultBranchRequest method.
+//    req, resp := client.UpdateDefaultBranchRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) UpdateDefaultBranchRequest(input *UpdateDefaultBranchInput) (req *request.Request, output *UpdateDefaultBranchOutput) {
 	op := &request.Operation{
 		Name:       opUpdateDefaultBranch,
@@ -414,11 +1330,59 @@ func (c *CodeCommit) UpdateDefaultBranchRequest(input *UpdateDefaultBranchInput)
 	return
 }
 
+// UpdateDefaultBranch API operation for AWS CodeCommit.
+//
 // Sets or changes the default branch name for the specified repository.
 //
 // If you use this operation to change the default branch name to the current
 // default branch name, a success message is returned even though the default
 // branch did not change.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation UpdateDefaultBranch for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * BranchNameRequiredException
+//   A branch name is required but was not specified.
+//
+//   * InvalidBranchNameException
+//   The specified branch name is not valid.
+//
+//   * BranchDoesNotExistException
+//   The specified branch does not exist.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) UpdateDefaultBranch(input *UpdateDefaultBranchInput) (*UpdateDefaultBranchOutput, error) {
 	req, out := c.UpdateDefaultBranchRequest(input)
 	err := req.Send()
@@ -427,7 +1391,30 @@ func (c *CodeCommit) UpdateDefaultBranch(input *UpdateDefaultBranchInput) (*Upda
 
 const opUpdateRepositoryDescription = "UpdateRepositoryDescription"
 
-// UpdateRepositoryDescriptionRequest generates a request for the UpdateRepositoryDescription operation.
+// UpdateRepositoryDescriptionRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateRepositoryDescription operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateRepositoryDescription for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateRepositoryDescription method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateRepositoryDescriptionRequest method.
+//    req, resp := client.UpdateRepositoryDescriptionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) UpdateRepositoryDescriptionRequest(input *UpdateRepositoryDescriptionInput) (req *request.Request, output *UpdateRepositoryDescriptionOutput) {
 	op := &request.Operation{
 		Name:       opUpdateRepositoryDescription,
@@ -447,6 +1434,8 @@ func (c *CodeCommit) UpdateRepositoryDescriptionRequest(input *UpdateRepositoryD
 	return
 }
 
+// UpdateRepositoryDescription API operation for AWS CodeCommit.
+//
 // Sets or changes the comment or description for a repository.
 //
 // The description field for a repository accepts all HTML characters and all
@@ -454,6 +1443,46 @@ func (c *CodeCommit) UpdateRepositoryDescriptionRequest(input *UpdateRepositoryD
 // and display it in a web page could expose users to potentially malicious
 // code. Make sure that you HTML-encode the description field in any application
 // that uses this API to display the repository description on a web page.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation UpdateRepositoryDescription for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
+//   * InvalidRepositoryDescriptionException
+//   The specified repository description is not valid.
+//
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
+//
 func (c *CodeCommit) UpdateRepositoryDescription(input *UpdateRepositoryDescriptionInput) (*UpdateRepositoryDescriptionOutput, error) {
 	req, out := c.UpdateRepositoryDescriptionRequest(input)
 	err := req.Send()
@@ -462,7 +1491,30 @@ func (c *CodeCommit) UpdateRepositoryDescription(input *UpdateRepositoryDescript
 
 const opUpdateRepositoryName = "UpdateRepositoryName"
 
-// UpdateRepositoryNameRequest generates a request for the UpdateRepositoryName operation.
+// UpdateRepositoryNameRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateRepositoryName operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateRepositoryName for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateRepositoryName method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateRepositoryNameRequest method.
+//    req, resp := client.UpdateRepositoryNameRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *CodeCommit) UpdateRepositoryNameRequest(input *UpdateRepositoryNameInput) (req *request.Request, output *UpdateRepositoryNameOutput) {
 	op := &request.Operation{
 		Name:       opUpdateRepositoryName,
@@ -482,12 +1534,39 @@ func (c *CodeCommit) UpdateRepositoryNameRequest(input *UpdateRepositoryNameInpu
 	return
 }
 
+// UpdateRepositoryName API operation for AWS CodeCommit.
+//
 // Renames a repository. The repository name must be unique across the calling
 // AWS account. In addition, repository names are limited to 100 alphanumeric,
 // dash, and underscore characters, and cannot include certain characters. The
 // suffix ".git" is prohibited. For a full description of the limits on repository
 // names, see Limits (http://docs.aws.amazon.com/codecommit/latest/userguide/limits.html)
 // in the AWS CodeCommit User Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation UpdateRepositoryName for usage and error information.
+//
+// Returned Error Codes:
+//   * RepositoryDoesNotExistException
+//   The specified repository does not exist.
+//
+//   * RepositoryNameExistsException
+//   The specified repository name already exists.
+//
+//   * RepositoryNameRequiredException
+//   A repository name is required but was not specified.
+//
+//   * InvalidRepositoryNameException
+//   At least one specified repository name is not valid.
+//
+//   This exception only occurs when a specified repository name is not valid.
+//   Other exceptions occur when a required repository parameter is missing, or
+//   when a specified repository does not exist.
+//
 func (c *CodeCommit) UpdateRepositoryName(input *UpdateRepositoryNameInput) (*UpdateRepositoryNameOutput, error) {
 	req, out := c.UpdateRepositoryNameRequest(input)
 	err := req.Send()
@@ -499,6 +1578,8 @@ type BatchGetRepositoriesInput struct {
 	_ struct{} `type:"structure"`
 
 	// The names of the repositories to get information about.
+	//
+	// RepositoryNames is a required field
 	RepositoryNames []*string `locationName:"repositoryNames" type:"list" required:"true"`
 }
 
@@ -608,12 +1689,18 @@ type CreateBranchInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the new branch to create.
+	//
+	// BranchName is a required field
 	BranchName *string `locationName:"branchName" min:"1" type:"string" required:"true"`
 
 	// The ID of the commit to point the new branch to.
+	//
+	// CommitId is a required field
 	CommitId *string `locationName:"commitId" type:"string" required:"true"`
 
 	// The name of the repository in which you want to create the new branch.
+	//
+	// RepositoryName is a required field
 	RepositoryName *string `locationName:"repositoryName" min:"1" type:"string" required:"true"`
 }
 
@@ -686,6 +1773,8 @@ type CreateRepositoryInput struct {
 	// and cannot include certain characters. For a full description of the limits
 	// on repository names, see Limits (http://docs.aws.amazon.com/codecommit/latest/userguide/limits.html)
 	// in the AWS CodeCommit User Guide. The suffix ".git" is prohibited.
+	//
+	// RepositoryName is a required field
 	RepositoryName *string `locationName:"repositoryName" min:"1" type:"string" required:"true"`
 }
 
@@ -738,6 +1827,8 @@ type DeleteRepositoryInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the repository to delete.
+	//
+	// RepositoryName is a required field
 	RepositoryName *string `locationName:"repositoryName" min:"1" type:"string" required:"true"`
 }
 
@@ -846,9 +1937,13 @@ type GetCommitInput struct {
 	_ struct{} `type:"structure"`
 
 	// The commit ID.
+	//
+	// CommitId is a required field
 	CommitId *string `locationName:"commitId" type:"string" required:"true"`
 
 	// The name of the repository to which the commit was made.
+	//
+	// RepositoryName is a required field
 	RepositoryName *string `locationName:"repositoryName" min:"1" type:"string" required:"true"`
 }
 
@@ -886,6 +1981,8 @@ type GetCommitOutput struct {
 	_ struct{} `type:"structure"`
 
 	// Information about the specified commit.
+	//
+	// Commit is a required field
 	Commit *Commit `locationName:"commit" type:"structure" required:"true"`
 }
 
@@ -904,6 +2001,8 @@ type GetRepositoryInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the repository to get information about.
+	//
+	// RepositoryName is a required field
 	RepositoryName *string `locationName:"repositoryName" min:"1" type:"string" required:"true"`
 }
 
@@ -1011,6 +2110,8 @@ type ListBranchesInput struct {
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The name of the repository that contains the branches.
+	//
+	// RepositoryName is a required field
 	RepositoryName *string `locationName:"repositoryName" min:"1" type:"string" required:"true"`
 }
 
@@ -1349,9 +2450,13 @@ type UpdateDefaultBranchInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the branch to set as the default.
+	//
+	// DefaultBranchName is a required field
 	DefaultBranchName *string `locationName:"defaultBranchName" min:"1" type:"string" required:"true"`
 
 	// The name of the repository to set or change the default branch for.
+	//
+	// RepositoryName is a required field
 	RepositoryName *string `locationName:"repositoryName" min:"1" type:"string" required:"true"`
 }
 
@@ -1410,6 +2515,8 @@ type UpdateRepositoryDescriptionInput struct {
 	RepositoryDescription *string `locationName:"repositoryDescription" type:"string"`
 
 	// The name of the repository to set or change the comment or description for.
+	//
+	// RepositoryName is a required field
 	RepositoryName *string `locationName:"repositoryName" min:"1" type:"string" required:"true"`
 }
 
@@ -1458,9 +2565,13 @@ type UpdateRepositoryNameInput struct {
 	_ struct{} `type:"structure"`
 
 	// The new name for the repository.
+	//
+	// NewName is a required field
 	NewName *string `locationName:"newName" min:"1" type:"string" required:"true"`
 
 	// The existing name of the repository.
+	//
+	// OldName is a required field
 	OldName *string `locationName:"oldName" min:"1" type:"string" required:"true"`
 }
 
@@ -1535,26 +2646,31 @@ func (s UserInfo) GoString() string {
 }
 
 const (
-	// @enum OrderEnum
+	// OrderEnumAscending is a OrderEnum enum value
 	OrderEnumAscending = "ascending"
-	// @enum OrderEnum
+
+	// OrderEnumDescending is a OrderEnum enum value
 	OrderEnumDescending = "descending"
 )
 
 const (
-	// @enum RepositoryTriggerEventEnum
+	// RepositoryTriggerEventEnumAll is a RepositoryTriggerEventEnum enum value
 	RepositoryTriggerEventEnumAll = "all"
-	// @enum RepositoryTriggerEventEnum
+
+	// RepositoryTriggerEventEnumUpdateReference is a RepositoryTriggerEventEnum enum value
 	RepositoryTriggerEventEnumUpdateReference = "updateReference"
-	// @enum RepositoryTriggerEventEnum
+
+	// RepositoryTriggerEventEnumCreateReference is a RepositoryTriggerEventEnum enum value
 	RepositoryTriggerEventEnumCreateReference = "createReference"
-	// @enum RepositoryTriggerEventEnum
+
+	// RepositoryTriggerEventEnumDeleteReference is a RepositoryTriggerEventEnum enum value
 	RepositoryTriggerEventEnumDeleteReference = "deleteReference"
 )
 
 const (
-	// @enum SortByEnum
+	// SortByEnumRepositoryName is a SortByEnum enum value
 	SortByEnumRepositoryName = "repositoryName"
-	// @enum SortByEnum
+
+	// SortByEnumLastModifiedDate is a SortByEnum enum value
 	SortByEnumLastModifiedDate = "lastModifiedDate"
 )

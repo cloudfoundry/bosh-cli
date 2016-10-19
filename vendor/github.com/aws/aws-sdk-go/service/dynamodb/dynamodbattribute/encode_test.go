@@ -124,3 +124,55 @@ func TestMarshalMapOmitEmptyElem(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expect, actual)
 }
+
+type testOmitEmptyScalar struct {
+	IntZero       int  `dynamodbav:",omitempty"`
+	IntPtrNil     *int `dynamodbav:",omitempty"`
+	IntPtrSetZero *int `dynamodbav:",omitempty"`
+}
+
+func TestMarshalOmitEmpty(t *testing.T) {
+	expect := &dynamodb.AttributeValue{
+		M: map[string]*dynamodb.AttributeValue{
+			"IntPtrSetZero": {N: aws.String("0")},
+		},
+	}
+
+	m := testOmitEmptyScalar{IntPtrSetZero: aws.Int(0)}
+
+	actual, err := Marshal(m)
+	assert.NoError(t, err)
+	assert.Equal(t, expect, actual)
+}
+
+func TestEncodeEmbeddedPointerStruct(t *testing.T) {
+	type B struct {
+		Bint int
+	}
+	type C struct {
+		Cint int
+	}
+	type A struct {
+		Aint int
+		*B
+		*C
+	}
+	a := A{Aint: 321, B: &B{123}}
+	assert.Equal(t, 321, a.Aint)
+	assert.Equal(t, 123, a.Bint)
+	assert.Nil(t, a.C)
+
+	actual, err := Marshal(a)
+	assert.NoError(t, err)
+	expect := &dynamodb.AttributeValue{
+		M: map[string]*dynamodb.AttributeValue{
+			"Aint": {
+				N: aws.String("321"),
+			},
+			"Bint": {
+				N: aws.String("123"),
+			},
+		},
+	}
+	assert.Equal(t, expect, actual)
+}

@@ -16,12 +16,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/client/metadata"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/aws/aws-sdk-go/awstesting"
+	"github.com/aws/aws-sdk-go/awstesting/unit"
 	"github.com/aws/aws-sdk-go/private/protocol"
 	"github.com/aws/aws-sdk-go/private/protocol/ec2query"
 	"github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil"
-	"github.com/aws/aws-sdk-go/private/signer/v4"
 	"github.com/aws/aws-sdk-go/private/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -80,7 +80,7 @@ func newOutputService1ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -99,10 +99,34 @@ func (c *OutputService1ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService1TestCaseOperation1 = "OperationName"
 
-// OutputService1TestCaseOperation1Request generates a request for the OutputService1TestCaseOperation1 operation.
+// OutputService1TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService1TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService1TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService1TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService1TestCaseOperation1Request method.
+//    req, resp := client.OutputService1TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService1ProtocolTest) OutputService1TestCaseOperation1Request(input *OutputService1TestShapeOutputService1TestCaseOperation1Input) (req *request.Request, output *OutputService1TestShapeOutputService1TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService1TestCaseOperation1,
+		Name:     opOutputService1TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -115,6 +139,14 @@ func (c *OutputService1ProtocolTest) OutputService1TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService1TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService1TestCaseOperation1 for usage and error information.
 func (c *OutputService1ProtocolTest) OutputService1TestCaseOperation1(input *OutputService1TestShapeOutputService1TestCaseOperation1Input) (*OutputService1TestShapeOutputService1TestCaseOperation1Output, error) {
 	req, out := c.OutputService1TestCaseOperation1Request(input)
 	err := req.Send()
@@ -182,7 +214,7 @@ func newOutputService2ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -201,10 +233,34 @@ func (c *OutputService2ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService2TestCaseOperation1 = "OperationName"
 
-// OutputService2TestCaseOperation1Request generates a request for the OutputService2TestCaseOperation1 operation.
+// OutputService2TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService2TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService2TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService2TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService2TestCaseOperation1Request method.
+//    req, resp := client.OutputService2TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService2ProtocolTest) OutputService2TestCaseOperation1Request(input *OutputService2TestShapeOutputService2TestCaseOperation1Input) (req *request.Request, output *OutputService2TestShapeOutputService2TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService2TestCaseOperation1,
+		Name:     opOutputService2TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -217,6 +273,14 @@ func (c *OutputService2ProtocolTest) OutputService2TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService2TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService2TestCaseOperation1 for usage and error information.
 func (c *OutputService2ProtocolTest) OutputService2TestCaseOperation1(input *OutputService2TestShapeOutputService2TestCaseOperation1Input) (*OutputService2TestShapeOutputService2TestCaseOperation1Output, error) {
 	req, out := c.OutputService2TestCaseOperation1Request(input)
 	err := req.Send()
@@ -271,7 +335,7 @@ func newOutputService3ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -290,10 +354,34 @@ func (c *OutputService3ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService3TestCaseOperation1 = "OperationName"
 
-// OutputService3TestCaseOperation1Request generates a request for the OutputService3TestCaseOperation1 operation.
+// OutputService3TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService3TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService3TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService3TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService3TestCaseOperation1Request method.
+//    req, resp := client.OutputService3TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService3ProtocolTest) OutputService3TestCaseOperation1Request(input *OutputService3TestShapeOutputService3TestCaseOperation1Input) (req *request.Request, output *OutputService3TestShapeOutputService3TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService3TestCaseOperation1,
+		Name:     opOutputService3TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -306,6 +394,14 @@ func (c *OutputService3ProtocolTest) OutputService3TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService3TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService3TestCaseOperation1 for usage and error information.
 func (c *OutputService3ProtocolTest) OutputService3TestCaseOperation1(input *OutputService3TestShapeOutputService3TestCaseOperation1Input) (*OutputService3TestShapeOutputService3TestCaseOperation1Output, error) {
 	req, out := c.OutputService3TestCaseOperation1Request(input)
 	err := req.Send()
@@ -359,7 +455,7 @@ func newOutputService4ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -378,10 +474,34 @@ func (c *OutputService4ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService4TestCaseOperation1 = "OperationName"
 
-// OutputService4TestCaseOperation1Request generates a request for the OutputService4TestCaseOperation1 operation.
+// OutputService4TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService4TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService4TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService4TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService4TestCaseOperation1Request method.
+//    req, resp := client.OutputService4TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService4ProtocolTest) OutputService4TestCaseOperation1Request(input *OutputService4TestShapeOutputService4TestCaseOperation1Input) (req *request.Request, output *OutputService4TestShapeOutputService4TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService4TestCaseOperation1,
+		Name:     opOutputService4TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -394,6 +514,14 @@ func (c *OutputService4ProtocolTest) OutputService4TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService4TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService4TestCaseOperation1 for usage and error information.
 func (c *OutputService4ProtocolTest) OutputService4TestCaseOperation1(input *OutputService4TestShapeOutputService4TestCaseOperation1Input) (*OutputService4TestShapeOutputService4TestCaseOperation1Output, error) {
 	req, out := c.OutputService4TestCaseOperation1Request(input)
 	err := req.Send()
@@ -447,7 +575,7 @@ func newOutputService5ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -466,10 +594,34 @@ func (c *OutputService5ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService5TestCaseOperation1 = "OperationName"
 
-// OutputService5TestCaseOperation1Request generates a request for the OutputService5TestCaseOperation1 operation.
+// OutputService5TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService5TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService5TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService5TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService5TestCaseOperation1Request method.
+//    req, resp := client.OutputService5TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService5ProtocolTest) OutputService5TestCaseOperation1Request(input *OutputService5TestShapeOutputService5TestCaseOperation1Input) (req *request.Request, output *OutputService5TestShapeOutputService5TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService5TestCaseOperation1,
+		Name:     opOutputService5TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -482,6 +634,14 @@ func (c *OutputService5ProtocolTest) OutputService5TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService5TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService5TestCaseOperation1 for usage and error information.
 func (c *OutputService5ProtocolTest) OutputService5TestCaseOperation1(input *OutputService5TestShapeOutputService5TestCaseOperation1Input) (*OutputService5TestShapeOutputService5TestCaseOperation1Output, error) {
 	req, out := c.OutputService5TestCaseOperation1Request(input)
 	err := req.Send()
@@ -535,7 +695,7 @@ func newOutputService6ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -554,10 +714,34 @@ func (c *OutputService6ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService6TestCaseOperation1 = "OperationName"
 
-// OutputService6TestCaseOperation1Request generates a request for the OutputService6TestCaseOperation1 operation.
+// OutputService6TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService6TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService6TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService6TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService6TestCaseOperation1Request method.
+//    req, resp := client.OutputService6TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService6ProtocolTest) OutputService6TestCaseOperation1Request(input *OutputService6TestShapeOutputService6TestCaseOperation1Input) (req *request.Request, output *OutputService6TestShapeOutputService6TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService6TestCaseOperation1,
+		Name:     opOutputService6TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -570,6 +754,14 @@ func (c *OutputService6ProtocolTest) OutputService6TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService6TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService6TestCaseOperation1 for usage and error information.
 func (c *OutputService6ProtocolTest) OutputService6TestCaseOperation1(input *OutputService6TestShapeOutputService6TestCaseOperation1Input) (*OutputService6TestShapeOutputService6TestCaseOperation1Output, error) {
 	req, out := c.OutputService6TestCaseOperation1Request(input)
 	err := req.Send()
@@ -629,7 +821,7 @@ func newOutputService7ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -648,10 +840,34 @@ func (c *OutputService7ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService7TestCaseOperation1 = "OperationName"
 
-// OutputService7TestCaseOperation1Request generates a request for the OutputService7TestCaseOperation1 operation.
+// OutputService7TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService7TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService7TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService7TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService7TestCaseOperation1Request method.
+//    req, resp := client.OutputService7TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService7ProtocolTest) OutputService7TestCaseOperation1Request(input *OutputService7TestShapeOutputService7TestCaseOperation1Input) (req *request.Request, output *OutputService7TestShapeOutputService7TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService7TestCaseOperation1,
+		Name:     opOutputService7TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -664,6 +880,14 @@ func (c *OutputService7ProtocolTest) OutputService7TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService7TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService7TestCaseOperation1 for usage and error information.
 func (c *OutputService7ProtocolTest) OutputService7TestCaseOperation1(input *OutputService7TestShapeOutputService7TestCaseOperation1Input) (*OutputService7TestShapeOutputService7TestCaseOperation1Output, error) {
 	req, out := c.OutputService7TestCaseOperation1Request(input)
 	err := req.Send()
@@ -717,7 +941,7 @@ func newOutputService8ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -736,10 +960,34 @@ func (c *OutputService8ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService8TestCaseOperation1 = "OperationName"
 
-// OutputService8TestCaseOperation1Request generates a request for the OutputService8TestCaseOperation1 operation.
+// OutputService8TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService8TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService8TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService8TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService8TestCaseOperation1Request method.
+//    req, resp := client.OutputService8TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService8ProtocolTest) OutputService8TestCaseOperation1Request(input *OutputService8TestShapeOutputService8TestCaseOperation1Input) (req *request.Request, output *OutputService8TestShapeOutputService8TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService8TestCaseOperation1,
+		Name:     opOutputService8TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -752,6 +1000,14 @@ func (c *OutputService8ProtocolTest) OutputService8TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService8TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService8TestCaseOperation1 for usage and error information.
 func (c *OutputService8ProtocolTest) OutputService8TestCaseOperation1(input *OutputService8TestShapeOutputService8TestCaseOperation1Input) (*OutputService8TestShapeOutputService8TestCaseOperation1Output, error) {
 	req, out := c.OutputService8TestCaseOperation1Request(input)
 	err := req.Send()
@@ -805,7 +1061,7 @@ func newOutputService9ProtocolTestClient(cfg aws.Config, handlers request.Handle
 	}
 
 	// Handlers
-	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Sign.PushBackNamed(v4.SignRequestHandler)
 	svc.Handlers.Build.PushBackNamed(ec2query.BuildHandler)
 	svc.Handlers.Unmarshal.PushBackNamed(ec2query.UnmarshalHandler)
 	svc.Handlers.UnmarshalMeta.PushBackNamed(ec2query.UnmarshalMetaHandler)
@@ -824,10 +1080,34 @@ func (c *OutputService9ProtocolTest) newRequest(op *request.Operation, params, d
 
 const opOutputService9TestCaseOperation1 = "OperationName"
 
-// OutputService9TestCaseOperation1Request generates a request for the OutputService9TestCaseOperation1 operation.
+// OutputService9TestCaseOperation1Request generates a "aws/request.Request" representing the
+// client's request for the OutputService9TestCaseOperation1 operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See OutputService9TestCaseOperation1 for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the OutputService9TestCaseOperation1 method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the OutputService9TestCaseOperation1Request method.
+//    req, resp := client.OutputService9TestCaseOperation1Request(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *OutputService9ProtocolTest) OutputService9TestCaseOperation1Request(input *OutputService9TestShapeOutputService9TestCaseOperation1Input) (req *request.Request, output *OutputService9TestShapeOutputService9TestCaseOperation1Output) {
 	op := &request.Operation{
-		Name: opOutputService9TestCaseOperation1,
+		Name:     opOutputService9TestCaseOperation1,
+		HTTPPath: "/",
 	}
 
 	if input == nil {
@@ -840,6 +1120,14 @@ func (c *OutputService9ProtocolTest) OutputService9TestCaseOperation1Request(inp
 	return
 }
 
+// OutputService9TestCaseOperation1 API operation for .
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for 's
+// API operation OutputService9TestCaseOperation1 for usage and error information.
 func (c *OutputService9ProtocolTest) OutputService9TestCaseOperation1(input *OutputService9TestShapeOutputService9TestCaseOperation1Input) (*OutputService9TestShapeOutputService9TestCaseOperation1Output, error) {
 	req, out := c.OutputService9TestCaseOperation1Request(input)
 	err := req.Send()
@@ -861,8 +1149,7 @@ type OutputService9TestShapeOutputService9TestCaseOperation1Output struct {
 //
 
 func TestOutputService1ProtocolTestScalarMembersCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService1ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService1ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><Str>myname</Str><FooNum>123</FooNum><FalseBool>false</FalseBool><TrueBool>true</TrueBool><Float>1.2</Float><Double>1.3</Double><Long>200</Long><Char>a</Char><RequestId>request-id</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService1TestCaseOperation1Request(nil)
@@ -889,8 +1176,7 @@ func TestOutputService1ProtocolTestScalarMembersCase1(t *testing.T) {
 }
 
 func TestOutputService2ProtocolTestBlobCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService2ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService2ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><Blob>dmFsdWU=</Blob><RequestId>requestid</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService2TestCaseOperation1Request(nil)
@@ -910,8 +1196,7 @@ func TestOutputService2ProtocolTestBlobCase1(t *testing.T) {
 }
 
 func TestOutputService3ProtocolTestListsCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService3ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService3ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><ListMember><member>abc</member><member>123</member></ListMember><RequestId>requestid</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService3TestCaseOperation1Request(nil)
@@ -932,8 +1217,7 @@ func TestOutputService3ProtocolTestListsCase1(t *testing.T) {
 }
 
 func TestOutputService4ProtocolTestListWithCustomMemberNameCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService4ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService4ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><ListMember><item>abc</item><item>123</item></ListMember><RequestId>requestid</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService4TestCaseOperation1Request(nil)
@@ -954,8 +1238,7 @@ func TestOutputService4ProtocolTestListWithCustomMemberNameCase1(t *testing.T) {
 }
 
 func TestOutputService5ProtocolTestFlattenedListCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService5ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService5ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><ListMember>abc</ListMember><ListMember>123</ListMember><RequestId>requestid</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService5TestCaseOperation1Request(nil)
@@ -976,8 +1259,7 @@ func TestOutputService5ProtocolTestFlattenedListCase1(t *testing.T) {
 }
 
 func TestOutputService6ProtocolTestNormalMapCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService6ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService6ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><Map><entry><key>qux</key><value><foo>bar</foo></value></entry><entry><key>baz</key><value><foo>bam</foo></value></entry></Map><RequestId>requestid</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService6TestCaseOperation1Request(nil)
@@ -998,8 +1280,7 @@ func TestOutputService6ProtocolTestNormalMapCase1(t *testing.T) {
 }
 
 func TestOutputService7ProtocolTestFlattenedMapCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService7ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService7ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><Map><key>qux</key><value>bar</value></Map><Map><key>baz</key><value>bam</value></Map><RequestId>requestid</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService7TestCaseOperation1Request(nil)
@@ -1020,8 +1301,7 @@ func TestOutputService7ProtocolTestFlattenedMapCase1(t *testing.T) {
 }
 
 func TestOutputService8ProtocolTestNamedMapCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService8ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService8ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><Map><foo>qux</foo><bar>bar</bar></Map><Map><foo>baz</foo><bar>bam</bar></Map><RequestId>requestid</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService8TestCaseOperation1Request(nil)
@@ -1042,8 +1322,7 @@ func TestOutputService8ProtocolTestNamedMapCase1(t *testing.T) {
 }
 
 func TestOutputService9ProtocolTestEmptyStringCase1(t *testing.T) {
-	sess := session.New()
-	svc := NewOutputService9ProtocolTest(sess, &aws.Config{Endpoint: aws.String("https://test")})
+	svc := NewOutputService9ProtocolTest(unit.Session, &aws.Config{Endpoint: aws.String("https://test")})
 
 	buf := bytes.NewReader([]byte("<OperationNameResponse><Foo/><RequestId>requestid</RequestId></OperationNameResponse>"))
 	req, out := svc.OutputService9TestCaseOperation1Request(nil)

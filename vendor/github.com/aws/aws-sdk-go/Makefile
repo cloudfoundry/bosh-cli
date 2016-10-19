@@ -9,6 +9,7 @@ LINTIGNOREDEPS='vendor/.+\.go'
 SDK_WITH_VENDOR_PKGS=$(shell go list ./... | grep -v "/vendor/src")
 SDK_ONLY_PKGS=$(shell go list ./... | grep -v "/vendor/")
 SDK_GO_1_4=$(shell go version | grep "go1.4")
+SDK_GO_1_5=$(shell go version | grep "go1.5")
 SDK_GO_VERSION=$(shell go version | awk '''{print $$3}''' | tr -d '''\n''')
 
 all: get-deps generate unit
@@ -46,28 +47,28 @@ gen-endpoints:
 
 build:
 	@echo "go build SDK and vendor packages"
-	@go build ${SDK_ONLY_PKGS}
+	@go build -tags example,codegen ${SDK_ONLY_PKGS}
 
 unit: get-deps-tests build verify
 	@echo "go test SDK and vendor packages"
-	@go test $(SDK_ONLY_PKGS)
+	@go test -tags example,codegen $(SDK_ONLY_PKGS)
 
 unit-with-race-cover: get-deps-tests build verify
 	@echo "go test SDK and vendor packages"
-	@go test -v -race -cpu=1,2,4 -covermode=atomic $(SDK_ONLY_PKGS)
+	@go test -tags example,codegen -race -cpu=1,2,4 $(SDK_ONLY_PKGS)
 
 integration: get-deps-tests integ-custom smoke-tests performance
 
 integ-custom:
-	go test -tags=integration ./awstesting/integration/customizations/...
+	go test -tags "integration" ./awstesting/integration/customizations/...
 
 smoke-tests: get-deps-tests
-	gucumber ./awstesting/integration/smoke
+	gucumber -go-tags "integration" ./awstesting/integration/smoke
 
 performance: get-deps-tests
-	AWS_TESTING_LOG_RESULTS=${log-detailed} AWS_TESTING_REGION=$(region) AWS_TESTING_DB_TABLE=$(table) gucumber ./awstesting/performance
+	AWS_TESTING_LOG_RESULTS=${log-detailed} AWS_TESTING_REGION=$(region) AWS_TESTING_DB_TABLE=$(table) gucumber -go-tags "integration" ./awstesting/performance
 
-sandbox-tests: sandbox-test-go14 sandbox-test-go15 sandbox-test-go15-novendorexp sandbox-test-go16 sandbox-test-gotip
+sandbox-tests: sandbox-test-go14 sandbox-test-go15 sandbox-test-go15-novendorexp sandbox-test-go16 sandbox-test-go17 sandbox-test-gotip
 
 sandbox-test-go14:
 	docker build -f ./awstesting/sandbox/Dockerfile.test.go1.4 -t "aws-sdk-go-1.4" .
@@ -85,7 +86,12 @@ sandbox-test-go16:
 	docker build -f ./awstesting/sandbox/Dockerfile.test.go1.6 -t "aws-sdk-go-1.6" .
 	docker run -t aws-sdk-go-1.6
 
+sandbox-test-go17:
+	docker build -f ./awstesting/sandbox/Dockerfile.test.go1.7 -t "aws-sdk-go-1.7" .
+	docker run -t aws-sdk-go-1.7
+
 sandbox-test-gotip:
+	@echo "Run make update-aws-golang-tip, if this test fails because missing aws-golang:tip container"
 	docker build -f ./awstesting/sandbox/Dockerfile.test.gotip -t "aws-sdk-go-tip" .
 	docker run -t aws-sdk-go-tip
 
@@ -96,20 +102,18 @@ verify: get-deps-verify lint vet
 
 lint:
 	@echo "go lint SDK and vendor packages"
-	@lint=`if [ -z "${SDK_GO_1_4}" ]; then  golint ./...; else echo "skipping golint"; fi`; \
+	@lint=`if [ \( -z "${SDK_GO_1_4}" \) -a \( -z "${SDK_GO_1_5}" \) ]; then  golint ./...; else echo "skipping golint"; fi`; \
 	lint=`echo "$$lint" | grep -E -v -e ${LINTIGNOREDOT} -e ${LINTIGNOREDOC} -e ${LINTIGNORECONST} -e ${LINTIGNORESTUTTER} -e ${LINTIGNOREINFLECT} -e ${LINTIGNOREDEPS} -e ${LINTIGNOREINFLECTS3UPLOAD}`; \
 	echo "$$lint"; \
 	if [ "$$lint" != "" ] && [ "$$lint" != "skipping golint" ]; then exit 1; fi
 
 SDK_BASE_FOLDERS=$(shell ls -d */ | grep -v vendor | grep -v awsmigrate)
-ifneq (,$(findstring go1.5, ${SDK_GO_VERSION}))
-	GO_VET_CMD=go tool vet --all -shadow
+ifneq (,$(findstring go1.4, ${SDK_GO_VERSION}))
+	GO_VET_CMD=echo skipping go vet, ${SDK_GO_VERSION}
 else ifneq (,$(findstring go1.6, ${SDK_GO_VERSION}))
 	GO_VET_CMD=go tool vet --all -shadow -example=false
-else ifneq (,$(findstring devel, ${SDK_GO_VERSION}))
-	GO_VET_CMD=go tool vet --all -shadow -tests=false
 else
-	GO_VET_CMD=echo skipping go vet, ${SDK_GO_VERSION}
+	GO_VET_CMD=go tool vet --all -shadow
 endif
 
 vet:
@@ -121,13 +125,13 @@ get-deps: get-deps-tests get-deps-verify
 
 get-deps-tests:
 	@echo "go get SDK testing dependencies"
-	go get github.com/lsegal/gucumber/cmd/gucumber
+	go get github.com/gucumber/gucumber/cmd/gucumber
 	go get github.com/stretchr/testify
 	go get github.com/smartystreets/goconvey
 
 get-deps-verify:
 	@echo "go get SDK verification utilities"
-	@if [ -z "${SDK_GO_1_4}" ]; then  go get github.com/golang/lint/golint; else echo "skipped getting golint"; fi
+	@if [ \( -z "${SDK_GO_1_4}" \) -a \( -z "${SDK_GO_1_5}" \) ]; then  go get github.com/golang/lint/golint; else echo "skipped getting golint"; fi
 
 bench:
 	@echo "go bench SDK packages"
@@ -139,9 +143,12 @@ bench-protocol:
 
 docs:
 	@echo "generate SDK docs"
-	rm -rf doc && bundle install && bundle exec yard
 	@# This env variable, DOCS, is for internal use
-	@if [ -n "$(AWS_DOC_GEN_TOOL)" ]; then echo "For internal use. Subject to change."; $(AWS_DOC_GEN_TOOL) `pwd`; fi
+	@if [ -z ${AWS_DOC_GEN_TOOL} ]; then\
+		rm -rf doc && bundle install && bundle exec yard;\
+	else\
+		$(AWS_DOC_GEN_TOOL) `pwd`;\
+	fi
 
 api_info:
 	@go run private/model/cli/api-info/api-info.go

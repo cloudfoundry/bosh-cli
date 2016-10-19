@@ -11,9 +11,197 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 )
 
+const opAddIpRoutes = "AddIpRoutes"
+
+// AddIpRoutesRequest generates a "aws/request.Request" representing the
+// client's request for the AddIpRoutes operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See AddIpRoutes for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the AddIpRoutes method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the AddIpRoutesRequest method.
+//    req, resp := client.AddIpRoutesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DirectoryService) AddIpRoutesRequest(input *AddIpRoutesInput) (req *request.Request, output *AddIpRoutesOutput) {
+	op := &request.Operation{
+		Name:       opAddIpRoutes,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AddIpRoutesInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &AddIpRoutesOutput{}
+	req.Data = output
+	return
+}
+
+// AddIpRoutes API operation for AWS Directory Service.
+//
+// If the DNS server for your on-premises domain uses a publicly addressable
+// IP address, you must add a CIDR address block to correctly route traffic
+// to and from your Microsoft AD on Amazon Web Services. AddIpRoutes adds this
+// address block. You can also use AddIpRoutes to facilitate routing traffic
+// that uses public IP ranges from your Microsoft AD on AWS to a peer VPC.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation AddIpRoutes for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * EntityAlreadyExistsException
+//   The specified entity already exists.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * DirectoryUnavailableException
+//   The specified directory is unavailable or could not be found.
+//
+//   * IpRouteLimitExceededException
+//   The maximum allowed number of IP addresses was exceeded. The default limit
+//   is 100 IP address blocks.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+func (c *DirectoryService) AddIpRoutes(input *AddIpRoutesInput) (*AddIpRoutesOutput, error) {
+	req, out := c.AddIpRoutesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opAddTagsToResource = "AddTagsToResource"
+
+// AddTagsToResourceRequest generates a "aws/request.Request" representing the
+// client's request for the AddTagsToResource operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See AddTagsToResource for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the AddTagsToResource method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the AddTagsToResourceRequest method.
+//    req, resp := client.AddTagsToResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DirectoryService) AddTagsToResourceRequest(input *AddTagsToResourceInput) (req *request.Request, output *AddTagsToResourceOutput) {
+	op := &request.Operation{
+		Name:       opAddTagsToResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AddTagsToResourceInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &AddTagsToResourceOutput{}
+	req.Data = output
+	return
+}
+
+// AddTagsToResource API operation for AWS Directory Service.
+//
+// Adds or overwrites one or more tags for the specified Amazon Directory Services
+// directory. Each directory can have a maximum of 10 tags. Each tag consists
+// of a key and optional value. Tag keys must be unique to each resource.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation AddTagsToResource for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * TagLimitExceededException
+//   The maximum allowed number of tags was exceeded.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+func (c *DirectoryService) AddTagsToResource(input *AddTagsToResourceInput) (*AddTagsToResourceOutput, error) {
+	req, out := c.AddTagsToResourceRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opConnectDirectory = "ConnectDirectory"
 
-// ConnectDirectoryRequest generates a request for the ConnectDirectory operation.
+// ConnectDirectoryRequest generates a "aws/request.Request" representing the
+// client's request for the ConnectDirectory operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ConnectDirectory for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ConnectDirectory method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ConnectDirectoryRequest method.
+//    req, resp := client.ConnectDirectoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) ConnectDirectoryRequest(input *ConnectDirectoryInput) (req *request.Request, output *ConnectDirectoryOutput) {
 	op := &request.Operation{
 		Name:       opConnectDirectory,
@@ -31,7 +219,32 @@ func (c *DirectoryService) ConnectDirectoryRequest(input *ConnectDirectoryInput)
 	return
 }
 
+// ConnectDirectory API operation for AWS Directory Service.
+//
 // Creates an AD Connector to connect to an on-premises directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation ConnectDirectory for usage and error information.
+//
+// Returned Error Codes:
+//   * DirectoryLimitExceededException
+//   The maximum number of directories in the region has been reached. You can
+//   use the GetDirectoryLimits operation to determine your directory limits in
+//   the region.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) ConnectDirectory(input *ConnectDirectoryInput) (*ConnectDirectoryOutput, error) {
 	req, out := c.ConnectDirectoryRequest(input)
 	err := req.Send()
@@ -40,7 +253,30 @@ func (c *DirectoryService) ConnectDirectory(input *ConnectDirectoryInput) (*Conn
 
 const opCreateAlias = "CreateAlias"
 
-// CreateAliasRequest generates a request for the CreateAlias operation.
+// CreateAliasRequest generates a "aws/request.Request" representing the
+// client's request for the CreateAlias operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateAlias for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateAlias method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateAliasRequest method.
+//    req, resp := client.CreateAliasRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) CreateAliasRequest(input *CreateAliasInput) (req *request.Request, output *CreateAliasOutput) {
 	op := &request.Operation{
 		Name:       opCreateAlias,
@@ -58,12 +294,38 @@ func (c *DirectoryService) CreateAliasRequest(input *CreateAliasInput) (req *req
 	return
 }
 
+// CreateAlias API operation for AWS Directory Service.
+//
 // Creates an alias for a directory and assigns the alias to the directory.
 // The alias is used to construct the access URL for the directory, such as
-// http://alias.awsapps.com.
+// http://<alias>.awsapps.com.
 //
 //  After an alias has been created, it cannot be deleted or reused, so this
 // operation should only be used when absolutely necessary.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation CreateAlias for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityAlreadyExistsException
+//   The specified entity already exists.
+//
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) CreateAlias(input *CreateAliasInput) (*CreateAliasOutput, error) {
 	req, out := c.CreateAliasRequest(input)
 	err := req.Send()
@@ -72,7 +334,30 @@ func (c *DirectoryService) CreateAlias(input *CreateAliasInput) (*CreateAliasOut
 
 const opCreateComputer = "CreateComputer"
 
-// CreateComputerRequest generates a request for the CreateComputer operation.
+// CreateComputerRequest generates a "aws/request.Request" representing the
+// client's request for the CreateComputer operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateComputer for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateComputer method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateComputerRequest method.
+//    req, resp := client.CreateComputerRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) CreateComputerRequest(input *CreateComputerInput) (req *request.Request, output *CreateComputerOutput) {
 	op := &request.Operation{
 		Name:       opCreateComputer,
@@ -90,8 +375,43 @@ func (c *DirectoryService) CreateComputerRequest(input *CreateComputerInput) (re
 	return
 }
 
+// CreateComputer API operation for AWS Directory Service.
+//
 // Creates a computer account in the specified directory, and joins the computer
 // to the directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation CreateComputer for usage and error information.
+//
+// Returned Error Codes:
+//   * AuthenticationFailedException
+//   An authentication error occurred.
+//
+//   * DirectoryUnavailableException
+//   The specified directory is unavailable or could not be found.
+//
+//   * EntityAlreadyExistsException
+//   The specified entity already exists.
+//
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) CreateComputer(input *CreateComputerInput) (*CreateComputerOutput, error) {
 	req, out := c.CreateComputerRequest(input)
 	err := req.Send()
@@ -100,7 +420,30 @@ func (c *DirectoryService) CreateComputer(input *CreateComputerInput) (*CreateCo
 
 const opCreateConditionalForwarder = "CreateConditionalForwarder"
 
-// CreateConditionalForwarderRequest generates a request for the CreateConditionalForwarder operation.
+// CreateConditionalForwarderRequest generates a "aws/request.Request" representing the
+// client's request for the CreateConditionalForwarder operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateConditionalForwarder for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateConditionalForwarder method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateConditionalForwarderRequest method.
+//    req, resp := client.CreateConditionalForwarderRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) CreateConditionalForwarderRequest(input *CreateConditionalForwarderInput) (req *request.Request, output *CreateConditionalForwarderOutput) {
 	op := &request.Operation{
 		Name:       opCreateConditionalForwarder,
@@ -118,9 +461,41 @@ func (c *DirectoryService) CreateConditionalForwarderRequest(input *CreateCondit
 	return
 }
 
+// CreateConditionalForwarder API operation for AWS Directory Service.
+//
 // Creates a conditional forwarder associated with your AWS directory. Conditional
 // forwarders are required in order to set up a trust relationship with another
 // domain. The conditional forwarder points to the trusted domain.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation CreateConditionalForwarder for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityAlreadyExistsException
+//   The specified entity already exists.
+//
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * DirectoryUnavailableException
+//   The specified directory is unavailable or could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) CreateConditionalForwarder(input *CreateConditionalForwarderInput) (*CreateConditionalForwarderOutput, error) {
 	req, out := c.CreateConditionalForwarderRequest(input)
 	err := req.Send()
@@ -129,7 +504,30 @@ func (c *DirectoryService) CreateConditionalForwarder(input *CreateConditionalFo
 
 const opCreateDirectory = "CreateDirectory"
 
-// CreateDirectoryRequest generates a request for the CreateDirectory operation.
+// CreateDirectoryRequest generates a "aws/request.Request" representing the
+// client's request for the CreateDirectory operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateDirectory for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateDirectory method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateDirectoryRequest method.
+//    req, resp := client.CreateDirectoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) CreateDirectoryRequest(input *CreateDirectoryInput) (req *request.Request, output *CreateDirectoryOutput) {
 	op := &request.Operation{
 		Name:       opCreateDirectory,
@@ -147,7 +545,32 @@ func (c *DirectoryService) CreateDirectoryRequest(input *CreateDirectoryInput) (
 	return
 }
 
+// CreateDirectory API operation for AWS Directory Service.
+//
 // Creates a Simple AD directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation CreateDirectory for usage and error information.
+//
+// Returned Error Codes:
+//   * DirectoryLimitExceededException
+//   The maximum number of directories in the region has been reached. You can
+//   use the GetDirectoryLimits operation to determine your directory limits in
+//   the region.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) CreateDirectory(input *CreateDirectoryInput) (*CreateDirectoryOutput, error) {
 	req, out := c.CreateDirectoryRequest(input)
 	err := req.Send()
@@ -156,7 +579,30 @@ func (c *DirectoryService) CreateDirectory(input *CreateDirectoryInput) (*Create
 
 const opCreateMicrosoftAD = "CreateMicrosoftAD"
 
-// CreateMicrosoftADRequest generates a request for the CreateMicrosoftAD operation.
+// CreateMicrosoftADRequest generates a "aws/request.Request" representing the
+// client's request for the CreateMicrosoftAD operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateMicrosoftAD for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateMicrosoftAD method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateMicrosoftADRequest method.
+//    req, resp := client.CreateMicrosoftADRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) CreateMicrosoftADRequest(input *CreateMicrosoftADInput) (req *request.Request, output *CreateMicrosoftADOutput) {
 	op := &request.Operation{
 		Name:       opCreateMicrosoftAD,
@@ -174,7 +620,35 @@ func (c *DirectoryService) CreateMicrosoftADRequest(input *CreateMicrosoftADInpu
 	return
 }
 
+// CreateMicrosoftAD API operation for AWS Directory Service.
+//
 // Creates a Microsoft AD in the AWS cloud.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation CreateMicrosoftAD for usage and error information.
+//
+// Returned Error Codes:
+//   * DirectoryLimitExceededException
+//   The maximum number of directories in the region has been reached. You can
+//   use the GetDirectoryLimits operation to determine your directory limits in
+//   the region.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
 func (c *DirectoryService) CreateMicrosoftAD(input *CreateMicrosoftADInput) (*CreateMicrosoftADOutput, error) {
 	req, out := c.CreateMicrosoftADRequest(input)
 	err := req.Send()
@@ -183,7 +657,30 @@ func (c *DirectoryService) CreateMicrosoftAD(input *CreateMicrosoftADInput) (*Cr
 
 const opCreateSnapshot = "CreateSnapshot"
 
-// CreateSnapshotRequest generates a request for the CreateSnapshot operation.
+// CreateSnapshotRequest generates a "aws/request.Request" representing the
+// client's request for the CreateSnapshot operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateSnapshot for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateSnapshot method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateSnapshotRequest method.
+//    req, resp := client.CreateSnapshotRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) CreateSnapshotRequest(input *CreateSnapshotInput) (req *request.Request, output *CreateSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opCreateSnapshot,
@@ -201,9 +698,37 @@ func (c *DirectoryService) CreateSnapshotRequest(input *CreateSnapshotInput) (re
 	return
 }
 
+// CreateSnapshot API operation for AWS Directory Service.
+//
 // Creates a snapshot of a Simple AD or Microsoft AD directory in the AWS cloud.
 //
 //  You cannot take snapshots of AD Connector directories.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation CreateSnapshot for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * SnapshotLimitExceededException
+//   The maximum number of manual snapshots for the directory has been reached.
+//   You can use the GetSnapshotLimits operation to determine the snapshot limits
+//   for a directory.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) CreateSnapshot(input *CreateSnapshotInput) (*CreateSnapshotOutput, error) {
 	req, out := c.CreateSnapshotRequest(input)
 	err := req.Send()
@@ -212,7 +737,30 @@ func (c *DirectoryService) CreateSnapshot(input *CreateSnapshotInput) (*CreateSn
 
 const opCreateTrust = "CreateTrust"
 
-// CreateTrustRequest generates a request for the CreateTrust operation.
+// CreateTrustRequest generates a "aws/request.Request" representing the
+// client's request for the CreateTrust operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateTrust for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateTrust method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateTrustRequest method.
+//    req, resp := client.CreateTrustRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) CreateTrustRequest(input *CreateTrustInput) (req *request.Request, output *CreateTrustOutput) {
 	op := &request.Operation{
 		Name:       opCreateTrust,
@@ -230,6 +778,8 @@ func (c *DirectoryService) CreateTrustRequest(input *CreateTrustInput) (req *req
 	return
 }
 
+// CreateTrust API operation for AWS Directory Service.
+//
 // AWS Directory Service for Microsoft Active Directory allows you to configure
 // trust relationships. For example, you can establish a trust between your
 // Microsoft AD in the AWS cloud, and your existing on-premises Microsoft Active
@@ -238,6 +788,33 @@ func (c *DirectoryService) CreateTrustRequest(input *CreateTrustInput) (req *req
 //
 // This action initiates the creation of the AWS side of a trust relationship
 // between a Microsoft AD in the AWS cloud and an external domain.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation CreateTrust for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityAlreadyExistsException
+//   The specified entity already exists.
+//
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
 func (c *DirectoryService) CreateTrust(input *CreateTrustInput) (*CreateTrustOutput, error) {
 	req, out := c.CreateTrustRequest(input)
 	err := req.Send()
@@ -246,7 +823,30 @@ func (c *DirectoryService) CreateTrust(input *CreateTrustInput) (*CreateTrustOut
 
 const opDeleteConditionalForwarder = "DeleteConditionalForwarder"
 
-// DeleteConditionalForwarderRequest generates a request for the DeleteConditionalForwarder operation.
+// DeleteConditionalForwarderRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteConditionalForwarder operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteConditionalForwarder for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteConditionalForwarder method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteConditionalForwarderRequest method.
+//    req, resp := client.DeleteConditionalForwarderRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DeleteConditionalForwarderRequest(input *DeleteConditionalForwarderInput) (req *request.Request, output *DeleteConditionalForwarderOutput) {
 	op := &request.Operation{
 		Name:       opDeleteConditionalForwarder,
@@ -264,7 +864,36 @@ func (c *DirectoryService) DeleteConditionalForwarderRequest(input *DeleteCondit
 	return
 }
 
+// DeleteConditionalForwarder API operation for AWS Directory Service.
+//
 // Deletes a conditional forwarder that has been set up for your AWS directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DeleteConditionalForwarder for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * DirectoryUnavailableException
+//   The specified directory is unavailable or could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DeleteConditionalForwarder(input *DeleteConditionalForwarderInput) (*DeleteConditionalForwarderOutput, error) {
 	req, out := c.DeleteConditionalForwarderRequest(input)
 	err := req.Send()
@@ -273,7 +902,30 @@ func (c *DirectoryService) DeleteConditionalForwarder(input *DeleteConditionalFo
 
 const opDeleteDirectory = "DeleteDirectory"
 
-// DeleteDirectoryRequest generates a request for the DeleteDirectory operation.
+// DeleteDirectoryRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteDirectory operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteDirectory for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteDirectory method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteDirectoryRequest method.
+//    req, resp := client.DeleteDirectoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DeleteDirectoryRequest(input *DeleteDirectoryInput) (req *request.Request, output *DeleteDirectoryOutput) {
 	op := &request.Operation{
 		Name:       opDeleteDirectory,
@@ -291,7 +943,27 @@ func (c *DirectoryService) DeleteDirectoryRequest(input *DeleteDirectoryInput) (
 	return
 }
 
+// DeleteDirectory API operation for AWS Directory Service.
+//
 // Deletes an AWS Directory Service directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DeleteDirectory for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DeleteDirectory(input *DeleteDirectoryInput) (*DeleteDirectoryOutput, error) {
 	req, out := c.DeleteDirectoryRequest(input)
 	err := req.Send()
@@ -300,7 +972,30 @@ func (c *DirectoryService) DeleteDirectory(input *DeleteDirectoryInput) (*Delete
 
 const opDeleteSnapshot = "DeleteSnapshot"
 
-// DeleteSnapshotRequest generates a request for the DeleteSnapshot operation.
+// DeleteSnapshotRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteSnapshot operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteSnapshot for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteSnapshot method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteSnapshotRequest method.
+//    req, resp := client.DeleteSnapshotRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DeleteSnapshotRequest(input *DeleteSnapshotInput) (req *request.Request, output *DeleteSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opDeleteSnapshot,
@@ -318,7 +1013,30 @@ func (c *DirectoryService) DeleteSnapshotRequest(input *DeleteSnapshotInput) (re
 	return
 }
 
+// DeleteSnapshot API operation for AWS Directory Service.
+//
 // Deletes a directory snapshot.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DeleteSnapshot for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DeleteSnapshot(input *DeleteSnapshotInput) (*DeleteSnapshotOutput, error) {
 	req, out := c.DeleteSnapshotRequest(input)
 	err := req.Send()
@@ -327,7 +1045,30 @@ func (c *DirectoryService) DeleteSnapshot(input *DeleteSnapshotInput) (*DeleteSn
 
 const opDeleteTrust = "DeleteTrust"
 
-// DeleteTrustRequest generates a request for the DeleteTrust operation.
+// DeleteTrustRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteTrust operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteTrust for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteTrust method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteTrustRequest method.
+//    req, resp := client.DeleteTrustRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DeleteTrustRequest(input *DeleteTrustInput) (req *request.Request, output *DeleteTrustOutput) {
 	op := &request.Operation{
 		Name:       opDeleteTrust,
@@ -345,8 +1086,34 @@ func (c *DirectoryService) DeleteTrustRequest(input *DeleteTrustInput) (req *req
 	return
 }
 
+// DeleteTrust API operation for AWS Directory Service.
+//
 // Deletes an existing trust relationship between your Microsoft AD in the AWS
 // cloud and an external domain.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DeleteTrust for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
 func (c *DirectoryService) DeleteTrust(input *DeleteTrustInput) (*DeleteTrustOutput, error) {
 	req, out := c.DeleteTrustRequest(input)
 	err := req.Send()
@@ -355,7 +1122,30 @@ func (c *DirectoryService) DeleteTrust(input *DeleteTrustInput) (*DeleteTrustOut
 
 const opDeregisterEventTopic = "DeregisterEventTopic"
 
-// DeregisterEventTopicRequest generates a request for the DeregisterEventTopic operation.
+// DeregisterEventTopicRequest generates a "aws/request.Request" representing the
+// client's request for the DeregisterEventTopic operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeregisterEventTopic for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeregisterEventTopic method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeregisterEventTopicRequest method.
+//    req, resp := client.DeregisterEventTopicRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DeregisterEventTopicRequest(input *DeregisterEventTopicInput) (req *request.Request, output *DeregisterEventTopicOutput) {
 	op := &request.Operation{
 		Name:       opDeregisterEventTopic,
@@ -373,7 +1163,30 @@ func (c *DirectoryService) DeregisterEventTopicRequest(input *DeregisterEventTop
 	return
 }
 
+// DeregisterEventTopic API operation for AWS Directory Service.
+//
 // Removes the specified directory as a publisher to the specified SNS topic.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DeregisterEventTopic for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DeregisterEventTopic(input *DeregisterEventTopicInput) (*DeregisterEventTopicOutput, error) {
 	req, out := c.DeregisterEventTopicRequest(input)
 	err := req.Send()
@@ -382,7 +1195,30 @@ func (c *DirectoryService) DeregisterEventTopic(input *DeregisterEventTopicInput
 
 const opDescribeConditionalForwarders = "DescribeConditionalForwarders"
 
-// DescribeConditionalForwardersRequest generates a request for the DescribeConditionalForwarders operation.
+// DescribeConditionalForwardersRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeConditionalForwarders operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeConditionalForwarders for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeConditionalForwarders method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeConditionalForwardersRequest method.
+//    req, resp := client.DescribeConditionalForwardersRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DescribeConditionalForwardersRequest(input *DescribeConditionalForwardersInput) (req *request.Request, output *DescribeConditionalForwardersOutput) {
 	op := &request.Operation{
 		Name:       opDescribeConditionalForwarders,
@@ -400,10 +1236,39 @@ func (c *DirectoryService) DescribeConditionalForwardersRequest(input *DescribeC
 	return
 }
 
+// DescribeConditionalForwarders API operation for AWS Directory Service.
+//
 // Obtains information about the conditional forwarders for this account.
 //
 // If no input parameters are provided for RemoteDomainNames, this request
 // describes all conditional forwarders for the specified directory ID.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DescribeConditionalForwarders for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * DirectoryUnavailableException
+//   The specified directory is unavailable or could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DescribeConditionalForwarders(input *DescribeConditionalForwardersInput) (*DescribeConditionalForwardersOutput, error) {
 	req, out := c.DescribeConditionalForwardersRequest(input)
 	err := req.Send()
@@ -412,7 +1277,30 @@ func (c *DirectoryService) DescribeConditionalForwarders(input *DescribeConditio
 
 const opDescribeDirectories = "DescribeDirectories"
 
-// DescribeDirectoriesRequest generates a request for the DescribeDirectories operation.
+// DescribeDirectoriesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeDirectories operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeDirectories for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeDirectories method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeDirectoriesRequest method.
+//    req, resp := client.DescribeDirectoriesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DescribeDirectoriesRequest(input *DescribeDirectoriesInput) (req *request.Request, output *DescribeDirectoriesOutput) {
 	op := &request.Operation{
 		Name:       opDescribeDirectories,
@@ -430,6 +1318,8 @@ func (c *DirectoryService) DescribeDirectoriesRequest(input *DescribeDirectories
 	return
 }
 
+// DescribeDirectories API operation for AWS Directory Service.
+//
 // Obtains information about the directories that belong to this account.
 //
 // You can retrieve information about specific directories by passing the directory
@@ -442,6 +1332,30 @@ func (c *DirectoryService) DescribeDirectoriesRequest(input *DescribeDirectories
 // to retrieve the next set of items.
 //
 // You can also specify a maximum number of return results with the Limit parameter.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DescribeDirectories for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * InvalidNextTokenException
+//   The NextToken value is not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DescribeDirectories(input *DescribeDirectoriesInput) (*DescribeDirectoriesOutput, error) {
 	req, out := c.DescribeDirectoriesRequest(input)
 	err := req.Send()
@@ -450,7 +1364,30 @@ func (c *DirectoryService) DescribeDirectories(input *DescribeDirectoriesInput) 
 
 const opDescribeEventTopics = "DescribeEventTopics"
 
-// DescribeEventTopicsRequest generates a request for the DescribeEventTopics operation.
+// DescribeEventTopicsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeEventTopics operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeEventTopics for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeEventTopics method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeEventTopicsRequest method.
+//    req, resp := client.DescribeEventTopicsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DescribeEventTopicsRequest(input *DescribeEventTopicsInput) (req *request.Request, output *DescribeEventTopicsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeEventTopics,
@@ -468,11 +1405,34 @@ func (c *DirectoryService) DescribeEventTopicsRequest(input *DescribeEventTopics
 	return
 }
 
+// DescribeEventTopics API operation for AWS Directory Service.
+//
 // Obtains information about which SNS topics receive status messages from the
 // specified directory.
 //
 // If no input parameters are provided, such as DirectoryId or TopicName, this
 // request describes all of the associations in the account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DescribeEventTopics for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DescribeEventTopics(input *DescribeEventTopicsInput) (*DescribeEventTopicsOutput, error) {
 	req, out := c.DescribeEventTopicsRequest(input)
 	err := req.Send()
@@ -481,7 +1441,30 @@ func (c *DirectoryService) DescribeEventTopics(input *DescribeEventTopicsInput) 
 
 const opDescribeSnapshots = "DescribeSnapshots"
 
-// DescribeSnapshotsRequest generates a request for the DescribeSnapshots operation.
+// DescribeSnapshotsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeSnapshots operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeSnapshots for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeSnapshots method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeSnapshotsRequest method.
+//    req, resp := client.DescribeSnapshotsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DescribeSnapshotsRequest(input *DescribeSnapshotsInput) (req *request.Request, output *DescribeSnapshotsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeSnapshots,
@@ -499,6 +1482,8 @@ func (c *DirectoryService) DescribeSnapshotsRequest(input *DescribeSnapshotsInpu
 	return
 }
 
+// DescribeSnapshots API operation for AWS Directory Service.
+//
 // Obtains information about the directory snapshots that belong to this account.
 //
 // This operation supports pagination with the use of the NextToken request
@@ -507,6 +1492,30 @@ func (c *DirectoryService) DescribeSnapshotsRequest(input *DescribeSnapshotsInpu
 // to retrieve the next set of items.
 //
 // You can also specify a maximum number of return results with the Limit parameter.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DescribeSnapshots for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * InvalidNextTokenException
+//   The NextToken value is not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DescribeSnapshots(input *DescribeSnapshotsInput) (*DescribeSnapshotsOutput, error) {
 	req, out := c.DescribeSnapshotsRequest(input)
 	err := req.Send()
@@ -515,7 +1524,30 @@ func (c *DirectoryService) DescribeSnapshots(input *DescribeSnapshotsInput) (*De
 
 const opDescribeTrusts = "DescribeTrusts"
 
-// DescribeTrustsRequest generates a request for the DescribeTrusts operation.
+// DescribeTrustsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeTrusts operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DescribeTrusts for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DescribeTrusts method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DescribeTrustsRequest method.
+//    req, resp := client.DescribeTrustsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DescribeTrustsRequest(input *DescribeTrustsInput) (req *request.Request, output *DescribeTrustsOutput) {
 	op := &request.Operation{
 		Name:       opDescribeTrusts,
@@ -533,10 +1565,39 @@ func (c *DirectoryService) DescribeTrustsRequest(input *DescribeTrustsInput) (re
 	return
 }
 
+// DescribeTrusts API operation for AWS Directory Service.
+//
 // Obtains information about the trust relationships for this account.
 //
 // If no input parameters are provided, such as DirectoryId or TrustIds, this
 // request describes all the trust relationships belonging to the account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DescribeTrusts for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidNextTokenException
+//   The NextToken value is not valid.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
 func (c *DirectoryService) DescribeTrusts(input *DescribeTrustsInput) (*DescribeTrustsOutput, error) {
 	req, out := c.DescribeTrustsRequest(input)
 	err := req.Send()
@@ -545,7 +1606,30 @@ func (c *DirectoryService) DescribeTrusts(input *DescribeTrustsInput) (*Describe
 
 const opDisableRadius = "DisableRadius"
 
-// DisableRadiusRequest generates a request for the DisableRadius operation.
+// DisableRadiusRequest generates a "aws/request.Request" representing the
+// client's request for the DisableRadius operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DisableRadius for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DisableRadius method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DisableRadiusRequest method.
+//    req, resp := client.DisableRadiusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DisableRadiusRequest(input *DisableRadiusInput) (req *request.Request, output *DisableRadiusOutput) {
 	op := &request.Operation{
 		Name:       opDisableRadius,
@@ -563,8 +1647,28 @@ func (c *DirectoryService) DisableRadiusRequest(input *DisableRadiusInput) (req 
 	return
 }
 
+// DisableRadius API operation for AWS Directory Service.
+//
 // Disables multi-factor authentication (MFA) with the Remote Authentication
 // Dial In User Service (RADIUS) server for an AD Connector directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DisableRadius for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DisableRadius(input *DisableRadiusInput) (*DisableRadiusOutput, error) {
 	req, out := c.DisableRadiusRequest(input)
 	err := req.Send()
@@ -573,7 +1677,30 @@ func (c *DirectoryService) DisableRadius(input *DisableRadiusInput) (*DisableRad
 
 const opDisableSso = "DisableSso"
 
-// DisableSsoRequest generates a request for the DisableSso operation.
+// DisableSsoRequest generates a "aws/request.Request" representing the
+// client's request for the DisableSso operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DisableSso for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DisableSso method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DisableSsoRequest method.
+//    req, resp := client.DisableSsoRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) DisableSsoRequest(input *DisableSsoInput) (req *request.Request, output *DisableSsoOutput) {
 	op := &request.Operation{
 		Name:       opDisableSso,
@@ -591,7 +1718,33 @@ func (c *DirectoryService) DisableSsoRequest(input *DisableSsoInput) (req *reque
 	return
 }
 
+// DisableSso API operation for AWS Directory Service.
+//
 // Disables single-sign on for a directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation DisableSso for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InsufficientPermissionsException
+//   The account does not have sufficient permission to perform the operation.
+//
+//   * AuthenticationFailedException
+//   An authentication error occurred.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) DisableSso(input *DisableSsoInput) (*DisableSsoOutput, error) {
 	req, out := c.DisableSsoRequest(input)
 	err := req.Send()
@@ -600,7 +1753,30 @@ func (c *DirectoryService) DisableSso(input *DisableSsoInput) (*DisableSsoOutput
 
 const opEnableRadius = "EnableRadius"
 
-// EnableRadiusRequest generates a request for the EnableRadius operation.
+// EnableRadiusRequest generates a "aws/request.Request" representing the
+// client's request for the EnableRadius operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See EnableRadius for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the EnableRadius method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the EnableRadiusRequest method.
+//    req, resp := client.EnableRadiusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) EnableRadiusRequest(input *EnableRadiusInput) (req *request.Request, output *EnableRadiusOutput) {
 	op := &request.Operation{
 		Name:       opEnableRadius,
@@ -618,8 +1794,34 @@ func (c *DirectoryService) EnableRadiusRequest(input *EnableRadiusInput) (req *r
 	return
 }
 
+// EnableRadius API operation for AWS Directory Service.
+//
 // Enables multi-factor authentication (MFA) with the Remote Authentication
 // Dial In User Service (RADIUS) server for an AD Connector directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation EnableRadius for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * EntityAlreadyExistsException
+//   The specified entity already exists.
+//
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) EnableRadius(input *EnableRadiusInput) (*EnableRadiusOutput, error) {
 	req, out := c.EnableRadiusRequest(input)
 	err := req.Send()
@@ -628,7 +1830,30 @@ func (c *DirectoryService) EnableRadius(input *EnableRadiusInput) (*EnableRadius
 
 const opEnableSso = "EnableSso"
 
-// EnableSsoRequest generates a request for the EnableSso operation.
+// EnableSsoRequest generates a "aws/request.Request" representing the
+// client's request for the EnableSso operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See EnableSso for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the EnableSso method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the EnableSsoRequest method.
+//    req, resp := client.EnableSsoRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) EnableSsoRequest(input *EnableSsoInput) (req *request.Request, output *EnableSsoOutput) {
 	op := &request.Operation{
 		Name:       opEnableSso,
@@ -646,7 +1871,33 @@ func (c *DirectoryService) EnableSsoRequest(input *EnableSsoInput) (req *request
 	return
 }
 
+// EnableSso API operation for AWS Directory Service.
+//
 // Enables single-sign on for a directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation EnableSso for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InsufficientPermissionsException
+//   The account does not have sufficient permission to perform the operation.
+//
+//   * AuthenticationFailedException
+//   An authentication error occurred.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) EnableSso(input *EnableSsoInput) (*EnableSsoOutput, error) {
 	req, out := c.EnableSsoRequest(input)
 	err := req.Send()
@@ -655,7 +1906,30 @@ func (c *DirectoryService) EnableSso(input *EnableSsoInput) (*EnableSsoOutput, e
 
 const opGetDirectoryLimits = "GetDirectoryLimits"
 
-// GetDirectoryLimitsRequest generates a request for the GetDirectoryLimits operation.
+// GetDirectoryLimitsRequest generates a "aws/request.Request" representing the
+// client's request for the GetDirectoryLimits operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See GetDirectoryLimits for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetDirectoryLimits method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetDirectoryLimitsRequest method.
+//    req, resp := client.GetDirectoryLimitsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) GetDirectoryLimitsRequest(input *GetDirectoryLimitsInput) (req *request.Request, output *GetDirectoryLimitsOutput) {
 	op := &request.Operation{
 		Name:       opGetDirectoryLimits,
@@ -673,7 +1947,27 @@ func (c *DirectoryService) GetDirectoryLimitsRequest(input *GetDirectoryLimitsIn
 	return
 }
 
+// GetDirectoryLimits API operation for AWS Directory Service.
+//
 // Obtains directory limit information for the current region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation GetDirectoryLimits for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) GetDirectoryLimits(input *GetDirectoryLimitsInput) (*GetDirectoryLimitsOutput, error) {
 	req, out := c.GetDirectoryLimitsRequest(input)
 	err := req.Send()
@@ -682,7 +1976,30 @@ func (c *DirectoryService) GetDirectoryLimits(input *GetDirectoryLimitsInput) (*
 
 const opGetSnapshotLimits = "GetSnapshotLimits"
 
-// GetSnapshotLimitsRequest generates a request for the GetSnapshotLimits operation.
+// GetSnapshotLimitsRequest generates a "aws/request.Request" representing the
+// client's request for the GetSnapshotLimits operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See GetSnapshotLimits for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetSnapshotLimits method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetSnapshotLimitsRequest method.
+//    req, resp := client.GetSnapshotLimitsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) GetSnapshotLimitsRequest(input *GetSnapshotLimitsInput) (req *request.Request, output *GetSnapshotLimitsOutput) {
 	op := &request.Operation{
 		Name:       opGetSnapshotLimits,
@@ -700,16 +2017,211 @@ func (c *DirectoryService) GetSnapshotLimitsRequest(input *GetSnapshotLimitsInpu
 	return
 }
 
+// GetSnapshotLimits API operation for AWS Directory Service.
+//
 // Obtains the manual snapshot limits for a directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation GetSnapshotLimits for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) GetSnapshotLimits(input *GetSnapshotLimitsInput) (*GetSnapshotLimitsOutput, error) {
 	req, out := c.GetSnapshotLimitsRequest(input)
 	err := req.Send()
 	return out, err
 }
 
+const opListIpRoutes = "ListIpRoutes"
+
+// ListIpRoutesRequest generates a "aws/request.Request" representing the
+// client's request for the ListIpRoutes operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListIpRoutes for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListIpRoutes method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListIpRoutesRequest method.
+//    req, resp := client.ListIpRoutesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DirectoryService) ListIpRoutesRequest(input *ListIpRoutesInput) (req *request.Request, output *ListIpRoutesOutput) {
+	op := &request.Operation{
+		Name:       opListIpRoutes,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListIpRoutesInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ListIpRoutesOutput{}
+	req.Data = output
+	return
+}
+
+// ListIpRoutes API operation for AWS Directory Service.
+//
+// Lists the address blocks that you have added to a directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation ListIpRoutes for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidNextTokenException
+//   The NextToken value is not valid.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+func (c *DirectoryService) ListIpRoutes(input *ListIpRoutesInput) (*ListIpRoutesOutput, error) {
+	req, out := c.ListIpRoutesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opListTagsForResource = "ListTagsForResource"
+
+// ListTagsForResourceRequest generates a "aws/request.Request" representing the
+// client's request for the ListTagsForResource operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListTagsForResource for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListTagsForResource method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListTagsForResourceRequest method.
+//    req, resp := client.ListTagsForResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DirectoryService) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
+	op := &request.Operation{
+		Name:       opListTagsForResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListTagsForResourceInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ListTagsForResourceOutput{}
+	req.Data = output
+	return
+}
+
+// ListTagsForResource API operation for AWS Directory Service.
+//
+// Lists all tags on an Amazon Directory Services directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation ListTagsForResource for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidNextTokenException
+//   The NextToken value is not valid.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+func (c *DirectoryService) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opRegisterEventTopic = "RegisterEventTopic"
 
-// RegisterEventTopicRequest generates a request for the RegisterEventTopic operation.
+// RegisterEventTopicRequest generates a "aws/request.Request" representing the
+// client's request for the RegisterEventTopic operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See RegisterEventTopic for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the RegisterEventTopic method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the RegisterEventTopicRequest method.
+//    req, resp := client.RegisterEventTopicRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) RegisterEventTopicRequest(input *RegisterEventTopicInput) (req *request.Request, output *RegisterEventTopicOutput) {
 	op := &request.Operation{
 		Name:       opRegisterEventTopic,
@@ -727,21 +2239,216 @@ func (c *DirectoryService) RegisterEventTopicRequest(input *RegisterEventTopicIn
 	return
 }
 
+// RegisterEventTopic API operation for AWS Directory Service.
+//
 // Associates a directory with an SNS topic. This establishes the directory
 // as a publisher to the specified SNS topic. You can then receive email or
 // text (SMS) messages when the status of your directory changes. You get notified
 // if your directory goes from an Active status to an Impaired or Inoperable
 // status. You also receive a notification when the directory returns to an
 // Active status.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation RegisterEventTopic for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) RegisterEventTopic(input *RegisterEventTopicInput) (*RegisterEventTopicOutput, error) {
 	req, out := c.RegisterEventTopicRequest(input)
 	err := req.Send()
 	return out, err
 }
 
+const opRemoveIpRoutes = "RemoveIpRoutes"
+
+// RemoveIpRoutesRequest generates a "aws/request.Request" representing the
+// client's request for the RemoveIpRoutes operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See RemoveIpRoutes for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the RemoveIpRoutes method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the RemoveIpRoutesRequest method.
+//    req, resp := client.RemoveIpRoutesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DirectoryService) RemoveIpRoutesRequest(input *RemoveIpRoutesInput) (req *request.Request, output *RemoveIpRoutesOutput) {
+	op := &request.Operation{
+		Name:       opRemoveIpRoutes,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RemoveIpRoutesInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &RemoveIpRoutesOutput{}
+	req.Data = output
+	return
+}
+
+// RemoveIpRoutes API operation for AWS Directory Service.
+//
+// Removes IP address blocks from a directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation RemoveIpRoutes for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * DirectoryUnavailableException
+//   The specified directory is unavailable or could not be found.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+func (c *DirectoryService) RemoveIpRoutes(input *RemoveIpRoutesInput) (*RemoveIpRoutesOutput, error) {
+	req, out := c.RemoveIpRoutesRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opRemoveTagsFromResource = "RemoveTagsFromResource"
+
+// RemoveTagsFromResourceRequest generates a "aws/request.Request" representing the
+// client's request for the RemoveTagsFromResource operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See RemoveTagsFromResource for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the RemoveTagsFromResource method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the RemoveTagsFromResourceRequest method.
+//    req, resp := client.RemoveTagsFromResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+func (c *DirectoryService) RemoveTagsFromResourceRequest(input *RemoveTagsFromResourceInput) (req *request.Request, output *RemoveTagsFromResourceOutput) {
+	op := &request.Operation{
+		Name:       opRemoveTagsFromResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RemoveTagsFromResourceInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &RemoveTagsFromResourceOutput{}
+	req.Data = output
+	return
+}
+
+// RemoveTagsFromResource API operation for AWS Directory Service.
+//
+// Removes tags from an Amazon Directory Services directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation RemoveTagsFromResource for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+func (c *DirectoryService) RemoveTagsFromResource(input *RemoveTagsFromResourceInput) (*RemoveTagsFromResourceOutput, error) {
+	req, out := c.RemoveTagsFromResourceRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opRestoreFromSnapshot = "RestoreFromSnapshot"
 
-// RestoreFromSnapshotRequest generates a request for the RestoreFromSnapshot operation.
+// RestoreFromSnapshotRequest generates a "aws/request.Request" representing the
+// client's request for the RestoreFromSnapshot operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See RestoreFromSnapshot for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the RestoreFromSnapshot method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the RestoreFromSnapshotRequest method.
+//    req, resp := client.RestoreFromSnapshotRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) RestoreFromSnapshotRequest(input *RestoreFromSnapshotInput) (req *request.Request, output *RestoreFromSnapshotOutput) {
 	op := &request.Operation{
 		Name:       opRestoreFromSnapshot,
@@ -759,6 +2466,8 @@ func (c *DirectoryService) RestoreFromSnapshotRequest(input *RestoreFromSnapshot
 	return
 }
 
+// RestoreFromSnapshot API operation for AWS Directory Service.
+//
 // Restores a directory using an existing directory snapshot.
 //
 // When you restore a directory from a snapshot, any changes made to the directory
@@ -768,6 +2477,27 @@ func (c *DirectoryService) RestoreFromSnapshotRequest(input *RestoreFromSnapshot
 // monitor the progress of the restore operation by calling the DescribeDirectories
 // operation with the directory identifier. When the DirectoryDescription.Stage
 // value changes to Active, the restore operation is complete.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation RestoreFromSnapshot for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) RestoreFromSnapshot(input *RestoreFromSnapshotInput) (*RestoreFromSnapshotOutput, error) {
 	req, out := c.RestoreFromSnapshotRequest(input)
 	err := req.Send()
@@ -776,7 +2506,30 @@ func (c *DirectoryService) RestoreFromSnapshot(input *RestoreFromSnapshotInput) 
 
 const opUpdateConditionalForwarder = "UpdateConditionalForwarder"
 
-// UpdateConditionalForwarderRequest generates a request for the UpdateConditionalForwarder operation.
+// UpdateConditionalForwarderRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateConditionalForwarder operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateConditionalForwarder for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateConditionalForwarder method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateConditionalForwarderRequest method.
+//    req, resp := client.UpdateConditionalForwarderRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) UpdateConditionalForwarderRequest(input *UpdateConditionalForwarderInput) (req *request.Request, output *UpdateConditionalForwarderOutput) {
 	op := &request.Operation{
 		Name:       opUpdateConditionalForwarder,
@@ -794,7 +2547,36 @@ func (c *DirectoryService) UpdateConditionalForwarderRequest(input *UpdateCondit
 	return
 }
 
+// UpdateConditionalForwarder API operation for AWS Directory Service.
+//
 // Updates a conditional forwarder that has been set up for your AWS directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation UpdateConditionalForwarder for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * DirectoryUnavailableException
+//   The specified directory is unavailable or could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) UpdateConditionalForwarder(input *UpdateConditionalForwarderInput) (*UpdateConditionalForwarderOutput, error) {
 	req, out := c.UpdateConditionalForwarderRequest(input)
 	err := req.Send()
@@ -803,7 +2585,30 @@ func (c *DirectoryService) UpdateConditionalForwarder(input *UpdateConditionalFo
 
 const opUpdateRadius = "UpdateRadius"
 
-// UpdateRadiusRequest generates a request for the UpdateRadius operation.
+// UpdateRadiusRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateRadius operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateRadius for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateRadius method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateRadiusRequest method.
+//    req, resp := client.UpdateRadiusRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) UpdateRadiusRequest(input *UpdateRadiusInput) (req *request.Request, output *UpdateRadiusOutput) {
 	op := &request.Operation{
 		Name:       opUpdateRadius,
@@ -821,8 +2626,31 @@ func (c *DirectoryService) UpdateRadiusRequest(input *UpdateRadiusInput) (req *r
 	return
 }
 
+// UpdateRadius API operation for AWS Directory Service.
+//
 // Updates the Remote Authentication Dial In User Service (RADIUS) server information
 // for an AD Connector directory.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation UpdateRadius for usage and error information.
+//
+// Returned Error Codes:
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
 func (c *DirectoryService) UpdateRadius(input *UpdateRadiusInput) (*UpdateRadiusOutput, error) {
 	req, out := c.UpdateRadiusRequest(input)
 	err := req.Send()
@@ -831,7 +2659,30 @@ func (c *DirectoryService) UpdateRadius(input *UpdateRadiusInput) (*UpdateRadius
 
 const opVerifyTrust = "VerifyTrust"
 
-// VerifyTrustRequest generates a request for the VerifyTrust operation.
+// VerifyTrustRequest generates a "aws/request.Request" representing the
+// client's request for the VerifyTrust operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See VerifyTrust for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the VerifyTrust method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the VerifyTrustRequest method.
+//    req, resp := client.VerifyTrustRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
 func (c *DirectoryService) VerifyTrustRequest(input *VerifyTrustInput) (req *request.Request, output *VerifyTrustOutput) {
 	op := &request.Operation{
 		Name:       opVerifyTrust,
@@ -849,15 +2700,208 @@ func (c *DirectoryService) VerifyTrustRequest(input *VerifyTrustInput) (req *req
 	return
 }
 
+// VerifyTrust API operation for AWS Directory Service.
+//
 // AWS Directory Service for Microsoft Active Directory allows you to configure
 // and verify trust relationships.
 //
 // This action verifies a trust relationship between your Microsoft AD in the
 // AWS cloud and an external domain.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Directory Service's
+// API operation VerifyTrust for usage and error information.
+//
+// Returned Error Codes:
+//   * EntityDoesNotExistException
+//   The specified entity could not be found.
+//
+//   * InvalidParameterException
+//   One or more parameters are not valid.
+//
+//   * ClientException
+//   A client exception has occurred.
+//
+//   * ServiceException
+//   An exception has occurred in AWS Directory Service.
+//
+//   * UnsupportedOperationException
+//   The operation is not supported.
+//
 func (c *DirectoryService) VerifyTrust(input *VerifyTrustInput) (*VerifyTrustOutput, error) {
 	req, out := c.VerifyTrustRequest(input)
 	err := req.Send()
 	return out, err
+}
+
+type AddIpRoutesInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier (ID) of the directory to which to add the address block.
+	//
+	// DirectoryId is a required field
+	DirectoryId *string `type:"string" required:"true"`
+
+	// IP address blocks, using CIDR format, of the traffic to route. This is often
+	// the IP address block of the DNS server used for your on-premises domain.
+	//
+	// IpRoutes is a required field
+	IpRoutes []*IpRoute `type:"list" required:"true"`
+
+	// If set to true, updates the inbound and outbound rules of the security group
+	// that has the description: "AWS created security group for directory ID directory
+	// controllers." Following are the new rules:
+	//
+	// Inbound:
+	//
+	//   Type: Custom UDP Rule, Protocol: UDP, Range: 88, Source: 0.0.0.0/0
+	//
+	//   Type: Custom UDP Rule, Protocol: UDP, Range: 123, Source: 0.0.0.0/0
+	//
+	//   Type: Custom UDP Rule, Protocol: UDP, Range: 138, Source: 0.0.0.0/0
+	//
+	//   Type: Custom UDP Rule, Protocol: UDP, Range: 389, Source: 0.0.0.0/0
+	//
+	//   Type: Custom UDP Rule, Protocol: UDP, Range: 464, Source: 0.0.0.0/0
+	//
+	//   Type: Custom UDP Rule, Protocol: UDP, Range: 445, Source: 0.0.0.0/0
+	//
+	//   Type: Custom TCP Rule, Protocol: TCP, Range: 88, Source: 0.0.0.0/0
+	//
+	//   Type: Custom TCP Rule, Protocol: TCP, Range: 135, Source: 0.0.0.0/0
+	//
+	//   Type: Custom TCP Rule, Protocol: TCP, Range: 445, Source: 0.0.0.0/0
+	//
+	//   Type: Custom TCP Rule, Protocol: TCP, Range: 464, Source: 0.0.0.0/0
+	//
+	//   Type: Custom TCP Rule, Protocol: TCP, Range: 636, Source: 0.0.0.0/0
+	//
+	//   Type: Custom TCP Rule, Protocol: TCP, Range: 1024-65535, Source: 0.0.0.0/0
+	//
+	//   Type: Custom TCP Rule, Protocol: TCP, Range: 3268-33269, Source: 0.0.0.0/0
+	//
+	//   Type: DNS (UDP), Protocol: UDP, Range: 53, Source: 0.0.0.0/0
+	//
+	//   Type: DNS (TCP), Protocol: TCP, Range: 53, Source: 0.0.0.0/0
+	//
+	//   Type: LDAP, Protocol: TCP, Range: 389, Source: 0.0.0.0/0
+	//
+	//   Type: All ICMP, Protocol: All, Range: N/A, Source: 0.0.0.0/0
+	//
+	//    Outbound:
+	//
+	//   Type: All traffic, Protocol: All, Range: All, Destination: 0.0.0.0/0
+	//
+	//   These security rules impact an internal network interface that is not
+	// exposed publicly.
+	UpdateSecurityGroupForDirectoryControllers *bool `type:"boolean"`
+}
+
+// String returns the string representation
+func (s AddIpRoutesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AddIpRoutesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AddIpRoutesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AddIpRoutesInput"}
+	if s.DirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DirectoryId"))
+	}
+	if s.IpRoutes == nil {
+		invalidParams.Add(request.NewErrParamRequired("IpRoutes"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type AddIpRoutesOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s AddIpRoutesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AddIpRoutesOutput) GoString() string {
+	return s.String()
+}
+
+type AddTagsToResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier (ID) for the directory to which to add the tag.
+	//
+	// ResourceId is a required field
+	ResourceId *string `type:"string" required:"true"`
+
+	// The tags to be assigned to the Amazon Directory Services directory.
+	//
+	// Tags is a required field
+	Tags []*Tag `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s AddTagsToResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AddTagsToResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AddTagsToResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AddTagsToResourceInput"}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.Tags == nil {
+		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type AddTagsToResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s AddTagsToResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AddTagsToResourceOutput) GoString() string {
+	return s.String()
 }
 
 // Represents a named directory attribute.
@@ -956,21 +3000,29 @@ type ConnectDirectoryInput struct {
 
 	// A DirectoryConnectSettings object that contains additional information for
 	// the operation.
+	//
+	// ConnectSettings is a required field
 	ConnectSettings *DirectoryConnectSettings `type:"structure" required:"true"`
 
 	// A textual description for the directory.
 	Description *string `type:"string"`
 
 	// The fully-qualified name of the on-premises directory, such as corp.example.com.
+	//
+	// Name is a required field
 	Name *string `type:"string" required:"true"`
 
 	// The password for the on-premises user account.
+	//
+	// Password is a required field
 	Password *string `min:"1" type:"string" required:"true"`
 
 	// The NetBIOS name of the on-premises directory, such as CORP.
 	ShortName *string `type:"string"`
 
 	// The size of the directory.
+	//
+	// Size is a required field
 	Size *string `type:"string" required:"true" enum:"DirectorySize"`
 }
 
@@ -1040,9 +3092,13 @@ type CreateAliasInput struct {
 	//
 	// The alias must be unique amongst all aliases in AWS. This operation throws
 	// an EntityAlreadyExistsException error if the alias already exists.
+	//
+	// Alias is a required field
 	Alias *string `min:"1" type:"string" required:"true"`
 
 	// The identifier of the directory for which to create the alias.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 }
 
@@ -1105,9 +3161,13 @@ type CreateComputerInput struct {
 	ComputerAttributes []*Attribute `type:"list"`
 
 	// The name of the computer account.
+	//
+	// ComputerName is a required field
 	ComputerName *string `min:"1" type:"string" required:"true"`
 
 	// The identifier of the directory in which to create the computer account.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The fully-qualified distinguished name of the organizational unit to place
@@ -1116,6 +3176,8 @@ type CreateComputerInput struct {
 
 	// A one-time password that is used to join the computer to the directory. You
 	// should generate a random, strong password to use for this parameter.
+	//
+	// Password is a required field
 	Password *string `min:"8" type:"string" required:"true"`
 }
 
@@ -1193,13 +3255,19 @@ type CreateConditionalForwarderInput struct {
 
 	// The directory ID of the AWS directory for which you are creating the conditional
 	// forwarder.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The IP addresses of the remote DNS server associated with RemoteDomainName.
+	//
+	// DnsIpAddrs is a required field
 	DnsIpAddrs []*string `type:"list" required:"true"`
 
 	// The fully qualified domain name (FQDN) of the remote domain with which you
 	// will set up a trust relationship.
+	//
+	// RemoteDomainName is a required field
 	RemoteDomainName *string `type:"string" required:"true"`
 }
 
@@ -1232,6 +3300,7 @@ func (s *CreateConditionalForwarderInput) Validate() error {
 	return nil
 }
 
+// The result of a CreateConditinalForwarder request.
 type CreateConditionalForwarderOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -1254,17 +3323,23 @@ type CreateDirectoryInput struct {
 	Description *string `type:"string"`
 
 	// The fully qualified name for the directory, such as corp.example.com.
+	//
+	// Name is a required field
 	Name *string `type:"string" required:"true"`
 
 	// The password for the directory administrator. The directory creation process
 	// creates a directory administrator account with the username Administrator
 	// and this password.
+	//
+	// Password is a required field
 	Password *string `type:"string" required:"true"`
 
 	// The short name of the directory, such as CORP.
 	ShortName *string `type:"string"`
 
 	// The size of the directory.
+	//
+	// Size is a required field
 	Size *string `type:"string" required:"true" enum:"DirectorySize"`
 
 	// A DirectoryVpcSettings object that contains additional information for the
@@ -1335,9 +3410,13 @@ type CreateMicrosoftADInput struct {
 	// The fully qualified domain name for the directory, such as corp.example.com.
 	// This name will resolve inside your VPC only. It does not need to be publicly
 	// resolvable.
+	//
+	// Name is a required field
 	Name *string `type:"string" required:"true"`
 
 	// The password for the default administrative user named Admin.
+	//
+	// Password is a required field
 	Password *string `type:"string" required:"true"`
 
 	// The NetBIOS name for your domain. A short identifier for your domain, such
@@ -1346,6 +3425,8 @@ type CreateMicrosoftADInput struct {
 	ShortName *string `type:"string"`
 
 	// Contains VPC information for the CreateDirectory or CreateMicrosoftAD operation.
+	//
+	// VpcSettings is a required field
 	VpcSettings *DirectoryVpcSettings `type:"structure" required:"true"`
 }
 
@@ -1383,6 +3464,7 @@ func (s *CreateMicrosoftADInput) Validate() error {
 	return nil
 }
 
+// Result of a CreateMicrosoftAD request.
 type CreateMicrosoftADOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1405,6 +3487,8 @@ type CreateSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the directory of which to take a snapshot.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The descriptive name to apply to the snapshot.
@@ -1463,21 +3547,30 @@ func (s CreateSnapshotOutput) GoString() string {
 type CreateTrustInput struct {
 	_ struct{} `type:"structure"`
 
+	// The IP addresses of the remote DNS server associated with RemoteDomainName.
 	ConditionalForwarderIpAddrs []*string `type:"list"`
 
 	// The Directory ID of the Microsoft AD in the AWS cloud for which to establish
 	// the trust relationship.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The Fully Qualified Domain Name (FQDN) of the external domain for which to
 	// create the trust relationship.
+	//
+	// RemoteDomainName is a required field
 	RemoteDomainName *string `type:"string" required:"true"`
 
 	// The direction of the trust relationship.
+	//
+	// TrustDirection is a required field
 	TrustDirection *string `type:"string" required:"true" enum:"TrustDirection"`
 
 	// The trust password. The must be the same password that was used when creating
 	// the trust relationship on the external domain.
+	//
+	// TrustPassword is a required field
 	TrustPassword *string `min:"1" type:"string" required:"true"`
 
 	// The trust relationship type.
@@ -1519,6 +3612,7 @@ func (s *CreateTrustInput) Validate() error {
 	return nil
 }
 
+// The result of a CreateTrust request.
 type CreateTrustOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1536,14 +3630,19 @@ func (s CreateTrustOutput) GoString() string {
 	return s.String()
 }
 
+// Deletes a conditional forwarder.
 type DeleteConditionalForwarderInput struct {
 	_ struct{} `type:"structure"`
 
 	// The directory ID for which you are deleting the conditional forwarder.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The fully qualified domain name (FQDN) of the remote domain with which you
 	// are deleting the conditional forwarder.
+	//
+	// RemoteDomainName is a required field
 	RemoteDomainName *string `type:"string" required:"true"`
 }
 
@@ -1573,6 +3672,7 @@ func (s *DeleteConditionalForwarderInput) Validate() error {
 	return nil
 }
 
+// The result of a DeleteConditionalForwarder request.
 type DeleteConditionalForwarderOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -1592,6 +3692,8 @@ type DeleteDirectoryInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the directory to delete.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 }
 
@@ -1641,6 +3743,8 @@ type DeleteSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the directory snapshot to be deleted.
+	//
+	// SnapshotId is a required field
 	SnapshotId *string `type:"string" required:"true"`
 }
 
@@ -1690,9 +3794,12 @@ func (s DeleteSnapshotOutput) GoString() string {
 type DeleteTrustInput struct {
 	_ struct{} `type:"structure"`
 
+	// Delete a conditional forwarder as part of a DeleteTrustRequest.
 	DeleteAssociatedConditionalForwarder *bool `type:"boolean"`
 
 	// The Trust ID of the trust relationship to be deleted.
+	//
+	// TrustId is a required field
 	TrustId *string `type:"string" required:"true"`
 }
 
@@ -1719,6 +3826,7 @@ func (s *DeleteTrustInput) Validate() error {
 	return nil
 }
 
+// The result of a DeleteTrust request.
 type DeleteTrustOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1742,9 +3850,13 @@ type DeregisterEventTopicInput struct {
 
 	// The Directory ID to remove as a publisher. This directory will no longer
 	// send messages to the specified SNS topic.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The name of the SNS topic from which to remove the directory as a publisher.
+	//
+	// TopicName is a required field
 	TopicName *string `min:"1" type:"string" required:"true"`
 }
 
@@ -1777,6 +3889,7 @@ func (s *DeregisterEventTopicInput) Validate() error {
 	return nil
 }
 
+// The result of a DeregisterEventTopic request.
 type DeregisterEventTopicOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -1791,10 +3904,13 @@ func (s DeregisterEventTopicOutput) GoString() string {
 	return s.String()
 }
 
+// Describes a conditional forwarder.
 type DescribeConditionalForwardersInput struct {
 	_ struct{} `type:"structure"`
 
 	// The directory ID for which to get the list of associated conditional forwarders.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The fully qualified domain names (FQDN) of the remote domains for which to
@@ -1826,6 +3942,7 @@ func (s *DescribeConditionalForwardersInput) Validate() error {
 	return nil
 }
 
+// The result of a DescribeConditionalForwarder request.
 type DescribeConditionalForwardersOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -1901,6 +4018,7 @@ func (s DescribeDirectoriesOutput) GoString() string {
 	return s.String()
 }
 
+// Describes event topics.
 type DescribeEventTopicsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -1925,6 +4043,7 @@ func (s DescribeEventTopicsInput) GoString() string {
 	return s.String()
 }
 
+// The result of a DescribeEventTopic request.
 type DescribeEventTopicsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -2035,6 +4154,7 @@ func (s DescribeTrustsInput) GoString() string {
 	return s.String()
 }
 
+// The result of a DescribeTrust request.
 type DescribeTrustsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -2069,18 +4189,30 @@ type DirectoryConnectSettings struct {
 
 	// A list of one or more IP addresses of DNS servers or domain controllers in
 	// the on-premises directory.
+	//
+	// CustomerDnsIps is a required field
 	CustomerDnsIps []*string `type:"list" required:"true"`
 
 	// The username of an account in the on-premises directory that is used to connect
 	// to the directory. This account must have the following privileges:
 	//
-	//  Read users and groups Create computer objects Join computers to the domain
+	//   Read users and groups
+	//
+	//   Create computer objects
+	//
+	//   Join computers to the domain
+	//
+	// CustomerUserName is a required field
 	CustomerUserName *string `min:"1" type:"string" required:"true"`
 
 	// A list of subnet identifiers in the VPC in which the AD Connector is created.
+	//
+	// SubnetIds is a required field
 	SubnetIds []*string `type:"list" required:"true"`
 
 	// The identifier of the VPC in which the AD Connector is created.
+	//
+	// VpcId is a required field
 	VpcId *string `type:"string" required:"true"`
 }
 
@@ -2156,8 +4288,8 @@ func (s DirectoryConnectSettingsDescription) GoString() string {
 type DirectoryDescription struct {
 	_ struct{} `type:"structure"`
 
-	// The access URL for the directory, such as http://alias.awsapps.com. If no
-	// alias has been created for the directory, alias is the directory identifier,
+	// The access URL for the directory, such as http://<alias>.awsapps.com. If
+	// no alias has been created for the directory, <alias> is the directory identifier,
 	// such as d-XXXXXXXXXX.
 	AccessUrl *string `min:"1" type:"string"`
 
@@ -2283,9 +4415,13 @@ type DirectoryVpcSettings struct {
 	// The identifiers of the subnets for the directory servers. The two subnets
 	// must be in different Availability Zones. AWS Directory Service creates a
 	// directory server and a DNS server in each of these subnets.
+	//
+	// SubnetIds is a required field
 	SubnetIds []*string `type:"list" required:"true"`
 
 	// The identifier of the VPC in which to create the directory.
+	//
+	// VpcId is a required field
 	VpcId *string `type:"string" required:"true"`
 }
 
@@ -2350,6 +4486,8 @@ type DisableRadiusInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the directory for which to disable MFA.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 }
 
@@ -2396,6 +4534,8 @@ type DisableSsoInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the directory for which to disable single-sign on.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The password of an alternate account to use to disable single-sign on. This
@@ -2464,9 +4604,13 @@ type EnableRadiusInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the directory for which to enable MFA.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// A RadiusSettings object that contains information about the RADIUS server.
+	//
+	// RadiusSettings is a required field
 	RadiusSettings *RadiusSettings `type:"structure" required:"true"`
 }
 
@@ -2521,6 +4665,8 @@ type EnableSsoInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the directory for which to enable single-sign on.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The password of an alternate account to use to enable single-sign on. This
@@ -2654,6 +4800,8 @@ type GetSnapshotLimitsInput struct {
 	_ struct{} `type:"structure"`
 
 	// Contains the identifier of the directory to obtain the limits for.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 }
 
@@ -2699,6 +4847,183 @@ func (s GetSnapshotLimitsOutput) GoString() string {
 	return s.String()
 }
 
+// IP address block. This is often the address block of the DNS server used
+// for your on-premises domain.
+type IpRoute struct {
+	_ struct{} `type:"structure"`
+
+	// IP address block using CIDR format, for example 10.0.0.0/24. This is often
+	// the address block of the DNS server used for your on-premises domain. For
+	// a single IP address use a CIDR address block with /32. For example 10.0.0.0/32.
+	CidrIp *string `type:"string"`
+
+	// Description of the address block.
+	Description *string `type:"string"`
+}
+
+// String returns the string representation
+func (s IpRoute) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IpRoute) GoString() string {
+	return s.String()
+}
+
+// Information about one or more IP address blocks.
+type IpRouteInfo struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time the address block was added to the directory.
+	AddedDateTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+
+	// IP address block in the IpRoute.
+	CidrIp *string `type:"string"`
+
+	// Description of the IpRouteInfo.
+	Description *string `type:"string"`
+
+	// Identifier (ID) of the directory associated with the IP addresses.
+	DirectoryId *string `type:"string"`
+
+	// The status of the IP address block.
+	IpRouteStatusMsg *string `type:"string" enum:"IpRouteStatusMsg"`
+
+	// The reason for the IpRouteStatusMsg.
+	IpRouteStatusReason *string `type:"string"`
+}
+
+// String returns the string representation
+func (s IpRouteInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IpRouteInfo) GoString() string {
+	return s.String()
+}
+
+type ListIpRoutesInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier (ID) of the directory for which you want to retrieve the IP addresses.
+	//
+	// DirectoryId is a required field
+	DirectoryId *string `type:"string" required:"true"`
+
+	// Maximum number of items to return. If this value is zero, the maximum number
+	// of items is specified by the limitations of the operation.
+	Limit *int64 `type:"integer"`
+
+	// The ListIpRoutes.NextToken value from a previous call to ListIpRoutes. Pass
+	// null if this is the first call.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ListIpRoutesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListIpRoutesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListIpRoutesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListIpRoutesInput"}
+	if s.DirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DirectoryId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type ListIpRoutesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of IpRoutes.
+	IpRoutesInfo []*IpRouteInfo `type:"list"`
+
+	// If not null, more results are available. Pass this value for the NextToken
+	// parameter in a subsequent call to ListIpRoutes to retrieve the next set of
+	// items.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ListIpRoutesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListIpRoutesOutput) GoString() string {
+	return s.String()
+}
+
+type ListTagsForResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// Reserved for future use.
+	Limit *int64 `type:"integer"`
+
+	// Reserved for future use.
+	NextToken *string `type:"string"`
+
+	// Identifier (ID) of the directory for which you want to retrieve tags.
+	//
+	// ResourceId is a required field
+	ResourceId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTagsForResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTagsForResourceInput"}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type ListTagsForResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Reserved for future use.
+	NextToken *string `type:"string"`
+
+	// List of tags returned by the ListTagsForResource operation.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceOutput) GoString() string {
+	return s.String()
+}
+
 // Contains information about a Remote Authentication Dial In User Service (RADIUS)
 // server.
 type RadiusSettings struct {
@@ -2726,8 +5051,7 @@ type RadiusSettings struct {
 	// The amount of time, in seconds, to wait for the RADIUS server to respond.
 	RadiusTimeout *int64 `min:"1" type:"integer"`
 
-	// The shared secret code that was specified when your RADIUS endpoints were
-	// created.
+	// Not currently used.
 	SharedSecret *string `min:"8" type:"string"`
 
 	// Not currently used.
@@ -2766,14 +5090,19 @@ func (s *RadiusSettings) Validate() error {
 	return nil
 }
 
+// Registers a new event topic.
 type RegisterEventTopicInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Directory ID that will publish status messages to the SNS topic.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The SNS topic name to which the directory will publish status messages. This
 	// SNS topic must be in the same region as the specified Directory ID.
+	//
+	// TopicName is a required field
 	TopicName *string `min:"1" type:"string" required:"true"`
 }
 
@@ -2806,6 +5135,7 @@ func (s *RegisterEventTopicInput) Validate() error {
 	return nil
 }
 
+// The result of a RegisterEventTopic request.
 type RegisterEventTopicOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -2820,11 +5150,121 @@ func (s RegisterEventTopicOutput) GoString() string {
 	return s.String()
 }
 
+type RemoveIpRoutesInput struct {
+	_ struct{} `type:"structure"`
+
+	// IP address blocks that you want to remove.
+	//
+	// CidrIps is a required field
+	CidrIps []*string `type:"list" required:"true"`
+
+	// Identifier (ID) of the directory from which you want to remove the IP addresses.
+	//
+	// DirectoryId is a required field
+	DirectoryId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s RemoveIpRoutesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RemoveIpRoutesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RemoveIpRoutesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RemoveIpRoutesInput"}
+	if s.CidrIps == nil {
+		invalidParams.Add(request.NewErrParamRequired("CidrIps"))
+	}
+	if s.DirectoryId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DirectoryId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type RemoveIpRoutesOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s RemoveIpRoutesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RemoveIpRoutesOutput) GoString() string {
+	return s.String()
+}
+
+type RemoveTagsFromResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// Identifier (ID) of the directory from which to remove the tag.
+	//
+	// ResourceId is a required field
+	ResourceId *string `type:"string" required:"true"`
+
+	// The tag key (name) of the tag to be removed.
+	//
+	// TagKeys is a required field
+	TagKeys []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s RemoveTagsFromResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RemoveTagsFromResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RemoveTagsFromResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RemoveTagsFromResourceInput"}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.TagKeys == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+type RemoveTagsFromResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s RemoveTagsFromResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RemoveTagsFromResourceOutput) GoString() string {
+	return s.String()
+}
+
 // An object representing the inputs for the RestoreFromSnapshot operation.
 type RestoreFromSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the snapshot to restore from.
+	//
+	// SnapshotId is a required field
 	SnapshotId *string `type:"string" required:"true"`
 }
 
@@ -2923,6 +5363,55 @@ func (s SnapshotLimits) GoString() string {
 	return s.String()
 }
 
+// Metadata assigned to an Amazon Directory Services directory consisting of
+// a key-value pair.
+type Tag struct {
+	_ struct{} `type:"structure"`
+
+	// Required name of the tag. The string value can be Unicode characters and
+	// cannot be prefixed with "aws:". The string can contain only the set of Unicode
+	// letters, digits, white-space, '_', '.', '/', '=', '+', '-' (Java regex: "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-]*)$").
+	//
+	// Key is a required field
+	Key *string `min:"1" type:"string" required:"true"`
+
+	// The optional value of the tag. The string value can be Unicode characters.
+	// The string can contain only the set of Unicode letters, digits, white-space,
+	// '_', '.', '/', '=', '+', '-' (Java regex: "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-]*)$").
+	//
+	// Value is a required field
+	Value *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
 // Describes a trust relationship between an Microsoft AD in the AWS cloud and
 // an external domain.
 type Trust struct {
@@ -2970,19 +5459,26 @@ func (s Trust) GoString() string {
 	return s.String()
 }
 
+// Updates a conditional forwarder.
 type UpdateConditionalForwarderInput struct {
 	_ struct{} `type:"structure"`
 
 	// The directory ID of the AWS directory for which to update the conditional
 	// forwarder.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// The updated IP addresses of the remote DNS server associated with the conditional
 	// forwarder.
+	//
+	// DnsIpAddrs is a required field
 	DnsIpAddrs []*string `type:"list" required:"true"`
 
 	// The fully qualified domain name (FQDN) of the remote domain with which you
 	// will set up a trust relationship.
+	//
+	// RemoteDomainName is a required field
 	RemoteDomainName *string `type:"string" required:"true"`
 }
 
@@ -3015,6 +5511,7 @@ func (s *UpdateConditionalForwarderInput) Validate() error {
 	return nil
 }
 
+// The result of an UpdateConditionalForwarder request.
 type UpdateConditionalForwarderOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -3034,9 +5531,13 @@ type UpdateRadiusInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the directory for which to update the RADIUS server information.
+	//
+	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
 	// A RadiusSettings object that contains information about the RADIUS server.
+	//
+	// RadiusSettings is a required field
 	RadiusSettings *RadiusSettings `type:"structure" required:"true"`
 }
 
@@ -3092,6 +5593,8 @@ type VerifyTrustInput struct {
 	_ struct{} `type:"structure"`
 
 	// The unique Trust ID of the trust relationship to verify.
+	//
+	// TrustId is a required field
 	TrustId *string `type:"string" required:"true"`
 }
 
@@ -3118,6 +5621,7 @@ func (s *VerifyTrustInput) Validate() error {
 	return nil
 }
 
+// Result of a VerifyTrust request.
 type VerifyTrustOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -3136,127 +5640,180 @@ func (s VerifyTrustOutput) GoString() string {
 }
 
 const (
-	// @enum DirectorySize
+	// DirectorySizeSmall is a DirectorySize enum value
 	DirectorySizeSmall = "Small"
-	// @enum DirectorySize
+
+	// DirectorySizeLarge is a DirectorySize enum value
 	DirectorySizeLarge = "Large"
 )
 
 const (
-	// @enum DirectoryStage
+	// DirectoryStageRequested is a DirectoryStage enum value
 	DirectoryStageRequested = "Requested"
-	// @enum DirectoryStage
+
+	// DirectoryStageCreating is a DirectoryStage enum value
 	DirectoryStageCreating = "Creating"
-	// @enum DirectoryStage
+
+	// DirectoryStageCreated is a DirectoryStage enum value
 	DirectoryStageCreated = "Created"
-	// @enum DirectoryStage
+
+	// DirectoryStageActive is a DirectoryStage enum value
 	DirectoryStageActive = "Active"
-	// @enum DirectoryStage
+
+	// DirectoryStageInoperable is a DirectoryStage enum value
 	DirectoryStageInoperable = "Inoperable"
-	// @enum DirectoryStage
+
+	// DirectoryStageImpaired is a DirectoryStage enum value
 	DirectoryStageImpaired = "Impaired"
-	// @enum DirectoryStage
+
+	// DirectoryStageRestoring is a DirectoryStage enum value
 	DirectoryStageRestoring = "Restoring"
-	// @enum DirectoryStage
+
+	// DirectoryStageRestoreFailed is a DirectoryStage enum value
 	DirectoryStageRestoreFailed = "RestoreFailed"
-	// @enum DirectoryStage
+
+	// DirectoryStageDeleting is a DirectoryStage enum value
 	DirectoryStageDeleting = "Deleting"
-	// @enum DirectoryStage
+
+	// DirectoryStageDeleted is a DirectoryStage enum value
 	DirectoryStageDeleted = "Deleted"
-	// @enum DirectoryStage
+
+	// DirectoryStageFailed is a DirectoryStage enum value
 	DirectoryStageFailed = "Failed"
 )
 
 const (
-	// @enum DirectoryType
+	// DirectoryTypeSimpleAd is a DirectoryType enum value
 	DirectoryTypeSimpleAd = "SimpleAD"
-	// @enum DirectoryType
+
+	// DirectoryTypeAdconnector is a DirectoryType enum value
 	DirectoryTypeAdconnector = "ADConnector"
-	// @enum DirectoryType
+
+	// DirectoryTypeMicrosoftAd is a DirectoryType enum value
 	DirectoryTypeMicrosoftAd = "MicrosoftAD"
 )
 
 const (
-	// @enum RadiusAuthenticationProtocol
+	// IpRouteStatusMsgAdding is a IpRouteStatusMsg enum value
+	IpRouteStatusMsgAdding = "Adding"
+
+	// IpRouteStatusMsgAdded is a IpRouteStatusMsg enum value
+	IpRouteStatusMsgAdded = "Added"
+
+	// IpRouteStatusMsgRemoving is a IpRouteStatusMsg enum value
+	IpRouteStatusMsgRemoving = "Removing"
+
+	// IpRouteStatusMsgRemoved is a IpRouteStatusMsg enum value
+	IpRouteStatusMsgRemoved = "Removed"
+
+	// IpRouteStatusMsgAddFailed is a IpRouteStatusMsg enum value
+	IpRouteStatusMsgAddFailed = "AddFailed"
+
+	// IpRouteStatusMsgRemoveFailed is a IpRouteStatusMsg enum value
+	IpRouteStatusMsgRemoveFailed = "RemoveFailed"
+)
+
+const (
+	// RadiusAuthenticationProtocolPap is a RadiusAuthenticationProtocol enum value
 	RadiusAuthenticationProtocolPap = "PAP"
-	// @enum RadiusAuthenticationProtocol
+
+	// RadiusAuthenticationProtocolChap is a RadiusAuthenticationProtocol enum value
 	RadiusAuthenticationProtocolChap = "CHAP"
-	// @enum RadiusAuthenticationProtocol
+
+	// RadiusAuthenticationProtocolMsChapv1 is a RadiusAuthenticationProtocol enum value
 	RadiusAuthenticationProtocolMsChapv1 = "MS-CHAPv1"
-	// @enum RadiusAuthenticationProtocol
+
+	// RadiusAuthenticationProtocolMsChapv2 is a RadiusAuthenticationProtocol enum value
 	RadiusAuthenticationProtocolMsChapv2 = "MS-CHAPv2"
 )
 
 const (
-	// @enum RadiusStatus
+	// RadiusStatusCreating is a RadiusStatus enum value
 	RadiusStatusCreating = "Creating"
-	// @enum RadiusStatus
+
+	// RadiusStatusCompleted is a RadiusStatus enum value
 	RadiusStatusCompleted = "Completed"
-	// @enum RadiusStatus
+
+	// RadiusStatusFailed is a RadiusStatus enum value
 	RadiusStatusFailed = "Failed"
 )
 
 const (
-	// @enum ReplicationScope
+	// ReplicationScopeDomain is a ReplicationScope enum value
 	ReplicationScopeDomain = "Domain"
 )
 
 const (
-	// @enum SnapshotStatus
+	// SnapshotStatusCreating is a SnapshotStatus enum value
 	SnapshotStatusCreating = "Creating"
-	// @enum SnapshotStatus
+
+	// SnapshotStatusCompleted is a SnapshotStatus enum value
 	SnapshotStatusCompleted = "Completed"
-	// @enum SnapshotStatus
+
+	// SnapshotStatusFailed is a SnapshotStatus enum value
 	SnapshotStatusFailed = "Failed"
 )
 
 const (
-	// @enum SnapshotType
+	// SnapshotTypeAuto is a SnapshotType enum value
 	SnapshotTypeAuto = "Auto"
-	// @enum SnapshotType
+
+	// SnapshotTypeManual is a SnapshotType enum value
 	SnapshotTypeManual = "Manual"
 )
 
 const (
-	// @enum TopicStatus
+	// TopicStatusRegistered is a TopicStatus enum value
 	TopicStatusRegistered = "Registered"
-	// @enum TopicStatus
+
+	// TopicStatusTopicnotfound is a TopicStatus enum value
 	TopicStatusTopicnotfound = "Topic not found"
-	// @enum TopicStatus
+
+	// TopicStatusFailed is a TopicStatus enum value
 	TopicStatusFailed = "Failed"
-	// @enum TopicStatus
+
+	// TopicStatusDeleted is a TopicStatus enum value
 	TopicStatusDeleted = "Deleted"
 )
 
 const (
-	// @enum TrustDirection
+	// TrustDirectionOneWayOutgoing is a TrustDirection enum value
 	TrustDirectionOneWayOutgoing = "One-Way: Outgoing"
-	// @enum TrustDirection
+
+	// TrustDirectionOneWayIncoming is a TrustDirection enum value
 	TrustDirectionOneWayIncoming = "One-Way: Incoming"
-	// @enum TrustDirection
+
+	// TrustDirectionTwoWay is a TrustDirection enum value
 	TrustDirectionTwoWay = "Two-Way"
 )
 
 const (
-	// @enum TrustState
+	// TrustStateCreating is a TrustState enum value
 	TrustStateCreating = "Creating"
-	// @enum TrustState
+
+	// TrustStateCreated is a TrustState enum value
 	TrustStateCreated = "Created"
-	// @enum TrustState
+
+	// TrustStateVerifying is a TrustState enum value
 	TrustStateVerifying = "Verifying"
-	// @enum TrustState
+
+	// TrustStateVerifyFailed is a TrustState enum value
 	TrustStateVerifyFailed = "VerifyFailed"
-	// @enum TrustState
+
+	// TrustStateVerified is a TrustState enum value
 	TrustStateVerified = "Verified"
-	// @enum TrustState
+
+	// TrustStateDeleting is a TrustState enum value
 	TrustStateDeleting = "Deleting"
-	// @enum TrustState
+
+	// TrustStateDeleted is a TrustState enum value
 	TrustStateDeleted = "Deleted"
-	// @enum TrustState
+
+	// TrustStateFailed is a TrustState enum value
 	TrustStateFailed = "Failed"
 )
 
 const (
-	// @enum TrustType
+	// TrustTypeForest is a TrustType enum value
 	TrustTypeForest = "Forest"
 )

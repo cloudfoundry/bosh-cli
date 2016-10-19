@@ -226,13 +226,10 @@ div#page {
 	box-sizing: border-box;
 	height:calc(100% - 64px);
 	overflow:auto;
-	max-width:1600px;
 }
 div#page > .container,
 div#topbar > .container {
 	text-align: left;
-	margin-left: auto;
-	margin-right: auto;
 	padding: 0 20px;
 }
 div#topbar > .container,
@@ -365,7 +362,6 @@ div#about {
 	margin: 0 auto 30px;
 }
 div#gopher {
-	background: url(/doc/gopher/frontpage.png) no-repeat;
 	background-position: center top;
 	height: 155px;
 }
@@ -397,7 +393,6 @@ div#learn .popout {
 	display: block;
 	cursor: pointer;
 	font-size: 12px;
-	background: url(/doc/share.png) no-repeat;
 	background-position: right top;
 	padding: 5px 27px;
 }

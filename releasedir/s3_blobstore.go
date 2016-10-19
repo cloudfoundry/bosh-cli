@@ -8,7 +8,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	s3client "github.com/cppforlife/s3cli/client"
+	s3client "github.com/pivotal-golang/s3cli/client"
+	s3config "github.com/pivotal-golang/s3cli/config"
 )
 
 type S3Blobstore struct {
@@ -95,7 +96,17 @@ func (b S3Blobstore) client() (s3client.S3Blobstore, error) {
 		return s3client.S3Blobstore{}, bosherr.WrapErrorf(err, "Marshaling config")
 	}
 
-	client, err := s3client.New(gobytes.NewBuffer(bytes))
+	conf, err := s3config.NewFromReader(gobytes.NewBuffer(bytes))
+	if err != nil {
+		return s3client.S3Blobstore{}, bosherr.WrapErrorf(err, "Reading config")
+	}
+
+	s3ClientSDK, err := s3client.NewSDK(conf)
+	if err != nil {
+		return s3client.S3Blobstore{}, bosherr.WrapErrorf(err, "Building client SDK")
+	}
+
+	client, err := s3client.New(s3ClientSDK, &conf)
 	if err != nil {
 		return s3client.S3Blobstore{}, bosherr.WrapErrorf(err, "Validating config")
 	}
