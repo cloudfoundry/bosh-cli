@@ -738,8 +738,8 @@ type RemoveBlobArgs struct {
 }
 
 type SyncBlobsOpts struct {
-	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
-	ParallelOpt int `long:"parallel" description:"Sets the max number of parallel downloads" default:"5"`
+	Directory   DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+	ParallelOpt int         `long:"parallel" description:"Sets the max number of parallel downloads" default:"5"`
 	cmd
 }
 

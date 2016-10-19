@@ -12,8 +12,8 @@ import (
 
 var _ = Describe("SyncBlobsCmd", func() {
 	var (
-		blobsDir *fakereldir.FakeBlobsDir
-		command SyncBlobsCmd
+		blobsDir     *fakereldir.FakeBlobsDir
+		command      SyncBlobsCmd
 		numOfWorkers int
 	)
 

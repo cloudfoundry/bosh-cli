@@ -36,18 +36,18 @@ golang/go1.5.1.linux-amd64.tar.gz:
 type fsBlobsDirSchema map[string]fsBlobsDirSchema_Blob
 
 type fsBlobsDirSchema_Blob struct {
-	Size        int64 `yaml:"size"`
+	Size int64 `yaml:"size"`
 
 	BlobstoreID string `yaml:"object_id,omitempty"`
 	SHA1        string `yaml:"sha"`
 }
 
 func NewFSBlobsDir(
-dirPath string,
-reporter BlobsDirReporter,
-blobstore boshblob.Blobstore,
-sha1calc bicrypto.SHA1Calculator,
-fs boshsys.FileSystem,
+	dirPath string,
+	reporter BlobsDirReporter,
+	blobstore boshblob.Blobstore,
+	sha1calc bicrypto.SHA1Calculator,
+	fs boshsys.FileSystem,
 ) FSBlobsDir {
 	return FSBlobsDir{
 		indexPath: gopath.Join(dirPath, "config", "blobs.yml"),
@@ -115,7 +115,7 @@ func (d FSBlobsDir) DownloadBlobs(numOfParallelWorkers int) error {
 	defer close(results)
 	defer close(jobs)
 
-	worker := func(blobs chan Blob, results chan <- error) {
+	worker := func(blobs chan Blob, results chan<- error) {
 		for blob := range blobs {
 			if len(blob.BlobstoreID) > 0 {
 				err := d.downloadBlob(blob)
@@ -216,7 +216,7 @@ func (d FSBlobsDir) UntrackBlob(path string) error {
 
 	for i, blob := range blobs {
 		if blob.Path == path {
-			return d.save(append(blobs[:i], blobs[i + 1:]...))
+			return d.save(append(blobs[:i], blobs[i+1:]...))
 		}
 	}
 

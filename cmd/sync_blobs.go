@@ -6,7 +6,7 @@ import (
 )
 
 type SyncBlobsCmd struct {
-	blobsDir boshreldir.BlobsDir
+	blobsDir             boshreldir.BlobsDir
 	numOfParallelWorkers int
 }
 

@@ -23,7 +23,7 @@ var _ = Describe("FSBlobsDir", func() {
 		reporter  *fakereldir.FakeBlobsDirReporter
 		blobstore *fakeblob.FakeBlobstore
 		sha1calc  *fakecrypto.FakeSha1Calculator
-		blobsDir FSBlobsDir
+		blobsDir  FSBlobsDir
 	)
 
 	BeforeEach(func() {
