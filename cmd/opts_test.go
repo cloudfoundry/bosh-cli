@@ -943,6 +943,14 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
 		})
+
+		Describe("VarErrors", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("VarErrors", opts)).To(Equal(
+					`long:"var-errs" description:"Expect all variables to be found, otherwise error"`,
+				))
+			})
+		})
 	})
 
 	Describe("BuildManifestArgs", func() {

@@ -244,6 +244,7 @@ type BuildManifestOpts struct {
 	Args BuildManifestArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+	VarErrors bool `long:"var-errs" description:"Expect all variables to be found, otherwise error"`
 	cmd
 }
 
