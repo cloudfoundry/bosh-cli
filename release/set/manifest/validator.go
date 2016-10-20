@@ -43,7 +43,7 @@ func (v *validator) Validate(manifest Manifest) error {
 
 		matched, err := regexp.MatchString("^(file|http|https)://", release.URL)
 		if err != nil || !matched {
-			errs = append(errs, bosherr.Errorf("releases[%d].url must be a valid URL (file:// or http(s)://)", releaseIdx))
+			errs = append(errs, bosherr.Errorf("releases[%d].url ('%s') must be a valid URL (file:// or http(s)://)", releaseIdx, release.URL))
 		}
 
 		if strings.HasPrefix(release.URL, "http") && v.isBlank(release.SHA1) {

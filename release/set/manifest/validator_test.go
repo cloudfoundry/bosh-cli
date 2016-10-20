@@ -113,7 +113,7 @@ var _ = Describe("Validator", func() {
 
 			err := validator.Validate(manifest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("releases[0].url must be a valid URL (file:// or http(s)://)"))
+			Expect(err.Error()).To(ContainSubstring("releases[0].url ('invalid-url') must be a valid URL (file:// or http(s)://)"))
 		})
 
 		It("validates releases are unique", func() {
