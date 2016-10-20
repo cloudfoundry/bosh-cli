@@ -527,6 +527,12 @@ cloud_provider:
 					Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
 				}))
 			})
+
+			It("returns an error if variable key is missing", func() {
+				_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Expected to find variables: url"))
+			})
 		})
 	})
 })

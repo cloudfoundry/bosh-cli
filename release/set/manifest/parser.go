@@ -46,7 +46,7 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, ops patch.Ops) (Mani
 
 	tpl := boshtpl.NewTemplate(contents)
 
-	bytes, err := tpl.Evaluate(vars, ops)
+	bytes, err := tpl.Evaluate(vars, ops, boshtpl.EvaluateOpts{ExpectAllKeys: true})
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Evaluating manifest")
 	}

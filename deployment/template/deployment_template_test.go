@@ -22,6 +22,16 @@ var _ = Describe("DeploymentTemplate", func() {
 		Expect(result.Content()).To(Equal([]byte("foo\n")))
 	})
 
+	It("returns an error if variable key is missing", func() {
+		deploymentTemplate := NewDeploymentTemplate([]byte("((key)): true"))
+		vars := boshtpl.Variables{"key2": "foo"}
+		ops := patch.Ops{}
+
+		_, err := deploymentTemplate.Evaluate(vars, ops)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Expected to find variables: key"))
+	})
+
 	It("returns a struct that can return the SHA2 512 of the struct", func() {
 		deploymentTemplate := NewDeploymentTemplate([]byte(""))
 		vars := boshtpl.Variables{"key": "foo"}

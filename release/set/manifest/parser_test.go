@@ -222,6 +222,22 @@ releases:
 		}))
 	})
 
+	It("returns an error if variable key is missing", func() {
+		fs.WriteFileString(comboManifestPath, `---
+releases:
+- name: release-name
+  url: ((url))
+  sha1: release-sha1
+`)
+
+		vars := boshtpl.Variables{}
+		ops := patch.Ops{}
+
+		_, err := parser.Parse(comboManifestPath, vars, ops)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Expected to find variables: url"))
+	})
+
 	It("handles errors validating the release set manifest", func() {
 		validator.SetValidateBehavior([]fakes.ValidateOutput{
 			{Err: errors.New("couldn't validate that")},

@@ -49,7 +49,7 @@ func (m ReleaseManager) UploadReleases(bytes []byte) ([]byte, error) {
 
 	tpl := boshtpl.NewTemplate(bytes)
 
-	bytes, err = tpl.Evaluate(boshtpl.Variables{}, opss)
+	bytes, err = tpl.Evaluate(boshtpl.Variables{}, opss, boshtpl.EvaluateOpts{})
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Updating manifest with created release versions")
 	}
