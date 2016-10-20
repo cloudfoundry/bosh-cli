@@ -115,7 +115,7 @@ type Deployment interface {
 	CleanUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) error
 
 	// Instance specifics
-	FetchLogs(InstanceSlug, []string, bool) (LogsResult, error)
+	FetchLogs(AllOrPoolOrInstanceSlug, []string, bool) (LogsResult, error)
 	TakeSnapshot(InstanceSlug) error
 	EnableResurrection(InstanceSlug, bool) error
 
