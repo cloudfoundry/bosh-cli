@@ -133,17 +133,28 @@ already-downloaded.tgz:
 
 		Context("Multiple workers used to download blobs", func() {
 			It("downloads all blobs without local blob copy, skipping non-uploaded blobs", func() {
+				// Order of blobstore.Get calls may be done in any order
+				blobstore := FakeConcurrentBlobstore{
+					GetCallback: func(blobID, fingerprint string) (string, error) {
+						if blobID == "blob1" && fingerprint == "blob1-sha" {
+							return "/blob1-tmp", nil
+						} else if blobID == "blob2" && fingerprint == "blob2-sha" {
+							return "/blob2-tmp", nil
+						} else {
+							panic("Received non-matching blobstore.Get call")
+						}
+					},
+				}
+
+				blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, sha1calc, fs)
+
 				err := act(4)
 				Expect(err).ToNot(HaveOccurred())
-
-				Expect(blobstore.GetBlobIDs).To(Equal([]string{"blob1", "blob2"}))
-				Expect(blobstore.GetFingerprints).To(Equal([]string{"blob1-sha", "blob2-sha"}))
 
 				Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
 				Expect(fs.ReadFileString("/dir/blobs/dir/file-in-directory.tgz")).To(Equal("blob1-content"))
 				Expect(fs.ReadFileString("/dir/blobs/file-in-root.tgz")).To(Equal("blob2-content"))
 			})
-
 		})
 
 		Context("A single worker to download blobs", func() {
@@ -665,3 +676,16 @@ non-uploaded2.tgz:
 		})
 	})
 })
+
+type FakeConcurrentBlobstore struct {
+	GetCallback func(blobID, fingerprint string) (string, error)
+}
+
+func (bs FakeConcurrentBlobstore) Get(blobID, fingerprint string) (string, error) {
+	return bs.GetCallback(blobID, fingerprint)
+}
+
+func (bs FakeConcurrentBlobstore) CleanUp(fileName string) error                  { return nil }
+func (bs FakeConcurrentBlobstore) Delete(blobId string) error                     { return nil }
+func (bs FakeConcurrentBlobstore) Create(fileName string) (string, string, error) { return "", "", nil }
+func (bs FakeConcurrentBlobstore) Validate() error                                { return nil }

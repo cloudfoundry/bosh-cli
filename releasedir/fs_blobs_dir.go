@@ -109,36 +109,24 @@ func (d FSBlobsDir) DownloadBlobs(numOfParallelWorkers int) error {
 		return err
 	}
 
-	results := make(chan error, len(blobs))
-	jobs := make(chan Blob, numOfParallelWorkers)
+	resultsCh := make(chan error, len(blobs))
+	defer close(resultsCh)
 
-	defer close(results)
-	defer close(jobs)
-
-	worker := func(blobs chan Blob, results chan<- error) {
-		for blob := range blobs {
-			if len(blob.BlobstoreID) > 0 {
-				err := d.downloadBlob(blob)
-				if err != nil {
-					results <- err
-				}
-			}
-			results <- nil
-		}
-	}
+	blobsCh := make(chan Blob, numOfParallelWorkers)
+	defer close(blobsCh)
 
 	for w := 0; w < numOfParallelWorkers; w++ {
-		go worker(jobs, results)
+		go d.downloadBlobsWorker(blobsCh, resultsCh)
 	}
 
 	for _, blob := range blobs {
-		jobs <- blob
+		blobsCh <- blob
 	}
 
 	var errs []error
-	for i := 0; i < len(blobs); i++ {
-		err := <-results
 
+	for i := 0; i < len(blobs); i++ {
+		err := <-resultsCh
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -149,6 +137,18 @@ func (d FSBlobsDir) DownloadBlobs(numOfParallelWorkers int) error {
 	}
 
 	return nil
+}
+
+func (d FSBlobsDir) downloadBlobsWorker(blobsCh chan Blob, resultsCh chan<- error) {
+	for blob := range blobsCh {
+		var err error
+
+		if len(blob.BlobstoreID) > 0 {
+			err = d.downloadBlob(blob)
+		}
+
+		resultsCh <- err
+	}
 }
 
 func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
