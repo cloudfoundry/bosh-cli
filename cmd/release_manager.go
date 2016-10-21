@@ -60,6 +60,10 @@ func (m ReleaseManager) UploadReleases(bytes []byte) ([]byte, error) {
 func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (patch.Ops, error) {
 	var ops patch.Ops
 
+	if len(rel.URL) == 0 {
+		return nil, nil
+	}
+
 	ver, err := semver.NewVersionFromString(rel.Version)
 	if err != nil {
 		return nil, err
@@ -73,9 +77,6 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 		SHA1: rel.SHA1,
 	}
 
-	if uploadOpts.Args.URL.IsEmpty() {
-		return nil, nil
-	}
 
 	if rel.Version == "create" {
 		createOpts := CreateReleaseOpts{

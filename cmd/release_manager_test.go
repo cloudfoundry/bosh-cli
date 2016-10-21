@@ -79,6 +79,18 @@ releases:
 			Expect(arg).To(Equal(UploadReleaseOpts{Release: arg.Release})) // only Release should be set
 		})
 
+		It("skips uploading releases if url is not provided, even if the version is invalid", func() {
+			bytes := []byte(`
+releases:
+- name: capi
+  version: ((/blah_interpolate_me_with_config_server))
+`)
+
+			_, err := releaseManager.UploadReleases(bytes)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
+		})
+
 		It("creates releases if version is 'create' skipping others", func() {
 			bytes := []byte(`
 releases:
