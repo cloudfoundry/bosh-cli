@@ -77,7 +77,6 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 		SHA1: rel.SHA1,
 	}
 
-
 	if rel.Version == "create" {
 		createOpts := CreateReleaseOpts{
 			Name:             rel.Name,
