@@ -32,12 +32,6 @@ var _ = Describe("NewConfigFromURL", func() {
 		Expect(config).To(Equal(Config{Host: "host", Port: 4443}))
 	})
 
-	It("extracts path if path is provided", func() {
-		config, err := NewConfigFromURL("httsp://host:4443/zakrules")
-		Expect(err).ToNot(HaveOccurred())
-		Expect(config).To(Equal(Config{Host: "host", Port: 4443, Path: "/zakrules"}))
-	})
-
 	It("returns error if url is empty", func() {
 		_, err := NewConfigFromURL("")
 		Expect(err).To(HaveOccurred())

@@ -14,7 +14,6 @@ import (
 type Config struct {
 	Host string
 	Port int
-	Path string
 
 	Client       string
 	ClientSecret string
@@ -34,11 +33,9 @@ func NewConfigFromURL(url string) (Config, error) {
 
 	host := parsedURL.Host
 	port := 443
-	path := parsedURL.Path
 
 	if len(host) == 0 {
 		host = url
-		path = ""
 	}
 
 	if strings.Contains(host, ":") {
@@ -61,7 +58,7 @@ func NewConfigFromURL(url string) (Config, error) {
 		return Config{}, bosherr.Errorf("Expected to extract host from URL '%s'", url)
 	}
 
-	return Config{Host: host, Port: port, Path: path}, nil
+	return Config{Host: host, Port: port}, nil
 }
 
 func (c Config) Validate() error {
