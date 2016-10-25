@@ -56,6 +56,7 @@ func (f Factory) httpClient(config Config) (Client, error) {
 		Scheme: "https",
 		Host:   fmt.Sprintf("%s:%d", config.Host, config.Port),
 		User:   url.UserPassword(config.Client, config.ClientSecret),
+		Path:   config.Path,
 	}
 
 	return NewClient(endpoint.String(), httpClient, f.logger), nil

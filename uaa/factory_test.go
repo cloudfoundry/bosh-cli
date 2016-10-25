@@ -1,6 +1,7 @@
 package uaa_test
 
 import (
+	"fmt"
 	"crypto/tls"
 	"net/http"
 
@@ -73,6 +74,45 @@ var _ = Describe("Factory", func() {
 
 			_, err = uaa.ClientCredentialsGrant()
 			Expect(err).ToNot(HaveOccurred())
+		})
+
+		Context("when the server url has a context path", func() {
+			It("properly follows that path", func() {
+				server := ghttp.NewUnstartedServer()
+
+				cert, err := tls.X509KeyPair(validCert, validKey)
+				Expect(err).ToNot(HaveOccurred())
+
+				server.HTTPTestServer.TLS = &tls.Config{
+					Certificates: []tls.Certificate{cert},
+				}
+
+				server.HTTPTestServer.StartTLS()
+
+				config, err := NewConfigFromURL(fmt.Sprintf("%s/test_path", server.URL()))
+				Expect(err).ToNot(HaveOccurred())
+
+				config.Client = "client"
+				config.ClientSecret = "client-secret"
+				config.CACert = validCACert
+
+				logger := boshlog.NewLogger(boshlog.LevelNone)
+
+				uaa, err := NewFactory(logger).New(config)
+				Expect(err).ToNot(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/test_path/oauth/token", "grant_type=client_credentials"),
+						ghttp.VerifyBasicAuth("client", "client-secret"),
+						ghttp.RespondWith(http.StatusOK, `{}`),
+					),
+				)
+
+				_, err = uaa.ClientCredentialsGrant()
+				Expect(err).ToNot(HaveOccurred())
+
+			})
 		})
 	})
 })
