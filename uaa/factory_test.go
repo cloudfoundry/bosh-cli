@@ -1,8 +1,8 @@
 package uaa_test
 
 import (
-	"fmt"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
