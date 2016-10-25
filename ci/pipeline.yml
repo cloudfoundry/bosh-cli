@@ -155,7 +155,7 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh.git
-      branch: candidate
+      branch: develop
 
   - name: bosh-cli
     type: git
