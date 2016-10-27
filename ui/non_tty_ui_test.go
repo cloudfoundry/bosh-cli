@@ -24,12 +24,12 @@ var _ = Describe("NonTTYUI", func() {
 		It("includes in Lines", func() {
 			ui.ErrorLinef("fake-line1")
 			Expect(parentUI.Said).To(BeEmpty())
-			Expect(parentUI.Errors).To(BeEmpty())
+			Expect(parentUI.Errors).To(Equal([]string{"fake-line1"}))
 		})
 	})
 
 	Describe("PrintLinef", func() {
-		It("includes in Lines", func() {
+		It("does not include in Lines", func() {
 			ui.PrintLinef("fake-line1")
 			Expect(parentUI.Said).To(BeEmpty())
 			Expect(parentUI.Errors).To(BeEmpty())
@@ -37,7 +37,7 @@ var _ = Describe("NonTTYUI", func() {
 	})
 
 	Describe("BeginLinef", func() {
-		It("includes in Lines", func() {
+		It("does not include in Lines", func() {
 			ui.BeginLinef("fake-line1")
 			Expect(parentUI.Said).To(BeEmpty())
 			Expect(parentUI.Errors).To(BeEmpty())
@@ -45,7 +45,7 @@ var _ = Describe("NonTTYUI", func() {
 	})
 
 	Describe("EndLinef", func() {
-		It("includes in Lines", func() {
+		It("does not include in Lines", func() {
 			ui.EndLinef("fake-line1")
 			Expect(parentUI.Said).To(BeEmpty())
 			Expect(parentUI.Errors).To(BeEmpty())

@@ -12,7 +12,10 @@ func NewNonTTYUI(parent UI) *NonTTYUI {
 	return &NonTTYUI{parent: parent}
 }
 
-func (ui *NonTTYUI) ErrorLinef(pattern string, args ...interface{}) {}
+func (ui *NonTTYUI) ErrorLinef(pattern string, args ...interface{}) {
+	ui.parent.ErrorLinef(pattern, args...)
+}
+
 func (ui *NonTTYUI) PrintLinef(pattern string, args ...interface{}) {}
 func (ui *NonTTYUI) BeginLinef(pattern string, args ...interface{}) {}
 func (ui *NonTTYUI) EndLinef(pattern string, args ...interface{})   {}
