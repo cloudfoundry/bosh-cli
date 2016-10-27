@@ -190,7 +190,7 @@ var _ = Describe("LogsCmd", func() {
 				Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
 				Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
 				Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}))
-				Expect(runCommand).To(Equal([]string{"tail", "-F", "/var/vcap/sys/log/{**/,}*.log"}))
+				Expect(runCommand).To(Equal([]string{"sudo", "tail", "-F", "/var/vcap/sys/log/{**/,}*.log"}))
 			})
 
 			It("runs tail command with specified number of lines and quiet option", func() {
@@ -202,7 +202,7 @@ var _ = Describe("LogsCmd", func() {
 
 				_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 				Expect(runCommand).To(Equal([]string{
-					"tail", "-F", "-n", "10", "-q", "/var/vcap/sys/log/{**/,}*.log"}))
+					"sudo", "tail", "-F", "-n", "10", "-q", "/var/vcap/sys/log/{**/,}*.log"}))
 			})
 
 			It("runs tail command with specified number of lines even if following is not requested", func() {
@@ -214,7 +214,7 @@ var _ = Describe("LogsCmd", func() {
 
 				_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 				Expect(runCommand).To(Equal([]string{
-					"tail", "-n", "10", "/var/vcap/sys/log/{**/,}*.log"}))
+					"sudo", "tail", "-n", "10", "/var/vcap/sys/log/{**/,}*.log"}))
 			})
 
 			It("runs tail command for the agent log if agent is specified", func() {
@@ -236,7 +236,7 @@ var _ = Describe("LogsCmd", func() {
 
 				_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 				Expect(runCommand).To(Equal([]string{
-					"tail", "-F", "/var/vcap/sys/log/job1/*.log", "/var/vcap/sys/log/job2/*.log"}))
+					"sudo", "tail", "-F", "/var/vcap/sys/log/job1/*.log", "/var/vcap/sys/log/job2/*.log"}))
 			})
 
 			It("runs tail command with custom filters if specified", func() {
@@ -247,7 +247,7 @@ var _ = Describe("LogsCmd", func() {
 
 				_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 				Expect(runCommand).To(Equal([]string{
-					"tail", "-F", "/var/vcap/sys/log/other/*.log", "/var/vcap/sys/log/**/*.log"}))
+					"sudo", "tail", "-F", "/var/vcap/sys/log/other/*.log", "/var/vcap/sys/log/**/*.log"}))
 			})
 
 			It("returns error if non-interactive SSH session errors", func() {

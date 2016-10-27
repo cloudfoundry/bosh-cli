@@ -73,7 +73,7 @@ func (c LogsCmd) tail(opts LogsOpts) error {
 }
 
 func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
-	cmd := []string{"tail"}
+	cmd := []string{"sudo", "tail"}
 
 	if opts.Follow {
 		// -F for continuing to follow after renames
@@ -92,7 +92,6 @@ func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
 
 	if opts.Agent {
 		logsDir = "/var/vcap/bosh/log"
-		cmd = append([]string{"sudo"}, cmd...)
 	} else {
 		logsDir = "/var/vcap/sys/log"
 	}
