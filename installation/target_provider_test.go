@@ -21,7 +21,7 @@ var _ = Describe("TargetProvider", func() {
 		targetProvider TargetProvider
 
 		configPath            = "/deployment.json"
-		installationsRootPath = "/.bosh_init/installations"
+		installationsRootPath = "/.bosh/installations"
 	)
 
 	BeforeEach(func() {
@@ -46,7 +46,7 @@ var _ = Describe("TargetProvider", func() {
 		It("uses the existing installation_id & returns a target based on it", func() {
 			target, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(target.Path()).To(Equal("/.bosh_init/installations/12345"))
+			Expect(target.Path()).To(Equal("/.bosh/installations/12345"))
 		})
 
 		It("does not change the saved installation_id", func() {
@@ -68,7 +68,7 @@ var _ = Describe("TargetProvider", func() {
 		It("generates a new installation_id & returns a target based on it", func() {
 			target, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(target.Path()).To(Equal("/.bosh_init/installations/fake-uuid-1"))
+			Expect(target.Path()).To(Equal("/.bosh/installations/fake-uuid-1"))
 		})
 
 		It("saves the new installation_id", func() {
@@ -90,7 +90,7 @@ var _ = Describe("TargetProvider", func() {
 		It("generates a new installation_id & returns a target based on it", func() {
 			target, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(target.Path()).To(Equal("/.bosh_init/installations/fake-uuid-1"))
+			Expect(target.Path()).To(Equal("/.bosh/installations/fake-uuid-1"))
 		})
 
 		It("saves the new installation_id", func() {

@@ -20,7 +20,7 @@ The provided CPI release is compiled on the machine where `bosh-init` is run, an
 
 The CPI release must contain a job specified by the `cloud_provider.template.job`. During CPI installation, all the packages that the CPI job depends on will be compiled and their templates rendered. CPI job templates have access to properties defined in the `cloud_provider -> properties` section of the manifest.
 
-The compiled packages and rendered job templates are stored in a `~/.bosh_init/<installation_id>` folder for each deployment.
+The compiled packages and rendered job templates are stored in a `~/.bosh/<installation_id>` folder for each deployment.
 
 ## 3. Uploading Stemcell
 

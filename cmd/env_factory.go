@@ -78,7 +78,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Var
 	releaseJobResolver := bideplrel.NewJobResolver(f.releaseManager)
 
 	// todo expand path?
-	workspaceRootPath := gopath.Join(os.Getenv("HOME"), ".bosh_init")
+	workspaceRootPath := gopath.Join(os.Getenv("HOME"), ".bosh")
 
 	{
 		tarballCacheBasePath := gopath.Join(workspaceRootPath, "downloads")
