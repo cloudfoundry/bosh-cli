@@ -113,6 +113,12 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Cannot find blob 'blob-id' with SHA1 'sha1'"))
 			})
+
+			It("returns error if blob id is not provided", func() {
+				_, err := blobs.Get("name", "", "sha1")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Cannot find blob named 'name' with SHA1 'sha1'"))
+			})
 		})
 
 		Context("when configured with a blobstore", func() {
@@ -246,6 +252,12 @@ var _ = Describe("FSIndexBlobs", func() {
 						Expect(err).ToNot(BeNil())
 					})
 				})
+			})
+
+			It("returns error if blob id is not provided", func() {
+				_, err := blobs.Get("name", "", "sha1")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Cannot find blob named 'name' with SHA1 'sha1'"))
 			})
 		})
 	})

@@ -83,6 +83,10 @@ func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, erro
 		return dstPath, nil
 	}
 
+	if len(blobID) == 0 {
+		return "", bosherr.Errorf("Cannot find blob named '%s' with SHA1 '%s'", name, sha1)
+	}
+
 	return "", bosherr.Errorf("Cannot find blob '%s' with SHA1 '%s'", blobID, sha1)
 }
 
