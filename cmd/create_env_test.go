@@ -307,7 +307,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			defaultCreateEnvOpts = bicmd.CreateEnvOpts{
 				Args: bicmd.CreateEnvArgs{
-					Manifest: bicmd.FileBytesArg{Path: deploymentManifestPath},
+					Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 				},
 			}
 		})

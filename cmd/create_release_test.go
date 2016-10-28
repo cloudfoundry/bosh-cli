@@ -66,7 +66,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 		Context("when manifest path is provided", func() {
 			BeforeEach(func() {
-				opts.Args.Manifest = FileBytesArg{Path: "/manifest-path"}
+				opts.Args.Manifest = FileBytesWithPathArg{Path: "/manifest-path"}
 			})
 
 			It("builds release and release archive based on manifest path", func() {

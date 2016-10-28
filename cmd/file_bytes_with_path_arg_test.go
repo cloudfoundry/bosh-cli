@@ -10,23 +10,24 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 )
 
-var _ = Describe("FileBytesArg", func() {
+var _ = Describe("FileBytesWithPathArg", func() {
 	Describe("UnmarshalFlag", func() {
 		var (
 			fs  *fakesys.FakeFileSystem
-			arg FileBytesArg
+			arg FileBytesWithPathArg
 		)
 
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
-			arg = FileBytesArg{FS: fs}
+			arg = FileBytesWithPathArg{FS: fs}
 		})
 
-		It("sets bytes", func() {
+		It("sets path and bytes", func() {
 			fs.WriteFileString("/some/path", "content")
 
 			err := (&arg).UnmarshalFlag("/some/path")
 			Expect(err).ToNot(HaveOccurred())
+			Expect(arg.Path).To(Equal("/some/path"))
 			Expect(arg.Bytes).To(Equal([]byte("content")))
 		})
 

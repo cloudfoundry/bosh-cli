@@ -67,7 +67,7 @@ var _ = Describe("DeleteCmd", func() {
 			mockDeploymentDeleter.EXPECT().DeleteDeployment(fakeStage).Return(nil)
 			newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
 				Args: bicmd.DeleteEnvArgs{
-					Manifest: bicmd.FileBytesArg{Path: deploymentManifestPath},
+					Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 				},
 				VarFlags: bicmd.VarFlags{
 					VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
@@ -86,7 +86,7 @@ var _ = Describe("DeleteCmd", func() {
 				mockDeploymentDeleter.EXPECT().DeleteDeployment(fakeStage).Return(err)
 				returnedErr := newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
 					Args: bicmd.DeleteEnvArgs{
-						Manifest: bicmd.FileBytesArg{Path: deploymentManifestPath},
+						Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
 					VarFlags: bicmd.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},

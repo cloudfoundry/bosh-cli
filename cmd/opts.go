@@ -146,7 +146,7 @@ type CreateEnvOpts struct {
 }
 
 type CreateEnvArgs struct {
-	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a manifest file"`
+	Manifest FileBytesWithPathArg `positional-arg-name:"PATH" description:"Path to a manifest file"`
 }
 
 type DeleteEnvOpts struct {
@@ -157,7 +157,7 @@ type DeleteEnvOpts struct {
 }
 
 type DeleteEnvArgs struct {
-	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a manifest file"`
+	Manifest FileBytesWithPathArg `positional-arg-name:"PATH" description:"Path to a manifest file"`
 }
 
 // Environment
@@ -687,7 +687,7 @@ type CreateReleaseOpts struct {
 }
 
 type CreateReleaseArgs struct {
-	Manifest FileBytesArg `positional-arg-name:"PATH"`
+	Manifest FileBytesWithPathArg `positional-arg-name:"PATH"`
 }
 
 type FinalizeReleaseOpts struct {

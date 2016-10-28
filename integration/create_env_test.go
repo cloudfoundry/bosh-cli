@@ -915,5 +915,5 @@ cloud_provider:
 })
 
 func newDeployOpts(path string) CreateEnvOpts {
-	return CreateEnvOpts{Args: CreateEnvArgs{Manifest: FileBytesArg{Path: path}}}
+	return CreateEnvOpts{Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: path}}}
 }

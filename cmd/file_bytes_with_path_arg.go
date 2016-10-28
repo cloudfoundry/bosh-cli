@@ -5,13 +5,14 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
-type FileBytesArg struct {
+type FileBytesWithPathArg struct {
 	FS boshsys.FileSystem
 
 	Bytes []byte
+	Path  string
 }
 
-func (a *FileBytesArg) UnmarshalFlag(data string) error {
+func (a *FileBytesWithPathArg) UnmarshalFlag(data string) error {
 	if len(data) == 0 {
 		return bosherr.Errorf("Expected file path to be non-empty")
 	}
@@ -27,6 +28,7 @@ func (a *FileBytesArg) UnmarshalFlag(data string) error {
 	}
 
 	(*a).Bytes = bytes
+	(*a).Path = absPath
 
 	return nil
 }
