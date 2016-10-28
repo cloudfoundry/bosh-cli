@@ -146,7 +146,8 @@ var _ = Describe("Director", func() {
 				server,
 			)
 
-			Expect(deployment.DeleteSnapshot("cid")).ToNot(HaveOccurred())
+			err := deployment.DeleteSnapshot("cid")
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("succeeds even if error occurrs if snapshot no longer exists", func() {

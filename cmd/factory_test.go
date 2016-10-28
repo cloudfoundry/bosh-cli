@@ -78,6 +78,7 @@ var _ = Describe("Factory", func() {
 			"delete-snapshots":      []string{},
 			"instances":             []string{},
 			"vms":                   []string{},
+			"delete-vm":        	 []string{"cid"},
 			"update-resurrection": []string{"off"},
 			"cloud-check":         []string{},
 			"logs":                []string{"slug"},

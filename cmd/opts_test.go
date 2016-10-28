@@ -496,6 +496,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("DeleteVm", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteVm", opts)).To(Equal(
+					`command:"delete-vm" alias:"delvm" description:"Delete vm"`,
+				))
+			})
+		})
+
 		Describe("Instances", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Instances", opts)).To(Equal(
@@ -1584,6 +1592,36 @@ var _ = Describe("Opts", func() {
 
 		BeforeEach(func() {
 			opts = &DeleteSnapshotArgs{}
+		})
+
+		Describe("CID", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CID", opts)).To(Equal(
+					`positional-arg-name:"CID"`,
+				))
+			})
+		})
+	})
+
+	Describe("DeleteVmOpts", func() {
+		var opts *DeleteVmOpts
+
+		BeforeEach(func() {
+			opts = &DeleteVmOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("DeleteVmArgs", func() {
+		var opts *DeleteVmArgs
+
+		BeforeEach(func() {
+			opts = &DeleteVmArgs{}
 		})
 
 		Describe("CID", func() {

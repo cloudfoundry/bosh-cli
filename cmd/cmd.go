@@ -189,6 +189,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *DeleteSnapshotsOpts:
 		return NewDeleteSnapshotsCmd(deps.UI, c.deployment()).Run()
 
+	case *DeleteVmOpts:
+		return NewDeleteVmCmd(deps.UI, c.deployment()).Run(*opts)
+
 	case *BuildManifestOpts:
 		return NewBuildManifestCmd(deps.UI).Run(*opts)
 
