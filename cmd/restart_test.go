@@ -67,8 +67,7 @@ var _ = Describe("RestartCmd", func() {
 		})
 
 		It("can set canaries", func() {
-			canariesSetting := 3
-			opts.Canaries = &canariesSetting
+			opts.Canaries = "3"
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -76,11 +75,11 @@ var _ = Describe("RestartCmd", func() {
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
 			_, _, _, canaries, _ := deployment.RestartArgsForCall(0)
-			Expect(*canaries).To(Equal(3))
+			Expect(canaries).To(Equal("3"))
 		})
 
 		It("can set max_in_flight", func() {
-			opts.MaxInFlight = 5
+			opts.MaxInFlight = "5"
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -88,7 +87,7 @@ var _ = Describe("RestartCmd", func() {
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
 			_, _, _, _, maxInFlight := deployment.RestartArgsForCall(0)
-			Expect(maxInFlight).To(Equal(5))
+			Expect(maxInFlight).To(Equal("5"))
 		})
 
 		It("restarts forcefully", func() {

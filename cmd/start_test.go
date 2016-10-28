@@ -68,8 +68,7 @@ var _ = Describe("StartCmd", func() {
 		})
 
 		It("can set canaries", func() {
-			canariesSetting := 3
-			opts.Canaries = &canariesSetting
+			opts.Canaries = "100%"
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -77,11 +76,11 @@ var _ = Describe("StartCmd", func() {
 			Expect(deployment.StartCallCount()).To(Equal(1))
 
 			_, canaries, _ := deployment.StartArgsForCall(0)
-			Expect(*canaries).To(Equal(3))
+			Expect(canaries).To(Equal("100%"))
 		})
 
 		It("can set max_in_flight", func() {
-			opts.MaxInFlight = 5
+			opts.MaxInFlight = "5"
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -89,7 +88,7 @@ var _ = Describe("StartCmd", func() {
 			Expect(deployment.StartCallCount()).To(Equal(1))
 
 			_, _, maxInFlight := deployment.StartArgsForCall(0)
-			Expect(maxInFlight).To(Equal(5))
+			Expect(maxInFlight).To(Equal("5"))
 		})
 	})
 })

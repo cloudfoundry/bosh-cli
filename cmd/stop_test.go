@@ -117,8 +117,7 @@ var _ = Describe("StopCmd", func() {
 		})
 
 		It("can set canaries", func() {
-			canariesSetting := 3
-			opts.Canaries = &canariesSetting
+			opts.Canaries = "30%"
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -126,11 +125,11 @@ var _ = Describe("StopCmd", func() {
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
 			_, _, _, _, canaries, _ := deployment.StopArgsForCall(0)
-			Expect(*canaries).To(Equal(3))
+			Expect(canaries).To(Equal("30%"))
 		})
 
 		It("can set max_in_flight", func() {
-			opts.MaxInFlight = 5
+			opts.MaxInFlight = "5"
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -138,7 +137,7 @@ var _ = Describe("StopCmd", func() {
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
 			_, _, _, _, _, maxInFlight := deployment.StopArgsForCall(0)
-			Expect(maxInFlight).To(Equal(5))
+			Expect(maxInFlight).To(Equal("5"))
 		})
 	})
 })

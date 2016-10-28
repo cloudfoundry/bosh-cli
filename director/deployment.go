@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	gourl "net/url"
-	"strconv"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -121,26 +120,26 @@ func (d DeploymentImpl) EnableResurrection(slug InstanceSlug, enabled bool) erro
 	return d.client.EnableResurrection(d.name, slug.Name(), slug.IndexOrID(), enabled)
 }
 
-func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, canaries *int, maxInFlight int) error {
+func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, canaries string, maxInFlight string) error {
 	return d.changeJobState("started", slug, SkipDrain{}, false, canaries, maxInFlight)
 }
 
-func (d DeploymentImpl) Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, canaries *int, maxInFlight int) error {
+func (d DeploymentImpl) Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
 	if hard {
 		return d.changeJobState("detached", slug, sd, force, canaries, maxInFlight)
 	}
 	return d.changeJobState("stopped", slug, sd, force, canaries, maxInFlight)
 }
 
-func (d DeploymentImpl) Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries *int, maxInFlight int) error {
+func (d DeploymentImpl) Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
 	return d.changeJobState("restart", slug, sd, force, canaries, maxInFlight)
 }
 
-func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries *int, maxInFlight int) error {
+func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
 	return d.changeJobState("recreate", slug, sd, force, canaries, maxInFlight)
 }
 
-func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries *int, maxInFlight int) error {
+func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
 	return d.client.ChangeJobState(
 		state, d.name, slug.Name(), slug.IndexOrID(), sd, force, canaries, maxInFlight)
 }
@@ -268,7 +267,7 @@ func (c Client) EnableResurrection(deploymentName, job, indexOrID string, enable
 	return nil
 }
 
-func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd SkipDrain, force bool, canaries *int, maxInFlight int) error {
+func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
 	if len(state) == 0 {
 		return bosherr.Error("Expected non-empty job state")
 	}
@@ -291,12 +290,12 @@ func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd 
 		query.Add("force", "true")
 	}
 
-	if canaries != nil {
-		query.Add("canaries", strconv.Itoa(*canaries))
+	if canaries != "" {
+		query.Add("canaries", canaries)
 	}
 
-	if maxInFlight > 0 {
-		query.Add("max_in_flight", strconv.Itoa(maxInFlight))
+	if maxInFlight != "" {
+		query.Add("max_in_flight", maxInFlight)
 	}
 
 	path := fmt.Sprintf("/deployments/%s/jobs", deploymentName)
@@ -395,12 +394,12 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 		query.Add("skip_drain", opts.SkipDrain.AsQueryValue())
 	}
 
-	if opts.Canaries != nil {
-		query.Add("canaries", strconv.Itoa(*opts.Canaries))
+	if opts.Canaries != "" {
+		query.Add("canaries", opts.Canaries)
 	}
 
-	if opts.MaxInFlight > 0 {
-		query.Add("max_in_flight", strconv.Itoa(opts.MaxInFlight))
+	if opts.MaxInFlight != "" {
+		query.Add("max_in_flight", opts.MaxInFlight)
 	}
 
 	path := fmt.Sprintf("/deployments?%s", query.Encode())

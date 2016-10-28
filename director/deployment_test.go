@@ -3,6 +3,7 @@ package director_test
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	semver "github.com/cppforlife/go-semi-semantic/version"
@@ -294,16 +295,16 @@ var _ = Describe("Deployment", func() {
 			slug        AllOrPoolOrInstanceSlug
 			sd          SkipDrain
 			force       bool
-			canaries    *int
-			maxInFlight int
+			canaries    string
+			maxInFlight string
 		)
 
 		BeforeEach(func() {
 			slug = AllOrPoolOrInstanceSlug{}
 			sd = SkipDrain{}
 			force = false
-			maxInFlight = 0
-			canaries = nil
+			canaries = ""
+			maxInFlight = ""
 		})
 
 		states := map[string]func(Deployment) error{
@@ -377,11 +378,10 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("changes state with canaries and max_in_flight set", func() {
-					setCanaries := 3
-					canaries = &setCanaries
-					maxInFlight = 6
+					canaries = "50%"
+					maxInFlight = "6"
 
-					query := fmt.Sprintf("state=%s&canaries=%d&max_in_flight=%d", state, *canaries, maxInFlight)
+					query := fmt.Sprintf("state=%s&canaries=%s&max_in_flight=6", state, url.QueryEscape(canaries))
 
 					ConfigureTaskResult(
 						ghttp.CombineHandlers(
@@ -536,9 +536,11 @@ var _ = Describe("Deployment", func() {
 		})
 
 		It("succeeds updating deployment with canaries and max-in-flight flags", func() {
+			canaries := "100%"
+
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", "canaries=1&max_in_flight=5"),
+					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("canaries=%s&max_in_flight=5", url.QueryEscape(canaries))),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -549,32 +551,9 @@ var _ = Describe("Deployment", func() {
 				server,
 			)
 
-			canaries := 1
 			updateOpts := UpdateOpts{
-				Canaries:    &canaries,
-				MaxInFlight: 5,
-			}
-			err := deployment.Update([]byte("manifest"), updateOpts)
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("updates deployment with 0 canaries", func() {
-			ConfigureTaskResult(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", "canaries=0"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyHeader(http.Header{
-						"Content-Type": []string{"text/yaml"},
-					}),
-					ghttp.VerifyBody([]byte("manifest")),
-				),
-				``,
-				server,
-			)
-
-			canaries := 0
-			updateOpts := UpdateOpts{
-				Canaries: &canaries,
+				Canaries:    canaries,
+				MaxInFlight: "5",
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())

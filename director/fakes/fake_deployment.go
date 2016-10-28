@@ -135,49 +135,49 @@ type FakeDeployment struct {
 	deleteSnapshotsReturns     struct {
 		result1 error
 	}
-	StartStub        func(slug director.AllOrPoolOrInstanceSlug, canaries *int, maxInFlight int) error
+	StartStub        func(slug director.AllOrPoolOrInstanceSlug, canaries string, maxInFlight string) error
 	startMutex       sync.RWMutex
 	startArgsForCall []struct {
 		slug        director.AllOrPoolOrInstanceSlug
-		canaries    *int
-		maxInFlight int
+		canaries    string
+		maxInFlight string
 	}
 	startReturns struct {
 		result1 error
 	}
-	StopStub        func(slug director.AllOrPoolOrInstanceSlug, hard bool, sd director.SkipDrain, force bool, canaries *int, maxInFlight int) error
+	StopStub        func(slug director.AllOrPoolOrInstanceSlug, hard bool, sd director.SkipDrain, force bool, canaries string, maxInFlight string) error
 	stopMutex       sync.RWMutex
 	stopArgsForCall []struct {
 		slug        director.AllOrPoolOrInstanceSlug
 		hard        bool
 		sd          director.SkipDrain
 		force       bool
-		canaries    *int
-		maxInFlight int
+		canaries    string
+		maxInFlight string
 	}
 	stopReturns struct {
 		result1 error
 	}
-	RestartStub        func(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, canaries *int, maxInFlight int) error
+	RestartStub        func(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, canaries string, maxInFlight string) error
 	restartMutex       sync.RWMutex
 	restartArgsForCall []struct {
 		slug        director.AllOrPoolOrInstanceSlug
 		sd          director.SkipDrain
 		force       bool
-		canaries    *int
-		maxInFlight int
+		canaries    string
+		maxInFlight string
 	}
 	restartReturns struct {
 		result1 error
 	}
-	RecreateStub        func(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, canaries *int, maxInFlight int) error
+	RecreateStub        func(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, canaries string, maxInFlight string) error
 	recreateMutex       sync.RWMutex
 	recreateArgsForCall []struct {
 		slug        director.AllOrPoolOrInstanceSlug
 		sd          director.SkipDrain
 		force       bool
-		canaries    *int
-		maxInFlight int
+		canaries    string
+		maxInFlight string
 	}
 	recreateReturns struct {
 		result1 error
@@ -711,12 +711,12 @@ func (fake *FakeDeployment) DeleteSnapshotsReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Start(slug director.AllOrPoolOrInstanceSlug, canaries *int, maxInFlight int) error {
+func (fake *FakeDeployment) Start(slug director.AllOrPoolOrInstanceSlug, canaries string, maxInFlight string) error {
 	fake.startMutex.Lock()
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
 		slug        director.AllOrPoolOrInstanceSlug
-		canaries    *int
-		maxInFlight int
+		canaries    string
+		maxInFlight string
 	}{slug, canaries, maxInFlight})
 	fake.startMutex.Unlock()
 	if fake.StartStub != nil {
@@ -732,7 +732,7 @@ func (fake *FakeDeployment) StartCallCount() int {
 	return len(fake.startArgsForCall)
 }
 
-func (fake *FakeDeployment) StartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, *int, int) {
+func (fake *FakeDeployment) StartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, string, string) {
 	fake.startMutex.RLock()
 	defer fake.startMutex.RUnlock()
 	return fake.startArgsForCall[i].slug, fake.startArgsForCall[i].canaries, fake.startArgsForCall[i].maxInFlight
@@ -745,15 +745,15 @@ func (fake *FakeDeployment) StartReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Stop(slug director.AllOrPoolOrInstanceSlug, hard bool, sd director.SkipDrain, force bool, canaries *int, maxInFlight int) error {
+func (fake *FakeDeployment) Stop(slug director.AllOrPoolOrInstanceSlug, hard bool, sd director.SkipDrain, force bool, canaries string, maxInFlight string) error {
 	fake.stopMutex.Lock()
 	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
 		slug        director.AllOrPoolOrInstanceSlug
 		hard        bool
 		sd          director.SkipDrain
 		force       bool
-		canaries    *int
-		maxInFlight int
+		canaries    string
+		maxInFlight string
 	}{slug, hard, sd, force, canaries, maxInFlight})
 	fake.stopMutex.Unlock()
 	if fake.StopStub != nil {
@@ -769,7 +769,7 @@ func (fake *FakeDeployment) StopCallCount() int {
 	return len(fake.stopArgsForCall)
 }
 
-func (fake *FakeDeployment) StopArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, bool, director.SkipDrain, bool, *int, int) {
+func (fake *FakeDeployment) StopArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, bool, director.SkipDrain, bool, string, string) {
 	fake.stopMutex.RLock()
 	defer fake.stopMutex.RUnlock()
 	return fake.stopArgsForCall[i].slug, fake.stopArgsForCall[i].hard, fake.stopArgsForCall[i].sd, fake.stopArgsForCall[i].force, fake.stopArgsForCall[i].canaries, fake.stopArgsForCall[i].maxInFlight
@@ -782,14 +782,14 @@ func (fake *FakeDeployment) StopReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Restart(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, canaries *int, maxInFlight int) error {
+func (fake *FakeDeployment) Restart(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, canaries string, maxInFlight string) error {
 	fake.restartMutex.Lock()
 	fake.restartArgsForCall = append(fake.restartArgsForCall, struct {
 		slug        director.AllOrPoolOrInstanceSlug
 		sd          director.SkipDrain
 		force       bool
-		canaries    *int
-		maxInFlight int
+		canaries    string
+		maxInFlight string
 	}{slug, sd, force, canaries, maxInFlight})
 	fake.restartMutex.Unlock()
 	if fake.RestartStub != nil {
@@ -805,7 +805,7 @@ func (fake *FakeDeployment) RestartCallCount() int {
 	return len(fake.restartArgsForCall)
 }
 
-func (fake *FakeDeployment) RestartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.SkipDrain, bool, *int, int) {
+func (fake *FakeDeployment) RestartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.SkipDrain, bool, string, string) {
 	fake.restartMutex.RLock()
 	defer fake.restartMutex.RUnlock()
 	return fake.restartArgsForCall[i].slug, fake.restartArgsForCall[i].sd, fake.restartArgsForCall[i].force, fake.restartArgsForCall[i].canaries, fake.restartArgsForCall[i].maxInFlight
@@ -818,14 +818,14 @@ func (fake *FakeDeployment) RestartReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Recreate(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, canaries *int, maxInFlight int) error {
+func (fake *FakeDeployment) Recreate(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, canaries string, maxInFlight string) error {
 	fake.recreateMutex.Lock()
 	fake.recreateArgsForCall = append(fake.recreateArgsForCall, struct {
 		slug        director.AllOrPoolOrInstanceSlug
 		sd          director.SkipDrain
 		force       bool
-		canaries    *int
-		maxInFlight int
+		canaries    string
+		maxInFlight string
 	}{slug, sd, force, canaries, maxInFlight})
 	fake.recreateMutex.Unlock()
 	if fake.RecreateStub != nil {
@@ -841,7 +841,7 @@ func (fake *FakeDeployment) RecreateCallCount() int {
 	return len(fake.recreateArgsForCall)
 }
 
-func (fake *FakeDeployment) RecreateArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.SkipDrain, bool, *int, int) {
+func (fake *FakeDeployment) RecreateArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.SkipDrain, bool, string, string) {
 	fake.recreateMutex.RLock()
 	defer fake.recreateMutex.RUnlock()
 	return fake.recreateArgsForCall[i].slug, fake.recreateArgsForCall[i].sd, fake.recreateArgsForCall[i].force, fake.recreateArgsForCall[i].canaries, fake.recreateArgsForCall[i].maxInFlight
