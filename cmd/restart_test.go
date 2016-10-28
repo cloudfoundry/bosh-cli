@@ -46,7 +46,7 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			slug, sd, force, _, _ := deployment.RestartArgsForCall(0)
+			slug, sd, force, _ := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
 			Expect(force).To(BeFalse())
@@ -60,7 +60,7 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			slug, sd, force, _, _ := deployment.RestartArgsForCall(0)
+			slug, sd, force, _ := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(sd).To(Equal(boshdir.SkipDrain{All: true}))
 			Expect(force).To(BeFalse())
@@ -74,8 +74,8 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			_, _, _, canaries, _ := deployment.RestartArgsForCall(0)
-			Expect(canaries).To(Equal("3"))
+			_, _, _, opts := deployment.RestartArgsForCall(0)
+			Expect(opts.Canaries).To(Equal("3"))
 		})
 
 		It("can set max_in_flight", func() {
@@ -86,8 +86,8 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			_, _, _, _, maxInFlight := deployment.RestartArgsForCall(0)
-			Expect(maxInFlight).To(Equal("5"))
+			_, _, _, opts := deployment.RestartArgsForCall(0)
+			Expect(opts.MaxInFlight).To(Equal("5"))
 		})
 
 		It("restarts forcefully", func() {
@@ -98,7 +98,7 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			slug, sd, force, _, _ := deployment.RestartArgsForCall(0)
+			slug, sd, force, _ := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
 			Expect(force).To(BeTrue())

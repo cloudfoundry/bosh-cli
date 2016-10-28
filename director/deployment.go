@@ -120,23 +120,23 @@ func (d DeploymentImpl) EnableResurrection(slug InstanceSlug, enabled bool) erro
 	return d.client.EnableResurrection(d.name, slug.Name(), slug.IndexOrID(), enabled)
 }
 
-func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, canaries string, maxInFlight string) error {
-	return d.changeJobState("started", slug, SkipDrain{}, false, canaries, maxInFlight)
+func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, opts ConcurrencyOpts) error {
+	return d.changeJobState("started", slug, SkipDrain{}, false, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
+func (d DeploymentImpl) Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, opts ConcurrencyOpts) error {
 	if hard {
-		return d.changeJobState("detached", slug, sd, force, canaries, maxInFlight)
+		return d.changeJobState("detached", slug, sd, force, opts.Canaries, opts.MaxInFlight)
 	}
-	return d.changeJobState("stopped", slug, sd, force, canaries, maxInFlight)
+	return d.changeJobState("stopped", slug, sd, force, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
-	return d.changeJobState("restart", slug, sd, force, canaries, maxInFlight)
+func (d DeploymentImpl) Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error {
+	return d.changeJobState("restart", slug, sd, force, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
-	return d.changeJobState("recreate", slug, sd, force, canaries, maxInFlight)
+func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error {
+	return d.changeJobState("recreate", slug, sd, force, opts.Canaries, opts.MaxInFlight)
 }
 
 func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error {

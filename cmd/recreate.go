@@ -20,5 +20,9 @@ func (c RecreateCmd) Run(opts RecreateOpts) error {
 		return err
 	}
 
-	return c.deployment.Recreate(opts.Args.Slug, opts.SkipDrain, opts.Force, opts.Canaries, opts.MaxInFlight)
+	concurrencyOpts := boshdir.ConcurrencyOpts{
+		Canaries:    opts.Canaries,
+		MaxInFlight: opts.MaxInFlight,
+	}
+	return c.deployment.Recreate(opts.Args.Slug, opts.SkipDrain, opts.Force, concurrencyOpts)
 }

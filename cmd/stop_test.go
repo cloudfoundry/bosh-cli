@@ -46,7 +46,7 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, sd, force, _, _ := deployment.StopArgsForCall(0)
+			slug, hard, sd, force, _ := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(hard).To(BeFalse())
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
@@ -61,7 +61,7 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, sd, force, _, _ := deployment.StopArgsForCall(0)
+			slug, hard, sd, force, _ := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(hard).To(BeTrue())
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
@@ -76,7 +76,7 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, sd, force, _, _ := deployment.StopArgsForCall(0)
+			slug, hard, sd, force, _ := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(hard).To(BeFalse())
 			Expect(sd).To(Equal(boshdir.SkipDrain{All: true}))
@@ -91,7 +91,7 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, sd, force, _, _ := deployment.StopArgsForCall(0)
+			slug, hard, sd, force, _ := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(hard).To(BeFalse())
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
@@ -124,8 +124,8 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			_, _, _, _, canaries, _ := deployment.StopArgsForCall(0)
-			Expect(canaries).To(Equal("30%"))
+			_, _, _, _, opts := deployment.StopArgsForCall(0)
+			Expect(opts.Canaries).To(Equal("30%"))
 		})
 
 		It("can set max_in_flight", func() {
@@ -136,8 +136,8 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			_, _, _, _, _, maxInFlight := deployment.StopArgsForCall(0)
-			Expect(maxInFlight).To(Equal("5"))
+			_, _, _, _, opts := deployment.StopArgsForCall(0)
+			Expect(opts.MaxInFlight).To(Equal("5"))
 		})
 	})
 })

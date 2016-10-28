@@ -292,27 +292,25 @@ var _ = Describe("Deployment", func() {
 
 	Describe("job states", func() {
 		var (
-			slug        AllOrPoolOrInstanceSlug
-			sd          SkipDrain
-			force       bool
-			canaries    string
-			maxInFlight string
+			slug  AllOrPoolOrInstanceSlug
+			sd    SkipDrain
+			force bool
+			opts  ConcurrencyOpts
 		)
 
 		BeforeEach(func() {
 			slug = AllOrPoolOrInstanceSlug{}
 			sd = SkipDrain{}
 			force = false
-			canaries = ""
-			maxInFlight = ""
+			opts = ConcurrencyOpts{}
 		})
 
 		states := map[string]func(Deployment) error{
-			"started":  func(d Deployment) error { return d.Start(slug, canaries, maxInFlight) },
-			"detached": func(d Deployment) error { return d.Stop(slug, true, sd, force, canaries, maxInFlight) },
-			"stopped":  func(d Deployment) error { return d.Stop(slug, false, sd, force, canaries, maxInFlight) },
-			"restart":  func(d Deployment) error { return d.Restart(slug, sd, force, canaries, maxInFlight) },
-			"recreate": func(d Deployment) error { return d.Recreate(slug, sd, force, canaries, maxInFlight) },
+			"started":  func(d Deployment) error { return d.Start(slug, opts) },
+			"detached": func(d Deployment) error { return d.Stop(slug, true, sd, force, opts) },
+			"stopped":  func(d Deployment) error { return d.Stop(slug, false, sd, force, opts) },
+			"restart":  func(d Deployment) error { return d.Restart(slug, sd, force, opts) },
+			"recreate": func(d Deployment) error { return d.Recreate(slug, sd, force, opts) },
 		}
 
 		for state, stateFunc := range states {
@@ -378,8 +376,13 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("changes state with canaries and max_in_flight set", func() {
-					canaries = "50%"
-					maxInFlight = "6"
+					canaries := "50%"
+					maxInFlight := "6"
+
+					opts = ConcurrencyOpts{
+						Canaries:    canaries,
+						MaxInFlight: maxInFlight,
+					}
 
 					query := fmt.Sprintf("state=%s&canaries=%s&max_in_flight=6", state, url.QueryEscape(canaries))
 

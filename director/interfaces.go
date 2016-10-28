@@ -106,10 +106,10 @@ type Deployment interface {
 	DeleteSnapshots() error
 
 	// Deployment, pool or instance specifics
-	Start(slug AllOrPoolOrInstanceSlug, canaries string, maxInFlight string) error
-	Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, canaries string, maxInFlight string) error
-	Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error
-	Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error
+	Start(slug AllOrPoolOrInstanceSlug, opts ConcurrencyOpts) error
+	Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, opts ConcurrencyOpts) error
+	Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error
+	Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error
 
 	SetUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) (SSHResult, error)
 	CleanUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) error
@@ -121,6 +121,11 @@ type Deployment interface {
 
 	Update(manifest []byte, opts UpdateOpts) error
 	Delete(force bool) error
+}
+
+type ConcurrencyOpts struct {
+	Canaries    string
+	MaxInFlight string
 }
 
 type UpdateOpts struct {
