@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"io/ioutil"
+	"os"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
@@ -14,6 +17,17 @@ type FileBytesArg struct {
 func (a *FileBytesArg) UnmarshalFlag(data string) error {
 	if len(data) == 0 {
 		return bosherr.Errorf("Expected file path to be non-empty")
+	}
+
+	if data == "-" {
+		bs, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Reading from stdin")
+		}
+
+		(*a).Bytes = bs
+
+		return nil
 	}
 
 	absPath, err := a.FS.ExpandPath(data)

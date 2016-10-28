@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mattn/go-isatty"
 	"github.com/vito/go-interact/interact"
@@ -102,7 +103,7 @@ func (ui *WriterUI) AskForText(label string) (string, error) {
 
 	err := interact.NewInteraction(label).Resolve(interact.Required(&text))
 	if err != nil {
-		return "", err
+		return "", bosherr.WrapError(err, "Asking for text")
 	}
 
 	return text, nil
@@ -119,7 +120,7 @@ func (ui *WriterUI) AskForChoice(label string, options []string) (int, error) {
 
 	err := interact.NewInteraction(label, choices...).Resolve(&chosen)
 	if err != nil {
-		return 0, err
+		return 0, bosherr.WrapError(err, "Asking for choice")
 	}
 
 	return chosen, nil
@@ -130,7 +131,7 @@ func (ui *WriterUI) AskForPassword(label string) (string, error) {
 
 	err := interact.NewInteraction(label).Resolve(interact.Required(&password))
 	if err != nil {
-		return "", err
+		return "", bosherr.WrapError(err, "Asking for password")
 	}
 
 	return string(password), nil
@@ -141,7 +142,7 @@ func (ui *WriterUI) AskForConfirmation() error {
 
 	err := interact.NewInteraction("Continue?").Resolve(&falseByDefault)
 	if err != nil {
-		return err
+		return bosherr.WrapError(err, "Asking for confirmation")
 	}
 
 	if falseByDefault == false {
