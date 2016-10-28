@@ -106,10 +106,10 @@ type Deployment interface {
 	DeleteSnapshots() error
 
 	// Deployment, pool or instance specifics
-	Start(slug AllOrPoolOrInstanceSlug) error
-	Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool) error
-	Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool) error
-	Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool) error
+	Start(slug AllOrPoolOrInstanceSlug, canaries *int, maxInFlight int) error
+	Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, canaries *int, maxInFlight int) error
+	Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries *int, maxInFlight int) error
+	Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries *int, maxInFlight int) error
 
 	SetUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) (SSHResult, error)
 	CleanUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) error
@@ -124,9 +124,11 @@ type Deployment interface {
 }
 
 type UpdateOpts struct {
-	Recreate  bool
-	Fix       bool
-	SkipDrain SkipDrain
+	Recreate    bool
+	Fix         bool
+	SkipDrain   SkipDrain
+	Canaries    *int
+	MaxInFlight int
 }
 
 //go:generate counterfeiter . ReleaseSeries

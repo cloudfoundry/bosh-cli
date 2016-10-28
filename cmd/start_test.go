@@ -66,5 +66,30 @@ var _ = Describe("StartCmd", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
+
+		It("can set canaries", func() {
+			canariesSetting := 3
+			opts.Canaries = &canariesSetting
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.StartCallCount()).To(Equal(1))
+
+			_, canaries, _ := deployment.StartArgsForCall(0)
+			Expect(*canaries).To(Equal(3))
+		})
+
+		It("can set max_in_flight", func() {
+			opts.MaxInFlight = 5
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.StartCallCount()).To(Equal(1))
+
+			_, _, maxInFlight := deployment.StartArgsForCall(0)
+			Expect(maxInFlight).To(Equal(5))
+		})
 	})
 })

@@ -46,7 +46,7 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, sd, force := deployment.StopArgsForCall(0)
+			slug, hard, sd, force, _, _ := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(hard).To(BeFalse())
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
@@ -61,7 +61,7 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, sd, force := deployment.StopArgsForCall(0)
+			slug, hard, sd, force, _, _ := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(hard).To(BeTrue())
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
@@ -76,7 +76,7 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, sd, force := deployment.StopArgsForCall(0)
+			slug, hard, sd, force, _, _ := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(hard).To(BeFalse())
 			Expect(sd).To(Equal(boshdir.SkipDrain{All: true}))
@@ -91,7 +91,7 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, sd, force := deployment.StopArgsForCall(0)
+			slug, hard, sd, force, _, _ := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(hard).To(BeFalse())
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
@@ -114,6 +114,31 @@ var _ = Describe("StopCmd", func() {
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("can set canaries", func() {
+			canariesSetting := 3
+			opts.Canaries = &canariesSetting
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.StopCallCount()).To(Equal(1))
+
+			_, _, _, _, canaries, _ := deployment.StopArgsForCall(0)
+			Expect(*canaries).To(Equal(3))
+		})
+
+		It("can set max_in_flight", func() {
+			opts.MaxInFlight = 5
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.StopCallCount()).To(Equal(1))
+
+			_, _, _, _, _, maxInFlight := deployment.StopArgsForCall(0)
+			Expect(maxInFlight).To(Equal(5))
 		})
 	})
 })

@@ -291,23 +291,27 @@ var _ = Describe("Deployment", func() {
 
 	Describe("job states", func() {
 		var (
-			slug  AllOrPoolOrInstanceSlug
-			sd    SkipDrain
-			force bool
+			slug        AllOrPoolOrInstanceSlug
+			sd          SkipDrain
+			force       bool
+			canaries    *int
+			maxInFlight int
 		)
 
 		BeforeEach(func() {
 			slug = AllOrPoolOrInstanceSlug{}
 			sd = SkipDrain{}
 			force = false
+			maxInFlight = 0
+			canaries = nil
 		})
 
 		states := map[string]func(Deployment) error{
-			"started":  func(d Deployment) error { return d.Start(slug) },
-			"detached": func(d Deployment) error { return d.Stop(slug, true, sd, force) },
-			"stopped":  func(d Deployment) error { return d.Stop(slug, false, sd, force) },
-			"restart":  func(d Deployment) error { return d.Restart(slug, sd, force) },
-			"recreate": func(d Deployment) error { return d.Recreate(slug, sd, force) },
+			"started":  func(d Deployment) error { return d.Start(slug, canaries, maxInFlight) },
+			"detached": func(d Deployment) error { return d.Stop(slug, true, sd, force, canaries, maxInFlight) },
+			"stopped":  func(d Deployment) error { return d.Stop(slug, false, sd, force, canaries, maxInFlight) },
+			"restart":  func(d Deployment) error { return d.Restart(slug, sd, force, canaries, maxInFlight) },
+			"recreate": func(d Deployment) error { return d.Recreate(slug, sd, force, canaries, maxInFlight) },
 		}
 
 		for state, stateFunc := range states {
@@ -359,6 +363,29 @@ var _ = Describe("Deployment", func() {
 					ConfigureTaskResult(
 						ghttp.CombineHandlers(
 							ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/job", fmt.Sprintf("state=%s", state)),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.VerifyHeader(http.Header{
+								"Content-Type": []string{"text/yaml"},
+							}),
+							ghttp.VerifyBody([]byte{}),
+						),
+						``,
+						server,
+					)
+
+					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+				})
+
+				It("changes state with canaries and max_in_flight set", func() {
+					setCanaries := 3
+					canaries = &setCanaries
+					maxInFlight = 6
+
+					query := fmt.Sprintf("state=%s&canaries=%d&max_in_flight=%d", state, *canaries, maxInFlight)
+
+					ConfigureTaskResult(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*", query),
 							ghttp.VerifyBasicAuth("username", "password"),
 							ghttp.VerifyHeader(http.Header{
 								"Content-Type": []string{"text/yaml"},
@@ -503,6 +530,51 @@ var _ = Describe("Deployment", func() {
 				Recreate:  true,
 				Fix:       true,
 				SkipDrain: SkipDrain{All: true},
+			}
+			err := deployment.Update([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("succeeds updating deployment with canaries and max-in-flight flags", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", "canaries=1&max_in_flight=5"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			canaries := 1
+			updateOpts := UpdateOpts{
+				Canaries:    &canaries,
+				MaxInFlight: 5,
+			}
+			err := deployment.Update([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("updates deployment with 0 canaries", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", "canaries=0"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			canaries := 0
+			updateOpts := UpdateOpts{
+				Canaries: &canaries,
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())

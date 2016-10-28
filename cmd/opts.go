@@ -306,6 +306,9 @@ type DeployOpts struct {
 	Fix       bool              `long:"fix"        description:"Recreate unresponsive instances"`
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 
+	Canaries    *int `long:"canaries" description:"Override manifest values for canaries"`
+	MaxInFlight int  `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
+
 	cmd
 }
 
@@ -558,6 +561,9 @@ type StartOpts struct {
 
 	Force bool `long:"force" description:"No-op for backwards compatibility"`
 
+	Canaries    *int `long:"canaries" description:"Override manifest values for canaries"`
+	MaxInFlight int  `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
+
 	cmd
 }
 
@@ -570,6 +576,9 @@ type StopOpts struct {
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
 
+	Canaries    *int `long:"canaries" description:"Override manifest values for canaries"`
+	MaxInFlight int  `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
+
 	cmd
 }
 
@@ -579,6 +588,9 @@ type RestartOpts struct {
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
 
+	Canaries    *int `long:"canaries" description:"Override manifest values for canaries"`
+	MaxInFlight int  `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
+
 	cmd
 }
 
@@ -587,6 +599,9 @@ type RecreateOpts struct {
 
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
+
+	Canaries    *int `long:"canaries" description:"Override manifest values for canaries"`
+	MaxInFlight int  `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
 
 	cmd
 }

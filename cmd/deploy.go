@@ -55,9 +55,11 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 	}
 
 	updateOpts := boshdir.UpdateOpts{
-		Recreate:  opts.Recreate,
-		Fix:       opts.Fix,
-		SkipDrain: opts.SkipDrain,
+		Recreate:    opts.Recreate,
+		Fix:         opts.Fix,
+		SkipDrain:   opts.SkipDrain,
+		Canaries:    opts.Canaries,
+		MaxInFlight: opts.MaxInFlight,
 	}
 
 	return c.deployment.Update(bytes, updateOpts)

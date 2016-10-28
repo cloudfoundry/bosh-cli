@@ -20,5 +20,5 @@ func (c StartCmd) Run(opts StartOpts) error {
 		return err
 	}
 
-	return c.deployment.Start(opts.Args.Slug)
+	return c.deployment.Start(opts.Args.Slug, opts.Canaries, opts.MaxInFlight)
 }

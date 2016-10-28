@@ -1079,6 +1079,22 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("Canaries", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Canaries", opts)).To(Equal(
+					`long:"canaries" description:"Override manifest values for canaries"`,
+				))
+			})
+		})
+
+		Describe("MaxInFlight", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("MaxInFlight", opts)).To(Equal(
+					`long:"max-in-flight" description:"Override manifest values for max_in_flight"`,
+				))
+			})
+		})
 	})
 
 	Describe("DeployArgs", func() {
@@ -1835,6 +1851,22 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("Canaries", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Canaries", opts)).To(Equal(
+					`long:"canaries" description:"Override manifest values for canaries"`,
+				))
+			})
+		})
+
+		Describe("MaxInFlight", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("MaxInFlight", opts)).To(Equal(
+					`long:"max-in-flight" description:"Override manifest values for max_in_flight"`,
+				))
+			})
+		})
 	})
 
 	Describe("StopOpts", func() {
@@ -1881,6 +1913,22 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("Canaries", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Canaries", opts)).To(Equal(
+					`long:"canaries" description:"Override manifest values for canaries"`,
+				))
+			})
+		})
+
+		Describe("MaxInFlight", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("MaxInFlight", opts)).To(Equal(
+					`long:"max-in-flight" description:"Override manifest values for max_in_flight"`,
+				))
+			})
+		})
 	})
 
 	Describe("RestartOpts", func() {
@@ -1911,6 +1959,22 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("Canaries", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Canaries", opts)).To(Equal(
+					`long:"canaries" description:"Override manifest values for canaries"`,
+				))
+			})
+		})
+
+		Describe("MaxInFlight", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("MaxInFlight", opts)).To(Equal(
+					`long:"max-in-flight" description:"Override manifest values for max_in_flight"`,
+				))
+			})
+		})
 	})
 
 	Describe("RecreateOpts", func() {
@@ -1938,6 +2002,22 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Force", opts)).To(Equal(
 					`long:"force" description:"No-op for backwards compatibility"`,
+				))
+			})
+		})
+
+		Describe("Canaries", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Canaries", opts)).To(Equal(
+					`long:"canaries" description:"Override manifest values for canaries"`,
+				))
+			})
+		})
+
+		Describe("MaxInFlight", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("MaxInFlight", opts)).To(Equal(
+					`long:"max-in-flight" description:"Override manifest values for max_in_flight"`,
 				))
 			})
 		})

@@ -20,5 +20,5 @@ func (c StopCmd) Run(opts StopOpts) error {
 		return err
 	}
 
-	return c.deployment.Stop(opts.Args.Slug, opts.Hard, opts.SkipDrain, opts.Force)
+	return c.deployment.Stop(opts.Args.Slug, opts.Hard, opts.SkipDrain, opts.Force, opts.Canaries, opts.MaxInFlight)
 }
