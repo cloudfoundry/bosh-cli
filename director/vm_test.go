@@ -31,7 +31,7 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("DeleteVM", func() {
-		It("deletes vm", func() {
+		It("deletes VM", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("DELETE", "/vms/cid"),
@@ -44,7 +44,7 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("succeeds even if error occurrs if vm no longer exists", func() {
+		It("succeeds even if error occurrs if VM no longer exists", func() {
 			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/vms/cid"), server)
 
 			server.AppendHandlers(
@@ -59,7 +59,7 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("returns delete error if listing vms fails", func() {
+		It("returns delete error if listing VMs fails", func() {
 			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/vms/cid"), server)
 
 			server.AppendHandlers(
@@ -72,10 +72,10 @@ var _ = Describe("Director", func() {
 
 			err := deployment.DeleteVM("cid")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Deleting vm 'cid'"))
+			Expect(err.Error()).To(ContainSubstring("Deleting VM 'cid'"))
 		})
 
-		It("returns delete error if response is non-200 and vm still exists", func() {
+		It("returns delete error if response is non-200 and VM still exists", func() {
 			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/vms/cid"), server)
 
 			server.AppendHandlers(
@@ -88,7 +88,7 @@ var _ = Describe("Director", func() {
 
 			err := deployment.DeleteVM("cid")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Deleting vm 'cid'"))
+			Expect(err.Error()).To(ContainSubstring("Deleting VM 'cid'"))
 		})
 	})
 })
