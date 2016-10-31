@@ -11,27 +11,27 @@ import (
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
-var _ = Describe("DeleteVmCmd", func() {
+var _ = Describe("DeleteVMCmd", func() {
 	var (
 		ui         *fakeui.FakeUI
 		deployment *fakedir.FakeDeployment
-		command    DeleteVmCmd
+		command    DeleteVMCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		deployment = &fakedir.FakeDeployment{}
-		command = NewDeleteVmCmd(ui, deployment)
+		command = NewDeleteVMCmd(ui, deployment)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DeleteVmOpts
+			opts DeleteVMOpts
 		)
 
 		BeforeEach(func() {
-			opts = DeleteVmOpts{
-				Args: DeleteVmArgs{CID: "some-cid"},
+			opts = DeleteVMOpts{
+				Args: DeleteVMArgs{CID: "some-cid"},
 			}
 		})
 
@@ -41,8 +41,8 @@ var _ = Describe("DeleteVmCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(deployment.DeleteVmCallCount()).To(Equal(1))
-			Expect(deployment.DeleteVmArgsForCall(0)).To(Equal("some-cid"))
+			Expect(deployment.DeleteVMCallCount()).To(Equal(1))
+			Expect(deployment.DeleteVMArgsForCall(0)).To(Equal("some-cid"))
 		})
 
 		It("does not delete snapshot if confirmation is rejected", func() {
@@ -52,11 +52,11 @@ var _ = Describe("DeleteVmCmd", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("stop"))
 
-			Expect(deployment.DeleteVmCallCount()).To(Equal(0))
+			Expect(deployment.DeleteVMCallCount()).To(Equal(0))
 		})
 
 		It("returns error if deleting snapshot failed", func() {
-			deployment.DeleteVmReturns(errors.New("fake-err"))
+			deployment.DeleteVMReturns(errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())

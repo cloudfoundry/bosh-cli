@@ -496,10 +496,10 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("DeleteVm", func() {
+		Describe("DeleteVM", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("DeleteVm", opts)).To(Equal(
-					`command:"delete-vm" alias:"delvm" description:"Delete vm"`,
+				Expect(getStructTagForName("DeleteVM", opts)).To(Equal(
+					`command:"delete-vm" alias:"delvm" description:"Delete VM"`,
 				))
 			})
 		})
@@ -1619,11 +1619,11 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("DeleteVmOpts", func() {
-		var opts *DeleteVmOpts
+	Describe("DeleteVMOpts", func() {
+		var opts *DeleteVMOpts
 
 		BeforeEach(func() {
-			opts = &DeleteVmOpts{}
+			opts = &DeleteVMOpts{}
 		})
 
 		Describe("Args", func() {
@@ -1633,11 +1633,11 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("DeleteVmArgs", func() {
-		var opts *DeleteVmArgs
+	Describe("DeleteVMArgs", func() {
+		var opts *DeleteVMArgs
 
 		BeforeEach(func() {
-			opts = &DeleteVmArgs{}
+			opts = &DeleteVMArgs{}
 		})
 
 		Describe("CID", func() {

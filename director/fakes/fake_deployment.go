@@ -135,12 +135,12 @@ type FakeDeployment struct {
 	deleteSnapshotsReturns     struct {
 		result1 error
 	}
-	DeleteVmStub        func(string) error
-	deleteVmMutex       sync.RWMutex
-	deleteVmArgsForCall []struct {
+	DeleteVMStub        func(string) error
+	deleteVMMutex       sync.RWMutex
+	deleteVMArgsForCall []struct {
 		arg1 string
 	}
-	deleteVmReturns struct {
+	deleteVMReturns struct {
 		result1 error
 	}
 	StartStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.ConcurrencyOpts) error
@@ -744,35 +744,35 @@ func (fake *FakeDeployment) DeleteSnapshotsReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) DeleteVm(arg1 string) error {
-	fake.deleteVmMutex.Lock()
-	fake.deleteVmArgsForCall = append(fake.deleteVmArgsForCall, struct {
+func (fake *FakeDeployment) DeleteVM(arg1 string) error {
+	fake.deleteVMMutex.Lock()
+	fake.deleteVMArgsForCall = append(fake.deleteVMArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	fake.recordInvocation("DeleteVm", []interface{}{arg1})
-	fake.deleteVmMutex.Unlock()
-	if fake.DeleteVmStub != nil {
-		return fake.DeleteVmStub(arg1)
+	fake.recordInvocation("DeleteVM", []interface{}{arg1})
+	fake.deleteVMMutex.Unlock()
+	if fake.DeleteVMStub != nil {
+		return fake.DeleteVMStub(arg1)
 	} else {
-		return fake.deleteVmReturns.result1
+		return fake.deleteVMReturns.result1
 	}
 }
 
-func (fake *FakeDeployment) DeleteVmCallCount() int {
-	fake.deleteVmMutex.RLock()
-	defer fake.deleteVmMutex.RUnlock()
-	return len(fake.deleteVmArgsForCall)
+func (fake *FakeDeployment) DeleteVMCallCount() int {
+	fake.deleteVMMutex.RLock()
+	defer fake.deleteVMMutex.RUnlock()
+	return len(fake.deleteVMArgsForCall)
 }
 
-func (fake *FakeDeployment) DeleteVmArgsForCall(i int) string {
-	fake.deleteVmMutex.RLock()
-	defer fake.deleteVmMutex.RUnlock()
-	return fake.deleteVmArgsForCall[i].arg1
+func (fake *FakeDeployment) DeleteVMArgsForCall(i int) string {
+	fake.deleteVMMutex.RLock()
+	defer fake.deleteVMMutex.RUnlock()
+	return fake.deleteVMArgsForCall[i].arg1
 }
 
-func (fake *FakeDeployment) DeleteVmReturns(result1 error) {
-	fake.DeleteVmStub = nil
-	fake.deleteVmReturns = struct {
+func (fake *FakeDeployment) DeleteVMReturns(result1 error) {
+	fake.DeleteVMStub = nil
+	fake.deleteVMReturns = struct {
 		result1 error
 	}{result1}
 }
@@ -1206,8 +1206,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.deleteSnapshotMutex.RUnlock()
 	fake.deleteSnapshotsMutex.RLock()
 	defer fake.deleteSnapshotsMutex.RUnlock()
-	fake.deleteVmMutex.RLock()
-	defer fake.deleteVmMutex.RUnlock()
+	fake.deleteVMMutex.RLock()
+	defer fake.deleteVMMutex.RUnlock()
 	fake.startMutex.RLock()
 	defer fake.startMutex.RUnlock()
 	fake.stopMutex.RLock()

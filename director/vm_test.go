@@ -30,7 +30,7 @@ var _ = Describe("Director", func() {
 		server.Close()
 	})
 
-	Describe("DeleteVm", func() {
+	Describe("DeleteVM", func() {
 		It("deletes vm", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
@@ -40,7 +40,7 @@ var _ = Describe("Director", func() {
 				"",
 				server,
 			)
-			err := deployment.DeleteVm("cid")
+			err := deployment.DeleteVM("cid")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -55,7 +55,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			err := deployment.DeleteVm("cid")
+			err := deployment.DeleteVM("cid")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -70,7 +70,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			err := deployment.DeleteVm("cid")
+			err := deployment.DeleteVM("cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deleting vm 'cid'"))
 		})
@@ -86,7 +86,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			err := deployment.DeleteVm("cid")
+			err := deployment.DeleteVM("cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deleting vm 'cid'"))
 		})

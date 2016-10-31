@@ -97,7 +97,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapError(err, "Generating agent ID")
 	}
 
-	cid, err := m.createAndRecordVm(agentID, stemcell, resourcePool, networkInterfaces)
+	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, networkInterfaces)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	return vm, nil
 }
 
-func (m *manager) createAndRecordVm(agentID string, stemcell bistemcell.CloudStemcell, resourcePool bideplmanifest.ResourcePool, networkInterfaces map[string]biproperty.Map) (string, error) {
+func (m *manager) createAndRecordVM(agentID string, stemcell bistemcell.CloudStemcell, resourcePool bideplmanifest.ResourcePool, networkInterfaces map[string]biproperty.Map) (string, error) {
 	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), resourcePool.CloudProperties, networkInterfaces, resourcePool.Env)
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating vm with stemcell cid '%s'", stemcell.CID())
