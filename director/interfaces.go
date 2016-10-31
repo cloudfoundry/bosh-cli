@@ -104,7 +104,6 @@ type Deployment interface {
 	TakeSnapshots() error
 	DeleteSnapshot(string) error
 	DeleteSnapshots() error
-	DeleteVm(string) error
 
 	// Deployment, pool or instance specifics
 	Start(slug AllOrPoolOrInstanceSlug) error

@@ -114,7 +114,6 @@ type BoshOpts struct {
 	Stop     StopOpts     `command:"stop"     description:"Stop instance(s)"`
 	Restart  RestartOpts  `command:"restart"  description:"Restart instance(s)"`
 	Recreate RecreateOpts `command:"recreate" description:"Recreate instance(s)"`
-	DeleteVm DeleteVmOpts `command:"delete-vm" alias:"delvm" description:"Delete vm"`
 
 	// SSH instance
 	SSH SSHOpts `command:"ssh" description:"SSH into instance(s)"`
@@ -491,15 +490,6 @@ type DeleteSnapshotOpts struct {
 }
 
 type DeleteSnapshotArgs struct {
-	CID string `positional-arg-name:"CID"`
-}
-
-type DeleteVmOpts struct {
-	Args DeleteVmArgs `positional-args:"true" required:"true"`
-	cmd
-}
-
-type DeleteVmArgs struct {
 	CID string `positional-arg-name:"CID"`
 }
 
