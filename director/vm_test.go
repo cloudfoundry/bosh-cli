@@ -2,18 +2,19 @@ package director_test
 
 import (
 	"net/http"
-	
+
 	. "github.com/cloudfoundry/bosh-cli/director"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
+
 var _ = Describe("Director", func() {
 	var (
-		director Director
+		director   Director
 		deployment Deployment
-		server *ghttp.Server
+		server     *ghttp.Server
 	)
 
 	BeforeEach(func() {

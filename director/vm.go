@@ -5,6 +5,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
+
 type VmResp struct {
 	VmCID string `json:"vm_cid"`
 }
