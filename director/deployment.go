@@ -437,7 +437,7 @@ func (c Client) DeleteDeployment(deploymentName string, force bool) error {
 	return nil
 }
 
-type VMResp struct {
+type DeploymentVMResp struct {
 	JobName  string `json:"job"`   // e.g. dummy1
 	JobIndex int    `json:"index"` // e.g. 0,1,2
 
@@ -445,12 +445,12 @@ type VMResp struct {
 	CID     string // e.g. vm-ce10ae6a-6c31-413b-a134-7179f49e0bda
 }
 
-func (c Client) DeploymentVMs(deploymentName string) ([]VMResp, error) {
+func (c Client) DeploymentVMs(deploymentName string) ([]DeploymentVMResp, error) {
 	if len(deploymentName) == 0 {
 		return nil, bosherr.Error("Expected non-empty deployment name")
 	}
 
-	var vms []VMResp
+	var vms []DeploymentVMResp
 
 	path := fmt.Sprintf("/deployments/%s/vms", deploymentName)
 
