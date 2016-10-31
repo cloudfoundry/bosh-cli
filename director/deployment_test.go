@@ -292,16 +292,18 @@ var _ = Describe("Deployment", func() {
 
 	Describe("job states", func() {
 		var (
-			slug  AllOrPoolOrInstanceSlug
-			sd    SkipDrain
-			force bool
-			opts  ConcurrencyOpts
+			slug   AllOrPoolOrInstanceSlug
+			sd     SkipDrain
+			force  bool
+			dryRun bool
+			opts   ConcurrencyOpts
 		)
 
 		BeforeEach(func() {
 			slug = AllOrPoolOrInstanceSlug{}
 			sd = SkipDrain{}
 			force = false
+			dryRun = false
 			opts = ConcurrencyOpts{}
 		})
 
@@ -310,7 +312,7 @@ var _ = Describe("Deployment", func() {
 			"detached": func(d Deployment) error { return d.Stop(slug, true, sd, force, opts) },
 			"stopped":  func(d Deployment) error { return d.Stop(slug, false, sd, force, opts) },
 			"restart":  func(d Deployment) error { return d.Restart(slug, sd, force, opts) },
-			"recreate": func(d Deployment) error { return d.Recreate(slug, sd, force, opts) },
+			"recreate": func(d Deployment) error { return d.Recreate(slug, sd, force, dryRun, opts) },
 		}
 
 		for state, stateFunc := range states {
@@ -402,6 +404,28 @@ var _ = Describe("Deployment", func() {
 					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
 				})
 
+				if state == "recreate" {
+					It("changes state with dry run", func() {
+						dryRun = true
+
+						query := fmt.Sprintf("state=%s&dry_run=%t", state, dryRun)
+
+						ConfigureTaskResult(
+							ghttp.CombineHandlers(
+								ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*", query),
+								ghttp.VerifyBasicAuth("username", "password"),
+								ghttp.VerifyHeader(http.Header{
+									"Content-Type": []string{"text/yaml"},
+								}),
+								ghttp.VerifyBody([]byte{}),
+							),
+							``,
+							server,
+						)
+
+						Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+					})
+				}
 				if state != "started" {
 					It("changes state with skipping drain and forcing", func() {
 						slug = NewAllOrPoolOrInstanceSlug("", "")
@@ -557,6 +581,29 @@ var _ = Describe("Deployment", func() {
 			updateOpts := UpdateOpts{
 				Canaries:    canaries,
 				MaxInFlight: "5",
+			}
+			err := deployment.Update([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("succeeds updating deployment with dry-run flags", func() {
+			dryRun := true
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("dry_run=%t", dryRun)),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			updateOpts := UpdateOpts{
+				DryRun: dryRun,
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())

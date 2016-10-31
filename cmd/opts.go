@@ -310,6 +310,8 @@ type DeployOpts struct {
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
 
+	DryRun bool `long:"dry-run" description:"Renders job templates without altering deployment"`
+
 	cmd
 }
 
@@ -612,6 +614,8 @@ type RecreateOpts struct {
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
+
+	DryRun bool `long:"dry-run" description:"Renders job templates without altering deployment"`
 
 	cmd
 }

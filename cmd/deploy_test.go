@@ -81,6 +81,21 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
+		It("deploys manifest allowing to dry_run", func() {
+			opts.DryRun = true
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			bytes, updateOpts := deployment.UpdateArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("name: dep\n")))
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				DryRun: true,
+			}))
+		})
+
 		It("deploys templated manifest", func() {
 			opts.Args.Manifest = FileBytesArg{
 				Bytes: []byte("name: dep\nname1: ((name1))\nname2: ((name2))\n"),

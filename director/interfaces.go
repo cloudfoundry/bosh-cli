@@ -110,7 +110,7 @@ type Deployment interface {
 	Start(slug AllOrPoolOrInstanceSlug, opts ConcurrencyOpts) error
 	Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, opts ConcurrencyOpts) error
 	Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error
-	Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error
+	Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, dryRun bool, opts ConcurrencyOpts) error
 
 	SetUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) (SSHResult, error)
 	CleanUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) error
@@ -135,6 +135,7 @@ type UpdateOpts struct {
 	SkipDrain   SkipDrain
 	Canaries    string
 	MaxInFlight string
+	DryRun      bool
 }
 
 //go:generate counterfeiter . ReleaseSeries

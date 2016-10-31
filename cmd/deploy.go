@@ -58,6 +58,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		Recreate:    opts.Recreate,
 		Fix:         opts.Fix,
 		SkipDrain:   opts.SkipDrain,
+		DryRun:      opts.DryRun,
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,
 	}

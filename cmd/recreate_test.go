@@ -46,7 +46,7 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			slug, sd, force, _ := deployment.RecreateArgsForCall(0)
+			slug, sd, force, _, _ := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
 			Expect(force).To(BeFalse())
@@ -60,7 +60,7 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			slug, sd, force, _ := deployment.RecreateArgsForCall(0)
+			slug, sd, force, _, _ := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(sd).To(Equal(boshdir.SkipDrain{All: true}))
 			Expect(force).To(BeFalse())
@@ -74,7 +74,7 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			_, _, _, opts := deployment.RecreateArgsForCall(0)
+			_, _, _, _, opts := deployment.RecreateArgsForCall(0)
 			Expect(opts.Canaries).To(Equal("3"))
 		})
 
@@ -86,8 +86,20 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			_, _, _, opts := deployment.RecreateArgsForCall(0)
+			_, _, _, _, opts := deployment.RecreateArgsForCall(0)
 			Expect(opts.MaxInFlight).To(Equal("5"))
+		})
+
+		It("can set dry_run", func() {
+			opts.DryRun = true
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.RecreateCallCount()).To(Equal(1))
+
+			_, _, _, dryRunArg, _ := deployment.RecreateArgsForCall(0)
+			Expect(dryRunArg).To(BeTrue())
 		})
 
 		It("recreate forcefully", func() {
@@ -98,7 +110,7 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			slug, sd, force, _ := deployment.RecreateArgsForCall(0)
+			slug, sd, force, _, _ := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
 			Expect(sd).To(Equal(boshdir.SkipDrain{}))
 			Expect(force).To(BeTrue())

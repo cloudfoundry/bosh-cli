@@ -121,27 +121,27 @@ func (d DeploymentImpl) EnableResurrection(slug InstanceSlug, enabled bool) erro
 }
 
 func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, opts ConcurrencyOpts) error {
-	return d.changeJobState("started", slug, SkipDrain{}, false, opts.Canaries, opts.MaxInFlight)
+	return d.changeJobState("started", slug, SkipDrain{}, false, false, opts.Canaries, opts.MaxInFlight)
 }
 
 func (d DeploymentImpl) Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, opts ConcurrencyOpts) error {
 	if hard {
-		return d.changeJobState("detached", slug, sd, force, opts.Canaries, opts.MaxInFlight)
+		return d.changeJobState("detached", slug, sd, force, false, opts.Canaries, opts.MaxInFlight)
 	}
-	return d.changeJobState("stopped", slug, sd, force, opts.Canaries, opts.MaxInFlight)
+	return d.changeJobState("stopped", slug, sd, force, false, opts.Canaries, opts.MaxInFlight)
 }
 
 func (d DeploymentImpl) Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error {
-	return d.changeJobState("restart", slug, sd, force, opts.Canaries, opts.MaxInFlight)
+	return d.changeJobState("restart", slug, sd, force, false, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error {
-	return d.changeJobState("recreate", slug, sd, force, opts.Canaries, opts.MaxInFlight)
+func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, dryRun bool, opts ConcurrencyOpts) error {
+	return d.changeJobState("recreate", slug, sd, force, dryRun, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
+func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, dryRun bool, canaries string, maxInFlight string) error {
 	return d.client.ChangeJobState(
-		state, d.name, slug.Name(), slug.IndexOrID(), sd, force, canaries, maxInFlight)
+		state, d.name, slug.Name(), slug.IndexOrID(), sd, force, dryRun, canaries, maxInFlight)
 }
 
 func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug) (ExportReleaseResult, error) {
@@ -267,7 +267,7 @@ func (c Client) EnableResurrection(deploymentName, job, indexOrID string, enable
 	return nil
 }
 
-func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd SkipDrain, force bool, canaries string, maxInFlight string) error {
+func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd SkipDrain, force bool, dryRun bool, canaries string, maxInFlight string) error {
 	if len(state) == 0 {
 		return bosherr.Error("Expected non-empty job state")
 	}
@@ -288,6 +288,10 @@ func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, sd 
 
 	if force {
 		query.Add("force", "true")
+	}
+
+	if dryRun {
+		query.Add("dry_run", "true")
 	}
 
 	if canaries != "" {
@@ -400,6 +404,10 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 
 	if opts.MaxInFlight != "" {
 		query.Add("max_in_flight", opts.MaxInFlight)
+	}
+
+	if opts.DryRun {
+		query.Add("dry_run", "true")
 	}
 
 	path := fmt.Sprintf("/deployments?%s", query.Encode())

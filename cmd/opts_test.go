@@ -1103,6 +1103,14 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("DryRun", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DryRun", opts)).To(Equal(
+					`long:"dry-run" description:"Renders job templates without altering deployment"`,
+				))
+			})
+		})
 	})
 
 	Describe("DeployArgs", func() {
@@ -2056,6 +2064,14 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("MaxInFlight", opts)).To(Equal(
 					`long:"max-in-flight" description:"Override manifest values for max_in_flight"`,
+				))
+			})
+		})
+
+		Describe("DryRun", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DryRun", opts)).To(Equal(
+					`long:"dry-run" description:"Renders job templates without altering deployment"`,
 				))
 			})
 		})

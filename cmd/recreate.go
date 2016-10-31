@@ -24,5 +24,5 @@ func (c RecreateCmd) Run(opts RecreateOpts) error {
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,
 	}
-	return c.deployment.Recreate(opts.Args.Slug, opts.SkipDrain, opts.Force, concurrencyOpts)
+	return c.deployment.Recreate(opts.Args.Slug, opts.SkipDrain, opts.Force, opts.DryRun, concurrencyOpts)
 }
