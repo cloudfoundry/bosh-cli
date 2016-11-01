@@ -499,7 +499,7 @@ var _ = Describe("Opts", func() {
 		Describe("DeleteVM", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DeleteVM", opts)).To(Equal(
-					`command:"delete-vm" alias:"delvm" description:"Delete VM"`,
+					`command:"delete-vm" description:"Delete VM"`,
 				))
 			})
 		})

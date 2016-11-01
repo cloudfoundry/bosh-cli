@@ -114,7 +114,7 @@ type BoshOpts struct {
 	Stop     StopOpts     `command:"stop"     description:"Stop instance(s)"`
 	Restart  RestartOpts  `command:"restart"  description:"Restart instance(s)"`
 	Recreate RecreateOpts `command:"recreate" description:"Recreate instance(s)"`
-	DeleteVM DeleteVMOpts `command:"delete-vm" alias:"delvm" description:"Delete VM"`
+	DeleteVM DeleteVMOpts `command:"delete-vm" description:"Delete VM"`
 
 	// SSH instance
 	SSH SSHOpts `command:"ssh" description:"SSH into instance(s)"`
