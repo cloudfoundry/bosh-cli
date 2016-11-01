@@ -7,6 +7,8 @@ import (
 type FakeConfig2 struct {
 	Existing ConfigContents
 
+	AliasEnvironmentErr error
+
 	Saved   *ConfigContents
 	SaveErr error
 }
@@ -31,7 +33,7 @@ func (f *FakeConfig2) ResolveEnvironment(environmentOrName string) string {
 	return ""
 }
 
-func (f *FakeConfig2) SetEnvironment(environment, alias, caCert string) config.Config {
+func (f *FakeConfig2) AliasEnvironment(environment, alias, caCert string) (config.Config, error) {
 	f.Saved = &ConfigContents{}
 
 	return &FakeConfig2{
@@ -43,7 +45,7 @@ func (f *FakeConfig2) SetEnvironment(environment, alias, caCert string) config.C
 
 		Saved:   f.Saved,
 		SaveErr: f.SaveErr,
-	}
+	}, f.AliasEnvironmentErr
 }
 
 func (f *FakeConfig2) CACert(environment string) string {

@@ -48,6 +48,12 @@ func (c Cmd) Execute() (cmdErr error) {
 	deps := c.deps
 
 	switch opts := c.Opts.(type) {
+	case *EnvironmentOpts:
+		return NewEnvironmentCmd(deps.UI, c.director()).Run()
+
+	case *EnvironmentsOpts:
+		return NewEnvironmentsCmd(c.config(), deps.UI).Run()
+
 	case *CreateEnvOpts:
 		envProvider := func(path string, vars boshtpl.Variables, ops patch.Ops) DeploymentPreparer {
 			return NewEnvFactory(deps, path, vars, ops).Preparer()
@@ -64,15 +70,12 @@ func (c Cmd) Execute() (cmdErr error) {
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
 		return NewDeleteCmd(deps.UI, envProvider).Run(stage, *opts)
 
-	case *EnvironmentsOpts:
-		return NewEnvironmentsCmd(c.config(), deps.UI).Run()
-
-	case *EnvironmentOpts:
+	case *AliasEnvOpts:
 		sessionFactory := func(config cmdconf.Config) Session {
-			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, false, false, deps.FS, deps.Logger)
+			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, false, deps.FS, deps.Logger)
 		}
 
-		return NewEnvironmentCmd(sessionFactory, c.config(), deps.UI).Run(*opts)
+		return NewAliasEnvCmd(sessionFactory, c.config(), deps.UI).Run(*opts)
 
 	case *LogInOpts:
 		sessionFactory := func(config cmdconf.Config) Session {

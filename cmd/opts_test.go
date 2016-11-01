@@ -211,7 +211,7 @@ var _ = Describe("Opts", func() {
 		Describe("Environment", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Environment", opts)).To(Equal(
-					`command:"environment" alias:"env" description:"Set or show current environment"`,
+					`command:"environment" alias:"env" description:"Show environment"`,
 				))
 			})
 		})
@@ -331,7 +331,7 @@ var _ = Describe("Opts", func() {
 		Describe("Deployment", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Deployment", opts)).To(Equal(
-					`command:"deployment" alias:"dep" description:"Set or show current deployment"`,
+					`command:"deployment" alias:"dep" description:"Show deployment"`,
 				))
 			})
 		})
@@ -741,33 +741,25 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("EnvironmentOpts", func() {
-		var opts *EnvironmentOpts
+	Describe("AliasEnvOpts", func() {
+		var opts *AliasEnvOpts
 
 		BeforeEach(func() {
-			opts = &EnvironmentOpts{}
+			opts = &AliasEnvOpts{}
 		})
 
 		Describe("Args", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
 		})
 	})
 
-	Describe("EnvironmentArgs", func() {
-		var args *EnvironmentArgs
+	Describe("AliasEnvArgs", func() {
+		var args *AliasEnvArgs
 
 		BeforeEach(func() {
-			args = &EnvironmentArgs{}
-		})
-
-		Describe("URL", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("URL", args)).To(Equal(
-					`positional-arg-name:"URL" description:"Director URL (e.g.: https://192.168.50.4:25555 or 192.168.50.4)"`,
-				))
-			})
+			args = &AliasEnvArgs{}
 		})
 
 		Describe("Alias", func() {

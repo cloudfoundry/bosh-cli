@@ -33,13 +33,12 @@ type BoshOpts struct {
 
 	// -----> Director management
 
-	// Original bosh-init
-	CreateEnv CreateEnvOpts `command:"create-env" description:"Create or update BOSH environment"`
-	DeleteEnv DeleteEnvOpts `command:"delete-env" description:"Delete BOSH environment"`
-
 	// Environments
-	Environment  EnvironmentOpts  `command:"environment"  alias:"env"  description:"Set or show current environment"`
+	Environment  EnvironmentOpts  `command:"environment"  alias:"env"  description:"Show environment"`
 	Environments EnvironmentsOpts `command:"environments" alias:"envs" description:"List environments"`
+	CreateEnv    CreateEnvOpts    `command:"create-env"                description:"Create or update BOSH environment"`
+	DeleteEnv    DeleteEnvOpts    `command:"delete-env"                description:"Delete BOSH environment"`
+	AliasEnv     AliasEnvOpts     `command:"alias-env"                 description:"Alias environment to save URL and CA certificate"`
 
 	// Authentication
 	LogIn  LogInOpts  `command:"log-in"  alias:"l" description:"Log in"`
@@ -64,7 +63,7 @@ type BoshOpts struct {
 	UpdateRuntimeConfig UpdateRuntimeConfigOpts `command:"update-runtime-config" alias:"urc" description:"Update current runtime config"`
 
 	// Deployments
-	Deployment       DeploymentOpts       `command:"deployment"        alias:"dep"             description:"Set or show current deployment"`
+	Deployment       DeploymentOpts       `command:"deployment"        alias:"dep"             description:"Show deployment"`
 	Deployments      DeploymentsOpts      `command:"deployments"       alias:"ds" alias:"deps" description:"List deployments"`
 	DeleteDeployment DeleteDeploymentOpts `command:"delete-deployment" alias:"deld"            description:"Delete deployment"`
 
@@ -163,20 +162,24 @@ type DeleteEnvArgs struct {
 
 // Environment
 type EnvironmentOpts struct {
-	Args EnvironmentArgs `positional-args:"true"`
+	cmd
+}
 
+type EnvironmentsOpts struct {
+	cmd
+}
+
+type AliasEnvOpts struct {
+	Args AliasEnvArgs `positional-args:"true" required:"true"`
+
+	URL    string
 	CACert string
 
 	cmd
 }
 
-type EnvironmentArgs struct {
-	URL   string `positional-arg-name:"URL"   description:"Director URL (e.g.: https://192.168.50.4:25555 or 192.168.50.4)"`
+type AliasEnvArgs struct {
 	Alias string `positional-arg-name:"ALIAS" description:"Environment alias"`
-}
-
-type EnvironmentsOpts struct {
-	cmd
 }
 
 type LogInOpts struct {

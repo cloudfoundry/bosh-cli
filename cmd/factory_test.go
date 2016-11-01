@@ -59,7 +59,8 @@ var _ = Describe("Factory", func() {
 			"deployment":            []string{},
 			"deployments":           []string{},
 			"disks":                 []string{},
-			"environment":           []string{"url", "alias"},
+			"alias-env":             []string{"alias"},
+			"environment":           []string{},
 			"environments":          []string{},
 			"errands":               []string{},
 			"events":                []string{},
@@ -167,12 +168,20 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
-	Describe("environment command", func() {
-		It("is passed the global CA cert", func() {
-			cmd, err := factory.New([]string{"environment", "--ca-cert", "ca-cert"})
+	Describe("alias-env command", func() {
+		It("is passed global environment URL", func() {
+			cmd, err := factory.New([]string{"alias-env", "-e", "env", "alias"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*EnvironmentOpts)
+			opts := cmd.Opts.(*AliasEnvOpts)
+			Expect(opts.URL).To(Equal("env"))
+		})
+
+		It("is passed the global CA cert", func() {
+			cmd, err := factory.New([]string{"alias-env", "--ca-cert", "ca-cert", "alias"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*AliasEnvOpts)
 			Expect(opts.CACert).To(Equal("ca-cert"))
 		})
 	})
