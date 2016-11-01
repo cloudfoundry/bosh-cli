@@ -170,9 +170,12 @@ func (c FSConfig) Save() error {
 }
 
 func (c *FSConfig) findOrCreateEnvironment(urlOrAlias string) (int, fsConfigSchema_Environment) {
-	for i, tg := range c.schema.Environments {
-		if urlOrAlias == tg.URL || urlOrAlias == tg.Alias {
-			return i, tg
+	// Always consider empty URL/alias as a new item
+	if urlOrAlias != "" {
+		for i, tg := range c.schema.Environments {
+			if urlOrAlias == tg.URL || urlOrAlias == tg.Alias {
+				return i, tg
+			}
 		}
 	}
 

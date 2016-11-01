@@ -234,6 +234,15 @@ var _ = Describe("FSConfig", func() {
 		It("returns input when it's not an alias or url", func() {
 			Expect(config.ResolveEnvironment("unknown")).To(Equal("unknown"))
 		})
+
+		It("returns empty when alias or url is empty", func() {
+			Expect(config.ResolveEnvironment("")).To(Equal(""))
+		})
+
+		It("returns empty even if there is an existing alias that's empty to avoid always using that target to by default", func() {
+			updatedConfig := config.SetEnvironment("url", "", "")
+			Expect(updatedConfig.ResolveEnvironment("")).To(Equal(""))
+		})
 	})
 
 	Describe("SetCredentials/Credentials/UnsetCredentials", func() {
