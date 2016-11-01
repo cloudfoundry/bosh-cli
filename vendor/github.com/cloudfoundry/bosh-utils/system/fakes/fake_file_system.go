@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"syscall"
 
 	gouuid "github.com/nu7hatch/gouuid"
 
@@ -503,7 +504,15 @@ func (fs *FakeFileSystem) ReadFile(path string) ([]byte, error) {
 
 		return stats.Content, nil
 	}
-	return nil, bosherr.Errorf("File not found: '%s'", path)
+
+	return nil, bosherr.ComplexError{
+		Err: bosherr.Error("Not found:"),
+		Cause: &os.PathError{
+			Op:   "open",
+			Path: path,
+			Err:  syscall.ENOENT,
+		},
+	}
 }
 
 func (fs *FakeFileSystem) FileExists(path string) bool {

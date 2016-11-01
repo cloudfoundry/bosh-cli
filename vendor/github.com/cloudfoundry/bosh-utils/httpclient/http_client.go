@@ -6,6 +6,8 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"regexp"
+	"errors"
 )
 
 type HTTPClient interface {
@@ -55,7 +57,7 @@ func (c httpClient) PostCustomized(endpoint string, payload []byte, f func(*http
 
 	response, err := c.client.Do(request)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing POST request")
+		return nil, bosherr.WrapError(scrubErrorOutput(err), "Performing POST request")
 	}
 
 	return response, nil
@@ -81,7 +83,7 @@ func (c httpClient) PutCustomized(endpoint string, payload []byte, f func(*http.
 
 	response, err := c.client.Do(request)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing PUT request")
+		return nil, bosherr.WrapError(scrubErrorOutput(err), "Performing PUT request")
 	}
 
 	return response, nil
@@ -105,7 +107,7 @@ func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http
 
 	response, err := c.client.Do(request)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing GET request")
+		return nil, bosherr.WrapError(scrubErrorOutput(err), "Performing GET request")
 	}
 
 	return response, nil
@@ -124,4 +126,13 @@ func (c httpClient) Delete(endpoint string) (*http.Response, error) {
 		return nil, bosherr.WrapError(err, "Performing DELETE request")
 	}
 	return response, nil
+}
+
+func scrubErrorOutput(err error) error {
+	errorMsg := err.Error()
+	r := regexp.MustCompile("(http://.*:).*@")
+
+	errorMsg = r.ReplaceAllString(errorMsg, "$1<redacted>@")
+
+	return errors.New(errorMsg)
 }

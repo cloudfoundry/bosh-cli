@@ -1,6 +1,9 @@
 package fakes
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type Logger struct {
 	LogCallArgs *[]LogCallArgs
@@ -58,3 +61,11 @@ func (l Logger) ErrorWithDetails(tag, msg string, args ...interface{}) {
 func (l Logger) HandlePanic(tag string) {}
 
 func (l Logger) ToggleForcedDebug() {}
+
+func (l Logger) Flush() error {
+	return nil
+}
+
+func (l Logger) FlushTimeout(time.Duration) error {
+	return nil
+}

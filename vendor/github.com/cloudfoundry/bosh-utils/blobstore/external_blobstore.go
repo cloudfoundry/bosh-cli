@@ -44,6 +44,7 @@ func (b externalBlobstore) Get(blobID, _ string) (string, error) {
 	if err != nil {
 		return "", bosherr.WrapError(err, "Creating temporary file")
 	}
+	defer file.Close()
 
 	fileName := file.Name()
 

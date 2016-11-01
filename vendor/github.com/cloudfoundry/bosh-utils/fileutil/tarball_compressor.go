@@ -18,7 +18,7 @@ func NewTarballCompressor(
 }
 
 func (c tarballCompressor) CompressFilesInDir(dir string) (string, error) {
-	return c.CompressSpecificFilesInDir(dir, []string{"./"})
+	return c.CompressSpecificFilesInDir(dir, []string{"."})
 }
 
 func (c tarballCompressor) CompressSpecificFilesInDir(dir string, files []string) (string, error) {

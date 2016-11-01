@@ -11,6 +11,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-utils/httpclient"
+	"crypto/tls"
+	"time"
 )
 
 var _ = Describe("HTTPClient", func() {
@@ -21,7 +23,24 @@ var _ = Describe("HTTPClient", func() {
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		httpClient = NewHTTPClient(CreateDefaultClientInsecureSkipVerify(), logger)
+		httpClient = NewHTTPClient(&http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs:            nil,
+					InsecureSkipVerify: true,
+				},
+
+				Proxy: http.ProxyFromEnvironment,
+
+				Dial: (&net.Dialer{
+					Timeout:   1 * time.Millisecond,
+					KeepAlive: 0,
+				}).Dial,
+
+				TLSHandshakeTimeout: 1,
+				DisableKeepAlives:   true,
+			},
+		}, logger)
 
 		serv = newFakeServer("localhost:0")
 		readyCh := make(chan error)
@@ -96,6 +115,14 @@ var _ = Describe("HTTPClient", func() {
 				},
 			))
 		})
+
+		It("redacts passwords from error message", func() {
+			url := "http://foo:bar@10.10.0.0/path"
+
+			_, err := httpClient.PostCustomized(url, []byte("post-request"), func(r *http.Request){})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Post http://foo:<redacted>@10.10.0.0/path"))
+		})
 	})
 
 	Describe("Put/PutCustomized", func() {
@@ -158,6 +185,14 @@ var _ = Describe("HTTPClient", func() {
 				},
 			))
 		})
+
+		It("redacts passwords from error message", func() {
+			url := "http://foo:bar@10.10.0.0/path"
+
+			_, err := httpClient.PutCustomized(url, []byte("put-request"), func(r *http.Request){})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Put http://foo:<redacted>@10.10.0.0/path"))
+		})
 	})
 
 	Describe("Get/GetCustomized", func() {
@@ -217,6 +252,14 @@ var _ = Describe("HTTPClient", func() {
 					CustomHeader: "custom",
 				},
 			))
+		})
+
+		It("redacts passwords from error message", func() {
+			url := "http://foo:bar@10.10.0.0/path"
+
+			_, err := httpClient.GetCustomized(url, func(r *http.Request){})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Get http://foo:<redacted>@10.10.0.0/path"))
 		})
 	})
 

@@ -4,10 +4,10 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
 
 	. "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -27,11 +27,6 @@ var _ = Describe("genericCpCopier", func() {
 	})
 
 	Describe("FilteredCopyToTemp", func() {
-		copierFixtureSrcDir := func() string {
-			pwd, err := os.Getwd()
-			Expect(err).ToNot(HaveOccurred())
-			return filepath.Join(pwd, "test_assets", "test_filtered_copy_to_temp")
-		}
 		filesInDir := func(dir string) []string {
 			copiedFiles := []string{}
 			err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -46,16 +41,19 @@ var _ = Describe("genericCpCopier", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 
+			sort.Strings(copiedFiles)
+
 			return copiedFiles
 		}
 
-		It("filtered copy to temp", func() {
-			srcDir := copierFixtureSrcDir()
+		It("copies all regular files from filtered copy to temp", func() {
+			srcDir := fixtureSrcDir()
 			filters := []string{
-				"**/*.stdout.log",
+				filepath.Join("**", "*.stdout.log"),
 				"*.stderr.log",
-				"../some.config",
-				"some_directory/**/*",
+				filepath.Join("**", "more.stderr.log"),
+				filepath.Join("..", "some.config"),
+				filepath.Join("some_directory", "**", "*"),
 			}
 
 			dstDir, err := cpCopier.FilteredCopyToTemp(srcDir, filters)
@@ -67,7 +65,7 @@ var _ = Describe("genericCpCopier", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(copiedFiles).To(Equal([]string{
+			Expect(copiedFiles[0:5]).To(Equal([]string{
 				filepath.Join(dstDir, "app.stderr.log"),
 				filepath.Join(dstDir, "app.stdout.log"),
 				filepath.Join(dstDir, "other_logs", "more_logs", "more.stdout.log"),
@@ -77,19 +75,19 @@ var _ = Describe("genericCpCopier", func() {
 
 			content, err := fs.ReadFileString(filepath.Join(dstDir, "app.stdout.log"))
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "this is app stdout")
+			Expect(content).To(ContainSubstring("this is app stdout"))
 
 			content, err = fs.ReadFileString(filepath.Join(dstDir, "app.stderr.log"))
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "this is app stderr")
+			Expect(content).To(ContainSubstring("this is app stderr"))
 
 			content, err = fs.ReadFileString(filepath.Join(dstDir, "other_logs", "other_app.stdout.log"))
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "this is other app stdout")
+			Expect(content).To(ContainSubstring("this is other app stdout"))
 
 			content, err = fs.ReadFileString(filepath.Join(dstDir, "other_logs", "more_logs", "more.stdout.log"))
 			Expect(err).ToNot(HaveOccurred())
-			assert.Contains(GinkgoT(), content, "this is more stdout")
+			Expect(content).To(ContainSubstring("this is more stdout"))
 
 			Expect(fs.FileExists(filepath.Join(dstDir, "some_directory"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(dstDir, "some_directory", "sub_dir"))).To(BeTrue())
@@ -102,6 +100,39 @@ var _ = Describe("genericCpCopier", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
+		It("copies all symlinked files from filtered copy to temp", func() {
+			if runtime.GOOS == "windows" {
+				Skip("Pending on Windows, relative symlinks are not supported")
+			}
+
+			srcDir := fixtureSrcDir()
+			symlinkPath, err := createTestSymlink()
+			Expect(err).To(Succeed())
+			defer os.Remove(symlinkPath)
+
+			filters := []string{
+				filepath.Join("**", "*.stdout.log"),
+				"*.stderr.log",
+				filepath.Join("**", "more.stderr.log"),
+				filepath.Join("..", "some.config"),
+				filepath.Join("some_directory", "**", "*"),
+			}
+
+			dstDir, err := cpCopier.FilteredCopyToTemp(srcDir, filters)
+			Expect(err).ToNot(HaveOccurred())
+
+			defer os.RemoveAll(dstDir)
+
+			copiedFiles := filesInDir(dstDir)
+
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(copiedFiles[5:]).To(Equal([]string{
+				filepath.Join(dstDir, "symlink_dir", "app.stdout.log"),
+				filepath.Join(dstDir, "symlink_dir", "sub_dir", "sub_app.stdout.log"),
+			}))
+		})
+
 		Describe("changing permissions", func() {
 			BeforeEach(func() {
 				if runtime.GOOS == "windows" {
@@ -111,7 +142,7 @@ var _ = Describe("genericCpCopier", func() {
 			})
 
 			It("fixes permissions on destination directory", func() {
-				srcDir := copierFixtureSrcDir()
+				srcDir := fixtureSrcDir()
 				filters := []string{
 					"**/*",
 				}
@@ -128,7 +159,7 @@ var _ = Describe("genericCpCopier", func() {
 		})
 
 		It("copies the content of directories when specified as a filter", func() {
-			srcDir := copierFixtureSrcDir()
+			srcDir := fixtureSrcDir()
 			filters := []string{
 				"some_directory",
 			}

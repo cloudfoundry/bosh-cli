@@ -54,3 +54,37 @@ func (manager BlobManager) Write(blobID string, reader io.Reader) error {
 	}
 	return err
 }
+
+func (manager BlobManager) GetPath(blobID string) (string, error) {
+	localBlobPath := path.Join(manager.blobstorePath, blobID)
+
+	if !manager.fs.FileExists(localBlobPath) {
+		return "", bosherr.Error("blob not found")
+	}
+
+	return manager.copyToTmpFile(localBlobPath)
+}
+
+func (manager BlobManager) Delete(blobID string) error {
+	localBlobPath := path.Join(manager.blobstorePath, blobID)
+	return manager.fs.RemoveAll(localBlobPath)
+}
+
+func (manager BlobManager) copyToTmpFile(srcFileName string) (string, error) {
+	file, err := manager.fs.TempFile("blob-manager-copyToTmpFile")
+	if err != nil {
+		return "", bosherr.WrapError(err, "Creating temporary file")
+	}
+
+	defer file.Close()
+
+	destTmpFileName := file.Name()
+
+	err = manager.fs.CopyFile(srcFileName, destTmpFileName)
+	if err != nil {
+		manager.fs.RemoveAll(destTmpFileName)
+		return "", bosherr.WrapError(err, "Copying file")
+	}
+
+	return destTmpFileName, nil
+}

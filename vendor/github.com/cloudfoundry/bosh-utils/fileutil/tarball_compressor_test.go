@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,6 +27,14 @@ func fixtureSrcTgz() string {
 	pwd, err := os.Getwd()
 	Expect(err).NotTo(HaveOccurred())
 	return filepath.Join(pwd, "test_assets", "compressor-decompress-file-to-dir.tgz")
+}
+
+func createTestSymlink() (string, error) {
+	srcDir := fixtureSrcDir()
+	symlinkPath := filepath.Join(srcDir, "symlink_dir")
+	symlinkTarget := filepath.Join(srcDir, "../symlink_target")
+	os.Remove(symlinkPath)
+	return symlinkPath, os.Symlink(symlinkTarget, symlinkPath)
 }
 
 func beDir() beDirMatcher {
@@ -86,9 +93,6 @@ var _ = Describe("tarballCompressor", func() {
 	})
 
 	BeforeEach(func() {
-		if runtime.GOOS == "windows" {
-			Skip("Pending on Windows")
-		}
 		fs.MkdirAll(dstDir, os.ModePerm)
 	})
 
@@ -99,6 +103,11 @@ var _ = Describe("tarballCompressor", func() {
 	Describe("CompressFilesInDir", func() {
 		It("compresses the files in the given directory", func() {
 			srcDir := fixtureSrcDir()
+
+			symlinkPath, err := createTestSymlink()
+			Expect(err).To(Succeed())
+			defer os.Remove(symlinkPath)
+
 			tgzName, err := compressor.CompressFilesInDir(srcDir)
 			Expect(err).ToNot(HaveOccurred())
 			defer os.Remove(tgzName)
@@ -106,7 +115,7 @@ var _ = Describe("tarballCompressor", func() {
 			tarballContents, _, _, err := cmdRunner.RunCommand("tar", "-tf", tgzName)
 			Expect(err).ToNot(HaveOccurred())
 
-			contentElements := strings.Split(strings.TrimSpace(tarballContents), "\n")
+			contentElements := strings.Fields(strings.TrimSpace(tarballContents))
 
 			Expect(contentElements).To(ConsistOf(
 				"./",
@@ -117,6 +126,7 @@ var _ = Describe("tarballCompressor", func() {
 				"./some_directory/sub_dir/",
 				"./some_directory/sub_dir/other_sub_dir/",
 				"./some_directory/sub_dir/other_sub_dir/.keep",
+				"./symlink_dir",
 				"./other_logs/more_logs/",
 				"./other_logs/other_app.stderr.log",
 				"./other_logs/other_app.stdout.log",
@@ -145,7 +155,7 @@ var _ = Describe("tarballCompressor", func() {
 			srcDir := fixtureSrcDir()
 			files := []string{
 				"app.stdout.log",
-				"some_directory/",
+				"some_directory",
 				"app.stderr.log",
 			}
 			tgzName, err := compressor.CompressSpecificFilesInDir(srcDir, files)
@@ -155,7 +165,7 @@ var _ = Describe("tarballCompressor", func() {
 			tarballContents, _, _, err := cmdRunner.RunCommand("tar", "-tf", tgzName)
 			Expect(err).ToNot(HaveOccurred())
 
-			contentElements := strings.Split(strings.TrimSpace(tarballContents), "\n")
+			contentElements := strings.Fields(strings.TrimSpace(tarballContents))
 
 			Expect(contentElements).To(Equal([]string{
 				"app.stdout.log",

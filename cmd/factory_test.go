@@ -164,7 +164,7 @@ var _ = Describe("Factory", func() {
 
 			_, err := factory.New([]string{"create-env", "manifest.yml"})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("File not found: 'manifest.yml'"))
+			Expect(err.Error()).To(ContainSubstring("open manifest.yml: no such file or directory"))
 		})
 	})
 
