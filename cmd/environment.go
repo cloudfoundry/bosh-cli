@@ -1,95 +1,24 @@
 package cmd
 
 import (
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type EnvironmentCmd struct {
-	sessionFactory func(cmdconf.Config) Session
-
-	config cmdconf.Config
-	ui     boshui.UI
+	ui       boshui.UI
+	director boshdir.Director
 }
 
-func NewEnvironmentCmd(
-	sessionFactory func(cmdconf.Config) Session,
-	config cmdconf.Config,
-	ui boshui.UI,
-) EnvironmentCmd {
-	return EnvironmentCmd{sessionFactory: sessionFactory, config: config, ui: ui}
+func NewEnvironmentCmd(ui boshui.UI, director boshdir.Director) EnvironmentCmd {
+	return EnvironmentCmd{ui: ui, director: director}
 }
 
-func (c EnvironmentCmd) Run(opts EnvironmentOpts) error {
-	args := opts.Args
-
-	if len(args.URL) == 0 {
-		return c.show()
-	}
-
-	updatedConfig := c.config.SetEnvironment(args.URL, args.Alias, opts.CACert)
-
-	err := c.set(updatedConfig)
-	if err != nil {
-		// If CA cert is specified, fail immediately
-		if len(opts.CACert) > 0 {
-			return err
-		}
-
-		// Otherwise try existing CA cert if user is just switching between environments
-		existingCACert := c.config.CACert(c.config.ResolveEnvironment(args.URL))
-
-		updatedConfig = c.config.SetEnvironment(args.URL, args.Alias, existingCACert)
-
-		altErr := c.set(updatedConfig)
-		if altErr != nil {
-			// Return original error without CA cert
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (c EnvironmentCmd) show() error {
-	sess := c.sessionFactory(c.config)
-
-	c.ui.PrintLinef("Current environment is '%s'", sess.Environment())
-
-	director, err := sess.Director()
+func (c EnvironmentCmd) Run() error {
+	info, err := c.director.Info()
 	if err != nil {
 		return err
 	}
-
-	info, err := director.Info()
-	if err != nil {
-		return err
-	}
-
-	InfoTable{info, c.ui}.Print()
-
-	return nil
-}
-
-func (c EnvironmentCmd) set(updatedConfig cmdconf.Config) error {
-	sess := c.sessionFactory(updatedConfig)
-
-	director, err := sess.Director()
-	if err != nil {
-		return err
-	}
-
-	info, err := director.Info()
-	if err != nil {
-		return err
-	}
-
-	err = updatedConfig.Save()
-	if err != nil {
-		return err
-	}
-
-	c.ui.PrintLinef("Environment set to '%s'", sess.Environment())
 
 	InfoTable{info, c.ui}.Print()
 

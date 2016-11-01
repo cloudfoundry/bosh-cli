@@ -5,7 +5,7 @@ package config
 type Config interface {
 	Environments() []Environment
 	ResolveEnvironment(urlOrAlias string) string
-	SetEnvironment(urlOrAlias, alias, caCert string) Config
+	AliasEnvironment(url, alias, caCert string) (Config, error)
 
 	CACert(url string) string
 

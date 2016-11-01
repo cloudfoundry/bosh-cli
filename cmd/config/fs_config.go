@@ -78,27 +78,23 @@ func (c FSConfig) ResolveEnvironment(urlOrAlias string) string {
 	return tg.URL
 }
 
-func (c FSConfig) SetEnvironment(urlOrAlias, alias, caCert string) Config {
-	config := c.deepCopy()
-
-	var url string
-
-	// If url is not provided, url might actually be an alias
-	if len(alias) == 0 {
-		url = c.ResolveEnvironment(urlOrAlias)
-	} else {
-		url = urlOrAlias
-
-		i, tg := config.findOrCreateEnvironment(url)
-		tg.Alias = alias
-		config.schema.Environments[i] = tg
+func (c FSConfig) AliasEnvironment(url, alias, caCert string) (Config, error) {
+	if len(url) == 0 {
+		return nil, bosherr.Error("Expected non-empty environment URL")
 	}
 
+	if len(alias) == 0 {
+		return nil, bosherr.Error("Expected non-empty environment alias")
+	}
+
+	config := c.deepCopy()
+
 	i, tg := config.findOrCreateEnvironment(url)
+	tg.Alias = alias
 	tg.CACert = c.readCACert(caCert)
 	config.schema.Environments[i] = tg
 
-	return config
+	return config, nil
 }
 
 func (c FSConfig) CACert(urlOrAlias string) string {

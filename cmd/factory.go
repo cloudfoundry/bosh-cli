@@ -39,7 +39,8 @@ func (f Factory) New(args []string) (Cmd, error) {
 			}
 		}
 
-		if opts, ok := command.(*EnvironmentOpts); ok {
+		if opts, ok := command.(*AliasEnvOpts); ok {
+			opts.URL = boshOpts.EnvironmentOpt
 			opts.CACert = boshOpts.CACertOpt
 		}
 
