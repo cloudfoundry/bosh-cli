@@ -42,13 +42,8 @@ func NewSessionImpl(
 	}
 }
 
-func (c SessionImpl) Environment() string {
-	return c.context.Environment()
-}
-
-func (c SessionImpl) Credentials() cmdconf.Creds {
-	return c.context.Credentials()
-}
+func (c SessionImpl) Environment() string        { return c.context.Environment() }
+func (c SessionImpl) Credentials() cmdconf.Creds { return c.context.Credentials() }
 
 func (c SessionImpl) UAA() (boshuaa.UAA, error) {
 	director, err := c.AnonymousDirector()

@@ -23,11 +23,7 @@ func NewSessionContextImpl(
 }
 
 func (c SessionContextImpl) Environment() string {
-	if len(c.opts.EnvironmentOpt) > 0 {
-		return c.config.ResolveEnvironment(c.opts.EnvironmentOpt)
-	}
-
-	return c.config.Environment()
+	return c.config.ResolveEnvironment(c.opts.EnvironmentOpt)
 }
 
 func (c SessionContextImpl) Credentials() cmdconf.Creds {

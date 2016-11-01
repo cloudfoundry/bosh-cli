@@ -33,8 +33,6 @@ var _ = Describe("SessionContextImpl", func() {
 
 	Describe("Environment", func() {
 		It("returns resolved global option if provided", func() {
-			config.EnvironmentReturns("config-url")
-
 			config.ResolveEnvironmentStub = func(in string) string {
 				Expect(in).To(Equal("opt-alias"))
 				return "resolved-url"
@@ -45,36 +43,19 @@ var _ = Describe("SessionContextImpl", func() {
 			Expect(build().Environment()).To(Equal("resolved-url"))
 		})
 
-		It("uses config value if no global option is provided", func() {
-			config.EnvironmentReturns("config-url")
-
-			Expect(build().Environment()).To(Equal("config-url"))
-		})
-
-		It("returns empty string if neither global option or config value is set", func() {
+		It("returns empty string if global option is not set", func() {
 			Expect(build().Environment()).To(Equal(""))
 		})
 	})
 
 	Describe("Credentials", func() {
-		It("defaults to config credentials for config environment", func() {
-			config.EnvironmentReturns("config-url")
-
+		It("defaults to config credentials for environment global option", func() {
 			config.CredentialsStub = func(environment string) cmdconf.Creds {
-				Expect(environment).To(Equal("config-url"))
+				Expect(environment).To(Equal("opt-alias"))
 				return cmdconf.Creds{Username: "config-username"}
 			}
 
-			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Username: "config-username"}))
-		})
-
-		It("prefers to use environment from global option and returns config credentials", func() {
-			config.CredentialsStub = func(environment string) cmdconf.Creds {
-				Expect(environment).To(Equal("opt-url"))
-				return cmdconf.Creds{Username: "config-username"}
-			}
-
-			opts.EnvironmentOpt = "opt-url"
+			opts.EnvironmentOpt = "opt-alias"
 
 			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Username: "config-username"}))
 		})
@@ -159,16 +140,7 @@ var _ = Describe("SessionContextImpl", func() {
 			Expect(build().CACert()).To(Equal(""))
 		})
 
-		It("uses config value for current environment if no global option is provided", func() {
-			config.CACertStub = func(environment string) string {
-				Expect(environment).To(Equal("opt-url"))
-				return "config-cert"
-			}
-
-			Expect(build().CACert()).To(Equal("config-cert"))
-		})
-
-		It("returns empty string if neither global option or config value is set", func() {
+		It("returns empty string if global option is not set", func() {
 			Expect(build().CACert()).To(Equal(""))
 		})
 	})

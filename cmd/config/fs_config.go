@@ -9,7 +9,6 @@ import (
 )
 
 /*
-current_environment: https://192.168.50.4:25555
 environments:
 - url: https://192.168.50.4:25555
   ca_cert: |...
@@ -25,9 +24,6 @@ type FSConfig struct {
 }
 
 type fsConfigSchema struct {
-	// Environment is always a full URL
-	CurrentEnvironment string `yaml:"current_environment,omitempty"`
-
 	Environments []fsConfigSchema_Environment `yaml:"environments"`
 }
 
@@ -66,8 +62,6 @@ func NewFSConfigFromPath(path string, fs boshsys.FileSystem) (FSConfig, error) {
 	return FSConfig{path: absPath, fs: fs, schema: schema}, nil
 }
 
-func (c FSConfig) Environment() string { return c.schema.CurrentEnvironment }
-
 func (c FSConfig) Environments() []Environment {
 	environments := []Environment{}
 
@@ -99,8 +93,6 @@ func (c FSConfig) SetEnvironment(urlOrAlias, alias, caCert string) Config {
 		tg.Alias = alias
 		config.schema.Environments[i] = tg
 	}
-
-	config.schema.CurrentEnvironment = url
 
 	i, tg := config.findOrCreateEnvironment(url)
 	tg.CACert = c.readCACert(caCert)

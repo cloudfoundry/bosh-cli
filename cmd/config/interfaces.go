@@ -3,7 +3,6 @@ package config
 //go:generate counterfeiter . Config
 
 type Config interface {
-	Environment() string
 	Environments() []Environment
 	ResolveEnvironment(urlOrAlias string) string
 	SetEnvironment(urlOrAlias, alias, caCert string) Config

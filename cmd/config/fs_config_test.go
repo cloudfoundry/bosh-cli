@@ -28,7 +28,6 @@ var _ = Describe("NewFSConfigFromPath", func() {
 
 		config, err := NewFSConfigFromPath("/no_config", fs)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(config.Environment()).To(BeEmpty())
 		Expect(config.Environments()).To(BeEmpty())
 	})
 
@@ -107,40 +106,40 @@ var _ = Describe("FSConfig", func() {
 		})
 	})
 
-	Describe("SetEnvironment/Environment/CACert", func() {
+	Describe("SetEnvironment/CACert", func() {
 		It("returns empty if file does not exist", func() {
-			Expect(config.Environment()).To(Equal(""))
+			Expect(config.CACert("url")).To(Equal(""))
 		})
 
 		It("returns saved url", func() {
 			updatedConfig := config.SetEnvironment("url", "", "")
-			Expect(updatedConfig.Environment()).To(Equal("url"))
+			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
 
 			err := updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(reloadedConfig.Environment()).To(Equal("url"))
+			Expect(reloadedConfig.ResolveEnvironment("url")).To(Equal("url"))
 		})
 
 		It("returns saved url based on the alias, resolving to previously saved url", func() {
 			updatedConfig := config.SetEnvironment("url1", "alias1", "")
 			updatedConfig = updatedConfig.SetEnvironment("url2", "alias2", "")
 			updatedConfig = updatedConfig.SetEnvironment("alias1", "", "")
-			Expect(updatedConfig.Environment()).To(Equal("url1"))
+			Expect(updatedConfig.ResolveEnvironment("alias1")).To(Equal("url1"))
 
 			err := updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(reloadedConfig.Environment()).To(Equal("url1"))
+			Expect(reloadedConfig.ResolveEnvironment("alias1")).To(Equal("url1"))
 		})
 
 		It("saves empty CA certificate", func() {
 			updatedConfig := config.SetEnvironment("url", "", "")
-			Expect(updatedConfig.Environment()).To(Equal("url"))
+			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
 			Expect(updatedConfig.CACert("url")).To(Equal(""))
 
 			err := updatedConfig.Save()
@@ -156,7 +155,7 @@ var _ = Describe("FSConfig", func() {
 
 		It("saves non-empty CA certificate and then unsets it", func() {
 			updatedConfig := config.SetEnvironment("url", "", validCACert)
-			Expect(updatedConfig.Environment()).To(Equal("url"))
+			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
 			Expect(updatedConfig.CACert("url")).To(Equal(validCACert))
 
 			err := updatedConfig.Save()
@@ -167,7 +166,7 @@ var _ = Describe("FSConfig", func() {
 			Expect(reloadedConfig.CACert("url")).To(Equal(validCACert))
 
 			updatedConfig = reloadedConfig.SetEnvironment("url", "", "")
-			Expect(updatedConfig.Environment()).To(Equal("url"))
+			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
 			Expect(updatedConfig.CACert("url")).To(Equal(""))
 
 			err = updatedConfig.Save()
@@ -197,7 +196,7 @@ var _ = Describe("FSConfig", func() {
 
 		It("returns CA cert for alias", func() {
 			updatedConfig := config.SetEnvironment("url", "alias", validCACert)
-			Expect(updatedConfig.Environment()).To(Equal("url"))
+			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
 			Expect(updatedConfig.CACert("alias")).To(Equal(validCACert))
 
 			err := updatedConfig.Save()
@@ -208,7 +207,7 @@ var _ = Describe("FSConfig", func() {
 			Expect(reloadedConfig.CACert("alias")).To(Equal(validCACert))
 
 			updatedConfig = reloadedConfig.SetEnvironment("url", "alias", "")
-			Expect(updatedConfig.Environment()).To(Equal("url"))
+			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
 			Expect(updatedConfig.CACert("alias")).To(Equal(""))
 
 			err = updatedConfig.Save()
@@ -217,16 +216,6 @@ var _ = Describe("FSConfig", func() {
 			reloadedConfig = readConfig()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(reloadedConfig.CACert("alias")).To(Equal(""))
-		})
-
-		It("does not update existing config when environment is set", func() {
-			updatedConfig := config.SetEnvironment("url", "", "")
-			Expect(updatedConfig.Environment()).To(Equal("url"))
-
-			err := updatedConfig.Save()
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(config.Environment()).To(Equal(""))
 		})
 	})
 

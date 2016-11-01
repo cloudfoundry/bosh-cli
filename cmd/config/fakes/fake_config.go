@@ -8,12 +8,6 @@ import (
 )
 
 type FakeConfig struct {
-	EnvironmentStub        func() string
-	environmentMutex       sync.RWMutex
-	environmentArgsForCall []struct{}
-	environmentReturns     struct {
-		result1 string
-	}
 	EnvironmentsStub        func() []config.Environment
 	environmentsMutex       sync.RWMutex
 	environmentsArgsForCall []struct{}
@@ -77,30 +71,6 @@ type FakeConfig struct {
 	saveReturns     struct {
 		result1 error
 	}
-}
-
-func (fake *FakeConfig) Environment() string {
-	fake.environmentMutex.Lock()
-	fake.environmentArgsForCall = append(fake.environmentArgsForCall, struct{}{})
-	fake.environmentMutex.Unlock()
-	if fake.EnvironmentStub != nil {
-		return fake.EnvironmentStub()
-	} else {
-		return fake.environmentReturns.result1
-	}
-}
-
-func (fake *FakeConfig) EnvironmentCallCount() int {
-	fake.environmentMutex.RLock()
-	defer fake.environmentMutex.RUnlock()
-	return len(fake.environmentArgsForCall)
-}
-
-func (fake *FakeConfig) EnvironmentReturns(result1 string) {
-	fake.EnvironmentStub = nil
-	fake.environmentReturns = struct {
-		result1 string
-	}{result1}
 }
 
 func (fake *FakeConfig) Environments() []config.Environment {
