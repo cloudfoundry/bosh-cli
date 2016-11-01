@@ -71,23 +71,6 @@ type FakeConfig struct {
 	unsetCredentialsReturns struct {
 		result1 config.Config
 	}
-	DeploymentStub        func(url string) string
-	deploymentMutex       sync.RWMutex
-	deploymentArgsForCall []struct {
-		url string
-	}
-	deploymentReturns struct {
-		result1 string
-	}
-	SetDeploymentStub        func(url, nameOrPath string) config.Config
-	setDeploymentMutex       sync.RWMutex
-	setDeploymentArgsForCall []struct {
-		url        string
-		nameOrPath string
-	}
-	setDeploymentReturns struct {
-		result1 config.Config
-	}
 	SaveStub        func() error
 	saveMutex       sync.RWMutex
 	saveArgsForCall []struct{}
@@ -335,71 +318,6 @@ func (fake *FakeConfig) UnsetCredentialsArgsForCall(i int) string {
 func (fake *FakeConfig) UnsetCredentialsReturns(result1 config.Config) {
 	fake.UnsetCredentialsStub = nil
 	fake.unsetCredentialsReturns = struct {
-		result1 config.Config
-	}{result1}
-}
-
-func (fake *FakeConfig) Deployment(url string) string {
-	fake.deploymentMutex.Lock()
-	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct {
-		url string
-	}{url})
-	fake.deploymentMutex.Unlock()
-	if fake.DeploymentStub != nil {
-		return fake.DeploymentStub(url)
-	} else {
-		return fake.deploymentReturns.result1
-	}
-}
-
-func (fake *FakeConfig) DeploymentCallCount() int {
-	fake.deploymentMutex.RLock()
-	defer fake.deploymentMutex.RUnlock()
-	return len(fake.deploymentArgsForCall)
-}
-
-func (fake *FakeConfig) DeploymentArgsForCall(i int) string {
-	fake.deploymentMutex.RLock()
-	defer fake.deploymentMutex.RUnlock()
-	return fake.deploymentArgsForCall[i].url
-}
-
-func (fake *FakeConfig) DeploymentReturns(result1 string) {
-	fake.DeploymentStub = nil
-	fake.deploymentReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeConfig) SetDeployment(url string, nameOrPath string) config.Config {
-	fake.setDeploymentMutex.Lock()
-	fake.setDeploymentArgsForCall = append(fake.setDeploymentArgsForCall, struct {
-		url        string
-		nameOrPath string
-	}{url, nameOrPath})
-	fake.setDeploymentMutex.Unlock()
-	if fake.SetDeploymentStub != nil {
-		return fake.SetDeploymentStub(url, nameOrPath)
-	} else {
-		return fake.setDeploymentReturns.result1
-	}
-}
-
-func (fake *FakeConfig) SetDeploymentCallCount() int {
-	fake.setDeploymentMutex.RLock()
-	defer fake.setDeploymentMutex.RUnlock()
-	return len(fake.setDeploymentArgsForCall)
-}
-
-func (fake *FakeConfig) SetDeploymentArgsForCall(i int) (string, string) {
-	fake.setDeploymentMutex.RLock()
-	defer fake.setDeploymentMutex.RUnlock()
-	return fake.setDeploymentArgsForCall[i].url, fake.setDeploymentArgsForCall[i].nameOrPath
-}
-
-func (fake *FakeConfig) SetDeploymentReturns(result1 config.Config) {
-	fake.SetDeploymentStub = nil
-	fake.setDeploymentReturns = struct {
 		result1 config.Config
 	}{result1}
 }

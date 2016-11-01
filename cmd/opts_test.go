@@ -1037,20 +1037,6 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("DeploymentOpts", func() {
-		var opts *DeploymentOpts
-
-		BeforeEach(func() {
-			opts = &DeploymentOpts{}
-		})
-
-		Describe("Args", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
-			})
-		})
-	})
-
 	Describe("DeployOpts", func() {
 		var opts *DeployOpts
 
@@ -1140,38 +1126,6 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Force", opts)).To(Equal(
 					`long:"force" description:"Ignore errors"`,
-				))
-			})
-		})
-	})
-
-	Describe("DeploymentArgs", func() {
-		var opts *DeploymentArgs
-
-		BeforeEach(func() {
-			opts = &DeploymentArgs{}
-		})
-
-		Describe("NameOrPath", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("NameOrPath", opts)).To(Equal(
-					`positional-arg-name:"NAME"`,
-				))
-			})
-		})
-	})
-
-	Describe("DeploymentNameArgs", func() {
-		var opts *DeploymentNameArgs
-
-		BeforeEach(func() {
-			opts = &DeploymentNameArgs{}
-		})
-
-		Describe("Name", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Name", opts)).To(Equal(
-					`positional-arg-name:"NAME"`,
 				))
 			})
 		})

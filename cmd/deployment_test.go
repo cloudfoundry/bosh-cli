@@ -12,6 +12,7 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/fakes"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("DeploymentCmd", func() {
@@ -34,118 +35,56 @@ var _ = Describe("DeploymentCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			opts           DeploymentOpts
 			initialSession *fakecmd.FakeSession
-			updatedSession *fakecmd.FakeSession
-			updatedConfig  *fakecmdconf.FakeConfig
 			deployment     *fakedir.FakeDeployment
 		)
 
 		BeforeEach(func() {
-			opts = DeploymentOpts{}
-
 			initialSession = &fakecmd.FakeSession{}
 			sessions[config] = initialSession
 
 			initialSession.EnvironmentReturns("environment-url")
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run() }
 
-		Context("when deployment name/path arg is given", func() {
-			BeforeEach(func() {
-				opts.Args.NameOrPath = "deployment-name"
+		It("shows current deployment name when director finds deployment", func() {
+			deployment = &fakedir.FakeDeployment{
+				NameStub: func() string { return "deployment-name" },
+			}
+			initialSession.DeploymentReturns(deployment, nil)
 
-				updatedConfig = &fakecmdconf.FakeConfig{}
-				config.SetDeploymentReturns(updatedConfig)
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
 
-				updatedSession = &fakecmd.FakeSession{}
-				sessions[updatedConfig] = updatedSession
+			Expect(ui.Table).To(Equal(boshtbl.Table{
+				Content: "deployments",
 
-				deployment = &fakedir.FakeDeployment{
-					NameStub: func() string { return "deployment-name" },
-				}
-				updatedSession.DeploymentReturns(deployment, nil)
-			})
+				Header: []string{"Name", "Release(s)", "Stemcell(s)", "Cloud Config"},
 
-			Context("when deployment is successfully determined", func() {
-				It("saves config and sets current deployment", func() {
-					err := act()
-					Expect(err).ToNot(HaveOccurred())
+				SortBy: []boshtbl.ColumnSort{
+					{Column: 0, Asc: true},
+				},
 
-					Expect(config.SetDeploymentCallCount()).To(Equal(1))
-
-					environment, nameOrPath := config.SetDeploymentArgsForCall(0)
-					Expect(environment).To(Equal("environment-url"))
-					Expect(nameOrPath).To(Equal("deployment-name"))
-
-					Expect(updatedConfig.SaveCallCount()).To(Equal(1))
-
-					Expect(ui.Said).To(Equal([]string{"Deployment set to 'deployment-name'"}))
-				})
-			})
-
-			Context("when deployment cannot be determined", func() {
-				BeforeEach(func() {
-					updatedSession.DeploymentReturns(nil, errors.New("fake-err"))
-				})
-
-				It("returns an error and does not save config", func() {
-					err := act()
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-err"))
-
-					Expect(updatedConfig.SaveCallCount()).To(Equal(0))
-
-					Expect(ui.Said).To(BeEmpty())
-				})
-			})
-
-			Context("when saving config fails", func() {
-				BeforeEach(func() {
-					updatedConfig.SaveReturns(errors.New("fake-err"))
-				})
-
-				It("returns an error", func() {
-					err := act()
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-err"))
-
-					Expect(ui.Said).To(BeEmpty())
-				})
-			})
+				Rows: [][]boshtbl.Value{
+					{
+						boshtbl.NewValueString("deployment-name"),
+						boshtbl.NewValueStrings(nil),
+						boshtbl.NewValueStrings(nil),
+						boshtbl.NewValueString(""),
+					},
+				},
+			}))
 		})
 
-		Context("when no args are given", func() {
-			Context("when current deployment can be determined", func() {
-				BeforeEach(func() {
-					deployment = &fakedir.FakeDeployment{
-						NameStub: func() string { return "deployment-name" },
-					}
-					initialSession.DeploymentReturns(deployment, nil)
-				})
+		It("returns an error when director does not find deployment", func() {
+			initialSession.DeploymentReturns(nil, errors.New("fake-err"))
 
-				It("shows current deployment name", func() {
-					err := act()
-					Expect(err).ToNot(HaveOccurred())
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-					Expect(ui.Said).To(Equal([]string{"Current deployment is 'deployment-name'"}))
-				})
-			})
-
-			Context("when current deployment cannot be determined", func() {
-				BeforeEach(func() {
-					initialSession.DeploymentReturns(nil, errors.New("fake-err"))
-				})
-
-				It("returns an error", func() {
-					err := act()
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-err"))
-
-					Expect(ui.Said).To(BeEmpty())
-				})
-			})
+			Expect(ui.Tables).To(BeEmpty())
 		})
 	})
 })

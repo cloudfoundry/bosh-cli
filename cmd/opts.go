@@ -287,7 +287,6 @@ type UpdateRuntimeConfigArgs struct {
 
 // Deployments
 type DeploymentOpts struct {
-	Args DeploymentArgs `positional-args:"true"`
 	cmd
 }
 
@@ -326,14 +325,6 @@ type ManifestOpts struct {
 type DeleteDeploymentOpts struct {
 	Force bool `long:"force" description:"Ignore errors"`
 	cmd
-}
-
-type DeploymentArgs struct {
-	NameOrPath string `positional-arg-name:"NAME"`
-}
-
-type DeploymentNameArgs struct {
-	Name string `positional-arg-name:"NAME"`
 }
 
 // Events

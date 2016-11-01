@@ -355,61 +355,6 @@ var _ = Describe("FSConfig", func() {
 		})
 	})
 
-	Describe("SetDeployment/Deployment", func() {
-		It("returns empty if environment is not found", func() {
-			Expect(config.Deployment("url")).To(Equal(""))
-		})
-
-		It("returns empty if environment is found but deployment is not set", func() {
-			updatedConfig := config.SetEnvironment("url", "", "")
-			Expect(updatedConfig.Deployment("url")).To(Equal(""))
-
-			err := updatedConfig.Save()
-			Expect(err).ToNot(HaveOccurred())
-
-			reloadedConfig := readConfig()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(reloadedConfig.Deployment("url")).To(Equal(""))
-		})
-
-		It("returns deployment if environment is found and deployment is set", func() {
-			updatedConfig := config.SetEnvironment("url", "", "")
-			updatedConfig = config.SetDeployment("url", "deployment")
-			Expect(updatedConfig.Deployment("url")).To(Equal("deployment"))
-
-			err := updatedConfig.Save()
-			Expect(err).ToNot(HaveOccurred())
-
-			reloadedConfig := readConfig()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(reloadedConfig.Deployment("url")).To(Equal("deployment"))
-		})
-
-		It("returns deployment for alias if environment is found and deployment is set", func() {
-			updatedConfig := config.SetEnvironment("url", "alias", "")
-			updatedConfig = config.SetDeployment("alias", "deployment")
-			Expect(updatedConfig.Deployment("alias")).To(Equal("deployment"))
-
-			err := updatedConfig.Save()
-			Expect(err).ToNot(HaveOccurred())
-
-			reloadedConfig := readConfig()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(reloadedConfig.Deployment("alias")).To(Equal("deployment"))
-		})
-
-		It("does not update existing config when deployment is set", func() {
-			updatedConfig := config.SetEnvironment("url", "", "")
-			updatedConfig = config.SetDeployment("url", "deployment")
-			Expect(updatedConfig.Deployment("url")).To(Equal("deployment"))
-
-			err := updatedConfig.Save()
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(config.Deployment("url")).To(Equal(""))
-		})
-	})
-
 	Describe("Save", func() {
 		It("returns error if writing file fails", func() {
 			fs.WriteFileError = errors.New("fake-err")

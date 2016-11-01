@@ -69,11 +69,7 @@ func (c SessionContextImpl) CACert() string {
 }
 
 func (c SessionContextImpl) Deployment() string {
-	if len(c.opts.DeploymentOpt) > 0 {
-		return c.opts.DeploymentOpt
-	}
-
-	return c.config.Deployment(c.Environment())
+	return c.opts.DeploymentOpt
 }
 
 func (c SessionContextImpl) isFilePath(path string) bool {

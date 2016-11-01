@@ -21,14 +21,7 @@ func NewDeploymentCmd(
 	return DeploymentCmd{sessionFactory: sessionFactory, config: config, ui: ui}
 }
 
-func (c DeploymentCmd) Run(opts DeploymentOpts) error {
-	if len(opts.Args.NameOrPath) == 0 {
-		return c.show()
-	}
-	return c.set(opts)
-}
-
-func (c DeploymentCmd) show() error {
+func (c DeploymentCmd) Run() error {
 	sess := c.sessionFactory(c.config)
 
 	deployment, err := sess.Deployment()
@@ -36,33 +29,5 @@ func (c DeploymentCmd) show() error {
 		return err
 	}
 
-	c.ui.PrintLinef("Current deployment is '%s'", deployment.Name())
-
-	_ = DeploymentsTable{[]boshdir.Deployment{deployment}, c.ui}.Print()
-
-	return nil
-}
-
-func (c DeploymentCmd) set(opts DeploymentOpts) error {
-	sess := c.sessionFactory(c.config)
-
-	updatedConfig := c.config.SetDeployment(sess.Environment(), opts.Args.NameOrPath)
-
-	sess = c.sessionFactory(updatedConfig)
-
-	deployment, err := sess.Deployment()
-	if err != nil {
-		return err
-	}
-
-	err = updatedConfig.Save()
-	if err != nil {
-		return err
-	}
-
-	c.ui.PrintLinef("Deployment set to '%s'", deployment.Name())
-
-	_ = DeploymentsTable{[]boshdir.Deployment{deployment}, c.ui}.Print()
-
-	return nil
+	return DeploymentsTable{[]boshdir.Deployment{deployment}, c.ui}.Print()
 }

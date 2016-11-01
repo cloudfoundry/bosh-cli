@@ -14,9 +14,6 @@ type Config interface {
 	SetCredentials(url string, creds Creds) Config
 	UnsetCredentials(url string) Config
 
-	Deployment(url string) string
-	SetDeployment(url, nameOrPath string) Config
-
 	Save() error
 }
 

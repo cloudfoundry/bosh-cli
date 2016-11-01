@@ -13,7 +13,6 @@ current_environment: https://192.168.50.4:25555
 environments:
 - url: https://192.168.50.4:25555
   ca_cert: |...
-  current_deployment: test
   username: admin
   password: admin
 */
@@ -37,8 +36,6 @@ type fsConfigSchema_Environment struct {
 	CACert string `yaml:"ca_cert,omitempty"`
 
 	Alias string `yaml:"alias,omitempty"`
-
-	CurrentDeployment string `yaml:"current_deployment,omitempty"`
 
 	// Auth
 	Username     string `yaml:"username,omitempty"`
@@ -161,22 +158,6 @@ func (c FSConfig) UnsetCredentials(urlOrAlias string) Config {
 	tg.Username = ""
 	tg.Password = ""
 	tg.RefreshToken = ""
-	config.schema.Environments[i] = tg
-
-	return config
-}
-
-func (c FSConfig) Deployment(urlOrAlias string) string {
-	_, tg := c.findOrCreateEnvironment(urlOrAlias)
-
-	return tg.CurrentDeployment
-}
-
-func (c FSConfig) SetDeployment(urlOrAlias, nameOrPath string) Config {
-	config := c.deepCopy()
-
-	i, tg := config.findOrCreateEnvironment(urlOrAlias)
-	tg.CurrentDeployment = nameOrPath
 	config.schema.Environments[i] = tg
 
 	return config

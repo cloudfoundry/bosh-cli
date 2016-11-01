@@ -174,28 +174,12 @@ var _ = Describe("SessionContextImpl", func() {
 	})
 
 	Describe("Deployment", func() {
-		BeforeEach(func() {
-			opts.EnvironmentOpt = "opt-url"
-		})
-
 		It("returns global option if provided", func() {
-			config.DeploymentReturns("config-dep")
-
 			opts.DeploymentOpt = "opt-dep"
-
 			Expect(build().Deployment()).To(Equal("opt-dep"))
 		})
 
-		It("uses config value for current environment if no global option is provided", func() {
-			config.DeploymentStub = func(environment string) string {
-				Expect(environment).To(Equal("opt-url"))
-				return "config-dep"
-			}
-
-			Expect(build().Deployment()).To(Equal("config-dep"))
-		})
-
-		It("returns empty string if neither global option or config value is set", func() {
+		It("returns empty string if global option is not set", func() {
 			Expect(build().Deployment()).To(Equal(""))
 		})
 	})
