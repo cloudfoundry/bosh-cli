@@ -20,9 +20,11 @@ func (c RestartCmd) Run(opts RestartOpts) error {
 		return err
 	}
 
-	concurrencyOpts := boshdir.ConcurrencyOpts{
+	changeJobStateOpts := boshdir.ChangeJobStateOpts{
+		SkipDrain:   opts.SkipDrain,
+		Force:       opts.Force,
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,
 	}
-	return c.deployment.Restart(opts.Args.Slug, opts.SkipDrain, opts.Force, concurrencyOpts)
+	return c.deployment.Restart(opts.Args.Slug, changeJobStateOpts)
 }

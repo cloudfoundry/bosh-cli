@@ -46,10 +46,10 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			slug, sd, force, _ := deployment.RestartArgsForCall(0)
+			slug, changeJobStateOpts := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(sd).To(Equal(boshdir.SkipDrain{}))
-			Expect(force).To(BeFalse())
+			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(changeJobStateOpts.Force).To(BeFalse())
 		})
 
 		It("restarts allowing to skip drain scripts", func() {
@@ -60,10 +60,10 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			slug, sd, force, _ := deployment.RestartArgsForCall(0)
+			slug, changeJobStateOpts := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(sd).To(Equal(boshdir.SkipDrain{All: true}))
-			Expect(force).To(BeFalse())
+			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
+			Expect(changeJobStateOpts.Force).To(BeFalse())
 		})
 
 		It("can set canaries", func() {
@@ -74,8 +74,8 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			_, _, _, opts := deployment.RestartArgsForCall(0)
-			Expect(opts.Canaries).To(Equal("3"))
+			_, changeJobStateOpts := deployment.RestartArgsForCall(0)
+			Expect(changeJobStateOpts.Canaries).To(Equal("3"))
 		})
 
 		It("can set max_in_flight", func() {
@@ -86,8 +86,8 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			_, _, _, opts := deployment.RestartArgsForCall(0)
-			Expect(opts.MaxInFlight).To(Equal("5"))
+			_, changeJobStateOpts := deployment.RestartArgsForCall(0)
+			Expect(changeJobStateOpts.MaxInFlight).To(Equal("5"))
 		})
 
 		It("restarts forcefully", func() {
@@ -98,10 +98,10 @@ var _ = Describe("RestartCmd", func() {
 
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
-			slug, sd, force, _ := deployment.RestartArgsForCall(0)
+			slug, changeJobStateOpts := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(sd).To(Equal(boshdir.SkipDrain{}))
-			Expect(force).To(BeTrue())
+			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(changeJobStateOpts.Force).To(BeTrue())
 		})
 
 		It("does not restart if confirmation is rejected", func() {

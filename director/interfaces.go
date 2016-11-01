@@ -107,10 +107,10 @@ type Deployment interface {
 	DeleteVM(string) error
 
 	// Deployment, pool or instance specifics
-	Start(slug AllOrPoolOrInstanceSlug, opts ConcurrencyOpts) error
-	Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, opts ConcurrencyOpts) error
-	Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error
-	Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, dryRun bool, opts ConcurrencyOpts) error
+	Start(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error
+	Stop(slug AllOrPoolOrInstanceSlug, hard bool, opts ChangeJobStateOpts) error
+	Restart(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error
+	Recreate(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error
 
 	SetUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) (SSHResult, error)
 	CleanUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) error
@@ -124,7 +124,10 @@ type Deployment interface {
 	Delete(force bool) error
 }
 
-type ConcurrencyOpts struct {
+type ChangeJobStateOpts struct {
+	SkipDrain   SkipDrain
+	Force       bool
+	DryRun      bool
 	Canaries    string
 	MaxInFlight string
 }

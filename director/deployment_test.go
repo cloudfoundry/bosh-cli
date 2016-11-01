@@ -296,7 +296,7 @@ var _ = Describe("Deployment", func() {
 			sd     SkipDrain
 			force  bool
 			dryRun bool
-			opts   ConcurrencyOpts
+			opts   ChangeJobStateOpts
 		)
 
 		BeforeEach(func() {
@@ -304,15 +304,19 @@ var _ = Describe("Deployment", func() {
 			sd = SkipDrain{}
 			force = false
 			dryRun = false
-			opts = ConcurrencyOpts{}
+			opts = ChangeJobStateOpts{
+				SkipDrain: sd,
+				Force:     force,
+				DryRun:    dryRun,
+			}
 		})
 
 		states := map[string]func(Deployment) error{
 			"started":  func(d Deployment) error { return d.Start(slug, opts) },
-			"detached": func(d Deployment) error { return d.Stop(slug, true, sd, force, opts) },
-			"stopped":  func(d Deployment) error { return d.Stop(slug, false, sd, force, opts) },
-			"restart":  func(d Deployment) error { return d.Restart(slug, sd, force, opts) },
-			"recreate": func(d Deployment) error { return d.Recreate(slug, sd, force, dryRun, opts) },
+			"detached": func(d Deployment) error { return d.Stop(slug, true, opts) },
+			"stopped":  func(d Deployment) error { return d.Stop(slug, false, opts) },
+			"restart":  func(d Deployment) error { return d.Restart(slug, opts) },
+			"recreate": func(d Deployment) error { return d.Recreate(slug, opts) },
 		}
 
 		for state, stateFunc := range states {
@@ -381,7 +385,7 @@ var _ = Describe("Deployment", func() {
 					canaries := "50%"
 					maxInFlight := "6"
 
-					opts = ConcurrencyOpts{
+					opts = ChangeJobStateOpts{
 						Canaries:    canaries,
 						MaxInFlight: maxInFlight,
 					}
@@ -406,9 +410,11 @@ var _ = Describe("Deployment", func() {
 
 				if state == "recreate" {
 					It("changes state with dry run", func() {
-						dryRun = true
+						opts = ChangeJobStateOpts{
+							DryRun: true,
+						}
 
-						query := fmt.Sprintf("state=%s&dry_run=%t", state, dryRun)
+						query := fmt.Sprintf("state=%s&dry_run=%t", state, opts.DryRun)
 
 						ConfigureTaskResult(
 							ghttp.CombineHandlers(
@@ -429,8 +435,10 @@ var _ = Describe("Deployment", func() {
 				if state != "started" {
 					It("changes state with skipping drain and forcing", func() {
 						slug = NewAllOrPoolOrInstanceSlug("", "")
-						sd = SkipDrain{All: true}
-						force = true
+						opts = ChangeJobStateOpts{
+							SkipDrain: SkipDrain{All: true},
+							Force:     true,
+						}
 
 						query := fmt.Sprintf("state=%s&skip_drain=*&force=true", state)
 

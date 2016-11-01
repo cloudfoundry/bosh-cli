@@ -143,46 +143,39 @@ type FakeDeployment struct {
 	deleteVMReturns struct {
 		result1 error
 	}
-	StartStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.ConcurrencyOpts) error
+	StartStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.ChangeJobStateOpts) error
 	startMutex       sync.RWMutex
 	startArgsForCall []struct {
 		slug director.AllOrPoolOrInstanceSlug
-		opts director.ConcurrencyOpts
+		opts director.ChangeJobStateOpts
 	}
 	startReturns struct {
 		result1 error
 	}
-	StopStub        func(slug director.AllOrPoolOrInstanceSlug, hard bool, sd director.SkipDrain, force bool, opts director.ConcurrencyOpts) error
+	StopStub        func(slug director.AllOrPoolOrInstanceSlug, hard bool, opts director.ChangeJobStateOpts) error
 	stopMutex       sync.RWMutex
 	stopArgsForCall []struct {
-		slug  director.AllOrPoolOrInstanceSlug
-		hard  bool
-		sd    director.SkipDrain
-		force bool
-		opts  director.ConcurrencyOpts
+		slug director.AllOrPoolOrInstanceSlug
+		hard bool
+		opts director.ChangeJobStateOpts
 	}
 	stopReturns struct {
 		result1 error
 	}
-	RestartStub        func(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, opts director.ConcurrencyOpts) error
+	RestartStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.ChangeJobStateOpts) error
 	restartMutex       sync.RWMutex
 	restartArgsForCall []struct {
-		slug  director.AllOrPoolOrInstanceSlug
-		sd    director.SkipDrain
-		force bool
-		opts  director.ConcurrencyOpts
+		slug director.AllOrPoolOrInstanceSlug
+		opts director.ChangeJobStateOpts
 	}
 	restartReturns struct {
 		result1 error
 	}
-	RecreateStub        func(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, dryRun bool, opts director.ConcurrencyOpts) error
+	RecreateStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.ChangeJobStateOpts) error
 	recreateMutex       sync.RWMutex
 	recreateArgsForCall []struct {
-		slug   director.AllOrPoolOrInstanceSlug
-		sd     director.SkipDrain
-		force  bool
-		dryRun bool
-		opts   director.ConcurrencyOpts
+		slug director.AllOrPoolOrInstanceSlug
+		opts director.ChangeJobStateOpts
 	}
 	recreateReturns struct {
 		result1 error
@@ -748,11 +741,11 @@ func (fake *FakeDeployment) DeleteVMReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Start(slug director.AllOrPoolOrInstanceSlug, opts director.ConcurrencyOpts) error {
+func (fake *FakeDeployment) Start(slug director.AllOrPoolOrInstanceSlug, opts director.ChangeJobStateOpts) error {
 	fake.startMutex.Lock()
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
 		slug director.AllOrPoolOrInstanceSlug
-		opts director.ConcurrencyOpts
+		opts director.ChangeJobStateOpts
 	}{slug, opts})
 	fake.startMutex.Unlock()
 	if fake.StartStub != nil {
@@ -768,7 +761,7 @@ func (fake *FakeDeployment) StartCallCount() int {
 	return len(fake.startArgsForCall)
 }
 
-func (fake *FakeDeployment) StartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.ConcurrencyOpts) {
+func (fake *FakeDeployment) StartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.ChangeJobStateOpts) {
 	fake.startMutex.RLock()
 	defer fake.startMutex.RUnlock()
 	return fake.startArgsForCall[i].slug, fake.startArgsForCall[i].opts
@@ -781,18 +774,16 @@ func (fake *FakeDeployment) StartReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Stop(slug director.AllOrPoolOrInstanceSlug, hard bool, sd director.SkipDrain, force bool, opts director.ConcurrencyOpts) error {
+func (fake *FakeDeployment) Stop(slug director.AllOrPoolOrInstanceSlug, hard bool, opts director.ChangeJobStateOpts) error {
 	fake.stopMutex.Lock()
 	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
-		slug  director.AllOrPoolOrInstanceSlug
-		hard  bool
-		sd    director.SkipDrain
-		force bool
-		opts  director.ConcurrencyOpts
-	}{slug, hard, sd, force, opts})
+		slug director.AllOrPoolOrInstanceSlug
+		hard bool
+		opts director.ChangeJobStateOpts
+	}{slug, hard, opts})
 	fake.stopMutex.Unlock()
 	if fake.StopStub != nil {
-		return fake.StopStub(slug, hard, sd, force, opts)
+		return fake.StopStub(slug, hard, opts)
 	} else {
 		return fake.stopReturns.result1
 	}
@@ -804,10 +795,10 @@ func (fake *FakeDeployment) StopCallCount() int {
 	return len(fake.stopArgsForCall)
 }
 
-func (fake *FakeDeployment) StopArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, bool, director.SkipDrain, bool, director.ConcurrencyOpts) {
+func (fake *FakeDeployment) StopArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, bool, director.ChangeJobStateOpts) {
 	fake.stopMutex.RLock()
 	defer fake.stopMutex.RUnlock()
-	return fake.stopArgsForCall[i].slug, fake.stopArgsForCall[i].hard, fake.stopArgsForCall[i].sd, fake.stopArgsForCall[i].force, fake.stopArgsForCall[i].opts
+	return fake.stopArgsForCall[i].slug, fake.stopArgsForCall[i].hard, fake.stopArgsForCall[i].opts
 }
 
 func (fake *FakeDeployment) StopReturns(result1 error) {
@@ -817,17 +808,15 @@ func (fake *FakeDeployment) StopReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Restart(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, opts director.ConcurrencyOpts) error {
+func (fake *FakeDeployment) Restart(slug director.AllOrPoolOrInstanceSlug, opts director.ChangeJobStateOpts) error {
 	fake.restartMutex.Lock()
 	fake.restartArgsForCall = append(fake.restartArgsForCall, struct {
-		slug  director.AllOrPoolOrInstanceSlug
-		sd    director.SkipDrain
-		force bool
-		opts  director.ConcurrencyOpts
-	}{slug, sd, force, opts})
+		slug director.AllOrPoolOrInstanceSlug
+		opts director.ChangeJobStateOpts
+	}{slug, opts})
 	fake.restartMutex.Unlock()
 	if fake.RestartStub != nil {
-		return fake.RestartStub(slug, sd, force, opts)
+		return fake.RestartStub(slug, opts)
 	} else {
 		return fake.restartReturns.result1
 	}
@@ -839,10 +828,10 @@ func (fake *FakeDeployment) RestartCallCount() int {
 	return len(fake.restartArgsForCall)
 }
 
-func (fake *FakeDeployment) RestartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.SkipDrain, bool, director.ConcurrencyOpts) {
+func (fake *FakeDeployment) RestartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.ChangeJobStateOpts) {
 	fake.restartMutex.RLock()
 	defer fake.restartMutex.RUnlock()
-	return fake.restartArgsForCall[i].slug, fake.restartArgsForCall[i].sd, fake.restartArgsForCall[i].force, fake.restartArgsForCall[i].opts
+	return fake.restartArgsForCall[i].slug, fake.restartArgsForCall[i].opts
 }
 
 func (fake *FakeDeployment) RestartReturns(result1 error) {
@@ -852,18 +841,15 @@ func (fake *FakeDeployment) RestartReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Recreate(slug director.AllOrPoolOrInstanceSlug, sd director.SkipDrain, force bool, dryRun bool, opts director.ConcurrencyOpts) error {
+func (fake *FakeDeployment) Recreate(slug director.AllOrPoolOrInstanceSlug, opts director.ChangeJobStateOpts) error {
 	fake.recreateMutex.Lock()
 	fake.recreateArgsForCall = append(fake.recreateArgsForCall, struct {
-		slug   director.AllOrPoolOrInstanceSlug
-		sd     director.SkipDrain
-		force  bool
-		dryRun bool
-		opts   director.ConcurrencyOpts
-	}{slug, sd, force, dryRun, opts})
+		slug director.AllOrPoolOrInstanceSlug
+		opts director.ChangeJobStateOpts
+	}{slug, opts})
 	fake.recreateMutex.Unlock()
 	if fake.RecreateStub != nil {
-		return fake.RecreateStub(slug, sd, force, dryRun, opts)
+		return fake.RecreateStub(slug, opts)
 	} else {
 		return fake.recreateReturns.result1
 	}
@@ -875,10 +861,10 @@ func (fake *FakeDeployment) RecreateCallCount() int {
 	return len(fake.recreateArgsForCall)
 }
 
-func (fake *FakeDeployment) RecreateArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.SkipDrain, bool, bool, director.ConcurrencyOpts) {
+func (fake *FakeDeployment) RecreateArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.ChangeJobStateOpts) {
 	fake.recreateMutex.RLock()
 	defer fake.recreateMutex.RUnlock()
-	return fake.recreateArgsForCall[i].slug, fake.recreateArgsForCall[i].sd, fake.recreateArgsForCall[i].force, fake.recreateArgsForCall[i].dryRun, fake.recreateArgsForCall[i].opts
+	return fake.recreateArgsForCall[i].slug, fake.recreateArgsForCall[i].opts
 }
 
 func (fake *FakeDeployment) RecreateReturns(result1 error) {

@@ -120,28 +120,28 @@ func (d DeploymentImpl) EnableResurrection(slug InstanceSlug, enabled bool) erro
 	return d.client.EnableResurrection(d.name, slug.Name(), slug.IndexOrID(), enabled)
 }
 
-func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, opts ConcurrencyOpts) error {
-	return d.changeJobState("started", slug, SkipDrain{}, false, false, opts.Canaries, opts.MaxInFlight)
+func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error {
+	return d.changeJobState("started", slug, opts)
 }
 
-func (d DeploymentImpl) Stop(slug AllOrPoolOrInstanceSlug, hard bool, sd SkipDrain, force bool, opts ConcurrencyOpts) error {
+func (d DeploymentImpl) Stop(slug AllOrPoolOrInstanceSlug, hard bool, opts ChangeJobStateOpts) error {
 	if hard {
-		return d.changeJobState("detached", slug, sd, force, false, opts.Canaries, opts.MaxInFlight)
+		return d.changeJobState("detached", slug, opts)
 	}
-	return d.changeJobState("stopped", slug, sd, force, false, opts.Canaries, opts.MaxInFlight)
+	return d.changeJobState("stopped", slug, opts)
 }
 
-func (d DeploymentImpl) Restart(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, opts ConcurrencyOpts) error {
-	return d.changeJobState("restart", slug, sd, force, false, opts.Canaries, opts.MaxInFlight)
+func (d DeploymentImpl) Restart(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error {
+	return d.changeJobState("restart", slug, opts)
 }
 
-func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, dryRun bool, opts ConcurrencyOpts) error {
-	return d.changeJobState("recreate", slug, sd, force, dryRun, opts.Canaries, opts.MaxInFlight)
+func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error {
+	return d.changeJobState("recreate", slug, opts)
 }
 
-func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, dryRun bool, canaries string, maxInFlight string) error {
+func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error {
 	return d.client.ChangeJobState(
-		state, d.name, slug.Name(), slug.IndexOrID(), sd, force, dryRun, canaries, maxInFlight)
+		state, d.name, slug.Name(), slug.IndexOrID(), opts.SkipDrain, opts.Force, opts.DryRun, opts.Canaries, opts.MaxInFlight)
 }
 
 func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug) (ExportReleaseResult, error) {
