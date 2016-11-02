@@ -71,29 +71,28 @@ var _ = Describe("Director", func() {
 
 			problems, err := deployment.ScanForProblems()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(problems).To(Equal([]Problem{
-				{
-					ID: 4,
+			Expect(len(problems)).To(Equal(2))
 
-					Type:        "unresponsive_agent",
-					Description: "desc1",
+			problem0 := problems[0]
 
-					Resolutions: []ProblemResolution{
-						{Name: "Skip for now", Plan: "ignore"},
-						{Name: "Reboot VM", Plan: "reboot_vm"},
-					},
-				},
-				{
-					ID: 5,
+			Expect(problem0.ID).To(Equal(4))
+			Expect(problem0.Type).To(Equal("unresponsive_agent"))
+			Expect(problem0.Description).To(Equal("desc1"))
+			problem0Resolutions := problem0.Resolutions
+			Expect(len(problem0Resolutions)).To(Equal(2))
+			Expect(*problem0Resolutions[0].Name).To(Equal("Skip for now"))
+			Expect(problem0Resolutions[0].Plan).To(Equal("ignore"))
+			Expect(*problem0Resolutions[1].Name).To(Equal("Reboot VM"))
+			Expect(problem0Resolutions[1].Plan).To(Equal("reboot_vm"))
 
-					Type:        "unresponsive_agent",
-					Description: "desc2",
-
-					Resolutions: []ProblemResolution{
-						{Name: "Skip for now", Plan: "ignore"},
-					},
-				},
-			}))
+			problem1 := problems[1]
+			Expect(problem1.ID).To(Equal(5))
+			Expect(problem1.Type).To(Equal("unresponsive_agent"))
+			Expect(problem1.Description).To(Equal("desc2"))
+			problem1Resolutions := problem1.Resolutions
+			Expect(len(problem1Resolutions)).To(Equal(1))
+			Expect(*problem1Resolutions[0].Name).To(Equal("Skip for now"))
+			Expect(problem1Resolutions[0].Plan).To(Equal("ignore"))
 		})
 
 		It("returns error if response is non-200", func() {
@@ -156,7 +155,7 @@ var _ = Describe("Director", func() {
 	Describe("ProblemResolutionDefault", func() {
 		It("provides default resolution", func() {
 			Expect(ProblemResolutionDefault).To(Equal(ProblemResolution{
-				Name: "apply default resolution",
+				Name: nil,
 			}))
 		})
 	})
@@ -176,9 +175,11 @@ var _ = Describe("Director", func() {
 				server,
 			)
 
+			resolutionName1 := "res1-name"
+			resolutionName2 := "res2-name"
 			answers := []ProblemAnswer{
-				{ProblemID: 4, Resolution: ProblemResolution{Name: "res1-name"}},
-				{ProblemID: 5, Resolution: ProblemResolution{Name: "res2-name"}},
+				{ProblemID: 4, Resolution: ProblemResolution{Name: &resolutionName1}},
+				{ProblemID: 5, Resolution: ProblemResolution{Name: &resolutionName2}},
 			}
 
 			err := deployment.ResolveProblems(answers)

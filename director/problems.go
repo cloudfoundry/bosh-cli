@@ -19,13 +19,11 @@ type Problem struct {
 	Resolutions []ProblemResolution
 }
 
-var ProblemResolutionDefault ProblemResolution = ProblemResolution{
-	Name: "apply default resolution",
-}
+var ProblemResolutionDefault ProblemResolution = ProblemResolution{}
 
 type ProblemResolution struct {
-	Name string `json:"name"` // e.g. "Skip for now", "Recreate VM"
-	Plan string `json:"plan"` // e.g. "ignore", "reboot_vm"
+	Name *string `json:"name"` // e.g. "Skip for now", "Recreate VM"
+	Plan string  `json:"plan"` // e.g. "ignore", "reboot_vm"
 }
 
 type ProblemAnswer struct {
@@ -91,8 +89,8 @@ func (c Client) ResolveProblems(deploymentName string, answers []ProblemAnswer) 
 
 	path := fmt.Sprintf("/deployments/%s/problems", deploymentName)
 
-	body := map[string]map[string]string{
-		"resolutions": map[string]string{},
+	body := map[string]map[string]*string{
+		"resolutions": map[string]*string{},
 	}
 
 	for _, ans := range answers {

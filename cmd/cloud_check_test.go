@@ -14,6 +14,9 @@ import (
 )
 
 var _ = Describe("CloudCheckCmd", func() {
+	skipResolutionName := "Skip for now"
+	recreateResolutionName := "Recreate VM"
+	rebootResolutionName := "Reboot VM"
 	var (
 		deployment *fakedir.FakeDeployment
 		ui         *fakeui.FakeUI
@@ -43,8 +46,8 @@ var _ = Describe("CloudCheckCmd", func() {
 					Description: "problem1-desc",
 
 					Resolutions: []boshdir.ProblemResolution{
-						{Name: "Skip for now", Plan: "ignore"},
-						{Name: "Recreate VM", Plan: "recreate_vm"},
+						{Name: &skipResolutionName, Plan: "ignore"},
+						{Name: &recreateResolutionName, Plan: "recreate_vm"},
 					},
 				},
 				{
@@ -54,9 +57,9 @@ var _ = Describe("CloudCheckCmd", func() {
 					Description: "problem2-desc",
 
 					Resolutions: []boshdir.ProblemResolution{
-						{Name: "Skip for now", Plan: "ignore"},
-						{Name: "Recreate VM", Plan: "recreate_vm"},
-						{Name: "Reboot VM", Plan: "reboot_vm"},
+						{Name: &skipResolutionName, Plan: "ignore"},
+						{Name: &recreateResolutionName, Plan: "recreate_vm"},
+						{Name: &rebootResolutionName, Plan: "reboot_vm"},
 					},
 				},
 			}
@@ -108,22 +111,19 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.AskedChoiceCalled).To(BeTrue())
 
 						Expect(deployment.ResolveProblemsCallCount()).To(Equal(1))
-						Expect(deployment.ResolveProblemsArgsForCall(0)).To(Equal([]boshdir.ProblemAnswer{
-							{
-								ProblemID: 3,
-								Resolution: boshdir.ProblemResolution{
-									Name: "Recreate VM",
-									Plan: "recreate_vm",
-								},
-							},
-							{
-								ProblemID: 4,
-								Resolution: boshdir.ProblemResolution{
-									Name: "Reboot VM",
-									Plan: "reboot_vm",
-								},
-							},
-						}))
+
+						problemAnswers := deployment.ResolveProblemsArgsForCall(0)
+						Expect(len(problemAnswers)).To(Equal(2))
+
+						problemAnswer0 := problemAnswers[0]
+						Expect(problemAnswer0.ProblemID).To(Equal(3))
+						Expect(*problemAnswer0.Resolution.Name).To(Equal("Recreate VM"))
+						Expect(problemAnswer0.Resolution.Plan).To(Equal("recreate_vm"))
+
+						problemAnswer1 := problemAnswers[1]
+						Expect(problemAnswer1.ProblemID).To(Equal(4))
+						Expect(*problemAnswer1.Resolution.Name).To(Equal("Reboot VM"))
+						Expect(problemAnswer1.Resolution.Plan).To(Equal("reboot_vm"))
 					})
 
 					It("does not resolve problems if confirmation is rejected", func() {
@@ -310,7 +310,7 @@ var _ = Describe("CloudCheckCmd", func() {
 						Data: nil,
 						Resolutions: []boshdir.ProblemResolution{
 							{
-								Name: "Skip for now",
+								Name: &skipResolutionName,
 								Plan: "ignore",
 							},
 						},
@@ -324,7 +324,7 @@ var _ = Describe("CloudCheckCmd", func() {
 						Data: nil,
 						Resolutions: []boshdir.ProblemResolution{
 							{
-								Name: "Recreate VM",
+								Name: &recreateResolutionName,
 								Plan: "recreate_vm",
 							},
 						},
