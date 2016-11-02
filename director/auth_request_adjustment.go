@@ -1,8 +1,9 @@
 package director
 
 import (
+	"encoding/base64"
+	"fmt"
 	"net/http"
-	"net/url"
 )
 
 type RedirectFunc func(*http.Request, []*http.Request) error
@@ -31,7 +32,10 @@ func (a AuthRequestAdjustment) NeedsReadjustment(resp *http.Response) bool {
 
 func (a AuthRequestAdjustment) Adjust(req *http.Request, retried bool) error {
 	if len(a.username) > 0 {
-		req.URL.User = url.UserPassword(a.username, a.password)
+		data := []byte(fmt.Sprintf("%s:%s", a.username, a.password))
+		encodedBasicAuth := base64.StdEncoding.EncodeToString(data)
+
+		req.Header.Set("Authorization", fmt.Sprintf("Basic %s", encodedBasicAuth))
 	} else if a.authFunc != nil {
 		authHeader, err := a.authFunc(retried)
 		if err != nil {

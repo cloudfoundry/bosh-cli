@@ -61,14 +61,14 @@ var _ = Describe("AuthRequestAdjustment", func() {
 				password = "password"
 			})
 
-			It("sets basic auth with username/password", func() {
+			It("sets the Authorization header", func() {
 				Expect(adjustment.Adjust(req, false)).ToNot(HaveOccurred())
-				Expect(req.URL.User.String()).To(Equal("username:password"))
+				Expect(req.Header.Get("Authorization")).To(Equal("Basic dXNlcm5hbWU6cGFzc3dvcmQ="))
 			})
 
-			It("does not set Authorization header", func() {
+			It("does not set Userinfo on the URL", func() {
 				Expect(adjustment.Adjust(req, false)).ToNot(HaveOccurred())
-				Expect(req.Header.Get("Authorization")).To(BeEmpty())
+				Expect(req.URL.User).To(BeNil())
 			})
 		})
 
@@ -83,14 +83,14 @@ var _ = Describe("AuthRequestAdjustment", func() {
 				}
 			})
 
-			It("sets basic auth with username/password", func() {
+			It("sets the Authorization header", func() {
 				Expect(adjustment.Adjust(req, false)).ToNot(HaveOccurred())
-				Expect(req.URL.User.String()).To(Equal("username:password"))
+				Expect(req.Header.Get("Authorization")).To(Equal("Basic dXNlcm5hbWU6cGFzc3dvcmQ="))
 			})
 
-			It("does not set Authorization header", func() {
+			It("does not set Userinfo on the URL", func() {
 				Expect(adjustment.Adjust(req, false)).ToNot(HaveOccurred())
-				Expect(req.Header.Get("Authorization")).To(BeEmpty())
+				Expect(req.URL.User).To(BeNil())
 			})
 
 			It("does not call auth func", func() {
