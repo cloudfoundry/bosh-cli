@@ -647,11 +647,11 @@ type SCPArgs struct {
 }
 
 type GatewayFlags struct {
-	Disable bool `long:"gw-disable" description:"Disable usage of gateway connection"`
+	Disable bool `long:"gw-disable" description:"Disable usage of gateway connection" env:"BOSH_GW_DISABLE"`
 
-	Username       string `long:"gw-user"        description:"Username for gateway connection"`
-	Host           string `long:"gw-host"        description:"Host for gateway connection"`
-	PrivateKeyPath string `long:"gw-private-key" description:"Private key path for gateway connection"` // todo private file?
+	Username       string `long:"gw-user"        description:"Username for gateway connection" env:"BOSH_GW_USER"`
+	Host           string `long:"gw-host"        description:"Host for gateway connection" env:"BOSH_GW_HOST"`
+	PrivateKeyPath string `long:"gw-private-key" description:"Private key path for gateway connection" env:"BOSH_GW_PRIVATE_KEY"` // todo private file?
 }
 
 // Release creation

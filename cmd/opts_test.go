@@ -2107,7 +2107,7 @@ var _ = Describe("Opts", func() {
 		Describe("Disable", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Disable", opts)).To(Equal(
-					`long:"gw-disable" description:"Disable usage of gateway connection"`,
+					`long:"gw-disable" description:"Disable usage of gateway connection" env:"BOSH_GW_DISABLE"`,
 				))
 			})
 		})
@@ -2115,7 +2115,7 @@ var _ = Describe("Opts", func() {
 		Describe("Username", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Username", opts)).To(Equal(
-					`long:"gw-user" description:"Username for gateway connection"`,
+					`long:"gw-user" description:"Username for gateway connection" env:"BOSH_GW_USER"`,
 				))
 			})
 		})
@@ -2123,7 +2123,7 @@ var _ = Describe("Opts", func() {
 		Describe("Host", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Host", opts)).To(Equal(
-					`long:"gw-host" description:"Host for gateway connection"`,
+					`long:"gw-host" description:"Host for gateway connection" env:"BOSH_GW_HOST"`,
 				))
 			})
 		})
@@ -2131,7 +2131,7 @@ var _ = Describe("Opts", func() {
 		Describe("PrivateKeyPath", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("PrivateKeyPath", opts)).To(Equal(
-					`long:"gw-private-key" description:"Private key path for gateway connection"`,
+					`long:"gw-private-key" description:"Private key path for gateway connection" env:"BOSH_GW_PRIVATE_KEY"`,
 				))
 			})
 		})
