@@ -20,11 +20,12 @@ func (c StopCmd) Run(opts StopOpts) error {
 		return err
 	}
 
-	changeJobStateOpts := boshdir.ChangeJobStateOpts{
+	stopOpts := boshdir.StopOpts{
 		SkipDrain:   opts.SkipDrain,
 		Force:       opts.Force,
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,
+		Hard:        opts.Hard,
 	}
-	return c.deployment.Stop(opts.Args.Slug, opts.Hard, changeJobStateOpts)
+	return c.deployment.Stop(opts.Args.Slug, stopOpts)
 }

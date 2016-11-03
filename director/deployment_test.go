@@ -292,11 +292,15 @@ var _ = Describe("Deployment", func() {
 
 	Describe("job states", func() {
 		var (
-			slug   AllOrPoolOrInstanceSlug
-			sd     SkipDrain
-			force  bool
-			dryRun bool
-			opts   ChangeJobStateOpts
+			slug         AllOrPoolOrInstanceSlug
+			sd           SkipDrain
+			force        bool
+			dryRun       bool
+			startOpts    StartOpts
+			stopOpts     StopOpts
+			detachedOpts StopOpts
+			restartOpts  RestartOpts
+			recreateOpts RecreateOpts
 		)
 
 		BeforeEach(func() {
@@ -304,19 +308,27 @@ var _ = Describe("Deployment", func() {
 			sd = SkipDrain{}
 			force = false
 			dryRun = false
-			opts = ChangeJobStateOpts{
+
+			startOpts = StartOpts{}
+			stopOpts = StopOpts{
 				SkipDrain: sd,
 				Force:     force,
-				DryRun:    dryRun,
 			}
+			detachedOpts = StopOpts{
+				Hard:      true,
+				SkipDrain: sd,
+				Force:     force,
+			}
+			restartOpts = RestartOpts{}
+			recreateOpts = RecreateOpts{}
 		})
 
 		states := map[string]func(Deployment) error{
-			"started":  func(d Deployment) error { return d.Start(slug, opts) },
-			"detached": func(d Deployment) error { return d.Stop(slug, true, opts) },
-			"stopped":  func(d Deployment) error { return d.Stop(slug, false, opts) },
-			"restart":  func(d Deployment) error { return d.Restart(slug, opts) },
-			"recreate": func(d Deployment) error { return d.Recreate(slug, opts) },
+			"started":  func(d Deployment) error { return d.Start(slug, startOpts) },
+			"detached": func(d Deployment) error { return d.Stop(slug, detachedOpts) },
+			"stopped":  func(d Deployment) error { return d.Stop(slug, stopOpts) },
+			"restart":  func(d Deployment) error { return d.Restart(slug, restartOpts) },
+			"recreate": func(d Deployment) error { return d.Recreate(slug, recreateOpts) },
 		}
 
 		for state, stateFunc := range states {
@@ -339,8 +351,8 @@ var _ = Describe("Deployment", func() {
 						``,
 						server,
 					)
-
-					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+					err := stateFunc(deployment)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("changes state for the whole deployment", func() {
@@ -358,8 +370,8 @@ var _ = Describe("Deployment", func() {
 						``,
 						server,
 					)
-
-					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+					err := stateFunc(deployment)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("changes state for all indicies of a job", func() {
@@ -377,17 +389,30 @@ var _ = Describe("Deployment", func() {
 						``,
 						server,
 					)
-
-					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+					err := stateFunc(deployment)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("changes state with canaries and max_in_flight set", func() {
 					canaries := "50%"
 					maxInFlight := "6"
 
-					opts = ChangeJobStateOpts{
-						Canaries:    canaries,
-						MaxInFlight: maxInFlight,
+					switch state {
+					case "started":
+						startOpts.Canaries = canaries
+						startOpts.MaxInFlight = maxInFlight
+					case "recreate":
+						recreateOpts.Canaries = canaries
+						recreateOpts.MaxInFlight = maxInFlight
+					case "stopped":
+						stopOpts.Canaries = canaries
+						stopOpts.MaxInFlight = maxInFlight
+					case "detached":
+						detachedOpts.Canaries = canaries
+						detachedOpts.MaxInFlight = maxInFlight
+					case "restart":
+						restartOpts.Canaries = canaries
+						restartOpts.MaxInFlight = maxInFlight
 					}
 
 					query := fmt.Sprintf("state=%s&canaries=%s&max_in_flight=6", state, url.QueryEscape(canaries))
@@ -404,17 +429,15 @@ var _ = Describe("Deployment", func() {
 						``,
 						server,
 					)
-
-					Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+					err := stateFunc(deployment)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				if state == "recreate" {
 					It("changes state with dry run", func() {
-						opts = ChangeJobStateOpts{
-							DryRun: true,
-						}
+						recreateOpts.DryRun = true
 
-						query := fmt.Sprintf("state=%s&dry_run=%t", state, opts.DryRun)
+						query := fmt.Sprintf("state=%s&dry_run=%t", state, recreateOpts.DryRun)
 
 						ConfigureTaskResult(
 							ghttp.CombineHandlers(
@@ -428,16 +451,29 @@ var _ = Describe("Deployment", func() {
 							``,
 							server,
 						)
-
-						Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+						err := stateFunc(deployment)
+						Expect(err).ToNot(HaveOccurred())
 					})
 				}
 				if state != "started" {
 					It("changes state with skipping drain and forcing", func() {
 						slug = NewAllOrPoolOrInstanceSlug("", "")
-						opts = ChangeJobStateOpts{
-							SkipDrain: SkipDrain{All: true},
-							Force:     true,
+						sd = SkipDrain{All: true}
+						force = true
+
+						switch state {
+						case "recreate":
+							recreateOpts.SkipDrain = sd
+							recreateOpts.Force = force
+						case "stopped":
+							stopOpts.SkipDrain = sd
+							stopOpts.Force = force
+						case "detached":
+							detachedOpts.SkipDrain = sd
+							detachedOpts.Force = force
+						case "restart":
+							restartOpts.SkipDrain = sd
+							restartOpts.Force = force
 						}
 
 						query := fmt.Sprintf("state=%s&skip_drain=*&force=true", state)
@@ -454,8 +490,8 @@ var _ = Describe("Deployment", func() {
 							``,
 							server,
 						)
-
-						Expect(stateFunc(deployment)).ToNot(HaveOccurred())
+						err := stateFunc(deployment)
+						Expect(err).ToNot(HaveOccurred())
 					})
 				}
 

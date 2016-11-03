@@ -20,9 +20,9 @@ func (c StartCmd) Run(opts StartOpts) error {
 		return err
 	}
 
-	changeJobStateOpts := boshdir.ChangeJobStateOpts{
+	startOpts := boshdir.StartOpts{
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,
 	}
-	return c.deployment.Start(opts.Args.Slug, changeJobStateOpts)
+	return c.deployment.Start(opts.Args.Slug, startOpts)
 }

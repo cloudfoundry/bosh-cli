@@ -46,11 +46,11 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, changeJobStateOpts := deployment.StopArgsForCall(0)
+			slug, stopOpts := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(hard).To(BeFalse())
-			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
-			Expect(changeJobStateOpts.Force).To(BeFalse())
+			Expect(stopOpts.Hard).To(BeFalse())
+			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(stopOpts.Force).To(BeFalse())
 		})
 
 		It("stops allowing to detach vms", func() {
@@ -61,11 +61,11 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, changeJobStateOpts := deployment.StopArgsForCall(0)
+			slug, stopOpts := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(hard).To(BeTrue())
-			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
-			Expect(changeJobStateOpts.Force).To(BeFalse())
+			Expect(stopOpts.Hard).To(BeTrue())
+			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(stopOpts.Force).To(BeFalse())
 		})
 
 		It("stops allowing to skip drain scripts", func() {
@@ -76,11 +76,11 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, changeJobStateOpts := deployment.StopArgsForCall(0)
+			slug, stopOpts := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(hard).To(BeFalse())
-			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
-			Expect(changeJobStateOpts.Force).To(BeFalse())
+			Expect(stopOpts.Hard).To(BeFalse())
+			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
+			Expect(stopOpts.Force).To(BeFalse())
 		})
 
 		It("stops forcefully", func() {
@@ -91,11 +91,11 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			slug, hard, changeJobStateOpts := deployment.StopArgsForCall(0)
+			slug, stopOpts := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(hard).To(BeFalse())
-			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
-			Expect(changeJobStateOpts.Force).To(BeTrue())
+			Expect(stopOpts.Hard).To(BeFalse())
+			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(stopOpts.Force).To(BeTrue())
 		})
 
 		It("does not stop if confirmation is rejected", func() {
@@ -124,8 +124,8 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			_, _, changeJobStateOpts := deployment.StopArgsForCall(0)
-			Expect(changeJobStateOpts.Canaries).To(Equal("30%"))
+			_, stopOpts := deployment.StopArgsForCall(0)
+			Expect(stopOpts.Canaries).To(Equal("30%"))
 		})
 
 		It("can set max_in_flight", func() {
@@ -136,8 +136,8 @@ var _ = Describe("StopCmd", func() {
 
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
-			_, _, changeJobStateOpts := deployment.StopArgsForCall(0)
-			Expect(changeJobStateOpts.MaxInFlight).To(Equal("5"))
+			_, stopOpts := deployment.StopArgsForCall(0)
+			Expect(stopOpts.MaxInFlight).To(Equal("5"))
 		})
 	})
 })

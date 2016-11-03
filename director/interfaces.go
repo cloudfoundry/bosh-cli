@@ -107,10 +107,10 @@ type Deployment interface {
 	DeleteVM(string) error
 
 	// Deployment, pool or instance specifics
-	Start(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error
-	Stop(slug AllOrPoolOrInstanceSlug, hard bool, opts ChangeJobStateOpts) error
-	Restart(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error
-	Recreate(slug AllOrPoolOrInstanceSlug, opts ChangeJobStateOpts) error
+	Start(slug AllOrPoolOrInstanceSlug, opts StartOpts) error
+	Stop(slug AllOrPoolOrInstanceSlug, opts StopOpts) error
+	Restart(slug AllOrPoolOrInstanceSlug, opts RestartOpts) error
+	Recreate(slug AllOrPoolOrInstanceSlug, opts RecreateOpts) error
 
 	SetUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) (SSHResult, error)
 	CleanUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) error
@@ -124,12 +124,32 @@ type Deployment interface {
 	Delete(force bool) error
 }
 
-type ChangeJobStateOpts struct {
-	SkipDrain   SkipDrain
-	Force       bool
-	DryRun      bool
+type StartOpts struct {
 	Canaries    string
 	MaxInFlight string
+}
+
+type StopOpts struct {
+	Canaries    string
+	MaxInFlight string
+	Force       bool
+	SkipDrain   SkipDrain
+	Hard        bool
+}
+
+type RestartOpts struct {
+	Canaries    string
+	MaxInFlight string
+	Force       bool
+	SkipDrain   SkipDrain
+}
+
+type RecreateOpts struct {
+	Canaries    string
+	MaxInFlight string
+	Force       bool
+	SkipDrain   SkipDrain
+	DryRun      bool
 }
 
 type UpdateOpts struct {

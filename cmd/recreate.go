@@ -20,7 +20,7 @@ func (c RecreateCmd) Run(opts RecreateOpts) error {
 		return err
 	}
 
-	changeJobStateOpts := boshdir.ChangeJobStateOpts{
+	recreateOpts := boshdir.RecreateOpts{
 		SkipDrain:   opts.SkipDrain,
 		Force:       opts.Force,
 		DryRun:      opts.DryRun,
@@ -28,5 +28,5 @@ func (c RecreateCmd) Run(opts RecreateOpts) error {
 		MaxInFlight: opts.MaxInFlight,
 	}
 
-	return c.deployment.Recreate(opts.Args.Slug, changeJobStateOpts)
+	return c.deployment.Recreate(opts.Args.Slug, recreateOpts)
 }

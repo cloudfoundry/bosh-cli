@@ -46,10 +46,10 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			slug, changeJobStateOpts := deployment.RecreateArgsForCall(0)
+			slug, recreateOpts := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
-			Expect(changeJobStateOpts.Force).To(BeFalse())
+			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(recreateOpts.Force).To(BeFalse())
 		})
 
 		It("recreate allowing to skip drain scripts", func() {
@@ -60,10 +60,10 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			slug, changeJobStateOpts := deployment.RecreateArgsForCall(0)
+			slug, recreateOpts := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
-			Expect(changeJobStateOpts.Force).To(BeFalse())
+			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
+			Expect(recreateOpts.Force).To(BeFalse())
 		})
 
 		It("can set canaries", func() {
@@ -74,8 +74,8 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			_, changeJobStateOpts := deployment.RecreateArgsForCall(0)
-			Expect(changeJobStateOpts.Canaries).To(Equal("3"))
+			_, recreateOpts := deployment.RecreateArgsForCall(0)
+			Expect(recreateOpts.Canaries).To(Equal("3"))
 		})
 
 		It("can set max_in_flight", func() {
@@ -86,8 +86,8 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			_, changeJobStateOpts := deployment.RecreateArgsForCall(0)
-			Expect(changeJobStateOpts.MaxInFlight).To(Equal("5"))
+			_, recreateOpts := deployment.RecreateArgsForCall(0)
+			Expect(recreateOpts.MaxInFlight).To(Equal("5"))
 		})
 
 		It("can set dry_run", func() {
@@ -98,8 +98,8 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			_, changeJobStateOpts := deployment.RecreateArgsForCall(0)
-			Expect(changeJobStateOpts.DryRun).To(BeTrue())
+			_, recreateOpts := deployment.RecreateArgsForCall(0)
+			Expect(recreateOpts.DryRun).To(BeTrue())
 		})
 
 		It("recreate forcefully", func() {
@@ -110,10 +110,10 @@ var _ = Describe("RecreateCmd", func() {
 
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
-			slug, changeJobStateOpts := deployment.RecreateArgsForCall(0)
+			slug, recreateOpts := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
-			Expect(changeJobStateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
-			Expect(changeJobStateOpts.Force).To(BeTrue())
+			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(recreateOpts.Force).To(BeTrue())
 		})
 
 		It("does not recreate if confirmation is rejected", func() {
