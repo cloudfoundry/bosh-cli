@@ -158,16 +158,20 @@ var _ = Describe("FSGenerator", func() {
 		})
 	})
 
-	Describe("ResetRelease", func() {
-		It("removes .dev_builds and dev_releases", func() {
-			fs.MkdirAll("/dev/.dev_builds/sub-dir", os.ModePerm)
-			fs.MkdirAll("/dev/dev_releases/sub-dir", os.ModePerm)
+	Describe("Reset", func() {
+		It("removes .blobs, blobs, .dev_builds and dev_releases", func() {
+			fs.WriteFileString("/dir/.dev_builds/sub-dir", "")
+			fs.WriteFileString("/dir/dev_releases/sub-dir", "")
+			fs.WriteFileString("/dir/.blobs/sub-dir", "")
+			fs.WriteFileString("/dir/blobs/sub-dir", "")
 
 			err := releaseDir.Reset()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.FileExists("/dev/.dev_builds")).To(BeFalse())
-			Expect(fs.FileExists("/dev/dev_releases")).To(BeFalse())
+			Expect(fs.FileExists("/dir/.dev_builds")).To(BeFalse())
+			Expect(fs.FileExists("/dir/dev_releases")).To(BeFalse())
+			Expect(fs.FileExists("/dir/.blobs")).To(BeFalse())
+			Expect(fs.FileExists("/dir/blobs")).To(BeFalse())
 		})
 
 		It("returns error when deleting directory fails", func() {

@@ -113,7 +113,7 @@ func (d FSReleaseDir) GeneratePackage(name string) error {
 }
 
 func (d FSReleaseDir) Reset() error {
-	for _, name := range []string{".dev_builds", "dev_releases"} {
+	for _, name := range []string{".dev_builds", "dev_releases", ".blobs", "blobs"} {
 		err := d.fs.RemoveAll(gopath.Join(d.dirPath, name))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Removing %s/", name)
