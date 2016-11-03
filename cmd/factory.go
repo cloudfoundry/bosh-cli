@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"strings"
@@ -76,6 +77,9 @@ func (f Factory) New(args []string) (Cmd, error) {
 		}
 	}
 
+	helpText := bytes.NewBufferString("")
+	parser.WriteHelp(helpText)
+
 	_, err := parser.ParseArgs(args)
 
 	// --help and --version result in errors; turn them into successful output cmds
@@ -84,6 +88,10 @@ func (f Factory) New(args []string) (Cmd, error) {
 			cmdOpts = &MessageOpts{Message: typedErr.Message}
 			err = nil
 		}
+	}
+
+	if _, ok := cmdOpts.(*HelpOpts); ok {
+		cmdOpts = &MessageOpts{Message: helpText.String()}
 	}
 
 	return NewCmd(*boshOpts, cmdOpts, f.deps), err

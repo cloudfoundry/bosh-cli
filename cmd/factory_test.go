@@ -38,6 +38,7 @@ var _ = Describe("Factory", func() {
 		})
 
 		cmds := map[string][]string{
+			"help":                  []string{},
 			"add-blob":              []string{"/file", "directory"},
 			"blobs":                 []string{},
 			"build-manifest":        []string{"/file"},
@@ -213,6 +214,18 @@ var _ = Describe("Factory", func() {
 
 			opts := cmd.Opts.(*TasksOpts)
 			Expect(opts.Deployment).To(Equal("deployment"))
+		})
+	})
+
+	Describe("help command", func() {
+		It("has a help command", func() {
+			cmd, err := factory.New([]string{"help"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*MessageOpts)
+			Expect(opts.Message).To(ContainSubstring("Usage:"))
+			Expect(opts.Message).To(ContainSubstring("Application Options:"))
+			Expect(opts.Message).To(ContainSubstring("Available commands:"))
 		})
 	})
 

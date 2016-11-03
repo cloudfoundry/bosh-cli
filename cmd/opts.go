@@ -31,6 +31,8 @@ type BoshOpts struct {
 	NoColorOpt        bool `long:"no-color"                  description:"Toggle colorized output"`
 	NonInteractiveOpt bool `long:"non-interactive" short:"n" description:"Don't ask for user input"`
 
+	Help HelpOpts `command:"help" description:"Show this help message"`
+
 	// -----> Director management
 
 	// Environments
@@ -135,6 +137,10 @@ type BoshOpts struct {
 	RemoveBlob  RemoveBlobOpts  `command:"remove-blob"  description:"Remove blob"`
 	SyncBlobs   SyncBlobsOpts   `command:"sync-blobs"   description:"Sync blobs"`
 	UploadBlobs UploadBlobsOpts `command:"upload-blobs" description:"Upload blobs"`
+}
+
+type HelpOpts struct {
+	cmd
 }
 
 // Original bosh-init
