@@ -50,7 +50,7 @@ func (f Factory) httpClient(config Config) (Client, error) {
 
 	rawClient := boshhttp.CreateDefaultClient(certPool)
 
-	httpClient := boshhttp.NewHTTPClient(rawClient, f.logger)
+	httpClient := boshhttp.NewHTTPClient(rawClient, f.logger, certPool)
 
 	endpoint := url.URL{
 		Scheme: "https",

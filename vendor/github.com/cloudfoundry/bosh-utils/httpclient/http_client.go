@@ -2,7 +2,12 @@ package httpclient
 
 import (
 	"net/http"
+	"net"
 	"strings"
+	"crypto/x509"
+	"crypto/tls"
+	"fmt"
+	"net/url"
 
 	"errors"
 	"regexp"
@@ -22,20 +27,115 @@ type HTTPClient interface {
 	GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error)
 
 	Delete(endpoint string) (*http.Response, error)
+
+	VerifySSLCerts(endpoint string) SSLValidationError
 }
+
+// use interface to allow returning nil
+type SSLValidationError interface {
+  Cause() SSLValidationCause
+  Error() string
+  Endpoint() string
+}
+type sslError struct {
+  cause SSLValidationCause
+	err error
+	endpoint string
+}
+
+func (s sslError) Cause() SSLValidationCause {
+	return s.cause
+}
+
+func (s sslError) Error() string {
+	return s.err.Error()
+}
+
+func (s sslError) Endpoint() string {
+	return s.endpoint
+}
+
+type SSLValidationCause int
+const (
+  UnknownAuthorityError SSLValidationCause = iota
+  CertNotValidForIPError SSLValidationCause = iota
+  CertNotValidForHostnameError SSLValidationCause = iota
+	UnknownValidationError SSLValidationCause = iota
+)
 
 type httpClient struct {
 	client Client
 	logger boshlog.Logger
 	logTag string
+	certPool *x509.CertPool
 }
 
-func NewHTTPClient(client Client, logger boshlog.Logger) HTTPClient {
+func NewHTTPClient(client Client, logger boshlog.Logger, certPool *x509.CertPool) HTTPClient {
 	return httpClient{
 		client: client,
 		logger: logger,
 		logTag: "httpClient",
+		certPool: certPool,
 	}
+}
+
+func (c httpClient) VerifySSLCerts(endpoint string) SSLValidationError {
+	tlsConfig := &tls.Config{}
+	if c.certPool != nil {
+		tlsConfig.RootCAs = c.certPool
+	}
+
+	endpointURL, err := url.Parse(endpoint)
+	if err != nil {
+		return sslError{
+			cause: UnknownValidationError,
+			err: bosherr.WrapErrorf(err, fmt.Sprintf("Endpoint '%s' is not a valid URL")),
+			endpoint: endpoint,
+		}
+	}
+  host, port, err := net.SplitHostPort(endpointURL.Host)
+	if err != nil {
+	  host = endpointURL.Host
+		port = "443"
+	}
+  tcpEndpoint := fmt.Sprintf("%s:%s", host, port)
+
+	conn, err := tls.Dial("tcp", tcpEndpoint, tlsConfig)
+	if _, ok := err.(x509.UnknownAuthorityError); ok {
+		return sslError{
+			cause: UnknownAuthorityError,
+			err: err,
+			endpoint: endpoint,
+		}
+	  // return fmt.Errorf("The SSL Certificate returned by '%s' is signed by an unknown Certificate Authority (CA). Please specify the CA Certificate with the `--ca-cert` flag.", tcpEndpoint)
+	}
+	if _, ok := err.(x509.HostnameError); ok {
+	  if net.ParseIP(host) != nil {
+			return sslError{
+				cause: CertNotValidForIPError,
+				err: err,
+				endpoint: endpoint,
+			}
+		  // return fmt.Errorf("The SSL Certificate returned by '%s' is not valid for the IP address you specified: '%s'. Please specify the DNS Hostname instead of the IP with the `--environment` flag.", tcpEndpoint, err)
+		} else {
+			return sslError{
+				cause: CertNotValidForHostnameError,
+				err: err,
+				endpoint: endpoint,
+			}
+		  // return fmt.Errorf("The SSL Certificate returned by '%s' did not match the hostname you specified: '%s'. Please specify a valid hostname or an IP address with the `--environment` flag.", tcpEndpoint, err)
+		}
+	}
+	if err != nil {
+		return sslError{
+			cause: UnknownValidationError,
+			err: bosherr.WrapErrorf(err, "Failed to verify certificate for endpoint '%s'", endpoint),
+			endpoint: endpoint,
+		}
+	}
+	conn.Close()
+
+	return nil
 }
 
 func (c httpClient) Post(endpoint string, payload []byte) (*http.Response, error) {

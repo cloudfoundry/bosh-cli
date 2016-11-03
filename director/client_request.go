@@ -2,6 +2,7 @@ package director
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -95,6 +96,10 @@ func (r ClientRequest) RawGet(path string, out io.Writer, f func(*http.Request))
 
 	resp, err := r.httpClient.GetCustomized(url, f)
 	if err != nil {
+	  sslErr := r.verifySSLCerts()
+		if sslErr != nil {
+			err = bosherr.WrapError(sslErr, err.Error())
+		}
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request GET '%s'", url)
 	}
 
@@ -119,6 +124,10 @@ func (r ClientRequest) RawPost(path string, payload []byte, f func(*http.Request
 
 	resp, err := r.httpClient.PostCustomized(url, payload, wrapperFunc)
 	if err != nil {
+	  sslErr := r.verifySSLCerts()
+		if sslErr != nil {
+			err = bosherr.WrapError(sslErr, err.Error())
+		}
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request POST '%s'", url)
 	}
 
@@ -131,6 +140,10 @@ func (r ClientRequest) RawPut(path string, payload []byte, f func(*http.Request)
 
 	resp, err := r.httpClient.PutCustomized(url, payload, f)
 	if err != nil {
+	  sslErr := r.verifySSLCerts()
+		if sslErr != nil {
+			err = bosherr.WrapError(sslErr, err.Error())
+		}
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request PUT '%s'", url)
 	}
 
@@ -143,6 +156,10 @@ func (r ClientRequest) RawDelete(path string) ([]byte, *http.Response, error) {
 
 	resp, err := r.httpClient.Delete(url)
 	if err != nil {
+	  sslErr := r.verifySSLCerts()
+		if sslErr != nil {
+			err = bosherr.WrapError(sslErr, err.Error())
+		}
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request DELETE '%s'", url)
 	}
 
@@ -216,4 +233,22 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 	}
 
 	return respBody, resp, nil
+}
+
+func (r ClientRequest) verifySSLCerts() error {
+  sslErr := r.httpClient.VerifySSLCerts(r.endpoint)
+	if sslErr != nil {
+		switch sslErr.Cause() {
+    case boshhttp.UnknownAuthorityError:
+		  return errors.New("The Director's SSL Certificate is signed by an unknown Certificate Authority (CA). Please specify the CA Certificate with the `--ca-cert` flag or configure your director with signed certificates: http://bosh.io/docs/director-certs.html#configure.")
+    case boshhttp.CertNotValidForIPError:
+		  return errors.New("The Director's SSL Certificate is not valid for the IP address you specified. Please specify the DNS Hostname instead of the IP with the `env` command or the `--environment` flag.")
+    case boshhttp.CertNotValidForHostnameError:
+		  return errors.New("The Director's SSL Certificate did not match the hostname you specified. Please specify a valid hostname or an IP address with the `env` command or the `--environment` flag.")
+		default:
+			return errors.New("Failed to verify Director's SSL certificate")
+    }
+	}
+
+	return nil
 }
