@@ -20,13 +20,20 @@ type DeploymentDiff struct {
 	Diff    [][]interface{}
 }
 
+func NewDeploymentDiff(diff [][]interface{}, context map[string]interface{}) DeploymentDiff {
+	return DeploymentDiff{
+		context: context,
+		Diff:    diff,
+	}
+}
+
 func (d DeploymentImpl) Diff(manifest []byte, doNotRedact bool) (DeploymentDiff, error) {
 	resp, err := d.client.Diff(manifest, d.name, doNotRedact)
 	if err != nil {
 		return DeploymentDiff{}, err
 	}
 
-	return ConvertDiffResponseToDiff(resp), nil
+	return NewDeploymentDiff(resp.Diff, resp.Context), nil
 }
 
 func (c Client) Diff(manifest []byte, deploymentName string, doNotRedact bool) (DeploymentDiffResponse, error) {
@@ -52,11 +59,4 @@ func (c Client) Diff(manifest []byte, deploymentName string, doNotRedact bool) (
 	}
 
 	return resp, nil
-}
-
-func ConvertDiffResponseToDiff(diffResponse DeploymentDiffResponse) DeploymentDiff {
-	return DeploymentDiff{
-		context: diffResponse.Context,
-		Diff:    diffResponse.Diff,
-	}
 }

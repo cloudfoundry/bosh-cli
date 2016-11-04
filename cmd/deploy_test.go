@@ -214,14 +214,13 @@ releases:
 		})
 
 		It("gets the diff from the deployment", func() {
-			expectedDiff := boshdir.DeploymentDiff{
-				Diff: [][]interface{}{
-					[]interface{}{"some line that stayed", nil},
-					[]interface{}{"some line that was added", "added"},
-					[]interface{}{"some line that was removed", "removed"},
-				},
+			diff := [][]interface{}{
+				[]interface{}{"some line that stayed", nil},
+				[]interface{}{"some line that was added", "added"},
+				[]interface{}{"some line that was removed", "removed"},
 			}
 
+			expectedDiff := boshdir.NewDeploymentDiff(diff, nil)
 			deployment.DiffReturns(expectedDiff, nil)
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -232,14 +231,11 @@ releases:
 		})
 
 		It("deploys manifest with diff context", func() {
-			diffResponse := boshdir.DeploymentDiffResponse{
-				Context: map[string]interface{}{
-					"cloud_config_id":   2,
-					"runtime_config_id": 3,
-				},
+			context := map[string]interface{}{
+				"cloud_config_id":   2,
+				"runtime_config_id": 3,
 			}
-
-			expectedDiff := boshdir.ConvertDiffResponseToDiff(diffResponse)
+			expectedDiff := boshdir.NewDeploymentDiff(nil, context)
 
 			deployment.DiffReturns(expectedDiff, nil)
 			err := act()

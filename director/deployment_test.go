@@ -654,11 +654,9 @@ var _ = Describe("Deployment", func() {
 		})
 
 		It("succeeds updating deployment with diff context values", func() {
-			diffResponse := DeploymentDiffResponse{
-				Context: map[string]interface{}{
-					"cloud_config_id":   "2",
-					"runtime_config_id": 4,
-				},
+			context := map[string]interface{}{
+				"cloud_config_id":   "2",
+				"runtime_config_id": 4,
 			}
 
 			ConfigureTaskResult(
@@ -675,7 +673,7 @@ var _ = Describe("Deployment", func() {
 			)
 
 			updateOpts := UpdateOpts{
-				Diff: ConvertDiffResponseToDiff(diffResponse),
+				Diff: NewDeploymentDiff(nil, context),
 			}
 
 			err := deployment.Update([]byte("manifest"), updateOpts)
