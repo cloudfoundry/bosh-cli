@@ -44,7 +44,12 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return err
 	}
 
-	err = c.printManifestDiff(bytes, opts)
+	deploymentDiff, err := c.deployment.Diff(bytes, opts.NoRedact)
+	if err != nil {
+		return err
+	}
+
+	err = c.printManifestDiff(deploymentDiff, bytes, opts)
 	if err != nil {
 		return bosherr.WrapError(err, "Diffing manifest")
 	}
@@ -61,6 +66,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		DryRun:      opts.DryRun,
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,
+		Diff:        deploymentDiff,
 	}
 
 	return c.deployment.Update(bytes, updateOpts)
@@ -80,13 +86,8 @@ func (c DeployCmd) checkDeploymentName(bytes []byte) error {
 	return nil
 }
 
-func (c DeployCmd) printManifestDiff(bytes []byte, opts DeployOpts) error {
-	diff, err := c.deployment.Diff(bytes, opts.NoRedact)
-	if err != nil {
-		return err
-	}
-
-	for _, line := range diff {
+func (c DeployCmd) printManifestDiff(diff boshdir.DeploymentDiff, bytes []byte, opts DeployOpts) error {
+	for _, line := range diff.Diff {
 		lineMod, _ := line[1].(string)
 
 		if lineMod == "added" {

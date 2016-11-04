@@ -207,20 +207,18 @@ releases:
 		})
 
 		It("returns an error if diffing failed", func() {
-			deployment.DiffReturns(boshdir.DiffLines{}, errors.New("Fetching diff result"))
+			deployment.DiffReturns(boshdir.DeploymentDiff{}, errors.New("Fetching diff result"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("gets the diff from the deployment", func() {
-			expectedDiff := boshdir.DiffLines{
-				[]interface{}{
-					"some line that stayed", nil,
-				}, []interface{}{
-					"some line that was added", "added",
-				}, []interface{}{
-					"some line that was removed", "removed",
+			expectedDiff := boshdir.DeploymentDiff{
+				Diff: [][]interface{}{
+					[]interface{}{"some line that stayed", nil},
+					[]interface{}{"some line that was added", "added"},
+					[]interface{}{"some line that was removed", "removed"},
 				},
 			}
 
@@ -231,6 +229,25 @@ releases:
 			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
 			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
 			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+		})
+
+		It("deploys manifest with diff context", func() {
+			diffResponse := boshdir.DeploymentDiffResponse{
+				Context: map[string]interface{}{
+					"cloud_config_id":   2,
+					"runtime_config_id": 3,
+				},
+			}
+
+			expectedDiff := boshdir.ConvertDiffResponseToDiff(diffResponse)
+
+			deployment.DiffReturns(expectedDiff, nil)
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.DiffCallCount()).To(Equal(1))
+
+			_, updateOptions := deployment.UpdateArgsForCall(0)
+			Expect(updateOptions.Diff).To(Equal(expectedDiff))
 		})
 
 		It("returns error if deploying failed", func() {

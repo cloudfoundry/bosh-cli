@@ -653,6 +653,35 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It("succeeds updating deployment with diff context values", func() {
+			diffResponse := DeploymentDiffResponse{
+				Context: map[string]interface{}{
+					"cloud_config_id":   "2",
+					"runtime_config_id": 4,
+				},
+			}
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", "context=%7B%22cloud_config_id%22%3A%222%22%2C%22runtime_config_id%22%3A4%7D"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			updateOpts := UpdateOpts{
+				Diff: ConvertDiffResponseToDiff(diffResponse),
+			}
+
+			err := deployment.Update([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("returns error if task response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments"), server)
 

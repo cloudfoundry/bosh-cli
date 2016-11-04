@@ -85,7 +85,7 @@ type Deployment interface {
 	Name() string
 	Manifest() (string, error)
 	CloudConfig() (string, error)
-	Diff([]byte, bool) (DiffLines, error)
+	Diff([]byte, bool) (DeploymentDiff, error)
 
 	Releases() ([]Release, error)
 	ExportRelease(ReleaseSlug, OSVersionSlug) (ExportReleaseResult, error)
@@ -159,6 +159,7 @@ type UpdateOpts struct {
 	Canaries    string
 	MaxInFlight string
 	DryRun      bool
+	Diff        DeploymentDiff
 }
 
 //go:generate counterfeiter . ReleaseSeries

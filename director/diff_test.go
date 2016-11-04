@@ -36,10 +36,8 @@ var _ = Describe("Deployment", func() {
 
 			expectedDiffResponse = DeploymentDiffResponse{
 				Context: map[string]interface{}{
-					"context": map[string]interface{}{
-						"cloud_config_id":   2,
-						"runtime_config_id": nil,
-					},
+					"cloud_config_id":   2,
+					"runtime_config_id": nil,
 				},
 				Diff: [][]interface{}{
 					[]interface{}{"name: simple manifest", nil},
@@ -65,7 +63,7 @@ var _ = Describe("Deployment", func() {
 
 				diff, err := deployment.Diff([]byte("manifest"), true)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(diff).To(Equal(DiffLines(expectedDiffResponse.Diff)))
+				Expect(diff.Diff).To(Equal(expectedDiffResponse.Diff))
 			})
 
 			It("returns redacted diff if redact is true", func() {
@@ -84,7 +82,7 @@ var _ = Describe("Deployment", func() {
 
 				diff, err := deployment.Diff([]byte("manifest"), false)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(diff).To(Equal(DiffLines(expectedDiffResponse.Diff)))
+				Expect(diff.Diff).To(Equal(expectedDiffResponse.Diff))
 			})
 
 			It("returns error if response is non-200", func() {

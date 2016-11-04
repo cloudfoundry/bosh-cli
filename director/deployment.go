@@ -410,6 +410,25 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 		query.Add("dry_run", "true")
 	}
 
+	if len(opts.Diff.context) != 0 {
+		context := map[string]interface{}{}
+
+		if opts.Diff.context["cloud_config_id"] != nil {
+			context["cloud_config_id"] = opts.Diff.context["cloud_config_id"]
+		}
+
+		if opts.Diff.context["runtime_config_id"] != nil {
+			context["runtime_config_id"] = opts.Diff.context["runtime_config_id"]
+		}
+
+		contextJson, err := json.Marshal(context)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Marshaling context")
+		}
+
+		query.Add("context", string(contextJson))
+	}
+
 	path := fmt.Sprintf("/deployments?%s", query.Encode())
 
 	setHeaders := func(req *http.Request) {

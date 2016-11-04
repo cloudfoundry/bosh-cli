@@ -28,14 +28,14 @@ type FakeDeployment struct {
 		result1 string
 		result2 error
 	}
-	DiffStub        func([]byte, bool) (director.DiffLines, error)
+	DiffStub        func([]byte, bool) (director.DeploymentDiff, error)
 	diffMutex       sync.RWMutex
 	diffArgsForCall []struct {
 		arg1 []byte
 		arg2 bool
 	}
 	diffReturns struct {
-		result1 director.DiffLines
+		result1 director.DeploymentDiff
 		result2 error
 	}
 	ReleasesStub        func() ([]director.Release, error)
@@ -324,7 +324,7 @@ func (fake *FakeDeployment) CloudConfigReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) Diff(arg1 []byte, arg2 bool) (director.DiffLines, error) {
+func (fake *FakeDeployment) Diff(arg1 []byte, arg2 bool) (director.DeploymentDiff, error) {
 	var arg1Copy []byte
 	if arg1 != nil {
 		arg1Copy = make([]byte, len(arg1))
@@ -356,10 +356,10 @@ func (fake *FakeDeployment) DiffArgsForCall(i int) ([]byte, bool) {
 	return fake.diffArgsForCall[i].arg1, fake.diffArgsForCall[i].arg2
 }
 
-func (fake *FakeDeployment) DiffReturns(result1 director.DiffLines, result2 error) {
+func (fake *FakeDeployment) DiffReturns(result1 director.DeploymentDiff, result2 error) {
 	fake.DiffStub = nil
 	fake.diffReturns = struct {
-		result1 director.DiffLines
+		result1 director.DeploymentDiff
 		result2 error
 	}{result1, result2}
 }

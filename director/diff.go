@@ -15,13 +15,18 @@ type DeploymentDiffResponse struct {
 
 type DiffLines [][]interface{}
 
-func (d DeploymentImpl) Diff(manifest []byte, doNotRedact bool) (DiffLines, error) {
+type DeploymentDiff struct {
+	context map[string]interface{}
+	Diff    [][]interface{}
+}
+
+func (d DeploymentImpl) Diff(manifest []byte, doNotRedact bool) (DeploymentDiff, error) {
 	resp, err := d.client.Diff(manifest, d.name, doNotRedact)
 	if err != nil {
-		return DiffLines{}, err
+		return DeploymentDiff{}, err
 	}
 
-	return DiffLines(resp.Diff), nil
+	return ConvertDiffResponseToDiff(resp), nil
 }
 
 func (c Client) Diff(manifest []byte, deploymentName string, doNotRedact bool) (DeploymentDiffResponse, error) {
@@ -47,4 +52,11 @@ func (c Client) Diff(manifest []byte, deploymentName string, doNotRedact bool) (
 	}
 
 	return resp, nil
+}
+
+func ConvertDiffResponseToDiff(diffResponse DeploymentDiffResponse) DeploymentDiff {
+	return DeploymentDiff{
+		context: diffResponse.Context,
+		Diff:    diffResponse.Diff,
+	}
 }
