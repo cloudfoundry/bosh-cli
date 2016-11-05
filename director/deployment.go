@@ -413,12 +413,8 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 	if len(opts.Diff.context) != 0 {
 		context := map[string]interface{}{}
 
-		if opts.Diff.context["cloud_config_id"] != nil {
-			context["cloud_config_id"] = opts.Diff.context["cloud_config_id"]
-		}
-
-		if opts.Diff.context["runtime_config_id"] != nil {
-			context["runtime_config_id"] = opts.Diff.context["runtime_config_id"]
+		for key, value := range opts.Diff.context {
+			context[key] = value
 		}
 
 		contextJson, err := json.Marshal(context)

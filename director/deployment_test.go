@@ -655,13 +655,15 @@ var _ = Describe("Deployment", func() {
 
 		It("succeeds updating deployment with diff context values", func() {
 			context := map[string]interface{}{
-				"cloud_config_id":   "2",
-				"runtime_config_id": 4,
+				"cloud_config_id":          "2",
+				"runtime_config_id":        4,
+				"some_other_context_field": "value",
 			}
 
+			requestParams := "context=%7B%22cloud_config_id%22%3A%222%22%2C%22runtime_config_id%22%3A4%2C%22some_other_context_field%22%3A%22value%22%7D"
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", "context=%7B%22cloud_config_id%22%3A%222%22%2C%22runtime_config_id%22%3A4%7D"),
+					ghttp.VerifyRequest("POST", "/deployments", requestParams),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
