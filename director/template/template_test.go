@@ -172,6 +172,15 @@ array:
 		Expect(result).To(Equal([]byte("(()\n")))
 	})
 
+	It("strips away ! from variable keys", func() {
+		template := NewTemplate([]byte("abc: ((!key))\nxyz: [((!key))]"))
+		vars := Variables{"key": "val"}
+
+		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("abc: val\nxyz:\n- val\n")))
+	})
+
 	It("can run operations to modify document", func() {
 		template := NewTemplate([]byte("a: b"))
 		vars := Variables{}

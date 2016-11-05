@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var templateFormatRegex = regexp.MustCompile(`^\(\(([-\w\p{L}]+)\)\)$`)
+var templateFormatRegex = regexp.MustCompile(`^\(\((!?[-\w\p{L}]+)\)\)$`)
 
 type Template struct {
 	bytes []byte
@@ -107,7 +107,7 @@ func (t Template) needsEvaluation(value string) (string, bool) {
 	found := templateFormatRegex.FindAllSubmatch([]byte(value), 1)
 
 	if len(found) != 0 && len(found[0]) != 0 {
-		return string(found[0][1]), true
+		return strings.TrimPrefix(string(found[0][1]), "!"), true
 	}
 
 	return "", false
