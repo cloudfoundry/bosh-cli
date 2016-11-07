@@ -217,6 +217,15 @@ type FakeDeployment struct {
 	takeSnapshotReturns struct {
 		result1 error
 	}
+	IgnoreStub        func(director.InstanceSlug, bool) error
+	ignoreMutex       sync.RWMutex
+	ignoreArgsForCall []struct {
+		arg1 director.InstanceSlug
+		arg2 bool
+	}
+	ignoreReturns struct {
+		result1 error
+	}
 	EnableResurrectionStub        func(director.InstanceSlug, bool) error
 	enableResurrectionMutex       sync.RWMutex
 	enableResurrectionArgsForCall []struct {
@@ -1049,6 +1058,40 @@ func (fake *FakeDeployment) TakeSnapshotReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) Ignore(arg1 director.InstanceSlug, arg2 bool) error {
+	fake.ignoreMutex.Lock()
+	fake.ignoreArgsForCall = append(fake.ignoreArgsForCall, struct {
+		arg1 director.InstanceSlug
+		arg2 bool
+	}{arg1, arg2})
+	fake.recordInvocation("Ignore", []interface{}{arg1, arg2})
+	fake.ignoreMutex.Unlock()
+	if fake.IgnoreStub != nil {
+		return fake.IgnoreStub(arg1, arg2)
+	} else {
+		return fake.ignoreReturns.result1
+	}
+}
+
+func (fake *FakeDeployment) IgnoreCallCount() int {
+	fake.ignoreMutex.RLock()
+	defer fake.ignoreMutex.RUnlock()
+	return len(fake.ignoreArgsForCall)
+}
+
+func (fake *FakeDeployment) IgnoreArgsForCall(i int) (director.InstanceSlug, bool) {
+	fake.ignoreMutex.RLock()
+	defer fake.ignoreMutex.RUnlock()
+	return fake.ignoreArgsForCall[i].arg1, fake.ignoreArgsForCall[i].arg2
+}
+
+func (fake *FakeDeployment) IgnoreReturns(result1 error) {
+	fake.IgnoreStub = nil
+	fake.ignoreReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) EnableResurrection(arg1 director.InstanceSlug, arg2 bool) error {
 	fake.enableResurrectionMutex.Lock()
 	fake.enableResurrectionArgsForCall = append(fake.enableResurrectionArgsForCall, struct {
@@ -1210,6 +1253,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.fetchLogsMutex.RUnlock()
 	fake.takeSnapshotMutex.RLock()
 	defer fake.takeSnapshotMutex.RUnlock()
+	fake.ignoreMutex.RLock()
+	defer fake.ignoreMutex.RUnlock()
 	fake.enableResurrectionMutex.RLock()
 	defer fake.enableResurrectionMutex.RUnlock()
 	fake.updateMutex.RLock()

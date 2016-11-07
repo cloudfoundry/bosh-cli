@@ -528,6 +528,22 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("Ignore", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Ignore", opts)).To(Equal(
+					`command:"ignore" description:"Ignore an instance"`,
+				))
+			})
+		})
+
+		Describe("Unignore", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Unignore", opts)).To(Equal(
+					`command:"unignore" description:"Unignore an instance"`,
+				))
+			})
+		})
+
 		Describe("CloudCheck", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CloudCheck", opts)).To(Equal(
@@ -1728,6 +1744,34 @@ var _ = Describe("Opts", func() {
 
 		BeforeEach(func() {
 			opts = &UpdateResurrectionOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("IgnoreOpts", func() {
+		var opts *IgnoreOpts
+
+		BeforeEach(func() {
+			opts = &IgnoreOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("UnignoreOpts", func() {
+		var opts *UnignoreOpts
+
+		BeforeEach(func() {
+			opts = &UnignoreOpts{}
 		})
 
 		Describe("Args", func() {

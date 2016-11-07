@@ -107,6 +107,8 @@ type BoshOpts struct {
 	Instances          InstancesOpts          `command:"instances"       alias:"is" alias:"ins"         description:"List all instances in a deployment"`
 	VMs                VMsOpts                `command:"vms"                                            description:"List all VMs in all deployments"`
 	UpdateResurrection UpdateResurrectionOpts `command:"update-resurrection"                            description:"Enable/disable resurrection"`
+	Ignore             IgnoreOpts             `command:"ignore"                                         description:"Ignore an instance"`
+	Unignore           UnignoreOpts           `command:"unignore"                                       description:"Unignore an instance"`
 	CloudCheck         CloudCheckOpts         `command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"`
 
 	// Instance management
@@ -548,6 +550,16 @@ type UpdateResurrectionOpts struct {
 
 type UpdateResurrectionArgs struct {
 	Enabled BoolArg `positional-arg-name:"on|off"`
+}
+
+type IgnoreOpts struct {
+	Args InstanceSlugArgs `positional-args:"true" required:"true"`
+	cmd
+}
+
+type UnignoreOpts struct {
+	Args InstanceSlugArgs `positional-args:"true" required:"true"`
+	cmd
 }
 
 type LogsOpts struct {

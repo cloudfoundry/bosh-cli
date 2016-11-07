@@ -230,6 +230,12 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *UpdateResurrectionOpts:
 		return NewUpdateResurrectionCmd(c.director()).Run(*opts)
 
+	case *IgnoreOpts:
+		return NewIgnoreCmd(c.deployment()).Run(*opts)
+
+	case *UnignoreOpts:
+		return NewUnignoreCmd(c.deployment()).Run(*opts)
+
 	case *DeployOpts:
 		director, deployment := c.directorAndDeployment()
 		releaseManager := c.releaseManager(director)

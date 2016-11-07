@@ -290,6 +290,57 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
+	Describe("Ignore", func() {
+		It("for an single instance, ignore instance returns without an error", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					///:deployment/instance_groups/:instancegroup/:id/ignore
+					ghttp.VerifyRequest("PUT", "/deployments/dep/instance_groups/ig_name/id/ignore"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyBody([]byte(`{"ignore":true}`)),
+				),
+			)
+
+			err := deployment.Ignore(NewInstanceSlug("ig_name", "id"), true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		It("unignores for an instance and returns without an error", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					///:deployment/instance_groups/:instancegroup/:id/ignore
+					ghttp.VerifyRequest("PUT", "/deployments/dep/instance_groups/ig_name/id/ignore"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyBody([]byte(`{"ignore":false}`)),
+				),
+			)
+
+			err := deployment.Ignore(NewInstanceSlug("ig_name", "id"), false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
+		It("should throw an error if an invalid instance slug provided", func() {
+			err := deployment.Ignore(InstanceSlug{}, false)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("returns error if response is non-200", func() {
+			AppendBadRequest(ghttp.VerifyRequest("PUT", "/deployments/dep/instance_groups/ig_name/id/ignore"), server)
+
+			err := deployment.Ignore(NewInstanceSlug("ig_name", "id"), false)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Changing ignore state for 'ig_name/id' in deployment 'dep'"))
+		})
+	})
+
 	Describe("job states", func() {
 		var (
 			slug         AllOrPoolOrInstanceSlug

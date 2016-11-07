@@ -118,6 +118,7 @@ type Deployment interface {
 	// Instance specifics
 	FetchLogs(InstanceSlug, []string, bool) (LogsResult, error)
 	TakeSnapshot(InstanceSlug) error
+	Ignore(InstanceSlug, bool) error
 	EnableResurrection(InstanceSlug, bool) error
 
 	Update(manifest []byte, opts UpdateOpts) error

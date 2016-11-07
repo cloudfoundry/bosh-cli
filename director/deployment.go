@@ -120,6 +120,10 @@ func (d DeploymentImpl) EnableResurrection(slug InstanceSlug, enabled bool) erro
 	return d.client.EnableResurrection(d.name, slug.Name(), slug.IndexOrID(), enabled)
 }
 
+func (d DeploymentImpl) Ignore(slug InstanceSlug, enabled bool) error {
+	return d.client.Ignore(d.name, slug.Name(), slug.IndexOrID(), enabled)
+}
+
 func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, opts StartOpts) error {
 	return d.changeJobState("started", slug, SkipDrain{}, false, false, opts.Canaries, opts.MaxInFlight)
 }
@@ -229,6 +233,42 @@ func (c Client) FetchLogs(deploymentName, job, indexOrID string, filters []strin
 	}
 
 	return taskResp.Result, "", nil
+}
+
+func (c Client) Ignore(deploymentName, job, indexOrID string, enabled bool) error {
+	if len(deploymentName) == 0 {
+		return bosherr.Error("Expected non-empty deployment name")
+	}
+
+	if len(job) == 0 {
+		return bosherr.Error("Expected non-empty job name")
+	}
+
+	if len(indexOrID) == 0 {
+		return bosherr.Error("Expected non-empty index or ID")
+	}
+
+	headers := func(req *http.Request) {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
+	body := map[string]bool{"ignore": enabled}
+
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Marshaling request body")
+	}
+
+	path := fmt.Sprintf("/deployments/%s/instance_groups/%s/%s/ignore",
+		deploymentName, job, indexOrID)
+
+	_, _, err = c.clientRequest.RawPut(path, reqBody, headers)
+	if err != nil {
+		msg := "Changing ignore state for '%s/%s' in deployment '%s'"
+		return bosherr.WrapErrorf(err, msg, job, indexOrID, deploymentName)
+	}
+
+	return nil
 }
 
 func (c Client) EnableResurrection(deploymentName, job, indexOrID string, enabled bool) error {
