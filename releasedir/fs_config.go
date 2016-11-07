@@ -9,7 +9,7 @@ import (
 /*
 # final.yml
 ---
-final_name: cf
+name: cf
 min_cli_version: 1.5.0.pre.1001
 blobstore:
   provider: s3
@@ -29,7 +29,7 @@ type FSConfig struct {
 }
 
 type fsConfigPublicSchema struct {
-	FinalName string                   `yaml:"final_name"`
+	Name      string                   `yaml:"name"`
 	Blobstore fsConfigSchema_Blobstore `yaml:"blobstore,omitempty"`
 }
 
@@ -46,27 +46,27 @@ func NewFSConfig(publicPath, privatePath string, fs boshsys.FileSystem) FSConfig
 	return FSConfig{publicPath: publicPath, privatePath: privatePath, fs: fs}
 }
 
-func (c FSConfig) FinalName() (string, error) {
+func (c FSConfig) Name() (string, error) {
 	publicSchema, _, err := c.read()
 	if err != nil {
 		return "", err
 	}
 
-	if len(publicSchema.FinalName) == 0 {
+	if len(publicSchema.Name) == 0 {
 		return "", bosherr.Errorf(
-			"Expected non-empty 'final_name' in config '%s'", c.publicPath)
+			"Expected non-empty 'name' in config '%s'", c.publicPath)
 	}
 
-	return publicSchema.FinalName, nil
+	return publicSchema.Name, nil
 }
 
-func (c FSConfig) SaveFinalName(name string) error {
+func (c FSConfig) SaveName(name string) error {
 	publicSchema, _, err := c.read()
 	if err != nil {
 		return err
 	}
 
-	publicSchema.FinalName = name
+	publicSchema.Name = name
 
 	bytes, err := yaml.Marshal(publicSchema)
 	if err != nil {

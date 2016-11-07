@@ -82,9 +82,9 @@ func (d FSReleaseDir) Init(git bool) error {
 		}
 	}
 
-	finalName := strings.TrimSuffix(gopath.Base(d.dirPath), "-release")
+	name := strings.TrimSuffix(gopath.Base(d.dirPath), "-release")
 
-	err := d.config.SaveFinalName(finalName)
+	err := d.config.SaveName(name)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (d FSReleaseDir) Reset() error {
 }
 
 func (d FSReleaseDir) DefaultName() (string, error) {
-	return d.config.FinalName()
+	return d.config.Name()
 }
 
 func (d FSReleaseDir) NextFinalVersion(name string) (semver.Version, error) {

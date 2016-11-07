@@ -43,8 +43,8 @@ type ReleaseDir interface {
 //go:generate counterfeiter . Config
 
 type Config interface {
-	FinalName() (string, error)
-	SaveFinalName(string) error
+	Name() (string, error)
+	SaveName(string) error
 
 	Blobstore() (string, map[string]interface{}, error)
 }
