@@ -2,6 +2,8 @@ package uaa_test
 
 import (
 	"crypto/tls"
+	"encoding/base64"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -16,9 +18,11 @@ import (
 
 var _ = Describe("ClientRequest", func() {
 	var (
-		server *ghttp.Server
-		resp   []string
-		req    ClientRequest
+		server     *ghttp.Server
+		resp       []string
+		req        ClientRequest
+		httpClient boshhttp.HTTPClient
+		logger     boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -30,11 +34,11 @@ var _ = Describe("ClientRequest", func() {
 		}
 
 		rawClient := &http.Client{Transport: httpTransport}
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		httpClient := boshhttp.NewHTTPClient(rawClient, logger)
+		logger = boshlog.NewLogger(boshlog.LevelNone)
+		httpClient = boshhttp.NewHTTPClient(rawClient, logger)
 
 		resp = nil
-		req = NewClientRequest(server.URL(), httpClient, logger)
+		req = NewClientRequest(server.URL(), "", "", httpClient, logger)
 	})
 
 	AfterEach(func() {
@@ -83,6 +87,40 @@ var _ = Describe("ClientRequest", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("UAA responded with non-successful status code"))
 		})
+
+		Context("authorization headers", func() {
+			var (
+				client       string
+				clientSecret string
+				headerString string
+			)
+
+			BeforeEach(func() {
+				client = "zak"
+				clientSecret = "is definitely the best"
+
+				req = NewClientRequest(server.URL(), client, clientSecret, httpClient, logger)
+
+				data := []byte(fmt.Sprintf("%s:%s", client, clientSecret))
+				encodedBasicAuth := base64.StdEncoding.EncodeToString(data)
+				headerString = fmt.Sprintf("Basic %s", encodedBasicAuth)
+			})
+
+			It("sends client authorization via headers", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/path"),
+						ghttp.RespondWith(http.StatusBadRequest, ""),
+						ghttp.VerifyHeader(http.Header{"Authorization": []string{headerString}}),
+					),
+				)
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("UAA responded with non-successful status code"))
+
+			})
+		})
 	})
 
 	Describe("Post", func() {
@@ -128,6 +166,40 @@ var _ = Describe("ClientRequest", func() {
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("UAA responded with non-successful status code"))
+		})
+
+		Context("authorization headers", func() {
+			var (
+				client       string
+				clientSecret string
+				headerString string
+			)
+
+			BeforeEach(func() {
+				client = "zak"
+				clientSecret = "is definitely the best"
+
+				req = NewClientRequest(server.URL(), client, clientSecret, httpClient, logger)
+
+				data := []byte(fmt.Sprintf("%s:%s", client, clientSecret))
+				encodedBasicAuth := base64.StdEncoding.EncodeToString(data)
+				headerString = fmt.Sprintf("Basic %s", encodedBasicAuth)
+			})
+
+			It("sends client authorization via headers", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/path"),
+						ghttp.RespondWith(http.StatusBadRequest, ""),
+						ghttp.VerifyHeader(http.Header{"Authorization": []string{headerString}}),
+					),
+				)
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("UAA responded with non-successful status code"))
+
+			})
 		})
 	})
 })

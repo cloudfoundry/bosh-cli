@@ -1,6 +1,7 @@
 package uaa
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,20 +13,26 @@ import (
 )
 
 type ClientRequest struct {
-	endpoint   string
-	httpClient boshhttp.HTTPClient
-	logger     boshlog.Logger
+	endpoint     string
+	client       string
+	clientSecret string
+	httpClient   boshhttp.HTTPClient
+	logger       boshlog.Logger
 }
 
 func NewClientRequest(
 	endpoint string,
+	client string,
+	clientSecret string,
 	httpClient boshhttp.HTTPClient,
 	logger boshlog.Logger,
 ) ClientRequest {
 	return ClientRequest{
-		endpoint:   endpoint,
-		httpClient: httpClient,
-		logger:     logger,
+		endpoint:     endpoint,
+		client:       client,
+		clientSecret: clientSecret,
+		httpClient:   httpClient,
+		logger:       logger,
 	}
 }
 
@@ -34,6 +41,7 @@ func (r ClientRequest) Get(path string, response interface{}) error {
 
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Accept", "application/json")
+		req.Header.Add("Authorization", buildAuthorizationHeader(r.client, r.clientSecret))
 	}
 
 	resp, err := r.httpClient.GetCustomized(url, setHeaders)
@@ -59,6 +67,7 @@ func (r ClientRequest) Post(path string, payload []byte, response interface{}) e
 
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Accept", "application/json")
+		req.Header.Add("Authorization", buildAuthorizationHeader(r.client, r.clientSecret))
 	}
 
 	resp, err := r.httpClient.PostCustomized(url, payload, setHeaders)
@@ -93,4 +102,12 @@ func (r ClientRequest) readResponse(resp *http.Response) ([]byte, error) {
 	}
 
 	return respBody, nil
+}
+
+func buildAuthorizationHeader(client, clientSecret string) string {
+	data := []byte(fmt.Sprintf("%s:%s", client, clientSecret))
+	encodedBasicAuth := base64.StdEncoding.EncodeToString(data)
+	headerString := fmt.Sprintf("Basic %s", encodedBasicAuth)
+
+	return headerString
 }
