@@ -34,8 +34,8 @@ func (f Factory) New(args []string) (Cmd, error) {
 
 	parser.CommandHandler = func(command goflags.Commander, extraArgs []string) error {
 		if opts, ok := command.(*SSHOpts); ok {
-			if len(opts.Command) == 0 {
-				opts.Command = extraArgs
+			if len(opts.Command.Args) == 0 {
+				opts.Command.Args = extraArgs
 				extraArgs = []string{}
 			}
 		}

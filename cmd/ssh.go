@@ -38,7 +38,7 @@ func NewSSHCmd(
 
 func (c SSHCmd) Run(opts SSHOpts) error {
 	if opts.Results || !c.ui.IsInteractive() {
-		if len(opts.Command) == 0 {
+		if len(opts.Command.Args) == 0 {
 			return bosherr.Errorf("Non-interactive SSH requires non-empty command")
 		}
 	}
@@ -73,13 +73,13 @@ func (c SSHCmd) Run(opts SSHOpts) error {
 
 	if opts.Results {
 		runner = c.resultsSSHRunner
-	} else if !c.ui.IsInteractive() || len(opts.Command) > 0 {
+	} else if !c.ui.IsInteractive() || len(opts.Command.Args) > 0 {
 		runner = c.nonIntSSHRunner
 	} else {
 		runner = c.intSSHRunner
 	}
 
-	err = runner.Run(connOpts, result, opts.Command)
+	err = runner.Run(connOpts, result, opts.Command.Args)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Running SSH")
 	}
