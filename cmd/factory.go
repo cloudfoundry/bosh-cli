@@ -33,13 +33,6 @@ func (f Factory) New(args []string) (Cmd, error) {
 	parser := goflags.NewParser(boshOpts, goflags.HelpFlag|goflags.PassDoubleDash)
 
 	parser.CommandHandler = func(command goflags.Commander, extraArgs []string) error {
-		if opts, ok := command.(*SSHOpts); ok {
-			if len(opts.Command.Args) == 0 {
-				opts.Command.Args = extraArgs
-				extraArgs = []string{}
-			}
-		}
-
 		if opts, ok := command.(*AliasEnvOpts); ok {
 			opts.URL = boshOpts.EnvironmentOpt
 			opts.CACert = boshOpts.CACertOpt

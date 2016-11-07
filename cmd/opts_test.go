@@ -2068,7 +2068,7 @@ var _ = Describe("Opts", func() {
 
 		Describe("SSHCommand", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-arg-name:"-- command"`))
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-arg-name:"-- COMMAND"`))
 			})
 		})
 	})

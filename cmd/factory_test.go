@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"errors"
 
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -131,6 +132,9 @@ var _ = Describe("Factory", func() {
 
 				opts := cmd.Opts.(*SSHOpts)
 				Expect(opts.Command.Args).To(Equal([]string{"cmd", "extra", "args", "--gw-disable"}))
+				slug, err := boshdir.NewAllOrPoolOrInstanceSlugFromString("group")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(opts.Args.Slug).To(Equal(slug))
 			})
 		})
 

@@ -639,7 +639,7 @@ type SSHOpts struct {
 }
 
 type SSHCommand struct {
-	Args []string `positional-arg-name:"-- command"`
+	Args []string `positional-arg-name:"-- COMMAND"`
 }
 
 type SCPOpts struct {
