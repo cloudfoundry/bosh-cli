@@ -47,6 +47,7 @@ var _ = Describe("VMs", func() {
 	"ips": [ "ip" ],
 	"dns": [ "dns" ],
 	"az": "az",
+	"ignore": true,
 	"vm_cid": "vm-cid",
 	"disk_cid": "disk-cid",
 	"disk_cids": ["disk-cid1", "disk-cid2"],
@@ -99,6 +100,7 @@ var _ = Describe("VMs", func() {
 				DNS: []string{"dns"},
 
 				AZ:           "az",
+				Ignore:       true,
 				VMID:         "vm-cid",
 				VMType:       "vm-type",
 				ResourcePool: "rp",

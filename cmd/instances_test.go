@@ -69,6 +69,7 @@ var _ = Describe("InstancesCmd", func() {
 						VMID:               "in1-cid",
 						AgentID:            "in1-agent-id",
 						ResurrectionPaused: false,
+						Ignore:             true,
 						DiskIDs:            []string{"diskcid1", "diskcid2"},
 
 						Vitals: boshdir.VMInfoVitals{
@@ -121,6 +122,7 @@ var _ = Describe("InstancesCmd", func() {
 						VMID:               "in2-cid",
 						AgentID:            "in2-agent-id",
 						ResurrectionPaused: true,
+						Ignore:             false,
 						DiskIDs:            []string{"diskcid1", "diskcid2"},
 
 						Vitals: boshdir.VMInfoVitals{
@@ -317,6 +319,7 @@ var _ = Describe("InstancesCmd", func() {
 						boshtbl.NewValueString("Disk CIDs"),
 						boshtbl.NewValueString("Agent ID"),
 						boshtbl.NewValueString("Resurrection\nPaused"),
+						boshtbl.NewValueString("Ignore"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -339,6 +342,7 @@ var _ = Describe("InstancesCmd", func() {
 									boshtbl.NewValueStrings([]string{"diskcid1", "diskcid2"}),
 									boshtbl.NewValueString("in1-agent-id"),
 									boshtbl.NewValueBool(false),
+									boshtbl.NewValueBool(true),
 								},
 							},
 						},
@@ -356,6 +360,7 @@ var _ = Describe("InstancesCmd", func() {
 									boshtbl.NewValueStrings([]string{"diskcid1", "diskcid2"}),
 									boshtbl.NewValueString("in2-agent-id"),
 									boshtbl.NewValueBool(true),
+									boshtbl.NewValueBool(false),
 								},
 							},
 						},
@@ -372,6 +377,7 @@ var _ = Describe("InstancesCmd", func() {
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 									boshtbl.ValueString{},
+									boshtbl.NewValueBool(false),
 									boshtbl.NewValueBool(false),
 								},
 							},

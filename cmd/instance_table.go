@@ -23,6 +23,7 @@ type InstanceTableValues struct {
 	DiskCIDs     boshtbl.Value
 	AgentID      boshtbl.Value
 	Resurrection boshtbl.Value
+	Ignore       boshtbl.Value
 
 	// DNS
 	DNS boshtbl.Value
@@ -59,6 +60,7 @@ var InstanceTableHeader = InstanceTableValues{
 	DiskCIDs:     boshtbl.NewValueString("Disk CIDs"),
 	AgentID:      boshtbl.NewValueString("Agent ID"),
 	Resurrection: boshtbl.NewValueString("Resurrection\nPaused"),
+	Ignore:       boshtbl.NewValueString("Ignore"),
 
 	// DNS
 	DNS: boshtbl.NewValueString("DNS A Records"),
@@ -108,6 +110,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		DiskCIDs:     boshtbl.NewValueStrings(i.DiskIDs),
 		AgentID:      boshtbl.NewValueString(i.AgentID),
 		Resurrection: boshtbl.NewValueBool(i.ResurrectionPaused),
+		Ignore:       boshtbl.NewValueBool(i.Ignore),
 
 		// DNS
 		DNS: boshtbl.NewValueStrings(i.DNS),
@@ -196,7 +199,7 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 	result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs}...)
 
 	if t.Details {
-		result = append(result, []boshtbl.Value{v.State, v.VMCID, v.VMType, v.DiskCIDs, v.AgentID, v.Resurrection}...)
+		result = append(result, []boshtbl.Value{v.State, v.VMCID, v.VMType, v.DiskCIDs, v.AgentID, v.Resurrection, v.Ignore}...)
 	} else if t.VMDetails {
 		result = append(result, []boshtbl.Value{v.VMCID, v.VMType}...)
 	}

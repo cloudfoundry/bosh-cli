@@ -26,6 +26,7 @@ type VMInfo struct {
 	VMType       string   `json:"vm_type"`
 	ResourcePool string   `json:"resource_pool"`
 	DiskID       string   `json:"disk_cid"`
+	Ignore       bool     `json:"ignore"`
 	DiskIDs      []string `json:"disk_cids"`
 
 	Processes []VMInfoProcess
