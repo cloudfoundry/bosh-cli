@@ -41,7 +41,7 @@ var _ = Describe("VarsFileArg", func() {
 			Expect(arg.Vars["name1"]).To(Equal(map[interface{}]interface{}{"key": "value"}))
 		})
 
-		It("returns yaml parsed objects of expect type", func() {
+		It("returns yaml parsed objects of expected type", func() {
 			fs.WriteFileString("/some/path", "name1: 1\nname2: nil\nname3: true\nname4: \"\"\nname5: \nname6: ~\n")
 
 			err := (&arg).UnmarshalFlag("/some/path")
