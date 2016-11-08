@@ -9,6 +9,7 @@ import (
 
 const (
 	EventTypeDeprecation = "deprecation"
+	EventTypeWarning     = "warning"
 
 	EventStateStarted    = "started"
 	EventStateFinished   = "finished"

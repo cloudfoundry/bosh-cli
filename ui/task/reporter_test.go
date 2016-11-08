@@ -104,7 +104,9 @@ Task 123 state
 
 		It("panics if cannot unmarshal event chunk", func() {
 			reporterWithFakeUI.TaskStarted(123)
-			Expect(func() { reporterWithFakeUI.TaskOutputChunk(123, []byte("-\n")) }).To(Panic())
+			Expect(func() {
+				reporterWithFakeUI.TaskOutputChunk(123, []byte("-\n"))
+			}).To(Panic())
 		})
 
 		It("prints content as blocks", func() {
@@ -208,6 +210,32 @@ Task 2663 error
 
 Started  Tue Jul 19 00:41:24 UTC 2016
 Finished Tue Jul 19 00:41:24 UTC 2016
+Duration 00:00:00
+
+Task 2663 error
+`))
+		})
+
+		It("renders warning events", func() {
+			deployExample := `
+{"time":1478564798,"stage":"Preparing deployment","tags":[],"total":1,"task":"Preparing deployment","index":1,"state":"started","progress":0}
+{"time":1478564798,"stage":"Preparing deployment","tags":[],"total":1,"task":"Preparing deployment","index":1,"state":"finished","progress":100}
+{"time":1478564798,"type":"warning","message":"You have ignored instances. They will not be changed."}
+{"time":1478564798,"stage":"Preparing package compilation","tags":[],"total":1,"task":"Finding packages to compile","index":1,"state":"started","progress":0}
+{"time":1478564798,"stage":"Preparing package compilation","tags":[],"total":1,"task":"Finding packages to compile","index":1,"state":"finished","progress":100}
+`
+
+			reporter.TaskStarted(2663)
+			reporter.TaskOutputChunk(2663, []byte(deployExample))
+			reporter.TaskFinished(2663, "error")
+			Expect(outBuf.String()).To(Equal(`Task 2663
+
+00:26:38 | Preparing deployment: Preparing deployment (00:00:00)
+00:26:38 | Warning: You have ignored instances. They will not be changed.
+00:26:38 | Preparing package compilation: Finding packages to compile (00:00:00)
+
+Started  Tue Nov  8 00:26:38 UTC 2016
+Finished Tue Nov  8 00:26:38 UTC 2016
 Duration 00:00:00
 
 Task 2663 error

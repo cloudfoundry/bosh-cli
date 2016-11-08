@@ -118,6 +118,10 @@ func (r *ReporterImpl) showEvent(str string) {
 			r.ui.PrintBlock(prefix)
 			r.ui.PrintErrorBlock(fmt.Sprintf("Deprecation: %s", event.Message))
 
+		case event.Type == EventTypeWarning:
+			r.ui.PrintBlock(prefix)
+			r.ui.PrintErrorBlock(fmt.Sprintf("Warning: %s", event.Message))
+
 		case event.State == EventStateStarted:
 			r.ui.PrintBlock(prefix)
 			r.ui.PrintBlock(fmt.Sprintf("%s: %s", desc, event.Task))
