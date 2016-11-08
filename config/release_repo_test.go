@@ -4,14 +4,14 @@ import (
 	"errors"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/uuidfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/config"
 	"github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 )
 
 var _ = Describe("ReleaseRepo", func() {

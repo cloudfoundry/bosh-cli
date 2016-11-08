@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("Reporter (not for events)", func() {

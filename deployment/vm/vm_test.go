@@ -15,14 +15,14 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 
-	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/agentclientfakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/cloudfakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/configfakes"
+	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/diskfakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/vmfakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("VM", func() {

@@ -4,20 +4,20 @@ package vmfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/cloud"
+	boshcloud "github.com/cloudfoundry/bosh-cli/cloud"
 	"github.com/cloudfoundry/bosh-cli/deployment/disk"
 	"github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	"github.com/cloudfoundry/bosh-cli/deployment/vm"
+	boshvm "github.com/cloudfoundry/bosh-cli/deployment/vm"
 	"github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type FakeDiskDeployer struct {
-	DeployStub        func(diskPool manifest.DiskPool, cloud cloud.Cloud, vm vm.VM, eventLoggerStage ui.Stage) ([]disk.Disk, error)
+	DeployStub        func(diskPool manifest.DiskPool, cloud boshcloud.Cloud, vm boshvm.VM, eventLoggerStage ui.Stage) ([]disk.Disk, error)
 	deployMutex       sync.RWMutex
 	deployArgsForCall []struct {
 		diskPool         manifest.DiskPool
-		cloud            cloud.Cloud
-		vm               vm.VM
+		cloud            boshcloud.Cloud
+		vm               boshvm.VM
 		eventLoggerStage ui.Stage
 	}
 	deployReturns struct {
@@ -28,12 +28,12 @@ type FakeDiskDeployer struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDiskDeployer) Deploy(diskPool manifest.DiskPool, cloud cloud.Cloud, vm vm.VM, eventLoggerStage ui.Stage) ([]disk.Disk, error) {
+func (fake *FakeDiskDeployer) Deploy(diskPool manifest.DiskPool, cloud boshcloud.Cloud, vm boshvm.VM, eventLoggerStage ui.Stage) ([]disk.Disk, error) {
 	fake.deployMutex.Lock()
 	fake.deployArgsForCall = append(fake.deployArgsForCall, struct {
 		diskPool         manifest.DiskPool
-		cloud            cloud.Cloud
-		vm               vm.VM
+		cloud            boshcloud.Cloud
+		vm               boshvm.VM
 		eventLoggerStage ui.Stage
 	}{diskPool, cloud, vm, eventLoggerStage})
 	fake.recordInvocation("Deploy", []interface{}{diskPool, cloud, vm, eventLoggerStage})
@@ -51,7 +51,7 @@ func (fake *FakeDiskDeployer) DeployCallCount() int {
 	return len(fake.deployArgsForCall)
 }
 
-func (fake *FakeDiskDeployer) DeployArgsForCall(i int) (manifest.DiskPool, cloud.Cloud, vm.VM, ui.Stage) {
+func (fake *FakeDiskDeployer) DeployArgsForCall(i int) (manifest.DiskPool, boshcloud.Cloud, boshvm.VM, ui.Stage) {
 	fake.deployMutex.RLock()
 	defer fake.deployMutex.RUnlock()
 	return fake.deployArgsForCall[i].diskPool, fake.deployArgsForCall[i].cloud, fake.deployArgsForCall[i].vm, fake.deployArgsForCall[i].eventLoggerStage
@@ -85,4 +85,4 @@ func (fake *FakeDiskDeployer) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ vm.DiskDeployer = new(FakeDiskDeployer)
+var _ boshvm.DiskDeployer = new(FakeDiskDeployer)

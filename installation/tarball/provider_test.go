@@ -5,12 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 
-	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/cryptofakes"
 	. "github.com/cloudfoundry/bosh-cli/installation/tarball"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
+	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/httpclientfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/fakes"
-	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/fakes"
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("AliasEnvCmd", func() {

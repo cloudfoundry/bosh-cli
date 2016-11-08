@@ -6,18 +6,18 @@ import (
 	"os"
 
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fileutilfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/cryptofakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
 )
 
 var _ = Describe("Archive", func() {

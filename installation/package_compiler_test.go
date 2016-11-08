@@ -2,7 +2,7 @@ package installation_test
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -12,7 +12,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	bistatejob "github.com/cloudfoundry/bosh-cli/state/job"
 	mock_state_job "github.com/cloudfoundry/bosh-cli/state/job/mocks"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("PackageCompiler", func() {

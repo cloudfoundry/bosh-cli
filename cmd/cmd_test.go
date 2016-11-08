@@ -10,8 +10,8 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("Cmd", func() {

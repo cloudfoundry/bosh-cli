@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/cryptofakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 

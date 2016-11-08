@@ -8,7 +8,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/installation/mocks"
 	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
 	"github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

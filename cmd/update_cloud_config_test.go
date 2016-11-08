@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("UpdateCloudConfigCmd", func() {

@@ -7,7 +7,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("BuildManifestCmd", func() {

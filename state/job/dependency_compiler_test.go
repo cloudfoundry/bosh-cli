@@ -12,7 +12,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
 	mock_state_package "github.com/cloudfoundry/bosh-cli/state/pkg/mocks"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("DependencyCompiler", func() {

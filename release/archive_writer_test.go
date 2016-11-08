@@ -4,18 +4,18 @@ import (
 	"errors"
 
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fileutilfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 

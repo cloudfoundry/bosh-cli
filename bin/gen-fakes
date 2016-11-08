@@ -42,9 +42,7 @@ counterfeiter deployment/disk Manager
 counterfeiter deployment/disk ManagerFactory
 counterfeiter deployment/manifest Parser
 counterfeiter deployment/template DeploymentTemplateFactory
-counterfeiter deployment/vm DiskDeployer
 counterfeiter deployment/vm Manager
-counterfeiter deployment/vm ManagerFactory
 counterfeiter deployment/vm VM
 counterfeiter deployment/sshtunnel SSHTunnel
 counterfeiter deployment/sshtunnel Factory

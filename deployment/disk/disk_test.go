@@ -9,10 +9,10 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/uuidfakes"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/cloudfakes"
 
 	. "github.com/cloudfoundry/bosh-cli/deployment/disk"
 )

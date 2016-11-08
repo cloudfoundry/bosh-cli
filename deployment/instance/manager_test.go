@@ -22,12 +22,12 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
-	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/cloudfakes"
+	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/diskfakes"
+	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/sshtunnelfakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/vmfakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("Manager", func() {

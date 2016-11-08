@@ -10,12 +10,12 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/uuidfakes"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/cloudfakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("Manager", func() {

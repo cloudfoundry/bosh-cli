@@ -5,14 +5,14 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/cloud"
-	"github.com/cloudfoundry/bosh-cli/installation"
+	boshinst "github.com/cloudfoundry/bosh-cli/installation"
 )
 
 type FakeFactory struct {
-	NewCloudStub        func(installation installation.Installation, directorID string) (cloud.Cloud, error)
+	NewCloudStub        func(installation boshinst.Installation, directorID string) (cloud.Cloud, error)
 	newCloudMutex       sync.RWMutex
 	newCloudArgsForCall []struct {
-		installation installation.Installation
+		installation boshinst.Installation
 		directorID   string
 	}
 	newCloudReturns struct {
@@ -23,10 +23,10 @@ type FakeFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeFactory) NewCloud(installation installation.Installation, directorID string) (cloud.Cloud, error) {
+func (fake *FakeFactory) NewCloud(installation boshinst.Installation, directorID string) (cloud.Cloud, error) {
 	fake.newCloudMutex.Lock()
 	fake.newCloudArgsForCall = append(fake.newCloudArgsForCall, struct {
-		installation installation.Installation
+		installation boshinst.Installation
 		directorID   string
 	}{installation, directorID})
 	fake.recordInvocation("NewCloud", []interface{}{installation, directorID})
@@ -44,7 +44,7 @@ func (fake *FakeFactory) NewCloudCallCount() int {
 	return len(fake.newCloudArgsForCall)
 }
 
-func (fake *FakeFactory) NewCloudArgsForCall(i int) (installation.Installation, string) {
+func (fake *FakeFactory) NewCloudArgsForCall(i int) (boshinst.Installation, string) {
 	fake.newCloudMutex.RLock()
 	defer fake.newCloudMutex.RUnlock()
 	return fake.newCloudArgsForCall[i].installation, fake.newCloudArgsForCall[i].directorID

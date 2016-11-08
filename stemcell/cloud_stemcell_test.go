@@ -8,11 +8,11 @@ import (
 	"errors"
 
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/uuidfakes"
 )
 
 var _ = Describe("CloudStemcell", func() {

@@ -5,15 +5,15 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/uuidfakes"
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	"github.com/cloudfoundry/bosh-cli/installation/manifest"
-	"github.com/cloudfoundry/bosh-cli/installation/manifest/fakes"
+	"github.com/cloudfoundry/bosh-cli/installation/manifest/manifestfakes"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 )
 

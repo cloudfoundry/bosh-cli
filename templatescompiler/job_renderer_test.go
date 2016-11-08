@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -14,7 +14,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/templatescompiler"
 	bierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
-	fakebirender "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer/fakes"
+	fakebirender "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer/erbrendererfakes"
 )
 
 var _ = Describe("JobRenderer", func() {

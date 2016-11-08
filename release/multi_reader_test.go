@@ -4,12 +4,12 @@ import (
 	"errors"
 	"os"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 )
 
 var _ = Describe("MultiReader", func() {

@@ -19,7 +19,7 @@ import (
 	bistatejob "github.com/cloudfoundry/bosh-cli/state/job"
 	mock_state_job "github.com/cloudfoundry/bosh-cli/state/job/mocks"
 	mock_template "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("Builder", func() {

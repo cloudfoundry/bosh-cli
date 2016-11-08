@@ -9,7 +9,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	fakeconf "github.com/cloudfoundry/bosh-cli/cmd/config/fakes"
+	fakeconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 )
 
 var _ = Describe("SessionContextImpl", func() {

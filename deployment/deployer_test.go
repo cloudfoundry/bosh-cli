@@ -27,11 +27,11 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
-	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/cloudfakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/configfakes"
+	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/sshtunnelfakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/vmfakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("Deployer", func() {

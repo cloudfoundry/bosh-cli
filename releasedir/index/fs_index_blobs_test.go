@@ -5,14 +5,14 @@ import (
 	"os"
 	"syscall"
 
-	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/cryptofakes"
 	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
-	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/fakes"
+	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/indexfakes"
 )
 
 var _ = Describe("FSIndexBlobs", func() {

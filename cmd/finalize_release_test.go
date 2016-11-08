@@ -9,10 +9,10 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("FinalizeReleaseCmd", func() {

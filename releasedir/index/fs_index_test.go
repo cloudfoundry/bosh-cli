@@ -3,12 +3,12 @@ package index_test
 import (
 	"errors"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
-	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/fakes"
+	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/indexfakes"
 )
 
 var _ = Describe("FSIndex", func() {

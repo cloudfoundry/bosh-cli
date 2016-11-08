@@ -3,7 +3,7 @@ package release_test
 import (
 	"errors"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -13,7 +13,7 @@ import (
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
 )
 
 var _ = Describe("Release", func() {

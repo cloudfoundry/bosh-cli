@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -12,7 +12,7 @@ import (
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	"github.com/cloudfoundry/bosh-cli/release/set/manifest"
-	"github.com/cloudfoundry/bosh-cli/release/set/manifest/fakes"
+	"github.com/cloudfoundry/bosh-cli/release/set/manifest/manifestfakes"
 )
 
 var _ = Describe("Parser", func() {

@@ -21,10 +21,10 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
-	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/diskfakes"
+	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/sshtunnelfakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/vmfakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("Instance", func() {

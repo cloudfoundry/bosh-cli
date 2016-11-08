@@ -5,12 +5,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("ReleaseTables", func() {

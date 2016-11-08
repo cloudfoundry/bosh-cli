@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/cryptofakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,7 +17,7 @@ import (
 	"github.com/pivotal-golang/clock/fakeclock"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 )
 
 var _ = Describe("UIDownloader", func() {

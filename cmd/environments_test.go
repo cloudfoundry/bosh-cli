@@ -6,9 +6,9 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("EnvironmentsCmd", func() {

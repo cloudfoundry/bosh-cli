@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/cloudfakes"
 
 	. "github.com/cloudfoundry/bosh-cli/cloud"
 )
@@ -17,24 +17,25 @@ var _ = Describe("Cloud", func() {
 	var (
 		cloud            Cloud
 		context          CmdContext
-		fakeCPICmdRunner *fakebicloud.FakeCPICmdRunner
+		fakeCPICmdRunner fakebicloud.FakeCPICmdRunner
 	)
 
 	BeforeEach(func() {
-		fakeCPICmdRunner = fakebicloud.NewFakeCPICmdRunner()
+		fakeCPICmdRunner = fakebicloud.FakeCPICmdRunner{}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", logger)
+		cloud = NewCloud(&fakeCPICmdRunner, "fake-director-id", logger)
 		context = CmdContext{DirectorID: "fake-director-id"}
 	})
 
 	var itHandlesCPIErrors = func(method string, exec func() error) {
 		It("returns a cloud.Error when the CPI command returns an error", func() {
-			fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+			fakeCPICmdRunner.RunReturns(CmdOutput{
 				Error: &CmdError{
 					Type:    "Bosh::Cloud::CloudError",
 					Message: "fake-cpi-error-msg",
-				},
-			}
+				}},
+				errors.New("Bosh::Cloud::CloudError: fake-cpi-error-msg"),
+			)
 
 			err := exec()
 			Expect(err).To(HaveOccurred())
@@ -64,23 +65,25 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi successfully creates the stemcell", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+				fakeCPICmdRunner.RunReturns(CmdOutput{
 					Result: "fake-cid",
-				}
+				},
+					nil,
+				)
 			})
 
 			It("executes the cpi job script with stemcell image path & cloud_properties", func() {
 				_, err := cloud.CreateStemcell(stemcellImagePath, cloudProperties)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-					Context: context,
-					Method:  "create_stemcell",
-					Arguments: []interface{}{
-						stemcellImagePath,
-						cloudProperties,
-					},
-				}))
+				Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+				runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+				Expect(runContext).To(Equal(context))
+				Expect(runMethod).To(Equal("create_stemcell"))
+				Expect(runArgs).To(Equal([]interface{}{
+					stemcellImagePath,
+					cloudProperties,
+				},
+				))
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
@@ -92,9 +95,11 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the result is of an unexpected type", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+				fakeCPICmdRunner.RunReturns(CmdOutput{
 					Result: 1,
-				}
+				},
+					nil,
+				)
 			})
 
 			It("returns an error", func() {
@@ -106,7 +111,7 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error", func() {
@@ -126,19 +131,19 @@ var _ = Describe("Cloud", func() {
 		It("executes the delete_stemcell method on the CPI with stemcell cid", func() {
 			err := cloud.DeleteStemcell("fake-stemcell-cid")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-			Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-				Context: context,
-				Method:  "delete_stemcell",
-				Arguments: []interface{}{
-					"fake-stemcell-cid",
-				},
-			}))
+			Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+			runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+			Expect(runContext).To(Equal(context))
+			Expect(runMethod).To(Equal("delete_stemcell"))
+			Expect(runArgs).To(Equal([]interface{}{
+				"fake-stemcell-cid",
+			},
+			))
 		})
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error", func() {
@@ -155,27 +160,32 @@ var _ = Describe("Cloud", func() {
 
 	Describe("HasVM", func() {
 		It("return true when VM exists", func() {
-			fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+			fakeCPICmdRunner.RunReturns(CmdOutput{
 				Result: true,
-			}
+			},
+				nil,
+			)
 
 			found, err := cloud.HasVM("fake-vm-cid")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 
-			Expect(fakeCPICmdRunner.RunInputs).To(Equal([]fakebicloud.RunInput{
-				{
-					Context:   context,
-					Method:    "has_vm",
-					Arguments: []interface{}{"fake-vm-cid"},
-				},
-			}))
+			Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+			runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+			Expect(runContext).To(Equal(context))
+			Expect(runMethod).To(Equal("has_vm"))
+			Expect(runArgs).To(Equal([]interface{}{
+				"fake-vm-cid",
+			},
+			))
 		})
 
 		It("return false when VM does not exist", func() {
-			fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+			fakeCPICmdRunner.RunReturns(CmdOutput{
 				Result: false,
-			}
+			},
+				nil,
+			)
 
 			found, err := cloud.HasVM("fake-vm-cid")
 			Expect(err).ToNot(HaveOccurred())
@@ -184,7 +194,7 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error when executing the CPI command fails", func() {
@@ -230,27 +240,29 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi successfully creates the vm", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+				fakeCPICmdRunner.RunReturns(CmdOutput{
 					Result: "fake-vm-cid",
-				}
+				},
+					nil,
+				)
 			})
 
 			It("executes the cpi job script with the director UUID and stemcell CID", func() {
 				_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-					Context: context,
-					Method:  "create_vm",
-					Arguments: []interface{}{
-						agentID,
-						stemcellCID,
-						cloudProperties,
-						networkInterfaces,
-						[]interface{}{},
-						env,
-					},
-				}))
+				Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+				runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+				Expect(runContext).To(Equal(context))
+				Expect(runMethod).To(Equal("create_vm"))
+				Expect(runArgs).To(Equal([]interface{}{
+					agentID,
+					stemcellCID,
+					cloudProperties,
+					networkInterfaces,
+					[]interface{}{},
+					env,
+				},
+				))
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
@@ -262,9 +274,11 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the result is of an unexpected type", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+				fakeCPICmdRunner.RunReturns(CmdOutput{
 					Result: 1,
-				}
+				},
+					nil,
+				)
 			})
 
 			It("returns an error", func() {
@@ -276,7 +290,7 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error", func() {
@@ -304,19 +318,19 @@ var _ = Describe("Cloud", func() {
 			err := cloud.SetVMMetadata(vmCID, metadata)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-			Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-				Context: context,
-				Method:  "set_vm_metadata",
-				Arguments: []interface{}{
-					vmCID,
-					metadata,
-				},
-			}))
+			Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+			runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+			Expect(runContext).To(Equal(context))
+			Expect(runMethod).To(Equal("set_vm_metadata"))
+			Expect(runArgs).To(Equal([]interface{}{
+				vmCID,
+				metadata,
+			},
+			))
 		})
 
 		It("returns the error if running fails", func() {
-			fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+			fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			vmCID := "fake-vm-cid"
 			metadata := VMMetadata{
 				Director:   "bosh-init",
@@ -359,24 +373,26 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi successfully creates the disk", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+				fakeCPICmdRunner.RunReturns(CmdOutput{
 					Result: "fake-disk-cid",
-				}
+				},
+					nil,
+				)
 			})
 
 			It("executes the cpi job script with the correct arguments", func() {
 				_, err := cloud.CreateDisk(size, cloudProperties, instanceID)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-					Context: context,
-					Method:  "create_disk",
-					Arguments: []interface{}{
-						size,
-						cloudProperties,
-						instanceID,
-					},
-				}))
+				Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+				runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+				Expect(runContext).To(Equal(context))
+				Expect(runMethod).To(Equal("create_disk"))
+				Expect(runArgs).To(Equal([]interface{}{
+					size,
+					cloudProperties,
+					instanceID,
+				},
+				))
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
@@ -388,9 +404,11 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the result is of an unexpected type", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+				fakeCPICmdRunner.RunReturns(CmdOutput{
 					Result: 1,
-				}
+				},
+					nil,
+				)
 			})
 
 			It("returns an error", func() {
@@ -402,7 +420,7 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error", func() {
@@ -423,21 +441,21 @@ var _ = Describe("Cloud", func() {
 			It("executes the cpi job script with the correct arguments", func() {
 				err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-					Context: context,
-					Method:  "attach_disk",
-					Arguments: []interface{}{
-						"fake-vm-cid",
-						"fake-disk-cid",
-					},
-				}))
+				Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+				runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+				Expect(runContext).To(Equal(context))
+				Expect(runMethod).To(Equal("attach_disk"))
+				Expect(runArgs).To(Equal([]interface{}{
+					"fake-vm-cid",
+					"fake-disk-cid",
+				},
+				))
 			})
 		})
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error", func() {
@@ -457,21 +475,21 @@ var _ = Describe("Cloud", func() {
 			It("executes the cpi job script with the correct arguments", func() {
 				err := cloud.DetachDisk("fake-vm-cid", "fake-disk-cid")
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-					Context: context,
-					Method:  "detach_disk",
-					Arguments: []interface{}{
-						"fake-vm-cid",
-						"fake-disk-cid",
-					},
-				}))
+				Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+				runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+				Expect(runContext).To(Equal(context))
+				Expect(runMethod).To(Equal("detach_disk"))
+				Expect(runArgs).To(Equal([]interface{}{
+					"fake-vm-cid",
+					"fake-disk-cid",
+				},
+				))
 			})
 		})
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error", func() {
@@ -491,20 +509,20 @@ var _ = Describe("Cloud", func() {
 			It("executes the cpi job script with the correct arguments", func() {
 				err := cloud.DeleteVM("fake-vm-cid")
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-					Context: context,
-					Method:  "delete_vm",
-					Arguments: []interface{}{
-						"fake-vm-cid",
-					},
-				}))
+				Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+				runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+				Expect(runContext).To(Equal(context))
+				Expect(runMethod).To(Equal("delete_vm"))
+				Expect(runArgs).To(Equal([]interface{}{
+					"fake-vm-cid",
+				},
+				))
 			})
 		})
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error", func() {
@@ -524,20 +542,20 @@ var _ = Describe("Cloud", func() {
 			It("executes the cpi job script with the correct arguments", func() {
 				err := cloud.DeleteDisk("fake-disk-cid")
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
-					Context: context,
-					Method:  "delete_disk",
-					Arguments: []interface{}{
-						"fake-disk-cid",
-					},
-				}))
+				Expect(fakeCPICmdRunner.RunCallCount()).To(Equal(1))
+				runContext, runMethod, runArgs := fakeCPICmdRunner.RunArgsForCall(0)
+				Expect(runContext).To(Equal(context))
+				Expect(runMethod).To(Equal("delete_disk"))
+				Expect(runArgs).To(Equal([]interface{}{
+					"fake-disk-cid",
+				},
+				))
 			})
 		})
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+				fakeCPICmdRunner.RunReturns(CmdOutput{}, errors.New("fake-run-error"))
 			})
 
 			It("returns an error", func() {

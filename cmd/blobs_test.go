@@ -8,9 +8,9 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("BlobsCmd", func() {

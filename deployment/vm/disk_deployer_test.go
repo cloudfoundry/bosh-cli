@@ -12,11 +12,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/cloudfakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/configfakes"
+	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/diskfakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/vmfakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("DiskDeployer", func() {

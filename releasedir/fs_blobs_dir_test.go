@@ -7,14 +7,14 @@ import (
 	"strings"
 	"syscall"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
-	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/cryptofakes"
+	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 )
 
 var _ = Describe("FSBlobsDir", func() {

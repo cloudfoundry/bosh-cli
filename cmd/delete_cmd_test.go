@@ -13,8 +13,8 @@ import (
 	"github.com/golang/mock/gomock"
 
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("DeleteCmd", func() {

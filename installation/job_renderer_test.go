@@ -1,11 +1,11 @@
 package installation_test
 
 import (
-	fakeboshblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
-	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	fakeboshblob "github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes"
+	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fileutilfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,7 +17,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	bitemplate "github.com/cloudfoundry/bosh-cli/templatescompiler"
 	mock_template "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("JobRenderer", func() {

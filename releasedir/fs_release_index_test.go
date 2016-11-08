@@ -3,16 +3,16 @@ package releasedir_test
 import (
 	"errors"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/uuidfakes"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 )
 
 var _ = Describe("FSReleaseIndex", func() {

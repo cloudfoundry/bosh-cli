@@ -11,8 +11,8 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 )
 
 var _ = Describe("DirReaderImpl", func() {

@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 )
 
 var _ = Describe("Manager", func() {

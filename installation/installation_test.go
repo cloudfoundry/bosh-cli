@@ -9,7 +9,7 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	mock_registry "github.com/cloudfoundry/bosh-cli/registry/mocks"
 	test_support_mocks "github.com/cloudfoundry/bosh-cli/test_support/mocks"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"

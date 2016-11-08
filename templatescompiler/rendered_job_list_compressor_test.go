@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fileutilfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/cryptofakes"
 	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/templatescompiler"

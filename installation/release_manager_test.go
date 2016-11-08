@@ -7,7 +7,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/installation"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 )
 
 var _ = Describe("ReleaseManager", func() {

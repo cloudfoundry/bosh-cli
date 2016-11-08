@@ -4,10 +4,10 @@ import (
 	"errors"
 
 	. "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
-	fakebierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer/fakes"
+	fakebierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer/erbrendererfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

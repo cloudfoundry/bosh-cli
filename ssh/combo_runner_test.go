@@ -10,15 +10,15 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/systemfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/cloudfoundry/bosh-cli/ssh"
-	fakessh "github.com/cloudfoundry/bosh-cli/ssh/fakes"
+	fakessh "github.com/cloudfoundry/bosh-cli/ssh/sshfakes"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/uifakes"
 )
 
 var _ = Describe("ComboRunner", func() {
