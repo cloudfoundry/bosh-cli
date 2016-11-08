@@ -57,7 +57,7 @@ var _ = Describe("SSHCmd", func() {
 		itRunsNonInteractiveSSHWhenCommandIsGiven := func(runner **fakessh.FakeRunner) {
 			Context("when commmand is provided", func() {
 				BeforeEach(func() {
-					opts.Command.Args = []string{"cmd", "arg1"}
+					opts.Command = []string{"cmd", "arg1"}
 				})
 
 				It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {

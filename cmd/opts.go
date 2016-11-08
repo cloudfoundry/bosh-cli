@@ -633,14 +633,14 @@ type RecreateOpts struct {
 }
 
 type AllOrPoolOrInstanceSlugArgs struct {
-	Slug boshdir.AllOrPoolOrInstanceSlug `positional-arg-name:"POOL[/ID]"`
+	Slug boshdir.AllOrPoolOrInstanceSlug `positional-arg-name:"[POOL[/ID]]"`
 }
 
 // SSH instance
 type SSHOpts struct {
 	Args AllOrPoolOrInstanceSlugArgs `positional-args:"true"`
 
-	Command SSHCommand       `positional-args:"true"`
+	Command []string         `long:"command" short:"c" description:"Command"`
 	RawOpts TrimmedSpaceArgs `long:"opts"              description:"Options to pass through to SSH"`
 
 	Results bool `long:"results" short:"r" description:"Collect results into a table instead of streaming"`
@@ -648,10 +648,6 @@ type SSHOpts struct {
 	GatewayFlags
 
 	cmd
-}
-
-type SSHCommand struct {
-	Args []string `positional-arg-name:"-- COMMAND"`
 }
 
 type SCPOpts struct {

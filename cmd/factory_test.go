@@ -3,7 +3,6 @@ package cmd_test
 import (
 	"errors"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -123,7 +122,7 @@ var _ = Describe("Factory", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				opts := cmd.Opts.(*SSHOpts)
-				Expect(opts.Command.Args).To(Equal([]string{"cmd", "extra", "args"}))
+				Expect(opts.Command).To(Equal([]string{"cmd", "extra", "args"}))
 			})
 
 			It("uses all remaining arguments as a command even that look like flags", func() {
@@ -131,10 +130,13 @@ var _ = Describe("Factory", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				opts := cmd.Opts.(*SSHOpts)
-				Expect(opts.Command.Args).To(Equal([]string{"cmd", "extra", "args", "--gw-disable"}))
-				slug, err := boshdir.NewAllOrPoolOrInstanceSlugFromString("group")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(opts.Args.Slug).To(Equal(slug))
+				Expect(opts.Command).To(Equal([]string{"cmd", "extra", "args", "--gw-disable"}))
+			})
+
+			It("returns error if command is given and extra arguments are specified", func() {
+				_, err := factory.New([]string{"ssh", "group", "-c", "command", "--", "extra", "args"})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("does not support extra arguments: extra, args"))
 			})
 		})
 

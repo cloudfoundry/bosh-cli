@@ -2082,7 +2082,9 @@ var _ = Describe("Opts", func() {
 
 		Describe("Command", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Command", opts)).To(Equal(`positional-args:"true"`))
+				Expect(getStructTagForName("Command", opts)).To(Equal(
+					`long:"command" short:"c" description:"Command"`,
+				))
 			})
 		})
 
@@ -2099,20 +2101,6 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Results", opts)).To(Equal(
 					`long:"results" short:"r" description:"Collect results into a table instead of streaming"`,
 				))
-			})
-		})
-	})
-
-	Describe("SSHCommand", func() {
-		var opts *SSHCommand
-
-		BeforeEach(func() {
-			opts = &SSHCommand{}
-		})
-
-		Describe("SSHCommand", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-arg-name:"-- COMMAND"`))
 			})
 		})
 	})
