@@ -13,32 +13,32 @@ var _ = Describe("VarFlags", func() {
 		It("merges files and then kvs", func() {
 			flags := VarFlags{
 				VarKVs: []VarKV{
-					{Name: "name1", Value: "val1"},
-					{Name: "name2", Value: "val2"},
-					{Name: "name2", Value: "val2-over"},
-					{Name: "name5", Value: "val5-over"},
+					{Name: "kv", Value: "kv"},
+					{Name: "kv_precedence", Value: "kv1"},
+					{Name: "kv_precedence", Value: "kv2"},
+					{Name: "kv_file_precedence", Value: "kv"},
 				},
 				VarsFiles: []VarsFileArg{
 					{Vars: Variables{
-						"name3": "val3",
-						"name4": "val4",
+						"file": "file",
+						"file_precedence": "file",
 					}},
 					{Vars: Variables{
-						"name5": "val5",
-						"name6": "val6",
-						"name4": "val4-over",
+						"kv_file_precedence": "file2",
+						"file2": "file2",
+						"file_precedence": "file2",
 					}},
 				},
 			}
 
 			vars := flags.AsVariables()
 			Expect(vars).To(Equal(Variables{
-				"name1": "val1",
-				"name2": "val2-over",
-				"name3": "val3",
-				"name4": "val4-over",
-				"name5": "val5-over",
-				"name6": "val6",
+				"kv": "kv",
+				"kv_precedence": "kv2",
+				"file": "file",
+				"file_precedence": "file2",
+				"kv_file_precedence": "kv",
+				"file2": "file2",
 			}))
 		})
 	})
