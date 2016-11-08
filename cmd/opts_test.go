@@ -1255,7 +1255,7 @@ var _ = Describe("Opts", func() {
 		Describe("Directory", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Directory", opts)).To(Equal(
-					`long:"dir" description:"zzzRelease directory path if not current working directory" default:"."`,
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
 				))
 			})
 		})

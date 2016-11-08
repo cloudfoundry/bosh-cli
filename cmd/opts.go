@@ -392,7 +392,7 @@ type ReleasesOpts struct {
 type UploadReleaseOpts struct {
 	Args UploadReleaseArgs `positional-args:"true"`
 
-	Directory DirOrCWDArg `long:"dir" description:"zzzRelease directory path if not current working directory" default:"."`
+	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
 	Rebase bool `long:"rebase" description:"Rebases this release onto the latest version known by the Director"`
 
