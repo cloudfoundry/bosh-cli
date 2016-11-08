@@ -6,7 +6,7 @@ import (
 
 // Shared
 type OpsFlags struct {
-	OpsFiles []OpsFileArg `long:"ops-file" short:"o" description:"Path to a YAML file that contains list of operations to modify template"`
+	OpsFiles []OpsFileArg `long:"ops-file" short:"o" value-name:"PATH" description:"Load manifest operations from a YAML file"`
 }
 
 func (f OpsFlags) AsOps() patch.Ops {

@@ -6,9 +6,9 @@ import (
 
 // Shared
 type VarFlags struct {
-	VarKVs    []boshtpl.VarKV       `long:"var"       short:"v" value-name:"[SECRET=KEY]" description:"Variable flag that can be used for filling in template values in configuration"`
-	VarsFiles []boshtpl.VarsFileArg `long:"var-files" short:"l"                           description:"Variable flag that can be used for filling in template values in configuration from a YAML file"`
-	VarsEnvs  []boshtpl.VarsEnvArg  `long:"var-env"             value-name:"PREFIX"       description:"Variable flag that can be used for filling in template values in configuration from environment variables"`
+	VarKVs    []boshtpl.VarKV       `long:"var"      short:"v" value-name:"VAR=VALUE" description:"Set variable"`
+	VarsFiles []boshtpl.VarsFileArg `long:"var-file" short:"l" value-name:"PATH"      description:"Load variables from a YAML file"`
+	VarsEnvs  []boshtpl.VarsEnvArg  `long:"var-env"            value-name:"PREFIX"    description:"Load variables from environment variables (e.g.: 'MY' to load MY_var=value)"`
 }
 
 func (f VarFlags) AsVariables() boshtpl.Variables {
