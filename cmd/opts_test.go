@@ -227,7 +227,7 @@ var _ = Describe("Opts", func() {
 		Describe("LogIn", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("LogIn", opts)).To(Equal(
-					`command:"log-in" alias:"l" description:"Log in"`,
+					`command:"log-in" alias:"l" alias:"login" description:"Log in"`,
 				))
 			})
 		})
@@ -235,7 +235,7 @@ var _ = Describe("Opts", func() {
 		Describe("LogOut", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("LogOut", opts)).To(Equal(
-					`command:"log-out" description:"Log out"`,
+					`command:"log-out" alias:"logout" description:"Log out"`,
 				))
 			})
 		})

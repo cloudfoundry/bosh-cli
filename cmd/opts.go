@@ -43,8 +43,8 @@ type BoshOpts struct {
 	AliasEnv     AliasEnvOpts     `command:"alias-env"                 description:"Alias environment to save URL and CA certificate"`
 
 	// Authentication
-	LogIn  LogInOpts  `command:"log-in"  alias:"l" description:"Log in"`
-	LogOut LogOutOpts `command:"log-out"           description:"Log out"`
+	LogIn  LogInOpts  `command:"log-in"  alias:"l" alias:"login"  description:"Log in"`
+	LogOut LogOutOpts `command:"log-out"           alias:"logout" description:"Log out"`
 
 	// Tasks
 	Task       TaskOpts       `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
