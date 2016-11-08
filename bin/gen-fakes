@@ -4,6 +4,14 @@ set -e
 
 bin=$(dirname $0)
 
+counterfeiter blobstore Blobstore
+counterfeiter blobstore Factory
+counterfeiter blobstore LocalBlob
+
+counterfeiter cloud CPICmdRunner
+counterfeiter cloud Factory
+counterfeiter cloud Cloud
+
 counterfeiter cmd Session
 counterfeiter cmd SessionContext
 counterfeiter cmd Downloader
@@ -13,8 +21,33 @@ counterfeiter cmd ReleaseCreatingCmd
 counterfeiter cmd ReleaseUploader
 counterfeiter cmd/config Config
 
+counterfeiter config DeploymentRepo
+counterfeiter config DeploymentStateService
+counterfeiter config DiskRepo
+counterfeiter config LegacyDeploymentStateMigrator
+counterfeiter config ReleaseRepo
+counterfeiter config VMRepo
+
+counterfeiter crypto SHA1Calculator
+
+counterfeiter deployment Deployer
+counterfeiter deployment Deployment
+counterfeiter deployment Factory
+counterfeiter deployment Manager
+counterfeiter deployment ManagerFactory
+counterfeiter deployment Record
+
+counterfeiter deployment/disk Disk
+counterfeiter deployment/disk Manager
+counterfeiter deployment/disk ManagerFactory
 counterfeiter deployment/manifest Parser
 counterfeiter deployment/template DeploymentTemplateFactory
+counterfeiter deployment/vm DiskDeployer
+counterfeiter deployment/vm Manager
+counterfeiter deployment/vm ManagerFactory
+counterfeiter deployment/vm VM
+counterfeiter deployment/sshtunnel SSHTunnel
+counterfeiter deployment/sshtunnel Factory
 
 counterfeiter director Adjustment
 counterfeiter director AdjustedClient
@@ -33,6 +66,9 @@ counterfeiter director TaskReporter
 counterfeiter uaa UAA
 counterfeiter uaa Token
 counterfeiter uaa AccessToken
+
+counterfeiter installation/manifest Parser
+counterfeiter installation/manifest Validator
 
 counterfeiter releasedir ReleaseDir
 counterfeiter releasedir Config
@@ -60,11 +96,30 @@ counterfeiter release/pkg DirReader
 counterfeiter release/pkg Compilable
 counterfeiter release/license DirReader
 
+counterfeiter release/set/manifest Parser
+counterfeiter release/set/manifest Validator
+
 counterfeiter ssh Runner
 counterfeiter ssh SCPRunner
 counterfeiter ssh Session
 
+counterfeiter stemcell CloudStemcell
+counterfeiter stemcell Extractor
+counterfeiter stemcell Manager
+counterfeiter stemcell ManagerFactory
+counterfeiter stemcell Reader
+counterfeiter stemcell ExtractedStemcell
+
+counterfeiter templatescompiler/erbrenderer ERBRenderer
+
+counterfeiter ui UI
 counterfeiter ui/task Reporter
 
-go fmt github.com/cloudfoundry/bosh-cli/...
+reformatted_packages="$($bin/go fmt $($bin/go list github.com/cloudfoundry/bosh-cli/... | grep -v /vendor/))"
+
+if [[ $reformatted_packages = *[![:space:]]* ]]; then
+  echo "go fmt reformatted the following packages, please format and run again:"
+  echo $reformatted_packages
+  exit 1
+fi
 
