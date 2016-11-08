@@ -235,13 +235,13 @@ func (c Client) FetchLogs(deploymentName, job, indexOrID string, filters []strin
 	return taskResp.Result, "", nil
 }
 
-func (c Client) Ignore(deploymentName, job, indexOrID string, enabled bool) error {
+func (c Client) Ignore(deploymentName, instance_group, indexOrID string, enabled bool) error {
 	if len(deploymentName) == 0 {
 		return bosherr.Error("Expected non-empty deployment name")
 	}
 
-	if len(job) == 0 {
-		return bosherr.Error("Expected non-empty job name")
+	if len(instance_group) == 0 {
+		return bosherr.Error("Expected non-empty instance group name")
 	}
 
 	if len(indexOrID) == 0 {
@@ -260,12 +260,12 @@ func (c Client) Ignore(deploymentName, job, indexOrID string, enabled bool) erro
 	}
 
 	path := fmt.Sprintf("/deployments/%s/instance_groups/%s/%s/ignore",
-		deploymentName, job, indexOrID)
+		deploymentName, instance_group, indexOrID)
 
 	_, _, err = c.clientRequest.RawPut(path, reqBody, headers)
 	if err != nil {
 		msg := "Changing ignore state for '%s/%s' in deployment '%s'"
-		return bosherr.WrapErrorf(err, msg, job, indexOrID, deploymentName)
+		return bosherr.WrapErrorf(err, msg, instance_group, indexOrID, deploymentName)
 	}
 
 	return nil
