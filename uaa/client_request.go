@@ -1,7 +1,6 @@
 package uaa
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -41,7 +40,7 @@ func (r ClientRequest) Get(path string, response interface{}) error {
 
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Accept", "application/json")
-		req.Header.Add("Authorization", buildAuthorizationHeader(r.client, r.clientSecret))
+		req.SetBasicAuth(r.client, r.clientSecret)
 	}
 
 	resp, err := r.httpClient.GetCustomized(url, setHeaders)
@@ -67,10 +66,11 @@ func (r ClientRequest) Post(path string, payload []byte, response interface{}) e
 
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Accept", "application/json")
-		req.Header.Add("Authorization", buildAuthorizationHeader(r.client, r.clientSecret))
+		req.SetBasicAuth(r.client, r.clientSecret)
 	}
 
 	resp, err := r.httpClient.PostCustomized(url, payload, setHeaders)
+
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Performing request POST '%s'", url)
 	}
@@ -102,12 +102,4 @@ func (r ClientRequest) readResponse(resp *http.Response) ([]byte, error) {
 	}
 
 	return respBody, nil
-}
-
-func buildAuthorizationHeader(client, clientSecret string) string {
-	data := []byte(fmt.Sprintf("%s:%s", client, clientSecret))
-	encodedBasicAuth := base64.StdEncoding.EncodeToString(data)
-	headerString := fmt.Sprintf("Basic %s", encodedBasicAuth)
-
-	return headerString
 }
