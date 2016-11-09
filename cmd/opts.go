@@ -633,7 +633,7 @@ type RecreateOpts struct {
 }
 
 type AllOrInstanceGroupOrInstanceSlugArgs struct {
-	Slug boshdir.AllOrInstanceGroupOrInstanceSlug `positional-arg-name:"[POOL[/ID]]"`
+	Slug boshdir.AllOrInstanceGroupOrInstanceSlug `positional-arg-name:"INSTANCE-GROUP[/INSTANCE-ID]"`
 }
 
 // SSH instance
