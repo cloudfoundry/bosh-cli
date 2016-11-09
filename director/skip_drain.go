@@ -6,7 +6,7 @@ import (
 
 type SkipDrain struct {
 	All   bool
-	Slugs []PoolOrInstanceSlug
+	Slugs []InstanceGroupOrInstanceSlug
 }
 
 func (s SkipDrain) AsQueryValue() string {
@@ -34,7 +34,7 @@ func (s *SkipDrain) UnmarshalFlag(data string) error {
 	pieces := strings.Split(data, ",")
 
 	for _, p := range pieces {
-		slug, err := NewPoolOrInstanceSlugFromString(p)
+		slug, err := NewInstanceGroupOrInstanceSlugFromString(p)
 		if err != nil {
 			return err
 		}

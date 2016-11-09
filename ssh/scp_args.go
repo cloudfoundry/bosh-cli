@@ -18,18 +18,18 @@ func NewSCPArgs(rawArgs []string, recursive bool) SCPArgs {
 	return SCPArgs{raw: rawArgs, recursive: recursive}
 }
 
-func (a SCPArgs) AllOrPoolOrInstanceSlug() (boshdir.AllOrPoolOrInstanceSlug, error) {
+func (a SCPArgs) AllOrInstanceGroupOrInstanceSlug() (boshdir.AllOrInstanceGroupOrInstanceSlug, error) {
 	for _, rawArg := range a.raw {
 		pieces := strings.SplitN(rawArg, ":", 2)
 
 		if len(pieces) == 2 {
-			return boshdir.NewAllOrPoolOrInstanceSlugFromString(pieces[0])
+			return boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString(pieces[0])
 		}
 	}
 
 	err := bosherr.Errorf("Missing remote host information in source/destination arguments")
 
-	return boshdir.AllOrPoolOrInstanceSlug{}, err
+	return boshdir.AllOrInstanceGroupOrInstanceSlug{}, err
 }
 
 func (a SCPArgs) ForHost(host boshdir.Host) []string {

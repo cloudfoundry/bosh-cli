@@ -32,8 +32,8 @@ var _ = Describe("StartCmd", func() {
 
 		BeforeEach(func() {
 			opts = StartOpts{
-				Args: AllOrPoolOrInstanceSlugArgs{
-					Slug: boshdir.NewAllOrPoolOrInstanceSlug("some-name", ""),
+				Args: AllOrInstanceGroupOrInstanceSlugArgs{
+					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", ""),
 				},
 			}
 		})
@@ -46,7 +46,7 @@ var _ = Describe("StartCmd", func() {
 
 			Expect(deployment.StartCallCount()).To(Equal(1))
 			Expect(deployment.StartArgsForCall(0)).To(Equal(
-				boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+				boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 		})
 
 		It("does not start if confirmation is rejected", func() {

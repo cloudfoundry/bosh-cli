@@ -124,26 +124,26 @@ func (d DeploymentImpl) Ignore(slug InstanceSlug, enabled bool) error {
 	return d.client.Ignore(d.name, slug.Name(), slug.IndexOrID(), enabled)
 }
 
-func (d DeploymentImpl) Start(slug AllOrPoolOrInstanceSlug, opts StartOpts) error {
+func (d DeploymentImpl) Start(slug AllOrInstanceGroupOrInstanceSlug, opts StartOpts) error {
 	return d.changeJobState("started", slug, SkipDrain{}, false, false, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) Stop(slug AllOrPoolOrInstanceSlug, opts StopOpts) error {
+func (d DeploymentImpl) Stop(slug AllOrInstanceGroupOrInstanceSlug, opts StopOpts) error {
 	if opts.Hard {
 		return d.changeJobState("detached", slug, opts.SkipDrain, opts.Force, false, opts.Canaries, opts.MaxInFlight)
 	}
 	return d.changeJobState("stopped", slug, opts.SkipDrain, opts.Force, false, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) Restart(slug AllOrPoolOrInstanceSlug, opts RestartOpts) error {
+func (d DeploymentImpl) Restart(slug AllOrInstanceGroupOrInstanceSlug, opts RestartOpts) error {
 	return d.changeJobState("restart", slug, opts.SkipDrain, opts.Force, false, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) Recreate(slug AllOrPoolOrInstanceSlug, opts RecreateOpts) error {
+func (d DeploymentImpl) Recreate(slug AllOrInstanceGroupOrInstanceSlug, opts RecreateOpts) error {
 	return d.changeJobState("recreate", slug, opts.SkipDrain, opts.Force, opts.DryRun, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) changeJobState(state string, slug AllOrPoolOrInstanceSlug, sd SkipDrain, force bool, dryRun bool, canaries string, maxInFlight string) error {
+func (d DeploymentImpl) changeJobState(state string, slug AllOrInstanceGroupOrInstanceSlug, sd SkipDrain, force bool, dryRun bool, canaries string, maxInFlight string) error {
 	return d.client.ChangeJobState(
 		state, d.name, slug.Name(), slug.IndexOrID(), sd, force, dryRun, canaries, maxInFlight)
 }

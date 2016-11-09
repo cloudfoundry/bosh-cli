@@ -515,7 +515,7 @@ type DeleteSnapshotsOpts struct {
 }
 
 type InstanceSlugArgs struct {
-	Slug boshdir.InstanceSlug `positional-arg-name:"POOL/ID"`
+	Slug boshdir.InstanceSlug `positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`
 }
 
 // Instances
@@ -563,7 +563,7 @@ type UnignoreOpts struct {
 }
 
 type LogsOpts struct {
-	Args AllOrPoolOrInstanceSlugArgs `positional-args:"true"`
+	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	Directory DirOrCWDArg `long:"dir" description:"Destination directory" default:"."`
 
@@ -581,7 +581,7 @@ type LogsOpts struct {
 }
 
 type StartOpts struct {
-	Args AllOrPoolOrInstanceSlugArgs `positional-args:"true"`
+	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	Force bool `long:"force" description:"No-op for backwards compatibility"`
 
@@ -592,7 +592,7 @@ type StartOpts struct {
 }
 
 type StopOpts struct {
-	Args AllOrPoolOrInstanceSlugArgs `positional-args:"true"`
+	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	Soft bool `long:"soft" description:"Stop process only (default)"`
 	Hard bool `long:"hard" description:"Delete VM (but keep persistent disk)"`
@@ -607,7 +607,7 @@ type StopOpts struct {
 }
 
 type RestartOpts struct {
-	Args AllOrPoolOrInstanceSlugArgs `positional-args:"true"`
+	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
@@ -619,7 +619,7 @@ type RestartOpts struct {
 }
 
 type RecreateOpts struct {
-	Args AllOrPoolOrInstanceSlugArgs `positional-args:"true"`
+	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
@@ -632,13 +632,13 @@ type RecreateOpts struct {
 	cmd
 }
 
-type AllOrPoolOrInstanceSlugArgs struct {
-	Slug boshdir.AllOrPoolOrInstanceSlug `positional-arg-name:"[POOL[/ID]]"`
+type AllOrInstanceGroupOrInstanceSlugArgs struct {
+	Slug boshdir.AllOrInstanceGroupOrInstanceSlug `positional-arg-name:"[POOL[/ID]]"`
 }
 
 // SSH instance
 type SSHOpts struct {
-	Args AllOrPoolOrInstanceSlugArgs `positional-args:"true"`
+	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	Command []string         `long:"command" short:"c" description:"Command"`
 	RawOpts TrimmedSpaceArgs `long:"opts"              description:"Options to pass through to SSH"`

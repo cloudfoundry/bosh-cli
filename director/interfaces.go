@@ -107,13 +107,13 @@ type Deployment interface {
 	DeleteVM(string) error
 
 	// Deployment, pool or instance specifics
-	Start(slug AllOrPoolOrInstanceSlug, opts StartOpts) error
-	Stop(slug AllOrPoolOrInstanceSlug, opts StopOpts) error
-	Restart(slug AllOrPoolOrInstanceSlug, opts RestartOpts) error
-	Recreate(slug AllOrPoolOrInstanceSlug, opts RecreateOpts) error
+	Start(slug AllOrInstanceGroupOrInstanceSlug, opts StartOpts) error
+	Stop(slug AllOrInstanceGroupOrInstanceSlug, opts StopOpts) error
+	Restart(slug AllOrInstanceGroupOrInstanceSlug, opts RestartOpts) error
+	Recreate(slug AllOrInstanceGroupOrInstanceSlug, opts RecreateOpts) error
 
-	SetUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) (SSHResult, error)
-	CleanUpSSH(AllOrPoolOrInstanceSlug, SSHOpts) error
+	SetUpSSH(AllOrInstanceGroupOrInstanceSlug, SSHOpts) (SSHResult, error)
+	CleanUpSSH(AllOrInstanceGroupOrInstanceSlug, SSHOpts) error
 
 	// Instance specifics
 	FetchLogs(InstanceSlug, []string, bool) (LogsResult, error)

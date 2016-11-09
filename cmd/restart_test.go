@@ -32,8 +32,8 @@ var _ = Describe("RestartCmd", func() {
 
 		BeforeEach(func() {
 			opts = RestartOpts{
-				Args: AllOrPoolOrInstanceSlugArgs{
-					Slug: boshdir.NewAllOrPoolOrInstanceSlug("some-name", ""),
+				Args: AllOrInstanceGroupOrInstanceSlugArgs{
+					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", ""),
 				},
 			}
 		})
@@ -47,7 +47,7 @@ var _ = Describe("RestartCmd", func() {
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
 			slug, restartOpts := deployment.RestartArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(restartOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
 			Expect(restartOpts.Force).To(BeFalse())
 		})
@@ -61,7 +61,7 @@ var _ = Describe("RestartCmd", func() {
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
 			slug, restartOpts := deployment.RestartArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(restartOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
 			Expect(restartOpts.Force).To(BeFalse())
 		})
@@ -99,7 +99,7 @@ var _ = Describe("RestartCmd", func() {
 			Expect(deployment.RestartCallCount()).To(Equal(1))
 
 			slug, restartOpts := deployment.RestartArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(restartOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
 			Expect(restartOpts.Force).To(BeTrue())
 		})

@@ -1629,7 +1629,7 @@ var _ = Describe("Opts", func() {
 		Describe("Slug", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Slug", opts)).To(Equal(
-					`positional-arg-name:"POOL/ID"`,
+					`positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`,
 				))
 			})
 		})

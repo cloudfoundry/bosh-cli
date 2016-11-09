@@ -72,7 +72,7 @@ var _ = Describe("NewSSHOpts", func() {
 				server,
 			)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 			opts := SSHOpts{
 				Username:  "user",
 				Password:  "p",
@@ -129,7 +129,7 @@ var _ = Describe("NewSSHOpts", func() {
 
 			ConfigureTaskResult(ghttp.VerifyRequest("POST", "/deployments/dep/ssh"), respBody, server)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 			opts := SSHOpts{
 				Username:  "user",
 				Password:  "p",
@@ -198,7 +198,7 @@ var _ = Describe("NewSSHOpts", func() {
 				server,
 			)
 
-			slug := NewAllOrPoolOrInstanceSlug("", "")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("", "")
 			opts := SSHOpts{
 				Username:  "user",
 				Password:  "p",
@@ -242,7 +242,7 @@ var _ = Describe("NewSSHOpts", func() {
 
 			ConfigureTaskResult(ghttp.VerifyRequest("POST", "/deployments/dep/ssh"), respBody, server)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 			opts := SSHOpts{
 				Username:  "user",
 				Password:  "p",
@@ -276,7 +276,7 @@ var _ = Describe("NewSSHOpts", func() {
 		It("returns error if no sessions were created", func() {
 			ConfigureTaskResult(ghttp.VerifyRequest("POST", "/deployments/dep/ssh"), "[]", server)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 
 			_, err := deployment.SetUpSSH(slug, SSHOpts{})
 			Expect(err).To(HaveOccurred())
@@ -303,7 +303,7 @@ var _ = Describe("NewSSHOpts", func() {
 
 			ConfigureTaskResult(ghttp.VerifyRequest("POST", "/deployments/dep/ssh"), respBody, server)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 
 			_, err := deployment.SetUpSSH(slug, SSHOpts{})
 			Expect(err).To(HaveOccurred())
@@ -313,7 +313,7 @@ var _ = Describe("NewSSHOpts", func() {
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep/ssh"), server)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 
 			_, err := deployment.SetUpSSH(slug, SSHOpts{})
 			Expect(err).To(HaveOccurred())
@@ -328,7 +328,7 @@ var _ = Describe("NewSSHOpts", func() {
 				),
 			)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 
 			_, err := deployment.SetUpSSH(slug, SSHOpts{})
 			Expect(err).To(HaveOccurred())
@@ -358,7 +358,7 @@ var _ = Describe("NewSSHOpts", func() {
 				),
 			)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 			opts := SSHOpts{
 				Username:  "user",
 				Password:  "p",
@@ -389,7 +389,7 @@ var _ = Describe("NewSSHOpts", func() {
 				),
 			)
 
-			slug := NewAllOrPoolOrInstanceSlug("", "")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("", "")
 			opts := SSHOpts{
 				Username:  "user",
 				Password:  "p",
@@ -403,7 +403,7 @@ var _ = Describe("NewSSHOpts", func() {
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep/ssh"), server)
 
-			slug := NewAllOrPoolOrInstanceSlug("job", "index")
+			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 
 			err := deployment.CleanUpSSH(slug, SSHOpts{})
 			Expect(err).To(HaveOccurred())

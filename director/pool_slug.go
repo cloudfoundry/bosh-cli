@@ -4,22 +4,22 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-type PoolSlug struct {
+type InstanceGroupSlug struct {
 	name string
 }
 
-func NewPoolSlug(name string) PoolSlug {
+func NewInstanceGroupSlug(name string) InstanceGroupSlug {
 	if len(name) == 0 {
 		panic("Expected non-empty pool name")
 	}
-	return PoolSlug{name: name}
+	return InstanceGroupSlug{name: name}
 }
 
-func (s PoolSlug) Name() string   { return s.name }
-func (s PoolSlug) String() string { return s.name }
+func (s InstanceGroupSlug) Name() string   { return s.name }
+func (s InstanceGroupSlug) String() string { return s.name }
 
-func (s *PoolSlug) UnmarshalFlag(data string) error {
-	slug, err := parsePoolSlug(data)
+func (s *InstanceGroupSlug) UnmarshalFlag(data string) error {
+	slug, err := parseInstanceGroupSlug(data)
 	if err != nil {
 		return err
 	}
@@ -29,10 +29,10 @@ func (s *PoolSlug) UnmarshalFlag(data string) error {
 	return nil
 }
 
-func parsePoolSlug(str string) (PoolSlug, error) {
+func parseInstanceGroupSlug(str string) (InstanceGroupSlug, error) {
 	if len(str) == 0 {
-		return PoolSlug{}, bosherr.Error("Expected non-empty pool name")
+		return InstanceGroupSlug{}, bosherr.Error("Expected non-empty pool name")
 	}
 
-	return PoolSlug{name: str}, nil
+	return InstanceGroupSlug{name: str}, nil
 }

@@ -21,9 +21,9 @@ var _ = Describe("SkipDrain", func() {
 
 		It("returns comma-separated slugs when skipping specific pools or instances", func() {
 			skipDrain := SkipDrain{
-				Slugs: []PoolOrInstanceSlug{
-					NewPoolOrInstanceSlug("name1", ""),
-					NewPoolOrInstanceSlug("name2", "id2"),
+				Slugs: []InstanceGroupOrInstanceSlug{
+					NewInstanceGroupOrInstanceSlug("name1", ""),
+					NewInstanceGroupOrInstanceSlug("name2", "id2"),
 				},
 			}
 			Expect(skipDrain.AsQueryValue()).To(Equal("name1,name2/id2"))
@@ -49,8 +49,8 @@ var _ = Describe("SkipDrain", func() {
 			err := skipDrain.UnmarshalFlag("name")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*skipDrain).To(Equal(SkipDrain{
-				Slugs: []PoolOrInstanceSlug{
-					NewPoolOrInstanceSlug("name", ""),
+				Slugs: []InstanceGroupOrInstanceSlug{
+					NewInstanceGroupOrInstanceSlug("name", ""),
 				},
 			}))
 		})
@@ -59,9 +59,9 @@ var _ = Describe("SkipDrain", func() {
 			err := skipDrain.UnmarshalFlag("name1,name2")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*skipDrain).To(Equal(SkipDrain{
-				Slugs: []PoolOrInstanceSlug{
-					NewPoolOrInstanceSlug("name1", ""),
-					NewPoolOrInstanceSlug("name2", ""),
+				Slugs: []InstanceGroupOrInstanceSlug{
+					NewInstanceGroupOrInstanceSlug("name1", ""),
+					NewInstanceGroupOrInstanceSlug("name2", ""),
 				},
 			}))
 		})
@@ -70,9 +70,9 @@ var _ = Describe("SkipDrain", func() {
 			err := skipDrain.UnmarshalFlag("name1/id1,name2")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*skipDrain).To(Equal(SkipDrain{
-				Slugs: []PoolOrInstanceSlug{
-					NewPoolOrInstanceSlug("name1", "id1"),
-					NewPoolOrInstanceSlug("name2", ""),
+				Slugs: []InstanceGroupOrInstanceSlug{
+					NewInstanceGroupOrInstanceSlug("name1", "id1"),
+					NewInstanceGroupOrInstanceSlug("name2", ""),
 				},
 			}))
 		})

@@ -51,7 +51,7 @@ func (r SSHResp) IndexOrID() string {
 	return ""
 }
 
-func (d DeploymentImpl) SetUpSSH(slug AllOrPoolOrInstanceSlug, opts SSHOpts) (SSHResult, error) {
+func (d DeploymentImpl) SetUpSSH(slug AllOrInstanceGroupOrInstanceSlug, opts SSHOpts) (SSHResult, error) {
 	var result SSHResult
 
 	resps, err := d.client.SetUpSSH(d.name, slug.Name(), slug.IndexOrID(), opts)
@@ -86,7 +86,7 @@ func (d DeploymentImpl) SetUpSSH(slug AllOrPoolOrInstanceSlug, opts SSHOpts) (SS
 	return result, nil
 }
 
-func (d DeploymentImpl) CleanUpSSH(slug AllOrPoolOrInstanceSlug, opts SSHOpts) error {
+func (d DeploymentImpl) CleanUpSSH(slug AllOrInstanceGroupOrInstanceSlug, opts SSHOpts) error {
 	return d.client.CleanUpSSH(d.name, slug.Name(), slug.IndexOrID(), opts)
 }
 

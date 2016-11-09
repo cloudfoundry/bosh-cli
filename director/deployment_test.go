@@ -343,7 +343,7 @@ var _ = Describe("Deployment", func() {
 
 	Describe("job states", func() {
 		var (
-			slug         AllOrPoolOrInstanceSlug
+			slug         AllOrInstanceGroupOrInstanceSlug
 			sd           SkipDrain
 			force        bool
 			dryRun       bool
@@ -355,7 +355,7 @@ var _ = Describe("Deployment", func() {
 		)
 
 		BeforeEach(func() {
-			slug = AllOrPoolOrInstanceSlug{}
+			slug = AllOrInstanceGroupOrInstanceSlug{}
 			sd = SkipDrain{}
 			force = false
 			dryRun = false
@@ -388,7 +388,7 @@ var _ = Describe("Deployment", func() {
 
 			Describe(fmt.Sprintf("change state to '%s'", state), func() {
 				It("changes state for specific instance", func() {
-					slug = NewAllOrPoolOrInstanceSlug("job", "id")
+					slug = NewAllOrInstanceGroupOrInstanceSlug("job", "id")
 
 					ConfigureTaskResult(
 						ghttp.CombineHandlers(
@@ -407,7 +407,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("changes state for the whole deployment", func() {
-					slug = NewAllOrPoolOrInstanceSlug("", "")
+					slug = NewAllOrInstanceGroupOrInstanceSlug("", "")
 
 					ConfigureTaskResult(
 						ghttp.CombineHandlers(
@@ -426,7 +426,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("changes state for all indicies of a job", func() {
-					slug = NewAllOrPoolOrInstanceSlug("job", "")
+					slug = NewAllOrInstanceGroupOrInstanceSlug("job", "")
 
 					ConfigureTaskResult(
 						ghttp.CombineHandlers(
@@ -508,7 +508,7 @@ var _ = Describe("Deployment", func() {
 				}
 				if state != "started" {
 					It("changes state with skipping drain and forcing", func() {
-						slug = NewAllOrPoolOrInstanceSlug("", "")
+						slug = NewAllOrInstanceGroupOrInstanceSlug("", "")
 						sd = SkipDrain{All: true}
 						force = true
 

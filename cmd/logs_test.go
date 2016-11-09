@@ -39,8 +39,8 @@ var _ = Describe("LogsCmd", func() {
 
 		BeforeEach(func() {
 			opts = LogsOpts{
-				Args: AllOrPoolOrInstanceSlugArgs{
-					Slug: boshdir.NewAllOrPoolOrInstanceSlug("job", "index"),
+				Args: AllOrInstanceGroupOrInstanceSlugArgs{
+					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index"),
 				},
 
 				Directory: DirOrCWDArg{Path: "/fake-dir"},
@@ -91,7 +91,7 @@ var _ = Describe("LogsCmd", func() {
 			})
 
 			It("returns error if trying to fetch logs for more than one instance", func() {
-				opts.Args.Slug = boshdir.NewAllOrPoolOrInstanceSlug("job", "")
+				opts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "")
 
 				err := act()
 				Expect(err).To(HaveOccurred())
@@ -139,7 +139,7 @@ var _ = Describe("LogsCmd", func() {
 				Expect(deployment.CleanUpSSHCallCount()).To(Equal(1))
 
 				setupSlug, setupSSHOpts := deployment.SetUpSSHArgsForCall(0)
-				Expect(setupSlug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("job", "index")))
+				Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 				Expect(setupSSHOpts.Username).To(Equal("bosh_8c5ff117957245c5"))
 				Expect(setupSSHOpts.Password).To(Equal("p"))
 				Expect(setupSSHOpts.PublicKey).To(ContainSubstring("ssh-rsa AAAA"))
@@ -150,12 +150,12 @@ var _ = Describe("LogsCmd", func() {
 			})
 
 			It("sets up SSH access for more than one instance", func() {
-				opts.Args.Slug = boshdir.NewAllOrPoolOrInstanceSlug("", "")
+				opts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("", "")
 
 				Expect(act()).ToNot(HaveOccurred())
 
 				setupSlug, _ := deployment.SetUpSSHArgsForCall(0)
-				Expect(setupSlug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("", "")))
+				Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("", "")))
 			})
 
 			It("runs non-interactive SSH", func() {

@@ -32,8 +32,8 @@ var _ = Describe("StopCmd", func() {
 
 		BeforeEach(func() {
 			opts = StopOpts{
-				Args: AllOrPoolOrInstanceSlugArgs{
-					Slug: boshdir.NewAllOrPoolOrInstanceSlug("some-name", ""),
+				Args: AllOrInstanceGroupOrInstanceSlugArgs{
+					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", ""),
 				},
 			}
 		})
@@ -47,7 +47,7 @@ var _ = Describe("StopCmd", func() {
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
 			slug, stopOpts := deployment.StopArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeFalse())
 			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
 			Expect(stopOpts.Force).To(BeFalse())
@@ -62,7 +62,7 @@ var _ = Describe("StopCmd", func() {
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
 			slug, stopOpts := deployment.StopArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeTrue())
 			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
 			Expect(stopOpts.Force).To(BeFalse())
@@ -77,7 +77,7 @@ var _ = Describe("StopCmd", func() {
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
 			slug, stopOpts := deployment.StopArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeFalse())
 			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
 			Expect(stopOpts.Force).To(BeFalse())
@@ -92,7 +92,7 @@ var _ = Describe("StopCmd", func() {
 			Expect(deployment.StopCallCount()).To(Equal(1))
 
 			slug, stopOpts := deployment.StopArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeFalse())
 			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
 			Expect(stopOpts.Force).To(BeTrue())

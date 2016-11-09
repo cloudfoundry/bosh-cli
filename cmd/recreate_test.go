@@ -32,8 +32,8 @@ var _ = Describe("RecreateCmd", func() {
 
 		BeforeEach(func() {
 			opts = RecreateOpts{
-				Args: AllOrPoolOrInstanceSlugArgs{
-					Slug: boshdir.NewAllOrPoolOrInstanceSlug("some-name", ""),
+				Args: AllOrInstanceGroupOrInstanceSlugArgs{
+					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", ""),
 				},
 			}
 		})
@@ -47,7 +47,7 @@ var _ = Describe("RecreateCmd", func() {
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
 			slug, recreateOpts := deployment.RecreateArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
 			Expect(recreateOpts.Force).To(BeFalse())
 		})
@@ -61,7 +61,7 @@ var _ = Describe("RecreateCmd", func() {
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
 			slug, recreateOpts := deployment.RecreateArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
 			Expect(recreateOpts.Force).To(BeFalse())
 		})
@@ -111,7 +111,7 @@ var _ = Describe("RecreateCmd", func() {
 			Expect(deployment.RecreateCallCount()).To(Equal(1))
 
 			slug, recreateOpts := deployment.RecreateArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("some-name", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
 			Expect(recreateOpts.Force).To(BeTrue())
 		})

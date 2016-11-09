@@ -33,7 +33,7 @@ func NewSCPCmd(
 func (c SCPCmd) Run(opts SCPOpts) error {
 	scpArgs := boshssh.NewSCPArgs(opts.Args.Paths, opts.Recursive)
 
-	slug, err := scpArgs.AllOrPoolOrInstanceSlug()
+	slug, err := scpArgs.AllOrInstanceGroupOrInstanceSlug()
 	if err != nil {
 		return err
 	}

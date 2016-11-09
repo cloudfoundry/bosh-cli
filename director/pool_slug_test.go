@@ -9,32 +9,32 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/director"
 )
 
-var _ = Describe("PoolSlug", func() {
+var _ = Describe("InstanceGroupSlug", func() {
 	Describe("Name", func() {
 		It("returns name", func() {
-			Expect(NewPoolSlug("name").String()).To(Equal("name"))
+			Expect(NewInstanceGroupSlug("name").String()).To(Equal("name"))
 		})
 	})
 
 	Describe("String", func() {
 		It("returns name", func() {
-			Expect(NewPoolSlug("name").String()).To(Equal("name"))
+			Expect(NewInstanceGroupSlug("name").String()).To(Equal("name"))
 		})
 	})
 
 	Describe("UnmarshalFlag", func() {
 		var (
-			slug *PoolSlug
+			slug *InstanceGroupSlug
 		)
 
 		BeforeEach(func() {
-			slug = &PoolSlug{}
+			slug = &InstanceGroupSlug{}
 		})
 
 		It("populates slug", func() {
 			err := slug.UnmarshalFlag("name")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(*slug).To(Equal(NewPoolSlug("name")))
+			Expect(*slug).To(Equal(NewInstanceGroupSlug("name")))
 		})
 
 		It("returns an error if name is empty", func() {

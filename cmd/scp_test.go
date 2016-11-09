@@ -61,7 +61,7 @@ var _ = Describe("SCPCmd", func() {
 				Expect(deployment.CleanUpSSHCallCount()).To(Equal(1))
 
 				setupSlug, setupSSHOpts := deployment.SetUpSSHArgsForCall(0)
-				Expect(setupSlug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("from", "")))
+				Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("from", "")))
 				Expect(setupSSHOpts.Username).To(Equal("bosh_8c5ff117957245c5"))
 				Expect(setupSSHOpts.Password).To(Equal("p"))
 				Expect(setupSSHOpts.PublicKey).To(ContainSubstring("ssh-rsa AAAA"))

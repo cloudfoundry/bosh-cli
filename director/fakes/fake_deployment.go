@@ -143,56 +143,56 @@ type FakeDeployment struct {
 	deleteVMReturns struct {
 		result1 error
 	}
-	StartStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.StartOpts) error
+	StartStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StartOpts) error
 	startMutex       sync.RWMutex
 	startArgsForCall []struct {
-		slug director.AllOrPoolOrInstanceSlug
+		slug director.AllOrInstanceGroupOrInstanceSlug
 		opts director.StartOpts
 	}
 	startReturns struct {
 		result1 error
 	}
-	StopStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.StopOpts) error
+	StopStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StopOpts) error
 	stopMutex       sync.RWMutex
 	stopArgsForCall []struct {
-		slug director.AllOrPoolOrInstanceSlug
+		slug director.AllOrInstanceGroupOrInstanceSlug
 		opts director.StopOpts
 	}
 	stopReturns struct {
 		result1 error
 	}
-	RestartStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.RestartOpts) error
+	RestartStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.RestartOpts) error
 	restartMutex       sync.RWMutex
 	restartArgsForCall []struct {
-		slug director.AllOrPoolOrInstanceSlug
+		slug director.AllOrInstanceGroupOrInstanceSlug
 		opts director.RestartOpts
 	}
 	restartReturns struct {
 		result1 error
 	}
-	RecreateStub        func(slug director.AllOrPoolOrInstanceSlug, opts director.RecreateOpts) error
+	RecreateStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.RecreateOpts) error
 	recreateMutex       sync.RWMutex
 	recreateArgsForCall []struct {
-		slug director.AllOrPoolOrInstanceSlug
+		slug director.AllOrInstanceGroupOrInstanceSlug
 		opts director.RecreateOpts
 	}
 	recreateReturns struct {
 		result1 error
 	}
-	SetUpSSHStub        func(director.AllOrPoolOrInstanceSlug, director.SSHOpts) (director.SSHResult, error)
+	SetUpSSHStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) (director.SSHResult, error)
 	setUpSSHMutex       sync.RWMutex
 	setUpSSHArgsForCall []struct {
-		arg1 director.AllOrPoolOrInstanceSlug
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
 		arg2 director.SSHOpts
 	}
 	setUpSSHReturns struct {
 		result1 director.SSHResult
 		result2 error
 	}
-	CleanUpSSHStub        func(director.AllOrPoolOrInstanceSlug, director.SSHOpts) error
+	CleanUpSSHStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) error
 	cleanUpSSHMutex       sync.RWMutex
 	cleanUpSSHArgsForCall []struct {
-		arg1 director.AllOrPoolOrInstanceSlug
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
 		arg2 director.SSHOpts
 	}
 	cleanUpSSHReturns struct {
@@ -779,10 +779,10 @@ func (fake *FakeDeployment) DeleteVMReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Start(slug director.AllOrPoolOrInstanceSlug, opts director.StartOpts) error {
+func (fake *FakeDeployment) Start(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StartOpts) error {
 	fake.startMutex.Lock()
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
-		slug director.AllOrPoolOrInstanceSlug
+		slug director.AllOrInstanceGroupOrInstanceSlug
 		opts director.StartOpts
 	}{slug, opts})
 	fake.recordInvocation("Start", []interface{}{slug, opts})
@@ -800,7 +800,7 @@ func (fake *FakeDeployment) StartCallCount() int {
 	return len(fake.startArgsForCall)
 }
 
-func (fake *FakeDeployment) StartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.StartOpts) {
+func (fake *FakeDeployment) StartArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.StartOpts) {
 	fake.startMutex.RLock()
 	defer fake.startMutex.RUnlock()
 	return fake.startArgsForCall[i].slug, fake.startArgsForCall[i].opts
@@ -813,10 +813,10 @@ func (fake *FakeDeployment) StartReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Stop(slug director.AllOrPoolOrInstanceSlug, opts director.StopOpts) error {
+func (fake *FakeDeployment) Stop(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StopOpts) error {
 	fake.stopMutex.Lock()
 	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
-		slug director.AllOrPoolOrInstanceSlug
+		slug director.AllOrInstanceGroupOrInstanceSlug
 		opts director.StopOpts
 	}{slug, opts})
 	fake.recordInvocation("Stop", []interface{}{slug, opts})
@@ -834,7 +834,7 @@ func (fake *FakeDeployment) StopCallCount() int {
 	return len(fake.stopArgsForCall)
 }
 
-func (fake *FakeDeployment) StopArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.StopOpts) {
+func (fake *FakeDeployment) StopArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.StopOpts) {
 	fake.stopMutex.RLock()
 	defer fake.stopMutex.RUnlock()
 	return fake.stopArgsForCall[i].slug, fake.stopArgsForCall[i].opts
@@ -847,10 +847,10 @@ func (fake *FakeDeployment) StopReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Restart(slug director.AllOrPoolOrInstanceSlug, opts director.RestartOpts) error {
+func (fake *FakeDeployment) Restart(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.RestartOpts) error {
 	fake.restartMutex.Lock()
 	fake.restartArgsForCall = append(fake.restartArgsForCall, struct {
-		slug director.AllOrPoolOrInstanceSlug
+		slug director.AllOrInstanceGroupOrInstanceSlug
 		opts director.RestartOpts
 	}{slug, opts})
 	fake.recordInvocation("Restart", []interface{}{slug, opts})
@@ -868,7 +868,7 @@ func (fake *FakeDeployment) RestartCallCount() int {
 	return len(fake.restartArgsForCall)
 }
 
-func (fake *FakeDeployment) RestartArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.RestartOpts) {
+func (fake *FakeDeployment) RestartArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.RestartOpts) {
 	fake.restartMutex.RLock()
 	defer fake.restartMutex.RUnlock()
 	return fake.restartArgsForCall[i].slug, fake.restartArgsForCall[i].opts
@@ -881,10 +881,10 @@ func (fake *FakeDeployment) RestartReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Recreate(slug director.AllOrPoolOrInstanceSlug, opts director.RecreateOpts) error {
+func (fake *FakeDeployment) Recreate(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.RecreateOpts) error {
 	fake.recreateMutex.Lock()
 	fake.recreateArgsForCall = append(fake.recreateArgsForCall, struct {
-		slug director.AllOrPoolOrInstanceSlug
+		slug director.AllOrInstanceGroupOrInstanceSlug
 		opts director.RecreateOpts
 	}{slug, opts})
 	fake.recordInvocation("Recreate", []interface{}{slug, opts})
@@ -902,7 +902,7 @@ func (fake *FakeDeployment) RecreateCallCount() int {
 	return len(fake.recreateArgsForCall)
 }
 
-func (fake *FakeDeployment) RecreateArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.RecreateOpts) {
+func (fake *FakeDeployment) RecreateArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.RecreateOpts) {
 	fake.recreateMutex.RLock()
 	defer fake.recreateMutex.RUnlock()
 	return fake.recreateArgsForCall[i].slug, fake.recreateArgsForCall[i].opts
@@ -915,10 +915,10 @@ func (fake *FakeDeployment) RecreateReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) SetUpSSH(arg1 director.AllOrPoolOrInstanceSlug, arg2 director.SSHOpts) (director.SSHResult, error) {
+func (fake *FakeDeployment) SetUpSSH(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.SSHOpts) (director.SSHResult, error) {
 	fake.setUpSSHMutex.Lock()
 	fake.setUpSSHArgsForCall = append(fake.setUpSSHArgsForCall, struct {
-		arg1 director.AllOrPoolOrInstanceSlug
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
 		arg2 director.SSHOpts
 	}{arg1, arg2})
 	fake.recordInvocation("SetUpSSH", []interface{}{arg1, arg2})
@@ -936,7 +936,7 @@ func (fake *FakeDeployment) SetUpSSHCallCount() int {
 	return len(fake.setUpSSHArgsForCall)
 }
 
-func (fake *FakeDeployment) SetUpSSHArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.SSHOpts) {
+func (fake *FakeDeployment) SetUpSSHArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) {
 	fake.setUpSSHMutex.RLock()
 	defer fake.setUpSSHMutex.RUnlock()
 	return fake.setUpSSHArgsForCall[i].arg1, fake.setUpSSHArgsForCall[i].arg2
@@ -950,10 +950,10 @@ func (fake *FakeDeployment) SetUpSSHReturns(result1 director.SSHResult, result2 
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) CleanUpSSH(arg1 director.AllOrPoolOrInstanceSlug, arg2 director.SSHOpts) error {
+func (fake *FakeDeployment) CleanUpSSH(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.SSHOpts) error {
 	fake.cleanUpSSHMutex.Lock()
 	fake.cleanUpSSHArgsForCall = append(fake.cleanUpSSHArgsForCall, struct {
-		arg1 director.AllOrPoolOrInstanceSlug
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
 		arg2 director.SSHOpts
 	}{arg1, arg2})
 	fake.recordInvocation("CleanUpSSH", []interface{}{arg1, arg2})
@@ -971,7 +971,7 @@ func (fake *FakeDeployment) CleanUpSSHCallCount() int {
 	return len(fake.cleanUpSSHArgsForCall)
 }
 
-func (fake *FakeDeployment) CleanUpSSHArgsForCall(i int) (director.AllOrPoolOrInstanceSlug, director.SSHOpts) {
+func (fake *FakeDeployment) CleanUpSSHArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) {
 	fake.cleanUpSSHMutex.RLock()
 	defer fake.cleanUpSSHMutex.RUnlock()
 	return fake.cleanUpSSHArgsForCall[i].arg1, fake.cleanUpSSHArgsForCall[i].arg2

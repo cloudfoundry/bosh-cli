@@ -44,8 +44,8 @@ var _ = Describe("SSHCmd", func() {
 
 		BeforeEach(func() {
 			opts = SSHOpts{
-				Args: AllOrPoolOrInstanceSlugArgs{
-					Slug: boshdir.NewAllOrPoolOrInstanceSlug("job-name", ""),
+				Args: AllOrInstanceGroupOrInstanceSlugArgs{
+					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("job-name", ""),
 				},
 			}
 
@@ -72,7 +72,7 @@ var _ = Describe("SSHCmd", func() {
 					Expect(deployment.CleanUpSSHCallCount()).To(Equal(1))
 
 					setupSlug, setupSSHOpts := deployment.SetUpSSHArgsForCall(0)
-					Expect(setupSlug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("job-name", "")))
+					Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job-name", "")))
 					Expect(setupSSHOpts.Username).To(Equal("bosh_8c5ff117957245c5"))
 					Expect(setupSSHOpts.Password).To(Equal("p"))
 					Expect(setupSSHOpts.PublicKey).To(ContainSubstring("ssh-rsa AAAA"))
@@ -149,7 +149,7 @@ var _ = Describe("SSHCmd", func() {
 					Expect(deployment.CleanUpSSHCallCount()).To(Equal(1))
 
 					setupSlug, setupSSHOpts := deployment.SetUpSSHArgsForCall(0)
-					Expect(setupSlug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("job-name", "")))
+					Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job-name", "")))
 					Expect(setupSSHOpts.Username).To(Equal("bosh_8c5ff117957245c5"))
 					Expect(setupSSHOpts.Password).To(Equal("p"))
 					Expect(setupSSHOpts.PublicKey).To(ContainSubstring("ssh-rsa AAAA"))

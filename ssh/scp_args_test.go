@@ -17,23 +17,23 @@ var _ = Describe("SCPArgs", func() {
 		host = boshdir.Host{Username: "user", Host: "127.0.0.1"}
 	})
 
-	Describe("AllOrPoolOrInstanceSlug", func() {
+	Describe("AllOrInstanceGroupOrInstanceSlug", func() {
 		It("returns slug of the first named host", func() {
 			scpArgs := NewSCPArgs([]string{"host:arg1"}, true)
-			slug, err := scpArgs.AllOrPoolOrInstanceSlug()
+			slug, err := scpArgs.AllOrInstanceGroupOrInstanceSlug()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(slug).To(Equal(boshdir.NewAllOrPoolOrInstanceSlug("host", "")))
+			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("host", "")))
 		})
 
 		It("returns error if host cannot be parsed into a slug", func() {
 			scpArgs := NewSCPArgs([]string{"/:arg1"}, true)
-			_, err := scpArgs.AllOrPoolOrInstanceSlug()
+			_, err := scpArgs.AllOrInstanceGroupOrInstanceSlug()
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("returns error if host is not specified", func() {
 			scpArgs := NewSCPArgs([]string{"arg1"}, true)
-			_, err := scpArgs.AllOrPoolOrInstanceSlug()
+			_, err := scpArgs.AllOrInstanceGroupOrInstanceSlug()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(
 				"Missing remote host information in source/destination arguments"))
