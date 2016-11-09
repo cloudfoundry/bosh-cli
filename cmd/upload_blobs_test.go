@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 )
 
 var _ = Describe("UploadBlobsCmd", func() {

@@ -9,10 +9,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 )
 
 var _ = Describe("FSReleaseIndex", func() {

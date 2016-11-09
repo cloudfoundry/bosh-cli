@@ -8,11 +8,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/fakes"
-	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/fakes"
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
-	fakeuaa "github.com/cloudfoundry/bosh-cli/uaa/fakes"
+	fakeuaa "github.com/cloudfoundry/bosh-cli/uaa/uaafakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 

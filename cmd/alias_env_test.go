@@ -7,11 +7,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/fakes"
-	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/fakes"
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )

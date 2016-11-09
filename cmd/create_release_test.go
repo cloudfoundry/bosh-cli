@@ -9,9 +9,9 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )

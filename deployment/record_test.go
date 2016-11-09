@@ -11,7 +11,7 @@ import (
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
 	. "github.com/cloudfoundry/bosh-cli/deployment"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 )
 

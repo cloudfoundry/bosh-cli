@@ -16,7 +16,7 @@ import (
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/cloudfoundry/bosh-cli/ssh"
-	fakessh "github.com/cloudfoundry/bosh-cli/ssh/fakes"
+	fakessh "github.com/cloudfoundry/bosh-cli/ssh/sshfakes"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )

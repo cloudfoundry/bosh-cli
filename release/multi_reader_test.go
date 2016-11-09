@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 )
 
 var _ = Describe("MultiReader", func() {

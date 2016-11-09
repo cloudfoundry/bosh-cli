@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
 )
 
 var _ = Describe("BuiltReader", func() {

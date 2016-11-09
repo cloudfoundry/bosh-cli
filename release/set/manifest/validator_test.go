@@ -5,9 +5,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 )

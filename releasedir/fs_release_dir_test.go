@@ -14,11 +14,11 @@ import (
 	"github.com/pivotal-golang/clock/fakeclock"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
 	. "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 )
 
 var _ = Describe("FSGenerator", func() {

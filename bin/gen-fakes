@@ -29,12 +29,14 @@ counterfeiter director Task
 counterfeiter director OrphanedDisk
 counterfeiter director FileReporter
 counterfeiter director TaskReporter
+counterfeiter director Event
 
 counterfeiter uaa UAA
 counterfeiter uaa Token
 counterfeiter uaa AccessToken
 
-counterfeiter releasedir ReleaseDir
+#counterfeiter releasedir ReleaseDir
+#do not gen releasedir due to import conflict bug in counterfeiter
 counterfeiter releasedir Config
 counterfeiter releasedir Generator
 counterfeiter releasedir GitRepo
@@ -66,5 +68,4 @@ counterfeiter ssh Session
 
 counterfeiter ui/task Reporter
 
-go fmt github.com/cloudfoundry/bosh-cli/...
-
+$bin/go fmt $($bin/go list github.com/cloudfoundry/bosh-cli/... | grep -v /vendor/)

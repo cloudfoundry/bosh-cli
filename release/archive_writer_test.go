@@ -11,11 +11,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 

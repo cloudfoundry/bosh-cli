@@ -12,11 +12,11 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	fakejob "github.com/cloudfoundry/bosh-cli/release/job/fakes"
+	fakejob "github.com/cloudfoundry/bosh-cli/release/job/jobfakes"
 	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	fakepkg "github.com/cloudfoundry/bosh-cli/release/pkg/fakes"
+	fakepkg "github.com/cloudfoundry/bosh-cli/release/pkg/pkgfakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 

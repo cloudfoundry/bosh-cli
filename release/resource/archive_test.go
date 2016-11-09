@@ -17,7 +17,7 @@ import (
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/fakes"
+	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
 )
 
 var _ = Describe("Archive", func() {

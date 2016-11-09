@@ -10,12 +10,12 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 

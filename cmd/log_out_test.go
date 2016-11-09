@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/fakes"
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 

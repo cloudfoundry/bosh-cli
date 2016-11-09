@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/deployment/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/fakes"
 	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
 	mock_release "github.com/cloudfoundry/bosh-cli/release/mocks"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
 

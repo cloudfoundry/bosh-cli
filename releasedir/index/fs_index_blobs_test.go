@@ -12,7 +12,7 @@ import (
 
 	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
-	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/fakes"
+	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/indexfakes"
 )
 
 var _ = Describe("FSIndexBlobs", func() {

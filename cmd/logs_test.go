@@ -8,11 +8,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/fakes"
+	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
-	fakessh "github.com/cloudfoundry/bosh-cli/ssh/fakes"
+	fakessh "github.com/cloudfoundry/bosh-cli/ssh/sshfakes"
 )
 
 var _ = Describe("LogsCmd", func() {

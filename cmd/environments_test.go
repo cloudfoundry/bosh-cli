@@ -6,7 +6,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/fakes"
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )

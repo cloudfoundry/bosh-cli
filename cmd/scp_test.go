@@ -9,9 +9,9 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
-	fakessh "github.com/cloudfoundry/bosh-cli/ssh/fakes"
+	fakessh "github.com/cloudfoundry/bosh-cli/ssh/sshfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 

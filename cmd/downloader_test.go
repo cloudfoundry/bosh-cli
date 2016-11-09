@@ -17,7 +17,7 @@ import (
 	"github.com/pivotal-golang/clock/fakeclock"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 )
 
 var _ = Describe("UIDownloader", func() {

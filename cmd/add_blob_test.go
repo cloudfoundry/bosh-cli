@@ -10,7 +10,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/fakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 )
 
 var _ = Describe("AddBlobCmd", func() {
