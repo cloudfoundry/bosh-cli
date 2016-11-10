@@ -40,13 +40,13 @@ var _ = Describe("AttachDisk", func() {
 
 			opts = AttachDiskOpts{
 				Args: AttachDiskArgs{
-					Slug:   instanceSlug,
-					DiskId: diskCid,
+					Slug:    instanceSlug,
+					DiskCID: diskCid,
 				},
 			}
 		})
 
-		It("Tells the director to attach a disk", func() {
+		It("tells the director to attach a disk", func() {
 			err := act()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deployment.AttachDiskCallCount()).To(Equal(1))

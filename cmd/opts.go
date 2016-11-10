@@ -262,8 +262,8 @@ type BackUpArgs struct {
 }
 
 type AttachDiskArgs struct {
-	Slug   boshdir.InstanceSlug `positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`
-	DiskId string               `positional-arg-name:"DISK-ID" required:"true"`
+	Slug    boshdir.InstanceSlug `positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`
+	DiskCID string               `positional-arg-name:"DISK-CID"`
 }
 
 type BuildManifestOpts struct {

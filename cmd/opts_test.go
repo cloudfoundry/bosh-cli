@@ -965,7 +965,7 @@ var _ = Describe("Opts", func() {
 		Describe("DiskId", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Slug", opts)).To(Equal(`positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`))
-				Expect(getStructTagForName("DiskId", opts)).To(Equal(`positional-arg-name:"DISK-ID" required:"true"`))
+				Expect(getStructTagForName("DiskCID", opts)).To(Equal(`positional-arg-name:"DISK-CID"`))
 			})
 		})
 	})
