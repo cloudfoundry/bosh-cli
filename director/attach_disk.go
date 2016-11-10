@@ -18,6 +18,6 @@ func (c Client) AttachDisk(deployment string, instance InstanceSlug, diskCid str
 	values.Add("instance_id", instance.IndexOrID())
 
 	path := fmt.Sprintf("/disks/%s/attachments?%s", diskCid, values.Encode())
-
-	return c.clientRequest.Put(path, []byte{}, func(*http.Request) {}, nil)
+	_, err := c.taskClientRequest.PutResult(path, []byte{}, func(*http.Request) {})
+	return err
 }
