@@ -67,19 +67,28 @@ name6:
 `)))
 	})
 
+	It("can interpolate different data types into a byte slice with !key", func() {
+		template := NewTemplate([]byte("otherstuff: ((!boule))"))
+		vars := Variables{"boule": true}
+
+		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("otherstuff: true\n")))
+	})
+
 	It("return errors if there are missing variable keys and ExpectAllKeys is true", func() {
 		template := NewTemplate([]byte(`
 ((key)): ((key2))
 ((key3)): 2
 dup-key: ((key3))
-array:
+((key4))_array:
 - ((key_in_array))
 `))
 		vars := Variables{"key3": "foo"}
 
 		_, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{ExpectAllKeys: true})
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal("Expected to find variables: key, key2, key_in_array"))
+		Expect(err.Error()).To(Equal("Expected to find variables: key, key2, key4, key_in_array"))
 	})
 
 	It("does not return error if there are missing variable keys and ExpectAllKeys is false", func() {
@@ -89,17 +98,6 @@ array:
 		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
 		Expect(err).ToNot(HaveOccurred())
 		Expect(result).To(Equal([]byte("((key)): ((key2))\nfoo: 2\n")))
-	})
-
-	Context("When template is a string", func() {
-		It("returns it", func() {
-			template := NewTemplate([]byte(`"string with a ((key))"`))
-			vars := Variables{"key": "not key"}
-
-			result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal([]byte("string with a ((key))\n")))
-		})
 	})
 
 	Context("When template is a number", func() {
@@ -143,6 +141,76 @@ array:
 		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("dash: underscore\n")))
+	})
+
+	It("can interpolate a secret key in the middle of a string", func() {
+		template := NewTemplate([]byte("url: https://((ip))"))
+		vars := Variables{
+			"ip": "10.0.0.0",
+		}
+
+		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("url: https://10.0.0.0\n")))
+	})
+
+	It("can interpolate multiple secret keys in the middle of a string", func() {
+		template := NewTemplate([]byte("uri: nats://nats:((password))@((ip)):4222"))
+		vars := Variables{
+			"password": "secret",
+			"ip":       "10.0.0.0",
+		}
+
+		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("uri: nats://nats:secret@10.0.0.0:4222\n")))
+	})
+
+	It("can interpolate multiple keys of type string and int in the middle of a string", func() {
+		template := NewTemplate([]byte("address: ((ip)):((port))"))
+		vars := Variables{
+			"port": 4222,
+			"ip":   "10.0.0.0",
+		}
+
+		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("address: 10.0.0.0:4222\n")))
+	})
+
+	It("raises error when interpolating an unsupported type in the middle of a string", func() {
+		template := NewTemplate([]byte("address: ((definition)):((eulers_number))"))
+		vars := Variables{
+			"eulers_number": 2.717,
+			"definition":    "natural_log",
+		}
+
+		_, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("2.717"))
+		Expect(err.Error()).To(ContainSubstring("eulers_number"))
+	})
+
+	It("can interpolate a single key multiple times in the middle of a string", func() {
+		template := NewTemplate([]byte("acct_and_password: ((user)):((user))"))
+		vars := Variables{
+			"user": "nats",
+		}
+
+		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("acct_and_password: nats:nats\n")))
+	})
+
+	It("can interpolate values into the middle of a key", func() {
+		template := NewTemplate([]byte("((iaas))_cpi: props"))
+		vars := Variables{
+			"iaas": "aws",
+		}
+
+		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("aws_cpi: props\n")))
 	})
 
 	It("can interpolate the same value multiple times into a byte slice", func() {
