@@ -35,6 +35,12 @@ var _ = Describe("NewOpsFromDefinitions", func() {
 		Expect(err.Error()).To(Equal("Unknown operation [0] with type 'test'"))
 	})
 
+	It("returns error if operation type is find since it's not useful in list of operations", func() {
+		_, err := NewOpsFromDefinitions([]OpDefinition{{Type: "find"}})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Unknown operation [0] with type 'find'"))
+	})
+
 	Describe("replace", func() {
 		It("requires path", func() {
 			_, err := NewOpsFromDefinitions([]OpDefinition{{Type: "replace"}})

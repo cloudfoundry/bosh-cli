@@ -116,4 +116,47 @@ instance_groups:
 
 		Expect(res).To(Equal(out))
 	})
+
+	It("works with find op", func() {
+		inStr := `
+releases:
+- name: capi
+  version: 0.1
+
+instance_groups:
+- name: cloud_controller
+  instances: 0
+  jobs:
+  - name: cloud_controller
+    release: capi
+
+- name: uaa
+  instances: 0
+`
+
+		var in interface{}
+
+		err := yaml.Unmarshal([]byte(inStr), &in)
+		Expect(err).ToNot(HaveOccurred())
+
+		path := MustNewPointerFromString("/instance_groups/name=cloud_controller")
+
+		res, err := FindOp{Path: path}.Apply(in)
+		Expect(err).ToNot(HaveOccurred())
+
+		outStr := `
+name: cloud_controller
+instances: 0
+jobs:
+- name: cloud_controller
+  release: capi
+`
+
+		var out interface{}
+
+		err = yaml.Unmarshal([]byte(outStr), &out)
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(res).To(Equal(out))
+	})
 })

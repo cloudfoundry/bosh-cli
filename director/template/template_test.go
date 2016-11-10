@@ -228,4 +228,16 @@ array:
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Expected to find a map key 'x' for path '/x'"))
 	})
+
+	It("returns raw bytes of a string if UnescapedMultiline is true", func() {
+		template := NewTemplate([]byte("value"))
+
+		result, err := template.Evaluate(Variables{}, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("value\n")))
+
+		result, err = template.Evaluate(Variables{}, patch.Ops{}, EvaluateOpts{UnescapedMultiline: true})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("value\n")))
+	})
 })

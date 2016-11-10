@@ -17,7 +17,8 @@ type Template struct {
 }
 
 type EvaluateOpts struct {
-	ExpectAllKeys bool
+	ExpectAllKeys      bool
+	UnescapedMultiline bool
 }
 
 func NewTemplate(bytes []byte) Template {
@@ -51,6 +52,12 @@ func (t Template) Evaluate(vars Variables, ops patch.Ops, opts EvaluateOpts) ([]
 		sort.Strings(missingVarKeys)
 
 		return []byte{}, fmt.Errorf("Expected to find variables: %s", strings.Join(missingVarKeys, ", "))
+	}
+
+	if opts.UnescapedMultiline {
+		if _, ok := obj.(string); ok {
+			return []byte(fmt.Sprintf("%s\n", obj)), nil
+		}
 	}
 
 	bytes, err := yaml.Marshal(obj)

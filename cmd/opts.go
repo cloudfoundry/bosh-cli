@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github.com/cppforlife/go-patch/patch"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 )
@@ -268,9 +270,13 @@ type AttachDiskArgs struct {
 
 type BuildManifestOpts struct {
 	Args BuildManifestArgs `positional-args:"true" required:"true"`
+
 	VarFlags
 	OpsFlags
-	VarErrors bool `long:"var-errs" description:"Expect all variables to be found, otherwise error"`
+
+	OutPath   *patch.Pointer `long:"out"      value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`
+	VarErrors bool           `long:"var-errs"                      description:"Expect all variables to be found, otherwise error"`
+
 	cmd
 }
 
