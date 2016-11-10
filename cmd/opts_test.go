@@ -695,6 +695,14 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("AttachDisk", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("AttachDisk", opts)).To(Equal(
+					`command:"attach-disk" description:"Attaches an disk to an instance and replaces the current disk"`,
+				))
+			})
+		})
 	})
 
 	Describe("CreateEnvOpts", func() {
@@ -929,6 +937,35 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Force", opts)).To(Equal(
 					`long:"force" description:"Overwrite if the backup file already exists"`,
 				))
+			})
+		})
+	})
+
+	Describe("AttachDiskOpts", func() {
+		var opts *AttachDiskOpts
+
+		BeforeEach(func() {
+			opts = &AttachDiskOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("AttachDiskArgs", func() {
+		var opts *AttachDiskArgs
+
+		BeforeEach(func() {
+			opts = &AttachDiskArgs{}
+		})
+
+		Describe("DiskId", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Slug", opts)).To(Equal(`positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`))
+				Expect(getStructTagForName("DiskId", opts)).To(Equal(`positional-arg-name:"DISK-ID" required:"true"`))
 			})
 		})
 	})

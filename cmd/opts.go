@@ -56,6 +56,9 @@ type BoshOpts struct {
 	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
 	BackUp  BackUpOpts  `command:"back-up"  description:"Back up the Director database to a tarball"`
 
+	// Disks
+	AttachDisk AttachDiskOpts `command:"attach-disk" description:"Attaches an disk to an instance and replaces the current disk"`
+
 	// Cloud config
 	CloudConfig       CloudConfigOpts       `command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`
 	UpdateCloudConfig UpdateCloudConfigOpts `command:"update-cloud-config" alias:"ucc" description:"Update current cloud config"`
@@ -240,6 +243,12 @@ type CleanUpOpts struct {
 	cmd
 }
 
+type AttachDiskOpts struct {
+	Args AttachDiskArgs `positional-args:"true" required:"true"`
+
+	cmd
+}
+
 type BackUpOpts struct {
 	Args BackUpArgs `positional-args:"true" required:"true"`
 
@@ -250,6 +259,11 @@ type BackUpOpts struct {
 
 type BackUpArgs struct {
 	Path string `positional-arg-name:"PATH"`
+}
+
+type AttachDiskArgs struct {
+	Slug   boshdir.InstanceSlug `positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`
+	DiskId string               `positional-arg-name:"DISK-ID" required:"true"`
 }
 
 type BuildManifestOpts struct {
@@ -798,4 +812,6 @@ type MessageOpts struct {
 type cmd struct{}
 
 // Execute is necessary for each command to be goflags.Commander
-func (c cmd) Execute(_ []string) error { panic("Unreachable") }
+func (c cmd) Execute(_ []string) error {
+	panic("Unreachable")
+}

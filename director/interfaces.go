@@ -47,6 +47,7 @@ type Director interface {
 
 	FindOrphanedDisk(string) (OrphanedDisk, error)
 	OrphanedDisks() ([]OrphanedDisk, error)
+	AttachDisk(deployment Deployment, instance InstanceSlug, diskCid string) error
 
 	EnableResurrection(bool) error
 	CleanUp(bool) error

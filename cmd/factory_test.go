@@ -40,6 +40,7 @@ var _ = Describe("Factory", func() {
 		cmds := map[string][]string{
 			"help":                  []string{},
 			"add-blob":              []string{"/file", "directory"},
+			"attach-disk":           []string{"instance/abad1dea", "disk-cid-123"},
 			"blobs":                 []string{},
 			"build-manifest":        []string{"/file"},
 			"cancel-task":           []string{"1234"},

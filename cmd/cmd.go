@@ -174,6 +174,9 @@ func (c Cmd) Execute() (cmdErr error) {
 		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
 		return NewRunErrandCmd(deployment, downloader, deps.UI).Run(*opts)
 
+	case *AttachDiskOpts:
+		return NewAttachDiskCmd(c.director(), c.deployment()).Run(*opts)
+
 	case *DisksOpts:
 		return NewDisksCmd(deps.UI, c.director()).Run(*opts)
 
