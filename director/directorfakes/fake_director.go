@@ -240,16 +240,6 @@ type FakeDirector struct {
 		result1 []director.OrphanedDisk
 		result2 error
 	}
-	AttachDiskStub        func(deployment director.Deployment, instance director.InstanceSlug, diskCid string) error
-	attachDiskMutex       sync.RWMutex
-	attachDiskArgsForCall []struct {
-		deployment director.Deployment
-		instance   director.InstanceSlug
-		diskCid    string
-	}
-	attachDiskReturns struct {
-		result1 error
-	}
 	EnableResurrectionStub        func(bool) error
 	enableResurrectionMutex       sync.RWMutex
 	enableResurrectionArgsForCall []struct {
@@ -1141,41 +1131,6 @@ func (fake *FakeDirector) OrphanedDisksReturns(result1 []director.OrphanedDisk, 
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) AttachDisk(deployment director.Deployment, instance director.InstanceSlug, diskCid string) error {
-	fake.attachDiskMutex.Lock()
-	fake.attachDiskArgsForCall = append(fake.attachDiskArgsForCall, struct {
-		deployment director.Deployment
-		instance   director.InstanceSlug
-		diskCid    string
-	}{deployment, instance, diskCid})
-	fake.recordInvocation("AttachDisk", []interface{}{deployment, instance, diskCid})
-	fake.attachDiskMutex.Unlock()
-	if fake.AttachDiskStub != nil {
-		return fake.AttachDiskStub(deployment, instance, diskCid)
-	} else {
-		return fake.attachDiskReturns.result1
-	}
-}
-
-func (fake *FakeDirector) AttachDiskCallCount() int {
-	fake.attachDiskMutex.RLock()
-	defer fake.attachDiskMutex.RUnlock()
-	return len(fake.attachDiskArgsForCall)
-}
-
-func (fake *FakeDirector) AttachDiskArgsForCall(i int) (director.Deployment, director.InstanceSlug, string) {
-	fake.attachDiskMutex.RLock()
-	defer fake.attachDiskMutex.RUnlock()
-	return fake.attachDiskArgsForCall[i].deployment, fake.attachDiskArgsForCall[i].instance, fake.attachDiskArgsForCall[i].diskCid
-}
-
-func (fake *FakeDirector) AttachDiskReturns(result1 error) {
-	fake.AttachDiskStub = nil
-	fake.attachDiskReturns = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeDirector) EnableResurrection(arg1 bool) error {
 	fake.enableResurrectionMutex.Lock()
 	fake.enableResurrectionArgsForCall = append(fake.enableResurrectionArgsForCall, struct {
@@ -1333,8 +1288,6 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.findOrphanedDiskMutex.RUnlock()
 	fake.orphanedDisksMutex.RLock()
 	defer fake.orphanedDisksMutex.RUnlock()
-	fake.attachDiskMutex.RLock()
-	defer fake.attachDiskMutex.RUnlock()
 	fake.enableResurrectionMutex.RLock()
 	defer fake.enableResurrectionMutex.RUnlock()
 	fake.cleanUpMutex.RLock()

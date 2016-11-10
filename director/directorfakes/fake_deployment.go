@@ -252,6 +252,15 @@ type FakeDeployment struct {
 	deleteReturns struct {
 		result1 error
 	}
+	AttachDiskStub        func(slug director.InstanceSlug, diskCID string) error
+	attachDiskMutex       sync.RWMutex
+	attachDiskArgsForCall []struct {
+		slug    director.InstanceSlug
+		diskCID string
+	}
+	attachDiskReturns struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -1198,6 +1207,40 @@ func (fake *FakeDeployment) DeleteReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) AttachDisk(slug director.InstanceSlug, diskCID string) error {
+	fake.attachDiskMutex.Lock()
+	fake.attachDiskArgsForCall = append(fake.attachDiskArgsForCall, struct {
+		slug    director.InstanceSlug
+		diskCID string
+	}{slug, diskCID})
+	fake.recordInvocation("AttachDisk", []interface{}{slug, diskCID})
+	fake.attachDiskMutex.Unlock()
+	if fake.AttachDiskStub != nil {
+		return fake.AttachDiskStub(slug, diskCID)
+	} else {
+		return fake.attachDiskReturns.result1
+	}
+}
+
+func (fake *FakeDeployment) AttachDiskCallCount() int {
+	fake.attachDiskMutex.RLock()
+	defer fake.attachDiskMutex.RUnlock()
+	return len(fake.attachDiskArgsForCall)
+}
+
+func (fake *FakeDeployment) AttachDiskArgsForCall(i int) (director.InstanceSlug, string) {
+	fake.attachDiskMutex.RLock()
+	defer fake.attachDiskMutex.RUnlock()
+	return fake.attachDiskArgsForCall[i].slug, fake.attachDiskArgsForCall[i].diskCID
+}
+
+func (fake *FakeDeployment) AttachDiskReturns(result1 error) {
+	fake.AttachDiskStub = nil
+	fake.attachDiskReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -1261,6 +1304,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.updateMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.attachDiskMutex.RLock()
+	defer fake.attachDiskMutex.RUnlock()
 	return fake.invocations
 }
 

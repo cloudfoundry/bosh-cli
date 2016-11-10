@@ -11,16 +11,14 @@ import (
 
 var _ = Describe("AttachDisk", func() {
 	var (
-		director   *fakedir.FakeDirector
 		command    AttachDiskCmd
 		deployment *fakedir.FakeDeployment
 	)
 
 	BeforeEach(func() {
-		director = &fakedir.FakeDirector{}
 		deployment = &fakedir.FakeDeployment{}
 
-		command = NewAttachDiskCmd(director, deployment)
+		command = NewAttachDiskCmd(deployment)
 	})
 
 	Describe("Run", func() {
@@ -49,12 +47,12 @@ var _ = Describe("AttachDisk", func() {
 		})
 
 		It("Tells the director to attach a disk", func() {
-			act()
-			Expect(director.AttachDiskCallCount()).To(Equal(1))
+			err := act()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(deployment.AttachDiskCallCount()).To(Equal(1))
 
-			receivedDeployemnt, receivedInstanceSlug, recievedDiskCid := director.AttachDiskArgsForCall(0)
+			receivedInstanceSlug, recievedDiskCid := deployment.AttachDiskArgsForCall(0)
 
-			Expect(receivedDeployemnt).To(Equal(deployment))
 			Expect(receivedInstanceSlug).To(Equal(instanceSlug))
 			Expect(recievedDiskCid).To(Equal(diskCid))
 		})
@@ -62,12 +60,13 @@ var _ = Describe("AttachDisk", func() {
 		Context("attaching a disk returns an error", func() {
 
 			BeforeEach(func() {
-				director.AttachDiskReturns(errors.New("director returned an error attaching a disk"))
+				deployment.AttachDiskReturns(errors.New("director returned an error attaching a disk"))
 			})
 
 			It("Should return an error if director attaching a disk fails", func() {
 				err := act()
 				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("director returned an error attaching a disk"))
 			})
 		})
 	})

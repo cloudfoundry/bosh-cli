@@ -47,7 +47,6 @@ type Director interface {
 
 	FindOrphanedDisk(string) (OrphanedDisk, error)
 	OrphanedDisks() ([]OrphanedDisk, error)
-	AttachDisk(deployment Deployment, instance InstanceSlug, diskCid string) error
 
 	EnableResurrection(bool) error
 	CleanUp(bool) error
@@ -124,6 +123,8 @@ type Deployment interface {
 
 	Update(manifest []byte, opts UpdateOpts) error
 	Delete(force bool) error
+
+	AttachDisk(slug InstanceSlug, diskCID string) error
 }
 
 type StartOpts struct {
