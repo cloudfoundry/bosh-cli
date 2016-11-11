@@ -33,7 +33,7 @@ func (t DeploymentsTable) Print() error {
 			return err
 		}
 
-		cloud_config, err := d.CloudConfig()
+		cloudConfig, err := d.CloudConfig()
 		if err != nil {
 			return err
 		}
@@ -42,7 +42,7 @@ func (t DeploymentsTable) Print() error {
 			boshtbl.NewValueString(d.Name()),
 			boshtbl.NewValueStrings(t.takeReleases(releases)),
 			boshtbl.NewValueStrings(t.takeStemcells(stemcells)),
-			boshtbl.NewValueString(cloud_config),
+			boshtbl.NewValueString(cloudConfig),
 		})
 	}
 
