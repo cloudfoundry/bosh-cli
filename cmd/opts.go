@@ -274,7 +274,7 @@ type BuildManifestOpts struct {
 	VarFlags
 	OpsFlags
 
-	OutPath   *patch.Pointer `long:"out"      value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`
+	Path      *patch.Pointer `long:"path"     value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`
 	VarErrors bool           `long:"var-errs"                      description:"Expect all variables to be found, otherwise error"`
 
 	cmd

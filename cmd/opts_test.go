@@ -997,10 +997,10 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("OutPath", func() {
+		Describe("Path", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("OutPath", opts)).To(Equal(
-					`long:"out" value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`,
+				Expect(getStructTagForName("Path", opts)).To(Equal(
+					`long:"path" value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`,
 				))
 			})
 		})

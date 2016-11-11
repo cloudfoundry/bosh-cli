@@ -83,7 +83,7 @@ var _ = Describe("BuildManifestCmd", func() {
 			}
 
 			ptr := patch.MustNewPointerFromString("/name2")
-			opts.OutPath = &ptr
+			opts.Path = &ptr
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -96,7 +96,7 @@ var _ = Describe("BuildManifestCmd", func() {
 			}
 
 			ptr := patch.MustNewPointerFromString("/key")
-			opts.OutPath = &ptr
+			opts.Path = &ptr
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -109,7 +109,7 @@ var _ = Describe("BuildManifestCmd", func() {
 			}
 
 			ptr := patch.MustNewPointerFromString("/key")
-			opts.OutPath = &ptr
+			opts.Path = &ptr
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
