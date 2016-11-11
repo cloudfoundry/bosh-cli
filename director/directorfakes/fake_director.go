@@ -209,6 +209,21 @@ type FakeDirector struct {
 	updateCloudConfigReturns struct {
 		result1 error
 	}
+	LatestCPIConfigStub        func() (director.CPIConfig, error)
+	latestCPIConfigMutex       sync.RWMutex
+	latestCPIConfigArgsForCall []struct{}
+	latestCPIConfigReturns     struct {
+		result1 director.CPIConfig
+		result2 error
+	}
+	UpdateCPIConfigStub        func([]byte) error
+	updateCPIConfigMutex       sync.RWMutex
+	updateCPIConfigArgsForCall []struct {
+		arg1 []byte
+	}
+	updateCPIConfigReturns struct {
+		result1 error
+	}
 	LatestRuntimeConfigStub        func() (director.RuntimeConfig, error)
 	latestRuntimeConfigMutex       sync.RWMutex
 	latestRuntimeConfigArgsForCall []struct{}
@@ -1007,6 +1022,70 @@ func (fake *FakeDirector) UpdateCloudConfigReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDirector) LatestCPIConfig() (director.CPIConfig, error) {
+	fake.latestCPIConfigMutex.Lock()
+	fake.latestCPIConfigArgsForCall = append(fake.latestCPIConfigArgsForCall, struct{}{})
+	fake.recordInvocation("LatestCPIConfig", []interface{}{})
+	fake.latestCPIConfigMutex.Unlock()
+	if fake.LatestCPIConfigStub != nil {
+		return fake.LatestCPIConfigStub()
+	} else {
+		return fake.latestCPIConfigReturns.result1, fake.latestCPIConfigReturns.result2
+	}
+}
+
+func (fake *FakeDirector) LatestCPIConfigCallCount() int {
+	fake.latestCPIConfigMutex.RLock()
+	defer fake.latestCPIConfigMutex.RUnlock()
+	return len(fake.latestCPIConfigArgsForCall)
+}
+
+func (fake *FakeDirector) LatestCPIConfigReturns(result1 director.CPIConfig, result2 error) {
+	fake.LatestCPIConfigStub = nil
+	fake.latestCPIConfigReturns = struct {
+		result1 director.CPIConfig
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) UpdateCPIConfig(arg1 []byte) error {
+	var arg1Copy []byte
+	if arg1 != nil {
+		arg1Copy = make([]byte, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.updateCPIConfigMutex.Lock()
+	fake.updateCPIConfigArgsForCall = append(fake.updateCPIConfigArgsForCall, struct {
+		arg1 []byte
+	}{arg1Copy})
+	fake.recordInvocation("UpdateCPIConfig", []interface{}{arg1Copy})
+	fake.updateCPIConfigMutex.Unlock()
+	if fake.UpdateCPIConfigStub != nil {
+		return fake.UpdateCPIConfigStub(arg1)
+	} else {
+		return fake.updateCPIConfigReturns.result1
+	}
+}
+
+func (fake *FakeDirector) UpdateCPIConfigCallCount() int {
+	fake.updateCPIConfigMutex.RLock()
+	defer fake.updateCPIConfigMutex.RUnlock()
+	return len(fake.updateCPIConfigArgsForCall)
+}
+
+func (fake *FakeDirector) UpdateCPIConfigArgsForCall(i int) []byte {
+	fake.updateCPIConfigMutex.RLock()
+	defer fake.updateCPIConfigMutex.RUnlock()
+	return fake.updateCPIConfigArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) UpdateCPIConfigReturns(result1 error) {
+	fake.UpdateCPIConfigStub = nil
+	fake.updateCPIConfigReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDirector) LatestRuntimeConfig() (director.RuntimeConfig, error) {
 	fake.latestRuntimeConfigMutex.Lock()
 	fake.latestRuntimeConfigArgsForCall = append(fake.latestRuntimeConfigArgsForCall, struct{}{})
@@ -1280,6 +1359,10 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.latestCloudConfigMutex.RUnlock()
 	fake.updateCloudConfigMutex.RLock()
 	defer fake.updateCloudConfigMutex.RUnlock()
+	fake.latestCPIConfigMutex.RLock()
+	defer fake.latestCPIConfigMutex.RUnlock()
+	fake.updateCPIConfigMutex.RLock()
+	defer fake.updateCPIConfigMutex.RUnlock()
 	fake.latestRuntimeConfigMutex.RLock()
 	defer fake.latestRuntimeConfigMutex.RUnlock()
 	fake.updateRuntimeConfigMutex.RLock()

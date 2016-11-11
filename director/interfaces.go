@@ -42,6 +42,9 @@ type Director interface {
 	LatestCloudConfig() (CloudConfig, error)
 	UpdateCloudConfig([]byte) error
 
+	LatestCPIConfig() (CPIConfig, error)
+	UpdateCPIConfig([]byte) error
+
 	LatestRuntimeConfig() (RuntimeConfig, error)
 	UpdateRuntimeConfig([]byte) error
 

@@ -312,6 +312,22 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("CPIConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CPIConfig", opts)).To(Equal(
+					`command:"cpi-config" description:"Show current CPI config"`,
+				))
+			})
+		})
+
+		Describe("UpdateCPIConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UpdateCPIConfig", opts)).To(Equal(
+					`command:"update-cpi-config" description:"Update current CPI config"`,
+				))
+			})
+		})
+
 		Describe("RuntimeConfig", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("RuntimeConfig", opts)).To(Equal(

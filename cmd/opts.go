@@ -63,6 +63,10 @@ type BoshOpts struct {
 	CloudConfig       CloudConfigOpts       `command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`
 	UpdateCloudConfig UpdateCloudConfigOpts `command:"update-cloud-config" alias:"ucc" description:"Update current cloud config"`
 
+	// CPI Config
+	CPIConfig       CPIConfigOpts       `command:"cpi-config"        description:"Show current CPI config"`
+	UpdateCPIConfig UpdateCPIConfigOpts `command:"update-cpi-config" description:"Update current CPI config"`
+
 	// Runtime config
 	RuntimeConfig       RuntimeConfigOpts       `command:"runtime-config"        alias:"rc"  description:"Show current runtime config"`
 	UpdateRuntimeConfig UpdateRuntimeConfigOpts `command:"update-runtime-config" alias:"urc" description:"Update current runtime config"`
@@ -292,6 +296,21 @@ type UpdateCloudConfigOpts struct {
 
 type UpdateCloudConfigArgs struct {
 	CloudConfig FileBytesArg `positional-arg-name:"PATH" description:"Path to a cloud config file"`
+}
+
+type CPIConfigOpts struct {
+	cmd
+}
+
+type UpdateCPIConfigOpts struct {
+	Args UpdateCPIConfigArgs `positional-args:"true" required:"true"`
+	VarFlags
+	OpsFlags
+	cmd
+}
+
+type UpdateCPIConfigArgs struct {
+	CPIConfig FileBytesArg `positional-arg-name:"PATH" description:"Path to a CPI config file"`
 }
 
 // Runtime config

@@ -207,6 +207,12 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *UpdateCloudConfigOpts:
 		return NewUpdateCloudConfigCmd(deps.UI, c.director()).Run(*opts)
 
+	case *CPIConfigOpts:
+		return NewCPIConfigCmd(deps.UI, c.director()).Run()
+
+	case *UpdateCPIConfigOpts:
+		return NewUpdateCPIConfigCmd(deps.UI, c.director()).Run(*opts)
+
 	case *RuntimeConfigOpts:
 		return NewRuntimeConfigCmd(deps.UI, c.director()).Run()
 
