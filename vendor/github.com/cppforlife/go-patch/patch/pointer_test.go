@@ -131,3 +131,21 @@ var _ = Describe("Pointer.Tokens", func() {
 		})
 	}
 })
+
+var _ = Describe("Pointer.UnmarshalFlag", func() {
+	It("parses pointer if it's valid", func() {
+		ptr := &Pointer{}
+
+		err := ptr.UnmarshalFlag("/abc")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(*ptr).To(Equal(MustNewPointerFromString("/abc")))
+	})
+
+	It("returns error if string doesn't start with /", func() {
+		ptr := &Pointer{}
+
+		err := ptr.UnmarshalFlag("abc")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected to start with '/'"))
+	})
+})

@@ -151,3 +151,15 @@ func (p Pointer) String() string {
 
 	return strings.Join(strs, "/")
 }
+
+// UnmarshalFlag satisfies go-flags flag interface
+func (p *Pointer) UnmarshalFlag(data string) error {
+	ptr, err := NewPointerFromString(data)
+	if err != nil {
+		return err
+	}
+
+	*p = ptr
+
+	return nil
+}

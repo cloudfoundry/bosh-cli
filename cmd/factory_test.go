@@ -269,6 +269,7 @@ var _ = Describe("Factory", func() {
 			boshOpts.ExportRelease = ExportReleaseOpts{}
 			boshOpts.RunErrand = RunErrandOpts{}
 			boshOpts.Logs = LogsOpts{}
+			boshOpts.BuildManifest = BuildManifestOpts{}
 			boshOpts.InitRelease = InitReleaseOpts{}
 			boshOpts.ResetRelease = ResetReleaseOpts{}
 			boshOpts.GenerateJob = GenerateJobOpts{}

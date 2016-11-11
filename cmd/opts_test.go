@@ -1013,6 +1013,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("Path", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Path", opts)).To(Equal(
+					`long:"path" value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`,
+				))
+			})
+		})
+
 		Describe("VarErrors", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("VarErrors", opts)).To(Equal(

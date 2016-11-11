@@ -61,6 +61,61 @@ var _ = Describe("BuildManifestCmd", func() {
 			Expect(ui.Blocks).To(Equal([]string{bytes}))
 		})
 
+		It("returns portion of the template if out path is given", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
+			}
+
+			opts.VarKVs = []boshtpl.VarKV{
+				{Name: "name1", Value: "val1-from-kv"},
+			}
+
+			opts.VarsFiles = []boshtpl.VarsFileArg{
+				{Vars: boshtpl.Variables(map[string]interface{}{"var": "var-val"})},
+			}
+
+			opts.OpsFiles = []OpsFileArg{
+				{
+					Ops: patch.Ops([]patch.Op{
+						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/name2"), Value: "((var))"},
+					}),
+				},
+			}
+
+			ptr := patch.MustNewPointerFromString("/name2")
+			opts.Path = &ptr
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ui.Blocks).To(Equal([]string{"var-val\n"}))
+		})
+
+		It("returns portion of the template formatting multiline string without YAML indent", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte(`key: "line1\nline2"`),
+			}
+
+			ptr := patch.MustNewPointerFromString("/key")
+			opts.Path = &ptr
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ui.Blocks).To(Equal([]string{"line1\nline2\n"}))
+		})
+
+		It("returns portion of the template formatting result as regular YAML", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte("key:\n  subkey:\n    subsubkey: key"),
+			}
+
+			ptr := patch.MustNewPointerFromString("/key")
+			opts.Path = &ptr
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ui.Blocks).To(Equal([]string{"subkey:\n  subsubkey: key\n"}))
+		})
+
 		It("returns error if variables are not found in templated manifest if var-errors flag is set", func() {
 			opts.Args.Manifest = FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),

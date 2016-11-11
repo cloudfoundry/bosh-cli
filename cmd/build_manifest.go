@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github.com/cppforlife/go-patch/patch"
+
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
@@ -19,6 +21,13 @@ func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
 	vars := opts.VarFlags.AsVariables()
 	ops := opts.OpsFlags.AsOps()
 	evalOpts := boshtpl.EvaluateOpts{ExpectAllKeys: opts.VarErrors}
+
+	if opts.Path != nil {
+		ops = patch.Ops{ops, patch.FindOp{Path: *opts.Path}}
+
+		// Printing YAML indented multiline strings (eg SSH key) is not useful
+		evalOpts.UnescapedMultiline = true
+	}
 
 	bytes, err := tpl.Evaluate(vars, ops, evalOpts)
 	if err != nil {
