@@ -6,24 +6,27 @@ import (
 	"net"
 	"net/http"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 
 	"crypto/tls"
 	"time"
 
 	. "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 )
 
 var _ = Describe("HTTPClient", func() {
 	var (
 		httpClient HTTPClient
-		serv       *fakeServer
+		server     *ghttp.Server
+		logger loggerfakes.FakeLogger
 	)
 
 	BeforeEach(func() {
-		logger := boshlog.NewLogger(boshlog.LevelNone)
+		logger = loggerfakes.FakeLogger{}
+
 		httpClient = NewHTTPClient(&http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
@@ -34,34 +37,33 @@ var _ = Describe("HTTPClient", func() {
 				Proxy: http.ProxyFromEnvironment,
 
 				Dial: (&net.Dialer{
-					Timeout:   1 * time.Millisecond,
+					Timeout:   10 * time.Millisecond,
 					KeepAlive: 0,
 				}).Dial,
 
-				TLSHandshakeTimeout: 1,
+				TLSHandshakeTimeout: 10 * time.Millisecond,
 				DisableKeepAlives:   true,
 			},
-		}, logger)
+		}, &logger)
 
-		serv = newFakeServer("localhost:0")
-		readyCh := make(chan error)
-		go serv.Start(readyCh)
-
-		err := <-readyCh
-
-		Expect(err).ToNot(HaveOccurred())
+		server = ghttp.NewServer()
 	})
 
 	AfterEach(func() {
-		serv.Stop()
+		server.Close()
 	})
 
 	Describe("Post/PostCustomized", func() {
 		It("makes a POST request with given payload", func() {
-			serv.SetResponseBody("post-response")
-			serv.SetResponseStatus(200)
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/path"),
+					ghttp.VerifyBody([]byte("post-request")),
+					ghttp.RespondWith(http.StatusOK, []byte("post-response")),
+				),
+			)
 
-			url := "http://" + serv.Listener.Addr().String() + "/path"
+			url := server.URL() + "/path"
 
 			response, err := httpClient.Post(url, []byte("post-request"))
 			Expect(err).ToNot(HaveOccurred())
@@ -74,20 +76,22 @@ var _ = Describe("HTTPClient", func() {
 			Expect(responseBody).To(Equal([]byte("post-response")))
 			Expect(response.StatusCode).To(Equal(200))
 
-			Expect(serv.ReceivedRequests).To(HaveLen(1))
-			Expect(serv.ReceivedRequests).To(ContainElement(
-				receivedRequest{
-					Body:   []byte("post-request"),
-					Method: "POST",
-				},
-			))
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		It("allows to override request including payload", func() {
-			serv.SetResponseBody("post-response")
-			serv.SetResponseStatus(200)
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/path"),
+					ghttp.VerifyBody([]byte("post-request-override")),
+					ghttp.VerifyHeader(http.Header{
+						"X-Custom": []string{"custom"},
+					}),
+					ghttp.RespondWith(http.StatusOK, []byte("post-response")),
+				),
+			)
 
-			url := "http://" + serv.Listener.Addr().String() + "/path"
+			url := server.URL() + "/path"
 
 			setHeaders := func(r *http.Request) {
 				r.Header.Add("X-Custom", "custom")
@@ -106,15 +110,7 @@ var _ = Describe("HTTPClient", func() {
 			Expect(responseBody).To(Equal([]byte("post-response")))
 			Expect(response.StatusCode).To(Equal(200))
 
-			Expect(serv.ReceivedRequests).To(HaveLen(1))
-			Expect(serv.ReceivedRequests).To(ContainElement(
-				receivedRequest{
-					Body:   []byte("post-request-override"),
-					Method: "POST",
-
-					CustomHeader: "custom",
-				},
-			))
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		It("redacts passwords from error message", func() {
@@ -132,14 +128,27 @@ var _ = Describe("HTTPClient", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Post https://foo:<redacted>@10.10.0.0/path"))
 		})
+
+		It("redacts refresh_token query param from endpoint for https calls", func() {
+			url := "https://oauth-url?refresh_token=abc"
+
+			httpClient.PostCustomized(url, []byte("post-request"), func(r *http.Request) {})
+			_, _, args := logger.DebugArgsForCall(0)
+			Expect(args[0]).To(Equal("https://oauth-url?refresh_token=<redacted>"))
+		})
 	})
 
 	Describe("Put/PutCustomized", func() {
 		It("makes a PUT request with given payload", func() {
-			serv.SetResponseBody("put-response")
-			serv.SetResponseStatus(200)
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/path"),
+					ghttp.VerifyBody([]byte("put-request")),
+					ghttp.RespondWith(http.StatusOK, []byte("put-response")),
+				),
+			)
 
-			url := "http://" + serv.Listener.Addr().String() + "/path"
+			url := server.URL() + "/path"
 
 			response, err := httpClient.Put(url, []byte("put-request"))
 			Expect(err).ToNot(HaveOccurred())
@@ -152,20 +161,22 @@ var _ = Describe("HTTPClient", func() {
 			Expect(responseBody).To(Equal([]byte("put-response")))
 			Expect(response.StatusCode).To(Equal(200))
 
-			Expect(serv.ReceivedRequests).To(HaveLen(1))
-			Expect(serv.ReceivedRequests).To(ContainElement(
-				receivedRequest{
-					Body:   []byte("put-request"),
-					Method: "PUT",
-				},
-			))
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		It("allows to override request including payload", func() {
-			serv.SetResponseBody("put-response")
-			serv.SetResponseStatus(200)
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/path"),
+					ghttp.VerifyBody([]byte("put-request-override")),
+					ghttp.VerifyHeader(http.Header{
+						"X-Custom": []string{"custom"},
+					}),
+					ghttp.RespondWith(http.StatusOK, []byte("put-response")),
+				),
+			)
 
-			url := "http://" + serv.Listener.Addr().String() + "/path"
+			url := server.URL() + "/path"
 
 			setHeaders := func(r *http.Request) {
 				r.Header.Add("X-Custom", "custom")
@@ -184,15 +195,7 @@ var _ = Describe("HTTPClient", func() {
 			Expect(responseBody).To(Equal([]byte("put-response")))
 			Expect(response.StatusCode).To(Equal(200))
 
-			Expect(serv.ReceivedRequests).To(HaveLen(1))
-			Expect(serv.ReceivedRequests).To(ContainElement(
-				receivedRequest{
-					Body:   []byte("put-request-override"),
-					Method: "PUT",
-
-					CustomHeader: "custom",
-				},
-			))
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		It("redacts passwords from error message", func() {
@@ -210,14 +213,26 @@ var _ = Describe("HTTPClient", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Put https://foo:<redacted>@10.10.0.0/path"))
 		})
+
+		It("redacts refresh_token query param from endpoint for https calls", func() {
+			url := "https://oauth-url?refresh_token=abc"
+
+			httpClient.PutCustomized(url, []byte("post-request"), func(r *http.Request) {})
+			_, _, args := logger.DebugArgsForCall(0)
+			Expect(args[0]).To(Equal("https://oauth-url?refresh_token=<redacted>"))
+		})
 	})
 
 	Describe("Get/GetCustomized", func() {
 		It("makes a get request with given payload", func() {
-			serv.SetResponseBody("get-response")
-			serv.SetResponseStatus(200)
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/path"),
+					ghttp.RespondWith(http.StatusOK, []byte("get-response")),
+				),
+			)
 
-			url := "http://" + serv.Listener.Addr().String() + "/path"
+			url := server.URL() + "/path"
 
 			response, err := httpClient.Get(url)
 			Expect(err).ToNot(HaveOccurred())
@@ -230,20 +245,21 @@ var _ = Describe("HTTPClient", func() {
 			Expect(responseBody).To(Equal([]byte("get-response")))
 			Expect(response.StatusCode).To(Equal(200))
 
-			Expect(serv.ReceivedRequests).To(HaveLen(1))
-			Expect(serv.ReceivedRequests).To(ContainElement(
-				receivedRequest{
-					Body:   []byte(""),
-					Method: "GET",
-				},
-			))
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		It("allows to override request", func() {
-			serv.SetResponseBody("get-response")
-			serv.SetResponseStatus(200)
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/path"),
+					ghttp.VerifyHeader(http.Header{
+						"X-Custom": []string{"custom"},
+					}),
+					ghttp.RespondWith(http.StatusOK, []byte("get-response")),
+				),
+			)
 
-			url := "http://" + serv.Listener.Addr().String() + "/path"
+			url := server.URL() + "/path"
 
 			setHeaders := func(r *http.Request) {
 				r.Header.Add("X-Custom", "custom")
@@ -260,15 +276,7 @@ var _ = Describe("HTTPClient", func() {
 			Expect(responseBody).To(Equal([]byte("get-response")))
 			Expect(response.StatusCode).To(Equal(200))
 
-			Expect(serv.ReceivedRequests).To(HaveLen(1))
-			Expect(serv.ReceivedRequests).To(ContainElement(
-				receivedRequest{
-					Body:   []byte(""),
-					Method: "GET",
-
-					CustomHeader: "custom",
-				},
-			))
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
 		It("redacts passwords from error message", func() {
@@ -286,82 +294,15 @@ var _ = Describe("HTTPClient", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Get https://foo:<redacted>@10.10.0.0:8080/path"))
 		})
+
+
+		It("redacts refresh_token query param from endpoint for https calls", func() {
+			url := "https://oauth-url?refresh_token=abc"
+
+			httpClient.GetCustomized(url, func(r *http.Request) {})
+			_, _, args := logger.DebugArgsForCall(0)
+			Expect(args[0]).To(Equal("https://oauth-url?refresh_token=<redacted>"))
+		})
 	})
 
 })
-
-type receivedRequestBody struct {
-	Method    string
-	Arguments []interface{}
-	ReplyTo   string `json:"reply_to"`
-}
-
-type receivedRequest struct {
-	Body   []byte
-	Method string
-
-	CustomHeader string
-}
-
-type fakeServer struct {
-	Listener         net.Listener
-	endpoint         string
-	ReceivedRequests []receivedRequest
-	responseBody     string
-	responseStatus   int
-}
-
-func newFakeServer(endpoint string) *fakeServer {
-	return &fakeServer{
-		endpoint:         endpoint,
-		responseStatus:   http.StatusOK,
-		ReceivedRequests: []receivedRequest{},
-	}
-}
-
-func (s *fakeServer) Start(readyErrCh chan error) {
-	var err error
-	s.Listener, err = net.Listen("tcp", s.endpoint)
-	if err != nil {
-		readyErrCh <- err
-		return
-	}
-
-	readyErrCh <- nil
-
-	httpServer := http.Server{}
-	httpServer.SetKeepAlivesEnabled(false)
-	mux := http.NewServeMux()
-	httpServer.Handler = mux
-
-	mux.HandleFunc("/path", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(s.responseStatus)
-
-		requestBody, _ := ioutil.ReadAll(r.Body)
-		defer r.Body.Close()
-
-		receivedRequest := receivedRequest{
-			Body:   requestBody,
-			Method: r.Method,
-
-			CustomHeader: r.Header.Get("X-Custom"),
-		}
-
-		s.ReceivedRequests = append(s.ReceivedRequests, receivedRequest)
-		w.Write([]byte(s.responseBody))
-	})
-
-	httpServer.Serve(s.Listener)
-}
-
-func (s *fakeServer) Stop() {
-	s.Listener.Close()
-}
-
-func (s *fakeServer) SetResponseStatus(code int) {
-	s.responseStatus = code
-}
-
-func (s *fakeServer) SetResponseBody(body string) {
-	s.responseBody = body
-}

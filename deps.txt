@@ -26,3 +26,4 @@ github.com/cppforlife/go-patch/patch:661a67c
 github.com/pivotal-golang/s3cli:90561c0
 github.com/golang/protobuf/proto:98fa357
 github.com/aws/aws-sdk-go:1a651d9
+github.com/cloudfoundry/bosh-utils/httpclient:3e632c0

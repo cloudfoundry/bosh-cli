@@ -9,6 +9,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"net/url"
 )
 
 type HTTPClient interface {
@@ -45,7 +46,7 @@ func (c httpClient) Post(endpoint string, payload []byte) (*http.Response, error
 func (c httpClient) PostCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
 	postPayload := strings.NewReader(string(payload))
 
-	c.logger.Debug(c.logTag, "Sending POST request to endpoint '%s' with body '%s'", endpoint, payload)
+	c.logger.Debug(c.logTag, "Sending POST request to endpoint '%s' with body '%s'", scrubEndpointQuery(endpoint), payload)
 
 	request, err := http.NewRequest("POST", endpoint, postPayload)
 	if err != nil {
@@ -71,7 +72,7 @@ func (c httpClient) Put(endpoint string, payload []byte) (*http.Response, error)
 func (c httpClient) PutCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
 	putPayload := strings.NewReader(string(payload))
 
-	c.logger.Debug(c.logTag, "Sending PUT request to endpoint '%s' with body '%s'", endpoint, payload)
+	c.logger.Debug(c.logTag, "Sending PUT request to endpoint '%s' with body '%s'", scrubEndpointQuery(endpoint), payload)
 
 	request, err := http.NewRequest("PUT", endpoint, putPayload)
 	if err != nil {
@@ -95,7 +96,7 @@ func (c httpClient) Get(endpoint string) (*http.Response, error) {
 }
 
 func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
-	c.logger.Debug(c.logTag, "Sending GET request to endpoint '%s'", endpoint)
+	c.logger.Debug(c.logTag, "Sending GET request to endpoint '%s'", scrubEndpointQuery(endpoint))
 
 	request, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
@@ -130,6 +131,20 @@ func (c httpClient) Delete(endpoint string) (*http.Response, error) {
 }
 
 var scrubUserinfoRegex = regexp.MustCompile("(https?://.*:).*@")
+
+func scrubEndpointQuery(endpoint string) string {
+	parsedURL, err := url.Parse(endpoint)
+	if err != nil {
+		return "error occurred parsing endpoing"
+	}
+
+	query := parsedURL.Query()
+	query["refresh_token"] = []string{"<redacted>"}
+	parsedURL.RawQuery = query.Encode()
+
+	unescapedEndpoint, _ := url.QueryUnescape(parsedURL.String())
+	return unescapedEndpoint
+}
 
 func scrubErrorOutput(err error) error {
 	errorMsg := err.Error()
