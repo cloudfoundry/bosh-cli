@@ -166,6 +166,18 @@ dup-key: ((key3))
 		Expect(result).To(Equal([]byte("uri: nats://nats:secret@10.0.0.0:4222\n")))
 	})
 
+	It("can interpolate multiple secret keys in the middle of a string even if keys have ! marks", func() {
+		template := NewTemplate([]byte("uri: nats://nats:((!password))@((ip)):4222"))
+		vars := Variables{
+			"password": "secret",
+			"ip":       "10.0.0.0",
+		}
+
+		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("uri: nats://nats:secret@10.0.0.0:4222\n")))
+	})
+
 	It("can interpolate multiple keys of type string and int in the middle of a string", func() {
 		template := NewTemplate([]byte("address: ((ip)):((port))"))
 		vars := Variables{
