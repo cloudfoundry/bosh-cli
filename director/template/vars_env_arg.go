@@ -9,7 +9,7 @@ import (
 )
 
 type VarsEnvArg struct {
-	Vars Variables
+	Vars StaticVariables
 
 	EnvironFunc func() []string
 }
@@ -23,7 +23,7 @@ func (a *VarsEnvArg) UnmarshalFlag(prefix string) error {
 		a.EnvironFunc = os.Environ
 	}
 
-	vars := Variables{}
+	vars := StaticVariables{}
 	envVars := a.EnvironFunc()
 
 	for _, envVar := range envVars {

@@ -27,7 +27,7 @@ var _ = Describe("VarsFileArg", func() {
 
 			err := (&arg).UnmarshalFlag("/some/path")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg.Vars).To(Equal(Variables{
+			Expect(arg.Vars).To(Equal(StaticVariables{
 				"name1": "var1",
 				"name2": "var2",
 			}))
@@ -46,7 +46,7 @@ var _ = Describe("VarsFileArg", func() {
 
 			err := (&arg).UnmarshalFlag("/some/path")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg.Vars).To(Equal(Variables{
+			Expect(arg.Vars).To(Equal(StaticVariables{
 				"name1": 1,
 				"name2": "nil",
 				"name3": true,

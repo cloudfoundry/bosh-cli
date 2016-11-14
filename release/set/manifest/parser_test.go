@@ -58,7 +58,7 @@ name: unknown-keys-are-ignored
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
+			_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -69,7 +69,7 @@ name: unknown-keys-are-ignored
 		})
 
 		It("returns an error", func() {
-			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
+			_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{})
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -90,7 +90,7 @@ releases:
 			})
 
 			It("does not change release url", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentManifest).To(Equal(manifest.Manifest{
@@ -122,7 +122,7 @@ releases:
 			})
 
 			It("changes release url to include absolute path to manifest directory", func() {
-				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
+				deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{})
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deploymentManifest).To(Equal(manifest.Manifest{
@@ -150,7 +150,7 @@ releases:
 		})
 
 		It("does not change the release url", func() {
-			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
+			deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(deploymentManifest).To(Equal(manifest.Manifest{
@@ -166,7 +166,7 @@ releases:
 	})
 
 	It("parses release set manifest from combo manifest file", func() {
-		deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
+		deploymentManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(deploymentManifest).To(Equal(manifest.Manifest{
@@ -203,7 +203,7 @@ releases:
   sha1: release-sha1
 `)
 
-		vars := boshtpl.Variables{"url": "file://file.tgz"}
+		vars := boshtpl.StaticVariables{"url": "file://file.tgz"}
 		ops := patch.Ops{
 			patch.ReplaceOp{Path: patch.MustNewPointerFromString("/releases/0/name"), Value: "replaced-name"},
 		}
@@ -230,7 +230,7 @@ releases:
   sha1: release-sha1
 `)
 
-		vars := boshtpl.Variables{}
+		vars := boshtpl.StaticVariables{}
 		ops := patch.Ops{}
 
 		_, err := parser.Parse(comboManifestPath, vars, ops)
@@ -243,7 +243,7 @@ releases:
 			{Err: errors.New("couldn't validate that")},
 		})
 
-		_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{})
+		_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Validating release set manifest: couldn't validate that"))
 	})

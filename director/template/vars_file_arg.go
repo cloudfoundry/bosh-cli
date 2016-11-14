@@ -9,7 +9,7 @@ import (
 type VarsFileArg struct {
 	FS boshsys.FileSystem
 
-	Vars Variables
+	Vars StaticVariables
 }
 
 func (a *VarsFileArg) UnmarshalFlag(filePath string) error {
@@ -22,7 +22,7 @@ func (a *VarsFileArg) UnmarshalFlag(filePath string) error {
 		return bosherr.WrapErrorf(err, "Reading variables file '%s'", filePath)
 	}
 
-	var vars Variables
+	var vars StaticVariables
 
 	err = yaml.Unmarshal(bytes, &vars)
 	if err != nil {

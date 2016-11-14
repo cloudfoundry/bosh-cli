@@ -106,8 +106,8 @@ var _ = Describe("DeployCmd", func() {
 			}
 
 			opts.VarsFiles = []boshtpl.VarsFileArg{
-				{Vars: boshtpl.Variables(map[string]interface{}{"name1": "val1-from-file"})},
-				{Vars: boshtpl.Variables(map[string]interface{}{"name2": "val2-from-file"})},
+				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name1": "val1-from-file"})},
+				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
 			opts.OpsFiles = []OpsFileArg{

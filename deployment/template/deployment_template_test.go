@@ -12,7 +12,7 @@ import (
 var _ = Describe("DeploymentTemplate", func() {
 	It("can template values into a struct with byte slice", func() {
 		deploymentTemplate := NewDeploymentTemplate([]byte(""))
-		vars := boshtpl.Variables{"key": "foo"}
+		vars := boshtpl.StaticVariables{"key": "foo"}
 		ops := patch.Ops{
 			patch.ReplaceOp{Path: patch.MustNewPointerFromString(""), Value: "((key))"},
 		}
@@ -24,7 +24,7 @@ var _ = Describe("DeploymentTemplate", func() {
 
 	It("returns an error if variable key is missing", func() {
 		deploymentTemplate := NewDeploymentTemplate([]byte("((key)): true"))
-		vars := boshtpl.Variables{"key2": "foo"}
+		vars := boshtpl.StaticVariables{"key2": "foo"}
 		ops := patch.Ops{}
 
 		_, err := deploymentTemplate.Evaluate(vars, ops)
@@ -34,7 +34,7 @@ var _ = Describe("DeploymentTemplate", func() {
 
 	It("returns a struct that can return the SHA2 512 of the struct", func() {
 		deploymentTemplate := NewDeploymentTemplate([]byte(""))
-		vars := boshtpl.Variables{"key": "foo"}
+		vars := boshtpl.StaticVariables{"key": "foo"}
 		ops := patch.Ops{
 			patch.ReplaceOp{Path: patch.MustNewPointerFromString(""), Value: "((key))"},
 		}

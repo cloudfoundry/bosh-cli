@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/go-patch/patch"
 	"gopkg.in/yaml.v2"
 )
@@ -44,23 +45,9 @@ func (t Template) Evaluate(vars Variables, op patch.Op, opts EvaluateOpts) ([]by
 		}
 	}
 
-	missingVars := map[string]struct{}{}
-
-	obj, err = t.interpolate(obj, vars, opts, missingVars)
+	obj, err = t.interpolateRoot(obj, varsTracker{vars: vars, expectAll: opts.ExpectAllKeys})
 	if err != nil {
 		return []byte{}, err
-	}
-
-	if len(missingVars) > 0 {
-		var missingVarKeys []string
-
-		for v, _ := range missingVars {
-			missingVarKeys = append(missingVarKeys, v)
-		}
-
-		sort.Strings(missingVarKeys)
-
-		return []byte{}, fmt.Errorf("Expected to find variables: %s", strings.Join(missingVarKeys, ", "))
 	}
 
 	if opts.PostVarSubstitutionOp != nil {
@@ -70,10 +57,8 @@ func (t Template) Evaluate(vars Variables, op patch.Op, opts EvaluateOpts) ([]by
 		}
 	}
 
-	if opts.UnescapedMultiline {
-		if _, ok := obj.(string); ok {
-			return []byte(fmt.Sprintf("%s\n", obj)), nil
-		}
+	if _, ok := obj.(string); opts.UnescapedMultiline && ok {
+		return []byte(fmt.Sprintf("%s\n", obj)), nil
 	}
 
 	bytes, err := yaml.Marshal(obj)
@@ -84,16 +69,30 @@ func (t Template) Evaluate(vars Variables, op patch.Op, opts EvaluateOpts) ([]by
 	return bytes, nil
 }
 
-func (t Template) interpolate(node interface{}, vars Variables, opts EvaluateOpts, missingVars map[string]struct{}) (interface{}, error) {
+func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interface{}, error) {
+	err := tracker.ExtractDefinitions(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	obj, err = t.interpolate(obj, tracker)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, tracker.MissingError()
+}
+
+func (t Template) interpolate(node interface{}, tracker varsTracker) (interface{}, error) {
 	switch typedNode := node.(type) {
 	case map[interface{}]interface{}:
 		for k, v := range typedNode {
-			evaluatedValue, err := t.interpolate(v, vars, opts, missingVars)
+			evaluatedValue, err := t.interpolate(v, tracker)
 			if err != nil {
 				return nil, err
 			}
 
-			evaluatedKey, err := t.interpolate(k, vars, opts, missingVars)
+			evaluatedKey, err := t.interpolate(k, tracker)
 			if err != nil {
 				return nil, err
 			}
@@ -105,31 +104,34 @@ func (t Template) interpolate(node interface{}, vars Variables, opts EvaluateOpt
 	case []interface{}:
 		for i, x := range typedNode {
 			var err error
-			typedNode[i], err = t.interpolate(x, vars, opts, missingVars)
+			typedNode[i], err = t.interpolate(x, tracker)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 	case string:
-		for _, key := range t.keys(typedNode) {
-			if foundVar, exists := vars[key]; exists {
+		for _, name := range t.extractVarNames(typedNode) {
+			foundVal, found, err := tracker.Get(name)
+			if err != nil {
+				return nil, bosherr.WrapErrorf(err, "Finding variable '%s'", name)
+			}
+
+			if found {
 				// ensure that value type is preserved when replacing the entire field
 				if templateFormatAnchoredRegex.MatchString(typedNode) {
-					return foundVar, nil
+					return foundVal, nil
 				}
 
-				switch foundVar.(type) {
+				switch foundVal.(type) {
 				case string, int, int16, int32, int64, uint, uint16, uint32, uint64:
-					foundVarStr := fmt.Sprintf("%v", foundVar)
-					typedNode = strings.Replace(typedNode, fmt.Sprintf("((%s))", key), foundVarStr, -1)
-					typedNode = strings.Replace(typedNode, fmt.Sprintf("((!%s))", key), foundVarStr, -1)
+					foundValStr := fmt.Sprintf("%v", foundVal)
+					typedNode = strings.Replace(typedNode, fmt.Sprintf("((%s))", name), foundValStr, -1)
+					typedNode = strings.Replace(typedNode, fmt.Sprintf("((!%s))", name), foundValStr, -1)
 				default:
-					errMsg := "Invalid type '%T' for value '%v' and key '%s'. Supported types for interpolation within a string are integers and strings."
-					return nil, fmt.Errorf(errMsg, foundVar, foundVar, key)
+					errMsg := "Invalid type '%T' for value '%v' and variable '%s'. Supported types for interpolation within a string are integers and strings."
+					return nil, fmt.Errorf(errMsg, foundVal, foundVal, name)
 				}
-			} else if opts.ExpectAllKeys {
-				missingVars[key] = struct{}{}
 			}
 		}
 
@@ -139,12 +141,88 @@ func (t Template) interpolate(node interface{}, vars Variables, opts EvaluateOpt
 	return node, nil
 }
 
-func (t Template) keys(value string) []string {
-	var keys []string
+func (t Template) extractVarNames(value string) []string {
+	var names []string
 
 	for _, match := range templateFormatRegex.FindAllSubmatch([]byte(value), -1) {
-		keys = append(keys, strings.TrimPrefix(string(match[1]), "!"))
+		names = append(names, strings.TrimPrefix(string(match[1]), "!"))
 	}
 
-	return keys
+	return names
+}
+
+type varsTracker struct {
+	vars Variables
+	defs varDefinitions
+
+	expectAll bool
+	missing   map[string]struct{}
+}
+
+func (t varsTracker) Get(name string) (interface{}, bool, error) {
+	val, found, err := t.vars.Get(t.defs.Find(name))
+	if !found {
+		t.missing[name] = struct{}{}
+	}
+
+	return val, found, err
+}
+
+func (t *varsTracker) ExtractDefinitions(obj interface{}) error {
+	t.missing = map[string]struct{}{}
+
+	if _, isMap := obj.(map[interface{}]interface{}); isMap {
+		defsBytes, err := yaml.Marshal(obj)
+		if err != nil {
+			return err
+		}
+
+		err = yaml.Unmarshal(defsBytes, &t.defs)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Run through all variable definitions in order
+	// to provide basic variable dependency management (ie sort definitions manually)
+	for _, def := range t.defs.Definitions {
+		if len(def.Type) > 0 {
+			_, _, err := t.Get(def.Name)
+			if err != nil {
+				return bosherr.WrapError(err, "Getting all variables from variable definitions sections")
+			}
+		}
+	}
+
+	return nil
+}
+
+func (t varsTracker) MissingError() error {
+	if !t.expectAll {
+		return nil
+	}
+
+	var names []string
+	for name, _ := range t.missing {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	if len(names) > 0 {
+		return fmt.Errorf("Expected to find variables: %s", strings.Join(names, ", "))
+	}
+	return nil
+}
+
+type varDefinitions struct {
+	Definitions []VariableDefinition `yaml:"variables"`
+}
+
+func (defs varDefinitions) Find(name string) VariableDefinition {
+	for _, def := range defs.Definitions {
+		if def.Name == name {
+			return def
+		}
+	}
+	return VariableDefinition{Name: name}
 }

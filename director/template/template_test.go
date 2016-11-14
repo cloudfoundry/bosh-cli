@@ -1,6 +1,9 @@
 package template_test
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,7 +14,7 @@ import (
 var _ = Describe("Template", func() {
 	It("can interpolate values into a struct with byte slice", func() {
 		template := NewTemplate([]byte("((key))"))
-		vars := Variables{"key": "foo"}
+		vars := StaticVariables{"key": "foo"}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -20,7 +23,7 @@ var _ = Describe("Template", func() {
 
 	It("can interpolate multiple values into a byte slice", func() {
 		template := NewTemplate([]byte("((key)): ((value))"))
-		vars := Variables{
+		vars := StaticVariables{
 			"key":   "foo",
 			"value": "bar",
 		}
@@ -32,7 +35,7 @@ var _ = Describe("Template", func() {
 
 	It("can interpolate boolean values into a byte slice", func() {
 		template := NewTemplate([]byte("otherstuff: ((boule))"))
-		vars := Variables{"boule": true}
+		vars := StaticVariables{"boule": true}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -42,7 +45,7 @@ var _ = Describe("Template", func() {
 	It("can interpolate a different data types into a byte slice", func() {
 		hashValue := map[string]interface{}{"key2": []string{"value1", "value2"}}
 		template := NewTemplate([]byte("name1: ((name1))\nname2: ((name2))\nname3: ((name3))\nname4: ((name4))\nname5: ((name5))\nname6: ((name6))\n1234: value\n"))
-		vars := Variables{
+		vars := StaticVariables{
 			"name1": 1,
 			"name2": "nil",
 			"name3": true,
@@ -69,7 +72,7 @@ name6:
 
 	It("can interpolate different data types into a byte slice with !key", func() {
 		template := NewTemplate([]byte("otherstuff: ((!boule))"))
-		vars := Variables{"boule": true}
+		vars := StaticVariables{"boule": true}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -84,7 +87,7 @@ dup-key: ((key3))
 ((key4))_array:
 - ((key_in_array))
 `))
-		vars := Variables{"key3": "foo"}
+		vars := StaticVariables{"key3": "foo"}
 
 		_, err := template.Evaluate(vars, nil, EvaluateOpts{ExpectAllKeys: true})
 		Expect(err).To(HaveOccurred())
@@ -93,7 +96,7 @@ dup-key: ((key3))
 
 	It("does not return error if there are missing variable keys and ExpectAllKeys is false", func() {
 		template := NewTemplate([]byte("((key)): ((key2))\n((key3)): 2"))
-		vars := Variables{"key3": "foo"}
+		vars := StaticVariables{"key3": "foo"}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).ToNot(HaveOccurred())
@@ -103,7 +106,7 @@ dup-key: ((key3))
 	Context("When template is a number", func() {
 		It("returns it", func() {
 			template := NewTemplate([]byte(`1234`))
-			vars := Variables{"key": "not key"}
+			vars := StaticVariables{"key": "not key"}
 
 			result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 			Expect(err).NotTo(HaveOccurred())
@@ -114,7 +117,7 @@ dup-key: ((key3))
 	Context("When variable has nil as value for key", func() {
 		It("uses null", func() {
 			template := NewTemplate([]byte("((key)): value"))
-			vars := Variables{"key": nil}
+			vars := StaticVariables{"key": nil}
 
 			result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 			Expect(err).NotTo(HaveOccurred())
@@ -124,7 +127,7 @@ dup-key: ((key3))
 
 	It("can interpolate unicode values into a byte slice", func() {
 		template := NewTemplate([]byte("((Ω))"))
-		vars := Variables{"Ω": "☃"}
+		vars := StaticVariables{"Ω": "☃"}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -133,7 +136,7 @@ dup-key: ((key3))
 
 	It("can interpolate keys with dashes and underscores into a byte slice", func() {
 		template := NewTemplate([]byte("((with-a-dash)): ((with_an_underscore))"))
-		vars := Variables{
+		vars := StaticVariables{
 			"with-a-dash":        "dash",
 			"with_an_underscore": "underscore",
 		}
@@ -145,7 +148,7 @@ dup-key: ((key3))
 
 	It("can interpolate a secret key in the middle of a string", func() {
 		template := NewTemplate([]byte("url: https://((ip))"))
-		vars := Variables{
+		vars := StaticVariables{
 			"ip": "10.0.0.0",
 		}
 
@@ -156,7 +159,7 @@ dup-key: ((key3))
 
 	It("can interpolate multiple secret keys in the middle of a string", func() {
 		template := NewTemplate([]byte("uri: nats://nats:((password))@((ip)):4222"))
-		vars := Variables{
+		vars := StaticVariables{
 			"password": "secret",
 			"ip":       "10.0.0.0",
 		}
@@ -168,7 +171,7 @@ dup-key: ((key3))
 
 	It("can interpolate multiple secret keys in the middle of a string even if keys have ! marks", func() {
 		template := NewTemplate([]byte("uri: nats://nats:((!password))@((ip)):4222"))
-		vars := Variables{
+		vars := StaticVariables{
 			"password": "secret",
 			"ip":       "10.0.0.0",
 		}
@@ -180,7 +183,7 @@ dup-key: ((key3))
 
 	It("can interpolate multiple keys of type string and int in the middle of a string", func() {
 		template := NewTemplate([]byte("address: ((ip)):((port))"))
-		vars := Variables{
+		vars := StaticVariables{
 			"port": 4222,
 			"ip":   "10.0.0.0",
 		}
@@ -192,7 +195,7 @@ dup-key: ((key3))
 
 	It("raises error when interpolating an unsupported type in the middle of a string", func() {
 		template := NewTemplate([]byte("address: ((definition)):((eulers_number))"))
-		vars := Variables{
+		vars := StaticVariables{
 			"eulers_number": 2.717,
 			"definition":    "natural_log",
 		}
@@ -205,7 +208,7 @@ dup-key: ((key3))
 
 	It("can interpolate a single key multiple times in the middle of a string", func() {
 		template := NewTemplate([]byte("acct_and_password: ((user)):((user))"))
-		vars := Variables{
+		vars := StaticVariables{
 			"user": "nats",
 		}
 
@@ -216,7 +219,7 @@ dup-key: ((key3))
 
 	It("can interpolate values into the middle of a key", func() {
 		template := NewTemplate([]byte("((iaas))_cpi: props"))
-		vars := Variables{
+		vars := StaticVariables{
 			"iaas": "aws",
 		}
 
@@ -227,7 +230,7 @@ dup-key: ((key3))
 
 	It("can interpolate the same value multiple times into a byte slice", func() {
 		template := NewTemplate([]byte("((key)): ((key))"))
-		vars := Variables{"key": "foo"}
+		vars := StaticVariables{"key": "foo"}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -236,7 +239,7 @@ dup-key: ((key3))
 
 	It("can interpolate values with strange newlines", func() {
 		template := NewTemplate([]byte("((key))"))
-		vars := Variables{"key": "this\nhas\nmany\nlines"}
+		vars := StaticVariables{"key": "this\nhas\nmany\nlines"}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -245,7 +248,7 @@ dup-key: ((key3))
 
 	It("ignores if operation is not specified", func() {
 		template := NewTemplate([]byte("((key))"))
-		vars := Variables{"key": "val"}
+		vars := StaticVariables{"key": "val"}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -254,7 +257,7 @@ dup-key: ((key3))
 
 	It("ignores an invalid input", func() {
 		template := NewTemplate([]byte("(()"))
-		vars := Variables{}
+		vars := StaticVariables{}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -263,7 +266,7 @@ dup-key: ((key3))
 
 	It("strips away ! from variable keys", func() {
 		template := NewTemplate([]byte("abc: ((!key))\nxyz: [((!key))]"))
-		vars := Variables{"key": "val"}
+		vars := StaticVariables{"key": "val"}
 
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -272,7 +275,7 @@ dup-key: ((key3))
 
 	It("can run operations to modify document", func() {
 		template := NewTemplate([]byte("a: b"))
-		vars := Variables{}
+		vars := StaticVariables{}
 		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "c"}
 
 		result, err := template.Evaluate(vars, ops, EvaluateOpts{})
@@ -282,7 +285,7 @@ dup-key: ((key3))
 
 	It("interpolates after running operations", func() {
 		template := NewTemplate([]byte("a: b"))
-		vars := Variables{"c": "x"}
+		vars := StaticVariables{"c": "x"}
 		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "((c))"}
 
 		result, err := template.Evaluate(vars, ops, EvaluateOpts{})
@@ -292,7 +295,7 @@ dup-key: ((key3))
 
 	It("returns an error if variables added by operations are not found", func() {
 		template := NewTemplate([]byte("a: b"))
-		vars := Variables{}
+		vars := StaticVariables{}
 		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "((c))"}
 
 		_, err := template.Evaluate(vars, ops, EvaluateOpts{ExpectAllKeys: true})
@@ -302,7 +305,7 @@ dup-key: ((key3))
 
 	It("returns an error if operation fails", func() {
 		template := NewTemplate([]byte("a: b"))
-		vars := Variables{}
+		vars := StaticVariables{}
 		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/x/y"), Value: "c"}
 
 		_, err := template.Evaluate(vars, ops, EvaluateOpts{})
@@ -310,10 +313,10 @@ dup-key: ((key3))
 		Expect(err.Error()).To(Equal("Expected to find a map key 'x' for path '/x'"))
 	})
 
-	It("runs PostVarSubstitutionOp after running regular oprations and interpolation", func() {
+	It("runs PostVarSubstitutionOp after running regular operations and interpolation", func() {
 		template := NewTemplate([]byte("a: b"))
 
-		vars := Variables{
+		vars := StaticVariables{
 			"c": map[interface{}]interface{}{"d": "e"},
 		}
 		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "((c))"}
@@ -328,7 +331,7 @@ dup-key: ((key3))
 
 	It("returns an error if PostVarSubstitutionOp fails", func() {
 		template := NewTemplate([]byte("a: b"))
-		vars := Variables{}
+		vars := StaticVariables{}
 		opts := EvaluateOpts{
 			PostVarSubstitutionOp: patch.FindOp{Path: patch.MustNewPointerFromString("/x")},
 		}
@@ -341,12 +344,137 @@ dup-key: ((key3))
 	It("returns raw bytes of a string if UnescapedMultiline is true", func() {
 		template := NewTemplate([]byte("value"))
 
-		result, err := template.Evaluate(Variables{}, nil, EvaluateOpts{})
+		result, err := template.Evaluate(StaticVariables{}, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("value\n")))
 
-		result, err = template.Evaluate(Variables{}, nil, EvaluateOpts{UnescapedMultiline: true})
+		result, err = template.Evaluate(StaticVariables{}, nil, EvaluateOpts{UnescapedMultiline: true})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("value\n")))
+	})
+
+	It("provides associated variable definition if found so that variables can be generated", func() {
+		template := NewTemplate([]byte(`abc: ((!key1))
+variables:
+- name: key2
+  type: key2-type
+  options: {key2-opt: key2-opt-val}
+- name: key1
+  type: key1-type
+xyz: [((!key2))]
+`))
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				switch varDef.Name {
+				case "key1":
+					Expect(varDef).To(Equal(VariableDefinition{Name: "key1", Type: "key1-type"}))
+					return "key1-val", true, nil
+
+				case "key2":
+					Expect(varDef).To(Equal(VariableDefinition{
+						Name:    "key2",
+						Type:    "key2-type",
+						Options: map[interface{}]interface{}{"key2-opt": "key2-opt-val"},
+					}))
+					return "key2-val", true, nil
+
+				default:
+					panic(fmt.Sprintf("Unexpected variable definiton: %#v", varDef))
+				}
+			},
+		}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte(`abc: key1-val
+variables:
+- name: key2
+  options:
+    key2-opt: key2-opt-val
+  type: key2-type
+- name: key1
+  type: key1-type
+xyz:
+- key2-val
+`)))
+	})
+
+	It("allows operations to modify variable definitions for interpolation", func() {
+		template := NewTemplate([]byte("abc: ((key))"))
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				Expect(varDef).To(Equal(VariableDefinition{Name: "key", Type: "key-type"}))
+				return "key-val", true, nil
+			},
+		}
+
+		op := patch.ReplaceOp{
+			Path:  patch.MustNewPointerFromString("/variables?/-"),
+			Value: map[interface{}]interface{}{"name": "key", "type": "key-type"},
+		}
+
+		result, err := template.Evaluate(vars, op, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte(`abc: key-val
+variables:
+- name: key
+  type: key-type
+`)))
+	})
+
+	It("goes through variables in variable definitions in order (skipping typeless variables) before interpolating other variables", func() {
+		template := NewTemplate([]byte(`abc: ((key))
+variables:
+- name: key1
+  type: key1-type
+- name: missing-type
+- name: key2
+  type: key2-type`))
+
+		var interpolationOrder []string
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				interpolationOrder = append(interpolationOrder, varDef.Name)
+				return "val", true, nil
+			},
+		}
+
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(interpolationOrder).To(Equal([]string{"key1", "key2", "key"}))
+	})
+
+	It("returns error if any variable interpolation failed from variable definitions section", func() {
+		template := NewTemplate([]byte(`abc: ((key1))
+variables:
+- name: key2
+  type: key2-type
+`))
+
+		var interpolationOrder []string
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				interpolationOrder = append(interpolationOrder, varDef.Name)
+				return nil, true, errors.New("fake-err")
+			},
+		}
+
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Getting all variables from variable definitions sections: fake-err"))
+		Expect(interpolationOrder).To(Equal([]string{"key2"}))
+	})
+
+	It("returns error if finding variable fails", func() {
+		template := NewTemplate([]byte("((key))"))
+		vars := &FakeVariables{GetErr: errors.New("fake-err")}
+
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("fake-err"))
 	})
 })

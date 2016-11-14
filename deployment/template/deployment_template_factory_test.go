@@ -63,7 +63,7 @@ resource_pools:
 				template, err := templateFactory.NewDeploymentTemplateFromPath(path)
 				Expect(err).ToNot(HaveOccurred())
 
-				vars := boshtpl.Variables{"url": "file://stemcell.tgz"}
+				vars := boshtpl.StaticVariables{"url": "file://stemcell.tgz"}
 				ops := patch.Ops{
 					patch.ReplaceOp{Path: patch.MustNewPointerFromString("/name"), Value: "replaced-name"},
 				}

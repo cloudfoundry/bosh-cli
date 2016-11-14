@@ -1,17 +1,11 @@
 package template
 
-type Variables map[string]interface{}
+type Variables interface {
+	Get(VariableDefinition) (interface{}, bool, error)
+}
 
-func (v Variables) Merge(other Variables) Variables {
-	merged := Variables{}
-
-	for key, value := range v {
-		merged[key] = value
-	}
-
-	for key, value := range other {
-		merged[key] = value
-	}
-
-	return merged
+type VariableDefinition struct {
+	Name    string
+	Type    string
+	Options interface{}
 }

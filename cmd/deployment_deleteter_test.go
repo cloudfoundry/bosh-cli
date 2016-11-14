@@ -203,7 +203,7 @@ cloud_provider:
 				mockBlobstoreFactory,
 				mockDeploymentManagerFactory,
 				deploymentManifestPath,
-				boshtpl.Variables{},
+				boshtpl.StaticVariables{},
 				patch.Ops{},
 				cpiInstaller,
 				mockCpiUninstaller,

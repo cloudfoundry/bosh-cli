@@ -26,7 +26,7 @@ var _ = Describe("VarsEnvArg", func() {
 
 			err := (&arg).UnmarshalFlag("name")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg.Vars).To(Equal(Variables{
+			Expect(arg.Vars).To(Equal(StaticVariables{
 				"key1": "var1",
 				"key2": "var2",
 			}))
@@ -37,7 +37,7 @@ var _ = Describe("VarsEnvArg", func() {
 
 			err := (&arg).UnmarshalFlag("name")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg.Vars).To(Equal(Variables{"key1": "var1=foo"}))
+			Expect(arg.Vars).To(Equal(StaticVariables{"key1": "var1=foo"}))
 		})
 
 		It("uses native os.Environ if EnvironFunc is not given", func() {
@@ -45,7 +45,7 @@ var _ = Describe("VarsEnvArg", func() {
 
 			err := (&arg).UnmarshalFlag("bosh_var_env_arg_test")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg.Vars).To(Equal(Variables{"key": "val"}))
+			Expect(arg.Vars).To(Equal(StaticVariables{"key": "val"}))
 		})
 
 		It("returns objects", func() {
@@ -65,7 +65,7 @@ var _ = Describe("VarsEnvArg", func() {
 
 			err := (&arg).UnmarshalFlag("name")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg.Vars).To(Equal(Variables{
+			Expect(arg.Vars).To(Equal(StaticVariables{
 				"int":     1,
 				"not_nil": "nil",
 				"nil2":    nil,

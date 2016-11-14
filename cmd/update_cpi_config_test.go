@@ -61,8 +61,8 @@ var _ = Describe("UpdateCPIConfigCmd", func() {
 			}
 
 			opts.VarsFiles = []boshtpl.VarsFileArg{
-				{Vars: boshtpl.Variables(map[string]interface{}{"name": "val1-from-file"})},
-				{Vars: boshtpl.Variables(map[string]interface{}{"type": "val2-from-file"})},
+				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name": "val1-from-file"})},
+				{Vars: boshtpl.StaticVariables(map[string]interface{}{"type": "val2-from-file"})},
 			}
 
 			opts.OpsFiles = []OpsFileArg{

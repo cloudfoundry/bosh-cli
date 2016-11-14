@@ -75,7 +75,7 @@ cloud_provider:
 	Describe("#Parse", func() {
 		Context("when combo manifest path does not exist", func() {
 			It("returns an error", func() {
-				_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+				_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -87,7 +87,7 @@ cloud_provider:
 			})
 
 			It("returns an error", func() {
-				_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+				_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -98,7 +98,7 @@ cloud_provider:
 			})
 
 			It("parses installation from combo manifest", func() {
-				installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+				installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -151,7 +151,7 @@ cloud_provider:
 					})
 
 					It("sets the raw private key field", func() {
-						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -220,7 +220,7 @@ cloud_provider:
 					})
 
 					It("returns an error", func() {
-						_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+						_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(Equal("Invalid private key for ssh tunnel"))
 					})
@@ -249,7 +249,7 @@ cloud_provider:
 					})
 
 					It("generates registry config and populates properties in manifest with absolute path for private_key", func() {
-						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -303,7 +303,7 @@ cloud_provider:
 					})
 
 					It("generates registry config and populates properties in manifest with expanded path for private_key", func() {
-						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -358,7 +358,7 @@ cloud_provider:
 					})
 
 					It("generates registry config and populates properties in manifest with expanded path for private_key", func() {
-						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(installationManifest).To(Equal(manifest.Manifest{
@@ -412,7 +412,7 @@ cloud_provider:
 					})
 
 					It("returns an error", func() {
-						_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+						_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(Equal("Expanding private_key path: fake-expand-error"))
 					})
@@ -436,7 +436,7 @@ cloud_provider:
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 					It("returns an error", func() {
-						_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+						_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 						Expect(err.Error()).To(ContainSubstring("Reading private key from /bar/fake-ssh-key.pem"))
 					})
 				})
@@ -448,7 +448,7 @@ cloud_provider:
 				})
 
 				It("does not expand the path", func() {
-					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+					installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(installationManifest.Registry.SSHTunnel.PrivateKey).To(Equal(""))
@@ -463,7 +463,7 @@ cloud_provider:
 				{Err: errors.New("nope")},
 			})
 
-			_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+			_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Validating installation manifest: nope"))
 		})
@@ -490,7 +490,7 @@ cloud_provider:
 			})
 
 			It("resolves their values", func() {
-				vars := boshtpl.Variables{"url": "~/tmp/fake-ssh-key.pem"}
+				vars := boshtpl.StaticVariables{"url": "~/tmp/fake-ssh-key.pem"}
 				ops := patch.Ops{
 					patch.ReplaceOp{Path: patch.MustNewPointerFromString("/name"), Value: "replaced-name"},
 				}
@@ -529,7 +529,7 @@ cloud_provider:
 			})
 
 			It("returns an error if variable key is missing", func() {
-				_, err := parser.Parse(comboManifestPath, boshtpl.Variables{}, patch.Ops{}, releaseSetManifest)
+				_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Expected to find variables: url"))
 			})
