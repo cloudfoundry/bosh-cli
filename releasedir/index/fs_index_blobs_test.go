@@ -269,7 +269,7 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		itCopiesFileIntoDir := func() {
 			It("copies file into cache dir", func() {
-				blobID, path, err := blobs.Add("/tmp/sha1", "sha1")
+				blobID, path, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobID).To(Equal(""))
 				Expect(path).To(Equal("/dir/sub-dir/sha1"))
@@ -280,7 +280,7 @@ var _ = Describe("FSIndexBlobs", func() {
 			It("keeps existing file in the cache directory if it's already there", func() {
 				fs.WriteFileString("/dir/sub-dir/sha1", "other")
 
-				blobID, path, err := blobs.Add("/tmp/sha1", "sha1")
+				blobID, path, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobID).To(Equal(""))
 				Expect(path).To(Equal("/dir/sub-dir/sha1"))
@@ -292,7 +292,7 @@ var _ = Describe("FSIndexBlobs", func() {
 				fs.ExpandPathExpanded = "/full-dir"
 				fs.WriteFileString("/full-dir/sha1", "file")
 
-				_, _, err := blobs.Add("/tmp/sha1", "sha1")
+				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.ExpandPathPath).To(Equal("/dir/sub-dir"))
@@ -301,7 +301,7 @@ var _ = Describe("FSIndexBlobs", func() {
 			It("returns error if expanding directory path fails", func() {
 				fs.ExpandPathErr = errors.New("fake-err")
 
-				_, _, err := blobs.Add("/tmp/sha1", "sha1")
+				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
@@ -309,7 +309,7 @@ var _ = Describe("FSIndexBlobs", func() {
 			It("returns error if creating directory fails", func() {
 				fs.MkdirAllError = errors.New("fake-err")
 
-				_, _, err := blobs.Add("/tmp/sha1", "sha1")
+				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
@@ -334,7 +334,7 @@ var _ = Describe("FSIndexBlobs", func() {
 			It("uploads blob and returns blob id", func() {
 				blobstore.CreateBlobID = "blob-id"
 
-				blobID, path, err := blobs.Add("/tmp/sha1", "sha1")
+				blobID, path, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobID).To(Equal("blob-id"))
 				Expect(path).To(Equal("/dir/sub-dir/sha1"))
@@ -345,19 +345,19 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(reporter.IndexEntryUploadFinishedCallCount()).To(Equal(1))
 
 				kind, desc := reporter.IndexEntryUploadStartedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("/tmp/sha1"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 
 				kind, desc, err = reporter.IndexEntryUploadFinishedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("/tmp/sha1"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 				Expect(err).To(BeNil())
 			})
 
 			It("returns error if uploading blob fails", func() {
 				blobstore.CreateErr = errors.New("fake-err")
 
-				_, _, err := blobs.Add("/tmp/sha1", "sha1")
+				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 				Expect(err.Error()).To(ContainSubstring("Creating blob for path '/tmp/sha1'"))
@@ -366,12 +366,12 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(reporter.IndexEntryUploadFinishedCallCount()).To(Equal(1))
 
 				kind, desc := reporter.IndexEntryUploadStartedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("/tmp/sha1"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 
 				kind, desc, err = reporter.IndexEntryUploadFinishedArgsForCall(0)
-				Expect(kind).To(Equal(""))
-				Expect(desc).To(Equal("/tmp/sha1"))
+				Expect(kind).To(Equal("name"))
+				Expect(desc).To(Equal("sha1=sha1"))
 				Expect(err).ToNot(BeNil())
 			})
 		})

@@ -8,7 +8,7 @@ import (
 )
 
 type FakeIndexBlobs struct {
-	GetStub        func(name string, blobID string, sha1 string) (string, error)
+	GetStub        func(name, blobID, sha1 string) (string, error)
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
 		name   string
@@ -19,9 +19,10 @@ type FakeIndexBlobs struct {
 		result1 string
 		result2 error
 	}
-	AddStub        func(path, sha1 string) (string, string, error)
+	AddStub        func(name, path, sha1 string) (string, string, error)
 	addMutex       sync.RWMutex
 	addArgsForCall []struct {
+		name string
 		path string
 		sha1 string
 	}
@@ -70,16 +71,17 @@ func (fake *FakeIndexBlobs) GetReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeIndexBlobs) Add(path string, sha1 string) (string, string, error) {
+func (fake *FakeIndexBlobs) Add(name string, path string, sha1 string) (string, string, error) {
 	fake.addMutex.Lock()
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
+		name string
 		path string
 		sha1 string
-	}{path, sha1})
-	fake.recordInvocation("Add", []interface{}{path, sha1})
+	}{name, path, sha1})
+	fake.recordInvocation("Add", []interface{}{name, path, sha1})
 	fake.addMutex.Unlock()
 	if fake.AddStub != nil {
-		return fake.AddStub(path, sha1)
+		return fake.AddStub(name, path, sha1)
 	} else {
 		return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
 	}
@@ -91,10 +93,10 @@ func (fake *FakeIndexBlobs) AddCallCount() int {
 	return len(fake.addArgsForCall)
 }
 
-func (fake *FakeIndexBlobs) AddArgsForCall(i int) (string, string) {
+func (fake *FakeIndexBlobs) AddArgsForCall(i int) (string, string, string) {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
-	return fake.addArgsForCall[i].path, fake.addArgsForCall[i].sha1
+	return fake.addArgsForCall[i].name, fake.addArgsForCall[i].path, fake.addArgsForCall[i].sha1
 }
 
 func (fake *FakeIndexBlobs) AddReturns(result1 string, result2 string, result3 error) {

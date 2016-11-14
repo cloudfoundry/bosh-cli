@@ -10,8 +10,8 @@ type Index interface {
 //go:generate counterfeiter . IndexBlobs
 
 type IndexBlobs interface {
-	Get(name string, blobID string, sha1 string) (string, error)
-	Add(path, sha1 string) (string, string, error)
+	Get(name, blobID, sha1 string) (string, error)
+	Add(name, path, sha1 string) (string, string, error)
 }
 
 //go:generate counterfeiter . Reporter

@@ -146,7 +146,7 @@ func (i FSIndex) Add(name, fingerprint, path, sha1 string) (string, string, erro
 
 	i.reporter.IndexEntryStartedAdding(i.name, desc)
 
-	blobID, blobPath, err := i.blobs.Add(path, sha1)
+	blobID, blobPath, err := i.blobs.Add(desc, path, sha1)
 	if err != nil {
 		i.reporter.IndexEntryFinishedAdding(i.name, desc, err)
 		return "", "", err

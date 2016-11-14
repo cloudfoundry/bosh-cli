@@ -92,7 +92,7 @@ func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, erro
 
 // Add adds file to cache and blobstore but does not guarantee
 // that file have expected SHA1 when retrieved later.
-func (c FSIndexBlobs) Add(path, sha1 string) (string, string, error) {
+func (c FSIndexBlobs) Add(name, path, sha1 string) (string, string, error) {
 	dstPath, err := c.blobPath(sha1)
 	if err != nil {
 		return "", "", err
@@ -106,17 +106,17 @@ func (c FSIndexBlobs) Add(path, sha1 string) (string, string, error) {
 	}
 
 	if c.blobstore != nil {
-		desc := path
+		desc := fmt.Sprintf("sha1=%s", sha1)
 
-		c.reporter.IndexEntryUploadStarted("", desc)
+		c.reporter.IndexEntryUploadStarted(name, desc)
 
 		blobID, _, err := c.blobstore.Create(path)
 		if err != nil {
-			c.reporter.IndexEntryUploadFinished("", desc, err)
+			c.reporter.IndexEntryUploadFinished(name, desc, err)
 			return "", "", bosherr.WrapErrorf(err, "Creating blob for path '%s'", path)
 		}
 
-		c.reporter.IndexEntryUploadFinished("", desc, nil)
+		c.reporter.IndexEntryUploadFinished(name, desc, nil)
 
 		return blobID, dstPath, nil
 	}
