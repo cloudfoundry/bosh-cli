@@ -36,7 +36,7 @@ func NewDeploymentDeleter(
 	deploymentManagerFactory bidepl.ManagerFactory,
 	deploymentManifestPath string,
 	deploymentVars boshtpl.Variables,
-	deploymentOps patch.Ops,
+	deploymentOp patch.Op,
 	cpiInstaller bicpirel.CpiInstaller,
 	cpiUninstaller biinstall.Uninstaller,
 	releaseFetcher boshinst.ReleaseFetcher,
@@ -56,7 +56,7 @@ func NewDeploymentDeleter(
 		deploymentManagerFactory:                deploymentManagerFactory,
 		deploymentManifestPath:                  deploymentManifestPath,
 		deploymentVars:                          deploymentVars,
-		deploymentOps:                           deploymentOps,
+		deploymentOp:                            deploymentOp,
 		cpiInstaller:                            cpiInstaller,
 		cpiUninstaller:                          cpiUninstaller,
 		releaseFetcher:                          releaseFetcher,
@@ -78,7 +78,7 @@ type deploymentDeleter struct {
 	deploymentManagerFactory                bidepl.ManagerFactory
 	deploymentManifestPath                  string
 	deploymentVars                          boshtpl.Variables
-	deploymentOps                           patch.Ops
+	deploymentOp                            patch.Op
 	cpiInstaller                            bicpirel.CpiInstaller
 	cpiUninstaller                          biinstall.Uninstaller
 	releaseFetcher                          boshinst.ReleaseFetcher
@@ -121,7 +121,7 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 
 	err = stage.PerformComplex("validating", func(stage biui.Stage) error {
 		var releaseSetManifest birelsetmanifest.Manifest
-		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath, c.deploymentVars, c.deploymentOps)
+		releaseSetManifest, installationManifest, err = c.releaseSetAndInstallationManifestParser.ReleaseSetAndInstallationManifest(c.deploymentManifestPath, c.deploymentVars, c.deploymentOp)
 		if err != nil {
 			return err
 		}

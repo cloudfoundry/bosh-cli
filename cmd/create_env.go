@@ -9,10 +9,10 @@ import (
 
 type CreateEnvCmd struct {
 	ui          boshui.UI
-	envProvider func(string, boshtpl.Variables, patch.Ops) DeploymentPreparer
+	envProvider func(string, boshtpl.Variables, patch.Op) DeploymentPreparer
 }
 
-func NewCreateEnvCmd(ui boshui.UI, envProvider func(string, boshtpl.Variables, patch.Ops) DeploymentPreparer) *CreateEnvCmd {
+func NewCreateEnvCmd(ui boshui.UI, envProvider func(string, boshtpl.Variables, patch.Op) DeploymentPreparer) *CreateEnvCmd {
 	return &CreateEnvCmd{ui: ui, envProvider: envProvider}
 }
 
@@ -20,7 +20,7 @@ func (c *CreateEnvCmd) Run(stage boshui.Stage, opts CreateEnvOpts) error {
 	c.ui.BeginLinef("Deployment manifest: '%s'\n", opts.Args.Manifest.Path)
 
 	depPreparer := c.envProvider(
-		opts.Args.Manifest.Path, opts.VarFlags.AsVariables(), opts.OpsFlags.AsOps())
+		opts.Args.Manifest.Path, opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp())
 
 	return depPreparer.PrepareDeployment(stage)
 }

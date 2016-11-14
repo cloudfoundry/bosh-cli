@@ -313,7 +313,7 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		JustBeforeEach(func() {
-			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables, deploymentOps patch.Ops) bicmd.DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) bicmd.DeploymentPreparer {
 				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
@@ -371,7 +371,7 @@ var _ = Describe("CreateEnvCmd", func() {
 					mockDeployer,
 					deploymentManifestPath,
 					deploymentVars,
-					deploymentOps,
+					deploymentOp,
 					cpiInstaller,
 					releaseFetcher,
 					stemcellFetcher,

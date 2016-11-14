@@ -355,7 +355,7 @@ cloud_provider:
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
-			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables, deploymentOps patch.Ops) DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) DeploymentPreparer {
 				// todo: figure this out?
 				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
 				vmRepo = biconfig.NewVMRepo(deploymentStateService)
@@ -428,7 +428,7 @@ cloud_provider:
 					deployer,
 					deploymentManifestPath,
 					deploymentVars,
-					deploymentOps,
+					deploymentOp,
 					cpiInstaller,
 					releaseFetcher,
 					stemcellFetcher,

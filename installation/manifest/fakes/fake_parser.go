@@ -19,7 +19,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string, vars boshtpl.Variables, ops patch.Ops, releaseSetManifest birelsetmanifest.Manifest) (biinstallmanifest.Manifest, error) {
+func (p *FakeParser) Parse(path string, vars boshtpl.Variables, op patch.Op, releaseSetManifest birelsetmanifest.Manifest) (biinstallmanifest.Manifest, error) {
 	p.ParsePath = path
 	p.ReleaseSetManifest = releaseSetManifest
 	return p.ParseManifest, p.ParseErr

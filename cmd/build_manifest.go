@@ -19,7 +19,7 @@ func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
 	vars := opts.VarFlags.AsVariables()
-	ops := opts.OpsFlags.AsOps()
+	op := opts.OpsFlags.AsOp()
 	evalOpts := boshtpl.EvaluateOpts{ExpectAllKeys: opts.VarErrors}
 
 	if opts.Path.IsSet() {
@@ -29,7 +29,7 @@ func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
 		evalOpts.UnescapedMultiline = true
 	}
 
-	bytes, err := tpl.Evaluate(vars, ops, evalOpts)
+	bytes, err := tpl.Evaluate(vars, op, evalOpts)
 	if err != nil {
 		return err
 	}

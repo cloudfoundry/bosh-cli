@@ -40,10 +40,10 @@ var _ = Describe("DeleteCmd", func() {
 		)
 
 		var newDeleteCmd = func() *bicmd.DeleteCmd {
-			doGetFunc := func(path string, vars boshtpl.Variables, ops patch.Ops) bicmd.DeploymentDeleter {
+			doGetFunc := func(path string, vars boshtpl.Variables, op patch.Op) bicmd.DeploymentDeleter {
 				Expect(path).To(Equal(deploymentManifestPath))
 				Expect(vars).To(Equal(boshtpl.Variables{"key": "value"}))
-				Expect(ops).To(Equal(patch.Ops{patch.ErrOp{}}))
+				Expect(op).To(Equal(patch.Ops{patch.ErrOp{}}))
 				return mockDeploymentDeleter
 			}
 

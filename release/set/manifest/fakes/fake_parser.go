@@ -17,7 +17,7 @@ func NewFakeParser() *FakeParser {
 	return &FakeParser{}
 }
 
-func (p *FakeParser) Parse(path string, vars boshtpl.Variables, ops patch.Ops) (birelsetmanifest.Manifest, error) {
+func (p *FakeParser) Parse(path string, vars boshtpl.Variables, op patch.Op) (birelsetmanifest.Manifest, error) {
 	p.ParsePath = path
 	return p.ParseManifest, p.ParseErr
 }

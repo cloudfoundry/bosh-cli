@@ -20,7 +20,7 @@ func NewUpdateCPIConfigCmd(ui boshui.UI, director boshdir.Director) UpdateCPICon
 func (c UpdateCPIConfigCmd) Run(opts UpdateCPIConfigOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.CPIConfig.Bytes)
 
-	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOps(), boshtpl.EvaluateOpts{})
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp(), boshtpl.EvaluateOpts{})
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating cpi config")
 	}

@@ -27,7 +27,7 @@ var _ = Describe("OpsFlags", func() {
 				},
 			}
 
-			Expect(flags.AsOps()).To(Equal(patch.Ops{
+			Expect(flags.AsOp()).To(Equal(patch.Ops{
 				patch.RemoveOp{Path: patch.MustNewPointerFromString("/a")},
 				patch.RemoveOp{Path: patch.MustNewPointerFromString("/b")},
 				patch.RemoveOp{Path: patch.MustNewPointerFromString("/x")},

@@ -13,7 +13,7 @@ import (
 )
 
 type Parser interface {
-	Parse(string, boshtpl.Variables, patch.Ops) (Manifest, error)
+	Parse(string, boshtpl.Variables, patch.Op) (Manifest, error)
 }
 
 type parser struct {
@@ -38,7 +38,7 @@ func NewParser(fs boshsys.FileSystem, logger boshlog.Logger, validator Validator
 	}
 }
 
-func (p *parser) Parse(path string, vars boshtpl.Variables, ops patch.Ops) (Manifest, error) {
+func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op) (Manifest, error) {
 	contents, err := p.fs.ReadFile(path)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
@@ -46,7 +46,7 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, ops patch.Ops) (Mani
 
 	tpl := boshtpl.NewTemplate(contents)
 
-	bytes, err := tpl.Evaluate(vars, ops, boshtpl.EvaluateOpts{ExpectAllKeys: true})
+	bytes, err := tpl.Evaluate(vars, op, boshtpl.EvaluateOpts{ExpectAllKeys: true})
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Evaluating manifest")
 	}

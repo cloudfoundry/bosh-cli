@@ -17,8 +17,8 @@ func NewDeploymentTemplate(content []byte) DeploymentTemplate {
 	return DeploymentTemplate{template: boshtpl.NewTemplate(content)}
 }
 
-func (t DeploymentTemplate) Evaluate(vars boshtpl.Variables, ops patch.Ops) (InterpolatedTemplate, error) {
-	bytes, err := t.template.Evaluate(vars, ops, boshtpl.EvaluateOpts{ExpectAllKeys: true})
+func (t DeploymentTemplate) Evaluate(vars boshtpl.Variables, op patch.Op) (InterpolatedTemplate, error) {
+	bytes, err := t.template.Evaluate(vars, op, boshtpl.EvaluateOpts{ExpectAllKeys: true})
 	if err != nil {
 		return InterpolatedTemplate{}, err
 	}

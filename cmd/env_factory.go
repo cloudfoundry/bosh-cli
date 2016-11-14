@@ -40,7 +40,7 @@ type envFactory struct {
 	deps         BasicDeps
 	manifestPath string
 	manifestVars boshtpl.Variables
-	manifestOps  patch.Ops
+	manifestOp   patch.Op
 
 	deploymentStateService     biconfig.DeploymentStateService
 	installationManifestParser ReleaseSetAndInstallationManifestParser
@@ -66,12 +66,12 @@ type envFactory struct {
 	deploymentRecord   bidepl.Record
 }
 
-func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Variables, manifestOps patch.Ops) *envFactory {
+func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Variables, manifestOp patch.Op) *envFactory {
 	f := envFactory{
 		deps:         deps,
 		manifestPath: manifestPath,
 		manifestVars: manifestVars,
-		manifestOps:  manifestOps,
+		manifestOp:   manifestOp,
 	}
 
 	f.releaseManager = boshinst.NewReleaseManager(deps.Logger)
@@ -210,7 +210,7 @@ func (f *envFactory) Preparer() DeploymentPreparer {
 		),
 		f.manifestPath,
 		f.manifestVars,
-		f.manifestOps,
+		f.manifestOp,
 		f.cpiInstaller,
 		f.releaseFetcher,
 		f.stemcellFetcher,
@@ -245,7 +245,7 @@ func (f *envFactory) Deleter() DeploymentDeleter {
 		),
 		f.manifestPath,
 		f.manifestVars,
-		f.manifestOps,
+		f.manifestOp,
 		f.cpiInstaller,
 		boshinst.NewUninstaller(f.deps.FS, f.deps.Logger),
 		f.releaseFetcher,

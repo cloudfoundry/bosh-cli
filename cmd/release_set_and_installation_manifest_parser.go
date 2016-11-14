@@ -14,13 +14,13 @@ type ReleaseSetAndInstallationManifestParser struct {
 	InstallationParser biinstallmanifest.Parser
 }
 
-func (y ReleaseSetAndInstallationManifestParser) ReleaseSetAndInstallationManifest(deploymentManifestPath string, vars boshtpl.Variables, ops patch.Ops) (birelsetmanifest.Manifest, biinstallmanifest.Manifest, error) {
-	releaseSetManifest, err := y.ReleaseSetParser.Parse(deploymentManifestPath, vars, ops)
+func (y ReleaseSetAndInstallationManifestParser) ReleaseSetAndInstallationManifest(deploymentManifestPath string, vars boshtpl.Variables, op patch.Op) (birelsetmanifest.Manifest, biinstallmanifest.Manifest, error) {
+	releaseSetManifest, err := y.ReleaseSetParser.Parse(deploymentManifestPath, vars, op)
 	if err != nil {
 		return birelsetmanifest.Manifest{}, biinstallmanifest.Manifest{}, bosherr.WrapErrorf(err, "Parsing release set manifest '%s'", deploymentManifestPath)
 	}
 
-	installationManifest, err := y.InstallationParser.Parse(deploymentManifestPath, vars, ops, releaseSetManifest)
+	installationManifest, err := y.InstallationParser.Parse(deploymentManifestPath, vars, op, releaseSetManifest)
 	if err != nil {
 		return birelsetmanifest.Manifest{}, biinstallmanifest.Manifest{}, bosherr.WrapErrorf(err, "Parsing installation manifest '%s'", deploymentManifestPath)
 	}
