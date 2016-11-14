@@ -22,8 +22,8 @@ func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
 	ops := opts.OpsFlags.AsOps()
 	evalOpts := boshtpl.EvaluateOpts{ExpectAllKeys: opts.VarErrors}
 
-	if opts.Path != nil {
-		ops = patch.Ops{ops, patch.FindOp{Path: *opts.Path}}
+	if opts.Path.IsSet() {
+		evalOpts.PostVarSubstitutionOp = patch.FindOp{Path: opts.Path}
 
 		// Printing YAML indented multiline strings (eg SSH key) is not useful
 		evalOpts.UnescapedMultiline = true

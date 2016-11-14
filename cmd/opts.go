@@ -278,8 +278,8 @@ type BuildManifestOpts struct {
 	VarFlags
 	OpsFlags
 
-	Path      *patch.Pointer `long:"path"     value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`
-	VarErrors bool           `long:"var-errs"                      description:"Expect all variables to be found, otherwise error"`
+	Path      patch.Pointer `long:"path"     value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`
+	VarErrors bool          `long:"var-errs"                      description:"Expect all variables to be found, otherwise error"`
 
 	cmd
 }

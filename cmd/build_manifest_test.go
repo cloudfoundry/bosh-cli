@@ -61,7 +61,7 @@ var _ = Describe("BuildManifestCmd", func() {
 			Expect(ui.Blocks).To(Equal([]string{bytes}))
 		})
 
-		It("returns portion of the template if out path is given", func() {
+		It("returns portion of the template after it's interpolated if path is given", func() {
 			opts.Args.Manifest = FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
@@ -71,7 +71,11 @@ var _ = Describe("BuildManifestCmd", func() {
 			}
 
 			opts.VarsFiles = []boshtpl.VarsFileArg{
-				{Vars: boshtpl.Variables(map[string]interface{}{"var": "var-val"})},
+				{
+					Vars: boshtpl.Variables(map[string]interface{}{
+						"var": map[interface{}]interface{}{"name3": "var-val"},
+					}),
+				},
 			}
 
 			opts.OpsFiles = []OpsFileArg{
@@ -82,8 +86,7 @@ var _ = Describe("BuildManifestCmd", func() {
 				},
 			}
 
-			ptr := patch.MustNewPointerFromString("/name2")
-			opts.Path = &ptr
+			opts.Path = patch.MustNewPointerFromString("/name2/name3")
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -95,8 +98,7 @@ var _ = Describe("BuildManifestCmd", func() {
 				Bytes: []byte(`key: "line1\nline2"`),
 			}
 
-			ptr := patch.MustNewPointerFromString("/key")
-			opts.Path = &ptr
+			opts.Path = patch.MustNewPointerFromString("/key")
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -108,8 +110,7 @@ var _ = Describe("BuildManifestCmd", func() {
 				Bytes: []byte("key:\n  subkey:\n    subsubkey: key"),
 			}
 
-			ptr := patch.MustNewPointerFromString("/key")
-			opts.Path = &ptr
+			opts.Path = patch.MustNewPointerFromString("/key")
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())

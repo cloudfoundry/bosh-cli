@@ -13,7 +13,7 @@ var _ = Describe("Template", func() {
 		template := NewTemplate([]byte("((key))"))
 		vars := Variables{"key": "foo"}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("foo\n")))
 	})
@@ -25,7 +25,7 @@ var _ = Describe("Template", func() {
 			"value": "bar",
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("foo: bar\n")))
 	})
@@ -34,7 +34,7 @@ var _ = Describe("Template", func() {
 		template := NewTemplate([]byte("otherstuff: ((boule))"))
 		vars := Variables{"boule": true}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("otherstuff: true\n")))
 	})
@@ -51,7 +51,7 @@ var _ = Describe("Template", func() {
 			"name6": map[string]interface{}{"key": hashValue},
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte(`1234: value
 name1: 1
@@ -71,7 +71,7 @@ name6:
 		template := NewTemplate([]byte("otherstuff: ((!boule))"))
 		vars := Variables{"boule": true}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("otherstuff: true\n")))
 	})
@@ -86,7 +86,7 @@ dup-key: ((key3))
 `))
 		vars := Variables{"key3": "foo"}
 
-		_, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{ExpectAllKeys: true})
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{ExpectAllKeys: true})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Expected to find variables: key, key2, key4, key_in_array"))
 	})
@@ -95,7 +95,7 @@ dup-key: ((key3))
 		template := NewTemplate([]byte("((key)): ((key2))\n((key3)): 2"))
 		vars := Variables{"key3": "foo"}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).ToNot(HaveOccurred())
 		Expect(result).To(Equal([]byte("((key)): ((key2))\nfoo: 2\n")))
 	})
@@ -105,7 +105,7 @@ dup-key: ((key3))
 			template := NewTemplate([]byte(`1234`))
 			vars := Variables{"key": "not key"}
 
-			result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+			result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result).To(Equal([]byte("1234\n")))
 		})
@@ -116,7 +116,7 @@ dup-key: ((key3))
 			template := NewTemplate([]byte("((key)): value"))
 			vars := Variables{"key": nil}
 
-			result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+			result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result).To(Equal([]byte("null: value\n")))
 		})
@@ -126,7 +126,7 @@ dup-key: ((key3))
 		template := NewTemplate([]byte("((Ω))"))
 		vars := Variables{"Ω": "☃"}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("☃\n")))
 	})
@@ -138,7 +138,7 @@ dup-key: ((key3))
 			"with_an_underscore": "underscore",
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("dash: underscore\n")))
 	})
@@ -149,7 +149,7 @@ dup-key: ((key3))
 			"ip": "10.0.0.0",
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("url: https://10.0.0.0\n")))
 	})
@@ -161,7 +161,7 @@ dup-key: ((key3))
 			"ip":       "10.0.0.0",
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("uri: nats://nats:secret@10.0.0.0:4222\n")))
 	})
@@ -173,7 +173,7 @@ dup-key: ((key3))
 			"ip":       "10.0.0.0",
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("uri: nats://nats:secret@10.0.0.0:4222\n")))
 	})
@@ -185,7 +185,7 @@ dup-key: ((key3))
 			"ip":   "10.0.0.0",
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("address: 10.0.0.0:4222\n")))
 	})
@@ -197,7 +197,7 @@ dup-key: ((key3))
 			"definition":    "natural_log",
 		}
 
-		_, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("2.717"))
 		Expect(err.Error()).To(ContainSubstring("eulers_number"))
@@ -209,7 +209,7 @@ dup-key: ((key3))
 			"user": "nats",
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("acct_and_password: nats:nats\n")))
 	})
@@ -220,7 +220,7 @@ dup-key: ((key3))
 			"iaas": "aws",
 		}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("aws_cpi: props\n")))
 	})
@@ -229,7 +229,7 @@ dup-key: ((key3))
 		template := NewTemplate([]byte("((key)): ((key))"))
 		vars := Variables{"key": "foo"}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("foo: foo\n")))
 	})
@@ -238,16 +238,25 @@ dup-key: ((key3))
 		template := NewTemplate([]byte("((key))"))
 		vars := Variables{"key": "this\nhas\nmany\nlines"}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("|-\n  this\n  has\n  many\n  lines\n")))
+	})
+
+	It("ignores if operation is not specified", func() {
+		template := NewTemplate([]byte("((key))"))
+		vars := Variables{"key": "val"}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("val\n")))
 	})
 
 	It("ignores an invalid input", func() {
 		template := NewTemplate([]byte("(()"))
 		vars := Variables{}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("(()\n")))
 	})
@@ -256,7 +265,7 @@ dup-key: ((key3))
 		template := NewTemplate([]byte("abc: ((!key))\nxyz: [((!key))]"))
 		vars := Variables{"key": "val"}
 
-		result, err := template.Evaluate(vars, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("abc: val\nxyz:\n- val\n")))
 	})
@@ -264,9 +273,7 @@ dup-key: ((key3))
 	It("can run operations to modify document", func() {
 		template := NewTemplate([]byte("a: b"))
 		vars := Variables{}
-		ops := patch.Ops{
-			patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "c"},
-		}
+		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "c"}
 
 		result, err := template.Evaluate(vars, ops, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -276,9 +283,7 @@ dup-key: ((key3))
 	It("interpolates after running operations", func() {
 		template := NewTemplate([]byte("a: b"))
 		vars := Variables{"c": "x"}
-		ops := patch.Ops{
-			patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "((c))"},
-		}
+		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "((c))"}
 
 		result, err := template.Evaluate(vars, ops, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -288,9 +293,7 @@ dup-key: ((key3))
 	It("returns an error if variables added by operations are not found", func() {
 		template := NewTemplate([]byte("a: b"))
 		vars := Variables{}
-		ops := patch.Ops{
-			patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "((c))"},
-		}
+		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "((c))"}
 
 		_, err := template.Evaluate(vars, ops, EvaluateOpts{ExpectAllKeys: true})
 		Expect(err).To(HaveOccurred())
@@ -300,11 +303,37 @@ dup-key: ((key3))
 	It("returns an error if operation fails", func() {
 		template := NewTemplate([]byte("a: b"))
 		vars := Variables{}
-		ops := patch.Ops{
-			patch.ReplaceOp{Path: patch.MustNewPointerFromString("/x/y"), Value: "c"},
-		}
+		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/x/y"), Value: "c"}
 
 		_, err := template.Evaluate(vars, ops, EvaluateOpts{})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected to find a map key 'x' for path '/x'"))
+	})
+
+	It("runs PostVarSubstitutionOp after running regular oprations and interpolation", func() {
+		template := NewTemplate([]byte("a: b"))
+
+		vars := Variables{
+			"c": map[interface{}]interface{}{"d": "e"},
+		}
+		ops := patch.ReplaceOp{Path: patch.MustNewPointerFromString("/a"), Value: "((c))"}
+		opts := EvaluateOpts{
+			PostVarSubstitutionOp: patch.FindOp{Path: patch.MustNewPointerFromString("/a/d")},
+		}
+
+		result, err := template.Evaluate(vars, ops, opts)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("e\n")))
+	})
+
+	It("returns an error if PostVarSubstitutionOp fails", func() {
+		template := NewTemplate([]byte("a: b"))
+		vars := Variables{}
+		opts := EvaluateOpts{
+			PostVarSubstitutionOp: patch.FindOp{Path: patch.MustNewPointerFromString("/x")},
+		}
+
+		_, err := template.Evaluate(vars, nil, opts)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Expected to find a map key 'x' for path '/x'"))
 	})
@@ -312,11 +341,11 @@ dup-key: ((key3))
 	It("returns raw bytes of a string if UnescapedMultiline is true", func() {
 		template := NewTemplate([]byte("value"))
 
-		result, err := template.Evaluate(Variables{}, patch.Ops{}, EvaluateOpts{})
+		result, err := template.Evaluate(Variables{}, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("value\n")))
 
-		result, err = template.Evaluate(Variables{}, patch.Ops{}, EvaluateOpts{UnescapedMultiline: true})
+		result, err = template.Evaluate(Variables{}, nil, EvaluateOpts{UnescapedMultiline: true})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("value\n")))
 	})

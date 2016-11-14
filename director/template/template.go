@@ -20,15 +20,16 @@ type Template struct {
 }
 
 type EvaluateOpts struct {
-	ExpectAllKeys      bool
-	UnescapedMultiline bool
+	ExpectAllKeys         bool
+	PostVarSubstitutionOp patch.Op
+	UnescapedMultiline    bool
 }
 
 func NewTemplate(bytes []byte) Template {
 	return Template{bytes: bytes}
 }
 
-func (t Template) Evaluate(vars Variables, ops patch.Ops, opts EvaluateOpts) ([]byte, error) {
+func (t Template) Evaluate(vars Variables, op patch.Op, opts EvaluateOpts) ([]byte, error) {
 	var obj interface{}
 
 	err := yaml.Unmarshal(t.bytes, &obj)
@@ -36,9 +37,11 @@ func (t Template) Evaluate(vars Variables, ops patch.Ops, opts EvaluateOpts) ([]
 		return []byte{}, err
 	}
 
-	obj, err = ops.Apply(obj)
-	if err != nil {
-		return []byte{}, err
+	if op != nil {
+		obj, err = op.Apply(obj)
+		if err != nil {
+			return []byte{}, err
+		}
 	}
 
 	missingVars := map[string]struct{}{}
@@ -58,6 +61,13 @@ func (t Template) Evaluate(vars Variables, ops patch.Ops, opts EvaluateOpts) ([]
 		sort.Strings(missingVarKeys)
 
 		return []byte{}, fmt.Errorf("Expected to find variables: %s", strings.Join(missingVarKeys, ", "))
+	}
+
+	if opts.PostVarSubstitutionOp != nil {
+		obj, err = opts.PostVarSubstitutionOp.Apply(obj)
+		if err != nil {
+			return []byte{}, err
+		}
 	}
 
 	if opts.UnescapedMultiline {
