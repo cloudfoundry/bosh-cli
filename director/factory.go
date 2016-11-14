@@ -75,7 +75,7 @@ func (f Factory) httpClient(config Config, taskReporter TaskReporter, fileReport
 
 	authedClient := NewAdjustableClient(rawClient, authAdjustment)
 
-	httpClient := boshhttp.NewHTTPClient(authedClient, f.logger)
+	httpClient := boshhttp.NewHTTPClient(authedClient, f.logger, certPool)
 
 	endpoint := url.URL{
 		Scheme: "https",

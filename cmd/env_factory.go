@@ -83,7 +83,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Var
 	{
 		tarballCacheBasePath := gopath.Join(workspaceRootPath, "downloads")
 		tarballCache := bitarball.NewCache(tarballCacheBasePath, deps.FS, deps.Logger)
-		httpClient := bihttpclient.NewHTTPClient(bitarball.HTTPClient, deps.Logger)
+		httpClient := bihttpclient.NewHTTPClient(bitarball.HTTPClient, deps.Logger, nil)
 		tarballProvider := bitarball.NewProvider(
 			tarballCache, deps.FS, httpClient, deps.SHA1Calc, 3, 500*time.Millisecond, deps.Logger)
 
