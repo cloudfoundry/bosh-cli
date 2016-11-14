@@ -103,6 +103,8 @@ func NewPointer(tokens []Token) Pointer {
 
 func (p Pointer) Tokens() []Token { return p.tokens }
 
+func (p Pointer) IsSet() bool { return len(p.tokens) > 0 }
+
 func (p Pointer) String() string {
 	var strs []string
 

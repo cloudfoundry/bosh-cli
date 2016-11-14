@@ -132,6 +132,16 @@ var _ = Describe("Pointer.Tokens", func() {
 	}
 })
 
+var _ = Describe("Pointer.IsSet", func() {
+	It("returns true if there is at least one token", func() {
+		Expect(MustNewPointerFromString("").IsSet()).To(BeTrue())
+	})
+
+	It("returns false if it's not a valid pointer", func() {
+		Expect(Pointer{}.IsSet()).To(BeFalse())
+	})
+})
+
 var _ = Describe("Pointer.UnmarshalFlag", func() {
 	It("parses pointer if it's valid", func() {
 		ptr := &Pointer{}
