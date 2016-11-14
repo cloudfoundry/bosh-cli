@@ -19,6 +19,7 @@ type StemcellImpl struct {
 
 	osName string
 
+	cpi string
 	cid string
 }
 
@@ -27,6 +28,7 @@ func (s StemcellImpl) Version() semver.Version { return s.version }
 
 func (s StemcellImpl) OSName() string { return s.osName }
 func (s StemcellImpl) CID() string    { return s.cid }
+func (s StemcellImpl) CPI() string    { return s.cpi }
 
 func (s StemcellImpl) VersionMark(suffix string) string {
 	if s.currentlyDeployed {
@@ -54,6 +56,7 @@ type StemcellResp struct {
 	OperatingSystem string `json:"operating_system"`
 
 	CID string `json:"cid"`
+	CPI string `json:"cpi"`
 
 	// Only used for determining if stemcell is deployed
 	Deployments []interface{}
@@ -83,6 +86,7 @@ func (d DirectorImpl) Stemcells() ([]Stemcell, error) {
 
 			osName: resp.OperatingSystem,
 
+			cpi: resp.CPI,
 			cid: resp.CID,
 		}
 

@@ -35,6 +35,12 @@ type FakeStemcell struct {
 	oSNameReturns     struct {
 		result1 string
 	}
+	CPIStub        func() string
+	cPIMutex       sync.RWMutex
+	cPIArgsForCall []struct{}
+	cPIReturns     struct {
+		result1 string
+	}
 	CIDStub        func() string
 	cIDMutex       sync.RWMutex
 	cIDArgsForCall []struct{}
@@ -161,6 +167,31 @@ func (fake *FakeStemcell) OSNameReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeStemcell) CPI() string {
+	fake.cPIMutex.Lock()
+	fake.cPIArgsForCall = append(fake.cPIArgsForCall, struct{}{})
+	fake.recordInvocation("CPI", []interface{}{})
+	fake.cPIMutex.Unlock()
+	if fake.CPIStub != nil {
+		return fake.CPIStub()
+	} else {
+		return fake.cPIReturns.result1
+	}
+}
+
+func (fake *FakeStemcell) CPICallCount() int {
+	fake.cPIMutex.RLock()
+	defer fake.cPIMutex.RUnlock()
+	return len(fake.cPIArgsForCall)
+}
+
+func (fake *FakeStemcell) CPIReturns(result1 string) {
+	fake.CPIStub = nil
+	fake.cPIReturns = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeStemcell) CID() string {
 	fake.cIDMutex.Lock()
 	fake.cIDArgsForCall = append(fake.cIDArgsForCall, struct{}{})
@@ -230,6 +261,8 @@ func (fake *FakeStemcell) Invocations() map[string][][]interface{} {
 	defer fake.versionMarkMutex.RUnlock()
 	fake.oSNameMutex.RLock()
 	defer fake.oSNameMutex.RUnlock()
+	fake.cPIMutex.RLock()
+	defer fake.cPIMutex.RUnlock()
 	fake.cIDMutex.RLock()
 	defer fake.cIDMutex.RUnlock()
 	fake.deleteMutex.RLock()

@@ -197,6 +197,8 @@ type Stemcell interface {
 	VersionMark(mark string) string
 
 	OSName() string
+
+	CPI() string
 	CID() string
 
 	Delete(force bool) error

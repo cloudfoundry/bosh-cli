@@ -37,23 +37,27 @@ var _ = Describe("StemcellsCmd", func() {
 					VersionStub:     func() semver.Version { return semver.MustNewVersionFromString("stem1-ver") },
 					VersionMarkStub: func(mark string) string { return "stem1-ver-mark" + mark },
 					OSNameStub:      func() string { return "stem1-os" },
+					CPIStub:         func() string { return "stem1-cpi" },
 					CIDStub:         func() string { return "stem1-cid" },
 				},
 				&fakedir.FakeStemcell{
 					NameStub:    func() string { return "stem2" },
 					VersionStub: func() semver.Version { return semver.MustNewVersionFromString("stem2-ver") },
 					OSNameStub:  func() string { return "stem2-os" },
+					CPIStub:     func() string { return "stem2-cpi" },
 					CIDStub:     func() string { return "stem2-cid" },
 				},
 				&fakedir.FakeStemcell{
 					NameStub:    func() string { return "stem3" },
 					VersionStub: func() semver.Version { return semver.MustNewVersionFromString("stem3-ver") },
 					OSNameStub:  func() string { return "stem3-os" },
+					CPIStub:     func() string { return "stem3-cpi" },
 					CIDStub:     func() string { return "stem3-cid" },
 				},
 				&fakedir.FakeStemcell{
 					NameStub:    func() string { return "stem4" },
 					VersionStub: func() semver.Version { return semver.MustNewVersionFromString("stem4-ver") },
+					CPIStub:     func() string { return "stem4-cpi" },
 					CIDStub:     func() string { return "stem4-cid" },
 				},
 			}
@@ -66,7 +70,7 @@ var _ = Describe("StemcellsCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "stemcells",
 
-				Header: []string{"Name", "Version", "OS", "CID"},
+				Header: []string{"Name", "Version", "OS", "CPI", "CID"},
 
 				SortBy: []boshtbl.ColumnSort{
 					{Column: 0, Asc: true},
@@ -81,6 +85,7 @@ var _ = Describe("StemcellsCmd", func() {
 							"stem1-ver-mark*",
 						),
 						boshtbl.NewValueString("stem1-os"),
+						boshtbl.NewValueString("stem1-cpi"),
 						boshtbl.NewValueString("stem1-cid"),
 					},
 					{
@@ -90,6 +95,7 @@ var _ = Describe("StemcellsCmd", func() {
 							"",
 						),
 						boshtbl.NewValueString("stem2-os"),
+						boshtbl.NewValueString("stem2-cpi"),
 						boshtbl.NewValueString("stem2-cid"),
 					},
 					{
@@ -99,6 +105,7 @@ var _ = Describe("StemcellsCmd", func() {
 							"",
 						),
 						boshtbl.NewValueString("stem3-os"),
+						boshtbl.NewValueString("stem3-cpi"),
 						boshtbl.NewValueString("stem3-cid"),
 					},
 					{
@@ -108,6 +115,7 @@ var _ = Describe("StemcellsCmd", func() {
 							"",
 						),
 						boshtbl.NewValueString(""),
+						boshtbl.NewValueString("stem4-cpi"),
 						boshtbl.NewValueString("stem4-cid"),
 					},
 				},

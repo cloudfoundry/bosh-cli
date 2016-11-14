@@ -24,7 +24,7 @@ func (c StemcellsCmd) Run() error {
 	table := boshtbl.Table{
 		Content: "stemcells",
 
-		Header: []string{"Name", "Version", "OS", "CID"},
+		Header: []string{"Name", "Version", "OS", "CPI", "CID"},
 
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},
@@ -42,6 +42,7 @@ func (c StemcellsCmd) Run() error {
 				stem.VersionMark("*"),
 			),
 			boshtbl.NewValueString(stem.OSName()),
+			boshtbl.NewValueString(stem.CPI()),
 			boshtbl.NewValueString(stem.CID()),
 		})
 	}
