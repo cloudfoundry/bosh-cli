@@ -22,7 +22,7 @@ var _ = Describe("FSConfig", func() {
 	})
 
 	Describe("Name", func() {
-		It("returns final name from public config", func() {
+		It("returns name from public config", func() {
 			fs.WriteFileString("/dir/public.yml", "name: name")
 
 			name, err := config.Name()
@@ -30,12 +30,28 @@ var _ = Describe("FSConfig", func() {
 			Expect(name).To(Equal("name"))
 		})
 
-		It("returns error if name is empty", func() {
+		It("returns final_name from public config", func() {
+			fs.WriteFileString("/dir/public.yml", "final_name: name")
+
+			name, err := config.Name()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(name).To(Equal("name"))
+		})
+
+		It("returns error if name and final_name are empty", func() {
 			fs.WriteFileString("/dir/public.yml", "")
 
 			_, err := config.Name()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Expected non-empty 'name' in config '/dir/public.yml'"))
+		})
+
+		It("returns error if both name and final_name are non-empty", func() {
+			fs.WriteFileString("/dir/public.yml", "final_name: name\nname: name")
+
+			_, err := config.Name()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Expected 'name' or 'final_name' but not both in config '/dir/public.yml'"))
 		})
 
 		It("returns error if cannot read public config", func() {
@@ -174,6 +190,15 @@ var _ = Describe("FSConfig", func() {
 
 			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal(
 				"name: new-name\nblobstore:\n  provider: s3\n"))
+		})
+
+		It("migrates final_name to name", func() {
+			fs.WriteFileString("/dir/public.yml", "final_name: name")
+
+			err := config.SaveName("new-name")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal("name: new-name\n"))
 		})
 
 		It("returns error if cannot read public config", func() {

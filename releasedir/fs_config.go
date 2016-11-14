@@ -10,7 +10,6 @@ import (
 # final.yml
 ---
 name: cf
-min_cli_version: 1.5.0.pre.1001
 blobstore:
   provider: s3
   options:
@@ -30,6 +29,7 @@ type FSConfig struct {
 
 type fsConfigPublicSchema struct {
 	Name      string                   `yaml:"name"`
+	FinalName string                   `yaml:"final_name,omitempty"`
 	Blobstore fsConfigSchema_Blobstore `yaml:"blobstore,omitempty"`
 }
 
@@ -53,8 +53,15 @@ func (c FSConfig) Name() (string, error) {
 	}
 
 	if len(publicSchema.Name) == 0 {
+		if len(publicSchema.FinalName) == 0 {
+			return "", bosherr.Errorf(
+				"Expected non-empty 'name' in config '%s'", c.publicPath)
+		}
+
+		return publicSchema.FinalName, nil
+	} else if len(publicSchema.FinalName) > 0 {
 		return "", bosherr.Errorf(
-			"Expected non-empty 'name' in config '%s'", c.publicPath)
+			"Expected 'name' or 'final_name' but not both in config '%s'", c.publicPath)
 	}
 
 	return publicSchema.Name, nil
@@ -66,6 +73,7 @@ func (c FSConfig) SaveName(name string) error {
 		return err
 	}
 
+	publicSchema.FinalName = ""
 	publicSchema.Name = name
 
 	bytes, err := yaml.Marshal(publicSchema)
