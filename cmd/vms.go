@@ -70,7 +70,7 @@ func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable)
 
 		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
-		Notes: []string{"(*) Bootstrap node"},
+		Notes: []string{""},
 	}
 
 	for _, info := range vmInfos {

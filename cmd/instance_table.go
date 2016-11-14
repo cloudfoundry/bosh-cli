@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"strings"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
@@ -22,7 +21,9 @@ type InstanceTableValues struct {
 	VMCID        boshtbl.Value
 	DiskCIDs     boshtbl.Value
 	AgentID      boshtbl.Value
+	Index        boshtbl.Value
 	Resurrection boshtbl.Value
+	Bootstrap    boshtbl.Value
 	Ignore       boshtbl.Value
 
 	// DNS
@@ -59,7 +60,9 @@ var InstanceTableHeader = InstanceTableValues{
 	VMCID:        boshtbl.NewValueString("VM CID"),
 	DiskCIDs:     boshtbl.NewValueString("Disk CIDs"),
 	AgentID:      boshtbl.NewValueString("Agent ID"),
+	Index:        boshtbl.NewValueString("Index"),
 	Resurrection: boshtbl.NewValueString("Resurrection\nPaused"),
+	Bootstrap:    boshtbl.NewValueString("Bootstrap"),
 	Ignore:       boshtbl.NewValueString("Ignore"),
 
 	// DNS
@@ -91,6 +94,13 @@ func (t InstanceTable) Header() InstanceTableValues {
 }
 
 func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
+
+	var vmInfoIndex boshtbl.ValueInt
+
+	if i.Index != nil {
+		vmInfoIndex = boshtbl.NewValueInt(*i.Index)
+	}
+
 	vals := InstanceTableValues{
 		Name:    t.buildName(i),
 		Process: boshtbl.ValueString{},
@@ -109,7 +119,9 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		VMCID:        boshtbl.NewValueString(i.VMID),
 		DiskCIDs:     boshtbl.NewValueStrings(i.DiskIDs),
 		AgentID:      boshtbl.NewValueString(i.AgentID),
+		Index:        vmInfoIndex,
 		Resurrection: boshtbl.NewValueBool(i.ResurrectionPaused),
+		Bootstrap:    boshtbl.NewValueBool(i.Bootstrap),
 		Ignore:       boshtbl.NewValueBool(i.Ignore),
 
 		// DNS
@@ -148,24 +160,6 @@ func (t InstanceTable) buildName(i boshdir.VMInfo) boshtbl.ValueString {
 
 	if len(i.ID) > 0 {
 		name += "/" + i.ID
-
-		if i.Bootstrap {
-			name += "*"
-		}
-
-		if i.Index != nil {
-			name += fmt.Sprintf(" (%d)", *i.Index)
-		}
-	} else {
-		if i.Index == nil {
-			name += "/?"
-		} else {
-			name += fmt.Sprintf("/%d", *i.Index)
-		}
-
-		if i.Bootstrap {
-			name += "*"
-		}
 	}
 
 	return boshtbl.NewValueString(name)
@@ -199,7 +193,7 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 	result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs}...)
 
 	if t.Details {
-		result = append(result, []boshtbl.Value{v.State, v.VMCID, v.VMType, v.DiskCIDs, v.AgentID, v.Resurrection, v.Ignore}...)
+		result = append(result, []boshtbl.Value{v.State, v.VMCID, v.VMType, v.DiskCIDs, v.AgentID, v.Index, v.Resurrection, v.Bootstrap, v.Ignore}...)
 	} else if t.VMDetails {
 		result = append(result, []boshtbl.Value{v.VMCID, v.VMType}...)
 	}

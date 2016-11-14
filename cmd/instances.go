@@ -38,7 +38,7 @@ func (c InstancesCmd) Run(opts InstancesOpts) error {
 			{Column: 1, Asc: true}, // sort by process so that VM row is first
 		},
 
-		Notes: []string{"(*) Bootstrap node"},
+		Notes: []string{""},
 	}
 
 	for _, info := range instanceInfos {

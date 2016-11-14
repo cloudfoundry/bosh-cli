@@ -177,10 +177,10 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/1"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
@@ -188,10 +188,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/2"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/2"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
 									boshtbl.NewValueStrings([]string{"in2-ip1"}),
@@ -199,10 +199,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("?/?"),
+							FirstColumn: boshtbl.NewValueString("?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueString("?"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
@@ -211,7 +211,7 @@ var _ = Describe("InstancesCmd", func() {
 						},
 					},
 
-					Notes: []string{"(*) Bootstrap node"},
+					Notes: []string{""},
 				}))
 			})
 
@@ -238,10 +238,10 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/1"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.ValueString{},
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
@@ -264,10 +264,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/2"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/2"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.ValueString{},
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
@@ -283,10 +283,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("?/?"),
+							FirstColumn: boshtbl.NewValueString("?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueString("?"),
 									boshtbl.ValueString{},
 									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
@@ -296,7 +296,7 @@ var _ = Describe("InstancesCmd", func() {
 						},
 					},
 
-					Notes: []string{"(*) Bootstrap node"},
+					Notes: []string{""},
 				}))
 			})
 
@@ -318,7 +318,9 @@ var _ = Describe("InstancesCmd", func() {
 						boshtbl.NewValueString("VM Type"),
 						boshtbl.NewValueString("Disk CIDs"),
 						boshtbl.NewValueString("Agent ID"),
+						boshtbl.NewValueString("Index"),
 						boshtbl.NewValueString("Resurrection\nPaused"),
+						boshtbl.NewValueString("Bootstrap"),
 						boshtbl.NewValueString("Ignore"),
 					},
 
@@ -329,10 +331,10 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/1"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
@@ -341,16 +343,18 @@ var _ = Describe("InstancesCmd", func() {
 									boshtbl.NewValueString("in1-rp"),
 									boshtbl.NewValueStrings([]string{"diskcid1", "diskcid2"}),
 									boshtbl.NewValueString("in1-agent-id"),
+									boshtbl.NewValueInt(1),
+									boshtbl.NewValueBool(false),
 									boshtbl.NewValueBool(false),
 									boshtbl.NewValueBool(true),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/2"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/2"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
 									boshtbl.NewValueStrings([]string{"in2-ip1"}),
@@ -359,16 +363,18 @@ var _ = Describe("InstancesCmd", func() {
 									boshtbl.NewValueString("in2-rp"),
 									boshtbl.NewValueStrings([]string{"diskcid1", "diskcid2"}),
 									boshtbl.NewValueString("in2-agent-id"),
+									boshtbl.NewValueInt(2),
 									boshtbl.NewValueBool(true),
+									boshtbl.NewValueBool(false),
 									boshtbl.NewValueBool(false),
 								},
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("?/?"),
+							FirstColumn: boshtbl.NewValueString("?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueString("?"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
@@ -377,6 +383,8 @@ var _ = Describe("InstancesCmd", func() {
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
 									boshtbl.ValueString{},
+									boshtbl.NewValueInt(0),
+									boshtbl.NewValueBool(false),
 									boshtbl.NewValueBool(false),
 									boshtbl.NewValueBool(false),
 								},
@@ -384,7 +392,7 @@ var _ = Describe("InstancesCmd", func() {
 						},
 					},
 
-					Notes: []string{"(*) Bootstrap node"},
+					Notes: []string{""},
 				}))
 			})
 
@@ -411,10 +419,10 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/1"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
@@ -423,10 +431,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/2"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/2"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
 									boshtbl.NewValueStrings([]string{"in2-ip1"}),
@@ -435,10 +443,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("?/?"),
+							FirstColumn: boshtbl.NewValueString("?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueString("?"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
@@ -448,7 +456,7 @@ var _ = Describe("InstancesCmd", func() {
 						},
 					},
 
-					Notes: []string{"(*) Bootstrap node"},
+					Notes: []string{""},
 				}))
 			})
 
@@ -487,10 +495,10 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/1"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.ValueString{},
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
@@ -546,10 +554,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/2"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/2"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.ValueString{},
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 									boshtbl.NewValueString("in2-az"),
@@ -587,10 +595,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("?/?"),
+							FirstColumn: boshtbl.NewValueString("?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueString("?"),
 									boshtbl.ValueString{},
 									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
@@ -611,7 +619,7 @@ var _ = Describe("InstancesCmd", func() {
 						},
 					},
 
-					Notes: []string{"(*) Bootstrap node"},
+					Notes: []string{""},
 				}))
 			})
 
@@ -641,10 +649,10 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/1"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
 									boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
@@ -652,10 +660,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("?/?"),
+							FirstColumn: boshtbl.NewValueString("?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueString("?"),
 									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
 									boshtbl.ValueStrings{},
@@ -664,7 +672,7 @@ var _ = Describe("InstancesCmd", func() {
 						},
 					},
 
-					Notes: []string{"(*) Bootstrap node"},
+					Notes: []string{""},
 				}))
 			})
 
@@ -699,10 +707,10 @@ var _ = Describe("InstancesCmd", func() {
 
 					Sections: []boshtbl.Section{
 						{
-							FirstColumn: boshtbl.NewValueString("job-name/1"),
+							FirstColumn: boshtbl.NewValueString("job-name"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("job-name/1"),
+									boshtbl.NewValueString("job-name"),
 									boshtbl.ValueString{},
 									boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 									boshtbl.ValueString{},
@@ -718,10 +726,10 @@ var _ = Describe("InstancesCmd", func() {
 							},
 						},
 						{
-							FirstColumn: boshtbl.NewValueString("?/?"),
+							FirstColumn: boshtbl.NewValueString("?"),
 							Rows: [][]boshtbl.Value{
 								{
-									boshtbl.NewValueString("?/?"),
+									boshtbl.NewValueString("?"),
 									boshtbl.ValueString{},
 									boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 									boshtbl.ValueString{},
@@ -731,7 +739,7 @@ var _ = Describe("InstancesCmd", func() {
 						},
 					},
 
-					Notes: []string{"(*) Bootstrap node"},
+					Notes: []string{""},
 				}))
 			})
 		})

@@ -20,42 +20,20 @@ var _ = Describe("InstanceTable", func() {
 			tbl = InstanceTable{Details: true, DNS: true, Vitals: true}
 		})
 
-		Describe("name, id, index, bootstrap", func() {
+		Describe("name, id", func() {
 			It("returns ? name", func() {
-				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("?/?"))
+				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("?"))
 			})
 
-			It("returns ? name with bootstrap", func() {
-				info.Bootstrap = true
-				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("?/?*"))
-			})
-
-			It("returns ? name", func() {
+			It("returns name", func() {
 				info.JobName = "name"
-				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("name/?"))
+				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("name"))
 			})
 
-			It("returns name with index", func() {
-				idx := 1
-				info.JobName = "name"
-				info.Index = &idx
-				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("name/1"))
-			})
-
-			It("returns name with index and bootstrap", func() {
-				idx := 1
-				info.JobName = "name"
-				info.Index = &idx
-				info.Bootstrap = true
-				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("name/1*"))
-			})
-
-			It("returns name with id and index", func() {
-				idx := 1
+			It("returns name with id", func() {
 				info.JobName = "name"
 				info.ID = "id"
-				info.Index = &idx
-				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("name/id (1)"))
+				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("name/id"))
 			})
 
 			It("returns name with id, bootstrap and index", func() {
@@ -64,7 +42,12 @@ var _ = Describe("InstanceTable", func() {
 				info.ID = "id"
 				info.Index = &idx
 				info.Bootstrap = true
-				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("name/id* (1)"))
+				Expect(tbl.ForVMInfo(info).Name.String()).To(Equal("name/id"))
+
+				Expect(tbl.ForVMInfo(info).Bootstrap).ToNot(BeNil())
+				Expect(tbl.ForVMInfo(info).Bootstrap.String()).To(Equal("true"))
+				Expect(tbl.ForVMInfo(info).Index).ToNot(BeNil())
+				Expect(tbl.ForVMInfo(info).Index.String()).To(Equal("1"))
 			})
 
 			It("returns name with id, without index", func() {
