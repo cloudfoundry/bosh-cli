@@ -1751,14 +1751,6 @@ var _ = Describe("Opts", func() {
 			opts = &VMsOpts{}
 		})
 
-		Describe("Details", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Details", opts)).To(Equal(
-					`long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`,
-				))
-			})
-		})
-
 		Describe("DNS", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DNS", opts)).To(Equal(

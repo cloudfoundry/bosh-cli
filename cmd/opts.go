@@ -568,7 +568,6 @@ type InstancesOpts struct {
 }
 
 type VMsOpts struct {
-	Details    bool `long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`
 	DNS        bool `long:"dns"               description:"Show DNS A records"`
 	Vitals     bool `long:"vitals"            description:"Show vitals"`
 	Deployment string

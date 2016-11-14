@@ -22,7 +22,7 @@ func (c VMsCmd) Run(opts VMsOpts) error {
 		// VMs command should always show VM specifics
 		VMDetails: true,
 
-		Details: opts.Details,
+		Details: false,
 		DNS:     opts.DNS,
 		Vitals:  opts.Vitals,
 	}
