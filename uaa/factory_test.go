@@ -5,18 +5,24 @@ import (
 	"fmt"
 	"net/http"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/uaa"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 )
 
 var _ = Describe("Factory", func() {
 	Describe("New", func() {
+		var logger *loggerfakes.FakeLogger
+
+		BeforeEach(func() {
+			logger = &loggerfakes.FakeLogger{}
+		})
+
 		It("returns error if config is invalid", func() {
-			_, err := NewFactory(boshlog.NewLogger(boshlog.LevelNone)).New(Config{})
+			_, err := NewFactory(logger).New(Config{})
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -29,8 +35,6 @@ var _ = Describe("Factory", func() {
 
 			config.Client = "client"
 			config.ClientSecret = "client-secret"
-
-			logger := boshlog.NewLogger(boshlog.LevelNone)
 
 			uaa, err := NewFactory(logger).New(config)
 			Expect(err).ToNot(HaveOccurred())
@@ -59,8 +63,6 @@ var _ = Describe("Factory", func() {
 			config.ClientSecret = "client-secret"
 			config.CACert = validCACert
 
-			logger := boshlog.NewLogger(boshlog.LevelNone)
-
 			uaa, err := NewFactory(logger).New(config)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -74,6 +76,8 @@ var _ = Describe("Factory", func() {
 
 			_, err = uaa.ClientCredentialsGrant()
 			Expect(err).ToNot(HaveOccurred())
+			_, _, args := logger.DebugArgsForCall(1)
+			Expect(args[0]).To(ContainSubstring("/token?grant_type=<redacted>"))
 		})
 
 		Context("when the server url has a context path", func() {
@@ -95,8 +99,6 @@ var _ = Describe("Factory", func() {
 				config.Client = "client"
 				config.ClientSecret = "client-secret"
 				config.CACert = validCACert
-
-				logger := boshlog.NewLogger(boshlog.LevelNone)
 
 				uaa, err := NewFactory(logger).New(config)
 				Expect(err).ToNot(HaveOccurred())

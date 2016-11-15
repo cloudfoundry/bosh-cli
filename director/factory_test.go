@@ -10,6 +10,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 )
 
 var _ = Describe("Factory", func() {
@@ -104,6 +105,32 @@ var _ = Describe("Factory", func() {
 
 				_, err = director.Info()
 				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("does not redact url query params", func() {
+				logger := &loggerfakes.FakeLogger{}
+				config, err := NewConfigFromURL(server.URL())
+				Expect(err).ToNot(HaveOccurred())
+
+				config.Username = "username"
+				config.Password = "password"
+				config.CACert = validCACert
+
+				director, err := NewFactory(logger).New(config, nil, nil)
+				Expect(err).ToNot(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/cloud_configs", "limit=1"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusOK, `[]`),
+					),
+				)
+
+				director.LatestCloudConfig()
+				_, _, args := logger.DebugArgsForCall(1)
+
+				Expect(args[0]).To(ContainSubstring("/cloud_configs?limit=1"))
 			})
 
 			It("succeeds making requests and follow redirects with token", func() {

@@ -133,6 +133,8 @@ var _ = Describe("HTTPClient", func() {
 			var opts Opts
 
 			BeforeEach(func() {
+				opts = Opts{NoRedactUrlQuery: true}
+
 				httpClient = NewHTTPClientOpts(&http.Client{
 					Transport: &http.Transport{
 						TLSClientConfig: &tls.Config{
@@ -157,6 +159,7 @@ var _ = Describe("HTTPClient", func() {
 			})
 
 			It("does not redact every query param from endpoint for https calls", func() {
+
 				url := "https://oauth-url?refresh_token=abc&param2=xyz"
 
 				httpClient.PostCustomized(url, []byte("post-request"), func(r *http.Request) {})
@@ -167,7 +170,7 @@ var _ = Describe("HTTPClient", func() {
 
 			Context("httpclient has been configured to redact query parmas", func() {
 				BeforeEach(func() {
-					opts = Opts{SanitizeUrlQuery: true}
+					opts = Opts{}
 
 					httpClient = NewHTTPClientOpts(&http.Client{
 						Transport: &http.Transport{
@@ -211,6 +214,8 @@ var _ = Describe("HTTPClient", func() {
 			var opts Opts
 
 			BeforeEach(func() {
+				opts = Opts{NoRedactUrlQuery: true}
+
 				httpClient = NewHTTPClientOpts(&http.Client{
 					Transport: &http.Transport{
 						TLSClientConfig: &tls.Config{
@@ -245,7 +250,7 @@ var _ = Describe("HTTPClient", func() {
 
 			Context("httpclient has been configured to redact query parmas", func() {
 				BeforeEach(func() {
-					opts = Opts{SanitizeUrlQuery: true}
+					opts = Opts{}
 
 					httpClient = NewHTTPClientOpts(&http.Client{
 						Transport: &http.Transport{
@@ -364,6 +369,8 @@ var _ = Describe("HTTPClient", func() {
 			var opts Opts
 
 			BeforeEach(func() {
+				opts = Opts{NoRedactUrlQuery: true}
+
 				httpClient = NewHTTPClientOpts(&http.Client{
 					Transport: &http.Transport{
 						TLSClientConfig: &tls.Config{
@@ -398,7 +405,7 @@ var _ = Describe("HTTPClient", func() {
 
 			Context("httpclient has been configured to redact query parmas", func() {
 				BeforeEach(func() {
-					opts = Opts{SanitizeUrlQuery: true}
+					opts = Opts{}
 
 					httpClient = NewHTTPClientOpts(&http.Client{
 						Transport: &http.Transport{
@@ -513,6 +520,8 @@ var _ = Describe("HTTPClient", func() {
 			var opts Opts
 
 			BeforeEach(func() {
+				opts = Opts{NoRedactUrlQuery: true}
+
 				httpClient = NewHTTPClientOpts(&http.Client{
 					Transport: &http.Transport{
 						TLSClientConfig: &tls.Config{
@@ -547,7 +556,7 @@ var _ = Describe("HTTPClient", func() {
 
 			Context("httpclient has been configured to redact query parmas", func() {
 				BeforeEach(func() {
-					opts = Opts{SanitizeUrlQuery: true}
+					opts = Opts{}
 
 					httpClient = NewHTTPClientOpts(&http.Client{
 						Transport: &http.Transport{

@@ -33,7 +33,7 @@ type httpClient struct {
 }
 
 type Opts struct {
-	SanitizeUrlQuery bool
+	NoRedactUrlQuery bool
 }
 
 func NewHTTPClient(client Client, logger boshlog.Logger) HTTPClient {
@@ -62,7 +62,7 @@ func (c httpClient) PostCustomized(endpoint string, payload []byte, f func(*http
 
 	redactedEndpoint := endpoint
 
-	if c.opts.SanitizeUrlQuery {
+	if !c.opts.NoRedactUrlQuery {
 		redactedEndpoint = scrubEndpointQuery(endpoint)
 	}
 
@@ -94,7 +94,7 @@ func (c httpClient) PutCustomized(endpoint string, payload []byte, f func(*http.
 
 	redactedEndpoint := endpoint
 
-	if c.opts.SanitizeUrlQuery {
+	if !c.opts.NoRedactUrlQuery {
 		redactedEndpoint = scrubEndpointQuery(endpoint)
 	}
 
@@ -124,7 +124,7 @@ func (c httpClient) Get(endpoint string) (*http.Response, error) {
 func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
 	redactedEndpoint := endpoint
 
-	if c.opts.SanitizeUrlQuery {
+	if !c.opts.NoRedactUrlQuery {
 		redactedEndpoint = scrubEndpointQuery(endpoint)
 	}
 
@@ -150,7 +150,7 @@ func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http
 func (c httpClient) Delete(endpoint string) (*http.Response, error) {
 	redactedEndpoint := endpoint
 
-	if c.opts.SanitizeUrlQuery {
+	if !c.opts.NoRedactUrlQuery {
 		redactedEndpoint = scrubEndpointQuery(endpoint)
 	}
 
