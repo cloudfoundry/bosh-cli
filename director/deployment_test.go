@@ -505,6 +505,27 @@ var _ = Describe("Deployment", func() {
 						err := stateFunc(deployment)
 						Expect(err).ToNot(HaveOccurred())
 					})
+
+					It("changes state with fix", func() {
+						recreateOpts.Fix = true
+
+						query := fmt.Sprintf("state=%s&fix=%t", state, recreateOpts.Fix)
+
+						ConfigureTaskResult(
+							ghttp.CombineHandlers(
+								ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*", query),
+								ghttp.VerifyBasicAuth("username", "password"),
+								ghttp.VerifyHeader(http.Header{
+									"Content-Type": []string{"text/yaml"},
+								}),
+								ghttp.VerifyBody([]byte{}),
+							),
+							``,
+							server,
+						)
+						err := stateFunc(deployment)
+						Expect(err).ToNot(HaveOccurred())
+					})
 				}
 				if state != "started" {
 					It("changes state with skipping drain and forcing", func() {

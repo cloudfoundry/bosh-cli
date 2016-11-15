@@ -23,6 +23,7 @@ func (c RecreateCmd) Run(opts RecreateOpts) error {
 	recreateOpts := boshdir.RecreateOpts{
 		SkipDrain:   opts.SkipDrain,
 		Force:       opts.Force,
+		Fix:         opts.Fix,
 		DryRun:      opts.DryRun,
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,

@@ -154,6 +154,7 @@ type RecreateOpts struct {
 	Canaries    string
 	MaxInFlight string
 	Force       bool
+	Fix         bool
 	SkipDrain   SkipDrain
 	DryRun      bool
 }

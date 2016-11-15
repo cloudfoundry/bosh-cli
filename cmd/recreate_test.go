@@ -102,6 +102,18 @@ var _ = Describe("RecreateCmd", func() {
 			Expect(recreateOpts.DryRun).To(BeTrue())
 		})
 
+		It("can set fix", func() {
+			opts.Fix = true
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.RecreateCallCount()).To(Equal(1))
+
+			_, recreateOpts := deployment.RecreateArgsForCall(0)
+			Expect(recreateOpts.Fix).To(BeTrue())
+		})
+
 		It("recreate forcefully", func() {
 			opts.Force = true
 

@@ -661,6 +661,7 @@ type RecreateOpts struct {
 
 	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
+	Fix       bool              `long:"fix"      description:"Fix unresponsive VMs"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
