@@ -1,6 +1,6 @@
 # bosh CLI
 
-* Documentation: [bosh.io/docs](https://bosh.io/docs)
+* Documentation: [bosh.io/docs/cli-v2](https://bosh.io/docs/cli-v2.html)
 * Slack: #bosh on <https://slack.cloudfoundry.org>
 * Mailing list: [cf-bosh](https://lists.cloudfoundry.org/pipermail/cf-bosh)
 * CI: <https://main.bosh-ci.cf-app.com/pipelines/bosh:cli>
@@ -8,9 +8,7 @@
 
 ## Usage
 
-Relevant documentation pages from bosh.io:
-
-- [Installing BOSH](https://bosh.io/docs#install)
+- [Install](https://bosh.io/docs/cli-v2.html)
 
 ## Client Library
 
